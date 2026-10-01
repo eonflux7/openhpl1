@@ -101,8 +101,10 @@ tools/refshots.py compare /tmp/ref /tmp/new --diff-dir /tmp/diff
 
 A capture (about a minute) visits every map: each start position, and up to
 six of the map's lights, looking in four directions from each, with the
-flashlight on. It saves the 3D view only, without the HUD, fades or menus,
-at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
+flashlight on. These frames show the 3D view only, without the HUD, fades
+or menus. Then it loads the first map again and saves the 2D screens over
+it (`2d-*.png`): HUD, inventory, notebook, keypad, a message and the main
+menu pages. All at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
 some maps (compare such a capture only with one of the same maps: frames
 depend on the maps visited before), `--size` changes the resolution and
 `--set Graphics.Shadows=2` any setting. `compare` lists the frames that differ and exits with 1 if any

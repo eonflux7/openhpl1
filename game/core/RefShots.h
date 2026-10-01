@@ -25,6 +25,9 @@ class cInit;
 //
 // The frames show the 3D view only, with the flashlight on; nothing the
 // game draws in 2D (HUD, fades, effects, menus). The player cannot be hurt.
+// After the last map the first one is loaded again for the 2D screens: the
+// HUD, inventory, notebook, keypad, a message and the main menu, saved as
+// <OVERTURE_REFSHOTS_DIR>/2d-<screen>.png.
 // The run uses a fixed time step and a fixed random seed, so that two runs
 // of the same build give the same frames; tools/refshots.py runs it headless
 // and compares the result with an earlier run. Progress is logged with a
@@ -52,6 +55,7 @@ private:
 		eStep_SettleMap,
 		eStep_SettleStart,
 		eStep_Shoot,
+		eStep_2D,
 		eStep_Done,
 	};
 
@@ -60,6 +64,7 @@ private:
 	void NextMap();
 	void Finish();
 	void SetView();
+	void Update2D();
 
 	cInit *mpInit;
 
@@ -82,6 +87,10 @@ private:
 	int mlFrame;
 	int mlShots;
 	int mlFailures;
+
+	// The 2D screens are being shot, on the first map again
+	bool mb2D;
+	size_t ml2DScreen;
 
 	tString msDeadOn;
 

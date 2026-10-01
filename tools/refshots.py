@@ -10,8 +10,9 @@
 capture runs the game (OVERTURE_REFSHOTS) in a headless gamescope session
 with its own settings file, so the user's settings and screen are left
 alone, and with OpenAL Soft's null audio backend, so nothing is heard. It
-saves one PNG per map, place and direction, and hpl.log, to OUT_DIR. The graphics settings are fixed (see SETTINGS) so that two
-captures differ only by the build.
+saves one PNG per map, place and direction, one per 2D screen (2d-*.png),
+and hpl.log, to OUT_DIR. The graphics settings are fixed (see SETTINGS) so
+that two captures differ only by the build.
 
 compare lists the frames that differ between two captures and exits with
 1 if any do. A frame counts as changed when more than --max-pixels pixels

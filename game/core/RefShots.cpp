@@ -9,6 +9,11 @@
 #include "core/MapHandler.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
+#include "systems/GameMessageHandler.h"
+#include "ui/Inventory.h"
+#include "ui/MainMenu.h"
+#include "ui/Notebook.h"
+#include "ui/NumericalPanel.h"
 
 #include <SDL3/SDL.h>
 #include <algorithm>
@@ -31,6 +36,47 @@ static const size_t klMaxLightViews = 6;
 
 static const int klRandomSeed = 1;
 
+// The 2D screens, in order. Setup is run once, then the frame is saved
+// after the given number of logic steps (for the fades to end).
+struct c2DScreen
+{
+	const char *msName;
+	int mlFrames;
+	void (*mpSetup)(cInit *apInit);
+};
+
+static const c2DScreen kv2DScreens[] = {
+	{"hud", 30, [](cInit *apInit){}},
+	{"inventory", 90, [](cInit *apInit){
+		apInit->mpInventory->AddItemFromFile("battery", "item_battery.ent", -1);
+		apInit->mpInventory->AddItemFromFile("boltcutter", "item_boltcutter.ent", -1);
+		apInit->mpInventory->AddItemFromFile("blank_note", "item_blank_note.ent", -1);
+		apInit->mpPlayer->StartInventory();
+	}},
+	{"notebook", 90, [](cInit *apInit){
+		apInit->mpNotebook->AddTask("refshots_task", _W("A task for the reference images"));
+		apInit->mpNotebook->SetActive(true);
+	}},
+	{"notebook_tasks", 90, [](cInit *apInit){
+		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_TaskList);
+	}},
+	{"keypad", 90, [](cInit *apInit){
+		apInit->mpNotebook->SetActive(false);
+		apInit->mpNumericalPanel->SetActive(true);
+	}},
+	{"message", 90, [](cInit *apInit){
+		apInit->mpNumericalPanel->SetActive(false);
+		apInit->mpGameMessageHandler->Add(_W("A message for the reference images, long enough "
+											"to take more than one line of text."));
+	}},
+	{"menu", 90, [](cInit *apInit){ apInit->mpMainMenu->SetActive(true); }},
+	{"menu_options", 30, [](cInit *apInit){ apInit->mpMainMenu->SetState(eMainMenuState_Options); }},
+	{"menu_graphics", 30, [](cInit *apInit){ apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphics); }},
+	{"menu_advanced", 30, [](cInit *apInit){
+		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsAdvanced);
+	}},
+};
+
 //-----------------------------------------------------------------------
 
 cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefShots")
@@ -44,6 +90,8 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 	mlFrame = 0;
 	mlShots = 0;
 	mlFailures = 0;
+	mb2D = false;
+	ml2DScreen = 0;
 
 	const char *pDir = SDL_getenv("OVERTURE_REFSHOTS_DIR");
 	msDir = pDir && pDir[0] ? pDir : ".";
@@ -122,6 +170,12 @@ void cRefShots::Update(float afTimeStep)
 	if(mvMaps.empty())
 	{
 		Finish();
+		return;
+	}
+
+	if(mStep == eStep_2D)
+	{
+		Update2D();
 		return;
 	}
 
@@ -229,6 +283,9 @@ void cRefShots::Update(float afTimeStep)
 				break;
 			}
 
+			// The 2D screens are shot from the first place only
+			if(mb2D && mvViews.size() > 1) mvViews.resize(1);
+
 			mlView = 0;
 			mStep = eStep_SettleMap;
 			mlFrame = 0;
@@ -258,6 +315,17 @@ void cRefShots::Update(float afTimeStep)
 	case eStep_SettleStart:
 		SetView();
 		if(++mlFrame < klStartSettleFrames) break;
+
+		if(mb2D)
+		{
+			// What the screens show must not depend on the maps before
+			cMath::Randomize(klRandomSeed);
+			mpInit->mpGame->GetGraphics()->GetDrawer()->SetSkipDrawing(false);
+			mStep = eStep_2D;
+			ml2DScreen = 0;
+			mlFrame = 0;
+			break;
+		}
 
 		mStep = eStep_Shoot;
 		mlFrame = klTurnSettleFrames; // already facing the first direction
@@ -325,6 +393,29 @@ void cRefShots::SetView()
 
 //-----------------------------------------------------------------------
 
+void cRefShots::Update2D()
+{
+	// The main menu has its own updater container and stops the scene.
+	if(mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default") SetView();
+
+	const c2DScreen &screen = kv2DScreens[ml2DScreen];
+	if(mlFrame == 0) screen.mpSetup(mpInit);
+	if(++mlFrame < screen.mlFrames) return;
+
+	tString sFile = msDir + "/2d-" + screen.msName + ".png";
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SaveNextFrameToPNG(sFile);
+	mlShots++;
+
+	mlFrame = 0;
+	ml2DScreen++;
+	if(ml2DScreen < sizeof(kv2DScreens) / sizeof(kv2DScreens[0])) return;
+
+	Log("REFSHOTS: done, %d frames, %d failure(s)\n", mlShots, mlFailures);
+	Finish();
+}
+
+//-----------------------------------------------------------------------
+
 void cRefShots::NextView()
 {
 	mlFrame = 0;
@@ -345,8 +436,16 @@ void cRefShots::NextMap()
 {
 	mlFrame = 0;
 	mlMap++;
-	if(mlMap < mvMaps.size())
+	if(mlMap < mvMaps.size() && mb2D==false)
 	{
+		mStep = eStep_ChangeMap;
+		return;
+	}
+
+	if(mb2D==false)
+	{
+		mb2D = true;
+		mlMap = 0;
 		mStep = eStep_ChangeMap;
 		return;
 	}

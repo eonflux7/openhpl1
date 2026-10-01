@@ -505,6 +505,8 @@ bool cInit::Init(tString asCommandLine)
     
 	mpIntroStory = hplNew( cIntroStory,(this) );
 
+	// Reference images: the menu's snow starts in the same places every run
+	if(cRefShots::IsRequested()) cMath::Randomize(1);
 	mpMainMenu = hplNew( cMainMenu,(this) );
 
 	if(cSmokeTest::IsRequested())
