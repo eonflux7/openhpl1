@@ -314,6 +314,8 @@ bool cInit::Init(tString asCommandLine)
 	mvScreenSize.x = mpConfig->GetInt("Screen","Width",800);
 	mvScreenSize.y = mpConfig->GetInt("Screen","Height",600);
 	mbFullScreen = mpConfig->GetBool("Screen", "FullScreen", true);
+	mbFullScreenSetting = mbFullScreen;
+	mlDisplay = mpConfig->GetInt("Screen","Display",-1);
 	mbVsync = mpConfig->GetBool("Screen", "Vsync", false);
 	mbLogResources = mpConfig->GetBool("Debug", "LogResources", false);
 	mbDebugInteraction = mpConfig->GetBool("Debug", "DebugInteraction", false);
@@ -392,6 +394,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddInt("ScreenHeight",mvScreenSize.y);
 	Vars.AddInt("ScreenBpp",32);
 	Vars.AddBool("Fullscreen",mbFullScreen);
+	Vars.AddInt("Display",mlDisplay);
 	Vars.AddInt("Multisampling",mlFSAA);
 	Vars.AddInt("LogicUpdateRate",60);
 	Vars.AddBool("UseSoundHardware",mbUseSoundHardware);
@@ -862,7 +865,8 @@ void cInit::Exit()
 	//Save the stuff to the config file
 	mpConfig->SetInt("Screen","Width",mvScreenSize.x);
 	mpConfig->SetInt("Screen","Height",mvScreenSize.y);
-	mpConfig->SetBool("Screen", "FullScreen", mbFullScreen);
+	mpConfig->SetBool("Screen", "FullScreen", mbFullScreenSetting);
+	mpConfig->SetInt("Screen","Display",mlDisplay);
 	mpConfig->SetBool("Screen", "Vsync", mbVsync);
 
 	mpConfig->SetString("Demo","WebPageOnExit",msWebPageOnExit);

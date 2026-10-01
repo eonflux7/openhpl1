@@ -211,10 +211,29 @@ namespace hpl {
 		 * \param alBpp
 		 * \param abFullscreen
 		 * \param alMultiSampling The amount of multisamplimg, 0 = off.
+		 * \param alDisplay The display to open on, see GetDisplayNum(). -1 = pick one.
 		 * \return
 		 */
 		virtual bool Init(int alWidth, int alHeight, int alBpp, int abFullscreen, int alMultisampling,
-							const tString& asWindowCaption)=0;
+							const tString& asWindowCaption, int alDisplay)=0;
+
+		/**
+		 * The displays (monitors) that are connected. Can be used before Init().
+		 */
+		virtual int GetDisplayNum()=0;
+		virtual tString GetDisplayName(int alDisplay)=0;
+		/**
+		 * The size of the desktop on a display.
+		 */
+		virtual cVector2l GetDisplaySize(int alDisplay)=0;
+		/**
+		 * The fullscreen sizes of a display, smallest first.
+		 */
+		virtual void GetDisplayModes(int alDisplay, std::vector<cVector2l> &avModes)=0;
+		/**
+		 * The display the window was opened on.
+		 */
+		virtual int GetDisplay()=0;
 
 
 		/**

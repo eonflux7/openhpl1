@@ -113,8 +113,12 @@ public:
 	iFontData *mpDefaultFont;
 	
 	//Main properties
+	// The size, fullscreen and display settings are saved to the config and
+	// used at the next start; mbFullScreen is how this run was started.
 	cVector2l mvScreenSize;
 	bool mbFullScreen;
+	bool mbFullScreenSetting;
+	int mlDisplay;
 	bool mbVsync;
 	tString msGlobalScriptFile;
 	tString msLanguageFile;

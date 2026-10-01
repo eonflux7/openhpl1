@@ -258,6 +258,26 @@ commit), and the last official Linux build on Steam.
   the view. The old formula used `fov * aspect / 2` as the horizontal half
   angle, which reaches 90 degrees with a wide window and a large angle.
 
+### Display options
+
+- "Resolution" in the graphics options steps through "Desktop" (the
+  desktop's size, stored as -1 x -1), the fullscreen modes of the display
+  and the sizes of the original list that fit on it. It used to offer a
+  fixed list up to 1920x1200 and showed the desktop setting as "-1 x -1".
+- New "Fullscreen" option (`FullScreen` under `Screen` in `settings.cfg`,
+  which had no menu entry).
+- New "Display" option: "Automatic" (the largest monitor, as before) or one
+  of the connected monitors (`Display` under `Screen`, -1 or an index from
+  0). `OVERTURE_DISPLAY` still goes before it.
+- All three take effect at the next start, like the resolution did; the menu
+  shows the game's restart notice. V-Sync was already in the advanced options
+  and applies at once.
+- `iLowLevelGraphics` lists displays and their modes (`GetDisplayNum`,
+  `GetDisplayName`, `GetDisplaySize`, `GetDisplayModes`, `GetDisplay`), and
+  `Init` takes the display to open on.
+- The labels and tips of the new options, and "Desktop" and "Automatic", are
+  not in the game's language files and are always in English.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

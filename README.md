@@ -108,7 +108,7 @@ saves.
 | Variable | Purpose |
 |---|---|
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
-| `OVERTURE_DISPLAY` | Monitor index (0-based) to open on; default is the largest monitor |
+| `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |

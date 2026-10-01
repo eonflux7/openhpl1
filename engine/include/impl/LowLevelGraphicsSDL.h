@@ -46,7 +46,13 @@ namespace hpl {
 		~cLowLevelGraphicsSDL() override;
 
 		bool Init(	int alWidth, int alHeight, int alBpp, int abFullscreen, int alMultisampling,
-					const tString& asWindowCaption) override;
+					const tString& asWindowCaption, int alDisplay) override;
+
+		int GetDisplayNum() override;
+		tString GetDisplayName(int alDisplay) override;
+		cVector2l GetDisplaySize(int alDisplay) override;
+		void GetDisplayModes(int alDisplay, std::vector<cVector2l> &avModes) override;
+		int GetDisplay() override;
 
 		int GetCaps(eGraphicCaps aType) override;
 
@@ -249,6 +255,7 @@ namespace hpl {
 		cVector2f mvVirtualSize;
 		int mlMultisampling;
 		int mlBpp;
+		int mlDisplay;
 
 		//Gamma
 		float mfGammaCorrection;
@@ -295,7 +302,8 @@ namespace hpl {
 		//Multisample
 		void CheckMultisampleCaps();
 
-		SDL_DisplayID ChooseDisplay();
+		SDL_DisplayID ChooseDisplay(int alDisplay);
+		SDL_DisplayID GetDisplayID(int alDisplay);
 		void DebugDumpFrame();
 
 		bool CreateGammaPass();

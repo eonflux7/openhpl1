@@ -41,7 +41,7 @@ namespace hpl {
 		~cGraphics();
 
 		bool Init(int alWidth, int alHeight, int alBpp, int abFullscreen, int alMultisampling,
-					const tString &asWindowCaption,cResources* apResources);
+					const tString &asWindowCaption,cResources* apResources, int alDisplay=-1);
 
 		/**
 		 * Get low level graphics routines

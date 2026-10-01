@@ -97,6 +97,7 @@ namespace hpl {
 		mlVertexCount = 0;
 		mlIndexCount =0;
 		mlMultisampling =0;
+		mlDisplay = 0;
 
 		mvVirtualSize.x = 800;
 		mvVirtualSize.y = 600;
@@ -166,7 +167,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	bool cLowLevelGraphicsSDL::Init(int alWidth, int alHeight, int alBpp, int abFullscreen,
-									int alMultisampling, const tString& asWindowCaption)
+									int alMultisampling, const tString& asWindowCaption, int alDisplay)
 	{
 		mvScreenSize.x = alWidth;
 		mvScreenSize.y = alHeight;
@@ -209,7 +210,7 @@ namespace hpl {
 		if(bGLDebug) SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
 		// A size <= 0 means "use the desktop resolution".
-		SDL_DisplayID lDisplay = ChooseDisplay();
+		SDL_DisplayID lDisplay = ChooseDisplay(alDisplay);
 		const SDL_DisplayMode *pDesktopMode = SDL_GetDesktopDisplayMode(lDisplay);
 		if((alWidth <= 0 || alHeight <= 0) && pDesktopMode)
 		{
@@ -354,29 +355,32 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	SDL_DisplayID cLowLevelGraphicsSDL::ChooseDisplay()
+	SDL_DisplayID cLowLevelGraphicsSDL::ChooseDisplay(int alDisplay)
 	{
 		int lCount = 0;
 		SDL_DisplayID *pDisplays = SDL_GetDisplays(&lCount);
 		if(pDisplays==nullptr || lCount==0)
 		{
 			SDL_free(pDisplays);
+			mlDisplay = 0;
 			return SDL_GetPrimaryDisplay();
 		}
 
-		SDL_DisplayID lChosen = 0;
+		int lChosen = -1;
 
-		// OVERTURE_DISPLAY=<index> picks a display explicitly.
+		// OVERTURE_DISPLAY=<index> goes before the setting.
 		const char *pIndex = SDL_getenv("OVERTURE_DISPLAY");
 		if(pIndex && pIndex[0])
 		{
 			int lIdx = atoi(pIndex);
-			if(lIdx >= 0 && lIdx < lCount) lChosen = pDisplays[lIdx];
+			if(lIdx >= 0 && lIdx < lCount) lChosen = lIdx;
 		}
+
+		if(lChosen < 0 && alDisplay >= 0 && alDisplay < lCount) lChosen = alDisplay;
 
 		// Otherwise use the largest display. Wayland has no primary display,
 		// so SDL_GetPrimaryDisplay() just returns the first one it found.
-		if(lChosen == 0)
+		if(lChosen < 0)
 		{
 			long lBestArea = -1;
 			for(int i=0; i<lCount; ++i)
@@ -384,19 +388,77 @@ namespace hpl {
 				const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(pDisplays[i]);
 				if(pMode == nullptr) continue;
 				long lArea = (long)pMode->w * pMode->h;
-				if(lArea > lBestArea){ lBestArea = lArea; lChosen = pDisplays[i]; }
+				if(lArea > lBestArea){ lBestArea = lArea; lChosen = i; }
 			}
 		}
+		if(lChosen < 0) lChosen = 0;
 
 		for(int i=0; i<lCount; ++i)
 		{
 			const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(pDisplays[i]);
 			Log(" Display %d: %s %dx%d%s\n", i, SDL_GetDisplayName(pDisplays[i]),
-				pMode ? pMode->w : 0, pMode ? pMode->h : 0, pDisplays[i]==lChosen ? " (used)" : "");
+				pMode ? pMode->w : 0, pMode ? pMode->h : 0, i==lChosen ? " (used)" : "");
 		}
 
+		mlDisplay = lChosen;
+		SDL_DisplayID lID = pDisplays[lChosen];
 		SDL_free(pDisplays);
-		return lChosen ? lChosen : SDL_GetPrimaryDisplay();
+		return lID;
+	}
+
+	//-----------------------------------------------------------------------
+
+	SDL_DisplayID cLowLevelGraphicsSDL::GetDisplayID(int alDisplay)
+	{
+		int lCount = 0;
+		SDL_DisplayID *pDisplays = SDL_GetDisplays(&lCount);
+		SDL_DisplayID lID = 0;
+		if(pDisplays && alDisplay >= 0 && alDisplay < lCount) lID = pDisplays[alDisplay];
+		SDL_free(pDisplays);
+		return lID;
+	}
+
+	int cLowLevelGraphicsSDL::GetDisplayNum()
+	{
+		int lCount = 0;
+		SDL_free(SDL_GetDisplays(&lCount));
+		return lCount;
+	}
+
+	tString cLowLevelGraphicsSDL::GetDisplayName(int alDisplay)
+	{
+		const char *pName = SDL_GetDisplayName(GetDisplayID(alDisplay));
+		return pName ? pName : "";
+	}
+
+	cVector2l cLowLevelGraphicsSDL::GetDisplaySize(int alDisplay)
+	{
+		const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(GetDisplayID(alDisplay));
+		if(pMode==nullptr) return cVector2l(0,0);
+		return cVector2l(pMode->w, pMode->h);
+	}
+
+	void cLowLevelGraphicsSDL::GetDisplayModes(int alDisplay, std::vector<cVector2l> &avModes)
+	{
+		avModes.clear();
+
+		int lCount = 0;
+		SDL_DisplayMode **pModes = SDL_GetFullscreenDisplayModes(GetDisplayID(alDisplay), &lCount);
+		if(pModes==nullptr) return;
+
+		// One entry per size; the list has every refresh rate and pixel format.
+		std::map<long, cVector2l> mapSizes;
+		for(int i=0; i<lCount; ++i)
+			mapSizes[(long)pModes[i]->w * 100000 + pModes[i]->h] = cVector2l(pModes[i]->w, pModes[i]->h);
+		SDL_free(pModes);
+
+		for(std::map<long, cVector2l>::iterator it = mapSizes.begin(); it != mapSizes.end(); ++it)
+			avModes.push_back(it->second);
+	}
+
+	int cLowLevelGraphicsSDL::GetDisplay()
+	{
+		return mlDisplay;
 	}
 
 	//-----------------------------------------------------------------------

@@ -227,7 +227,8 @@ namespace hpl {
 			aVars.GetBool("Fullscreen",false),
 			aVars.GetInt("Multisampling",0),
 			aVars.GetString("WindowCaption"),
-			mpResources);
+			mpResources,
+			aVars.GetInt("Display",-1));
 
 		//Init Sound
 		mpSound->Init(mpResources, aVars.GetBool("UseSoundHardware",true),

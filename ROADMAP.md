@@ -53,7 +53,11 @@ Make sure nothing regressed before changing anything.
         checked with frame dumps of values set in `settings.cfg`
 - [ ] Uncapped / high-refresh frame rate with interpolated rendering (logic
       stays at its fixed rate)
-- [ ] Display, window mode and V-Sync options for SDL3 in the menu
+- [x] Display, window mode and V-Sync options for SDL3 in the menu
+  - [ ] play-test on a real desktop: only checked under a headless gamescope
+        session, which has one display; switching display, fullscreen and
+        resolution and restarting was not tried
+  - [ ] apply them without a restart
 - [x] **Fonts** rendered from TrueType files at screen resolution, with real
       outline and glow (see CHANGES)
   - [ ] play-test: notebook notes and task list (`cour.fnt`), credits,

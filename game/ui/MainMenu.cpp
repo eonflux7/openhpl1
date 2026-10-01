@@ -31,6 +31,8 @@
 
 #include "OALWrapper/OAL_Init.h"
 
+#include <algorithm>
+
 float gfMenuFadeAmount;
 bool gbMustRestart=false;
 
@@ -1426,6 +1428,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 cMainMenuWidget_Text *gpResolutionText=nullptr;
+cMainMenuWidget_Text *gpFullscreenText=nullptr;
+cMainMenuWidget_Text *gpDisplayText=nullptr;
 cMainMenuWidget_Text *gpPostEffectsText=nullptr;
 cMainMenuWidget_Text *gpBloomText=nullptr;
 cMainMenuWidget_Text *gpMotionBlurText=nullptr;
@@ -1771,6 +1775,40 @@ public:
 //------------------------------------------------------------
 
 
+// The sizes "Resolution" steps through: the desktop size (stored as -1 x -1),
+// the fullscreen modes of the display, and the sizes of the original list
+// that fit on it, for windows.
+static void GetResolutionList(cInit *apInit, std::vector<cVector2l> &avList)
+{
+	iLowLevelGraphics *pLowLevel = apInit->mpGame->GetGraphics()->GetLowLevel();
+	int lDisplay = apInit->mlDisplay;
+	if(lDisplay < 0 || lDisplay >= pLowLevel->GetDisplayNum()) lDisplay = pLowLevel->GetDisplay();
+
+	cVector2l vDesktop = pLowLevel->GetDisplaySize(lDisplay);
+
+	pLowLevel->GetDisplayModes(lDisplay, avList);
+	for(int i=0; i<glResolutionNum; ++i)
+	{
+		if(vDesktop.x > 0 && (gvResolutions[i].x > vDesktop.x || gvResolutions[i].y > vDesktop.y)) continue;
+		if(std::find(avList.begin(), avList.end(), gvResolutions[i]) == avList.end())
+			avList.push_back(gvResolutions[i]);
+	}
+	std::sort(avList.begin(), avList.end(), [](const cVector2l &a, const cVector2l &b)
+				{ return a.x != b.x ? a.x < b.x : a.y < b.y; });
+
+	avList.insert(avList.begin(), cVector2l(-1,-1));
+}
+
+static tWString GetResolutionText(cInit *apInit)
+{
+	// Not in the game's language files
+	if(apInit->mvScreenSize.x <= 0 || apInit->mvScreenSize.y <= 0) return _W("Desktop");
+
+	char sTempVec[256];
+	sprintf(sTempVec,"%d x %d",apInit->mvScreenSize.x, apInit->mvScreenSize.y);
+	return cString::To16Char(sTempVec);
+}
+
 class cMainMenuWidget_Resolution : public cMainMenuWidget_Button
 {
 public:
@@ -1782,12 +1820,16 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		int lCurrentNum =0;
+		std::vector<cVector2l> vResolutions;
+		GetResolutionList(mpInit, vResolutions);
+		int lNum = (int)vResolutions.size();
 
-		//get current num
-        for(int i=0; i<glResolutionNum; ++i)
+		// A size that is not in the list (set in the config file) counts as
+		// the desktop size.
+		int lCurrentNum =0;
+		for(int i=1; i<lNum; ++i)
 		{
-			if(gvResolutions[i] == mpInit->mvScreenSize)
+			if(vResolutions[i] == mpInit->mvScreenSize)
 			{
 				lCurrentNum = i;
 				break;
@@ -1797,20 +1839,92 @@ public:
 		if(aButton == eMButton_Left)
 		{
 			lCurrentNum++;
-			if(lCurrentNum >= glResolutionNum) lCurrentNum =0;
+			if(lCurrentNum >= lNum) lCurrentNum =0;
 		}
 		else if(aButton == eMButton_Right)
 		{
 			lCurrentNum--;
-			if(lCurrentNum < 0) lCurrentNum =glResolutionNum-1;
+			if(lCurrentNum < 0) lCurrentNum =lNum-1;
 		}
 
-		mpInit->mvScreenSize = gvResolutions[lCurrentNum];
+		mpInit->mvScreenSize = vResolutions[lCurrentNum];
 
-		char sTempVec[256];
-		sprintf(sTempVec,"%d x %d",mpInit->mvScreenSize.x, mpInit->mvScreenSize.y);
-		gpResolutionText->msText = cString::To16Char(sTempVec);
+		gpResolutionText->msText = GetResolutionText(mpInit);
 		
+		gbMustRestart = true;
+	}
+};
+
+//-----------------------------------------------------------
+
+class cMainMenuWidget_Fullscreen : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Fullscreen(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		// Not in the game's language files
+		msTip = _W("Fill the screen or run in a window. Requires restart.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		mpInit->mbFullScreenSetting = !mpInit->mbFullScreenSetting;
+
+		gpFullscreenText->msText = mpInit->mbFullScreenSetting ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+
+		gbMustRestart = true;
+	}
+};
+
+//-----------------------------------------------------------
+
+static tWString GetDisplayText(cInit *apInit)
+{
+	iLowLevelGraphics *pLowLevel = apInit->mpGame->GetGraphics()->GetLowLevel();
+
+	// Not in the game's language files
+	if(apInit->mlDisplay < 0 || apInit->mlDisplay >= pLowLevel->GetDisplayNum()) return _W("Automatic");
+
+	tString sName = pLowLevel->GetDisplayName(apInit->mlDisplay);
+	if(sName.size() > 20) sName = sName.substr(0,20);
+
+	return cString::To16Char(cString::ToString(apInit->mlDisplay + 1) + ": " + sName);
+}
+
+class cMainMenuWidget_Display : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Display(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		// Not in the game's language files
+		msTip = _W("The monitor to use. Automatic picks the largest. Requires restart.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		int lNum = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetDisplayNum();
+
+		// -1 is automatic
+		int lDisplay = mpInit->mlDisplay;
+		if(lDisplay >= lNum) lDisplay = -1;
+
+		if(aButton == eMButton_Left)
+		{
+			lDisplay++;
+			if(lDisplay >= lNum) lDisplay = -1;
+		}
+		else if(aButton == eMButton_Right)
+		{
+			lDisplay--;
+			if(lDisplay < -1) lDisplay = lNum-1;
+		}
+
+		mpInit->mlDisplay = lDisplay;
+
+		gpDisplayText->msText = GetDisplayText(mpInit);
+
 		gbMustRestart = true;
 	}
 };
@@ -3502,6 +3616,12 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetResolution = hplNew( cMainMenuWidget_Resolution,(mpInit,vPos,kTranslate("MainMenu","Resolution:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetResolution); 
 	vPos.y += 29;
+	cMainMenuWidget *pWidgetFullscreen = hplNew( cMainMenuWidget_Fullscreen,(mpInit,vPos,_W("Fullscreen:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetFullscreen); 
+	vPos.y += 29;
+	cMainMenuWidget *pWidgetDisplay = hplNew( cMainMenuWidget_Display,(mpInit,vPos,_W("Display:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetDisplay); 
+	vPos.y += 29;
 	cMainMenuWidget *pWidgetNoiseFilter = hplNew( cMainMenuWidget_NoiseFilter,(mpInit,vPos,kTranslate("MainMenu","Noise Filter:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetNoiseFilter); 
 	vPos.y += 29;
@@ -3529,11 +3649,22 @@ void cMainMenu::CreateWidgets()
 	//Text
 	vPos = cVector3f(vTextStart.x+12, vTextStart.y+37, vTextStart.z);
 
-	sprintf(sTempVec,"%d x %d",mpInit->mvScreenSize.x, mpInit->mvScreenSize.y);
-	sText = cString::To16Char(sTempVec);
+	sText = GetResolutionText(mpInit);
 	gpResolutionText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpResolutionText); 
 	gpResolutionText->SetExtraWidget(pWidgetResolution);
+
+	vPos.y += 29;
+	sText = mpInit->mbFullScreenSetting ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	gpFullscreenText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,gpFullscreenText); 
+	gpFullscreenText->SetExtraWidget(pWidgetFullscreen);
+
+	vPos.y += 29;
+	sText = GetDisplayText(mpInit);
+	gpDisplayText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,gpDisplayText); 
+	gpDisplayText->SetExtraWidget(pWidgetDisplay);
 
 	vPos.y += 29;
 	sText = mpInit->mpPlayer->GetNoiseFilter()->IsActive() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");

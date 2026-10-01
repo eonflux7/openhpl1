@@ -103,7 +103,7 @@ namespace hpl {
 
 	bool cGraphics::Init(	int alWidth, int alHeight, int alBpp, int abFullscreen,
 							int alMultisampling,const tString &asWindowCaption,
-							cResources* apResources)
+							cResources* apResources, int alDisplay)
 	{
 		Log("Initializing Graphics Module\n");
 		Log("--------------------------------------------------------\n");
@@ -113,7 +113,7 @@ namespace hpl {
 		apResources->AddResourceDir("core/textures");
 
 		Log(" Init low level graphics\n");
-		mpLowLevelGraphics->Init(alWidth,alHeight,alBpp,abFullscreen,alMultisampling,asWindowCaption);
+		mpLowLevelGraphics->Init(alWidth,alHeight,alBpp,abFullscreen,alMultisampling,asWindowCaption,alDisplay);
 
 		Log(" Creating graphic systems\n");
 		mpMaterialHandler = hplNew( cMaterialHandler,(this, apResources));
