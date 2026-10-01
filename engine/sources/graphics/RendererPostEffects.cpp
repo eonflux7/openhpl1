@@ -84,6 +84,17 @@ namespace hpl {
 		mpBlurRectFP = mpGpuManager->CreateProgram("PostEffect_Blur_Rect_fp.cg","main",eGpuProgramType_Fragment);
 		mpBlur2dFP = mpGpuManager->CreateProgram("PostEffect_Blur_2D_fp.cg","main",eGpuProgramType_Fragment);
 
+		mpBlurTempTexture = mpLowLevelGraphics->CreateTexture(cVector2l(256,256),
+												32,cColor(0,0,0,0),false,
+												eTextureType_Normal, eTextureTarget_2D);
+		if(mpBlurTempTexture == nullptr) {
+			Error("Couldn't create blur texture!\n");
+		}
+		else {
+			mpBlurTempTexture->SetWrapS(eTextureWrap_ClampToEdge);
+			mpBlurTempTexture->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+
 		/////////////////
 		// Bloom programs
 		mpBloomVP = mpGpuManager->CreateProgram("PostEffect_Bloom_vp.cg","main",eGpuProgramType_Vertex);
@@ -184,6 +195,7 @@ namespace hpl {
 
 		if(mpBloomBlurTexture) hplDelete(mpBloomBlurTexture);
 		if(mpDofBlurTexture) hplDelete(mpDofBlurTexture);
+		if(mpBlurTempTexture) hplDelete(mpBlurTempTexture);
 
 	}
 
@@ -242,17 +254,26 @@ namespace hpl {
 
 	//TODO: Support source texture as 2D
 
+	// Blurs apSource into apDestination, which must be the size of
+	// mpBlurTempTexture: a horizontal pass into mpBlurTempTexture, then a
+	// vertical one into apDestination. Expects an orthographic projection
+	// of the virtual screen size.
 	void cRendererPostEffects::RenderBlurTexture(iTexture *apDestination, iTexture *apSource,
 													float afBlurAmount)
 	{
+		if(mpBlurTempTexture==nullptr ||
+			mpBlurTempTexture->GetWidth() != apDestination->GetWidth() ||
+			mpBlurTempTexture->GetHeight() != apDestination->GetHeight())
+		{
+			return;
+		}
+
 		bool bProgramsLoaded = false;
 		if(mpBlurRectFP && mpBlur2dFP && mpBlurVP) bProgramsLoaded = true;
 
 		iLowLevelGraphics *pLowLevel = mpLowLevelGraphics;
-		cVector2l vBlurSize = cVector2l(apDestination->GetWidth(), apDestination->GetHeight());
-		cVector2f vBlurDrawSize;
-		vBlurDrawSize.x = ((float)vBlurSize.x/mvScreenSize.x) * mpLowLevelGraphics->GetVirtualSize().x;
-		vBlurDrawSize.y = ((float)vBlurSize.y/mvScreenSize.y) * mpLowLevelGraphics->GetVirtualSize().y;
+		// The quad fills the render target.
+		cVector2f vBlurDrawSize = mpLowLevelGraphics->GetVirtualSize();
 
 		pLowLevel->SetBlendActive(false);
 
@@ -274,6 +295,7 @@ namespace hpl {
 		}
 
 		//Draw the screen texture with blur
+		pLowLevel->SetRenderTarget(mpBlurTempTexture);
 		pLowLevel->SetTexture(0,apSource);
 
 		{
@@ -284,8 +306,6 @@ namespace hpl {
 
 			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
 		}
-
-		pLowLevel->CopyContextToTexure(apDestination,0,vBlurSize);
 
 		///////////////////////////////////////////
 		//Vertical blur pass
@@ -303,7 +323,8 @@ namespace hpl {
 		}
 
 		//Set texture and draw
-		pLowLevel->SetTexture(0,apDestination);
+		pLowLevel->SetRenderTarget(apDestination);
+		pLowLevel->SetTexture(0,mpBlurTempTexture);
 
 		{
 			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
@@ -321,7 +342,8 @@ namespace hpl {
 			mpBlurVP->UnBind();
 		}
 
-		pLowLevel->CopyContextToTexure(apDestination,0, vBlurSize);
+		pLowLevel->SetTexture(0,nullptr);
+		pLowLevel->SetRenderTarget(nullptr);
 	}
 
 	//-----------------------------------------------------------------------
@@ -366,8 +388,8 @@ namespace hpl {
 		mpLowLevelGraphics->SetTexture(1,mpDofBlurTexture);
 
 
-		//Render entire screen textur to screen, this to cover up what has been done by the
-		//blur filter, should have support for frame_buffer_object so this can be skipped.
+		//The sky box is not among the objects drawn below, so blur all of
+		//the screen by the maximum amount.
 		if(mpRenderer3D->GetSkyBoxActive())
 		{
 			tVector3fVec vUvVec; vUvVec.resize(4);

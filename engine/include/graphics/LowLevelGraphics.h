@@ -431,20 +431,12 @@ namespace hpl {
 		virtual void DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)=0;
 		// GENERAL
 		/**
-		 * All further drawing operations are rendered to this texture.
-		 * \param pTex Texture to render to. NULL = screen (frame buffer)
+		 * All further drawing operations are rendered to this texture, which
+		 * fills the viewport. There is no depth or stencil buffer.
+		 * \param pTex Texture to render to. NULL = the screen (the scene
+		 * framebuffer)
 		 */
 		virtual void SetRenderTarget(iTexture* pTex)=0;
-		/**
-		 * Check if the render target uses a z buffer when drawing.
-		 * \return
-		 */
-		virtual bool RenderTargetHasZBuffer()=0;
-		/**
-		 * Makes sure the render target is drawn to the target.
-		 * Not useful for all implementations.
-		 */
-		virtual void FlushRenderTarget()=0;
 
 		/**
 		 * Copies the current frame buffer to a texture.

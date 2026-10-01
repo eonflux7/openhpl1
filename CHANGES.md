@@ -405,6 +405,13 @@ messages (NVIDIA 615). Fixed for that:
   copying from a multisampled buffer is a GL error, which the window's
   buffer used to get away with.
 - The gamma pass reads the frame texture instead of copying the frame.
+- `SetRenderTarget` renders into a texture through a framebuffer object
+  (it did nothing since the pbuffer code was removed);
+  `RenderTargetHasZBuffer` and `FlushRenderTarget` are gone.
+- The post-effect blur (bloom, depth of field) renders its two passes into
+  textures. It drew them into the top-left corner of the frame and copied
+  them out, and with depth of field and no sky box the corner was left
+  showing a small blurred copy of the picture (e.g. at the mine entrance).
 - F12 screenshots (`SaveScreenToBMP`) read the last finished frame from the
   frame texture, before the gamma pass; they read the back buffer after the
   swap before, whose contents GL does not define.

@@ -145,6 +145,9 @@ namespace hpl {
 		iGpuProgram *mpBlurVP;
 		iGpuProgram *mpBlur2dFP;
 		iGpuProgram *mpBlurRectFP;
+		//Holds the horizontal pass of RenderBlurTexture(), same size as the
+		//blur textures.
+		iTexture *mpBlurTempTexture;
 
 		iGpuProgram *mpBloomVP;
 		iGpuProgram *mpBloomFP;

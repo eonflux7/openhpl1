@@ -97,8 +97,10 @@ Every step is checked against reference images of the renderer before it.
       materials and shaders, capability checks for what GL 3.3 guarantees)
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:
   - [x] colour and depth/stencil textures; later passes can read the depth
-  - [ ] post effects, refraction and gamma read textures instead of copying
-        the back buffer (nine copies today)
+  - [x] gamma reads the frame texture; the blur renders into its own
+        textures (`SetRenderTarget`). The copies left are of effects that
+        read the frame while drawing over it (bloom, depth of field, motion
+        blur, image trail, refraction)
   - [x] multisampling through a multisampled target and a resolve
   - [ ] one fixed frame order: scene → post effects → output transform → HUD →
         gamma → window
@@ -147,6 +149,8 @@ looks are options; the original stays available.
 - [ ] Depth of field and camera motion blur from depth. The current effects
       re-render geometry per object.
 - [ ] Film grain shader replacing the tiled noise-filter sprites
+- [ ] Refraction: works (acid water in four level 1 maps) but is off by
+      default and has no menu option (`Refractions` in `settings.cfg`)
 
 ## Later / ideas
 

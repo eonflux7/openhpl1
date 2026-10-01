@@ -121,6 +121,7 @@ namespace hpl {
 		mlSceneDepthStencil = 0;
 		mlResolveFramebuffer = 0;
 		mlResolveColor = 0;
+		mlTargetFramebuffer = 0;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
 
@@ -1123,10 +1124,11 @@ namespace hpl {
 	{
 		if(mlSceneFramebuffer) glDeleteFramebuffers(1, &mlSceneFramebuffer);
 		if(mlResolveFramebuffer) glDeleteFramebuffers(1, &mlResolveFramebuffer);
+		if(mlTargetFramebuffer) glDeleteFramebuffers(1, &mlTargetFramebuffer);
 		if(mlSceneColor) glDeleteTextures(1, &mlSceneColor);
 		if(mlSceneDepthStencil) glDeleteTextures(1, &mlSceneDepthStencil);
 		if(mlResolveColor) glDeleteTextures(1, &mlResolveColor);
-		mlSceneFramebuffer = mlResolveFramebuffer = 0;
+		mlSceneFramebuffer = mlResolveFramebuffer = mlTargetFramebuffer = 0;
 		mlSceneColor = mlSceneDepthStencil = mlResolveColor = 0;
 	}
 
@@ -2024,34 +2026,21 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetRenderTarget(iTexture* pTex)
 	{
-		// Render targets were GLX/WGL pbuffers and unused by the game.
-		// They will come back as framebuffer objects.
+		if(pTex == mpRenderTarget) return;
 		mpRenderTarget = pTex;
-	}
 
-	//-----------------------------------------------------------------------
-
-	bool cLowLevelGraphicsSDL::RenderTargetHasZBuffer()
-	{
-		return true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::FlushRenderTarget()
-	{
-
-
-		//Old OGL 1.1 Code:
-		/*if(mpRenderTarget!=NULL)
+		if(pTex == nullptr)
 		{
-			SetTexture(0, mpRenderTarget);
+			glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
+			glViewport(0, 0, mvScreenSize.x, mvScreenSize.y);
+			return;
+		}
 
-			//Log("w: %d\n",mpRenderTarget->GetWidth());
-
-			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
-							mpRenderTarget->GetWidth(), mpRenderTarget->GetHeight(), 0);
-		}*/
+		if(mlTargetFramebuffer == 0) glGenFramebuffers(1, &mlTargetFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GetGLTextureTargetEnum(pTex->GetTarget()),
+								static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
+		glViewport(0, 0, pTex->GetWidth(), pTex->GetHeight());
 	}
 
 	//-----------------------------------------------------------------------

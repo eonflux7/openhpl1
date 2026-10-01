@@ -235,8 +235,6 @@ namespace hpl {
 		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 			const cVector2l &avSize, const cVector2l &avTexOffset=0) override;
 		void SetRenderTarget(iTexture* pTex) override;
-		bool RenderTargetHasZBuffer() override;
-		void FlushRenderTarget() override;
 
 		void FlushRendering() override;
 		void SwapBuffers() override;
@@ -273,8 +271,8 @@ namespace hpl {
 		GLuint mlSceneDepthStencil;
 		GLuint mlResolveFramebuffer;
 		GLuint mlResolveColor;
-		//Has the texture CopyContextToTexure() writes to attached.
-		GLuint mlCopyFramebuffer;
+		//Has the texture given to SetRenderTarget() attached.
+		GLuint mlTargetFramebuffer;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];
