@@ -15,7 +15,10 @@ set(OVERTURE_SANITIZERS "" CACHE STRING
 	"Comma-separated -fsanitize= list for all targets, e.g. address,undefined")
 
 if(OVERTURE_SANITIZERS)
-	add_compile_options(-fsanitize=${OVERTURE_SANITIZERS} -fno-omit-frame-pointer)
+	# Alignment is off: AngelScript packs pointers and std::string arguments
+	# at 4-byte offsets by design, which is fine on x86-64.
+	add_compile_options(-fsanitize=${OVERTURE_SANITIZERS} -fno-sanitize=alignment
+		-fno-omit-frame-pointer)
 	add_link_options(-fsanitize=${OVERTURE_SANITIZERS})
 endif()
 
@@ -55,6 +58,11 @@ file(GLOB_RECURSE newton_sources CONFIGURE_DEPENDS vendor/newton/*.cpp)
 add_library(newton STATIC ${newton_sources})
 target_include_directories(newton SYSTEM PUBLIC vendor/newton)
 target_compile_options(newton PRIVATE -w)
+if(OVERTURE_SANITIZERS)
+	# Upstream Newton relies on shifts of negative values and the like;
+	# keep ASan on it but not UBSan.
+	target_compile_options(newton PRIVATE -fno-sanitize=undefined)
+endif()
 
 # AngelScript 2.38.0 (zlib)
 file(GLOB angelscript_sources CONFIGURE_DEPENDS
@@ -65,10 +73,6 @@ target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include
 	vendor/angelscript/add_on)
 target_compile_options(angelscript PRIVATE -w)
-if(OVERTURE_SANITIZERS)
-	# Bytecode stores pointers at 4-byte offsets by design; fine on x86-64
-	target_compile_options(angelscript PRIVATE -fno-sanitize=alignment)
-endif()
 
 # OALWrapper (zlib), Frictional Games' OpenAL helper
 file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
