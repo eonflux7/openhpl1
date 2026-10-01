@@ -35,7 +35,7 @@ namespace hpl {
 		mlWidth = 0;
 
 		cSDLPixelFormat *pFmt = static_cast<cSDLPixelFormat*>(apPxlFmt);
-		mpSDLPixelFmt32 = pFmt->GetSDLPixelFormat32();
+		mSDLPixelFmt32 = pFmt->GetSDLPixelFormat32();
 	}
 
 	cSDLBitmap2D::cSDLBitmap2D(SDL_Surface* apSurface,iPixelFormat *apPxlFmt,const tString& asType) :
@@ -48,11 +48,11 @@ namespace hpl {
 		msType = asType;
 
 		cSDLPixelFormat *pFmt = static_cast<cSDLPixelFormat*>(apPxlFmt);
-		mpSDLPixelFmt32 = pFmt->GetSDLPixelFormat32();
+		mSDLPixelFmt32 = pFmt->GetSDLPixelFormat32();
 	}
 	cSDLBitmap2D::~cSDLBitmap2D()
 	{
-		SDL_FreeSurface(mpSurface);
+		SDL_DestroySurface(mpSurface);
 	}
 
 	//-----------------------------------------------------------------------
@@ -78,8 +78,8 @@ namespace hpl {
 		rect.x = avDestPos.x;
 		rect.y = avDestPos.y;
 
-		int lDestSize = pBmp->GetSurface()->format->BytesPerPixel;
-		int lSrcSize = mpSurface->format->BytesPerPixel;
+		int lDestSize = SDL_BYTESPERPIXEL(pBmp->GetSurface()->format);
+		int lSrcSize = SDL_BYTESPERPIXEL(mpSurface->format);
 
 		unsigned char* destBuffer = (unsigned char*)pBmp->GetSurface()->pixels;
 		unsigned char* srcBuffer = (unsigned char*)mpSurface->pixels;
@@ -112,10 +112,10 @@ namespace hpl {
 		rect.w = aRect.w<=0?mlWidth:aRect.w;
 		rect.h = aRect.h<=0?mlHeight:aRect.h;
 
-		unsigned int col = SDL_MapRGBA(mpSDLPixelFmt32,(int)(aColor.r*255.0f),(int)(aColor.g*255.0f),
+		unsigned int col = SDL_MapRGBA(SDL_GetPixelFormatDetails(mSDLPixelFmt32),NULL,(int)(aColor.r*255.0f),(int)(aColor.g*255.0f),
 										(int)(aColor.b*255.0f),(int)(aColor.a*255.0f));
 
-		SDL_FillRect(mpSurface, &rect,col);
+		SDL_FillSurfaceRect(mpSurface, &rect,col);
 	}
 
 	//-----------------------------------------------------------------------
@@ -129,9 +129,7 @@ namespace hpl {
 
 	bool cSDLBitmap2D::Create(cVector2l avSize, unsigned int alBpp)
 	{
-		mpSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, avSize.x, avSize.y, 32,
-			mpSDLPixelFmt32->Rmask, mpSDLPixelFmt32->Gmask,
-			mpSDLPixelFmt32->Bmask, mpSDLPixelFmt32->Amask);
+		mpSurface = SDL_CreateSurface(avSize.x, avSize.y, mSDLPixelFmt32);
 
 		if(mpSurface==NULL) return false;
 
@@ -157,7 +155,7 @@ namespace hpl {
 
 	int cSDLBitmap2D::GetNumChannels()
 	{
-		return mpSurface->format->BytesPerPixel;
+		return SDL_BYTESPERPIXEL(mpSurface->format);
 	}
 
 	//-----------------------------------------------------------------------

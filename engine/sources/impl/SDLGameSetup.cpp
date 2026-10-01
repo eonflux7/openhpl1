@@ -35,7 +35,7 @@
 #endif
 #include "haptic/Haptic.h"
 
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 namespace hpl {
 
@@ -47,7 +47,7 @@ namespace hpl {
 
 	cSDLGameSetup::cSDLGameSetup()
 	{
-		if (SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0) {
+		if (!SDL_Init( SDL_INIT_VIDEO )) {
 			FatalError("Error Initializing Display: %s",SDL_GetError());
 			exit(1);
 		}

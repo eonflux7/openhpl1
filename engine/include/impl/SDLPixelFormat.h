@@ -20,7 +20,7 @@
 #define HPL_SDL_PIXELFORMAT_H
 
 #include "graphics/PixelFormat.h"
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 namespace hpl {
 
@@ -29,57 +29,18 @@ namespace hpl {
 	public:
 		cSDLPixelFormat(): iPixelFormat("SDL")
 		{
-			////// BEGIN - PIXEL FORMAT 32 bit RGBA ////////
-			mSDLPixelFmt32.palette = 0;
-			mSDLPixelFmt32.BitsPerPixel = 32;
-			mSDLPixelFmt32.BytesPerPixel = 4;
-
-			if(SDL_BYTEORDER == SDL_BIG_ENDIAN){
-				mSDLPixelFmt32.Rmask = 0xff000000;
-				mSDLPixelFmt32.Gmask = 0x00ff0000;
-				mSDLPixelFmt32.Bmask = 0x0000ff00;
-				mSDLPixelFmt32.Amask = 0x000000ff;
-
-				mSDLPixelFmt32.Rshift = 24;
-				mSDLPixelFmt32.Gshift = 16;
-				mSDLPixelFmt32.Bshift = 8;
-				mSDLPixelFmt32.Ashift = 0;
-
-			}
-			else
-			{
-				mSDLPixelFmt32.Rmask = 0x000000ff;
-				mSDLPixelFmt32.Gmask = 0x0000ff00;
-				mSDLPixelFmt32.Bmask = 0x00ff0000;
-				mSDLPixelFmt32.Amask = 0xff000000;
-
-				mSDLPixelFmt32.Rshift = 0;
-				mSDLPixelFmt32.Gshift = 8;
-				mSDLPixelFmt32.Bshift = 16;
-				mSDLPixelFmt32.Ashift = 24;
-			}
-
-			mSDLPixelFmt32.Rloss=0;
-			mSDLPixelFmt32.Gloss=0;
-			mSDLPixelFmt32.Bloss=0;
-			mSDLPixelFmt32.Aloss=0;
-
-			mSDLPixelFmt32.colorkey =0;
-			mSDLPixelFmt32.alpha = 255;
-			////// END - PIXEL FORMAT 32 bit RGBA ////////
-
-
 		}
 
-		SDL_PixelFormat* GetSDLPixelFormat32()
+		// 32 bit RGBA, R in the first byte on every platform.
+		SDL_PixelFormat GetSDLPixelFormat32()
 		{
-			return &mSDLPixelFmt32;
+			return SDL_PIXELFORMAT_RGBA32;
 		}
 
-	private:
-		SDL_PixelFormat mSDLPixelFmt32;
-
-
+		const SDL_PixelFormatDetails* GetSDLPixelFormatDetails32()
+		{
+			return SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA32);
+		}
 	};
 
 };

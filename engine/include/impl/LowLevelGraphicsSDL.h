@@ -19,15 +19,9 @@
 #ifndef HPL_LOWLEVELGRAPHICS_SDL_H
 #define HPL_LOWLEVELGRAPHICS_SDL_H
 
-#include <GL/GLee.h>
+#include <glad/gl.h>
 
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
-// Unix's X11 Defines DestoryAll which collides with methods
-#undef DestroyAll
+#include <SDL3/SDL.h>
 
 #include "graphics/LowLevelGraphics.h"
 #include "impl/SDLPixelFormat.h"
@@ -231,7 +225,7 @@ namespace hpl {
 
 		iBitmap2D* CreateBitmap2DFromSurface(SDL_Surface* apSurface,const tString& asType);
 
-		CGcontext GetGC_Context(){ return mCG_Context;}
+		SDL_Window* GetWindow(){ return mpWindow;}
 
 		void SetupGL();
 
@@ -243,26 +237,15 @@ namespace hpl {
 		int mlMultisampling;
 		int mlBpp;
 
-		//Windows stuff
-		#if defined(WIN32)
-			HGLRC mGLContext;
-			HDC   mDeviceContext;
-			HINSTANCE mhKeyTrapper;
-		#elif defined(__linux__)
-			Display *gDpy;
-			GLXContext glCtx;
-			GLXPbuffer gPBuffer;
-		#endif
-
 		//Gamma
-		Uint16 mvStartGammaArray[3][256];
 		float mfGammaCorrection;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];
 
 		//SDL Variables
-		SDL_Surface *mpScreen;
+		SDL_Window *mpWindow;
+		SDL_GLContext mGLContext;
 		cSDLPixelFormat *mpPixelFormat;
 
 		//Vertex Array variables
@@ -291,15 +274,8 @@ namespace hpl {
 		//Texture
 		iTexture* mpCurrentTexture[MAX_TEXTUREUNITS];
 
-		//CG Compiler Variables
-		CGcontext mCG_Context;
-
 		//Multisample
 		void CheckMultisampleCaps();
-
-		//CG Helper
-		void InitCG();
-		void ExitCG();
 
 
 		//Batch helper

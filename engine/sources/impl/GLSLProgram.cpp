@@ -1,0 +1,452 @@
+/*
+ * Copyright (C) 2006-2010 - Frictional Games
+ *
+ * This file is part of HPL1 Engine.
+ *
+ * HPL1 Engine is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * HPL1 Engine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#include "impl/GLSLProgram.h"
+#include "impl/SDLTexture.h"
+#include "system/LowLevelSystem.h"
+#include "system/String.h"
+#include "math/Math.h"
+
+#include <cstdio>
+#include <vector>
+
+namespace hpl{
+
+	//////////////////////////////////////////////////////////////////////////
+	// STATIC DATA
+	//////////////////////////////////////////////////////////////////////////
+
+	tString cGLSLProgram::msShaderDir = "shaders/";
+	GLuint cGLSLProgram::mlPipeline = 0;
+	cGLSLProgram* cGLSLProgram::mpBoundVertex = NULL;
+	cGLSLProgram* cGLSLProgram::mpBoundFragment = NULL;
+
+	static const char* kVertexPreamble =
+		"#version 330 compatibility\n";
+
+	static const char* kFragmentPreamble =
+		"#version 330 compatibility\n"
+		"#define OUTPUT out vec4 outColor;\n";
+
+	static const int kMaxSamplers = 8;
+
+	//-----------------------------------------------------------------------
+
+	static bool ReadTextFile(const tString& asPath, tString& asOut)
+	{
+		FILE *pFile = fopen(asPath.c_str(), "rb");
+		if(pFile==NULL) return false;
+
+		fseek(pFile,0,SEEK_END);
+		long lSize = ftell(pFile);
+		fseek(pFile,0,SEEK_SET);
+
+		asOut.resize(lSize);
+		size_t lRead = fread(&asOut[0],1,lSize,pFile);
+		fclose(pFile);
+
+		return lRead == (size_t)lSize;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// "core/programs/Diffuse_Light_Spot_fp_pass1.cg" -> "hpl1_Diffuse_Light_Spot_pass1"
+	static tString CgNameToShaderBase(const tString& asCgFile)
+	{
+		tString sName = cString::GetFileName(asCgFile);
+		sName = cString::SetFileExt(sName,"");
+
+		size_t lPos = sName.find("_vp");
+		if(lPos == tString::npos) lPos = sName.find("_fp");
+		if(lPos != tString::npos) sName.erase(lPos,3);
+
+		return "hpl1_" + sName;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// CONSTRUCTORS
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	cGLSLProgram::cGLSLProgram(tString asName,eGpuProgramType aType)
+	: iGpuProgram(asName, aType)
+	{
+		msName = asName;
+		mlProgram = 0;
+		mlCompanionFragment = 0;
+	}
+
+	cGLSLProgram::~cGLSLProgram()
+	{
+		if(mpBoundVertex == this) mpBoundVertex = NULL;
+		if(mpBoundFragment == this) mpBoundFragment = NULL;
+
+		if(mlProgram) glDeleteProgram(mlProgram);
+		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
+	}
+
+	//-----------------------------------------------------------------------
+
+	//////////////////////////////////////////////////////////////////////////
+	// PUBLIC METHODS
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::InitPipeline()
+	{
+		if(!GLAD_GL_VERSION_4_1 && !GLAD_GL_ARB_separate_shader_objects)
+		{
+			Error("OpenGL separate shader objects are not supported!\n");
+			return false;
+		}
+
+		glGenProgramPipelines(1,&mlPipeline);
+		glUseProgram(0);
+		glBindProgramPipeline(mlPipeline);
+		return true;
+	}
+
+	void cGLSLProgram::ExitPipeline()
+	{
+		if(mlPipeline) glDeleteProgramPipelines(1,&mlPipeline);
+		mlPipeline = 0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::Reload()
+	{
+		return false;
+	}
+
+	void cGLSLProgram::Unload()
+	{
+	}
+
+	void cGLSLProgram::Destroy()
+	{
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asEntry)
+	{
+		tString sBase = msShaderDir + CgNameToShaderBase(asFile);
+
+		if(mProgramType == eGpuProgramType_Vertex)
+		{
+			mlProgram = CompileStage(GL_VERTEX_SHADER, sBase + ".vertex");
+			// Optional: not every vertex shader has a companion.
+			FILE *pFile = fopen((sBase + ".fragment").c_str(),"rb");
+			if(pFile)
+			{
+				fclose(pFile);
+				mlCompanionFragment = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment");
+			}
+		}
+		else
+		{
+			mlProgram = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment");
+		}
+
+		if(mlProgram==0)
+		{
+			Error("GLSL: Couldn't create program for '%s'\n",asFile.c_str());
+			return false;
+		}
+
+		if(mbDebugInfo) Log("GLSL: '%s' -> '%s'\n",msName.c_str(),sBase.c_str());
+
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGLSLProgram::Bind()
+	{
+		if(mProgramType == eGpuProgramType_Vertex)
+		{
+			mpBoundVertex = this;
+			BindStage(GL_VERTEX_SHADER_BIT, mlProgram);
+		}
+		else
+		{
+			mpBoundFragment = this;
+		}
+		UpdateFragmentStage();
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGLSLProgram::UnBind()
+	{
+		if(mProgramType == eGpuProgramType_Vertex)
+		{
+			if(mpBoundVertex == this) mpBoundVertex = NULL;
+			BindStage(GL_VERTEX_SHADER_BIT, 0);
+		}
+		else
+		{
+			if(mpBoundFragment == this) mpBoundFragment = NULL;
+		}
+		UpdateFragmentStage();
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::SetFloat(const tString& asName, float afX)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+		glProgramUniform1f(mlProgram, lLoc, afX);
+		return true;
+	}
+
+	bool cGLSLProgram::SetVec2f(const tString& asName, float afX,float afY)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+		glProgramUniform2f(mlProgram, lLoc, afX, afY);
+		return true;
+	}
+
+	bool cGLSLProgram::SetVec3f(const tString& asName, float afX,float afY,float afZ)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+		glProgramUniform3f(mlProgram, lLoc, afX, afY, afZ);
+		return true;
+	}
+
+	bool cGLSLProgram::SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+		glProgramUniform4f(mlProgram, lLoc, afX, afY, afZ, afW);
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::SetMatrixf(const tString& asName, const cMatrixf& mMtx)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+		// cMatrixf is row-major
+		glProgramUniformMatrix4fv(mlProgram, lLoc, 1, GL_TRUE, &mMtx.m[0][0]);
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::SetMatrixf(const tString& asName, eGpuProgramMatrix mType,
+									eGpuProgramMatrixOp mOp)
+	{
+		GLint lLoc = GetUniform(asName);
+		if(lLoc < 0) return false;
+
+		// Like cgGLSetStateMatrixParameter: sample the fixed-function
+		// matrix stacks now. GL matrices are column-major.
+		float vModelView[16], vProj[16], vResult[16];
+
+		switch(mType)
+		{
+		case eGpuProgramMatrix_View:
+			glGetFloatv(GL_MODELVIEW_MATRIX, vResult);
+			break;
+		case eGpuProgramMatrix_Projection:
+			glGetFloatv(GL_PROJECTION_MATRIX, vResult);
+			break;
+		case eGpuProgramMatrix_Texture:
+			glGetFloatv(GL_TEXTURE_MATRIX, vResult);
+			break;
+		case eGpuProgramMatrix_ViewProjection:
+			glGetFloatv(GL_MODELVIEW_MATRIX, vModelView);
+			glGetFloatv(GL_PROJECTION_MATRIX, vProj);
+			for(int c=0; c<4; ++c)
+				for(int r=0; r<4; ++r)
+				{
+					float fSum = 0;
+					for(int k=0; k<4; ++k) fSum += vProj[k*4 + r] * vModelView[c*4 + k];
+					vResult[c*4 + r] = fSum;
+				}
+			break;
+		default:
+			return false;
+		}
+
+		// Matrix ops are kept in cMatrixf (row-major) form.
+		cMatrixf mtxResult;
+		for(int c=0; c<4; ++c)
+			for(int r=0; r<4; ++r)
+				mtxResult.m[r][c] = vResult[c*4 + r];
+
+		switch(mOp)
+		{
+		case eGpuProgramMatrixOp_Identity:			break;
+		case eGpuProgramMatrixOp_Inverse:			mtxResult = cMath::MatrixInverse(mtxResult); break;
+		case eGpuProgramMatrixOp_Transpose:			mtxResult = mtxResult.GetTranspose(); break;
+		case eGpuProgramMatrixOp_InverseTranspose:	mtxResult = cMath::MatrixInverse(mtxResult).GetTranspose(); break;
+		default:									break;
+		}
+
+		glProgramUniformMatrix4fv(mlProgram, lLoc, 1, GL_TRUE, &mtxResult.m[0][0]);
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable)
+	{
+		// Samplers are named texN and fixed to unit N.
+		if(asName.size() < 4 || asName.compare(0,3,"tex") != 0) return false;
+		int lUnit = cString::ToInt(asName.substr(3).c_str(),-1);
+		if(lUnit < 0) return false;
+
+		return SetTextureToUnit(lUnit, apTexture);
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::SetTextureToUnit(int alUnit, iTexture* apTexture)
+	{
+		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
+		if(apTexture==NULL) return true;
+
+		GLenum Target = GL_TEXTURE_2D;
+		switch(apTexture->GetTarget())
+		{
+		case eTextureTarget_1D:			Target = GL_TEXTURE_1D; break;
+		case eTextureTarget_2D:			Target = GL_TEXTURE_2D; break;
+		case eTextureTarget_Rect:		Target = GL_TEXTURE_RECTANGLE; break;
+		case eTextureTarget_CubeMap:	Target = GL_TEXTURE_CUBE_MAP; break;
+		case eTextureTarget_3D:			Target = GL_TEXTURE_3D; break;
+		default: break;
+		}
+
+		GLint lPrevUnit;
+		glGetIntegerv(GL_ACTIVE_TEXTURE, &lPrevUnit);
+		glActiveTexture(GL_TEXTURE0 + alUnit);
+		glBindTexture(Target, static_cast<cSDLTexture*>(apTexture)->GetTextureHandle());
+		glActiveTexture(lPrevUnit);
+
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	//////////////////////////////////////////////////////////////////////////
+	// PRIVATE METHODS
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	GLint cGLSLProgram::GetUniform(const tString& asName)
+	{
+		if(mlProgram==0) return -1;
+
+		std::map<tString,GLint>::iterator it = m_mapUniforms.find(asName);
+		if(it != m_mapUniforms.end()) return it->second;
+
+		GLint lLoc = glGetUniformLocation(mlProgram, asName.c_str());
+		m_mapUniforms.insert(std::map<tString,GLint>::value_type(asName,lLoc));
+		return lLoc;
+	}
+
+	//-----------------------------------------------------------------------
+
+	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asPath)
+	{
+		tString sSource;
+		if(ReadTextFile(asPath, sSource)==false)
+		{
+			Error("GLSL: Couldn't read '%s'\n",asPath.c_str());
+			return 0;
+		}
+
+		const char* vSources[2] = {
+			aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble,
+			sSource.c_str()
+		};
+
+		GLuint lShader = glCreateShader(aStage);
+		glShaderSource(lShader, 2, vSources, NULL);
+		glCompileShader(lShader);
+
+		GLint lOk = GL_FALSE;
+		glGetShaderiv(lShader, GL_COMPILE_STATUS, &lOk);
+		if(!lOk)
+		{
+			char sLog[4096];
+			glGetShaderInfoLog(lShader, sizeof(sLog), NULL, sLog);
+			Error("GLSL: Compiling '%s' failed:\n%s\n",asPath.c_str(),sLog);
+			glDeleteShader(lShader);
+			return 0;
+		}
+
+		GLuint lProgram = glCreateProgram();
+		glProgramParameteri(lProgram, GL_PROGRAM_SEPARABLE, GL_TRUE);
+		glAttachShader(lProgram, lShader);
+		glLinkProgram(lProgram);
+		glDetachShader(lProgram, lShader);
+		glDeleteShader(lShader);
+
+		glGetProgramiv(lProgram, GL_LINK_STATUS, &lOk);
+		if(!lOk)
+		{
+			char sLog[4096];
+			glGetProgramInfoLog(lProgram, sizeof(sLog), NULL, sLog);
+			Error("GLSL: Linking '%s' failed:\n%s\n",asPath.c_str(),sLog);
+			glDeleteProgram(lProgram);
+			return 0;
+		}
+
+		// texN samplers always read texture unit N
+		for(int i=0; i<kMaxSamplers; ++i)
+		{
+			char sName[8];
+			snprintf(sName, sizeof(sName), "tex%d", i);
+			GLint lLoc = glGetUniformLocation(lProgram, sName);
+			if(lLoc >= 0) glProgramUniform1i(lProgram, lLoc, i);
+		}
+
+		return lProgram;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGLSLProgram::BindStage(GLbitfield aStageBit, GLuint alProgram)
+	{
+		glUseProgramStages(mlPipeline, aStageBit, alProgram);
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGLSLProgram::UpdateFragmentStage()
+	{
+		GLuint lFragment = 0;
+		if(mpBoundFragment)		lFragment = mpBoundFragment->mlProgram;
+		else if(mpBoundVertex)	lFragment = mpBoundVertex->mlCompanionFragment;
+
+		BindStage(GL_FRAGMENT_SHADER_BIT, lFragment);
+	}
+
+	//-----------------------------------------------------------------------
+}

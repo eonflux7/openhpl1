@@ -26,10 +26,6 @@
 #include <shlobj.h>
 #endif
 
-#ifndef WIN32
-// Include FLTK
-#include "FL/fl_ask.H"
-#endif
 
 #define _UNICODE
 
@@ -38,13 +34,16 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #include <fstream>
 #include <string>
 
 #include "impl/LowLevelSystemSDL.h"
 #include "impl/SqScript.h"
 
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 #include "impl/stdstring.h"
 #include "impl/scriptstring.h"
@@ -446,10 +445,17 @@ namespace hpl {
 
 		MessageBox( NULL, sMess.c_str(), asCaption, lType );
 		#else
-		sMess += asCaption;
-		sMess +=_W("\n\n");
-		sMess += text;
-		fl_alert("%ls\n\n%ls",asCaption,text);
+		Uint32 lFlags = 0;
+		switch (eType)
+		{
+		case eMsgBoxType_Info:		lFlags = SDL_MESSAGEBOX_INFORMATION; break;
+		case eMsgBoxType_Error:		lFlags = SDL_MESSAGEBOX_ERROR; break;
+		case eMsgBoxType_Warning:	lFlags = SDL_MESSAGEBOX_WARNING; break;
+		default:					lFlags = SDL_MESSAGEBOX_INFORMATION; break;
+		}
+
+		SDL_ShowSimpleMessageBox(lFlags, cString::To8Char(asCaption).c_str(),
+									cString::To8Char(text).c_str(), SDL_GL_GetCurrentWindow());
 		#endif
 	}
 
@@ -691,7 +697,8 @@ namespace hpl {
 
 	void SetWindowCaption(const tString &asName)
 	{
-		SDL_WM_SetCaption(asName.c_str(),"");
+		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
+		if(pWindow) SDL_SetWindowTitle(pWindow, asName.c_str());
 	}
 
 	//-----------------------------------------------------------------------

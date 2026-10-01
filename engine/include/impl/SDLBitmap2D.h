@@ -22,7 +22,7 @@
 #include "graphics/Bitmap2D.h"
 #include "impl/SDLPixelFormat.h"
 
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 namespace hpl {
 
@@ -53,12 +53,12 @@ namespace hpl {
 
 		//SDL Specific
 		SDL_Surface* GetSurface();
-		SDL_PixelFormat *GetPixelFmt32(){ return mpSDLPixelFmt32;}
+		SDL_PixelFormat GetPixelFmt32(){ return mSDLPixelFmt32;}
 
 		tString msType;
 	private:
 		SDL_Surface* mpSurface;
-		SDL_PixelFormat *mpSDLPixelFmt32;
+		SDL_PixelFormat mSDLPixelFmt32;
 	};
 };
 #endif // HPL_SDL_BITMAP2D_H

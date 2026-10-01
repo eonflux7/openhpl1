@@ -22,7 +22,7 @@
 #include <list>
 #include "input/LowLevelInput.h"
 
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 namespace hpl {
 
@@ -45,7 +45,10 @@ namespace hpl {
 		std::list<SDL_Event> mlstEvents;
 
 	private:
+		void ApplyInputLock();
+
 		iLowLevelGraphics *mpLowLevelGraphics;
+		bool mbLockInput;
 	};
 };
 #endif // HPL_LOWLEVELINPUT_SDL_H

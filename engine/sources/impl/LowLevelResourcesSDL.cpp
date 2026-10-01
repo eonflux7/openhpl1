@@ -30,8 +30,8 @@
 #include "impl/Platform.h"
 #include "system/String.h"
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_image.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include "resources/MeshLoaderHandler.h"
 #include "resources/VideoManager.h"
 
@@ -76,37 +76,26 @@ namespace hpl {
 			asFilePath = cString::SetFileExt(asFilePath,asType);
 
 		tType = cString::GetFileExt(asFilePath);
-		SDL_Surface* pSurface = NULL;
-
-		if (tType=="bmp") {
-			#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			SDL_PixelFormat RGBAFormat;
-			RGBAFormat.palette = 0; RGBAFormat.colorkey = 0; RGBAFormat.alpha = 0;
-			RGBAFormat.BitsPerPixel = 32; RGBAFormat.BytesPerPixel = 4;
-
-			RGBAFormat.Rmask = 0xFF000000; RGBAFormat.Rshift = 0; RGBAFormat.Rloss = 0;
-			RGBAFormat.Gmask = 0x00FF0000; RGBAFormat.Gshift = 8; RGBAFormat.Gloss = 0;
-			RGBAFormat.Bmask = 0x0000FF00; RGBAFormat.Bshift = 16; RGBAFormat.Bloss = 0;
-			RGBAFormat.Amask = 0x000000FF; RGBAFormat.Ashift = 24; RGBAFormat.Aloss = 0;
-
-			SDL_Surface* orig = NULL;
-			orig = IMG_Load(asFilePath.c_str());
-
-			if(orig==NULL){
-				//Error handling stuff?
-				return NULL;
-			}
-			pSurface = SDL_ConvertSurface(orig, &RGBAFormat, SDL_SWSURFACE);
-			SDL_FreeSurface(orig);
-			#else
-			pSurface = IMG_Load(asFilePath.c_str());
-			#endif
-		} else {
-			pSurface= IMG_Load(asFilePath.c_str());
-		}
+		SDL_Surface* pSurface = IMG_Load(asFilePath.c_str());
 		if(pSurface==NULL){
 			//Error handling stuff?
 			return NULL;
+		}
+
+		// Textures are uploaded based on channel count only, so bring every
+		// image into byte-ordered RGB/RGBA. 8 bit palettised images stay as
+		// they are and are uploaded as single channel (alpha) textures.
+		if(pSurface->format != SDL_PIXELFORMAT_INDEX8)
+		{
+			SDL_PixelFormat targetFormat = SDL_ISPIXELFORMAT_ALPHA(pSurface->format) ?
+												SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24;
+			if(pSurface->format != targetFormat)
+			{
+				SDL_Surface* pConverted = SDL_ConvertSurface(pSurface, targetFormat);
+				SDL_DestroySurface(pSurface);
+				pSurface = pConverted;
+				if(pSurface==NULL) return NULL;
+			}
 		}
 
 		iBitmap2D* pBmp = mpLowLevelGraphics->CreateBitmap2DFromSurface(pSurface,

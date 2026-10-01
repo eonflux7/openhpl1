@@ -20,6 +20,10 @@ pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbisfile vorbis ogg)
 #--------------------------------------------------------------------
 # Vendored libraries
 
+# glad 2 OpenGL loader (GL 4.6 compatibility + legacy extensions the engine probes)
+add_library(glad STATIC vendor/glad/src/gl.c)
+target_include_directories(glad PUBLIC vendor/glad/include)
+
 # Newton Game Dynamics 2.36 (zlib), taken from ScummVM's HPL1 port
 file(GLOB_RECURSE newton_sources CONFIGURE_DEPENDS vendor/newton/*.cpp)
 add_library(newton STATIC ${newton_sources})
@@ -53,7 +57,7 @@ list(FILTER hpl_sources EXCLUDE REGEX "/(win32\\.cpp|Video[A-Za-z]*Theora\\.cpp)
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)
 target_link_libraries(hpl PUBLIC
-	newton angelscript oalwrapper
+	newton angelscript oalwrapper glad
 	SDL3::SDL3 SDL3_image::SDL3_image
 	OpenGL::GL)
 

@@ -18,7 +18,7 @@
  */
 #include "impl/KeyboardSDL.h"
 
-#include "SDL/SDL.h"
+#include <SDL3/SDL.h>
 
 #include "impl/LowLevelInputSDL.h"
 
@@ -41,8 +41,7 @@ namespace hpl {
 		mvKeyArray.resize(eKey_LastEnum);
 		ClearKeyList();
 
-		SDL_EnableUNICODE(1);
-		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
 	}
 
 	//-----------------------------------------------------------------------
@@ -59,27 +58,32 @@ namespace hpl {
 		{
 			SDL_Event *pEvent = &(*it);
 
-			if(pEvent->type != SDL_KEYDOWN && pEvent->type != SDL_KEYUP)
+			if(pEvent->type != SDL_EVENT_KEY_DOWN && pEvent->type != SDL_EVENT_KEY_UP)
 			{
 				continue;
 			}
 
-			eKey key = SDLToKey(pEvent->key.keysym.sym);
-			mvKeyArray[key] = pEvent->type == SDL_KEYDOWN?true:false;
+			eKey key = SDLToKey(pEvent->key.key);
 
-			if(pEvent->type == SDL_KEYDOWN)
+			mvKeyArray[key] = pEvent->type == SDL_EVENT_KEY_DOWN;
+
+			if(pEvent->type == SDL_EVENT_KEY_DOWN)
 			{
-				int sdl_mod = pEvent->key.keysym.mod;
+				SDL_Keymod sdl_mod = pEvent->key.mod;
 				mModifier = eKeyModifier_NONE;
 
-				if(sdl_mod & KMOD_CTRL)		mModifier |= eKeyModifier_CTRL;
-				if(sdl_mod & KMOD_SHIFT)	mModifier |= eKeyModifier_SHIFT;
-				if(sdl_mod & KMOD_ALT)		mModifier |= eKeyModifier_ALT;
-				if(sdl_mod & KMOD_META)		mModifier |= eKeyModifier_META;
+				if(sdl_mod & SDL_KMOD_CTRL)		mModifier |= eKeyModifier_CTRL;
+				if(sdl_mod & SDL_KMOD_SHIFT)	mModifier |= eKeyModifier_SHIFT;
+				if(sdl_mod & SDL_KMOD_ALT)		mModifier |= eKeyModifier_ALT;
+				if(sdl_mod & SDL_KMOD_GUI)		mModifier |= eKeyModifier_META;
 
-				mlstKeysPressed.push_back(cKeyPress(key,pEvent->key.keysym.unicode,mModifier));
+				// SDL 1.2 attached the typed character to key events. Derive it
+				// from the layout and modifiers; non-character keys give 0.
+				SDL_Keycode charKey = SDL_GetKeyFromScancode(pEvent->key.scancode, sdl_mod, false);
+				int lUnicode = (charKey & SDLK_SCANCODE_MASK) ? 0 : (int)charKey;
+				if(lUnicode > 0xFFFF) lUnicode = 0;
 
-				//if(mlstKeysPressed.size()>MAX_KEY_PRESSES) mlstKeysPressed.pop_front();
+				mlstKeysPressed.push_back(cKeyPress(key,lUnicode,mModifier));
 			}
 		}
 	}
@@ -149,11 +153,11 @@ namespace hpl {
 			case 	SDLK_ESCAPE: return eKey_ESCAPE;
 			case 	SDLK_SPACE: return eKey_SPACE;
 			case 	SDLK_EXCLAIM: return eKey_EXCLAIM;
-			case 	SDLK_QUOTEDBL: return eKey_QUOTEDBL;
+			case 	SDLK_DBLAPOSTROPHE: return eKey_QUOTEDBL;
 			case 	SDLK_HASH: return eKey_HASH;
 			case 	SDLK_DOLLAR: return eKey_DOLLAR;
 			case 	SDLK_AMPERSAND: return eKey_AMPERSAND;
-			case 	SDLK_QUOTE: return eKey_QUOTE;
+			case 	SDLK_APOSTROPHE: return eKey_QUOTE;
 			case 	SDLK_LEFTPAREN: return eKey_LEFTPAREN;
 			case 	SDLK_RIGHTPAREN: return eKey_RIGHTPAREN;
 			case 	SDLK_ASTERISK: return eKey_ASTERISK;
@@ -184,44 +188,44 @@ namespace hpl {
 			case 	SDLK_RIGHTBRACKET: return eKey_RIGHTBRACKET;
 			case 	SDLK_CARET: return eKey_CARET;
 			case 	SDLK_UNDERSCORE: return eKey_UNDERSCORE;
-			case 	SDLK_BACKQUOTE: return eKey_BACKQUOTE;
-			case 	SDLK_a: return eKey_a;
-			case 	SDLK_b: return eKey_b;
-			case 	SDLK_c: return eKey_c;
-			case 	SDLK_d: return eKey_d;
-			case 	SDLK_e: return eKey_e;
-			case 	SDLK_f: return eKey_f;
-			case 	SDLK_g: return eKey_g;
-			case 	SDLK_h: return eKey_h;
-			case 	SDLK_i: return eKey_i;
-			case 	SDLK_j: return eKey_j;
-			case 	SDLK_k: return eKey_k;
-			case 	SDLK_l: return eKey_l;
-			case 	SDLK_m: return eKey_m;
-			case 	SDLK_n: return eKey_n;
-			case 	SDLK_o: return eKey_o;
-			case 	SDLK_p: return eKey_p;
-			case 	SDLK_q: return eKey_q;
-			case 	SDLK_r: return eKey_r;
-			case 	SDLK_s: return eKey_s;
-			case 	SDLK_t: return eKey_t;
-			case 	SDLK_u: return eKey_u;
-			case 	SDLK_v: return eKey_v;
-			case 	SDLK_w: return eKey_w;
-			case 	SDLK_x: return eKey_x;
-			case 	SDLK_y: return eKey_y;
-			case 	SDLK_z: return eKey_z;
+			case 	SDLK_GRAVE: return eKey_BACKQUOTE;
+			case 	SDLK_A: return eKey_a;
+			case 	SDLK_B: return eKey_b;
+			case 	SDLK_C: return eKey_c;
+			case 	SDLK_D: return eKey_d;
+			case 	SDLK_E: return eKey_e;
+			case 	SDLK_F: return eKey_f;
+			case 	SDLK_G: return eKey_g;
+			case 	SDLK_H: return eKey_h;
+			case 	SDLK_I: return eKey_i;
+			case 	SDLK_J: return eKey_j;
+			case 	SDLK_K: return eKey_k;
+			case 	SDLK_L: return eKey_l;
+			case 	SDLK_M: return eKey_m;
+			case 	SDLK_N: return eKey_n;
+			case 	SDLK_O: return eKey_o;
+			case 	SDLK_P: return eKey_p;
+			case 	SDLK_Q: return eKey_q;
+			case 	SDLK_R: return eKey_r;
+			case 	SDLK_S: return eKey_s;
+			case 	SDLK_T: return eKey_t;
+			case 	SDLK_U: return eKey_u;
+			case 	SDLK_V: return eKey_v;
+			case 	SDLK_W: return eKey_w;
+			case 	SDLK_X: return eKey_x;
+			case 	SDLK_Y: return eKey_y;
+			case 	SDLK_Z: return eKey_z;
 			case 	SDLK_DELETE: return eKey_DELETE;
-			case 	SDLK_KP0: return eKey_KP0;
-			case 	SDLK_KP1: return eKey_KP1;
-			case 	SDLK_KP2: return eKey_KP2;
-			case 	SDLK_KP3: return eKey_KP3;
-			case 	SDLK_KP4: return eKey_KP4;
-			case 	SDLK_KP5: return eKey_KP5;
-			case 	SDLK_KP6: return eKey_KP6;
-			case 	SDLK_KP7: return eKey_KP7;
-			case 	SDLK_KP8: return eKey_KP8;
-			case 	SDLK_KP9: return eKey_KP9;
+			case 	SDLK_KP_0: return eKey_KP0;
+			case 	SDLK_KP_1: return eKey_KP1;
+			case 	SDLK_KP_2: return eKey_KP2;
+			case 	SDLK_KP_3: return eKey_KP3;
+			case 	SDLK_KP_4: return eKey_KP4;
+			case 	SDLK_KP_5: return eKey_KP5;
+			case 	SDLK_KP_6: return eKey_KP6;
+			case 	SDLK_KP_7: return eKey_KP7;
+			case 	SDLK_KP_8: return eKey_KP8;
+			case 	SDLK_KP_9: return eKey_KP9;
 			case 	SDLK_KP_PERIOD: return eKey_KP_PERIOD;
 			case 	SDLK_KP_DIVIDE: return eKey_KP_DIVIDE;
 			case 	SDLK_KP_MULTIPLY: return eKey_KP_MULTIPLY;
@@ -253,9 +257,9 @@ namespace hpl {
 			case 	SDLK_F13: return eKey_F13;
 			case 	SDLK_F14: return eKey_F14;
 			case 	SDLK_F15: return eKey_F15;
-			case 	SDLK_NUMLOCK: return eKey_NUMLOCK;
+			case 	SDLK_NUMLOCKCLEAR: return eKey_NUMLOCK;
 			case 	SDLK_CAPSLOCK: return eKey_CAPSLOCK;
-			case 	SDLK_SCROLLOCK: return eKey_SCROLLOCK;
+			case 	SDLK_SCROLLLOCK: return eKey_SCROLLOCK;
 			case 	SDLK_RSHIFT: return eKey_RSHIFT;
 			case 	SDLK_LSHIFT: return eKey_LSHIFT;
 			case 	SDLK_RCTRL: return eKey_RCTRL;
@@ -264,16 +268,14 @@ namespace hpl {
 			case 	SDLK_LALT: return eKey_LALT;
 			case 	SDLK_RMETA: return eKey_RMETA;
 			case 	SDLK_LMETA: return eKey_LMETA;
-			case 	SDLK_LSUPER: return eKey_LSUPER;
-			case 	SDLK_RSUPER: return eKey_RSUPER;
+			case 	SDLK_LGUI: return eKey_LSUPER;
+			case 	SDLK_RGUI: return eKey_RSUPER;
 			case 	SDLK_MODE: return eKey_MODE;
 			case 	SDLK_HELP: return eKey_HELP;
-			case 	SDLK_PRINT: return eKey_PRINT;
+			case 	SDLK_PRINTSCREEN: return eKey_PRINT;
 			case 	SDLK_SYSREQ: return eKey_SYSREQ;
-			case 	SDLK_BREAK: return eKey_BREAK;
 			case 	SDLK_MENU: return eKey_MENU;
 			case 	SDLK_POWER: return eKey_POWER;
-			case 	SDLK_EURO: return eKey_EURO;
 		}
 
 		return eKey_NONE;

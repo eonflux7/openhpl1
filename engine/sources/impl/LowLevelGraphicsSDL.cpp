@@ -16,15 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifdef WIN32
-#pragma comment(lib, "OpenGL32.lib")
-#pragma comment(lib, "GLu32.lib")
-#pragma comment(lib, "GLaux.lib")
-#pragma comment(lib, "Cg.lib")
-#pragma comment(lib, "CgGL.lib")
-#pragma comment(lib, "SDL_ttf.lib")
-#endif
-
 #include <assert.h>
 #include <stdlib.h>
 
@@ -33,7 +24,7 @@
 #include "impl/SDLBitmap2D.h"
 #include "impl/SDLFontData.h"
 #include "impl/SDLTexture.h"
-#include "impl/CGProgram.h"
+#include "impl/GLSLProgram.h"
 #include "system/LowLevelSystem.h"
 #include "impl/VertexBufferOGL.h"
 #include "impl/VertexBufferVBO.h"
@@ -95,9 +86,9 @@ namespace hpl {
 		mvVirtualSize.y = 600;
 
 
-		#ifdef WIN32
-			mhKeyTrapper = NULL;
-		#endif
+		mpWindow = NULL;
+		mGLContext = NULL;
+		mfGammaCorrection = 1.0f;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
 
@@ -122,33 +113,22 @@ namespace hpl {
 			mbTexCoordArrayActive[i] = false;
 			mlTexCoordArrayCount[i]=0;
 		}
-
-		//Init extra stuff
-		InitCG();
-
-		TTF_Init();
 	}
 
 	//-----------------------------------------------------------------------
 
 	cLowLevelGraphicsSDL::~cLowLevelGraphicsSDL()
 	{
-		//#ifdef WIN32
-		//	if(mhKeyTrapper) FreeLibrary(mhKeyTrapper);
-		//#endif
-
-
-		SDL_SetGammaRamp(mvStartGammaArray[0],mvStartGammaArray[1],mvStartGammaArray[2]);
-
 		hplFree(mpVertexArray);
 		hplFree(mpIndexArray);
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)	hplFree(mpTexCoordArray[i]);
 
 		hplDelete(mpPixelFormat);
 
-		//Exit extra stuff
-		ExitCG();
-		TTF_Quit();
+		cGLSLProgram::ExitPipeline();
+
+		if(mGLContext) SDL_GL_DestroyContext(mGLContext);
+		if(mpWindow) SDL_DestroyWindow(mpWindow);
 	}
 
 	//-----------------------------------------------------------------------
@@ -182,65 +162,92 @@ namespace hpl {
 		// Multisampling
 		if(mlMultisampling > 0)
 		{
-			if(SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1)==-1)
+			if(!SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1))
 			{
 				Error("Multisample buffers not supported!\n");
 			}
 			else
 			{
-				if(SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, mlMultisampling)==-1)
+				if(!SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, mlMultisampling))
 				{
 					Error("Couldn't set multisampling samples to %d\n",mlMultisampling);
 				}
 			}
 		}
 
-		unsigned int mlFlags = SDL_OPENGL;
+		// The renderer still uses the fixed-function pipeline next to GLSL.
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
-		if(abFullscreen) mlFlags |= SDL_FULLSCREEN;
+		// A size <= 0 means "use the desktop resolution".
+		SDL_DisplayID lDisplay = SDL_GetPrimaryDisplay();
+		const SDL_DisplayMode *pDesktopMode = SDL_GetDesktopDisplayMode(lDisplay);
+		if((alWidth <= 0 || alHeight <= 0) && pDesktopMode)
+		{
+			alWidth = pDesktopMode->w;
+			alHeight = pDesktopMode->h;
+		}
+		if(alWidth <= 0 || alHeight <= 0)
+		{
+			alWidth = 800;
+			alHeight = 600;
+		}
+
+		SDL_WindowFlags lFlags = SDL_WINDOW_OPENGL;
+		if(abFullscreen) lFlags |= SDL_WINDOW_FULLSCREEN;
 
 		Log(" Setting video mode: %d x %d - %d bpp\n",alWidth, alHeight, alBpp);
-		mpScreen = SDL_SetVideoMode( alWidth, alHeight, alBpp, mlFlags);
-		if(mpScreen==NULL){
-			Error("Could not set display mode setting a lower one!\n");
-			mvScreenSize = cVector2l(640,480);
-			mpScreen = SDL_SetVideoMode( mvScreenSize.x, mvScreenSize.y, alBpp, mlFlags);
-			if(mpScreen==NULL)
-			{
-				FatalError("Unable to initialize display!\n");
-				return false;
-			}
-			else
-			{
-				SetWindowCaption(asWindowCaption);
-				CreateMessageBoxW(_W("Warning!"),
-									_W("Could not set displaymode and 640x480 is used instead!\n"));
-			}
-		}
-		else
+		mpWindow = SDL_CreateWindow(asWindowCaption.c_str(), alWidth, alHeight, lFlags);
+		if(mpWindow==NULL)
 		{
-			SetWindowCaption(asWindowCaption);
+			FatalError("Unable to create window: %s\n", SDL_GetError());
+			return false;
 		}
 
-		Log(" Init Glee...");
-		if(GLeeInit())
+		if(abFullscreen)
 		{
-			Log("OK\n");
+			// Desktop-sized fullscreen is borderless; any other size switches
+			// the display mode.
+			const SDL_DisplayMode *pMode = NULL;
+			SDL_DisplayMode closestMode;
+			if(pDesktopMode == NULL || pDesktopMode->w != alWidth || pDesktopMode->h != alHeight)
+			{
+				if(SDL_GetClosestFullscreenDisplayMode(lDisplay, alWidth, alHeight, 0.0f, false, &closestMode))
+					pMode = &closestMode;
+			}
+			SDL_SetWindowFullscreenMode(mpWindow, pMode);
+			SDL_SyncWindow(mpWindow);
 		}
-		else
+
+		mGLContext = SDL_GL_CreateContext(mpWindow);
+		if(mGLContext==NULL)
+		{
+			FatalError("Unable to create OpenGL context: %s\n", SDL_GetError());
+			return false;
+		}
+
+		int lPixelW=0, lPixelH=0;
+		SDL_GetWindowSizeInPixels(mpWindow, &lPixelW, &lPixelH);
+		mvScreenSize.x = lPixelW;
+		mvScreenSize.y = lPixelH;
+		Log(" Window size: %d x %d\n", mvScreenSize.x, mvScreenSize.y);
+
+		Log(" Loading OpenGL functions...");
+		int lGLVersion = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+		if(lGLVersion == 0)
 		{
 			Log("ERROR!\n");
-			Error(" Couldn't init glee!\n");
+			FatalError("Couldn't load OpenGL functions!\n");
+			return false;
 		}
+		Log("OK\n");
+		Log("  OpenGL %d.%d: %s / %s\n", GLAD_VERSION_MAJOR(lGLVersion), GLAD_VERSION_MINOR(lGLVersion),
+			(const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER));
 
-		///Setup up windows specifc context:
-		#if defined(WIN32)
-			mGLContext = wglGetCurrentContext();
-			mDeviceContext = wglGetCurrentDC();
-		#elif defined(__linux__)
-		/*gDpy = XOpenDisplay(NULL);
-		glCtx = gPBuffer = 0;*/
-		#endif
+		if(!cGLSLProgram::InitPipeline())
+		{
+			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
+			return false;
+		}
 
 		//Check Multisample properties
 		CheckMultisampleCaps();
@@ -248,18 +255,12 @@ namespace hpl {
 		//Turn off cursor as default
 		ShowCursor(false);
 
-		//Gamma
-		mfGammaCorrection = 1.0f;
-		SDL_GetGammaRamp(mvStartGammaArray[0],mvStartGammaArray[1],mvStartGammaArray[2]);
-
-		SDL_SetGamma(mfGammaCorrection,mfGammaCorrection,mfGammaCorrection);
-
 		//GL
 		Log(" Setting up OpenGL\n");
 		SetupGL();
 
 		//Set the clear color
-		SDL_GL_SwapBuffers();
+		SDL_GL_SwapWindow(mpWindow);
 
 		return true;
 	}
@@ -348,14 +349,14 @@ namespace hpl {
 		//Texture Rectangle
 		case eGraphicCaps_TextureTargetRectangle:
 			{
-				return 1;//GLEE_ARB_texture_rectangle?1:0;
+				return 1;//GLAD_GL_ARB_texture_rectangle?1:0;
 			}
 
 
 		//Vertex Buffer Object
 		case eGraphicCaps_VertexBufferObject:
 			{
-				return GLEE_ARB_vertex_buffer_object?1:0;
+				return GLAD_GL_ARB_vertex_buffer_object?1:0;
 			}
 
 		//Two Sided Stencil
@@ -364,8 +365,8 @@ namespace hpl {
 				//DEBUG:
 				//return 0;
 
-				if(GLEE_EXT_stencil_two_side) return 1;
-				else if(GLEE_ATI_separate_stencil) return 1;
+				if(GLAD_GL_EXT_stencil_two_side) return 1;
+				else if(GLAD_GL_ATI_separate_stencil) return 1;
 				else return 0;
 			}
 
@@ -390,14 +391,14 @@ namespace hpl {
 		//Texture Anisotropy
 		case eGraphicCaps_AnisotropicFiltering:
 			{
-				if(GLEE_EXT_texture_filter_anisotropic) return 1;
+				if(GLAD_GL_EXT_texture_filter_anisotropic) return 1;
 				else return 0;
 			}
 
 		//Texture Anisotropy
 		case eGraphicCaps_MaxAnisotropicFiltering:
 			{
-				if(!GLEE_EXT_texture_filter_anisotropic) return 0;
+				if(!GLAD_GL_EXT_texture_filter_anisotropic) return 0;
 
 				float fMax;
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,&fMax);
@@ -407,7 +408,7 @@ namespace hpl {
 		//Multisampling
 		case eGraphicCaps_Multisampling:
 			{
-				if(GLEE_ARB_multisample) return 1;
+				if(GLAD_GL_ARB_multisample) return 1;
 				return 0;
 			}
 
@@ -418,7 +419,7 @@ namespace hpl {
 				//Debbug:
 				//return 0;
 
-				if(GLEE_ARB_vertex_program) return 1;
+				if(GLAD_GL_ARB_vertex_program) return 1;
 				else return 0;
 			}
 
@@ -428,14 +429,14 @@ namespace hpl {
 				//Debbug:
 				//return 0;
 
-				if(GLEE_ARB_fragment_program) return 1;
+				if(GLAD_GL_ARB_fragment_program) return 1;
 				else return 0;
 			}
 
 		//GL NV register combiners
 		case eGraphicCaps_GL_NVRegisterCombiners:
 			{
-				if(GLEE_NV_register_combiners) return 1;
+				if(GLAD_GL_NV_register_combiners) return 1;
 				else return 0;
 			}
 
@@ -450,7 +451,7 @@ namespace hpl {
 		//GL ATI Fragment Shader
 		case eGraphicCaps_GL_ATIFragmentShader:
 			{
-				if(GLEE_ATI_fragment_shader) return 1;
+				if(GLAD_GL_ATI_fragment_shader) return 1;
 				else return 0;
 			}
 		}
@@ -463,33 +464,23 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::ShowCursor(bool abX)
 	{
 		if(abX)
-			SDL_ShowCursor(SDL_ENABLE);
+			SDL_ShowCursor();
 		else
-			SDL_ShowCursor(SDL_DISABLE);
+			SDL_HideCursor();
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetVsyncActive(bool abX)
 	{
-		#if defined(WIN32)
-		if(GLEE_WGL_EXT_swap_control)
-		{
-			wglSwapIntervalEXT(abX ? 1 : 0);
-		}
-		#elif defined(__linux__)
-		if (GLEE_GLX_SGI_swap_control)
-		{
-			glXSwapIntervalSGI(abX ? 1 : 0);
-		}
-		#endif
+		SDL_GL_SetSwapInterval(abX ? 1 : 0);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetMultisamplingActive(bool abX)
 	{
-		if(!GLEE_ARB_multisample || mlMultisampling<=0) return;
+		if(!GLAD_GL_ARB_multisample || mlMultisampling<=0) return;
 
 		if(abX)
 			glEnable(GL_MULTISAMPLE_ARB);
@@ -503,9 +494,9 @@ namespace hpl {
 	{
 		//if(mfGammaCorrection == afX) return;
 
+		// SDL3 has no hardware gamma ramps. Stored here and applied by the
+		// renderer instead.
 		mfGammaCorrection = afX;
-
-		SDL_SetGamma(mfGammaCorrection,mfGammaCorrection,mfGammaCorrection);
 
 		/*Uint16 GammaArray[3][256];
 
@@ -628,7 +619,7 @@ namespace hpl {
 
 	iGpuProgram* cLowLevelGraphicsSDL::CreateGpuProgram(const tString& asName, eGpuProgramType aType)
 	{
-		return hplNew( cCGProgram, (asName,mCG_Context, aType) );
+		return hplNew( cGLSLProgram, (asName, aType) );
 	}
 
 	//-----------------------------------------------------------------------
@@ -783,20 +774,8 @@ namespace hpl {
 			LastTarget = GetGLTextureTargetEnum(mpCurrentTexture[alUnit]->GetTarget());
 
 		//Check if multi texturing is supported.
-		if(GLEE_ARB_multitexture){
+		if(GLAD_GL_ARB_multitexture){
 			glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
-		}
-
-		//If the current texture in this unit is a render target, unbind it.
-		if(mpCurrentTexture[alUnit]){
-			if(mpCurrentTexture[alUnit]->GetTextureType() == eTextureType_RenderTarget)
-			{
-				cSDLTexture *pSDLTex = static_cast<cSDLTexture *> (mpCurrentTexture[alUnit]);
-
-				glBindTexture(LastTarget, pSDLTex->GetTextureHandle());
-				cPBuffer* pBuffer = pSDLTex->GetPBuffer();
-				pBuffer->UnBind();
-			}
 		}
 
 		//Disable this unit if NULL
@@ -814,13 +793,6 @@ namespace hpl {
 
 			glBindTexture(NewTarget, pSDLTex->GetTextureHandle());
 			glEnable(NewTarget);
-
-			//if it is a render target we need to do some more binding.
-			if(pSDLTex->GetTextureType() == eTextureType_RenderTarget)
-			{
-				cPBuffer* pBuffer = pSDLTex->GetPBuffer();
-				pBuffer->Bind();
-			}
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
@@ -917,7 +889,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SwapBuffers()
 	{
 		glFlush();
-		SDL_GL_SwapBuffers();
+		SDL_GL_SwapWindow(mpWindow);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1102,7 +1074,7 @@ namespace hpl {
 
 	/*void cLowLevelGraphicsSDL::SetStencilTwoSideActive(bool abX)
 	{
-		if(GLEE_EXT_stencil_two_side)
+		if(GLAD_GL_EXT_stencil_two_side)
 		{
 			glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 		}
@@ -1112,7 +1084,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetStencilFace(eStencilFace aFace)
 	{
-		if(GLEE_EXT_stencil_two_side)
+		if(GLAD_GL_EXT_stencil_two_side)
 		{
 			if(aFace == eStencilFace_Front) glActiveStencilFaceEXT(GL_FRONT);
 			else							glActiveStencilFaceEXT(GL_BACK);
@@ -1139,7 +1111,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
 					eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)
 	{
-		if(GLEE_EXT_stencil_two_side)
+		if(GLAD_GL_EXT_stencil_two_side)
 		{
 			//glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);//shouldn't be needed..
 			glActiveStencilFaceEXT(GL_FRONT);
@@ -1158,7 +1130,7 @@ namespace hpl {
 					eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp)
 	{
 		//Nvidia implementation
-		if(GLEE_EXT_stencil_two_side)
+		if(GLAD_GL_EXT_stencil_two_side)
 		{
 			glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
@@ -1176,7 +1148,7 @@ namespace hpl {
 						GetGLStencilOpEnum(aBackZPassOp));
 		}
 		//Ati implementation
-		else if(GLEE_ATI_separate_stencil)
+		else if(GLAD_GL_ATI_separate_stencil)
 		{
 			//Front
 			glStencilOpSeparateATI( GL_FRONT, GetGLStencilOpEnum(aFrontFailOp),
@@ -1200,7 +1172,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetStencilTwoSide(bool abX)
 	{
-		if(GLEE_EXT_stencil_two_side)
+		if(GLAD_GL_EXT_stencil_two_side)
 		{
 			glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 		}
@@ -1259,7 +1231,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
 		eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha)
 	{
-		if(GLEE_EXT_blend_func_separate)
+		if(GLAD_GL_EXT_blend_func_separate)
 		{
 			glBlendFuncSeparateEXT(GetGLBlendEnum(aSrcFactorColor),
 								GetGLBlendEnum(aDestFactorColor),
@@ -1741,45 +1713,9 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetRenderTarget(iTexture* pTex)
 	{
-		if(pTex == mpRenderTarget)return;
+		// Render targets were GLX/WGL pbuffers and unused by the game.
+		// They will come back as framebuffer objects.
 		mpRenderTarget = pTex;
-
-		if(pTex==NULL)
-		{
-			#ifdef WIN32
-			if (!wglMakeCurrent(mDeviceContext, mGLContext)){
-				Log("Something went wrong...");
-			}
-			#elif defined(__linux__)
-			/*if (!glXMakeCurrent(dpy, gPBuffer, glCtx)) {
-				Log("Something went wrong...");
-			}*/
-			#endif
-		}
-		else
-		{
-			if(pTex->GetTextureType() != eTextureType_RenderTarget)return;
-
-			cSDLTexture* pSDLTex = static_cast<cSDLTexture*>(pTex);
-			cPBuffer* pPBuffer = pSDLTex->GetPBuffer();
-
-			//pPBuffer->UnBind();//needed?
-
-			if (!pPBuffer->MakeCurrentContext()){
-				Log("PBuffer::Activate() failed.\n");
-			}
-		}
-
-
-		//Old OGL 1.1 Code:
-		/*FlushRenderTarget();
-
-		mpRenderTarget = pTex;
-
-		if(mpRenderTarget==NULL)
-			glViewport(0,0,mvScreenSize.x,mvScreenSize.y);
-		else
-			glViewport(0,0,pTex->GetWidth(),pTex->GetHeight());*/
 	}
 
 	//-----------------------------------------------------------------------
@@ -2075,20 +2011,6 @@ namespace hpl {
 		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP_EXT;
 		}
 		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::InitCG()
-	{
-		mCG_Context = cgCreateContext();
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::ExitCG()
-	{
-		cgDestroyContext(mCG_Context);
 	}
 
 	//-----------------------------------------------------------------------

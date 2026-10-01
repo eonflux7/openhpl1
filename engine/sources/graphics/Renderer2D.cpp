@@ -87,7 +87,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 	////////////////////// RENDER OBJECT COMPARE ////////////////////////////
-	bool cRenderObject2DCompare::operator()(const cRenderObject2D &aObjectA,const cRenderObject2D &aObjectB)
+	bool cRenderObject2DCompare::operator()(const cRenderObject2D &aObjectA,const cRenderObject2D &aObjectB) const
 	{
 		if(aObjectA.GetMaterial()->GetTexture(eMaterialTexture_Diffuse) !=
 			aObjectB.GetMaterial()->GetTexture(eMaterialTexture_Diffuse))
@@ -115,7 +115,7 @@ namespace hpl {
 
 	////////////////////// TRANS RENDER OBJECT COMPARE ////////////////////////////
 
-	bool cRenderTransObjectCompare::operator()(const cRenderObject2D &aObjectA,const cRenderObject2D &aObjectB)
+	bool cRenderTransObjectCompare::operator()(const cRenderObject2D &aObjectA,const cRenderObject2D &aObjectB) const
 	{
 		if(aObjectA.GetZ() != aObjectB.GetZ())
 		{
@@ -895,13 +895,13 @@ namespace hpl {
 			//MAYBE TODO: Fix so that the shadows from different edges share vertices
 
 			// Add vertexes and indexes to the vertex batcher
-			mpLowLevelGraphics->AddVertexToBatch(&cVertex(vPointPos[0],ShadowColor));
-			mpLowLevelGraphics->AddVertexToBatch(&cVertex(vPointPos[1],ShadowColor));
+			{ cVertex vTmpVtx(vPointPos[0],ShadowColor); mpLowLevelGraphics->AddVertexToBatch(&vTmpVtx); }
+			{ cVertex vTmpVtx(vPointPos[1],ShadowColor); mpLowLevelGraphics->AddVertexToBatch(&vTmpVtx); }
 			mpLowLevelGraphics->AddIndexToBatch(lFirstIndex);
 			mpLowLevelGraphics->AddIndexToBatch(lFirstIndex+1);
 
-			mpLowLevelGraphics->AddVertexToBatch(&cVertex(vEndPos[0],ShadowColor));
-			mpLowLevelGraphics->AddVertexToBatch(&cVertex(vEndPos[1],ShadowColor));
+			{ cVertex vTmpVtx(vEndPos[0],ShadowColor); mpLowLevelGraphics->AddVertexToBatch(&vTmpVtx); }
+			{ cVertex vTmpVtx(vEndPos[1],ShadowColor); mpLowLevelGraphics->AddVertexToBatch(&vTmpVtx); }
 			mpLowLevelGraphics->AddIndexToBatch(lFirstIndex+2);
 
 			mpLowLevelGraphics->AddIndexToBatch(lFirstIndex+1);
@@ -920,7 +920,7 @@ namespace hpl {
 
 			//If we had an extra point one for triangle is needed.
 			if(bExtraPos){
-				mpLowLevelGraphics->AddVertexToBatch(&cVertex(vExtraPos,ShadowColor));
+				{ cVertex vTmpVtx(vExtraPos,ShadowColor); mpLowLevelGraphics->AddVertexToBatch(&vTmpVtx); }
 
 				mpLowLevelGraphics->AddIndexToBatch(lFirstIndex+3);
 				mpLowLevelGraphics->AddIndexToBatch(lFirstIndex+2);

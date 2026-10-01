@@ -34,6 +34,7 @@ namespace hpl {
 	cLowLevelInputSDL::cLowLevelInputSDL(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
+		mbLockInput = false;
 		LockInput(true);
 	}
 
@@ -53,18 +54,21 @@ namespace hpl {
 
 	void cLowLevelInputSDL::LockInput(bool abX)
 	{
-		SDL_WM_GrabInput(abX ? SDL_GRAB_ON : SDL_GRAB_OFF);
+		mbLockInput = abX;
+		ApplyInputLock();
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::BeginInputUpdate()
 	{
-		//SDL_PumpEvents();
+		// The window may not have existed yet when the lock was requested.
+		ApplyInputLock();
+
 
 		SDL_Event sdlEvent;
 
-		while(SDL_PollEvent(&sdlEvent)!=0)
+		while(SDL_PollEvent(&sdlEvent))
 		{
 			mlstEvents.push_back(sdlEvent);
 		}
@@ -75,6 +79,19 @@ namespace hpl {
 	void cLowLevelInputSDL::EndInputUpdate()
 	{
 		mlstEvents.clear();
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelInputSDL::ApplyInputLock()
+	{
+		// Locked input means a captured, hidden pointer with raw relative
+		// motion (SDL 1.2's SDL_WM_GrabInput).
+		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
+		if(pWindow==NULL) return;
+
+		if(SDL_GetWindowRelativeMouseMode(pWindow) != mbLockInput)
+			SDL_SetWindowRelativeMouseMode(pWindow, mbLockInput);
 	}
 
 	//-----------------------------------------------------------------------

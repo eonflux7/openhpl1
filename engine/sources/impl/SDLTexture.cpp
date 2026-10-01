@@ -38,13 +38,6 @@ namespace hpl {
 	{
 		mbContainsData = false;
 
-		mpPBuffer = NULL;
-
-		if(aType==eTextureType_RenderTarget)
-		{
-			mpPBuffer = hplNew( cPBuffer, (mpLowLevelGraphics,true) );
-		}
-
 		//Cubemap does not like mipmaps
 		if(aTarget == eTextureTarget_CubeMap) mbUseMipMaps = false;
 
@@ -61,8 +54,6 @@ namespace hpl {
 
 	cSDLTexture::~cSDLTexture()
 	{
-		if(mpPBuffer)hplDelete(mpPBuffer);
-
 		for(size_t i=0; i<mvTextureHandles.size(); ++i)
 		{
 			glDeleteTextures(1,(GLuint *)&mvTextureHandles[i]);
@@ -190,10 +181,8 @@ namespace hpl {
 
 		if(mType == eTextureType_RenderTarget)
 		{
-			if(!mpPBuffer->Init(alWidth,alHeight,aCol)){
-				return false;
-			}
-
+			// Render targets used to be pbuffers. For now this is a plain
+			// texture; framebuffer objects will replace it.
 			mlWidth = alWidth;
 			mlHeight = alHeight;
 
@@ -206,6 +195,7 @@ namespace hpl {
 
 			glEnable(GLTarget);
 			glBindTexture(GLTarget, mvTextureHandles[0]);
+			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 			if(mbUseMipMaps && mTarget != eTextureTarget_Rect){
 				if(mFilter == eTextureFilter_Bilinear)
 					glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
@@ -281,12 +271,7 @@ namespace hpl {
 
 		if(mbUseMipMaps && mTarget != eTextureTarget_Rect && mTarget != eTextureTarget_3D)
 		{
-			if(mTarget == eTextureTarget_1D)
-				gluBuild1DMipmaps(GLTarget,lChannels,mlWidth,
-				format, GL_UNSIGNED_BYTE, apPixelData);
-			else
-				gluBuild2DMipmaps(GLTarget,lChannels,mlWidth, mlHeight,
-				format, GL_UNSIGNED_BYTE, apPixelData);
+			glGenerateMipmap(GLTarget);
 		}
 
 		PostCreation(GLTarget);
@@ -668,12 +653,7 @@ namespace hpl {
 
 		if(mbUseMipMaps && mTarget != eTextureTarget_Rect)
 		{
-			if(mTarget == eTextureTarget_1D)
-				gluBuild1DMipmaps(GLTarget,lChannels,mlWidth,
-				format, GL_UNSIGNED_BYTE, pPixelSrc);
-			else
-				gluBuild2DMipmaps(GLTarget,lChannels,mlWidth, mlHeight,
-				format, GL_UNSIGNED_BYTE, pPixelSrc);
+			glGenerateMipmap(GLTarget);
 		}
 
 		PostCreation(GLTarget);
@@ -727,38 +707,13 @@ namespace hpl {
 	void cSDLTexture::GetSettings(cSDLBitmap2D* apSrc, int &alChannels, GLenum &aFormat)
 	{
 		SDL_Surface *pSurface =  apSrc->GetSurface();
-		alChannels = pSurface->format->BytesPerPixel;
-		aFormat = GL_RGBA;
+		alChannels = SDL_BYTESPERPIXEL(pSurface->format);
 
-		tString sType = cString::ToLowerCase(apSrc->msType);
-
-		if(alChannels==4)
-		{
-			if(sType == "tga")
-			{
-				aFormat = GL_BGRA_EXT;
-			}
-			else
-			{
-				aFormat = GL_RGBA;
-			}
-
-		}
-		if(alChannels==3)
-		{
-			if(sType == "tga")
-			{
-				aFormat = GL_BGR_EXT;
-			}
-			else
-			{
-				aFormat = GL_RGB;
-			}
-		}
-		if(alChannels==1)
-		{
-			aFormat = GL_ALPHA;
-		}
+		// Images are normalised to byte-ordered RGB(A) at load time.
+		if(alChannels==4)		aFormat = GL_RGBA;
+		else if(alChannels==3)	aFormat = GL_RGB;
+		else if(alChannels==1)	aFormat = GL_ALPHA;
+		else					aFormat = GL_RGBA;
 	}
 
 	//-----------------------------------------------------------------------
