@@ -58,6 +58,12 @@ Static analysis uses `clang-tools-extra`. `cmake --build build --target tidy`
 runs the checks in `.clang-tidy` over the engine and game sources, and
 `git clang-format` formats changed lines.
 
+Before changing gameplay code, run the smoke test on the ASan build:
+
+```
+cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/overture
+```
+
 ## Running
 
 ```
@@ -84,6 +90,8 @@ saves.
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
+| `OVERTURE_SMOKE=1` | Smoke test: load every map, run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
+| `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
 
 ## Requirements
 

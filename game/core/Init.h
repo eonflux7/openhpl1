@@ -49,6 +49,7 @@ class cDemoEndText;
 class cIntroStory;
 
 class cMainMenu;
+class cSmokeTest;
 
 #include "core/GameTypes.h"
 
@@ -196,6 +197,8 @@ public:
 	cDemoEndText *mpDemoEndText;
 	
 	cMainMenu *mpMainMenu;
+
+	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
 
 	cIntroStory* mpIntroStory;	
 

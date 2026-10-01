@@ -58,6 +58,7 @@
 #include "player/HapticGameCamera.h"
 
 #include "ui/MainMenu.h"
+#include "core/SmokeTest.h"
 
 #include "ui/IntroStory.h"
 
@@ -175,6 +176,7 @@ bool gbUsingUserSettings=false;
 cInit::cInit(void)  : iUpdateable("Init")
 {
 	mbDestroyGraphics = true;
+	mpSmokeTest = NULL;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
 	mlMaxSoundDataNum = 120;
@@ -536,6 +538,9 @@ bool cInit::Init(tString asCommandLine)
 
 	mpMainMenu = hplNew( cMainMenu,(this) );
 
+	if(cSmokeTest::IsRequested())
+		mpSmokeTest = hplNew( cSmokeTest,(this, cSmokeTest::GetSpec()) );
+
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
 	mpGame->GetUpdater()->AddGlobalUpdate(mpButtonHandler);
@@ -584,6 +589,14 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddUpdate("DemoEndText", mpDemoEndText);
 
 	mpGame->GetUpdater()->SetContainer("Default");
+
+	if(mpSmokeTest)
+	{
+		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
+									"PreMenu","Credits","DemoEndText"};
+		for(const char *sContainer : vContainers)
+			mpGame->GetUpdater()->AddUpdate(sContainer, mpSmokeTest);
+	}
 	
 	// SCRIPT INIT /////////////////////
 	cGameScripts::Init();
@@ -608,7 +621,12 @@ bool cInit::Init(tString asCommandLine)
 	//mpGame->SetRenderOnce(true);
 	//mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(eRendererDebugFlag_LogRendering);
 	
-	if(mbShowPreMenu)
+	if(mpSmokeTest)
+	{
+		if(mpSmokeTest->GetFirstMap() != "")
+			mpMapHandler->Load(mpSmokeTest->GetFirstMap(),"");
+	}
+	else if(mbShowPreMenu)
 	{
 		mpPreMenu->SetActive(true);
 	}
@@ -754,6 +772,7 @@ void cInit::Exit()
 	hplDelete( mpGraphicsHelper );
 	Log(" Exit Main menu\n");
 	hplDelete( mpMainMenu );
+	if(mpSmokeTest) hplDelete( mpSmokeTest );
 	Log(" Exit Player hands\n");
 	hplDelete( mpPlayerHands );
 	Log(" Exit Music handler\n");

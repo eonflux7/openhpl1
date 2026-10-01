@@ -19,6 +19,7 @@
 //#include <vld.h>
 
 #include "core/Init.h"
+#include "core/SmokeTest.h"
 
 #include <SDL3/SDL.h>
 
@@ -41,11 +42,13 @@ int hplMain(const tString& asCommandLine)
 
 	pInit->Run();
 
+	bool bSmokeFailed = pInit->mpSmokeTest && pInit->mpSmokeTest->Failed();
+
 	pInit->Exit();
 
 	hplDelete( pInit );
 	
 	cMemoryManager::LogResults();
 
-	return 0;
+	return bSmokeFailed ? 1 : 0;
 }
