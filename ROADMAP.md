@@ -88,8 +88,11 @@ Every step is checked against reference images of the renderer before it.
   - [ ] 2D coverage: HUD, inventory, notebook, menus and text are left out
         of the frames; they need their own shots before the fixed-function
         step
-- [ ] No GL errors or driver warnings in a debug context
+- [x] No GL errors or driver warnings in a debug context
       (`OVERTURE_GL_DEBUG`), so new ones stand out
+  - [ ] menus, inventory, notebook and other 2D screens run under it (the
+        reference views cover the 3D world and HUD text only)
+  - [ ] checked on Mesa (only NVIDIA so far)
 - [x] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
       materials and shaders, capability checks for what GL 3.3 guarantees)
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:

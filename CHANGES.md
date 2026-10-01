@@ -383,6 +383,18 @@ guarantees were never taken. Removed, with the reference images unchanged:
   the startup support check and its error messages; the NV register combiner
   and ATI fragment shader caps
 
+### Clean GL debug output
+
+A run of every reference view with `OVERTURE_GL_DEBUG=1` logs no driver
+messages (NVIDIA 615). Fixed for that:
+
+- binding a texture to a unit that had none called `glDisable(0)`
+  (`GL_INVALID_ENUM`, from font and HUD drawing among others)
+- the debug log repeats a message at most three times by its text, not by
+  its id: NVIDIA gives every `GL_INVALID_ENUM` the same id
+- NVIDIA's "vertex shader is being recompiled based on GL state" note
+  (id 131218) is not logged; it comes from the compatibility profile
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

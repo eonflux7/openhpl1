@@ -34,6 +34,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <vector>
 #include <map>
+#include <string>
 #include <cstring>
 
 namespace hpl {
@@ -63,9 +64,14 @@ namespace hpl {
 	static void GLAPIENTRY GLDebugCallback(GLenum aSource, GLenum aType, GLuint alId, GLenum aSeverity,
 											GLsizei alLength, const GLchar *apMessage, const void *apUser)
 	{
-		// The same message tends to repeat every frame; log each one a few times only.
-		static std::map<GLuint,int> mapCount;
-		if(++mapCount[alId] > 3) return;
+		// NVIDIA: "vertex shader is being recompiled based on GL state", a
+		// note about compatibility-profile state that goes with fixed-function.
+		if(alId == 131218) return;
+
+		// The same message tends to repeat every frame; log each one a few times
+		// only. Keyed by text, as drivers give one id to many different errors.
+		static std::map<std::string,int> mapCount;
+		if(++mapCount[std::string(apMessage, alLength >= 0 ? alLength : strlen(apMessage))] > 3) return;
 		Log("GL DEBUG [type 0x%x id %u sev 0x%x]: %s\n", aType, alId, aSeverity, apMessage);
 	}
 	//-------------------------------------------------
@@ -880,7 +886,7 @@ namespace hpl {
 		//Enable the unit, set the texture handle and bind the pbuffer
 		else
 		{
-			if(NewTarget != LastTarget) glDisable(LastTarget);
+			if(LastTarget != 0 && NewTarget != LastTarget) glDisable(LastTarget);
 
 			cSDLTexture *pSDLTex = static_cast<cSDLTexture*> (apTex);
 
