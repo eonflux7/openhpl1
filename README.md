@@ -95,7 +95,13 @@ saves.
 
 ```
 engine/    HPL1 engine (FrictionalGames/HPL1Engine), ported
-game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), ported
+game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), ported:
+  core/      init, main loop, maps, saves, scripts, input bindings
+  player/    player, its states and HUD models
+  enemies/   enemy AI
+  entities/  map objects and areas
+  systems/   effects, fades, music, messages, radio, triggers, attacks
+  ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders (from ScummVM's HPL1 port)
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad
 run.sh     launcher

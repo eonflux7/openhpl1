@@ -102,8 +102,9 @@ overture_warnings(hpl)
 #--------------------------------------------------------------------
 # Penumbra: Overture
 
-file(GLOB game_sources CONFIGURE_DEPENDS game/*.cpp)
+file(GLOB_RECURSE game_sources CONFIGURE_DEPENDS game/*.cpp)
 add_executable(overture ${game_sources})
+target_include_directories(overture PRIVATE game)
 target_link_libraries(overture PRIVATE hpl)
 overture_warnings(overture)
 
