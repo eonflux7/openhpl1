@@ -167,6 +167,14 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 	mvLookDelta = cVector2f(0,0);
 	mvLookPerRel = cVector2f(0,0);
 	mlLookPlayerState = -1;
+
+	mlCursorStep = 0;
+	mvCursorRel = cVector2f(0,0);
+	for(int i=0; i<2; ++i)
+	{
+		mvCursorStart[i] = cVector2f(0,0);
+		mvCursorPerRel[i] = cVector2f(0,0);
+	}
 	mbInvertMouseY = mpInit->mpConfig->GetBool("Controls","InvertMouseY",false);
 	mbToggleCrouch = mpInit->mpConfig->GetBool("Controls","ToggleCrouch",true);
 }
@@ -250,8 +258,72 @@ void cButtonHandler::OnInterpolate(float afT)
 
 //-----------------------------------------------------------------------
 
+cVector2f cButtonHandler::ReadMouseRel()
+{
+	cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+	mvCursorRel += vRel;
+	return vRel;
+}
+
+// Update() runs more than once in a logic step; the first run starts the
+// measurement of how far the step's mouse movement moves the cursors.
+void cButtonHandler::BeginCursorStep()
+{
+	unsigned int lStep = mpInit->mpGame->GetLogicStepCount();
+	if(mlCursorStep == lStep) return;
+
+	mlCursorStep = lStep;
+	mvCursorRel = cVector2f(0,0);
+	mvCursorStart[0] = mpInit->mpMainMenu->GetMousePos();
+	mvCursorStart[1] = mpPlayer->GetCrossHairPos();
+}
+
+void cButtonHandler::EndCursorStep()
+{
+	cVector2f vEnd[2] = { mpInit->mpMainMenu->GetMousePos(), mpPlayer->GetCrossHairPos() };
+
+	for(int i=0; i<2; ++i)
+	{
+		cVector2f vMove = vEnd[i] - mvCursorStart[i];
+
+		// Cursor movement per unit of mouse movement. An axis the mouse did
+		// not move on keeps its value. Anything far from the sensitivity
+		// setting is a cursor that was put somewhere, not moved.
+		float fMax = mfMouseSensitivity * 4.0f;
+		if(mvCursorRel.x != 0)
+		{
+			float fPerRel = vMove.x / mvCursorRel.x;
+			mvCursorPerRel[i].x = (fPerRel >= 0 && fPerRel <= fMax) ? fPerRel : 0;
+		}
+		if(mvCursorRel.y != 0)
+		{
+			float fPerRel = vMove.y / mvCursorRel.y;
+			mvCursorPerRel[i].y = (fPerRel >= 0 && fPerRel <= fMax) ? fPerRel : 0;
+		}
+	}
+}
+
+cVector2f cButtonHandler::GetCursorDrawOffset(bool abMenu)
+{
+	if(mpInit->mpGame->GetLimitFPS()) return cVector2f(0,0);
+
+	// Only if the last step measured it.
+	if(mlCursorStep + 1 != mpInit->mpGame->GetLogicStepCount()) return cVector2f(0,0);
+
+	return mpInput->GetMouse()->GetPendingRelPosition() * mvCursorPerRel[abMenu ? 0 : 1];
+}
+
+//-----------------------------------------------------------------------
+
 void cButtonHandler::Update(float afTimeStep)
 {
+	BeginCursorStep();
+	struct cCursorStepEnd
+	{
+		cButtonHandler *mpHandler;
+		~cCursorStepEnd(){ mpHandler->EndCursorStep(); }
+	} cursorStepEnd = { this };
+
 	static bool bLockState = true;
 	///////////////////////////////////
 	// GLOBAL Key Strokes
@@ -375,13 +447,13 @@ void cButtonHandler::Update(float afTimeStep)
 		{
 			mpInit->mpMainMenu->AddMousePos(mpLowLevelHaptic->GetRelativeVirtualMousePos() * mfMouseSensitivity);
 
-			cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+			cVector2f vRel = ReadMouseRel();
 			mpInit->mpMainMenu->AddMousePos(vRel * mfMouseSensitivity);
 		}
 		else
 		{
 			/// Mouse Movement
-			cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+			cVector2f vRel = ReadMouseRel();
 			mpInit->mpMainMenu->AddMousePos(vRel * mfMouseSensitivity);
 		}
 		
@@ -459,7 +531,7 @@ void cButtonHandler::Update(float afTimeStep)
 			else
 			{
 				/// Mouse Movement
-				cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+				cVector2f vRel = ReadMouseRel();
 				mpInit->mpDeathMenu->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
@@ -502,7 +574,7 @@ void cButtonHandler::Update(float afTimeStep)
 			else
 			{
 				/// Mouse Movement
-				cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+				cVector2f vRel = ReadMouseRel();
 				mpInit->mpNumericalPanel->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
@@ -547,7 +619,7 @@ void cButtonHandler::Update(float afTimeStep)
 			else
 			{
 				/// Mouse Movement
-				cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+				cVector2f vRel = ReadMouseRel();
 				mpInit->mpNotebook->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
@@ -610,7 +682,7 @@ void cButtonHandler::Update(float afTimeStep)
 			else
 			{
 				/// Mouse Movement
-				cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+				cVector2f vRel = ReadMouseRel();
 				mpInit->mpInventory->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
@@ -757,7 +829,7 @@ void cButtonHandler::Update(float afTimeStep)
 					//Get the mouse pos and convert it to 0 - 1
 					if(mpInit->mbHasHaptics==false)
 					{
-						cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+						cVector2f vRel = ReadMouseRel();
 						cVector2f vRawRel = vRel;
 						vRel /= mpLowLevelGraphics->GetVirtualSize();
 

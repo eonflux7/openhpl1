@@ -33,6 +33,7 @@
 #include "player/PlayerState_Weapon.h"
 
 #include "core/ButtonHandler.h"
+#include "core/GraphicsHelper.h"
 #include "ui/Inventory.h"
 #include "ui/Notebook.h"
 #include "core/SaveHandler.h"
@@ -1463,6 +1464,8 @@ void cPlayer::OnDraw()
 	
 	////////////////////////////////
 	//Cross hair
+	cVector2f vCrossHairPos = mvCrossHairPos + mpInit->mpButtonHandler->GetCursorDrawOffset(false);
+	mpInit->mpGraphicsHelper->ClampToScreen(vCrossHairPos);
 	if(IsActive()==false)
 	{
 		//Do noting...
@@ -1499,24 +1502,24 @@ void cPlayer::OnDraw()
 			
 			if(mbItemFlash)
 			{
-				mpGfxDrawer->DrawGfxObject(pObject,cVector3f(0,0,100)+(mvCrossHairPos - vPosAdd),vSize,
+				mpGfxDrawer->DrawGfxObject(pObject,cVector3f(0,0,100)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(1,1,1,1));
 				for(int i=0; i<2; ++i)
-					mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(0,0,101)+(mvCrossHairPos - vPosAdd),vSize,
+					mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(0,0,101)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(1,1,1,mItemFlash.val));
 				
-				/*mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(3,3,99)+(mvCrossHairPos - vPosAdd),vSize,
+				/*mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(3,3,99)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(0,1,0,mItemFlash.val*0.8f));
-				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(-3,-3,99)+(mvCrossHairPos - vPosAdd),vSize,
+				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(-3,-3,99)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(0,1,0,mItemFlash.val*0.8f));
-				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(-3,3,99)+(mvCrossHairPos - vPosAdd),vSize,
+				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(-3,3,99)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(0,1,0,mItemFlash.val*0.8f));
-				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(3,-3,99)+(mvCrossHairPos - vPosAdd),vSize,
+				mpGfxDrawer->DrawGfxObject(pAdditive,cVector3f(3,-3,99)+(vCrossHairPos - vPosAdd),vSize,
 											cColor(0,1,0,mItemFlash.val*0.8f));*/
 			}
 			else
 			{
-				mpGfxDrawer->DrawGfxObject(pObject,cVector3f(0,0,100)+(mvCrossHairPos - vPosAdd),vSize,
+				mpGfxDrawer->DrawGfxObject(pObject,cVector3f(0,0,100)+(vCrossHairPos - vPosAdd),vSize,
 					cColor(1,0.3f,0.3f,1.0f));
 			}
 		}
@@ -1526,7 +1529,7 @@ void cPlayer::OnDraw()
 		cResourceImage *pImage = mvCrossHairs[mCrossHairState]->GetMaterial()->GetImage(eMaterialTexture_Diffuse);
 		cVector2l vSize = pImage->GetSize();
 		cVector2f vPosAdd(((float)vSize.x) / 2.0f, ((float)vSize.y) / 2.0f);
-		mpGfxDrawer->DrawGfxObject(mvCrossHairs[mCrossHairState],cVector3f(0,0,100)+(mvCrossHairPos - vPosAdd));
+		mpGfxDrawer->DrawGfxObject(mvCrossHairs[mCrossHairState],cVector3f(0,0,100)+(vCrossHairPos - vPosAdd));
 	}
 	else if(mpInit->mbShowCrossHair)
 	{

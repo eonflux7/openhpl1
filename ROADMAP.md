@@ -56,7 +56,7 @@ Make sure nothing regressed before changing anything.
       stays at its fixed rate)
   - [ ] play-test on a high-refresh display: only checked headless (camera
         path logged per frame, same end state as with the limit, smoke test)
-  - [ ] blend skeletal animations, particles and the interact crosshair
+  - [ ] blend skeletal animations and particles
   - [ ] a frame rate cap for when V-Sync is off
   - [ ] the main loop spins while it waits for the next step
 - [x] Display, window mode and V-Sync options for SDL3 in the menu

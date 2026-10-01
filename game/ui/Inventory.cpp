@@ -31,6 +31,7 @@
 
 #include "core/GlobalInit.h"
 #include "core/GraphicsHelper.h"
+#include "core/ButtonHandler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
@@ -1096,8 +1097,12 @@ void cInventory::OnDraw()
 	//Draw Selected item
 	if(mpCurrentItem)
 	{
-		cVector3f vPos(mvMousePos.x + mvCurrentItemOffset.x, 
-						mvMousePos.y + mvCurrentItemOffset.y,15);
+		// Stay with the cursor, which is drawn ahead of its position
+		// between two logic steps.
+		cVector2f vMousePos = mvMousePos + mpInit->mpButtonHandler->GetCursorDrawOffset(false);
+		mpInit->mpGraphicsHelper->ClampToScreen(vMousePos);
+		cVector3f vPos(vMousePos.x + mvCurrentItemOffset.x, 
+						vMousePos.y + mvCurrentItemOffset.y,15);
 		cVector2l vSize = mpCurrentItem->GetGfxObject()->GetMaterial()->GetImage(eMaterialTexture_Diffuse)->GetSize();
 
 		mpDrawer->DrawGfxObject(mpCurrentItem->GetGfxObject(), vPos,

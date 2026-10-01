@@ -37,6 +37,16 @@ public:
 	void OnStart() override;
 	void Update(float afTimeStep) override;
 	void OnInterpolate(float afT) override;
+
+	/**
+	 * How far to draw a cursor from its position, for frames drawn between
+	 * two logic steps: the mouse movement that has arrived since the last
+	 * step, the way that step moved the cursor. Zero with the frame rate
+	 * limited.
+	 * \param abMenu the main menu's cursor, else the player's crosshair
+	 * (inventory, notebook, panels, interact mode).
+	 */
+	cVector2f GetCursorDrawOffset(bool abMenu);
 	void Reset() override;
 	void OnExit() override;
 	void OnPostSceneDraw() override;
@@ -62,6 +72,15 @@ private:
 	cVector2f mvLookDelta;
 	cVector2f mvLookPerRel;
 	int mlLookPlayerState;
+
+	// The same for the cursors: index 0 is the main menu's, 1 the crosshair.
+	cVector2f ReadMouseRel();
+	void BeginCursorStep();
+	void EndCursorStep();
+	unsigned int mlCursorStep;
+	cVector2f mvCursorRel;
+	cVector2f mvCursorStart[2];
+	cVector2f mvCursorPerRel[2];
 
 	iAction * ActionFromTypeAndVal(const tString& asName,const tString& asType, const tString& asVal);
 	void TypeAndValFromAction(iAction *apAction, tString *apType, tString *apVal);

@@ -2349,7 +2349,9 @@ void cMainMenu::OnDraw()
 	cResourceImage *pImage = mpGfxMouse->GetMaterial()->GetImage(eMaterialTexture_Diffuse);
 	cVector2l vSize = pImage->GetSize();
 	cVector2f vPosAdd(((float)vSize.x) / 2.0f, ((float)vSize.y) / 2.0f);
-	mpDrawer->DrawGfxObject(mpGfxMouse,cVector3f(0,0,100)+(mvMousePos - vPosAdd));
+	cVector2f vMousePos = mvMousePos + mpInit->mpButtonHandler->GetCursorDrawOffset(true);
+	mpInit->mpGraphicsHelper->ClampToScreen(vMousePos);
+	mpDrawer->DrawGfxObject(mpGfxMouse,cVector3f(0,0,100)+(vMousePos - vPosAdd));
 }
 
 //-----------------------------------------------------------------------

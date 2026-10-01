@@ -318,9 +318,16 @@ commit), and the last official Linux build on Steam.
   are blended.
 - Held items and hands follow the camera of the frame
   (`cPlayerHands::OnInterpolate`).
+- Cursors move every frame too: the main menu's cursor, and the crosshair
+  that is the cursor of the inventory, notebook, panels, death menu and
+  interact mode, are drawn ahead of their position by the mouse movement
+  that has arrived since the last step (`cButtonHandler::
+  GetCursorDrawOffset`), and so is an item being dragged in the inventory.
+  What is under the cursor (highlights, clicks) is still decided 60 times
+  per second.
 - Not blended, so still moving 60 times per second: skeletal animations,
-  particles, the sway of held items, the interact-mode crosshair, lights and
-  entities that scripts move without physics. The image trail effect
+  particles, the sway of held items, lights and entities that scripts move
+  without physics. The image trail effect
   (enemy close, save) fades per frame and so gets shorter at higher frame
   rates, as it already did with `LimitFPS` off.
 - With the limit and V-Sync both off nothing caps the frame rate.
