@@ -9,9 +9,9 @@
 /// SIMPLE DIFFUSE COLOR VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
-#define color (gl_Color.xyz)
-#define uv (gl_MultiTexCoord0.xy)
+#define position (hpl_Vertex)
+#define color (hpl_Color.xyz)
+#define uv (hpl_MultiTexCoord0.xy)
 
 out vec2 vUv0;
 out vec2 vUv1;

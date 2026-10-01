@@ -9,8 +9,8 @@
 /// SIMPLE DIFFUSE COLOR VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
-#define color (gl_Color.xyz)
+#define position (hpl_Vertex)
+#define color (hpl_Color.xyz)
 
 
 out vec4 vColor;

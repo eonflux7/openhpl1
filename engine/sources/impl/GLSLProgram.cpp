@@ -46,9 +46,18 @@ namespace hpl{
 	GLuint cGLSLProgram::mlPipelineVertex = 0;
 	GLuint cGLSLProgram::mlPipelineFragment = 0;
 
+	// The vertex attributes, at the locations of cGLSLProgram::eVertexAttrib.
 	static const char* kVertexPreamble =
 		"#version 330 compatibility\n"
-		"#define VARYING out\n";
+		"#define VARYING out\n"
+		"layout(location = 0) in vec4 hpl_Vertex;\n"
+		"layout(location = 1) in vec3 hpl_Normal;\n"
+		"layout(location = 2) in vec4 hpl_Color;\n"
+		"layout(location = 4) in vec4 hpl_MultiTexCoord0;\n"
+		"layout(location = 5) in vec4 hpl_MultiTexCoord1;\n"
+		"layout(location = 6) in vec4 hpl_MultiTexCoord2;\n"
+		"layout(location = 7) in vec4 hpl_MultiTexCoord3;\n"
+		"layout(location = 8) in vec4 hpl_MultiTexCoord4;\n";
 
 	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =

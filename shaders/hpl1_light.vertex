@@ -11,10 +11,10 @@
 
 // Variants: SPOT, SPECULAR (see hpl1_light.glsl)
 
-#define position (gl_Vertex)
-#define normal (gl_Normal)
-#define uv (gl_MultiTexCoord0.xy)
-#define tangent (gl_MultiTexCoord1)
+#define position (hpl_Vertex)
+#define normal (hpl_Normal)
+#define uv (hpl_MultiTexCoord0.xy)
+#define tangent (hpl_MultiTexCoord1)
 
 #include "hpl1_light.glsl"
 

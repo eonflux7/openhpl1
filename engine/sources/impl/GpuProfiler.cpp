@@ -129,7 +129,7 @@ namespace hpl {
 	{
 		++mlDrawCalls;
 		if(aMode == GL_TRIANGLES)	mlTriangles += alVertices / 3;
-		else if(aMode == GL_QUADS)	mlTriangles += alVertices / 4 * 2;
+		else if(aMode == GL_TRIANGLE_FAN && alVertices > 2)	mlTriangles += alVertices - 2;
 	}
 
 	//-----------------------------------------------------------------------

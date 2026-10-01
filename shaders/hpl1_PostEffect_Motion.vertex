@@ -9,9 +9,9 @@
 /// SIMPLE DIFFUSE COLOR VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
-#define normal (gl_Normal)
-#define color (gl_Color.xyz)
+#define position (hpl_Vertex)
+#define normal (hpl_Normal)
+#define color (hpl_Color.xyz)
 
 out vec4 vVtxPos;
 out vec4 vPrevVtxPos;

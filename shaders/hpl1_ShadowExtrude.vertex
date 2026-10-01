@@ -9,7 +9,7 @@
 /// SIMPLE DIFFUSE COLOR VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
+#define position (hpl_Vertex)
 
 uniform mat4 worldViewProj;
 uniform vec3 lightPosition;

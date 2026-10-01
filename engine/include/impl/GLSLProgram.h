@@ -76,6 +76,17 @@ namespace hpl {
 
 		/// GLSL SPECIFIC //////////////////////
 
+		/// Vertex attribute locations: hpl_Vertex, hpl_Normal, hpl_Color and
+		/// hpl_MultiTexCoord0..4 in vertex shaders.
+		enum eVertexAttrib
+		{
+			eVertexAttrib_Position = 0,
+			eVertexAttrib_Normal = 1,
+			eVertexAttrib_Color = 2,
+			eVertexAttrib_TexCoord0 = 4,
+			eVertexAttrib_LastEnum = 9
+		};
+
 		/// Uniform buffer binding of the hpl_Frame block (hpl1_frame.glsl).
 		static const GLuint kFrameBlockBinding = 0;
 		/// Uniform buffer binding of the hpl_State block, which has the alpha

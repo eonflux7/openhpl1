@@ -9,10 +9,10 @@
 /// REFRACTION VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
-#define color (gl_Color)
-#define uv (gl_MultiTexCoord0.xy)
-#define normal (gl_Normal)
+#define position (hpl_Vertex)
+#define color (hpl_Color)
+#define uv (hpl_MultiTexCoord0.xy)
+#define normal (hpl_Normal)
 
 out vec4 vColor;
 out vec2 vUv;

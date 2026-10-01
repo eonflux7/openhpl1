@@ -72,9 +72,15 @@ namespace hpl {
 	private:
 		int GetElementNum(tVertexFlag aFlag);
 
-		void SetVertexStates(tVertexFlag aFlags);
+		static void QuadsToTriangles(const unsigned int *apIndices, int alCount, tUIntVec &avTriangles);
+		void BindVertexArray();
+		void DeleteVertexArray();
 
+		unsigned int mlVertexArray;
 		unsigned int mlElementHandle;
+		//The indices as triangles, for buffers drawn as quads
+		unsigned int mlQuadElementHandle;
+		bool mbQuadIndicesChanged;
 
 		tFloatVec mvVertexArray[klNumOfVertexFlags];
 

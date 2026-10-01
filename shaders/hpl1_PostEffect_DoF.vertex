@@ -9,7 +9,7 @@
 ///DEPTH OF FIELD VERTEX PROGRAM ////////////
 ///////////////////////////////////////////////////////
 
-#define position (gl_Vertex)
+#define position (hpl_Vertex)
 
 
 out float vDepth;

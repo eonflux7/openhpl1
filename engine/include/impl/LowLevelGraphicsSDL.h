@@ -26,6 +26,7 @@
 #include "graphics/LowLevelGraphics.h"
 #include "impl/DebugOverlay.h"
 #include "impl/FixedFunctionShaders.h"
+#include "impl/GLSLProgram.h"
 #include "impl/GpuProfiler.h"
 #include "impl/SDLPixelFormat.h"
 #include "math/MathTypes.h"
@@ -131,6 +132,15 @@ namespace hpl {
 		 * pipeline, and brings the shaders' state up to date.
 		 */
 		void PrepareDraw();
+
+		/// Every draw binds its vertex array through this.
+		void BindVertexArray(GLuint alVertexArray);
+		/**
+		 * Copies indices to the stream index buffer and binds it to the
+		 * bound vertex array. Returns what glDrawElements takes as the
+		 * pointer.
+		 */
+		const void* StreamIndices(const unsigned int *apIndices, int alCount);
 
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
 		void SetVirtualOrthoProjection(float afMin, float afMax) override;
@@ -352,8 +362,43 @@ namespace hpl {
 		SDL_GLContext mGLContext;
 		cSDLPixelFormat *mpPixelFormat;
 
-		//Vertex Array variables
-		//The vertex arrays used:
+		//Vertices of draws without a vertex buffer (DrawQuad and the like,
+		//the batch) are copied to the stream buffer and drawn from there
+		//with mlStreamVertexArray. The fullscreen passes have no vertex data.
+		GLuint mlBoundVertexArray;
+		GLuint mlStreamVertexArray;
+		GLuint mlEmptyVertexArray;
+		GLuint mlStreamVertexBuffer;
+		GLuint mlStreamIndexBuffer;
+		size_t mlStreamVertexSize;
+		size_t mlStreamVertexOffset;
+		size_t mlStreamIndexSize;
+		size_t mlStreamIndexOffset;
+		//Bit per attribute whose array is enabled in mlStreamVertexArray
+		unsigned int mlStreamArrays;
+
+		void StreamArray(unsigned int &alArrays, int alAttrib, int alElements, size_t alStride, size_t alOffset);
+		void SetStreamArrays(unsigned int alArrays);
+
+		//One draw's vertices: position, colour and mlImmediateTexUnits
+		//texture coordinates of 3 floats each
+		std::vector<float> mvImmediate;
+		int mlImmediateTexUnits;
+		void ImmediateBegin(int alTexUnits);
+		void ImmediateVertex(const cVector3f &avPos, const cColor &aCol, const cVector3f *apTex=nullptr);
+		void ImmediateDraw(GLenum aMode);
+
+		//The values of attributes without an array, as set by SetColor()
+		//and left by the last vertex of an immediate draw (what glColor and
+		//glTexCoord did)
+		float mvCurrentAttrib[cGLSLProgram::eVertexAttrib_LastEnum][4];
+		unsigned int mlCurrentAttribChanged;
+		void SetCurrentAttrib(int alAttrib, float afX, float afY, float afZ, float afW);
+
+		std::vector<unsigned int> mvQuadIndices;
+		void DrawBatch(tVtxBatchFlag aTypeFlags, bool abQuads);
+
+		//The batch:
 		float* mpVertexArray;
 		unsigned int mlVertexCount;
 		unsigned int* mpIndexArray;
@@ -397,9 +442,6 @@ namespace hpl {
 		bool DrawGammaPass();
 
 
-		//Batch helper
-		void SetUpBatchArrays();
-
 		//Depth helper
 		GLenum GetGLDepthTestFuncEnum(eDepthTestFunc aType);
 
@@ -417,9 +459,6 @@ namespace hpl {
 
 		//Blend helper
 		GLenum GetGLBlendEnum(eBlendFunc aType);
-
-		//Vtx helper
-		void SetVtxBatchStates(tVtxBatchFlag aFlags);
 	};
 };
 #endif // HPL_LOWLEVELGRAPHICS_SDL_H

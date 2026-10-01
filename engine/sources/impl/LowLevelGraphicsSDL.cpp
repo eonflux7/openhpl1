@@ -162,6 +162,25 @@ namespace hpl {
 		mlTargetFramebuffer = 0;
 		mlStateUniformBuffer = 0;
 
+		mlBoundVertexArray = 0;
+		mlStreamVertexArray = 0;
+		mlEmptyVertexArray = 0;
+		mlStreamVertexBuffer = 0;
+		mlStreamIndexBuffer = 0;
+		mlStreamVertexSize = 4 * 1024 * 1024;
+		mlStreamIndexSize = 1024 * 1024;
+		mlStreamVertexOffset = 0;
+		mlStreamIndexOffset = 0;
+		mlStreamArrays = 0;
+		mlImmediateTexUnits = 0;
+
+		// The GL defaults: white, normal along z, texture coordinates 0,0,0,1
+		for(int i=0; i<cGLSLProgram::eVertexAttrib_LastEnum; ++i)
+			SetCurrentAttrib(i, 0, 0, 0, 1);
+		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Normal, 0, 0, 1, 1);
+		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, 1, 1, 1, 1);
+		mlCurrentAttribChanged = ~0u;
+
 		mbMatricesChanged = true;
 		mlActiveTextureUnit = 0;
 		mbAlphaTest = false;
@@ -210,6 +229,10 @@ namespace hpl {
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
 		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
 		mFixedFunction.Exit();
+		if(mlStreamVertexArray) glDeleteVertexArrays(1, &mlStreamVertexArray);
+		if(mlEmptyVertexArray) glDeleteVertexArrays(1, &mlEmptyVertexArray);
+		if(mlStreamVertexBuffer) glDeleteBuffers(1, &mlStreamVertexBuffer);
+		if(mlStreamIndexBuffer) glDeleteBuffers(1, &mlStreamIndexBuffer);
 		mDebugOverlay.Exit();
 		mGpuProfiler.Exit();
 
@@ -365,6 +388,19 @@ namespace hpl {
 			FatalError("Couldn't compile the fixed-function shaders!\n");
 			return false;
 		}
+
+		glGenVertexArrays(1, &mlEmptyVertexArray);
+		glGenVertexArrays(1, &mlStreamVertexArray);
+		glGenBuffers(1, &mlStreamVertexBuffer);
+		glGenBuffers(1, &mlStreamIndexBuffer);
+		BindVertexArray(mlStreamVertexArray);
+		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, mlStreamVertexSize, nullptr, GL_STREAM_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mlStreamIndexBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mlStreamIndexSize, nullptr, GL_STREAM_DRAW);
+		cGpuProfiler::Label(GL_VERTEX_ARRAY, mlStreamVertexArray, "Stream");
+		cGpuProfiler::Label(GL_BUFFER, mlStreamVertexBuffer, "Stream vertices");
+		cGpuProfiler::Label(GL_BUFFER, mlStreamIndexBuffer, "Stream indices");
 
 		//Check Multisample properties
 		CheckMultisampleCaps();
@@ -593,19 +629,6 @@ namespace hpl {
 		}
 
 		//glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
-
-		/////  BEGIN BATCH ARRAY STUFF ///////////////
-
-		//Enable all the vertex arrays that are used:
-		glEnableClientState(GL_VERTEX_ARRAY ); //The positions
-		glEnableClientState(GL_COLOR_ARRAY ); //The color
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY); //Tex coords
-		glDisableClientState(GL_NORMAL_ARRAY);
-		//Disable the once not used.
-		glDisableClientState(GL_INDEX_ARRAY); //color index
-		glDisableClientState(GL_EDGE_FLAG_ARRAY);
-
-		///// END BATCH ARRAY STUFF ///////////////
 
 		//Show some info
 		Log("  Max texture image units: %d\n",GetCaps(eGraphicCaps_MaxTextureImageUnits));
@@ -1035,7 +1058,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetColor(const cColor &aColor)
 	{
-		glColor4f(aColor.r, aColor.g, aColor.b, aColor.a);
+		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, aColor.r, aColor.g, aColor.b, aColor.a);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1053,17 +1076,15 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)
 	{
-		glColor4f(1,1,1,1);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
-		{
-			glTexCoord2f(0.0, 0.0); glVertex3f(avPos.x, avPos.y,afZ);
-			glTexCoord2f(1.0, 0.0); glVertex3f(avPos.x+avSize.x, avPos.y,afZ);
-			glTexCoord2f(1.0, 1.0); glVertex3f(avPos.x+avSize.x, avPos.y+avSize.y,afZ);
-			glTexCoord2f(0.0, 1.0); glVertex3f(avPos.x, avPos.y+avSize.y,afZ);
-		}
-		glEnd();
+		const cColor white(1,1,1,1);
+		const cVector3f vTex[4] = {cVector3f(0,0,0), cVector3f(1,0,0), cVector3f(1,1,0), cVector3f(0,1,0)};
+
+		ImmediateBegin(1);
+		ImmediateVertex(cVector3f(avPos.x, avPos.y,afZ), white, &vTex[0]);
+		ImmediateVertex(cVector3f(avPos.x+avSize.x, avPos.y,afZ), white, &vTex[1]);
+		ImmediateVertex(cVector3f(avPos.x+avSize.x, avPos.y+avSize.y,afZ), white, &vTex[2]);
+		ImmediateVertex(cVector3f(avPos.x, avPos.y+avSize.y,afZ), white, &vTex[3]);
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1443,12 +1464,10 @@ namespace hpl {
 
 		glBindProgramPipeline(aPass.mlPipeline);
 
+		// The vertex shader makes the triangle from the vertex numbers
 		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
-		glBegin(GL_TRIANGLES);
-		glVertex2f(-1.0f, -1.0f);
-		glVertex2f( 3.0f, -1.0f);
-		glVertex2f(-1.0f,  3.0f);
-		glEnd();
+		BindVertexArray(mlEmptyVertexArray);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glBindProgramPipeline(lLastPipeline);
 		glPopAttrib();
@@ -1479,80 +1498,46 @@ namespace hpl {
 	{
 		assert(avVtx.size()==3);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
-		glBegin(GL_TRIANGLES);
-		{
-			for(int i=0;i<3;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,avVtx[i].tex.z);
-				glColor4f(avVtx[i].col.r,avVtx[i].col.g,avVtx[i].col.b,avVtx[i].col.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
-		}
-		glEnd();
+		DrawTri(avVtx.data());
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::DrawTri(const cVertex* avVtx)
 	{
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
-		glBegin(GL_TRIANGLES);
-		{
-			for(int i=0;i<3;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,avVtx[i].tex.z);
-				glColor4f(avVtx[i].col.r,avVtx[i].col.g,avVtx[i].col.b,avVtx[i].col.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
-		}
-		glEnd();
+		ImmediateBegin(1);
+		for(int i=0;i<3;i++) ImmediateVertex(avVtx[i].pos, avVtx[i].col, &avVtx[i].tex);
+		ImmediateDraw(GL_TRIANGLES);
 	}
 
 	//-----------------------------------------------------------------------
 
+	// Quads are drawn as fans: the triangles 0,1,2 and 0,2,3.
 	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx)
 	{
 		assert(avVtx.size()==4);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
-		{
-			for(int i=0;i<4;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,avVtx[i].tex.z);
-				glColor4f(avVtx[i].col.r,avVtx[i].col.g,avVtx[i].col.b,avVtx[i].col.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
-		}
-		glEnd();
+		ImmediateBegin(1);
+		for(int i=0;i<4;i++) ImmediateVertex(avVtx[i].pos, avVtx[i].col, &avVtx[i].tex);
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)
 	{
-		int lExtraUnits = (int)avExtraUvs.size()/4;
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
+		int lExtraUnits = cMath::Min((int)avExtraUvs.size()/4, cFixedFunctionShaders::kTexCoordUnits - 1);
+
+		ImmediateBegin(1 + lExtraUnits);
+		for(int i=0;i<4;i++)
 		{
-			for(int i=0;i<4;i++)
-			{
-				glMultiTexCoord3fARB(GL_TEXTURE0_ARB,avVtx[i].tex.x,avVtx[i].tex.y,avVtx[i].tex.z);
+			cVector3f vTex[cFixedFunctionShaders::kTexCoordUnits];
+			vTex[0] = avVtx[i].tex;
+			for(int unit=0; unit<lExtraUnits; ++unit) vTex[unit + 1] = avExtraUvs[unit*4 + i];
 
-				for(int unit=0; unit<lExtraUnits; ++unit)
-				{
-					glMultiTexCoord3fARB(GL_TEXTURE0_ARB + unit + 1,
-										avExtraUvs[unit*4 + i].x, avExtraUvs[unit*4 + i].y, avExtraUvs[unit*4 + i].z);
-				}
-
-				glColor4f(avVtx[i].col.r,avVtx[i].col.g,avVtx[i].col.b,avVtx[i].col.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
+			ImmediateVertex(avVtx[i].pos, avVtx[i].col, vTex);
 		}
-		glEnd();
-
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 
@@ -1763,18 +1748,9 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
-		{
-			//Make all this inline??
-			for(int i=0;i<4;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,avVtx[i].tex.z);
-				glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
-		}
-		glEnd();
+		ImmediateBegin(1);
+		for(int i=0;i<4;i++) ImmediateVertex(avVtx[i].pos, aCol, &avVtx[i].tex);
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1783,18 +1759,13 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
+		ImmediateBegin(1);
+		for(int i=0;i<4;i++)
 		{
-			//Make all this inline??
-			for(int i=0;i<4;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,afZ);
-				glColor4f(avVtx[i].col.r,avVtx[i].col.g,avVtx[i].col.b,avVtx[i].col.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
+			cVector3f vTex(avVtx[i].tex.x, avVtx[i].tex.y, afZ);
+			ImmediateVertex(avVtx[i].pos, avVtx[i].col, &vTex);
 		}
-		glEnd();
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1803,18 +1774,13 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
+		ImmediateBegin(1);
+		for(int i=0;i<4;i++)
 		{
-			//Make all this inline??
-			for(int i=0;i<4;i++){
-				glTexCoord3f(avVtx[i].tex.x,avVtx[i].tex.y,afZ);
-				glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-				glVertex3f(avVtx[i].pos.x,avVtx[i].pos.y,avVtx[i].pos.z);
-			}
+			cVector3f vTex(avVtx[i].tex.x, avVtx[i].tex.y, afZ);
+			ImmediateVertex(avVtx[i].pos, aCol, &vTex);
 		}
-		glEnd();
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1978,28 +1944,18 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// Flushing has always pointed every unit at the vertices' own texture
+	// coordinates, so the extra arrays are not drawn with.
 	void cLowLevelGraphicsSDL::SetBatchTextureUnitActive(unsigned int alUnit,bool abActive)
 	{
-		glClientActiveTextureARB(GL_TEXTURE0_ARB+alUnit);
-
-		if(abActive==false){
-			glTexCoordPointer(3,GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[7]);
-		}
-		else {
-			glTexCoordPointer(3,GL_FLOAT,0, &mpTexCoordArray[alUnit][0]);
-		}
+		mbTexCoordArrayActive[alUnit] = abActive;
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::FlushTriBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear)
 	{
-		SetVtxBatchStates(aTypeFlags);
-		SetUpBatchArrays();
-
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_TRIANGLES, mlIndexCount);
-		glDrawElements(GL_TRIANGLES,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
+		DrawBatch(aTypeFlags, false);
 
 		if(abAutoClear){
 			mlIndexCount = 0;
@@ -2013,12 +1969,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear)
 	{
-		SetVtxBatchStates(aTypeFlags);
-		SetUpBatchArrays();
-
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, mlIndexCount);
-		glDrawElements(GL_QUADS,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
+		DrawBatch(aTypeFlags, true);
 
 		if(abAutoClear){
 			mlIndexCount = 0;
@@ -2042,68 +1993,36 @@ namespace hpl {
 	{
 		SetTexture(0,nullptr);
 		//SetBlendActive(false);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_LINES, 0);
-		glBegin(GL_LINES);
-		{
-			glVertex3f(avBegin.x,avBegin.y,avBegin.z);
-			glVertex3f(avEnd.x,avEnd.y,avEnd.z);
-		}
-		glEnd();
+		ImmediateBegin(0);
+		ImmediateVertex(avBegin, aCol);
+		ImmediateVertex(avEnd, aCol);
+		ImmediateDraw(GL_LINES);
 	}
 
 	void cLowLevelGraphicsSDL::DrawBoxMaxMin(const cVector3f& avMax, const cVector3f& avMin, cColor aCol)
 	{
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_LINES, 0);
-		glBegin(GL_LINES);
+		// Corner i: bit 0 picks x, bit 1 y, bit 2 z from the minimum
+		static const int vEdges[12][2] = {
+			{0,1}, {0,2}, {1,3}, {3,2}, //Pos Z Quad
+			{4,5}, {4,6}, {5,7}, {7,6}, //Neg Z Quad
+			{0,4}, {1,5}, {3,7}, {2,6}  //Lines between
+		};
+
+		ImmediateBegin(0);
+		for(int i=0; i<12; ++i)
 		{
-			//Pos Z Quad
-			glVertex3f(avMax.x,avMax.y,avMax.z);
-			glVertex3f(avMin.x,avMax.y,avMax.z);
-
-			glVertex3f(avMax.x,avMax.y,avMax.z);
-			glVertex3f(avMax.x,avMin.y,avMax.z);
-
-			glVertex3f(avMin.x,avMax.y,avMax.z);
-			glVertex3f(avMin.x,avMin.y,avMax.z);
-
-			glVertex3f(avMin.x,avMin.y,avMax.z);
-			glVertex3f(avMax.x,avMin.y,avMax.z);
-
-			//Neg Z Quad
-			glVertex3f(avMax.x,avMax.y,avMin.z);
-			glVertex3f(avMin.x,avMax.y,avMin.z);
-
-			glVertex3f(avMax.x,avMax.y,avMin.z);
-			glVertex3f(avMax.x,avMin.y,avMin.z);
-
-			glVertex3f(avMin.x,avMax.y,avMin.z);
-			glVertex3f(avMin.x,avMin.y,avMin.z);
-
-			glVertex3f(avMin.x,avMin.y,avMin.z);
-			glVertex3f(avMax.x,avMin.y,avMin.z);
-
-			//Lines between
-			glVertex3f(avMax.x,avMax.y,avMax.z);
-			glVertex3f(avMax.x,avMax.y,avMin.z);
-
-			glVertex3f(avMin.x,avMax.y,avMax.z);
-			glVertex3f(avMin.x,avMax.y,avMin.z);
-
-			glVertex3f(avMin.x,avMin.y,avMax.z);
-			glVertex3f(avMin.x,avMin.y,avMin.z);
-
-			glVertex3f(avMax.x,avMin.y,avMax.z);
-			glVertex3f(avMax.x,avMin.y,avMin.z);
+			for(int j=0; j<2; ++j)
+			{
+				int lCorner = vEdges[i][j];
+				ImmediateVertex(cVector3f(	lCorner & 1 ? avMin.x : avMax.x,
+											lCorner & 2 ? avMin.y : avMax.y,
+											lCorner & 4 ? avMin.z : avMax.z), aCol);
+			}
 		}
-		glEnd();
-
+		ImmediateDraw(GL_LINES);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2115,43 +2034,40 @@ namespace hpl {
 
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_LINES, 0);
-		glBegin(GL_LINES);
+
+		ImmediateBegin(0);
+
+		//X Circle:
+		for(float a=0; a< k2Pif; a+= afAngleStep)
 		{
-			//X Circle:
-			for(float a=0; a< k2Pif; a+= afAngleStep)
-			{
-				glVertex3f(avPos.x, avPos.y + sin(a)*afRadius,
-									avPos.z + cos(a)*afRadius);
+			ImmediateVertex(cVector3f(avPos.x, avPos.y + sin(a)*afRadius,
+									avPos.z + cos(a)*afRadius), aCol);
 
-				glVertex3f(avPos.x, avPos.y + sin(a+afAngleStep)*afRadius,
-									avPos.z + cos(a+afAngleStep)*afRadius);
-			}
-
-			//Y Circle:
-			for(float a=0; a< k2Pif; a+= afAngleStep)
-			{
-				glVertex3f(avPos.x + cos(a)*afRadius, avPos.y,
-									avPos.z + sin(a)*afRadius);
-
-				glVertex3f(avPos.x + cos(a+afAngleStep)*afRadius, avPos.y ,
-							avPos.z+ sin(a+afAngleStep)*afRadius);
-			}
-
-			//Z Circle:
-			for(float a=0; a< k2Pif; a+= afAngleStep)
-			{
-				glVertex3f(avPos.x + cos(a)*afRadius, avPos.y + sin(a)*afRadius, avPos.z);
-
-				glVertex3f(avPos.x + cos(a+afAngleStep)*afRadius,
-							avPos.y + sin(a+afAngleStep)*afRadius,
-							avPos.z);
-			}
-
+			ImmediateVertex(cVector3f(avPos.x, avPos.y + sin(a+afAngleStep)*afRadius,
+									avPos.z + cos(a+afAngleStep)*afRadius), aCol);
 		}
-		glEnd();
+
+		//Y Circle:
+		for(float a=0; a< k2Pif; a+= afAngleStep)
+		{
+			ImmediateVertex(cVector3f(avPos.x + cos(a)*afRadius, avPos.y,
+									avPos.z + sin(a)*afRadius), aCol);
+
+			ImmediateVertex(cVector3f(avPos.x + cos(a+afAngleStep)*afRadius, avPos.y ,
+									avPos.z+ sin(a+afAngleStep)*afRadius), aCol);
+		}
+
+		//Z Circle:
+		for(float a=0; a< k2Pif; a+= afAngleStep)
+		{
+			ImmediateVertex(cVector3f(avPos.x + cos(a)*afRadius, avPos.y + sin(a)*afRadius, avPos.z), aCol);
+
+			ImmediateVertex(cVector3f(avPos.x + cos(a+afAngleStep)*afRadius,
+									avPos.y + sin(a+afAngleStep)*afRadius,
+									avPos.z), aCol);
+		}
+
+		ImmediateDraw(GL_LINES);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2160,15 +2076,10 @@ namespace hpl {
 	{
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_LINES, 0);
-		glBegin(GL_LINES);
-		{
-			glVertex3f(avBegin.x,avBegin.y,afZ);
-			glVertex3f(avEnd.x,avEnd.y,afZ);
-		}
-		glEnd();
+		ImmediateBegin(0);
+		ImmediateVertex(cVector3f(avBegin.x,avBegin.y,afZ), aCol);
+		ImmediateVertex(cVector3f(avEnd.x,avEnd.y,afZ), aCol);
+		ImmediateDraw(GL_LINES);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2177,18 +2088,13 @@ namespace hpl {
 	{
 		SetTexture(0, nullptr);
 		SetBlendActive(false);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_LINE_STRIP, 0);
-		glBegin(GL_LINE_STRIP);
-		{
-			glVertex3f(aRect.x,aRect.y,afZ);
-			glVertex3f(aRect.x+aRect.w,aRect.y,afZ);
-			glVertex3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ);
-			glVertex3f(aRect.x,aRect.y+aRect.h,afZ);
-			glVertex3f(aRect.x,aRect.y,afZ);
-		}
-		glEnd();
+		ImmediateBegin(0);
+		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x,aRect.y+aRect.h,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
+		ImmediateDraw(GL_LINE_STRIP);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2196,17 +2102,12 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)
 	{
 		SetTexture(0, nullptr);
-		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_QUADS, 4);
-		glBegin(GL_QUADS);
-		{
-			glVertex3f(aRect.x,aRect.y,afZ);
-			glVertex3f(aRect.x+aRect.w,aRect.y,afZ);
-			glVertex3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ);
-			glVertex3f(aRect.x,aRect.y+aRect.h,afZ);
-		}
-		glEnd();
+		ImmediateBegin(0);
+		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ), aCol);
+		ImmediateVertex(cVector3f(aRect.x,aRect.y+aRect.h,afZ), aCol);
+		ImmediateDraw(GL_TRIANGLE_FAN);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2334,63 +2235,176 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetUpBatchArrays()
+	void cLowLevelGraphicsSDL::BindVertexArray(GLuint alVertexArray)
 	{
-		//Set the arrays
-		glVertexPointer(3,GL_FLOAT, sizeof(float)*mlBatchStride, mpVertexArray);
-		glColorPointer(4,GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[3]);
-		glNormalPointer(GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[10]);
-
-		glClientActiveTextureARB(GL_TEXTURE0_ARB);
-		glTexCoordPointer(3,GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[7]);
-		glClientActiveTextureARB(GL_TEXTURE1_ARB);
-		glTexCoordPointer(3,GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[7]);
-		glClientActiveTextureARB(GL_TEXTURE2_ARB);
-		glTexCoordPointer(3,GL_FLOAT,sizeof(float)*mlBatchStride, &mpVertexArray[7]);
+		if(alVertexArray == mlBoundVertexArray) return;
+		glBindVertexArray(alVertexArray);
+		mlBoundVertexArray = alVertexArray;
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetVtxBatchStates(tVtxBatchFlag aFlags)
+	// Copies data to the stream buffer bound to aTarget and returns its
+	// offset. A full buffer is replaced by a new one, so that what was
+	// drawn from it stays as it was.
+	static size_t StreamToBuffer(GLenum aTarget, size_t &alSize, size_t &alOffset,
+								const void *apData, size_t alBytes)
 	{
-		if(aFlags & eVtxBatchFlag_Position)	glEnableClientState(GL_VERTEX_ARRAY );
-		else glDisableClientState(GL_VERTEX_ARRAY );
-
-		if(aFlags & eVtxBatchFlag_Color0) glEnableClientState(GL_COLOR_ARRAY );
-		else glDisableClientState(GL_COLOR_ARRAY );
-
-		if(aFlags & eVtxBatchFlag_Normal) glEnableClientState(GL_NORMAL_ARRAY );
-		else glDisableClientState(GL_NORMAL_ARRAY );
-
-
-		if(aFlags & eVtxBatchFlag_Texture0){
-			glClientActiveTextureARB(GL_TEXTURE0_ARB);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
-		}
-		else {
-			glClientActiveTextureARB(GL_TEXTURE0_ARB);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
+		if(alOffset + alBytes > alSize)
+		{
+			while(alBytes > alSize) alSize *= 2;
+			glBufferData(aTarget, alSize, nullptr, GL_STREAM_DRAW);
+			alOffset = 0;
 		}
 
-		if(aFlags & eVtxBatchFlag_Texture1){
-			glClientActiveTextureARB(GL_TEXTURE1_ARB);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
-		}
-		else {
-			glClientActiveTextureARB(GL_TEXTURE1_ARB);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
-		}
+		glBufferSubData(aTarget, alOffset, alBytes, apData);
+		size_t lStart = alOffset;
+		alOffset += alBytes;
+		return lStart;
+	}
 
-		if(aFlags & eVtxBatchFlag_Texture2){
-			glClientActiveTextureARB(GL_TEXTURE2_ARB);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
-		}
-		else {
-			glClientActiveTextureARB(GL_TEXTURE2_ARB);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY );
-		}
+	//-----------------------------------------------------------------------
 
+	const void* cLowLevelGraphicsSDL::StreamIndices(const unsigned int *apIndices, int alCount)
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mlStreamIndexBuffer);
+		return (const void*)StreamToBuffer(GL_ELEMENT_ARRAY_BUFFER, mlStreamIndexSize, mlStreamIndexOffset,
+											apIndices, alCount * sizeof(unsigned int));
+	}
 
+	//-----------------------------------------------------------------------
+
+	// Points an attribute of the stream vertex array at floats in the
+	// stream buffer (bound to GL_ARRAY_BUFFER) and adds it to alArrays.
+	void cLowLevelGraphicsSDL::StreamArray(unsigned int &alArrays, int alAttrib, int alElements,
+											size_t alStride, size_t alOffset)
+	{
+		glVertexAttribPointer(alAttrib, alElements, GL_FLOAT, GL_FALSE, (GLsizei)alStride, (const void*)alOffset);
+		alArrays |= 1u << alAttrib;
+	}
+
+	// Enables the arrays in alArrays and disables the others.
+	void cLowLevelGraphicsSDL::SetStreamArrays(unsigned int alArrays)
+	{
+		unsigned int lChanged = alArrays ^ mlStreamArrays;
+		for(int i=0; lChanged && i<cGLSLProgram::eVertexAttrib_LastEnum; ++i)
+		{
+			if((lChanged & (1u << i))==0) continue;
+			if(alArrays & (1u << i))	glEnableVertexAttribArray(i);
+			else						glDisableVertexAttribArray(i);
+		}
+		mlStreamArrays = alArrays;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetCurrentAttrib(int alAttrib, float afX, float afY, float afZ, float afW)
+	{
+		float *pVal = mvCurrentAttrib[alAttrib];
+		pVal[0] = afX; pVal[1] = afY; pVal[2] = afZ; pVal[3] = afW;
+		mlCurrentAttribChanged |= 1u << alAttrib;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::ImmediateBegin(int alTexUnits)
+	{
+		mvImmediate.clear();
+		mlImmediateTexUnits = alTexUnits;
+	}
+
+	// apTex has a coordinate for each of the texture units given to
+	// ImmediateBegin().
+	void cLowLevelGraphicsSDL::ImmediateVertex(const cVector3f &avPos, const cColor &aCol, const cVector3f *apTex)
+	{
+		mvImmediate.insert(mvImmediate.end(), {avPos.x, avPos.y, avPos.z, aCol.r, aCol.g, aCol.b, aCol.a});
+		for(int i=0; i<mlImmediateTexUnits; ++i)
+			mvImmediate.insert(mvImmediate.end(), {apTex[i].x, apTex[i].y, apTex[i].z});
+	}
+
+	void cLowLevelGraphicsSDL::ImmediateDraw(GLenum aMode)
+	{
+		const size_t lFloats = 7 + 3 * mlImmediateTexUnits;
+		const size_t lStride = lFloats * sizeof(float);
+		const int lVertices = (int)(mvImmediate.size() / lFloats);
+		if(lVertices == 0) return;
+
+		PrepareDraw();
+		mGpuProfiler.CountDraw(aMode, lVertices);
+
+		BindVertexArray(mlStreamVertexArray);
+		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
+		size_t lOffset = StreamToBuffer(GL_ARRAY_BUFFER, mlStreamVertexSize, mlStreamVertexOffset,
+										mvImmediate.data(), mvImmediate.size() * sizeof(float));
+
+		unsigned int lArrays = 0;
+		StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Position, 3, lStride, lOffset);
+		StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Color, 4, lStride, lOffset + 3*sizeof(float));
+		for(int i=0; i<mlImmediateTexUnits; ++i)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + i, 3, lStride,
+						lOffset + (7 + 3*i)*sizeof(float));
+		SetStreamArrays(lArrays);
+
+		glDrawArrays(aMode, 0, lVertices);
+
+		// The last vertex's values stay as the current ones, as with glColor
+		// and glTexCoord: draws without those arrays get them.
+		const float *pLast = &mvImmediate[mvImmediate.size() - lFloats];
+		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, pLast[3], pLast[4], pLast[5], pLast[6]);
+		for(int i=0; i<mlImmediateTexUnits; ++i)
+			SetCurrentAttrib(cGLSLProgram::eVertexAttrib_TexCoord0 + i, pLast[7 + 3*i], pLast[8 + 3*i],
+							pLast[9 + 3*i], 1);
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::DrawBatch(tVtxBatchFlag aTypeFlags, bool abQuads)
+	{
+		const unsigned int *pIndices = mpIndexArray;
+		int lIndexCount = (int)mlIndexCount;
+		if(abQuads)
+		{
+			// Two triangles per quad: 0,1,2 and 0,2,3
+			mvQuadIndices.clear();
+			for(unsigned int i=0; i+3 < mlIndexCount; i+=4)
+			{
+				const unsigned int *pQuad = &mpIndexArray[i];
+				mvQuadIndices.insert(mvQuadIndices.end(),
+									{pQuad[0], pQuad[1], pQuad[2], pQuad[0], pQuad[2], pQuad[3]});
+			}
+			pIndices = mvQuadIndices.data();
+			lIndexCount = (int)mvQuadIndices.size();
+		}
+		if(lIndexCount == 0 || mlVertexCount == 0) return;
+
+		PrepareDraw();
+		mGpuProfiler.CountDraw(GL_TRIANGLES, lIndexCount);
+
+		BindVertexArray(mlStreamVertexArray);
+		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
+		size_t lOffset = StreamToBuffer(GL_ARRAY_BUFFER, mlStreamVertexSize, mlStreamVertexOffset,
+										mpVertexArray, mlVertexCount * sizeof(float));
+
+		// See AddVertexToBatch(): position, colour, texture coordinate, normal
+		const size_t lStride = sizeof(float) * mlBatchStride;
+		const size_t lTexOffset = lOffset + 7*sizeof(float);
+		unsigned int lArrays = 0;
+		if(aTypeFlags & eVtxBatchFlag_Position)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Position, 3, lStride, lOffset);
+		if(aTypeFlags & eVtxBatchFlag_Color0)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Color, 4, lStride, lOffset + 3*sizeof(float));
+		if(aTypeFlags & eVtxBatchFlag_Normal)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Normal, 3, lStride, lOffset + 10*sizeof(float));
+		if(aTypeFlags & eVtxBatchFlag_Texture0)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0, 3, lStride, lTexOffset);
+		if(aTypeFlags & eVtxBatchFlag_Texture1)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + 1, 3, lStride, lTexOffset);
+		if(aTypeFlags & eVtxBatchFlag_Texture2)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + 2, 3, lStride, lTexOffset);
+		SetStreamArrays(lArrays);
+
+		const void *pIndexOffset = StreamIndices(pIndices, lIndexCount);
+		glDrawElements(GL_TRIANGLES, lIndexCount, GL_UNSIGNED_INT, pIndexOffset);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2544,6 +2558,13 @@ namespace hpl {
 		if(lFragment==0) lFragment = mFixedFunction.GetFragmentStage();
 
 		cGLSLProgram::SetPipelineStages(lVertex, lFragment);
+
+		if(mlCurrentAttribChanged)
+		{
+			for(int i=0; i<cGLSLProgram::eVertexAttrib_LastEnum; ++i)
+				if(mlCurrentAttribChanged & (1u << i)) glVertexAttrib4fv(i, mvCurrentAttrib[i]);
+			mlCurrentAttribChanged = 0;
+		}
 
 		if(mbStateChanged)
 		{
