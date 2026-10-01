@@ -477,7 +477,7 @@ namespace hpl {
 	{
 		float fDx;
 		float fDy;
-		float fAns;
+		float fAns = 0;
 
 		fDx = avGoalPos.x - avStartPos.x;
 		fDy = avGoalPos.y - avStartPos.y;
@@ -1378,44 +1378,6 @@ namespace hpl {
 
 
 	//-----------------------------------------------------------------------
-
-	static bool EdgePointEqual(const float* apVertexArray,
-								const cTriEdge &edge1,  const cTriEdge &edge2, int alStride)
-	{
-		if(Vector3Equal(apVertexArray, edge1.point1,apVertexArray, edge2.point1,alStride) &&
-			Vector3Equal(apVertexArray, edge1.point2,apVertexArray, edge2.point2,alStride))
-		{
-			return true;
-		}
-
-		if(Vector3Equal(apVertexArray, edge1.point1,apVertexArray, edge2.point2,alStride) &&
-			Vector3Equal(apVertexArray, edge1.point2,apVertexArray, edge2.point1,alStride))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	/////////////////////////
-
-	static bool EdgeTriEqual(const cTriEdge &edge1,  const cTriEdge &edge2)
-	{
-		if(edge1.tri1 == edge2.tri1 && edge1.tri2 == edge2.tri2) return true;
-		if(edge1.tri1 == edge1.tri1 && edge1.tri2 == edge2.tri1) return true;
-		return false;
-	}
-
-	/////////////////////////
-
-	static bool EdgeEqual(const float* apVertexArray, const cTriEdge &edge1,  const cTriEdge &edge2, int alStride)
-	{
-		if(EdgePointEqual(apVertexArray,edge1, edge2,alStride) && EdgeTriEqual(edge1, edge2)) return true;
-
-		return false;
-	}
-
-	/////////////////////////
 
 	static const float *gpVertexArray;
 	static const unsigned int *gpIndexArray;

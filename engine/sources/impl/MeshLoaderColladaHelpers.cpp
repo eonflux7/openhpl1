@@ -439,15 +439,6 @@ namespace hpl {
 		return pTrack;
 	}
 
-	static tString gsTemp;
-	static const char* GetTabs(int alDepth)
-	{
-		gsTemp = "";
-
-		for(int i=0;i<alDepth;i++)gsTemp+="\t";
-
-		return gsTemp.c_str();
-	}
 
 	//-----------------------------------------------------------------------
 
