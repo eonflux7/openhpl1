@@ -59,6 +59,10 @@ void cPhysicsLog::Reset()
 	mPlayerState = ePlayerState_LastEnum;
 	mpHeldBody = nullptr;
 	mpReleasedBody = nullptr;
+	mfPlayerHealth = -1;
+	mbPlayerOnGround = true;
+	mfPlayerAirTime = 0;
+	mfPlayerFallSpeed = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -104,7 +108,7 @@ void cPhysicsLog::Update(float afTimeStep)
 	}
 	m_mapBodies.swap(mapSeen);
 
-	UpdatePlayer();
+	UpdatePlayer(afTimeStep);
 }
 
 //-----------------------------------------------------------------------
@@ -200,9 +204,39 @@ void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 
 //-----------------------------------------------------------------------
 
-void cPhysicsLog::UpdatePlayer()
+void cPhysicsLog::UpdatePlayer(float afTimeStep)
 {
 	cPlayer *pPlayer = mpInit->mpPlayer;
+	iCharacterBody *pCharBody = pPlayer->GetCharacterBody();
+
+	// Falls: fall damage is decided by the speed at landing.
+	cVector3f vVel = pCharBody->GetForceVelocity();
+	bool bOnGround = pCharBody->IsOnGround();
+	if(!bOnGround)
+	{
+		mfPlayerAirTime += afTimeStep;
+		if(-vVel.y > mfPlayerFallSpeed) mfPlayerFallSpeed = -vVel.y;
+	}
+	else if(!mbPlayerOnGround)
+	{
+		if(mfPlayerFallSpeed > 3.0f || mfPlayerAirTime > 0.25f)
+		{
+			Log("PHYS: %7.2f player landed at %s after %.2fs in the air, fall speed %.2fm/s\n",
+				mfTime, VecStr(pCharBody->GetPosition()).c_str(), mfPlayerAirTime, mfPlayerFallSpeed);
+		}
+		mfPlayerAirTime = 0;
+		mfPlayerFallSpeed = 0;
+	}
+	mbPlayerOnGround = bOnGround;
+
+	float fHealth = pPlayer->GetHealth();
+	if(mfPlayerHealth >= 0 && fHealth < mfPlayerHealth)
+	{
+		Log("PHYS: %7.2f player health %.0f -> %.0f at %s, velocity %s, %s\n", mfTime,
+			mfPlayerHealth, fHealth, VecStr(pCharBody->GetPosition()).c_str(),
+			VecStr(vVel).c_str(), bOnGround ? "on ground" : "in the air");
+	}
+	mfPlayerHealth = fHealth;
 
 	// Speed one frame after release, so a throw impulse is included.
 	if(mpReleasedBody)
@@ -224,7 +258,7 @@ void cPhysicsLog::UpdatePlayer()
 	{
 		Log("PHYS: %7.2f player %s -> %s at %s\n", mfTime,
 			gvPlayerStateNames[mPlayerState], gvPlayerStateNames[State],
-			VecStr(pPlayer->GetCharacterBody()->GetPosition()).c_str());
+			VecStr(pCharBody->GetPosition()).c_str());
 	}
 	mPlayerState = State;
 

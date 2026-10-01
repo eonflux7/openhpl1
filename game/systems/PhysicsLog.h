@@ -24,7 +24,8 @@ class cInit;
 //   awake         a body that has not gone to sleep for a while, repeated
 //   frozen        a body the engine froze (never wakes from contact)
 //   player        player state changes, and the body being grabbed, moved
-//                 or pushed, with its speed just after release
+//                 or pushed, with its speed just after release; landings
+//                 with the fall speed, and every loss of health
 class cPhysicsLog : public iUpdateable
 {
 public:
@@ -51,7 +52,7 @@ private:
 
 	void StartWorld(cWorld3D *apWorld);
 	void UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack);
-	void UpdatePlayer();
+	void UpdatePlayer(float afTimeStep);
 	tString JointInfo(iPhysicsBody *apBody);
 
 	cInit *mpInit;
@@ -64,6 +65,11 @@ private:
 	ePlayerState mPlayerState;
 	iPhysicsBody *mpHeldBody;
 	iPhysicsBody *mpReleasedBody;
+
+	float mfPlayerHealth;
+	bool mbPlayerOnGround;
+	float mfPlayerAirTime;
+	float mfPlayerFallSpeed; // largest downward speed since leaving the ground
 };
 
 //----------------------------------------
