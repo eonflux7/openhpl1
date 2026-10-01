@@ -17,7 +17,6 @@ OUTPUT
 uniform sampler2DRect tex0; //screenMap
 uniform sampler2D tex1; //refractMap
 
-uniform vec2 screenSize;
 uniform float scale;
 
 void main()

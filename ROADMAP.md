@@ -119,7 +119,7 @@ Every step is checked against reference images of the renderer before it.
 - [ ] **Shader system:**
   - [x] shared include files and `#define` variants instead of one file per
         combination
-  - [ ] per-frame values (view, projection, screen size, depth range, time)
+  - [x] per-frame values (view, projection, screen size, depth range, time)
         in one uniform block; matrices kept on the CPU instead of read back
         from GL for every program
   - [ ] reload shaders while the game runs

@@ -11,13 +11,14 @@
 
 in float vDepth;
 
+#include "hpl1_frame.glsl"
+
 OUTPUT
 
 uniform sampler2DRect tex0; //screenMap
 uniform sampler2D tex1; //blurMap
 uniform vec3 planes;
 uniform float maxBlur;
-uniform vec2 screenSize;
 
 void main()
 {
@@ -32,5 +33,5 @@ void main()
 
 	blur = clamp(blur, 0.0, maxBlur);
 
-	outColor = texture2DRect(tex0,gl_FragCoord.xy) * (1.0-blur) + texture(tex1,gl_FragCoord.xy/screenSize) *blur;
+	outColor = texture2DRect(tex0,gl_FragCoord.xy) * (1.0-blur) + texture(tex1,gl_FragCoord.xy/hpl_RenderSize.xy) *blur;
 }

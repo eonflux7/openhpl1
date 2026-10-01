@@ -73,6 +73,9 @@ namespace hpl {
 
 		/// GLSL SPECIFIC //////////////////////
 
+		/// Uniform buffer binding of the hpl_Frame block (hpl1_frame.glsl).
+		static const GLuint kFrameBlockBinding = 0;
+
 		GLuint GetHandle(){ return mlProgram; }
 
 		/// apLowLevelGraphics supplies the matrices for SetMatrixf.

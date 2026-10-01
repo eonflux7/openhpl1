@@ -111,6 +111,10 @@ namespace hpl {
 
 		const cMatrixf& GetMatrix(eMatrix aMtxType) override{ return mvMatrixStack[aMtxType].back(); }
 
+		void SetFrameUniforms(const cMatrixf& a_mtxView, const cMatrixf& a_mtxProjection,
+							const cVector3f& avEyePos, float afNear, float afFar,
+							float afTime) override;
+
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
 		void SetVirtualOrthoProjection(float afMin, float afMax) override;
 
@@ -303,6 +307,9 @@ namespace hpl {
 		GLuint mlOutputDepthStencil;
 		//Has the texture given to SetRenderTarget() attached.
 		GLuint mlTargetFramebuffer;
+
+		// hpl_Frame uniform block, bound to uniform buffer binding 0
+		GLuint mlFrameUniformBuffer;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];

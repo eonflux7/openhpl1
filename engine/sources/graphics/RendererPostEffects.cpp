@@ -448,7 +448,6 @@ namespace hpl {
 		mpDepthOfFieldFP->Bind();
 		mpDepthOfFieldFP->SetVec3f("planes",cVector3f(mfDofNearPlane,mfDofFocalPlane,mfDofFarPlane));
 		mpDepthOfFieldFP->SetFloat("maxBlur",mfDofMaxBlur);
-		mpDepthOfFieldFP->SetVec2f("screenSize",mvScreenSize);
 
 		//////////////////
 		//Render objects

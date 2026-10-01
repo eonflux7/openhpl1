@@ -20,7 +20,6 @@ uniform sampler2DRect tex0; //screenMap
 uniform sampler2D tex1; //refractMap
 uniform sampler2D tex2; //diffuseMap
 
-uniform vec2 screenSize;
 uniform float scale;
 uniform float t;
 

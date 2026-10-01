@@ -579,6 +579,9 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestActive(true);
 
 		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
+		mpLowLevelGraphics->SetFrameUniforms(apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix(),
+											apCamera->GetPosition(), apCamera->GetNearClipPlane(),
+											apCamera->GetFarClipPlane(), mfRenderTime);
 
 		mpLowLevelGraphics->SetColor(cColor(1,1,1,1));
 
@@ -1217,8 +1220,6 @@ namespace hpl {
 				pRefractFragProgram->Bind();
 
 				mRenderSettings.mpFragmentProgram = pRefractFragProgram;
-
-				pRefractFragProgram->SetVec2f("screenSize", mpLowLevelGraphics->GetRenderSize());
 
 				if(bSpecial)
 				{

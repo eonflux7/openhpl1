@@ -78,6 +78,26 @@ namespace hpl {
 
 	//-------------------------------------------------
 
+	// std140 layout of hpl_Frame in hpl1_frame.glsl; matrices column-major.
+	struct cFrameUniformData
+	{
+		float mvView[16];
+		float mvProjection[16];
+		float mvViewProjection[16];
+		float mvEyePos[4];
+		float mvRenderSize[4];
+		float mvDepthRange[4];
+		float mvTime[4];
+	};
+
+	static void CopyColumnMajor(float *apDest, const cMatrixf& a_mtx)
+	{
+		cMatrixf mtxTranspose = a_mtx.GetTranspose();
+		memcpy(apDest, mtxTranspose.v, sizeof(float)*16);
+	}
+
+	//-------------------------------------------------
+
 	// The matrix glOrtho multiplies by.
 	static cMatrixf OrthoMatrix(float afLeft, float afRight, float afBottom, float afTop,
 								float afNear, float afFar)
@@ -131,6 +151,7 @@ namespace hpl {
 
 		mbInScene = false;
 		mlSceneFramebuffer = 0;
+		mlFrameUniformBuffer = 0;
 		mlOutputFramebuffer = 0;
 		mlOutputColor = 0;
 		mlOutputDepthStencil = 0;
@@ -178,6 +199,7 @@ namespace hpl {
 		DeleteFullscreenPass(mGammaPass);
 		DeleteFullscreenPass(mOutputPass);
 		DeleteFramebuffers();
+		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
 
 		cGLSLProgram::ExitPipeline();
 
@@ -309,6 +331,12 @@ namespace hpl {
 			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
 			return false;
 		}
+
+		glGenBuffers(1, &mlFrameUniformBuffer);
+		glBindBuffer(GL_UNIFORM_BUFFER, mlFrameUniformBuffer);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(cFrameUniformData), nullptr, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kFrameBlockBinding, mlFrameUniformBuffer);
 
 		//Check Multisample properties
 		CheckMultisampleCaps();
@@ -2463,6 +2491,32 @@ namespace hpl {
 		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP_EXT;
 		}
 		return 0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetFrameUniforms(const cMatrixf& a_mtxView, const cMatrixf& a_mtxProjection,
+												const cVector3f& avEyePos, float afNear, float afFar,
+												float afTime)
+	{
+		cVector2f vSize = GetRenderSize();
+
+		cFrameUniformData data;
+		CopyColumnMajor(data.mvView, a_mtxView);
+		CopyColumnMajor(data.mvProjection, a_mtxProjection);
+		CopyColumnMajor(data.mvViewProjection, cMath::MatrixMul(a_mtxProjection, a_mtxView));
+		data.mvEyePos[0] = avEyePos.x; data.mvEyePos[1] = avEyePos.y; data.mvEyePos[2] = avEyePos.z;
+		data.mvEyePos[3] = 1;
+		data.mvRenderSize[0] = vSize.x; data.mvRenderSize[1] = vSize.y;
+		data.mvRenderSize[2] = 1.0f / vSize.x; data.mvRenderSize[3] = 1.0f / vSize.y;
+		data.mvDepthRange[0] = afNear; data.mvDepthRange[1] = afFar;
+		data.mvDepthRange[2] = data.mvDepthRange[3] = 0;
+		data.mvTime[0] = afTime;
+		data.mvTime[1] = data.mvTime[2] = data.mvTime[3] = 0;
+
+		glBindBuffer(GL_UNIFORM_BUFFER, mlFrameUniformBuffer);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	//-----------------------------------------------------------------------

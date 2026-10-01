@@ -469,6 +469,15 @@ messages (NVIDIA 615). Fixed for that:
   instead of reading them back from GL (`glGetFloatv`) on every draw.
   `RotateMatrix`, which nothing called (and which turned by 1 degree
   whatever it was given), is gone.
+- Per-frame values are in one uniform block, `hpl_Frame` in
+  `hpl1_frame.glsl`: view, projection and view-projection matrices, camera
+  position, 3D render size, near/far planes and render time. The 3D
+  renderer sets it once per frame (`SetFrameUniforms`), and every program
+  that declares it reads it from uniform buffer binding 0. Depth of field
+  and the special refraction read the render size from it instead of a
+  `screenSize` uniform set per program; two refraction shaders declared
+  `screenSize` without using it. Per-object values such as
+  `worldViewProj` stay program uniforms.
 - Reference images: unchanged.
 
 ## Known issues

@@ -537,6 +537,9 @@ namespace hpl{
 			return 0;
 		}
 
+		GLuint lFrameBlock = glGetUniformBlockIndex(lProgram, "hpl_Frame");
+		if(lFrameBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lFrameBlock, kFrameBlockBinding);
+
 		// texN samplers always read texture unit N
 		for(int i=0; i<kMaxSamplers; ++i)
 		{

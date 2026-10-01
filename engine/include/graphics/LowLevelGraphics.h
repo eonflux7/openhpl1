@@ -331,6 +331,15 @@ namespace hpl {
 		/// The current matrix, kept on the CPU (no GL read back).
 		virtual const cMatrixf& GetMatrix(eMatrix aMtxType)=0;
 
+		/**
+		 * Per-frame values for shaders, the hpl_Frame block in
+		 * hpl1_frame.glsl; the render size is added. Set when the 3D scene
+		 * starts. afTime is in seconds.
+		 */
+		virtual void SetFrameUniforms(const cMatrixf& a_mtxView, const cMatrixf& a_mtxProjection,
+									const cVector3f& avEyePos, float afNear, float afFar,
+									float afTime)=0;
+
 		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
 		/**
 		 * Ortho projection of the whole screen in virtual coordinates,
