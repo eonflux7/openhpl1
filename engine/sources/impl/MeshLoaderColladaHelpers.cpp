@@ -1489,7 +1489,9 @@ namespace hpl {
 						{
 							DataVec[i].mlVtx = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlPosIdxNum];
 							DataVec[i].mlNorm = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlNormIdxNum];
-							DataVec[i].mlTex = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlTexIdxNum];
+							//Colliders ('_' names) may have no texture coordinates
+							DataVec[i].mlTex = Geometry.mlTexIdxNum >= 0 ?
+								vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlTexIdxNum] : 0;
 						}
 					}
 
