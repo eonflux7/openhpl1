@@ -504,6 +504,11 @@ messages (NVIDIA 615). Fixed for that:
   waits for the GPU (`cGpuProfiler`).
 - Draw calls and triangles are counted at every `glDrawElements` and
   immediate-mode draw.
+- GL objects carry names (`glObjectLabel`, `cGpuProfiler::Label`) for
+  RenderDoc and the debug output: textures by their resource name, the
+  scene, resolve, output and render-target framebuffers and their
+  attachments, programs by shader file and variant, program pipelines and
+  the `hpl_Frame` buffer. Vertex buffers are not named.
 - Reference images: unchanged.
 
 ## Known issues

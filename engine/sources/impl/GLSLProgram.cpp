@@ -18,6 +18,7 @@
  */
 #include "impl/GLSLProgram.h"
 #include "impl/SDLTexture.h"
+#include "impl/GpuProfiler.h"
 #include "graphics/LowLevelGraphics.h"
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
@@ -247,6 +248,8 @@ namespace hpl{
 		}
 
 		glGenProgramPipelines(1,&mlPipeline);
+		glBindProgramPipeline(mlPipeline);
+		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, mlPipeline, "Engine programs");
 		glUseProgram(0);
 		// Bound only while a stage is active, see UpdateFragmentStage().
 		glBindProgramPipeline(0);
@@ -641,6 +644,8 @@ namespace hpl{
 			glDeleteProgram(lProgram);
 			return 0;
 		}
+
+		cGpuProfiler::Label(GL_PROGRAM, lProgram, sName);
 
 		GLuint lFrameBlock = glGetUniformBlockIndex(lProgram, "hpl_Frame");
 		if(lFrameBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lFrameBlock, kFrameBlockBinding);

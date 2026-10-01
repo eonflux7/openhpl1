@@ -341,6 +341,7 @@ namespace hpl {
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(cFrameUniformData), nullptr, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kFrameBlockBinding, mlFrameUniformBuffer);
+		cGpuProfiler::Label(GL_BUFFER, mlFrameUniformBuffer, "hpl_Frame");
 
 		//Check Multisample properties
 		CheckMultisampleCaps();
@@ -1172,6 +1173,9 @@ namespace hpl {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, lTarget, mlSceneColor, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, lTarget, mlSceneDepthStencil, 0);
 		bOK = CheckFramebuffer("Scene") && bOK;
+		cGpuProfiler::Label(GL_FRAMEBUFFER, mlSceneFramebuffer, "Scene");
+		cGpuProfiler::Label(GL_TEXTURE, mlSceneColor, "Scene colour");
+		cGpuProfiler::Label(GL_TEXTURE, mlSceneDepthStencil, "Scene depth/stencil");
 
 		if(mlMultisampling > 0)
 		{
@@ -1180,6 +1184,8 @@ namespace hpl {
 			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlResolveColor, 0);
 			bOK = CheckFramebuffer("Resolve") && bOK;
+			cGpuProfiler::Label(GL_FRAMEBUFFER, mlResolveFramebuffer, "Resolve");
+			cGpuProfiler::Label(GL_TEXTURE, mlResolveColor, "Resolve colour");
 		}
 
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
@@ -1207,6 +1213,9 @@ namespace hpl {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlOutputColor, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mlOutputDepthStencil);
 		bool bOK = CheckFramebuffer("Output");
+		cGpuProfiler::Label(GL_FRAMEBUFFER, mlOutputFramebuffer, "Output");
+		cGpuProfiler::Label(GL_TEXTURE, mlOutputColor, "Output colour");
+		cGpuProfiler::Label(GL_RENDERBUFFER, mlOutputDepthStencil, "Output depth/stencil");
 
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
@@ -1375,6 +1384,7 @@ namespace hpl {
 		glGenProgramPipelines(1,&aPass.mlPipeline);
 		glUseProgramStages(aPass.mlPipeline, GL_VERTEX_SHADER_BIT, aPass.mlVertex);
 		glUseProgramStages(aPass.mlPipeline, GL_FRAGMENT_SHADER_BIT, aPass.mlFragment);
+		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, aPass.mlPipeline, aPass.msName);
 
 		return true;
 	}
@@ -2233,6 +2243,7 @@ namespace hpl {
 
 		if(mlTargetFramebuffer == 0) glGenFramebuffers(1, &mlTargetFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
+		cGpuProfiler::Label(GL_FRAMEBUFFER, mlTargetFramebuffer, "Render target");
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GetGLTextureTargetEnum(pTex->GetTarget()),
 								static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
 		BindFramebuffer(mlTargetFramebuffer, cVector2l(pTex->GetWidth(), pTex->GetHeight()));

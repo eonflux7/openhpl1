@@ -134,6 +134,16 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cGpuProfiler::Label(GLenum aIdentifier, GLuint alName, const std::string& asLabel)
+	{
+		if(alName == 0 || !(GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug)) return;
+		// GL guarantees labels of 256 characters
+		std::string sLabel = asLabel.size() > 255 ? asLabel.substr(asLabel.size() - 255) : asLabel;
+		glObjectLabel(aIdentifier, alName, (GLsizei)sLabel.size(), sLabel.c_str());
+	}
+
+	//-----------------------------------------------------------------------
+
 	GLuint cGpuProfiler::NewQuery(cFrame &aFrame)
 	{
 		if(aFrame.mlQueriesUsed == aFrame.mvQueries.size())

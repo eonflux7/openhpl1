@@ -127,7 +127,7 @@ Every step is checked against reference images of the renderer before it.
   - [x] Dear ImGui as an in-game debug overlay (F3), starting with the
         profiler's numbers
   - [x] timer queries per pass, draw-call and triangle counts, debug groups
-  - [ ] object labels
+  - [x] object labels
   - [ ] fetch occlusion queries without waiting
 - [ ] **No fixed-function.** Everything is drawn by shaders: HUD, fonts,
       particles, billboards, transparent materials, debug drawing; alpha test

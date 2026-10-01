@@ -51,6 +51,9 @@ namespace hpl {
 
 		void CountDraw(GLenum aMode, int alVertices);
 
+		/// Names a GL object for RenderDoc and the debug output (glObjectLabel).
+		static void Label(GLenum aIdentifier, GLuint alName, const std::string& asLabel);
+
 		/// The last frame whose times are known, sections in the order they began.
 		const std::vector<cSectionResult>& GetSections(){ return mvResults; }
 		float GetGpuFrameMs(){ return mfGpuFrameMs; }

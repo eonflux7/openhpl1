@@ -18,6 +18,7 @@
  */
 #include "impl/SDLTexture.h"
 #include "impl/SDLBitmap2D.h"
+#include "impl/GpuProfiler.h"
 
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
@@ -197,6 +198,7 @@ namespace hpl {
 
 			glEnable(GLTarget);
 			glBindTexture(GLTarget, mvTextureHandles[0]);
+			cGpuProfiler::Label(GL_TEXTURE, mvTextureHandles[0], msName);
 			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 			if(mbUseMipMaps && mTarget != eTextureTarget_Rect){
 				if(mFilter == eTextureFilter_Bilinear)
@@ -704,6 +706,10 @@ namespace hpl {
 		glDisable(aGLTarget);
 
 		mbContainsData = true;
+
+		// Animation frames are created one at a time; label those that exist.
+		for(unsigned int lHandle : mvTextureHandles)
+			if(glIsTexture(lHandle)) cGpuProfiler::Label(GL_TEXTURE, lHandle, msName);
 
 		//Creating the texture has replaced the one set on this unit.
 		mpGfxSDL->RestoreSetTexture();
