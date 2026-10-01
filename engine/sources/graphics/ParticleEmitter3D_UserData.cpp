@@ -784,7 +784,7 @@ namespace hpl {
 			apParticle->mfSpinFactor = cMath::RandRectf (mpData->mfMinSpinRange, mpData->mfMaxSpinRange);
 			apParticle->mfSpinVel = 0.0f;
 		}
-		apParticle->mfSpin = apParticle->mfSpin = cMath::RandRectf ( 0.0f, k2Pif );
+		apParticle->mfSpin = cMath::RandRectf ( 0.0f, k2Pif );
 
 		////////////////////////////////////
 		//Start Revolution Velocity
