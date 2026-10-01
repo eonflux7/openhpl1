@@ -171,7 +171,8 @@ void cPreMenu::Reset()
 	for ( int i =0; i< (int)mvRaindropVector.size(); ++i )
 	{
 		cRaindrop* pRaindrop = &(mvRaindropVector[i]);
-		pRaindrop->vPos = cVector2f(cMath::RandRectf(-20,800),-50);
+		float fSide = mpInit->mpGraphicsHelper->GetScreenOffset().x;
+		pRaindrop->vPos = cVector2f(cMath::RandRectf(-20 - fSide,800 + fSide),-50);
 		pRaindrop->vDir = cVector2f(cMath::RandRectf(20,100), 600);
 		pRaindrop->vDir.Normalise();
 		pRaindrop->fColor = 1;
@@ -200,7 +201,7 @@ void cPreMenu::OnPostSceneDraw()
 		mpInit->mpGraphicsHelper->DrawTexture(mpLogoTexture,cVector3f(400,300,-10)-(mvecLogoSize/2),mvecLogoSize, cColor(mfLogoFade,1));
 		mpInit->mpGraphicsHelper->DrawTexture(mpEpTexture,cVector3f(276,440,-10), cVector3f(248,46,0), cColor(mfEpFade,1));
 		if (mbFlash)
-			mpInit->mpGame->GetGraphics()->GetDrawer()->DrawGfxObject( mpFlashGfx, cVector3f(0,0,10), cVector2f(800,600), cColor(1,0.9f));
+			mpInit->mpGame->GetGraphics()->GetDrawer()->DrawGfxObject( mpFlashGfx, mpInit->mpGraphicsHelper->GetScreenPos(10), mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1,0.9f));
 	}
 
 	if (mlState == 1 || mlState == 2 || mlState == 4)
@@ -365,7 +366,8 @@ void cPreMenu::Update(float afTimeStep)
 			
 		if (pRaindrop->vPos.y > 600)
 		{
-			pRaindrop->vPos = cVector2f(cMath::RandRectf(-60,800),-80);
+			float fSide = mpInit->mpGraphicsHelper->GetScreenOffset().x;
+			pRaindrop->vPos = cVector2f(cMath::RandRectf(-60 - fSide,800 + fSide),-80);
 			pRaindrop->vDir = cVector2f(cMath::RandRectf(20,100), 600);
 			pRaindrop->vDir.Normalise();
 			pRaindrop->fLength = cMath::RandRectf(30,70);

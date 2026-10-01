@@ -294,10 +294,13 @@ void cIntroImage::OnDraw()
 	{
 		float fWhite = mfBrightness -1;
 
-		mvVtxVec[0] = cVertex(cVector3f(0,0,0),cVector2f(0,0),cColor(fWhite,1) );
-		mvVtxVec[1] = cVertex(cVector3f(800,0,40),cVector2f(1,0),cColor(fWhite,1));
-		mvVtxVec[2] = cVertex(cVector3f(800,600,40),	cVector2f(1,1),cColor(fWhite,1));
-		mvVtxVec[3] = cVertex(cVector3f(0,600,40),cVector2f(0,1),cColor(fWhite,1));
+		cVector3f vMin = mpInit->mpGraphicsHelper->GetScreenPos();
+		cVector3f vMax = vMin + mpInit->mpGraphicsHelper->GetScreenSize();
+
+		mvVtxVec[0] = cVertex(cVector3f(vMin.x,vMin.y,0),cVector2f(0,0),cColor(fWhite,1) );
+		mvVtxVec[1] = cVertex(cVector3f(vMax.x,vMin.y,40),cVector2f(1,0),cColor(fWhite,1));
+		mvVtxVec[2] = cVertex(cVector3f(vMax.x,vMax.y,40),	cVector2f(1,1),cColor(fWhite,1));
+		mvVtxVec[3] = cVertex(cVector3f(vMin.x,vMax.y,40),cVector2f(0,1),cColor(fWhite,1));
 		
 		mpLowGfx->SetTexture(0, nullptr);
 
@@ -499,15 +502,17 @@ void cIntroStory::OnPostSceneDraw()
 	mpLowGfx->SetDepthTestActive(false);
 	mpLowGfx->PushMatrix(eMatrix_ModelView);
 	mpLowGfx->SetIdentityMatrix(eMatrix_ModelView);
-	mpLowGfx->SetOrthoProjection(mpLowGfx->GetVirtualSize(),-1000,1000);
+	mpLowGfx->SetVirtualOrthoProjection(-1000,1000);
 	
 	for(int i=0; i< INTRO_IMAGE_NUM; ++i)
 	{
 		if(mvImages[i].mbActive) mvImages[i].OnDraw();
 	}
 
-	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,cVector3f(0,0,140),cVector2f(800,75),cColor(1,1));
-	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,cVector3f(0,525,140),cVector2f(800,75),cColor(1,1));
+	cVector3f vBarPos = mpInit->mpGraphicsHelper->GetScreenPos(140);
+	cVector2f vBarSize(mpInit->mpGraphicsHelper->GetScreenSize().x, 75 - vBarPos.y);
+	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,vBarPos,vBarSize,cColor(1,1));
+	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,cVector3f(vBarPos.x,525,140),vBarSize,cColor(1,1));
 
 	mpLowGfx->PopMatrix(eMatrix_ModelView);
 }

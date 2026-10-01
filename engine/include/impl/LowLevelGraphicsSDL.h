@@ -68,6 +68,7 @@ namespace hpl {
 		cVector2f GetScreenSize() override;
 		cVector2f GetVirtualSize() override;
 		void SetVirtualSize(cVector2f avSize) override;
+		cVector2f GetVirtualOffset() override;
 
 		iBitmap2D* CreateBitmap2D(const cVector2l &avSize, unsigned int alBpp) override;
 		iFontData* CreateFontData(const tString &asName) override;
@@ -98,6 +99,7 @@ namespace hpl {
 		void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale) override;
 
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
+		void SetVirtualOrthoProjection(float afMin, float afMax) override;
 
 		/////////// DRAWING METHODS /////////////////////////
 

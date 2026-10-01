@@ -23,6 +23,7 @@
 #include "player/Player.h"
 #include "core/MapHandler.h"
 #include "entities/GameStickArea.h"
+#include "core/GraphicsHelper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GRAB STATE
@@ -613,7 +614,10 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 	cVector3f vProjPos = cMath::MatrixMul(mpPlayer->GetCamera()->GetViewMatrix(),mvPickPoint);
 	vProjPos = cMath::MatrixMulDivideW(mpPlayer->GetCamera()->GetProjectionMatrix(),vProjPos);
 
-	mpPlayer->SetCrossHairPos(cVector2f( (vProjPos.x+1)*0.5f*800.0f, ((-vProjPos.y)+1)*0.5f*600.0f));
+	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
+	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
+	mpPlayer->SetCrossHairPos(cVector2f((vProjPos.x+1)*0.5f*vScreenSize.x + vScreenPos.x,
+										((-vProjPos.y)+1)*0.5f*vScreenSize.y + vScreenPos.y));
 
 	/////////////////////////////////////////////////
 	// Check if the camera should be turned

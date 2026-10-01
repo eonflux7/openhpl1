@@ -26,6 +26,7 @@
 #include "core/SaveHandler.h"
 #include "systems/RadioHandler.h"
 #include "entities/GameSaveArea.h"
+#include "core/GraphicsHelper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // UNDERWATER
@@ -71,7 +72,7 @@ void cEffect_Underwater::OnDraw()
 	if(mbActive==false) return;
 	
 	cColor invColor(1-mColor.r,1-mColor.g,1-mColor.b,0);
-	mpDrawer->DrawGfxObject(mpWhiteGfx,0,cVector2f(800,600),invColor);
+	mpDrawer->DrawGfxObject(mpWhiteGfx,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),invColor);
 }
 //-----------------------------------------------------------------------
 
@@ -290,7 +291,7 @@ void cEffect_SaveEffect::OnDraw()
 {
 	if(mbActive==false) return;
 
-	mpDrawer->DrawGfxObject(mpFlashGfx,0,cVector2f(800,600),
+	mpDrawer->DrawGfxObject(mpFlashGfx,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),
 							cColor(1,1) * mfFlashAlpha + 
 							mFlashColor * (1- mfFlashAlpha) 
 							);
@@ -653,7 +654,7 @@ void cEffect_Flash::OnDraw()
 {
 	if(mbActive==false) return;
 
-	mpDrawer->DrawGfxObject(mpWhiteGfx,0,cVector2f(800,600),cColor(1,mfAlpha));
+	mpDrawer->DrawGfxObject(mpWhiteGfx,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 }
 
 //-----------------------------------------------------------------------

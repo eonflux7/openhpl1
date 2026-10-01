@@ -40,6 +40,14 @@ public:
 	
 	void DrawLoadingScreen(const tString &asFile);
 
+	// The whole screen in the 800x600 virtual coordinates. The 800x600 layout
+	// is centred, so in a window that isn't 4:3 the screen starts left of (or
+	// above) 0 and is larger than 800x600.
+	cVector3f GetScreenPos(float afZ=0);
+	cVector2f GetScreenSize();
+	cVector2f GetScreenOffset();
+	void ClampToScreen(cVector2f &avPos);
+
 	void SwapBuffers();
 
 private:

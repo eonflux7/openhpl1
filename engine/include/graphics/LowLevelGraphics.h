@@ -241,6 +241,13 @@ namespace hpl {
 		 * \param avSize
 		 */
 		virtual void SetVirtualSize(cVector2f avSize)=0;
+		/**
+		 * How far the screen reaches past the virtual size on each side, in
+		 * virtual units. The virtual canvas keeps its aspect ratio and is
+		 * centred, so this is non-zero on one axis when the window has
+		 * another aspect ratio: the screen spans -offset to size+offset.
+		 */
+		virtual cVector2f GetVirtualOffset()=0;
 
 		/**
 		 * Set if vsync should eb active
@@ -289,6 +296,11 @@ namespace hpl {
 		virtual void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)=0;
 
 		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
+		/**
+		 * Ortho projection of the whole screen in virtual coordinates,
+		 * -GetVirtualOffset() to GetVirtualSize()+GetVirtualOffset().
+		 */
+		virtual void SetVirtualOrthoProjection(float afMin, float afMax)=0;
 
 		/////////// DRAWING METHODS /////////////////////////
 

@@ -30,6 +30,7 @@
 #include "player/HapticGameCamera.h"
 
 #include "core/GlobalInit.h"
+#include "core/GraphicsHelper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
@@ -1044,7 +1045,7 @@ void cInventory::OnDraw()
 
 	///////////////////////////////
 	//Draw background
-	mpDrawer->DrawGfxObject(mpGfxBackground,cVector3f(0,0,0),cVector2f(800,600),cColor(1,mfAlpha));
+	mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 	
 	//Draw backpack and hands
 	//mpDrawer->DrawGfxObject(mpBagpack,cVector3f(0,600 - (160*sqrt(mfAlpha)),-1),cVector2f(800,160),cColor(1,mfAlpha));
@@ -1116,8 +1117,9 @@ void cInventory::OnDraw()
 
 		cVector3f vMessPos = cVector3f(40,275,110);
 
-		mpDrawer->DrawGfxObject(mpMessageBackground,cVector3f(0,vMessPos.y - 8,vMessPos.z-2),
-								cVector2f(800,17*4+8*2),cColor(1,1,1,fMessAlpha *0.92f));
+		mpDrawer->DrawGfxObject(mpMessageBackground,
+								cVector3f(mpInit->mpGraphicsHelper->GetScreenPos().x,vMessPos.y - 8,vMessPos.z-2),
+								cVector2f(mpInit->mpGraphicsHelper->GetScreenSize().x,17*4+8*2),cColor(1,1,1,fMessAlpha *0.92f));
 		
 		mpFont->DrawWordWrap(vMessPos + cVector3f(0,0,0),720,16,17,cColor(1,1,1,fMessAlpha),eFontAlign_Left,
 								msMessage.c_str());
@@ -1489,10 +1491,7 @@ void cInventory::AddMousePos(const cVector2f &avRel)
 
 	mvMousePos += avRel;
 	
-	if(mvMousePos.x < 0) mvMousePos.x =0;
-	if(mvMousePos.x >= 800) mvMousePos.x =800;
-	if(mvMousePos.y < 0) mvMousePos.y =0;
-	if(mvMousePos.y >= 600) mvMousePos.y =600;
+	mpInit->mpGraphicsHelper->ClampToScreen(mvMousePos);
 
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }

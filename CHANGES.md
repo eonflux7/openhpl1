@@ -166,7 +166,35 @@ commit), and the last official Linux build on Steam.
   `<executable dir>/testmap/`. Resource directories given as absolute paths
   keep their case.
 
-### Known issues
+## Milestone 2: widescreen and quality of life
+
+### Widescreen 2D/HUD
+
+- The 2D layer keeps its 800×600 layout but is no longer stretched to the
+  window. One virtual unit is the same number of pixels on both axes and the
+  layout is centred; in a window that isn't 4:3 the screen reaches past it,
+  from `-offset` to `size + offset` (`iLowLevelGraphics::GetVirtualOffset`,
+  `SetVirtualOrthoProjection`). 4:3 windows look as before.
+- Menus, inventory, notebook, HUD and text therefore keep their proportions
+  instead of being 33% wider at 16:9.
+- Full-screen overlays cover the whole window: fades, cinematic bars, damage
+  and hit splashes, death fade, flash, underwater tint, save flash, in-shadow
+  vignette, noise filter, inventory/notebook/panel/death-menu dimming, map
+  load background and loading screen.
+- Mouse position and movement use the same uniform scale. The menu cursor can
+  reach the real screen edges. Horizontal mouse movement used to be scaled by
+  800/width, so at the same height a wider window made turning slower (by 25%
+  at 16:9 compared to 4:3). Turning and cursor speed per pixel now match a
+  4:3 window of the same height; vertical movement is unchanged.
+- `cCamera3D::UnProject` and the grab crosshair projection account for the
+  offset, so picking under an off-centre crosshair matches what is drawn.
+- Pre-menu rain falls across the whole width.
+- Not changed: the interact-mode crosshair keeps its 4:3 movement area (the
+  same view angles as the original), menu and logo art is shown centred with
+  black borders, and the unused GUI set, 2D camera, tile map and haptics code
+  still assume a stretched canvas.
+
+## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
 - Gamma setting has no effect.

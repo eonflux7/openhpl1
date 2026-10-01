@@ -151,7 +151,7 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestActive(false);
 		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
 
-		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
+		mpLowLevelGraphics->SetVirtualOrthoProjection(-1000,1000);
 
 		int lIdxAdd=0;
 		iMaterial *pPrevMat=nullptr;

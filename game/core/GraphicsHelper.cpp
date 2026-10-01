@@ -69,7 +69,7 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 	mpLowLevelGfx->SetDepthTestActive(false);
 	mpLowLevelGfx->PushMatrix(eMatrix_ModelView);
 	mpLowLevelGfx->SetIdentityMatrix(eMatrix_ModelView);
-	mpLowLevelGfx->SetOrthoProjection(mpLowLevelGfx->GetVirtualSize(),-1000,1000);
+	mpLowLevelGfx->SetVirtualOrthoProjection(-1000,1000);
 	
 	mvVtx[0] = cVertex(avPos + cVector3f(0,0,0),	cVector2f(0.01f,0.01f),aColor );
 	mvVtx[1] = cVertex(avPos + cVector3f(avSize.x,0,0),	cVector2f(0.99f,0.01f),aColor);
@@ -102,7 +102,7 @@ void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
 	{
 		ClearScreen(cColor(0,0));
 		
-		if(pTex) DrawTexture(pTex,cVector3f(0,0,0),cVector2f(800,600),cColor(1,1));
+		if(pTex) DrawTexture(pTex,GetScreenPos(),GetScreenSize(),cColor(1,1));
 		
 		mpFont->Draw(cVector3f(400,300,50),22,cColor(1,1),eFontAlign_Center,
 					_W("%ls"),kTranslate("LoadTexts", "Loading").c_str());
@@ -113,6 +113,35 @@ void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
 	}
 	
 	if(pTex) mpTexManager->Destroy(pTex);
+}
+
+//-----------------------------------------------------------------------
+
+cVector3f cGraphicsHelper::GetScreenPos(float afZ)
+{
+	cVector2f vOffset = mpLowLevelGfx->GetVirtualOffset();
+	return cVector3f(-vOffset.x, -vOffset.y, afZ);
+}
+
+cVector2f cGraphicsHelper::GetScreenSize()
+{
+	return mpLowLevelGfx->GetVirtualSize() + mpLowLevelGfx->GetVirtualOffset()*2;
+}
+
+cVector2f cGraphicsHelper::GetScreenOffset()
+{
+	return mpLowLevelGfx->GetVirtualOffset();
+}
+
+void cGraphicsHelper::ClampToScreen(cVector2f &avPos)
+{
+	cVector2f vOffset = mpLowLevelGfx->GetVirtualOffset();
+	cVector2f vSize = mpLowLevelGfx->GetVirtualSize();
+
+	if(avPos.x < -vOffset.x) avPos.x = -vOffset.x;
+	if(avPos.x > vSize.x + vOffset.x) avPos.x = vSize.x + vOffset.x;
+	if(avPos.y < -vOffset.y) avPos.y = -vOffset.y;
+	if(avPos.y > vSize.y + vOffset.y) avPos.y = vSize.y + vOffset.y;
 }
 
 //-----------------------------------------------------------------------

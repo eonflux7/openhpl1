@@ -352,9 +352,10 @@ namespace hpl {
 
 		return cMath::Vector3UnProject(vPos, cRect2f(0,0,vScreenSize.x, vScreenSize.y), mtxViewProj);*/
 
-		cVector2f vScreenSize = apLowLevel->GetVirtualSize();
-		cVector2f vNormScreen(	(avScreenPos.x / vScreenSize.x) - 0.5f,
-								 0.5f - (avScreenPos.y / vScreenSize.y));
+		cVector2f vOffset = apLowLevel->GetVirtualOffset();
+		cVector2f vScreenSize = apLowLevel->GetVirtualSize() + vOffset*2;
+		cVector2f vNormScreen(	((avScreenPos.x + vOffset.x) / vScreenSize.x) - 0.5f,
+								 0.5f - ((avScreenPos.y + vOffset.y) / vScreenSize.y));
 		float afNormalizedSlope = tan(mfFOV*0.5f);
 
 		cVector2f avViewportToWorld;

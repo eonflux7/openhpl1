@@ -210,7 +210,7 @@ void cDeathMenu::OnDraw()
 {
 	if(mfAlpha == 0) return;
 
-	mpDrawer->DrawGfxObject(mpGfxBackground,cVector3f(0,0,0),cVector2f(800,600),cColor(1,mfAlpha));
+	mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 
 	mpFont->DrawWordWrap(	cVector3f(400,210,40),500,25,24,cColor(0.7f,0.3f,0.3f),eFontAlign_Center,
 							kTranslate("DeathMenu","YouAreDead").c_str());
@@ -278,10 +278,7 @@ void cDeathMenu::AddMousePos(const cVector2f &avRel)
 {
 	mvMousePos += avRel;
 
-	if(mvMousePos.x < 0) mvMousePos.x =0;
-	if(mvMousePos.x >= 800) mvMousePos.x =800;
-	if(mvMousePos.y < 0) mvMousePos.y =0;
-	if(mvMousePos.y >= 600) mvMousePos.y =600;
+	mpInit->mpGraphicsHelper->ClampToScreen(mvMousePos);
 
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }

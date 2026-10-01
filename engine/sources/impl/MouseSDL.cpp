@@ -61,7 +61,9 @@ namespace hpl {
 	void cMouseSDL::Update()
 	{
 		cVector2f vScreenSize = mpLowLevelGraphics->GetScreenSize();
-		cVector2f vVirtualSize = mpLowLevelGraphics->GetVirtualSize();
+		cVector2f vVirtualOffset = mpLowLevelGraphics->GetVirtualOffset();
+		//Virtual units per pixel, the same on both axes.
+		float fVirtualScale = (mpLowLevelGraphics->GetVirtualSize().x + vVirtualOffset.x*2) / vScreenSize.x;
 
 		//mvMouseRelPos = cVector2f(0,0);
 
@@ -79,7 +81,7 @@ namespace hpl {
 			if(pEvent->type == SDL_EVENT_MOUSE_MOTION)
 			{
 				mvMouseAbsPos = cVector2f(pEvent->motion.x,pEvent->motion.y);
-				mvMouseAbsPos = (mvMouseAbsPos/vScreenSize)*vVirtualSize;
+				mvMouseAbsPos = mvMouseAbsPos*fVirtualScale - vVirtualOffset;
 
 				vRelMotion.x += pEvent->motion.xrel;
 				vRelMotion.y += pEvent->motion.yrel;
@@ -109,7 +111,7 @@ namespace hpl {
 		mvMButtonArray[eMButton_WheelDown] = mbWheelDownMoved;
 		mvMButtonArray[eMButton_WheelUp] = mbWheelUpMoved;
 
-		mvMouseRelPos += (vRelMotion/vScreenSize)*vVirtualSize;
+		mvMouseRelPos += vRelMotion*fVirtualScale;
 	}
 
 	//-----------------------------------------------------------------------

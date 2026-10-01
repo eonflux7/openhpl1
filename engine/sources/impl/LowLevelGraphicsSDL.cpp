@@ -886,6 +886,18 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cLowLevelGraphicsSDL::SetVirtualOrthoProjection(float afMin, float afMax)
+	{
+		cVector2f vOffset = GetVirtualOffset();
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(-vOffset.x, mvVirtualSize.x + vOffset.x,
+				mvVirtualSize.y + vOffset.y, -vOffset.y, afMin,afMax);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cLowLevelGraphicsSDL::SetTexture(unsigned int alUnit,iTexture* apTex)
 	{
 		if(apTex == mpCurrentTexture[alUnit]) return;
@@ -1904,6 +1916,22 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetVirtualSize(cVector2f avSize)
 	{
 		mvVirtualSize = avSize;
+	}
+
+	//-----------------------------------------------------------------------
+
+	cVector2f cLowLevelGraphicsSDL::GetVirtualOffset()
+	{
+		if(mvScreenSize.x <= 0 || mvScreenSize.y <= 0) return cVector2f(0,0);
+
+		// One virtual unit is the same number of pixels on both axes, so the
+		// axis with pixels to spare gets a border on each side.
+		float fScaleX = (float)mvScreenSize.x / mvVirtualSize.x;
+		float fScaleY = (float)mvScreenSize.y / mvVirtualSize.y;
+		float fScale = fScaleX < fScaleY ? fScaleX : fScaleY;
+
+		return cVector2f(	((float)mvScreenSize.x / fScale - mvVirtualSize.x) * 0.5f,
+							((float)mvScreenSize.y / fScale - mvVirtualSize.y) * 0.5f);
 	}
 
 	//-----------------------------------------------------------------------

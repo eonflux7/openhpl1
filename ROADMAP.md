@@ -32,14 +32,18 @@ Make sure nothing regressed before changing anything.
 
 ## Milestone 2: widescreen and quality of life
 
-- [ ] **Widescreen 2D/HUD.** The UI is drawn on a fixed 800×600 virtual
+- [ ] **Widescreen 2D/HUD.** The UI was drawn on a fixed 800×600 virtual
       canvas stretched to the window:
-  - [ ] widen the virtual canvas to the window's aspect ratio and centre the
+  - [x] widen the virtual canvas to the window's aspect ratio and centre the
         800×600 layout
-  - [ ] make full-screen overlays (fades, damage, flash, underwater, fear,
+  - [x] make full-screen overlays (fades, damage, flash, underwater, fear,
         noise filter, image trail, bloom quad) cover the whole width
-  - [ ] fix hard-coded 800/600/400/300 coordinates and mouse clamps
+  - [x] fix hard-coded 800/600/400/300 coordinates and mouse clamps
         (inventory, notebook, numerical panel, death menu, crosshair)
+  - [ ] play-test at 16:9: intro story, death menu, numerical panel and
+        interact mode were not covered by the screenshot checks
+  - [ ] decide whether the menu and logo screens should fill the sides (they
+        are 4:3 art, shown centred with black borders)
 - [ ] FOV option (vertical FOV is fixed at 70°, and 3D is already Hor+)
 - [ ] Mouse sensitivity independent of resolution
 - [ ] Gamma reimplemented as a final shader pass

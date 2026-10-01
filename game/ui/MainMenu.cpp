@@ -2137,7 +2137,7 @@ void cMainMenu::OnPostSceneDraw()
 	// Fade in
 	if (mbFadeIn)
 	{
-		mpDrawer->DrawGfxObject(mpGfxBlackQuad,cVector3f(0,0,120),cVector2f(800,600), cColor(1,1-mfFadeAmount));
+		mpDrawer->DrawGfxObject(mpGfxBlackQuad,mpInit->mpGraphicsHelper->GetScreenPos(120),mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1,1-mfFadeAmount));
 	}
 }
 
@@ -2387,10 +2387,7 @@ void cMainMenu::AddMousePos(const cVector2f &avRel)
 
 	mvMousePos += avRel;
 
-	if(mvMousePos.x < 0) mvMousePos.x =0;
-	if(mvMousePos.x >= 800) mvMousePos.x =800;
-	if(mvMousePos.y < 0) mvMousePos.y =0;
-	if(mvMousePos.y >= 600) mvMousePos.y =600;
+	mpInit->mpGraphicsHelper->ClampToScreen(mvMousePos);
 }
 
 void cMainMenu::SetMousePos(const cVector2f &avPos)

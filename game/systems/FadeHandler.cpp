@@ -22,6 +22,7 @@
 #include "player/Player.h"
 #include "entities/GameEntity.h"
 #include "ui/Inventory.h"
+#include "core/GraphicsHelper.h"
 
 
 
@@ -162,12 +163,17 @@ void cFadeHandler::Reset()
 void cFadeHandler::OnDraw()
 {
 	if(mfAlpha !=0)
-		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(0,0,150),cVector2f(800,600),cColor(1,mfAlpha));
+		mpDrawer->DrawGfxObject(mpBlackGfx,mpInit->mpGraphicsHelper->GetScreenPos(150),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 
 	if(mfWideScreenAlpha != 0)
 	{
-		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(0,0,40),cVector2f(800,75),cColor(1,mfWideScreenAlpha));
-		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(0,525,40),cVector2f(800,75),cColor(1,mfWideScreenAlpha));
+		//The bars reach from the screen edges to where they end in the 800x600 layout.
+		cVector3f vPos = mpInit->mpGraphicsHelper->GetScreenPos(40);
+		cVector2f vSize = mpInit->mpGraphicsHelper->GetScreenSize();
+		float fBarHeight = 75 - vPos.y;
+
+		mpDrawer->DrawGfxObject(mpBlackGfx,vPos,cVector2f(vSize.x,fBarHeight),cColor(1,mfWideScreenAlpha));
+		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(vPos.x,525,40),cVector2f(vSize.x,fBarHeight),cColor(1,mfWideScreenAlpha));
 	}
 }
 

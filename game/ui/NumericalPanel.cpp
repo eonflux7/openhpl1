@@ -21,6 +21,7 @@
 #include "core/Init.h"
 #include "player/Player.h"
 #include "player/HapticGameCamera.h"
+#include "core/GraphicsHelper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BUTTON
@@ -195,7 +196,7 @@ void cNumericalPanel::OnDraw()
 {
 	if(mfAlpha == 0) return;
 	
-	mpDrawer->DrawGfxObject(mpGfxBackground,cVector3f(0,0,0),cVector2f(800,600),cColor(1,mfAlpha));
+	mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 
 	
 	mpDrawer->DrawGfxObject(mpGfxPanel,cVector3f(280,170,10),cVector2f(270,300),cColor(1,mfAlpha));
@@ -264,10 +265,7 @@ void cNumericalPanel::AddMousePos(const cVector2f &avRel)
 {
 	mvMousePos += avRel;
 
-	if(mvMousePos.x < 0) mvMousePos.x =0;
-	if(mvMousePos.x >= 800) mvMousePos.x =800;
-	if(mvMousePos.y < 0) mvMousePos.y =0;
-	if(mvMousePos.y >= 600) mvMousePos.y =600;
+	mpInit->mpGraphicsHelper->ClampToScreen(mvMousePos);
 
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }

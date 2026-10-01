@@ -71,7 +71,7 @@ void cMapLoadText::Reset()
 void cMapLoadText::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-	mpInit->mpGraphicsHelper->DrawTexture(mpBack,0,cVector3f(800,600,0),cColor(1,1));
+	mpInit->mpGraphicsHelper->DrawTexture(mpBack,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
 }
 
 //-----------------------------------------------------------------------
@@ -175,7 +175,7 @@ void cMapLoadText::SetActive(bool abX)
 		mpBack = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("other_load_text_back.jpg",false);
 		
 		mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-		mpInit->mpGraphicsHelper->DrawTexture(mpBack,0,cVector3f(800,600,0),cColor(1,1));
+		mpInit->mpGraphicsHelper->DrawTexture(mpBack,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
 		DrawText(true);
 		mpDrawer->DrawAll();
 		mpInit->mpGraphicsHelper->SwapBuffers();

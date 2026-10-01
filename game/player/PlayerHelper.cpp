@@ -31,6 +31,7 @@
 #include "core/MapHandler.h"
 #include "player/PlayerHands.h"
 #include "systems/GameMusicHandler.h"
+#include "core/GraphicsHelper.h"
 
 //////////////////////////////////////////////////////////////////////////
 // HIT GROUND CALLBACK
@@ -741,7 +742,7 @@ void cPlayerHealth::Draw()
 {
 	if(mfGfxAlpha <=0) return;
 
-	mpDrawer->DrawGfxObject(mpDamageGfx,cVector3f(0,0,50),cVector2f(800,600),
+	mpDrawer->DrawGfxObject(mpDamageGfx,mpInit->mpGraphicsHelper->GetScreenPos(50),mpInit->mpGraphicsHelper->GetScreenSize(),
 							cColor(1, mfGfxGlobalAlpha * mfGfxAlpha));
 }
 
@@ -1155,7 +1156,7 @@ void cPlayerDamage::Draw()
 {
 	if(mbActive==false) return;
 
-	mpDrawer->DrawGfxObject(mvHitGfx[mType],cVector3f(0,0,3),cVector2f(800, 600),cColor(1,mfAlpha*0.6f));
+	mpDrawer->DrawGfxObject(mvHitGfx[mType],mpInit->mpGraphicsHelper->GetScreenPos(3),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha*0.6f));
 }
 
 //-----------------------------------------------------------------------
@@ -1270,11 +1271,15 @@ void cPlayerDeath::Draw()
 {
 	if(mbActive==false) return;
 
-    cVector3f vPos(-mfFadeAlpha*400 - mfBlackAlpha*200,-mfFadeAlpha*400 -  mfBlackAlpha*200,4);
-	cVector2f vSize(800 + mfFadeAlpha*800 + mfBlackAlpha*400, 600 + mfFadeAlpha*800+ mfBlackAlpha*400);
+	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
+	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
+
+	float fGrow = mfFadeAlpha*400 + mfBlackAlpha*200;
+	cVector3f vPos(vScreenPos.x - fGrow, vScreenPos.y - fGrow,4);
+	cVector2f vSize(vScreenSize.x + fGrow*2, vScreenSize.y + fGrow*2);
 	mpDrawer->DrawGfxObject(mpFadeGfx,vPos,vSize,cColor(mfFadeAlpha,0));
 
-	mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(0,0,5),cVector2f(800,600),cColor(mfBlackAlpha,0));
+	mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(vScreenPos.x,vScreenPos.y,5),vScreenSize,cColor(mfBlackAlpha,0));
 }
 
 
@@ -1894,12 +1899,19 @@ void cPlayerNoiseFilter::Draw()
 {
 	if(mbActive == false) return;
 
-	for(int x=0;x <20;++x)
-	for(int y=0; y< 15; ++y)
+	//The 20x15 tiles of the 800x600 layout, plus the columns or rows needed to
+	//reach the screen edges. Those reuse the tile images of the layout.
+	cVector2f vOffset = mpInit->mpGraphicsHelper->GetScreenOffset();
+	int lExtraX = (int)ceil(vOffset.x / 40);
+	int lExtraY = (int)ceil(vOffset.y / 40);
+
+	for(int x=-lExtraX;x <20+lExtraX;++x)
+	for(int y=-lExtraY; y< 15+lExtraY; ++y)
 	{
 		cVector3f vPos((float)x*40, (float)y*40,0);
+		int lTile = ((x+20)%20) * ((y+15)%15);
 		
-        mpDrawer->DrawGfxObject(mvGfxNoise[mvCurrentGfx[x*y]],vPos,40,cColor(mfAlpha,0));        
+        mpDrawer->DrawGfxObject(mvGfxNoise[mvCurrentGfx[lTile]],vPos,40,cColor(mfAlpha,0));        
 		//mpDrawer->DrawGfxObject(mvGfxNoise[0],vPos,40,cColor(mfAlpha,mfAlpha));        
 	}
 }
@@ -2202,8 +2214,10 @@ void cPlayerHidden::Draw()
 	if(mfInShadowAlpha>0)
 	{
 		float fAlpha = (mfInShadowPulse*0.5f + 0.5f) * mfInShadowAlpha *0.85f;
-		mpDrawer->DrawGfxObject(mpInShadowGfx,cVector3f(-mfEffectOffset,-mfEffectOffset,0),
-								cVector2f(800+mfEffectOffset*2, 600+mfEffectOffset*2),
+		cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
+		cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
+		mpDrawer->DrawGfxObject(mpInShadowGfx,cVector3f(vScreenPos.x-mfEffectOffset,vScreenPos.y-mfEffectOffset,0),
+								cVector2f(vScreenSize.x+mfEffectOffset*2, vScreenSize.y+mfEffectOffset*2),
 								cColor(fAlpha,fAlpha));
 	}
 }
