@@ -457,6 +457,7 @@ cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mfAttractCount = 4.0f;
 
 	mbIsMover = false;
+	mbForceLightOffset = false;
 
 	mfCloseToSameCount = cMath::RandRectf(0, 5.5f);
 }
