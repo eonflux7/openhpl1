@@ -362,7 +362,8 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 				pEntity->OnWorldExit();
 			}
 
-			mpScene->GetWorld3D()->GetScript()->Run("OnExit()");
+			if(mpScene->GetWorld3D()->GetScript())
+				mpScene->GetWorld3D()->GetScript()->Run("OnExit()");
 			
 			pLastMap = mpScene->GetWorld3D();
 		}

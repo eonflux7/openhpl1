@@ -111,6 +111,9 @@ void cSmokeTest::Update(float afTimeStep)
 		if(mpInit->mpMapHandler->GetCurrentMapName() == sMap)
 		{
 			Log("SMOKE: [%d/%d] %s\n", (int)mlMap + 1, (int)mvMaps.size(), mvMaps[mlMap].c_str());
+			// Every Overture map has a level script; NULL means it failed to build
+			if(mpInit->mpGame->GetScene()->GetWorld3D()->GetScript() == NULL)
+				Fail("%s: level script did not build", mvMaps[mlMap].c_str());
 			mStep = eStep_RunMap;
 			mlFrame = 0;
 		}

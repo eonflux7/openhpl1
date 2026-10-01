@@ -19,8 +19,8 @@ class cInit;
 // For each map: change to it the way scripts do, run some frames, save,
 // load that save, run some more frames. Then quit. Progress and failures
 // are logged with a "SMOKE:" prefix to hpl.log, and the exit code is 1 if
-// anything failed. OVERTURE_SMOKE_FRAMES sets the frames per step
-// (default 120, two seconds of game time).
+// a map or its level script failed to load. OVERTURE_SMOKE_FRAMES sets the
+// frames per step (default 120, two seconds of game time).
 class cSmokeTest : public iUpdateable
 {
 public:
