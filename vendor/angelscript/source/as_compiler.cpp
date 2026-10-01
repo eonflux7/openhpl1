@@ -4880,7 +4880,9 @@ void asCCompiler::CompileIfStatement(asCScriptNode *inode, bool *hasReturn, asCB
 	if( inode->firstChild->next->nodeType == snExpressionStatement && inode->firstChild->next->firstChild == 0 )
 	{
 		// Don't allow  if( expr );
-		Error(TXT_IF_WITH_EMPTY_STATEMENT, inode->firstChild->next);
+		// Overture Remade: a warning, not an error. Older AngelScript accepted
+		// this and Penumbra's level scripts contain it (level01_14_refinery).
+		Warning(TXT_IF_WITH_EMPTY_STATEMENT, inode->firstChild->next);
 	}
 
 	// If one of the statements call the constructor, the other must as well
