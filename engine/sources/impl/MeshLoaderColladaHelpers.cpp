@@ -524,8 +524,9 @@ namespace hpl {
 		}
 
 		//Add tangents
-		memcpy(pVtxBuff->GetArray(eVertexFlag_Texture1),aGeometry.mvTangents.data(),
-				aGeometry.mvTangents.size()*sizeof(float));
+		if(!aGeometry.mvTangents.empty())
+			memcpy(pVtxBuff->GetArray(eVertexFlag_Texture1),aGeometry.mvTangents.data(),
+					aGeometry.mvTangents.size()*sizeof(float));
 
 		//Add indices
 		for(size_t j=0; j<aGeometry.mvIndexVec.size();j++)

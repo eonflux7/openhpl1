@@ -714,7 +714,7 @@ namespace hpl {
 
 		/////////////////////////////////////////////////////////
 		//Iterate faces and check which are facing the light.
-		cTriangleData* pTriangles = &(*pSubEntity->GetTriangleVecPtr())[0];
+		cTriangleData* pTriangles = pSubEntity->GetTriangleVecPtr()->data();
 		const int lTriNum = pSubEntity->GetTriangleNum();
 		for(int tri=0, idx=0; tri< lTriNum; tri++,idx+=3)
 		{
@@ -734,7 +734,7 @@ namespace hpl {
 		//Iterate edges and find possible silhouette
 		//Get edge pointer, index pointer and offset
 		unsigned int* pCurrentIndexPos = &mpIndexArray[0];
-		const cTriEdge * pEdges = &(*pSubMesh->GetEdgeVecPtr())[0];
+		const cTriEdge * pEdges = pSubMesh->GetEdgeVecPtr()->data();
 		int lOffset = pSubEntity->GetVertexBuffer()->GetVertexNum();
 		//Iterate
 		const int lEdgeNum = pSubMesh->GetEdgeNum();

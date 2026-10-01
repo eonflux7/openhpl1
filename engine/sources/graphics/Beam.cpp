@@ -54,6 +54,7 @@ namespace hpl {
 		mvSize = 1;
 
 		mbTileHeight = true;
+		mbMultiplyAlphaWithColor = false;
 
 		mColor = cColor(1,1,1,1);
 
