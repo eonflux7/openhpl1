@@ -1,6 +1,7 @@
-# Tier A: checks that find bugs. Fixes are reviewed by hand, not applied with
-# --fix. Style/naming checks are deliberately off: the Frictional Games
-# conventions (cFoo, iFoo, mpMember, asArg) stay.
+# Bug-finding checks (fixes reviewed by hand, not applied with --fix), plus
+# nullptr/override, which the tree already follows. Style and naming checks
+# are deliberately off: the Frictional Games conventions (cFoo, iFoo,
+# mpMember, asArg) stay.
 Checks: >
   -*,
   bugprone-*,
@@ -20,7 +21,9 @@ Checks: >
   -clang-analyzer-deadcode.DeadStores,
   performance-unnecessary-copy-initialization,
   performance-for-range-copy,
-  misc-redundant-expression
+  misc-redundant-expression,
+  modernize-use-nullptr,
+  modernize-use-override
 
 HeaderFilterRegex: '/(engine|game)/'
 WarningsAsErrors: ''
