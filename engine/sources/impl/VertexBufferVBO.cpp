@@ -129,7 +129,7 @@ namespace hpl {
 
 		int lNum = cMath::Log2ToInt((int)eVertexFlag_Position);
 
-		bv.AddArrayPoints(&(mvVertexArray[lNum][0]), GetVertexNum());
+		bv.AddArrayPoints(mvVertexArray[lNum].data(), GetVertexNum());
 		bv.CreateFromPoints(kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)]);
 
 		return bv;
@@ -154,14 +154,14 @@ namespace hpl {
 			int lSize = GetVertexNum()*4;
 			mvVertexArray[idx].resize(lSize);
 
-			cMath::CreateTriTangentVectors(&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture1)][0]),
-				&mvIndexArray[0], GetIndexNum(),
+			cMath::CreateTriTangentVectors(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture1)].data(),
+				mvIndexArray.data(), GetIndexNum(),
 
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Position)][0]),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Position)].data(),
 				kvVertexElements[cMath::Log2ToInt((int)eVertexFlag_Position)],
 
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture0)][0]),
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Normal)][0]),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture0)].data(),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Normal)].data(),
 				GetVertexNum()
 				);
 		}
@@ -179,7 +179,7 @@ namespace hpl {
 				glBindBufferARB(GL_ARRAY_BUFFER_ARB, mvArrayHandle[i]);
 
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, mvVertexArray[i].size()*sizeof(float),
-						&(mvVertexArray[i][0]), usageType);
+						mvVertexArray[i].data(), usageType);
 
 				glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
@@ -191,7 +191,7 @@ namespace hpl {
 		glGenBuffersARB(1,(GLuint *)&mlElementHandle);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,mlElementHandle);
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GetIndexNum()*sizeof(unsigned int),
-														&mvIndexArray[0], usageType);
+														mvIndexArray.data(), usageType);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
 
 		//Log("VBO compile done!\n");
@@ -220,7 +220,7 @@ namespace hpl {
 					NULL, usageType);//Clear memory
 
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, mvVertexArray[i].size()*sizeof(float),
-					&(mvVertexArray[i][0]), usageType);
+					mvVertexArray[i].data(), usageType);
 			}
 		}
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -234,7 +234,7 @@ namespace hpl {
 			//	NULL, usageType);
 
 			glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GetIndexNum()*sizeof(unsigned int),
-				&mvIndexArray[0], usageType);
+				mvIndexArray.data(), usageType);
 
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
 		}
@@ -381,14 +381,14 @@ namespace hpl {
 	{
 		int idx = cMath::Log2ToInt((int)aType);
 
-		return &mvVertexArray[idx][0];
+		return mvVertexArray[idx].data();
 	}
 
 	//-----------------------------------------------------------------------
 
 	unsigned int* cVertexBufferVBO::GetIndices()
 	{
-		return &mvIndexArray[0];
+		return mvIndexArray.data();
 	}
 
 	//-----------------------------------------------------------------------
@@ -427,7 +427,7 @@ namespace hpl {
 				pVtxBuff->ResizeArray(kvVertexFlags[i], (int)mvVertexArray[i].size());
 
 				memcpy(pVtxBuff->GetArray(kvVertexFlags[i]),
-						&mvVertexArray[i][0], mvVertexArray[i].size() * sizeof(float));
+						mvVertexArray[i].data(), mvVertexArray[i].size() * sizeof(float));
 			}
 		}
 

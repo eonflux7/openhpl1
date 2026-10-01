@@ -118,14 +118,14 @@ namespace hpl {
 			int lSize = GetVertexNum()*4;
 			mvVertexArray[idx].resize(lSize);
 
-			cMath::CreateTriTangentVectors(&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture1)][0]),
-				&mvIndexArray[0], GetIndexNum(),
+			cMath::CreateTriTangentVectors(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture1)].data(),
+				mvIndexArray.data(), GetIndexNum(),
 
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Position)][0]),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Position)].data(),
 				kvVertexElements[cMath::Log2ToInt((int)eVertexFlag_Position)],
 
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture0)][0]),
-				&(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Normal)][0]),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture0)].data(),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Normal)].data(),
 				GetVertexNum()
 				);
 		}
@@ -232,7 +232,7 @@ namespace hpl {
 		int lSize = mlElementNum;
 		if(mlElementNum<0) lSize = GetIndexNum();
 
-		glDrawElements(mode,lSize,GL_UNSIGNED_INT, &mvIndexArray[0]);
+		glDrawElements(mode,lSize,GL_UNSIGNED_INT, mvIndexArray.data());
 	}
 
 	void cVertexBufferOGL::DrawIndices(unsigned int *apIndices, int alCount,
@@ -287,7 +287,7 @@ namespace hpl {
 				pVtxBuff->ResizeArray(kvVertexFlags[i], (int)mvVertexArray[i].size());
 
 				memcpy(pVtxBuff->GetArray(kvVertexFlags[i]),
-					&mvVertexArray[i][0], mvVertexArray[i].size() * sizeof(float));
+					mvVertexArray[i].data(), mvVertexArray[i].size() * sizeof(float));
 			}
 		}
 
@@ -311,7 +311,7 @@ namespace hpl {
 
 		int lNum = cMath::Log2ToInt((int)eVertexFlag_Position);
 
-		bv.AddArrayPoints(&(mvVertexArray[lNum][0]), GetVertexNum());
+		bv.AddArrayPoints(mvVertexArray[lNum].data(), GetVertexNum());
 		bv.CreateFromPoints(kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)]);
 
 		return bv;
@@ -321,14 +321,14 @@ namespace hpl {
 	{
 		int idx = cMath::Log2ToInt((int)aType);
 
-		return &mvVertexArray[idx][0];
+		return mvVertexArray[idx].data();
 	}
 
 	//-----------------------------------------------------------------------
 
 	unsigned int* cVertexBufferOGL::GetIndices()
 	{
-		return &mvIndexArray[0];
+		return mvIndexArray.data();
 	}
 
 	//-----------------------------------------------------------------------
@@ -414,7 +414,7 @@ namespace hpl {
 		if(aFlags & eVertexFlag_Position){
 			glEnableClientState(GL_VERTEX_ARRAY );
 			int idx = cMath::Log2ToInt(eVertexFlag_Position);
-			glVertexPointer(kvVertexElements[idx],GL_FLOAT, sizeof(float)*kvVertexElements[idx], &mvVertexArray[idx][0]);
+			glVertexPointer(kvVertexElements[idx],GL_FLOAT, sizeof(float)*kvVertexElements[idx], mvVertexArray[idx].data());
 		}
 		else
 		{
@@ -426,7 +426,7 @@ namespace hpl {
 		{
 			glEnableClientState(GL_COLOR_ARRAY );
 			int idx = cMath::Log2ToInt(eVertexFlag_Color0);
-			glColorPointer(kvVertexElements[idx],GL_FLOAT, sizeof(float)*kvVertexElements[idx], &mvVertexArray[idx][0]);
+			glColorPointer(kvVertexElements[idx],GL_FLOAT, sizeof(float)*kvVertexElements[idx], mvVertexArray[idx].data());
 		}
 		else
 		{
@@ -437,7 +437,7 @@ namespace hpl {
 		if(aFlags & eVertexFlag_Normal)
 		{
 			glEnableClientState(GL_NORMAL_ARRAY );
-			glNormalPointer(GL_FLOAT, sizeof(float)*3, &mvVertexArray[cMath::Log2ToInt(eVertexFlag_Normal)][0]);
+			glNormalPointer(GL_FLOAT, sizeof(float)*3, mvVertexArray[cMath::Log2ToInt(eVertexFlag_Normal)].data());
 		}
 		else
 		{
@@ -450,7 +450,7 @@ namespace hpl {
 			glClientActiveTextureARB(GL_TEXTURE0_ARB);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
 			int idx =  cMath::Log2ToInt(eVertexFlag_Texture0);
-			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],&mvVertexArray[idx][0] );
+			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],mvVertexArray[idx].data() );
 		}
 		else {
 			glClientActiveTextureARB(GL_TEXTURE0_ARB);
@@ -464,9 +464,9 @@ namespace hpl {
 			int idx =  cMath::Log2ToInt(eVertexFlag_Texture1);
 
 			if(mbTangents)
-				glTexCoordPointer(4,GL_FLOAT,sizeof(float)*4,&mvVertexArray[idx][0] );
+				glTexCoordPointer(4,GL_FLOAT,sizeof(float)*4,mvVertexArray[idx].data() );
 			else
-				glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],&mvVertexArray[idx][0] );
+				glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],mvVertexArray[idx].data() );
 		}
 		else {
 			glClientActiveTextureARB(GL_TEXTURE1_ARB);
@@ -478,7 +478,7 @@ namespace hpl {
 			glClientActiveTextureARB(GL_TEXTURE2_ARB);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
 			int idx =  cMath::Log2ToInt(eVertexFlag_Texture2);
-			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],&mvVertexArray[idx][0] );
+			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],mvVertexArray[idx].data() );
 		}
 		else {
 			glClientActiveTextureARB(GL_TEXTURE2_ARB);
@@ -490,7 +490,7 @@ namespace hpl {
 			glClientActiveTextureARB(GL_TEXTURE3_ARB);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
 			int idx =  cMath::Log2ToInt(eVertexFlag_Texture3);
-			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],&mvVertexArray[idx][0] );
+			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],mvVertexArray[idx].data() );
 		}
 		else {
 			glClientActiveTextureARB(GL_TEXTURE3_ARB);
@@ -502,7 +502,7 @@ namespace hpl {
 			glClientActiveTextureARB(GL_TEXTURE4_ARB);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY );
 			int idx =  cMath::Log2ToInt(eVertexFlag_Texture4);
-			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],&mvVertexArray[idx][0] );
+			glTexCoordPointer(kvVertexElements[idx],GL_FLOAT,sizeof(float)*kvVertexElements[idx],mvVertexArray[idx].data() );
 		}
 		else {
 			glClientActiveTextureARB(GL_TEXTURE4_ARB);

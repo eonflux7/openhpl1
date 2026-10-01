@@ -524,7 +524,7 @@ namespace hpl {
 		}
 
 		//Add tangents
-		memcpy(pVtxBuff->GetArray(eVertexFlag_Texture1),&aGeometry.mvTangents[0],
+		memcpy(pVtxBuff->GetArray(eVertexFlag_Texture1),aGeometry.mvTangents.data(),
 				aGeometry.mvTangents.size()*sizeof(float));
 
 		//Add indices
@@ -1565,8 +1565,8 @@ namespace hpl {
 
 			//Creates tangents
 			Geometry.mvTangents.resize(Geometry.mvVertexVec.size() *4);
-			cMath::CreateTriTangentVectors( &Geometry.mvTangents[0],
-						&Geometry.mvIndexVec[0], (int)Geometry.mvIndexVec.size(),
+			cMath::CreateTriTangentVectors( Geometry.mvTangents.data(),
+						Geometry.mvIndexVec.data(), (int)Geometry.mvIndexVec.size(),
 						&vPosVec[0],4, &vTexVec[0],&vNormVec[0],
 						(int)Geometry.mvVertexVec.size());
 		}

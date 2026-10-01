@@ -1320,7 +1320,7 @@ namespace hpl {
 						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						pGeometry->mvTangents.resize(lSize*4);
-						cString::FloatStringToArray(&pGeometry->mvTangents[0],pVecText->Value(),lSize * 4);
+						cString::FloatStringToArray(pGeometry->mvTangents.data(),pVecText->Value(),lSize * 4);
 					}
 				}
 
