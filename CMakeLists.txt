@@ -105,6 +105,7 @@ overture_warnings(hpl)
 file(GLOB_RECURSE game_sources CONFIGURE_DEPENDS game/*.cpp)
 add_executable(overture ${game_sources})
 target_include_directories(overture PRIVATE game)
+target_precompile_headers(overture PRIVATE game/core/StdAfx.h)
 target_link_libraries(overture PRIVATE hpl)
 overture_warnings(overture)
 
