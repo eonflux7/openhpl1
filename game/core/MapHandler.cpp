@@ -30,6 +30,7 @@
 #include "entities/GameStickArea.h"
 #include "entities/GameDamageArea.h"
 #include "entities/GameForceArea.h"
+#include "entities/GameSaveArea.h"
 #include "entities/GameLiquidArea.h"
 #include "systems/FadeHandler.h"
 #include "core/SaveHandler.h"
@@ -1001,7 +1002,7 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				sType = "stick";
 				break;
 			case eGameEntityType_SaveArea:
-				vSize = static_cast<cGameStickArea_SaveData*>(pSaveEntity)->mvSize;
+				vSize = static_cast<cGameSaveArea_SaveData*>(pSaveEntity)->mvSize;
 				sType = "save";
 				break;
 			case eGameEntityType_Ladder:
@@ -1013,7 +1014,7 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				sType = "damage";
 				break;
 			case eGameEntityType_ForceArea:
-				vSize = static_cast<cGameDamageArea_SaveData*>(pSaveEntity)->mvSize;
+				vSize = static_cast<cGameForceArea_SaveData*>(pSaveEntity)->mvSize;
 				sType = "force";
 				break;
 			case eGameEntityType_LiquidArea:
