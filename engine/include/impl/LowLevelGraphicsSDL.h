@@ -72,6 +72,9 @@ namespace hpl {
 		void SetClipPlaneActive(int alIdx, bool abX) override;
 
 		cVector2f GetScreenSize() override;
+		cVector2f GetRenderSize() override;
+		void BeginScene() override;
+		void EndScene() override;
 		cVector2f GetVirtualSize() override;
 		void SetVirtualSize(cVector2f avSize) override;
 		cVector2f GetVirtualOffset() override;
@@ -263,14 +266,24 @@ namespace hpl {
 		GLuint mlGammaVertex;
 		GLuint mlGammaFragment;
 
-		//Scene framebuffer: everything is drawn into it, and SwapBuffers()
-		//copies it to the window. With multisampling, the colour and depth
-		//are multisampled and mlResolveFramebuffer holds the resolved colour.
+		//Frame order: the 3D scene is drawn into the scene framebuffer at
+		//the render size (between BeginScene() and EndScene()), EndScene()
+		//copies it to the output framebuffer at the window size, the 2D
+		//drawing goes there, and SwapBuffers() copies that to the window
+		//through the gamma pass. With multisampling, the scene colour and
+		//depth are multisampled and mlResolveFramebuffer holds the resolved
+		//colour.
+		cVector2l mvRenderSize;
+		cVector2l mvTargetSize;
+		bool mbInScene;
 		GLuint mlSceneFramebuffer;
 		GLuint mlSceneColor;
 		GLuint mlSceneDepthStencil;
 		GLuint mlResolveFramebuffer;
 		GLuint mlResolveColor;
+		GLuint mlOutputFramebuffer;
+		GLuint mlOutputColor;
+		GLuint mlOutputDepthStencil;
 		//Has the texture given to SetRenderTarget() attached.
 		GLuint mlTargetFramebuffer;
 
@@ -317,10 +330,9 @@ namespace hpl {
 		bool SaveFrameToPNG(const tString& asFile);
 		tString msSaveNextFrame;
 
-		bool CreateSceneFramebuffer();
-		void DeleteSceneFramebuffer();
-		GLuint ResolveSceneFramebuffer();
-		GLuint GetSceneColorTexture();
+		bool CreateFramebuffers();
+		void DeleteFramebuffers();
+		void BindFramebuffer(GLuint alFramebuffer, const cVector2l& avSize);
 		void PresentFrame();
 
 		bool CreateGammaPass();

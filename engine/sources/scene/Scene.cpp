@@ -314,6 +314,8 @@ namespace hpl {
 	{
 		if(mbDrawScene && mpActiveCamera)
 		{
+			mpGraphics->GetLowLevel()->BeginScene();
+
 			if(mpActiveCamera->GetType() == eCameraType_2D)
 			{
 				cCamera2D* pCamera2D = static_cast<cCamera2D*>(mpActiveCamera);
@@ -344,6 +346,8 @@ namespace hpl {
 			START_TIMING(PostEffects)
 			mpGraphics->GetRendererPostEffects()->Render();
 			STOP_TIMING(PostEffects)
+
+			mpGraphics->GetLowLevel()->EndScene();
 		}
 		else
 		{

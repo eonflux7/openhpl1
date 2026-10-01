@@ -405,6 +405,13 @@ messages (NVIDIA 615). Fixed for that:
   copying from a multisampled buffer is a GL error, which the window's
   buffer used to get away with.
 - The gamma pass reads the frame texture instead of copying the frame.
+- Two framebuffers: the 3D scene and its post effects are drawn into the
+  scene framebuffer (`BeginScene`/`EndScene` in `cScene::Render`), which is
+  then copied to an output framebuffer of the window's size; the HUD and
+  menus are drawn there, and the gamma pass copies that to the window.
+  `GetRenderSize()` is the scene's size, used by the 3D renderer, the post
+  effects and the light clip rectangles; `GetScreenSize()` stays the
+  window's.
 - `SetRenderTarget` renders into a texture through a framebuffer object
   (it did nothing since the pbuffer code was removed);
   `RenderTargetHasZBuffer` and `FlushRenderTarget` are gone.

@@ -240,7 +240,24 @@ namespace hpl {
 		 * Get Size of screen
 		 * \return
 		 */
+		/**
+		 * Size of the window in pixels, which the 2D drawing covers.
+		 */
 		virtual cVector2f GetScreenSize()=0;
+		/**
+		 * Size in pixels the 3D scene is drawn at, between BeginScene() and
+		 * EndScene(). Post effects and screen copies work at this size.
+		 */
+		virtual cVector2f GetRenderSize()=0;
+		/**
+		 * Starts drawing the 3D scene.
+		 */
+		virtual void BeginScene()=0;
+		/**
+		 * Ends drawing the 3D scene: it is scaled to the window, and the
+		 * drawing that follows (HUD, menus) goes on top of it.
+		 */
+		virtual void EndScene()=0;
 		virtual cVector2f GetVirtualSize()=0;
 		/**
 		 * Sets the virtual screen size. Default is 0-1

@@ -116,7 +116,11 @@ namespace hpl {
 		mlGammaVertex = 0;
 		mlGammaFragment = 0;
 
+		mbInScene = false;
 		mlSceneFramebuffer = 0;
+		mlOutputFramebuffer = 0;
+		mlOutputColor = 0;
+		mlOutputDepthStencil = 0;
 		mlSceneColor = 0;
 		mlSceneDepthStencil = 0;
 		mlResolveFramebuffer = 0;
@@ -161,7 +165,7 @@ namespace hpl {
 		if(mlGammaPipeline) glDeleteProgramPipelines(1,&mlGammaPipeline);
 		if(mlGammaVertex) glDeleteProgram(mlGammaVertex);
 		if(mlGammaFragment) glDeleteProgram(mlGammaFragment);
-		DeleteSceneFramebuffer();
+		DeleteFramebuffers();
 
 		cGLSLProgram::ExitPipeline();
 
@@ -300,9 +304,10 @@ namespace hpl {
 		//Turn off cursor as default
 		ShowCursor(false);
 
-		if(!CreateSceneFramebuffer())
+		mvRenderSize = mvScreenSize;
+		if(!CreateFramebuffers())
 		{
-			FatalError("Couldn't create the scene framebuffer!\n");
+			FatalError("Couldn't create the framebuffers!\n");
 			return false;
 		}
 
@@ -641,9 +646,9 @@ namespace hpl {
 	{
 		glFinish();
 
-		// Called between frames: the scene framebuffer still holds the last
-		// one (without the gamma pass).
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, ResolveSceneFramebuffer());
+		// Called between frames: the output framebuffer still holds the
+		// last one (without the gamma pass).
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, mlOutputFramebuffer);
 
 		cSDLBitmap2D *pBmp = hplNew( cSDLBitmap2D, (mpPixelFormat) );
 		pBmp->Create(cVector2l(mvScreenSize.x,mvScreenSize.y),32);
@@ -669,7 +674,7 @@ namespace hpl {
 			}
 		}
 
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mlSceneFramebuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, mlOutputFramebuffer);
 
 		SDL_UnlockSurface(pBmp->GetSurface());
 		SDL_SaveBMP(pBmp->GetSurface(),asFile.c_str());
@@ -1030,23 +1035,48 @@ namespace hpl {
 		}
 		SDL_GL_SwapWindow(mpWindow);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
+		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cLowLevelGraphicsSDL::CreateSceneFramebuffer()
+	static GLuint CreateColorTexture(int alW, int alH)
+	{
+		GLuint lTex = 0;
+		glGenTextures(1, &lTex);
+		glBindTexture(GL_TEXTURE_2D, lTex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, alW, alH, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		return lTex;
+	}
+
+	static bool CheckFramebuffer(const char *asName)
+	{
+		GLenum lStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if(lStatus == GL_FRAMEBUFFER_COMPLETE) return true;
+		Error("%s framebuffer incomplete: 0x%x\n", asName, lStatus);
+		return false;
+	}
+
+	// The scene framebuffer (render size, possibly multisampled, with a
+	// resolve framebuffer then) and the output framebuffer (window size).
+	// Textures rather than renderbuffers, so later passes can read them.
+	// They are bound by hand, SetTexture() never sees them.
+	bool cLowLevelGraphicsSDL::CreateFramebuffers()
 	{
 		GLint lLastTexture = 0;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
 
-		const int lW = mvScreenSize.x, lH = mvScreenSize.y;
+		const int lW = mvRenderSize.x, lH = mvRenderSize.y;
+		bool bOK = true;
 
-		// Textures rather than renderbuffers, so later passes can read them.
-		// Bound by hand, SetTexture() never sees them.
-		glGenTextures(1, &mlSceneColor);
-		glGenTextures(1, &mlSceneDepthStencil);
-		GLenum lTarget = mlMultisampling > 0 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+		/////////////////////////
+		// Scene
+		GLenum lTarget = GL_TEXTURE_2D;
 		if(mlMultisampling > 0)
 		{
 			GLint lMaxSamples = 0;
@@ -1056,7 +1086,12 @@ namespace hpl {
 				Warning("%d samples asked for, the most supported is %d\n", mlMultisampling, lMaxSamples);
 				mlMultisampling = lMaxSamples;
 			}
-
+		}
+		if(mlMultisampling > 0)
+		{
+			lTarget = GL_TEXTURE_2D_MULTISAMPLE;
+			glGenTextures(1, &mlSceneColor);
+			glGenTextures(1, &mlSceneDepthStencil);
 			glBindTexture(lTarget, mlSceneColor);
 			glTexImage2DMultisample(lTarget, mlMultisampling, GL_RGBA8, lW, lH, GL_TRUE);
 			glBindTexture(lTarget, mlSceneDepthStencil);
@@ -1065,98 +1100,112 @@ namespace hpl {
 		}
 		else
 		{
-			glBindTexture(GL_TEXTURE_2D, mlSceneColor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, lW, lH, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			mlSceneColor = CreateColorTexture(lW, lH);
+			glGenTextures(1, &mlSceneDepthStencil);
 			glBindTexture(GL_TEXTURE_2D, mlSceneDepthStencil);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, lW, lH, 0,
 							GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
-			for(GLuint lTex : {mlSceneColor, mlSceneDepthStencil})
-			{
-				glBindTexture(GL_TEXTURE_2D, lTex);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		}
 
 		glGenFramebuffers(1, &mlSceneFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, lTarget, mlSceneColor, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, lTarget, mlSceneDepthStencil, 0);
-		GLenum lStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(lStatus != GL_FRAMEBUFFER_COMPLETE)
-		{
-			Error("Scene framebuffer incomplete: 0x%x\n", lStatus);
-			glBindTexture(GL_TEXTURE_2D, lLastTexture);
-			return false;
-		}
+		bOK = CheckFramebuffer("Scene") && bOK;
 
 		if(mlMultisampling > 0)
 		{
-			glGenTextures(1, &mlResolveColor);
-			glBindTexture(GL_TEXTURE_2D, mlResolveColor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, lW, lH, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
+			mlResolveColor = CreateColorTexture(lW, lH);
 			glGenFramebuffers(1, &mlResolveFramebuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlResolveColor, 0);
-			lStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-			if(lStatus != GL_FRAMEBUFFER_COMPLETE)
-			{
-				Error("Resolve framebuffer incomplete: 0x%x\n", lStatus);
-				glBindTexture(GL_TEXTURE_2D, lLastTexture);
-				return false;
-			}
+			bOK = CheckFramebuffer("Resolve") && bOK;
 		}
 
+		/////////////////////////
+		// Output. The 2D drawing does not use depth, but GL state it sets
+		// (stencil, depth test) should behave as on any framebuffer.
+		mlOutputColor = CreateColorTexture(mvScreenSize.x, mvScreenSize.y);
+		glGenRenderbuffers(1, &mlOutputDepthStencil);
+		glBindRenderbuffer(GL_RENDERBUFFER, mlOutputDepthStencil);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mvScreenSize.x, mvScreenSize.y);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glGenFramebuffers(1, &mlOutputFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, mlOutputFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlOutputColor, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mlOutputDepthStencil);
+		bOK = CheckFramebuffer("Output") && bOK;
+
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
-		glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
-		Log(" Scene framebuffer: %d x %d, %d samples\n", lW, lH, mlMultisampling);
-		return true;
+		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
+
+		Log(" Framebuffers: scene %d x %d with %d samples, output %d x %d\n", lW, lH, mlMultisampling,
+			mvScreenSize.x, mvScreenSize.y);
+		return bOK;
 	}
 
-	void cLowLevelGraphicsSDL::DeleteSceneFramebuffer()
+	void cLowLevelGraphicsSDL::DeleteFramebuffers()
 	{
-		if(mlSceneFramebuffer) glDeleteFramebuffers(1, &mlSceneFramebuffer);
-		if(mlResolveFramebuffer) glDeleteFramebuffers(1, &mlResolveFramebuffer);
-		if(mlTargetFramebuffer) glDeleteFramebuffers(1, &mlTargetFramebuffer);
-		if(mlSceneColor) glDeleteTextures(1, &mlSceneColor);
-		if(mlSceneDepthStencil) glDeleteTextures(1, &mlSceneDepthStencil);
-		if(mlResolveColor) glDeleteTextures(1, &mlResolveColor);
-		mlSceneFramebuffer = mlResolveFramebuffer = mlTargetFramebuffer = 0;
-		mlSceneColor = mlSceneDepthStencil = mlResolveColor = 0;
+		GLuint vFramebuffers[] = {mlSceneFramebuffer, mlResolveFramebuffer, mlOutputFramebuffer, mlTargetFramebuffer};
+		GLuint vTextures[] = {mlSceneColor, mlSceneDepthStencil, mlResolveColor, mlOutputColor};
+		glDeleteFramebuffers(4, vFramebuffers);
+		glDeleteTextures(4, vTextures);
+		glDeleteRenderbuffers(1, &mlOutputDepthStencil);
+		mlSceneFramebuffer = mlResolveFramebuffer = mlOutputFramebuffer = mlTargetFramebuffer = 0;
+		mlSceneColor = mlSceneDepthStencil = mlResolveColor = mlOutputColor = mlOutputDepthStencil = 0;
 	}
 
 	//-----------------------------------------------------------------------
 
-	// Returns the framebuffer that holds the single-sampled scene colour:
-	// the scene framebuffer itself, or with multisampling the resolve
-	// framebuffer, after resolving into it. GL_FRAMEBUFFER is left bound to
-	// the scene framebuffer.
-	GLuint cLowLevelGraphicsSDL::ResolveSceneFramebuffer()
+	void cLowLevelGraphicsSDL::BindFramebuffer(GLuint alFramebuffer, const cVector2l& avSize)
 	{
-		if(mlMultisampling <= 0) return mlSceneFramebuffer;
+		glBindFramebuffer(GL_FRAMEBUFFER, alFramebuffer);
+		glViewport(0, 0, avSize.x, avSize.y);
+		mvTargetSize = avSize;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::BeginScene()
+	{
+		SetRenderTarget(nullptr);
+		mbInScene = true;
+		BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Copies the scene to the output framebuffer, resolving and scaling it,
+	// and leaves the output framebuffer bound for the 2D drawing.
+	void cLowLevelGraphicsSDL::EndScene()
+	{
+		SetRenderTarget(nullptr);
+		mbInScene = false;
 
 		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
 		if(bScissor) glDisable(GL_SCISSOR_TEST);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mlSceneFramebuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlResolveFramebuffer);
-		glBlitFramebuffer(0, 0, mvScreenSize.x, mvScreenSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
-							GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
+
+		GLuint lSource = mlSceneFramebuffer;
+		if(mlMultisampling > 0)
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mlSceneFramebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlResolveFramebuffer);
+			glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvRenderSize.x, mvRenderSize.y,
+								GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			lSource = mlResolveFramebuffer;
+		}
+
+		bool bScaled = mvRenderSize != mvScreenSize;
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, lSource);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlOutputFramebuffer);
+		glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
+							GL_COLOR_BUFFER_BIT, bScaled ? GL_LINEAR : GL_NEAREST);
+
+		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 		if(bScissor) glEnable(GL_SCISSOR_TEST);
-
-		return mlResolveFramebuffer;
-	}
-
-	GLuint cLowLevelGraphicsSDL::GetSceneColorTexture()
-	{
-		return mlMultisampling > 0 ? mlResolveColor : mlSceneColor;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1165,15 +1214,15 @@ namespace hpl {
 	// gamma pass when the gamma is not 1. Leaves the window framebuffer bound.
 	void cLowLevelGraphicsSDL::PresentFrame()
 	{
-		GLuint lSource = ResolveSceneFramebuffer();
+		SetRenderTarget(nullptr);
 
 		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
 		if(bScissor) glDisable(GL_SCISSOR_TEST);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		BindFramebuffer(0, mvScreenSize);
 		if(DrawGammaPass()==false)
 		{
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, lSource);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mlOutputFramebuffer);
 			glBlitFramebuffer(0, 0, mvScreenSize.x, mvScreenSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
 								GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -1239,7 +1288,7 @@ namespace hpl {
 		glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT |
 						GL_POLYGON_BIT | GL_VIEWPORT_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT);
 
-		glBindTexture(GL_TEXTURE_2D, GetSceneColorTexture());
+		glBindTexture(GL_TEXTURE_2D, mlOutputColor);
 
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_STENCIL_TEST);
@@ -1508,7 +1557,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetScissorRect(const cRect2l &aRect)
 	{
-		glScissor(aRect.x, (mvScreenSize.y - aRect.y - 1)-aRect.h, aRect.w, aRect.h);
+		glScissor(aRect.x, (mvTargetSize.y - aRect.y - 1)-aRect.h, aRect.w, aRect.h);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1992,7 +2041,7 @@ namespace hpl {
 	{
 		if(apTex==nullptr)return;
 
-		int lScreenY = (mvScreenSize.y - avSize.y) - avPos.y;
+		int lScreenY = (mvTargetSize.y - avSize.y) - avPos.y;
 		int lTexY = (apTex->GetHeight() - avSize.y) - avTexOffset.y;
 
 		//Log("TExoffset: %d %d\n",avTexOffset.x,lTexY);
@@ -2003,7 +2052,8 @@ namespace hpl {
 
 		// A multisampled framebuffer can't be copied from; resolve the area
 		// first and copy from the resolved one.
-		if(mlMultisampling > 0)
+		bool bResolve = mlMultisampling > 0 && mbInScene && mpRenderTarget == nullptr;
+		if(bResolve)
 		{
 			GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
 			if(bScissor) glDisable(GL_SCISSOR_TEST);
@@ -2019,7 +2069,7 @@ namespace hpl {
 							avTexOffset.x, lTexY,
 							avPos.x, lScreenY, avSize.x, avSize.y);
 
-		if(mlMultisampling > 0) glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
+		if(bResolve) glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2031,8 +2081,8 @@ namespace hpl {
 
 		if(pTex == nullptr)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
-			glViewport(0, 0, mvScreenSize.x, mvScreenSize.y);
+			if(mbInScene)	BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
+			else			BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 			return;
 		}
 
@@ -2040,7 +2090,7 @@ namespace hpl {
 		glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GetGLTextureTargetEnum(pTex->GetTarget()),
 								static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
-		glViewport(0, 0, pTex->GetWidth(), pTex->GetHeight());
+		BindFramebuffer(mlTargetFramebuffer, cVector2l(pTex->GetWidth(), pTex->GetHeight()));
 	}
 
 	//-----------------------------------------------------------------------
@@ -2049,6 +2099,11 @@ namespace hpl {
 	cVector2f cLowLevelGraphicsSDL::GetScreenSize()
 	{
 		return cVector2f((float)mvScreenSize.x, (float)mvScreenSize.y);
+	}
+
+	cVector2f cLowLevelGraphicsSDL::GetRenderSize()
+	{
+		return cVector2f((float)mvRenderSize.x, (float)mvRenderSize.y);
 	}
 
 	//-----------------------------------------------------------------------

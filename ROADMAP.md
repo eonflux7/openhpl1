@@ -102,8 +102,9 @@ Every step is checked against reference images of the renderer before it.
         read the frame while drawing over it (bloom, depth of field, motion
         blur, image trail, refraction)
   - [x] multisampling through a multisampled target and a resolve
-  - [ ] one fixed frame order: scene → post effects → output transform → HUD →
-        gamma → window
+  - [x] one fixed frame order: scene → post effects → output transform → HUD →
+        gamma → window (the output transform is a plain copy until there is
+        a float buffer)
   - [ ] render size independent of the window size: resolution changes
         without a restart (see Milestone 2), render scale
 - [ ] **Float colour buffer.** A 16-bit float scene target, so light passes

@@ -1024,9 +1024,9 @@ namespace hpl {
 
 				//////////////////////////////
 				//Get Screen Clip space
-				cVector2f vScreenSizeFloat = mpLowLevelGraphics->GetScreenSize();
-				cVector2l vScreenSize(	(int)mpLowLevelGraphics->GetScreenSize().x,
-										(int)mpLowLevelGraphics->GetScreenSize().y);
+				cVector2f vScreenSizeFloat = mpLowLevelGraphics->GetRenderSize();
+				cVector2l vScreenSize(	(int)mpLowLevelGraphics->GetRenderSize().x,
+										(int)mpLowLevelGraphics->GetRenderSize().y);
 				iTexture *pScreen = mpPostEffects->GetFreeScreenTexture();
 
 				//Get the cliprect objects bounding volume
@@ -1081,7 +1081,7 @@ namespace hpl {
 
 					////////////////////////////////////////////////
 					//Clear alpha using 2D quad.
-					mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetScreenSize(),-1000,1000);
+					mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetRenderSize(),-1000,1000);
 					mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
 
 					if(bHasClipRect)
@@ -1218,7 +1218,7 @@ namespace hpl {
 
 				mRenderSettings.mpFragmentProgram = pRefractFragProgram;
 
-				pRefractFragProgram->SetVec2f("screenSize", mpLowLevelGraphics->GetScreenSize());
+				pRefractFragProgram->SetVec2f("screenSize", mpLowLevelGraphics->GetRenderSize());
 
 				if(bSpecial)
 				{
