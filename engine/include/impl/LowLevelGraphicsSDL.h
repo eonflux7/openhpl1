@@ -264,7 +264,17 @@ namespace hpl {
 		GLuint mlGammaPipeline;
 		GLuint mlGammaVertex;
 		GLuint mlGammaFragment;
-		GLuint mlGammaTexture;
+
+		//Scene framebuffer: everything is drawn into it, and SwapBuffers()
+		//copies it to the window. With multisampling, the colour and depth
+		//are multisampled and mlResolveFramebuffer holds the resolved colour.
+		GLuint mlSceneFramebuffer;
+		GLuint mlSceneColor;
+		GLuint mlSceneDepthStencil;
+		GLuint mlResolveFramebuffer;
+		GLuint mlResolveColor;
+		//Has the texture CopyContextToTexure() writes to attached.
+		GLuint mlCopyFramebuffer;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];
@@ -309,8 +319,14 @@ namespace hpl {
 		bool SaveFrameToPNG(const tString& asFile);
 		tString msSaveNextFrame;
 
+		bool CreateSceneFramebuffer();
+		void DeleteSceneFramebuffer();
+		GLuint ResolveSceneFramebuffer();
+		GLuint GetSceneColorTexture();
+		void PresentFrame();
+
 		bool CreateGammaPass();
-		void DrawGammaPass();
+		bool DrawGammaPass();
 
 
 		//Batch helper

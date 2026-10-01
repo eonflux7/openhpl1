@@ -395,6 +395,24 @@ messages (NVIDIA 615). Fixed for that:
 - NVIDIA's "vertex shader is being recompiled based on GL state" note
   (id 131218) is not logged; it comes from the compatibility profile
 
+### Off-screen frame
+
+- The frame is drawn into a framebuffer object with colour and
+  depth/stencil textures, and copied to the window when it is shown. The
+  window has no depth, stencil or multisample buffer of its own.
+- Multisampling (FSAA) uses multisampled textures. Copies of the screen
+  into textures (post effects, refraction) resolve the copied area first:
+  copying from a multisampled buffer is a GL error, which the window's
+  buffer used to get away with.
+- The gamma pass reads the frame texture instead of copying the frame.
+- F12 screenshots (`SaveScreenToBMP`) read the last finished frame from the
+  frame texture, before the gamma pass; they read the back buffer after the
+  swap before, whose contents GL does not define.
+- Reference images: unchanged except for ±1 level rounding noise in about
+  400 of 552 frames, which blending into an FBO texture gives on NVIDIA,
+  and a few dozen pixels on three frames. With FSAA 4 the edges differ
+  (other sample positions) and are still smoothed.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

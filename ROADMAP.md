@@ -96,10 +96,10 @@ Every step is checked against reference images of the renderer before it.
 - [x] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
       materials and shaders, capability checks for what GL 3.3 guarantees)
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:
-  - [ ] colour and depth/stencil textures; later passes can read the depth
+  - [x] colour and depth/stencil textures; later passes can read the depth
   - [ ] post effects, refraction and gamma read textures instead of copying
         the back buffer (nine copies today)
-  - [ ] multisampling through a multisampled target and a resolve
+  - [x] multisampling through a multisampled target and a resolve
   - [ ] one fixed frame order: scene → post effects → output transform → HUD →
         gamma → window
   - [ ] render size independent of the window size: resolution changes
