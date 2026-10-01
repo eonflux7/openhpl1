@@ -79,6 +79,9 @@ Make sure nothing regressed before changing anything.
 Rebuild what the HPL1 renderer stands on without changing how the game looks.
 Every step is checked against reference images of the renderer before it.
 
+Done and play-tested, except for the one open item below, which does not
+hold up Milestone 4.
+
 - [x] **Reference images.** Fixed viewpoints on every map, rendered
       headless and compared with the previous run, so a step that should not
       change the picture can be shown not to (`tools/refshots.py`, see
@@ -108,14 +111,17 @@ Every step is checked against reference images of the renderer before it.
   - [x] render size independent of the window size: Render Scale option
         (50–200%)
   - [ ] resolution and fullscreen changes without a restart (see
-        Milestone 2)
+        Milestone 2). A convenience, not something later work stands on;
+        left for whenever
 - [x] **Float colour buffer.** A 16-bit float scene target, so light passes
       add up without being rounded to 8 bits or clipped after each one; the
       output is dithered. Same look, less banding in dark areas
-  - [ ] play-test: dark areas are up to a few levels brighter (light that
-        8-bit rounding used to drop), check that nothing looks washed out
-  - [ ] screen copies for post effects and refraction are still 8-bit, so
-        bloom, depth of field and refraction clip at 1
+  - [x] play-test: dark areas are up to a few levels brighter (light that
+        8-bit rounding used to drop). Nothing was noticed in two
+        play-tests; tonemapping and the lighting rewrite retune this anyway
+  - the screen copies for post effects and refraction are still 8-bit, so
+    bloom, depth of field and refraction clip at 1: moved to Milestone 4,
+    where those effects are rewritten
 - [x] **Shader system:**
   - [x] shared include files and `#define` variants instead of one file per
         combination
@@ -140,41 +146,56 @@ Every step is checked against reference images of the renderer before it.
   - [x] play-test: looks right and runs smoothly at 2560x1440 (also checked
         against the reference images, and with anti-aliasing, render scale,
         gamma and motion blur)
-  - [ ] the fixed-function shaders stand in for the old pipeline call by
-        call; materials that set a texture environment could have shaders of
-        their own instead (Milestone 4, when their look changes)
+  - the fixed-function shaders stand in for the old pipeline call by call;
+    shaders of their own for those materials are a Milestone 4 item
 
 ## Milestone 4: lighting, shadows and effects
 
 Bring the look up to date while keeping the original art direction. New
 looks are options; the original stays available.
 
-- [ ] Tonemapping, colour grading
-- [ ] Rewrite the lighting shaders:
-  - [ ] gamma-correct lighting, retuned against the original look, as an
-        option:
-    - [ ] colour space: which textures hold colour and which hold data
-          (normal maps, falloff ramps, spot masks), what each blend mode
-          (additive, modulate, modulate ×2, destination alpha) does in
-          linear space, where colour constants come from (lights,
-          ambient, fog, HUD)
-    - [ ] colour-space flag on textures, sRGB formats for the colour ones
-    - [ ] linear lighting switch, converted back in the output pass
+Every item here changes the picture, so it is judged by playing, not by the
+reference images. Those still guard the original look: with the new options
+off, a capture should match the one before.
+
+In this order. Lighting comes first because tonemapping, the bloom threshold
+and specular all have to be tuned again if the lighting under them changes.
+
+- [ ] **1. Gamma-correct lighting**, retuned against the original look, as
+      an option:
+  - [ ] colour-space audit, reading only: which textures hold colour and
+        which hold data (normal maps, falloff ramps, spot masks), what
+        each blend mode (additive, modulate, modulate ×2, destination
+        alpha) does in linear space, where colour constants come from
+        (lights, ambient, fog, HUD). Known from Milestone 3: lighting is
+        additive multi-pass in gamma space with the light colour clamped
+        to 0..1 in the vertex shaders, and modulate and modulate ×2 do
+        not survive a naive switch to linear
+  - [ ] colour-space flag on textures, sRGB formats for the colour ones
+  - [ ] linear lighting switch, converted back in the output pass
   - [ ] energy-conserving specular
-- [ ] **Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
+- [ ] **2. Tonemapping**, colour grading. Linear lighting needs it to look
+      right
+- [ ] **3. Bloom** with threshold and a mip chain (replaces "blur squared
+      and add"). The current blur is measured in pixels horizontally and
+      in screen widths vertically, so bloom looks different at each
+      resolution and render scale
+  - [ ] float screen copies: the copies bloom, depth of field and
+        refraction read are 8-bit and clip at 1 (from Milestone 3)
+- [ ] **4. Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
       stencil shadow volumes, or penumbra-blurred stencil shadows as an
-      interim step
-- [ ] Bloom with threshold and a mip chain (replaces "blur squared and add").
-      The current blur is measured in pixels horizontally and in screen
-      widths vertically, so bloom looks different at each resolution and
-      render scale
-- [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
-- [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer
-- [ ] Depth of field and camera motion blur from depth. The current effects
-      re-render geometry per object.
-- [ ] Film grain shader replacing the tiled noise-filter sprites
-- [ ] Refraction: works (acid water in four level 1 maps) but is off by
-      default and has no menu option (`Refractions` in `settings.cfg`)
+      interim step. The largest piece; best on settled lighting
+- **5. The rest**, in any order:
+  - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
+  - [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer
+  - [ ] Depth of field and camera motion blur from depth. The current
+        effects re-render geometry per object.
+  - [ ] Film grain shader replacing the tiled noise-filter sprites
+  - [ ] Refraction: works (acid water in four level 1 maps) but is off by
+        default and has no menu option (`Refractions` in `settings.cfg`)
+  - [ ] Shaders of their own for the materials that set a texture
+        environment (transparent, particles, HUD), in place of the
+        generated fixed-function ones, where their look changes
 
 ## Later / ideas
 
