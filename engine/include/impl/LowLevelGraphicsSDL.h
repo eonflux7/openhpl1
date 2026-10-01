@@ -277,6 +277,8 @@ namespace hpl {
 		//Multisample
 		void CheckMultisampleCaps();
 
+		SDL_DisplayID ChooseDisplay();
+
 
 		//Batch helper
 		void SetUpBatchArrays();

@@ -179,7 +179,7 @@ namespace hpl {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
 		// A size <= 0 means "use the desktop resolution".
-		SDL_DisplayID lDisplay = SDL_GetPrimaryDisplay();
+		SDL_DisplayID lDisplay = ChooseDisplay();
 		const SDL_DisplayMode *pDesktopMode = SDL_GetDesktopDisplayMode(lDisplay);
 		if((alWidth <= 0 || alHeight <= 0) && pDesktopMode)
 		{
@@ -196,7 +196,15 @@ namespace hpl {
 		if(abFullscreen) lFlags |= SDL_WINDOW_FULLSCREEN;
 
 		Log(" Setting video mode: %d x %d - %d bpp\n",alWidth, alHeight, alBpp);
-		mpWindow = SDL_CreateWindow(asWindowCaption.c_str(), alWidth, alHeight, lFlags);
+		SDL_PropertiesID lProps = SDL_CreateProperties();
+		SDL_SetStringProperty(lProps, SDL_PROP_WINDOW_CREATE_TITLE_STRING, asWindowCaption.c_str());
+		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(lDisplay));
+		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(lDisplay));
+		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, alWidth);
+		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, alHeight);
+		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, lFlags);
+		mpWindow = SDL_CreateWindowWithProperties(lProps);
+		SDL_DestroyProperties(lProps);
 		if(mpWindow==NULL)
 		{
 			FatalError("Unable to create window: %s\n", SDL_GetError());
@@ -263,6 +271,53 @@ namespace hpl {
 		SDL_GL_SwapWindow(mpWindow);
 
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	SDL_DisplayID cLowLevelGraphicsSDL::ChooseDisplay()
+	{
+		int lCount = 0;
+		SDL_DisplayID *pDisplays = SDL_GetDisplays(&lCount);
+		if(pDisplays==NULL || lCount==0)
+		{
+			SDL_free(pDisplays);
+			return SDL_GetPrimaryDisplay();
+		}
+
+		SDL_DisplayID lChosen = 0;
+
+		// OVERTURE_DISPLAY=<index> picks a display explicitly.
+		const char *pIndex = SDL_getenv("OVERTURE_DISPLAY");
+		if(pIndex && pIndex[0])
+		{
+			int lIdx = atoi(pIndex);
+			if(lIdx >= 0 && lIdx < lCount) lChosen = pDisplays[lIdx];
+		}
+
+		// Otherwise use the largest display. Wayland has no primary display,
+		// so SDL_GetPrimaryDisplay() just returns the first one it found.
+		if(lChosen == 0)
+		{
+			long lBestArea = -1;
+			for(int i=0; i<lCount; ++i)
+			{
+				const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(pDisplays[i]);
+				if(pMode == NULL) continue;
+				long lArea = (long)pMode->w * pMode->h;
+				if(lArea > lBestArea){ lBestArea = lArea; lChosen = pDisplays[i]; }
+			}
+		}
+
+		for(int i=0; i<lCount; ++i)
+		{
+			const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(pDisplays[i]);
+			Log(" Display %d: %s %dx%d%s\n", i, SDL_GetDisplayName(pDisplays[i]),
+				pMode ? pMode->w : 0, pMode ? pMode->h : 0, pDisplays[i]==lChosen ? " (used)" : "");
+		}
+
+		SDL_free(pDisplays);
+		return lChosen ? lChosen : SDL_GetPrimaryDisplay();
 	}
 
 	//-----------------------------------------------------------------------
