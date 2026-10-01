@@ -893,6 +893,9 @@ cNotebook::cNotebook(cInit *apInit)  : iUpdateable("Notebook")
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
+	mbInventoryWasActive = false;
+	mLastCrossHairState = eCrossHairState_Inactive;
+
 	Reset();
 
 	mpGfxBackground = mpDrawer->CreateGfxObject("notebook_background.bmp","diffalpha2d");
