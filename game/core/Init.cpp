@@ -59,6 +59,7 @@
 
 #include "ui/MainMenu.h"
 #include "core/SmokeTest.h"
+#include "systems/PhysicsLog.h"
 
 #include "ui/IntroStory.h"
 
@@ -177,6 +178,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 {
 	mbDestroyGraphics = true;
 	mpSmokeTest = nullptr;
+	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
 	mlMaxSoundDataNum = 120;
@@ -354,6 +356,15 @@ bool cInit::Init(tString asCommandLine)
 	msStartMap = mpConfig->GetString("Map","File","level00_01_boat_cabin.dae"); 
 	msStartLink = mpConfig->GetString("Map","StartPos","link01");
 
+	const char *pDirectMap = SDL_getenv("OVERTURE_MAP");
+	if(pDirectMap && pDirectMap[0])
+	{
+		tString sDirectMap = pDirectMap;
+		size_t lColon = sDirectMap.find(':');
+		msDirectMap = cString::SetFileExt(sDirectMap.substr(0, lColon), "dae");
+		msDirectLink = lColon == tString::npos ? "" : sDirectMap.substr(lColon + 1);
+	}
+
 	mlFSAA = mpConfig->GetInt("Graphics","FSAA",0);
 	mbPostEffects = mpConfig->GetBool("Graphics","PostEffects",true);
 	iMaterial::SetQuality((eMaterialQuality)mpConfig->GetInt("Graphics","ShaderQuality",eMaterialQuality_High));
@@ -437,6 +448,8 @@ bool cInit::Init(tString asCommandLine)
 
 	// RESOURCE INIT /////////////////////
 	mpGame->GetResources()->LoadResourceDirsFile("resources.cfg");
+	// The debug test map (testmap/ in the source tree) is built next to the executable.
+	mpGame->GetResources()->AddResourceDir(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap");
 
 	// LANGUAGE ////////////////////////////////
 	mpGame->GetResources()->SetLanguageFile(msLanguageFile);
@@ -540,6 +553,8 @@ bool cInit::Init(tString asCommandLine)
 
 	if(cSmokeTest::IsRequested())
 		mpSmokeTest = hplNew( cSmokeTest,(this, cSmokeTest::GetSpec()) );
+	if(cPhysicsLog::IsRequested())
+		mpPhysicsLog = hplNew( cPhysicsLog,(this) );
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -597,6 +612,8 @@ bool cInit::Init(tString asCommandLine)
 		for(const char *sContainer : vContainers)
 			mpGame->GetUpdater()->AddUpdate(sContainer, mpSmokeTest);
 	}
+	if(mpPhysicsLog)
+		mpGame->GetUpdater()->AddUpdate("Default", mpPhysicsLog);
 	
 	// SCRIPT INIT /////////////////////
 	cGameScripts::Init();
@@ -625,6 +642,10 @@ bool cInit::Init(tString asCommandLine)
 	{
 		if(mpSmokeTest->GetFirstMap() != "")
 			mpMapHandler->Load(mpSmokeTest->GetFirstMap(),"");
+	}
+	else if(msDirectMap != "")
+	{
+		mpMapHandler->Load(msDirectMap,msDirectLink);
 	}
 	else if(mbShowPreMenu)
 	{
@@ -773,6 +794,7 @@ void cInit::Exit()
 	Log(" Exit Main menu\n");
 	hplDelete( mpMainMenu );
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
+	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
 	hplDelete( mpPlayerHands );
 	Log(" Exit Music handler\n");

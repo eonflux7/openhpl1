@@ -50,6 +50,7 @@ class cIntroStory;
 
 class cMainMenu;
 class cSmokeTest;
+class cPhysicsLog;
 
 #include "core/GameTypes.h"
 
@@ -147,6 +148,9 @@ public:
 
 	tString msStartMap;
 	tString msStartLink;
+	// OVERTURE_MAP=map[:link] loads this map at startup, skipping the menus
+	tString msDirectMap;
+	tString msDirectLink;
 	
 	bool mbSubtitles;
 	bool mbSimpleWeaponSwing;
@@ -199,6 +203,7 @@ public:
 	cMainMenu *mpMainMenu;
 
 	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
+	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
 
 	cIntroStory* mpIntroStory;	
 
