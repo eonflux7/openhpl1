@@ -47,7 +47,8 @@ Make sure nothing regressed before changing anything.
 - [x] FOV option (vertical FOV, 70° by default; 3D is already Hor+)
   - [ ] play-test: the hiding and enemy-close effects, the save effect and
         held items at angles other than 70° were not looked at
-- [ ] Mouse sensitivity independent of resolution
+- [x] Mouse sensitivity independent of resolution (anchored to the speed at
+      1440 pixels of height)
 - [x] Gamma reimplemented as a final shader pass
   - [ ] play-test: change it in the options menu on a real display; only
         checked with frame dumps of values set in `settings.cfg`

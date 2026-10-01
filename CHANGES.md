@@ -278,10 +278,26 @@ commit), and the last official Linux build on Steam.
 - The labels and tips of the new options, and "Desktop" and "Automatic", are
   not in the game's language files and are always in English.
 
+### Mouse sensitivity
+
+- Turning no longer depends on the resolution. Mouse movement reaches the
+  game in virtual units, 600 / window height per mouse count, so a higher
+  window turned slower at the same sensitivity setting. Look input is now
+  scaled by window height / 1440 (`kLookReferenceHeight`): at any size the
+  player turns as fast as in a 1440-pixel-high window before, and faster
+  than before in a lower one (2.4 times at 600). Everything driven by look
+  input follows: turning, the interact-mode crosshair, moving and turning
+  held objects.
+- Menu, inventory and notebook cursors are unchanged and move one pixel per
+  mouse count.
+- With the mouse grabbed, SDL3 reports unaccelerated movement (the desktop's
+  pointer speed and acceleration are not applied), which is its default.
+- Pitch is still 4/3 as fast as yaw for the same movement, as in the
+  original.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
 - Physics may feel slightly different from the original (see above); not yet
   compared side by side.
-- Mouse sensitivity scales with resolution (original behaviour).
 - Windows build not set up yet.

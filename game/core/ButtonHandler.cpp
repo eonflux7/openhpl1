@@ -42,6 +42,10 @@ struct cButtonHandlerAction
 	bool mbConfig;
 };
 
+// The window height at which turning per mouse count is what it was before
+// it stopped depending on the resolution.
+static const float kLookReferenceHeight = 1440.0f;
+
 static tString gsLastPlayerAction = "GlowStick";
 static cButtonHandlerAction gvDefaultActions[] = {
 {"Forward","Keyboard",eKey_w,true},
@@ -709,6 +713,12 @@ void cButtonHandler::Update(float afTimeStep)
 					{
 						cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
 						vRel /= mpLowLevelGraphics->GetVirtualSize();
+
+						// The movement is in virtual units, 600 / window height
+						// per mouse count, so the higher the window the slower
+						// the player turned. Turn as fast as at the reference
+						// height whatever the window's size.
+						vRel *= mpLowLevelGraphics->GetScreenSize().y / kLookReferenceHeight;
 
 						mpPlayer->AddYaw(vRel.x * mfMouseSensitivity);
 						mpPlayer->AddPitch(vRel.y * mfMouseSensitivity);
