@@ -252,6 +252,7 @@ namespace hpl {
 	class iSerializable
 	{
 	public:
+		virtual ~iSerializable(){}
 		virtual tString Serialize_GetTopClass(){ return "";}
 	};
 

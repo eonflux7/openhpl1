@@ -83,6 +83,7 @@ public:
 class iPlayerMoveState
 {
 public:
+	virtual ~iPlayerMoveState(){}
 	iPlayerMoveState(cPlayer *apPlayer, cInit *apInit);
 	
 	void SetupBody();

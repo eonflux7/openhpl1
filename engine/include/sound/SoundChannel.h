@@ -30,6 +30,7 @@ namespace hpl {
 	class iSoundChannelCallback
 	{
 	public:
+		virtual ~iSoundChannelCallback(){}
 		virtual void OnPriorityRelease()=0;
 	};
 

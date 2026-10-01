@@ -32,6 +32,7 @@ namespace hpl {
 	class iRenderableContainer
 	{
 	public:
+		virtual ~iRenderableContainer(){}
 		/**
 		 * Add a new object to the container.
 		 * \param *apRenderable the object
