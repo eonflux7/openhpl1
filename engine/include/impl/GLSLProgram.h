@@ -77,6 +77,13 @@ namespace hpl {
 		static void SetShaderDirectory(const tString& asDir){ msShaderDir = asDir; }
 		static const tString& GetShaderDirectory(){ return msShaderDir; }
 
+		/**
+		 * Compiles "hpl1_<asName>.vertex" or ".fragment" from the shader
+		 * directory as a separable program, for passes that are drawn outside
+		 * the engine's program objects. The caller deletes it.
+		 */
+		static GLuint CreateStage(GLenum aStage, const tString& asName);
+
 	private:
 		GLint GetUniform(const tString& asName);
 		static GLuint CompileStage(GLenum aStage, const tString& asPath);

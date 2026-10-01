@@ -252,6 +252,11 @@ namespace hpl {
 
 		//Gamma
 		float mfGammaCorrection;
+		bool mbGammaPassFailed;
+		GLuint mlGammaPipeline;
+		GLuint mlGammaVertex;
+		GLuint mlGammaFragment;
+		GLuint mlGammaTexture;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];
@@ -292,6 +297,9 @@ namespace hpl {
 
 		SDL_DisplayID ChooseDisplay();
 		void DebugDumpFrame();
+
+		bool CreateGammaPass();
+		void DrawGammaPass();
 
 
 		//Batch helper

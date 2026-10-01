@@ -105,6 +105,11 @@ namespace hpl {
 		mpWindow = nullptr;
 		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
+		mbGammaPassFailed = false;
+		mlGammaPipeline = 0;
+		mlGammaVertex = 0;
+		mlGammaFragment = 0;
+		mlGammaTexture = 0;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
 
@@ -140,6 +145,11 @@ namespace hpl {
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)	hplFree(mpTexCoordArray[i]);
 
 		hplDelete(mpPixelFormat);
+
+		if(mlGammaPipeline) glDeleteProgramPipelines(1,&mlGammaPipeline);
+		if(mlGammaVertex) glDeleteProgram(mlGammaVertex);
+		if(mlGammaFragment) glDeleteProgram(mlGammaFragment);
+		if(mlGammaTexture) glDeleteTextures(1,&mlGammaTexture);
 
 		cGLSLProgram::ExitPipeline();
 
@@ -616,31 +626,9 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetGammaCorrection(float afX)
 	{
-		//if(mfGammaCorrection == afX) return;
-
-		// SDL3 has no hardware gamma ramps. Stored here and applied by the
-		// renderer instead.
+		// SDL3 has no hardware gamma ramps. The value is applied to the
+		// finished frame in SwapBuffers(), see DrawGammaPass().
 		mfGammaCorrection = afX;
-
-		/*Uint16 GammaArray[3][256];
-
-		for (int iIndex = 0; iIndex < 256; iIndex++)
-		{
-			Uint16 iArrayValue = iIndex * ((int)(afX*127.0f) + 128);
-
-			if (iArrayValue > 65535)
-				iArrayValue = 65535;
-
-			GammaArray[0][iIndex] =
-			GammaArray[1][iIndex] =
-			GammaArray[2][iIndex] = iArrayValue;
-
-		}
-
-		//Set the GammaArray values into the display device context.
-		int bReturn = SDL_SetGammaRamp(GammaArray[0],GammaArray[1],GammaArray[2]);*/
-		/*if(bReturn!=-1) Log("Setting gamma worked!\n");
-		else		Log("Setting gamma FAILED!\n");*/
 	}
 
 	float cLowLevelGraphicsSDL::GetGammaCorrection()
@@ -1078,8 +1066,98 @@ namespace hpl {
 		glClearColor(vClearColor[0], vClearColor[1], vClearColor[2], vClearColor[3]);
 		if(bScissor) glEnable(GL_SCISSOR_TEST);
 
+		DrawGammaPass();
+
 		DebugDumpFrame();
 		SDL_GL_SwapWindow(mpWindow);
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cLowLevelGraphicsSDL::CreateGammaPass()
+	{
+		if(mlGammaPipeline) return true;
+		if(mbGammaPassFailed) return false;
+
+		mlGammaVertex = cGLSLProgram::CreateStage(GL_VERTEX_SHADER, "gamma_correction");
+		mlGammaFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, "gamma_correction");
+		if(mlGammaVertex==0 || mlGammaFragment==0)
+		{
+			Error("Couldn't create the gamma correction pass, the gamma setting has no effect!\n");
+			mbGammaPassFailed = true;
+			return false;
+		}
+
+		glGenProgramPipelines(1,&mlGammaPipeline);
+		glUseProgramStages(mlGammaPipeline, GL_VERTEX_SHADER_BIT, mlGammaVertex);
+		glUseProgramStages(mlGammaPipeline, GL_FRAGMENT_SHADER_BIT, mlGammaFragment);
+
+		// Bound by hand in DrawGammaPass(), SetTexture() never sees it.
+		GLint lLastTexture = 0;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
+		glGenTextures(1,&mlGammaTexture);
+		glBindTexture(GL_TEXTURE_2D, mlGammaTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mvScreenSize.x, mvScreenSize.y, 0,
+						GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(GL_TEXTURE_2D, lLastTexture);
+
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Replaces the hardware gamma ramp: the finished frame is copied to a
+	// texture and drawn back through the same curve SDL_SetGamma() used,
+	// out = in ^ (1 / gamma). All state is put back, the renderer does not
+	// expect it to change in SwapBuffers().
+	void cLowLevelGraphicsSDL::DrawGammaPass()
+	{
+		if(mfGammaCorrection > 0.999f && mfGammaCorrection < 1.001f) return;
+		if(CreateGammaPass()==false) return;
+
+		GLint lLastUnit = 0, lLastTexture = 0, lLastPipeline = 0;
+		glGetIntegerv(GL_ACTIVE_TEXTURE, &lLastUnit);
+		glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, &lLastPipeline);
+		glActiveTexture(GL_TEXTURE0);
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
+
+		glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT |
+						GL_POLYGON_BIT | GL_VIEWPORT_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT);
+
+		glBindTexture(GL_TEXTURE_2D, mlGammaTexture);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, mvScreenSize.x, mvScreenSize.y);
+
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_ALPHA_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_CULL_FACE);
+		for(int i=0; i<kMaxClipPlanes; ++i) glDisable(GL_CLIP_PLANE0 + i);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDepthMask(GL_FALSE);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glViewport(0, 0, mvScreenSize.x, mvScreenSize.y);
+
+		glProgramUniform1f(mlGammaFragment, glGetUniformLocation(mlGammaFragment, "gamma"),
+							mfGammaCorrection);
+		glBindProgramPipeline(mlGammaPipeline);
+
+		// One triangle that covers the screen
+		glBegin(GL_TRIANGLES);
+		glVertex2f(-1.0f, -1.0f);
+		glVertex2f( 3.0f, -1.0f);
+		glVertex2f(-1.0f,  3.0f);
+		glEnd();
+
+		glBindProgramPipeline(lLastPipeline);
+		glPopAttrib();
+		glBindTexture(GL_TEXTURE_2D, lLastTexture);
+		glActiveTexture(lLastUnit);
 	}
 
 	//-----------------------------------------------------------------------

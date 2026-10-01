@@ -52,8 +52,8 @@ commit), and the last official Linux build on Steam.
 - FLTK error dialogs replaced with SDL message boxes.
 - SDL_ttf dropped. The engine only called `TTF_Init`/`TTF_Quit`; all game
   fonts are bitmap `.fnt` files. TrueType font loading now logs an error.
-- Hardware gamma ramps removed (SDL3 has none). The gamma setting is stored
-  but has no effect yet (see ROADMAP).
+- Hardware gamma ramps removed (SDL3 has none). The gamma setting is applied
+  by a shader pass instead (see "Gamma" below).
 
 ### Images and textures
 
@@ -226,10 +226,23 @@ commit), and the last official Linux build on Steam.
   recorded as set. With only text on screen (pre-menu) the glyphs were drawn
   untextured.
 
+### Gamma
+
+- The gamma setting works again. Before a frame is shown it is copied to a
+  texture and drawn back through `out = in ^ (1 / gamma)`, the curve
+  `SDL_SetGamma` loaded into the display's gamma ramp
+  (`cLowLevelGraphicsSDL::DrawGammaPass`, `hpl1_gamma_correction` shaders).
+  At 1.0 the pass is skipped.
+- It affects only the game's window, also when windowed, and no longer
+  changes the rest of the desktop or stays behind after a crash. Frame dumps
+  include it.
+- The frame has 8 bits per channel before the pass, so raising gamma a lot
+  spreads the dark levels apart (banding in dark areas), as it did with a
+  ramp on an 8-bit display.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
-- Gamma setting has no effect.
 - Physics may feel slightly different from the original (see above); not yet
   compared side by side.
 - Mouse sensitivity scales with resolution (original behaviour).

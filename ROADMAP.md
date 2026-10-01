@@ -46,7 +46,9 @@ Make sure nothing regressed before changing anything.
         are 4:3 art, shown centred with black borders)
 - [ ] FOV option (vertical FOV is fixed at 70°, and 3D is already Hor+)
 - [ ] Mouse sensitivity independent of resolution
-- [ ] Gamma reimplemented as a final shader pass
+- [x] Gamma reimplemented as a final shader pass
+  - [ ] play-test: change it in the options menu on a real display; only
+        checked with frame dumps of values set in `settings.cfg`
 - [ ] Uncapped / high-refresh frame rate with interpolated rendering (logic
       stays at its fixed rate)
 - [ ] Display, window mode and V-Sync options for SDL3 in the menu

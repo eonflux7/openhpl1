@@ -132,6 +132,14 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
+	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName)
+	{
+		return CompileStage(aStage, msShaderDir + "hpl1_" + asName +
+									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"));
+	}
+
+	//-----------------------------------------------------------------------
+
 	bool cGLSLProgram::Reload()
 	{
 		return false;
