@@ -89,7 +89,7 @@ target_compile_options(tinyxml PRIVATE -w)
 file(GLOB_RECURSE hpl_sources CONFIGURE_DEPENDS
 	engine/sources/*.cpp
 	engine/sources/*.c)
-list(FILTER hpl_sources EXCLUDE REGEX "/(win32\\.cpp|Video[A-Za-z]*Theora\\.cpp)$")
+list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
 
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)

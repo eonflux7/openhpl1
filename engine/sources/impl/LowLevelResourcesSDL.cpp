@@ -25,7 +25,6 @@
 #include "impl/MeshLoaderMSH.h"
 #include "impl/MeshLoaderCollada.h"
 #ifdef INCLUDE_THEORA
-#include "impl/VideoStreamTheora.h"
 #endif
 #include "impl/Platform.h"
 #include "system/String.h"
@@ -130,9 +129,8 @@ namespace hpl {
 
 	void cLowLevelResourcesSDL::AddVideoLoaders(cVideoManager* apManager)
 	{
-		#ifdef INCLUDE_THORA
-		apManager->AddVideoLoader(hplNew( cVideoStreamTheora_Loader,()));
-		#endif
+		//No video formats: Overture has no videos, and the Theora loader
+		//was compiled out upstream too.
 	}
 
 	//-----------------------------------------------------------------------
