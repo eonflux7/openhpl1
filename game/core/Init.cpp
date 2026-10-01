@@ -466,6 +466,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->GetMaterialManager()->SetTextureAnisotropy(mpConfig->GetFloat("Graphics","TextureAnisotropy",1.0f));
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
+	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 
@@ -795,6 +796,7 @@ void cInit::Exit()
 	mpConfig->SetFloat("Graphics","TextureAnisotropy",mpGame->GetResources()->GetMaterialManager()->GetTextureAnisotropy());
 
 	mpConfig->SetFloat("Graphics","Gamma",mpGame->GetGraphics()->GetLowLevel()->GetGammaCorrection());
+	mpConfig->SetFloat("Graphics","RenderScale",mpGame->GetGraphics()->GetRenderScale());
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);
 	mpConfig->SetBool("Graphics","PostEffects",mbPostEffects);

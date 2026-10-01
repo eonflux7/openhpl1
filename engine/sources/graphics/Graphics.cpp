@@ -161,6 +161,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cGraphics::SetRenderScale(float afScale)
+	{
+		cVector2f vOldSize = mpLowLevelGraphics->GetRenderSize();
+		mpLowLevelGraphics->SetRenderScale(afScale);
+		if(mpLowLevelGraphics->GetRenderSize() != vOldSize)
+			mpRendererPostEffects->CreateScreenBuffers();
+	}
+
+	float cGraphics::GetRenderScale()
+	{
+		return mpLowLevelGraphics->GetRenderScale();
+	}
+
+	//-----------------------------------------------------------------------
+
 	iLowLevelGraphics* cGraphics::GetLowLevel()
 	{
 		return mpLowLevelGraphics;

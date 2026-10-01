@@ -91,6 +91,11 @@ namespace hpl {
 		void SetActive(bool abX){ mbActive = abX;}
 		bool GetActive(){ return mbActive;}
 
+		/**
+		 * (Re)creates the screen copies at the current render size.
+		 */
+		void CreateScreenBuffers();
+
 		void SetBloomActive(bool abX);
 		bool GetBloomActive(){ return mbBloomActive;}
 

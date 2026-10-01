@@ -61,6 +61,13 @@ namespace hpl {
 		cMeshCreator* GetMeshCreator(){return mpMeshCreator;}
 		cMaterialHandler* GetMaterialHandler(){return mpMaterialHandler;}
 
+		/**
+		 * Size of the 3D scene relative to the window, 0.25 to 2. The scene
+		 * is scaled to the window before the HUD is drawn.
+		 */
+		void SetRenderScale(float afScale);
+		float GetRenderScale();
+
 	private:
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelResources *mpLowLevelResources;

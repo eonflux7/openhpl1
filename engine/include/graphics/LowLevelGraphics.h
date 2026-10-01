@@ -250,6 +250,12 @@ namespace hpl {
 		 */
 		virtual cVector2f GetRenderSize()=0;
 		/**
+		 * Sets the render size to the window size times afScale (0.25 to
+		 * 2). Not while the scene is drawn.
+		 */
+		virtual void SetRenderScale(float afScale)=0;
+		virtual float GetRenderScale()=0;
+		/**
 		 * Starts drawing the 3D scene.
 		 */
 		virtual void BeginScene()=0;

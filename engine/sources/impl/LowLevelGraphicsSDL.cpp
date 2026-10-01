@@ -21,6 +21,7 @@
 
 #include "graphics/FontData.h"
 #include "impl/LowLevelGraphicsSDL.h"
+#include "math/Math.h"
 #include "impl/SDLBitmap2D.h"
 #include "impl/SDLFontData.h"
 #include "impl/SDLTexture.h"
@@ -111,6 +112,7 @@ namespace hpl {
 		mpWindow = nullptr;
 		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
+		mfRenderScale = 1.0f;
 		mbGammaPassFailed = false;
 		mlGammaPipeline = 0;
 		mlGammaVertex = 0;
@@ -305,7 +307,8 @@ namespace hpl {
 		ShowCursor(false);
 
 		mvRenderSize = mvScreenSize;
-		if(!CreateFramebuffers())
+		mfRenderScale = 1.0f;
+		if(!CreateOutputFramebuffer() || !CreateSceneFramebuffers())
 		{
 			FatalError("Couldn't create the framebuffers!\n");
 			return false;
@@ -1063,10 +1066,10 @@ namespace hpl {
 	}
 
 	// The scene framebuffer (render size, possibly multisampled, with a
-	// resolve framebuffer then) and the output framebuffer (window size).
-	// Textures rather than renderbuffers, so later passes can read them.
-	// They are bound by hand, SetTexture() never sees them.
-	bool cLowLevelGraphicsSDL::CreateFramebuffers()
+	// resolve framebuffer then). Textures rather than renderbuffers, so later
+	// passes can read them. They are bound by hand, SetTexture() never sees
+	// them. Leaves the output framebuffer bound.
+	bool cLowLevelGraphicsSDL::CreateSceneFramebuffers()
 	{
 		GLint lLastTexture = 0;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
@@ -1074,8 +1077,6 @@ namespace hpl {
 		const int lW = mvRenderSize.x, lH = mvRenderSize.y;
 		bool bOK = true;
 
-		/////////////////////////
-		// Scene
 		GLenum lTarget = GL_TEXTURE_2D;
 		if(mlMultisampling > 0)
 		{
@@ -1125,9 +1126,21 @@ namespace hpl {
 			bOK = CheckFramebuffer("Resolve") && bOK;
 		}
 
-		/////////////////////////
-		// Output. The 2D drawing does not use depth, but GL state it sets
-		// (stencil, depth test) should behave as on any framebuffer.
+		glBindTexture(GL_TEXTURE_2D, lLastTexture);
+		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
+
+		Log(" Scene framebuffer: %d x %d, %d samples\n", lW, lH, mlMultisampling);
+		return bOK;
+	}
+
+	// The output framebuffer, at the window size. The 2D drawing does not
+	// use depth, but GL state it sets (stencil, depth test) should behave as
+	// on any framebuffer.
+	bool cLowLevelGraphicsSDL::CreateOutputFramebuffer()
+	{
+		GLint lLastTexture = 0;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
+
 		mlOutputColor = CreateColorTexture(mvScreenSize.x, mvScreenSize.y);
 		glGenRenderbuffers(1, &mlOutputDepthStencil);
 		glBindRenderbuffer(GL_RENDERBUFFER, mlOutputDepthStencil);
@@ -1137,25 +1150,52 @@ namespace hpl {
 		glBindFramebuffer(GL_FRAMEBUFFER, mlOutputFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlOutputColor, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mlOutputDepthStencil);
-		bOK = CheckFramebuffer("Output") && bOK;
+		bool bOK = CheckFramebuffer("Output");
 
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
-
-		Log(" Framebuffers: scene %d x %d with %d samples, output %d x %d\n", lW, lH, mlMultisampling,
-			mvScreenSize.x, mvScreenSize.y);
 		return bOK;
+	}
+
+	void cLowLevelGraphicsSDL::DeleteSceneFramebuffers()
+	{
+		GLuint vFramebuffers[] = {mlSceneFramebuffer, mlResolveFramebuffer};
+		GLuint vTextures[] = {mlSceneColor, mlSceneDepthStencil, mlResolveColor};
+		glDeleteFramebuffers(2, vFramebuffers);
+		glDeleteTextures(3, vTextures);
+		mlSceneFramebuffer = mlResolveFramebuffer = 0;
+		mlSceneColor = mlSceneDepthStencil = mlResolveColor = 0;
 	}
 
 	void cLowLevelGraphicsSDL::DeleteFramebuffers()
 	{
-		GLuint vFramebuffers[] = {mlSceneFramebuffer, mlResolveFramebuffer, mlOutputFramebuffer, mlTargetFramebuffer};
-		GLuint vTextures[] = {mlSceneColor, mlSceneDepthStencil, mlResolveColor, mlOutputColor};
-		glDeleteFramebuffers(4, vFramebuffers);
-		glDeleteTextures(4, vTextures);
+		DeleteSceneFramebuffers();
+		glDeleteFramebuffers(1, &mlOutputFramebuffer);
+		glDeleteFramebuffers(1, &mlTargetFramebuffer);
+		glDeleteTextures(1, &mlOutputColor);
 		glDeleteRenderbuffers(1, &mlOutputDepthStencil);
-		mlSceneFramebuffer = mlResolveFramebuffer = mlOutputFramebuffer = mlTargetFramebuffer = 0;
-		mlSceneColor = mlSceneDepthStencil = mlResolveColor = mlOutputColor = mlOutputDepthStencil = 0;
+		mlOutputFramebuffer = mlTargetFramebuffer = mlOutputColor = mlOutputDepthStencil = 0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetRenderScale(float afScale)
+	{
+		mfRenderScale = cMath::Clamp(afScale, 0.25f, 2.0f);
+
+		cVector2l vSize((int)(mvScreenSize.x * mfRenderScale + 0.5f), (int)(mvScreenSize.y * mfRenderScale + 0.5f));
+		vSize.x = cMath::Max(vSize.x, 1);
+		vSize.y = cMath::Max(vSize.y, 1);
+		if(vSize == mvRenderSize) return;
+
+		mvRenderSize = vSize;
+		DeleteSceneFramebuffers();
+		if(!CreateSceneFramebuffers()) Error("Couldn't create the scene framebuffer at %d x %d!\n", vSize.x, vSize.y);
+	}
+
+	float cLowLevelGraphicsSDL::GetRenderScale()
+	{
+		return mfRenderScale;
 	}
 
 	//-----------------------------------------------------------------------

@@ -73,6 +73,8 @@ namespace hpl {
 
 		cVector2f GetScreenSize() override;
 		cVector2f GetRenderSize() override;
+		void SetRenderScale(float afScale) override;
+		float GetRenderScale() override;
 		void BeginScene() override;
 		void EndScene() override;
 		cVector2f GetVirtualSize() override;
@@ -274,6 +276,7 @@ namespace hpl {
 		//depth are multisampled and mlResolveFramebuffer holds the resolved
 		//colour.
 		cVector2l mvRenderSize;
+		float mfRenderScale;
 		cVector2l mvTargetSize;
 		bool mbInScene;
 		GLuint mlSceneFramebuffer;
@@ -330,7 +333,9 @@ namespace hpl {
 		bool SaveFrameToPNG(const tString& asFile);
 		tString msSaveNextFrame;
 
-		bool CreateFramebuffers();
+		bool CreateSceneFramebuffers();
+		bool CreateOutputFramebuffer();
+		void DeleteSceneFramebuffers();
 		void DeleteFramebuffers();
 		void BindFramebuffer(GLuint alFramebuffer, const cVector2l& avSize);
 		void PresentFrame();

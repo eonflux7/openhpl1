@@ -47,29 +47,11 @@ namespace hpl {
 
 		mpGpuManager = mpResources->GetGpuProgramManager();
 
-		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
-
 		mpRenderList = apRenderList;
 
-		///////////////////////////////////////////
-		// Create screen buffers
-		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());
-		for(int i=0;i<2;i++)
-		{
-			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
-				(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
-				eTextureType_Normal, eTextureTarget_Rect);
-
-			if(mpScreenBuffer[i]==nullptr)
-			{
-				Error("Couldn't create screenbuffer!\n");
-				mpScreenBuffer[0] = nullptr;
-				mpScreenBuffer[1] = nullptr;
-				break;
-			}
-			mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
-			mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
-		}
+		mpScreenBuffer[0] = nullptr;
+		mpScreenBuffer[1] = nullptr;
+		CreateScreenBuffers();
 
 		///////////////////////////////////////////
 		// Create programs
@@ -204,6 +186,41 @@ namespace hpl {
 	//////////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
 	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	void cRendererPostEffects::CreateScreenBuffers()
+	{
+		for(int i=0;i<2;i++)
+		{
+			if(mpScreenBuffer[i]) hplDelete(mpScreenBuffer[i]);
+			mpScreenBuffer[i] = nullptr;
+		}
+
+		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
+		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());
+		for(int i=0;i<2;i++)
+		{
+			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
+				(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
+				eTextureType_Normal, eTextureTarget_Rect);
+
+			if(mpScreenBuffer[i]==nullptr)
+			{
+				Error("Couldn't create screenbuffer!\n");
+				if(mpScreenBuffer[0]) hplDelete(mpScreenBuffer[0]);
+				mpScreenBuffer[0] = nullptr;
+				mpScreenBuffer[1] = nullptr;
+				break;
+			}
+			mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
+			mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+
+		//The old frames are gone
+		mImageTrailData.mbFirstPass = true;
+		mbMotionBlurFirstTime = true;
+	}
 
 	//-----------------------------------------------------------------------
 

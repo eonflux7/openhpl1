@@ -412,6 +412,11 @@ messages (NVIDIA 615). Fixed for that:
   `GetRenderSize()` is the scene's size, used by the 3D renderer, the post
   effects and the light clip rectangles; `GetScreenSize()` stays the
   window's.
+- Render Scale (Advanced Graphics, `RenderScale` in `settings.cfg`): the
+  3D scene is drawn at 50, 75, 100, 150 or 200% of the window size and
+  scaled to it (bilinear) before the HUD, which stays at the window's
+  resolution. Applies at once. Advanced Graphics rows are 24 units apart
+  instead of 26 to make room for it.
 - `SetRenderTarget` renders into a texture through a framebuffer object
   (it did nothing since the pbuffer code was removed);
   `RenderTargetHasZBuffer` and `FlushRenderTarget` are gone.

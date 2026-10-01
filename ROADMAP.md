@@ -105,8 +105,10 @@ Every step is checked against reference images of the renderer before it.
   - [x] one fixed frame order: scene → post effects → output transform → HUD →
         gamma → window (the output transform is a plain copy until there is
         a float buffer)
-  - [ ] render size independent of the window size: resolution changes
-        without a restart (see Milestone 2), render scale
+  - [x] render size independent of the window size: Render Scale option
+        (50–200%)
+  - [ ] resolution and fullscreen changes without a restart (see
+        Milestone 2)
 - [ ] **Float colour buffer.** A 16-bit float scene target, so light passes
       add up without being rounded to 8 bits or clipped after each one; the
       output is dithered. Same look, less banding in dark areas
@@ -144,7 +146,10 @@ looks are options; the original stays available.
 - [ ] **Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
       stencil shadow volumes, or penumbra-blurred stencil shadows as an
       interim step
-- [ ] Bloom with threshold and a mip chain (replaces "blur squared and add")
+- [ ] Bloom with threshold and a mip chain (replaces "blur squared and add").
+      The current blur is measured in pixels horizontally and in screen
+      widths vertically, so bloom looks different at each resolution and
+      render scale
 - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
 - [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer
 - [ ] Depth of field and camera motion blur from depth. The current effects
