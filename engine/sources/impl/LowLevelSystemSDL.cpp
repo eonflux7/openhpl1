@@ -89,13 +89,25 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	static cLogWriter gLogWriter(_W("hpl.log"));
-	static cLogWriter gUpdateLogWriter(_W("hpl_update.log"));
+	// Created on first use and never destroyed: static destructors elsewhere
+	// (e.g. GL state objects) still log during exit. Every write is flushed.
+	static cLogWriter& LogWriter()
+	{
+		static cLogWriter *pWriter = new cLogWriter(_W("hpl.log"));
+		return *pWriter;
+	}
+
+	static cLogWriter& UpdateLogWriter()
+	{
+		static cLogWriter *pWriter = new cLogWriter(_W("hpl_update.log"));
+		return *pWriter;
+	}
 
 	//-----------------------------------------------------------------------
 
 	cLogWriter::cLogWriter(const tWString& asFileName)
 	{
+		mpFile = NULL;
 		msFileName = asFileName;
 	}
 
@@ -110,7 +122,7 @@ namespace hpl {
 
 		if(mpFile)
 		{
-			fprintf(mpFile, asMessage.c_str());
+			fputs(asMessage.c_str(), mpFile);
 			fflush(mpFile);
 		}
 	}
@@ -195,7 +207,7 @@ namespace hpl {
 
 	void SetLogFile(const tWString &asFile)
 	{
-		gLogWriter.SetFileName(asFile);
+		LogWriter().SetFileName(asFile);
 	}
 
 	//-----------------------------------------------------------------------
@@ -212,7 +224,7 @@ namespace hpl {
 
 		tString sMess = "FATAL ERROR: ";
 		sMess += text;
-		gLogWriter.Write(sMess);
+		LogWriter().Write(sMess);
 
 #ifdef WIN32
 		MessageBox( NULL, cString::To16Char(text).c_str(), _W("FATAL ERROR"), MB_ICONERROR);
@@ -233,7 +245,7 @@ namespace hpl {
 
 		tString sMess = "ERROR: ";
 		sMess += text;
-		gLogWriter.Write(sMess);
+		LogWriter().Write(sMess);
 	}
 
 	void Warning(const char* fmt, ...)
@@ -248,7 +260,7 @@ namespace hpl {
 
 		tString sMess = "WARNING: ";
 		sMess += text;
-		gLogWriter.Write(sMess);
+		LogWriter().Write(sMess);
 	}
 
 	void Log(const char* fmt, ...)
@@ -263,7 +275,7 @@ namespace hpl {
 
 		tString sMess = "";
 		sMess += text;
-		gLogWriter.Write(sMess);
+		LogWriter().Write(sMess);
 	}
 
 	//-----------------------------------------------------------------------
@@ -271,14 +283,14 @@ namespace hpl {
 	static bool gbUpdateLogIsActive;
 	void SetUpdateLogFile(const tWString &asFile)
 	{
-		gUpdateLogWriter.SetFileName(asFile);
+		UpdateLogWriter().SetFileName(asFile);
 	}
 
 	void ClearUpdateLogFile()
 	{
 		if(!gbUpdateLogIsActive) return;
 
-		gUpdateLogWriter.Clear();
+		UpdateLogWriter().Clear();
 	}
 
 	void SetUpdateLogActive(bool abX)
@@ -300,7 +312,7 @@ namespace hpl {
 
 		tString sMess = "";
 		sMess += text;
-		gUpdateLogWriter.Write(sMess);
+		UpdateLogWriter().Write(sMess);
 	}
 
 	//-----------------------------------------------------------------------
