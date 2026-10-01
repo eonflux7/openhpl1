@@ -346,8 +346,12 @@ namespace hpl {
 		if(mRenderSettings.mbFogActive && mRenderSettings.mbFogCulling)
 		{
 			//This is becuase the fog line is a stright line infront of the camera.
-			float fCornerDist = (mRenderSettings.mfFogEnd *2.0f) /
-								cos(apCamera->GetFOV()*apCamera->GetAspect()*0.5f);
+			// The distance to a corner of the view at the fog end. This was
+			// 2 * end / cos(fov * aspect / 2), which stops working when that
+			// angle gets near 90 degrees (wide windows, large FOV).
+			float fTanY = tan(apCamera->GetScaledFOV()*0.5f);
+			float fTanX = fTanY * apCamera->GetAspect();
+			float fCornerDist = (mRenderSettings.mfFogEnd *2.0f) * sqrt(1.0f + fTanX*fTanX + fTanY*fTanY);
 
 			mFogBV.SetSize(fCornerDist);
 			mFogBV.SetPosition(apCamera->GetPosition());

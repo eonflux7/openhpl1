@@ -36,6 +36,7 @@ namespace hpl {
 		mvPosition = cVector3f(0);
 
 		mfFOV = cMath::ToRad(70.0f);
+		mfFOVScale = 1.0f;
 		mfAspect = 4.0f/3.0f;
 		mfFarClipPlane = 1000.0f;
 		mfNearClipPlane = 0.05f;
@@ -218,6 +219,13 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	float cCamera3D::GetScaledFOV()
+	{
+		return 2.0f * atan(tan(mfFOV*0.5f) * mfFOVScale);
+	}
+
+	//-----------------------------------------------------------------------
+
 	cFrustum* cCamera3D::GetFrustum()
 	{
 		//If the far plane is infinite, still have to use a number on far plane
@@ -230,7 +238,7 @@ namespace hpl {
 		mFrustum.SetViewProjMatrix(GetProjectionMatrix(),
 									GetViewMatrix(),
 									GetFarClipPlane(),GetNearClipPlane(),
-									GetFOV(),GetAspect(),GetPosition(),mbInfFarPlane);
+									GetScaledFOV(),GetAspect(),GetPosition(),mbInfFarPlane);
 		if(bWasInf){
 			SetInifintiveFarPlane(true);
 		}
@@ -267,7 +275,7 @@ namespace hpl {
 		{
 			float fFar = mfFarClipPlane;
 			float fNear = mfNearClipPlane;
-			float fTop = tan(mfFOV*0.5f) * fNear;
+			float fTop = tan(mfFOV*0.5f) * mfFOVScale * fNear;
 			float fBottom = -fTop;
 			float fRight = mfAspect * fTop;
 			float fLeft = mfAspect * fBottom;
@@ -356,7 +364,7 @@ namespace hpl {
 		cVector2f vScreenSize = apLowLevel->GetVirtualSize() + vOffset*2;
 		cVector2f vNormScreen(	((avScreenPos.x + vOffset.x) / vScreenSize.x) - 0.5f,
 								 0.5f - ((avScreenPos.y + vOffset.y) / vScreenSize.y));
-		float afNormalizedSlope = tan(mfFOV*0.5f);
+		float afNormalizedSlope = tan(mfFOV*0.5f) * mfFOVScale;
 
 		cVector2f avViewportToWorld;
 		avViewportToWorld.y = afNormalizedSlope * mfNearClipPlane * 2.0f;

@@ -69,6 +69,7 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	//Create and setup camera
 	mpCamera = mpScene->CreateCamera3D(eCameraMoveMode_Walk);
 	mpScene->SetCamera(mpCamera);
+	SetViewFOV(mpInit->mpConfig->GetFloat("Graphics","FOV",70.0f));
 	
 	//Get Debug variables
 	mbShowHealth = mpInit->mpConfig->GetBool("Debug","ShowHealth",false);
@@ -285,6 +286,8 @@ cPlayer::~cPlayer(void)
 	/*mpInit->mpConfig->SetFloat("Game","PlayerWidth",mvSize.x);
 	mpInit->mpConfig->SetFloat("Game","PlayerHeight",mvSize.y);
 	mpInit->mpConfig->SetFloat("Game","PlayerCrouchHeight",mfCrouchHeight);*/
+
+	mpInit->mpConfig->SetFloat("Graphics","FOV",mfViewFOV);
 
 	mpInit->mpConfig->SetBool("Debug","ShowHealth",mbShowHealth);
 	mpInit->mpConfig->SetBool("Debug","ShowSoundsPlaying",mbShowSoundsPlaying);
@@ -1352,6 +1355,17 @@ void cPlayer::Update(float afTimeStep)
 		mvStates[mState]->OnUpdate(afTimeStep);
 	}
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
+}
+
+//-----------------------------------------------------------------------
+
+void cPlayer::SetViewFOV(float afDegrees)
+{
+	mfViewFOV = cMath::Clamp(afDegrees, 30.0f, 140.0f);
+
+	// The game sets its angles for a 70 degree view (Reset(), hiding,
+	// enemies getting close, the save effect).
+	mpCamera->SetFOVScale(tan(cMath::ToRad(mfViewFOV)*0.5f) / tan(cMath::ToRad(70.0f)*0.5f));
 }
 
 //-----------------------------------------------------------------------

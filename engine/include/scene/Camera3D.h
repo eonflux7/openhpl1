@@ -71,6 +71,19 @@ namespace hpl {
 		void SetFOV(float afAngle) { mfFOV = afAngle; mbProjectionUpdated = true;}
 		float GetFOV() { return mfFOV;}
 
+		/**
+		 * Widens or narrows the view without changing the angle SetFOV() and
+		 * GetFOV() work with: the tangent of half the angle is multiplied by
+		 * this. Code that sets angles chosen for the default view keeps
+		 * working, and zooms keep their magnification.
+		 */
+		void SetFOVScale(float afX) { mfFOVScale = afX; mbProjectionUpdated = true;}
+		float GetFOVScale() { return mfFOVScale;}
+		/**
+		 * The vertical angle of the projection: GetFOV() with the scale applied.
+		 */
+		float GetScaledFOV();
+
 		void SetAspect(float afAngle) { mfAspect = afAngle; mbProjectionUpdated = true;}
 		float GetAspect() { return mfAspect;}
 
@@ -186,6 +199,7 @@ namespace hpl {
 		cVector3f mvPosition;
 
 		float mfFOV;
+		float mfFOVScale;
 		float mfAspect;
 		float mfFarClipPlane;
 		float mfNearClipPlane;

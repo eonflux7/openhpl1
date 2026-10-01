@@ -44,7 +44,9 @@ Make sure nothing regressed before changing anything.
         interact mode were not covered by the screenshot checks
   - [ ] decide whether the menu and logo screens should fill the sides (they
         are 4:3 art, shown centred with black borders)
-- [ ] FOV option (vertical FOV is fixed at 70°, and 3D is already Hor+)
+- [x] FOV option (vertical FOV, 70° by default; 3D is already Hor+)
+  - [ ] play-test: the hiding and enemy-close effects, the save effect and
+        held items at angles other than 70° were not looked at
 - [ ] Mouse sensitivity independent of resolution
 - [x] Gamma reimplemented as a final shader pass
   - [ ] play-test: change it in the options menu on a real display; only

@@ -240,6 +240,24 @@ commit), and the last official Linux build on Steam.
   spreads the dark levels apart (banding in dark areas), as it did with a
   ramp on an 8-bit display.
 
+### Field of view
+
+- "Field of View" in the graphics options: the vertical angle, 60 to 100
+  degrees in steps of 5, 70 being the original (`FOV` under `Graphics` in
+  `settings.cfg`, which takes any value from 30 to 140). The view is Hor+, so
+  at 16:9 the default is about 102 degrees horizontally (86 at 4:3).
+- The game keeps setting the angles it was written with (70 normally, 78
+  when hidden, the pulsing when an enemy is close, the zoom of the save
+  effect); the camera multiplies the tangent of the half angle by a factor
+  (`cCamera3D::SetFOVScale`), so these effects keep their proportions.
+  The check for an enemy being in view when hiding still uses the unscaled
+  angle, as gameplay.
+- The label and tip of the option are not in the game's language files and
+  are always in English.
+- The bounding box used for fog culling is computed from the real corner of
+  the view. The old formula used `fov * aspect / 2` as the horizontal half
+  angle, which reaches 90 degrees with a wide window and a large angle.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

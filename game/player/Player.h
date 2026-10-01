@@ -243,6 +243,13 @@ public:
 
 	iCharacterBody* GetCharacterBody(){ return mpCharBody;}
 	cCamera3D* GetCamera(){ return mpCamera;}
+
+	/**
+	 * The vertical field of view in degrees. 70 is the original view; the
+	 * angles the game sets on the camera are scaled to match.
+	 */
+	void SetViewFOV(float afDegrees);
+	float GetViewFOV(){ return mfViewFOV;}
 	
 	cVector3f GetSize(){ return mvSize;}
 	float GetCrouchHeight(){ return mfCrouchHeight;}
@@ -389,6 +396,7 @@ private:
 	bool mbActive;
 
     cCamera3D *mpCamera;
+	float mfViewFOV;
 	float mfLookSpeed;
 	float mfCameraHeightAdd;
 
