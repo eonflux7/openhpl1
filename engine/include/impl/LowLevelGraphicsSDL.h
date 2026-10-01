@@ -278,6 +278,7 @@ namespace hpl {
 		void CheckMultisampleCaps();
 
 		SDL_DisplayID ChooseDisplay();
+		void DebugDumpFrame();
 
 
 		//Batch helper

@@ -119,7 +119,8 @@ namespace hpl{
 
 		glGenProgramPipelines(1,&mlPipeline);
 		glUseProgram(0);
-		glBindProgramPipeline(mlPipeline);
+		// Bound only while a stage is active, see UpdateFragmentStage().
+		glBindProgramPipeline(0);
 		return true;
 	}
 
@@ -446,6 +447,28 @@ namespace hpl{
 		else if(mpBoundVertex)	lFragment = mpBoundVertex->mlCompanionFragment;
 
 		BindStage(GL_FRAGMENT_SHADER_BIT, lFragment);
+
+		// An empty pipeline is not "fixed function" for every driver (NVIDIA
+		// rejects draws with it), so only keep it bound while it has a stage.
+		bool bAnyStage = lFragment != 0 || (mpBoundVertex && mpBoundVertex->mlProgram);
+		glBindProgramPipeline(bAnyStage ? mlPipeline : 0);
+
+		if(bAnyStage && mbDebugInfo)
+		{
+			static int lReported = 0;
+			glValidateProgramPipeline(mlPipeline);
+			GLint lValid = GL_TRUE;
+			glGetProgramPipelineiv(mlPipeline, GL_VALIDATE_STATUS, &lValid);
+			if(!lValid && lReported < 10)
+			{
+				++lReported;
+				char sLog[2048] = "";
+				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), NULL, sLog);
+				Log("GLSL: invalid pipeline (vertex '%s', fragment '%s'): %s\n",
+					mpBoundVertex ? mpBoundVertex->msName.c_str() : "-",
+					mpBoundFragment ? mpBoundFragment->msName.c_str() : "-", sLog);
+			}
+		}
 	}
 
 	//-----------------------------------------------------------------------

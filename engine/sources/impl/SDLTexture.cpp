@@ -693,9 +693,11 @@ namespace hpl {
 			glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 		glTexParameteri(aGLTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_S,GL_REPEAT);
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_T,GL_REPEAT);
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_R,GL_REPEAT);
+		// Rectangle textures cannot repeat
+		GLint lWrap = mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_S,lWrap);
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_T,lWrap);
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_R,lWrap);
 
 		glDisable(aGLTarget);
 
@@ -723,7 +725,7 @@ namespace hpl {
 		switch(aMode)
 		{
 		case eTextureWrap_Clamp: return GL_CLAMP;
-		case eTextureWrap_Repeat: return GL_REPEAT;
+		case eTextureWrap_Repeat: return mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;
 		case eTextureWrap_ClampToEdge: return GL_CLAMP_TO_EDGE;
 		case eTextureWrap_ClampToBorder: return GL_CLAMP_TO_BORDER;
 		}

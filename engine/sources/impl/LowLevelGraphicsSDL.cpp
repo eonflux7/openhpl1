@@ -30,6 +30,12 @@
 #include "impl/VertexBufferVBO.h"
 
 #include "impl/OcclusionQueryOGL.h"
+#include "system/String.h"
+
+#include <SDL3_image/SDL_image.h>
+#include <vector>
+#include <map>
+#include <cstring>
 
 namespace hpl {
 
@@ -53,6 +59,16 @@ namespace hpl {
 		return 0;
 	}
 
+	//-------------------------------------------------
+
+	static void GLAPIENTRY GLDebugCallback(GLenum aSource, GLenum aType, GLuint alId, GLenum aSeverity,
+											GLsizei alLength, const GLchar *apMessage, const void *apUser)
+	{
+		// The same message tends to repeat every frame; log each one a few times only.
+		static std::map<GLuint,int> mapCount;
+		if(++mapCount[alId] > 3) return;
+		Log("GL DEBUG [type 0x%x id %u sev 0x%x]: %s\n", aType, alId, aSeverity, apMessage);
+	}
 	//-------------------------------------------------
 
 	GLenum TextureTargetToGL(eTextureTarget aTarget)
@@ -178,6 +194,10 @@ namespace hpl {
 		// The renderer still uses the fixed-function pipeline next to GLSL.
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
+		const char *pGLDebug = SDL_getenv("OVERTURE_GL_DEBUG");
+		bool bGLDebug = pGLDebug && pGLDebug[0] && pGLDebug[0]!='0';
+		if(bGLDebug) SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+
 		// A size <= 0 means "use the desktop resolution".
 		SDL_DisplayID lDisplay = ChooseDisplay();
 		const SDL_DisplayMode *pDesktopMode = SDL_GetDesktopDisplayMode(lDisplay);
@@ -251,6 +271,15 @@ namespace hpl {
 		Log("  OpenGL %d.%d: %s / %s\n", GLAD_VERSION_MAJOR(lGLVersion), GLAD_VERSION_MINOR(lGLVersion),
 			(const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER));
 
+		if(bGLDebug && GLAD_GL_KHR_debug)
+		{
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(GLDebugCallback, NULL);
+			// Drop notifications, keep everything else
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+			Log("  OpenGL debug output enabled\n");
+		}
+
 		if(!cGLSLProgram::InitPipeline())
 		{
 			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
@@ -271,6 +300,46 @@ namespace hpl {
 		SDL_GL_SwapWindow(mpWindow);
 
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Debugging aid: OVERTURE_DUMP_FRAMES="60,300" writes those frames to
+	// OVERTURE_DUMP_DIR (default: current dir) as frame_<n>.png.
+	void cLowLevelGraphicsSDL::DebugDumpFrame()
+	{
+		static int lFrame = 0;
+		static const char *pFrames = SDL_getenv("OVERTURE_DUMP_FRAMES");
+		++lFrame;
+		if(pFrames==NULL || pFrames[0]==0) return;
+
+		bool bDump = false;
+		for(const char *p = pFrames; *p; )
+		{
+			if(atoi(p) == lFrame) { bDump = true; break; }
+			while(*p && *p!=',') ++p;
+			if(*p==',') ++p;
+		}
+		if(!bDump) return;
+
+		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGBA32);
+		if(pSurface==NULL) return;
+
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadBuffer(GL_BACK);
+		std::vector<unsigned char> vPixels(mvScreenSize.x * mvScreenSize.y * 4);
+		glReadPixels(0,0,mvScreenSize.x,mvScreenSize.y,GL_RGBA,GL_UNSIGNED_BYTE,&vPixels[0]);
+		for(int y=0; y<mvScreenSize.y; ++y)
+		{
+			memcpy((unsigned char*)pSurface->pixels + y*pSurface->pitch,
+					&vPixels[(mvScreenSize.y-1-y) * mvScreenSize.x * 4], mvScreenSize.x * 4);
+		}
+
+		const char *pDir = SDL_getenv("OVERTURE_DUMP_DIR");
+		tString sFile = tString(pDir ? pDir : ".") + "/frame_" + cString::ToString(lFrame) + ".png";
+		IMG_SavePNG(pSurface, sFile.c_str());
+		SDL_DestroySurface(pSurface);
+		Log(" Dumped frame %d to %s (GL error: 0x%x)\n", lFrame, sFile.c_str(), glGetError());
 	}
 
 	//-----------------------------------------------------------------------
@@ -944,6 +1013,23 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SwapBuffers()
 	{
 		glFlush();
+		// The renderer uses destination alpha as scratch space, so the frame
+		// ends with arbitrary alpha. Wayland compositors treat the window as
+		// translucent, so make it opaque before presenting.
+		GLboolean vColorMask[4];
+		GLfloat vClearColor[4];
+		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
+		glGetBooleanv(GL_COLOR_WRITEMASK, vColorMask);
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, vClearColor);
+		if(bScissor) glDisable(GL_SCISSOR_TEST);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glColorMask(vColorMask[0], vColorMask[1], vColorMask[2], vColorMask[3]);
+		glClearColor(vClearColor[0], vClearColor[1], vClearColor[2], vClearColor[3]);
+		if(bScissor) glEnable(GL_SCISSOR_TEST);
+
+		DebugDumpFrame();
 		SDL_GL_SwapWindow(mpWindow);
 	}
 
