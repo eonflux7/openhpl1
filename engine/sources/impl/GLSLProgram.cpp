@@ -23,7 +23,9 @@
 #include "system/String.h"
 #include "math/Math.h"
 
+#include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <vector>
 
 namespace hpl{
@@ -35,6 +37,9 @@ namespace hpl{
 	tString cGLSLProgram::msShaderDir = "shaders/";
 	GLuint cGLSLProgram::mlPipeline = 0;
 	iLowLevelGraphics* cGLSLProgram::mpLowLevelGraphics = nullptr;
+	bool cGLSLProgram::mbReloadEnabled = false;
+	std::set<cGLSLProgram*> cGLSLProgram::msetPrograms;
+	std::vector<cGLSLProgram::cSourceFile> cGLSLProgram::mvStageSources;
 	cGLSLProgram* cGLSLProgram::mpBoundVertex = nullptr;
 	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
 
@@ -206,12 +211,14 @@ namespace hpl{
 		msName = asName;
 		mlProgram = 0;
 		mlCompanionFragment = 0;
+		msetPrograms.insert(this);
 	}
 
 	cGLSLProgram::~cGLSLProgram()
 	{
 		if(mpBoundVertex == this) mpBoundVertex = nullptr;
 		if(mpBoundFragment == this) mpBoundFragment = nullptr;
+		msetPrograms.erase(this);
 
 		if(mlProgram) glDeleteProgram(mlProgram);
 		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
@@ -228,6 +235,10 @@ namespace hpl{
 	bool cGLSLProgram::InitPipeline(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
+
+		const char *pReload = getenv("OVERTURE_SHADER_RELOAD");
+		mbReloadEnabled = pReload && pReload[0] && tString(pReload) != "0";
+		if(mbReloadEnabled) Log("  Shaders are reloaded when their files change (%s)\n", msShaderDir.c_str());
 
 		if(!GLAD_GL_VERSION_4_1 && !GLAD_GL_ARB_separate_shader_objects)
 		{
@@ -252,8 +263,33 @@ namespace hpl{
 
 	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName)
 	{
-		return CompileStage(aStage, "hpl1_" + asName +
-									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "");
+		std::vector<tString> vFiles;
+		GLuint lProgram = CompileStage(aStage, "hpl1_" + asName +
+									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "", &vFiles);
+		WatchFiles(mvStageSources, vFiles);
+		return lProgram;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cGLSLProgram::ReloadChangedFiles()
+	{
+		if(!mbReloadEnabled) return false;
+
+		static std::chrono::steady_clock::time_point lastCheck;
+		std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+		if(now - lastCheck < std::chrono::milliseconds(500)) return false;
+		lastCheck = now;
+
+		bool bChanged = FilesChanged(mvStageSources);
+		for(cGLSLProgram *pProgram : msetPrograms)
+		{
+			if(!FilesChanged(pProgram->mvSources)) continue;
+			bChanged = true;
+			if(pProgram->CompileProgram())
+				Log("GLSL: reloaded '%s'\n", pProgram->msName.c_str());
+		}
+		return bChanged;
 	}
 
 	//-----------------------------------------------------------------------
@@ -275,34 +311,100 @@ namespace hpl{
 
 	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asEntry)
 	{
-		tString sDefines;
-		tString sBase = CgNameToShaderBase(asFile, sDefines);
+		msBase = CgNameToShaderBase(asFile, msDefines);
 
-		if(mProgramType == eGpuProgramType_Vertex)
-		{
-			mlProgram = CompileStage(GL_VERTEX_SHADER, sBase + ".vertex", sDefines);
-			// Optional: not every vertex shader has a companion.
-			FILE *pFile = fopen((msShaderDir + sBase + ".fragment").c_str(),"rb");
-			if(pFile)
-			{
-				fclose(pFile);
-				mlCompanionFragment = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment", sDefines);
-			}
-		}
-		else
-		{
-			mlProgram = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment", sDefines);
-		}
-
-		if(mlProgram==0)
+		if(CompileProgram()==false)
 		{
 			Error("GLSL: Couldn't create program for '%s'\n",asFile.c_str());
 			return false;
 		}
 
-		if(mbDebugInfo) Log("GLSL: '%s' -> '%s' (%s)\n",msName.c_str(),sBase.c_str(),sDefines.c_str());
+		if(mbDebugInfo) Log("GLSL: '%s' -> '%s' (%s)\n",msName.c_str(),msBase.c_str(),msDefines.c_str());
 
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Compiles msBase with msDefines. On failure the current version, if
+	// any, is kept.
+	bool cGLSLProgram::CompileProgram()
+	{
+		std::vector<tString> vFiles;
+		GLuint lProgram = 0, lCompanion = 0;
+		bool bOk;
+
+		if(mProgramType == eGpuProgramType_Vertex)
+		{
+			lProgram = CompileStage(GL_VERTEX_SHADER, msBase + ".vertex", msDefines, &vFiles);
+			// Optional: not every vertex shader has a companion.
+			bool bHasCompanion = std::filesystem::exists(msShaderDir + msBase + ".fragment");
+			if(bHasCompanion)
+				lCompanion = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, &vFiles);
+			bOk = lProgram != 0 && (lCompanion != 0 || !bHasCompanion);
+		}
+		else
+		{
+			lProgram = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, &vFiles);
+			bOk = lProgram != 0;
+		}
+
+		WatchFiles(mvSources, vFiles);
+
+		if(!bOk)
+		{
+			if(lProgram) glDeleteProgram(lProgram);
+			if(lCompanion) glDeleteProgram(lCompanion);
+			return false;
+		}
+
+		if(mlProgram) glDeleteProgram(mlProgram);
+		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
+		mlProgram = lProgram;
+		mlCompanionFragment = lCompanion;
+		// Uniform values are lost with the old program; most are set again
+		// for every draw.
+		m_mapUniforms.clear();
+
+		if(mpBoundVertex == this) BindStage(GL_VERTEX_SHADER_BIT, mlProgram);
+		if(mpBoundVertex == this || mpBoundFragment == this) UpdateFragmentStage();
+
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Adds avFiles (relative to the shader directory) to avWatched with
+	// their current times.
+	void cGLSLProgram::WatchFiles(std::vector<cSourceFile>& avWatched, const std::vector<tString>& avFiles)
+	{
+		if(!mbReloadEnabled) return;
+
+		for(const tString& sFile : avFiles)
+		{
+			tString sPath = msShaderDir + sFile;
+			bool bFound = false;
+			for(const cSourceFile& watched : avWatched) bFound = bFound || watched.msPath == sPath;
+			if(bFound) continue;
+
+			std::error_code err;
+			avWatched.push_back({sPath, std::filesystem::last_write_time(sPath, err)});
+		}
+	}
+
+	// True if a file's time changed since the last call; updates the times.
+	bool cGLSLProgram::FilesChanged(std::vector<cSourceFile>& avWatched)
+	{
+		bool bChanged = false;
+		for(cSourceFile& watched : avWatched)
+		{
+			std::error_code err;
+			std::filesystem::file_time_type time = std::filesystem::last_write_time(watched.msPath, err);
+			if(err) continue; // mid-save, or deleted
+			if(time != watched.mTime) bChanged = true;
+			watched.mTime = time;
+		}
+		return bChanged;
 	}
 
 	//-----------------------------------------------------------------------
@@ -486,7 +588,8 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines)
+	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
+										std::vector<tString> *apFiles)
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 
@@ -496,7 +599,9 @@ namespace hpl{
 
 		// Source number 0 is the preamble above.
 		std::vector<tString> vFiles(1, "(preamble)");
-		if(ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0)==false) return 0;
+		bool bRead = ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0);
+		if(apFiles) apFiles->insert(apFiles->end(), vFiles.begin() + 1, vFiles.end());
+		if(!bRead) return 0;
 
 		tString sName = asFile;
 		if(asDefines != "") sName += " (" + asDefines + ")";

@@ -478,6 +478,13 @@ messages (NVIDIA 615). Fixed for that:
   `screenSize` uniform set per program; two refraction shaders declared
   `screenSize` without using it. Per-object values such as
   `worldViewProj` stay program uniforms.
+- `OVERTURE_SHADER_RELOAD=1` recompiles shaders while the game runs: twice
+  a second the files each program was compiled from (with its includes)
+  are checked, and programs with a changed file are compiled again. One
+  that does not compile keeps its old version and logs the error. The
+  gamma and output passes are created again after any change. Uniform
+  values set once before a reload are lost until set again; most are set
+  for every draw.
 - Reference images: unchanged.
 
 ## Known issues

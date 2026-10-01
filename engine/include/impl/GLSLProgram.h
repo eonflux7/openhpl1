@@ -19,7 +19,10 @@
 #ifndef HPL_GLSLPROGRAM_H
 #define HPL_GLSLPROGRAM_H
 
+#include <filesystem>
 #include <map>
+#include <set>
+#include <vector>
 
 #include <glad/gl.h>
 
@@ -92,13 +95,34 @@ namespace hpl {
 		 */
 		static GLuint CreateStage(GLenum aStage, const tString& asName);
 
+		/**
+		 * With OVERTURE_SHADER_RELOAD set, recompiles the programs whose
+		 * files (or the files they include) changed on disk; checks at most
+		 * twice a second. A program that does not compile keeps its old
+		 * version. Returns true if a file changed, so that the owners of
+		 * CreateStage() programs can create them again.
+		 */
+		static bool ReloadChangedFiles();
+
 	private:
+		struct cSourceFile
+		{
+			tString msPath;
+			std::filesystem::file_time_type mTime;
+		};
+
 		GLint GetUniform(const tString& asName);
-		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines);
+		bool CompileProgram();
+		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
+									std::vector<tString> *apFiles=nullptr);
+		static void WatchFiles(std::vector<cSourceFile>& avWatched, const std::vector<tString>& avFiles);
+		static bool FilesChanged(std::vector<cSourceFile>& avWatched);
 		static void BindStage(GLbitfield aStageBit, GLuint alProgram);
 		static void UpdateFragmentStage();
 
 		tString msName;
+		tString msBase;
+		tString msDefines;
 		GLuint mlProgram;
 		std::map<tString, GLint> m_mapUniforms;
 
@@ -108,8 +132,14 @@ namespace hpl {
 		// with custom outputs cannot.
 		GLuint mlCompanionFragment;
 
+		// The files the program was compiled from, for reloading.
+		std::vector<cSourceFile> mvSources;
+
 		static tString msShaderDir;
 		static iLowLevelGraphics* mpLowLevelGraphics;
+		static bool mbReloadEnabled;
+		static std::set<cGLSLProgram*> msetPrograms;
+		static std::vector<cSourceFile> mvStageSources;
 		static GLuint mlPipeline;
 		static cGLSLProgram* mpBoundVertex;
 		static cGLSLProgram* mpBoundFragment;

@@ -1056,6 +1056,14 @@ namespace hpl {
 	{
 		glFlush();
 
+		if(cGLSLProgram::ReloadChangedFiles())
+		{
+			// Created again when next drawn
+			DeleteFullscreenPass(mGammaPass);
+			DeleteFullscreenPass(mOutputPass);
+			mGammaPass.mbFailed = mOutputPass.mbFailed = false;
+		}
+
 		PresentFrame();
 
 		// The frame dumps read the window's back buffer, as shown.
