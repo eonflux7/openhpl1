@@ -186,7 +186,9 @@ namespace hpl {
 		cOAL_Init_Params cInitParams;
 		cInitParams.mbVoiceManagement = abUseVoiceManagement;
 		cInitParams.mlNumSourcesHint = alMaxChannels;
-		cInitParams.mlUpdateFreq = alStreamUpdateFreq;
+		// The original 10 Hz refill with ~185 ms of queued audio underruns on
+		// modern OpenAL Soft/PipeWire, which audibly stutters. Refill often.
+		cInitParams.mlUpdateFreq = alStreamUpdateFreq < 50 ? 50 : alStreamUpdateFreq;
 		cInitParams.mlStreamingBufferCount = alStreamingBufferCount;
 		cInitParams.mlStreamingBufferSize = alStreamingBufferSize;
 		cInitParams.mlMinMonoSourcesHint = alMaxMonoSourceHint;

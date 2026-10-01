@@ -239,7 +239,7 @@ namespace hpl {
 						aVars.GetBool("UseVoiceManagement",true),
 						aVars.GetInt("MaxMonoChannelsHint",0),
 						aVars.GetInt("MaxStereoChannelsHint",0),
-						aVars.GetInt("StreamBufferSize",4096),
+						aVars.GetInt("StreamBufferSize",16384),
 						aVars.GetInt("StreamBufferCount",8),
 						aVars.GetBool("LowLevelSoundLogging", false),
 						aVars.GetString("DeviceName"));
