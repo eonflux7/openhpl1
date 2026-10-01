@@ -116,14 +116,6 @@ Every step is checked against reference images of the renderer before it.
         8-bit rounding used to drop), check that nothing looks washed out
   - [ ] screen copies for post effects and refraction are still 8-bit, so
         bloom, depth of field and refraction clip at 1
-- [ ] **Colour space:**
-  - [ ] audit: which textures hold colour and which hold data (normal maps,
-        falloff ramps, spot masks), what each blend mode (additive,
-        modulate, modulate ×2, destination alpha) does in linear space,
-        where colour constants come from (lights, ambient, fog, HUD)
-  - [ ] colour-space flag on textures, sRGB formats for the colour ones
-  - [ ] linear lighting as a switch, off by default. Tuning the look is
-        Milestone 4
 - [ ] **Shader system:**
   - [ ] shared include files and `#define` variants instead of one file per
         combination
@@ -145,7 +137,15 @@ looks are options; the original stays available.
 
 - [ ] Tonemapping, colour grading
 - [ ] Rewrite the lighting shaders:
-  - [ ] gamma-correct lighting, retuned against the original look
+  - [ ] gamma-correct lighting, retuned against the original look, as an
+        option:
+    - [ ] colour space: which textures hold colour and which hold data
+          (normal maps, falloff ramps, spot masks), what each blend mode
+          (additive, modulate, modulate ×2, destination alpha) does in
+          linear space, where colour constants come from (lights,
+          ambient, fog, HUD)
+    - [ ] colour-space flag on textures, sRGB formats for the colour ones
+    - [ ] linear lighting switch, converted back in the output pass
   - [ ] energy-conserving specular
 - [ ] **Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
       stencil shadow volumes, or penumbra-blurred stencil shadows as an
