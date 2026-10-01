@@ -26,6 +26,8 @@
 
 #include "graphics/FontData.h"
 
+#include "tinyxml.h"
+
 
 namespace hpl {
 
@@ -95,6 +97,14 @@ namespace hpl {
 					EndLoad();
 					return nullptr;
 				}
+
+				auto vectorIt = m_mapVectorFonts.find(cString::GetFileName(asNewName));
+				if(vectorIt != m_mapVectorFonts.end())
+				{
+					const cVectorFont &vectorFont = vectorIt->second;
+					if(pFont->SetVectorFont(vectorFont.msFile,vectorFont.mfSize,vectorFont.mfWidth)==false)
+						Warning("Font '%s' uses its bitmaps\n",asNewName.c_str());
+				}
 			}
 			else
 			{
@@ -113,6 +123,37 @@ namespace hpl {
 
 		EndLoad();
 		return pFont;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cFontManager::LoadVectorFonts(const tString& asDir)
+	{
+		tString sFile = asDir + "fonts.cfg";
+
+		TiXmlDocument xmlDoc(sFile.c_str());
+		if(xmlDoc.LoadFile()==false || xmlDoc.RootElement()==nullptr)
+		{
+			Log("No vector font list '%s', using bitmap fonts\n",sFile.c_str());
+			return false;
+		}
+
+		TiXmlElement *pFontElem = xmlDoc.RootElement()->FirstChildElement("Font");
+		for(; pFontElem != nullptr; pFontElem = pFontElem->NextSiblingElement("Font"))
+		{
+			tString sName = cString::ToLowerCase(cString::ToString(pFontElem->Attribute("Name"),""));
+			tString sFontFile = cString::ToString(pFontElem->Attribute("File"),"");
+			if(sName=="" || sFontFile=="") continue;
+
+			cVectorFont vectorFont;
+			vectorFont.msFile = asDir + sFontFile;
+			vectorFont.mfSize = cString::ToFloat(pFontElem->Attribute("Size"),1);
+			vectorFont.mfWidth = cString::ToFloat(pFontElem->Attribute("Width"),1);
+
+			m_mapVectorFonts[sName] = vectorFont;
+		}
+
+		return true;
 	}
 
 	//-----------------------------------------------------------------------

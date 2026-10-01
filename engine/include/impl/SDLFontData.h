@@ -23,19 +23,50 @@
 
 #include <SDL3/SDL.h>
 
+#include <map>
+
+struct FT_FaceRec_;
+
 namespace hpl {
+
+	class cSDLFontSizedGlyphKey
+	{
+	public:
+		wchar_t mlChar;
+		int mlLineHeight;
+		int mlStretch;
+		int mlEffect;
+		int mlEffectWidth;
+
+		bool operator<(const cSDLFontSizedGlyphKey &aKey) const;
+	};
+
+	typedef std::map<cSDLFontSizedGlyphKey, cFontSizedGlyph*> tSDLFontSizedGlyphMap;
 
 	class cSDLFontData : public iFontData
 	{
 	public:
 		cSDLFontData(const tString &asName, iLowLevelGraphics* apLowLevelGraphics);
-		cSDLFontData();
+		~cSDLFontData() override;
 
 		bool CreateFromFontFile(const tString &asFileName, int alSize,unsigned short alFirstChar,
 								unsigned short alLastChar) override;
 		bool CreateFromBitmapFile(const tString &asFileName) override;
 
+		bool SetVectorFont(const tString &asFileName, float afSize, float afWidth) override;
+
+	protected:
+		cFontSizedGlyph* GetSizedGlyph(wchar_t alChar, int alLineHeight, float afStretch,
+										eFontEffect aEffect, int alEffectWidth) override;
+
 	private:
+		cFontSizedGlyph* CreateSizedGlyph(const cSDLFontSizedGlyphKey &aKey);
+
+		FT_FaceRec_ *mpFace;
+		float mfVectorSize;
+		float mfVectorWidth;
+
+		tSDLFontSizedGlyphMap m_mapSizedGlyphs;
 
 	};
 

@@ -448,6 +448,16 @@ bool cInit::Init(tString asCommandLine)
 
 	// RESOURCE INIT /////////////////////
 	mpGame->GetResources()->LoadResourceDirsFile("resources.cfg");
+
+	// The fonts (fonts/ in the source tree) are next to the executable. They
+	// replace the glyphs of the game's bitmap fonts.
+	const char *pBitmapFonts = SDL_getenv("OVERTURE_BITMAP_FONTS");
+	if(pBitmapFonts==nullptr || pBitmapFonts[0]==0 || pBitmapFonts[0]=='0')
+	{
+		mpGame->GetResources()->GetFontManager()->LoadVectorFonts(
+			tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "fonts/");
+	}
+
 	// The debug test map (testmap/ in the source tree) is built next to the executable.
 	mpGame->GetResources()->AddResourceDir(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap");
 

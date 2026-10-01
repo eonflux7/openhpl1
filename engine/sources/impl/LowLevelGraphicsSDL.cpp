@@ -936,6 +936,43 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cLowLevelGraphicsSDL::ForgetTexture(iTexture* apTex)
+	{
+		for(unsigned int lUnit=0; lUnit<MAX_TEXTUREUNITS; lUnit++)
+		{
+			if(mpCurrentTexture[lUnit] != apTex) continue;
+
+			GLint lActiveUnit = GL_TEXTURE0;
+			glGetIntegerv(GL_ACTIVE_TEXTURE,&lActiveUnit);
+
+			glActiveTexture(GL_TEXTURE0 + lUnit);
+			glDisable(GetGLTextureTargetEnum(apTex->GetTarget()));
+			glActiveTexture((GLenum)lActiveUnit);
+
+			mpCurrentTexture[lUnit] = nullptr;
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::RestoreSetTexture()
+	{
+		GLint lActiveUnit = GL_TEXTURE0;
+		glGetIntegerv(GL_ACTIVE_TEXTURE,&lActiveUnit);
+
+		int lUnit = lActiveUnit - GL_TEXTURE0;
+		if(lUnit < 0 || lUnit >= MAX_TEXTUREUNITS) return;
+
+		iTexture *pTex = mpCurrentTexture[lUnit];
+		if(pTex == nullptr) return;
+
+		GLenum target = GetGLTextureTargetEnum(pTex->GetTarget());
+		glBindTexture(target, static_cast<cSDLTexture*>(pTex)->GetTextureHandle());
+		glEnable(target);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cLowLevelGraphicsSDL::SetActiveTextureUnit(unsigned int alUnit)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);

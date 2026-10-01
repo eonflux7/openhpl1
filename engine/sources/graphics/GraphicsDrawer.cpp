@@ -375,6 +375,29 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	cGfxObject* cGraphicsDrawer::CreateGfxObject(iTexture *apTexture, const cVector2f &avUVStart,
+												const cVector2f &avUVEnd, const tString &asMaterialName)
+	{
+		iMaterial* pMat = mpMaterialHandler->Create(asMaterialName, eMaterialPicture_Texture);
+		if(pMat==nullptr){
+			FatalError("Couldn't create material '%s'!\n", asMaterialName.c_str());
+			return nullptr;
+		}
+
+		pMat->SetTexture(apTexture, eMaterialTexture_Diffuse);
+
+		cGfxObject* pObject = hplNew( cGfxObject,(pMat,"",false));
+
+		pObject->GetVtxPtr(0)->tex = cVector3f(avUVStart.x,avUVStart.y,0);
+		pObject->GetVtxPtr(1)->tex = cVector3f(avUVEnd.x,avUVStart.y,0);
+		pObject->GetVtxPtr(2)->tex = cVector3f(avUVEnd.x,avUVEnd.y,0);
+		pObject->GetVtxPtr(3)->tex = cVector3f(avUVStart.x,avUVEnd.y,0);
+
+		return pObject;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cGraphicsDrawer::DestroyGfxObject(cGfxObject* apObject)
 	{
 		STLFindAndDelete(mlstGfxObjects,apObject);

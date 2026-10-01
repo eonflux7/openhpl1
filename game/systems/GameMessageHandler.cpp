@@ -110,14 +110,8 @@ void cGameMessage::Draw(iFontData *apFont)
 	{
 		apFont->DrawWordWrap(cVector3f(fSide, 300,152),800 - fSide*2,16,14,cColor(1,1,1,mfFade),
 							eFontAlign_Left,msText);
-		apFont->DrawWordWrap(cVector3f(fSide, 300,151) + cVector3f(1,1,-1),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
-							eFontAlign_Left,msText);
-		apFont->DrawWordWrap(cVector3f(fSide, 300,151) + cVector3f(-1,-1,-1),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
-							eFontAlign_Left,msText);
-		apFont->DrawWordWrap(cVector3f(fSide, 300,151) + cVector3f(1,-1,-1),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
-							eFontAlign_Left,msText);
-		apFont->DrawWordWrap(cVector3f(fSide, 300,151) + cVector3f(-1,1,-1),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
-							eFontAlign_Left,msText);
+		apFont->DrawWordWrap(cVector3f(fSide, 300,150),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
+							eFontAlign_Left,msText,eFontEffect_Outline,1);
 	}
 }
 

@@ -46,6 +46,29 @@ find_package(OpenAL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbisfile vorbis ogg)
 
+# FreeType renders the fonts. The system library is used if its headers are
+# installed; otherwise the source is downloaded and built into the engine.
+find_package(Freetype)
+if(NOT Freetype_FOUND)
+	message(STATUS "FreeType headers not found, building FreeType 2.13.3 from source")
+	include(FetchContent)
+	set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
+	set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+	set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
+	set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+	set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
+	FetchContent_Declare(freetype
+		URL https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.xz
+		URL_HASH SHA256=0550350666d427c74daeb85d5ac7bb353acba5f76956395995311a9c6f063289
+		EXCLUDE_FROM_ALL)
+	set(overture_build_shared ${BUILD_SHARED_LIBS})
+	set(BUILD_SHARED_LIBS OFF)
+	FetchContent_MakeAvailable(freetype)
+	set(BUILD_SHARED_LIBS ${overture_build_shared})
+	target_compile_options(freetype PRIVATE -w)
+	add_library(Freetype::Freetype ALIAS freetype)
+endif()
+
 #--------------------------------------------------------------------
 # Vendored libraries
 
@@ -101,6 +124,7 @@ target_include_directories(hpl PUBLIC engine/include)
 target_link_libraries(hpl PUBLIC
 	newton angelscript oalwrapper tinyxml glad
 	SDL3::SDL3 SDL3_image::SDL3_image
+	Freetype::Freetype
 	OpenGL::GL)
 overture_warnings(hpl)
 
@@ -118,6 +142,11 @@ overture_warnings(overture)
 add_custom_command(TARGET overture POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:overture>/shaders)
+
+# Fonts are loaded from <executable dir>/fonts/
+add_custom_command(TARGET overture POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/fonts $<TARGET_FILE_DIR:overture>/fonts)
 
 # The physics test map is generated into <executable dir>/testmap/
 find_package(Python3 COMPONENTS Interpreter)

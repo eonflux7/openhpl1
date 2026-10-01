@@ -767,10 +767,8 @@ void cEffect_SubTitle::OnDraw()
 		{
 			mpFont->DrawWordWrap(cVector3f(25, 500,47),750,16,15,cColor(1,fAlpha),
 									eFontAlign_Left,subTitle.msMessage);
-			mpFont->DrawWordWrap(cVector3f(25, 500,46) + cVector3f(1,1,0),750,16,15,cColor(0,fAlpha),
-									eFontAlign_Left,subTitle.msMessage);
-			mpFont->DrawWordWrap(cVector3f(25, 500,46) + cVector3f(-1,-1,0),750,16,15,cColor(0,fAlpha),
-				eFontAlign_Left,subTitle.msMessage);
+			mpFont->DrawWordWrap(cVector3f(25, 500,46),750,16,15,cColor(0,fAlpha),
+									eFontAlign_Left,subTitle.msMessage,eFontEffect_Outline,1);
 		}
 	}
 }

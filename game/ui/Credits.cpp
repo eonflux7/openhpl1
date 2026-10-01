@@ -88,6 +88,10 @@ void cCredits::OnDraw()
 {
 	float fSize[2] = {17,19};
 	float fY = mfYPos;
+
+	// The text scrolls less than a pixel per frame.
+	mpFont->SetVerticalPixelSnap(false);
+
 	for(size_t i=0; i< mvTextRows.size(); ++i)
 	{
 		int lSize =0;
@@ -116,6 +120,8 @@ void cCredits::OnDraw()
 		}
 		fY += fSize[lSize];
 	}
+
+	mpFont->SetVerticalPixelSnap(true);
 }
 
 //-----------------------------------------------------------------------

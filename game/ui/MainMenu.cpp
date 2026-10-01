@@ -267,10 +267,7 @@ void cMainMenuWidget_Button::OnDraw()
 		float fX = 0.8f + sin(mfOverTimer)*0.2f;
 		
 		mpFont->Draw(mvPositon+cVector3f(0,0,1),mvFontSize,cColor(0.9f,0.95f,1.0f,mfAlpha*fX),mAlignment,msText.c_str());
-		mpFont->Draw(mvPositon+cVector3f(2,2,-1),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*fX),mAlignment,msText.c_str());
-		mpFont->Draw(mvPositon+cVector3f(-2,-2,-1),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*fX),mAlignment,msText.c_str());
-		mpFont->Draw(mvPositon+cVector3f(3,3,-2),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*0.5f*fX),mAlignment,msText.c_str());
-		mpFont->Draw(mvPositon+cVector3f(-3,-3,-2),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*0.5f*fX),mAlignment,msText.c_str());
+		mpFont->DrawEffect(eFontEffect_Glow,3,mvPositon+cVector3f(0,0,-1),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*fX),mAlignment,msText);
 	}
 
 }

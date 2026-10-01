@@ -194,6 +194,38 @@ commit), and the last official Linux build on Steam.
   black borders, and the unused GUI set, 2D camera, tile map and haptics code
   still assume a stretched canvas.
 
+### Fonts
+
+- Text is drawn from TrueType fonts, rendered with FreeType at the size it
+  has on screen and placed on whole pixels, instead of scaling the game's
+  bitmap fonts. It is sharp at any resolution.
+- The fonts are in `fonts/` (copied to `<executable dir>/fonts/`): Arimo for
+  the menu and game text, Cousine for the computer text. `fonts/fonts.cfg`
+  says which file replaces which of the game's `.fnt` fonts, and at what size
+  and width. These are set so that capital letters are as tall as in the
+  original font and the game's English text is as long, so text sits where it
+  did and wraps at about the same places. Line height and baseline still come
+  from the game's `.fnt` file, and its bitmaps are used for characters the
+  font file lacks.
+- The layout does not depend on the resolution: advances are the font's own,
+  unhinted.
+- The black outline of messages, subtitles and the intro text is the glyph's
+  contour widened with a round pen (`eFontEffect_Outline`), and the glow of
+  hovered menu buttons is the glyph blurred (`eFontEffect_Glow`). Both used
+  to be copies of the text moved one to three units to the sides. Drop
+  shadows and moving copies (main menu buttons, "click to continue", pre-menu
+  text) are unchanged.
+- The credits are not snapped to whole pixels vertically, so that they scroll
+  evenly.
+- `OVERTURE_BITMAP_FONTS=1`, or a missing `fonts/` directory, gives the
+  bitmap fonts and the old outline and glow.
+- Rendered glyphs are kept for as long as the font is loaded; nothing is
+  dropped when sizes stop being used.
+- Fixed in passing: creating or reloading a texture left it bound in place of
+  the texture the engine had set on that unit, and a destroyed texture stayed
+  recorded as set. With only text on screen (pre-menu) the glyphs were drawn
+  untextured.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

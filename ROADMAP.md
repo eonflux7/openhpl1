@@ -50,7 +50,12 @@ Make sure nothing regressed before changing anything.
 - [ ] Uncapped / high-refresh frame rate with interpolated rendering (logic
       stays at its fixed rate)
 - [ ] Display, window mode and V-Sync options for SDL3 in the menu
-- [ ] High-DPI and upscaled UI assets (fonts are already upscaled)
+- [x] **Fonts** rendered from TrueType files at screen resolution, with real
+      outline and glow (see CHANGES)
+  - [ ] play-test: notebook notes and task list (`cour.fnt`), credits,
+        inventory texts and non-English text were not covered by the
+        screenshot checks
+- [ ] High-DPI and upscaled UI assets (cursor, inventory, notebook, menu art)
 - [ ] Gamepad support (stretch)
 
 ## Milestone 3: renderer

@@ -160,6 +160,17 @@ namespace hpl {
 
 		// TEXTURE
 		void SetTexture(unsigned int alUnit,iTexture* apTex) override;
+		/**
+		 * Called by a texture being destroyed, so that SetTexture does not
+		 * take a new texture at the same address for the one still set.
+		 */
+		void ForgetTexture(iTexture* apTex);
+		/**
+		 * Called by a texture after it has bound itself to create or update
+		 * its data: binds and enables the texture set with SetTexture on the
+		 * active unit again.
+		 */
+		void RestoreSetTexture();
 		void SetActiveTextureUnit(unsigned int alUnit) override;
 		void SetTextureEnv(eTextureParam aParam, int alVal) override;
 		void SetTextureConstantColor(const cColor &aColor) override;

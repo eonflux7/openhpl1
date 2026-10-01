@@ -45,6 +45,10 @@ sudo dnf install gcc-c++ cmake ninja-build SDL3-devel SDL3_image-devel \
 Newton, AngelScript, OALWrapper and the glad OpenGL loader are vendored in
 `vendor/`.
 
+FreeType renders the fonts. With `freetype-devel` installed the system library
+is used; without it, CMake downloads FreeType 2.13.3 and builds it into the
+engine. The fonts themselves are in `fonts/`.
+
 ```
 cmake --preset default
 cmake --build --preset default
@@ -106,6 +110,7 @@ saves.
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on; default is the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
+| `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
 | `OVERTURE_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |

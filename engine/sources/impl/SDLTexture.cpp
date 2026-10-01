@@ -54,6 +54,8 @@ namespace hpl {
 
 	cSDLTexture::~cSDLTexture()
 	{
+		mpGfxSDL->ForgetTexture(this);
+
 		for(size_t i=0; i<mvTextureHandles.size(); ++i)
 		{
 			glDeleteTextures(1,(GLuint *)&mvTextureHandles[i]);
@@ -702,6 +704,9 @@ namespace hpl {
 		glDisable(aGLTarget);
 
 		mbContainsData = true;
+
+		//Creating the texture has replaced the one set on this unit.
+		mpGfxSDL->RestoreSetTexture();
 	}
 
 	//-----------------------------------------------------------------------

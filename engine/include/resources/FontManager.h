@@ -19,6 +19,7 @@
 #ifndef HPL_FONT_MANAGER_H
 #define HPL_FONT_MANAGER_H
 
+#include <map>
 #include "resources/ResourceManager.h"
 
 namespace hpl {
@@ -49,7 +50,25 @@ namespace hpl {
 		void Destroy(iResourceBase* apResource) override;
 		void Unload(iResourceBase* apResource) override;
 
+		/**
+		 * Load a list of vector fonts that replace the glyphs of bitmap fonts
+		 * created after this (see iFontData::SetVectorFont). The list is the
+		 * file fonts.cfg in the directory, with the font files next to it.
+		 * \param asDir directory, ending with a slash
+		 * \return false if there is no list
+		 */
+		bool LoadVectorFonts(const tString& asDir);
+
 	private:
+		class cVectorFont
+		{
+		public:
+			tString msFile;
+			float mfSize;
+			float mfWidth;
+		};
+		std::map<tString, cVectorFont> m_mapVectorFonts;
+
 		cGraphics* mpGraphics;
 		cResources *mpResources;
 		cGui *mpGui;

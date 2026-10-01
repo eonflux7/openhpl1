@@ -30,6 +30,7 @@ namespace hpl {
 	class cGfxObject;
 	class cMaterialHandler;
 	class iMaterial;
+	class iTexture;
 
 	class cGfxBufferObject
 	{
@@ -120,6 +121,18 @@ namespace hpl {
 
 		cGfxObject* CreateGfxObjectFromTexture(const tString &asFileName, const tString &asMaterialName,
 												bool abAddToList=true);
+		/**
+		 * Create gfx object showing a part of a texture that the caller owns.
+		 * The object is not added to the list. Before deleting it, the texture
+		 * must be taken out of its material (SetTexture(nullptr,...)), or the
+		 * material hands it to the texture manager to destroy.
+		 * \param *apTexture
+		 * \param avUVStart texture coordinate of the upper left corner
+		 * \param avUVEnd texture coordinate of the lower right corner
+		 * \param &asMaterialName material to use
+		 */
+		cGfxObject* CreateGfxObject(iTexture *apTexture, const cVector2f &avUVStart,
+									const cVector2f &avUVEnd, const tString &asMaterialName);
 		/**
 		 * Destroys a gfx object.
 		 */
