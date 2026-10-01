@@ -18,6 +18,7 @@
  */
 #include "impl/GLSLProgram.h"
 #include "impl/SDLTexture.h"
+#include "graphics/LowLevelGraphics.h"
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
 #include "math/Math.h"
@@ -33,6 +34,7 @@ namespace hpl{
 
 	tString cGLSLProgram::msShaderDir = "shaders/";
 	GLuint cGLSLProgram::mlPipeline = 0;
+	iLowLevelGraphics* cGLSLProgram::mpLowLevelGraphics = nullptr;
 	cGLSLProgram* cGLSLProgram::mpBoundVertex = nullptr;
 	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
 
@@ -223,8 +225,10 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	bool cGLSLProgram::InitPipeline()
+	bool cGLSLProgram::InitPipeline(iLowLevelGraphics *apLowLevelGraphics)
 	{
+		mpLowLevelGraphics = apLowLevelGraphics;
+
 		if(!GLAD_GL_VERSION_4_1 && !GLAD_GL_ARB_separate_shader_objects)
 		{
 			Error("OpenGL separate shader objects are not supported!\n");
@@ -386,41 +390,27 @@ namespace hpl{
 		GLint lLoc = GetUniform(asName);
 		if(lLoc < 0) return false;
 
-		// Like cgGLSetStateMatrixParameter: sample the fixed-function
-		// matrix stacks now. GL matrices are column-major.
-		float vModelView[16], vProj[16], vResult[16];
-
+		// Like cgGLSetStateMatrixParameter: the current matrices, as kept
+		// by the low-level graphics.
+		cMatrixf mtxResult;
 		switch(mType)
 		{
 		case eGpuProgramMatrix_View:
-			glGetFloatv(GL_MODELVIEW_MATRIX, vResult);
+			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_ModelView);
 			break;
 		case eGpuProgramMatrix_Projection:
-			glGetFloatv(GL_PROJECTION_MATRIX, vResult);
+			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_Projection);
 			break;
 		case eGpuProgramMatrix_Texture:
-			glGetFloatv(GL_TEXTURE_MATRIX, vResult);
+			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_Texture);
 			break;
 		case eGpuProgramMatrix_ViewProjection:
-			glGetFloatv(GL_MODELVIEW_MATRIX, vModelView);
-			glGetFloatv(GL_PROJECTION_MATRIX, vProj);
-			for(int c=0; c<4; ++c)
-				for(int r=0; r<4; ++r)
-				{
-					float fSum = 0;
-					for(int k=0; k<4; ++k) fSum += vProj[k*4 + r] * vModelView[c*4 + k];
-					vResult[c*4 + r] = fSum;
-				}
+			mtxResult = cMath::MatrixMul(mpLowLevelGraphics->GetMatrix(eMatrix_Projection),
+										mpLowLevelGraphics->GetMatrix(eMatrix_ModelView));
 			break;
 		default:
 			return false;
 		}
-
-		// Matrix ops are kept in cMatrixf (row-major) form.
-		cMatrixf mtxResult;
-		for(int c=0; c<4; ++c)
-			for(int r=0; r<4; ++r)
-				mtxResult.m[r][c] = vResult[c*4 + r];
 
 		switch(mOp)
 		{

@@ -463,6 +463,12 @@ messages (NVIDIA 615). Fixed for that:
   material type and its shaders (no game material uses it, and its vertex
   shader did not compile); `hpl1_Diffuse_ColorMul.vertex` and
   `hpl1_PostEffect_Offset`, which nothing loaded.
+- The model-view, projection and texture matrices are kept on the CPU by
+  the low-level graphics (`GetMatrix`) and loaded into GL from there.
+  Programs take `worldViewProj` and the other state matrices from those
+  instead of reading them back from GL (`glGetFloatv`) on every draw.
+  `RotateMatrix`, which nothing called (and which turned by 1 degree
+  whatever it was given), is gone.
 - Reference images: unchanged.
 
 ## Known issues

@@ -75,6 +75,19 @@ namespace hpl {
 		if(++mapCount[std::string(apMessage, alLength >= 0 ? alLength : strlen(apMessage))] > 3) return;
 		Log("GL DEBUG [type 0x%x id %u sev 0x%x]: %s\n", aType, alId, aSeverity, apMessage);
 	}
+
+	//-------------------------------------------------
+
+	// The matrix glOrtho multiplies by.
+	static cMatrixf OrthoMatrix(float afLeft, float afRight, float afBottom, float afTop,
+								float afNear, float afFar)
+	{
+		return cMatrixf(2.0f/(afRight-afLeft), 0, 0, -(afRight+afLeft)/(afRight-afLeft),
+						0, 2.0f/(afTop-afBottom), 0, -(afTop+afBottom)/(afTop-afBottom),
+						0, 0, -2.0f/(afFar-afNear), -(afFar+afNear)/(afFar-afNear),
+						0, 0, 0, 1);
+	}
+
 	//-------------------------------------------------
 
 	GLenum TextureTargetToGL(eTextureTarget aTarget)
@@ -291,7 +304,7 @@ namespace hpl {
 			Log("  OpenGL debug output enabled\n");
 		}
 
-		if(!cGLSLProgram::InitPipeline())
+		if(!cGLSLProgram::InitPipeline(this))
 		{
 			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
 			return false;
@@ -518,10 +531,12 @@ namespace hpl {
 		//Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		for(int i=0; i<eMatrix_LastEnum; ++i)
+		{
+			mvMatrixStack[i].assign(1, cMatrixf::Identity);
+			LoadMatrix((eMatrix)i);
+		}
 		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
 
 		//glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 
@@ -793,8 +808,9 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::PushMatrix(eMatrix aMtxType)
 	{
+		std::vector<cMatrixf>& vStack = mvMatrixStack[aMtxType];
+		vStack.push_back(vStack.back());
 		SetMatrixMode(aMtxType);
-		glPushMatrix();
 	}
 
 	//-----------------------------------------------------------------------
@@ -802,16 +818,16 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::PopMatrix(eMatrix aMtxType)
 	{
-		SetMatrixMode(aMtxType);
-		glPopMatrix();
+		std::vector<cMatrixf>& vStack = mvMatrixStack[aMtxType];
+		if(vStack.size() > 1) vStack.pop_back();
+		LoadMatrix(aMtxType);
 	}
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)
 	{
-		SetMatrixMode(aMtxType);
-		cMatrixf mtxTranpose = a_mtxA.GetTranspose();
-		glLoadMatrixf(mtxTranpose.v);
+		mvMatrixStack[aMtxType].back() = a_mtxA;
+		LoadMatrix(aMtxType);
 	}
 
 	//-----------------------------------------------------------------------
@@ -819,8 +835,8 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetIdentityMatrix(eMatrix aMtxType)
 	{
-		SetMatrixMode(aMtxType);
-		glLoadIdentity();
+		mvMatrixStack[aMtxType].back() = cMatrixf::Identity;
+		LoadMatrix(aMtxType);
 	}
 
 	//-----------------------------------------------------------------------
@@ -828,39 +844,25 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos)
 	{
-		SetMatrixMode(aMtxType);
-		glTranslatef(avPos.x,avPos.y,avPos.z);
-	}
-
-	//-----------------------------------------------------------------------
-
-
-	/**
-	 * \todo fix so that there are X, Y , Z versions of this one.
-	 * \param aMtxType
-	 * \param &avRot
-	 */
-	void cLowLevelGraphicsSDL::RotateMatrix(eMatrix aMtxType, const cVector3f &avRot)
-	{
-		SetMatrixMode(aMtxType);
-		glRotatef(1,avRot.x,avRot.y,avRot.z);
+		cMatrixf& mtx = mvMatrixStack[aMtxType].back();
+		mtx = cMath::MatrixMul(mtx, cMath::MatrixTranslate(avPos));
+		LoadMatrix(aMtxType);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)
 	{
-		SetMatrixMode(aMtxType);
-		glScalef(avScale.x,avScale.y,avScale.z);
+		cMatrixf& mtx = mvMatrixStack[aMtxType].back();
+		mtx = cMath::MatrixMul(mtx, cMath::MatrixScale(avScale));
+		LoadMatrix(aMtxType);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)
 	{
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0,avSize.x,avSize.y,0,afMin,afMax);
+		SetMatrix(eMatrix_Projection, OrthoMatrix(0,avSize.x,avSize.y,0,afMin,afMax));
 	}
 
 	//-----------------------------------------------------------------------
@@ -869,10 +871,8 @@ namespace hpl {
 	{
 		cVector2f vOffset = GetVirtualOffset();
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(-vOffset.x, mvVirtualSize.x + vOffset.x,
-				mvVirtualSize.y + vOffset.y, -vOffset.y, afMin,afMax);
+		SetMatrix(eMatrix_Projection, OrthoMatrix(-vOffset.x, mvVirtualSize.x + vOffset.x,
+												mvVirtualSize.y + vOffset.y, -vOffset.y, afMin,afMax));
 	}
 
 	//-----------------------------------------------------------------------
@@ -2463,6 +2463,16 @@ namespace hpl {
 		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP_EXT;
 		}
 		return 0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::LoadMatrix(eMatrix aMtxType)
+	{
+		SetMatrixMode(aMtxType);
+		// cMatrixf is row-major, GL wants columns
+		cMatrixf mtxTranspose = mvMatrixStack[aMtxType].back().GetTranspose();
+		glLoadMatrixf(mtxTranspose.v);
 	}
 
 	//-----------------------------------------------------------------------

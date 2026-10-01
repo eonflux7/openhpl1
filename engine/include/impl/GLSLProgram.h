@@ -28,6 +28,8 @@
 
 namespace hpl {
 
+	class iLowLevelGraphics;
+
 	/**
 	 * Replacement for the original Cg program class.
 	 *
@@ -73,7 +75,8 @@ namespace hpl {
 
 		GLuint GetHandle(){ return mlProgram; }
 
-		static bool InitPipeline();
+		/// apLowLevelGraphics supplies the matrices for SetMatrixf.
+		static bool InitPipeline(iLowLevelGraphics *apLowLevelGraphics);
 		static void ExitPipeline();
 
 		static void SetShaderDirectory(const tString& asDir){ msShaderDir = asDir; }
@@ -103,6 +106,7 @@ namespace hpl {
 		GLuint mlCompanionFragment;
 
 		static tString msShaderDir;
+		static iLowLevelGraphics* mpLowLevelGraphics;
 		static GLuint mlPipeline;
 		static cGLSLProgram* mpBoundVertex;
 		static cGLSLProgram* mpBoundFragment;

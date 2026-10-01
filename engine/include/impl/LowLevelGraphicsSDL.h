@@ -107,8 +107,9 @@ namespace hpl {
 		void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA) override;
 
 		void TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos) override;
-		void RotateMatrix(eMatrix aMtxType, const cVector3f &avRot) override;
 		void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale) override;
+
+		const cMatrixf& GetMatrix(eMatrix aMtxType) override{ return mvMatrixStack[aMtxType].back(); }
 
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
 		void SetVirtualOrthoProjection(float afMin, float afMax) override;
@@ -371,6 +372,11 @@ namespace hpl {
 
 		//Matrix Helper
 		void SetMatrixMode(eMatrix mType);
+		// Loads the top of the CPU stack into the GL matrix (fixed-function
+		// drawing still reads those).
+		void LoadMatrix(eMatrix aMtxType);
+		// Top is the current matrix; never empty.
+		std::vector<cMatrixf> mvMatrixStack[eMatrix_LastEnum];
 
 		//Texture helper
 		GLenum GetGLTextureParamEnum(eTextureParam aType);

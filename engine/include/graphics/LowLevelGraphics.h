@@ -326,8 +326,10 @@ namespace hpl {
 		virtual void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)=0;
 
 		virtual void TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos)=0;
-		virtual void RotateMatrix(eMatrix aMtxType, const cVector3f &avRot)=0;
 		virtual void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)=0;
+
+		/// The current matrix, kept on the CPU (no GL read back).
+		virtual const cMatrixf& GetMatrix(eMatrix aMtxType)=0;
 
 		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
 		/**
