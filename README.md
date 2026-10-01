@@ -86,6 +86,33 @@ The log records when each body wakes and comes to rest (time, distance, peak
 speed, joint angle or distance), bodies that never settle, and what the player
 grabs and releases. Both variables work with the original maps too.
 
+### Reference images
+
+`tools/refshots.py` checks that a change leaves the rendering alone. It runs
+the game in a headless gamescope session, with its own settings file and
+OpenAL Soft's null audio backend, so your settings, screen and speakers are
+not used:
+
+```
+tools/refshots.py capture /tmp/ref            # before the change
+tools/refshots.py capture /tmp/new            # after
+tools/refshots.py compare /tmp/ref /tmp/new --diff-dir /tmp/diff
+```
+
+A capture (about a minute) visits every map: each start position, and up to
+six of the map's lights, looking in four directions from each, with the
+flashlight on. It saves the 3D view only, without the HUD, fades or menus,
+at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
+some maps, `--size` changes the resolution and `--set Graphics.Shadows=2`
+any setting. `compare` lists the frames that differ and exits with 1 if any
+do.
+
+Two captures of the same build are identical except for a few pixels in a
+few frames, which `compare` ignores (`--tolerance`, `--max-pixels`), and
+possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
+scripted light sequences are timed partly by sounds. Their differences are
+listed as "unstable" and do not count.
+
 ## Running
 
 ```
@@ -117,6 +144,7 @@ saves.
 | `OVERTURE_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
 | `OVERTURE_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
+| `OVERTURE_REFSHOTS=1` | Save reference images of every map and quit (`OVERTURE_REFSHOTS=office,worm` for some maps) to `OVERTURE_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
 
 ## Requirements
 
@@ -137,6 +165,7 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders (from ScummVM's HPL1 port)
 testmap/   generator and level script for the physics test map
+tools/     refshots.py: reference images for renderer changes
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad
 run.sh     launcher
 ```

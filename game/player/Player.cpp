@@ -643,7 +643,7 @@ void cPlayer::AddHealth(float afX)
 
 void cPlayer::Damage(float afDamage, ePlayerDamageType aType)
 {
-	if(afDamage <= 0) return;
+	if(afDamage <= 0 || mbGodMode) return;
 	if(mpInit->mpMapHandler->IsChangingMap()) return;
 	if(mfHealth <=0) return;
 

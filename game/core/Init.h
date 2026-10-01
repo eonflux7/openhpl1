@@ -50,6 +50,7 @@ class cIntroStory;
 
 class cMainMenu;
 class cSmokeTest;
+class cRefShots;
 class cPhysicsLog;
 
 #include "core/GameTypes.h"
@@ -207,6 +208,7 @@ public:
 	cMainMenu *mpMainMenu;
 
 	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
+	cRefShots *mpRefShots; // NULL unless OVERTURE_REFSHOTS is set
 	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
 
 	cIntroStory* mpIntroStory;	

@@ -985,11 +985,11 @@ namespace hpl {
 
 			if(lCount>0)
 			{
-				int lNum = cMath::RandRectl(1, lCount);
+				int lNum = cMath::SoundRandRectl(1, lCount);
 
 				if(lCount > 2)
 				{
-					while(lLastNum == lNum) lNum = cMath::RandRectl(1, lCount);
+					while(lLastNum == lNum) lNum = cMath::SoundRandRectl(1, lCount);
 				}
 				SoundIt->second = lNum;
 

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <map>
+#include <random>
 
 namespace hpl {
 
@@ -74,6 +75,24 @@ namespace hpl {
 							RandRectf(aMin.g, aMax.g),
 							RandRectf(aMin.b, aMax.b),
 							RandRectf(aMin.a, aMax.a));
+	}
+
+	//-----------------------------------------------------------------------
+
+	static std::minstd_rand& SoundRandom()
+	{
+		static std::minstd_rand gen((unsigned)time(nullptr));
+		return gen;
+	}
+
+	int cMath::SoundRandRectl(int alMin, int alMax)
+	{
+		return std::uniform_int_distribution<int>(alMin, alMax)(SoundRandom());
+	}
+
+	float cMath::SoundRandRectf(float afMin, float afMax)
+	{
+		return std::uniform_real_distribution<float>(afMin, afMax)(SoundRandom());
 	}
 
 	//-----------------------------------------------------------------------

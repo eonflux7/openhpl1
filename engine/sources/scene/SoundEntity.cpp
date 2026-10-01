@@ -434,7 +434,7 @@ namespace hpl {
 				if(mfIntervalCount >= mpData->GetInterval())
 				{
 					//Check random and if rand is right play the sound.
-					if(cMath::RandRectf(0,1) <= mpData->GetRandom() ||
+					if(cMath::SoundRandRectf(0,1) <= mpData->GetRandom() ||
 						mpData->GetRandom()==0)
 					{
 						PlaySound(mpData->GetMainSoundName(),false,eSoundEntityType_Main);

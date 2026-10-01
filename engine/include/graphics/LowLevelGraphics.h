@@ -301,6 +301,11 @@ namespace hpl {
 		//TODO: Kinda quick and diry, better to have a screen to Bitmap.
 		// and then a save as in the Bitmap.
 		virtual void SaveScreenToBMP(const tString& asFile)=0;
+		/**
+		 * Saves the next frame as a PNG, as it is when it is shown: after
+		 * everything has been drawn and just before the buffers are swapped.
+		 */
+		virtual void SaveNextFrameToPNG(const tString& asFile)=0;
 
 		/////////// MATRIX METHODS //////////////////////////
 

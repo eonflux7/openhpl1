@@ -77,6 +77,12 @@ namespace hpl {
 		 */
 		float GetInterpolation();
 
+		/**
+		 * One update for every update loop, whatever the clock says. Makes a
+		 * run repeatable: each drawn frame comes after exactly one step.
+		 */
+		void SetFixedStep(bool abX){ mbFixedStep = abX;}
+		bool GetFixedStep(){ return mbFixedStep;}
 
 
 	private:
@@ -87,6 +93,7 @@ namespace hpl {
 
 		int mlMaxUpdates;
 		int mlUpdateCount;
+		bool mbFixedStep;
 
 		iLowLevelSystem *mpLowLevelSystem;
 	};

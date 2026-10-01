@@ -198,6 +198,8 @@ public:
 	void AddHealth(float afX);
 	float GetHealth(){ return mfHealth;}
 	void Damage(float afDamage, ePlayerDamageType aType);
+	// Damage() does nothing. Not saved.
+	void SetGodMode(bool abX){ mbGodMode = abX;}
 
 	void DestroyWorldObjects();
 
@@ -481,6 +483,7 @@ private:
 	cLinearOscillation mItemFlash;
 	bool mbItemFlash;
 
+	bool mbGodMode = false;
 	float mfHealth;
 
 	float mfPower;

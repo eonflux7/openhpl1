@@ -59,6 +59,7 @@
 
 #include "ui/MainMenu.h"
 #include "core/SmokeTest.h"
+#include "core/RefShots.h"
 #include "systems/PhysicsLog.h"
 
 #include "ui/IntroStory.h"
@@ -178,6 +179,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 {
 	mbDestroyGraphics = true;
 	mpSmokeTest = nullptr;
+	mpRefShots = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
@@ -568,6 +570,8 @@ bool cInit::Init(tString asCommandLine)
 		mpSmokeTest = hplNew( cSmokeTest,(this, cSmokeTest::GetSpec()) );
 	if(cPhysicsLog::IsRequested())
 		mpPhysicsLog = hplNew( cPhysicsLog,(this) );
+	if(mpSmokeTest==nullptr && cRefShots::IsRequested())
+		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -618,12 +622,13 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetUpdater()->SetContainer("Default");
 
-	if(mpSmokeTest)
+	iUpdateable *pAutoRun = mpSmokeTest ? static_cast<iUpdateable*>(mpSmokeTest) : mpRefShots;
+	if(pAutoRun)
 	{
 		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
 									"PreMenu","Credits","DemoEndText"};
 		for(const char *sContainer : vContainers)
-			mpGame->GetUpdater()->AddUpdate(sContainer, mpSmokeTest);
+			mpGame->GetUpdater()->AddUpdate(sContainer, pAutoRun);
 	}
 	if(mpPhysicsLog)
 		mpGame->GetUpdater()->AddUpdate("Default", mpPhysicsLog);
@@ -655,6 +660,11 @@ bool cInit::Init(tString asCommandLine)
 	{
 		if(mpSmokeTest->GetFirstMap() != "")
 			mpMapHandler->Load(mpSmokeTest->GetFirstMap(),"");
+	}
+	else if(mpRefShots)
+	{
+		if(mpRefShots->GetFirstMap() != "")
+			mpMapHandler->Load(mpRefShots->GetFirstMap(),"");
 	}
 	else if(msDirectMap != "")
 	{
@@ -807,6 +817,7 @@ void cInit::Exit()
 	Log(" Exit Main menu\n");
 	hplDelete( mpMainMenu );
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
+	if(mpRefShots) hplDelete( mpRefShots );
 	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
 	hplDelete( mpPlayerHands );

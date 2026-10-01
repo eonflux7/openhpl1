@@ -336,6 +336,30 @@ commit), and the last official Linux build on Steam.
 - The advanced graphics menu has one more row; its rows are 26 units apart
   instead of 29.
 
+## Milestone 3: renderer foundation
+
+### Reference images
+
+- `OVERTURE_REFSHOTS` saves frames from fixed places in every map and quits
+  (`cRefShots`); `tools/refshots.py` runs it headless and compares two runs.
+  To make two runs give the same frames:
+  - the logic timer has a fixed-step mode (`cLogicTimer::SetFixedStep`):
+    one logic step per drawn frame whatever the clock says, and the frame
+    time handed to the renderer is the step size
+  - the random seed is set when the run starts and at each map
+  - sounds are chosen with a random number generator of their own
+    (`cMath::SoundRandRectl/f`): they are chosen when others end, which
+    happens in real time, and used to shift the random numbers of
+    particles and flickering lights
+  - radio subtitles are off and flickering lights are held on
+- The run turns off the game's 2D drawing (`cGraphicsDrawer::SetSkipDrawing`)
+  and makes the player unhurtable (`cPlayer::SetGodMode`); it keeps the
+  flashlight on and powered. It restores the frame-rate limit and subtitle
+  settings before the game saves them.
+- `iLowLevelGraphics::SaveNextFrameToPNG` saves the next frame as it is shown,
+  after the gamma pass. `OVERTURE_DUMP_FRAMES` uses the same code and now
+  writes RGB images instead of RGBA.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

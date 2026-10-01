@@ -147,6 +147,12 @@ namespace hpl {
 
 	void cGraphicsDrawer::DrawAll()
 	{
+		if(mbSkipDrawing)
+		{
+			m_setGfxBuffer.clear();
+			return;
+		}
+
 		//Set all states
 		mpLowLevelGraphics->SetDepthTestActive(false);
 		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);

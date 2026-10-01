@@ -20,6 +20,7 @@
 
 #include "core/Init.h"
 #include "core/SmokeTest.h"
+#include "core/RefShots.h"
 
 #include <SDL3/SDL.h>
 
@@ -42,7 +43,8 @@ int hplMain(const tString& asCommandLine)
 
 	pInit->Run();
 
-	bool bSmokeFailed = pInit->mpSmokeTest && pInit->mpSmokeTest->Failed();
+	bool bAutoRunFailed = (pInit->mpSmokeTest && pInit->mpSmokeTest->Failed()) ||
+						(pInit->mpRefShots && pInit->mpRefShots->Failed());
 
 	pInit->Exit();
 
@@ -50,5 +52,5 @@ int hplMain(const tString& asCommandLine)
 	
 	cMemoryManager::LogResults();
 
-	return bSmokeFailed ? 1 : 0;
+	return bAutoRunFailed ? 1 : 0;
 }

@@ -91,6 +91,7 @@ namespace hpl {
 		iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType) override;
 
 		void SaveScreenToBMP(const tString& asFile) override;
+		void SaveNextFrameToPNG(const tString& asFile) override { msSaveNextFrame = asFile; }
 
 		/////////// MATRIX METHODS /////////////////////////
 
@@ -305,6 +306,8 @@ namespace hpl {
 		SDL_DisplayID ChooseDisplay(int alDisplay);
 		SDL_DisplayID GetDisplayID(int alDisplay);
 		void DebugDumpFrame();
+		bool SaveFrameToPNG(const tString& asFile);
+		tString msSaveNextFrame;
 
 		bool CreateGammaPass();
 		void DrawGammaPass();

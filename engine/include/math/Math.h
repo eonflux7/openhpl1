@@ -72,6 +72,15 @@ namespace hpl {
 		 */
 		static void Randomize(int alSeed = -1);
 
+		/**
+		 * Random numbers for choosing sounds, from a generator of their own.
+		 * Sounds are chosen when others end, which happens in real time;
+		 * drawing from the generator above would make particles and
+		 * flickering lights depend on it. Randomize() does not seed it.
+		 */
+		static int SoundRandRectl(int alMin, int alMax);
+		static float SoundRandRectf(float afMin, float afMax);
+
 		//////////////////////////////////////////////////////
 		////////// COLLSION //////////////////////////////////
 		//////////////////////////////////////////////////////

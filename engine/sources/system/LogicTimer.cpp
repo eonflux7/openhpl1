@@ -31,6 +31,7 @@ namespace hpl {
 	{
 		mlMaxUpdates = alUpdatesPerSec;
 		mlUpdateCount =0;
+		mbFixedStep = false;
 
 		mpLowLevelSystem = apLowLevelSystem;
 
@@ -60,6 +61,7 @@ namespace hpl {
 	bool cLogicTimer::WantUpdate()
 	{
 		++mlUpdateCount;
+		if(mbFixedStep) return mlUpdateCount == 1;
 		if(mlUpdateCount > mlMaxUpdates) return false;
 
 		if(mlLocalTime< GetApplicationTimeExact())
@@ -114,6 +116,8 @@ namespace hpl {
 
 	float cLogicTimer::GetInterpolation()
 	{
+		if(mbFixedStep) return 1.0f;
+
 		// mlLocalTime is when the next update is due.
 		double fT = 1.0 - (mlLocalTime - GetApplicationTimeExact()) / mlLocalTimeAdd;
 		if(fT < 0.0) fT = 0.0;

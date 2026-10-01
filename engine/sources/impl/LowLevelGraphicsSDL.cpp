@@ -333,24 +333,33 @@ namespace hpl {
 		}
 		if(!bDump) return;
 
-		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGBA32);
-		if(pSurface==nullptr) return;
+		const char *pDir = SDL_getenv("OVERTURE_DUMP_DIR");
+		tString sFile = tString(pDir ? pDir : ".") + "/frame_" + cString::ToString(lFrame) + ".png";
+		SaveFrameToPNG(sFile);
+		Log(" Dumped frame %d to %s (GL error: 0x%x)\n", lFrame, sFile.c_str(), glGetError());
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cLowLevelGraphicsSDL::SaveFrameToPNG(const tString& asFile)
+	{
+		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGB24);
+		if(pSurface==nullptr) return false;
 
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadBuffer(GL_BACK);
-		std::vector<unsigned char> vPixels(mvScreenSize.x * mvScreenSize.y * 4);
-		glReadPixels(0,0,mvScreenSize.x,mvScreenSize.y,GL_RGBA,GL_UNSIGNED_BYTE,&vPixels[0]);
+		std::vector<unsigned char> vPixels(mvScreenSize.x * mvScreenSize.y * 3);
+		glReadPixels(0,0,mvScreenSize.x,mvScreenSize.y,GL_RGB,GL_UNSIGNED_BYTE,&vPixels[0]);
 		for(int y=0; y<mvScreenSize.y; ++y)
 		{
 			memcpy((unsigned char*)pSurface->pixels + y*pSurface->pitch,
-					&vPixels[(mvScreenSize.y-1-y) * mvScreenSize.x * 4], mvScreenSize.x * 4);
+					&vPixels[(mvScreenSize.y-1-y) * mvScreenSize.x * 3], mvScreenSize.x * 3);
 		}
 
-		const char *pDir = SDL_getenv("OVERTURE_DUMP_DIR");
-		tString sFile = tString(pDir ? pDir : ".") + "/frame_" + cString::ToString(lFrame) + ".png";
-		IMG_SavePNG(pSurface, sFile.c_str());
+		bool bRet = IMG_SavePNG(pSurface, asFile.c_str());
 		SDL_DestroySurface(pSurface);
-		Log(" Dumped frame %d to %s (GL error: 0x%x)\n", lFrame, sFile.c_str(), glGetError());
+		if(bRet==false) Error("Couldn't save frame to '%s': %s\n", asFile.c_str(), SDL_GetError());
+		return bRet;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1131,6 +1140,11 @@ namespace hpl {
 		DrawGammaPass();
 
 		DebugDumpFrame();
+		if(msSaveNextFrame != "")
+		{
+			SaveFrameToPNG(msSaveNextFrame);
+			msSaveNextFrame = "";
+		}
 		SDL_GL_SwapWindow(mpWindow);
 	}
 

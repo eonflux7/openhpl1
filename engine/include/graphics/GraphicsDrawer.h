@@ -100,6 +100,11 @@ namespace hpl {
 		void DrawAll();
 
 		/**
+		 * DrawAll() throws away what has been queued instead of drawing it.
+		 */
+		void SetSkipDrawing(bool abX){ mbSkipDrawing = abX;}
+
+		/**
 		 * Create Gfx object from file
 		 * \param &asFileName Filename of image
 		 * \param &asMaterialName material to use
@@ -147,6 +152,7 @@ namespace hpl {
 		void ClearBackgrounds();
 
 	private:
+		bool mbSkipDrawing = false;
 		iLowLevelGraphics *mpLowLevelGraphics;
 		cMaterialHandler* mpMaterialHandler;
 		cResources *mpResources;
