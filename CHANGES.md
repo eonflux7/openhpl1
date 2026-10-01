@@ -28,8 +28,9 @@ commit), and the last official Linux build on Steam.
 
 ### Windowing, input and platform (SDL 1.2 → SDL3)
 
-- Window and OpenGL context creation rewritten for SDL3; a compatibility
-  profile context is requested.
+- Window and OpenGL context creation rewritten for SDL3. (A compatibility
+  profile context at first; a core profile one since "No fixed-function,
+  core profile" below.)
 - A width/height of `-1` (or any value ≤ 0) means desktop resolution.
 - Fullscreen at desktop size is borderless. Any other size switches the
   display mode (closest available mode).
@@ -84,12 +85,15 @@ commit), and the last official Linux build on Steam.
   - a vertex program bound without a fragment program uses its matching
     "companion" fragment shader, because GLSL outputs cannot feed
     fixed-function fragment processing the way Cg vertex programs could
-  - the pipeline is only bound while a stage is active; NVIDIA rejects draws
-    with an empty pipeline instead of falling back to fixed function
+  - the pipeline was only bound while a stage was active (NVIDIA rejects
+    draws with an empty pipeline instead of falling back to fixed
+    function); it now always has both stages, see "No fixed-function, core
+    profile" below
 - Shader changes compared to ScummVM's versions:
   - global aliases of built-ins (e.g. `vec4 position = gl_Vertex;`) became
     `#define`s, since non-constant global initialisers are not valid GLSL
-  - shaders are compiled as `#version 330 compatibility`
+  - shaders are compiled as `#version 330` (compatibility at first, now
+    core)
 - The Cg profile options (`ForceFP`/`ForceVP`) and the Cg profile probe at
   startup are removed.
 - GLee replaced with glad; GLU no longer used.
@@ -393,7 +397,7 @@ messages (NVIDIA 615). Fixed for that:
 - the debug log repeats a message at most three times by its text, not by
   its id: NVIDIA gives every `GL_INVALID_ENUM` the same id
 - NVIDIA's "vertex shader is being recompiled based on GL state" note
-  (id 131218) is not logged; it comes from the compatibility profile
+  (id 131218) is not logged
 
 ### Off-screen frame
 
