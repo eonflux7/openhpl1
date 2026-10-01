@@ -335,7 +335,7 @@ namespace hpl {
 																			eTextureType_Normal,
 																			mlTextureSizeLevel);
 				}
-				else if(eTextureTarget_CubeMap)
+				else //Cube map (Rect and 3D also end up here, as they always have)
 				{
 					pTex = mpResources->GetTextureManager()->CreateCubeMap(sFile,bMipMaps,bCompress,
 																			eTextureType_Normal,
@@ -343,14 +343,14 @@ namespace hpl {
 				}
 			}
 
-			pTex->SetFrameTime(fFrameTime);
-			pTex->SetAnimMode(animMode);
-
 			if(pTex==NULL){
 				hplDelete(pDoc);
 				hplDelete(pMat);
 				return NULL;
 			}
+
+			pTex->SetFrameTime(fFrameTime);
+			pTex->SetAnimMode(animMode);
 
 			pTex->SetWrapS(wrap);
 			pTex->SetWrapT(wrap);

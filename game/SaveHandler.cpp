@@ -731,7 +731,7 @@ void cSaveHandler::DeleteOldestIfMax(const tWString &asDir,const tWString &asMas
 	if((int)lstFiles.size() >= alMaxFiles)
 	{
 		tWString sOldest = _W("");
-		cDate oldestDate;
+		cDate oldestDate = cDate();
 
 		tWStringListIt it = lstFiles.begin();
 		for(; it != lstFiles.end(); ++it)
@@ -761,7 +761,7 @@ tWString cSaveHandler::GetLatest(const tWString &asDir,const tWString &asMask)
 	pLowLevelResources->FindFilesInDir(lstFiles,sPath,asMask);
 
 	tWString sNewest = _W("");
-	cDate newestDate;
+	cDate newestDate = cDate();
 
 	tWStringListIt it = lstFiles.begin();
 	for(; it != lstFiles.end(); ++it)

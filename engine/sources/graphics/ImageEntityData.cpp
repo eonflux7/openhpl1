@@ -236,7 +236,7 @@ namespace hpl {
 				if(bGotAnim)
 				{
 					int lNum = i+1;
-					char buff[5];sprintf(buff,"%d",lNum);
+					char buff[12];snprintf(buff,sizeof(buff),"%d",lNum);
 
 					sFile = sImageName;
 					if(lNum<10)sFile+="0";
