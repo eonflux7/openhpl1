@@ -1,0 +1,32 @@
+# Approximates the original Frictional Games style: tabs, Allman braces,
+# `if(x)` with no space. It does add spaces after commas, which the original
+# omits, so it is meant for `git clang-format` on changed lines, not a
+# whole-tree reformat.
+BasedOnStyle: LLVM
+UseTab: ForContinuationAndIndentation
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 0
+BreakBeforeBraces: Allman
+SpaceBeforeParens: Never
+SpaceAfterCStyleCast: false
+PointerAlignment: Right
+AccessModifierOffset: -4
+NamespaceIndentation: All
+IndentCaseLabels: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Always
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 0
+AlignAfterOpenBracket: DontAlign
+AlignTrailingComments: false
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignOperands: DontAlign
+ReflowComments: false
+SortIncludes: Never
+KeepEmptyLines:
+  AtStartOfBlock: true
+MaxEmptyLinesToKeep: 4

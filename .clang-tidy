@@ -1,0 +1,27 @@
+# Tier A: checks that find bugs. Fixes are reviewed by hand, not applied with
+# --fix. Style/naming checks are deliberately off: the Frictional Games
+# conventions (cFoo, iFoo, mpMember, asArg) stay.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-branch-clone,
+  -bugprone-reserved-identifier,
+  -bugprone-macro-parentheses,
+  -bugprone-throwing-static-initialization,
+  -bugprone-switch-missing-default-case,
+  -bugprone-exception-escape,
+  -bugprone-sizeof-container,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  clang-analyzer-*,
+  -clang-analyzer-optin.*,
+  -clang-analyzer-deadcode.DeadStores,
+  performance-unnecessary-copy-initialization,
+  performance-for-range-copy,
+  misc-redundant-expression
+
+HeaderFilterRegex: '/(engine|game)/'
+ExcludeHeaderFilterRegex: '/tinyXML/'
+WarningsAsErrors: ''

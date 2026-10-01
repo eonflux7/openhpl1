@@ -46,11 +46,17 @@ Newton, AngelScript, OALWrapper and the glad OpenGL loader are vendored in
 `vendor/`.
 
 ```
-cmake -S . -B build -G Ninja
-ninja -C build
+cmake --preset default
+cmake --build --preset default
 ```
 
 This produces `build/overture`, with the shaders copied to `build/shaders/`.
+Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
+AddressSanitizer and UBSan; needs `libasan libubsan`).
+
+Static analysis uses `clang-tools-extra`. `cmake --build build --target tidy`
+runs the checks in `.clang-tidy` over the engine and game sources, and
+`git clang-format` formats changed lines.
 
 ## Running
 
