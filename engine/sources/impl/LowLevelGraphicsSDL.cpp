@@ -160,6 +160,14 @@ namespace hpl {
 		mlResolveFramebuffer = 0;
 		mlResolveColor = 0;
 		mlTargetFramebuffer = 0;
+		mlStateUniformBuffer = 0;
+
+		mbMatricesChanged = true;
+		mlActiveTextureUnit = 0;
+		mbAlphaTest = false;
+		mAlphaTestFunc = eAlphaTestFunc_Always;
+		mfAlphaTestRef = 0;
+		mbStateChanged = true;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
 
@@ -200,6 +208,8 @@ namespace hpl {
 		DeleteFullscreenPass(mOutputPass);
 		DeleteFramebuffers();
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
+		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
+		mFixedFunction.Exit();
 		mDebugOverlay.Exit();
 		mGpuProfiler.Exit();
 
@@ -342,6 +352,19 @@ namespace hpl {
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kFrameBlockBinding, mlFrameUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlFrameUniformBuffer, "hpl_Frame");
+
+		glGenBuffers(1, &mlStateUniformBuffer);
+		glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float)*4, nullptr, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
+		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
+
+		if(!mFixedFunction.Init())
+		{
+			FatalError("Couldn't compile the fixed-function shaders!\n");
+			return false;
+		}
 
 		//Check Multisample properties
 		CheckMultisampleCaps();
@@ -549,7 +572,6 @@ namespace hpl {
 		glClearDepth(1.0f);//VAlues buffer is cleared with
 		glEnable(GL_DEPTH_TEST); //enable depth testing
 		glDepthFunc(GL_LEQUAL); //function to do depth test with
-		glDisable(GL_ALPHA_TEST);
 
 		//Set best perspective correction
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -569,7 +591,6 @@ namespace hpl {
 			mvMatrixStack[i].assign(1, cMatrixf::Identity);
 			LoadMatrix((eMatrix)i);
 		}
-		glMatrixMode(GL_PROJECTION);
 
 		//glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 
@@ -672,25 +693,29 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// Like glClipPlane: the plane is in object space and is kept in eye
+	// space, by the model-view matrix at the time it is set.
 	void cLowLevelGraphicsSDL::SetClipPlane(int alIdx, const cPlanef& aPlane)
 	{
+		if(alIdx < 0 || alIdx >= kMaxClipPlanes) return;
 		mvClipPlanes[alIdx] = aPlane;
 
-		double vPlane[4];
-		vPlane[0] = aPlane.a;
-		vPlane[1] = aPlane.b;
-		vPlane[2] = aPlane.c;
-		vPlane[3] = aPlane.d;
-		glClipPlane(GL_CLIP_PLANE0 + alIdx,vPlane);
+		cMatrixf mtxInv = cMath::MatrixInverse(mvMatrixStack[eMatrix_ModelView].back());
+		float vPlane[4] = {aPlane.a, aPlane.b, aPlane.c, aPlane.d};
+		float vEye[4];
+		for(int j=0; j<4; ++j)
+			vEye[j] = vPlane[0]*mtxInv.m[0][j] + vPlane[1]*mtxInv.m[1][j] + vPlane[2]*mtxInv.m[2][j] + vPlane[3]*mtxInv.m[3][j];
+		mFixedFunction.SetClipPlane(alIdx, cPlanef(vEye[0], vEye[1], vEye[2], vEye[3]));
 	}
 	cPlanef cLowLevelGraphicsSDL::GetClipPlane(int alIdx, const cPlanef& aPlane)
 	{
 		return mvClipPlanes[alIdx];
 	}
+	// Only the fixed-function vertex shader writes the clip distances.
 	void cLowLevelGraphicsSDL::SetClipPlaneActive(int alIdx, bool abX)
 	{
-		if(abX) glEnable(GL_CLIP_PLANE0 + alIdx);
-		else	glDisable(GL_CLIP_PLANE0 + alIdx);
+		if(abX) glEnable(GL_CLIP_DISTANCE0 + alIdx);
+		else	glDisable(GL_CLIP_DISTANCE0 + alIdx);
 	}
 
 	//-----------------------------------------------------------------------
@@ -843,7 +868,6 @@ namespace hpl {
 	{
 		std::vector<cMatrixf>& vStack = mvMatrixStack[aMtxType];
 		vStack.push_back(vStack.back());
-		SetMatrixMode(aMtxType);
 	}
 
 	//-----------------------------------------------------------------------
@@ -941,6 +965,8 @@ namespace hpl {
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
+		mlActiveTextureUnit = alUnit;
+		mFixedFunction.SetUnitTarget(alUnit, apTex ? (int)apTex->GetTarget() : -1);
 	}
 
 	//-----------------------------------------------------------------------
@@ -959,6 +985,7 @@ namespace hpl {
 			glActiveTexture((GLenum)lActiveUnit);
 
 			mpCurrentTexture[lUnit] = nullptr;
+			mFixedFunction.SetUnitTarget(lUnit, -1);
 		}
 	}
 
@@ -985,37 +1012,23 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetActiveTextureUnit(unsigned int alUnit)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
+		mlActiveTextureUnit = alUnit;
 	}
 
 	//-----------------------------------------------------------------------
 
+	// The texture environment is per unit, and these set the active one's,
+	// as glTexEnv did.
 	void cLowLevelGraphicsSDL::SetTextureEnv(eTextureParam aParam, int alVal)
 	{
-		GLenum lParam = GetGLTextureParamEnum(aParam);
-
-		glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE_ARB);
-
-		if(aParam==eTextureParam_ColorFunc || aParam==eTextureParam_AlphaFunc){
-			glTexEnvi(GL_TEXTURE_ENV,lParam,GetGLTextureFuncEnum((eTextureFunc)alVal));
-		}
-		else if(aParam>=eTextureParam_ColorSource0 && aParam<=eTextureParam_AlphaSource2){
-			glTexEnvi(GL_TEXTURE_ENV,lParam,GetGLTextureSourceEnum((eTextureSource)alVal));
-		}
-		else if(aParam>=eTextureParam_ColorOp0 && aParam<=eTextureParam_AlphaOp2){
-			glTexEnvi(GL_TEXTURE_ENV,lParam,GetGLTextureOpEnum((eTextureOp)alVal));
-		}
-		else {
-			glTexEnvi(GL_TEXTURE_ENV,lParam,alVal);
-		}
+		mFixedFunction.SetEnv(mlActiveTextureUnit, aParam, alVal);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetTextureConstantColor(const cColor &aColor)
 	{
-		float vColor[4] = {	aColor.r, aColor.g, aColor.b, aColor.a	};
-
-		glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, &vColor[0]);
+		mFixedFunction.SetConstantColor(mlActiveTextureUnit, aColor);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1041,6 +1054,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)
 	{
 		glColor4f(1,1,1,1);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1418,11 +1432,10 @@ namespace hpl {
 
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_STENCIL_TEST);
-		glDisable(GL_ALPHA_TEST);
 		glDisable(GL_BLEND);
 		glDisable(GL_SCISSOR_TEST);
 		glDisable(GL_CULL_FACE);
-		for(int i=0; i<kMaxClipPlanes; ++i) glDisable(GL_CLIP_PLANE0 + i);
+		for(int i=0; i<kMaxClipPlanes; ++i) glDisable(GL_CLIP_DISTANCE0 + i);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -1466,6 +1479,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==3);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		glBegin(GL_TRIANGLES);
 		{
@@ -1482,6 +1496,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawTri(const cVertex* avVtx)
 	{
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		glBegin(GL_TRIANGLES);
 		{
@@ -1500,6 +1515,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1517,6 +1533,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)
 	{
 		int lExtraUnits = (int)avExtraUvs.size()/4;
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1623,15 +1640,21 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetAlphaTestActive(bool abX)
 	{
-		if(abX) glEnable(GL_ALPHA_TEST);
-		else glDisable(GL_ALPHA_TEST);
+		if(mbAlphaTest == abX) return;
+		mbAlphaTest = abX;
+		mbStateChanged = true;
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetAlphaTestFunc(eAlphaTestFunc aFunc,float afRef)
 	{
-		glAlphaFunc(GetGLAlphaTestFuncEnum(aFunc),afRef);
+		// The reference is clamped, as glAlphaFunc did
+		afRef = cMath::Clamp(afRef, 0.0f, 1.0f);
+		if(mAlphaTestFunc == aFunc && mfAlphaTestRef == afRef) return;
+		mAlphaTestFunc = aFunc;
+		mfAlphaTestRef = afRef;
+		mbStateChanged = true;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1740,6 +1763,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1759,6 +1783,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1778,6 +1803,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -1971,6 +1997,7 @@ namespace hpl {
 		SetVtxBatchStates(aTypeFlags);
 		SetUpBatchArrays();
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_TRIANGLES, mlIndexCount);
 		glDrawElements(GL_TRIANGLES,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
 
@@ -1989,6 +2016,7 @@ namespace hpl {
 		SetVtxBatchStates(aTypeFlags);
 		SetUpBatchArrays();
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, mlIndexCount);
 		glDrawElements(GL_QUADS,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
 
@@ -2015,6 +2043,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		//SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
@@ -2030,6 +2059,7 @@ namespace hpl {
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
@@ -2086,6 +2116,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
@@ -2130,6 +2161,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
@@ -2146,6 +2178,7 @@ namespace hpl {
 		SetTexture(0, nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_LINE_STRIP, 0);
 		glBegin(GL_LINE_STRIP);
 		{
@@ -2164,6 +2197,7 @@ namespace hpl {
 	{
 		SetTexture(0, nullptr);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		PrepareDraw();
 		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
@@ -2382,59 +2416,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	GLenum cLowLevelGraphicsSDL::GetGLTextureParamEnum(eTextureParam aType)
-	{
-		switch(aType)
-		{
-		case eTextureParam_ColorFunc:		return GL_COMBINE_RGB_ARB;
-		case eTextureParam_AlphaFunc:		return GL_COMBINE_ALPHA_ARB;
-		case eTextureParam_ColorSource0:	return GL_SOURCE0_RGB_ARB;
-		case eTextureParam_ColorSource1:	return GL_SOURCE1_RGB_ARB;
-		case eTextureParam_ColorSource2:	return GL_SOURCE2_RGB_ARB;
-		case eTextureParam_AlphaSource0:	return GL_SOURCE0_ALPHA_ARB;
-		case eTextureParam_AlphaSource1:	return GL_SOURCE1_ALPHA_ARB;
-		case eTextureParam_AlphaSource2:	return GL_SOURCE2_ALPHA_ARB;
-		case eTextureParam_ColorOp0:		return GL_OPERAND0_RGB_ARB;
-		case eTextureParam_ColorOp1:		return GL_OPERAND1_RGB_ARB;
-		case eTextureParam_ColorOp2:		return GL_OPERAND2_RGB_ARB;
-		case eTextureParam_AlphaOp0:		return GL_OPERAND0_ALPHA_ARB;
-		case eTextureParam_AlphaOp1:		return GL_OPERAND1_ALPHA_ARB;
-		case eTextureParam_AlphaOp2:		return GL_OPERAND2_ALPHA_ARB;
-		case eTextureParam_ColorScale:		return GL_RGB_SCALE_ARB;
-		case eTextureParam_AlphaScale:		return GL_ALPHA_SCALE;
-		}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLenum cLowLevelGraphicsSDL::GetGLTextureOpEnum(eTextureOp aType)
-	{
-		switch(aType)
-		{
-		case eTextureOp_Color:			return GL_SRC_COLOR;
-		case eTextureOp_OneMinusColor:	return GL_ONE_MINUS_SRC_COLOR;
-		case eTextureOp_Alpha:			return GL_SRC_ALPHA;
-		case eTextureOp_OneMinusAlpha:	return GL_ONE_MINUS_SRC_ALPHA;
-	}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLenum cLowLevelGraphicsSDL::GetGLTextureSourceEnum(eTextureSource aType)
-	{
-		switch(aType)
-		{
-		case eTextureSource_Texture:	return GL_TEXTURE;
-		case eTextureSource_Constant:	return GL_CONSTANT_ARB;
-		case eTextureSource_Primary:	return GL_PRIMARY_COLOR_ARB;
-		case eTextureSource_Previous:	return GL_PREVIOUS_ARB;
-		}
-		return 0;
-	}
-	//-----------------------------------------------------------------------
-
 	GLenum cLowLevelGraphicsSDL::GetGLTextureTargetEnum(eTextureTarget aType)
 	{
 		switch(aType)
@@ -2453,23 +2434,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	GLenum cLowLevelGraphicsSDL::GetGLTextureFuncEnum(eTextureFunc aType)
-	{
-		switch(aType)
-		{
-		case eTextureFunc_Modulate:		return GL_MODULATE;
-		case eTextureFunc_Replace:		return GL_REPLACE;
-		case eTextureFunc_Add:			return GL_ADD;
-		case eTextureFunc_Substract:	return GL_SUBTRACT_ARB;
-		case eTextureFunc_AddSigned:	return GL_ADD_SIGNED_ARB;
-		case eTextureFunc_Interpolate:	return GL_INTERPOLATE_ARB;
-		case eTextureFunc_Dot3RGB:		return GL_DOT3_RGB_ARB;
-		case eTextureFunc_Dot3RGBA:		return GL_DOT3_RGBA_ARB;
-		}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
 	GLenum cLowLevelGraphicsSDL::GetGLDepthTestFuncEnum(eDepthTestFunc aType)
 	{
 		switch(aType)
@@ -2482,24 +2446,6 @@ namespace hpl {
 		case eDepthTestFunc_Equal:			return GL_EQUAL;
 		case eDepthTestFunc_NotEqual:			return GL_NOTEQUAL;
 		case eDepthTestFunc_Always:			return GL_ALWAYS;
-		}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLenum cLowLevelGraphicsSDL::GetGLAlphaTestFuncEnum(eAlphaTestFunc aType)
-	{
-		switch(aType)
-		{
-		case eAlphaTestFunc_Never:			return GL_NEVER;
-		case eAlphaTestFunc_Less:				return GL_LESS;
-		case eAlphaTestFunc_LessOrEqual:		return GL_LEQUAL;
-		case eAlphaTestFunc_Greater:			return GL_GREATER;
-		case eAlphaTestFunc_GreaterOrEqual:	return GL_GEQUAL;
-		case eAlphaTestFunc_Equal:			return GL_EQUAL;
-		case eAlphaTestFunc_NotEqual:			return GL_NOTEQUAL;
-		case eAlphaTestFunc_Always:			return GL_ALWAYS;
 		}
 		return 0;
 	}
@@ -2568,23 +2514,44 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// The texture matrix is only read by engine programs that ask for it
+	// (none do); the fixed-function shaders do not use one.
 	void cLowLevelGraphicsSDL::LoadMatrix(eMatrix aMtxType)
 	{
-		SetMatrixMode(aMtxType);
-		// cMatrixf is row-major, GL wants columns
-		cMatrixf mtxTranspose = mvMatrixStack[aMtxType].back().GetTranspose();
-		glLoadMatrixf(mtxTranspose.v);
+		if(aMtxType != eMatrix_Texture) mbMatricesChanged = true;
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetMatrixMode(eMatrix mType)
+	void cLowLevelGraphicsSDL::PrepareDraw()
 	{
-		switch(mType)
+		GLuint lVertex = cGLSLProgram::GetVertexStage();
+		GLuint lFragment = cGLSLProgram::GetFragmentStage();
+
+		if(lVertex==0 && lFragment!=0)
 		{
-			case eMatrix_ModelView: glMatrixMode(GL_MODELVIEW);break;
-			case eMatrix_Projection: glMatrixMode(GL_PROJECTION); break;
-			case eMatrix_Texture: glMatrixMode(GL_TEXTURE); break;
+			static bool bWarned = false;
+			if(!bWarned) Warning("A fragment program is drawn without a vertex program\n");
+			bWarned = true;
+		}
+
+		if(lVertex==0)
+		{
+			lVertex = mFixedFunction.GetVertexStage(mvMatrixStack[eMatrix_ModelView].back(),
+													mvMatrixStack[eMatrix_Projection].back(), mbMatricesChanged);
+			mbMatricesChanged = false;
+		}
+		if(lFragment==0) lFragment = mFixedFunction.GetFragmentStage();
+
+		cGLSLProgram::SetPipelineStages(lVertex, lFragment);
+
+		if(mbStateChanged)
+		{
+			float vState[4] = {mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, 0, 0};
+			glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vState), vState);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			mbStateChanged = false;
 		}
 	}
 

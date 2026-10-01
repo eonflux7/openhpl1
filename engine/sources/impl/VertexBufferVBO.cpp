@@ -339,6 +339,7 @@ namespace hpl {
 		int lSize = mlElementNum;
 		if(mlElementNum<0) lSize = GetIndexNum();
 
+		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->PrepareDraw();
 		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->GetGpuProfiler()->CountDraw(mode, lSize);
 		glDrawElements(mode,lSize,GL_UNSIGNED_INT, (char*) nullptr);
 
@@ -359,6 +360,7 @@ namespace hpl {
 
 		//////////////////////////////////
 		//Bind and draw the buffer
+		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->PrepareDraw();
 		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->GetGpuProfiler()->CountDraw(mode, alCount);
 		glDrawElements(mode, alCount, GL_UNSIGNED_INT, apIndices);
 	}

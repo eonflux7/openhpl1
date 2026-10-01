@@ -43,15 +43,46 @@ namespace hpl{
 	std::vector<cGLSLProgram::cSourceFile> cGLSLProgram::mvStageSources;
 	cGLSLProgram* cGLSLProgram::mpBoundVertex = nullptr;
 	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
+	GLuint cGLSLProgram::mlPipelineVertex = 0;
+	GLuint cGLSLProgram::mlPipelineFragment = 0;
 
 	static const char* kVertexPreamble =
 		"#version 330 compatibility\n"
 		"#define VARYING out\n";
 
+	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =
 		"#version 330 compatibility\n"
 		"#define VARYING in\n"
-		"#define OUTPUT out vec4 outColor;\n";
+		"#define OUTPUT out vec4 outColor;\n"
+		"#define main hpl_main\n";
+
+	// After every fragment shader: the colour is clamped to 0..1, as GL did
+	// with GL_CLAMP_FRAGMENT_COLOR, then, with HPL_ALPHA_TEST defined, alpha
+	// tested as set with iLowLevelGraphics::SetAlphaTestActive/Func
+	// (hpl_State, uniform buffer binding kStateBlockBinding).
+	static const char* kFragmentEpilogue =
+		"#undef main\n"
+		"#ifdef HPL_ALPHA_TEST\n"
+		"layout(std140) uniform hpl_State\n"
+		"{\n"
+		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off; y: reference\n"
+		"};\n"
+		"#endif\n"
+		"void main()\n"
+		"{\n"
+		"	hpl_main();\n"
+		"	outColor = clamp(outColor, 0.0, 1.0);\n"
+		"#ifdef HPL_ALPHA_TEST\n"
+		"	int func = int(hpl_AlphaTest.x);\n"
+		"	float alpha = outColor.a, ref = hpl_AlphaTest.y;\n"
+		"	if(func == 1 ||\n"
+		"		(func == 2 && !(alpha < ref)) || (func == 3 && !(alpha <= ref)) ||\n"
+		"		(func == 4 && !(alpha > ref)) || (func == 5 && !(alpha >= ref)) ||\n"
+		"		(func == 6 && !(alpha == ref)) || (func == 7 && !(alpha != ref)))\n"
+		"		discard;\n"
+		"#endif\n"
+		"}\n";
 
 	// Programs that are variants of a shared file: the engine's program name
 	// (without "_vp"/"_fp"), the file (without "hpl1_" and the extension) and
@@ -247,12 +278,13 @@ namespace hpl{
 			return false;
 		}
 
+		// Bound from now on; draws that put their own programs in use put
+		// it back.
 		glGenProgramPipelines(1,&mlPipeline);
 		glBindProgramPipeline(mlPipeline);
 		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, mlPipeline, "Engine programs");
 		glUseProgram(0);
-		// Bound only while a stage is active, see UpdateFragmentStage().
-		glBindProgramPipeline(0);
+		mlPipelineVertex = mlPipelineFragment = 0;
 		return true;
 	}
 
@@ -268,9 +300,67 @@ namespace hpl{
 	{
 		std::vector<tString> vFiles;
 		GLuint lProgram = CompileStage(aStage, "hpl1_" + asName +
-									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "", &vFiles);
+									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "", false, &vFiles);
 		WatchFiles(mvStageSources, vFiles);
 		return lProgram;
+	}
+
+	//-----------------------------------------------------------------------
+
+	GLuint cGLSLProgram::CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
+										bool abAlphaTest)
+	{
+		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
+		sSource += "#line 1 1\n";
+		sSource += asSource;
+
+		std::vector<tString> vFiles;
+		vFiles.push_back("(preamble)");
+		vFiles.push_back(asName);
+		return LinkStage(aStage, sSource, asName, vFiles, abAlphaTest);
+	}
+
+	//-----------------------------------------------------------------------
+
+	GLuint cGLSLProgram::GetVertexStage()
+	{
+		return mpBoundVertex ? mpBoundVertex->mlProgram : 0;
+	}
+
+	GLuint cGLSLProgram::GetFragmentStage()
+	{
+		if(mpBoundFragment) return mpBoundFragment->mlProgram;
+		if(mpBoundVertex)	return mpBoundVertex->mlCompanionFragment;
+		return 0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGLSLProgram::SetPipelineStages(GLuint alVertex, GLuint alFragment)
+	{
+		if(alVertex == mlPipelineVertex && alFragment == mlPipelineFragment) return;
+
+		if(alVertex != mlPipelineVertex) glUseProgramStages(mlPipeline, GL_VERTEX_SHADER_BIT, alVertex);
+		if(alFragment != mlPipelineFragment) glUseProgramStages(mlPipeline, GL_FRAGMENT_SHADER_BIT, alFragment);
+		mlPipelineVertex = alVertex;
+		mlPipelineFragment = alFragment;
+
+		if(mbDebugInfo)
+		{
+			static int lReported = 0;
+			glValidateProgramPipeline(mlPipeline);
+			GLint lValid = GL_TRUE;
+			glGetProgramPipelineiv(mlPipeline, GL_VALIDATE_STATUS, &lValid);
+			if(!lValid && lReported < 10)
+			{
+				++lReported;
+				char sLog[2048] = "";
+				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), nullptr, sLog);
+				Log("GLSL: invalid pipeline (vertex '%s', fragment '%s'): %s\n",
+					mpBoundVertex ? mpBoundVertex->msName.c_str() : "-",
+					mpBoundFragment ? mpBoundFragment->msName.c_str() : "-", sLog);
+			}
+		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -339,16 +429,16 @@ namespace hpl{
 
 		if(mProgramType == eGpuProgramType_Vertex)
 		{
-			lProgram = CompileStage(GL_VERTEX_SHADER, msBase + ".vertex", msDefines, &vFiles);
+			lProgram = CompileStage(GL_VERTEX_SHADER, msBase + ".vertex", msDefines, true, &vFiles);
 			// Optional: not every vertex shader has a companion.
 			bool bHasCompanion = std::filesystem::exists(msShaderDir + msBase + ".fragment");
 			if(bHasCompanion)
-				lCompanion = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, &vFiles);
+				lCompanion = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, true, &vFiles);
 			bOk = lProgram != 0 && (lCompanion != 0 || !bHasCompanion);
 		}
 		else
 		{
-			lProgram = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, &vFiles);
+			lProgram = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, true, &vFiles);
 			bOk = lProgram != 0;
 		}
 
@@ -366,11 +456,8 @@ namespace hpl{
 		mlProgram = lProgram;
 		mlCompanionFragment = lCompanion;
 		// Uniform values are lost with the old program; most are set again
-		// for every draw.
+		// for every draw. The next draw puts the new one in the pipeline.
 		m_mapUniforms.clear();
-
-		if(mpBoundVertex == this) BindStage(GL_VERTEX_SHADER_BIT, mlProgram);
-		if(mpBoundVertex == this || mpBoundFragment == this) UpdateFragmentStage();
 
 		return true;
 	}
@@ -412,18 +499,11 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
+	// The pipeline gets the stages at the next draw, see SetPipelineStages().
 	void cGLSLProgram::Bind()
 	{
-		if(mProgramType == eGpuProgramType_Vertex)
-		{
-			mpBoundVertex = this;
-			BindStage(GL_VERTEX_SHADER_BIT, mlProgram);
-		}
-		else
-		{
-			mpBoundFragment = this;
-		}
-		UpdateFragmentStage();
+		if(mProgramType == eGpuProgramType_Vertex)	mpBoundVertex = this;
+		else										mpBoundFragment = this;
 	}
 
 	//-----------------------------------------------------------------------
@@ -431,15 +511,9 @@ namespace hpl{
 	void cGLSLProgram::UnBind()
 	{
 		if(mProgramType == eGpuProgramType_Vertex)
-		{
-			if(mpBoundVertex == this) mpBoundVertex = nullptr;
-			BindStage(GL_VERTEX_SHADER_BIT, 0);
-		}
-		else
-		{
-			if(mpBoundFragment == this) mpBoundFragment = nullptr;
-		}
-		UpdateFragmentStage();
+			mpBoundVertex = nullptr;
+		else if(mpBoundFragment == this)
+			mpBoundFragment = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -592,7 +666,7 @@ namespace hpl{
 	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
-										std::vector<tString> *apFiles)
+										bool abAlphaTest, std::vector<tString> *apFiles)
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 
@@ -609,7 +683,25 @@ namespace hpl{
 		tString sName = asFile;
 		if(asDefines != "") sName += " (" + asDefines + ")";
 
-		const char* pSource = sSource.c_str();
+		return LinkStage(aStage, sSource, sName, vFiles, abAlphaTest);
+	}
+
+	//-----------------------------------------------------------------------
+
+	GLuint cGLSLProgram::LinkStage(GLenum aStage, tString asSource, const tString& asName,
+									const std::vector<tString>& avFiles, bool abAlphaTest)
+	{
+		if(aStage == GL_FRAGMENT_SHADER)
+		{
+			// Source number 0 is the preamble
+			asSource += "#line 1 0\n";
+			if(abAlphaTest) asSource += "#define HPL_ALPHA_TEST\n";
+			asSource += kFragmentEpilogue;
+		}
+
+		const tString &sName = asName;
+		const std::vector<tString> &vFiles = avFiles;
+		const char* pSource = asSource.c_str();
 		GLuint lShader = glCreateShader(aStage);
 		glShaderSource(lShader, 1, &pSource, nullptr);
 		glCompileShader(lShader);
@@ -649,6 +741,8 @@ namespace hpl{
 
 		GLuint lFrameBlock = glGetUniformBlockIndex(lProgram, "hpl_Frame");
 		if(lFrameBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lFrameBlock, kFrameBlockBinding);
+		GLuint lStateBlock = glGetUniformBlockIndex(lProgram, "hpl_State");
+		if(lStateBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lStateBlock, kStateBlockBinding);
 
 		// texN samplers always read texture unit N
 		for(int i=0; i<kMaxSamplers; ++i)
@@ -660,46 +754,6 @@ namespace hpl{
 		}
 
 		return lProgram;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGLSLProgram::BindStage(GLbitfield aStageBit, GLuint alProgram)
-	{
-		glUseProgramStages(mlPipeline, aStageBit, alProgram);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGLSLProgram::UpdateFragmentStage()
-	{
-		GLuint lFragment = 0;
-		if(mpBoundFragment)		lFragment = mpBoundFragment->mlProgram;
-		else if(mpBoundVertex)	lFragment = mpBoundVertex->mlCompanionFragment;
-
-		BindStage(GL_FRAGMENT_SHADER_BIT, lFragment);
-
-		// An empty pipeline is not "fixed function" for every driver (NVIDIA
-		// rejects draws with it), so only keep it bound while it has a stage.
-		bool bAnyStage = lFragment != 0 || (mpBoundVertex && mpBoundVertex->mlProgram);
-		glBindProgramPipeline(bAnyStage ? mlPipeline : 0);
-
-		if(bAnyStage && mbDebugInfo)
-		{
-			static int lReported = 0;
-			glValidateProgramPipeline(mlPipeline);
-			GLint lValid = GL_TRUE;
-			glGetProgramPipelineiv(mlPipeline, GL_VALIDATE_STATUS, &lValid);
-			if(!lValid && lReported < 10)
-			{
-				++lReported;
-				char sLog[2048] = "";
-				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), nullptr, sLog);
-				Log("GLSL: invalid pipeline (vertex '%s', fragment '%s'): %s\n",
-					mpBoundVertex ? mpBoundVertex->msName.c_str() : "-",
-					mpBoundFragment ? mpBoundFragment->msName.c_str() : "-", sLog);
-			}
-		}
 	}
 
 	//-----------------------------------------------------------------------

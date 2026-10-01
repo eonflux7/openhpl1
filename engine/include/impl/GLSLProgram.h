@@ -78,6 +78,9 @@ namespace hpl {
 
 		/// Uniform buffer binding of the hpl_Frame block (hpl1_frame.glsl).
 		static const GLuint kFrameBlockBinding = 0;
+		/// Uniform buffer binding of the hpl_State block, which has the alpha
+		/// test settings every fragment shader applies (see LinkStage()).
+		static const GLuint kStateBlockBinding = 1;
 
 		GLuint GetHandle(){ return mlProgram; }
 
@@ -94,6 +97,23 @@ namespace hpl {
 		 * the engine's program objects. The caller deletes it.
 		 */
 		static GLuint CreateStage(GLenum aStage, const tString& asName);
+
+		/**
+		 * Compiles source made by the engine as a separable program, with
+		 * the preamble (and, for fragment shaders, the epilogue that clamps
+		 * the colour and alpha tests with abAlphaTest). The caller deletes it.
+		 */
+		static GLuint CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
+									bool abAlphaTest);
+
+		/// The programs bound for each stage (a fragment stage can be a
+		/// vertex program's companion), 0 for none.
+		static GLuint GetVertexStage();
+		static GLuint GetFragmentStage();
+
+		/// Puts programs in the engine's program pipeline, which stays bound;
+		/// done before every draw, as Bind() and UnBind() only take note.
+		static void SetPipelineStages(GLuint alVertex, GLuint alFragment);
 
 		/**
 		 * With OVERTURE_SHADER_RELOAD set, recompiles the programs whose
@@ -114,11 +134,11 @@ namespace hpl {
 		GLint GetUniform(const tString& asName);
 		bool CompileProgram();
 		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
-									std::vector<tString> *apFiles=nullptr);
+									bool abAlphaTest, std::vector<tString> *apFiles=nullptr);
+		static GLuint LinkStage(GLenum aStage, tString asSource, const tString& asName,
+								const std::vector<tString>& avFiles, bool abAlphaTest);
 		static void WatchFiles(std::vector<cSourceFile>& avWatched, const std::vector<tString>& avFiles);
 		static bool FilesChanged(std::vector<cSourceFile>& avWatched);
-		static void BindStage(GLbitfield aStageBit, GLuint alProgram);
-		static void UpdateFragmentStage();
 
 		tString msName;
 		tString msBase;
@@ -143,6 +163,8 @@ namespace hpl {
 		static GLuint mlPipeline;
 		static cGLSLProgram* mpBoundVertex;
 		static cGLSLProgram* mpBoundFragment;
+		static GLuint mlPipelineVertex;
+		static GLuint mlPipelineFragment;
 	};
 
 };

@@ -25,6 +25,7 @@
 
 #include "graphics/LowLevelGraphics.h"
 #include "impl/DebugOverlay.h"
+#include "impl/FixedFunctionShaders.h"
 #include "impl/GpuProfiler.h"
 #include "impl/SDLPixelFormat.h"
 #include "math/MathTypes.h"
@@ -123,6 +124,13 @@ namespace hpl {
 		bool GetDebugOverlayActive() override{ return mDebugOverlay.IsActive(); }
 
 		cGpuProfiler* GetGpuProfiler(){ return &mGpuProfiler; }
+
+		/**
+		 * Called before every draw: puts the bound engine programs, or the
+		 * fixed-function shaders for the stages without one, in the program
+		 * pipeline, and brings the shaders' state up to date.
+		 */
+		void PrepareDraw();
 
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
 		void SetVirtualOrthoProjection(float afMin, float afMax) override;
@@ -326,6 +334,19 @@ namespace hpl {
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];
 
+		//Drawing without engine programs
+		cFixedFunctionShaders mFixedFunction;
+		bool mbMatricesChanged;
+		unsigned int mlActiveTextureUnit;
+
+		//Alpha test, done by the fragment shaders: hpl_State, uniform
+		//buffer binding cGLSLProgram::kStateBlockBinding
+		bool mbAlphaTest;
+		eAlphaTestFunc mAlphaTestFunc;
+		float mfAlphaTestRef;
+		bool mbStateChanged;
+		GLuint mlStateUniformBuffer;
+
 		//SDL Variables
 		SDL_Window *mpWindow;
 		SDL_GLContext mGLContext;
@@ -382,26 +403,17 @@ namespace hpl {
 		//Depth helper
 		GLenum GetGLDepthTestFuncEnum(eDepthTestFunc aType);
 
-		//Alpha Helper
-		GLenum GetGLAlphaTestFuncEnum(eAlphaTestFunc aType);
 
 		//Stencil helper
 		GLenum GetGLStencilFuncEnum(eStencilFunc aType);
 		GLenum GetGLStencilOpEnum(eStencilOp aType);
 
 		//Matrix Helper
-		void SetMatrixMode(eMatrix mType);
-		// Loads the top of the CPU stack into the GL matrix (fixed-function
-		// drawing still reads those).
+		// Notes that the top of the CPU stack changed, for the
+		// fixed-function shaders.
 		void LoadMatrix(eMatrix aMtxType);
 		// Top is the current matrix; never empty.
 		std::vector<cMatrixf> mvMatrixStack[eMatrix_LastEnum];
-
-		//Texture helper
-		GLenum GetGLTextureParamEnum(eTextureParam aType);
-		GLenum GetGLTextureOpEnum(eTextureOp aType);
-		GLenum GetGLTextureFuncEnum(eTextureFunc aType);
-		GLenum GetGLTextureSourceEnum(eTextureSource aType);
 
 		//Blend helper
 		GLenum GetGLBlendEnum(eBlendFunc aType);
