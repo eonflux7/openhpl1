@@ -100,34 +100,12 @@ namespace hpl {
 			eGpuProgramType_Fragment);
 
 
-		//////////////////////////////////////////////////////
-		//Check if there is enough texture units for 1 pass spot
-		if(mpLowLevelGraphics->GetCaps(eGraphicCaps_MaxTextureImageUnits) > 4)
-		{
-			mbUsesTwoPassSpot = false;
+		//Spot
+		tString sSpotFragProgram = cString::Sub(asLightFragmentProgram,0, (int)asLightFragmentProgram.size() - 5) +
+												"Spot_fp.cg";
 
-			tString sSpotFragProgram = cString::Sub(asLightFragmentProgram,0, (int)asLightFragmentProgram.size() - 5) +
-													"Spot_fp.cg";
-
-			mvFragPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram(sSpotFragProgram,"main",
-															eGpuProgramType_Fragment);
-		}
-		else
-		{
-			mbUsesTwoPassSpot = true;
-
-			tString sSpotFragProgram1 = "Diffuse_Light_Spot_fp_pass1.cg";//cString::Sub(asLightFragmentProgram,0, (int)asLightFragmentProgram.size() - 5) +
-										//			"Spot_fp_pass1.cg";
-			tString sSpotFragProgram2 = cString::Sub(asLightFragmentProgram,0, (int)asLightFragmentProgram.size() - 5) +
-													"Spot_fp_pass2.cg";
-
-			mvFragPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram(sSpotFragProgram1,"main",
+		mvFragPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram(sSpotFragProgram,"main",
 														eGpuProgramType_Fragment);
-
-			mvFragPrograms[eBaseLightProgram_Spot2] = mpProgramManager->CreateProgram(sSpotFragProgram2,"main",
-														eGpuProgramType_Fragment);
-
-		}
 
 
 		///////////////////////////////////////////
@@ -228,22 +206,8 @@ namespace hpl {
 		{
 			eBaseLightProgram program;
 
-			///////////////
-			//Spot two pass
-			if(aType == eMaterialRenderType_Light && apLight->GetLightType() == eLight3DType_Spot
-				&& mbUsesTwoPassSpot)
-			{
-				if(alPass==0)	program = eBaseLightProgram_Spot1;
-				else			program = eBaseLightProgram_Spot2;
-			}
-			//////////////////
-			//Other
-			else
-			{
-				if(apLight->GetLightType()==eLight3DType_Point)		program = eBaseLightProgram_Point1;
-				else if(apLight->GetLightType()==eLight3DType_Spot)	program = eBaseLightProgram_Spot1;
-			}
-
+			if(apLight->GetLightType()==eLight3DType_Point)		program = eBaseLightProgram_Point1;
+			else if(apLight->GetLightType()==eLight3DType_Spot)	program = eBaseLightProgram_Spot1;
 
 			return mvFragPrograms[program];
 		}
@@ -282,17 +246,6 @@ namespace hpl {
 
 	eMaterialBlendMode iMaterial_BaseLight::GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		//////////////////////////////
-		// Spot two pass
-		if(aType == eMaterialRenderType_Light && apLight->GetLightType() == eLight3DType_Spot
-			&& mbUsesTwoPassSpot)
-		{
-			if(alPass == 0)			return eMaterialBlendMode_Replace;
-			else if(alPass == 1)	return eMaterialBlendMode_DestAlphaAdd;
-		}
-
-		//////////////////////////////
-		// Other
 		if(aType == eMaterialRenderType_Z) return eMaterialBlendMode_Replace;
 
 		return eMaterialBlendMode_Add;
@@ -302,21 +255,6 @@ namespace hpl {
 
 	eMaterialChannelMode iMaterial_BaseLight::GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		////////////////////////////
-		// Spot two pass:
-		if(aType == eMaterialRenderType_Light && apLight->GetLightType() == eLight3DType_Spot
-			&& mbUsesTwoPassSpot)
-		{
-			if(alPass == 0) return eMaterialChannelMode_A;
-		}
-		//////////////////////////////
-		// Other
-		else if(aType == eMaterialRenderType_Z)
-		{
-			//return eMaterialChannelMode_Z;
-			return eMaterialChannelMode_RGBA;
-		}
-
 		return eMaterialChannelMode_RGBA;
 	}
 
@@ -337,83 +275,39 @@ namespace hpl {
 		}
 		else if(aType == eMaterialRenderType_Light)
 		{
-			//////////////////////////////////////////////
-			// Two Pass Spot LIght
-			if(mbUsesTwoPassSpot && apLight->GetLightType() == eLight3DType_Spot)
+			switch(alUnit)
 			{
-				if(alPass == 0)
-				{
-					switch(alUnit)
+				//Diffuse texture
+			case 0: return mvTexture[eMaterialTexture_Diffuse];
+
+				//Normalmap
+			case 1: if(mbUseNormalMap) return mvTexture[eMaterialTexture_NMap];break;
+
+				//Normalization map
+			case 2: return mpNormalizationMap; break;
+
+				//Falloff map
+			case 3: return apLight->GetFalloffMap();
+
+				//Spotlight texture
+			case 4: if(apLight->GetLightType() == eLight3DType_Spot)
 					{
-					//Falloff map
-					case 0: return apLight->GetFalloffMap();
-
-					//Negative rejection:
-					case 1: return mpSpotNegativeRejectMap;
-					}
-				}
-				else
-				{
-					switch(alUnit)
+						cLight3DSpot *pSpotLight = static_cast<cLight3DSpot*>(apLight);
+						return pSpotLight->GetTexture();
+					};
+				break;
+				//Negative rejection
+			case 5: if(apLight->GetLightType() == eLight3DType_Spot)
 					{
-					//Diffuse texture
-					case 0: return mvTexture[eMaterialTexture_Diffuse];
-
-					//Normalmap
-					case 1: if(mbUseNormalMap) return mvTexture[eMaterialTexture_NMap];break;
-
-					//Normalization map
-					case 2: return mpNormalizationMap; break;
-
-					//Spotlight texture
-					case 3:
-						{
-							cLight3DSpot *pSpotLight = static_cast<cLight3DSpot*>(apLight);
-							return pSpotLight->GetTexture();
-						}
-						break;
+						return mpSpotNegativeRejectMap;
 					}
-				}
-			}
-			//////////////////////////////////////////////
-			// All Other Lighting
-			else
-			{
-				switch(alUnit)
-				{
-					//Diffuse texture
-				case 0: return mvTexture[eMaterialTexture_Diffuse];
-
-					//Normalmap
-				case 1: if(mbUseNormalMap) return mvTexture[eMaterialTexture_NMap];break;
-
-					//Normalization map
-				case 2: return mpNormalizationMap; break;
-
-					//Falloff map
-				case 3: return apLight->GetFalloffMap();
-
-					//Spotlight texture
-				case 4: if(apLight->GetLightType() == eLight3DType_Spot)
-						{
-							cLight3DSpot *pSpotLight = static_cast<cLight3DSpot*>(apLight);
-							return pSpotLight->GetTexture();
-						};
 					break;
-					//Negative rejection
-				case 5: if(apLight->GetLightType() == eLight3DType_Spot)
-						{
-							return mpSpotNegativeRejectMap;
-						}
-						break;
-					//Color specular
-				case 6:	if(mbUseColorSpecular)
-						{
-							return mvTexture[eMaterialTexture_Specular];
-						}
-						break;
-				}
-
+				//Color specular
+			case 6:	if(mbUseColorSpecular)
+					{
+						return mvTexture[eMaterialTexture_Specular];
+					}
+					break;
 			}
 		}
 		return nullptr;
@@ -430,12 +324,6 @@ namespace hpl {
 
 	int iMaterial_BaseLight::GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight)
 	{
-		if(aType == eMaterialRenderType_Light && apLight->GetLightType() == eLight3DType_Spot
-			&& mbUsesTwoPassSpot)
-		{
-			return 2;
-		}
-
 		return 1;
 	}
 

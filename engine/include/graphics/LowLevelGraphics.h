@@ -165,23 +165,10 @@ namespace hpl {
 
 	enum eGraphicCaps
 	{
-		eGraphicCaps_TextureTargetRectangle,
-		eGraphicCaps_VertexBufferObject,
-		eGraphicCaps_TwoSideStencil,
-
 		eGraphicCaps_MaxTextureImageUnits,
-		eGraphicCaps_MaxTextureCoordUnits,
 
 		eGraphicCaps_AnisotropicFiltering,
 		eGraphicCaps_MaxAnisotropicFiltering,
-
-		eGraphicCaps_Multisampling,
-
-		eGraphicCaps_GL_VertexProgram,
-		eGraphicCaps_GL_FragmentProgram,
-		eGraphicCaps_GL_NVRegisterCombiners,
-		eGraphicCaps_GL_NVRegisterCombiners_MaxStages,
-		eGraphicCaps_GL_ATIFragmentShader,
 
 		eGraphicCaps_LastEnum
 	};

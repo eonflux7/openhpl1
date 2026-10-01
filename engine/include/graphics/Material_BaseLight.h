@@ -85,8 +85,6 @@ namespace hpl {
 		iTexture *mpNormalizationMap;
 		iTexture *mpSpotNegativeRejectMap;
 
-		bool mbUsesTwoPassSpot;
-
 		//properties to set
 		bool mbUseSpecular;
 		bool mbUseNormalMap;

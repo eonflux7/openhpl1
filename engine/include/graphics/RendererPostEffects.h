@@ -145,7 +145,6 @@ namespace hpl {
 		iGpuProgram *mpBlurVP;
 		iGpuProgram *mpBlur2dFP;
 		iGpuProgram *mpBlurRectFP;
-		bool mbBlurFallback;
 
 		iGpuProgram *mpBloomVP;
 		iGpuProgram *mpBloomFP;

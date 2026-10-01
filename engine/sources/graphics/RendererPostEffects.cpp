@@ -56,28 +56,19 @@ namespace hpl {
 		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());
 		for(int i=0;i<2;i++)
 		{
-			if(mpLowLevelGraphics->GetCaps(eGraphicCaps_TextureTargetRectangle))
-			{
-				mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
-					(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
-					eTextureType_Normal, eTextureTarget_Rect);
+			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
+				(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
+				eTextureType_Normal, eTextureTarget_Rect);
 
-				if(mpScreenBuffer[i]==nullptr)
-				{
-					Error("Couldn't create screenbuffer!\n");
-					mpScreenBuffer[0] = nullptr;
-					mpScreenBuffer[1] = nullptr;
-					break;
-				}
-				mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
-				mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
-
-			}
-			else
+			if(mpScreenBuffer[i]==nullptr)
 			{
-				mpScreenBuffer[i] = nullptr;
-				Error("Texture rectangle not supported. Posteffects will be turned off.");
+				Error("Couldn't create screenbuffer!\n");
+				mpScreenBuffer[0] = nullptr;
+				mpScreenBuffer[1] = nullptr;
+				break;
 			}
+			mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
+			mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
 		}
 
 		///////////////////////////////////////////
@@ -87,30 +78,11 @@ namespace hpl {
 
 		/////////////////
 		//Blur programs
-		mbBlurFallback = false; //Set to true if the fallbacks are used.
-
 		mpBlurVP = mpGpuManager->CreateProgram("PostEffect_Blur_vp.cg","main",eGpuProgramType_Vertex);
 		if(!mpBlurVP) Error("Couldn't load 'PostEffect_Blur_vp.cg'!\n");
 
 		mpBlurRectFP = mpGpuManager->CreateProgram("PostEffect_Blur_Rect_fp.cg","main",eGpuProgramType_Fragment);
-		/*if(!mpBlurRectFP)
-		{
-			mbBlurFallback = true;
-			Log(" Using Blur Rect FP fallback\n");
-			mpBlurRectFP = mpGpuManager->CreateProgram("PostEffect_Fallback01_Blur_Rect_fp.cg","main",eGpuProgramType_Fragment);
-			if(!mpBlurRectFP) Error("Couldn't load 'PostEffect_Blur_Rect_fp.cg'!\n");
-		}*/
-
-
 		mpBlur2dFP = mpGpuManager->CreateProgram("PostEffect_Blur_2D_fp.cg","main",eGpuProgramType_Fragment);
-		/*if(!mpBlur2dFP)
-		{
-			mbBlurFallback = true;
-			Log(" Using Blur 2D FP fallback\n");
-			mpBlur2dFP = mpGpuManager->CreateProgram("PostEffect_Fallback01_Blur_2D_fp.cg","main",eGpuProgramType_Fragment);
-			if(!mpBlur2dFP) Error("Couldn't load 'PostEffect_Blur_2D_fp.cg'!\n");
-		}*/
-
 
 		/////////////////
 		// Bloom programs
@@ -140,17 +112,8 @@ namespace hpl {
 		mpMotionBlurVP = mpGpuManager->CreateProgram("PostEffect_Motion_vp.cg","main",eGpuProgramType_Vertex);
 		if(!mpMotionBlurVP) Error("Couldn't load 'PostEffect_Motion_vp.cg'!\n");
 
-		// Disable the dynamic loop version on Mac OS X until we figure why it doesn't work
-		mpMotionBlurFP = nullptr;
-		#ifndef __APPLE__
 		mpMotionBlurFP = mpGpuManager->CreateProgram("PostEffect_Motion_fp.cg","main",eGpuProgramType_Fragment);
-		#endif
-		if(!mpMotionBlurFP)
-		{
-			Log("Dynamic loops in motion blur fp not supported, loading static instead.\n");
-			mpMotionBlurFP = mpGpuManager->CreateProgram("PostEffect_Motion_staticloop_fp.cg","main",eGpuProgramType_Fragment);
-			if(!mpMotionBlurFP)	Error("Couldn't load 'PostEffect_Motion_fp.cg'!\n");
-		}
+		if(!mpMotionBlurFP) Error("Couldn't load 'PostEffect_Motion_fp.cg'!\n");
 
 		/////////////////
 		// Depth of Field programs
@@ -250,7 +213,6 @@ namespace hpl {
 	void cRendererPostEffects::Render()
 	{
 		if(mpScreenBuffer[0] == nullptr || mpScreenBuffer[1] == nullptr) return;
-		if(!mpLowLevelGraphics->GetCaps(eGraphicCaps_TextureTargetRectangle)) return;
 
 		if(mbActive==false ||
 			(	mImageTrailData.mbActive==false && mbBloomActive==false &&
@@ -313,10 +275,6 @@ namespace hpl {
 
 		//Draw the screen texture with blur
 		pLowLevel->SetTexture(0,apSource);
-		if(mbBlurFallback){
-			mpLowLevelGraphics->SetTexture(1,apSource);
-			mpLowLevelGraphics->SetTexture(2,apSource);
-		}
 
 		{
 			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,mvScreenSize.y),cColor(1,1.0f) );
@@ -346,10 +304,6 @@ namespace hpl {
 
 		//Set texture and draw
 		pLowLevel->SetTexture(0,apDestination);
-		if(mbBlurFallback){
-			mpLowLevelGraphics->SetTexture(1,apDestination);
-			mpLowLevelGraphics->SetTexture(2,apDestination);
-		}
 
 		{
 			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
@@ -368,11 +322,6 @@ namespace hpl {
 		}
 
 		pLowLevel->CopyContextToTexure(apDestination,0, vBlurSize);
-
-		if(mbBlurFallback){
-			mpLowLevelGraphics->SetTexture(1,nullptr);
-			mpLowLevelGraphics->SetTexture(2,nullptr);
-		}
 	}
 
 	//-----------------------------------------------------------------------

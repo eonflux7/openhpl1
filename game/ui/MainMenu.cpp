@@ -1436,7 +1436,6 @@ cMainMenuWidget_Text *gpMotionBlurText=nullptr;
 cMainMenuWidget_Text *gpVSyncText=nullptr;
 cMainMenuWidget_Text *gpLimitFPSText=nullptr;
 cMainMenuWidget_Text *gpTextureQualityText=nullptr;
-cMainMenuWidget_Text *gpShaderQualityText=nullptr;
 cMainMenuWidget_Text *gpShadowsText=nullptr;
 cMainMenuWidget_Text *gpTextureFilterText=nullptr;
 cMainMenuWidget_Text *gpTextureAnisotropyText=nullptr;
@@ -1456,8 +1455,6 @@ int glResolutionNum = 17;
 
 tString gvTextureQuality[] = {"High","Medium","Low"};
 int glTextureQualityNum = 3;
-tString gvShaderQuality[] = {"Very Low","Low","Medium","High"};
-int glShaderQualityNum = 4;
 
 
 cMainMenuWidget_Text *gpFOVText=nullptr;
@@ -1706,38 +1703,6 @@ public:
 	}
 };
 
-
-//------------------------------------------------------------
-
-class cMainMenuWidget_ShaderQuality : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_ShaderQuality(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsShaderQuality");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		int lCurrent = iMaterial::GetQuality();
-		if(aButton == eMButton_Left)
-		{
-			lCurrent++;
-			if(lCurrent >= glShaderQualityNum) lCurrent =0;
-		}
-		else if(aButton == eMButton_Right)
-		{
-			lCurrent--;
-			if(lCurrent < 0) lCurrent =glShaderQualityNum-1;
-		}
-
-		gpShaderQualityText->msText = kTranslate("MainMenu",gvShaderQuality[lCurrent]);
-		iMaterial::SetQuality((eMaterialQuality) lCurrent);
-
-		if(mpInit->mpMapHandler->GetCurrentMapName() != "") gbMustRestart = true;
-	}
-};
 
 //------------------------------------------------------------
 
@@ -3656,9 +3621,6 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetFOV = hplNew( cMainMenuWidget_FOV,(mpInit,vPos,_W("Field of View:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetFOV); 
-	vPos.y += 29;
-	cMainMenuWidget *pWidgetShaderQuality = hplNew( cMainMenuWidget_ShaderQuality,(mpInit,vPos,kTranslate("MainMenu","Shader Quality:"),20,eFontAlign_Right) );
-	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetShaderQuality); 
 
 	//vPos.x = 400;
 	//vPos.y = 230 + 150;
@@ -3716,11 +3678,6 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpFOVText);
 	gpFOVText->SetExtraWidget(pWidgetFOV);
 
-	vPos.y += 29;
-	sText = kTranslate("MainMenu",gvShaderQuality[iMaterial::GetQuality()]);
-	gpShaderQualityText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
-	AddWidgetToState(eMainMenuState_OptionsGraphics,gpShaderQualityText); 
-	gpShaderQualityText->SetExtraWidget(pWidgetShaderQuality);
 
     
 	///////////////////////////////////

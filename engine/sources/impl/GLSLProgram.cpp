@@ -65,7 +65,7 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	// "core/programs/Diffuse_Light_Spot_fp_pass1.cg" -> "hpl1_Diffuse_Light_Spot_pass1"
+	// "core/programs/Diffuse_Light_Spot_fp.cg" -> "hpl1_Diffuse_Light_Spot"
 	static tString CgNameToShaderBase(const tString& asCgFile)
 	{
 		tString sName = cString::GetFileName(asCgFile);

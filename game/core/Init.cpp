@@ -109,61 +109,6 @@ cInit* gpInit;
 // END TIME LIMIT
 ///////////////////////////////////////////////
 
-///////////////////////////////////////////////
-// BEGIN CHECK SUPPORT
-
-bool CheckSupport(cInit *apInit)
-{
-	iLowLevelGraphics *pLowLevelGraphics = apInit->mpGame->GetGraphics()->GetLowLevel();
-	cInit *mpInit = apInit;
-
-	//Vertex shader support.
-	if(pLowLevelGraphics->GetCaps(eGraphicCaps_GL_VertexProgram)==0)
-	{
-		apInit->msErrorMessage =	kTranslate("StartUp", "Error_NoVertexShader") + _W("\n") +
-									kTranslate("StartUp", "ErrorAdd01") + _W("\n") +
-									kTranslate("StartUp", "ErrorAdd02");
-        return false;
-	}
-	//Texture units
-	if(pLowLevelGraphics->GetCaps(eGraphicCaps_MaxTextureImageUnits)<=1)
-	{
-		apInit->msErrorMessage =	kTranslate("StartUp", "Error_FewTextureUnits") + _W("\n") +
-									kTranslate("StartUp", "ErrorAdd01") + _W("\n") +
-									kTranslate("StartUp", "ErrorAdd02");
-		return false;
-	}
-
-	//Try compiling vertex shader
-	Log("Trying to load vertex program!\n");
-	iGpuProgram *pTestVtxProg = pLowLevelGraphics->CreateGpuProgram("Test",eGpuProgramType_Vertex);
-	if(	pTestVtxProg->CreateFromFile("core/programs/Fallback01_Diffuse_Light_p1_vp.cg","main")==false)
-	{
-		Log("Did not succeed!\n");
-		if(iMaterial::GetQuality() != eMaterialQuality_VeryLow)
-		{
-			apInit->msErrorMessage =	kTranslate("StartUp", "Error_BadVertexShader") + _W("\n") +
-										kTranslate("StartUp", "Error_BadVertexShader02") + _W("\n") +
-										kTranslate("StartUp", "Error_BadVertexShader03") + _W("\n") +
-										kTranslate("StartUp", "Error_BadVertexShader04") + _W("\n") +
-										kTranslate("StartUp", "ErrorAdd02");
-			hplDelete( pTestVtxProg );
-			
-			mpInit->mpConfig->SetInt("Graphics","ShaderQuality",eMaterialQuality_VeryLow);
-			mpInit->mpConfig->Save();
-
-			return false;
-		}
-	}
-	Log("Success!\n");
-	hplDelete( pTestVtxProg );
-
-	return true;
-}
-
-// END CHECK SUPPORT
-///////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
@@ -371,7 +316,6 @@ bool cInit::Init(tString asCommandLine)
 
 	mlFSAA = mpConfig->GetInt("Graphics","FSAA",0);
 	mbPostEffects = mpConfig->GetBool("Graphics","PostEffects",true);
-	iMaterial::SetQuality((eMaterialQuality)mpConfig->GetInt("Graphics","ShaderQuality",eMaterialQuality_High));
 	
 	mPhysicsAccuracy = (ePhysicsAccuracy)mpConfig->GetInt("Physics","Accuracy",ePhysicsAccuracy_High);
 	mfPhysicsUpdatesPerSec = mpConfig->GetFloat("Physics","UpdatesPerSec",60.0f);
@@ -470,11 +414,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->SetLanguageFile(msLanguageFile);
 
 	Log("Initializing " PRODUCT_NAME "\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n");
-	//////////////////////////////////////////////7
-	// Check if computer supports game
-	if(CheckSupport(this)==false) return false;
 
-	
 	//Add loaders
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameObject,("Object",this)) );
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameItem,("Item",this)) );
@@ -858,7 +798,6 @@ void cInit::Exit()
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);
 	mpConfig->SetBool("Graphics","PostEffects",mbPostEffects);
-	mpConfig->SetInt("Graphics","ShaderQuality",iMaterial::GetQuality());
 	mpConfig->SetBool("Graphics","LimitFPS",mpGame->GetLimitFPS());
 
 	mpConfig->SetInt("Graphics","Shadows",mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows());

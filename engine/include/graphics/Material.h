@@ -34,16 +34,6 @@ namespace hpl {
 
 #define kMaxProgramNum (5)
 
-	enum eMaterialQuality
-	{
-		eMaterialQuality_VeryLow=0,
-		eMaterialQuality_Low=1,
-		eMaterialQuality_Medium=2,
-		eMaterialQuality_High=3,
-		eMaterialQuality_VeryHigh=4,
-		eMaterialQuality_LastEnum=5
-	};
-
 	enum eMaterialTexture
 	{
 		eMaterialTexture_Diffuse,
@@ -347,9 +337,6 @@ namespace hpl {
 		const tString& GetPhysicsMaterial(){ return msPhysicsMaterial;}
 		void SetPhysicsMaterial(const tString& asName){ msPhysicsMaterial = asName;}
 
-		static void SetQuality(eMaterialQuality aQuality){ mQuality = aQuality;}
-		static eMaterialQuality GetQuality(){ return mQuality;}
-
 	protected:
 		iLowLevelGraphics* mpLowLevelGraphics;
 		cImageManager* mpImageManager;
@@ -358,8 +345,6 @@ namespace hpl {
 		cRenderer3D* mpRenderer3D;
 		cRenderSettings *mpRenderSettings;
 		cGpuProgramManager* mpProgramManager;
-
-		static eMaterialQuality	mQuality;
 
 		bool mbIsTransperant;
 		bool mbIsGlowing;

@@ -33,8 +33,6 @@ namespace hpl {
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
 
-	eMaterialQuality iMaterial::mQuality = eMaterialQuality_High;
-
 	//-----------------------------------------------------------------------
 
 	iMaterial::iMaterial(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,

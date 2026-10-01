@@ -26,7 +26,6 @@
 #include "impl/SDLTexture.h"
 #include "impl/GLSLProgram.h"
 #include "system/LowLevelSystem.h"
-#include "impl/VertexBufferOGL.h"
 #include "impl/VertexBufferVBO.h"
 
 #include "impl/OcclusionQueryOGL.h"
@@ -527,23 +526,9 @@ namespace hpl {
 
 		//Show some info
 		Log("  Max texture image units: %d\n",GetCaps(eGraphicCaps_MaxTextureImageUnits));
-		Log("  Max texture coord units: %d\n",GetCaps(eGraphicCaps_MaxTextureCoordUnits));
-		Log("  Two sided stencil: %d\n",GetCaps(eGraphicCaps_TwoSideStencil));
-		Log("  Vertex Buffer Object: %d\n",GetCaps(eGraphicCaps_VertexBufferObject));
-
 		Log("  Anisotropic filtering: %d\n",GetCaps(eGraphicCaps_AnisotropicFiltering));
 		if(GetCaps(eGraphicCaps_AnisotropicFiltering))
 			Log("  Max Anisotropic degree: %d\n",GetCaps(eGraphicCaps_MaxAnisotropicFiltering));
-
-		Log("  Multisampling: %d\n",GetCaps(eGraphicCaps_Multisampling));
-
-		Log("  Vertex Program: %d\n",GetCaps(eGraphicCaps_GL_VertexProgram));
-		Log("  Fragment Program: %d\n",GetCaps(eGraphicCaps_GL_FragmentProgram));
-
-		Log("  NV Register Combiners: %d\n",GetCaps(eGraphicCaps_GL_NVRegisterCombiners));
-		Log("  NV Register Combiners Stages: %d\n",GetCaps(eGraphicCaps_GL_NVRegisterCombiners_MaxStages));
-
-		Log("  ATI Fragment Shader: %d\n",GetCaps(eGraphicCaps_GL_ATIFragmentShader));
 	}
 	//-----------------------------------------------------------------------
 
@@ -551,48 +536,14 @@ namespace hpl {
 	{
 		switch(aType)
 		{
-		//Texture Rectangle
-		case eGraphicCaps_TextureTargetRectangle:
-			{
-				return 1;//GLAD_GL_ARB_texture_rectangle?1:0;
-			}
-
-
-		//Vertex Buffer Object
-		case eGraphicCaps_VertexBufferObject:
-			{
-				return GLAD_GL_ARB_vertex_buffer_object?1:0;
-			}
-
-		//Two Sided Stencil
-		case eGraphicCaps_TwoSideStencil:
-			{
-				//DEBUG:
-				//return 0;
-
-				if(GLAD_GL_EXT_stencil_two_side) return 1;
-				else if(GLAD_GL_ATI_separate_stencil) return 1;
-				else return 0;
-			}
-
 		//Max Texture Image Units
 		case eGraphicCaps_MaxTextureImageUnits:
 			{
-				//DEBUG:
-				//return 2;
-
 				int lUnits;
 				glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB,(GLint *)&lUnits);
 				return lUnits;
 			}
 
-		//Max Texture Coord Units
-		case eGraphicCaps_MaxTextureCoordUnits:
-			{
-				int lUnits;
-				glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB,(GLint *)&lUnits);
-				return lUnits;
-			}
 		//Texture Anisotropy
 		case eGraphicCaps_AnisotropicFiltering:
 			{
@@ -608,56 +559,6 @@ namespace hpl {
 				float fMax;
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,&fMax);
 				return (int)fMax;
-			}
-
-		//Multisampling
-		case eGraphicCaps_Multisampling:
-			{
-				if(GLAD_GL_ARB_multisample) return 1;
-				return 0;
-			}
-
-
-		//GL Vertex program
-		case eGraphicCaps_GL_VertexProgram:
-			{
-				//Debbug:
-				//return 0;
-
-				if(GLAD_GL_ARB_vertex_program) return 1;
-				else return 0;
-			}
-
-		//GL Fragment program
-		case eGraphicCaps_GL_FragmentProgram:
-			{
-				//Debbug:
-				//return 0;
-
-				if(GLAD_GL_ARB_fragment_program) return 1;
-				else return 0;
-			}
-
-		//GL NV register combiners
-		case eGraphicCaps_GL_NVRegisterCombiners:
-			{
-				if(GLAD_GL_NV_register_combiners) return 1;
-				else return 0;
-			}
-
-		//GL NV register combiners Max stages
-		case eGraphicCaps_GL_NVRegisterCombiners_MaxStages:
-			{
-				int lStages;
-				glGetIntegerv(GL_MAX_GENERAL_COMBINERS_NV,(GLint *)&lStages);
-				return lStages;
-			}
-
-		//GL ATI Fragment Shader
-		case eGraphicCaps_GL_ATIFragmentShader:
-			{
-				if(GLAD_GL_ATI_fragment_shader) return 1;
-				else return 0;
 			}
 		}
 
@@ -685,7 +586,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetMultisamplingActive(bool abX)
 	{
-		if(!GLAD_GL_ARB_multisample || mlMultisampling<=0) return;
+		if(mlMultisampling<=0) return;
 
 		if(abX)
 			glEnable(GL_MULTISAMPLE_ARB);
@@ -968,10 +869,7 @@ namespace hpl {
 		if(mpCurrentTexture[alUnit])
 			LastTarget = GetGLTextureTargetEnum(mpCurrentTexture[alUnit]->GetTarget());
 
-		//Check if multi texturing is supported.
-		if(GLAD_GL_ARB_multitexture){
-			glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
-		}
+		glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
 
 		//Disable this unit if NULL
 		if(apTex == nullptr)
@@ -1082,18 +980,7 @@ namespace hpl {
 														eVertexBufferUsageType aUsageType,
 														int alReserveVtxSize,int alReserveIdxSize)
 	{
-		//return hplNew( cVertexBufferVBO,(this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
-		//return hplNew( cVertexBufferOGL, (this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
-
-		if(GetCaps(eGraphicCaps_VertexBufferObject))
-		{
-			return hplNew( cVertexBufferVBO, (this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
-		}
-		else
-		{
-			//Error("VBO is not supported, using Vertex array!\n");
-			return hplNew( cVertexBufferOGL, (this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
-		}
+		return hplNew( cVertexBufferVBO, (this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
 	}
 
 
@@ -1416,50 +1303,9 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/*void cLowLevelGraphicsSDL::SetStencilTwoSideActive(bool abX)
-	{
-		if(GLAD_GL_EXT_stencil_two_side)
-		{
-			glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencilFace(eStencilFace aFace)
-	{
-		if(GLAD_GL_EXT_stencil_two_side)
-		{
-			if(aFace == eStencilFace_Front) glActiveStencilFaceEXT(GL_FRONT);
-			else							glActiveStencilFaceEXT(GL_BACK);
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencilFunc(eStencilFunc aFunc,int alRef, unsigned int aMask)
-	{
-		glStencilFunc(GetGLStencilFuncEnum(aFunc), alRef, aMask);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencilOp(eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)
-	{
-		glStencilOp(GetGLStencilOpEnum(aFailOp), GetGLStencilOpEnum(aZFailOp),
-					GetGLStencilOpEnum(aZPassOp));
-	}*/
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
 					eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)
 	{
-		if(GLAD_GL_EXT_stencil_two_side)
-		{
-			//glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);//shouldn't be needed..
-			glActiveStencilFaceEXT(GL_FRONT);
-		}
 		glStencilFunc(GetGLStencilFuncEnum(aFunc), alRef, aMask);
 
 		glStencilOp(GetGLStencilOpEnum(aFailOp), GetGLStencilOpEnum(aZFailOp),
@@ -1473,53 +1319,18 @@ namespace hpl {
 					eStencilOp aFrontFailOp,eStencilOp aFrontZFailOp,eStencilOp aFrontZPassOp,
 					eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp)
 	{
-		//Nvidia implementation
-		if(GLAD_GL_EXT_stencil_two_side)
-		{
-			glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+		glStencilFuncSeparate(GL_FRONT, GetGLStencilFuncEnum(aFrontFunc), alRef, aMask);
+		glStencilOpSeparate(GL_FRONT, GetGLStencilOpEnum(aFrontFailOp), GetGLStencilOpEnum(aFrontZFailOp),
+							GetGLStencilOpEnum(aFrontZPassOp));
 
-			//Front
-			glActiveStencilFaceEXT(GL_FRONT);
-			glStencilFunc(GetGLStencilFuncEnum(aFrontFunc), alRef, aMask);
-
-			glStencilOp(GetGLStencilOpEnum(aFrontFailOp), GetGLStencilOpEnum(aFrontZFailOp),
-						GetGLStencilOpEnum(aFrontZPassOp));
-			//Back
-			glActiveStencilFaceEXT(GL_BACK);
-			glStencilFunc(GetGLStencilFuncEnum(aBackFunc), alRef, aMask);
-
-			glStencilOp(GetGLStencilOpEnum(aBackFailOp), GetGLStencilOpEnum(aBackZFailOp),
-						GetGLStencilOpEnum(aBackZPassOp));
-		}
-		//Ati implementation
-		else if(GLAD_GL_ATI_separate_stencil)
-		{
-			//Front
-			glStencilOpSeparateATI( GL_FRONT, GetGLStencilOpEnum(aFrontFailOp),
-								GetGLStencilOpEnum(aFrontZFailOp),
-								GetGLStencilOpEnum(aFrontZPassOp));
-			//Back
-			glStencilOpSeparateATI( GL_BACK, GetGLStencilOpEnum(aBackFailOp),
-								GetGLStencilOpEnum(aBackZFailOp),
-								GetGLStencilOpEnum(aBackZPassOp));
-
-			//Front and Back function
-			glStencilFuncSeparateATI(GetGLStencilFuncEnum(aFrontFunc),
-									GetGLStencilFuncEnum(aBackFunc),
-									alRef, aMask);
-		}
-		else
-		{
-			FatalError("Only single sided stencil supported!\n");
-		}
+		glStencilFuncSeparate(GL_BACK, GetGLStencilFuncEnum(aBackFunc), alRef, aMask);
+		glStencilOpSeparate(GL_BACK, GetGLStencilOpEnum(aBackFailOp), GetGLStencilOpEnum(aBackZFailOp),
+							GetGLStencilOpEnum(aBackZPassOp));
 	}
 
 	void cLowLevelGraphicsSDL::SetStencilTwoSide(bool abX)
 	{
-		if(GLAD_GL_EXT_stencil_two_side)
-		{
-			glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
-		}
+		// Front and back state are always separate; SetStencil() sets both.
 	}
 
 	//-----------------------------------------------------------------------
@@ -1575,17 +1386,10 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
 		eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha)
 	{
-		if(GLAD_GL_EXT_blend_func_separate)
-		{
-			glBlendFuncSeparateEXT(GetGLBlendEnum(aSrcFactorColor),
-								GetGLBlendEnum(aDestFactorColor),
-								GetGLBlendEnum(aSrcFactorAlpha),
-								GetGLBlendEnum(aDestFactorAlpha));
-		}
-		else
-		{
-			glBlendFunc(GetGLBlendEnum(aSrcFactorColor),GetGLBlendEnum(aDestFactorColor));
-		}
+		glBlendFuncSeparate(GetGLBlendEnum(aSrcFactorColor),
+							GetGLBlendEnum(aDestFactorColor),
+							GetGLBlendEnum(aSrcFactorAlpha),
+							GetGLBlendEnum(aDestFactorAlpha));
 	}
 
 

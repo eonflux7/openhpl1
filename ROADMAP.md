@@ -90,7 +90,7 @@ Every step is checked against reference images of the renderer before it.
         step
 - [ ] No GL errors or driver warnings in a debug context
       (`OVERTURE_GL_DEBUG`), so new ones stand out
-- [ ] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
+- [x] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
       materials and shaders, capability checks for what GL 3.3 guarantees)
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:
   - [ ] colour and depth/stencil textures; later passes can read the depth

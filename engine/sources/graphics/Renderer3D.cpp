@@ -117,10 +117,7 @@ namespace hpl {
 		}
 
 
-		if(mpLowLevelGraphics->GetCaps(eGraphicCaps_GL_FragmentProgram))
-			mRenderSettings.mpFragExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_fp.cg","main",eGpuProgramType_Fragment);
-		else
-			mRenderSettings.mpFragExtrudeProgram = nullptr;
+		mRenderSettings.mpFragExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_fp.cg","main",eGpuProgramType_Fragment);
 
 		///////////////////////////////////
 		//Load diffuse program, for stuff like query rendering

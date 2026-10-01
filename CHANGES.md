@@ -360,6 +360,29 @@ commit), and the last official Linux build on Steam.
   after the gamma pass. `OVERTURE_DUMP_FRAMES` uses the same code and now
   writes RGB images instead of RGBA.
 
+### Fallbacks for old GPUs removed
+
+The game requires OpenGL 4.1, so the paths for GPUs without what GL 3.3
+guarantees were never taken. Removed, with the reference images unchanged:
+
+- the `Fallback01`/`Fallback02` lighting materials and their shaders, and
+  the flat unlit fallback for lit materials (`Flat` stays as its own material
+  type)
+- the Shader Quality option (Very Low/Low/Medium picked those fallbacks) and
+  its `ShaderQuality` setting; Graphics options now end at Field of View
+- the two-pass spotlight for GPUs with four texture units or fewer, and its
+  `_pass1`/`_pass2` shaders
+- the post-effect blur fallback and the static-loop motion blur shader
+- the vertex-array fallback for GPUs without vertex buffer objects
+  (`cVertexBufferOGL`)
+- single-sided stencil shadows: shadow volumes always use two-sided stencil,
+  now through GL 2.0's `glStencilFuncSeparate`/`glStencilOpSeparate` instead
+  of `EXT_stencil_two_side`/`ATI_separate_stencil`
+- capability checks for features of GL 3.3 or older: texture rectangles,
+  fragment programs, multitexturing, multisampling, separate blend functions;
+  the startup support check and its error messages; the NV register combiner
+  and ATI fragment shader caps
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
