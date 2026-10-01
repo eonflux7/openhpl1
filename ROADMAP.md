@@ -137,8 +137,9 @@ Every step is checked against reference images of the renderer before it.
         planes in shaders
   - [x] vertex attributes and vertex array objects; immediate mode, client
         arrays and quads replaced by streamed buffers and triangles
-  - [ ] play-test: checked against the reference images and with stencil
-        shadows, anti-aliasing, gamma and motion blur; not on a real display
+  - [x] play-test: looks right and runs smoothly at 2560x1440 (also checked
+        against the reference images, and with anti-aliasing, render scale,
+        gamma and motion blur)
   - [ ] the fixed-function shaders stand in for the old pipeline call by
         call; materials that set a texture environment could have shaders of
         their own instead (Milestone 4, when their look changes)
