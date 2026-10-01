@@ -78,13 +78,13 @@ namespace hpl {
 			mvVertexArray[i].clear();
 			if(mVertexFlags & kvVertexFlags[i])
 			{
-				glDeleteBuffersARB(1,(GLuint *)&mvArrayHandle[i]);
+				glDeleteBuffers(1,(GLuint *)&mvArrayHandle[i]);
 			}
 		}
 
 		mvIndexArray.clear();
 
-		glDeleteBuffersARB(1,(GLuint *)&mlElementHandle);
+		glDeleteBuffers(1,(GLuint *)&mlElementHandle);
 		if(mlQuadElementHandle) glDeleteBuffers(1, &mlQuadElementHandle);
 		DeleteVertexArray();
 	}
@@ -172,22 +172,22 @@ namespace hpl {
 				);
 		}
 
-		GLenum usageType = GL_STATIC_DRAW_ARB;
-		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW_ARB;
-		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW_ARB;
+		GLenum usageType = GL_STATIC_DRAW;
+		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW;
+		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW;
 
 		//Create the VBO vertex arrays
 		for(int i=0;i< klNumOfVertexFlags; i++)
 		{
 			if(mVertexFlags & kvVertexFlags[i])
 			{
-				glGenBuffersARB(1,(GLuint *)&mvArrayHandle[i]);
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB, mvArrayHandle[i]);
+				glGenBuffers(1,(GLuint *)&mvArrayHandle[i]);
+				glBindBuffer(GL_ARRAY_BUFFER, mvArrayHandle[i]);
 
-				glBufferDataARB(GL_ARRAY_BUFFER_ARB, mvVertexArray[i].size()*sizeof(float),
+				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
 						mvVertexArray[i].data(), usageType);
 
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 				//Log("%d-Handle: %d, size: %d \n",i,mvArrayHandle[i], mvVertexArray);
 			}
@@ -195,11 +195,11 @@ namespace hpl {
 
 		//Create the VBO index array. Filled through GL_ARRAY_BUFFER: the
 		//element array binding belongs to whichever vertex array is bound.
-		glGenBuffersARB(1,(GLuint *)&mlElementHandle);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,mlElementHandle);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, GetIndexNum()*sizeof(unsigned int),
+		glGenBuffers(1,(GLuint *)&mlElementHandle);
+		glBindBuffer(GL_ARRAY_BUFFER,mlElementHandle);
+		glBufferData(GL_ARRAY_BUFFER, GetIndexNum()*sizeof(unsigned int),
 														mvIndexArray.data(), usageType);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
 		mbQuadIndicesChanged = true;
 
 		//The arrays may have changed (tangents)
@@ -215,36 +215,36 @@ namespace hpl {
 
 	void cVertexBufferVBO::UpdateData(tVertexFlag aTypes, bool abIndices)
 	{
-		GLenum usageType = GL_STATIC_DRAW_ARB;
-		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW_ARB;
-		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW_ARB;
+		GLenum usageType = GL_STATIC_DRAW;
+		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW;
+		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW;
 
 		//Create the VBO vertex arrays
 		for(int i=0;i< klNumOfVertexFlags; i++)
 		{
 			if((mVertexFlags & kvVertexFlags[i]) && (aTypes & kvVertexFlags[i]))
 			{
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB, mvArrayHandle[i]);
+				glBindBuffer(GL_ARRAY_BUFFER, mvArrayHandle[i]);
 
 				//This was apparently VERY slow.
-				glBufferDataARB(GL_ARRAY_BUFFER_ARB, mvVertexArray[i].size()*sizeof(float),
+				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
 					nullptr, usageType);//Clear memory
 
-				glBufferDataARB(GL_ARRAY_BUFFER_ARB, mvVertexArray[i].size()*sizeof(float),
+				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
 					mvVertexArray[i].data(), usageType);
 			}
 		}
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		//Create the VBO index array
 		if(abIndices)
 		{
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,mlElementHandle);
+			glBindBuffer(GL_ARRAY_BUFFER,mlElementHandle);
 
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB, GetIndexNum()*sizeof(unsigned int),
+			glBufferData(GL_ARRAY_BUFFER, GetIndexNum()*sizeof(unsigned int),
 				mvIndexArray.data(), usageType);
 
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,0);
+			glBindBuffer(GL_ARRAY_BUFFER,0);
 			mbQuadIndicesChanged = true;
 		}
 	}

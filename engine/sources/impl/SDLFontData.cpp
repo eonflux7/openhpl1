@@ -76,21 +76,18 @@ namespace hpl {
 			glGetIntegerv(GL_ACTIVE_TEXTURE, &mlActiveUnit);
 			glActiveTexture(GL_TEXTURE0);
 			glGetIntegerv(GL_TEXTURE_BINDING_2D, &mlBinding);
-			mbEnabled = glIsEnabled(GL_TEXTURE_2D);
 			glGetIntegerv(GL_UNPACK_ALIGNMENT, &mlAlignment);
 		}
 		~cFontTextureStateKeeper()
 		{
 			glPixelStorei(GL_UNPACK_ALIGNMENT, mlAlignment);
 			glBindTexture(GL_TEXTURE_2D, (GLuint)mlBinding);
-			if(mbEnabled) glEnable(GL_TEXTURE_2D); else glDisable(GL_TEXTURE_2D);
 			glActiveTexture((GLenum)mlActiveUnit);
 		}
 	private:
 		GLint mlActiveUnit;
 		GLint mlBinding;
 		GLint mlAlignment;
-		GLboolean mbEnabled;
 	};
 
 	//-----------------------------------------------------------------------

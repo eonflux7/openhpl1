@@ -23,5 +23,5 @@ void main()
 {
 	vec3 offset = vec3(((texture(tex1, vUv)*2.0) - vec4(1.0)) * vColor.w);
 
-	outColor = texture2DRect(tex0, gl_FragCoord.xy - (offset.xy*scale) / gl_FragCoord.z);
+	outColor = texture(tex0, gl_FragCoord.xy - (offset.xy*scale) / gl_FragCoord.z);
 }

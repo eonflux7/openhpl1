@@ -25,7 +25,7 @@ void main()
 {
 #if defined(MOD) || defined(MODX2)
 	vec4 diffuse = texture(tex0, vUv);
-	float alpha = texture1D(tex1, vFogUv).g;
+	float alpha = texture(tex1, vFogUv).g;
 	#ifdef MOD
 	outColor.xyz = diffuse.xyz * alpha + vec3(1.0 - alpha);
 	#else
@@ -33,6 +33,6 @@ void main()
 	#endif
 	outColor.w = diffuse.w;
 #else
-	outColor = texture(tex0, vUv) * texture1D(tex1, vFogUv).r * vColor;
+	outColor = texture(tex0, vUv) * texture(tex1, vFogUv).r * vColor;
 #endif
 }

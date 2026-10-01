@@ -521,6 +521,73 @@ messages (NVIDIA 615). Fixed for that:
   back).
 - Reference images: unchanged.
 
+### No fixed-function, core profile
+
+The game now asks for an OpenGL core profile context (4.6, 4.5, 4.3, 4.1 or
+3.3, the first the driver gives), so nothing of the fixed-function pipeline
+is left. RenderDoc needs a core profile; capturing with it is untested.
+
+- **2D reference images.** After the maps, the reference run loads the
+  first map again and saves the HUD, inventory, notebook (cover and task
+  list), keypad, a message and four main menu pages as `2d-*.png`. The
+  menu's snow is seeded before the menu is created, so they repeat.
+- **Shaders for every draw** (`cFixedFunctionShaders`). The HUD, fonts,
+  menus, particles, billboards, beams, transparent materials without fog,
+  the Flat material, debug lines and some post-effect passes were drawn
+  without programs. They now get a vertex stage that transforms by the
+  engine's own matrices and passes the colour and texture coordinates on,
+  and a fragment stage generated for the texture environment the engine has
+  set: per unit the texture target, `GL_MODULATE` or the `GL_COMBINE`
+  settings of `SetTextureEnv`, and the constant colour. A stage is compiled
+  the first time its combination is drawn.
+  `SetTextureEnv` and `SetTextureConstantColor` only record state.
+- `cGLSLProgram::Bind`/`UnBind` only take note of the program. Before every
+  draw `cLowLevelGraphicsSDL::PrepareDraw` puts the bound programs, or the
+  fixed-function stages where there is none, in the program pipeline, which
+  stays bound.
+- **Alpha test and clamping in the fragment shaders.** Every fragment
+  shader is compiled with an epilogue: the shader's `main` is renamed and
+  called by a new `main` that clamps the colour to 0..1 (what
+  `GL_CLAMP_FRAGMENT_COLOR` did) and discards by the alpha test settings,
+  which are in a uniform block (`hpl_State`, binding 1) written by
+  `SetAlphaTestActive`/`SetAlphaTestFunc`.
+- Clip planes go to `gl_ClipDistance` from the fixed-function vertex stage.
+  Nothing uses them (the GUI code that did is commented out), and engine
+  vertex programs do not write clip distances.
+- The texture matrix stack is no longer applied to anything; nothing set it.
+- **Vertex attributes.** Vertex shaders read `hpl_Vertex`, `hpl_Normal`,
+  `hpl_Color` and `hpl_MultiTexCoord0..4`, declared by the preamble at fixed
+  locations (0, 1, 2, 4..8), instead of `gl_Vertex` and the like.
+- **Vertex array objects.** Each vertex buffer has one, made when first
+  drawn. `DrawQuad`, `DrawLine` and the other immediate-mode calls, and the
+  2D batch, copy their vertices to a 4 MB stream buffer that is replaced
+  when full; indices given as memory (shadow volumes, the batch) go to a
+  stream index buffer the same way. Every draw binds its vertex array.
+- The colour and texture coordinates that `glColor` and `glTexCoord` left
+  current are kept by the low-level graphics and given to attributes
+  without an array, so draws that relied on them get the same values.
+- Quads are drawn as two triangles (0,1,2 and 0,2,3): single quads as a
+  fan, the batch and quad vertex buffers through triangle indices.
+- The gamma and output passes make their triangle from `gl_VertexID`.
+- Textures of one and two channels (fog, attenuation) are `GL_R8`/`GL_RG8`
+  with a swizzle that reads them as luminance and luminance-alpha did.
+  `GL_CLAMP` wrapping is `GL_CLAMP_TO_EDGE`.
+- Shaders are `#version 330 core`; `texture1D`, `texture2DRect` and
+  `textureCube` became `texture`.
+- Gone: `glBegin`, client-side arrays, the GL matrix stacks, `glTexEnv`,
+  `glAlphaFunc`, `glClipPlane`, `glColor`, texture enables,
+  `glPushAttrib` (the fullscreen passes save what they change),
+  `glShadeModel`, the perspective hint, and the ARB-suffixed buffer calls.
+- Reference images, against the frames before this section: 557 of 562 the
+  same. About half of those differ by one or two levels in places, since
+  the driver's own fixed-function shaders rounded differently. Five frames
+  have single pixels that changed at the edges of alpha-tested fences and
+  grates, where a fragment's alpha is right at the threshold.
+- Checked on Mesa's software renderer (llvmpipe, OpenGL 4.6 core): no GL
+  errors on the test map's reference views, and 72 of the 74 frames are
+  within 12 levels of NVIDIA's (the other two differ in about 2000 pixels
+  each, not looked into).
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

@@ -153,8 +153,8 @@ saves.
 
 ## Requirements
 
-- OpenGL 4.1 compatibility profile (or GL_ARB_separate_shader_objects); any
-  GPU from the last decade
+- OpenGL 3.3 core profile with GL_ARB_separate_shader_objects (part of
+  OpenGL 4.1); any GPU from the last decade
 - Linux on x86-64 (Windows support is planned)
 
 ## Repository layout

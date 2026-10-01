@@ -20,7 +20,7 @@ uniform sampler2DRect tex1; //screenTex
 void main()
 {
 	vec4 blurCol = texture(tex0, vUv0);
-	vec4 screenCol = texture2DRect(tex1, vUv1);
+	vec4 screenCol = texture(tex1, vUv1);
 
 	blurCol *= blurCol;
 	outColor.xyz = blurCol.xyz * dot(blurCol.xyz,vec3(0.3, 0.58, 0.12)) + screenCol.xyz;

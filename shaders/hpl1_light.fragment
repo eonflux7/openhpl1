@@ -40,7 +40,7 @@ uniform sampler2D tex6; //specularMap
 void main()
 {
 	vec3 diffuse = texture(tex0, vUv).xyz;
-	float attenuation = texture1D(tex3, dot(vLightDir,vLightDir)).x;
+	float attenuation = texture(tex3, dot(vLightDir,vLightDir)).x;
 
 #ifdef NORMAL_MAP
 	vec4 bumpVec = texture(tex1, vUv);
@@ -52,14 +52,14 @@ void main()
 #ifdef SPECULAR
 	vec3 lightVec = normalize(vLightDir);
 #else
-	vec3 lightVec = (2.0*textureCube(tex2, vLightDir) - vec4(1.0)).xyz;
+	vec3 lightVec = (2.0*texture(tex2, vLightDir) - vec4(1.0)).xyz;
 #endif
 
 	vec3 color = diffuse * vLightColor.xyz * dot(lightVec, surfaceNormal);
 
 #ifdef SPOT
 	vec4 spotColor = texture(tex4, vSpotlightUv.xy / vSpotlightUv.w);
-	float rejectNeg = texture1D(tex5, vSpotlightUv.z + 0.5).x;
+	float rejectNeg = texture(tex5, vSpotlightUv.z + 0.5).x;
 	color *= spotColor.xyz;
 	attenuation *= rejectNeg;
 #endif

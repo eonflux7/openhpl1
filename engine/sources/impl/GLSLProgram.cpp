@@ -48,7 +48,7 @@ namespace hpl{
 
 	// The vertex attributes, at the locations of cGLSLProgram::eVertexAttrib.
 	static const char* kVertexPreamble =
-		"#version 330 compatibility\n"
+		"#version 330 core\n"
 		"#define VARYING out\n"
 		"layout(location = 0) in vec4 hpl_Vertex;\n"
 		"layout(location = 1) in vec3 hpl_Normal;\n"
@@ -61,13 +61,13 @@ namespace hpl{
 
 	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =
-		"#version 330 compatibility\n"
+		"#version 330 core\n"
 		"#define VARYING in\n"
 		"#define OUTPUT out vec4 outColor;\n"
 		"#define main hpl_main\n";
 
-	// After every fragment shader: the colour is clamped to 0..1, as GL did
-	// with GL_CLAMP_FRAGMENT_COLOR, then, with HPL_ALPHA_TEST defined, alpha
+	// After every fragment shader: the colour is clamped to 0..1, as the
+	// fixed-function pipeline did, then, with HPL_ALPHA_TEST defined, alpha
 	// tested as set with iLowLevelGraphics::SetAlphaTestActive/Func
 	// (hpl_State, uniform buffer binding kStateBlockBinding).
 	static const char* kFragmentEpilogue =

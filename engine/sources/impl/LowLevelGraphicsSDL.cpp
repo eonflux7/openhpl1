@@ -52,9 +52,10 @@ namespace hpl {
 		{
 		case eColorDataFormat_RGB:		return GL_RGB;
 		case eColorDataFormat_RGBA:		return GL_RGBA;
-		case eColorDataFormat_ALPHA:	return GL_ALPHA;
-		case eColorDataFormat_BGR:		return GL_BGR_EXT;
-		case eColorDataFormat_BGRA:		return GL_BGRA_EXT;
+		// One-channel textures are red, read as luminance (cSDLTexture)
+		case eColorDataFormat_ALPHA:	return GL_RED;
+		case eColorDataFormat_BGR:		return GL_BGR;
+		case eColorDataFormat_BGRA:		return GL_BGRA;
 		};
 
 		return 0;
@@ -66,7 +67,7 @@ namespace hpl {
 											GLsizei alLength, const GLchar *apMessage, const void *apUser)
 	{
 		// NVIDIA: "vertex shader is being recompiled based on GL state", a
-		// note about compatibility-profile state that goes with fixed-function.
+		// performance note the first time a program is drawn with some state.
 		if(alId == 131218) return;
 
 		// The same message tends to repeat every frame; log each one a few times
@@ -116,8 +117,8 @@ namespace hpl {
 		{
 		case eTextureTarget_1D:		return GL_TEXTURE_1D;
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
-		case eTextureTarget_Rect:	return GL_TEXTURE_RECTANGLE_NV;
-		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP_ARB;
+		case eTextureTarget_Rect:	return GL_TEXTURE_RECTANGLE;
+		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
 		}
 		return 0;
@@ -272,8 +273,9 @@ namespace hpl {
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
-		// The renderer still uses the fixed-function pipeline next to GLSL.
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+		// Core profile: everything is drawn by shaders from vertex arrays.
+		// The version is chosen when the context is created.
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 		const char *pGLDebug = SDL_getenv("OVERTURE_GL_DEBUG");
 		bool bGLDebug = pGLDebug && pGLDebug[0] && pGLDebug[0]!='0';
@@ -327,7 +329,17 @@ namespace hpl {
 			SDL_SyncWindow(mpWindow);
 		}
 
-		mGLContext = SDL_GL_CreateContext(mpWindow);
+		// The newest version there is: some drivers give exactly the one
+		// asked for. 3.3 is what the renderer needs (with separate shader
+		// objects as an extension before 4.1).
+		static const int vVersions[][2] = {{4,6}, {4,5}, {4,3}, {4,1}, {3,3}};
+		for(const int *pVersion : vVersions)
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, pVersion[0]);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, pVersion[1]);
+			mGLContext = SDL_GL_CreateContext(mpWindow);
+			if(mGLContext) break;
+		}
 		if(mGLContext==nullptr)
 		{
 			FatalError("Unable to create OpenGL context: %s\n", SDL_GetError());
@@ -349,7 +361,7 @@ namespace hpl {
 			return false;
 		}
 		Log("OK\n");
-		Log("  OpenGL %d.%d: %s / %s\n", GLAD_VERSION_MAJOR(lGLVersion), GLAD_VERSION_MINOR(lGLVersion),
+		Log("  OpenGL %d.%d core: %s / %s\n", GLAD_VERSION_MAJOR(lGLVersion), GLAD_VERSION_MINOR(lGLVersion),
 			(const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER));
 
 		if(bGLDebug && GLAD_GL_KHR_debug)
@@ -595,22 +607,16 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetupGL()
 	{
 		//Inits GL stuff
-		//Set Shade model and clear color.
-		glShadeModel(GL_SMOOTH);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 		// Each fragment's colour is clamped to 0..1 before blending, as an
-		// 8-bit buffer did; only the sums of blending go past 1 in the float
-		// scene buffer.
-		glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_TRUE);
+		// 8-bit buffer did (by the fragment shaders, see cGLSLProgram); only
+		// the sums of blending go past 1 in the float scene buffer.
 
 		//Depth Test setup
 		glClearDepth(1.0f);//VAlues buffer is cleared with
 		glEnable(GL_DEPTH_TEST); //enable depth testing
 		glDepthFunc(GL_LEQUAL); //function to do depth test with
-
-		//Set best perspective correction
-		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 		//int lStencilBits=-1;
 		//glGetIntegerv(GL_STENCIL_BITS,&lStencilBits);
@@ -646,7 +652,7 @@ namespace hpl {
 		case eGraphicCaps_MaxTextureImageUnits:
 			{
 				int lUnits;
-				glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB,(GLint *)&lUnits);
+				glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint *)&lUnits);
 				return lUnits;
 			}
 
@@ -695,9 +701,9 @@ namespace hpl {
 		if(mlMultisampling<=0) return;
 
 		if(abX)
-			glEnable(GL_MULTISAMPLE_ARB);
+			glEnable(GL_MULTISAMPLE);
 		else
-			glDisable(GL_MULTISAMPLE_ARB);
+			glDisable(GL_MULTISAMPLE);
 	}
 
 	//-----------------------------------------------------------------------
@@ -964,27 +970,16 @@ namespace hpl {
 		GLenum NewTarget=0;
 		if(apTex)
 			NewTarget = GetGLTextureTargetEnum(apTex->GetTarget());
-		GLenum LastTarget=0;
-		if(mpCurrentTexture[alUnit])
-			LastTarget = GetGLTextureTargetEnum(mpCurrentTexture[alUnit]->GetTarget());
 
-		glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
+		glActiveTexture(GL_TEXTURE0 + alUnit);
 
-		//Disable this unit if NULL
-		if(apTex == nullptr)
+		// A unit without a texture keeps the last one bound; the
+		// fixed-function shaders leave such a unit out.
+		if(apTex)
 		{
-			glDisable(LastTarget);
-			//glBindTexture(LastTarget,0);
-		}
-		//Enable the unit, set the texture handle and bind the pbuffer
-		else
-		{
-			if(LastTarget != 0 && NewTarget != LastTarget) glDisable(LastTarget);
-
 			cSDLTexture *pSDLTex = static_cast<cSDLTexture*> (apTex);
 
 			glBindTexture(NewTarget, pSDLTex->GetTextureHandle());
-			glEnable(NewTarget);
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
@@ -999,13 +994,6 @@ namespace hpl {
 		for(unsigned int lUnit=0; lUnit<MAX_TEXTUREUNITS; lUnit++)
 		{
 			if(mpCurrentTexture[lUnit] != apTex) continue;
-
-			GLint lActiveUnit = GL_TEXTURE0;
-			glGetIntegerv(GL_ACTIVE_TEXTURE,&lActiveUnit);
-
-			glActiveTexture(GL_TEXTURE0 + lUnit);
-			glDisable(GetGLTextureTargetEnum(apTex->GetTarget()));
-			glActiveTexture((GLenum)lActiveUnit);
 
 			mpCurrentTexture[lUnit] = nullptr;
 			mFixedFunction.SetUnitTarget(lUnit, -1);
@@ -1027,14 +1015,13 @@ namespace hpl {
 
 		GLenum target = GetGLTextureTargetEnum(pTex->GetTarget());
 		glBindTexture(target, static_cast<cSDLTexture*>(pTex)->GetTextureHandle());
-		glEnable(target);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::SetActiveTextureUnit(unsigned int alUnit)
 	{
-		glActiveTextureARB(GL_TEXTURE0_ARB + alUnit);
+		glActiveTexture(GL_TEXTURE0 + alUnit);
 		mlActiveTextureUnit = alUnit;
 	}
 
@@ -1446,18 +1433,22 @@ namespace hpl {
 		glActiveTexture(GL_TEXTURE0);
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
 
-		glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT |
-						GL_POLYGON_BIT | GL_VIEWPORT_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT);
+		static const GLenum vCaps[] = {GL_DEPTH_TEST, GL_STENCIL_TEST, GL_BLEND, GL_SCISSOR_TEST, GL_CULL_FACE,
+										GL_CLIP_DISTANCE0, GL_CLIP_DISTANCE1, GL_CLIP_DISTANCE2,
+										GL_CLIP_DISTANCE3, GL_CLIP_DISTANCE4, GL_CLIP_DISTANCE5};
+		const int lCaps = sizeof(vCaps) / sizeof(vCaps[0]);
+		GLboolean vLastCaps[lCaps];
+		GLboolean bLastDepthMask = GL_TRUE;
+		GLboolean vLastColorMask[4];
+		GLint vLastViewport[4];
+		for(int i=0; i<lCaps; ++i) vLastCaps[i] = glIsEnabled(vCaps[i]);
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &bLastDepthMask);
+		glGetBooleanv(GL_COLOR_WRITEMASK, vLastColorMask);
+		glGetIntegerv(GL_VIEWPORT, vLastViewport);
 
 		glBindTexture(GL_TEXTURE_2D, alTexture);
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_STENCIL_TEST);
-		glDisable(GL_BLEND);
-		glDisable(GL_SCISSOR_TEST);
-		glDisable(GL_CULL_FACE);
-		for(int i=0; i<kMaxClipPlanes; ++i) glDisable(GL_CLIP_DISTANCE0 + i);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		for(int i=0; i<lCaps; ++i) glDisable(vCaps[i]);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glViewport(0, 0, avSize.x, avSize.y);
@@ -1470,7 +1461,10 @@ namespace hpl {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glBindProgramPipeline(lLastPipeline);
-		glPopAttrib();
+		for(int i=0; i<lCaps; ++i) if(vLastCaps[i]) glEnable(vCaps[i]);
+		glDepthMask(bLastDepthMask);
+		glColorMask(vLastColorMask[0], vLastColorMask[1], vLastColorMask[2], vLastColorMask[3]);
+		glViewport(vLastViewport[0], vLastViewport[1], vLastViewport[2], vLastViewport[3]);
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		glActiveTexture(lLastUnit);
 	}
@@ -2438,9 +2432,9 @@ namespace hpl {
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
 		case eTextureTarget_Rect:
 			{
-				return GL_TEXTURE_RECTANGLE_NV;
+				return GL_TEXTURE_RECTANGLE;
 			}
-		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP_ARB;
+		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
 		}
 		return 0;
@@ -2494,8 +2488,8 @@ namespace hpl {
 		case eStencilOp_Increment:		return GL_INCR;
 		case eStencilOp_Decrement:		return GL_DECR;
 		case eStencilOp_Invert:			return GL_INVERT;
-		case eStencilOp_IncrementWrap:	return GL_INCR_WRAP_EXT;
-		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP_EXT;
+		case eStencilOp_IncrementWrap:	return GL_INCR_WRAP;
+		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP;
 		}
 		return 0;
 	}

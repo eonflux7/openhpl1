@@ -27,6 +27,45 @@
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////
+	// FORMATS
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	// Textures of one and two channels are luminance and luminance-alpha:
+	// stored as red and red-green, and read back as (r,r,r,1) and (r,r,r,g)
+	// through the texture swizzle.
+	static GLenum InternalFormat(int alChannels)
+	{
+		switch(alChannels)
+		{
+		case 1: return GL_R8;
+		case 2: return GL_RG8;
+		case 3: return GL_RGB8;
+		}
+		return GL_RGBA8;
+	}
+
+	static GLenum DataFormat(int alChannels)
+	{
+		switch(alChannels)
+		{
+		case 1: return GL_RED;
+		case 2: return GL_RG;
+		case 3: return GL_RGB;
+		}
+		return GL_RGBA;
+	}
+
+	static void SetSwizzle(GLenum aGLTarget, int alChannels)
+	{
+		if(alChannels > 2) return;
+		const GLint vSwizzle[4] = {GL_RED, GL_RED, GL_RED, alChannels == 2 ? GL_GREEN : GL_ONE};
+		glTexParameteriv(aGLTarget, GL_TEXTURE_SWIZZLE_RGBA, vSwizzle);
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
 
@@ -141,13 +180,13 @@ namespace hpl {
 		{
 			cSDLBitmap2D *pSrc = static_cast<cSDLBitmap2D*>((*avBitmaps)[i]);
 
-			GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + i;
+			GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
 
 			int lChannels;
 			GLenum format;
 			GetSettings(pSrc, lChannels,format);
 
-			glTexImage2D(target, 0, lChannels, pSrc->GetWidth(), pSrc->GetHeight(),
+			glTexImage2D(target, 0, InternalFormat(lChannels), pSrc->GetWidth(), pSrc->GetHeight(),
 				0, format, GL_UNSIGNED_BYTE, pSrc->GetSurface()->pixels);
 
 			//No mip maps for cubemap
@@ -196,7 +235,6 @@ namespace hpl {
 
 			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-			glEnable(GLTarget);
 			glBindTexture(GLTarget, mvTextureHandles[0]);
 			cGpuProfiler::Label(GL_TEXTURE, mvTextureHandles[0], msName);
 			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -213,7 +251,6 @@ namespace hpl {
 			glTexParameteri(GLTarget,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 			glTexParameteri(GLTarget,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
-			glDisable(GLTarget);
 
 			mbContainsData = true;
 		}
@@ -238,14 +275,7 @@ namespace hpl {
 		GLenum GLTarget = InitCreation(0);
 
 		int lChannels = alChannels;
-		GLenum format =0;
-		switch(lChannels)
-		{
-		case 1: format = GL_LUMINANCE; break;
-		case 2: format = GL_LUMINANCE_ALPHA; break;
-		case 3: format = GL_RGB; break;
-		case 4: format = GL_RGBA; break;
-		}
+		GLenum format = DataFormat(lChannels);
 
 		mlWidth = avSize.x;
 		mlHeight = avSize.y;
@@ -259,17 +289,17 @@ namespace hpl {
 
 		if(mTarget == eTextureTarget_1D)
 		{
-			glTexImage1D(GLTarget, 0, lChannels, mlWidth,0,format,
+			glTexImage1D(GLTarget, 0, InternalFormat(lChannels), mlWidth,0,format,
 							GL_UNSIGNED_BYTE, apPixelData);
 		}
 		else if(mTarget == eTextureTarget_2D)
 		{
-			glTexImage2D(GLTarget, 0, lChannels, mlWidth, mlHeight,
+			glTexImage2D(GLTarget, 0, InternalFormat(lChannels), mlWidth, mlHeight,
 						0, format, GL_UNSIGNED_BYTE, apPixelData);
 		}
 		else if(mTarget == eTextureTarget_3D)
 		{
-			glTexImage3D(GLTarget, 0, lChannels, avSize.x, avSize.y,avSize.z,
+			glTexImage3D(GLTarget, 0, InternalFormat(lChannels), avSize.x, avSize.y,avSize.z,
 				0, format, GL_UNSIGNED_BYTE, apPixelData);
 		}
 
@@ -426,7 +456,6 @@ namespace hpl {
 		{
 			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-			glEnable(GLTarget);
 			for(size_t i=0; i < mvTextureHandles.size(); ++i)
 			{
 				glBindTexture(GLTarget, mvTextureHandles[i]);
@@ -442,7 +471,6 @@ namespace hpl {
 				}
 			}
 
-			glDisable(GLTarget);
 		}
 	}
 
@@ -460,7 +488,6 @@ namespace hpl {
 
 		GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-		glEnable(GLTarget);
 		for(size_t i=0; i < mvTextureHandles.size(); ++i)
 		{
 			glBindTexture(GLTarget, mvTextureHandles[i]);
@@ -468,7 +495,6 @@ namespace hpl {
 			glTexParameterf(GLTarget,GL_TEXTURE_MAX_ANISOTROPY_EXT ,mfAnisotropyDegree);
 		}
 
-		glDisable(GLTarget);
 	}
 
 	//-----------------------------------------------------------------------
@@ -479,7 +505,6 @@ namespace hpl {
 		{
 			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-			glEnable(GLTarget);
 			for(size_t i=0; i < mvTextureHandles.size(); ++i)
 			{
 				glBindTexture(GLTarget, mvTextureHandles[i]);
@@ -487,7 +512,6 @@ namespace hpl {
 				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_S,GetGLWrap(aMode));
 			}
 
-			glDisable(GLTarget);
 		}
 	}
 
@@ -499,7 +523,6 @@ namespace hpl {
 		{
 			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-			glEnable(GLTarget);
 			for(size_t i=0; i < mvTextureHandles.size(); ++i)
 			{
 				glBindTexture(GLTarget, mvTextureHandles[i]);
@@ -507,7 +530,6 @@ namespace hpl {
 				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_T,GetGLWrap(aMode));
 			}
 
-			glDisable(GLTarget);
 		}
 	}
 
@@ -519,7 +541,6 @@ namespace hpl {
 		{
 			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-			glEnable(GLTarget);
 			for(size_t i=0; i < mvTextureHandles.size(); ++i)
 			{
 				glBindTexture(GLTarget, mvTextureHandles[i]);
@@ -527,7 +548,6 @@ namespace hpl {
 				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_R,GetGLWrap(aMode));
 			}
 
-			glDisable(GLTarget);
 		}
 	}
 
@@ -647,10 +667,10 @@ namespace hpl {
 		while(glGetError()!=GL_NO_ERROR);
 
 		if(mTarget == eTextureTarget_1D)
-			glTexImage1D(GLTarget, 0, lChannels, mlWidth,0,format,
+			glTexImage1D(GLTarget, 0, InternalFormat(lChannels), mlWidth,0,format,
 			GL_UNSIGNED_BYTE, pPixelSrc);
 		else
-			glTexImage2D(GLTarget, 0, lChannels, mlWidth, mlHeight,
+			glTexImage2D(GLTarget, 0, InternalFormat(lChannels), mlWidth, mlHeight,
 			0, format, GL_UNSIGNED_BYTE, pPixelSrc);
 
 		if(glGetError()!=GL_NO_ERROR) return false;
@@ -676,7 +696,6 @@ namespace hpl {
 	{
 		GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
 
-		glEnable(GLTarget);
 		glBindTexture(GLTarget, mvTextureHandles[alHandleIdx]);
 
 		return GLTarget;
@@ -702,8 +721,8 @@ namespace hpl {
 		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_S,lWrap);
 		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_T,lWrap);
 		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_R,lWrap);
+		SetSwizzle(aGLTarget, mlBpp / 8);
 
-		glDisable(aGLTarget);
 
 		mbContainsData = true;
 
@@ -725,7 +744,7 @@ namespace hpl {
 		// Images are normalised to byte-ordered RGB(A) at load time.
 		if(alChannels==4)		aFormat = GL_RGBA;
 		else if(alChannels==3)	aFormat = GL_RGB;
-		else if(alChannels==1)	aFormat = GL_ALPHA;
+		else if(alChannels==1)	aFormat = GL_RED;
 		else					aFormat = GL_RGBA;
 	}
 
@@ -735,7 +754,8 @@ namespace hpl {
 	{
 		switch(aMode)
 		{
-		case eTextureWrap_Clamp: return GL_CLAMP;
+		// GL_CLAMP is gone from the core profile; drivers treated it as this
+		case eTextureWrap_Clamp: return GL_CLAMP_TO_EDGE;
 		case eTextureWrap_Repeat: return mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;
 		case eTextureWrap_ClampToEdge: return GL_CLAMP_TO_EDGE;
 		case eTextureWrap_ClampToBorder: return GL_CLAMP_TO_BORDER;

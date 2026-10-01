@@ -46,8 +46,8 @@ void main()
 
 	vec3 waterColor = texture(tex2, uv_offset1).xyz;
 
-	vec4 screenColor = texture2DRect(tex0, gl_FragCoord.xy + offset.xy * -scale);
-	if(screenColor.w < 0.5) screenColor = texture2DRect(tex0, gl_FragCoord.xy);
+	vec4 screenColor = texture(tex0, gl_FragCoord.xy + offset.xy * -scale);
+	if(screenColor.w < 0.5) screenColor = texture(tex0, gl_FragCoord.xy);
 
 	outColor.xyz = screenColor.xyz * waterColor;
 

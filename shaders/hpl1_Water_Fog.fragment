@@ -10,5 +10,5 @@ uniform sampler2D tex0; // diffuse
 uniform sampler1D tex1; // fog
 
 void main() {
-	outColor = texture(tex0, vUv) * texture1D(tex1, vFogUv).rrrg * vColor;
+	outColor = texture(tex0, vUv) * texture(tex1, vFogUv).rrrg * vColor;
 }

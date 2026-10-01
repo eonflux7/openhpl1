@@ -91,7 +91,8 @@ Every step is checked against reference images of the renderer before it.
       (`OVERTURE_GL_DEBUG`), so new ones stand out
   - [x] menus, inventory, notebook and other 2D screens run under it (the
         2D reference screens; death menu, intro and credits not yet)
-  - [ ] checked on Mesa (only NVIDIA so far)
+  - [x] checked on Mesa: the test map's reference views on llvmpipe
+        (software); not on Mesa's hardware drivers
 - [x] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
       materials and shaders, capability checks for what GL 3.3 guarantees)
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:
@@ -115,7 +116,7 @@ Every step is checked against reference images of the renderer before it.
         8-bit rounding used to drop), check that nothing looks washed out
   - [ ] screen copies for post effects and refraction are still 8-bit, so
         bloom, depth of field and refraction clip at 1
-- [ ] **Shader system:**
+- [x] **Shader system:**
   - [x] shared include files and `#define` variants instead of one file per
         combination
   - [x] per-frame values (view, projection, screen size, depth range, time)
@@ -128,10 +129,19 @@ Every step is checked against reference images of the renderer before it.
   - [x] timer queries per pass, draw-call and triangle counts, debug groups
   - [x] object labels
   - [x] fetch occlusion queries without waiting
-- [ ] **No fixed-function.** Everything is drawn by shaders: HUD, fonts,
-      particles, billboards, transparent materials, debug drawing; alpha test
-      and clip planes move into shaders; vertex attributes and VAOs. Then
-      GL 3.3+ core profile, which RenderDoc needs
+- [x] **No fixed-function.** A core profile context (the newest the
+      driver has, 3.3 at least), which RenderDoc needs:
+  - [x] everything is drawn by shaders: HUD, fonts, particles, billboards,
+        transparent materials and debug drawing through shaders generated
+        for the texture environment the engine sets; alpha test and clip
+        planes in shaders
+  - [x] vertex attributes and vertex array objects; immediate mode, client
+        arrays and quads replaced by streamed buffers and triangles
+  - [ ] play-test: checked against the reference images and with stencil
+        shadows, anti-aliasing, gamma and motion blur; not on a real display
+  - [ ] the fixed-function shaders stand in for the old pipeline call by
+        call; materials that set a texture environment could have shaders of
+        their own instead (Milestone 4, when their look changes)
 
 ## Milestone 4: lighting, shadows and effects
 
