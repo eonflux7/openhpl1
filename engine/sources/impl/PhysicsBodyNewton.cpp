@@ -231,6 +231,15 @@ namespace hpl {
 													vInertia.v, vOffset.v);
 		vInertia = vInertia * afMass;
 
+		// Newton 1.53 kept each axis of inertia above 0.01 * mass; Newton 2 only
+		// above 0.001 * mass. The game's torques (e.g. the damping on a grabbed
+		// object) are tuned for the old limit and make thin objects spin up
+		// without it.
+		float fMinInertia = 0.01f * afMass;
+		if(vInertia.x < fMinInertia) vInertia.x = fMinInertia;
+		if(vInertia.y < fMinInertia) vInertia.y = fMinInertia;
+		if(vInertia.z < fMinInertia) vInertia.z = fMinInertia;
+
 		NewtonBodySetCentreOfMass(mpNewtonBody,vOffset.v);
 
 		NewtonBodySetMassMatrix(mpNewtonBody, afMass, vInertia.x, vInertia.y, vInertia.z);
