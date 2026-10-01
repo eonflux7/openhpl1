@@ -119,6 +119,22 @@ add_custom_command(TARGET overture POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:overture>/shaders)
 
+# The physics test map is generated into <executable dir>/testmap/
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_FOUND)
+	set(testmap_dir ${CMAKE_CURRENT_BINARY_DIR}/testmap)
+	add_custom_command(
+		OUTPUT ${testmap_dir}/testmap.dae ${testmap_dir}/testmap.hps
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testmap/generate.py ${testmap_dir}
+		COMMAND ${CMAKE_COMMAND} -E copy
+			${CMAKE_CURRENT_SOURCE_DIR}/testmap/testmap.hps ${testmap_dir}/testmap.hps
+		DEPENDS testmap/generate.py testmap/testmap.hps
+		COMMENT "Generating the test map")
+	add_custom_target(testmap ALL DEPENDS ${testmap_dir}/testmap.dae ${testmap_dir}/testmap.hps)
+else()
+	message(STATUS "Python 3 not found, the test map will not be built")
+endif()
+
 #--------------------------------------------------------------------
 # Static analysis: `cmake --build build --target tidy` (checks in .clang-tidy)
 

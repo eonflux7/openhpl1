@@ -64,6 +64,24 @@ Before changing gameplay code, run the smoke test on the ASan build:
 cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/overture
 ```
 
+### Physics test map
+
+`testmap/generate.py` builds a grey test hall (run automatically by the build,
+into `build/testmap/`) with the game's doors, drawers, levers, valves,
+grabbable and pushable objects, stacks, steps, ramps, a ladder and liquid,
+force and stick areas. Start in it with the physics log on:
+
+```
+OVERTURE_MAP=testmap OVERTURE_PHYSLOG=1 ./run.sh
+grep PHYS: ~/.frictionalgames/Penumbra/OvertureRemade/hpl.log
+```
+
+`OVERTURE_MAP=testmap:<start>` starts at one of the zones: `doors`,
+`furniture`, `levers`, `grab`, `stacks`, `push`, `pool`, `steps`, `ladder`.
+The log records when each body wakes and comes to rest (time, distance, peak
+speed, joint angle or distance), bodies that never settle, and what the player
+grabs and releases. Both variables work with the original maps too.
+
 ## Running
 
 ```
@@ -90,7 +108,9 @@ saves.
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
-| `OVERTURE_SMOKE=1` | Smoke test: load every map, run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
+| `OVERTURE_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
+| `OVERTURE_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
+| `OVERTURE_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
 
 ## Requirements
@@ -108,9 +128,10 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   player/    player, its states and HUD models
   enemies/   enemy AI
   entities/  map objects and areas
-  systems/   effects, fades, music, messages, radio, triggers, attacks
+  systems/   effects, fades, music, messages, radio, triggers, attacks, physics log
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders (from ScummVM's HPL1 port)
+testmap/   generator and level script for the physics test map
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad
 run.sh     launcher
 ```

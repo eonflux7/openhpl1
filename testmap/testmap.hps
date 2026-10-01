@@ -1,0 +1,46 @@
+// Level script for the physics test map (see generate.py).
+
+void OnStart()
+{
+	// The map's point lights cast no shadows; this keeps corners readable.
+	SetAmbientColor(0.22f, 0.22f, 0.22f);
+
+	SetupLiquidArea("pool", 60, 0.5f, 0.5f,	//Density, linear and angular viscosity
+			"NormalWater",
+			0.5f, 0.65f, 1,			//Colour
+			true);					//Waves
+
+	SetupForceArea("updraft",
+			35, 35,			//MaxForce, Constant
+			1.3f, 0,		//DestSpeed, MaxMass
+			true, false,	//MulWithMass, ForceAtPoint
+			true, true);	//Affect bodies, Affect characters
+
+	SetupForceArea("conveyor",
+			20, 20,
+			1.0f, 0,
+			true, false,
+			true, true);
+
+	SetupStickArea("stickarea",
+			true,			//Can detach
+			true, true,		//Move and rotate the body into place
+			false,			//Centre must be in the area
+			0.1f,			//Time to set the pose
+			"", "",			//Attach and detach sounds
+			"", "",			//Attach and detach particle systems
+			"", "");		//Attach and detach callbacks
+}
+
+void OnLoad()
+{
+	SetAmbientColor(0.22f, 0.22f, 0.22f);
+}
+
+void OnUpdate()
+{
+}
+
+void OnExit()
+{
+}

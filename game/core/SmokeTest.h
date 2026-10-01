@@ -14,7 +14,7 @@ class cInit;
 //----------------------------------------
 
 // Automated run through the game, enabled with OVERTURE_SMOKE:
-//   OVERTURE_SMOKE=1            every map in maps/
+//   OVERTURE_SMOKE=1            every map in maps/ and the test map
 //   OVERTURE_SMOKE=office,worm  maps whose name contains one of these
 // For each map: change to it the way scripts do, run some frames, save,
 // load that save, run some more frames. Then quit. Progress and failures

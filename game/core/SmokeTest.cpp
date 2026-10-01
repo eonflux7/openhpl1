@@ -31,6 +31,9 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 
 	tWStringList lstFiles;
 	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, _W("maps"), _W("*.dae"));
+	tString sTestMapDir = tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap";
+	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles,
+		cString::To16Char(sTestMapDir), _W("*.dae"));
 
 	tStringVec vFilters;
 	if(asSpec != "1" && asSpec != "all")

@@ -17,6 +17,10 @@ Make sure nothing regressed before changing anything.
       throwing, stacking, the boulder, the worm chase
 - [ ] Per-body sleep thresholds (Newton 2 only has world-wide ones): emulate
       them or retune the world defaults
+- [ ] Body sleep state: `GetEnabled()` reports sleeping bodies as enabled, and
+      `SetEnabled(false)` is a hard freeze in Newton 2 (contacts do not wake
+      the body). Loading a save wakes every body (visible with
+      `OVERTURE_PHYSLOG`)
 - [ ] Old save games load and play correctly
 - [ ] Audio:
   - [ ] verify the stutter fix across levels
