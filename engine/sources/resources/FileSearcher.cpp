@@ -52,17 +52,25 @@ namespace hpl {
 	void cFileSearcher::AddDirectory(tString asPath, tString asMask)
 	{
 		tWStringList lstFileNames;
-		//Make the path with only "/" and lower case.
-		asPath = cString::ToLowerCase(cString::ReplaceCharTo(asPath,"\\","/"));
+		//Make the path with only "/". The game's own directories are lower
+		//case on disk, but absolute paths (e.g. next to the executable) may not be.
+		asPath = cString::ReplaceCharTo(asPath,"\\","/");
+		tString sLowerPath = cString::ToLowerCase(asPath);
 
-		tStringSetIt it = m_setLoadedDirs.find(asPath);
+		tStringSetIt it = m_setLoadedDirs.find(sLowerPath);
 		//If the path is not allready added, add it!
 		if(it==m_setLoadedDirs.end())
 		{
-			m_setLoadedDirs.insert(asPath);
+			m_setLoadedDirs.insert(sLowerPath);
 
 			mpLowLevelResources->FindFilesInDir(lstFileNames,cString::To16Char(asPath),
 												cString::To16Char(asMask));
+			if(lstFileNames.empty() && sLowerPath != asPath)
+			{
+				asPath = sLowerPath;
+				mpLowLevelResources->FindFilesInDir(lstFileNames,cString::To16Char(asPath),
+													cString::To16Char(asMask));
+			}
 
 			for(tWStringListIt it = lstFileNames.begin();it!=lstFileNames.end();it++)
 			{

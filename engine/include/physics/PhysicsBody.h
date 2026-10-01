@@ -168,6 +168,10 @@ namespace hpl {
 
 		virtual void SetEnabled(bool abEnabled)=0;
 		virtual bool GetEnabled() const=0;
+		// The physics engine's own rest states, for debugging. Newton 2 keeps
+		// sleeping (wakes on contact) and frozen (wakes only when forced) apart.
+		virtual bool IsSleeping() const=0;
+		virtual bool IsFrozen() const=0;
 		virtual void SetAutoDisable(bool abEnabled)=0;
 		virtual bool GetAutoDisable() const=0;
 		virtual void SetAutoDisableLinearThreshold(float afThresold)=0;

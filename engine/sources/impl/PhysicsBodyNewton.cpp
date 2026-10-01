@@ -324,6 +324,14 @@ namespace hpl {
 	{
 		return NewtonBodyGetSleepState(mpNewtonBody) ==0?false: true;
 	}
+	bool cPhysicsBodyNewton::IsSleeping() const
+	{
+		return NewtonBodyGetSleepState(mpNewtonBody) != 0;
+	}
+	bool cPhysicsBodyNewton::IsFrozen() const
+	{
+		return NewtonBodyGetFreezeState(mpNewtonBody) != 0;
+	}
 
 	//-----------------------------------------------------------------------
 

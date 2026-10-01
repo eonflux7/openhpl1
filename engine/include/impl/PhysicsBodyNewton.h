@@ -69,6 +69,8 @@ namespace hpl {
 
 		void SetEnabled(bool abEnabled) override;
 		bool GetEnabled() const override;
+		bool IsSleeping() const override;
+		bool IsFrozen() const override;
 		void SetAutoDisable(bool abEnabled) override;
 		bool GetAutoDisable() const override;
 		void SetAutoDisableLinearThreshold(float afThresold) override;
