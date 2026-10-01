@@ -67,3 +67,8 @@ target_link_libraries(hpl PUBLIC
 file(GLOB game_sources CONFIGURE_DEPENDS game/*.cpp)
 add_executable(overture ${game_sources})
 target_link_libraries(overture PRIVATE hpl)
+
+# Shaders are loaded from <executable dir>/shaders/
+add_custom_command(TARGET overture POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:overture>/shaders)

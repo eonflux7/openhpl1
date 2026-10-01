@@ -22,6 +22,7 @@
 #include "system/LogicTimer.h"
 #include "system/String.h"
 #include "input/Input.h"
+#include "input/LowLevelInput.h"
 #include "input/Mouse.h"
 #include "resources/Resources.h"
 #include "graphics/Graphics.h"
@@ -376,6 +377,8 @@ namespace hpl {
 				unsigned int lUpdateTime = GetApplicationTime();
 
 				mpUpdater->Update(GetStepSize());
+
+				if(mpInput->GetLowLevel()->IsQuitRequested()) Exit();
 
 				unsigned int lDeltaTime = GetApplicationTime() - lUpdateTime;
 				mfUpdateTime = (float)(lDeltaTime) / 1000.0f;

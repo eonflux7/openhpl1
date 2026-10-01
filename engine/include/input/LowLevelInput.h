@@ -44,6 +44,11 @@ namespace hpl {
 		 */
 		virtual void EndInputUpdate()=0;
 
+		/**
+		 * True once the OS asked the application to quit (window closed, SIGTERM...).
+		 */
+		virtual bool IsQuitRequested(){ return false; }
+
 		virtual iMouse* CreateMouse()=0;
 		virtual iKeyboard* CreateKeyboard()=0;
 	};

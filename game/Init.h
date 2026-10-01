@@ -63,7 +63,8 @@ class cMainMenu;
 	#define PERSONAL_RELATIVEPIECES _W(".frictionalgames"),
 	#define PERSONAL_RELATIVEPIECES_COUNT 1
 	#define PERSONAL_RELATIVEGAME_PARENT _W("Penumbra/")
-	#define PERSONAL_RELATIVEGAME _W("Penumbra/Overture/")
+	// Separate from the original game so its settings and saves are untouched
+	#define PERSONAL_RELATIVEGAME _W("Penumbra/OvertureRemade/")
 #else
 	#define PERSONAL_RELATIVEROOT _W("Library/Preferences/Frictional Games/")
 	#define PERSONAL_RELATIVEPIECES _W("Library"), _W("Library/Preferences"), _W("Library/Preferences/Frictional Games"),

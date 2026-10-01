@@ -33,14 +33,15 @@ namespace hpl {
 
 	cLowLevelPhysicsNewton::cLowLevelPhysicsNewton()
 	{
-
+		// Sets up Newton's global memory allocator.
+		NewtonInitGlobals();
 	}
 
 	//-----------------------------------------------------------------------
 
 	cLowLevelPhysicsNewton::~cLowLevelPhysicsNewton()
 	{
-
+		NewtonDestroyGlobals();
 	}
 
 	//-----------------------------------------------------------------------

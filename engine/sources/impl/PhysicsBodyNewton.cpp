@@ -44,7 +44,8 @@ namespace hpl {
 
 		mpNewtonWorld = pWorldNewton->GetNewtonWorld();
 		mpNewtonBody = NewtonCreateBody(pWorldNewton->GetNewtonWorld(),
-										pShapeNewton->GetNewtonCollision());
+										pShapeNewton->GetNewtonCollision(),
+										&cMatrixf::Identity.m[0][0]);
 
 		mpCallback = hplNew( cPhysicsBodyNewtonCallback, () );
 
@@ -101,7 +102,8 @@ namespace hpl {
 		if(cPhysicsBodyNewton::mbUseCallback==false) return;
 
 		cPhysicsBodyNewton *pRigidBody = static_cast<cPhysicsBodyNewton*>(apEntity);
-		NewtonBodySetMatrix(pRigidBody->mpNewtonBody, &apEntity->GetLocalMatrix().GetTranspose().m[0][0]);
+		cMatrixf mtxTranspose = apEntity->GetLocalMatrix().GetTranspose();
+		NewtonBodySetMatrix(pRigidBody->mpNewtonBody, &mtxTranspose.m[0][0]);
 
 		if(pRigidBody->mpNode) pRigidBody->mpNode->SetMatrix(apEntity->GetLocalMatrix());
 	}
@@ -300,41 +302,38 @@ namespace hpl {
 														vMassCentre);
 
 			cVector3f vWorldPosition = GetWorldPosition() + vCentreOffset;
-			NewtonAddBodyImpulse(mpNewtonBody, avImpulse.v, vWorldPosition.v);
+			NewtonBodyAddImpulse(mpNewtonBody, avImpulse.v, vWorldPosition.v);
 		}
 		else
 		{
-			NewtonAddBodyImpulse(mpNewtonBody, avImpulse.v, GetWorldPosition().v);
+			NewtonBodyAddImpulse(mpNewtonBody, avImpulse.v, GetWorldPosition().v);
 		}
 	}
 	void cPhysicsBodyNewton::AddImpulseAtPosition(const cVector3f &avImpulse, const cVector3f &avPos)
 	{
-		NewtonAddBodyImpulse(mpNewtonBody, avImpulse.v, avPos.v);
+		NewtonBodyAddImpulse(mpNewtonBody, avImpulse.v, avPos.v);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetEnabled(bool abEnabled)
 	{
-		if (abEnabled)
-			NewtonWorldUnfreezeBody(mpNewtonWorld, mpNewtonBody);
-		else
-			NewtonWorldFreezeBody(mpNewtonWorld, mpNewtonBody);
+		NewtonBodySetFreezeState(mpNewtonBody, abEnabled ? 0 : 1);
 	}
 	bool cPhysicsBodyNewton::GetEnabled() const
 	{
-		return NewtonBodyGetSleepingState(mpNewtonBody) ==0?false: true;
+		return NewtonBodyGetSleepState(mpNewtonBody) ==0?false: true;
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetAutoDisable(bool abEnabled)
 	{
-		NewtonBodySetAutoFreeze(mpNewtonBody, abEnabled ? 1 : 0);
+		NewtonBodySetAutoSleep(mpNewtonBody, abEnabled ? 1 : 0);
 	}
 	bool cPhysicsBodyNewton::GetAutoDisable() const
 	{
-		return NewtonBodyGetAutoFreeze(mpNewtonBody) == 0 ? false : true;
+		return NewtonBodyGetAutoSleep(mpNewtonBody) == 0 ? false : true;
 	}
 
 	//-----------------------------------------------------------------------
@@ -342,8 +341,7 @@ namespace hpl {
 	void cPhysicsBodyNewton::SetAutoDisableLinearThreshold(float afThresold)
 	{
 		mfAutoDisableLinearThreshold = afThresold;
-		NewtonBodySetFreezeTreshold(mpNewtonBody, mfAutoDisableLinearThreshold,
-			mfAutoDisableAngularThreshold, mlAutoDisableNumSteps);
+		// Newton 2 has no per-body sleep thresholds; the value is only stored.
 	}
 	float cPhysicsBodyNewton::GetAutoDisableLinearThreshold() const
 	{
@@ -355,8 +353,7 @@ namespace hpl {
 	void cPhysicsBodyNewton::SetAutoDisableAngularThreshold(float afThresold)
 	{
 		mfAutoDisableAngularThreshold = afThresold;
-		NewtonBodySetFreezeTreshold(mpNewtonBody, mfAutoDisableLinearThreshold,
-			mfAutoDisableAngularThreshold, mlAutoDisableNumSteps);
+		// Newton 2 has no per-body sleep thresholds; the value is only stored.
 	}
 	float cPhysicsBodyNewton::GetAutoDisableAngularThreshold() const
 	{
@@ -368,8 +365,7 @@ namespace hpl {
 	void cPhysicsBodyNewton::SetAutoDisableNumSteps(int anNum)
 	{
 		mlAutoDisableNumSteps = anNum;
-		NewtonBodySetFreezeTreshold(mpNewtonBody, mfAutoDisableLinearThreshold,
-			mfAutoDisableAngularThreshold, mlAutoDisableNumSteps);
+		// Newton 2 has no per-body sleep thresholds; the value is only stored.
 	}
 
 	int cPhysicsBodyNewton::GetAutoDisableNumSteps() const
@@ -408,7 +404,7 @@ namespace hpl {
 
 	////////////////////////////////////////////
 
-	static void RenderDebugPolygon(const NewtonBody* apNewtonBody,
+	static void RenderDebugPolygon(void* apUserData,
 		int alVertexCount, const dFloat* apFaceVertex, int alId)
 	{
 		int i;
@@ -431,7 +427,9 @@ namespace hpl {
 	{
 		gpLowLevelGraphics = apLowLevel;
 		gDebugColor = aColor;
-		NewtonBodyForEachPolygonDo (mpNewtonBody, RenderDebugPolygon);
+		cMatrixf mtxTranspose = GetLocalMatrix().GetTranspose();
+		NewtonCollisionForEachPolygonDo(NewtonBodyGetCollision(mpNewtonBody), &mtxTranspose.m[0][0],
+										RenderDebugPolygon, NULL);
 	}
 
 	//-----------------------------------------------------------------------
@@ -452,7 +450,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 
-	void cPhysicsBodyNewton::OnTransformCallback(const NewtonBody* apBody, const dFloat* apMatrix)
+	void cPhysicsBodyNewton::OnTransformCallback(const NewtonBody* apBody, const dFloat* apMatrix, int alThreadIndex)
 	{
 		cPhysicsBodyNewton* pRigidBody = (cPhysicsBodyNewton*) NewtonBodyGetUserData(apBody);
 
@@ -469,8 +467,8 @@ namespace hpl {
 
 	//callback for buoyancy
 	static cPlanef gSurfacePlane;
-	static int BuoyancyPlaneCallback (const int alCollisionID, void *apContext,
-									const float* afGlobalSpaceMatrix, float* afGlobalSpacePlane)
+	static int BuoyancyPlaneCallback (const int32 alCollisionID, void *const apContext,
+									const float* const afGlobalSpaceMatrix, float* const afGlobalSpacePlane)
 	{
 		afGlobalSpacePlane[0] = gSurfacePlane.a;
 		afGlobalSpacePlane[1] = gSurfacePlane.b;
@@ -479,7 +477,7 @@ namespace hpl {
 		return 1;
 	}
 
-	void cPhysicsBodyNewton::OnUpdateCallback(const NewtonBody* apBody)
+	void cPhysicsBodyNewton::OnUpdateCallback(NewtonBody* apBody, float afTimeStep, int alThreadIndex)
 	{
 		float fMass;
 		float fX,fY,fZ;

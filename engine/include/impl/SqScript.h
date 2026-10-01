@@ -22,6 +22,7 @@
 #include "system/Script.h"
 #include "impl/LowLevelSystemSDL.h"
 #include <angelscript.h>
+#include <map>
 
 
 namespace hpl {
@@ -46,6 +47,11 @@ namespace hpl {
 		cScriptOutput *mpScriptOutput;
 
 		asIScriptContext *mpContext;
+		asIScriptModule *mpModule;
+
+		// Run(asFuncLine) snippets compiled once and reused; NULL if the
+		// snippet did not compile.
+		std::map<tString, asIScriptFunction*> m_mapCompiledLines;
 
 		int mlHandle;
 		tString msModuleName;

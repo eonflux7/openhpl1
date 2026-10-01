@@ -35,6 +35,7 @@ namespace hpl {
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
 		mbLockInput = false;
+		mbQuitRequested = false;
 		LockInput(true);
 	}
 
@@ -70,6 +71,8 @@ namespace hpl {
 
 		while(SDL_PollEvent(&sdlEvent))
 		{
+			if(sdlEvent.type == SDL_EVENT_QUIT) mbQuitRequested = true;
+
 			mlstEvents.push_back(sdlEvent);
 		}
 	}

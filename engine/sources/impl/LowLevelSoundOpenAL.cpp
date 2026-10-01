@@ -234,8 +234,10 @@ namespace hpl {
 
 		if (!mbInitialized)
 		{
-			Error("Failed to inialize Audio Trying fallback driver\n");
-			cInitParams.msDeviceName = "NULL";
+			// Device names saved by older OpenAL builds (e.g. "PulseAudio
+			// Software") no longer exist; fall back to the default device.
+			Error("Failed to inialize Audio device '%s', trying default device\n", asDeviceName.c_str());
+			cInitParams.msDeviceName = "";
 			mbInitialized = OAL_Init(cInitParams);
 		}
 		if (!mbInitialized)

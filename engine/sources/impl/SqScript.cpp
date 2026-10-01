@@ -40,6 +40,7 @@ namespace hpl {
 		mlHandle = alHandle;
 
 		mpContext = mpScriptEngine->CreateContext();
+		mpModule = NULL;
 
 		//Create a unique module name
 		msModuleName = "Module_"+cString::ToString(cMath::RandRectl(0,1000000))+
@@ -49,8 +50,14 @@ namespace hpl {
 
 	cSqScript::~cSqScript()
 	{
-		mpScriptEngine->Discard(msModuleName.c_str());
+		std::map<tString, asIScriptFunction*>::iterator it = m_mapCompiledLines.begin();
+		for(; it != m_mapCompiledLines.end(); ++it)
+		{
+			if(it->second) it->second->Release();
+		}
+
 		mpContext->Release();
+		if(mpModule) mpModule->Discard();
 	}
 
 	//-----------------------------------------------------------------------
@@ -70,14 +77,16 @@ namespace hpl {
 			return false;
 		}
 
-		if(mpScriptEngine->AddScriptSection(msModuleName.c_str(), "main", pCharBuffer, lLength)<0)
+		mpModule = mpScriptEngine->GetModule(msModuleName.c_str(), asGM_ALWAYS_CREATE);
+
+		if(mpModule->AddScriptSection("main", pCharBuffer, lLength)<0)
 		{
 			Error("Couldn't add script '%s'!\n",asFileName.c_str());
 			hplDeleteArray(pCharBuffer);
 			return false;
 		}
 
-		if(mpScriptEngine->Build(msModuleName.c_str())<0)
+		if(mpModule->Build()<0)
 		{
 			Error("Couldn't build script '%s'!\n",asFileName.c_str());
 			Log("------- SCRIPT OUTPUT BEGIN --------------------------\n");
@@ -100,7 +109,10 @@ namespace hpl {
 
 	int cSqScript::GetFuncHandle(const tString& asFunc)
 	{
-		return mpScriptEngine->GetFunctionIDByName(msModuleName.c_str(),asFunc.c_str());
+		if(mpModule==NULL) return -1;
+
+		asIScriptFunction *pFunc = mpModule->GetFunctionByName(asFunc.c_str());
+		return pFunc ? pFunc->GetId() : -1;
 	}
 
 	//-----------------------------------------------------------------------
@@ -114,7 +126,30 @@ namespace hpl {
 
 	bool cSqScript::Run(const tString& asFuncLine)
 	{
-		mpScriptEngine->ExecuteString(msModuleName.c_str(), asFuncLine.c_str());
+		if(mpModule==NULL) return true;
+
+		asIScriptFunction *pFunc = NULL;
+		std::map<tString, asIScriptFunction*>::iterator it = m_mapCompiledLines.find(asFuncLine);
+		if(it != m_mapCompiledLines.end())
+		{
+			pFunc = it->second;
+		}
+		else
+		{
+			// Same as AngelScript 2.7's ExecuteString: wrap the line in a
+			// function compiled in the scope of this script's module.
+			tString sCode = "void ExecuteString() {\n" + asFuncLine + ";\n}";
+			if(mpModule->CompileFunction("ExecuteString", sCode.c_str(), -1, 0, &pFunc) < 0)
+				pFunc = NULL;
+
+			mpScriptOutput->Clear();
+			m_mapCompiledLines.insert(std::map<tString, asIScriptFunction*>::value_type(asFuncLine, pFunc));
+		}
+
+		if(pFunc==NULL) return true;
+
+		if(mpContext->Prepare(pFunc) >= 0)
+			mpContext->Execute();
 
 		return true;
 	}
@@ -123,7 +158,10 @@ namespace hpl {
 
 	bool cSqScript::Run(int alHandle)
 	{
-		mpContext->Prepare(alHandle);
+		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
+		if(pFunc==NULL) return false;
+
+		mpContext->Prepare(pFunc);
 
 		/* Set all the args here */
 

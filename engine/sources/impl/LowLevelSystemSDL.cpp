@@ -45,8 +45,7 @@
 
 #include <SDL3/SDL.h>
 
-#include "impl/stdstring.h"
-#include "impl/scriptstring.h"
+#include <scriptstdstring/scriptstdstring.h>
 
 #include "system/String.h"
 
@@ -165,11 +164,7 @@ namespace hpl {
 		mpScriptOutput = hplNew( cScriptOutput, () );
 		mpScriptEngine->SetMessageCallback(asMETHOD(cScriptOutput,AddMessage), mpScriptOutput, asCALL_THISCALL);
 
-#ifdef AS_MAX_PORTABILITY
-		RegisterScriptString(mpScriptEngine);
-#else
 		RegisterStdString(mpScriptEngine);
-#endif
 
 		mlHandleCount = 0;
 
@@ -788,8 +783,12 @@ namespace hpl {
 
 	bool cLowLevelSystemSDL::AddScriptFunc(const tString& asFuncDecl, void* pFunc, int callConv)
 	{
-		if(mpScriptEngine->RegisterGlobalFunction(asFuncDecl.c_str(),
-												asFUNCTION(pFunc),callConv)<0)
+		// Generic functions must be passed as asGENFUNC_t to be recognised.
+		asSFuncPtr funcPtr = callConv == asCALL_GENERIC ?
+								asFunctionPtr(reinterpret_cast<asGENFUNC_t>(pFunc)) :
+								asFUNCTION(pFunc);
+
+		if(mpScriptEngine->RegisterGlobalFunction(asFuncDecl.c_str(), funcPtr, callConv)<0)
 		{
 			Error("Couldn't add func '%s'\n",asFuncDecl.c_str());
 			return false;

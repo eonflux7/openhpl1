@@ -17,7 +17,8 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Init.h"
-#include "impl/CGProgram.h"
+#include "impl/GLSLProgram.h"
+#include <SDL3/SDL.h>
 #include "Player.h"
 #include "ButtonHandler.h"
 #include "MapHandler.h"
@@ -129,24 +130,6 @@ bool CheckSupport(cInit *apInit)
 									kTranslate("StartUp", "ErrorAdd02");
 		return false;
 	}
-	Log("Checking Supported Profiles\n");
-	#define CG_CHECK(p) if (cgGLIsProfileSupported(p)) Log("  Profile " #p " is supported\n")
-	CG_CHECK(CG_PROFILE_VP20);
-	CG_CHECK(CG_PROFILE_FP20);
-
-	CG_CHECK(CG_PROFILE_VP30);
-	CG_CHECK(CG_PROFILE_FP30);
-
-	CG_CHECK(CG_PROFILE_VP40);
-	CG_CHECK(CG_PROFILE_FP40);
-
-	CG_CHECK(CG_PROFILE_ARBVP1);
-	CG_CHECK(CG_PROFILE_ARBFP1);
-
-	CG_CHECK(CG_PROFILE_GLSLV);
-	CG_CHECK(CG_PROFILE_GLSLF);
-	CG_CHECK(CG_PROFILE_GLSLC);
-	#undef CG_CHECK
 
 	//Try compiling vertex shader
 	Log("Trying to load vertex program!\n");
@@ -413,9 +396,12 @@ bool cInit::Init(tString asCommandLine)
 
 	Vars.AddBool("LowLevelSoundLogging", mpConfig->GetBool("Sound","LowLevelLogging", false));
 
-	// Set CG Options
-	cCGProgram::SetFProfile(mpConfig->GetString("Graphics","ForceFP","AUTO"));
-	cCGProgram::SetVProfile(mpConfig->GetString("Graphics","ForceVP","AUTO"));
+	// GLSL shaders live next to the executable unless overridden.
+	const char *pShaderDir = SDL_getenv("OVERTURE_SHADER_DIR");
+	if(pShaderDir && pShaderDir[0])
+		cGLSLProgram::SetShaderDirectory(tString(pShaderDir) + "/");
+	else
+		cGLSLProgram::SetShaderDirectory(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "shaders/");
 
 	iLowLevelGameSetup *pSetUp = NULL;
 

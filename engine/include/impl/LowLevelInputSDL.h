@@ -39,6 +39,8 @@ namespace hpl {
 		void BeginInputUpdate();
 		void EndInputUpdate();
 
+		bool IsQuitRequested(){ return mbQuitRequested; }
+
 		iMouse* CreateMouse();
 		iKeyboard* CreateKeyboard();
 	public:
@@ -49,6 +51,7 @@ namespace hpl {
 
 		iLowLevelGraphics *mpLowLevelGraphics;
 		bool mbLockInput;
+		bool mbQuitRequested;
 	};
 };
 #endif // HPL_LOWLEVELINPUT_SDL_H
