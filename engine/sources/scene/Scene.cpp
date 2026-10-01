@@ -267,6 +267,41 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cScene::StoreInterpolation()
+	{
+		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
+		{
+			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->StoreInterpolation();
+		}
+
+		if(mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
+			mpCurrentWorld3D->GetPhysicsWorld()->StoreInterpolation();
+	}
+
+	void cScene::ApplyInterpolation(float afT)
+	{
+		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
+		{
+			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->ApplyInterpolation(afT);
+		}
+
+		if(mbUpdateMap && mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
+			mpCurrentWorld3D->GetPhysicsWorld()->ApplyInterpolation(afT);
+	}
+
+	void cScene::RestoreInterpolation()
+	{
+		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
+		{
+			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->RestoreInterpolation();
+		}
+
+		if(mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
+			mpCurrentWorld3D->GetPhysicsWorld()->RestoreInterpolation();
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cScene::SetDrawScene(bool abX)
 	{
 		mbDrawScene = abX;

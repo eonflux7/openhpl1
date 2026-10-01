@@ -729,6 +729,11 @@ namespace hpl {
 		return SDL_GetTicks();
 	}
 
+	double GetApplicationTimeExact()
+	{
+		return (double)SDL_GetTicksNS() / 1000000.0;
+	}
+
 	//-----------------------------------------------------------------------
 
 	void cScriptOutput::AddMessage(const asSMessageInfo *msg)

@@ -196,6 +196,14 @@ namespace hpl {
 		iPhysicsBody *GetBody(const tString &asName);
 		cPhysicsBodyIterator GetBodyIterator();
 
+		/**
+		 * Render interpolation of everything that bodies and character
+		 * bodies move, see cGame::Run().
+		 */
+		void StoreInterpolation();
+		void ApplyInterpolation(float afT);
+		void RestoreInterpolation();
+
 		virtual iCharacterBody *CreateCharacterBody(const tString &asName, const cVector3f &avSize)=0;
 		void DestroyCharacterBody(iCharacterBody* apBody);
 		iPhysicsBody *GetCharacterBody(const tString &asName);

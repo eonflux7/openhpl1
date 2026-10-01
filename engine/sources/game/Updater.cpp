@@ -50,6 +50,23 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cUpdater::OnInterpolate(float afT)
+	{
+		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
+		{
+			(*it)->OnInterpolate(afT);
+		}
+
+		if(mpCurrentUpdates)
+		{
+			for(tUpdateableListIt it = mpCurrentUpdates->begin();it!=mpCurrentUpdates->end();++it)
+			{
+				(*it)->OnInterpolate(afT);
+			}
+		}
+	}
+	//-----------------------------------------------------------------------
+
 	void cUpdater::OnDraw()
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)

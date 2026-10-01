@@ -285,6 +285,14 @@ namespace hpl {
 		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 		virtual void DeleteLowLevel()=0;
+
+		/**
+		 * Render interpolation, see cGame::Run(). Only what is attached to
+		 * the body's node is moved, the body itself stays where it is.
+		 */
+		void StoreInterpolation();
+		void ApplyInterpolation(float afT);
+		void RestoreInterpolation();
 	protected:
 		void CreateSaveCollideShapes(cContainerList<cSaveData_iCollideShape> *apShapeList);
 
@@ -292,6 +300,10 @@ namespace hpl {
 		iCollideShape *mpShape;
 		iPhysicsMaterial *mpMaterial;
 		cNode3D *mpNode;
+
+		cMatrixf m_mtxInterpolatePrev;
+		bool mbInterpolatePrevValid;
+		bool mbInterpolated;
 
 		iCharacterBody *mpCharacterBody;
 

@@ -52,8 +52,13 @@ Make sure nothing regressed before changing anything.
 - [x] Gamma reimplemented as a final shader pass
   - [ ] play-test: change it in the options menu on a real display; only
         checked with frame dumps of values set in `settings.cfg`
-- [ ] Uncapped / high-refresh frame rate with interpolated rendering (logic
+- [x] Uncapped / high-refresh frame rate with interpolated rendering (logic
       stays at its fixed rate)
+  - [ ] play-test on a high-refresh display: only checked headless (camera
+        path logged per frame, same end state as with the limit, smoke test)
+  - [ ] blend skeletal animations, particles and the interact crosshair
+  - [ ] a frame rate cap for when V-Sync is off
+  - [ ] the main loop spins while it waits for the next step
 - [x] Display, window mode and V-Sync options for SDL3 in the menu
   - [ ] play-test on a real desktop: only checked under a headless gamescope
         session, which has one display; switching display, fullscreen and

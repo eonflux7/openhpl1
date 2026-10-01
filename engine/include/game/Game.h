@@ -184,6 +184,10 @@ namespace hpl {
 		float GetUpdateTime(){ return mfUpdateTime;}
 
 		double GetGameTime(){ return mfGameTime;}
+		/**
+		 * The number of logic steps that have been run.
+		 */
+		unsigned int GetLogicStepCount(){ return mlLogicStepCount;}
 
 		void SetLimitFPS(bool abX){ mbLimitFPS = abX;}
 		bool GetLimitFPS(){ return mbLimitFPS;}
@@ -198,6 +202,7 @@ namespace hpl {
 		float mfUpdateTime;
 
 		double mfGameTime;
+		unsigned int mlLogicStepCount;
 
 		iLowLevelGameSetup *mpGameSetup;
 		cUpdater *mpUpdater;

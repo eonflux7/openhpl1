@@ -325,7 +325,18 @@ namespace hpl {
 		void LoadFromSaveData(iSaveData *apSaveData) override;
 		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
+		/**
+		 * Render interpolation of the entity, see cGame::Run().
+		 */
+		void StoreInterpolation();
+		void ApplyInterpolation(float afT);
+		void RestoreInterpolation();
+
 	protected:
+		cMatrixf m_mtxInterpolatePrev;
+		cMatrixf m_mtxInterpolateCurrent;
+		iEntity3D *mpInterpolatePrevEntity;
+		bool mbInterpolated;
 
 		tString msName;
 

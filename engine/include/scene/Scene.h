@@ -109,6 +109,14 @@ namespace hpl {
 
 		void SetCameraIsListener(bool abX){ mbCameraIsListener = abX; }
 
+		/**
+		 * Render interpolation of the 3D cameras and of what the physics
+		 * of the current world moves, see cGame::Run().
+		 */
+		void StoreInterpolation();
+		void ApplyInterpolation(float afT);
+		void RestoreInterpolation();
+
 		///// WORLD METHODS ////////////////////
 
 		cWorld3D* LoadWorld3D(const tString& asFile, bool abLoadScript, tWorldLoadFlag aFlags);

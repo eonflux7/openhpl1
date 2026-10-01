@@ -36,6 +36,7 @@ public:
 
 	void OnStart() override;
 	void Update(float afTimeStep) override;
+	void OnInterpolate(float afT) override;
 	void Reset() override;
 	void OnExit() override;
 	void OnPostSceneDraw() override;
@@ -55,6 +56,13 @@ public:
 	bool mbInvertMouseY;
 	bool mbToggleCrouch;
 private:
+	// What the mouse did to the camera in a logic step, for frames drawn
+	// between steps (see OnInterpolate).
+	unsigned int mlLookStep;
+	cVector2f mvLookDelta;
+	cVector2f mvLookPerRel;
+	int mlLookPlayerState;
+
 	iAction * ActionFromTypeAndVal(const tString& asName,const tString& asType, const tString& asVal);
 	void TypeAndValFromAction(iAction *apAction, tString *apType, tString *apVal);
 	

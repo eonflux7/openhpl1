@@ -295,6 +295,40 @@ commit), and the last official Linux build on Steam.
 - Pitch is still 4/3 as fast as yaw for the same movement, as in the
   original.
 
+### Frame rate above 60
+
+- "Limit to 60 FPS" in the advanced graphics options (the `LimitFPS`
+  setting, which had no menu entry; on by default, as before). On: a frame
+  is drawn after each logic step, as in the original. Off: frames are drawn
+  as fast as possible, or at the display's rate with V-Sync on. It applies
+  at once.
+- The game logic and physics still run at 60 steps per second. With the
+  limit off each frame shows the world between the last two steps
+  (`cGame::Run`, `cScene::StoreInterpolation` / `ApplyInterpolation` /
+  `RestoreInterpolation`): the camera, everything attached to a physics body
+  and the entities of character bodies (enemies) are placed between their
+  positions before and after the last step for drawing and put back
+  afterwards. A move of more than 2 m in one step counts as a teleport and
+  is not blended. Without this, frames between two steps were copies of
+  each other.
+- Looking around does not lag behind the mouse (`cButtonHandler::
+  OnInterpolate`): the part of the last step's turn that came from the mouse
+  is shown in full, and movement that has arrived since is added
+  (`iMouse::GetPendingRelPosition`). Turns that do not come from the mouse
+  are blended.
+- Held items and hands follow the camera of the frame
+  (`cPlayerHands::OnInterpolate`).
+- Not blended, so still moving 60 times per second: skeletal animations,
+  particles, the sway of held items, the interact-mode crosshair, lights and
+  entities that scripts move without physics. The image trail effect
+  (enemy close, save) fades per frame and so gets shorter at higher frame
+  rates, as it already did with `LimitFPS` off.
+- With the limit and V-Sync both off nothing caps the frame rate.
+- The logic timer and the frame time use a nanosecond clock
+  (`GetApplicationTimeExact`) instead of whole milliseconds.
+- The advanced graphics menu has one more row; its rows are 26 units apart
+  instead of 29.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

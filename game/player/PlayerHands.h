@@ -160,6 +160,8 @@ public:
 	void Update(float afTimeStep) override;
 	void Reset() override;
 	void OnDraw() override;
+	void OnInterpolate(float afT) override;
+	void OnPostBufferSwap() override;
 
 	void OnWorldExit();
 	void OnWorldLoad();
@@ -176,6 +178,10 @@ private:
 	void UpdatePrevPostions();
 		
 	cInit *mpInit;
+	// The hud model matrices as the logic set them, while they are moved
+	// along with the camera for a frame (see OnInterpolate).
+	std::vector<std::pair<cMeshEntity*, cMatrixf> > mvInterpolatedModels;
+
 	cMeshManager *mpMeshManager;
 
 	tVector3fList mlstPositions;

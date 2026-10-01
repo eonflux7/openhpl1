@@ -47,6 +47,12 @@ namespace hpl {
 		 * \return
 		 */
 		virtual cVector2f GetRelPosition()=0;
+		/**
+		 * The movement that has arrived since the last input update, in the
+		 * units of GetRelPosition(). It stays queued for that update; this
+		 * is for showing it in frames drawn before then.
+		 */
+		virtual cVector2f GetPendingRelPosition()=0;
 
 		/**
 		 * Reset smoothing and relative movement.

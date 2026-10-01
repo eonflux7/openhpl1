@@ -52,7 +52,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 	void cLogicTimer::Reset()
 	{
-		mlLocalTime = (double)GetApplicationTime();
+		mlLocalTime = GetApplicationTimeExact();
 	}
 
 	//-----------------------------------------------------------------------
@@ -62,7 +62,7 @@ namespace hpl {
 		++mlUpdateCount;
 		if(mlUpdateCount > mlMaxUpdates) return false;
 
-		if(mlLocalTime< (double)GetApplicationTime())
+		if(mlLocalTime< GetApplicationTimeExact())
 		{
 			Update();
 			return true;
@@ -108,6 +108,17 @@ namespace hpl {
 	float cLogicTimer::GetStepSize()
 	{
 		return ((float)mlLocalTimeAdd)/1000.0f;
+	}
+
+	//-----------------------------------------------------------------------
+
+	float cLogicTimer::GetInterpolation()
+	{
+		// mlLocalTime is when the next update is due.
+		double fT = 1.0 - (mlLocalTime - GetApplicationTimeExact()) / mlLocalTimeAdd;
+		if(fT < 0.0) fT = 0.0;
+		if(fT > 1.0) fT = 1.0;
+		return (float)fT;
 	}
 
 	//-----------------------------------------------------------------------

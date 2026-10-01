@@ -85,6 +85,10 @@ namespace hpl {
 	extern bool HasWindowFocus(const tWString &asWindowCaption);
 
 	extern unsigned long GetApplicationTime();
+	/**
+	 * The same clock as GetApplicationTime(), in milliseconds with fractions.
+	 */
+	extern double GetApplicationTimeExact();
 
 	class iLowLevelSystem
 	{

@@ -72,6 +72,11 @@ namespace hpl {
 		 */
 		float GetStepSize();
 
+		/**
+		 * How far the time has got from the last update towards the next one, 0 - 1.
+		 */
+		float GetInterpolation();
+
 
 
 	private:

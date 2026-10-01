@@ -291,6 +291,7 @@ namespace hpl {
 
 		mfUpdateTime =0;
 		mfGameTime =0;
+		mlLogicStepCount =0;
 
 		mbLimitFPS = true;
 
@@ -362,7 +363,7 @@ namespace hpl {
 		Log("--------------------------------------------------------\n");
 
 		mfFrameTime = 0;
-		unsigned long lTempFrameTime = GetApplicationTime();
+		double fTempFrameTime = GetApplicationTimeExact();
 
 		bool mbIsUpdated = true;
 
@@ -376,6 +377,10 @@ namespace hpl {
 			while(mpLogicTimer->WantUpdate() && !mbGameIsDone)
 			{
 				unsigned int lUpdateTime = GetApplicationTime();
+
+				// Keep the state before the step for frames drawn between
+				// this step and the next.
+				mpScene->StoreInterpolation();
 
 				mpUpdater->Update(GetStepSize());
 
@@ -393,6 +398,7 @@ namespace hpl {
 				}
 
 				mfGameTime += GetStepSize();
+				mlLogicStepCount++;
 			}
 			mpLogicTimer->EndUpdateLoop();
 
@@ -410,10 +416,21 @@ namespace hpl {
 			if(mbRenderOnce)bDone = true;
 
 
-			if(mbIsUpdated)
+			// With the frame rate limited a frame is drawn after each logic
+			// step. Without the limit frames are drawn as fast as they can
+			// be, each showing the world between the last two steps.
+			if(mbLimitFPS==false)
+			{
+				float fT = mpLogicTimer->GetInterpolation();
+				mpScene->ApplyInterpolation(fT);
+				mpUpdater->OnInterpolate(fT);
+
+				mpScene->UpdateRenderList(mfFrameTime);
+				mbIsUpdated = false;
+			}
+			else if(mbIsUpdated)
 			{
 				mpScene->UpdateRenderList(mfFrameTime);
-				if(mbLimitFPS==false) mbIsUpdated = false;
 			}
 
 			if(mbLimitFPS==false || mbIsUpdated)
@@ -423,8 +440,9 @@ namespace hpl {
 				mbIsUpdated = false;
 
 				//Get the the from the last frame.
-				mfFrameTime = ((float)(GetApplicationTime() - lTempFrameTime))/1000;
-				lTempFrameTime = GetApplicationTime();
+				double fTimeNow = GetApplicationTimeExact();
+				mfFrameTime = (float)((fTimeNow - fTempFrameTime)/1000.0);
+				fTempFrameTime = fTimeNow;
 
 				//Draw this frame
 				//unsigned long lFTime = GetApplicationTime();
@@ -446,6 +464,8 @@ namespace hpl {
 
 				fNumOfTimes++;
 			}
+
+			mpScene->RestoreInterpolation();
 
 			//if(cMemoryManager::GetLogCreation())
 			//{

@@ -173,6 +173,30 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	cVector2f cMouseSDL::GetPendingRelPosition()
+	{
+		static const int kMaxEvents = 256;
+		SDL_Event vEvents[kMaxEvents];
+
+		SDL_PumpEvents();
+		int lNum = SDL_PeepEvents(vEvents, kMaxEvents, SDL_PEEKEVENT, SDL_EVENT_MOUSE_MOTION, SDL_EVENT_MOUSE_MOTION);
+
+		cVector2f vRelMotion(0,0);
+		for(int i=0; i<lNum; ++i)
+		{
+			vRelMotion.x += vEvents[i].motion.xrel;
+			vRelMotion.y += vEvents[i].motion.yrel;
+		}
+
+		cVector2f vScreenSize = mpLowLevelGraphics->GetScreenSize();
+		cVector2f vVirtualOffset = mpLowLevelGraphics->GetVirtualOffset();
+		float fVirtualScale = (mpLowLevelGraphics->GetVirtualSize().x + vVirtualOffset.x*2) / vScreenSize.x;
+
+		return vRelMotion*fVirtualScale;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cMouseSDL::Reset()
 	{
 		mlstMouseCoord.clear();

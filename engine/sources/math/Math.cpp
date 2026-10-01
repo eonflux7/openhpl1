@@ -887,6 +887,26 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	cMatrixf cMath::MatrixInterpolate(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB)
+	{
+		cVector3f vPos =  a_mtxA.GetTranslation() * (1- afT) + a_mtxB.GetTranslation() * afT;
+
+		cQuaternion qA; qA.FromRotationMatrix(a_mtxA);
+		cQuaternion qB; qB.FromRotationMatrix(a_mtxB);
+
+		// q and -q are the same rotation; blend along the short way.
+		float fSign = QuaternionDot(qA,qB) < 0.0f ? -1.0f : 1.0f;
+		cQuaternion qFinal(qA * (1.0f - afT) + qB * (afT * fSign));
+		qFinal.Normalise();
+
+		cMatrixf mtxFinal = cMath::MatrixQuaternion(qFinal);
+		mtxFinal.SetTranslation(vPos);
+
+		return mtxFinal;
+	}
+
+	//-----------------------------------------------------------------------
+
 	cMatrixf cMath::MatrixSlerp(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB,
 										bool abShortestPath)
 	{

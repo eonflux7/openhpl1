@@ -48,6 +48,7 @@ namespace hpl {
 		 * \return
 		 */
 		cVector2f GetRelPosition() override;
+		cVector2f GetPendingRelPosition() override;
 
 		void Reset() override;
 

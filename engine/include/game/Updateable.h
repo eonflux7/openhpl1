@@ -29,6 +29,14 @@ namespace hpl {
 		virtual ~iUpdateable(){}
 		iUpdateable(const tString& asName) : msName(asName){}
 
+		/**
+		 * Called before a frame is drawn between two logic steps, after the
+		 * engine has moved the cameras and physics objects to where they are
+		 * at that time. afT is the position between the steps, 0 - 1.
+		 * Changes made to them here last for this frame only.
+		 */
+		virtual void OnInterpolate(float afT){}
+
 		virtual void OnDraw(){}
 
 		virtual void OnPostSceneDraw(){}

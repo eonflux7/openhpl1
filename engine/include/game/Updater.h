@@ -43,6 +43,7 @@ namespace hpl {
 
 		void Reset();
 
+		void OnInterpolate(float afT);
 		void OnDraw();
 		void OnPostSceneDraw();
 		void OnPostGUIDraw();

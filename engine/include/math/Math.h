@@ -354,6 +354,12 @@ namespace hpl {
 		* \param abShortestPath Move the the shortest path.
 		* \return
 		*/
+		/**
+		 * Blends two rigid transforms that are close to each other, as two
+		 * steps of a moving object are. Unlike MatrixSlerp() it is safe when
+		 * the rotations are (almost) the same.
+		 */
+		static cMatrixf MatrixInterpolate(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB);
 		static cMatrixf MatrixSlerp(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB,
 											bool abShortestPath);
 

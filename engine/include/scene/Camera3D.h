@@ -154,6 +154,26 @@ namespace hpl {
 		 * Set the limits within the pitch can move
 		 * \param avLimits x = high limt and y low.If both are 0 limits are disabled.
 		 */
+		/**
+		 * Render interpolation, see cGame::Run(). Store keeps the state
+		 * before a logic step; Apply puts the camera between that and the
+		 * current state for rendering and Restore puts it back. While
+		 * applied, the Prev and Logic getters give the two states.
+		 */
+		void StoreInterpolation();
+		void ApplyInterpolation(float afT);
+		void RestoreInterpolation();
+		bool IsInterpolated(){ return mbInterpolated;}
+		float GetInterpolationPrevYaw(){ return mfInterpolatePrevYaw;}
+		float GetInterpolationPrevPitch(){ return mfInterpolatePrevPitch;}
+		float GetLogicYaw(){ return mbInterpolated ? mfLogicYaw : mfYaw;}
+		float GetLogicPitch(){ return mbInterpolated ? mfLogicPitch : mfPitch;}
+		/**
+		 * The camera's node matrix as the logic left it, also while
+		 * interpolation is applied.
+		 */
+		const cMatrixf& GetLogicMatrix(){ return m_mtxLogic;}
+
 		void SetPitchLimits(cVector2f avLimits){ mvPitchLimits = avLimits;}
 		const cVector2f& GetPitchLimits(){return mvPitchLimits;}
 		/**
@@ -229,6 +249,18 @@ namespace hpl {
 		bool mbViewUpdated;
 		bool mbProjectionUpdated;
 		bool mbMoveUpdated;
+
+		bool mbInterpolatePrevValid;
+		bool mbInterpolated;
+		cVector3f mvInterpolatePrevPos;
+		float mfInterpolatePrevPitch;
+		float mfInterpolatePrevYaw;
+		float mfInterpolatePrevRoll;
+		cVector3f mvLogicPos;
+		float mfLogicPitch;
+		float mfLogicYaw;
+		float mfLogicRoll;
+		cMatrixf m_mtxLogic;
 	};
 
 };

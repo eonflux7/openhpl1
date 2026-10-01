@@ -37,6 +37,10 @@ namespace hpl {
 
 		mfFOV = cMath::ToRad(70.0f);
 		mfFOVScale = 1.0f;
+
+		mbInterpolatePrevValid = false;
+		mbInterpolated = false;
+		m_mtxLogic = cMatrixf::Identity;
 		mfAspect = 4.0f/3.0f;
 		mfFarClipPlane = 1000.0f;
 		mfNearClipPlane = 0.05f;
@@ -215,6 +219,64 @@ namespace hpl {
 		mfRoll =0;
 		mfYaw =0;
 		mfPitch =0;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cCamera3D::StoreInterpolation()
+	{
+		mvInterpolatePrevPos = mvPosition;
+		mfInterpolatePrevPitch = mfPitch;
+		mfInterpolatePrevYaw = mfYaw;
+		mfInterpolatePrevRoll = mfRoll;
+		mbInterpolatePrevValid = true;
+	}
+
+	// The short way from one angle to another
+	static float InterpolateAngle(float afA, float afB, float afT)
+	{
+		float fDist = fmod(afB - afA, k2Pif);
+		if(fDist > kPif) fDist -= k2Pif;
+		if(fDist < -kPif) fDist += k2Pif;
+		return afA + fDist * afT;
+	}
+
+	void cCamera3D::ApplyInterpolation(float afT)
+	{
+		if(mbInterpolatePrevValid==false || mbInterpolated) return;
+
+		mvLogicPos = mvPosition;
+		mfLogicPitch = mfPitch;
+		mfLogicYaw = mfYaw;
+		mfLogicRoll = mfRoll;
+		m_mtxLogic = cMath::MatrixInverse(GetViewMatrix());
+		mbInterpolated = true;
+
+		// Further than this in one step is a teleport, not a movement.
+		cVector3f vMove = mvPosition - mvInterpolatePrevPos;
+		if(vMove.SqrLength() > 2.0f*2.0f) return;
+
+		mvPosition = mvInterpolatePrevPos * (1.0f - afT) + mvPosition * afT;
+		mfPitch = InterpolateAngle(mfInterpolatePrevPitch, mfPitch, afT);
+		mfYaw = InterpolateAngle(mfInterpolatePrevYaw, mfYaw, afT);
+		mfRoll = InterpolateAngle(mfInterpolatePrevRoll, mfRoll, afT);
+
+		mNode.SetPosition(mvPosition);
+		mbViewUpdated = true; mbMoveUpdated = true;
+	}
+
+	void cCamera3D::RestoreInterpolation()
+	{
+		if(mbInterpolated==false) return;
+
+		mvPosition = mvLogicPos;
+		mfPitch = mfLogicPitch;
+		mfYaw = mfLogicYaw;
+		mfRoll = mfLogicRoll;
+		mbInterpolated = false;
+
+		mNode.SetPosition(mvPosition);
+		mbViewUpdated = true; mbMoveUpdated = true;
 	}
 
 	//-----------------------------------------------------------------------

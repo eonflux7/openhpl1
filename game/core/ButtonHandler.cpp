@@ -162,6 +162,11 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 
 	// LOAD SETTINGS
 	mfMouseSensitivity = mpInit->mpConfig->GetFloat("Controls","MouseSensitivity",1.0f);
+
+	mlLookStep = 0;
+	mvLookDelta = cVector2f(0,0);
+	mvLookPerRel = cVector2f(0,0);
+	mlLookPlayerState = -1;
 	mbInvertMouseY = mpInit->mpConfig->GetBool("Controls","InvertMouseY",false);
 	mbToggleCrouch = mpInit->mpConfig->GetBool("Controls","ToggleCrouch",true);
 }
@@ -203,6 +208,47 @@ void cButtonHandler::OnPostSceneDraw()
 		mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(0);
 	}
 }
+
+//-----------------------------------------------------------------------
+
+// The short way from one angle to another
+static float InterpolateAngle(float afA, float afB, float afT)
+{
+	float fDist = fmod(afB - afA, k2Pif);
+	if(fDist > kPif) fDist -= k2Pif;
+	if(fDist < -kPif) fDist += k2Pif;
+	return afA + fDist * afT;
+}
+
+/**
+ * A frame drawn between two logic steps shows the camera between where it
+ * was before and after the last step, which is behind the mouse by up to a
+ * step. Looking around must not lag: the part of the last step's turn that
+ * came from the mouse is shown in full, and the movement that has arrived
+ * since then is added the way that step turned it into a rotation. Turns
+ * that did not come from the mouse (scripts, head swing) are still blended.
+ */
+void cButtonHandler::OnInterpolate(float afT)
+{
+	cCamera3D *pCam = mpPlayer->GetCamera();
+	if(pCam->IsInterpolated()==false) return;
+
+	// Only if the last step read the mouse for looking.
+	if(mlLookStep + 1 != mpInit->mpGame->GetLogicStepCount()) return;
+
+	cVector2f vPending = mpInput->GetMouse()->GetPendingRelPosition();
+	if(mlLookPlayerState != (int)mpPlayer->GetState()) vPending = cVector2f(0,0);
+
+	float fYaw = InterpolateAngle(pCam->GetInterpolationPrevYaw(), pCam->GetLogicYaw() - mvLookDelta.x, afT)
+					+ mvLookDelta.x + vPending.x * mvLookPerRel.x;
+	float fPitch = InterpolateAngle(pCam->GetInterpolationPrevPitch(), pCam->GetLogicPitch() - mvLookDelta.y, afT)
+					+ mvLookDelta.y + vPending.y * mvLookPerRel.y;
+
+	pCam->SetYaw(fYaw);
+	pCam->SetPitch(fPitch);
+}
+
+//-----------------------------------------------------------------------
 
 void cButtonHandler::Update(float afTimeStep)
 {
@@ -712,6 +758,7 @@ void cButtonHandler::Update(float afTimeStep)
 					if(mpInit->mbHasHaptics==false)
 					{
 						cVector2f vRel = mpInput->GetMouse()->GetRelPosition();
+						cVector2f vRawRel = vRel;
 						vRel /= mpLowLevelGraphics->GetVirtualSize();
 
 						// The movement is in virtual units, 600 / window height
@@ -720,8 +767,30 @@ void cButtonHandler::Update(float afTimeStep)
 						// height whatever the window's size.
 						vRel *= mpLowLevelGraphics->GetScreenSize().y / kLookReferenceHeight;
 
+						cCamera3D *pCam = mpPlayer->GetCamera();
+						cVector2f vLookStart(pCam->GetYaw(), pCam->GetPitch());
+
 						mpPlayer->AddYaw(vRel.x * mfMouseSensitivity);
 						mpPlayer->AddPitch(vRel.y * mfMouseSensitivity);
+
+						// Remember how far the mouse turned the camera in this
+						// step, and by how much per unit of movement. This can
+						// be reached more than once in a step.
+						unsigned int lStep = mpInit->mpGame->GetLogicStepCount();
+						if(mlLookStep != lStep)
+						{
+							mlLookStep = lStep;
+							mvLookDelta = cVector2f(0,0);
+						}
+						if(mlLookPlayerState != (int)mpPlayer->GetState())
+						{
+							mlLookPlayerState = (int)mpPlayer->GetState();
+							mvLookPerRel = cVector2f(0,0);
+						}
+						cVector2f vTurn = cVector2f(pCam->GetYaw(), pCam->GetPitch()) - vLookStart;
+						mvLookDelta += vTurn;
+						if(vRawRel.x != 0) mvLookPerRel.x = vTurn.x / vRawRel.x;
+						if(vRawRel.y != 0) mvLookPerRel.y = vTurn.y / vRawRel.y;
 					}
 				}
 

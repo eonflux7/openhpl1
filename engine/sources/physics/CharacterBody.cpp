@@ -42,6 +42,9 @@ namespace hpl {
 	{
 		msName = asName;
 
+		mpInterpolatePrevEntity = nullptr;
+		mbInterpolated = false;
+
 		mpWorld = apWorld;
 
 		mvSize = avSize;
@@ -1231,6 +1234,42 @@ namespace hpl {
 
 			mpEntity->SetMatrix(mtxEntity);
 		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	void iCharacterBody::StoreInterpolation()
+	{
+		mpInterpolatePrevEntity = mpEntity;
+		if(mpEntity) m_mtxInterpolatePrev = mpEntity->GetLocalMatrix();
+	}
+
+	void iCharacterBody::ApplyInterpolation(float afT)
+	{
+		if(mpEntity==nullptr || mpEntity != mpInterpolatePrevEntity) return;
+
+		m_mtxInterpolateCurrent = mpEntity->GetLocalMatrix();
+		if(m_mtxInterpolatePrev == m_mtxInterpolateCurrent) return;
+
+		// Further than this in one step is a teleport, not a movement.
+		cVector3f vMove = m_mtxInterpolateCurrent.GetTranslation() - m_mtxInterpolatePrev.GetTranslation();
+		if(vMove.SqrLength() > 2.0f*2.0f) return;
+
+		// The entity offset can have a scale, so blend the elements.
+		cMatrixf mtxBlend;
+		for(int i=0; i<16; ++i)
+			mtxBlend.v[i] = m_mtxInterpolatePrev.v[i] * (1.0f - afT) + m_mtxInterpolateCurrent.v[i] * afT;
+
+		mpEntity->SetMatrix(mtxBlend);
+		mbInterpolated = true;
+	}
+
+	void iCharacterBody::RestoreInterpolation()
+	{
+		if(mbInterpolated==false) return;
+
+		if(mpEntity && mpEntity == mpInterpolatePrevEntity) mpEntity->SetMatrix(m_mtxInterpolateCurrent);
+		mbInterpolated = false;
 	}
 
 	//-----------------------------------------------------------------------

@@ -397,6 +397,45 @@ void cPlayerHands::OnDraw()
 
 //-----------------------------------------------------------------------
 
+/**
+ * The hud models are placed relative to the camera in Update(). A frame
+ * drawn between two logic steps has the camera somewhere else, so move them
+ * along with it: they stay where Update() put them on the screen.
+ */
+void cPlayerHands::OnInterpolate(float afT)
+{
+	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
+	if(pCam->IsInterpolated()==false) return;
+
+	cMatrixf mtxMove = cMath::MatrixMul(cMath::MatrixInverse(pCam->GetViewMatrix()),
+										cMath::MatrixInverse(pCam->GetLogicMatrix()));
+
+	for(int i=0; i< mlCurrentModelNum; ++i)
+	{
+		iHudModel *pHudModel = mvCurrentHudModels[i];
+		if(pHudModel==nullptr || pHudModel->mpEntity==nullptr) continue;
+
+		mvInterpolatedModels.push_back(std::make_pair(pHudModel->mpEntity, pHudModel->mpEntity->GetLocalMatrix()));
+		pHudModel->mpEntity->SetMatrix(cMath::MatrixMul(mtxMove, pHudModel->mpEntity->GetLocalMatrix()));
+	}
+}
+
+void cPlayerHands::OnPostBufferSwap()
+{
+	for(size_t i=0; i<mvInterpolatedModels.size(); ++i)
+	{
+		// Skip models that were destroyed while drawing
+		for(int j=0; j< mlCurrentModelNum; ++j)
+		{
+			if(mvCurrentHudModels[j] && mvCurrentHudModels[j]->mpEntity == mvInterpolatedModels[i].first)
+				mvInterpolatedModels[i].first->SetMatrix(mvInterpolatedModels[i].second);
+		}
+	}
+	mvInterpolatedModels.clear();
+}
+
+//-----------------------------------------------------------------------
+
 void cPlayerHands::AddHudModel(iHudModel* apHudModel)
 {
 	apHudModel->mpMesh = mpMeshManager->CreateMesh(apHudModel->msModelFile);

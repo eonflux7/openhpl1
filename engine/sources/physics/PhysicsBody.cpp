@@ -52,6 +52,9 @@ namespace hpl {
 		mpShape = apShape;
 		mpNode = nullptr;
 
+		mbInterpolatePrevValid = false;
+		mbInterpolated = false;
+
 		//Increment user count for the shape
 		apShape->IncUserCount();
 
@@ -256,6 +259,37 @@ namespace hpl {
 		//////////////////////////////////
 		//Update rolling sound
 		if(mpMaterial) mpMaterial->GetSurfaceData()->UpdateRollEffect(this);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Further than this in one step is a teleport, not a movement.
+	static const float kMaxInterpolateDist = 2.0f;
+
+	void iPhysicsBody::StoreInterpolation()
+	{
+		m_mtxInterpolatePrev = m_mtxLocalTransform;
+		mbInterpolatePrevValid = true;
+	}
+
+	void iPhysicsBody::ApplyInterpolation(float afT)
+	{
+		if(mpNode==nullptr || mbInterpolatePrevValid==false) return;
+		if(m_mtxInterpolatePrev == m_mtxLocalTransform) return;
+
+		cVector3f vMove = m_mtxLocalTransform.GetTranslation() - m_mtxInterpolatePrev.GetTranslation();
+		if(vMove.SqrLength() > kMaxInterpolateDist*kMaxInterpolateDist) return;
+
+		mpNode->SetMatrix(cMath::MatrixInterpolate(afT, m_mtxInterpolatePrev, m_mtxLocalTransform));
+		mbInterpolated = true;
+	}
+
+	void iPhysicsBody::RestoreInterpolation()
+	{
+		if(mbInterpolated==false) return;
+
+		if(mpNode) mpNode->SetMatrix(m_mtxLocalTransform);
+		mbInterpolated = false;
 	}
 
 	//-----------------------------------------------------------------------
