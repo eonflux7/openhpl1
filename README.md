@@ -42,8 +42,8 @@ sudo dnf install gcc-c++ cmake ninja-build SDL3-devel SDL3_image-devel \
     openal-soft-devel libvorbis-devel libogg-devel mesa-libGL-devel
 ```
 
-Newton, AngelScript, OALWrapper and the glad OpenGL loader are vendored in
-`vendor/`.
+Newton, AngelScript, OALWrapper, Dear ImGui and the glad OpenGL loader are
+vendored in `vendor/`.
 
 FreeType renders the fonts. With `freetype-devel` installed the system library
 is used; without it, CMake downloads FreeType 2.13.3 and builds it into the
@@ -140,6 +140,7 @@ saves.
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |
 | `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
+| `OVERTURE_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
 | `OVERTURE_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
@@ -181,6 +182,7 @@ run.sh     launcher
 - **Julio Jerez**: Newton Game Dynamics 2.36 (zlib)
 - **Andreas Jönsson**: AngelScript 2.38 (zlib)
 - **Lee Thomason and Yves Berquin**: TinyXML (zlib)
+- **Omar Cornut and contributors**: Dear ImGui 1.92.9b (MIT)
 - **glad** OpenGL loader by David Herberth (MIT / Apache-2.0 for the
   generated code)
 

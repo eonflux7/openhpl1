@@ -111,6 +111,20 @@ add_library(tinyxml STATIC ${tinyxml_sources})
 target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
 target_compile_options(tinyxml PRIVATE -w)
 
+# Dear ImGui 1.92.9b (MIT), the debug overlay; SDL3 platform backend and
+# the OpenGL 3 backend on glad (vendor/imgui_glad)
+add_library(imgui STATIC
+	vendor/imgui/imgui.cpp
+	vendor/imgui/imgui_demo.cpp
+	vendor/imgui/imgui_draw.cpp
+	vendor/imgui/imgui_tables.cpp
+	vendor/imgui/imgui_widgets.cpp
+	vendor/imgui/backends/imgui_impl_sdl3.cpp
+	vendor/imgui_glad/imgui_impl_opengl3_glad.cpp)
+target_include_directories(imgui SYSTEM PUBLIC vendor/imgui vendor/imgui/backends)
+target_link_libraries(imgui PUBLIC glad SDL3::SDL3)
+target_compile_options(imgui PRIVATE -w)
+
 #--------------------------------------------------------------------
 # HPL1 engine
 
@@ -122,7 +136,7 @@ list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)
 target_link_libraries(hpl PUBLIC
-	newton angelscript oalwrapper tinyxml glad
+	newton angelscript oalwrapper tinyxml glad imgui
 	SDL3::SDL3 SDL3_image::SDL3_image
 	Freetype::Freetype
 	OpenGL::GL)

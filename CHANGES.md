@@ -485,6 +485,25 @@ messages (NVIDIA 615). Fixed for that:
   gamma and output passes are created again after any change. Uniform
   values set once before a reload are lost until set again; most are set
   for every draw.
+
+### GPU profiling
+
+- Dear ImGui 1.92.9b is vendored (`vendor/imgui`; the OpenGL 3 backend is
+  built on glad through `vendor/imgui_glad`). F3 (or
+  `OVERTURE_DEBUG_OVERLAY=1`) shows an overlay over the finished frame, in
+  Cousine at a size for the window's height: frame time, GPU frame time,
+  draw calls and triangles, scene size, and the GPU time of each section of
+  the frame. It takes no input yet and writes no `imgui.ini`.
+- Sections (`BeginGpuSection`/`EndGpuSection`, `cGpuSection`) mark the
+  frame: World (Z, occlusion queries, lights, diffuse, fog, sky box,
+  transparent, debug), post scene draw, post effects (depth of field, motion
+  blur, bloom, image trail), scene output, GUI and present. They are always
+  GL debug groups, which RenderDoc and the driver's debug output show;
+  while the overlay is shown they are also timed with `GL_TIMESTAMP`
+  queries, read four frames later if the GPU has them, so timing never
+  waits for the GPU (`cGpuProfiler`).
+- Draw calls and triangles are counted at every `glDrawElements` and
+  immediate-mode draw.
 - Reference images: unchanged.
 
 ## Known issues

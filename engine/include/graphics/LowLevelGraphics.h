@@ -340,6 +340,21 @@ namespace hpl {
 									const cVector3f& avEyePos, float afNear, float afFar,
 									float afTime)=0;
 
+		/////////// DEBUGGING //////////////////////////
+
+		/**
+		 * Starts a named section of the frame: a GL debug group (RenderDoc
+		 * shows them), timed on the GPU while the debug overlay is shown.
+		 * Sections nest; EndGpuSection() ends the last one begun. The name
+		 * must stay valid until the frame is shown (use a string literal).
+		 */
+		virtual void BeginGpuSection(const char *asName)=0;
+		virtual void EndGpuSection()=0;
+
+		/// The overlay with frame times, GPU sections and draw counts.
+		virtual void SetDebugOverlayActive(bool abX)=0;
+		virtual bool GetDebugOverlayActive()=0;
+
 		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
 		/**
 		 * Ortho projection of the whole screen in virtual coordinates,
@@ -483,6 +498,20 @@ namespace hpl {
 										const cVector2l &avSize, const cVector2l &avTexOffset=0)=0;
 		virtual void FlushRendering()=0;
 		virtual void SwapBuffers()=0;
+	};
+
+	/// Begins a GPU section and ends it at the end of the scope.
+	class cGpuSection
+	{
+	public:
+		cGpuSection(iLowLevelGraphics *apLowLevel, const char *asName) : mpLowLevel(apLowLevel)
+		{
+			mpLowLevel->BeginGpuSection(asName);
+		}
+		~cGpuSection(){ mpLowLevel->EndGpuSection(); }
+
+	private:
+		iLowLevelGraphics *mpLowLevel;
 	};
 };
 #endif // HPL_LOWLEVELGRAPHICS_H

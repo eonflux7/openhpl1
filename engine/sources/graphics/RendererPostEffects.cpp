@@ -252,17 +252,25 @@ namespace hpl {
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
 
+		mpLowLevelGraphics->BeginGpuSection("Depth of field");
 		RenderDepthOfField();
+		mpLowLevelGraphics->EndGpuSection();
+		mpLowLevelGraphics->BeginGpuSection("Motion blur");
 		RenderMotionBlur();
+		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->SetDepthTestActive(false);
 		mpLowLevelGraphics->PushMatrix(eMatrix_ModelView);
 		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
 		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
 
+		mpLowLevelGraphics->BeginGpuSection("Bloom");
 		RenderBloom();
+		mpLowLevelGraphics->EndGpuSection();
 
+		mpLowLevelGraphics->BeginGpuSection("Image trail");
 		RenderImageTrail();
+		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
 	}

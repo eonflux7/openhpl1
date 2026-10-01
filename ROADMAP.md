@@ -123,10 +123,12 @@ Every step is checked against reference images of the renderer before it.
         in one uniform block; matrices kept on the CPU instead of read back
         from GL for every program
   - [x] reload shaders while the game runs (`OVERTURE_SHADER_RELOAD`)
-- [ ] **GPU profiling:** timer queries per pass, draw-call counts, debug
-      groups and object labels; fetch occlusion queries without waiting
-  - [ ] Dear ImGui as an in-game debug overlay, starting with the
+- [ ] **GPU profiling:**
+  - [x] Dear ImGui as an in-game debug overlay (F3), starting with the
         profiler's numbers
+  - [x] timer queries per pass, draw-call and triangle counts, debug groups
+  - [ ] object labels
+  - [ ] fetch occlusion queries without waiting
 - [ ] **No fixed-function.** Everything is drawn by shaders: HUD, fonts,
       particles, billboards, transparent materials, debug drawing; alpha test
       and clip planes move into shaders; vertex attributes and VAOs. Then

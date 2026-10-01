@@ -335,19 +335,27 @@ namespace hpl {
 				if(mpCurrentWorld3D)
 				{
 					START_TIMING(RenderWorld)
+					mpGraphics->GetLowLevel()->BeginGpuSection("World");
 					mpGraphics->GetRenderer3D()->RenderWorld(mpCurrentWorld3D, pCamera3D,afFrameTime);
+					mpGraphics->GetLowLevel()->EndGpuSection();
 					STOP_TIMING(RenderWorld)
 				}
 			}
 			START_TIMING(PostSceneDraw)
+			mpGraphics->GetLowLevel()->BeginGpuSection("Post scene draw");
 			apUpdater->OnPostSceneDraw();
+			mpGraphics->GetLowLevel()->EndGpuSection();
 			STOP_TIMING(PostSceneDraw)
 
 			START_TIMING(PostEffects)
+			mpGraphics->GetLowLevel()->BeginGpuSection("Post effects");
 			mpGraphics->GetRendererPostEffects()->Render();
+			mpGraphics->GetLowLevel()->EndGpuSection();
 			STOP_TIMING(PostEffects)
 
+			mpGraphics->GetLowLevel()->BeginGpuSection("Scene output");
 			mpGraphics->GetLowLevel()->EndScene();
+			mpGraphics->GetLowLevel()->EndGpuSection();
 		}
 		else
 		{
@@ -356,9 +364,11 @@ namespace hpl {
 			//mpGraphics->GetLowLevel()->SetClearColor(cColor(0,1));
 			//mpGraphics->GetLowLevel()->ClearScreen();
 		}
-		mpGraphics->GetDrawer()->DrawAll();
-
-		apUpdater->OnPostGUIDraw();
+		{
+			cGpuSection section(mpGraphics->GetLowLevel(), "GUI");
+			mpGraphics->GetDrawer()->DrawAll();
+			apUpdater->OnPostGUIDraw();
+		}
 	}
 
 	//-----------------------------------------------------------------------

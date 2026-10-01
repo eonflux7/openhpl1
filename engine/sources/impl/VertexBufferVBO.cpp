@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/VertexBufferVBO.h"
+#include "impl/LowLevelGraphicsSDL.h"
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
 
@@ -338,6 +339,7 @@ namespace hpl {
 		int lSize = mlElementNum;
 		if(mlElementNum<0) lSize = GetIndexNum();
 
+		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->GetGpuProfiler()->CountDraw(mode, lSize);
 		glDrawElements(mode,lSize,GL_UNSIGNED_INT, (char*) nullptr);
 
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
@@ -357,6 +359,7 @@ namespace hpl {
 
 		//////////////////////////////////
 		//Bind and draw the buffer
+		static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->GetGpuProfiler()->CountDraw(mode, alCount);
 		glDrawElements(mode, alCount, GL_UNSIGNED_INT, apIndices);
 	}
 

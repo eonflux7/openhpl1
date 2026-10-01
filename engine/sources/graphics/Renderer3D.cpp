@@ -406,7 +406,9 @@ namespace hpl {
 		mpLowLevelGraphics->SetTextureConstantColor(mRenderSettings.mAmbientColor);
 
 		if(mbLog) Log("Rendering ZBuffer:\n");
+		mpLowLevelGraphics->BeginGpuSection("Z");
 		RenderZ(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		//reset parameters.
 		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
@@ -419,7 +421,9 @@ namespace hpl {
 
 		if(mbLog) Log("Rendering Occlusion Queries:\n");
 		mpLowLevelGraphics->SetDepthWriteActive(false);
+		mpLowLevelGraphics->BeginGpuSection("Occlusion queries");
 		RenderOcclusionQueries(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
 		//Render lighting
@@ -429,17 +433,23 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
 
 		if(mbLog) Log("Rendering Lighting:\n");
+		mpLowLevelGraphics->BeginGpuSection("Lights");
 		RenderLight(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
 		//Render Diffuse
 		if(mbLog) Log("Rendering Diffuse:\n");
+		mpLowLevelGraphics->BeginGpuSection("Diffuse");
 		RenderDiffuse(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
 		//Render fog
 		if(mbLog) Log("Rendering fog:\n");
+		mpLowLevelGraphics->BeginGpuSection("Fog");
 		RenderFog(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 
 		////////////////////////////
@@ -448,17 +458,23 @@ namespace hpl {
 
 		////////////////////////////
 		if(mbLog) Log("Rendering Skybox:\n");
+		mpLowLevelGraphics->BeginGpuSection("Sky box");
 		RenderSkyBox(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		//Render transparent
 		if(mbLog) Log("Rendering Transperant:\n");
+		mpLowLevelGraphics->BeginGpuSection("Transparent");
 		RenderTrans(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		mRenderSettings.Reset(mpLowLevelGraphics);
 
 		////////////////////////////
 		//Render debug
+		mpLowLevelGraphics->BeginGpuSection("Debug");
 		RenderDebug(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->SetDepthWriteActive(true);
 	}

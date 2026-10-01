@@ -24,6 +24,8 @@
 #include <SDL3/SDL.h>
 
 #include "graphics/LowLevelGraphics.h"
+#include "impl/DebugOverlay.h"
+#include "impl/GpuProfiler.h"
 #include "impl/SDLPixelFormat.h"
 #include "math/MathTypes.h"
 
@@ -114,6 +116,13 @@ namespace hpl {
 		void SetFrameUniforms(const cMatrixf& a_mtxView, const cMatrixf& a_mtxProjection,
 							const cVector3f& avEyePos, float afNear, float afFar,
 							float afTime) override;
+
+		void BeginGpuSection(const char *asName) override{ mGpuProfiler.Begin(asName); }
+		void EndGpuSection() override{ mGpuProfiler.End(); }
+		void SetDebugOverlayActive(bool abX) override{ mDebugOverlay.SetActive(abX); }
+		bool GetDebugOverlayActive() override{ return mDebugOverlay.IsActive(); }
+
+		cGpuProfiler* GetGpuProfiler(){ return &mGpuProfiler; }
 
 		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
 		void SetVirtualOrthoProjection(float afMin, float afMax) override;
@@ -310,6 +319,9 @@ namespace hpl {
 
 		// hpl_Frame uniform block, bound to uniform buffer binding 0
 		GLuint mlFrameUniformBuffer;
+
+		cGpuProfiler mGpuProfiler;
+		cDebugOverlay mDebugOverlay;
 
 		//Clipping
 		cPlanef mvClipPlanes[kMaxClipPlanes];

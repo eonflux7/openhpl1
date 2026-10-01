@@ -200,6 +200,8 @@ namespace hpl {
 		DeleteFullscreenPass(mOutputPass);
 		DeleteFramebuffers();
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
+		mDebugOverlay.Exit();
+		mGpuProfiler.Exit();
 
 		cGLSLProgram::ExitPipeline();
 
@@ -331,6 +333,8 @@ namespace hpl {
 			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
 			return false;
 		}
+
+		mGpuProfiler.Init();
 
 		glGenBuffers(1, &mlFrameUniformBuffer);
 		glBindBuffer(GL_UNIFORM_BUFFER, mlFrameUniformBuffer);
@@ -1036,6 +1040,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)
 	{
 		glColor4f(1,1,1,1);
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			glTexCoord2f(0.0, 0.0); glVertex3f(avPos.x, avPos.y,afZ);
@@ -1064,7 +1069,9 @@ namespace hpl {
 			mGammaPass.mbFailed = mOutputPass.mbFailed = false;
 		}
 
+		BeginGpuSection("Present");
 		PresentFrame();
+		EndGpuSection();
 
 		// The frame dumps read the window's back buffer, as shown.
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1074,7 +1081,10 @@ namespace hpl {
 			SaveFrameToPNG(msSaveNextFrame);
 			msSaveNextFrame = "";
 		}
+
+		mGpuProfiler.EndFrame();
 		SDL_GL_SwapWindow(mpWindow);
+		mGpuProfiler.BeginFrame();
 
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 	}
@@ -1325,6 +1335,8 @@ namespace hpl {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		}
 
+		mDebugOverlay.Draw(mpWindow, &mGpuProfiler, mvRenderSize, mfRenderScale);
+
 		// The renderer uses destination alpha as scratch space, so the frame
 		// ends with arbitrary alpha. Wayland compositors treat the window as
 		// translucent, so make it opaque.
@@ -1408,6 +1420,7 @@ namespace hpl {
 
 		glBindProgramPipeline(aPass.mlPipeline);
 
+		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		glBegin(GL_TRIANGLES);
 		glVertex2f(-1.0f, -1.0f);
 		glVertex2f( 3.0f, -1.0f);
@@ -1443,6 +1456,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==3);
 
+		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		glBegin(GL_TRIANGLES);
 		{
 			for(int i=0;i<3;i++){
@@ -1458,6 +1472,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawTri(const cVertex* avVtx)
 	{
+		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		glBegin(GL_TRIANGLES);
 		{
 			for(int i=0;i<3;i++){
@@ -1475,6 +1490,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			for(int i=0;i<4;i++){
@@ -1491,6 +1507,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)
 	{
 		int lExtraUnits = (int)avExtraUvs.size()/4;
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			for(int i=0;i<4;i++)
@@ -1713,6 +1730,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			//Make all this inline??
@@ -1731,6 +1749,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			//Make all this inline??
@@ -1749,6 +1768,7 @@ namespace hpl {
 	{
 		assert(avVtx.size()==4);
 
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			//Make all this inline??
@@ -1941,6 +1961,7 @@ namespace hpl {
 		SetVtxBatchStates(aTypeFlags);
 		SetUpBatchArrays();
 
+		mGpuProfiler.CountDraw(GL_TRIANGLES, mlIndexCount);
 		glDrawElements(GL_TRIANGLES,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
 
 		if(abAutoClear){
@@ -1958,6 +1979,7 @@ namespace hpl {
 		SetVtxBatchStates(aTypeFlags);
 		SetUpBatchArrays();
 
+		mGpuProfiler.CountDraw(GL_QUADS, mlIndexCount);
 		glDrawElements(GL_QUADS,mlIndexCount,GL_UNSIGNED_INT, mpIndexArray);
 
 		if(abAutoClear){
@@ -1983,6 +2005,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		//SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
 			glVertex3f(avBegin.x,avBegin.y,avBegin.z);
@@ -1997,6 +2020,7 @@ namespace hpl {
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 
+		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
 			//Pos Z Quad
@@ -2052,6 +2076,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
 			//X Circle:
@@ -2095,6 +2120,7 @@ namespace hpl {
 		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		mGpuProfiler.CountDraw(GL_LINES, 0);
 		glBegin(GL_LINES);
 		{
 			glVertex3f(avBegin.x,avBegin.y,afZ);
@@ -2110,6 +2136,7 @@ namespace hpl {
 		SetTexture(0, nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		mGpuProfiler.CountDraw(GL_LINE_STRIP, 0);
 		glBegin(GL_LINE_STRIP);
 		{
 			glVertex3f(aRect.x,aRect.y,afZ);
@@ -2127,6 +2154,7 @@ namespace hpl {
 	{
 		SetTexture(0, nullptr);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
+		mGpuProfiler.CountDraw(GL_QUADS, 4);
 		glBegin(GL_QUADS);
 		{
 			glVertex3f(aRect.x,aRect.y,afZ);

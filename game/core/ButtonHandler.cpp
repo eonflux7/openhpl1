@@ -105,6 +105,7 @@ static cButtonHandlerAction gvDefaultActions[] = {
 #endif
 //{"LockInput","Keyboard",eKey_k,false},
 {"Screenshot","Keyboard",eKey_F12,false},
+{"DebugOverlay","Keyboard",eKey_F3,false},
 
 //{"Hit","Keyboard",eKey_h,false},
 //{"Log","Keyboard",eKey_l,false},
@@ -331,6 +332,11 @@ void cButtonHandler::Update(float afTimeStep)
 	if(mpInput->BecameTriggerd("QuitGame"))
 	{
 		mpInit->mpGame->Exit();
+	}
+	if(mpInput->BecameTriggerd("DebugOverlay"))
+	{
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		pLowLevel->SetDebugOverlayActive(!pLowLevel->GetDebugOverlayActive());
 	}
 	if(mpInput->BecameTriggerd("Screenshot"))
 	{
