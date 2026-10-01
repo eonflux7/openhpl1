@@ -417,6 +417,19 @@ messages (NVIDIA 615). Fixed for that:
   scaled to it (bilinear) before the HUD, which stays at the window's
   resolution. Applies at once. Advanced Graphics rows are 24 units apart
   instead of 26 to make room for it.
+- The scene framebuffer is 16-bit floating point (`GL_RGBA16F`), so the
+  light passes add up without being rounded to 8 bits after each one, and
+  their sum can go past 1 until the scene is converted. Each draw's colour
+  is still clamped to 0..1 before blending (`GL_CLAMP_FRAGMENT_COLOR`), as
+  with an 8-bit buffer. `EndScene` converts the scene to the 8-bit output
+  with a shader (`hpl1_output`) that adds a fixed half-step noise pattern
+  (dithering) against banding, and does the render-scale filtering.
+  Reference images: about 190 of 552 frames differ by more than 2 levels,
+  most by 10 or less. Dark scenes come out up to about 3 levels brighter
+  on average: light contributions smaller than one 8-bit step were rounded
+  away before. A few hundred pixels per frame differ more in overexposed
+  spots, where light adds up past 1 before a blend multiplies by it.
+- The gamma pass and the output pass share one full-screen pass helper.
 - `SetRenderTarget` renders into a texture through a framebuffer object
   (it did nothing since the pbuffer code was removed);
   `RenderTargetHasZBuffer` and `FlushRenderTarget` are gone.

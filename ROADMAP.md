@@ -109,9 +109,13 @@ Every step is checked against reference images of the renderer before it.
         (50–200%)
   - [ ] resolution and fullscreen changes without a restart (see
         Milestone 2)
-- [ ] **Float colour buffer.** A 16-bit float scene target, so light passes
+- [x] **Float colour buffer.** A 16-bit float scene target, so light passes
       add up without being rounded to 8 bits or clipped after each one; the
       output is dithered. Same look, less banding in dark areas
+  - [ ] play-test: dark areas are up to a few levels brighter (light that
+        8-bit rounding used to drop), check that nothing looks washed out
+  - [ ] screen copies for post effects and refraction are still 8-bit, so
+        bloom, depth of field and refraction clip at 1
 - [ ] **Colour space:**
   - [ ] audit: which textures hold colour and which hold data (normal maps,
         falloff ramps, spot masks), what each blend mode (additive,

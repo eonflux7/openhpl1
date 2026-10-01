@@ -261,12 +261,25 @@ namespace hpl {
 		int mlBpp;
 		int mlDisplay;
 
+		//A shader pass that draws a texture over the whole viewport
+		struct cFullscreenPass
+		{
+			tString msName;
+			bool mbFailed = false;
+			GLuint mlPipeline = 0;
+			GLuint mlVertex = 0;
+			GLuint mlFragment = 0;
+		};
+		bool CreateFullscreenPass(cFullscreenPass &aPass);
+		void DeleteFullscreenPass(cFullscreenPass &aPass);
+		void DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize);
+
 		//Gamma
 		float mfGammaCorrection;
-		bool mbGammaPassFailed;
-		GLuint mlGammaPipeline;
-		GLuint mlGammaVertex;
-		GLuint mlGammaFragment;
+		cFullscreenPass mGammaPass;
+
+		//Scene to output: clamps, scales and dithers
+		cFullscreenPass mOutputPass;
 
 		//Frame order: the 3D scene is drawn into the scene framebuffer at
 		//the render size (between BeginScene() and EndScene()), EndScene()
@@ -340,7 +353,6 @@ namespace hpl {
 		void BindFramebuffer(GLuint alFramebuffer, const cVector2l& avSize);
 		void PresentFrame();
 
-		bool CreateGammaPass();
 		bool DrawGammaPass();
 
 

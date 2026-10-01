@@ -113,10 +113,8 @@ namespace hpl {
 		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
 		mfRenderScale = 1.0f;
-		mbGammaPassFailed = false;
-		mlGammaPipeline = 0;
-		mlGammaVertex = 0;
-		mlGammaFragment = 0;
+		mGammaPass.msName = "gamma_correction";
+		mOutputPass.msName = "output";
 
 		mbInScene = false;
 		mlSceneFramebuffer = 0;
@@ -164,9 +162,8 @@ namespace hpl {
 
 		hplDelete(mpPixelFormat);
 
-		if(mlGammaPipeline) glDeleteProgramPipelines(1,&mlGammaPipeline);
-		if(mlGammaVertex) glDeleteProgram(mlGammaVertex);
-		if(mlGammaFragment) glDeleteProgram(mlGammaFragment);
+		DeleteFullscreenPass(mGammaPass);
+		DeleteFullscreenPass(mOutputPass);
 		DeleteFramebuffers();
 
 		cGLSLProgram::ExitPipeline();
@@ -496,6 +493,11 @@ namespace hpl {
 		//Set Shade model and clear color.
 		glShadeModel(GL_SMOOTH);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+		// Each fragment's colour is clamped to 0..1 before blending, as an
+		// 8-bit buffer did; only the sums of blending go past 1 in the float
+		// scene buffer.
+		glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_TRUE);
 
 		//Depth Test setup
 		glClearDepth(1.0f);//VAlues buffer is cleared with
@@ -1043,14 +1045,19 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	static GLuint CreateColorTexture(int alW, int alH)
+	// The scene is floating point, so that light passes add up without
+	// being rounded to 8 bits after each one.
+	static const GLenum kSceneColorFormat = GL_RGBA16F;
+
+	static GLuint CreateColorTexture(int alW, int alH, GLenum aFormat, GLenum aFilter)
 	{
 		GLuint lTex = 0;
 		glGenTextures(1, &lTex);
 		glBindTexture(GL_TEXTURE_2D, lTex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, alW, alH, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, aFormat, alW, alH, 0, GL_RGBA,
+						aFormat == GL_RGBA8 ? GL_UNSIGNED_BYTE : GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, aFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, aFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -1076,6 +1083,9 @@ namespace hpl {
 
 		const int lW = mvRenderSize.x, lH = mvRenderSize.y;
 		bool bOK = true;
+		// The output pass samples the single-sampled scene colour; scaling
+		// to the window is done by the filter.
+		GLenum lFilter = mvRenderSize == mvScreenSize ? GL_NEAREST : GL_LINEAR;
 
 		GLenum lTarget = GL_TEXTURE_2D;
 		if(mlMultisampling > 0)
@@ -1094,14 +1104,14 @@ namespace hpl {
 			glGenTextures(1, &mlSceneColor);
 			glGenTextures(1, &mlSceneDepthStencil);
 			glBindTexture(lTarget, mlSceneColor);
-			glTexImage2DMultisample(lTarget, mlMultisampling, GL_RGBA8, lW, lH, GL_TRUE);
+			glTexImage2DMultisample(lTarget, mlMultisampling, kSceneColorFormat, lW, lH, GL_TRUE);
 			glBindTexture(lTarget, mlSceneDepthStencil);
 			glTexImage2DMultisample(lTarget, mlMultisampling, GL_DEPTH24_STENCIL8, lW, lH, GL_TRUE);
 			glBindTexture(lTarget, 0);
 		}
 		else
 		{
-			mlSceneColor = CreateColorTexture(lW, lH);
+			mlSceneColor = CreateColorTexture(lW, lH, kSceneColorFormat, lFilter);
 			glGenTextures(1, &mlSceneDepthStencil);
 			glBindTexture(GL_TEXTURE_2D, mlSceneDepthStencil);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, lW, lH, 0,
@@ -1119,7 +1129,7 @@ namespace hpl {
 
 		if(mlMultisampling > 0)
 		{
-			mlResolveColor = CreateColorTexture(lW, lH);
+			mlResolveColor = CreateColorTexture(lW, lH, kSceneColorFormat, lFilter);
 			glGenFramebuffers(1, &mlResolveFramebuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlResolveColor, 0);
@@ -1129,7 +1139,7 @@ namespace hpl {
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 
-		Log(" Scene framebuffer: %d x %d, %d samples\n", lW, lH, mlMultisampling);
+		Log(" Scene framebuffer: %d x %d, %d samples, 16-bit float\n", lW, lH, mlMultisampling);
 		return bOK;
 	}
 
@@ -1141,7 +1151,7 @@ namespace hpl {
 		GLint lLastTexture = 0;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
 
-		mlOutputColor = CreateColorTexture(mvScreenSize.x, mvScreenSize.y);
+		mlOutputColor = CreateColorTexture(mvScreenSize.x, mvScreenSize.y, GL_RGBA8, GL_NEAREST);
 		glGenRenderbuffers(1, &mlOutputDepthStencil);
 		glBindRenderbuffer(GL_RENDERBUFFER, mlOutputDepthStencil);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mvScreenSize.x, mvScreenSize.y);
@@ -1218,8 +1228,9 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// Copies the scene to the output framebuffer, resolving and scaling it,
-	// and leaves the output framebuffer bound for the 2D drawing.
+	// Draws the scene to the output framebuffer through the output pass
+	// (resolved, scaled, converted to 8 bits with dithering) and leaves the
+	// output framebuffer bound for the 2D drawing.
 	void cLowLevelGraphicsSDL::EndScene()
 	{
 		SetRenderTarget(nullptr);
@@ -1238,13 +1249,23 @@ namespace hpl {
 			lSource = mlResolveFramebuffer;
 		}
 
-		bool bScaled = mvRenderSize != mvScreenSize;
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, lSource);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlOutputFramebuffer);
-		glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
-							GL_COLOR_BUFFER_BIT, bScaled ? GL_LINEAR : GL_NEAREST);
-
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
+		if(CreateFullscreenPass(mOutputPass))
+		{
+			glProgramUniform2f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "invOutputSize"),
+								1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
+			DrawFullscreenPass(mOutputPass, mlMultisampling > 0 ? mlResolveColor : mlSceneColor, mvScreenSize);
+		}
+		else
+		{
+			// Without dithering
+			bool bScaled = mvRenderSize != mvScreenSize;
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, lSource);
+			glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
+								GL_COLOR_BUFFER_BIT, bScaled ? GL_LINEAR : GL_NEAREST);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mlOutputFramebuffer);
+		}
+
 		if(bScissor) glEnable(GL_SCISSOR_TEST);
 	}
 
@@ -1286,39 +1307,46 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cLowLevelGraphicsSDL::CreateGammaPass()
+	// Loads hpl1_<name>.vertex/.fragment once. Returns false if they are
+	// missing or do not compile, then and later.
+	bool cLowLevelGraphicsSDL::CreateFullscreenPass(cFullscreenPass &aPass)
 	{
-		if(mlGammaPipeline) return true;
-		if(mbGammaPassFailed) return false;
+		if(aPass.mlPipeline) return true;
+		if(aPass.mbFailed) return false;
 
-		mlGammaVertex = cGLSLProgram::CreateStage(GL_VERTEX_SHADER, "gamma_correction");
-		mlGammaFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, "gamma_correction");
-		if(mlGammaVertex==0 || mlGammaFragment==0)
+		aPass.mlVertex = cGLSLProgram::CreateStage(GL_VERTEX_SHADER, aPass.msName);
+		aPass.mlFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, aPass.msName);
+		if(aPass.mlVertex==0 || aPass.mlFragment==0)
 		{
-			Error("Couldn't create the gamma correction pass, the gamma setting has no effect!\n");
-			mbGammaPassFailed = true;
+			Error("Couldn't create the '%s' pass!\n", aPass.msName.c_str());
+			DeleteFullscreenPass(aPass);
+			aPass.mbFailed = true;
 			return false;
 		}
 
-		glGenProgramPipelines(1,&mlGammaPipeline);
-		glUseProgramStages(mlGammaPipeline, GL_VERTEX_SHADER_BIT, mlGammaVertex);
-		glUseProgramStages(mlGammaPipeline, GL_FRAGMENT_SHADER_BIT, mlGammaFragment);
+		glGenProgramPipelines(1,&aPass.mlPipeline);
+		glUseProgramStages(aPass.mlPipeline, GL_VERTEX_SHADER_BIT, aPass.mlVertex);
+		glUseProgramStages(aPass.mlPipeline, GL_FRAGMENT_SHADER_BIT, aPass.mlFragment);
 
 		return true;
 	}
 
+	void cLowLevelGraphicsSDL::DeleteFullscreenPass(cFullscreenPass &aPass)
+	{
+		if(aPass.mlPipeline) glDeleteProgramPipelines(1,&aPass.mlPipeline);
+		if(aPass.mlVertex) glDeleteProgram(aPass.mlVertex);
+		if(aPass.mlFragment) glDeleteProgram(aPass.mlFragment);
+		aPass.mlPipeline = aPass.mlVertex = aPass.mlFragment = 0;
+	}
+
 	//-----------------------------------------------------------------------
 
-	// Replaces the hardware gamma ramp: the scene colour is drawn to the
-	// bound framebuffer through the same curve SDL_SetGamma() used,
-	// out = in ^ (1 / gamma). Returns false when the gamma is 1 or the pass
-	// is missing, and nothing was drawn. All state is put back, the renderer
-	// does not expect it to change in SwapBuffers().
-	bool cLowLevelGraphicsSDL::DrawGammaPass()
+	// Draws one triangle covering a viewport of avSize with the pass's
+	// shaders and alTexture (2D) on unit 0, into the bound framebuffer.
+	// Uniforms are set by the caller. All state is put back; the renderer
+	// does not expect it to change.
+	void cLowLevelGraphicsSDL::DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize)
 	{
-		if(mfGammaCorrection > 0.999f && mfGammaCorrection < 1.001f) return false;
-		if(CreateGammaPass()==false) return false;
-
 		GLint lLastUnit = 0, lLastTexture = 0, lLastPipeline = 0;
 		glGetIntegerv(GL_ACTIVE_TEXTURE, &lLastUnit);
 		glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, &lLastPipeline);
@@ -1328,7 +1356,7 @@ namespace hpl {
 		glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT |
 						GL_POLYGON_BIT | GL_VIEWPORT_BIT | GL_SCISSOR_BIT | GL_TRANSFORM_BIT);
 
-		glBindTexture(GL_TEXTURE_2D, mlOutputColor);
+		glBindTexture(GL_TEXTURE_2D, alTexture);
 
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_STENCIL_TEST);
@@ -1340,13 +1368,10 @@ namespace hpl {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glViewport(0, 0, mvScreenSize.x, mvScreenSize.y);
+		glViewport(0, 0, avSize.x, avSize.y);
 
-		glProgramUniform1f(mlGammaFragment, glGetUniformLocation(mlGammaFragment, "gamma"),
-							mfGammaCorrection);
-		glBindProgramPipeline(mlGammaPipeline);
+		glBindProgramPipeline(aPass.mlPipeline);
 
-		// One triangle that covers the screen
 		glBegin(GL_TRIANGLES);
 		glVertex2f(-1.0f, -1.0f);
 		glVertex2f( 3.0f, -1.0f);
@@ -1357,6 +1382,22 @@ namespace hpl {
 		glPopAttrib();
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		glActiveTexture(lLastUnit);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Replaces the hardware gamma ramp: the output colour is drawn to the
+	// bound framebuffer through the same curve SDL_SetGamma() used,
+	// out = in ^ (1 / gamma). Returns false when the gamma is 1 or the pass
+	// is missing, and nothing was drawn.
+	bool cLowLevelGraphicsSDL::DrawGammaPass()
+	{
+		if(mfGammaCorrection > 0.999f && mfGammaCorrection < 1.001f) return false;
+		if(CreateFullscreenPass(mGammaPass)==false) return false;
+
+		glProgramUniform1f(mGammaPass.mlFragment, glGetUniformLocation(mGammaPass.mlFragment, "gamma"),
+							mfGammaCorrection);
+		DrawFullscreenPass(mGammaPass, mlOutputColor, mvScreenSize);
 		return true;
 	}
 
