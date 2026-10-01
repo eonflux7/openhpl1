@@ -65,6 +65,10 @@ target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include
 	vendor/angelscript/add_on)
 target_compile_options(angelscript PRIVATE -w)
+if(OVERTURE_SANITIZERS)
+	# Bytecode stores pointers at 4-byte offsets by design; fine on x86-64
+	target_compile_options(angelscript PRIVATE -fno-sanitize=alignment)
+endif()
 
 # OALWrapper (zlib), Frictional Games' OpenAL helper
 file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
