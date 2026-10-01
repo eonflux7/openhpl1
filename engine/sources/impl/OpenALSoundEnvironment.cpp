@@ -66,7 +66,7 @@ namespace hpl
 		}
 
 
-		float* pfTemp;
+		cVector3f vTemp;
 
 		TiXmlElement* pParams = doc.FirstChildElement("SoundEnvironment")->FirstChildElement("Parameters");
 
@@ -86,16 +86,16 @@ namespace hpl
 		mfDecayLFRatio = cString::ToFloat (pParams->Attribute("DecayLFRatio"),0);
 		mfReflectionsGain = cString::ToFloat(pParams->Attribute("ReflectionsGain"),0);
 		mfReflectionsDelay = cString::ToFloat(pParams->Attribute("ReflectionsDelay"),0);
-		pfTemp = cString::ToVector3f(pParams->Attribute("ReflectionsPan"),cVector3f(0)).v;
-		mfReflectionsPan[0] = pfTemp[0];
-		mfReflectionsPan[1] = pfTemp[1];
-		mfReflectionsPan[2] = pfTemp[2];
+		vTemp = cString::ToVector3f(pParams->Attribute("ReflectionsPan"),cVector3f(0));
+		mfReflectionsPan[0] = vTemp.x;
+		mfReflectionsPan[1] = vTemp.y;
+		mfReflectionsPan[2] = vTemp.z;
 		mfLateReverbGain = cString::ToFloat(pParams->Attribute("LateReverbGain"),0);
 		mfLateReverbDelay = cString::ToFloat(pParams->Attribute("LateReverbDelay"),0);
-		pfTemp = cString::ToVector3f(pParams->Attribute("LateReverbPan"),cVector3f(0)).v;
-		mfLateReverbPan[0] = pfTemp[0];
-		mfLateReverbPan[1] = pfTemp[1];
-		mfLateReverbPan[2] = pfTemp[2];
+		vTemp = cString::ToVector3f(pParams->Attribute("LateReverbPan"),cVector3f(0));
+		mfLateReverbPan[0] = vTemp.x;
+		mfLateReverbPan[1] = vTemp.y;
+		mfLateReverbPan[2] = vTemp.z;
 		mfEchoTime = cString::ToFloat(pParams->Attribute("EchoTime"),0);
 		mfEchoDepth = cString::ToFloat(pParams->Attribute("EchoDepth"),0);
 		mfModulationTime = cString::ToFloat(pParams->Attribute("ModulationTime"),0);
