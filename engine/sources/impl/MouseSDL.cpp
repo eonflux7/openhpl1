@@ -22,6 +22,7 @@
 
 #include "graphics/LowLevelGraphics.h"
 #include "impl/LowLevelInputSDL.h"
+#include "impl/DebugOverlay.h"
 
 namespace hpl {
 
@@ -175,6 +176,9 @@ namespace hpl {
 
 	cVector2f cMouseSDL::GetPendingRelPosition()
 	{
+		// The motion is the debug overlay's
+		if(cDebugOverlay::HasInput()) return cVector2f(0,0);
+
 		static const int kMaxEvents = 256;
 		SDL_Event vEvents[kMaxEvents];
 

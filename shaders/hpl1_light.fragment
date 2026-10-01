@@ -17,6 +17,9 @@
 //                alpha scales the specular term
 //  SPECULAR_MAP  specular colour map
 
+// Works on linear values itself when the scene holds them (linear lighting).
+#define HPL_LINEAR_COLOR
+
 #include "hpl1_light.glsl"
 
 OUTPUT
@@ -55,30 +58,49 @@ void main()
 	vec3 lightVec = (2.0*texture(tex2, vLightDir) - vec4(1.0)).xyz;
 #endif
 
-	vec3 color = diffuse * vLightColor.xyz * dot(lightVec, surfaceNormal);
+	float nDotL = dot(lightVec, surfaceNormal);
+	vec3 lit = diffuse * vLightColor.xyz;
 
 #ifdef SPOT
 	vec4 spotColor = texture(tex4, vSpotlightUv.xy / vSpotlightUv.w);
 	float rejectNeg = texture(tex5, vSpotlightUv.z + 0.5).x;
-	color *= spotColor.xyz;
+	lit *= spotColor.xyz;
 	attenuation *= rejectNeg;
 #endif
 
+	vec3 specular = vec3(0.0);
 #ifdef SPECULAR
-	float specular = clamp(dot(normalize(vHalfVec), surfaceNormal), 0.0, 1.0);
-	specular = pow(specular, 16.0) * vLightColor.w;
+	float specAmount = clamp(dot(normalize(vHalfVec), surfaceNormal), 0.0, 1.0);
+	specAmount = pow(specAmount, 16.0) * vLightColor.w;
 	#ifdef SPOT
-	specular *= spotColor.w;
+	specAmount *= spotColor.w;
 	#endif
 
 	#if defined(SPECULAR_MAP)
-	color += specular * texture(tex6, vUv).xyz;
+	specular = specAmount * texture(tex6, vUv).xyz;
 	#elif defined(NORMAL_MAP)
-	color += specular * clamp(bumpVec.w, 0.0, 1.0);
+	specular = vec3(specAmount * clamp(bumpVec.w, 0.0, 1.0));
 	#else
-	color += specular;
+	specular = vec3(specAmount);
 	#endif
 #endif
 
-	outColor = vec4(color * attenuation, 0.0);
+	if(hpl_ColorSpace.x > 0.5)
+	{
+		// Diffuse and specular are converted one by one and added as
+		// light. Facing away from the light the diffuse term is negative
+		// and takes from the specular one, as it does below.
+		if(nDotL < 0.0) specular = max(specular + lit * nDotL, 0.0);
+
+		// The amount of light (N.L and the falloff ramp) has a power of its
+		// own: cLinearLightingTuning::mfLightExp.
+		float amountExp = hpl_ColorSpace.z;
+		vec3 color = hpl_ToLinear(lit) * pow(max(nDotL, 0.0) * attenuation, amountExp);
+		color += hpl_ToLinear(specular) * pow(attenuation, amountExp);
+		outColor = vec4(color, 0.0);
+	}
+	else
+	{
+		outColor = vec4((lit * nDotL + specular) * attenuation, 0.0);
+	}
 }

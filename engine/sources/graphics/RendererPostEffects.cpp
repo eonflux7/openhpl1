@@ -51,6 +51,9 @@ namespace hpl {
 
 		mpScreenBuffer[0] = nullptr;
 		mpScreenBuffer[1] = nullptr;
+		mpBlurTempTexture = nullptr;
+		mpBloomBlurTexture = nullptr;
+		mpDofBlurTexture = nullptr;
 		CreateScreenBuffers();
 
 		///////////////////////////////////////////
@@ -66,17 +69,6 @@ namespace hpl {
 		mpBlurRectFP = mpGpuManager->CreateProgram("PostEffect_Blur_Rect_fp.cg","main",eGpuProgramType_Fragment);
 		mpBlur2dFP = mpGpuManager->CreateProgram("PostEffect_Blur_2D_fp.cg","main",eGpuProgramType_Fragment);
 
-		mpBlurTempTexture = mpLowLevelGraphics->CreateTexture(cVector2l(256,256),
-												32,cColor(0,0,0,0),false,
-												eTextureType_Normal, eTextureTarget_2D);
-		if(mpBlurTempTexture == nullptr) {
-			Error("Couldn't create blur texture!\n");
-		}
-		else {
-			mpBlurTempTexture->SetWrapS(eTextureWrap_ClampToEdge);
-			mpBlurTempTexture->SetWrapT(eTextureWrap_ClampToEdge);
-		}
-
 		/////////////////
 		// Bloom programs
 		mpBloomVP = mpGpuManager->CreateProgram("PostEffect_Bloom_vp.cg","main",eGpuProgramType_Vertex);
@@ -85,20 +77,13 @@ namespace hpl {
 		mpBloomFP = mpGpuManager->CreateProgram("PostEffect_Bloom_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpBloomFP) Error("Couldn't load 'PostEffect_Bloom_fp.cg'!\n");
 
-		//Bloom blur textures
-		mpBloomBlurTexture = mpLowLevelGraphics->CreateTexture(
-												cVector2l(256,256),
-												32,cColor(0,0,0,0),false,
-												eTextureType_Normal, eTextureTarget_2D);
-
-		if(mpBloomBlurTexture == nullptr) {
-			Error("Couldn't create bloom blur textures!\n");
-		}
-		else {
-			mpBloomBlurTexture->SetWrapS(eTextureWrap_ClampToEdge);
-			mpBloomBlurTexture->SetWrapT(eTextureWrap_ClampToEdge);
-		}
-
+		mpBloomChainVP = mpGpuManager->CreateProgram("PostEffect_BloomChain_vp.cg","main",eGpuProgramType_Vertex);
+		mpBloomPrefilterFP = mpGpuManager->CreateProgram("PostEffect_BloomChain_Prefilter_fp.cg","main",eGpuProgramType_Fragment);
+		mpBloomDownFP = mpGpuManager->CreateProgram("PostEffect_BloomChain_Down_fp.cg","main",eGpuProgramType_Fragment);
+		mpBloomUpFP = mpGpuManager->CreateProgram("PostEffect_BloomChain_Up_fp.cg","main",eGpuProgramType_Fragment);
+		mpBloomCompositeFP = mpGpuManager->CreateProgram("PostEffect_BloomChain_Composite_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpBloomChainVP || !mpBloomPrefilterFP || !mpBloomDownFP || !mpBloomUpFP || !mpBloomCompositeFP)
+			Error("Couldn't load the 'PostEffect_BloomChain' programs!\n");
 
 		/////////////////
 		// MotionBlur programs
@@ -116,19 +101,6 @@ namespace hpl {
 		mpDepthOfFieldFP = mpGpuManager->CreateProgram("PostEffect_DoF_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpDepthOfFieldFP) Error("Couldn't load 'PostEffect_DoF_fp.cg'!\n");
 
-		//Depth of Field blur textures
-		mpDofBlurTexture = mpLowLevelGraphics->CreateTexture(	cVector2l(256,256),
-																32,cColor(0,0,0,0),false,
-																eTextureType_Normal, eTextureTarget_2D);
-
-		if(mpDofBlurTexture == nullptr) {
-			Error("Couldn't create Depth of Field blur textures!\n");
-		}
-		else {
-			mpDofBlurTexture->SetWrapS(eTextureWrap_ClampToEdge);
-			mpDofBlurTexture->SetWrapT(eTextureWrap_ClampToEdge);
-		}
-
 		Log("  RendererPostEffects created\n");
 
 		////////////////////////////////////
@@ -141,6 +113,7 @@ namespace hpl {
 		//Bloom
 		mbBloomActive = false;
 		mfBloomSpread = 2.0f;
+		mBloomType = eBloomType_Original;
 
 		//Motion blur
 		mbMotionBlurActive = false;
@@ -168,6 +141,10 @@ namespace hpl {
 
 		if(mpBloomVP) mpGpuManager->Destroy(mpBloomVP);
 		if(mpBloomFP) mpGpuManager->Destroy(mpBloomFP);
+		iGpuProgram *vChainPrograms[] = {mpBloomChainVP, mpBloomPrefilterFP, mpBloomDownFP, mpBloomUpFP, mpBloomCompositeFP};
+		for(iGpuProgram *pProgram : vChainPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
+		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
+		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
 
 		if(mpMotionBlurVP) mpGpuManager->Destroy(mpMotionBlurVP);
 		if(mpMotionBlurFP) mpGpuManager->Destroy(mpMotionBlurFP);
@@ -197,12 +174,16 @@ namespace hpl {
 			mpScreenBuffer[i] = nullptr;
 		}
 
+		// With linear lighting the copies hold linear values, which need
+		// more than 8 bits in the dark end: floating point then.
+		int lBpp = mpLowLevelGraphics->GetLinearLighting() ? 64 : 32;
+
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
 		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());
 		for(int i=0;i<2;i++)
 		{
 			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
-				(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
+				(int)mvScreenSize.x,(int)mvScreenSize.y),lBpp,cColor(0,0,0,0),false,
 				eTextureType_Normal, eTextureTarget_Rect);
 
 			if(mpScreenBuffer[i]==nullptr)
@@ -215,6 +196,54 @@ namespace hpl {
 			}
 			mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
 			mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+
+		//The textures the blur is rendered into
+		iTexture **vBlurTextures[] = {&mpBlurTempTexture, &mpBloomBlurTexture, &mpDofBlurTexture};
+		for(iTexture **pBlurTexture : vBlurTextures)
+		{
+			if(*pBlurTexture) hplDelete(*pBlurTexture);
+			*pBlurTexture = mpLowLevelGraphics->CreateTexture(cVector2l(256,256),lBpp,cColor(0,0,0,0),false,
+																eTextureType_Normal, eTextureTarget_2D);
+			if(*pBlurTexture == nullptr)
+			{
+				Error("Couldn't create blur texture!\n");
+				continue;
+			}
+			(*pBlurTexture)->SetWrapS(eTextureWrap_ClampToEdge);
+			(*pBlurTexture)->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+
+		//The levels of the soft bloom, from half the render size down to
+		//a few pixels: the widest level covers the same part of the picture
+		//at any resolution. Floating point always, they hold linear values.
+		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
+		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
+		mvBloomDown.clear();
+		mvBloomUp.clear();
+		cVector2l vLevelSize((int)mvScreenSize.x / 2, (int)mvScreenSize.y / 2);
+		while(vLevelSize.x >= 6 && vLevelSize.y >= 6 && mvBloomDown.size() < 12)
+		{
+			iTexture *vTextures[2];
+			for(iTexture *&pTexture : vTextures)
+			{
+				pTexture = mpLowLevelGraphics->CreateTexture(vLevelSize,64,cColor(0,0,0,0),false,
+															eTextureType_Normal, eTextureTarget_2D);
+				if(pTexture == nullptr) continue;
+				pTexture->SetWrapS(eTextureWrap_ClampToEdge);
+				pTexture->SetWrapT(eTextureWrap_ClampToEdge);
+			}
+			if(vTextures[0] == nullptr || vTextures[1] == nullptr)
+			{
+				Error("Couldn't create bloom texture!\n");
+				if(vTextures[0]) hplDelete(vTextures[0]);
+				if(vTextures[1]) hplDelete(vTextures[1]);
+				break;
+			}
+			mvBloomDown.push_back(vTextures[0]);
+			mvBloomUp.push_back(vTextures[1]);
+
+			vLevelSize = cVector2l(vLevelSize.x / 2, vLevelSize.y / 2);
 		}
 
 		//The old frames are gone
@@ -265,7 +294,8 @@ namespace hpl {
 		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
 
 		mpLowLevelGraphics->BeginGpuSection("Bloom");
-		RenderBloom();
+		if(mBloomType == eBloomType_Soft)	RenderBloomChain();
+		else								RenderBloom();
 		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->BeginGpuSection("Image trail");
@@ -436,7 +466,9 @@ namespace hpl {
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Interpolate);
 			mpLowLevelGraphics->SetTextureConstantColor(cColor(mfDofMaxBlur,mfDofMaxBlur));
 
+			mpLowLevelGraphics->SetLinearSource(true);
 			mpLowLevelGraphics->DrawQuadMultiTex(mvTexRectVtx,vUvVec);
+			mpLowLevelGraphics->SetLinearSource(false);
 
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Modulate);
 		}
@@ -686,6 +718,104 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// One pass of the soft bloom: a quad over apTarget (the scene when it
+	// is null) with apSource in unit 0. The fragment programs take their
+	// positions from the pixel drawn. Expects an orthographic projection of
+	// the virtual screen size.
+	void cRendererPostEffects::DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource,
+												bool abRectSource)
+	{
+		cVector2f vTargetSize = apTarget ?	cVector2f((float)apTarget->GetWidth(), (float)apTarget->GetHeight()) :
+											mvScreenSize;
+		cVector2f vSourceSize((float)apSource->GetWidth(), (float)apSource->GetHeight());
+
+		mpLowLevelGraphics->SetRenderTarget(apTarget);
+		mpLowLevelGraphics->SetTexture(0,apSource);
+
+		// A rectangle texture is addressed in pixels, the others from 0 to 1
+		if(abRectSource)
+		{
+			apFP->SetVec2f("sourceTexel", 1, 1);
+			apFP->SetVec2f("targetToSource", vSourceSize.x / vTargetSize.x, vSourceSize.y / vTargetSize.y);
+		}
+		else
+		{
+			apFP->SetVec2f("sourceTexel", 1.0f / vSourceSize.x, 1.0f / vSourceSize.y);
+			apFP->SetVec2f("targetToSource", 1.0f / vTargetSize.x, 1.0f / vTargetSize.y);
+		}
+
+		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
+		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+		mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
+		mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
+		mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
+		mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// The soft bloom: see hpl1_PostEffect_BloomChain.fragment.
+	void cRendererPostEffects::RenderBloomChain()
+	{
+		if(mbBloomActive==false || mvBloomDown.empty()) return;
+		if(!mpBloomChainVP || !mpBloomPrefilterFP || !mpBloomDownFP || !mpBloomUpFP || !mpBloomCompositeFP) return;
+
+		iTexture *pScreenTexture = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
+		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,
+												cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+
+		mpLowLevelGraphics->SetBlendActive(false);
+
+		mpBloomChainVP->Bind();
+		mpBloomChainVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+
+		///////////////////////////////////////////
+		// The bright part of the scene, at half size. The threshold is set
+		// as a screen value and used on light.
+		float fThreshold = powf(cMath::Max(mBloomTuning.mfThreshold, 0.0f), 2.2f);
+		mpBloomPrefilterFP->Bind();
+		mpBloomPrefilterFP->SetVec2f("threshold", fThreshold, fThreshold * 0.5f);
+		DrawBloomPass(mpBloomPrefilterFP, mvBloomDown[0], pScreenTexture, true);
+		mpBloomPrefilterFP->UnBind();
+
+		///////////////////////////////////////////
+		// Halved down to the last level
+		size_t lLevels = mvBloomDown.size();
+		mpBloomDownFP->Bind();
+		for(size_t i = 1; i < lLevels; ++i)
+			DrawBloomPass(mpBloomDownFP, mvBloomDown[i], mvBloomDown[i-1], false);
+		mpBloomDownFP->UnBind();
+
+		///////////////////////////////////////////
+		// And blended back up: each level with the wider ones below it
+		iTexture *pBelow = mvBloomDown[lLevels-1];
+		mpBloomUpFP->Bind();
+		mpBloomUpFP->SetFloat("scatter", cMath::Clamp(mBloomTuning.mfScatter, 0.0f, 1.0f));
+		for(int i = (int)lLevels - 2; i >= 0; --i)
+		{
+			mpLowLevelGraphics->SetTexture(1,mvBloomDown[i]);
+			DrawBloomPass(mpBloomUpFP, mvBloomUp[i], pBelow, false);
+			pBelow = mvBloomUp[i];
+		}
+		mpBloomUpFP->UnBind();
+		mpLowLevelGraphics->SetTexture(1,nullptr);
+
+		///////////////////////////////////////////
+		// Added to the scene
+		mpLowLevelGraphics->SetBlendActive(true);
+		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
+		mpBloomCompositeFP->Bind();
+		mpBloomCompositeFP->SetFloat("intensity", mBloomTuning.mfIntensity);
+		DrawBloomPass(mpBloomCompositeFP, nullptr, pBelow, false);
+		mpBloomCompositeFP->UnBind();
+		mpLowLevelGraphics->SetBlendActive(false);
+
+		mpBloomChainVP->UnBind();
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cRendererPostEffects::RenderImageTrail()
 	{
 		if(mImageTrailData.mbActive==false) return;
@@ -700,6 +830,9 @@ namespace hpl {
 		mpLowLevelGraphics->CopyContextToTexure(mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0],0, cVector2l(
 			(int)mpLowLevelGraphics->GetRenderSize().x,
 			(int)mpLowLevelGraphics->GetRenderSize().y));
+
+		//The copies of the scene are drawn as they are
+		mpLowLevelGraphics->SetLinearSource(true);
 		{
 			if(mImageTrailData.mbActive)
 			{
@@ -775,6 +908,7 @@ namespace hpl {
 			mpLowLevelGraphics->SetBlendActive(false);
 			mpLowLevelGraphics->SetTexture(0,nullptr);
 		}
+		mpLowLevelGraphics->SetLinearSource(false);
 	}
 
 	//-----------------------------------------------------------------------

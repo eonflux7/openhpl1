@@ -344,6 +344,14 @@ commit), and the last official Linux build on Steam.
 
 ### Reference images
 
+- F2 (or `OVERTURE_REFVIEW=1`) opens a Dear ImGui panel (`cRefView`) that
+  goes to the places of the reference images by hand: it lists the maps and
+  the loaded map's places and directions, loads maps (from the main menu
+  too), and sets the view up as in the frames. For this the debug overlay
+  can draw windows of the game's (`iLowLevelGraphics::SetDebugPanel`) and
+  take the mouse and keyboard (`SetDebugPanelInput`): the pointer is freed
+  and drawn by ImGui, and the game gets no mouse input and no key presses
+  but F1-F12 until the panel is closed.
 - `OVERTURE_REFSHOTS` saves frames from fixed places in every map and quits
   (`cRefShots`); `tools/refshots.py` runs it headless and compares two runs.
   To make two runs give the same frames:
@@ -497,7 +505,8 @@ messages (NVIDIA 615). Fixed for that:
   `OVERTURE_DEBUG_OVERLAY=1`) shows an overlay over the finished frame, in
   Cousine at a size for the window's height: frame time, GPU frame time,
   draw calls and triangles, scene size, and the GPU time of each section of
-  the frame. It takes no input yet and writes no `imgui.ini`.
+  the frame. It takes no input (the reference view panel does, see
+  Reference images) and writes no `imgui.ini`.
 - Sections (`BeginGpuSection`/`EndGpuSection`, `cGpuSection`) mark the
   frame: World (Z, occlusion queries, lights, diffuse, fog, sky box,
   transparent, debug), post scene draw, post effects (depth of field, motion
@@ -591,6 +600,160 @@ is left. RenderDoc needs a core profile; capturing with it is untested.
   errors on the test map's reference views, and 72 of the 74 frames are
   within 12 levels of NVIDIA's (the other two differ in about 2000 pixels
   each, not looked into).
+
+## Milestone 4: lighting, shadows and effects
+
+### Linear lighting (option, off by default)
+
+`docs/colour-space-audit.md` describes what the renderer and the game data
+do with colour, and what follows for this option.
+
+- **Linear Lighting** in Advanced Graphics (`LinearLighting` in
+  `settings.cfg`), applied at once. Off, nothing changes: the reference
+  images match the ones before, and the HUD and menus are the same either
+  way.
+- On, the scene buffer holds values proportional to light. Every draw into
+  it still computes the colour the original shaders compute, and the shared
+  end of the fragment shaders converts that colour (power 2.2) before it is
+  blended. The output pass converts the finished scene back for the screen.
+  So each surface, light, particle and overlay contributes what it always
+  did, and what changes is how they add up: light passes on each other and
+  on the ambient pass, additive halos and particles, alpha blending and
+  fog, anti-aliasing, blur and render-scale filtering.
+- Textures are not loaded in sRGB formats, against the plan. Converting in
+  the shader keeps one copy of each texture for the scene and the HUD, lets
+  the option switch while playing, and makes "the same colour as before"
+  exact for every multiplication. The cost is that texture filtering stays
+  on screen values, as it always was.
+- The light shader converts its diffuse and specular terms separately and
+  adds them as light. N·L and the falloff ramp, which were made by eye on
+  screen values, are raised to `kAmountExp` (2.2 in `hpl1_light.fragment`):
+  2.2 gives a single light its original look, 1.0 would treat them as
+  amounts of light. N·L is clamped at 0 there; a surface facing away from
+  the light loses specular to the negative diffuse term as before.
+- Modulate ×2 materials (destination × source × 2) get the factor 2^2.2
+  that their doubling means on linear values; the low-level graphics passes
+  the extra to the shaders when that blend function is set.
+- The colour is not clamped at 1 by shaders that work on linear values (the
+  light passes, depth of field, motion blur, blur, refraction); the rest
+  clamp as before.
+- Post effects: with the option on, the screen copies and blur textures are
+  16-bit float (8 bits of linear values band in the dark). Bloom and the
+  water refraction convert to screen values for their own arithmetic and
+  back; the image trail and the sky part of depth of field draw the copies
+  unconverted (`SetLinearSource`).
+- Six values tune the look (`cLinearLightingTuning`), as sliders under
+  Renderer in the F2 panel, applied at once and kept in `settings.cfg`:
+  - Light power (`LinearLightExp`, 1 to 2.2): the power for N·L and the
+    falloff ramp described above, which was the constant `kAmountExp`.
+  - Exposure (`LinearExposure`): scales the finished scene's light in the
+    output pass. It brightens places lit by one light too, which the
+    conversion alone leaves as they were.
+  - Glow (`LinearGlow`): scales the light of what is drawn with an additive
+    blend and is not a light pass: halos, illumination maps, additive
+    materials and particles. They can be brighter than white this way. The
+    scale is in proportion to the brightness of what is drawn: white gets
+    all of it, the faint edge of a halo almost none.
+  - Blend match (`LinearBlendMatch`, 0 to 1): alpha blending, below.
+  - Shoulder and White (`LinearShoulder`, `LinearWhite`): tonemapping,
+    below.
+
+  At 2.2, 1, 1, blend match 0 and shoulder 1 nothing is tuned. The
+  defaults, chosen by playing, are light power 1.8, exposure 1.3, glow
+  1.45 and blend match 1, with tonemapping off (shoulder 1). On the
+  reference viewpoints the average brightness is 32 with the option off, 27
+  with it on and untuned, and 33 with the defaults and the soft bloom.
+- **Alpha blending.** On linear values the same alpha covers more when
+  something light is blended over something dark: smoke, steam and snow
+  particles were much more opaque than without the option, and fog was
+  heavier and showed the steps of its 8-bit alpha as bands on dark
+  surfaces (the outside map). With blend match at 1, what is drawn with an
+  alpha blend into the linear scene gets the alpha that gives the original
+  result over a backdrop of screen value 0.15 (in the code appended to the
+  fragment shaders; `hpl_AlphaTest.z`). Exact over that backdrop, close
+  over others, and it goes the right way for dark over light too.
+- **Tonemapping**, in the output pass after the exposure, only with linear
+  lighting. Light up to the shoulder (set as a screen value, 0 to 1) is not
+  changed, so the dark and middle parts of the picture stay as they are.
+  Above it each channel follows Reinhard's curve with a white point: it
+  leaves the shoulder at the same slope and reaches white at White times
+  the light of white. Bright colours go towards white as they do when they
+  clip, but gradually. Shoulder 1 is no tonemapping: values clip at white
+  as before.
+- For bright values to reach the output pass, bloom no longer clamps the
+  scene at white (it converts for itself now, and its blur is cut at white
+  as the 8-bit one was), and neither do the copies of the scene drawn back
+  into it (image trail, the sky part of depth of field; `hpl_ColorSpace.w`).
+  The water refraction still does, under water surfaces.
+- State for this is in the `hpl_State` uniform block next to the alpha
+  test (`hpl_ColorSpace`), which every program the renderer draws with now
+  declares, together with `hpl_ToLinear()` and `hpl_ToEncoded()`.
+- What it looks like so far (reference views, on against off): the same in
+  places lit by one light, darker where lights, the flashlight, specular
+  and ambient pile up (those used to clip to white), and additive glows
+  are much weaker: the boat cabin's windows no longer burn out to white.
+  Average brightness of the changed frames drops by about a sixth. Nothing
+  is retuned yet: no exposure, tonemapping or brighter-than-white emitters.
+- Checked: all 562 reference frames with the option on (no shader or GL
+  errors; three maps also with a debug context, 4x anti-aliasing and motion
+  blur), and with it off against `main` (same; the test map's frames differ
+  in a full run because its loose objects settle differently, and match
+  when it is captured alone).
+
+### Soft bloom (option)
+
+- **Bloom** in the graphics options is now Off, Original or Soft
+  (`BloomType` in `settings.cfg`: 0 original, 1 soft; `Bloom` still switches
+  it on and off). Original is the game's bloom and the default.
+- Soft (`cRendererPostEffects::RenderBloomChain`,
+  `hpl1_PostEffect_BloomChain`): the part of the scene brighter than a
+  threshold, with a soft start below it, is drawn at half size, halved
+  again and again down to a level 6 to 11 pixels high, and the levels are
+  blended back up, each with the wider ones below it. The result is added to
+  the scene. Because the chain ends at a fixed size, the glow covers the
+  same part of the picture at every resolution and render scale, which the
+  original's does not (compared at 1280x720 and 2560x1440).
+- It works with and without linear lighting; its textures are 16-bit float
+  and hold linear values either way. With linear lighting, what is brighter
+  than white (the glow value, lights adding up) blooms more than white does.
+- Three values tune it (`cBloomTuning`), as sliders in the F2 panel, kept in
+  `settings.cfg`: Threshold (`BloomThreshold`, a screen value, 0.3),
+  Intensity (`BloomIntensity`, 1.55) and Spread (`BloomScatter`, 0.55: the
+  share each level takes from the wider one below). The defaults were
+  chosen by playing indoors with linear lighting; on the outside map most
+  of the picture is above the threshold.
+- A program that the game data has no file for is now loaded by its name
+  (`cGpuProgramManager::CreateProgram`): the shaders come from the shader
+  directory, and new ones have no counterpart in the game data.
+- Fragment shaders that define `HPL_NO_CLAMP` are not clamped at 1 whatever
+  the lighting.
+- The F2 panel's sections fold; Viewpoints and the reference image options
+  start folded.
+
+### Fog
+
+- Fogged maps were drawn as a flat fog colour (11 maps: outside, the shafts,
+  the lead and iron mines, the water caves, the ice cave). The fog shaders
+  took the fog texture's amount from the channel that holds its brightness,
+  which is always full, so every surface got all of the fog whatever its
+  distance. `hpl1_Fog_Solid`, `hpl1_Fog_Trans` (modulate variants) and
+  `hpl1_Water_Fog` now read the alpha the texture swizzle provides. This was
+  wrong since the first port; the reference images of those maps change.
+
+### Reference viewpoints
+
+- The reference images of a map are taken from viewpoints chosen by hand,
+  kept in `tools/refviews.txt` (map, name, position, yaw, pitch), one frame
+  each, named `<map>-<viewpoint>.png`. Maps without any keep the automatic
+  start-position and light places.
+- The F2 panel sets them: Fly (a free camera; the player's body is switched
+  off and stays behind), "Add viewpoint here", "Delete this viewpoint". The
+  file is written at once, to the source tree the game was built from
+  (`OVERTURE_REFVIEWS_FILE` overrides the path).
+- The build copies the shaders on every build, not only after linking: an
+  edited shader alone was not copied.
+- The physics test map is no longer part of the reference images or of the
+  panel's map list.
 
 ## Known issues
 

@@ -60,6 +60,7 @@
 #include "ui/MainMenu.h"
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
+#include "core/RefView.h"
 #include "systems/PhysicsLog.h"
 
 #include "ui/IntroStory.h"
@@ -125,6 +126,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mbDestroyGraphics = true;
 	mpSmokeTest = nullptr;
 	mpRefShots = nullptr;
+	mpRefView = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
@@ -453,6 +455,19 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(mbPostEffects);
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(mpConfig->GetBool("Graphics", "Bloom", true));
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomSpread(6);
+	{
+		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
+		int lType = mpConfig->GetInt("Graphics","BloomType",eBloomType_Original);
+		if(lType < 0 || lType >= eBloomType_LastEnum) lType = eBloomType_Original;
+		pPostEffects->SetBloomType((eBloomType)lType);
+
+		// The defaults are the tuning's own
+		cBloomTuning tuning;
+		tuning.mfThreshold = mpConfig->GetFloat("Graphics","BloomThreshold",tuning.mfThreshold);
+		tuning.mfIntensity = mpConfig->GetFloat("Graphics","BloomIntensity",tuning.mfIntensity);
+		tuning.mfScatter = mpConfig->GetFloat("Graphics","BloomScatter",tuning.mfScatter);
+		pPostEffects->SetBloomTuning(tuning);
+	}
 
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(mpConfig->GetBool("Graphics", "MotionBlur", false));
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurAmount(mpConfig->GetFloat("Graphics", "MotionBlurAmount", 0.3f));
@@ -467,6 +482,18 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
 	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
+	mpGame->GetGraphics()->SetLinearLighting(mpConfig->GetBool("Graphics","LinearLighting",false));
+	{
+		// The defaults are the tuning's own
+		cLinearLightingTuning tuning;
+		tuning.mfLightExp = mpConfig->GetFloat("Graphics","LinearLightExp",tuning.mfLightExp);
+		tuning.mfExposure = mpConfig->GetFloat("Graphics","LinearExposure",tuning.mfExposure);
+		tuning.mfGlow = mpConfig->GetFloat("Graphics","LinearGlow",tuning.mfGlow);
+		tuning.mfBlendMatch = mpConfig->GetFloat("Graphics","LinearBlendMatch",tuning.mfBlendMatch);
+		tuning.mfShoulder = mpConfig->GetFloat("Graphics","LinearShoulder",tuning.mfShoulder);
+		tuning.mfWhite = mpConfig->GetFloat("Graphics","LinearWhite",tuning.mfWhite);
+		mpGame->GetGraphics()->GetLowLevel()->SetLinearLightingTuning(tuning);
+	}
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 
@@ -515,6 +542,8 @@ bool cInit::Init(tString asCommandLine)
 		mpPhysicsLog = hplNew( cPhysicsLog,(this) );
 	if(mpSmokeTest==nullptr && cRefShots::IsRequested())
 		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
+	if(mpSmokeTest==nullptr && mpRefShots==nullptr)
+		mpRefView = hplNew( cRefView,(this) );
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -565,7 +594,9 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetUpdater()->SetContainer("Default");
 
+	// Last in every container: they move the camera after the player has.
 	iUpdateable *pAutoRun = mpSmokeTest ? static_cast<iUpdateable*>(mpSmokeTest) : mpRefShots;
+	if(pAutoRun==nullptr) pAutoRun = mpRefView;
 	if(pAutoRun)
 	{
 		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
@@ -761,6 +792,7 @@ void cInit::Exit()
 	hplDelete( mpMainMenu );
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
 	if(mpRefShots) hplDelete( mpRefShots );
+	if(mpRefView) hplDelete( mpRefView );
 	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
 	hplDelete( mpPlayerHands );
@@ -778,6 +810,13 @@ void cInit::Exit()
     Log(" Saving config\n");
 	//Save engine stuff.
 	mpConfig->SetBool("Graphics", "Bloom",mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive());
+	{
+		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
+		mpConfig->SetInt("Graphics","BloomType",pPostEffects->GetBloomType());
+		mpConfig->SetFloat("Graphics","BloomThreshold",pPostEffects->GetBloomTuning().mfThreshold);
+		mpConfig->SetFloat("Graphics","BloomIntensity",pPostEffects->GetBloomTuning().mfIntensity);
+		mpConfig->SetFloat("Graphics","BloomScatter",pPostEffects->GetBloomTuning().mfScatter);
+	}
 	mpConfig->SetBool("Graphics", "MotionBlur",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
 	mpConfig->SetFloat("Graphics", "MotionBlurAmount",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurAmount());
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
@@ -799,6 +838,16 @@ void cInit::Exit()
 
 	mpConfig->SetFloat("Graphics","Gamma",mpGame->GetGraphics()->GetLowLevel()->GetGammaCorrection());
 	mpConfig->SetFloat("Graphics","RenderScale",mpGame->GetGraphics()->GetRenderScale());
+	mpConfig->SetBool("Graphics","LinearLighting",mpGame->GetGraphics()->GetLinearLighting());
+	{
+		const cLinearLightingTuning &tuning = mpGame->GetGraphics()->GetLowLevel()->GetLinearLightingTuning();
+		mpConfig->SetFloat("Graphics","LinearLightExp",tuning.mfLightExp);
+		mpConfig->SetFloat("Graphics","LinearExposure",tuning.mfExposure);
+		mpConfig->SetFloat("Graphics","LinearGlow",tuning.mfGlow);
+		mpConfig->SetFloat("Graphics","LinearBlendMatch",tuning.mfBlendMatch);
+		mpConfig->SetFloat("Graphics","LinearShoulder",tuning.mfShoulder);
+		mpConfig->SetFloat("Graphics","LinearWhite",tuning.mfWhite);
+	}
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);
 	mpConfig->SetBool("Graphics","PostEffects",mbPostEffects);

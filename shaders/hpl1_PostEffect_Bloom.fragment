@@ -9,6 +9,9 @@
 /// BLOOOM FRAGMENT PROGRAM /////////////////
 ///////////////////////////////////////////////////////
 
+// Converts linear values itself, to keep what is brighter than white.
+#define HPL_LINEAR_COLOR
+
 in vec2 vUv0;
 in vec2 vUv1;
 
@@ -22,6 +25,11 @@ void main()
 	vec4 blurCol = texture(tex0, vUv0);
 	vec4 screenCol = texture(tex1, vUv1);
 
+	// The sum below was made for screen values, and for a blur that ends
+	// at white.
+	blurCol.xyz = min(hpl_ToEncoded(blurCol.xyz), 1.0);
+	screenCol.xyz = hpl_ToEncoded(screenCol.xyz);
+
 	blurCol *= blurCol;
-	outColor.xyz = blurCol.xyz * dot(blurCol.xyz,vec3(0.3, 0.58, 0.12)) + screenCol.xyz;
+	outColor.xyz = hpl_ToLinear(blurCol.xyz * dot(blurCol.xyz,vec3(0.3, 0.58, 0.12)) + screenCol.xyz);
 }

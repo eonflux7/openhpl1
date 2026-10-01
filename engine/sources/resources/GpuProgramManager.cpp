@@ -75,6 +75,11 @@ namespace hpl {
 
 		BeginLoad(asName);
 
+		// The game data has a file for each of the original programs. The
+		// shaders are loaded by name from the shader directory, so a program
+		// the game data does not know of is tried under its name.
+		if(pProgram==nullptr && sPath=="") sPath = asName;
+
 		if(pProgram==nullptr && sPath!="")
 		{
 			pProgram = mpLowLevelGraphics->CreateGpuProgram(asName, aType);

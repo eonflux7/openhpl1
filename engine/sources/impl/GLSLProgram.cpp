@@ -66,23 +66,82 @@ namespace hpl{
 		"#define OUTPUT out vec4 outColor;\n"
 		"#define main hpl_main\n";
 
-	// After every fragment shader: the colour is clamped to 0..1, as the
-	// fixed-function pipeline did, then, with HPL_ALPHA_TEST defined, alpha
-	// tested as set with iLowLevelGraphics::SetAlphaTestActive/Func
-	// (hpl_State, uniform buffer binding kStateBlockBinding).
-	static const char* kFragmentEpilogue =
-		"#undef main\n"
-		"#ifdef HPL_ALPHA_TEST\n"
+	// For the programs the renderer draws with (not the full-screen passes):
+	// the state set through iLowLevelGraphics that fragment shaders act on
+	// (uniform buffer binding kStateBlockBinding), and the colour
+	// conversions for linear lighting. They return the colour as it is
+	// when the target does not hold linear values.
+	static const char* kFragmentStatePreamble =
+		"#define HPL_STATE\n"
 		"layout(std140) uniform hpl_State\n"
 		"{\n"
-		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off; y: reference\n"
+		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off; y: reference;\n"
+		"						// z: how far alpha is matched to the original look\n"
+		"						// when it blends into a linear scene, else 0;\n"
+		"						// w: scale for the light of what is added to a\n"
+		"						// linear scene, at full brightness\n"
+		"	vec4 hpl_ColorSpace; // x: 1 when the target holds linear values;\n"
+		"						// y: scale for the converted colour;\n"
+		"						// z: power for amounts of light;\n"
+		"						// w: 1 when a copy of a linear scene is drawn into it\n"
 		"};\n"
-		"#endif\n"
+		"vec3 hpl_ToLinear(vec3 c)\n"
+		"{\n"
+		"	return hpl_ColorSpace.x > 0.5 ? pow(max(c, 0.0), vec3(2.2)) : c;\n"
+		"}\n"
+		"vec3 hpl_ToEncoded(vec3 c)\n"
+		"{\n"
+		"	return hpl_ColorSpace.x > 0.5 ? pow(max(c, 0.0), vec3(1.0 / 2.2)) : c;\n"
+		"}\n";
+
+	// After every fragment shader: the colour is clamped to 0..1, as the
+	// fixed-function pipeline did, and alpha tested as set with
+	// iLowLevelGraphics::SetAlphaTestActive/Func.
+	//
+	// Shaders work on encoded (screen) colours, as the original ones do.
+	// With linear lighting the result is converted here, so each draw gives
+	// the colour it always did and only the blending with what is in the
+	// target happens on linear values. A shader that reads or writes linear
+	// values itself defines HPL_LINEAR_COLOR: its result is used as it is,
+	// and not clamped at 1. Neither is a copy of the linear scene drawn back
+	// into it (iLowLevelGraphics::SetLinearSource). HPL_NO_CLAMP leaves the
+	// result unclamped at 1 without linear lighting too.
+	//
+	// What is added to the scene (halos, lit parts, additive particles) is
+	// scaled by the glow value in proportion to its own brightness: the
+	// bright middle of a halo goes past white, its faint edge stays as
+	// faint as it was.
+	//
+	// Alpha blending is the one mix that the conversion cannot keep: the
+	// same alpha covers more on linear values when something light is
+	// blended over something dark (smoke, snow, fog), and less the other
+	// way round. The amounts were made by eye on screen values, so the
+	// alpha is replaced by the one that gives the original result over a
+	// backdrop of an assumed, dark, screen value. Over that backdrop the
+	// match is exact; over others it is closer than the alpha as it is.
+	static const char* kFragmentEpilogue =
+		"#undef main\n"
 		"void main()\n"
 		"{\n"
 		"	hpl_main();\n"
+		"#if defined(HPL_NO_CLAMP)\n"
+		"	outColor = max(outColor, 0.0);\n"
+		"#elif defined(HPL_STATE) && defined(HPL_LINEAR_COLOR)\n"
+		"	if(hpl_ColorSpace.x > 0.5 || hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
+		"	else													outColor = clamp(outColor, 0.0, 1.0);\n"
+		"#elif defined(HPL_STATE)\n"
+		"	if(hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
+		"	else						outColor = clamp(outColor, 0.0, 1.0);\n"
+		"#else\n"
 		"	outColor = clamp(outColor, 0.0, 1.0);\n"
-		"#ifdef HPL_ALPHA_TEST\n"
+		"#endif\n"
+		"#if defined(HPL_STATE) && !defined(HPL_LINEAR_COLOR)\n"
+		"	float hpl_encodedLuma = dot(outColor.rgb, vec3(0.3, 0.58, 0.12));\n"
+		"	if(hpl_ColorSpace.x > 0.5)\n"
+		"		outColor.rgb = pow(outColor.rgb, vec3(2.2)) * hpl_ColorSpace.y *\n"
+		"						mix(1.0, hpl_AlphaTest.w, hpl_encodedLuma);\n"
+		"#endif\n"
+		"#ifdef HPL_STATE\n"
 		"	int func = int(hpl_AlphaTest.x);\n"
 		"	float alpha = outColor.a, ref = hpl_AlphaTest.y;\n"
 		"	if(func == 1 ||\n"
@@ -90,6 +149,18 @@ namespace hpl{
 		"		(func == 4 && !(alpha > ref)) || (func == 5 && !(alpha >= ref)) ||\n"
 		"		(func == 6 && !(alpha == ref)) || (func == 7 && !(alpha != ref)))\n"
 		"		discard;\n"
+		"#endif\n"
+		"#if defined(HPL_STATE) && !defined(HPL_LINEAR_COLOR)\n"
+		"	if(hpl_AlphaTest.z > 0.0)\n"
+		"	{\n"
+		"		const float backdrop = 0.15;\n"
+		"		float span = pow(hpl_encodedLuma, 2.2) - pow(backdrop, 2.2);\n"
+		"		if(abs(span) > 0.001)\n"
+		"		{\n"
+		"			float matched = (pow(mix(backdrop, hpl_encodedLuma, alpha), 2.2) - pow(backdrop, 2.2)) / span;\n"
+		"			outColor.a = mix(alpha, clamp(matched, 0.0, 1.0), hpl_AlphaTest.z);\n"
+		"		}\n"
+		"	}\n"
 		"#endif\n"
 		"}\n";
 
@@ -120,6 +191,10 @@ namespace hpl{
 		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},
 		{"PostEffect_Blur_2D",			"PostEffect_Blur",	""},
 		{"PostEffect_Blur_Rect",		"PostEffect_Blur",	"RECT"},
+		{"PostEffect_BloomChain_Prefilter",	"PostEffect_BloomChain",	"PREFILTER"},
+		{"PostEffect_BloomChain_Down",		"PostEffect_BloomChain",	"DOWN"},
+		{"PostEffect_BloomChain_Up",		"PostEffect_BloomChain",	"UP"},
+		{"PostEffect_BloomChain_Composite",	"PostEffect_BloomChain",	"COMPOSITE"},
 	};
 
 	static const int kMaxIncludeDepth = 8;
@@ -317,16 +392,17 @@ namespace hpl{
 	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
-										bool abAlphaTest)
+										bool abState)
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
+		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
 		sSource += "#line 1 1\n";
 		sSource += asSource;
 
 		std::vector<tString> vFiles;
 		vFiles.push_back("(preamble)");
 		vFiles.push_back(asName);
-		return LinkStage(aStage, sSource, asName, vFiles, abAlphaTest);
+		return LinkStage(aStage, sSource, asName, vFiles);
 	}
 
 	//-----------------------------------------------------------------------
@@ -675,9 +751,10 @@ namespace hpl{
 	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
-										bool abAlphaTest, std::vector<tString> *apFiles)
+										bool abState, std::vector<tString> *apFiles)
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
+		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
 
 		tStringVec vDefines;
 		cString::GetStringVec(asDefines, vDefines, nullptr);
@@ -692,19 +769,18 @@ namespace hpl{
 		tString sName = asFile;
 		if(asDefines != "") sName += " (" + asDefines + ")";
 
-		return LinkStage(aStage, sSource, sName, vFiles, abAlphaTest);
+		return LinkStage(aStage, sSource, sName, vFiles);
 	}
 
 	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::LinkStage(GLenum aStage, tString asSource, const tString& asName,
-									const std::vector<tString>& avFiles, bool abAlphaTest)
+									const std::vector<tString>& avFiles)
 	{
 		if(aStage == GL_FRAGMENT_SHADER)
 		{
 			// Source number 0 is the preamble
 			asSource += "#line 1 0\n";
-			if(abAlphaTest) asSource += "#define HPL_ALPHA_TEST\n";
 			asSource += kFragmentEpilogue;
 		}
 

@@ -1,0 +1,120 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The soft bloom (cRendererPostEffects::RenderBloomChain): the bright part
+// of the scene, halved in size again and again, and the halvings blended
+// back up into one wide, smooth glow that is added to the scene. Its
+// textures hold linear values whatever the scene holds. Positions come from
+// the pixel drawn, so the passes need no texture coordinates.
+//
+//  PREFILTER  tex0: the scene copy (rectangle) -> the first, half size level
+//  DOWN       tex0: a level -> the level half its size
+//  UP         tex0: the blended level below, tex1: this level -> blended level
+//  COMPOSITE  tex0: the blended first level -> the scene, with an additive blend
+
+// Works on linear values itself, and keeps what is brighter than white.
+#define HPL_LINEAR_COLOR
+#define HPL_NO_CLAMP
+
+OUTPUT
+
+#ifdef PREFILTER
+uniform sampler2DRect tex0;
+// x: the light the bloom starts at, y: half the width of the soft start
+uniform vec2 threshold;
+#else
+uniform sampler2D tex0;
+#endif
+#ifdef UP
+uniform sampler2D tex1;
+uniform float scatter;
+#endif
+// The vertex shader's companion is compiled without a variant, as this one.
+#if !defined(PREFILTER) && !defined(DOWN) && !defined(UP)
+uniform float intensity;
+#endif
+
+// What a texture coordinate of 1 pixel of the source is, and what the
+// position of the pixel drawn is multiplied by to get its place in the
+// source.
+uniform vec2 sourceTexel;
+uniform vec2 targetToSource;
+
+// The scene holds linear values with linear lighting, screen values without.
+vec3 SceneToLinear(vec3 c)
+{
+	return hpl_ColorSpace.x > 0.5 ? c : pow(max(c, 0.0), vec3(2.2));
+}
+
+#if defined(PREFILTER) || defined(DOWN)
+vec3 Sample(vec2 avUv)
+{
+	vec3 c = texture(tex0, avUv).rgb;
+	#ifdef PREFILTER
+	// A few very bright pixels would flicker as they move
+	c = min(SceneToLinear(c), 16.0);
+	#endif
+	return c;
+}
+
+// 13 samples over 4x4 pixels of the source, weighted so that a bright pixel
+// does not pop as it moves over the grid (Jimenez 2014).
+vec3 Downsample(vec2 avUv)
+{
+	vec2 t = sourceTexel;
+	vec3 a = Sample(avUv + t * vec2(-2, -2));
+	vec3 b = Sample(avUv + t * vec2( 0, -2));
+	vec3 c = Sample(avUv + t * vec2( 2, -2));
+	vec3 d = Sample(avUv + t * vec2(-2,  0));
+	vec3 e = Sample(avUv);
+	vec3 f = Sample(avUv + t * vec2( 2,  0));
+	vec3 g = Sample(avUv + t * vec2(-2,  2));
+	vec3 h = Sample(avUv + t * vec2( 0,  2));
+	vec3 i = Sample(avUv + t * vec2( 2,  2));
+	vec3 j = Sample(avUv + t * vec2(-1, -1));
+	vec3 k = Sample(avUv + t * vec2( 1, -1));
+	vec3 l = Sample(avUv + t * vec2(-1,  1));
+	vec3 m = Sample(avUv + t * vec2( 1,  1));
+
+	return e * 0.125 + (a + c + g + i) * 0.03125 + (b + d + f + h) * 0.0625 + (j + k + l + m) * 0.125;
+}
+#else
+// 9 samples in a tent around the place, to enlarge a level smoothly.
+vec3 Upsample(vec2 avUv)
+{
+	vec2 t = sourceTexel;
+	vec3 c = texture(tex0, avUv).rgb * 4.0;
+	c += (texture(tex0, avUv + t * vec2(-1, 0)).rgb + texture(tex0, avUv + t * vec2(1, 0)).rgb +
+		  texture(tex0, avUv + t * vec2(0, -1)).rgb + texture(tex0, avUv + t * vec2(0, 1)).rgb) * 2.0;
+	c += texture(tex0, avUv + t * vec2(-1, -1)).rgb + texture(tex0, avUv + t * vec2(1, -1)).rgb +
+		 texture(tex0, avUv + t * vec2(-1, 1)).rgb + texture(tex0, avUv + t * vec2(1, 1)).rgb;
+	return c / 16.0;
+}
+#endif
+
+void main()
+{
+	vec2 uv = gl_FragCoord.xy * targetToSource;
+
+#if defined(PREFILTER)
+	vec3 color = Downsample(uv);
+
+	// Only what is brighter than the threshold blooms, starting softly
+	// below it.
+	float brightness = max(color.r, max(color.g, color.b));
+	float soft = clamp(brightness - threshold.x + threshold.y, 0.0, 2.0 * threshold.y);
+	soft = soft * soft / (4.0 * threshold.y + 0.0001);
+	color *= max(soft, brightness - threshold.x) / max(brightness, 0.0001);
+
+	outColor = vec4(color, 0.0);
+#elif defined(DOWN)
+	outColor = vec4(Downsample(uv), 0.0);
+#elif defined(UP)
+	outColor = vec4(mix(texture(tex1, uv).rgb, Upsample(uv), scatter), 0.0);
+#else
+	vec3 bloom = Upsample(uv) * intensity;
+	// Added to screen values when that is what the scene holds
+	if(hpl_ColorSpace.x < 0.5) bloom = pow(bloom, vec3(1.0 / 2.2));
+	outColor = vec4(bloom, 0.0);
+#endif
+}

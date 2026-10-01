@@ -19,6 +19,7 @@
 #include "core/ButtonHandler.h"
 
 #include "core/Init.h"
+#include "core/RefView.h"
 #include "player/Player.h"
 #include "ui/Inventory.h"
 #include "ui/Notebook.h"
@@ -106,6 +107,7 @@ static cButtonHandlerAction gvDefaultActions[] = {
 //{"LockInput","Keyboard",eKey_k,false},
 {"Screenshot","Keyboard",eKey_F12,false},
 {"DebugOverlay","Keyboard",eKey_F3,false},
+{"RefView","Keyboard",eKey_F2,false},
 
 //{"Hit","Keyboard",eKey_h,false},
 //{"Log","Keyboard",eKey_l,false},
@@ -337,6 +339,10 @@ void cButtonHandler::Update(float afTimeStep)
 	{
 		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 		pLowLevel->SetDebugOverlayActive(!pLowLevel->GetDebugOverlayActive());
+	}
+	if(mpInput->BecameTriggerd("RefView") && mpInit->mpRefView)
+	{
+		mpInit->mpRefView->SetOpen(!mpInit->mpRefView->IsOpen());
 	}
 	if(mpInput->BecameTriggerd("Screenshot"))
 	{

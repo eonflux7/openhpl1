@@ -29,8 +29,6 @@ static const int klMapSettleFrames = 90;
 static const int klStartSettleFrames = 30;
 static const int klTurnSettleFrames = 10;
 
-static const int klAngles = 4;
-
 // Lights per map to look around from
 static const size_t klMaxLightViews = 6;
 
@@ -114,21 +112,16 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 	// Enemies, falls and water must not end the run.
 	mpInit->mpPlayer->SetGodMode(true);
 
-	tWStringList lstFiles;
-	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, _W("maps"), _W("*.dae"));
-	tString sTestMapDir = tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap";
-	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles,
-		cString::To16Char(sTestMapDir), _W("*.dae"));
-
 	// Case does not matter: the files are level01_07_lead_mine_shafts_A.dae
 	// and the like.
 	tStringVec vFilters;
 	if(asSpec != "1" && asSpec != "all")
 		cString::GetStringVec(cString::ToLowerCase(asSpec), vFilters, nullptr);
 
-	for(tWStringListIt it = lstFiles.begin(); it != lstFiles.end(); ++it)
+	tStringVec vAllMaps;
+	FindMaps(mpInit, vAllMaps);
+	for(const tString &sFile : vAllMaps)
 	{
-		tString sFile = cString::To8Char(*it);
 		tString sLower = cString::ToLowerCase(sFile);
 		bool bMatch = vFilters.empty();
 		for(size_t i = 0; i < vFilters.size(); ++i)
@@ -136,10 +129,140 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 
 		if(bMatch) mvMaps.push_back(sFile);
 	}
-	std::sort(mvMaps.begin(), mvMaps.end());
 
 	Log("REFSHOTS: %d maps, frames to '%s'\n", (int)mvMaps.size(), msDir.c_str());
 	if(mvMaps.empty()) Fail("no maps matched '%s'", asSpec.c_str());
+}
+
+//-----------------------------------------------------------------------
+
+void cRefShots::FindMaps(cInit *apInit, tStringVec &avMaps)
+{
+	tWStringList lstFiles;
+	apInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, _W("maps"), _W("*.dae"));
+
+	for(tWStringListIt it = lstFiles.begin(); it != lstFiles.end(); ++it)
+		avMaps.push_back(cString::To8Char(*it));
+	std::sort(avMaps.begin(), avMaps.end());
+}
+
+//-----------------------------------------------------------------------
+
+tString cRefShots::GetViewsFile()
+{
+	const char *pFile = SDL_getenv("OVERTURE_REFVIEWS_FILE");
+	if(pFile && pFile[0]) return pFile;
+	return OVERTURE_REFVIEWS_FILE;
+}
+
+//-----------------------------------------------------------------------
+
+void cRefShots::LoadViewsFile(tViewMap &aViews)
+{
+	aViews.clear();
+
+	FILE *pFile = fopen(GetViewsFile().c_str(), "r");
+	if(pFile==nullptr) return;
+
+	char sLine[512];
+	while(fgets(sLine, sizeof(sLine), pFile))
+	{
+		char sMap[128], sName[128];
+		cView view;
+		view.mbStartPos = false;
+		view.mbManual = true;
+		// Comments start with #
+		if(sLine[0] == '#') continue;
+		int lFlashLight = 1;
+		if(sscanf(sLine, "%127s %127s %f %f %f %f %f %d", sMap, sName, &view.mvPos.x, &view.mvPos.y,
+					&view.mvPos.z, &view.mfYaw, &view.mfPitch, &lFlashLight) < 7) continue;
+		view.mbFlashLight = lFlashLight != 0;
+		view.msName = sName;
+		aViews[sMap].push_back(view);
+	}
+	fclose(pFile);
+}
+
+//-----------------------------------------------------------------------
+
+bool cRefShots::SaveViewsFile(const tViewMap &aViews)
+{
+	FILE *pFile = fopen(GetViewsFile().c_str(), "w");
+	if(pFile==nullptr)
+	{
+		Error("Couldn't write '%s'\n", GetViewsFile().c_str());
+		return false;
+	}
+
+	fprintf(pFile, "# Viewpoints for the reference images (tools/refshots.py), set in the game's\n"
+					"# F2 panel. map name x y z yaw pitch flashlight\n");
+	for(const auto &mapViews : aViews)
+		for(const cView &view : mapViews.second)
+			fprintf(pFile, "%s %s %.3f %.3f %.3f %.4f %.4f %d\n", mapViews.first.c_str(), view.msName.c_str(),
+					view.mvPos.x, view.mvPos.y, view.mvPos.z, view.mfYaw, view.mfPitch,
+					view.mbFlashLight ? 1 : 0);
+	fclose(pFile);
+	return true;
+}
+
+//-----------------------------------------------------------------------
+
+size_t cRefShots::FindViews(cWorld3D *apWorld, const tString &asMap, std::vector<cView> &avViews,
+							size_t &alStarts)
+{
+	auto ByName = [](const cView &a, const cView &b){ return a.msName < b.msName; };
+	auto SameName = [](const cView &a, const cView &b){ return a.msName == b.msName; };
+
+	// Viewpoints chosen by hand replace the automatic places
+	tViewMap mapViews;
+	LoadViewsFile(mapViews);
+	tViewMap::iterator viewsIt = mapViews.find(cString::ToLowerCase(cString::SetFileExt(asMap, "")));
+	if(viewsIt != mapViews.end() && viewsIt->second.empty()==false)
+	{
+		avViews = viewsIt->second;
+		alStarts = 0;
+		return 0;
+	}
+
+	avViews.clear();
+	tStartPosEntityList *pStarts = apWorld->GetStartPosEntityList();
+	for(tStartPosEntityListIt it = pStarts->begin(); it != pStarts->end(); ++it)
+		avViews.push_back({(*it)->GetName(), true, cVector3f(0,0,0)});
+	std::sort(avViews.begin(), avViews.end(), ByName);
+	avViews.erase(std::unique(avViews.begin(), avViews.end(), SameName), avViews.end());
+	alStarts = avViews.size();
+
+	// The lights the map file has, spread evenly over their names.
+	// Scripts and entities add lights too, those are left out.
+	std::vector<cView> vLights;
+	cLight3DListIterator lightIt = apWorld->GetLightIterator();
+	while(lightIt.HasNext())
+	{
+		iLight3D *pLight = lightIt.Next();
+		if(pLight->GetName() == "" || pLight->GetEntityParent() != nullptr) continue;
+		// Made by the game for the hiding effect, not part of the map
+		if(pLight->GetName() == "HiddenLight") continue;
+		vLights.push_back({"light_" + pLight->GetName(), false, pLight->GetWorldPosition()});
+	}
+	std::sort(vLights.begin(), vLights.end(), ByName);
+	vLights.erase(std::unique(vLights.begin(), vLights.end(), SameName), vLights.end());
+	size_t lLightViews = std::min(vLights.size(), klMaxLightViews);
+	for(size_t i = 0; i < lLightViews; ++i)
+		avViews.push_back(vLights[i * vLights.size() / lLightViews]);
+
+	return vLights.size();
+}
+
+//-----------------------------------------------------------------------
+
+tString cRefShots::GetFrameName(const tString &asMap, const cView &aView, int alAngle)
+{
+	tString sName = cString::ToLowerCase(cString::SetFileExt(asMap, "")) + "-" + aView.msName;
+	if(aView.mbManual) return sName;
+
+	char sAngle[16];
+	snprintf(sAngle, sizeof(sAngle), "%03d", alAngle * (360 / klAngles));
+	return sName + "-" + sAngle;
 }
 
 //-----------------------------------------------------------------------
@@ -195,13 +318,15 @@ void cRefShots::Update(float afTimeStep)
 
 	// The maps are dark without it. Scripts disable it for a while (the
 	// start of level01_01_outside); jumping between maps can skip the part
-	// that enables it again.
+	// that enables it again. A viewpoint can ask for it to be off.
 	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
 	if(mpInit->mpPlayer->GetPower() < 100) mpInit->mpPlayer->SetPower(100);
-	if(pFlashLight->IsActive()==false && mStep != eStep_Done)
+	bool bAtView = (mStep == eStep_SettleStart || mStep == eStep_Shoot) && mlView < mvViews.size();
+	bool bFlashLight = bAtView==false || mvViews[mlView].mbFlashLight;
+	if(pFlashLight->IsActive() != bFlashLight && mStep != eStep_Done)
 	{
 		pFlashLight->SetDisabled(false);
-		pFlashLight->SetActive(true);
+		pFlashLight->SetActive(bFlashLight);
 	}
 
 	// Flickering lights draw random numbers, and so do sounds when their
@@ -244,38 +369,16 @@ void cRefShots::Update(float afTimeStep)
 			// What a map shows must not depend on the maps before it.
 			cMath::Randomize(klRandomSeed);
 
-			auto ByName = [](const cView &a, const cView &b){ return a.msName < b.msName; };
-			auto SameName = [](const cView &a, const cView &b){ return a.msName == b.msName; };
+			size_t lStarts = 0;
+			size_t lLights = FindViews(pWorld, mvMaps[mlMap], mvViews, lStarts);
 
-			mvViews.clear();
-			tStartPosEntityList *pStarts = pWorld->GetStartPosEntityList();
-			for(tStartPosEntityListIt it = pStarts->begin(); it != pStarts->end(); ++it)
-				mvViews.push_back({(*it)->GetName(), true, cVector3f(0,0,0)});
-			std::sort(mvViews.begin(), mvViews.end(), ByName);
-			mvViews.erase(std::unique(mvViews.begin(), mvViews.end(), SameName), mvViews.end());
-			size_t lStarts = mvViews.size();
-
-			// The lights the map file has, spread evenly over their names.
-			// Scripts and entities add lights too, those are left out.
-			std::vector<cView> vLights;
-			cLight3DListIterator lightIt = pWorld->GetLightIterator();
-			while(lightIt.HasNext())
-			{
-				iLight3D *pLight = lightIt.Next();
-				if(pLight->GetName() == "" || pLight->GetEntityParent() != nullptr) continue;
-				// Made by the game for the hiding effect, not part of the map
-				if(pLight->GetName() == "HiddenLight") continue;
-				vLights.push_back({"light_" + pLight->GetName(), false, pLight->GetWorldPosition()});
-			}
-			std::sort(vLights.begin(), vLights.end(), ByName);
-			vLights.erase(std::unique(vLights.begin(), vLights.end(), SameName), vLights.end());
-			size_t lLightViews = std::min(vLights.size(), klMaxLightViews);
-			for(size_t i = 0; i < lLightViews; ++i)
-				mvViews.push_back(vLights[i * vLights.size() / lLightViews]);
-
-			Log("REFSHOTS: [%d/%d] %s, %d start positions, %d of %d lights\n", (int)mlMap + 1,
-				(int)mvMaps.size(), mvMaps[mlMap].c_str(), (int)lStarts, (int)lLightViews,
-				(int)vLights.size());
+			if(mvViews.empty()==false && mvViews[0].mbManual)
+				Log("REFSHOTS: [%d/%d] %s, %d viewpoints\n", (int)mlMap + 1, (int)mvMaps.size(),
+					mvMaps[mlMap].c_str(), (int)mvViews.size());
+			else
+				Log("REFSHOTS: [%d/%d] %s, %d start positions, %d of %d lights\n", (int)mlMap + 1,
+					(int)mvMaps.size(), mvMaps[mlMap].c_str(), (int)lStarts, (int)(mvViews.size() - lStarts),
+					(int)lLights);
 			if(mvViews.empty())
 			{
 				Fail("%s has no start positions or lights", mvMaps[mlMap].c_str());
@@ -337,9 +440,7 @@ void cRefShots::Update(float afTimeStep)
 		SetView();
 		if(++mlFrame < klTurnSettleFrames) break;
 
-		char sAngle[16];
-		snprintf(sAngle, sizeof(sAngle), "%03d", mlAngle * (360 / klAngles));
-		tString sFile = msDir + "/" + sMap + "-" + mvViews[mlView].msName + "-" + sAngle + ".png";
+		tString sFile = msDir + "/" + GetFrameName(mvMaps[mlMap], mvViews[mlView], mlAngle) + ".png";
 
 		// This step's frame is drawn after the update, then saved.
 		mpInit->mpGame->GetGraphics()->GetLowLevel()->SaveNextFrameToPNG(sFile);
@@ -347,7 +448,7 @@ void cRefShots::Update(float afTimeStep)
 
 		mlFrame = 0;
 		mlAngle++;
-		if(mlAngle >= klAngles) NextView();
+		if(mlAngle >= GetAngleNum(mvViews[mlView])) NextView();
 		break;
 	}
 
@@ -382,8 +483,16 @@ void cRefShots::Fail(const char *asFormat, ...)
 void cRefShots::SetView()
 {
 	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
-	pCamera->SetYaw(mfStartYaw + mlAngle * (k2Pif / klAngles));
-	pCamera->SetPitch(0);
+	if(mvViews[mlView].mbManual)
+	{
+		pCamera->SetYaw(mvViews[mlView].mfYaw);
+		pCamera->SetPitch(mvViews[mlView].mfPitch);
+	}
+	else
+	{
+		pCamera->SetYaw(mfStartYaw + mlAngle * (k2Pif / klAngles));
+		pCamera->SetPitch(0);
+	}
 	if(mvViews[mlView].mbStartPos)
 		mpInit->mpPlayer->GetCharacterBody()->SetYaw(pCamera->GetYaw());
 	else

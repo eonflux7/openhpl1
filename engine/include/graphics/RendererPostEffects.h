@@ -51,6 +51,29 @@ namespace hpl {
 		ePostEffectProgram_LastEnum
 	};
 
+	enum eBloomType
+	{
+		/// The blurred scene, squared and added: the original.
+		eBloomType_Original,
+		/// What is brighter than a threshold, blurred widely through a chain of halvings.
+		eBloomType_Soft,
+		eBloomType_LastEnum
+	};
+
+	/**
+	 * The values the soft bloom is tuned with.
+	 */
+	class cBloomTuning
+	{
+	public:
+		/// The screen value (1 is white) at which things begin to bloom.
+		float mfThreshold = 0.3f;
+		/// How much of the blurred light is added to the scene.
+		float mfIntensity = 1.55f;
+		/// How far the light spreads, 0 to 1: the share each level takes from the wider one below it.
+		float mfScatter = 0.55f;
+	};
+
 	class cImageTrailEffect
 	{
 	public:
@@ -92,7 +115,8 @@ namespace hpl {
 		bool GetActive(){ return mbActive;}
 
 		/**
-		 * (Re)creates the screen copies at the current render size.
+		 * (Re)creates the screen copies at the current render size, and
+		 * the blur textures, in the format the lighting needs.
 		 */
 		void CreateScreenBuffers();
 
@@ -101,6 +125,12 @@ namespace hpl {
 
 		void SetBloomSpread(float afX){mfBloomSpread = afX;}
 		float GetBloomSpread(){ return mfBloomSpread;}
+
+		void SetBloomType(eBloomType aType){ mBloomType = aType;}
+		eBloomType GetBloomType(){ return mBloomType;}
+
+		void SetBloomTuning(const cBloomTuning& aTuning){ mBloomTuning = aTuning;}
+		const cBloomTuning& GetBloomTuning(){ return mBloomTuning;}
 
 		void SetMotionBlurActive(bool abX);
 		bool GetMotionBlurActive(){ return mbMotionBlurActive;}
@@ -128,6 +158,8 @@ namespace hpl {
 		void RenderImageTrail();
 
 		void RenderBloom();
+		void RenderBloomChain();
+		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource, bool abRectSource);
 
 		void RenderMotionBlur();
 
@@ -159,6 +191,17 @@ namespace hpl {
 
 		iTexture *mpBloomBlurTexture;
 
+		//The soft bloom: each level is half the size of the one before.
+		//mvBloomUp[i] is level i blended with all the levels below it; the
+		//last level has none below and is used as it is.
+		iGpuProgram *mpBloomChainVP;
+		iGpuProgram *mpBloomPrefilterFP;
+		iGpuProgram *mpBloomDownFP;
+		iGpuProgram *mpBloomUpFP;
+		iGpuProgram *mpBloomCompositeFP;
+		std::vector<iTexture*> mvBloomDown;
+		std::vector<iTexture*> mvBloomUp;
+
 		iGpuProgram *mpMotionBlurVP;
 		iGpuProgram *mpMotionBlurFP;
 
@@ -170,6 +213,8 @@ namespace hpl {
 
 		bool mbBloomActive;
 		float mfBloomSpread;
+		eBloomType mBloomType;
+		cBloomTuning mBloomTuning;
 
 		bool mbMotionBlurActive;
 		float mfMotionBlurAmount;

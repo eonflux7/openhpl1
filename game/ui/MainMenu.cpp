@@ -1443,6 +1443,7 @@ cMainMenuWidget_Text *gpGammaText=nullptr;
 cMainMenuWidget_Text *gpGammaText2=nullptr;
 cMainMenuWidget_Text *gpFSAAText=nullptr;
 cMainMenuWidget_Text *gpRenderScaleText=nullptr;
+cMainMenuWidget_Text *gpLinearLightingText=nullptr;
 cMainMenuWidget_Text *gpDoFText=nullptr;
 
 cVector2l gvResolutions[] = {cVector2l(640,480), cVector2l(800,600), cVector2l(1024, 768),
@@ -1725,6 +1726,26 @@ public:
 	}
 };
 
+class cMainMenuWidget_LinearLighting : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_LinearLighting(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		// Not in the game's language files
+		msTip = _W("Lights, transparent surfaces and effects add up as light does, instead of as screen values. Off is the original look.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
+
+		pGraphics->SetLinearLighting(!pGraphics->GetLinearLighting());
+		gpLinearLightingText->msText = pGraphics->GetLinearLighting() ?
+			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	}
+};
+
 class cMainMenuWidget_DOF : public cMainMenuWidget_Button
 {
 public:
@@ -2002,6 +2023,15 @@ public:
 
 //-----------------------------------------------------------
 
+// Off, the original bloom, or the soft one. The last two names are not in
+// the game's language files.
+static tWString GetBloomText(cInit *mpInit)
+{
+	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+	if(pPostEffects->GetBloomActive()==false) return kTranslate("MainMenu","Off");
+	return pPostEffects->GetBloomType() == eBloomType_Soft ? _W("Soft") : _W("Original");
+}
+
 class cMainMenuWidget_Bloom : public cMainMenuWidget_Button
 {
 public:
@@ -2013,11 +2043,17 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive();
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(!bX);
+		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 
-		gpBloomText->msText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive() ? 
-								kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		// Off, Original, Soft: forwards with the left button, back with the right
+		int lIdx = pPostEffects->GetBloomActive() ? 1 + (int)pPostEffects->GetBloomType() : 0;
+		int lNum = 1 + eBloomType_LastEnum;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		pPostEffects->SetBloomActive(lIdx > 0);
+		if(lIdx > 0) pPostEffects->SetBloomType((eBloomType)(lIdx - 1));
+
+		gpBloomText->msText = GetBloomText(mpInit);
 	}
 };
 
@@ -3698,8 +3734,7 @@ void cMainMenu::CreateWidgets()
 	gpNoiseFilterText->SetExtraWidget(pWidgetNoiseFilter);
 
 	vPos.y += 29;
-	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive() ? kTranslate("MainMenu","On") : 
-	kTranslate("MainMenu","Off");
+	sText = GetBloomText(mpInit);
 	gpBloomText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpBloomText);
 	gpBloomText->SetExtraWidget(pWidgetBloom);
@@ -3758,6 +3793,9 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 24;
 	cMainMenuWidget *pRenderScaleButton = hplNew( cMainMenuWidget_RenderScale,(mpInit,vPos,_W("Render Scale:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pRenderScaleButton); 
+	vPos.y += 24;
+	cMainMenuWidget *pLinearLightingButton = hplNew( cMainMenuWidget_LinearLighting,(mpInit,vPos,_W("Linear Lighting:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLinearLightingButton); 
 	vPos.y += 24;
 	cMainMenuWidget *pDOFButton = hplNew( cMainMenuWidget_DOF,(mpInit,vPos,kTranslate("MainMenu","Depth of Field:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pDOFButton); 
@@ -3830,6 +3868,13 @@ void cMainMenu::CreateWidgets()
 	gpRenderScaleText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetRenderScaleText(mpInit->mpGame->GetGraphics()->GetRenderScale()),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpRenderScaleText);
 	gpRenderScaleText->SetExtraWidget(pRenderScaleButton);
+
+	vPos.y += 24;
+	sText = mpInit->mpGame->GetGraphics()->GetLinearLighting() ?
+		kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	gpLinearLightingText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLinearLightingText);
+	gpLinearLightingText->SetExtraWidget(pLinearLightingButton);
 
 	vPos.y += 24;
 	sText = mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled() ? 

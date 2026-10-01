@@ -48,6 +48,7 @@ namespace hpl {
 
 	private:
 		void ApplyInputLock();
+		bool IsForDebugOverlay(const SDL_Event& aEvent);
 
 		iLowLevelGraphics *mpLowLevelGraphics;
 		bool mbLockInput;

@@ -112,10 +112,11 @@ namespace hpl {
 		/**
 		 * Compiles source made by the engine as a separable program, with
 		 * the preamble (and, for fragment shaders, the epilogue that clamps
-		 * the colour and alpha tests with abAlphaTest). The caller deletes it.
+		 * the colour; with abState it also follows the alpha test and
+		 * colour space set through iLowLevelGraphics). The caller deletes it.
 		 */
 		static GLuint CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
-									bool abAlphaTest);
+									bool abState);
 
 		/// The programs bound for each stage (a fragment stage can be a
 		/// vertex program's companion), 0 for none.
@@ -145,9 +146,9 @@ namespace hpl {
 		GLint GetUniform(const tString& asName);
 		bool CompileProgram();
 		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
-									bool abAlphaTest, std::vector<tString> *apFiles=nullptr);
+									bool abState, std::vector<tString> *apFiles=nullptr);
 		static GLuint LinkStage(GLenum aStage, tString asSource, const tString& asName,
-								const std::vector<tString>& avFiles, bool abAlphaTest);
+								const std::vector<tString>& avFiles);
 		static void WatchFiles(std::vector<cSourceFile>& avWatched, const std::vector<tString>& avFiles);
 		static bool FilesChanged(std::vector<cSourceFile>& avWatched);
 

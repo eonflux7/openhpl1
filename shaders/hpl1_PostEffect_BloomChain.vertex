@@ -1,0 +1,11 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// A quad over the whole target for the soft bloom's passes.
+
+uniform mat4 worldViewProj;
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+}

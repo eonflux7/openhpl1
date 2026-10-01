@@ -163,25 +163,53 @@ and specular all have to be tuned again if the lighting under them changes.
 
 - [ ] **1. Gamma-correct lighting**, retuned against the original look, as
       an option:
-  - [ ] colour-space audit, reading only: which textures hold colour and
+  - [x] colour-space audit, reading only: which textures hold colour and
         which hold data (normal maps, falloff ramps, spot masks), what
         each blend mode (additive, modulate, modulate ×2, destination
         alpha) does in linear space, where colour constants come from
         (lights, ambient, fog, HUD). Known from Milestone 3: lighting is
         additive multi-pass in gamma space with the light colour clamped
         to 0..1 in the vertex shaders, and modulate and modulate ×2 do
-        not survive a naive switch to linear
-  - [ ] colour-space flag on textures, sRGB formats for the colour ones
-  - [ ] linear lighting switch, converted back in the output pass
+        not survive a naive switch to linear. Written up in
+        `docs/colour-space-audit.md`
+  - [x] linear lighting switch (Linear Lighting in Advanced Graphics, off
+        by default), converted back in the output pass. Colours are
+        converted in the shaders instead of through sRGB texture formats:
+        the option switches while playing and the HUD is untouched
+  - [x] float screen copies and blur textures when it is on (from step 3)
+  - [x] tuning values as sliders in the F2 panel: light power (the
+        falloff exponent), exposure, glow (brighter-than-white halos and
+        lit parts)
+  - [x] play-test and retune with them: light power 1.8, exposure 1.3 and
+        glow 1.45 are the defaults. Shadows may move them
+  - [x] particles, alpha materials and fog cover as much as in the
+        original (blend match)
+  - [ ] play-test the blend match and the halos again
+  - [ ] sRGB texture formats, for filtering on linear values. Small gain;
+        only if it shows
   - [ ] energy-conserving specular
 - [ ] **2. Tonemapping**, colour grading. Linear lighting needs it to look
       right
-- [ ] **3. Bloom** with threshold and a mip chain (replaces "blur squared
-      and add"). The current blur is measured in pixels horizontally and
-      in screen widths vertically, so bloom looks different at each
-      resolution and render scale
-  - [ ] float screen copies: the copies bloom, depth of field and
-        refraction read are 8-bit and clip at 1 (from Milestone 3)
+  - [x] a curve in the output pass that leaves the picture alone up to a
+        shoulder and rolls brighter values off towards a white point
+        (Shoulder and White in the F2 panel; off until tuned)
+  - left off by default after the first play-test (shoulder 1): to look
+    at again with the new bloom, which is what makes values brighter than
+    white
+  - [ ] colour grading
+- [ ] **3. Bloom** with threshold and a mip chain (next to "blur squared
+      and add", which stays as Original). The original blur is measured in
+      pixels horizontally and in screen widths vertically, so bloom looks
+      different at each resolution and render scale
+  - [x] Soft bloom as a third setting of the Bloom option: threshold,
+        chain of halvings, the same at every resolution; sliders in the
+        F2 panel
+  - [x] play-test and settle threshold, intensity and spread (0.3, 1.55,
+        0.55)
+  - [ ] the outside map with these values: nearly all of it blooms
+  - the copies bloom, depth of field and refraction read are float with
+    linear lighting on; with it off they stay 8-bit and clip at 1, as
+    originally
 - [ ] **4. Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
       stencil shadow volumes, or penumbra-blurred stencil shadows as an
       interim step. The largest piece; best on settled lighting

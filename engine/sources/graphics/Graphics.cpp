@@ -174,6 +174,22 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cGraphics::SetLinearLighting(bool abX)
+	{
+		if(mpLowLevelGraphics->GetLinearLighting() == abX) return;
+
+		mpLowLevelGraphics->SetLinearLighting(abX);
+		//The copies of the scene change format
+		mpRendererPostEffects->CreateScreenBuffers();
+	}
+
+	bool cGraphics::GetLinearLighting()
+	{
+		return mpLowLevelGraphics->GetLinearLighting();
+	}
+
+	//-----------------------------------------------------------------------
+
 	iLowLevelGraphics* cGraphics::GetLowLevel()
 	{
 		return mpLowLevelGraphics;

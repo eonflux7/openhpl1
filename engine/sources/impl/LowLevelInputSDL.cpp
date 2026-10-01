@@ -20,6 +20,7 @@
 
 #include "impl/MouseSDL.h"
 #include "impl/KeyboardSDL.h"
+#include "impl/DebugOverlay.h"
 
 #include "system/LowLevelSystem.h"
 
@@ -73,7 +74,34 @@ namespace hpl {
 		{
 			if(sdlEvent.type == SDL_EVENT_QUIT) mbQuitRequested = true;
 
+			if(cDebugOverlay::HasInput())
+			{
+				cDebugOverlay::ProcessEvent(&sdlEvent);
+				if(IsForDebugOverlay(sdlEvent)) continue;
+			}
+
 			mlstEvents.push_back(sdlEvent);
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	// While the debug overlay has the input the game gets no mouse motion,
+	// wheel or presses. Releases still reach it, so that nothing held when
+	// the overlay took over stays down, and so do the function keys: they
+	// toggle the overlay's windows.
+	bool cLowLevelInputSDL::IsForDebugOverlay(const SDL_Event& aEvent)
+	{
+		switch(aEvent.type)
+		{
+		case SDL_EVENT_MOUSE_MOTION:
+		case SDL_EVENT_MOUSE_WHEEL:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			return true;
+		case SDL_EVENT_KEY_DOWN:
+			return aEvent.key.key < SDLK_F1 || aEvent.key.key > SDLK_F12;
+		default:
+			return false;
 		}
 	}
 
@@ -93,8 +121,9 @@ namespace hpl {
 		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
 		if(pWindow==nullptr) return;
 
-		if(SDL_GetWindowRelativeMouseMode(pWindow) != mbLockInput)
-			SDL_SetWindowRelativeMouseMode(pWindow, mbLockInput);
+		bool bLock = mbLockInput && cDebugOverlay::HasInput()==false;
+		if(SDL_GetWindowRelativeMouseMode(pWindow) != bLock)
+			SDL_SetWindowRelativeMouseMode(pWindow, bLock);
 	}
 
 	//-----------------------------------------------------------------------

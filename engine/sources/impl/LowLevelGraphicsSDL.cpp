@@ -185,6 +185,11 @@ namespace hpl {
 		mbMatricesChanged = true;
 		mlActiveTextureUnit = 0;
 		mbAlphaTest = false;
+		mbLinearLighting = false;
+		mbLinearSource = false;
+		mbBlend = false;
+		mBlendSrc = eBlendFunc_One;
+		mBlendDest = eBlendFunc_Zero;
 		mAlphaTestFunc = eAlphaTestFunc_Always;
 		mfAlphaTestRef = 0;
 		mbStateChanged = true;
@@ -390,7 +395,7 @@ namespace hpl {
 
 		glGenBuffers(1, &mlStateUniformBuffer);
 		glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float)*4, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float)*8, nullptr, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
@@ -873,10 +878,13 @@ namespace hpl {
 		}
 		else
 		{
-			iBitmap2D* pBmp = CreateBitmap2D(avSize,alBpp);
+			// 64 bits: 16-bit floating point channels
+			bool bFloat = alBpp == 64;
+			iBitmap2D* pBmp = CreateBitmap2D(avSize,bFloat ? 32 : alBpp);
 			pBmp->FillRect(cRect2l(0,0,0,0),aFillCol);
 
 			pTex = hplNew( cSDLTexture, ("",mpPixelFormat,this,aType, abUseMipMaps, aTarget) );
+			pTex->SetFloat(bFloat);
 			bool bRet = pTex->CreateFromBitmap(pBmp);
 
 			hplDelete(pBmp);
@@ -1296,10 +1304,36 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cLowLevelGraphicsSDL::SetLinearLighting(bool abX)
+	{
+		mbLinearLighting = abX;
+		mbStateChanged = true;
+	}
+
+	bool cLowLevelGraphicsSDL::GetLinearLighting()
+	{
+		return mbLinearLighting;
+	}
+
+	void cLowLevelGraphicsSDL::SetLinearSource(bool abX)
+	{
+		mbLinearSource = abX;
+		mbStateChanged = true;
+	}
+
+	void cLowLevelGraphicsSDL::SetLinearLightingTuning(const cLinearLightingTuning& aTuning)
+	{
+		mLinearTuning = aTuning;
+		mbStateChanged = true;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cLowLevelGraphicsSDL::BeginScene()
 	{
 		SetRenderTarget(nullptr);
 		mbInScene = true;
+		mbStateChanged = true;
 		BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
 	}
 
@@ -1312,6 +1346,7 @@ namespace hpl {
 	{
 		SetRenderTarget(nullptr);
 		mbInScene = false;
+		mbStateChanged = true;
 
 		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
 		if(bScissor) glDisable(GL_SCISSOR_TEST);
@@ -1331,6 +1366,14 @@ namespace hpl {
 		{
 			glProgramUniform2f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "invOutputSize"),
 								1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
+			glProgramUniform1f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "linearScene"),
+								mbLinearLighting ? 1.0f : 0.0f);
+			glProgramUniform1f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "exposure"),
+								mLinearTuning.mfExposure);
+			// The shoulder is set as a screen value; the curve works on light
+			glProgramUniform2f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "tonemap"),
+								powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
+								cMath::Max(mLinearTuning.mfWhite, 1.0f));
 			DrawFullscreenPass(mOutputPass, mlMultisampling > 0 ? mlResolveColor : mlSceneColor, mvScreenSize);
 		}
 		else
@@ -1714,6 +1757,9 @@ namespace hpl {
 			glEnable(GL_BLEND);
 		else
 			glDisable(GL_BLEND);
+
+		if(mbBlend != abX) mbStateChanged = true;
+		mbBlend = abX;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1721,6 +1767,10 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetBlendFunc(eBlendFunc aSrcFactor, eBlendFunc aDestFactor)
 	{
 		glBlendFunc(GetGLBlendEnum(aSrcFactor),GetGLBlendEnum(aDestFactor));
+
+		if(mBlendSrc != aSrcFactor || mBlendDest != aDestFactor) mbStateChanged = true;
+		mBlendSrc = aSrcFactor;
+		mBlendDest = aDestFactor;
 	}
 
 	//-----------------------------------------------------------------------
@@ -2562,7 +2612,23 @@ namespace hpl {
 
 		if(mbStateChanged)
 		{
-			float vState[4] = {mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, 0, 0};
+			// Colours are converted for the scene when it holds linear
+			// values, unless what is drawn is linear already. "Modulate x2"
+			// (destination x source x 2) doubles on encoded values: on
+			// linear ones that is 2^2.2, of which the blend supplies 2. What
+			// is added to the scene gets the glow value (the light passes
+			// are added too, but do their own conversion).
+			bool bConvert = mbLinearLighting && mbInScene && !mbLinearSource;
+			bool bMulX2 = mbBlend && mBlendSrc == eBlendFunc_DestColor && mBlendDest == eBlendFunc_SrcColor;
+			bool bAdd = mbBlend && mBlendDest == eBlendFunc_One &&
+						(mBlendSrc == eBlendFunc_One || mBlendSrc == eBlendFunc_SrcAlpha);
+			float fScale = bMulX2 ? 2.2974f : 1.0f;
+			float fGlow = bConvert && bAdd ? mLinearTuning.mfGlow : 1.0f;
+			bool bAlpha = mbBlend && mBlendSrc == eBlendFunc_SrcAlpha && mBlendDest == eBlendFunc_OneMinusSrcAlpha;
+			float fAlphaMatch = bConvert && bAlpha ? cMath::Clamp(mLinearTuning.mfBlendMatch, 0.0f, 1.0f) : 0.0f;
+			float vState[8] = {	mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
+								bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
+								mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f};
 			glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vState), vState);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);

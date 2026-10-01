@@ -9,6 +9,9 @@
 /// REFRACTION FRAGMENT PROGRAM /////////////////
 ///////////////////////////////////////////////////////
 
+// Reads and writes the scene as it is, linear or not.
+#define HPL_LINEAR_COLOR
+
 in vec2 vUv; //in object space
 in vec4 vColor;
 

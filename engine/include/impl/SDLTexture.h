@@ -75,6 +75,10 @@ namespace hpl {
 
 		unsigned int GetTextureHandle();
 
+		/// Stores 16-bit floating point channels instead of 8-bit ones.
+		/// Set before the texture is created.
+		void SetFloat(bool abX){ mbFloat = abX;}
+
 	private:
 		bool CreateFromBitmapToHandle(iBitmap2D* pBmp, int alHandleIdx);
 
@@ -87,6 +91,7 @@ namespace hpl {
 
 		tUIntVec mvTextureHandles;
 		bool mbContainsData;
+		bool mbFloat;
 		cLowLevelGraphicsSDL* mpGfxSDL;
 
 		float mfTimeCount;

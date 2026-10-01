@@ -11,6 +11,9 @@
 
 // RECT: the source is a rectangle texture (pixel coordinates).
 
+// Reads and writes the scene as it is, linear or not.
+#define HPL_LINEAR_COLOR
+
 in vec2 vUv0;
 in vec2 vUv1;
 in vec2 vUv2;

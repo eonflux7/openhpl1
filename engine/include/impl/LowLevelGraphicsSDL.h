@@ -79,6 +79,11 @@ namespace hpl {
 		cVector2f GetRenderSize() override;
 		void SetRenderScale(float afScale) override;
 		float GetRenderScale() override;
+		void SetLinearLighting(bool abX) override;
+		bool GetLinearLighting() override;
+		void SetLinearSource(bool abX) override;
+		void SetLinearLightingTuning(const cLinearLightingTuning& aTuning) override;
+		const cLinearLightingTuning& GetLinearLightingTuning() override{ return mLinearTuning; }
 		void BeginScene() override;
 		void EndScene() override;
 		cVector2f GetVirtualSize() override;
@@ -123,6 +128,8 @@ namespace hpl {
 		void EndGpuSection() override{ mGpuProfiler.End(); }
 		void SetDebugOverlayActive(bool abX) override{ mDebugOverlay.SetActive(abX); }
 		bool GetDebugOverlayActive() override{ return mDebugOverlay.IsActive(); }
+		void SetDebugPanel(std::function<void()> aDraw) override{ mDebugOverlay.SetPanel(std::move(aDraw)); }
+		void SetDebugPanelInput(bool abX) override{ mDebugOverlay.SetInput(abX); }
 
 		cGpuProfiler* GetGpuProfiler(){ return &mGpuProfiler; }
 
@@ -356,6 +363,14 @@ namespace hpl {
 		float mfAlphaTestRef;
 		bool mbStateChanged;
 		GLuint mlStateUniformBuffer;
+
+		//Linear lighting: also in hpl_State
+		bool mbLinearLighting;
+		bool mbLinearSource;
+		cLinearLightingTuning mLinearTuning;
+		bool mbBlend;
+		eBlendFunc mBlendSrc;
+		eBlendFunc mBlendDest;
 
 		//SDL Variables
 		SDL_Window *mpWindow;

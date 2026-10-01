@@ -99,9 +99,15 @@ tools/refshots.py capture /tmp/new            # after
 tools/refshots.py compare /tmp/ref /tmp/new --diff-dir /tmp/diff
 ```
 
-A capture (about a minute) visits every map: each start position, and up to
-six of the map's lights, looking in four directions from each, with the
-flashlight on. These frames show the 3D view only, without the HUD, fades
+A capture (about a minute) visits every map of the game (not the physics
+test map). A map's frames are taken from
+its viewpoints in `tools/refviews.txt`, which are chosen in the game: F2
+opens the reference view panel, Fly moves the camera freely once the panel
+is closed again (movement keys, Run for speed, Jump and Crouch for up and
+down), and "Add viewpoint here" saves where the camera is and looks. A map
+without viewpoints is shot from automatic places instead: each start
+position, and up to six of the map's lights, looking in four directions
+from each. All with the flashlight on. These frames show the 3D view only, without the HUD, fades
 or menus. Then it loads the first map again and saves the 2D screens over
 it (`2d-*.png`): HUD, inventory, notebook, keypad, a message and the main
 menu pages. All at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
@@ -115,6 +121,21 @@ few frames, which `compare` ignores (`--tolerance`, `--max-pixels`), and
 possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
 scripted light sequences are timed partly by sounds. Their differences are
 listed as "unstable" and do not count.
+
+To look at those places yourself, press F2 in the game (or start it with
+`OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
+places and directions of its frames, under the names the frames are saved
+with. Picking one loads the map or puts you there; PgUp and PgDn step through
+the map's frames. The view is set up as in the frames (flashlight on, no
+flicker, no HUD, a player that cannot be hurt; each can be switched off), and
+Linear Lighting can be switched from the panel, and tuned with it on: Light
+power, Exposure, Glow and the tonemapping's Shoulder and White. The bloom
+can be switched between off, the original and the soft one, which has its
+own sliders (see CHANGES; Ctrl+click a slider to type a value). While the panel is open it
+has the mouse and keyboard and the view is held on the frame. F2 closes it
+and gives them back, to look and walk around from that place; at a light the
+camera stays at the light until "Release". The live view is not a capture:
+graphics settings are your own, and the scene keeps moving.
 
 ## Running
 
@@ -143,6 +164,7 @@ saves.
 | `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |
 | `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OVERTURE_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
+| `OVERTURE_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
 | `OVERTURE_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |

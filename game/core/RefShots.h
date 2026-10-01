@@ -18,10 +18,13 @@ class cInit;
 //   OVERTURE_REFSHOTS=1            every map in maps/ and the test map
 //   OVERTURE_REFSHOTS=office,worm  maps whose name contains one of these,
 //                                  in any case
-// For each map the player is put on every start position in turn, then the
-// camera alone is put at some of the map's lights. At each of these places a
-// frame is saved looking in four directions, as
-// <OVERTURE_REFSHOTS_DIR>/<map>-<place>-<angle>.png. Then the game quits.
+// A map's frames are taken from its viewpoints in tools/refviews.txt
+// (chosen by hand in the F2 panel, cRefView): the camera is put at each one
+// and a frame saved as <OVERTURE_REFSHOTS_DIR>/<map>-<viewpoint>.png.
+// A map without viewpoints gets automatic places instead: the player is put
+// on every start position in turn, then the camera alone at some of the
+// map's lights, and a frame is saved looking in four directions from each,
+// as <map>-<place>-<angle>.png. Then the game quits.
 //
 // The frames show the 3D view only, with the flashlight on; nothing the
 // game draws in 2D (HUD, fades, effects, menus). The player cannot be hurt.
@@ -37,6 +40,42 @@ class cRefShots : public iUpdateable
 {
 public:
 	cRefShots(cInit *apInit, const tString &asSpec);
+
+	// A place to look from
+	struct cView
+	{
+		tString msName;
+		bool mbStartPos; // else the camera is moved, the player stays
+		cVector3f mvPos;
+		// A viewpoint from the file: one direction, the camera's
+		bool mbManual = false;
+		float mfYaw = 0;
+		float mfPitch = 0;
+		bool mbFlashLight = true;
+	};
+	typedef std::map<tString, std::vector<cView> > tViewMap;
+
+	// Directions looked in from each automatic place, a quarter turn apart
+	static const int klAngles = 4;
+	static int GetAngleNum(const cView &aView){ return aView.mbManual ? 1 : klAngles; }
+
+	// The viewpoints file: tools/refviews.txt of the source tree the game
+	// was built from, or OVERTURE_REFVIEWS_FILE. One line per viewpoint:
+	// map (lower case, no extension), name, x y z, yaw, pitch, flashlight
+	// (1 or 0; on if left out).
+	static tString GetViewsFile();
+	static void LoadViewsFile(tViewMap &aViews);
+	static bool SaveViewsFile(const tViewMap &aViews);
+
+	// The maps in maps/ and the test map, sorted. cRefView uses these too.
+	static void FindMaps(cInit *apInit, tStringVec &avMaps);
+	// The places of a loaded map: its viewpoints from the file, or without
+	// any its start positions, then some of its lights. Returns the number
+	// of lights the map has.
+	static size_t FindViews(cWorld3D *apWorld, const tString &asMap, std::vector<cView> &avViews,
+							size_t &alStarts);
+	// The name the frames of a map are saved under
+	static tString GetFrameName(const tString &asMap, const cView &aView, int alAngle);
 
 	static bool IsRequested();
 	static tString GetSpec();
@@ -71,13 +110,6 @@ private:
 	tString msDir;
 	tStringVec mvMaps;
 	size_t mlMap;
-	// A place to look around from
-	struct cView
-	{
-		tString msName;
-		bool mbStartPos; // else the camera is moved, the player stays
-		cVector3f mvPos;
-	};
 	std::vector<cView> mvViews;
 	size_t mlView;
 	int mlAngle;

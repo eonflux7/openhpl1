@@ -17,13 +17,15 @@
 
 namespace hpl {
 
+	bool cDebugOverlay::mbInitialized = false;
+	bool cDebugOverlay::mbInput = false;
+
 	//-----------------------------------------------------------------------
 
 	cDebugOverlay::cDebugOverlay()
 	{
 		const char *pActive = getenv("OVERTURE_DEBUG_OVERLAY");
 		mbActive = pActive && pActive[0] && pActive[0] != '0';
-		mbInitialized = false;
 		mbFailed = false;
 		mfFrameMs = 0;
 	}
@@ -44,8 +46,9 @@ namespace hpl {
 		// files out of it.
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
-		io.ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoMouseCursorChange |
-							ImGuiConfigFlags_NoKeyboard;
+		// The game hides the system pointer; ImGui draws its own while it
+		// has the input (see Draw).
+		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
 		// Sized for 1080 lines, larger above that.
 		int lW = 0, lH = 0;
@@ -88,6 +91,13 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cDebugOverlay::ProcessEvent(const SDL_Event *apEvent)
+	{
+		if(HasInput()) ImGui_ImplSDL3_ProcessEvent(apEvent);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cDebugOverlay::Draw(SDL_Window *apWindow, cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
 							float afRenderScale)
 	{
@@ -97,17 +107,34 @@ namespace hpl {
 		mfFrameMs = mfFrameMs + (fFrameMs - mfFrameMs) * 0.05f;
 
 		apProfiler->SetTiming(mbActive);
-		if(!mbActive || mbFailed) return;
+		if((!mbActive && !mPanel) || mbFailed) return;
 		if(!mbInitialized && !Init(apWindow))
 		{
 			mbFailed = true;
 			return;
 		}
 
+		ImGuiIO& io = ImGui::GetIO();
+		const ImGuiConfigFlags lNoInput = ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
+		io.ConfigFlags = mbInput ? (io.ConfigFlags & ~lNoInput) : (io.ConfigFlags | lNoInput);
+		io.MouseDrawCursor = mbInput;
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
 		ImGui::NewFrame();
 
+		if(mPanel) mPanel();
+		if(mbActive) DrawRenderer(apProfiler, avRenderSize, afRenderScale);
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cDebugOverlay::DrawRenderer(cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
+									float afRenderScale)
+	{
 		ImGui::SetNextWindowPos(ImVec2(8, 8), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.7f);
 		ImGui::Begin("Renderer", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs |
@@ -138,9 +165,6 @@ namespace hpl {
 		}
 
 		ImGui::End();
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	//-----------------------------------------------------------------------

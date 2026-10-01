@@ -151,11 +151,17 @@ target_include_directories(overture PRIVATE game)
 target_precompile_headers(overture PRIVATE game/core/StdAfx.h)
 target_link_libraries(overture PRIVATE hpl)
 overture_warnings(overture)
+# The reference image viewpoints are read from, and saved to, the source tree
+target_compile_definitions(overture PRIVATE
+	OVERTURE_REFVIEWS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tools/refviews.txt")
 
-# Shaders are loaded from <executable dir>/shaders/
-add_custom_command(TARGET overture POST_BUILD
+# Shaders are loaded from <executable dir>/shaders/. Copied on every build:
+# as a step after linking, an edited shader was not copied until some C++
+# changed too.
+add_custom_target(overture_shaders ALL
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:overture>/shaders)
+add_dependencies(overture_shaders overture)
 
 # Fonts are loaded from <executable dir>/fonts/
 add_custom_command(TARGET overture POST_BUILD

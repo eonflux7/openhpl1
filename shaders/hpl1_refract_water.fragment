@@ -49,6 +49,9 @@ void main()
 	vec4 screenColor = texture(tex0, gl_FragCoord.xy + offset.xy * -scale);
 	if(screenColor.w < 0.5) screenColor = texture(tex0, gl_FragCoord.xy);
 
+	// The colouring below was made for screen values.
+	screenColor.xyz = hpl_ToEncoded(screenColor.xyz);
+
 	outColor.xyz = screenColor.xyz * waterColor;
 
 	//outColor.y = uv.y+1 + uv_offset1.y;

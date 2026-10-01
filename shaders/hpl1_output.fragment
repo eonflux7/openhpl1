@@ -2,11 +2,16 @@
 
 // Turns the finished scene into the 8-bit output picture: tex0 is the
 // scene colour (floating point, at the render size), scaled to the window
-// by the texture filter. Adding noise of half a step before the conversion
-// to 8 bits breaks up banding in smooth gradients; colours that are exact
-// 8-bit values stay the same.
+// by the texture filter. With linear lighting (linearScene = 1) the scene
+// holds linear values, which are scaled by the exposure, tonemapped and
+// converted to screen values here. Adding noise of half a step before the conversion to
+// 8 bits breaks up banding in smooth gradients; colours that are exact 8-bit
+// values stay the same.
 uniform sampler2D tex0;
 uniform vec2 invOutputSize;
+uniform float linearScene;
+uniform float exposure;
+uniform vec2 tonemap; // x: where the shoulder starts, y: the light that becomes white
 
 OUTPUT
 
@@ -16,9 +21,27 @@ float Noise(vec2 avPos)
     return fract(52.9829189 * fract(dot(avPos, vec2(0.06711056, 0.00583715))));
 }
 
+// Light up to the shoulder is kept as it is, so the dark and middle parts
+// of the picture are not changed. Above it each channel follows a curve
+// (Reinhard's, with a white point) that leaves the shoulder at the same
+// slope and reaches 1 at the white point: bright colours go towards white,
+// as they do when they clip, but gradually.
+vec3 Tonemap(vec3 avColor)
+{
+    float shoulder = tonemap.x;
+    if(shoulder > 0.999) return avColor;
+
+    float range = 1.0 - shoulder;
+    float white = max((tonemap.y - shoulder) / range, 1.0);
+    vec3 over = max(avColor - shoulder, 0.0) / range;
+    vec3 curve = over * (1.0 + over / (white * white)) / (1.0 + over);
+    return min(avColor, shoulder) + curve * range;
+}
+
 void main()
 {
     vec3 color = texture(tex0, gl_FragCoord.xy * invOutputSize).rgb;
+    if(linearScene > 0.5) color = pow(Tonemap(max(color, 0.0) * exposure), vec3(1.0 / 2.2));
     color += (Noise(gl_FragCoord.xy) - 0.5) / 255.0;
     outColor = vec4(color, 1.0);
 }

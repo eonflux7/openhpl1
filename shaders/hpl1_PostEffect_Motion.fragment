@@ -10,6 +10,9 @@
 // Credits to jonathan for optimization
 ///////////////////////////////////////////////////////
 
+// Reads and writes the scene as it is, linear or not.
+#define HPL_LINEAR_COLOR
+
 in vec4 vVtxPos;
 in vec4 vPrevVtxPos;
 

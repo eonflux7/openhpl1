@@ -9,6 +9,9 @@
 /// DEPTH OF FIELD FRAGMENT PROGRAM /////////////////
 ///////////////////////////////////////////////////////
 
+// Reads and writes the scene as it is, linear or not.
+#define HPL_LINEAR_COLOR
+
 in float vDepth;
 
 #include "hpl1_frame.glsl"

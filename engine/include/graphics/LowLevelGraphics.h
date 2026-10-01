@@ -19,6 +19,8 @@
 #ifndef HPL_LOWLEVELGRAPHICS_H
 #define HPL_LOWLEVELGRAPHICS_H
 
+#include <functional>
+
 #include "math/MathTypes.h"
 #include "system/SystemTypes.h"
 #include "graphics/GraphicsTypes.h"
@@ -187,6 +189,46 @@ namespace hpl {
 	class iFontData;
 	class iOcclusionQuery;
 
+	/**
+	 * The values linear lighting is tuned with. The defaults were chosen by
+	 * playing; 2.2, 1, 1, a blend match of 0 and a shoulder of 1 leave
+	 * everything as the conversion gives it.
+	 */
+	class cLinearLightingTuning
+	{
+	public:
+		/**
+		 * The power the amount of light (N.L and the falloff ramp, which
+		 * were made to look right on screen values) is raised to. 2.2 gives
+		 * one light the look it has without linear lighting; 1.0 takes them
+		 * as amounts of light, which is wider and flatter.
+		 */
+		float mfLightExp = 1.8f;
+		/// Scales the light of the finished scene before it is converted for the screen.
+		float mfExposure = 1.3f;
+		/**
+		 * Scales the light of what is added to the scene without being lit:
+		 * halos, illumination maps, additive materials and particles. The
+		 * full scale is for what is white; darker parts get less of it,
+		 * so faint edges stay faint.
+		 */
+		float mfGlow = 1.45f;
+		/**
+		 * How far the alpha of what is blended over the scene (particles,
+		 * alpha materials, fog) is changed to cover as much as it does
+		 * without linear lighting: 0 leaves it, 1 matches it.
+		 */
+		float mfBlendMatch = 1.0f;
+		/**
+		 * Tonemapping: the screen value (0 to 1) above which bright values
+		 * are rolled off towards white instead of clipping at it. Below it
+		 * the picture is untouched. 1 is no tonemapping.
+		 */
+		float mfShoulder = 1.0f;
+		/// Tonemapping: the amount of light, in times white, that becomes white on screen.
+		float mfWhite = 4.0f;
+	};
+
 	class iLowLevelGraphics
 	{
 	public:
@@ -255,6 +297,24 @@ namespace hpl {
 		 */
 		virtual void SetRenderScale(float afScale)=0;
 		virtual float GetRenderScale()=0;
+		/**
+		 * Linear lighting: the 3D scene is added up and blended on values
+		 * proportional to light, and converted for the screen when it is
+		 * finished. Off, it is done on the screen values, as originally.
+		 */
+		virtual void SetLinearLighting(bool abX)=0;
+		virtual bool GetLinearLighting()=0;
+		/**
+		 * Set while drawing something into the scene that holds linear
+		 * values already (a copy of the scene), so that it is not converted
+		 * again. Only matters with linear lighting.
+		 */
+		virtual void SetLinearSource(bool abX)=0;
+		/**
+		 * How linear lighting looks; see cLinearLightingTuning.
+		 */
+		virtual void SetLinearLightingTuning(const cLinearLightingTuning& aTuning)=0;
+		virtual const cLinearLightingTuning& GetLinearLightingTuning()=0;
 		/**
 		 * Starts drawing the 3D scene.
 		 */
@@ -354,6 +414,15 @@ namespace hpl {
 		/// The overlay with frame times, GPU sections and draw counts.
 		virtual void SetDebugOverlayActive(bool abX)=0;
 		virtual bool GetDebugOverlayActive()=0;
+
+		/**
+		 * A function that draws Dear ImGui windows of the game's own, called
+		 * every frame whether the overlay is shown or not; an empty function
+		 * removes it.
+		 */
+		virtual void SetDebugPanel(std::function<void()> aDraw)=0;
+		/// Gives ImGui the mouse and the keyboard, and frees the pointer.
+		virtual void SetDebugPanelInput(bool abX)=0;
 
 		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
 		/**
