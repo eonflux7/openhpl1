@@ -67,7 +67,8 @@ endif()
 # AngelScript 2.38.0 (zlib)
 file(GLOB angelscript_sources CONFIGURE_DEPENDS
 	vendor/angelscript/source/*.cpp
-	vendor/angelscript/add_on/scriptstdstring/*.cpp)
+	vendor/angelscript/add_on/scriptstdstring/*.cpp
+	vendor/angelscript/add_on/scriptarray/*.cpp)
 add_library(angelscript STATIC ${angelscript_sources})
 target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include

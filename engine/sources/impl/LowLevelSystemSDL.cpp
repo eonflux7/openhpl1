@@ -46,6 +46,7 @@
 #include <SDL3/SDL.h>
 
 #include <scriptstdstring/scriptstdstring.h>
+#include <scriptarray/scriptarray.h>
 
 #include "system/String.h"
 
@@ -177,6 +178,8 @@ namespace hpl {
 		mpScriptEngine->SetMessageCallback(asMETHOD(cScriptOutput,AddMessage), mpScriptOutput, asCALL_THISCALL);
 
 		RegisterStdString(mpScriptEngine);
+		// The old AngelScript had built-in arrays; level scripts use int[]
+		RegisterScriptArray(mpScriptEngine, true);
 
 		mlHandleCount = 0;
 
