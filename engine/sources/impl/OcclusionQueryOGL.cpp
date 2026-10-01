@@ -31,7 +31,9 @@ namespace hpl {
 
 	cOcclusionQueryOGL::cOcclusionQueryOGL()
 	{
-		glGenQueriesARB(1, (GLuint *)&mlQueryId);
+		glGenQueries(kQueries, mvQueryIds);
+		for(bool& bIssued : mvIssued) bIssued = false;
+		mlCurrent = 0;
 		mlLastSampleCount =0;
 	}
 
@@ -39,7 +41,7 @@ namespace hpl {
 
 	cOcclusionQueryOGL::~cOcclusionQueryOGL()
 	{
-		glDeleteQueriesARB(1, (GLuint *)&mlQueryId);
+		glDeleteQueries(kQueries, mvQueryIds);
 	}
 
 	//-----------------------------------------------------------------------
@@ -52,22 +54,33 @@ namespace hpl {
 
 	void cOcclusionQueryOGL::Begin()
 	{
-		glBeginQueryARB(GL_SAMPLES_PASSED_ARB,mlQueryId);
+		mlCurrent = (mlCurrent + 1) % kQueries;
+		glBeginQuery(GL_SAMPLES_PASSED, mvQueryIds[mlCurrent]);
+		mvIssued[mlCurrent] = true;
 	}
 
 	void cOcclusionQueryOGL::End()
 	{
-		glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+		glEndQuery(GL_SAMPLES_PASSED);
 	}
 
 	bool cOcclusionQueryOGL::FetchResults()
 	{
-		int lAvailable=0;
-		glGetQueryObjectivARB(mlQueryId,GL_QUERY_RESULT_AVAILABLE_ARB,(GLint *)&lAvailable);
-		if(lAvailable==0) return false;
+		// Newest first; a result read makes the older ones stale.
+		for(int i=0; i<kQueries; ++i)
+		{
+			int lIdx = (mlCurrent - i + kQueries) % kQueries;
+			if(!mvIssued[lIdx]) continue;
 
-		glGetQueryObjectivARB(mlQueryId,GL_QUERY_RESULT_ARB,(GLint *)&mlLastSampleCount);
-		return true;
+			GLint lAvailable = 0;
+			glGetQueryObjectiv(mvQueryIds[lIdx], GL_QUERY_RESULT_AVAILABLE, &lAvailable);
+			if(lAvailable == 0) continue;
+
+			glGetQueryObjectiv(mvQueryIds[lIdx], GL_QUERY_RESULT, &mlLastSampleCount);
+			for(int j=i; j<kQueries; ++j) mvIssued[(mlCurrent - j + kQueries) % kQueries] = false;
+			return true;
+		}
+		return false;
 	}
 
 	unsigned int cOcclusionQueryOGL::GetSampleCount()

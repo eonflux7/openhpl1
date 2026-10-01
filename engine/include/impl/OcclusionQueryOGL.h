@@ -23,6 +23,12 @@
 
 namespace hpl {
 
+	/**
+	 * Each Begin() uses the next of a few GL queries, so FetchResults() can
+	 * take the newest result the GPU has finished without waiting for the
+	 * one just issued. Until a newer one is ready, GetSampleCount() keeps
+	 * the last result.
+	 */
 	class cOcclusionQueryOGL : public iOcclusionQuery
 	{
 	public:
@@ -34,9 +40,13 @@ namespace hpl {
 		bool FetchResults() override;
 		unsigned int GetSampleCount() override;
 
-	public:
+	private:
+		static const int kQueries = 3;
+
 		int mlLastSampleCount;
-		unsigned int mlQueryId;
+		unsigned int mvQueryIds[kQueries];
+		bool mvIssued[kQueries];	// begun, result not read yet
+		int mlCurrent;				// the last one begun
 	};
 
 };

@@ -509,6 +509,16 @@ messages (NVIDIA 615). Fixed for that:
   scene, resolve, output and render-target framebuffers and their
   attachments, programs by shader file and variant, program pipelines and
   the `hpl_Frame` buffer. Vertex buffers are not named.
+- Occlusion queries no longer wait for the GPU. After each frame the
+  renderer spun until every query of that frame had its result; now each
+  query cycles through three GL queries and takes the newest result that
+  is ready, usually the previous frame's. Only light halos use them (their
+  alpha is the share of their samples that pass the depth test), so a halo
+  fades a frame later than before. Reference images: 4 of 552 frames
+  change, all with halos; three by a few hundred to ten thousand pixels,
+  and the boat cabin's swinging paraffin lamp, whose halo feeds bloom over
+  the whole frame (waiting for the current result gives the old frame
+  back).
 - Reference images: unchanged.
 
 ## Known issues

@@ -553,7 +553,8 @@ namespace hpl {
 			cOcclusionQueryObject *pObject = it.Next();
 			//LogUpdate("Query: %d!\n",pObject->mpQuery);
 
-			while(pObject->mpQuery->FetchResults()==false);
+			// Takes the newest finished result, without waiting
+			pObject->mpQuery->FetchResults();
 
 			if(mbLog) Log(" Query: %d SampleCount: %d\n",	pObject->mpQuery,
 															pObject->mpQuery->GetSampleCount());
