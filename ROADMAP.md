@@ -27,7 +27,9 @@ Make sure nothing regressed before changing anything.
   - [ ] verify 3D sound and the EFX/reverb path (currently disabled on Linux,
         as in the original)
 - [ ] Fix the intermittent heap corruption on exit
-- [ ] Clean up remaining GL debug warnings
+- [ ] `level01_07_lead_mine_shafts_A/B/C` render black in the reference
+      images: from the start positions the flashlight lights nothing (fog
+      and shadows ruled out). Check whether the original looks the same
 - [ ] Windows build (MSVC or MinGW) from the same source tree
 
 ## Milestone 2: widescreen and quality of life
@@ -72,27 +74,76 @@ Make sure nothing regressed before changing anything.
 - [ ] High-DPI and upscaled UI assets (cursor, inventory, notebook, menu art)
 - [ ] Gamepad support (stretch)
 
-## Milestone 3: renderer
+## Milestone 3: renderer foundation
 
-Bring the HPL1 renderer up to date while keeping the original art direction.
+Rebuild what the HPL1 renderer stands on without changing how the game looks.
+Every step is checked against reference images of the renderer before it.
 
-- [ ] Render the scene into an off-screen buffer (FBO), replacing the copies
-      from the back buffer
-- [ ] HDR render target, tonemapping, colour grading
+- [x] **Reference images.** Fixed viewpoints on every map, rendered
+      headless and compared with the previous run, so a step that should not
+      change the picture can be shown not to (`tools/refshots.py`, see
+      README)
+  - [x] repeatable frames (fixed time step, seeded random numbers,
+        flickering lights held on)
+  - [ ] 2D coverage: HUD, inventory, notebook, menus and text are left out
+        of the frames; they need their own shots before the fixed-function
+        step
+- [ ] No GL errors or driver warnings in a debug context
+      (`OVERTURE_GL_DEBUG`), so new ones stand out
+- [ ] Drop the fallback paths for 2003-era GPUs (the `Fallback01`/`Fallback02`
+      materials and shaders, capability checks for what GL 3.3 guarantees)
+- [ ] **Off-screen frame.** Render the scene into a framebuffer object:
+  - [ ] colour and depth/stencil textures; later passes can read the depth
+  - [ ] post effects, refraction and gamma read textures instead of copying
+        the back buffer (nine copies today)
+  - [ ] multisampling through a multisampled target and a resolve
+  - [ ] one fixed frame order: scene → post effects → output transform → HUD →
+        gamma → window
+  - [ ] render size independent of the window size: resolution changes
+        without a restart (see Milestone 2), render scale
+- [ ] **Float colour buffer.** A 16-bit float scene target, so light passes
+      add up without being rounded to 8 bits or clipped after each one; the
+      output is dithered. Same look, less banding in dark areas
+- [ ] **Colour space:**
+  - [ ] audit: which textures hold colour and which hold data (normal maps,
+        falloff ramps, spot masks), what each blend mode (additive,
+        modulate, modulate ×2, destination alpha) does in linear space,
+        where colour constants come from (lights, ambient, fog, HUD)
+  - [ ] colour-space flag on textures, sRGB formats for the colour ones
+  - [ ] linear lighting as a switch, off by default. Tuning the look is
+        Milestone 4
+- [ ] **Shader system:**
+  - [ ] shared include files and `#define` variants instead of one file per
+        combination
+  - [ ] per-frame values (view, projection, screen size, depth range, time)
+        in one uniform block; matrices kept on the CPU instead of read back
+        from GL for every program
+  - [ ] reload shaders while the game runs
+- [ ] **GPU profiling:** timer queries per pass, draw-call counts, debug
+      groups and object labels; fetch occlusion queries without waiting
+- [ ] **No fixed-function.** Everything is drawn by shaders: HUD, fonts,
+      particles, billboards, transparent materials, debug drawing; alpha test
+      and clip planes move into shaders; vertex attributes and VAOs. Then
+      GL 3.3+ core profile, which RenderDoc needs
+
+## Milestone 4: lighting, shadows and effects
+
+Bring the look up to date while keeping the original art direction. New
+looks are options; the original stays available.
+
+- [ ] Tonemapping, colour grading
+- [ ] Rewrite the lighting shaders:
+  - [ ] gamma-correct lighting, retuned against the original look
+  - [ ] energy-conserving specular
+- [ ] **Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
+      stencil shadow volumes, or penumbra-blurred stencil shadows as an
+      interim step
 - [ ] Bloom with threshold and a mip chain (replaces "blur squared and add")
 - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
 - [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer
 - [ ] Depth of field and camera motion blur from depth. The current effects
       re-render geometry per object.
 - [ ] Film grain shader replacing the tiled noise-filter sprites
-- [ ] Rewrite the lighting shaders:
-  - [ ] energy-conserving specular
-  - [ ] gamma-correct lighting
-  - [ ] drop the fallback paths for 2003-era GPUs
-- [ ] **Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
-      stencil shadow volumes, or penumbra-blurred stencil shadows as an
-      interim step
-- [ ] Retire the remaining fixed-function code; GL 3.3+ core profile
 
 ## Later / ideas
 
