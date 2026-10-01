@@ -32,10 +32,11 @@ namespace hpl {
 		cVector3f normal;
 		bool facingLight;
 
-		cTriangleData(){}
+		cTriangleData() : facingLight(false) {}
 		cTriangleData(const cVector3f& avNormal)
 		{
 			normal = avNormal;
+			facingLight = false;
 		}
 	};
 

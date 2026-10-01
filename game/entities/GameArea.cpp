@@ -87,6 +87,7 @@ cGameArea::cGameArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mType = eGameEntityType_Area;
 
 	mbUseCustomIcon = false;
+	mCustomIcon = eCrossHairState_Inactive;
 }
 
 //-----------------------------------------------------------------------

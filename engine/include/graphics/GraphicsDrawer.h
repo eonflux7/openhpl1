@@ -40,9 +40,9 @@ namespace hpl {
 		bool mbIsColorAndSize;
 		cColor mColor;
 		cVector2f mvSize;
-		bool mbFlipH;
-		bool mbFlipV;
-		float mfAngle;
+		bool mbFlipH = false;
+		bool mbFlipV = false;
+		float mfAngle = 0;
 
 		iMaterial* GetMaterial() const;
 		float GetZ() const { return mvTransform.z;}

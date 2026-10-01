@@ -47,6 +47,7 @@ namespace hpl {
 		mvSize = avSize;
 
 		mbActive = true;
+		mbOnGround = false;
 
 		mbCollideCharacter = true;
 

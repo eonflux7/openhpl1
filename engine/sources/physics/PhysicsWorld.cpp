@@ -43,6 +43,7 @@ namespace hpl {
 	iPhysicsWorld::iPhysicsWorld()
 	{
 		mbLogDebug = false;
+		mbSaveContactPoints = false;
 	}
 
 	//-----------------------------------------------------------------------

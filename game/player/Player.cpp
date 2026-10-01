@@ -55,6 +55,12 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 {
 	mpInit = apInit;
 
+	// Only ever set from save games; zero is what fresh heap memory gave
+	// the original game here.
+	mbPickAtPoint = false;
+	mbRotateWithPlayer = false;
+	mbUseNormalMass = false;
+
 	mpScene = apInit->mpGame->GetScene();
 	mpGraphics = apInit->mpGame->GetGraphics();
 	mpGfxDrawer = mpGraphics->GetDrawer();

@@ -56,6 +56,8 @@ namespace hpl {
 		mbLogInfo = false;
 
 		mbPaused = false;
+
+		mEndType = ePhysicsControllerEnd_Null;
 	}
 
 	//-----------------------------------------------------------------------

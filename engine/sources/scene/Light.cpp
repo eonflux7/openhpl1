@@ -40,6 +40,9 @@ namespace hpl {
 		mfFadeTime=0;
 
 		mbFlickering = false;
+		mbFlickerFade = false;
+		mfFlickerOnFadeLength = 0;
+		mfFlickerOffFadeLength = 0;
 
 		mpWorld3D = NULL;
 
