@@ -23,5 +23,4 @@ Checks: >
   misc-redundant-expression
 
 HeaderFilterRegex: '/(engine|game)/'
-ExcludeHeaderFilterRegex: '/tinyXML/'
 WarningsAsErrors: ''

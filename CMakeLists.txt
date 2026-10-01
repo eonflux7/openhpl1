@@ -77,6 +77,12 @@ target_include_directories(oalwrapper SYSTEM PUBLIC vendor/oalwrapper/include)
 target_link_libraries(oalwrapper PUBLIC OpenAL::OpenAL PkgConfig::VORBIS SDL3::SDL3)
 target_compile_options(oalwrapper PRIVATE -w)
 
+# TinyXML 2.x (zlib), as shipped with HPL1
+file(GLOB tinyxml_sources CONFIGURE_DEPENDS vendor/tinyxml/*.cpp)
+add_library(tinyxml STATIC ${tinyxml_sources})
+target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
+target_compile_options(tinyxml PRIVATE -w)
+
 #--------------------------------------------------------------------
 # HPL1 engine
 
@@ -88,7 +94,7 @@ list(FILTER hpl_sources EXCLUDE REGEX "/(win32\\.cpp|Video[A-Za-z]*Theora\\.cpp)
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)
 target_link_libraries(hpl PUBLIC
-	newton angelscript oalwrapper glad
+	newton angelscript oalwrapper tinyxml glad
 	SDL3::SDL3 SDL3_image::SDL3_image
 	OpenGL::GL)
 overture_warnings(hpl)
@@ -113,7 +119,7 @@ find_program(RUN_CLANG_TIDY run-clang-tidy)
 if(RUN_CLANG_TIDY)
 	add_custom_target(tidy
 		COMMAND ${RUN_CLANG_TIDY} -quiet -p ${CMAKE_BINARY_DIR}
-			"^(?!.*/tinyXml/).*/(engine/sources|game)/"
+			"/(engine/sources|game)/"
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		USES_TERMINAL VERBATIM)
 endif()

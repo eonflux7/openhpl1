@@ -97,7 +97,7 @@ saves.
 engine/    HPL1 engine (FrictionalGames/HPL1Engine), ported
 game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), ported
 shaders/   GLSL shaders (from ScummVM's HPL1 port)
-vendor/    newton, angelscript, oalwrapper, glad
+vendor/    newton, angelscript, oalwrapper, tinyxml, glad
 run.sh     launcher
 ```
 
@@ -109,6 +109,7 @@ run.sh     launcher
   copy and porting work used as the reference for the physics port (GPLv3+)
 - **Julio Jerez**: Newton Game Dynamics 2.36 (zlib)
 - **Andreas Jönsson**: AngelScript 2.38 (zlib)
+- **Lee Thomason and Yves Berquin**: TinyXML (zlib)
 - **glad** OpenGL loader by David Herberth (MIT / Apache-2.0 for the
   generated code)
 
