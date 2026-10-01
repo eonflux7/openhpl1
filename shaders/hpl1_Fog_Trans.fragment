@@ -1,0 +1,38 @@
+// Copyright 2006-2010 (C) - Frictional Games
+//
+// This file is part of HPL1 Engine
+//
+// For conditions of distribution and use, see copyright notice in LICENSE-shaders
+//
+
+///////////////////////////////////////////////////////
+/// TRANSPARENT FOG FRAGMENT PROGRAM ///////////////////
+///////////////////////////////////////////////////////
+
+// Variants by blend mode: alpha (default), MOD, MODX2. Fogged
+// modulative surfaces fade to the colour that leaves the frame unchanged.
+
+in vec4 vColor;
+in vec2 vUv;
+in float vFogUv;
+
+OUTPUT
+
+uniform sampler2D tex0; //diffuseMap
+uniform sampler1D tex1; //fogMap
+
+void main()
+{
+#if defined(MOD) || defined(MODX2)
+	vec4 diffuse = texture(tex0, vUv);
+	float alpha = texture1D(tex1, vFogUv).g;
+	#ifdef MOD
+	outColor.xyz = diffuse.xyz * alpha + vec3(1.0 - alpha);
+	#else
+	outColor.xyz = diffuse.xyz * alpha + vec3(0.5,0.5,0.5)*(1 - alpha);
+	#endif
+	outColor.w = diffuse.w;
+#else
+	outColor = texture(tex0, vUv) * texture1D(tex1, vFogUv).r * vColor;
+#endif
+}

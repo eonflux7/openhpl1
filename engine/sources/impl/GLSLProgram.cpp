@@ -37,11 +37,44 @@ namespace hpl{
 	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
 
 	static const char* kVertexPreamble =
-		"#version 330 compatibility\n";
+		"#version 330 compatibility\n"
+		"#define VARYING out\n";
 
 	static const char* kFragmentPreamble =
 		"#version 330 compatibility\n"
+		"#define VARYING in\n"
 		"#define OUTPUT out vec4 outColor;\n";
+
+	// Programs that are variants of a shared file: the engine's program name
+	// (without "_vp"/"_fp"), the file (without "hpl1_" and the extension) and
+	// the #defines it is compiled with. Other names load the file of the
+	// same name.
+	struct cShaderVariant
+	{
+		const char *msName;
+		const char *msFile;
+		const char *msDefines;
+	};
+
+	static const cShaderVariant kShaderVariants[] = {
+		{"Diffuse_Light",				"light",	""},
+		{"Diffuse_Light_Spot",			"light",	"SPOT"},
+		{"DiffuseSpec_Light",			"light",	"SPECULAR"},
+		{"DiffuseSpec_Light_Spot",		"light",	"SPECULAR SPOT"},
+		{"Bump_Light",					"light",	"NORMAL_MAP"},
+		{"Bump_Light_Spot",				"light",	"NORMAL_MAP SPOT"},
+		{"BumpSpec_Light",				"light",	"NORMAL_MAP SPECULAR"},
+		{"BumpSpec_Light_Spot",			"light",	"NORMAL_MAP SPECULAR SPOT"},
+		{"BumpColorSpec_Light",			"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
+		{"BumpColorSpec_Light_Spot",	"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP SPOT"},
+		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
+		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
+		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},
+		{"PostEffect_Blur_2D",			"PostEffect_Blur",	""},
+		{"PostEffect_Blur_Rect",		"PostEffect_Blur",	"RECT"},
+	};
+
+	static const int kMaxIncludeDepth = 8;
 
 	static const int kMaxSamplers = 8;
 
@@ -65,8 +98,8 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	// "core/programs/Diffuse_Light_Spot_fp.cg" -> "hpl1_Diffuse_Light_Spot"
-	static tString CgNameToShaderBase(const tString& asCgFile)
+	// "core/programs/Diffuse_Light_Spot_fp.cg" -> "hpl1_light", "SPOT"
+	static tString CgNameToShaderBase(const tString& asCgFile, tString& asDefines)
 	{
 		tString sName = cString::GetFileName(asCgFile);
 		sName = cString::SetFileExt(sName,"");
@@ -75,7 +108,88 @@ namespace hpl{
 		if(lPos == tString::npos) lPos = sName.find("_fp");
 		if(lPos != tString::npos) sName.erase(lPos,3);
 
+		asDefines = "";
+		for(const cShaderVariant& variant : kShaderVariants)
+		{
+			if(sName == variant.msName)
+			{
+				sName = variant.msFile;
+				asDefines = variant.msDefines;
+				break;
+			}
+		}
+
 		return "hpl1_" + sName;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// Appends asFile with its #include "name" lines replaced by the named
+	// files from the shader directory, each file once. Every file gets its
+	// own source number in #line, so compile errors read "<number>(<line>)"
+	// with the number indexing avFiles.
+	static bool ExpandIncludes(const tString& asDir, const tString& asFile,
+								std::vector<tString>& avFiles, tString& asOut, int alDepth)
+	{
+		tString sSource;
+		if(ReadTextFile(asDir + asFile, sSource)==false)
+		{
+			Error("GLSL: Couldn't read '%s'\n",(asDir + asFile).c_str());
+			return false;
+		}
+
+		int lFileNum = (int)avFiles.size();
+		avFiles.push_back(asFile);
+
+		char sLine[64];
+		snprintf(sLine, sizeof(sLine), "#line 1 %d\n", lFileNum);
+		asOut += sLine;
+
+		size_t lStart = 0;
+		int lLineNum = 1;
+		while(lStart < sSource.size())
+		{
+			size_t lEnd = sSource.find('\n', lStart);
+			if(lEnd == tString::npos) lEnd = sSource.size();
+			tString sText = sSource.substr(lStart, lEnd - lStart);
+			lStart = lEnd + 1;
+
+			size_t lFirst = sText.find_first_not_of(" \t");
+			if(lFirst == tString::npos || sText.compare(lFirst, 8, "#include") != 0)
+			{
+				asOut += sText;
+				asOut += "\n";
+				++lLineNum;
+				continue;
+			}
+
+			size_t lOpen = sText.find('"', lFirst);
+			size_t lClose = lOpen == tString::npos ? tString::npos : sText.find('"', lOpen + 1);
+			if(lClose == tString::npos)
+			{
+				Error("GLSL: %s(%d): expected #include \"file\"\n", asFile.c_str(), lLineNum);
+				return false;
+			}
+			tString sInclude = sText.substr(lOpen + 1, lClose - lOpen - 1);
+
+			bool bIncluded = false;
+			for(const tString& sFile : avFiles) bIncluded = bIncluded || sFile == sInclude;
+			if(!bIncluded)
+			{
+				if(alDepth >= kMaxIncludeDepth)
+				{
+					Error("GLSL: %s(%d): includes nested too deep\n", asFile.c_str(), lLineNum);
+					return false;
+				}
+				if(!ExpandIncludes(asDir, sInclude, avFiles, asOut, alDepth + 1)) return false;
+			}
+
+			++lLineNum;
+			snprintf(sLine, sizeof(sLine), "#line %d %d\n", lLineNum, lFileNum);
+			asOut += sLine;
+		}
+
+		return true;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -134,8 +248,8 @@ namespace hpl{
 
 	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName)
 	{
-		return CompileStage(aStage, msShaderDir + "hpl1_" + asName +
-									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"));
+		return CompileStage(aStage, "hpl1_" + asName +
+									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "");
 	}
 
 	//-----------------------------------------------------------------------
@@ -157,22 +271,23 @@ namespace hpl{
 
 	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asEntry)
 	{
-		tString sBase = msShaderDir + CgNameToShaderBase(asFile);
+		tString sDefines;
+		tString sBase = CgNameToShaderBase(asFile, sDefines);
 
 		if(mProgramType == eGpuProgramType_Vertex)
 		{
-			mlProgram = CompileStage(GL_VERTEX_SHADER, sBase + ".vertex");
+			mlProgram = CompileStage(GL_VERTEX_SHADER, sBase + ".vertex", sDefines);
 			// Optional: not every vertex shader has a companion.
-			FILE *pFile = fopen((sBase + ".fragment").c_str(),"rb");
+			FILE *pFile = fopen((msShaderDir + sBase + ".fragment").c_str(),"rb");
 			if(pFile)
 			{
 				fclose(pFile);
-				mlCompanionFragment = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment");
+				mlCompanionFragment = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment", sDefines);
 			}
 		}
 		else
 		{
-			mlProgram = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment");
+			mlProgram = CompileStage(GL_FRAGMENT_SHADER, sBase + ".fragment", sDefines);
 		}
 
 		if(mlProgram==0)
@@ -181,7 +296,7 @@ namespace hpl{
 			return false;
 		}
 
-		if(mbDebugInfo) Log("GLSL: '%s' -> '%s'\n",msName.c_str(),sBase.c_str());
+		if(mbDebugInfo) Log("GLSL: '%s' -> '%s' (%s)\n",msName.c_str(),sBase.c_str(),sDefines.c_str());
 
 		return true;
 	}
@@ -381,22 +496,24 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asPath)
+	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines)
 	{
-		tString sSource;
-		if(ReadTextFile(asPath, sSource)==false)
-		{
-			Error("GLSL: Couldn't read '%s'\n",asPath.c_str());
-			return 0;
-		}
+		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 
-		const char* vSources[2] = {
-			aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble,
-			sSource.c_str()
-		};
+		tStringVec vDefines;
+		cString::GetStringVec(asDefines, vDefines, nullptr);
+		for(const tString& sDefine : vDefines) sSource += "#define " + sDefine + "\n";
 
+		// Source number 0 is the preamble above.
+		std::vector<tString> vFiles(1, "(preamble)");
+		if(ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0)==false) return 0;
+
+		tString sName = asFile;
+		if(asDefines != "") sName += " (" + asDefines + ")";
+
+		const char* pSource = sSource.c_str();
 		GLuint lShader = glCreateShader(aStage);
-		glShaderSource(lShader, 2, vSources, nullptr);
+		glShaderSource(lShader, 1, &pSource, nullptr);
 		glCompileShader(lShader);
 
 		GLint lOk = GL_FALSE;
@@ -405,7 +522,10 @@ namespace hpl{
 		{
 			char sLog[4096];
 			glGetShaderInfoLog(lShader, sizeof(sLog), nullptr, sLog);
-			Error("GLSL: Compiling '%s' failed:\n%s\n",asPath.c_str(),sLog);
+			tString sFiles;
+			for(size_t i=0; i<vFiles.size(); ++i)
+				sFiles += "  " + cString::ToString((int)i) + " = " + vFiles[i] + "\n";
+			Error("GLSL: Compiling '%s' failed:\n%s\nSource numbers:\n%s",sName.c_str(),sLog,sFiles.c_str());
 			glDeleteShader(lShader);
 			return 0;
 		}
@@ -422,7 +542,7 @@ namespace hpl{
 		{
 			char sLog[4096];
 			glGetProgramInfoLog(lProgram, sizeof(sLog), nullptr, sLog);
-			Error("GLSL: Linking '%s' failed:\n%s\n",asPath.c_str(),sLog);
+			Error("GLSL: Linking '%s' failed:\n%s\n",sName.c_str(),sLog);
 			glDeleteProgram(lProgram);
 			return 0;
 		}

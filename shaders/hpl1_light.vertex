@@ -1,0 +1,61 @@
+// Copyright 2006-2010 (C) - Frictional Games
+//
+// This file is part of HPL1 Engine
+//
+// For conditions of distribution and use, see copyright notice in LICENSE-shaders
+//
+
+///////////////////////////////////////////////////////
+/// LIGHTING VERTEX PROGRAM ////////////////////////////
+///////////////////////////////////////////////////////
+
+// Variants: SPOT, SPECULAR (see hpl1_light.glsl)
+
+#define position (gl_Vertex)
+#define normal (gl_Normal)
+#define uv (gl_MultiTexCoord0.xy)
+#define tangent (gl_MultiTexCoord1)
+
+#include "hpl1_light.glsl"
+
+uniform mat4 worldViewProj;
+#ifdef SPOT
+uniform mat4 spotViewProj;
+#endif
+#ifdef SPECULAR
+uniform vec3 EyePos;
+#endif
+uniform vec3 LightPos;
+uniform vec4 LightColor;
+uniform vec3 LightDirMul;
+
+void main()
+{
+	gl_Position = (worldViewProj * position);
+
+	vUv = uv;
+
+#ifdef SPOT
+	vSpotlightUv = (spotViewProj * position);
+#endif
+
+	vec3 lightDir = LightPos - position.xyz;
+	vLightDir = lightDir * LightDirMul;
+
+	//Calculate rotation for light to get it to tangent space.
+	vec3 binormal = cross(normal,tangent.xyz)*tangent.w;
+	mat3 rotation = transpose(mat3(tangent.xyz, binormal, normal));
+
+	//Transform the lightdir
+	vLightDir = (rotation * vLightDir);
+
+#ifdef SPECULAR
+	//Get the halfvector for the specular term
+	vHalfVec = normalize(EyePos - position.xyz);
+	//transform to tangent space
+	vHalfVec = (rotation * vHalfVec);
+	vHalfVec = normalize(vLightDir)+vHalfVec;
+#endif
+
+	vLightColor = clamp(LightColor, vec4(0.0), vec4(1.0));
+}

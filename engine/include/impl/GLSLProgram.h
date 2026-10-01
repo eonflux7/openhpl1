@@ -36,7 +36,9 @@ namespace hpl {
 	 * attached to a shared program pipeline when bound.
 	 *
 	 * Requests for "Foo_vp.cg" / "Foo_fp.cg" load "hpl1_Foo.vertex" /
-	 * "hpl1_Foo.fragment" from the shader directory.
+	 * "hpl1_Foo.fragment" from the shader directory, or a shared file with
+	 * #defines for the names listed in kShaderVariants. Shader files can
+	 * #include "file" from the shader directory.
 	 */
 	class cGLSLProgram : public iGpuProgram
 	{
@@ -86,7 +88,7 @@ namespace hpl {
 
 	private:
 		GLint GetUniform(const tString& asName);
-		static GLuint CompileStage(GLenum aStage, const tString& asPath);
+		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines);
 		static void BindStage(GLbitfield aStageBit, GLuint alProgram);
 		static void UpdateFragmentStage();
 

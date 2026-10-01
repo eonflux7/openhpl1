@@ -117,7 +117,7 @@ Every step is checked against reference images of the renderer before it.
   - [ ] screen copies for post effects and refraction are still 8-bit, so
         bloom, depth of field and refraction clip at 1
 - [ ] **Shader system:**
-  - [ ] shared include files and `#define` variants instead of one file per
+  - [x] shared include files and `#define` variants instead of one file per
         combination
   - [ ] per-frame values (view, projection, screen size, depth range, time)
         in one uniform block; matrices kept on the CPU instead of read back

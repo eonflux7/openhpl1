@@ -445,6 +445,22 @@ messages (NVIDIA 615). Fixed for that:
   and a few dozen pixels on three frames. With FSAA 4 the edges differ
   (other sample positions) and are still smoothed.
 
+### Shader system
+
+- Shader files can `#include "file"` from the shader directory (each file
+  once). Every file gets its own GLSL source number, and a compile error
+  lists which number is which file, so `2(16)` reads as line 16 of the
+  second file.
+- Programs can be variants of one file compiled with `#define`s
+  (`kShaderVariants` in `GLSLProgram.cpp`). The ten light fragment programs
+  and four light vertex programs are now `hpl1_light.vertex`/`.fragment`
+  (`SPOT`, `SPECULAR`, `NORMAL_MAP`, `SPECULAR_MAP`) with their shared
+  varyings in `hpl1_light.glsl`; the three transparent fog programs are
+  `hpl1_Fog_Trans.fragment` (`MOD`, `MODX2`) and the two blur programs
+  `hpl1_PostEffect_Blur.fragment` (`RECT`). Light passes write 0 alpha in
+  every variant; some left it undefined.
+- Reference images: unchanged.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
