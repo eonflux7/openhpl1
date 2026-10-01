@@ -248,7 +248,7 @@ namespace hpl {
 	{
 		tPhysicsMaterialMapIt it = m_mapMaterials.find(asName);
 		if(it == m_mapMaterials.end()){
-			return NULL;
+			return nullptr;
 		}
 
 		iPhysicsMaterial *pMaterial =it->second;

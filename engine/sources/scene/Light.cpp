@@ -44,7 +44,7 @@ namespace hpl {
 		mfFlickerOnFadeLength = 0;
 		mfFlickerOffFadeLength = 0;
 
-		mpWorld3D = NULL;
+		mpWorld3D = nullptr;
 
 		mfFlickerStateLength = 0;
 

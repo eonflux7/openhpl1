@@ -82,7 +82,7 @@ namespace hpl {
 
 		bool mbUpdateBody;
 
-		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame){return NULL;}
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame){return nullptr;}
 		int GetSaveCreatePrio(){return 0;}
 	};
 

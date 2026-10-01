@@ -67,12 +67,12 @@ namespace hpl {
 		mpLowLevelGraphics = apLowLevelGraphics;
 		mpLowLevelResources = apLowLevelResources;
 
-		mpDrawer = NULL;
-		mpMeshCreator = NULL;
-		mpMaterialHandler = NULL;
-		mpRenderer2D = NULL;
-		mpRenderer3D = NULL;
-		mpRendererPostEffects = NULL;
+		mpDrawer = nullptr;
+		mpMeshCreator = nullptr;
+		mpMaterialHandler = nullptr;
+		mpRenderer2D = nullptr;
+		mpRenderer3D = nullptr;
+		mpRendererPostEffects = nullptr;
 	}
 
 	//-----------------------------------------------------------------------

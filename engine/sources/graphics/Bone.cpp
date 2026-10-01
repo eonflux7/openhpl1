@@ -36,7 +36,7 @@ namespace hpl {
 	{
 		msName = asName;
 		mpSkeleton = apSkeleton;
-		mpParent = NULL;
+		mpParent = nullptr;
 
 		mbNeedsUpdate = true;
 
@@ -103,7 +103,7 @@ namespace hpl {
 
 	void cBone::Detach()
 	{
-		if(mpParent == NULL) return;
+		if(mpParent == nullptr) return;
 
 		tBoneListIt it = mpParent->mlstChildren.begin();
 		for(;it != mpParent->mlstChildren.end(); it++)
@@ -131,7 +131,7 @@ namespace hpl {
 	{
 		if(mbNeedsUpdate == false) return;
 
-		if(mpParent==NULL)
+		if(mpParent==nullptr)
 		{
 			m_mtxWorldTransform = m_mtxTransform;
 		}

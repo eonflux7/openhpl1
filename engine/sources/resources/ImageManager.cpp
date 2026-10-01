@@ -70,7 +70,7 @@ namespace hpl {
 
 	iResourceBase* cImageManager::CreateInFrame(const tString& asName, int alFrameHandle)
 	{
-		cResourceImage *pImage = NULL;
+		cResourceImage *pImage = nullptr;
 		tString sPath;
 
 		BeginLoad(asName);
@@ -82,17 +82,17 @@ namespace hpl {
 			{
 				iBitmap2D *pBmp;
 				pBmp = mpLowLevelResources->LoadBitmap2D(sPath);
-				if(pBmp==NULL){
+				if(pBmp==nullptr){
 					Error("Imagemanager Couldn't load bitmap '%s'\n", sPath.c_str());
 					EndLoad();
-					return NULL;
+					return nullptr;
 				}
 
 				pImage = AddToFrame(pBmp, alFrameHandle);
 
 				hplDelete(pBmp);
 
-				if(pImage==NULL){
+				if(pImage==nullptr){
 					Error("Imagemanager couldn't create image '%s'\n", asName.c_str());
 				}
 
@@ -128,7 +128,7 @@ namespace hpl {
 
 	cResourceImage* cImageManager::CreateFromBitmap(const tString &asName,iBitmap2D* apBmp, int alFrameHandle)
 	{
-		if(apBmp==NULL)return NULL;
+		if(apBmp==nullptr)return nullptr;
 
 		cResourceImage *pImage = AddToFrame(apBmp, alFrameHandle);
 
@@ -250,7 +250,7 @@ namespace hpl {
 	{
 		cFrameBitmap *pBFrame = CreateBitmapFrame(avSize);
 
-		if(pBFrame==NULL) return -1;
+		if(pBFrame==nullptr) return -1;
 
 		return pBFrame->GetHandle();
 	}
@@ -280,7 +280,7 @@ namespace hpl {
 
 	cResourceImage *cImageManager::FindImage(const tString &asName, tString &asFilePath)
 	{
-		cResourceImage *pImage=NULL;
+		cResourceImage *pImage=nullptr;
 
 		if(cString::GetFileExt(asName)=="")
 		{
@@ -289,7 +289,7 @@ namespace hpl {
 				tString sNewName = cString::SetFileExt(asName,*it);
 				pImage = static_cast<cResourceImage*> (FindLoadedResource(sNewName, asFilePath));
 
-				if((pImage==NULL && asFilePath!="") || pImage!=NULL)break;
+				if((pImage==nullptr && asFilePath!="") || pImage!=nullptr)break;
 			}
 		}
 		else
@@ -305,7 +305,7 @@ namespace hpl {
 	cResourceImage *cImageManager::AddToFrame(iBitmap2D *apBmp,int alFrameHandle)
 	{
 		bool bFound = false;
-		cResourceImage *pImage=NULL;
+		cResourceImage *pImage=nullptr;
 
 		if(mlstBitmapFrames.size()==0){
 			CreateBitmapFrame(mvFrameSize);
@@ -318,7 +318,7 @@ namespace hpl {
 			{
 				if(!(*it)->IsFull() && !(*it)->IsLocked()){
 					pImage = (*it)->AddBitmap(apBmp);
-					if(pImage!=NULL)
+					if(pImage!=nullptr)
 					{
 						bFound = true;
 						break;
@@ -338,7 +338,7 @@ namespace hpl {
 				if(pFrame)
 				{
 					pImage = pFrame->AddBitmap(apBmp);
-					if(pImage==NULL)
+					if(pImage==nullptr)
 					{
 						Log("No fit in new frame!\n");
 					}
@@ -357,7 +357,7 @@ namespace hpl {
 				}
 				it++;
 			}
-			if(pImage==NULL)
+			if(pImage==nullptr)
 				Error("Image didn't fit frame %d!\n", alFrameHandle);
 		}
 

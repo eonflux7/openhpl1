@@ -151,8 +151,8 @@ namespace hpl {
 		void SetFalloffMap(iTexture* apTexture);
 
 		//Renderable implementation:
-		iMaterial *GetMaterial(){ return NULL;}
-		iVertexBuffer* GetVertexBuffer(){ return NULL;}
+		iMaterial *GetMaterial(){ return nullptr;}
+		iVertexBuffer* GetVertexBuffer(){ return nullptr;}
 
 		bool IsShadowCaster(){ return false;}
 		eRenderableType GetRenderType(){ return eRenderableType_Light;}

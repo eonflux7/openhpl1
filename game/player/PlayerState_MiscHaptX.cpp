@@ -62,7 +62,7 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	mpPlayer->mbProxyTouching = false;
-	mpPlayer->GetPickRay()->mpPickedBody = NULL;
+	mpPlayer->GetPickRay()->mpPickedBody = nullptr;
 	cVector3f vProxyPos = mpInit->mpGame->GetHaptic()->GetLowLevel()->GetProxyPosition();
 	mpPlayer->GetPickRay()->mvPickedPos = vProxyPos;
 	mpPlayer->GetPickRay()->mfPickedDist = cMath::Vector3Dist(vProxyPos,mpPlayer->GetCamera()->GetPosition());
@@ -76,14 +76,14 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 	collideData.SetMaxSize(1);
 
 	cPortalContainerEntityIterator it = pCont->GetEntityIterator(&bv);
-	iGameEntity *pPickedEntity = NULL;
+	iGameEntity *pPickedEntity = nullptr;
 	eGameEntityType pickedType = eGameEntityType_LastEnum;
 	
 	while(it.HasNext())
 	{
 		iPhysicsBody *pBody = static_cast<iPhysicsBody*>(it.Next());
 
-		if(pBody->GetUserData()==NULL) continue;
+		if(pBody->GetUserData()==nullptr) continue;
 		if(cMath::CheckCollisionBV(bv, *pBody->GetBV())==false) continue;
 		
 		iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
@@ -145,7 +145,7 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 
 	/////////////////////////////////////////////////
 	// Ray Check, if a body is not yet picked
-	if(mpPlayer->GetPickRay()->mpPickedBody==NULL)
+	if(mpPlayer->GetPickRay()->mpPickedBody==nullptr)
 	{
 		cVector3f vStart,vEnd;
 
@@ -175,7 +175,7 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 				if(CrossState == eCrossHairState_Active)
 				{
 					if(	(	pEntity->GetType() == eGameEntityType_Object && 
-						pEntity->GetCallbackScript(eGameEntityScriptType_PlayerInteract)==NULL)
+						pEntity->GetCallbackScript(eGameEntityScriptType_PlayerInteract)==nullptr)
 						)
 					{
 						mpPlayer->SetCrossHairState(eCrossHairState_None);
@@ -570,7 +570,7 @@ void cPlayerState_UseItemHaptX::OnUpdate(float afTimeStep)
 	mpPlayer->GetPickRay()->CalculateResults();	
 
 	iPhysicsBody *pBody = mpPlayer->GetPickedBody();
-	iGameEntity *pEntity = NULL;
+	iGameEntity *pEntity = nullptr;
 	if(pBody) pEntity = (iGameEntity*)pBody->GetUserData();
 
 	if(pEntity && mpPlayer->GetPickedDist() <= pEntity->GetMaxInteractDist())
@@ -588,7 +588,7 @@ void cPlayerState_UseItemHaptX::OnUpdate(float afTimeStep)
 void cPlayerState_UseItemHaptX::OnStartInteract()
 {
 	iPhysicsBody *pBody = mpPlayer->GetPickedBody();
-	iGameEntity *pEntity = NULL;
+	iGameEntity *pEntity = nullptr;
 	if(pBody) pEntity = (iGameEntity*)pBody->GetUserData();
 
 	if(pEntity && mpPlayer->GetPickedDist() <= pEntity->GetMaxExamineDist())
@@ -850,7 +850,7 @@ bool cPlayerState_MessageHaptX::OnStartInventoryShortCut(int alNum)
 
 cPlayerState_ClimbHaptX::cPlayerState_ClimbHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Climb)
 {
-	mpLadder = NULL;
+	mpLadder = nullptr;
 
 	mfUpSpeed = mpInit->mpGameConfig->GetFloat("Movement_Climb","UpSpeed",0);
 	mfDownSpeed = mpInit->mpGameConfig->GetFloat("Movement_Climb","DownSpeed",0);
@@ -1080,7 +1080,7 @@ bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 	cMatrixf mtxPos = cMath::MatrixTranslate(mvCharPosition);
 	cVector3f vNewPos;
 	pWorld->CheckShapeWorldCollision(&vNewPos,pCharBody->GetShape(),mtxPos,
-										pCharBody->GetBody(),false,true,NULL,true);
+										pCharBody->GetBody(),false,true,nullptr,true);
 	if(vNewPos != mtxPos.GetTranslation())
 	{
 		return false;	

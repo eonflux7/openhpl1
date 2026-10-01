@@ -38,7 +38,7 @@ namespace hpl {
 
 		mbTransformUpdated = true;
 
-		mpParent = NULL;
+		mpParent = nullptr;
 
 		msName = asName;
 

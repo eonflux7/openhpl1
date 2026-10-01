@@ -76,9 +76,9 @@ namespace hpl {
 
 		tType = cString::GetFileExt(asFilePath);
 		SDL_Surface* pSurface = IMG_Load(asFilePath.c_str());
-		if(pSurface==NULL){
+		if(pSurface==nullptr){
 			//Error handling stuff?
-			return NULL;
+			return nullptr;
 		}
 
 		// Textures are uploaded based on channel count only, so bring every
@@ -93,7 +93,7 @@ namespace hpl {
 				SDL_Surface* pConverted = SDL_ConvertSurface(pSurface, targetFormat);
 				SDL_DestroySurface(pSurface);
 				pSurface = pConverted;
-				if(pSurface==NULL) return NULL;
+				if(pSurface==nullptr) return nullptr;
 			}
 		}
 

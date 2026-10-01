@@ -119,7 +119,7 @@ namespace hpl {
 		tFlag GetCollideType(){ return mlCollideType;}
 
 		void AttachNode(cNode2D* apNode){ mpNode = apNode; }
-		void DetachNode(){mpNode = NULL;}
+		void DetachNode(){mpNode = nullptr;}
 
 		int GetID(){ return mlID; }
 

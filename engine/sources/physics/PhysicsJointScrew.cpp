@@ -48,9 +48,9 @@ namespace hpl {
 		cMatrixf mtxChildTemp, mtxParentTemp;
 
 		iPhysicsBody *pChildBody = static_cast<iPhysicsBody*>(apSaveObjectHandler->Get(mlChildBodyId));
-		if(pChildBody==NULL) return NULL;
+		if(pChildBody==nullptr) return nullptr;
 
-		iPhysicsBody *pParentBody = NULL;
+		iPhysicsBody *pParentBody = nullptr;
 		if(mlParentBodyId>0) pParentBody = static_cast<iPhysicsBody*>(apSaveObjectHandler->Get(mlParentBodyId));
 
 		mtxChildTemp = pChildBody->GetLocalMatrix();

@@ -69,14 +69,14 @@ namespace hpl {
 		{
 			EndLoad();
 			Error("Video file '%s' could not be found!\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iVideoStreamLoader *pLoader = GetLoader(asName);
-		if(pLoader==NULL)
+		if(pLoader==nullptr)
 		{
 			Error("Could not find a loader for '%s'\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iVideoStream *pVideo = pLoader->Create(asName);
@@ -86,7 +86,7 @@ namespace hpl {
 			EndLoad();
 			hplDelete(pVideo);
 			Error("Could not load video '%s'\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		AddResource(pVideo);
@@ -160,7 +160,7 @@ namespace hpl {
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 

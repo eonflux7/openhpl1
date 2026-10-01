@@ -99,7 +99,7 @@ namespace hpl
 	bool cInput::IsTriggerd(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
-		if(pAction==NULL){return false;}//Log("doesn't exist!!!");return false;}
+		if(pAction==nullptr){return false;}//Log("doesn't exist!!!");return false;}
 
 		return pAction->IsTriggerd();
 	}
@@ -109,7 +109,7 @@ namespace hpl
 	bool cInput::WasTriggerd(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
-		if(pAction==NULL)return false;
+		if(pAction==nullptr)return false;
 
 		return pAction->WasTriggerd();
 	}
@@ -119,7 +119,7 @@ namespace hpl
 	bool cInput::BecameTriggerd(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
-		if(pAction==NULL)return false;
+		if(pAction==nullptr)return false;
 
 		return pAction->BecameTriggerd();
 	}
@@ -129,7 +129,7 @@ namespace hpl
 	bool cInput::DoubleTriggerd(tString asName, float afLimit)
 	{
 		iAction *pAction = GetAction(asName);
-		if(pAction==NULL)return false;
+		if(pAction==nullptr)return false;
 
 		return pAction->DoubleTriggerd(afLimit);
 	}
@@ -153,7 +153,7 @@ namespace hpl
 	iAction* cInput::GetAction(tString asName)
 	{
 		tActionMapIt it = m_mapActions.find(asName);
-		if(it==m_mapActions.end())return NULL;
+		if(it==m_mapActions.end())return nullptr;
 
 		return it->second;
 	}
@@ -192,7 +192,7 @@ namespace hpl
 
 	iAction* cInput::InputToAction(const tString &asName)
 	{
-		iAction *pAction=NULL;
+		iAction *pAction=nullptr;
 
 		//////////////////////
 		//Keyboard
@@ -207,7 +207,7 @@ namespace hpl
 
 		//////////////////////
 		//Mouse
-		if(pAction==NULL)
+		if(pAction==nullptr)
 		{
 			for(int i=0; i< eMButton_LastEnum; ++i)
 			{

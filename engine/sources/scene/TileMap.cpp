@@ -140,13 +140,13 @@ namespace hpl {
 
 		cTile* pOldTile = GetWorldTile(vWorldPos,alLayer);
 
-		iTileData* pData=NULL;
+		iTileData* pData=nullptr;
 		if(alTileSet>=0)
 		{
 			cTileSet *pSet = GetTileSet(alTileSet);
-			if(pSet==NULL)return;
+			if(pSet==nullptr)return;
 			pData = pSet->Get(alTileNum);
-			if(pData==NULL)return;
+			if(pData==nullptr)return;
 		}
 
 		cVector2l vTilePos = cVector2l((int)floor(vWorldPos.x/mfTileSize), (int)floor(vWorldPos.y/mfTileSize));
@@ -159,9 +159,9 @@ namespace hpl {
 		int lAngle = 0;
 		if(pOldTile)lAngle = pOldTile->GetAngle();
 
-		cTile* pTile=NULL;
+		cTile* pTile=nullptr;
 		if(pData)
-			pTile = hplNew( cTile, (pData,(eTileRotation)lAngle,vTileWorldPos,mfTileSize,NULL) );
+			pTile = hplNew( cTile, (pData,(eTileRotation)lAngle,vTileWorldPos,mfTileSize,nullptr) );
 
 		mvTileLayer[alLayer]->SetTile(vTilePos.x, vTilePos.y,pTile);
 	}
@@ -172,7 +172,7 @@ namespace hpl {
 	{
 		cVector2f vWorldPos = GetWorldPos(avPos,apCam);
 		cTile* pTile = GetWorldTile(vWorldPos,alLayer);
-		if(pTile==NULL)return;
+		if(pTile==nullptr)return;
 
 		cVector2l vTilePos = cVector2l((int)floor(vWorldPos.x/mfTileSize), (int)floor(vWorldPos.y/mfTileSize));
 		if(vTilePos.x<0 || vTilePos.y<0 || vTilePos.x>=mvSize.x || vTilePos.y>=mvSize.y)return;
@@ -186,7 +186,7 @@ namespace hpl {
 
 	cTile* cTileMap::GetWorldTile(cVector2f avPos, int alLayer)
 	{
-		if(alLayer<0 || alLayer>=(int)mvTileLayer.size())return NULL;
+		if(alLayer<0 || alLayer>=(int)mvTileLayer.size())return nullptr;
 
 		return mvTileLayer[alLayer]->GetAt((int)floor(avPos.x/mfTileSize),
 											(int)floor(avPos.y/mfTileSize));
@@ -221,7 +221,7 @@ namespace hpl {
 		for(int i=0;i<4;i++)
 		{
 			pTile = pLayer->GetAt(lX+vAdd[i].x,lY + vAdd[i].y);
-			if(pTile != NULL){
+			if(pTile != nullptr){
 				pData = static_cast<cTileDataNormal*>(pTile->GetTileData());
 				if(pData->IsSolid())avDir[i] = true;
 				else avDir[i] = false;
@@ -246,7 +246,7 @@ namespace hpl {
 		}
 		else
 		{
-			mvTileLayer.push_back(NULL);
+			mvTileLayer.push_back(nullptr);
 			for(int i=(int)mvTileLayer.size()-2;i>=0;i--)
 			{
 				mvTileLayer[i+1] = mvTileLayer[i];
@@ -268,7 +268,7 @@ namespace hpl {
 		static int count=0;
 
 		cTileDataNormal* pData = static_cast<cTileDataNormal*>(apTile->GetTileData());
-		if(pData==NULL)return;
+		if(pData==nullptr)return;
 		cRect2f _obj = cRect2f(apTile->GetPosition().x-mfTileSize/2,
 								apTile->GetPosition().y-mfTileSize/2, mfTileSize,mfTileSize);
 		cRenderObject2D _obj2 = cRenderObject2D(pData->GetMaterial(),
@@ -276,7 +276,7 @@ namespace hpl {
 								pData->GetIndexVec(apTile->GetAngle()),
 								ePrimitiveType_Quad, apTile->GetPosition().z,
 								_obj,
-								NULL,apTile->GetPositionPtr());
+								nullptr,apTile->GetPositionPtr());
 		mpGraphics->GetRenderer2D()->AddObject(_obj2);
 
 		count++;

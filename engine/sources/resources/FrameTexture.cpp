@@ -36,7 +36,7 @@ namespace hpl {
 	cFrameTexture::~cFrameTexture()
 	{
 		if(mpTexture) hplDelete(mpTexture);
-		mpTexture = NULL;
+		mpTexture = nullptr;
 	}
 
 	//-----------------------------------------------------------------------

@@ -50,7 +50,7 @@ namespace hpl {
 
 		mfSliderWidth = mpSkin->GetAttribute(eGuiSkinAttribute_ListBoxSliderWidth).x;
 
-		mpSlider = NULL;
+		mpSlider = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -210,7 +210,7 @@ namespace hpl {
 
 		////////////////////////////////
 		// Borders
-		DrawBordersAndCorners(	NULL, mvGfxBorders, mvGfxCorners,
+		DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 								GetGlobalPosition() -
 									cVector3f(	mvGfxCorners[0]->GetActiveSize().x,
 												mvGfxCorners[0]->GetActiveSize().y,0),

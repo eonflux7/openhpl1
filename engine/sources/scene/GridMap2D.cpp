@@ -101,13 +101,13 @@ namespace hpl {
 	bool cGridMap2D::RemoveEntity(iEntity2D* apEntity)
 	{
 		cGrid2DObject* pObject = apEntity->GetGrid2DObject();
-		if(pObject==NULL)return false;
+		if(pObject==nullptr)return false;
 
 		pObject->Destroy();
 		m_mapAllObjects.erase(pObject->GetHandle());
 
 		hplDelete(pObject);
-		apEntity->SetGrid2DObject(NULL);
+		apEntity->SetGrid2DObject(nullptr);
 
 		return true;
 	}
@@ -116,7 +116,7 @@ namespace hpl {
 
 	cGrid2D* cGridMap2D::GetAt(int alX, int alY)
 	{
-		if(alX>=mvGridNum.x || alX<0 || alY>=mvGridNum.y || alY<0) return NULL;
+		if(alX>=mvGridNum.x || alX<0 || alY>=mvGridNum.y || alY<0) return nullptr;
 
 		return &mvGrids[alX + alY*mvGridNum.x];
 	}
@@ -165,7 +165,7 @@ namespace hpl {
 		mvPos = avPos;
 		mvSize = avSize;
 		mlType =0;
-		mpObject = NULL;
+		mpObject = nullptr;
 		mlGridNum=0;
 		mlGridAdd=0;
 		mlGridRowCount=0;
@@ -195,7 +195,7 @@ namespace hpl {
 
 	iEntity2D* cGridMap2DRectIt::Next()
 	{
-		iEntity2D* pEntity =NULL;
+		iEntity2D* pEntity =nullptr;
 		if(!mbUpdated){
 			GetGridObject();
 			mbUpdated=true;
@@ -267,7 +267,7 @@ namespace hpl {
 						mvPos.x+mvSize.x - 1 < 0 ||	mvPos.y+mvSize.y - 1 < 0)
 					{
 						//Log("Outside Grid!\n");
-						mpObject = NULL;
+						mpObject = nullptr;
 						mlType=-1;
 						break;
 					}
@@ -337,7 +337,7 @@ namespace hpl {
 							mlGridRowCount--;
 							if(mlGridRowCount<=0)
 							{
-								mpObject=NULL;
+								mpObject=nullptr;
 								break;
 							}
 							mlGridNum+=mlGridAdd;
@@ -379,7 +379,7 @@ namespace hpl {
 
 		mvGridParents.resize(mpGridMap->GetMaxArraySize());
 		for(int i=0;i<(int)mvGridParents.size();i++)
-			mvGridParents[i] = NULL;
+			mvGridParents[i] = nullptr;
 
 		mvPosition= cVector2l(-1000);
 		mvGridSpan = cVector2l(-1,-1);
@@ -403,7 +403,7 @@ namespace hpl {
 				int lNum = x + y*mpGridMap->GetMaxGridSpan().x;
 				if(mvGridParents[lNum]){
 					mvGridParents[lNum]->Erase(mlHandle);
-					mvGridParents[lNum] = NULL;
+					mvGridParents[lNum] = nullptr;
 				}
 			}
 
@@ -453,7 +453,7 @@ namespace hpl {
 					int lNum = x + y*mpGridMap->GetMaxGridSpan().x;
 					if(mvGridParents[lNum]){
 						mvGridParents[lNum]->Erase(mlHandle);
-						mvGridParents[lNum] = NULL;
+						mvGridParents[lNum] = nullptr;
 					}
 				}
 
@@ -479,9 +479,9 @@ namespace hpl {
 				for(int y=0; y<mvGridSpan.y; y++)
 				{
 					int lNum = x + y*mpGridMap->GetMaxGridSpan().x;
-					if(mvGridParents[lNum]!=NULL){
+					if(mvGridParents[lNum]!=nullptr){
 						mvGridParents[lNum]->Erase(mlHandle);
-						mvGridParents[lNum] = NULL;
+						mvGridParents[lNum] = nullptr;
 					}
 				}
 
@@ -498,12 +498,12 @@ namespace hpl {
 
 			mvGridSpan = vGridSpan;
 
-			cGrid2D *pGrid=NULL;
+			cGrid2D *pGrid=nullptr;
 			for(int x=0; x<mvGridSpan.x; x++)
 				for(int y=0; y<mvGridSpan.y; y++)
 				{
 					pGrid = mpGridMap->GetAt(vPos.x+x,vPos.y+y);
-					if(pGrid==NULL){
+					if(pGrid==nullptr){
 						if(!mbIsInOuter){
 							mpGridMap->m_mapOuterObjects.insert(tGrid2DObjectMap::value_type(
 																	mlHandle,this));

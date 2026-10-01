@@ -145,7 +145,7 @@ void cEngineJoint_SaveData::ToJoint(iPhysicsJoint *apJoint)
 	///////////////////////////////
 	//Callback
 	cScriptJointCallback *pCallback = static_cast<cScriptJointCallback*>(apJoint->GetCallback());
-	if(pCallback==NULL)
+	if(pCallback==nullptr)
 	{
 		pCallback = hplNew( cScriptJointCallback, (gpInit->mpGame->GetScene()) );
 		apJoint->SetCallback(pCallback,true);
@@ -260,7 +260,7 @@ void cEnginePS_SaveData::FromPS(cParticleSystem3D *apPS)
 }
 void cEnginePS_SaveData::ToPS(cParticleSystem3D *apPS)
 {
-	if(apPS==NULL) return;
+	if(apPS==nullptr) return;
 
 	for(size_t i=0; i< mvEmitterActive.Size(); ++i)
 	{

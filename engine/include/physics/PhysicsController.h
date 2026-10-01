@@ -108,7 +108,7 @@ namespace hpl {
 		bool mbActive;
 		bool mbPaused;
 
-		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame){return NULL;}
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame){return nullptr;}
 		int GetSaveCreatePrio(){return 0;}
 	};
 

@@ -66,18 +66,18 @@ namespace hpl {
 		mpMeshManager = apMeshManager;
 		mpAnimationManager = apAnimationManager;
 
-		mpWorld = NULL;
+		mpWorld = nullptr;
 
-		mpCallback = NULL;
+		mpCallback = nullptr;
 
 		mbCastShadows = false;
 
 		mpMesh = apMesh;
 
-		mpRootNode = NULL;
-		mpRootCallback = NULL;
+		mpRootNode = nullptr;
+		mpRootCallback = nullptr;
 
-		mpBody=NULL;
+		mpBody=nullptr;
 
 		mbSkeletonPhysics = false;
 		mfSkeletonPhysicsWeight = 1.0f;
@@ -137,7 +137,7 @@ namespace hpl {
 		{
 			cAnimation* pAnimation = mpMesh->GetAnimation(i);
 
-			cAnimationState* pAnimState = hplNew( cAnimationState, (pAnimation,pAnimation->GetName(),NULL) );
+			cAnimationState* pAnimState = hplNew( cAnimationState, (pAnimation,pAnimation->GetName(),nullptr) );
 
 			mvAnimationStates.push_back(pAnimState);
 
@@ -149,7 +149,7 @@ namespace hpl {
 		// Create Nodes
 		mbHasNodes = false;
 		if(	mpMesh->GetNodeNum()>0 &&
-			(mpMesh->GetPhysicsJointNum()<=0 || mpMesh->GetSkeleton()==NULL) &&
+			(mpMesh->GetPhysicsJointNum()<=0 || mpMesh->GetSkeleton()==nullptr) &&
 			mpMesh->GetAnimationNum() >0)
 		{
 			mbHasNodes = true;
@@ -267,7 +267,7 @@ namespace hpl {
 			mbApplyTransformToBV = false;
 			mbHasNodes = false;
 
-			if(mpRootNode==NULL)
+			if(mpRootNode==nullptr)
 			{
 				//Create the root node and attach all node without parents to this.
 				mpRootNode = hplNew( cNode3D, ("NodeRoot",false) );
@@ -897,7 +897,7 @@ namespace hpl {
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	int cMeshEntity::GetAnimationStateNum()
@@ -970,7 +970,7 @@ namespace hpl {
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	int cMeshEntity::GetBoneStateNum()
@@ -1148,7 +1148,7 @@ namespace hpl {
 		{
 			cBoneState *pState = mvBoneStates[i];
 			iPhysicsBody *pBody = pState->GetColliderBody();
-			if(pBody==NULL) continue;
+			if(pBody==nullptr) continue;
 
 			cMatrixf mtxBody = cMath::MatrixMul(pState->GetWorldMatrix(), pState->GetBodyMatrix());
 			pBody->SetMatrix(mtxBody);
@@ -1211,7 +1211,7 @@ namespace hpl {
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	int cMeshEntity::GetNodeStateNum()
@@ -1237,7 +1237,7 @@ namespace hpl {
 
 	cSubMeshEntity* cMeshEntity::GetSubMeshEntity(unsigned int alIdx)
 	{
-		if(alIdx >= mvSubMeshes.size()) return NULL;
+		if(alIdx >= mvSubMeshes.size()) return nullptr;
 
 		return mvSubMeshes[alIdx];
 	}
@@ -1245,7 +1245,7 @@ namespace hpl {
 	cSubMeshEntity* cMeshEntity::GetSubMeshEntityName(const tString &asName)
 	{
 		tSubMeshEntityMapIt it = m_mapSubMeshes.find(asName);
-		if(it == m_mapSubMeshes.end())return NULL;
+		if(it == m_mapSubMeshes.end())return nullptr;
 
 		return it->second;
 	}
@@ -1363,14 +1363,14 @@ namespace hpl {
 
 	iMaterial *cMeshEntity::GetMaterial()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
 
 	iVertexBuffer* cMeshEntity::GetVertexBuffer()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1572,7 +1572,7 @@ namespace hpl {
 		///////////////////////////////////
 		//Load mesh
 		cMesh *pMesh = pResources->GetMeshManager()->CreateMesh(msMeshName);
-		if(pMesh==NULL) return NULL;
+		if(pMesh==nullptr) return nullptr;
 
 
 		///////////////////////

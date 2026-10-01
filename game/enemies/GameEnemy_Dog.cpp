@@ -1138,7 +1138,7 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 										
 										mpEnemyDog->mlAttackStrength,
 
-										target,NULL))
+										target,nullptr))
 			{
 				mpEnemyDog->PlaySound(mpEnemyDog->msAttackHitSound);
 			}
@@ -1293,7 +1293,7 @@ void cGameEnemyState_Dog_Flee::OnUpdate(float afTimeStep)
 
 			bool bHit = mpEnemy->GetGroundFinder()->GetGround(mpMover->GetCharBody()->GetPosition(),
 												mpMover->GetCharBody()->GetForward() *-1,
-												NULL, NULL, 1.9f);
+												nullptr, nullptr, 1.9f);
 			if(bHit)
 			{
                 if(mbBackingFromBreakDoor)
@@ -1508,7 +1508,7 @@ void cGameEnemyState_Dog_BreakDoor::OnUpdate(float afTimeStep)
 
 											mpEnemyDog->mlBreakDoorStrength,
 
-											target,NULL))
+											target,nullptr))
 			{
 				mpEnemyDog->PlaySound(mpEnemyDog->msBreakDoorHitSound);
 
@@ -1633,7 +1633,7 @@ void cGameEnemyState_Dog_KnockDown::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->GetMeshEntity()->SetSkeletonPhysicsActive(true);
 	mpEnemy->GetMeshEntity()->Stop();
 
-	mpEnemy->GetMover()->GetCharBody()->SetEntity(NULL);
+	mpEnemy->GetMover()->GetCharBody()->SetEntity(nullptr);
 	mpEnemy->GetMover()->GetCharBody()->SetActive(false);
 
 	mpEnemy->GetMover()->Stop();
@@ -1749,7 +1749,7 @@ void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 			vPosition = mpEnemy->GetMeshEntity()->GetBoundingVolume()->GetWorldCenter();
 			cVector3f vGroundPos = vPosition;
 			
-			bool bFoundGround = mpEnemy->GetGroundFinder()->GetGround(vPosition,cVector3f(0,-1,0),&vGroundPos,NULL);
+			bool bFoundGround = mpEnemy->GetGroundFinder()->GetGround(vPosition,cVector3f(0,-1,0),&vGroundPos,nullptr);
 
 			//Log("Found ground: %d | %s -> %s\n",bFoundGround,vPosition.ToString().c_str(),
 			//									vGroundPos.ToString().c_str());
@@ -1774,7 +1774,7 @@ void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 				pCharBody->Update(1.0f/60.0f);
 
 				mpEnemy->GetMeshEntity()->UpdateLogic(1.0f/60.0f);
-				mpEnemy->GetMeshEntity()->UpdateGraphics(NULL,1.0f/60.0f,NULL);
+				mpEnemy->GetMeshEntity()->UpdateGraphics(nullptr,1.0f/60.0f,nullptr);
 			}
 		}
 	}
@@ -1827,7 +1827,7 @@ void cGameEnemyState_Dog_Dead::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->GetMeshEntity()->SetSkeletonPhysicsActive(true);
 	mpEnemy->GetMeshEntity()->Stop();
 
-	mpEnemy->GetMover()->GetCharBody()->SetEntity(NULL);
+	mpEnemy->GetMover()->GetCharBody()->SetEntity(nullptr);
 	mpEnemy->GetMover()->GetCharBody()->SetActive(false);
 
 	mpEnemy->GetMover()->Stop();
@@ -1991,8 +1991,8 @@ void cGameEnemy_Dog::OnLoad()
 {
 	//Create attack shape
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,NULL);
-	mpBreakDoorShape = pPhysicsWorld->CreateBoxShape(mvBreakDoorDamageSize,NULL);
+	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,nullptr);
+	mpBreakDoorShape = pPhysicsWorld->CreateBoxShape(mvBreakDoorDamageSize,nullptr);
 	
 	//Set up shape
 	ChangeState(STATE_IDLE);

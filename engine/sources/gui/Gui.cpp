@@ -45,7 +45,7 @@ namespace hpl {
 
 	cGui::cGui()  : iUpdateable("HPL_Gui")
 	{
-		mpSetInFocus = NULL;
+		mpSetInFocus = nullptr;
 
 		mlLastRenderTime = 0;
 
@@ -89,7 +89,7 @@ namespace hpl {
 
 		//////////////////////////////
 		// Create materials
-		for(int i=0; i< eGuiMaterial_LastEnum; ++i) mvMaterials[i] = NULL;
+		for(int i=0; i< eGuiMaterial_LastEnum; ++i) mvMaterials[i] = nullptr;
 
 		mvMaterials[eGuiMaterial_Diffuse] = hplNew( cGuiMaterial_Diffuse,(mpGraphics->GetLowLevel()) );
 		mvMaterials[eGuiMaterial_Alpha] = hplNew( cGuiMaterial_Alpha,(mpGraphics->GetLowLevel()) );
@@ -204,7 +204,7 @@ namespace hpl {
 		if(pSkin->LoadFromFile(sPath)==false)
 		{
 			hplDelete(pSkin);
-			return NULL;
+			return nullptr;
 		}
 
 		m_mapSkins.insert(tGuiSkinMap::value_type(sName,pSkin));
@@ -264,7 +264,7 @@ namespace hpl {
 	cGuiSet* cGui::GetSetFromName(const tString& asName)
 	{
 		tGuiSetMapIt it = m_mapSets.find(asName);
-		if(it == m_mapSets.end()) return NULL;
+		if(it == m_mapSets.end()) return nullptr;
 
 		return it->second;
 	}
@@ -286,7 +286,7 @@ namespace hpl {
 
 	void cGui::DestroySet(cGuiSet *apSet)
 	{
-		if(apSet==NULL) return;
+		if(apSet==nullptr) return;
 
 		tGuiSetMapIt it = m_mapSets.begin();
 		for(; it != m_mapSets.end();)
@@ -324,9 +324,9 @@ namespace hpl {
 		////////////////////////////
 		// Load image
 		cResourceImage *pImage = mpResources->GetImageManager()->CreateImage(asFile);
-		if(pImage==NULL){
+		if(pImage==nullptr){
 			Error("Could not load image '%s'!\n",asFile.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		/////////////////////////////
@@ -350,10 +350,10 @@ namespace hpl {
 		///////////////////
 		// Load texture
 		iTexture *pTexture = mpResources->GetTextureManager()->Create2D(asFile,abMipMaps,false);
-		if(pTexture==NULL)
+		if(pTexture==nullptr)
 		{
 			Error("Could not load texture '%s'!\n",asFile.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		/////////////////////////////
@@ -398,7 +398,7 @@ namespace hpl {
 		if(vImages.empty())
 		{
 			Error("Could not load any images with '%s' as base!\n",asFile.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		/////////////////////////////
@@ -443,7 +443,7 @@ namespace hpl {
 
 	bool cGui::SendMousePos(const cVector2f &avPos, const cVector2f &avRel)
 	{
-		if(mpSetInFocus==NULL) return false;
+		if(mpSetInFocus==nullptr) return false;
 
 		cGuiMessageData data = cGuiMessageData(avPos,avRel);
 		return mpSetInFocus->SendMessage(eGuiMessage_MouseMove,data);
@@ -451,7 +451,7 @@ namespace hpl {
 
 	bool cGui::SendMouseClickDown(eGuiMouseButton aButton)
 	{
-		if(mpSetInFocus==NULL)return false;
+		if(mpSetInFocus==nullptr)return false;
 
 		cGuiMessageData data = cGuiMessageData(aButton);
 		return mpSetInFocus->SendMessage(eGuiMessage_MouseDown,data);
@@ -459,7 +459,7 @@ namespace hpl {
 
 	bool cGui::SendMouseClickUp(eGuiMouseButton aButton)
 	{
-		if(mpSetInFocus==NULL)return false;
+		if(mpSetInFocus==nullptr)return false;
 
 		cGuiMessageData data = cGuiMessageData(aButton);
 		return mpSetInFocus->SendMessage(eGuiMessage_MouseUp,data);
@@ -467,7 +467,7 @@ namespace hpl {
 
 	bool cGui::SendMouseDoubleClick(eGuiMouseButton aButton)
 	{
-		if(mpSetInFocus==NULL)return false;
+		if(mpSetInFocus==nullptr)return false;
 
 		cGuiMessageData data = cGuiMessageData(aButton);
 		return mpSetInFocus->SendMessage(eGuiMessage_MouseDoubleClick,data);
@@ -475,7 +475,7 @@ namespace hpl {
 
 	bool cGui::SendKeyPress(const cKeyPress& keyPress)
 	{
-		if(mpSetInFocus==NULL)return false;
+		if(mpSetInFocus==nullptr)return false;
 
 		cGuiMessageData data = cGuiMessageData(keyPress);
 		return mpSetInFocus->SendMessage(eGuiMessage_KeyPress,data);

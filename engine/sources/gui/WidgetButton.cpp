@@ -42,7 +42,7 @@ namespace hpl {
 	cWidgetButton::cWidgetButton(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Button,apSet, apSkin)
 	{
 		mbPressed = false;
-		mpImage = NULL;
+		mpImage = nullptr;
 	}
 
 	//-----------------------------------------------------------------------

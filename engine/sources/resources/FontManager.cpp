@@ -71,7 +71,7 @@ namespace hpl {
 
 		pFont = static_cast<iFontData*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pFont==NULL && sPath!="")
+		if(pFont==nullptr && sPath!="")
 		{
 			pFont = mpGraphics->GetLowLevel()->CreateFontData(asNewName);
 			pFont->SetUp(mpGraphics->GetDrawer(),mpLowLevelResources,mpGui);
@@ -84,7 +84,7 @@ namespace hpl {
 				if(pFont->CreateFromFontFile(sPath,alSize,alFirstChar,alLastChar)==false){
 					hplDelete(pFont);
 					EndLoad();
-					return NULL;
+					return nullptr;
 				}
 			}
 			//Angel code font type
@@ -93,7 +93,7 @@ namespace hpl {
 				if(pFont->CreateFromBitmapFile(sPath)==false){
 					hplDelete(pFont);
 					EndLoad();
-					return NULL;
+					return nullptr;
 				}
 			}
 			else
@@ -101,7 +101,7 @@ namespace hpl {
 				Error("Font '%s' has an unkown extension!\n",asName.c_str());
 				hplDelete(pFont);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			//mpResources->GetImageManager()->FlushAll();

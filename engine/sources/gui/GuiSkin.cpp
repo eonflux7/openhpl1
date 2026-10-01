@@ -41,7 +41,7 @@ namespace hpl {
 	{
 		mpGui = apGui;
 
-		mpMaterial = NULL;
+		mpMaterial = nullptr;
 	}
 	cGuiSkinFont::~cGuiSkinFont()
 	{
@@ -62,9 +62,9 @@ namespace hpl {
 		mpGui = apGui;
 		msName = asName;
 
-		mvGfxElements.resize(eGuiSkinGfx_LastEnum, NULL);
-		mvFonts.resize(eGuiSkinFont_LastEnum, NULL);
-		mvAttributes.resize(eGuiSkinAttribute_LastEnum, NULL);
+		mvGfxElements.resize(eGuiSkinGfx_LastEnum, nullptr);
+		mvFonts.resize(eGuiSkinFont_LastEnum, nullptr);
+		mvAttributes.resize(eGuiSkinAttribute_LastEnum, 0);
 	}
 
 	//-----------------------------------------------------------------------
@@ -87,7 +87,7 @@ namespace hpl {
 
 	static eGuiGfxAnimationType ToAnimType(const char* apString)
 	{
-		if(apString==NULL) return eGuiGfxAnimationType_Loop;
+		if(apString==nullptr) return eGuiGfxAnimationType_Loop;
 
 		tString sLow = cString::ToLowerCase(apString);
 
@@ -103,7 +103,7 @@ namespace hpl {
 
 	static eGuiMaterial ToMaterial(const char* apString)
 	{
-		if(apString==NULL) return eGuiMaterial_Alpha;
+		if(apString==nullptr) return eGuiMaterial_Alpha;
 
 		tString sLow = cString::ToLowerCase(apString);
 
@@ -141,7 +141,7 @@ namespace hpl {
 
 		//Iterate font elements
 		TiXmlElement* pAttributeElem = pAttributesElement->FirstChildElement();
-		for(; pAttributeElem != NULL; pAttributeElem = pAttributeElem->NextSiblingElement())
+		for(; pAttributeElem != nullptr; pAttributeElem = pAttributeElem->NextSiblingElement())
 		{
 			tString sType = cString::ToString(pAttributeElem->Attribute("type"),"");
 
@@ -170,7 +170,7 @@ namespace hpl {
 
 		//Iterate font elements
 		TiXmlElement* pFontElem = pFontsElement->FirstChildElement();
-		for(; pFontElem != NULL; pFontElem = pFontElem->NextSiblingElement())
+		for(; pFontElem != nullptr; pFontElem = pFontElem->NextSiblingElement())
 		{
 			tString sType = cString::ToString(pFontElem->Attribute("type"),"");
 
@@ -199,7 +199,7 @@ namespace hpl {
 
 		//Iterate gfx elements
 		TiXmlElement* pGfxElem = pGfxElementsElement->FirstChildElement();
-		for(; pGfxElem != NULL; pGfxElem = pGfxElem->NextSiblingElement())
+		for(; pGfxElem != nullptr; pGfxElem = pGfxElem->NextSiblingElement())
 		{
 			tString sType = cString::ToString(pGfxElem->Attribute("type"),"");
 
@@ -216,7 +216,7 @@ namespace hpl {
 			float fAnimFrameTime = cString::ToFloat(pGfxElem->Attribute("anim_frame_time"),1);
 			eGuiGfxAnimationType animType = ToAnimType(pGfxElem->Attribute("anim_mode"));
 
-			cGuiGfxElement *pGfx = NULL;
+			cGuiGfxElement *pGfx = nullptr;
 			if(sFile != "")
 			{
 				if(bAnimated)

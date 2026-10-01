@@ -44,7 +44,7 @@ cPlayerState_ThrowHaptX::cPlayerState_ThrowHaptX(cInit *apInit,cPlayer *apPlayer
 	mfLastForward = 1.0f;
 	mfLastSideways = 1.0f;
 
-	mpHudObject = NULL;
+	mpHudObject = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -513,7 +513,7 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 	if(mbInteractDown)
 	{
 		cVector3f vNewPos = mtxCollider.GetTranslation();
-		bool bCollide = pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,mpCollider,mtxCollider,NULL,false,false,NULL,false);
+		bool bCollide = pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,mpCollider,mtxCollider,nullptr,false,false,nullptr,false);
 		if(bCollide && vNewPos != mtxWeapon.GetTranslation())
 		{
 			cVector3f vDiff = vNewPos - mtxCollider.GetTranslation();
@@ -890,7 +890,7 @@ bool cPlayerState_WeaponMeleeHaptX::CheckAttack(const cMatrixf& a_mtxTransform, 
 		if(cMath::CheckCollisionBV(tempBV, *pBody->GetBV()))
 		{
 			if(pEnemy->GetMeshEntity()->CheckColliderShapeCollision(pPhysicsWorld,
-									mpCollider,	a_mtxTransform,&lstPostions,NULL)==false)
+									mpCollider,	a_mtxTransform,&lstPostions,nullptr)==false)
 			{
 				continue;
 			}
@@ -956,7 +956,7 @@ bool cPlayerState_WeaponMeleeHaptX::CheckAttack(const cMatrixf& a_mtxTransform, 
 	//Iterate bodies
 	float fClosestHitDist = 9999.0f;
 	cVector3f vClosestHitPos;
-	iPhysicsMaterial* pClosestHitMat = NULL;
+	iPhysicsMaterial* pClosestHitMat = nullptr;
 	cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
 	while(it.HasNext())
 	{

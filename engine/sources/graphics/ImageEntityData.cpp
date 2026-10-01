@@ -49,8 +49,8 @@ namespace hpl {
 		mbCollidable =false;
 		mbLit = true;
 
-		mpMesh = NULL;
-		mpCollideMesh = NULL;
+		mpMesh = nullptr;
+		mpCollideMesh = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -76,7 +76,7 @@ namespace hpl {
 	cImageAnimation* cImageEntityData::GetAnimationByName(const tString& asName)
 	{
 		tImageAnimationMapIt it = m_mapAnimations.find(asName);
-		if(it == m_mapAnimations.end())return NULL;
+		if(it == m_mapAnimations.end())return nullptr;
 
 		return &it->second;
 	}
@@ -93,7 +93,7 @@ namespace hpl {
 			it++;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -145,7 +145,7 @@ namespace hpl {
 		///////// ANIMATIONS ///////////////
 		TiXmlElement* AnimationElem = RootElem->FirstChildElement("ANIMATIONS");
 
-		if(AnimationElem!=NULL)
+		if(AnimationElem!=nullptr)
 		{
 			mlFrameNum = cString::ToInt(AnimationElem->Attribute("Frames"),1);
 
@@ -185,7 +185,7 @@ namespace hpl {
 
 		// Create the mesh for drawing
 		mpMesh = mpGraphics->GetMeshCreator()->Create2D(sMesh, 2);
-		if(mpMesh == NULL)
+		if(mpMesh == nullptr)
 		{
 			Error("Error creating mesh for '%s'!\n", msName.c_str());
 			return false;
@@ -195,7 +195,7 @@ namespace hpl {
 
 		//Create the mesh used for collision
 		mpCollideMesh = mpGraphics->GetMeshCreator()->Create2D(sCollideMesh, 2);
-		if(mpCollideMesh == NULL)
+		if(mpCollideMesh == nullptr)
 		{
 			Error("Error creating collide mesh '%s' for '%s'!\n", sCollideMesh.c_str(),msName.c_str());
 			return false;
@@ -219,7 +219,7 @@ namespace hpl {
 		{
 			//Get the material
 			iMaterial* pMaterial = mpGraphics->GetMaterialHandler()->Create(sMaterial, eMaterialPicture_Image);
-			if(pMaterial == NULL){
+			if(pMaterial == nullptr){
 				Error("Error creating material '%s' for '%s'!\n", sMaterial.c_str(),msName.c_str());
 				return false;
 			}
@@ -249,7 +249,7 @@ namespace hpl {
 				cResourceImage* pImage = mpResources->GetImageManager()->CreateImage(
 														sFile + it->msSuffix,
 														avImageHandle[it->mType]);
-				if(pImage==NULL){
+				if(pImage==nullptr){
 					FatalError("Can't load texture '%s%s'!\n",sFile.c_str(), it->msSuffix.c_str());
 					return false;
 				}
@@ -281,7 +281,7 @@ namespace hpl {
 
 	cImageFrame* cImageEntityData::GetImageFrame(int alFrame)
 	{
-		if(alFrame<0 || alFrame>=(int)mvImageFrames.size())return NULL;
+		if(alFrame<0 || alFrame>=(int)mvImageFrames.size())return nullptr;
 
 		return &mvImageFrames[alFrame];
 	}

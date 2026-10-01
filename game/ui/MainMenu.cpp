@@ -807,7 +807,7 @@ private:
 	int mlNum;
 };
 
-cMainMenuWidget_SaveGameList *gpSaveGameList[3]= {NULL, NULL, NULL};
+cMainMenuWidget_SaveGameList *gpSaveGameList[3]= {nullptr, nullptr, nullptr};
 
 class cMainMenuWidget_LoadSaveGame : public cMainMenuWidget_Button
 {
@@ -906,13 +906,13 @@ public:
 //-----------------------------------------------------------------------
 
 
-cMainMenuWidget_Text *gpInvertMouseYText=NULL;
-cMainMenuWidget_Text *gpMouseSensitivityText=NULL;
-cMainMenuWidget_Text *gpToggleCrouchText=NULL;
-cMainMenuWidget_Text *gpUseHapticsText=NULL;
-cMainMenuWidget_Text *gpWidgetInteractModeCameraSpeedText = NULL;
-cMainMenuWidget_Text *gpWidgetActionModeCameraSpeedText = NULL;
-cMainMenuWidget_Text *gpWidgetWeightForceScaleText = NULL;
+cMainMenuWidget_Text *gpInvertMouseYText=nullptr;
+cMainMenuWidget_Text *gpMouseSensitivityText=nullptr;
+cMainMenuWidget_Text *gpToggleCrouchText=nullptr;
+cMainMenuWidget_Text *gpUseHapticsText=nullptr;
+cMainMenuWidget_Text *gpWidgetInteractModeCameraSpeedText = nullptr;
+cMainMenuWidget_Text *gpWidgetActionModeCameraSpeedText = nullptr;
+cMainMenuWidget_Text *gpWidgetWeightForceScaleText = nullptr;
 
 
 //-----------------------------------------------------------------------
@@ -1098,9 +1098,9 @@ public:
 // OPTIONS SOUND
 //////////////////////////////////////////////////////////////////////////
 
-cMainMenuWidget_Text *gpSoundVolumeText=NULL;
-cMainMenuWidget_Text *gpSoundHardwareText=NULL;
-cMainMenuWidget_Text *gpSoundOutputDevice=NULL;
+cMainMenuWidget_Text *gpSoundVolumeText=nullptr;
+cMainMenuWidget_Text *gpSoundHardwareText=nullptr;
+cMainMenuWidget_Text *gpSoundOutputDevice=nullptr;
 
 class cMainMenuWidget_SoundVolume : public cMainMenuWidget_Button
 {
@@ -1203,15 +1203,15 @@ public:
 // OPTIONS GAME
 //////////////////////////////////////////////////////////////////////////
 
-cMainMenuWidget_Text *gpLanguageText=NULL;
-cMainMenuWidget_Text *gpSubtitlesText=NULL;
+cMainMenuWidget_Text *gpLanguageText=nullptr;
+cMainMenuWidget_Text *gpSubtitlesText=nullptr;
 
-cMainMenuWidget_Text *gpSimpleSwingText=NULL;
-cMainMenuWidget_Text *gpAllowQuickSaveText=NULL;
-cMainMenuWidget_Text *gpDisablePersonalText=NULL;
-cMainMenuWidget_Text *gpDifficultyText=NULL;
-cMainMenuWidget_Text *gpFlashItemsText=NULL;
-cMainMenuWidget_Text *gpShowCrossHairText=NULL;
+cMainMenuWidget_Text *gpSimpleSwingText=nullptr;
+cMainMenuWidget_Text *gpAllowQuickSaveText=nullptr;
+cMainMenuWidget_Text *gpDisablePersonalText=nullptr;
+cMainMenuWidget_Text *gpDifficultyText=nullptr;
+cMainMenuWidget_Text *gpFlashItemsText=nullptr;
+cMainMenuWidget_Text *gpShowCrossHairText=nullptr;
 
 
 class cMainMenuWidget_ShowCrossHair : public cMainMenuWidget_Button
@@ -1428,20 +1428,20 @@ public:
 // OPTIONS GRAPHICS
 //////////////////////////////////////////////////////////////////////////
 
-cMainMenuWidget_Text *gpResolutionText=NULL;
-cMainMenuWidget_Text *gpPostEffectsText=NULL;
-cMainMenuWidget_Text *gpBloomText=NULL;
-cMainMenuWidget_Text *gpMotionBlurText=NULL;
-cMainMenuWidget_Text *gpVSyncText=NULL;
-cMainMenuWidget_Text *gpTextureQualityText=NULL;
-cMainMenuWidget_Text *gpShaderQualityText=NULL;
-cMainMenuWidget_Text *gpShadowsText=NULL;
-cMainMenuWidget_Text *gpTextureFilterText=NULL;
-cMainMenuWidget_Text *gpTextureAnisotropyText=NULL;
-cMainMenuWidget_Text *gpGammaText=NULL;
-cMainMenuWidget_Text *gpGammaText2=NULL;
-cMainMenuWidget_Text *gpFSAAText=NULL;
-cMainMenuWidget_Text *gpDoFText=NULL;
+cMainMenuWidget_Text *gpResolutionText=nullptr;
+cMainMenuWidget_Text *gpPostEffectsText=nullptr;
+cMainMenuWidget_Text *gpBloomText=nullptr;
+cMainMenuWidget_Text *gpMotionBlurText=nullptr;
+cMainMenuWidget_Text *gpVSyncText=nullptr;
+cMainMenuWidget_Text *gpTextureQualityText=nullptr;
+cMainMenuWidget_Text *gpShaderQualityText=nullptr;
+cMainMenuWidget_Text *gpShadowsText=nullptr;
+cMainMenuWidget_Text *gpTextureFilterText=nullptr;
+cMainMenuWidget_Text *gpTextureAnisotropyText=nullptr;
+cMainMenuWidget_Text *gpGammaText=nullptr;
+cMainMenuWidget_Text *gpGammaText2=nullptr;
+cMainMenuWidget_Text *gpFSAAText=nullptr;
+cMainMenuWidget_Text *gpDoFText=nullptr;
 
 cVector2l gvResolutions[] = {cVector2l(640,480), cVector2l(800,600), cVector2l(1024, 768),
 							cVector2l(1152,864),cVector2l(1280,720),cVector2l(1280,768),
@@ -1458,7 +1458,7 @@ tString gvShaderQuality[] = {"Very Low","Low","Medium","High"};
 int glShaderQualityNum = 4;
 
 
-cMainMenuWidget_Text *gpNoiseFilterText=NULL;
+cMainMenuWidget_Text *gpNoiseFilterText=nullptr;
 
 //------------------------------------------------------------
 
@@ -2032,8 +2032,8 @@ cMainMenu::cMainMenu(cInit *apInit)  : iUpdateable("MainMenu")
 {
 	mState = eMainMenuState_Start;
 
-	mpLogo = NULL;
-	mpBackground = NULL;
+	mpLogo = nullptr;
+	mpBackground = nullptr;
 
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
@@ -2115,7 +2115,7 @@ void cMainMenu::Reset()
 
 	mbUpdateWidgets = false;
 
-	mpCurrentActionText = NULL;
+	mpCurrentActionText = nullptr;
 
 	mbGameActive = false;
 
@@ -2249,7 +2249,7 @@ void cMainMenu::Update(float afTimeStep)
 				mpInit->mpMainMenu->ResetWidgets(eMainMenuState_OptionsKeySetupMisc);
 			}
 
-			mpCurrentActionText = NULL;
+			mpCurrentActionText = nullptr;
 			Log("Reset check for input!\n");
 		}
 		
@@ -2538,7 +2538,7 @@ void cMainMenu::SetActive(bool abX)
 
 		gbMustRestart=false;
 
-		mpCurrentActionText = NULL;
+		mpCurrentActionText = nullptr;
 
 		mpLogo = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("menu_logo.jpg",false);
 		
@@ -2582,9 +2582,9 @@ void cMainMenu::SetActive(bool abX)
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_Game);
 
 		if(mpLogo) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpLogo);
-		mpLogo = NULL;
+		mpLogo = nullptr;
 		if(mpBackground) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBackground);
-		mpBackground = NULL;
+		mpBackground = nullptr;
 	}
 }
 //-----------------------------------------------------------------------
@@ -2593,7 +2593,7 @@ void cMainMenu::Exit()
 {
 	if(mpCurrentActionText)
 	{
-		mpCurrentActionText = NULL;
+		mpCurrentActionText = nullptr;
 	}
 	else if(mState==eMainMenuState_Start && mpInit->mpMapHandler->GetCurrentMapName() != "")
 	{
@@ -3040,10 +3040,10 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetToggleCrouch = hplNew( cMainMenuWidget_ToggleCrouch,(mpInit,vPos,kTranslate("MainMenu","Toggle Crouch:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsControls,pWidgetToggleCrouch); 
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetUseHaptics = NULL;
-	cMainMenuWidget *pWidgetInteractModeCameraSpeed = NULL;
-	cMainMenuWidget *pWidgetActionModeCameraSpeed = NULL;
-	cMainMenuWidget *pWidgetWeightForceScale = NULL;
+	cMainMenuWidget *pWidgetUseHaptics = nullptr;
+	cMainMenuWidget *pWidgetInteractModeCameraSpeed = nullptr;
+	cMainMenuWidget *pWidgetActionModeCameraSpeed = nullptr;
+	cMainMenuWidget *pWidgetWeightForceScale = nullptr;
 	if(mpInit->mbHapticsAvailable)
 	{
 		vPos.y+= 5;
@@ -3629,7 +3629,7 @@ void cMainMenu::CreateWidgets()
 
 	vPos = vTextStart;//cVector3f(400, 260, 40);
 	AddWidgetToState(eMainMenuState_GraphicsRestart,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","GraphicsRestart"),16,eFontAlign_Center,
-						NULL,400)) ); 
+						nullptr,400)) ); 
 	vPos.y += 42;
 	AddWidgetToState(eMainMenuState_GraphicsRestart,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","OK"),eMainMenuState_Options,22,eFontAlign_Center))); 
 	

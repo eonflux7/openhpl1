@@ -224,19 +224,19 @@ namespace hpl {
 		virtual void Update(float afTimeStep){}
 
 		//The new render system stuff
-		virtual iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight){return NULL;}
+		virtual iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight){return nullptr;}
 		virtual bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight){return false;}
 		virtual bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight){return false;}
-		virtual iMaterialProgramSetup * GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight){return NULL;}
+		virtual iMaterialProgramSetup * GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight){return nullptr;}
 
-		virtual iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight){return NULL;}
-		virtual iMaterialProgramSetup * GetFragmentProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight){return NULL;}
+		virtual iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight){return nullptr;}
+		virtual iMaterialProgramSetup * GetFragmentProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight){return nullptr;}
 
 		virtual eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight){return eMaterialAlphaMode_Solid;}
 		virtual eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight){return eMaterialBlendMode_Replace;}
 		virtual eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight){return eMaterialChannelMode_RGBA;}
 
-		virtual iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight){ return NULL;}
+		virtual iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight){ return nullptr;}
 		virtual eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight){ return eMaterialBlendMode_None;}
 
 		virtual int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight){ return 0;}
@@ -334,8 +334,8 @@ namespace hpl {
 		void SetId(int alId){ mlId = alId;}
 		int GetId(){ return mlId;}
 
-		virtual iGpuProgram* GetRefractionVertexProgam(){ return NULL;}
-		virtual iGpuProgram* GetRefractionFragmentProgam(){ return NULL;}
+		virtual iGpuProgram* GetRefractionVertexProgam(){ return nullptr;}
+		virtual iGpuProgram* GetRefractionFragmentProgam(){ return nullptr;}
 
 		virtual bool GetRefractionUsesDiffuse(){ return false;}
 		virtual eMaterialTexture GetRefractionDiffuseTexture(){ return eMaterialTexture_Diffuse;}

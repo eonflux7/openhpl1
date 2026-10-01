@@ -140,7 +140,7 @@ namespace hpl {
 
 	cParticle* iParticleEmitter::CreateParticle()
 	{
-		if(mlNumOfParticles == mlMaxParticles) return NULL;
+		if(mlNumOfParticles == mlMaxParticles) return nullptr;
 		++mlNumOfParticles;
 		return mvParticles[mlNumOfParticles-1];
 	}

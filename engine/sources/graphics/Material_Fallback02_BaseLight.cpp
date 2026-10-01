@@ -163,8 +163,8 @@ namespace hpl {
 		tString asLightSpotVertexProgram3 = "Fallback02_Diffuse_Light_Spot_p3_vp.cg";
 
 		for(int i=0; i<eBaseLightProgram_LastEnum; i++) {
-			mvVtxPrograms[i] =NULL;
-			mvFragPrograms[i] =NULL;
+			mvVtxPrograms[i] =nullptr;
+			mvFragPrograms[i] =nullptr;
 		}
 
 		///////////////////////////////////////////
@@ -190,14 +190,14 @@ namespace hpl {
 			mvFragPrograms[eBaseLightProgram_Point1] = &gATIDiffuseGLState;
 			mvFragPrograms[eBaseLightProgram_Spot1] =  &gATIDiffuseGLState;
 
-			mvFragPrograms[eBaseLightProgram_Spot2] =  NULL;//hplNew( cGLStateTwoUnits_Spot, (mpLowLevelGraphics) );
+			mvFragPrograms[eBaseLightProgram_Spot2] =  nullptr;//hplNew( cGLStateTwoUnits_Spot, (mpLowLevelGraphics) );
 		}
 		else
 		{
 			mvFragPrograms[eBaseLightProgram_Point1] = &gDiffuseGLState;
 			mvFragPrograms[eBaseLightProgram_Spot1] =  &gDiffuseGLState;
 
-			mvFragPrograms[eBaseLightProgram_Spot2] =  NULL;//hplNew( cGLStateTwoUnits_Spot, (mpLowLevelGraphics) );
+			mvFragPrograms[eBaseLightProgram_Spot2] =  nullptr;//hplNew( cGLStateTwoUnits_Spot, (mpLowLevelGraphics) );
 		}
 
 
@@ -257,7 +257,7 @@ namespace hpl {
 		if(aType == eMaterialRenderType_Z) return mpProgram[eGpuProgramType_Vertex][1];
 		if(aType == eMaterialRenderType_Diffuse) return mpProgram[eGpuProgramType_Vertex][1];
 
-		return NULL;
+		return nullptr;
 	}
 
 	//------------------------------------------------------------------------------------
@@ -292,7 +292,7 @@ namespace hpl {
 			return mvFragPrograms[program+alPass];
 
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//------------------------------------------------------------------------------------
@@ -374,14 +374,14 @@ namespace hpl {
 		{
 			//if(alUnit==0 && mbHasAlpha) return mvTexture[eMaterialTexture_Diffuse];
 			if(alUnit==0) return mvTexture[eMaterialTexture_Diffuse];
-			return NULL;
+			return nullptr;
 		}
 		////////////////////////////////////////
 		// Diffuse
 		else if(aType == eMaterialRenderType_Diffuse)
 		{
 			if(alUnit==0) return mvTexture[eMaterialTexture_Illumination];
-			return NULL;
+			return nullptr;
 		}
 		////////////////////////////////////////
 		// Light
@@ -394,7 +394,7 @@ namespace hpl {
 					case 0: return mpNormalizationMap;
 					case 1:
 					{
-						if(apLight->GetTempTexture(0)==NULL)
+						if(apLight->GetTempTexture(0)==nullptr)
 						{
 							iTexture *pTex = apLight->GetFalloffMap();
 							apLight->SetTempTexture(0,mpTextureManager->CreateAttenuation(pTex->GetName()));
@@ -428,7 +428,7 @@ namespace hpl {
 				}
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

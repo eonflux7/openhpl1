@@ -112,7 +112,7 @@ namespace hpl {
 		tSaveObjectMapIt it = m_mapSaveObjects.find(alId);
 		if(it== m_mapSaveObjects.end()){
 			Warning("Couldn't find save object with id %d\n",alId);
-			return NULL;
+			return nullptr;
 		}
 
 		return it->second;

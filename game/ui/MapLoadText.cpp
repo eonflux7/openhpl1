@@ -60,7 +60,7 @@ cMapLoadText::~cMapLoadText(void)
 
 void cMapLoadText::Reset()
 {
-	mpBack = NULL;
+	mpBack = nullptr;
 	mbActive = false;
 	mfAlpha = 0;
 	mfAlphaAdd = 1;
@@ -185,7 +185,7 @@ void cMapLoadText::SetActive(bool abX)
 	else
 	{
 		if(mpBack) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBack);
-		mpBack = NULL;
+		mpBack = nullptr;
 
 		mpInit->mpGame->GetUpdater()->SetContainer("Default");
 		mpInit->mpGame->GetScene()->SetDrawScene(true);

@@ -125,7 +125,7 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 	if(mpInit->mbHasHaptics)
 		mpLowLevelHaptic = mpInit->mpGame->GetHaptic()->GetLowLevel();
 	else
-		mpLowLevelHaptic = NULL;
+		mpLowLevelHaptic = nullptr;
 
 	
 	mState = eButtonHandlerState_Game;
@@ -877,7 +877,7 @@ iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tStrin
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------

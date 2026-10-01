@@ -109,7 +109,7 @@ namespace hpl {
 		mvFrameSize = cVector2l((int)pow(2.0,x),(int)pow(2.0,y));
 
 		TiXmlElement *pTileElement = pDoc->RootElement()->FirstChildElement();
-		while(pTileElement!=NULL)
+		while(pTileElement!=nullptr)
 		{
 			LoadData(pTileElement);
 
@@ -138,10 +138,10 @@ namespace hpl {
 		tString sMesh = pElement->Attribute("mesh");
 		tString sCollideMesh = cString::ToString(pElement->Attribute("collidemesh"),"");
 
-		iMaterial* pMaterial=NULL;
-		cMesh2D* pMesh=NULL;
-		cMesh2D* pCollideMesh=NULL;
-		cResourceImage* pImage=NULL;
+		iMaterial* pMaterial=nullptr;
+		cMesh2D* pMesh=nullptr;
+		cMesh2D* pCollideMesh=nullptr;
+		cResourceImage* pImage=nullptr;
 
 		cTileDataNormal* pTileData = hplNew( cTileDataNormal, (mpResources->GetImageManager(),mfTileSize) );
 
@@ -149,7 +149,7 @@ namespace hpl {
 		//Log("Creating material: %s\n",sMaterial.c_str());
 		// Create material
 		pMaterial = mpGraphics->GetMaterialHandler()->Create(sMaterial, eMaterialPicture_Image);
-		if(pMaterial == NULL){
+		if(pMaterial == nullptr){
 			Error("Error creating material '%s' for '%s'!\n", sMaterial.c_str(),sName.c_str());
 			return false;
 		}
@@ -164,7 +164,7 @@ namespace hpl {
 			}
 
 			pImage = mpResources->GetImageManager()->CreateImage(sName + it->msSuffix,mvImageHandle[it->mType]);
-			if(pImage==NULL){
+			if(pImage==nullptr){
 				Error("Can't load texture '%s%s'!\n",sName.c_str(), it->msSuffix.c_str());
 				return false;
 			}
@@ -177,7 +177,7 @@ namespace hpl {
 
 		// Create the mesh
 		pMesh = mpGraphics->GetMeshCreator()->Create2D(sMesh, mfTileSize);
-		if(pMesh == NULL){
+		if(pMesh == nullptr){
 			Error("Error creating mesh for '%s'!\n", sName.c_str());
 			return false;
 		}
@@ -188,7 +188,7 @@ namespace hpl {
 		if(sCollideMesh != "")
 		{
 			pCollideMesh = mpGraphics->GetMeshCreator()->Create2D(sCollideMesh, mfTileSize);
-			if(pCollideMesh == NULL){
+			if(pCollideMesh == nullptr){
 				Error("Error creating collide mesh for '%s'!\n", sName.c_str());
 				return false;
 			}
@@ -214,7 +214,7 @@ namespace hpl {
 	void cTileSet::GetTileNum(TiXmlElement *apElement)
 	{
 		mlNum=0;
-		while(apElement!=NULL)
+		while(apElement!=nullptr)
 		{
 			mlNum++;
 

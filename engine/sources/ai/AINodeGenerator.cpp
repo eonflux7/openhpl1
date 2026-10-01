@@ -334,7 +334,7 @@ namespace hpl {
 		TiXmlElement *pRootElem = pXmlDoc->RootElement();
 
 		TiXmlElement *pNodeElem = pRootElem->FirstChildElement("Node");
-		for(; pNodeElem != NULL; pNodeElem = pNodeElem->NextSiblingElement("Node"))
+		for(; pNodeElem != nullptr; pNodeElem = pNodeElem->NextSiblingElement("Node"))
 		{
 			cVector3f vPos = cString::ToVector3f(pNodeElem->Attribute("Pos"),0);
 			tString sName = cString::ToString(pNodeElem->Attribute("Name"),"");

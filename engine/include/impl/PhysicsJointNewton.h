@@ -45,8 +45,8 @@ namespace hpl {
 			cPhysicsBodyNewton *pNParent = static_cast<cPhysicsBodyNewton*>(apParentBody);
 			cPhysicsBodyNewton *pNChild = static_cast<cPhysicsBodyNewton*>(apChildBody);
 
-			if(apParentBody==NULL)
-				mpNewtonParentBody = NULL;
+			if(apParentBody==nullptr)
+				mpNewtonParentBody = nullptr;
 			else
 				mpNewtonParentBody = pNParent->GetNewtonBody();
 

@@ -179,7 +179,7 @@ class cMainMenuWidget_Text : public cMainMenuWidget
 public:
 	cMainMenuWidget_Text(cInit *apInit, const cVector3f &avPos, const tWString& asText,
 						cVector2f avFontSize, eFontAlign aAlignment,
-						cMainMenuWidget *apExtra=NULL, float afMaxWidth=0);
+						cMainMenuWidget *apExtra=nullptr, float afMaxWidth=0);
 	~cMainMenuWidget_Text();
 
 	void OnDraw();

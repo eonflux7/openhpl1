@@ -32,7 +32,7 @@ namespace hpl {
 		for(tEntityListIt it = mlstEntity.begin();it != mlstEntity.end();it++)
 		{
 			iEntity *pEntity = *it;
-			pEntity->SetParent(NULL);
+			pEntity->SetParent(nullptr);
 		}
 		mlstEntity.clear();
 	}
@@ -83,7 +83,7 @@ namespace hpl {
 		for(tEntityListIt it = mlstEntity.begin();it != mlstEntity.end();it++)
 		{
 			if(*it == apEntity){
-				apEntity->SetParent(NULL);
+				apEntity->SetParent(nullptr);
 				mlstEntity.erase(it);
 				return true;
 			}

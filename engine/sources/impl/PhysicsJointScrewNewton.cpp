@@ -151,7 +151,7 @@ namespace hpl {
 		}
 		else
 		{
-			if(pScrewJoint->mpParentBody ==NULL || pScrewJoint->mpParentBody->GetMass()==0)
+			if(pScrewJoint->mpParentBody ==nullptr || pScrewJoint->mpParentBody->GetMass()==0)
 			{
 				if(	(pScrewJoint->mfStickyMaxDistance != 0 &&
 					fabs(fDistance - pScrewJoint->mfMaxDistance) < pScrewJoint->mfStickyMaxDistance)

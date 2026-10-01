@@ -64,15 +64,15 @@ namespace hpl {
 		mpHaptic = apHaptic;
 
 		mpCollider2D = hplNew( cCollider2D, () );
-		mpCurrentWorld2D = NULL;
-		mpCurrentWorld3D = NULL;
+		mpCurrentWorld2D = nullptr;
+		mpCurrentWorld3D = nullptr;
 
 		mbCameraIsListener = true;
 
 		mbDrawScene = true;
 		mbUpdateMap = true;
 
-		mpActiveCamera = NULL;
+		mpActiveCamera = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -187,13 +187,13 @@ namespace hpl {
 	{
 		cScriptVar* pVar;
 		pVar= GetLocalVar(asName);
-		if(pVar==NULL)
+		if(pVar==nullptr)
 		{
 			cScriptVar Var;
 			Var.msName = asName;
 			m_mapLocalVars.insert(tScriptVarMap::value_type(cString::ToLowerCase(asName),Var));
 			pVar= GetLocalVar(asName);
-			if(pVar==NULL)FatalError("Very strange error when creating script var!\n");
+			if(pVar==nullptr)FatalError("Very strange error when creating script var!\n");
 		}
 		return pVar;
 	}
@@ -203,7 +203,7 @@ namespace hpl {
 	cScriptVar* cScene::GetLocalVar(const tString& asName)
 	{
 		tScriptVarMapIt it = m_mapLocalVars.find(cString::ToLowerCase(asName));
-		if(it==m_mapLocalVars.end()) return NULL;
+		if(it==m_mapLocalVars.end()) return nullptr;
 
 		return &it->second;
 	}
@@ -221,13 +221,13 @@ namespace hpl {
 	{
 		cScriptVar* pVar;
 		pVar= GetGlobalVar(asName);
-		if(pVar==NULL)
+		if(pVar==nullptr)
 		{
 			cScriptVar Var;
 			Var.msName = asName;
 			m_mapGlobalVars.insert(tScriptVarMap::value_type(cString::ToLowerCase(asName),Var));
 			pVar= GetGlobalVar(asName);
-			if(pVar==NULL)FatalError("Very strange error when creating script var!\n");
+			if(pVar==nullptr)FatalError("Very strange error when creating script var!\n");
 		}
 		return pVar;
 	}
@@ -237,7 +237,7 @@ namespace hpl {
 	cScriptVar* cScene::GetGlobalVar(const tString& asName)
 	{
 		tScriptVarMapIt it = m_mapGlobalVars.find(cString::ToLowerCase(asName));
-		if(it==m_mapGlobalVars.end()) return NULL;
+		if(it==m_mapGlobalVars.end()) return nullptr;
 
 		return &it->second;
 	}
@@ -326,7 +326,7 @@ namespace hpl {
 
 	void cScene::Update(float afTimeStep)
 	{
-		if(mpActiveCamera==NULL)return;
+		if(mpActiveCamera==nullptr)return;
 
 		if(mpActiveCamera->GetType() == eCameraType_2D)
 		{
@@ -398,23 +398,23 @@ namespace hpl {
 		tString asPath = mpResources->GetFileSearcher()->GetFilePath(asFile);
 		if(asPath == ""){
 			Error("World '%s' doesn't exist\n",asFile.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		cWorld3D* pWorld = mpResources->GetMeshLoaderHandler()->LoadWorld(asPath, aFlags);
-		if(pWorld==NULL){
+		if(pWorld==nullptr){
 			Error("Couldn't load world from '%s'\n",asPath.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		////////////////////////////////////////////////////////////
 		//Load the script
-		iScript* pScript = NULL;
+		iScript* pScript = nullptr;
 		if(abLoadScript)
 		{
 			tString sScriptFile = cString::SetFileExt(asFile,"hps");
 			pScript = mpResources->GetScriptManager()->CreateScript(sScriptFile);
-			if(pScript==NULL){
+			if(pScript==nullptr){
 				Error("Couldn't load script '%s'\n",sScriptFile.c_str());
 			}
 			else
@@ -502,7 +502,7 @@ namespace hpl {
 	{
 		mpGraphics->GetDrawer()->ClearBackgrounds();
 
-		cWorld2D *pTempWorld = NULL;
+		cWorld2D *pTempWorld = nullptr;
 		//temporary save the old map
 		if(mpCurrentWorld2D){
 			pTempWorld = mpCurrentWorld2D;

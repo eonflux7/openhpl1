@@ -65,13 +65,13 @@ namespace hpl {
 
 		pTileSet = static_cast<cTileSet*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pTileSet==NULL && sPath!="")
+		if(pTileSet==nullptr && sPath!="")
 		{
 			pTileSet = hplNew( cTileSet, (asNewName,mpGraphics,mpResources) );
 
 			if(pTileSet->CreateFromFile(sPath)==false){
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			AddResource(pTileSet);

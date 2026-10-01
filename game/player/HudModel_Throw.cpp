@@ -48,7 +48,7 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("THROW");
-	if(pMeleeElem==NULL){
+	if(pMeleeElem==nullptr){
 		Error("Couldn't load THROW element from XML document\n");
 		return;
 	}

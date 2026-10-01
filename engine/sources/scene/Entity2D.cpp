@@ -29,7 +29,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 	iEntity2D::iEntity2D(tString asName) :	iEntity(asName), mvPosition(0), mvRotation(0), mvScale(0),
 		mvLastPosition(0), mvLastRotation(0), mvLastScale(0),
-		mpGridObject(NULL)
+		mpGridObject(nullptr)
 	{
 
 	}

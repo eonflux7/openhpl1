@@ -37,7 +37,7 @@ namespace hpl {
 
 	cWidgetImage::cWidgetImage(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Image,apSet, apSkin)
 	{
-		mpGfxImage = NULL;
+		mpGfxImage = nullptr;
 		mColor = cColor(1,1);
 	}
 

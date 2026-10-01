@@ -67,14 +67,14 @@ namespace hpl {
 
 		pScript = static_cast<iScript*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pScript==NULL && sPath!="")
+		if(pScript==nullptr && sPath!="")
 		{
 			pScript = mpSystem->GetLowLevel()->CreateScript(asNewName);
 
 			if(pScript->CreateFromFile(sPath)==false){
 				hplDelete(pScript);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			AddResource(pScript);

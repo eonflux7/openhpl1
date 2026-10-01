@@ -162,7 +162,7 @@ namespace hpl {
 		}
 
 		//To make sure that new ambient is set:
-		apSettings->mpFragmentProgram = NULL;
+		apSettings->mpFragmentProgram = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -312,7 +312,7 @@ namespace hpl {
 					Log("Setting vertex program: NULL ");
 			}
 
-			if(mpVtxProgram==NULL && apSettings->mpVertexProgram)
+			if(mpVtxProgram==nullptr && apSettings->mpVertexProgram)
 			{
 				apSettings->mpVertexProgram->UnBind();
 				if(apSettings->mbLog)Log("Unbinding old ");
@@ -345,7 +345,7 @@ namespace hpl {
 				}
 				else
 				{
-					apSettings->mpLight = NULL;
+					apSettings->mpLight = nullptr;
 				}
 
 				apSettings->mbUsesLight = mbUsesLight;
@@ -409,7 +409,7 @@ namespace hpl {
 			{
 				if(apSettings->mbLog)
 				{
-					if(mpTexture[i]==NULL)
+					if(mpTexture[i]==nullptr)
 						Log("Setting texture: %d / %d : NULL\n",i, (size_t)mpTexture[i]);
 					else
 						Log("Setting texture: %d / %d : '%s'\n",i, (size_t)mpTexture[i],

@@ -74,13 +74,13 @@ namespace hpl {
 		msMoveSound = "";
 
 		mbHasCollided = false;
-		mpSound = NULL;
+		mpSound = nullptr;
 
-		mpCallback = NULL;
+		mpCallback = nullptr;
 
 		mbAutoDeleteCallback = false;
 
-		mpUserData = NULL;
+		mpUserData = nullptr;
 
 		mbBreakable = false;
 		mfBreakForce = 0;
@@ -133,8 +133,8 @@ namespace hpl {
 	 */
 	void iPhysicsJoint::RemoveBody(iPhysicsBody *apBody)
 	{
-		if(mpParentBody == apBody) mpParentBody = NULL;
-		if(mpChildBody == apBody) mpChildBody = NULL;
+		if(mpParentBody == apBody) mpParentBody = nullptr;
+		if(mpChildBody == apBody) mpChildBody = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace hpl {
 	iPhysicsController* iPhysicsJoint::GetController(const tString &asName)
 	{
 		tPhysicsControllerMapIt it = m_mapControllers.find(asName);
-		if(it == m_mapControllers.end()) return NULL;
+		if(it == m_mapControllers.end()) return nullptr;
 
 		return it->second;
 	}
@@ -165,7 +165,7 @@ namespace hpl {
 	bool iPhysicsJoint::ChangeController(const tString &asName)
 	{
 		iPhysicsController *pNewCtrl = GetController(asName);
-		if(pNewCtrl==NULL) return false;
+		if(pNewCtrl==nullptr) return false;
 
 		tPhysicsControllerMapIt it = m_mapControllers.begin();
 		for(; it != m_mapControllers.end(); ++it)
@@ -337,7 +337,7 @@ namespace hpl {
 			mvPivotPoint = cMath::MatrixMul(mpChildBody->GetLocalMatrix(),mvLocalPivot);
 
 		cWorld3D *pWorld3D = mpWorld->GetWorld3D();
-		if(pWorld3D == NULL) return;
+		if(pWorld3D == nullptr) return;
 		if(msMoveSound == "") return;
 
 		if(mpWorld->GetWorld3D()->GetSound()->GetSoundHandler()->GetSilent()) return;
@@ -393,7 +393,7 @@ namespace hpl {
 
 		if(pWorld3D->SoundEntityExists(mpSound)==false)
 		{
-			mpSound = NULL;
+			mpSound = nullptr;
 		}
 
 		//////////////////////////////////////
@@ -406,7 +406,7 @@ namespace hpl {
 			if(fSpeed <= fMin)
 			{
 				mpSound->FadeOut(4.3f);
-				mpSound	= NULL;
+				mpSound	= nullptr;
 			}
 			else
 			{
@@ -625,7 +625,7 @@ namespace hpl {
 
 	iSaveData* iPhysicsJoint::CreateSaveData()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

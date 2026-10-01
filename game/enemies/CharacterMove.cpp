@@ -131,9 +131,9 @@ bool cMoverRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 
 cCharacterMove::cCharacterMove(cInit *apInit)
 {
-	mpAStar = NULL;
-	mpCharBody = NULL;
-	mpContainer = NULL;
+	mpAStar = nullptr;
+	mpCharBody = nullptr;
+	mpContainer = nullptr;
 
 	mpInit = apInit;
 
@@ -190,7 +190,7 @@ void cCharacterMove::Update(float afTimeStep)
 	//Update Movement
 	if(mbMoving)
 	{
-		cAINode *pCurrentNode = NULL;
+		cAINode *pCurrentNode = nullptr;
 		cVector3f vGoal;
 		cVector3f vPos = mpCharBody->GetPosition(); 
 		
@@ -352,7 +352,7 @@ void cCharacterMove::Update(float afTimeStep)
 
 bool cCharacterMove::MoveToPos(const cVector3f &avPos)
 {
-	if(mpAStar==NULL) return false;
+	if(mpAStar==nullptr) return false;
 
 	//Log(" Moving to %s\n",avPos.ToString().c_str());
 
@@ -479,7 +479,7 @@ cAINode* cCharacterMove::GetAINodeInRange(float afMinDistance, float afMaxDistan
 		if(i >= mpContainer->GetNodeNum()) i=0;
 	}
 
-	return NULL;
+	return nullptr;
 
 	/*for(int i=0; i<mpContainer->GetNodeNum(); ++i)
 	{
@@ -545,7 +545,7 @@ cAINode* cCharacterMove::GetAINodeAtPosInRange(const cVector3f &avPos,float afMi
 		if(i >= mpContainer->GetNodeNum()) i=0;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------

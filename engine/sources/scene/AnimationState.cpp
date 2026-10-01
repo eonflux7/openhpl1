@@ -338,7 +338,7 @@ namespace hpl {
 
 	iSaveObject* cSaveData_cAnimationState::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

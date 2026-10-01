@@ -50,7 +50,7 @@ namespace hpl {
 
 		cGrid2DObject* GetGrid2DObject(){ return mpGridObject;}
 		void SetGrid2DObject(cGrid2DObject* apGrid){ mpGridObject = apGrid;}
-		bool HasGrid2DObject(){ return mpGridObject!=NULL;}
+		bool HasGrid2DObject(){ return mpGridObject!=nullptr;}
 
 
 	protected:

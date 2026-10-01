@@ -110,7 +110,7 @@ namespace hpl {
 
 	cSectorVisibility::cSectorVisibility(cSectorVisibilityContainer *apContainer)
 	{
-		mpSector = NULL;
+		mpSector = nullptr;
 		bStart = false;
 
 		mpContainer = apContainer;
@@ -133,7 +133,7 @@ namespace hpl {
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -162,7 +162,7 @@ namespace hpl {
 		if(mvVisibiltySets.empty())
 		{
 			//Log("Checking start sector %s\n",mpSector->GetId().c_str());
-			return mpContainer->IntersectionBV(apBV,NULL);
+			return mpContainer->IntersectionBV(apBV,nullptr);
 		}
 		else
 		{
@@ -280,7 +280,7 @@ namespace hpl {
 		for(; startIt != m_setStartSectors.end(); ++startIt)
 		{
 			cSector *pSector = *startIt;
-			SearchSector(pSector,NULL,0);
+			SearchSector(pSector,nullptr,0);
 		}
 
 
@@ -312,7 +312,7 @@ namespace hpl {
 
 		//////////////////////////////////
 		//Go through all portals and see which
-		tPortalList *pPortalList = NULL;
+		tPortalList *pPortalList = nullptr;
 
 		//Get the portals to search
 		if(apParentSet)
@@ -362,7 +362,7 @@ namespace hpl {
 				cPortalVisibilitySet *pSet = pTargetVisSector->GetSetConnectingFromSector(pTargetSector);
 
 				//If none exist, create new set.
-				if(pSet==NULL) {
+				if(pSet==nullptr) {
 					//Create portal visibility and add it to the sector container
 					pSet = CreatePortalVisibiltySet(apParentSet);
 					//Add to the specific container

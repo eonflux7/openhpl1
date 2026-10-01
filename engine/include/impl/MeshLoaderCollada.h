@@ -312,7 +312,7 @@ namespace hpl {
 				}
 			}
 
-			return NULL;
+			return nullptr;
 		}
 	};
 
@@ -340,7 +340,7 @@ namespace hpl {
 	class cColladaNode
 	{
 	public:
-		cColladaNode() : mlCount(0), pParent(NULL), mvScale(1,1,1), mbSourceIsFile(false) {}
+		cColladaNode() : mlCount(0), pParent(nullptr), mvScale(1,1,1), mbSourceIsFile(false) {}
 
 		tString msId;
 		tString msName;
@@ -386,7 +386,7 @@ namespace hpl {
 					 return &Trans;
 				 }
 			}
-			return NULL;
+			return nullptr;
 		}
 	};
 
@@ -425,7 +425,7 @@ namespace hpl {
 				}
 			}
 
-			return NULL;
+			return nullptr;
 		}
 
 		cColladaNode* GetNodeFromSource(const tString asSource)
@@ -440,7 +440,7 @@ namespace hpl {
 				}
 			}
 
-			return NULL;
+			return nullptr;
 		}
 
 		float mfStartTime;

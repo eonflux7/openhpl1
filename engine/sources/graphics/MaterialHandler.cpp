@@ -69,8 +69,8 @@ namespace hpl {
 
 	iMaterial* cMaterialHandler::Create(const tString& asName,tString asMatName, eMaterialPicture mPicType)
 	{
-		iMaterial* pMat=NULL;
-		cResourceImage* pImage=NULL;
+		iMaterial* pMat=nullptr;
+		cResourceImage* pImage=nullptr;
 		unsigned int lIdCount = 1;
 
 		for(tMaterialTypeListIt it = mlstMatTypes.begin(); it!=mlstMatTypes.end();it++)

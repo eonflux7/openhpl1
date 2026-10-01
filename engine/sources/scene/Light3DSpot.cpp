@@ -62,7 +62,7 @@ namespace hpl {
 		mlViewMatrixCount =-1;
 		mlFrustumMatrixCount =-1;
 
-		mpTexture = NULL;
+		mpTexture = nullptr;
 
 		mfFOV = cMath::ToRad(60.0f);
 		mfAspect = 1.0f;
@@ -250,7 +250,7 @@ namespace hpl {
 
 		eTextureAnimMode animMode = GetAnimMode(cString::ToString(apMainElem->Attribute("ProjectionAnimMode"),"None"));
 		float fFrameTime = cString::ToFloat(apMainElem->Attribute("ProjectionFrameTime"),1.0f);
-		iTexture *pTex = NULL;
+		iTexture *pTex = nullptr;
 
 		if(animMode != eTextureAnimMode_None)
 		{
@@ -348,7 +348,7 @@ namespace hpl {
 	{
 		kSaveData_SaveToBegin(cLight3DSpot);
 
-		pData->msTexture = mpTexture == NULL ? "" : mpTexture->GetName();
+		pData->msTexture = mpTexture == nullptr ? "" : mpTexture->GetName();
 
 		kSaveData_SaveTo(mfFOV);
 		kSaveData_SaveTo(mfAspect);

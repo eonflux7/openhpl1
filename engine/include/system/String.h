@@ -144,7 +144,7 @@ namespace hpl {
 		 * \param avVec a vector the values will be appended to.
 		 * \param apSeparators a pointer to a string with chars to override the default separators
 		 */
-		static tIntVec& GetIntVec(const tString &asData, tIntVec& avVec, tString *apSeparators=NULL);
+		static tIntVec& GetIntVec(const tString &asData, tIntVec& avVec, tString *apSeparators=nullptr);
 
 		/**
 		* Get a vector of ints from a string such as "1, 2, 3".
@@ -153,7 +153,7 @@ namespace hpl {
 		* \param avVec a vector the values will be appended to.
 		* \param apSeparators a pointer to a string with chars to override the default separators
 		*/
-		static tUIntVec& GetUIntVec(const tString &asData, tUIntVec& avVec, tString *apSeparators=NULL);
+		static tUIntVec& GetUIntVec(const tString &asData, tUIntVec& avVec, tString *apSeparators=nullptr);
 
 		/**
 		* Get a vector of floats from a string such as "1, 2, 3".
@@ -162,7 +162,7 @@ namespace hpl {
 		* \param avVec a vector the values will be appended to.
 		* \param apSeparators a pointer to a string with chars to override the default separators
 		*/
-		static tFloatVec& GetFloatVec(const tString &asData, tFloatVec& avVec,tString *apSeparators=NULL);
+		static tFloatVec& GetFloatVec(const tString &asData, tFloatVec& avVec,tString *apSeparators=nullptr);
 
 		/**
 		 * Get a vector of strings from a string such as "one, two, three".
@@ -171,7 +171,7 @@ namespace hpl {
 		 * \param avVec
 		 * \param apSeparators a pointer to a string with chars to override the default separators
 		 */
-		static tStringVec& GetStringVec(const tString &asData, tStringVec& avVec,tString *apSeparators=NULL);
+		static tStringVec& GetStringVec(const tString &asData, tStringVec& avVec,tString *apSeparators=nullptr);
 
 		/**
 		 * Gets the last character of the string.

@@ -42,8 +42,8 @@ namespace hpl {
 
 		mpWorld = apWorld;
 
-		mpBody = NULL;
-		mpJoint = NULL;
+		mpBody = nullptr;
+		mpJoint = nullptr;
 
 		mbActive = false;
 
@@ -86,7 +86,7 @@ namespace hpl {
 	void iPhysicsController::Update(float afTimeStep)
 	{
 		if(mbActive==false || mbPaused) return;
-		if(mpBody==NULL) return;
+		if(mpBody==nullptr) return;
 
 		cVector3f vInput = GetInputValue(mInputType);
 		//Get the local input.

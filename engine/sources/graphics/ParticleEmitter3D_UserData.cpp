@@ -72,7 +72,7 @@ namespace hpl {
 	// NEW
 	static ePEType GetPEType(const char *apString)
 	{
-		if(apString==NULL) return ePEType_Normal;
+		if(apString==nullptr) return ePEType_Normal;
 		tString sType = cString::ToLowerCase(apString);
 
 		if(sType == "beam") return ePEType_Beam;
@@ -87,7 +87,7 @@ namespace hpl {
 
 	static ePEStartPosType GetStartPosType(const char *apString)
 	{
-		if(apString==NULL) return ePEStartPosType_Box;
+		if(apString==nullptr) return ePEStartPosType_Box;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -101,7 +101,7 @@ namespace hpl {
 
 	static eParticleEmitter3DCoordSystem GetCoordSystem(const char *apString)
 	{
-		if(apString==NULL) return eParticleEmitter3DCoordSystem_World;
+		if(apString==nullptr) return eParticleEmitter3DCoordSystem_World;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -115,7 +115,7 @@ namespace hpl {
 
 	static ePEDeathType GetDeathType(const char *apString)
 	{
-		if(apString==NULL) return ePEDeathType_Age;
+		if(apString==nullptr) return ePEDeathType_Age;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -128,7 +128,7 @@ namespace hpl {
 
 	static eParticleEmitter3DType GetDrawType(const char *apString)
 	{
-		if(apString==NULL) return eParticleEmitter3DType_DynamicPoint;
+		if(apString==nullptr) return eParticleEmitter3DType_DynamicPoint;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -143,7 +143,7 @@ namespace hpl {
 
 	static ePEGravityType GetGravityType(const char *apString)
 	{
-		if(apString==NULL) return ePEGravityType_None;
+		if(apString==nullptr) return ePEGravityType_None;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -158,7 +158,7 @@ namespace hpl {
 
 	static ePESubDivType GetSubDivType(const char *apString)
 	{
-		if(apString==NULL) return ePESubDivType_Random;
+		if(apString==nullptr) return ePESubDivType_Random;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -173,7 +173,7 @@ namespace hpl {
 
 	static ePEPartSpinType GetPartSpinType(const char *apString)
 	{
-		if (apString==NULL) return ePEPartSpinType_Constant;
+		if (apString==nullptr) return ePEPartSpinType_Constant;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -874,7 +874,7 @@ namespace hpl {
 		///////////////////////////////////////////////
 		//If not rendered this previous frame check if it should be paused.
 		//To be safe skip systems that has a parent...
-		if(mbDying == false && mbRespawn && mpParentSystem->GetParent()==NULL)
+		if(mbDying == false && mbRespawn && mpParentSystem->GetParent()==nullptr)
 		{
 			if(GetGlobalRenderCount() != cRenderList::GetGlobalRenderCount())
 			{

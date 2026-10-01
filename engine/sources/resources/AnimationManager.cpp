@@ -61,7 +61,7 @@ namespace hpl {
 	cAnimation* cAnimationManager::CreateAnimation(const tString& asName)
 	{
 		tString sPath;
-		cAnimation *pAnimation=NULL;
+		cAnimation *pAnimation=nullptr;
 		tString asNewName;
 
 		BeginLoad(asName);
@@ -87,22 +87,22 @@ namespace hpl {
 			if(bFound == false){
 				Error("Couldn't create mesh '%s'\n",asName.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 		}
 
 		pAnimation = static_cast<cAnimation*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pAnimation==NULL && sPath!="")
+		if(pAnimation==nullptr && sPath!="")
 		{
 			cMeshLoaderHandler *pMeshLoadHandler = mpResources->GetMeshLoaderHandler();
 
 			//try to load animation from mesh
 			cMesh *pTempMesh = pMeshLoadHandler->LoadMesh(sPath,0);
-			if(pTempMesh==NULL){
+			if(pTempMesh==nullptr){
 				Error("Couldn't load animation from '%s'\n",sPath.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			if(pTempMesh->GetAnimationNum()<=0)
@@ -110,7 +110,7 @@ namespace hpl {
 				Error("No animations found in '%s'\n",sPath.c_str());
 				hplDelete(pTempMesh);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			pAnimation = pTempMesh->GetAnimation(0);

@@ -139,7 +139,7 @@ void cGameEnemyState_Worm_Idle::OnUpdate(float afTimeStep)
 			mpEnemy->SetupBody();
 			mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyWorm->mfHuntSpeed);
 
-			cAINode *pNode = NULL;
+			cAINode *pNode = nullptr;
 			
 			if(mpEnemy->GetPatrolNodeNum()==0)
 			{
@@ -295,7 +295,7 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 
 			mpEnemyWorm->mlAttackStrength,
 
-			target,NULL))
+			target,nullptr))
 		{
 			if(mfAttackSoundCount<=0)
 			{
@@ -462,7 +462,7 @@ void cGameEnemyState_Worm_Dead::OnEnterState(iGameEnemyState *apPrevState)
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 
 	if(mpEnemyWorm->mpMoveSound) mpEnemyWorm->mpMoveSound->Stop(false);
-	mpEnemyWorm->mpMoveSound = NULL;
+	mpEnemyWorm->mpMoveSound = nullptr;
 
 }
 
@@ -483,7 +483,7 @@ void cGameEnemyState_Worm_Dead::OnLeaveState(iGameEnemyState *apNextState)
 
 cGameEnemy_Worm::cGameEnemy_Worm(cInit *apInit,const tString& asName,TiXmlElement *apGameElem) : iGameEnemy(apInit,asName,apGameElem)
 {
-	mpMoveSound = NULL;
+	mpMoveSound = nullptr;
 
 	LoadBaseProperties(apGameElem);
 
@@ -585,7 +585,7 @@ void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntit
 {
 	// Set bone matrix of root
 	//if(mpWorm->mbAttachMeshToBody==false)
-	if(mpWorm->mpMover->GetCharBody()->GetEntity()==NULL)
+	if(mpWorm->mpMover->GetCharBody()->GetEntity()==nullptr)
 	{
 		iCharacterBody *pCharBody = mpWorm->mpMover->GetCharBody();
 		cMeshEntity *pEntity = mpWorm->mpMeshEntity;
@@ -680,7 +680,7 @@ void cGameEnemy_Worm::OnLoad()
 
 	//Create attack shape
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,NULL);
+	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,nullptr);
 
 	mpMeshCallback = hplNew(  cGameEnemy_Worm_MeshCallback, (this) );
 	mpMeshEntity->SetCallback(mpMeshCallback);
@@ -706,7 +706,7 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 
 	if(mlCurrentState == STATE_HUNT)
 	{
-		if(mpMoveSound==NULL)
+		if(mpMoveSound==nullptr)
 		{
 			mpMoveSound = pWorld->CreateSoundEntity("WormMove",msMoveSound,true);
 			//Log("created move sound...\n");
@@ -721,7 +721,7 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 			}
 			else
 			{
-				mpMoveSound = NULL;
+				mpMoveSound = nullptr;
 			}
 		}
 	}
@@ -730,7 +730,7 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		if(mpMoveSound)
 		{
 			pWorld->DestroySoundEntity(mpMoveSound);
-			mpMoveSound = NULL;
+			mpMoveSound = nullptr;
 		}
 	}
 	
@@ -1034,7 +1034,7 @@ void cGameEnemy_Worm::SetupTail()
 
 		//Create body
 		iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-		iCollideShape *pShape = pPhysicsWorld->CreateSphereShape(pCharBody->GetSize().x/2.0f,NULL); 
+		iCollideShape *pShape = pPhysicsWorld->CreateSphereShape(pCharBody->GetSize().x/2.0f,nullptr); 
 		pSegment->mpBody = pPhysicsWorld->CreateBody("Tail0"+cString::ToString(i+1),pShape);
 		pSegment->mpBody->SetMass(0);
 		pSegment->mpBody->SetPosition(pSegment->mvPostion);

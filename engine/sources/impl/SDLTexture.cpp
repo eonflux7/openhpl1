@@ -195,7 +195,7 @@ namespace hpl {
 
 			glEnable(GLTarget);
 			glBindTexture(GLTarget, mvTextureHandles[0]);
-			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 			if(mbUseMipMaps && mTarget != eTextureTarget_Rect){
 				if(mFilter == eTextureFilter_Bilinear)
 					glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
@@ -585,7 +585,7 @@ namespace hpl {
 
 		unsigned char *pPixelSrc = (unsigned char*)pBitmapSrc->GetSurface()->pixels;
 
-		unsigned char *pNewSrc = NULL;
+		unsigned char *pNewSrc = nullptr;
 		if(mlSizeLevel>0 && (int)mlWidth > mvMinLevelSize.x*2)
 		{
 			//Log("OldSize: %d x %d ",mlWidth,mlHeight);

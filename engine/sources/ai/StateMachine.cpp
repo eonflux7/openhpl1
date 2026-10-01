@@ -66,7 +66,7 @@ namespace hpl {
 	{
 		mbActive = true;
 
-		mpCurrentState = NULL;
+		mpCurrentState = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace hpl {
 
 	void cStateMachine::Update(float afTime)
 	{
-		if(mbActive== false || mpCurrentState==NULL) return;
+		if(mbActive== false || mpCurrentState==nullptr) return;
 
 		mpCurrentState->Update(afTime);
 	}
@@ -112,12 +112,12 @@ namespace hpl {
 		if(alId == mpCurrentState->GetId()) return;
 
 		iAIState *pState = GetState(alId);
-		if(pState==NULL){
+		if(pState==nullptr){
 			Warning("State %d does not exist!\n",alId); return;
 		}
 
 		if(mpCurrentState) mpCurrentState->OnLeaveState(pState->GetId());
-		pState->OnEnterState(mpCurrentState==NULL ? -1 : mpCurrentState->GetId());
+		pState->OnEnterState(mpCurrentState==nullptr ? -1 : mpCurrentState->GetId());
 
 		mpCurrentState = pState;
 	}
@@ -127,7 +127,7 @@ namespace hpl {
 	iAIState* cStateMachine::GetState(int alId)
 	{
 		tAIStateMapIt it = m_mapStates.find(alId);
-		if(it == m_mapStates.end()) return NULL;
+		if(it == m_mapStates.end()) return nullptr;
 
 		return it->second;
 	}

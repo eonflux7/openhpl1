@@ -66,7 +66,7 @@ namespace hpl {
 
 			mbStopUsed = false;
 
-			mpCallback = NULL;
+			mpCallback = nullptr;
 		}
 
 		virtual ~iSoundChannel(){}

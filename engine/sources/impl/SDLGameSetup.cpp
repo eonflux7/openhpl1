@@ -66,7 +66,7 @@ namespace hpl {
 #ifdef INCLUDE_HAPTIC
 		mpLowLevelHaptic = hplNew( cLowLevelHapticHaptX,() );
 #else
-		mpLowLevelHaptic = NULL;
+		mpLowLevelHaptic = nullptr;
 #endif
 
 	}

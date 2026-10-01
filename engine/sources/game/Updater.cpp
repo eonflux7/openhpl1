@@ -31,7 +31,7 @@ namespace hpl {
 
 	cUpdater::cUpdater(iLowLevelSystem *apLowLevelSystem)
 	{
-		mpCurrentUpdates = NULL;
+		mpCurrentUpdates = nullptr;
 
 		mpLowLevelSystem = apLowLevelSystem;
 	}
@@ -239,7 +239,7 @@ namespace hpl {
 
 	tString cUpdater::GetCurrentContainerName()
 	{
-		if(mpCurrentUpdates==NULL) return "";
+		if(mpCurrentUpdates==nullptr) return "";
 
 		return msCurrentUpdates;
 
@@ -262,7 +262,7 @@ namespace hpl {
 
 	bool cUpdater::AddUpdate(tString asContainer, iUpdateable* apUpdate)
 	{
-		if(apUpdate==NULL){
+		if(apUpdate==nullptr){
 			Error("Couldn't add NULL updatable!");
 			return false;
 		}

@@ -67,7 +67,7 @@ namespace hpl {
 		//////////////////////////
 		// Window
 		cVector3f vPos = cVector3f(vVirtSize.x/2 - fWindowWidth/2,vVirtSize.y/2- fWindowHeight/2,18);
-		mpWindow = mpSet->CreateWidgetWindow(vPos,cVector2f(fWindowWidth,fWindowHeight),asLabel,NULL);
+		mpWindow = mpSet->CreateWidgetWindow(vPos,cVector2f(fWindowWidth,fWindowHeight),asLabel,nullptr);
 
 		//////////////////////////
 		// Buttons
@@ -77,7 +77,7 @@ namespace hpl {
 			mvButtons[0] = mpSet->CreateWidgetButton(vPos,cVector2f(80,30),asButton1,mpWindow);
 			mvButtons[0]->AddCallback(eGuiMessage_ButtonPressed,this, kGuiCallback(ButtonPress));
 
-			mvButtons[1] = NULL;
+			mvButtons[1] = nullptr;
 		}
 		else
 		{

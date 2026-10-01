@@ -73,7 +73,7 @@ namespace hpl {
 		if(pSoundData->CreateFromFile(asFilePath)==false)
 		{
 			hplDelete(pSoundData);
-			return NULL;
+			return nullptr;
 		}
 
 		return pSoundData;
@@ -341,7 +341,7 @@ namespace hpl {
 	iSoundEnvironment* cLowLevelSoundOpenAL::LoadSoundEnvironment(const tString &asFilePath)
 	{
 		if (!mbEnvAudioEnabled)
-			return NULL;
+			return nullptr;
 
 		/////////////////////////////////////////////
 		///Check if sound already exist
@@ -355,7 +355,7 @@ namespace hpl {
 		if (pSoundEnv->CreateFromFile(asFilePath)==false)
 		{
 			hplDelete(pSoundEnv);
-			return NULL;
+			return nullptr;
 		}
 
 		pSoundEnv->SetFileName(cString::ToLowerCase(asFilePath));
@@ -375,7 +375,7 @@ namespace hpl {
 		if (!mbEnvAudioEnabled)
 			return;
 
-		if (apSoundEnv == NULL)
+		if (apSoundEnv == nullptr)
 		{
 			//Log(" Setting null env\n");
 			//if (mbNullEffectAttached == false)
@@ -476,7 +476,7 @@ namespace hpl {
 
 		float fOneMinusT = 1-afT;
 
-		if ((apSourceSoundEnv == NULL) && (apDestSoundEnv==NULL))
+		if ((apSourceSoundEnv == nullptr) && (apDestSoundEnv==nullptr))
 			return;
 
 		cOpenALSoundEnvironment pEnv;
@@ -484,7 +484,7 @@ namespace hpl {
 		cOpenALSoundEnvironment* pSrcEnv = (cOpenALSoundEnvironment*) apSourceSoundEnv;
 		cOpenALSoundEnvironment* pDstEnv = (cOpenALSoundEnvironment*) apDestSoundEnv;
 
-		if (pSrcEnv == NULL)
+		if (pSrcEnv == nullptr)
 		{
 			/*
 			SetSoundEnvironment(apDestSoundEnv);
@@ -513,7 +513,7 @@ namespace hpl {
 			pEnv.SetDecayHFLimit(pDstEnv->GetDecayHFLimit());
 
 		}
-		else if (pDstEnv == NULL)
+		else if (pDstEnv == nullptr)
 		{
 			/*SetSoundEnvironment( apDestSoundEnv);//((*apSourceSoundEnv)*afT));
 			OAL_EffectSlot_SetGain(0, fOneMinusT * mfEnvVolume);

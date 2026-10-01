@@ -74,7 +74,7 @@ namespace hpl {
 
 		cSurfaceData *CreateSurfaceData(const tString& asName);
 		cSurfaceData *GetSurfaceData(const tString& asName);
-		bool LoadSurfaceData(const tString& asFile, cHaptic *apHaptic = NULL);
+		bool LoadSurfaceData(const tString& asFile, cHaptic *apHaptic = nullptr);
 
 		iLowLevelPhysics* GetLowLevel(){ return mpLowLevelPhysics;}
 

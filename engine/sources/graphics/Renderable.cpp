@@ -60,8 +60,8 @@ namespace hpl {
 
 	cMatrixf* iRenderable::GetInvModelMatrix()
 	{
-		cMatrixf *pModelMatrix = GetModelMatrix(NULL);
-		if(pModelMatrix==NULL) return NULL;
+		cMatrixf *pModelMatrix = GetModelMatrix(nullptr);
+		if(pModelMatrix==nullptr) return nullptr;
 
 		if(mlLastMatrixCount != GetMatrixUpdateCount())
 		{
@@ -77,9 +77,9 @@ namespace hpl {
 
 	const cVector3f& iRenderable::GetCalcScale()
 	{
-		cMatrixf *pModelMatrix = GetModelMatrix(NULL);
+		cMatrixf *pModelMatrix = GetModelMatrix(nullptr);
 
-		if(pModelMatrix != NULL && mlCalcScaleMatrixCount != GetMatrixUpdateCount())
+		if(pModelMatrix != nullptr && mlCalcScaleMatrixCount != GetMatrixUpdateCount())
 		{
 			mlCalcScaleMatrixCount = GetMatrixUpdateCount();
 			mvCalcScale.x = pModelMatrix->GetRight().Length();
@@ -122,7 +122,7 @@ namespace hpl {
 
 	iSaveData* iRenderable::CreateSaveData()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

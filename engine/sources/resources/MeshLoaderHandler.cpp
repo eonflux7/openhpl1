@@ -80,7 +80,7 @@ namespace hpl {
 		}
 
 		Log("No loader for '%s' found!\n", sType.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -122,7 +122,7 @@ namespace hpl {
 		}
 
 		Log("No loader for '%s' found!\n", sType.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -143,7 +143,7 @@ namespace hpl {
 		}
 
 		Log("No loader for '%s' found!\n", sType.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 

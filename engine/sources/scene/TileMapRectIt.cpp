@@ -29,7 +29,7 @@ namespace hpl {
 	cTileMapRectIt::cTileMapRectIt(cVector2l avPos, cVector2l avSize, cTileMap* apTileMap, int alLayer)
 	{
 		mpTileMap = apTileMap;
-		mpTile = NULL;
+		mpTile = nullptr;
 
 		mvPos = avPos;
 		mvSize = avSize;
@@ -86,7 +86,7 @@ namespace hpl {
 	{
 		GetTile();
 
-		return mpTile!=NULL;
+		return mpTile!=nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace hpl {
 					mlTileRowCount--;
 					if(mlTileRowCount<=0)
 					{
-						mpTile=NULL;
+						mpTile=nullptr;
 						break;
 					}
 					mlTileNum+=mlTileColAdd;
@@ -172,7 +172,7 @@ namespace hpl {
 
 				mlLayerCount++;
 
-				if(mpTile!=NULL){
+				if(mpTile!=nullptr){
 					iTileData* pData = mpTile->GetTileData();
 					if(pData && pData->IsSolid()){
 						mlLayerCount = (int)mpTileMap->mvTileLayer.size();

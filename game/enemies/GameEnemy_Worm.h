@@ -130,8 +130,8 @@ class cWormTailSegment
 {
 public:
 	cWormTailSegment(){
-		mpBone = NULL;
-		mpChildSegment = NULL;
+		mpBone = nullptr;
+		mpChildSegment = nullptr;
 	}
 
 	std::list<cVector3f> mlstPositions;

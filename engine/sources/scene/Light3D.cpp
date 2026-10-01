@@ -62,10 +62,10 @@ namespace hpl {
 		mpFalloffMap->SetWrapS(eTextureWrap_ClampToEdge);
 		mpFalloffMap->SetWrapT(eTextureWrap_ClampToEdge);
 
-		mpVisSectorCont = NULL;
+		mpVisSectorCont = nullptr;
 		mlSectorVisibilityCount =-1;
 
-		for(int i=0; i<3;++i)mvTempTextures[i]=NULL;
+		for(int i=0; i<3;++i)mvTempTextures[i]=nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -326,7 +326,7 @@ namespace hpl {
 		//////////////////////////////////////////////////////////
 		// Cast shadows
 		if(mbCastShadows && apRenderSettings->mShowShadows != eRendererShowShadows_None
-			&& apRenderSettings->mpVtxExtrudeProgram != NULL)
+			&& apRenderSettings->mpVtxExtrudeProgram != nullptr)
 		{
 			//Get temp index array. (Remove this when the index pool
 			// is implemented.).
@@ -517,7 +517,7 @@ namespace hpl {
 		mpFalloffMap->SetWrapT(eTextureWrap_ClampToEdge);
 
 		//reset temp textures.
-		for(int i=0; i<3;++i)mvTempTextures[i]=NULL;
+		for(int i=0; i<3;++i)mvTempTextures[i]=nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -533,7 +533,7 @@ namespace hpl {
 				TiXmlElement *pRootElem = pDoc->RootElement();
 
 				TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
-				if(pMainElem!=NULL)
+				if(pMainElem!=nullptr)
 				{
 					mbCastShadows = cString::ToBool(pMainElem->Attribute("CastsShadows"),mbCastShadows);
 
@@ -692,7 +692,7 @@ namespace hpl {
 
 		/////////////////////////////////////////////
 		//Set the model matrix
-		cMatrixf *pModelMtx = apObject->GetModelMatrix(NULL);
+		cMatrixf *pModelMtx = apObject->GetModelMatrix(nullptr);
 		if(pModelMtx){
 			apLowLevelGraphics->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(
 				apRenderSettings->mpCamera->GetViewMatrix(),
@@ -992,7 +992,7 @@ namespace hpl {
 
 	iSaveData* iLight3D::CreateSaveData()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1003,7 +1003,7 @@ namespace hpl {
 
 		//////////////////////////
 		// Data
-		pData->msFalloffMap = mpFalloffMap==NULL ? "" : mpFalloffMap->GetName();
+		pData->msFalloffMap = mpFalloffMap==nullptr ? "" : mpFalloffMap->GetName();
 
 		pData->mlstBillboardIds.Clear();
 		for(size_t i=0; i< mvBillboards.size(); ++i)
@@ -1120,7 +1120,7 @@ namespace hpl {
 			iSaveObject *pObject = apSaveObjectHandler->Get(lId);
 			cBillboard *pBill = static_cast<cBillboard*>(pObject);
 
-			if(pBill==NULL){
+			if(pBill==nullptr){
 				Error("Couldn't find billboard id %s\n",lId);
 				continue;
 			}

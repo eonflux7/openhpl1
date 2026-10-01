@@ -168,7 +168,7 @@ namespace hpl {
 		mlId = alId;
 		mpContainer = apContainer;
 
-		mpTargetSector = NULL;
+		mpTargetSector = nullptr;
 
 		mbPortalsNeedUpdate = true;
 
@@ -191,11 +191,11 @@ namespace hpl {
 	{
 		//Set the pointer here so that it becomes more flexible
 		//it also eases up loading
-		if(mpTargetSector == NULL)
+		if(mpTargetSector == nullptr)
 		{
 			mpTargetSector = mpContainer->GetSector(msTargetSectorId);
 
-			if(mpTargetSector ==NULL)
+			if(mpTargetSector ==nullptr)
 				Error("Portal %d in sector %s target sector %s is NOT valid!\n",mlId,msSectorId.c_str(),
 										msTargetSectorId.c_str());
 		}
@@ -365,7 +365,7 @@ namespace hpl {
 			if(pPortal->mlId == alId) return pPortal;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -505,7 +505,7 @@ namespace hpl {
 			cPortal *pPortal = *PortIt;
 			cSector *pTargetSector = pPortal->GetTargetSector();
 
-			if(pTargetSector==NULL) continue;
+			if(pTargetSector==nullptr) continue;
 
 			//If sector has been visited, skip it
 			if(pTargetSector->mlVisitCount == mpContainer->GetSectorVisitCount())
@@ -635,7 +635,7 @@ namespace hpl {
 		bool bAdded = false;
 
 		//Setting NULL as center sector.
-		apEntity->SetCurrentSector(NULL);
+		apEntity->SetCurrentSector(nullptr);
 		cVector3f vEntityWorldPos = apRenderable->GetBoundingVolume()->GetWorldCenter();
 		bool bFoundCenter = false;
 
@@ -709,7 +709,7 @@ namespace hpl {
 
 	bool cPortalContainer::Add(iRenderable *apRenderable, bool abStatic)
 	{
-		if(apRenderable==NULL)
+		if(apRenderable==nullptr)
 		{
 			Warning("Trying to add NULL object to portal container!\n");
 			return false;
@@ -724,7 +724,7 @@ namespace hpl {
 		if(abStatic)
 		{
 			//Set the center sector to NULL
-			apRenderable->SetCurrentSector(NULL);
+			apRenderable->SetCurrentSector(nullptr);
 			cVector3f vEntityWorldPos = apRenderable->GetBoundingVolume()->GetWorldCenter();
 			bool bFoundCenter = false;
 			//Log("Setting center sector to NULL to '%s'\n",apRenderable->GetName().c_str());
@@ -765,7 +765,7 @@ namespace hpl {
 		else
 		{
 			//Set the center sector to NULL
-			apRenderable->SetCurrentSector(NULL);
+			apRenderable->SetCurrentSector(nullptr);
 			cVector3f vEntityWorldPos = apRenderable->GetBoundingVolume()->GetWorldCenter();
 			bool bFoundCenter = false;
 
@@ -852,7 +852,7 @@ namespace hpl {
 
 	bool cPortalContainer::AddEntity(iEntity3D *apEntity)
 	{
-		if(apEntity==NULL)
+		if(apEntity==nullptr)
 		{
 			Warning("Trying to add NULL object to portal container!\n");
 			return false;
@@ -1222,7 +1222,7 @@ namespace hpl {
 	cSector* cPortalContainer::GetSector(tString asId)
 	{
 		tSectorMapIt it = m_mapSectors.find(asId);
-		if(it == m_mapSectors.end()) return NULL;
+		if(it == m_mapSectors.end()) return nullptr;
 
 		return it->second;
 	}

@@ -33,7 +33,7 @@ namespace hpl {
 	tWString cString::To16Char(const tString &asString)
 	{
 		tWString wsTemp;
-		size_t needed = mbstowcs(NULL,&asString[0],0);
+		size_t needed = mbstowcs(nullptr,&asString[0],0);
 		wsTemp.resize(needed);
 		mbstowcs(&wsTemp[0],&asString[0],needed);
 
@@ -45,7 +45,7 @@ namespace hpl {
 	tString cString::To8Char(const tWString &awsString)
 	{
 		tString sTemp;
-		size_t needed = wcstombs(NULL,&awsString[0],0);
+		size_t needed = wcstombs(nullptr,&awsString[0],0);
 		sTemp.resize(needed);
 		wcstombs(&sTemp[0],&awsString[0],needed);
 
@@ -58,7 +58,7 @@ namespace hpl {
 	{
 		// TODOD: needs to be rewritten to be more portal as wchar_t is not ALWAYS 2 bytes. (it's 4 on linux and os x)
 		tIntVec vVals;
-		GetIntVec(asArray,vVals,NULL);
+		GetIntVec(asArray,vVals,nullptr);
 
 		tWString wsString=_W(""); wsString.resize(vVals.size());
 
@@ -355,7 +355,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 	tString cString::ToString(const char* asString,tString asDefault)
 	{
-		if(asString==NULL)return asDefault;
+		if(asString==nullptr)return asDefault;
 
 		return asString;
 	}
@@ -364,7 +364,7 @@ namespace hpl {
 
 	int cString::ToInt(const char* asString,int alDefault)
 	{
-		if(asString==NULL)return alDefault;
+		if(asString==nullptr)return alDefault;
 
 		return atoi(asString);
 	}
@@ -373,7 +373,7 @@ namespace hpl {
 
 	float cString::ToFloat(const char* asString,float afDefault)
 	{
-		if(asString==NULL)return afDefault;
+		if(asString==nullptr)return afDefault;
 
 		return (float)atof(asString);
 	}
@@ -382,7 +382,7 @@ namespace hpl {
 
 	bool cString::ToBool(const char* asString, bool abDefault)
 	{
-		if(asString==NULL)return abDefault;
+		if(asString==nullptr)return abDefault;
 
 		tString asTempString = ToLowerCase(asString);
 		return asTempString == "true"?true:false;
@@ -392,11 +392,11 @@ namespace hpl {
 
 	cColor cString::ToColor(const char* asString, const cColor& aDefault)
 	{
-		if(asString==NULL)return aDefault;
+		if(asString==nullptr)return aDefault;
 
 		tFloatVec vValues;
 
-		GetFloatVec(asString,vValues,NULL);
+		GetFloatVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 4) return aDefault;
 
@@ -407,11 +407,11 @@ namespace hpl {
 
 	cVector2f cString::ToVector2f(const char* asString, const cVector2f& avDefault)
 	{
-		if(asString==NULL) return avDefault;
+		if(asString==nullptr) return avDefault;
 
 		tFloatVec vValues;
 
-		GetFloatVec(asString,vValues,NULL);
+		GetFloatVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 2) return avDefault;
 
@@ -422,11 +422,11 @@ namespace hpl {
 
 	cVector3f cString::ToVector3f(const char* asString, const cVector3f& avDefault)
 	{
-		if(asString==NULL) return avDefault;
+		if(asString==nullptr) return avDefault;
 
 		tFloatVec vValues;
 
-		GetFloatVec(asString,vValues,NULL);
+		GetFloatVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 3) return avDefault;
 
@@ -437,11 +437,11 @@ namespace hpl {
 
 	cVector2l cString::ToVector2l(const char* asString, const cVector2l& avDefault)
 	{
-		if(asString==NULL) return avDefault;
+		if(asString==nullptr) return avDefault;
 
 		tIntVec vValues;
 
-		GetIntVec(asString,vValues,NULL);
+		GetIntVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 2) return avDefault;
 
@@ -452,11 +452,11 @@ namespace hpl {
 
 	cVector3l cString::ToVector3l(const char* asString, const cVector3l& avDefault)
 	{
-		if(asString==NULL) return avDefault;
+		if(asString==nullptr) return avDefault;
 
 		tIntVec vValues;
 
-		GetIntVec(asString,vValues,NULL);
+		GetIntVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 3) return avDefault;
 
@@ -467,11 +467,11 @@ namespace hpl {
 
 	cMatrixf cString::ToMatrixf(const char* asString, const cMatrixf& a_mtxDefault)
 	{
-		if(asString==NULL) return a_mtxDefault;
+		if(asString==nullptr) return a_mtxDefault;
 
 		tFloatVec vValues;
 
-		GetFloatVec(asString,vValues,NULL);
+		GetFloatVec(asString,vValues,nullptr);
 
 		if(vValues.size() != 16) return a_mtxDefault;
 

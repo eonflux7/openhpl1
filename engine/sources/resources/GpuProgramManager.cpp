@@ -61,7 +61,7 @@ namespace hpl {
 	 */
 	iResourceBase* cGpuProgramManager::Create(const tString& asName)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -75,7 +75,7 @@ namespace hpl {
 
 		BeginLoad(asName);
 
-		if(pProgram==NULL && sPath!="")
+		if(pProgram==nullptr && sPath!="")
 		{
 			pProgram = mpLowLevelGraphics->CreateGpuProgram(asName, aType);
 
@@ -84,7 +84,7 @@ namespace hpl {
 				Error("Couldn't create program '%s'\n",asName.c_str());
 				hplDelete(pProgram);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			AddResource(pProgram);

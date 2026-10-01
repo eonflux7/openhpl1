@@ -87,7 +87,7 @@ namespace hpl {
 
 	bool cSerializeMemberFieldIterator::HasNext()
 	{
-		if(mpSavedClass == NULL ||
+		if(mpSavedClass == nullptr ||
 			mpSavedClass->mpMemberFields[mlFieldNum].mType == eSerializeType_NULL)
 		{
 			return false;
@@ -234,10 +234,10 @@ namespace hpl {
 	{
 		SetUpData();
 
-		if(apData==NULL) return;
+		if(apData==nullptr) return;
 
 		//Create element
-		TiXmlElement* pClassElem=NULL;
+		TiXmlElement* pClassElem=nullptr;
 
 		if(abIsPointer)
 		{
@@ -337,7 +337,7 @@ namespace hpl {
 		SetUpData();
 
 		cSerializeSavedClass *pClass = GetClass(apData->Serialize_GetTopClass());
-		if(pClass==NULL) return;
+		if(pClass==nullptr) return;
 
 		if(gbLog) {
 			Log("%sBegin class %s\n",GetTabs(),pClass->msName);
@@ -345,7 +345,7 @@ namespace hpl {
 		}
 
 		TiXmlElement *pMemberElem = apElement->FirstChildElement();
-		for(; pMemberElem != NULL; pMemberElem = pMemberElem->NextSiblingElement())
+		for(; pMemberElem != nullptr; pMemberElem = pMemberElem->NextSiblingElement())
 		{
 			tString sMainType = pMemberElem->Value();
 
@@ -388,7 +388,7 @@ namespace hpl {
 		tSerializeSavedClassMapIt it = m_mapSavedClasses.find(asName);
 		if(it == m_mapSavedClasses.end()) {
 			Warning("Serialize class '%s' not found!\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		return &it->second;
@@ -580,7 +580,7 @@ namespace hpl {
 			case eSerializeType_Vector2l:
 			{
 				tIntVec vVals; vVals.reserve(2);
-				cString::GetIntVec(asVal,vVals,NULL);
+				cString::GetIntVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cVector2l).FromVec(&vVals[0]);
 
@@ -591,7 +591,7 @@ namespace hpl {
 			case eSerializeType_Vector2f:
 			{
 				tFloatVec vVals; vVals.reserve(2);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cVector2f).FromVec(&vVals[0]);
 
@@ -602,7 +602,7 @@ namespace hpl {
 			case eSerializeType_Vector3l:
 			{
 				tIntVec vVals; vVals.reserve(3);
-				cString::GetIntVec(asVal,vVals,NULL);
+				cString::GetIntVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cVector3l).FromVec(&vVals[0]);
 
@@ -613,7 +613,7 @@ namespace hpl {
 			case eSerializeType_Vector3f:
 			{
 				tFloatVec vVals; vVals.reserve(3);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cVector3f).FromVec(&vVals[0]);
 
@@ -624,7 +624,7 @@ namespace hpl {
 			case eSerializeType_Matrixf:
 			{
 				tFloatVec vVals; vVals.reserve(16);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cMatrixf).FromVec(&vVals[0]);
 
@@ -635,7 +635,7 @@ namespace hpl {
 			case eSerializeType_Color:
 			{
 				tFloatVec vVals; vVals.reserve(4);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cColor).FromVec(&vVals[0]);
 
@@ -646,7 +646,7 @@ namespace hpl {
 			case eSerializeType_Rect2l:
 			{
 				tIntVec vVals; vVals.reserve(4);
-				cString::GetIntVec(asVal,vVals,NULL);
+				cString::GetIntVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cRect2l).FromVec(&vVals[0]);
 
@@ -657,7 +657,7 @@ namespace hpl {
 			case eSerializeType_Rect2f:
 			{
 				tFloatVec vVals; vVals.reserve(4);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cRect2f).FromVec(&vVals[0]);
 
@@ -668,7 +668,7 @@ namespace hpl {
 			case eSerializeType_Planef:
 			{
 				tFloatVec vVals; vVals.reserve(4);
-				cString::GetFloatVec(asVal,vVals,NULL);
+				cString::GetFloatVec(asVal,vVals,nullptr);
 
 				PointerValue(pVal,cPlanef).FromVec(&vVals[0]);
 
@@ -755,7 +755,7 @@ namespace hpl {
 		{
 			iSerializable ** pClassDataPtr = (iSerializable **)pArrayData;
 
-			if(*pClassDataPtr==NULL){
+			if(*pClassDataPtr==nullptr){
 				Warning("Array %s is NULL!\n",apField->msName.c_str());
 				return;
 			}
@@ -853,7 +853,7 @@ namespace hpl {
 		if(gbLog) Log("%s Saving variable: %s val: %s type: %d\n",GetTabs(),sName.c_str(),sVal,(int)type);
 
 		cSerializeMemberField *pField = GetMemberField(sName,apClass);
-		if(pField==NULL) return;
+		if(pField==nullptr) return;
 
 		StringToValue(apData, pField->mlOffset,type,sVal);
 	}
@@ -873,7 +873,7 @@ namespace hpl {
 		}
 
 		cSerializeMemberField *pField = GetMemberField(sName,apClass);
-		if(pField==NULL) return;
+		if(pField==nullptr) return;
 
 		void *pArrayData = ValuePointer(apData,pField->mlOffset);
 
@@ -885,7 +885,7 @@ namespace hpl {
 
 			size_t lCount=0;
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement(),++lCount)
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement(),++lCount)
 			{
 				size_t lOffset = lCount * lClassSize;
 
@@ -897,20 +897,20 @@ namespace hpl {
 		{
 			size_t lCount=0;
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement(),++lCount)
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement(),++lCount)
 			{
 				size_t lOffset = sizeof(void*) * lCount;
 				iSerializable **pValuePtr = (iSerializable**)ValuePointer(pArrayData,lOffset);
 
 				tString sClassType = cString::ToString(pVarElem->Attribute("type"),"");
 				cSerializeSavedClass *pSavedClass = GetClass(sClassType);
-				if(pSavedClass==NULL) continue;
+				if(pSavedClass==nullptr) continue;
 
 				if(gbLog) Log("%s Element Class pointer: %s\n",GetTabs(),sClassType.c_str());
 
 				//If NULL, then just create else delete and then create-
 				//virtual pointers here...yes yes...
-				if(*pValuePtr == NULL) {
+				if(*pValuePtr == nullptr) {
 					*pValuePtr = pSavedClass->mpCreateFunc();
 				}
 				else {
@@ -926,7 +926,7 @@ namespace hpl {
 		{
 			size_t lCount=0;
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement(),++lCount)
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement(),++lCount)
 			{
 				const char* sVal = pVarElem->Attribute("val");
 
@@ -949,7 +949,7 @@ namespace hpl {
 		tString sName = cString::ToString(apElement->Attribute("name"),"");
 
 		cSerializeMemberField *pField = GetMemberField(sName,apClass);
-		if(pField==NULL) return;
+		if(pField==nullptr) return;
 
 		iSerializable *pClassData = (iSerializable*)ValuePointer(apData,pField->mlOffset);
 
@@ -967,7 +967,7 @@ namespace hpl {
 		bool bNull = cString::ToBool(apElement->Attribute("null"),false);
 
 		cSerializeMemberField *pField = GetMemberField(sName,apClass);
-		if(pField==NULL) return;
+		if(pField==nullptr) return;
 
 		iSerializable **pClassDataPtr = (iSerializable**)ValuePointer(apData,pField->mlOffset);
 
@@ -977,12 +977,12 @@ namespace hpl {
 		//TODO: Question is here if previous data should be deleted.
 		if(bNull)
 		{
-			*pClassDataPtr = NULL;
+			*pClassDataPtr = nullptr;
 			return;
 		}
 
 		//If it is NULL create new, else assume it is already created.
-		if(*pClassDataPtr == NULL)
+		if(*pClassDataPtr == nullptr)
 		{
 			cSerializeSavedClass* pNewClass = GetClass(sType);
 			*pClassDataPtr = pNewClass->mpCreateFunc();
@@ -999,7 +999,7 @@ namespace hpl {
 		eSerializeType type = cString::ToInt(apElement->Attribute("type"),eSerializeMainType_NULL);
 
 		cSerializeMemberField *pField = GetMemberField(sName,apClass);
-		if(pField==NULL) return;
+		if(pField==nullptr) return;
 
 		iContainer *pCont = (iContainer*)ValuePointer(apData,pField->mlOffset);
 
@@ -1015,10 +1015,10 @@ namespace hpl {
 			pCont->Clear();
 
 			cSerializeSavedClass *pSavedClass = GetClass(sClassType);
-			if(pSavedClass==NULL) return;
+			if(pSavedClass==nullptr) return;
 
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement())
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement())
 			{
 				if(gbLog) Log("%sCreating element class %s\n",GetTabs(),sClassType.c_str());
 
@@ -1046,11 +1046,11 @@ namespace hpl {
 			pCont->Clear();
 
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement())
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement())
 			{
 				tString sClassType = cString::ToString(pVarElem->Attribute("type"),"");
 				cSerializeSavedClass *pSavedClass = GetClass(sClassType);
-				if(pSavedClass==NULL) continue;
+				if(pSavedClass==nullptr) continue;
 
 				if(gbLog) Log("%s Container member class pointer '%s'\n",GetTabs(),sClassType.c_str());
 
@@ -1066,7 +1066,7 @@ namespace hpl {
 			pCont->Clear();
 
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
-			for(; pVarElem != NULL; pVarElem = pVarElem->NextSiblingElement())
+			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement())
 			{
 				const char* sVal = pVarElem->Attribute("val");
 				void *pData = hplMalloc(SizeOfType(type));
@@ -1100,7 +1100,7 @@ namespace hpl {
 		}
 
 		Warning("Couldn't find member field '%s' in class '%s'\n",asName.c_str(), apClass->msName);
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1149,7 +1149,7 @@ namespace hpl {
 
 	void cSerializeClass::FillSaveClassMembersList(tSerializeSavedClassList *apList, cSerializeSavedClass* apClass)
 	{
-		if(apClass==NULL) return;
+		if(apClass==nullptr) return;
 		apList->push_back(apClass);
 		FillSaveClassMembersList(apList, GetClass(apClass->msParentName));
 	}

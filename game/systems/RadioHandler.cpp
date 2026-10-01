@@ -96,7 +96,7 @@ void cRadioHandler::Update(float afTimeStep)
 			msCurrentText = _W("");
 			msPrevText = mpCurrentMessage->msText;
 			hplDelete( mpCurrentMessage );
-			mpCurrentMessage = NULL;
+			mpCurrentMessage = nullptr;
 
 			if(mlstMessages.empty() && msOnEndCallback != "")
 			{
@@ -108,7 +108,7 @@ void cRadioHandler::Update(float afTimeStep)
 
 	////////////////////////////
 	// Get next message
-    if(mpCurrentMessage==NULL && mlstMessages.empty()==false)
+    if(mpCurrentMessage==nullptr && mlstMessages.empty()==false)
 	{
 		//Get newer message
 		mpCurrentMessage = mlstMessages.front();
@@ -138,7 +138,7 @@ void cRadioHandler::Update(float afTimeStep)
 
 bool cRadioHandler::IsActive()
 {
-	return mpCurrentMessage!=NULL;
+	return mpCurrentMessage!=nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -180,7 +180,7 @@ void cRadioHandler::Reset()
 	
 	mfAlpha =0;
 
-	mpCurrentMessage = NULL;
+	mpCurrentMessage = nullptr;
 
 	msOnEndCallback = "";
 }

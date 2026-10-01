@@ -49,7 +49,7 @@ namespace hpl {
 		mbFlipH=false;
 		mbFlipV=false;
 
-		mpAnimation =NULL;
+		mpAnimation =nullptr;
 		mfFrameNum =0;
 		mfAnimSpeed = 0.5f;
 		mlFrame=0;
@@ -59,7 +59,7 @@ namespace hpl {
 
 		mfAlpha = 1.0f;
 
-		mpEntityData = NULL;
+		mpEntityData = nullptr;
 
 		mpResources = apResources;
 		mpGraphics = apGraphics;
@@ -95,7 +95,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 	int cImageEntity::GetMaxFrameNum()
 	{
-		if(mpAnimation==NULL)return 0;
+		if(mpAnimation==nullptr)return 0;
 
 		//One for the -1, one for the frame jump, and one becuase we start with 0.
 		return (int)mpAnimation->mvFrameNums.size()-3;
@@ -110,7 +110,7 @@ namespace hpl {
 		if(mpAnimation->msName == asName)return true;
 
 		cImageAnimation *pAnim = mpEntityData->GetAnimationByName(asName);
-		if(pAnim==NULL)return false;
+		if(pAnim==nullptr)return false;
 
 		mpAnimation = pAnim;
 		mfFrameNum =0;
@@ -121,7 +121,7 @@ namespace hpl {
 
 	const tString& cImageEntity::GetCurrentAnimation() const
 	{
-		if(mpAnimation==NULL){
+		if(mpAnimation==nullptr){
 			return msTempString;
 		}
 
@@ -315,7 +315,7 @@ namespace hpl {
 			mpEntityData->GetImageFrame(mlFrame)->mpMaterial,
 			&mvVtx,&mvIdxVec,
 			ePrimitiveType_Quad, GetWorldPosition().z,
-			mBoundingBox, NULL, &mvTransform);
+			mBoundingBox, nullptr, &mvTransform);
 		// Add the render object.
 		mpGraphics->GetRenderer2D()->AddObject(_obj);
 
@@ -342,7 +342,7 @@ namespace hpl {
 	{
 		cImageEntityData* pImageData = mpResources->GetImageEntityManager()->CreateData(asDataName);
 
-		if(pImageData==NULL){
+		if(pImageData==nullptr){
 			FatalError("Couldn't load Data '%s' for entity '%s'!",asDataName.c_str(), msName.c_str());
 			return false;
 		}

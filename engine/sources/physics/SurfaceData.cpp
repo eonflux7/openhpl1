@@ -66,7 +66,7 @@ namespace hpl {
 		mfMiddleScrapeSpeed = 2;
 		msScrapeSoundName = "";
 
-		mpHapticSurface = NULL;
+		mpHapticSurface = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -94,11 +94,11 @@ namespace hpl {
 		apBody->SetHasImpact(true);
 
 		cWorld3D *pWorld = mpPhysics->GetGameWorld();
-		if(pWorld==NULL){
+		if(pWorld==nullptr){
 			return;
 		}
 
-		cSurfaceImpactData *pData = NULL;
+		cSurfaceImpactData *pData = nullptr;
 		for(size_t i=0; i< mvImpactData.size(); i++)
 		{
 			if(mvImpactData[i]->GetMinSpeed() <= afSpeed)
@@ -108,7 +108,7 @@ namespace hpl {
 			}
 		}
 
-		if(pData == NULL){
+		if(pData == nullptr){
 			return;
 		}
 
@@ -134,14 +134,14 @@ namespace hpl {
 		if(alContacts < mlMinScrapeContacts) return;
 
 		//Make sure that only one body can update the scrape.
-		if(	apBody->GetScrapeBody() != NULL &&
+		if(	apBody->GetScrapeBody() != nullptr &&
 			apSlideAgainstBody != apBody->GetScrapeBody())
 		{
 			return;
 		}
 
 		cWorld3D *pWorld = mpPhysics->GetGameWorld();
-		if(pWorld==NULL) return;
+		if(pWorld==nullptr) return;
 
 		cSoundHandler *pSoundHandler = pWorld->GetSound()->GetSoundHandler();
 		if(pSoundHandler->GetSilent()) return;
@@ -149,7 +149,7 @@ namespace hpl {
 		//Check if sound exist in world.
 		if(pWorld->SoundEntityExists(apBody->GetScrapeSoundEntity())==false)
 		{
-			apBody->SetScrapeSoundEntity(NULL);
+			apBody->SetScrapeSoundEntity(nullptr);
 		}
 
 		//Check if body is still, in that case stop set speed to 0
@@ -163,15 +163,15 @@ namespace hpl {
 		}
 
 		//If the body all ready has a scrape sound
-		if(apBody->GetScrapeSoundEntity()!=NULL)
+		if(apBody->GetScrapeSoundEntity()!=nullptr)
 		{
 			//check if the sound should be stopped
 			float fMin = cMath::Max(mfMinScrapeSpeed-0.7f, 0.02f);
 			if(std::abs(afSpeed) < fMin)
 			{
 				apBody->GetScrapeSoundEntity()->FadeOut(4.3f);
-				apBody->SetScrapeSoundEntity(NULL);
-				apBody->SetScrapeBody(NULL);
+				apBody->SetScrapeSoundEntity(nullptr);
+				apBody->SetScrapeBody(nullptr);
 				//Log("Stopped scrape '%s' %d on body '%s' IN SURFACEDATA!\n",msScrapeSoundName.c_str(),
 				//	(size_t)apBody->GetScrapeSoundEntity(),
 				//	apBody->GetName().c_str());
@@ -260,11 +260,11 @@ namespace hpl {
 	{
 		if(afSpeed == 0) return;
 
-		cSurfaceImpactData *pDataA = NULL;
-		cSurfaceImpactData *pDataB = NULL;
+		cSurfaceImpactData *pDataA = nullptr;
+		cSurfaceImpactData *pDataB = nullptr;
 
 		cWorld3D *pWorld = mpPhysics->GetGameWorld();
-		if(pWorld==NULL){
+		if(pWorld==nullptr){
 			return;
 		}
 
@@ -284,7 +284,7 @@ namespace hpl {
 
 		/////////////////////////////
 		//Get second surface
-		if(apSecondSurface != this && apSecondSurface != NULL)
+		if(apSecondSurface != this && apSecondSurface != nullptr)
 		{
 			for(size_t i=0; i< apSecondSurface->mvImpactData.size(); i++)
 			{
@@ -351,12 +351,12 @@ namespace hpl {
 
 		//Log("Rollspeed: %f\n",fRollingSpeed);
 
-		if(fRollingSpeed==0 && apBody->GetRollSoundEntity()==NULL) return;
+		if(fRollingSpeed==0 && apBody->GetRollSoundEntity()==nullptr) return;
 
 		/////////////////////////////////
 		//Update roll sound
 		cWorld3D *pWorld = mpPhysics->GetGameWorld();
-		if(pWorld==NULL) return;
+		if(pWorld==nullptr) return;
 
 		cSoundHandler *pSoundHandler = pWorld->GetSound()->GetSoundHandler();
 		if(pSoundHandler->GetSilent()) return;
@@ -364,11 +364,11 @@ namespace hpl {
 		//Check if sound exist in world.
 		if(pWorld->SoundEntityExists(apBody->GetRollSoundEntity())==false)
 		{
-			apBody->SetRollSoundEntity(NULL);
+			apBody->SetRollSoundEntity(nullptr);
 		}
 
 		//If the body all ready has a Roll sound
-		if(apBody->GetRollSoundEntity()!=NULL)
+		if(apBody->GetRollSoundEntity()!=nullptr)
 		{
 			//check if the sound should be stopped
 			float fMin = cMath::Max(mfMinRollSpeed-0.7f, 0.02f);
@@ -376,7 +376,7 @@ namespace hpl {
 				apBody->HasCollision()==false)
 			{
 				apBody->GetRollSoundEntity()->FadeOut(4.3f);
-				apBody->SetRollSoundEntity(NULL);
+				apBody->SetRollSoundEntity(nullptr);
 				//Log("Stopped Roll '%s' on body '%s'\n",msRollSoundName.c_str(),
 				//														apBody->GetName().c_str());
 			}
@@ -574,11 +574,11 @@ namespace hpl {
 
 	iPhysicsMaterial* cSurfaceData::ToMaterial(iPhysicsWorld *apWorld)
 	{
-		iPhysicsMaterial *pMat=NULL;
+		iPhysicsMaterial *pMat=nullptr;
 
 		pMat = apWorld->GetMaterialFromName(msName);
 
-		if(pMat==NULL)
+		if(pMat==nullptr)
 		{
 			pMat = apWorld->CreateMaterial(msName);
 		}
@@ -626,7 +626,7 @@ namespace hpl {
 				return mvImpactData[i];
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -660,7 +660,7 @@ namespace hpl {
 				return mvHitData[i];
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

@@ -63,12 +63,12 @@ namespace hpl {
 		mpCollider = apCollider;
 
 		mpRootNode = hplNew( cNode2D, () );
-		mpMapLights = NULL;
-		mpMapImageEntities = NULL;
-		mpMapBodies = NULL;
-		mpTileMap = NULL;
+		mpMapLights = nullptr;
+		mpMapImageEntities = nullptr;
+		mpMapBodies = nullptr;
+		mpTileMap = nullptr;
 
-		mpScript = NULL;
+		mpScript = nullptr;
 
 		msName=asName;
 
@@ -135,7 +135,7 @@ namespace hpl {
 
 	cLight2DPoint* cWorld2D::CreateLightPoint(tString asName)
 	{
-		if(mpMapLights==NULL)return NULL;
+		if(mpMapLights==nullptr)return nullptr;
 
 		cLight2DPoint* pLight = hplNew( cLight2DPoint, (asName) );
 
@@ -150,7 +150,7 @@ namespace hpl {
 
 	void cWorld2D::DestroyLight(iLight2D* apLight)
 	{
-		if(mpMapLights==NULL)return;
+		if(mpMapLights==nullptr)return;
 
 		mpMapLights->RemoveEntity(apLight);
 		hplDelete(apLight);
@@ -177,7 +177,7 @@ namespace hpl {
 				return static_cast<iLight2D*>(pObj->GetEntity());
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -205,7 +205,7 @@ namespace hpl {
 	{
 		cImageEntity* pEntity = hplNew( cImageEntity, (asName, mpResources, mpGraphics) );
 
-		if(pEntity==NULL)return NULL;
+		if(pEntity==nullptr)return nullptr;
 
 		if(pEntity->LoadEntityData(asDataName))
 		{
@@ -224,7 +224,7 @@ namespace hpl {
 
 	void cWorld2D::DestroyImageEntity(cImageEntity* apEntity)
 	{
-		if(mpMapImageEntities==NULL)return;
+		if(mpMapImageEntities==nullptr)return;
 
 		mpMapImageEntities->RemoveEntity(apEntity);
 		hplDelete(apEntity);
@@ -244,7 +244,7 @@ namespace hpl {
 				return static_cast<cImageEntity*>(pObj->GetEntity());
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -259,7 +259,7 @@ namespace hpl {
 		mpMapParticles->AddEntity(pPS);
 
 		return pPS;*/
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -304,7 +304,7 @@ namespace hpl {
 			it++;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 
@@ -331,7 +331,7 @@ namespace hpl {
 		//Load the script
 		asFile = cString::SetFileExt(asFile,"hps");
 		mpScript = mpResources->GetScriptManager()->CreateScript(asFile);
-		if(mpScript==NULL){
+		if(mpScript==nullptr){
 			Error("Couldn't load script '%s'\n",asFile.c_str());
 		}
 
@@ -587,10 +587,10 @@ namespace hpl {
 						{
 							//Log("Layer Children\n");
 
-							if(pLayerChildElem->Attribute("Width")==NULL)FatalError("Can't Load Width\n");
+							if(pLayerChildElem->Attribute("Width")==nullptr)FatalError("Can't Load Width\n");
 							int lW = cString::ToInt(pLayerChildElem->Attribute("Width"),0);
 
-							if(pLayerChildElem->Attribute("Height")==NULL)FatalError("Can't Load Height\n");
+							if(pLayerChildElem->Attribute("Height")==nullptr)FatalError("Can't Load Height\n");
 							int lH = cString::ToInt(pLayerChildElem->Attribute("Height"),0);
 							bool bCollide = cString::ToBool(pLayerChildElem->Attribute("Collide"),true);
 							bool bLit = cString::ToBool(pLayerChildElem->Attribute("Lit"),true);
@@ -614,9 +614,9 @@ namespace hpl {
 								int lDataCount =0;
 								while(lDataCount<(int)sData.length())
 								{
-									cTile* pTile = hplNew( cTile,(NULL,eTileRotation_0,
+									cTile* pTile = hplNew( cTile,(nullptr,eTileRotation_0,
 										cVector3f((float)lColCount*fTileSize,(float)lRowCount*fTileSize,fZ),
-										cVector2f(fTileSize,fTileSize),NULL) );
+										cVector2f(fTileSize,fTileSize),nullptr) );
 
 									lDataCount = LoadTileData(pTile, &sData, lDataCount);
 
@@ -625,7 +625,7 @@ namespace hpl {
 										//Create the collision mesh
 										if(pTileLayer->HasCollision())
 										{
-											cCollisionMesh2D *pCollMesh=NULL;
+											cCollisionMesh2D *pCollMesh=nullptr;
 											cTileDataNormal* pTData;
 											pTData = static_cast<cTileDataNormal*>(pTile->GetTileData());
 
@@ -836,8 +836,8 @@ namespace hpl {
 					tString sVal = asData->substr(lStart, lCount - lStart);
 					int lVal = cString::ToInt(sVal.c_str(),-1);
 
-					cTileSet *pSet=NULL;
-					cTileDataNormal *pData = NULL;
+					cTileSet *pSet=nullptr;
+					cTileDataNormal *pData = nullptr;
 					switch(lValType)
 					{
 					case 0: lSet = lVal; break;
@@ -846,7 +846,7 @@ namespace hpl {
 						if(lNum<0)break;
 
 						pSet = mpTileMap->GetTileSet(lSet);
-						if(pSet==NULL)FatalError("Error getting tileset%d\n",lSet);
+						if(pSet==nullptr)FatalError("Error getting tileset%d\n",lSet);
 						pData = static_cast<cTileDataNormal*>(pSet->Get(lNum));
 
 						apTile->SetTileData(pData);

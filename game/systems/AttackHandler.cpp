@@ -40,7 +40,7 @@ cAttackRayCallback::cAttackRayCallback()
 
 void cAttackRayCallback::Reset()
 {
-	mpClosestBody = NULL;
+	mpClosestBody = nullptr;
 	mbSkipCharacter = false;
 }
 
@@ -52,7 +52,7 @@ bool cAttackRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPa
 	if(pBody == mpSkipBody) return true;
 	if(mbSkipCharacter && pBody->IsCharacter()) return true;
 	
-	if(apParams->mfDist < mfShortestDist || mpClosestBody == NULL)
+	if(apParams->mfDist < mfShortestDist || mpClosestBody == nullptr)
 	{
 		mpClosestBody = pBody;
 		mfShortestDist = apParams->mfDist;
@@ -149,12 +149,12 @@ bool cAttackHandler::CreateLineAttack(const cVector3f& avStart, const cVector3f&
 	mRayCallback.mTarget = aTarget;
 	mRayCallback.mpSkipBody = apSkipBody;
 	
-	if(apPickedBody)*apPickedBody = NULL;
+	if(apPickedBody)*apPickedBody = nullptr;
 	
 	mRayCallback.Reset();
     pPhysicsWorld->CastRay(&mRayCallback,avStart,avEnd,true,false,true);
 	
-	if(mRayCallback.mpClosestBody == NULL) return false;
+	if(mRayCallback.mpClosestBody == nullptr) return false;
 
 	if(apPickedBody) *apPickedBody = mRayCallback.mpClosestBody;
 	
@@ -187,7 +187,7 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 
 	tPhysicsBodyList lstBodies;
 
-	mpLastSwingDoor = NULL;
+	mpLastSwingDoor = nullptr;
 
 	///////////////////////////////
 	//Set up boudning box
@@ -247,7 +247,7 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 					mRayCallback.mbSkipCharacter = false;
 					
 					//Damage
-					if(mRayCallback.mpClosestBody==NULL)
+					if(mRayCallback.mpClosestBody==nullptr)
 					{
 						if(afDamage>0)
 						{
@@ -349,12 +349,12 @@ bool cAttackHandler::CreateLineDestroyBody(const cVector3f& avStart, const cVect
 
 	mRayCallback.mpSkipBody = apSkipBody;
 
-	if(apPickedBody)*apPickedBody = NULL;
+	if(apPickedBody)*apPickedBody = nullptr;
 
 	mRayCallback.Reset();
 	pPhysicsWorld->CastRay(&mRayCallback,avStart,avEnd,true,false,true);
 
-	if(mRayCallback.mpClosestBody == NULL) return false;
+	if(mRayCallback.mpClosestBody == nullptr) return false;
 
 	if(apPickedBody) *apPickedBody = mRayCallback.mpClosestBody;
 	iPhysicsBody *pBody = mRayCallback.mpClosestBody;

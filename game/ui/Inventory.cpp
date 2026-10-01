@@ -68,7 +68,7 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	///////////////////////////////////
 	//Init normal slots
-	cInventorySlot *pSlot = NULL;
+	cInventorySlot *pSlot = nullptr;
 	int lCount=0;
     
 	cVector2f vSlotBegin(400 - 77*2.5f, 15 + 69 + 5);
@@ -98,18 +98,18 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	//Init other widgests
 	cInventoryBattery *pBattery = hplNew( cInventoryBattery,(mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69 + 5,77,135),
-														NULL,30.0f) );
+														nullptr,30.0f) );
 	AddWidget(pBattery);
 
 	cInventoryHealth *pHealth = hplNew( cInventoryHealth, (mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69*3 + 5,
 																77,135),
-														NULL,30.0f) );
+														nullptr,30.0f) );
 	AddWidget(pHealth);
 
 	///////////////////////////////////
 	//Init items types
-	mvItemTypes.resize(eGameItemType_LastEnum, NULL);
+	mvItemTypes.resize(eGameItemType_LastEnum, nullptr);
 
 	mvItemTypes[eGameItemType_Normal] = hplNew( cGameItemType_Normal,(mpInit) );
 	mvItemTypes[eGameItemType_Notebook] = hplNew( cGameItemType_Notebook,(mpInit) );
@@ -163,7 +163,7 @@ iInventoryWidget::iInventoryWidget(cInit *apInit, const cRect2f &aRect, cGfxObje
 
 void iInventoryWidget::Draw()
 {
-	if(mpGfxObject==NULL) return;
+	if(mpGfxObject==nullptr) return;
 	
 	cVector2l vSize = mpGfxObject->GetMaterial()->GetImage(eMaterialTexture_Diffuse)->GetSize();
 	mpDrawer->DrawGfxObject(mpGfxObject, cVector3f(mRect.x,mRect.y,mfZ),
@@ -181,14 +181,14 @@ void iInventoryWidget::Draw()
 //-----------------------------------------------------------------------
 
 cInventorySlot::cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEquip, int alIndex)
-: iInventoryWidget(apInit, cRect2f(avPos.x, avPos.y,77, 66),NULL, 10.0f)
+: iInventoryWidget(apInit, cRect2f(avPos.x, avPos.y,77, 66),nullptr, 10.0f)
 {
 	mpGfxObject = mpDrawer->CreateGfxObject("inventory_slot.bmp","diffalpha2d");
-	mpItem = NULL;
+	mpItem = nullptr;
 	mbEquip = abEquip;
 	mlIndex = alIndex;
 
-	mpGfxBack = NULL;
+	mpGfxBack = nullptr;
 
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 }
@@ -224,7 +224,7 @@ void cInventorySlot::OnDraw()
 	// Equip slot specifics
 	if(mbEquip)
 	{
-		if(mpGfxBack == NULL)
+		if(mpGfxBack == nullptr)
 		{
 			mpGfxBack = mpDrawer->CreateGfxObject("inventory_slot_equip"+cString::ToString(mlEquipIndex+1)+".bmp","diffalpha2d");
 		}
@@ -315,11 +315,11 @@ void cInventorySlot::OnMouseDown(eMButton aButton)
 	//Left button
 	if(aButton == eMButton_Left)
 	{
-		if(mpItem!=NULL)
+		if(mpItem!=nullptr)
 		{
 			mpInit->mpInventory->SetCurrentItem(mpItem);
 			mpInit->mpInventory->SetCurrentSlot(this);
-			mpItem = NULL;
+			mpItem = nullptr;
 
 			cVector2f vOffset = cVector2f(mRect.x + 4,	mRect.y + 4) - 
 								mpInit->mpInventory->GetMousePos();
@@ -348,7 +348,7 @@ void cInventorySlot::OnMouseUp(eMButton aButton)
 	{
 		if(mpInit->mpInventory->GetCurrentItem())
 		{
-			if(mpItem == NULL)
+			if(mpItem == nullptr)
 			{
 				mpItem = mpInit->mpInventory->GetCurrentItem();
 			}
@@ -366,8 +366,8 @@ void cInventorySlot::OnMouseUp(eMButton aButton)
 					mpInit->mpInventory->GetCurrentSlot()->SetItem(mpInit->mpInventory->GetCurrentItem());
 				}
 			}
-			mpInit->mpInventory->SetCurrentItem(NULL);
-			mpInit->mpInventory->SetCurrentSlot(NULL);
+			mpInit->mpInventory->SetCurrentItem(nullptr);
+			mpInit->mpInventory->SetCurrentSlot(nullptr);
 
 			mpInit->mpInventory->SetDroppedInSlot(true);
 		}
@@ -384,20 +384,20 @@ void cInventorySlot::OnDoubleClick(eMButton aButton)
 	{
 		//The player might be holding the item when double clicking.
 		cInventoryItem *pItem = mpItem;
-		if(pItem == NULL && mpInit->mpInventory->GetCurrentSlot() == this)
+		if(pItem == nullptr && mpInit->mpInventory->GetCurrentSlot() == this)
 		{
 			pItem = mpInit->mpInventory->GetCurrentItem();
 			if(pItem){
 				mpInit->mpInventory->GetCurrentSlot()->SetItem(mpInit->mpInventory->GetCurrentItem());
-				mpInit->mpInventory->SetCurrentItem(NULL);
-				mpInit->mpInventory->SetCurrentSlot(NULL);
+				mpInit->mpInventory->SetCurrentItem(nullptr);
+				mpInit->mpInventory->SetCurrentSlot(nullptr);
 			}
 		}
 
 		if(pItem)
 		{
 			cGameItemType *pItemType = mpInit->mpInventory->GetItemType(pItem->GetItemType());
-			if(pItemType==NULL){
+			if(pItemType==nullptr){
 				Warning("Itemtype %d does not exist\n",pItem->GetItemType());
 				return;
 			}
@@ -430,7 +430,7 @@ void cInventorySlot::OnShortcutDown(int alNum)
 		cInventoryItem *pThisItem = mpItem;
 
 		if(pSlot->mpItem)	SetItem(pSlot->mpItem);
-		else				SetItem(NULL);
+		else				SetItem(nullptr);
 		
 		pSlot->SetItem(pThisItem);
 	}
@@ -455,8 +455,8 @@ cInventoryItem::cInventoryItem(cInit *apInit)
 {
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
-	mpGfxObject = NULL;
-	mpGfxObjectAdditive = NULL;
+	mpGfxObject = nullptr;
+	mpGfxObjectAdditive = nullptr;
 }
 
 cInventoryItem::~cInventoryItem()
@@ -478,7 +478,7 @@ bool cInventoryItem::Init(cGameItem *apGameItem)
 		mpGfxObjectAdditive = mpDrawer->CreateGfxObject(apGameItem->GetImageFile(),"diffadditive2d");
 	}
 	else
-		mpGfxObject = NULL;
+		mpGfxObject = nullptr;
 
 	msDescription = apGameItem->GetDescription();
 	msGameName = apGameItem->GetGameName();
@@ -546,7 +546,7 @@ bool cInventoryItem::InitFromFile(const tString &asFile)
 				mpGfxObjectAdditive = mpDrawer->CreateGfxObject(sImageFile,"diffadditive2d");
 			}
 			else 
-				mpGfxObject = NULL;
+				mpGfxObject = nullptr;
 			
 			msEntityFile = sEntityFile;
 		}
@@ -751,7 +751,7 @@ cInventoryContext::cInventoryContext(cInit *apInit)
 
 	mfAlpha = 0.0f;
 
-	mpActionVec = NULL;
+	mpActionVec = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -781,7 +781,7 @@ void cInventoryContext::SetActive(bool abX)
 
 void cInventoryContext::Draw()
 {
-	if(mfAlpha <= 0.0f || mpActionVec==NULL) return;
+	if(mfAlpha <= 0.0f || mpActionVec==nullptr) return;
 
 	float fTotalAlpha = mfAlpha * mpInit->mpInventory->GetAlpha();
 
@@ -1007,8 +1007,8 @@ void cInventory::Reset()
 	msItemName = _W("");
 	msItemDesc = _W("");
 
-	mpCurrentItem = NULL;
-	mpCurrentSlot = NULL;
+	mpCurrentItem = nullptr;
+	mpCurrentSlot = nullptr;
 
 	mbCheckingCombineItems = false;
 
@@ -1025,12 +1025,12 @@ void cInventory::Reset()
 	for(; it != mlstSlots.end(); ++it)
 	{
 		cInventorySlot *pSlot = *it;
-		pSlot->SetItem(NULL);
+		pSlot->SetItem(nullptr);
 	}
 	//Equip
 	for(size_t i=0; i < mvEquipSlots.size(); ++i)
 	{
-		mvEquipSlots[i]->SetItem(NULL);
+		mvEquipSlots[i]->SetItem(nullptr);
 	}
 
 	STLMapDeleteAll(m_mapItems);
@@ -1211,7 +1211,7 @@ void cInventory::AddItem(cGameItem *apGameItem)
 	//If the item has a count, check if it exists
 	if(apGameItem->HasCount())
 	{
-		cInventoryItem *pFoundItem = NULL;
+		cInventoryItem *pFoundItem = nullptr;
 		
 		tInventoryItemMapIt it = m_mapItems.begin();
 		for(; it != m_mapItems.end(); ++it)
@@ -1253,7 +1253,7 @@ void cInventory::AddItem(cGameItem *apGameItem)
 	{
 		cInventorySlot *pSlot = *it;
 		
-		if(pSlot->GetItem()==NULL)
+		if(pSlot->GetItem()==nullptr)
 		{
 			pSlot->SetItem(pItem);
 			CheckPickupCallback(pItem->GetName());
@@ -1286,7 +1286,7 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 	//If the item has a count, check if it exists
 	if(pItem->HasCount())
 	{
-		cInventoryItem *pFoundItem = NULL;
+		cInventoryItem *pFoundItem = nullptr;
 
 		tInventoryItemMapIt it = m_mapItems.begin();
 		for(; it != m_mapItems.end(); ++it)
@@ -1321,7 +1321,7 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 	{
 		cInventorySlot *pSlot = *it;
 
-		if( (alSlotIndex <0 && pSlot->GetItem()==NULL &&  (mpCurrentItem==NULL || mpCurrentSlot != pSlot))
+		if( (alSlotIndex <0 && pSlot->GetItem()==nullptr &&  (mpCurrentItem==nullptr || mpCurrentSlot != pSlot))
 			||
 			(alSlotIndex == lCount))
 		{
@@ -1344,7 +1344,7 @@ void cInventory::RemoveItem(cInventoryItem *apItem)
 
 		if(pSlot->GetItem() == apItem)
 		{
-			pSlot->SetItem(NULL);
+			pSlot->SetItem(nullptr);
 		}
 	}
 
@@ -1359,7 +1359,7 @@ void cInventory::RemoveItem(cInventoryItem *apItem)
 
 	if(mpCurrentItem == apItem)
 	{
-		mpCurrentItem = NULL;
+		mpCurrentItem = nullptr;
 	}
 
 	hplDelete( apItem );
@@ -1375,7 +1375,7 @@ cInventoryItem *cInventory::GetItem(const tString &asName)
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -1454,8 +1454,8 @@ void cInventory::OnMouseUp(eMButton aButton)
 				mpInit->mpInventory->GetCurrentSlot()->SetItem(mpInit->mpInventory->GetCurrentItem());
 			}
 
-			mpCurrentItem = NULL;
-			mpCurrentSlot = NULL;
+			mpCurrentItem = nullptr;
+			mpCurrentSlot = nullptr;
 		}
 	}
 }
@@ -1529,7 +1529,7 @@ void cInventory::OnShortcutDown(int alNum)
 	else
 	{
 		cInventoryItem *pItem = mvEquipSlots[alNum]->GetItem();
-		if(pItem != NULL)
+		if(pItem != nullptr)
 		{
 			//Check there is a callback for the item with object = ""
 			if(mpInit->mpInventory->CheckUseCallback(pItem->GetName(), ""))
@@ -1715,7 +1715,7 @@ bool cInventory::CheckUseCallback(const tString &asItem, const tString &asObject
 
 bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asItem2, int alSlotIndex)
 {
-	cInventoryCombineCallback *pFinalCallback=NULL;
+	cInventoryCombineCallback *pFinalCallback=nullptr;
 
 	mbCheckingCombineItems = true;
 
@@ -1886,7 +1886,7 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 		if(apSave->mvEquipSlots[i].msItemName!="")
 			mvEquipSlots[i]->mpItem = GetItem(apSave->mvEquipSlots[i].msItemName);
 		else
-			mvEquipSlots[i]->mpItem = NULL;
+			mvEquipSlots[i]->mpItem = nullptr;
 	}
 
 	////////////////////////////
@@ -1901,7 +1901,7 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 		if(saveSlot.msItemName!="")
 			pSlot->mpItem = GetItem(saveSlot.msItemName);
 		else
-			pSlot->mpItem = NULL;
+			pSlot->mpItem = nullptr;
 
 		++SlotListIt;
 	}
@@ -1981,7 +1981,7 @@ iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveOb
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------

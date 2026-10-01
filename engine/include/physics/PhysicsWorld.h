@@ -239,9 +239,9 @@ namespace hpl {
 
 		bool CheckShapeWorldCollision(cVector3f *apNewPos,
 										iCollideShape* apShape, const cMatrixf& a_mtxTransform,
-										iPhysicsBody *apSkipBody=NULL, bool abSkipStatic=false,
+										iPhysicsBody *apSkipBody=nullptr, bool abSkipStatic=false,
 										bool abIsCharacter=false,
-										iPhysicsWorldCollisionCallback *apCallback=NULL,
+										iPhysicsWorldCollisionCallback *apCallback=nullptr,
 										bool abCollideCharacter=true,
 										bool abDebug=false);
 

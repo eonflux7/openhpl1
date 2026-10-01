@@ -33,8 +33,8 @@ namespace hpl{
 
 	tString cGLSLProgram::msShaderDir = "shaders/";
 	GLuint cGLSLProgram::mlPipeline = 0;
-	cGLSLProgram* cGLSLProgram::mpBoundVertex = NULL;
-	cGLSLProgram* cGLSLProgram::mpBoundFragment = NULL;
+	cGLSLProgram* cGLSLProgram::mpBoundVertex = nullptr;
+	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
 
 	static const char* kVertexPreamble =
 		"#version 330 compatibility\n";
@@ -50,7 +50,7 @@ namespace hpl{
 	static bool ReadTextFile(const tString& asPath, tString& asOut)
 	{
 		FILE *pFile = fopen(asPath.c_str(), "rb");
-		if(pFile==NULL) return false;
+		if(pFile==nullptr) return false;
 
 		fseek(pFile,0,SEEK_END);
 		long lSize = ftell(pFile);
@@ -94,8 +94,8 @@ namespace hpl{
 
 	cGLSLProgram::~cGLSLProgram()
 	{
-		if(mpBoundVertex == this) mpBoundVertex = NULL;
-		if(mpBoundFragment == this) mpBoundFragment = NULL;
+		if(mpBoundVertex == this) mpBoundVertex = nullptr;
+		if(mpBoundFragment == this) mpBoundFragment = nullptr;
 
 		if(mlProgram) glDeleteProgram(mlProgram);
 		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
@@ -200,12 +200,12 @@ namespace hpl{
 	{
 		if(mProgramType == eGpuProgramType_Vertex)
 		{
-			if(mpBoundVertex == this) mpBoundVertex = NULL;
+			if(mpBoundVertex == this) mpBoundVertex = nullptr;
 			BindStage(GL_VERTEX_SHADER_BIT, 0);
 		}
 		else
 		{
-			if(mpBoundFragment == this) mpBoundFragment = NULL;
+			if(mpBoundFragment == this) mpBoundFragment = nullptr;
 		}
 		UpdateFragmentStage();
 	}
@@ -329,7 +329,7 @@ namespace hpl{
 	bool cGLSLProgram::SetTextureToUnit(int alUnit, iTexture* apTexture)
 	{
 		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
-		if(apTexture==NULL) return true;
+		if(apTexture==nullptr) return true;
 
 		GLenum Target = GL_TEXTURE_2D;
 		switch(apTexture->GetTarget())
@@ -388,7 +388,7 @@ namespace hpl{
 		};
 
 		GLuint lShader = glCreateShader(aStage);
-		glShaderSource(lShader, 2, vSources, NULL);
+		glShaderSource(lShader, 2, vSources, nullptr);
 		glCompileShader(lShader);
 
 		GLint lOk = GL_FALSE;
@@ -396,7 +396,7 @@ namespace hpl{
 		if(!lOk)
 		{
 			char sLog[4096];
-			glGetShaderInfoLog(lShader, sizeof(sLog), NULL, sLog);
+			glGetShaderInfoLog(lShader, sizeof(sLog), nullptr, sLog);
 			Error("GLSL: Compiling '%s' failed:\n%s\n",asPath.c_str(),sLog);
 			glDeleteShader(lShader);
 			return 0;
@@ -413,7 +413,7 @@ namespace hpl{
 		if(!lOk)
 		{
 			char sLog[4096];
-			glGetProgramInfoLog(lProgram, sizeof(sLog), NULL, sLog);
+			glGetProgramInfoLog(lProgram, sizeof(sLog), nullptr, sLog);
 			Error("GLSL: Linking '%s' failed:\n%s\n",asPath.c_str(),sLog);
 			glDeleteProgram(lProgram);
 			return 0;
@@ -463,7 +463,7 @@ namespace hpl{
 			{
 				++lReported;
 				char sLog[2048] = "";
-				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), NULL, sLog);
+				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), nullptr, sLog);
 				Log("GLSL: invalid pipeline (vertex '%s', fragment '%s'): %s\n",
 					mpBoundVertex ? mpBoundVertex->msName.c_str() : "-",
 					mpBoundFragment ? mpBoundFragment->msName.c_str() : "-", sLog);

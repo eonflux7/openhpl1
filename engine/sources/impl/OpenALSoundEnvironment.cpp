@@ -70,7 +70,7 @@ namespace hpl
 
 		TiXmlElement* pParams = doc.FirstChildElement("SoundEnvironment")->FirstChildElement("Parameters");
 
-		if ( (pParams == NULL) || (strType.compare("OpenAL")!=0) )
+		if ( (pParams == nullptr) || (strType.compare("OpenAL")!=0) )
 		{
 			doc.Clear();
 			return false;
@@ -107,7 +107,7 @@ namespace hpl
 		mbDecayHFLimit = cString::ToInt(pParams->Attribute("DecayHFLimit"),0);
 
 		doc.Clear();
-		pParams = NULL;
+		pParams = nullptr;
 
 		return true;
 	}

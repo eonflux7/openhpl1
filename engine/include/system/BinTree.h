@@ -43,7 +43,7 @@ namespace hpl {
 
 		BinTreeNode(T aData, BinTreeNode<T> *aParent, eBinTreeNode aParentDir)
 		{
-			for(int i=0;i<2;i++) mChild[i]=NULL;
+			for(int i=0;i<2;i++) mChild[i]=nullptr;
 			mData = aData;
 			mParent = aParent;
 			mParentDir = aParentDir;
@@ -51,11 +51,11 @@ namespace hpl {
 
 		BinTreeNode<T>* AddChild(eBinTreeNode i, T aData)
 		{
-			if(mChild[i]==NULL){
+			if(mChild[i]==nullptr){
 				mChild[i] = hplNew( BinTreeNode<T>, (aData, this,i) );
 				return mChild[i];
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		BinTreeNode<T>* GetChild(eBinTreeNode i)
@@ -84,7 +84,7 @@ namespace hpl {
 	public:
 		BinTree(){
 			mlNumOfNodes =0;
-			mFirstNode = NULL;
+			mFirstNode = nullptr;
 		}
 
 		~BinTree()
@@ -100,7 +100,7 @@ namespace hpl {
 		{
 			mlNum=0;
 			DeleteNode(mFirstNode);
-			mFirstNode = NULL;
+			mFirstNode = nullptr;
 			return mlNum;
 		}
 
@@ -112,9 +112,9 @@ namespace hpl {
 		 */
 		BinTreeNode<T>* Insert(T aData)
 		{
-			if(mFirstNode==NULL)
+			if(mFirstNode==nullptr)
 			{
-				mFirstNode = hplNew( BinTreeNode<T>, (aData, NULL,eBinTreeNode_Left) );
+				mFirstNode = hplNew( BinTreeNode<T>, (aData, nullptr,eBinTreeNode_Left) );
 				mlNumOfNodes++;
 
 				return mFirstNode;
@@ -130,7 +130,7 @@ namespace hpl {
 				//else
 				//	c = eBinTreeNode_Right;
 
-				if(Node->GetChild(c)==NULL)
+				if(Node->GetChild(c)==nullptr)
 				{
 					Node = Node->AddChild(c, aData);
 					break;
@@ -154,11 +154,11 @@ namespace hpl {
 		 */
 		BinTreeNode<T>* InsertAt(T aData,BinTreeNode<T>* aNode, eBinTreeNode aChild=eBinTreeNode_Left)
 		{
-			if(aNode == NULL)return NULL;
+			if(aNode == nullptr)return nullptr;
 
-			if(aNode->GetChild(aChild)!=NULL) {
+			if(aNode->GetChild(aChild)!=nullptr) {
 				aChild = aChild==eBinTreeNode_Left ? eBinTreeNode_Right : eBinTreeNode_Left;
-				if(aNode->GetChild(aChild)!=NULL)return NULL;
+				if(aNode->GetChild(aChild)!=nullptr)return nullptr;
 			}
 
 			return aNode->AddChild(aChild, aData);
@@ -200,7 +200,7 @@ namespace hpl {
 
 		void DeleteNode(BinTreeNode<T>* aNode)
 		{
-			if(aNode==NULL)	return;
+			if(aNode==nullptr)	return;
 
 			DeleteNode(aNode->GetChild(eBinTreeNode_Left));
 			DeleteNode(aNode->GetChild(eBinTreeNode_Right));
@@ -211,7 +211,7 @@ namespace hpl {
 
 		void PopulateNodeList(BinTreeNode<T>* aNode)
 		{
-			if(aNode==NULL)	return;
+			if(aNode==nullptr)	return;
 
 			PopulateNodeList(aNode->GetChild(eBinTreeNode_Left));
 			mlstNodes.push_back(aNode);
@@ -220,10 +220,10 @@ namespace hpl {
 
 		void PopulateLeafList(BinTreeNode<T>* aNode)
 		{
-			if(aNode==NULL)	return;
+			if(aNode==nullptr)	return;
 
-			if(aNode->GetChild(eBinTreeNode_Left)==NULL &&
-				aNode->GetChild(eBinTreeNode_Right)==NULL)
+			if(aNode->GetChild(eBinTreeNode_Left)==nullptr &&
+				aNode->GetChild(eBinTreeNode_Right)==nullptr)
 			{
 				mlstNodes.push_back(aNode);
 			}

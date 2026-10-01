@@ -51,7 +51,7 @@ namespace hpl {
 		mfNewVolume=1;
 		mfVolumeRate=0;
 
-		mpWorld3D = NULL;
+		mpWorld3D = nullptr;
 
 		mlCount =0;
 
@@ -146,7 +146,7 @@ namespace hpl {
 		float afMinDist,float afMaxDist, eSoundDest mType,bool abRelative, bool ab3D,int alPriorityModifier,
 		eSoundDest aEffectType)
 	{
-		if(asName == "")return NULL;
+		if(asName == "")return nullptr;
 
 		//Calculate priority
 		int lPrio = 255;
@@ -165,9 +165,9 @@ namespace hpl {
 
 		//Create sound channel
 		iSoundChannel *pSound = CreateChannel(asName,lPrio);
-		if(pSound == NULL){
+		if(pSound == nullptr){
 			Warning("Can't find sound '%s' (may also be due too many sounds playing).\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		//Set up channel
@@ -281,18 +281,18 @@ namespace hpl {
 
 	iSoundChannel* cSoundHandler::PlayStream(const tString& asFileName,bool abLoop,float afVolume,bool ab3D, eSoundDest aEffectType)
 	{
-		if(asFileName == "")return NULL;
+		if(asFileName == "")return nullptr;
 
 		iSoundData* pData = mpResources->GetSoundManager()->CreateSoundData(asFileName,true,abLoop);
-		if(pData==NULL){
+		if(pData==nullptr){
 			Error("Couldn't load stream '%s'\n",asFileName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iSoundChannel *pSound = pData->CreateChannel(256);
 		if(!pSound){
 			Error("Can't create sound channel for '%s'\n",asFileName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		//If it is silent do everything as normal except stop the sound at start.
@@ -469,7 +469,7 @@ namespace hpl {
 
 	bool cSoundHandler::IsValidId(iSoundChannel* apChannel, int alId)
 	{
-		if(apChannel==NULL) return false;
+		if(apChannel==nullptr) return false;
 
 		tSoundEntryListIt it;
 		it = mlstWorldSounds.begin();
@@ -607,7 +607,7 @@ namespace hpl {
 			++it;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -770,7 +770,7 @@ namespace hpl {
 	void cSoundHandler::UpdateDistanceVolume3D(cSoundEntry* apEntry,float afTimeStep,bool abFade,
 												tFlag aTypes)
 	{
-		if(mpWorld3D==NULL){
+		if(mpWorld3D==nullptr){
 			return;
 		}
 
@@ -940,7 +940,7 @@ namespace hpl {
 			it++;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -948,8 +948,8 @@ namespace hpl {
 	iSoundChannel* cSoundHandler::CreateChannel(const tString& asName, int alPriority)
 	{
 		int lNum = cString::ToInt(cString::GetLastChar(asName).c_str(),0);
-		iSoundChannel* pSound = NULL;
-		iSoundData* pData = NULL;
+		iSoundChannel* pSound = nullptr;
+		iSoundData* pData = nullptr;
 		tString sName;
 		tString sBaseName = asName;
 
@@ -999,25 +999,25 @@ namespace hpl {
 
 			}
 			else{
-				pData = NULL;
+				pData = nullptr;
 			}
 		}
 
 		//Try to stream it
-		if(pData==NULL)
+		if(pData==nullptr)
 		{
 			sName = "stream_"+sBaseName;
 
 			pData = mpResources->GetSoundManager()->CreateSoundData(sName,true);
-			if(pData==NULL){
+			if(pData==nullptr){
 				Error("Couldn't stream sound '%s'\n",asName.c_str());
-				return NULL;
+				return nullptr;
 			}
 		}
 
 		//Create sound channel
 		pSound = pData->CreateChannel(alPriority);
-		if(pSound == NULL){
+		if(pSound == nullptr){
 			//Warning("Couldn't play sound '%s'\n",asName.c_str());
 		}
 

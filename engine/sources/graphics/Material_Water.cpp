@@ -148,7 +148,7 @@ namespace hpl {
 
 	iGpuProgram* cMaterial_Water::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialAlphaMode cMaterial_Water::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -183,7 +183,7 @@ namespace hpl {
 				return mvTexture[eMaterialTexture_Diffuse];
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialBlendMode cMaterial_Water::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)

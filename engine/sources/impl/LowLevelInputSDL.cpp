@@ -91,7 +91,7 @@ namespace hpl {
 		// Locked input means a captured, hidden pointer with raw relative
 		// motion (SDL 1.2's SDL_WM_GrabInput).
 		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
-		if(pWindow==NULL) return;
+		if(pWindow==nullptr) return;
 
 		if(SDL_GetWindowRelativeMouseMode(pWindow) != mbLockInput)
 			SDL_SetWindowRelativeMouseMode(pWindow, mbLockInput);

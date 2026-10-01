@@ -44,7 +44,7 @@ namespace hpl {
 
 		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags);
 
-		cAnimation* LoadAnimation(const tString& asFile){ return NULL;}
+		cAnimation* LoadAnimation(const tString& asFile){ return nullptr;}
 
 		bool IsSupported(const tString asFileType);
 

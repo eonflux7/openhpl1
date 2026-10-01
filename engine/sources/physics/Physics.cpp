@@ -42,7 +42,7 @@ namespace hpl {
 	{
 		mpLowLevelPhysics = apLowLevelPhysics;
 
-		mpGameWorld = NULL;
+		mpGameWorld = nullptr;
 
 		mlMaxImpacts = 6;
 		mfImpactDuration = 0.4f;
@@ -137,7 +137,7 @@ namespace hpl {
 	cSurfaceData *cPhysics::GetSurfaceData(const tString& asName)
 	{
 		tSurfaceDataMapIt it = m_mapSurfaceData.find(asName);
-		if(it == m_mapSurfaceData.end()) return NULL;
+		if(it == m_mapSurfaceData.end()) return nullptr;
 
 		return it->second;
 	}
@@ -163,7 +163,7 @@ namespace hpl {
 		//////////////////////////
 		//Iterate children
 		TiXmlElement* pChildElem = pRootElem->FirstChildElement("Material");
-		for(; pChildElem != NULL; pChildElem = pChildElem->NextSiblingElement("Material"))
+		for(; pChildElem != nullptr; pChildElem = pChildElem->NextSiblingElement("Material"))
 		{
 			tString sName = cString::ToString(pChildElem->Attribute("Name"),"");
 			if(sName=="") continue;
@@ -218,7 +218,7 @@ namespace hpl {
 			/////////////////////////
 			//Get Impact data
 			TiXmlElement* pImpactElem = pChildElem->FirstChildElement("Impact");
-			for(; pImpactElem != NULL; pImpactElem = pImpactElem->NextSiblingElement("Impact"))
+			for(; pImpactElem != nullptr; pImpactElem = pImpactElem->NextSiblingElement("Impact"))
 			{
 				float fMinSpeed = cString::ToFloat(pImpactElem->Attribute("MinSpeed"),1);
 
@@ -232,7 +232,7 @@ namespace hpl {
 			/////////////////////////
 			//Get Hit data
 			TiXmlElement* pHitElem = pChildElem->FirstChildElement("Hit");
-			for(; pHitElem != NULL; pHitElem = pHitElem->NextSiblingElement("Hit"))
+			for(; pHitElem != nullptr; pHitElem = pHitElem->NextSiblingElement("Hit"))
 			{
 				float fMinSpeed = cString::ToFloat(pHitElem->Attribute("MinSpeed"),1);
 
@@ -260,7 +260,7 @@ namespace hpl {
 				float fTangentStiffness= cString::ToFloat(pChildElem->Attribute("HapticTangentStiffness"), 0.7f);
 				float fStoppingFriction= cString::ToFloat(pChildElem->Attribute("HapticStoppingFriction"), 0.1f);
 
-				iHapticSurface *pSurface = NULL;
+				iHapticSurface *pSurface = nullptr;
 
 				if(surfaceType == eHapticSurfaceType_Simple)
 				{
@@ -313,7 +313,7 @@ namespace hpl {
 
 	eHapticSurfaceType cPhysics::GetHapticSurface(const char *apName)
 	{
-		if(apName == NULL) return eHapticSurfaceType_Simple;
+		if(apName == nullptr) return eHapticSurfaceType_Simple;
 
 		tString sMode = cString::ToLowerCase(apName);
 
@@ -330,7 +330,7 @@ namespace hpl {
 
 	ePhysicsMaterialCombMode cPhysics::GetCombMode(const char *apName)
 	{
-		if(apName == NULL) return ePhysicsMaterialCombMode_Average;
+		if(apName == nullptr) return ePhysicsMaterialCombMode_Average;
 
 		tString sMode = cString::ToLowerCase(apName);
 

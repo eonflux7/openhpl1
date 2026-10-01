@@ -108,7 +108,7 @@ namespace hpl {
 
 	cLogWriter::cLogWriter(const tWString& asFileName)
 	{
-		mpFile = NULL;
+		mpFile = nullptr;
 		msFileName = asFileName;
 	}
 
@@ -219,7 +219,7 @@ namespace hpl {
 	{
 		char text[2048];
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 			vsprintf(text, fmt, ap);
@@ -240,7 +240,7 @@ namespace hpl {
 	{
 		char text[2048];
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 			vsprintf(text, fmt, ap);
@@ -255,7 +255,7 @@ namespace hpl {
 	{
 		char text[2048];
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 			vsprintf(text, fmt, ap);
@@ -270,7 +270,7 @@ namespace hpl {
 	{
 		char text[2048];
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 		vsprintf(text, fmt, ap);
@@ -307,7 +307,7 @@ namespace hpl {
 
 		char text[2048];
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 		vsprintf(text, fmt, ap);
@@ -427,7 +427,7 @@ namespace hpl {
 	{
 		wchar_t text[2048];
 
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		vswprintf(text, 2047, fmt, ap);
 
@@ -473,7 +473,7 @@ namespace hpl {
 	{
 		va_list ap;
 
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 		CreateMessageBoxW (eType, asCaption, fmt, ap);
@@ -483,7 +483,7 @@ namespace hpl {
 	void CreateMessageBoxW ( const wchar_t* asCaption, const wchar_t *fmt, ...)
 	{
 		va_list ap;
-		if (fmt == NULL)
+		if (fmt == nullptr)
 			return;
 		va_start(ap, fmt);
 		CreateMessageBoxW( eMsgBoxType_Default, asCaption, fmt, ap );
@@ -569,7 +569,7 @@ namespace hpl {
 	#else
 		FILE *f = fopen(cString::To8Char(asFileName).c_str(),"r");
 	#endif
-		if(f==NULL)
+		if(f==nullptr)
 		{
 			return false;
 		}

@@ -41,18 +41,18 @@ namespace hpl {
 		mpTransform = avTransform;
 		mfZ = afZ;
 		mRect = aRect;
-		mpCustomRenderer = NULL;
+		mpCustomRenderer = nullptr;
 	}
 
 	cRenderObject2D::cRenderObject2D(iMaterial* apMaterial, iRenderObject2DRenderer* apRenderer,
 		ePrimitiveType aType,float afZ)
 	{
 		mpMaterial = apMaterial;
-		mpVtxVec = NULL;
-		mpIdxVec = NULL;
+		mpVtxVec = nullptr;
+		mpIdxVec = nullptr;
 		mType = aType;
-		mpMtx = NULL;
-		mpTransform = NULL;
+		mpMtx = nullptr;
+		mpTransform = nullptr;
 		mfZ = afZ;
 		mpCustomRenderer = apRenderer;
 	}

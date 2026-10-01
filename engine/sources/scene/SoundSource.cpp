@@ -40,7 +40,7 @@ namespace hpl {
 
 		mpSound = apSound;
 		msSoundName = asSoundName;
-		mpSoundChannel = NULL;
+		mpSoundChannel = nullptr;
 		mbVolatile = abVolatile;
 
 		msSoundName = asSoundName;

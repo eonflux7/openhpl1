@@ -66,7 +66,7 @@ namespace hpl {
 
 	iResourceBase* cParticleManager::Create(const tString& asName)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -91,7 +91,7 @@ namespace hpl {
 			return NULL;
 		}*/
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -99,7 +99,7 @@ namespace hpl {
 	cParticleSystem3D* cParticleManager::CreatePS3D(const tString& asName,const tString& asType,
 												cVector3f avSize,const cMatrixf& a_mtxTransform)
 	{
-		cParticleSystemData3D *pData = NULL;
+		cParticleSystemData3D *pData = nullptr;
 
 		tString sTypeName = cString::SetFileExt(cString::ToLowerCase(asType),"");
 
@@ -107,7 +107,7 @@ namespace hpl {
 		//tParticleSystemData3DMapIt it = m_mapData3D.find(sTypeName);
 		//if(it == m_mapData3D.end())
 		pData = static_cast<cParticleSystemData3D*>(GetByName(sTypeName));
-		if(pData == NULL)
+		if(pData == nullptr)
 		{
 			tString sFile = cString::SetFileExt(asType,"ps");
 
@@ -116,7 +116,7 @@ namespace hpl {
 			if(sPath == "")
 			{
 				Error("Couldn't find particle system file '%s'\n",sFile.c_str());
-				return NULL;
+				return nullptr;
 			}
 
 			cParticleSystemData3D *pPSData = hplNew( cParticleSystemData3D, (sTypeName,
@@ -126,7 +126,7 @@ namespace hpl {
 			{
 				Error("Can't load data from particle system file '%s'\n",sTypeName.c_str());
 				hplDelete(pPSData);
-				return NULL;
+				return nullptr;
 			}
 
 			AddData3D(pPSData);
@@ -162,7 +162,7 @@ namespace hpl {
 		//tParticleSystemData3DMapIt it = m_mapData3D.find(sTypeName);
 		//if(it == m_mapData3D.end())
 		cParticleSystemData3D *pData = static_cast<cParticleSystemData3D*>(GetByName(sTypeName));
-		if(pData == NULL)
+		if(pData == nullptr)
 		{
 			tString sFile = cString::SetFileExt(asFile,"ps");
 			tString sPath = mpFileSearcher->GetFilePath(sFile);

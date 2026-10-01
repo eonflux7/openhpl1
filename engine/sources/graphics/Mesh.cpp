@@ -61,7 +61,7 @@ namespace hpl {
 	{
 		mpMaterialManager = apMaterialManager;
 		mpAnimationManager = apAnimationManager;
-		mpSkeleton = NULL;
+		mpSkeleton = nullptr;
 
 		mpRootNode = hplNew( cNode3D, () );
 	}
@@ -125,7 +125,7 @@ namespace hpl {
 
 	cSubMesh* cMesh::GetSubMesh(unsigned int alIdx)
 	{
-		if(alIdx >= mvSubMeshes.size()) return NULL;
+		if(alIdx >= mvSubMeshes.size()) return nullptr;
 
 		return mvSubMeshes[alIdx];
 	}
@@ -133,7 +133,7 @@ namespace hpl {
 	cSubMesh* cMesh::GetSubMeshName(const tString &asName)
 	{
 		tSubMeshMapIt it = m_mapSubMeshes.find(asName);
-		if(it == m_mapSubMeshes.end())return NULL;
+		if(it == m_mapSubMeshes.end())return nullptr;
 
 		return it->second;
 	}
@@ -178,7 +178,7 @@ namespace hpl {
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -219,7 +219,7 @@ namespace hpl {
 
 	void cMesh::SetupBones()
 	{
-		if(mpSkeleton == NULL) return;
+		if(mpSkeleton == nullptr) return;
 
 		//Here is the place to add more hardware friendly stuffs.
 	}
@@ -312,7 +312,7 @@ namespace hpl {
 		}
 
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -681,8 +681,8 @@ namespace hpl {
 			tString sParentBody = apEntity->GetName()+"_"+pMeshJoint->msParentBody;
 
 			//Get Parent and Child body
-			iPhysicsBody *pChildBody =NULL;
-			iPhysicsBody *pParentBody =NULL;
+			iPhysicsBody *pChildBody =nullptr;
+			iPhysicsBody *pParentBody =nullptr;
 			for(int body=0; body < (int)vBodies.size(); body++)
 			{
 				iPhysicsBody *pBody = vBodies[body];
@@ -693,12 +693,12 @@ namespace hpl {
 					pParentBody = pBody;
 				}
 			}
-			if(pParentBody ==NULL && pMeshJoint->msParentBody != ""){
+			if(pParentBody ==nullptr && pMeshJoint->msParentBody != ""){
 				Warning("Parent body '%s' for joint '%s' in mesh '%s' does not exist!\n",pMeshJoint->msParentBody.c_str(),
 					pMeshJoint->msName.c_str(),msName.c_str());
 				continue;
 			}
-			if(pChildBody ==NULL){
+			if(pChildBody ==nullptr){
 				Error("Child body '%s' for joint '%s' in mesh '%s' does not exist!\n",pMeshJoint->msChildBody.c_str(),
 											pMeshJoint->msName.c_str(),msName.c_str());
 				continue;
@@ -767,12 +767,12 @@ namespace hpl {
 			return apWorld->CreateCapsuleShape(pCollider->mvSize.x,pCollider->mvSize.y,&pCollider->m_mtxOffset);
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	iCollideShape* cMesh::CreateCollideShape(iPhysicsWorld *apWorld)
 	{
-		if(mvColliders.empty()) return NULL;
+		if(mvColliders.empty()) return nullptr;
 
 		//Create a single object
 		if(mvColliders.size() == 1)
@@ -818,7 +818,7 @@ namespace hpl {
 	iLight3D* cMesh::CreateLightInWorld(const tString& sNamePrefix, cMeshLight* apMeshLight,
 									cMeshEntity *apMeshEntity, cWorld3D *apWorld)
 	{
-		iLight3D *pLight = NULL;
+		iLight3D *pLight = nullptr;
 
 		////////////////////////////////
 		//Spot
@@ -848,7 +848,7 @@ namespace hpl {
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 
 		pLight->SetMatrix(apMeshLight->m_mtxTransform);
@@ -1001,10 +1001,10 @@ namespace hpl {
 	{
 		cParticleSystem3D *pPS = apWorld->CreateParticleSystem(sNamePrefix+"_"+apMeshPS->msName,
 										apMeshPS->msType,apMeshPS->mvSize,apMeshPS->m_mtxTransform);
-		if(pPS == NULL)
+		if(pPS == nullptr)
 		{
 			Error("Couldn't create particle system '%s'\n",apMeshPS->msType.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		apMeshEntity->AttachEntityToParent(pPS,apMeshPS->msParent);
@@ -1036,10 +1036,10 @@ namespace hpl {
 														apMeshSound->msType, false);
 
 		//Log("Created sound entity: '%s'\n",sName.c_str());
-		if(pSound==NULL)
+		if(pSound==nullptr)
 		{
 			Error("Couldn't create sound entity '%s'\n",apMeshSound->msType.c_str());
-			return NULL;
+			return nullptr;
 		}
 		pSound->SetPosition(apMeshSound->mvPosition);
 		apMeshEntity->AttachEntityToParent(pSound,apMeshSound->msParent);

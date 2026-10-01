@@ -38,7 +38,7 @@ namespace hpl {
 
 	cCollider2D::cCollider2D()
 	{
-		mpWorld = NULL;
+		mpWorld = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace hpl {
 				//This can be used for material properties.
 				//cTileDataNormal *pTData = static_cast<cTileDataNormal*>(pTile->GetTileData());
 
-				if(pTile->GetCollisionMesh()==NULL)continue;
+				if(pTile->GetCollisionMesh()==nullptr)continue;
 
 				if(Collide(pCollMesh, pTile->GetCollisionMesh(), vPushVector) )
 				{
@@ -238,7 +238,7 @@ namespace hpl {
 					TileRect.x = pTile->GetPosition().x-fTileSize/2;
 					TileRect.y = pTile->GetPosition().y-fTileSize/2;
 
-					if(pTile->GetCollisionMesh()==NULL)continue;
+					if(pTile->GetCollisionMesh()==nullptr)continue;
 
 					if(apData)apData->mlstTiles.push_back(cCollidedTile(pTile,i));
 
@@ -332,7 +332,7 @@ namespace hpl {
 				{
 					cTile *pTile = pTileIt->Next();
 
-					if(pTile->GetCollisionMesh()==NULL)continue;
+					if(pTile->GetCollisionMesh()==nullptr)continue;
 					//Log("Found tile!\n");
 
 					if(apData)apData->mlstTiles.push_back(cCollidedTile(pTile,i));

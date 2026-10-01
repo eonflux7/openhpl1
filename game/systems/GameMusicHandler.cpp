@@ -225,7 +225,7 @@ void cGameMusicHandler::Update(float afTimeStep)
 	//Check if current song is over
 	if(mlCurrentMaxPrio >=0)
 	{
-		if(mpMusicHandler->GetCurrentSong()==NULL)
+		if(mpMusicHandler->GetCurrentSong()==nullptr)
 		{
 			mvGameMusic[mlCurrentMaxPrio].msFile = "";
 			mlCurrentMaxPrio = -1;

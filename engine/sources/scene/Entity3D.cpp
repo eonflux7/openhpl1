@@ -48,11 +48,11 @@ namespace hpl {
 		mbApplyTransformToBV = true;
 		mbUpdateBoundingVolume = true;
 
-		mpParent = NULL;
+		mpParent = nullptr;
 
 		mlIteratorCount =-1;
 
-		mpCurrentSector = NULL;
+		mpCurrentSector = nullptr;
 	}
 
 	iEntity3D::~iEntity3D()
@@ -62,7 +62,7 @@ namespace hpl {
 		for(tEntity3DListIt it = mlstChildren.begin(); it != mlstChildren.end();++it)
 		{
 			iEntity3D *pChild = *it;
-			pChild->mpParent = NULL;
+			pChild->mpParent = nullptr;
 		}
 	}
 
@@ -217,8 +217,8 @@ namespace hpl {
 
 	void iEntity3D::AddChild(iEntity3D *apEntity)
 	{
-		if(apEntity==NULL)return;
-		if(apEntity->mpParent != NULL) return;
+		if(apEntity==nullptr)return;
+		if(apEntity->mpParent != nullptr) return;
 
 		mlstChildren.push_back(apEntity);
 		apEntity->mpParent = this;
@@ -233,7 +233,7 @@ namespace hpl {
 			iEntity3D *pChild = *it;
 			if(pChild == apEntity)
 			{
-				pChild->mpParent = NULL;
+				pChild->mpParent = nullptr;
 				it = mlstChildren.erase(it);
 			}
 			else
@@ -344,7 +344,7 @@ namespace hpl {
 
 	iSaveData* iEntity3D::CreateSaveData()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -400,7 +400,7 @@ namespace hpl {
 
 		//kSaveData_LoadObject(mpParent,mlParentId,iEntity3D*);
 		//kSaveData_LoadIdList(mlstChildren,mlstChildren,iEntity3D*);
-		if(pData->mlParentId!=-1 && mpParent == NULL)
+		if(pData->mlParentId!=-1 && mpParent == nullptr)
 		{
 			iEntity3D *pParentEntity = static_cast<iEntity3D*>(apSaveObjectHandler->Get(pData->mlParentId));
 			if(pParentEntity)

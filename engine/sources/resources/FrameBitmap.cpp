@@ -50,7 +50,7 @@ namespace hpl {
 	cFrameBitmap::~cFrameBitmap()
 	{
 		hplDelete(mpBitmap);
-		mpBitmap = NULL;
+		mpBitmap = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace hpl {
 
 	cResourceImage *cFrameBitmap::AddBitmap(iBitmap2D *apSrc)
 	{
-		cResourceImage *pImage=NULL;
+		cResourceImage *pImage=nullptr;
 		//source size
 		//+2 because we are gonna have a border to get rid if some antialiasing problems
 		int lSW = apSrc->GetWidth()+2;

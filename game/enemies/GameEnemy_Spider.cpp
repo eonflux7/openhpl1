@@ -149,7 +149,7 @@ void cGameEnemyState_Spider_Idle::OnUpdate(float afTimeStep)
 			mpEnemy->SetupBody();
 			mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemySpider->mfHuntSpeed);
 
-			cAINode *pNode = NULL;
+			cAINode *pNode = nullptr;
 			
 			if(mpEnemy->GetPatrolNodeNum()==0)
 			{
@@ -467,7 +467,7 @@ void cGameEnemyState_Spider_Attack::OnUpdate(float afTimeStep)
 										
 										mpEnemySpider->mlAttackStrength,
 
-										target,NULL))
+										target,nullptr))
 			{
 				mpEnemySpider->PlaySound(mpEnemySpider->msAttackHitSound);
 			}
@@ -601,7 +601,7 @@ void cGameEnemyState_Spider_KnockDown::OnEnterState(iGameEnemyState *apPrevState
 	mpEnemy->GetMeshEntity()->SetSkeletonPhysicsActive(true);
 	mpEnemy->GetMeshEntity()->Stop();
 
-	mpEnemy->GetMover()->GetCharBody()->SetEntity(NULL);
+	mpEnemy->GetMover()->GetCharBody()->SetEntity(nullptr);
 	mpEnemy->GetMover()->GetCharBody()->SetActive(false);
 
 	mpEnemy->GetMover()->Stop();
@@ -655,7 +655,7 @@ void cGameEnemyState_Spider_KnockDown::OnUpdate(float afTimeStep)
 
 
 			cVector3f vGroundPos = vPosition;
-			bool bFoundGround = mpEnemy->GetGroundFinder()->GetGround(vPosition,cVector3f(0,-1,0),&vGroundPos,NULL);
+			bool bFoundGround = mpEnemy->GetGroundFinder()->GetGround(vPosition,cVector3f(0,-1,0),&vGroundPos,nullptr);
 
 			//Set body
 			iCharacterBody *pCharBody = mpEnemy->GetMover()->GetCharBody();
@@ -671,7 +671,7 @@ void cGameEnemyState_Spider_KnockDown::OnUpdate(float afTimeStep)
 				pCharBody->Update(1.0f/60.0f);
 
 				mpEnemy->GetMeshEntity()->UpdateLogic(1.0f/60.0f);
-				mpEnemy->GetMeshEntity()->UpdateGraphics(NULL,1.0f/60.0f,NULL);
+				mpEnemy->GetMeshEntity()->UpdateGraphics(nullptr,1.0f/60.0f,nullptr);
 			}
 			
 			if(mpEnemy->GetHealth() > 0)
@@ -822,7 +822,7 @@ void cGameEnemy_Spider::OnLoad()
 {
 	//Create attack shape
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,NULL);
+	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,nullptr);
 	
 	//Set up shape
 	ChangeState(STATE_IDLE);

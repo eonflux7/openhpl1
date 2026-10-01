@@ -150,7 +150,7 @@ void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 
 eGameItemType cEntityLoader_GameItem::ToItemType(const char* apString)
 {
-	if(apString==NULL) return eGameItemType_Normal;
+	if(apString==nullptr) return eGameItemType_Normal;
 
 	tString asType = cString::ToLowerCase(apString);
 
@@ -423,7 +423,7 @@ kEndSerialize()
 
 iGameEntity* cGameItem_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

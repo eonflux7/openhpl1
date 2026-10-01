@@ -173,7 +173,7 @@ namespace hpl {
 	{
 		float *pPosArray = GetArray(eVertexFlag_Position);
 		float *pNormalArray = GetArray(eVertexFlag_Normal);
-		float *pTangentArray = NULL;
+		float *pTangentArray = nullptr;
 		if(mbTangents)pTangentArray = GetArray(eVertexFlag_Texture1);
 
 		int lVtxNum = GetVertexNum();
@@ -188,7 +188,7 @@ namespace hpl {
 		{
 			float* pPos = &pPosArray[i*lVtxStride];
 			float* pNorm = &pNormalArray[i*3];
-			float* pTan = NULL;
+			float* pTan = nullptr;
 			if(mbTangents)pTan = &pTangentArray[i*4];
 
 			cVector3f vPos = cMath::MatrixMul(a_mtxTransform, cVector3f(pPos[0],pPos[1],pPos[2]));

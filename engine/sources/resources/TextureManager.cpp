@@ -91,7 +91,7 @@ namespace hpl {
 
 		iTexture* pTexture = static_cast<iTexture*>(GetByName(asName));
 
-		if(pTexture==NULL)
+		if(pTexture==nullptr)
 		{
 			tString sFileExt = cString::GetFileExt(asName);
 			tString sFileName = cString::SetFileExt(cString::GetFileName(asName),"");
@@ -127,20 +127,20 @@ namespace hpl {
 				Error("No textures found for animation %s\n",asName.c_str());
 				Error("Couldn't texture '%s'\n",asName.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			tBitmap2DVec vBitmaps;
 			for(size_t i =0; i< vPaths.size(); ++i)
 			{
 				iBitmap2D* pBmp = mpResources->GetLowLevel()->LoadBitmap2D(vPaths[i]);
-				if(pBmp==NULL){
+				if(pBmp==nullptr){
 					Error("Couldn't load bitmap '%s'!\n",vPaths[i].c_str());
 
 					for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
 
 					EndLoad();
-					return NULL;
+					return nullptr;
 				}
 
 				vBitmaps.push_back(pBmp);
@@ -158,7 +158,7 @@ namespace hpl {
 				hplDelete(pTexture);
 				for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			//Bitmaps no longer needed.
@@ -186,7 +186,7 @@ namespace hpl {
 
 		BeginLoad(asPathName);
 
-		if(pTexture==NULL)
+		if(pTexture==nullptr)
 		{
 			//See if files for all faces exist
 			tStringVec vPaths;
@@ -205,7 +205,7 @@ namespace hpl {
 				{
 					tString sNewName = sName + mvCubeSideSuffixes[i];
 					Error("Couldn't find %d-face '%s', for cubemap '%s'\n",i,sNewName.c_str(),sName.c_str());
-					return NULL;
+					return nullptr;
 				}
 
 				vPaths.push_back(sPath);
@@ -216,11 +216,11 @@ namespace hpl {
 			for(int i=0;i<6; i++)
 			{
 				iBitmap2D* pBmp = mpResources->GetLowLevel()->LoadBitmap2D(vPaths[i]);
-				if(pBmp==NULL){
+				if(pBmp==nullptr){
 					Error("Couldn't load bitmap '%s'!\n",vPaths[i].c_str());
 					for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
 					EndLoad();
-					return NULL;
+					return nullptr;
 				}
 
 				vBitmaps.push_back(pBmp);
@@ -237,7 +237,7 @@ namespace hpl {
 				hplDelete(pTexture);
 				for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			//Bitmaps no longer needed.
@@ -323,14 +323,14 @@ namespace hpl {
 		if(sPath == "")
 		{
 			Log("Couldn't find falloff map file '%s'\n",asFallOffName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iBitmap2D* pBmp = mpResources->GetLowLevel()->LoadBitmap2D(sPath);
-		if(pBmp == NULL)
+		if(pBmp == nullptr)
 		{
 			Log("Couldn't load bitmap '%s'\n",asFallOffName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		int lBmpChannels = pBmp->GetNumChannels();
@@ -401,16 +401,16 @@ namespace hpl {
 
 		pTexture = FindTexture2D(asName,sPath);
 
-		if(pTexture==NULL && sPath!="")
+		if(pTexture==nullptr && sPath!="")
 		{
 			//Load the bitmap
 			iBitmap2D *pBmp;
 			pBmp = mpLowLevelResources->LoadBitmap2D(sPath);
-			if(pBmp==NULL)
+			if(pBmp==nullptr)
 			{
 				Error("Texturemanager Couldn't load bitmap '%s'\n", sPath.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			//Create the texture and load from bitmap
@@ -422,7 +422,7 @@ namespace hpl {
 				hplDelete(pTexture);
 				hplDelete(pBmp);
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			//Bitmap is no longer needed so delete it.
@@ -442,7 +442,7 @@ namespace hpl {
 
 	iTexture* cTextureManager::FindTexture2D(const tString &asName, tString &asFilePath)
 	{
-		iTexture *pTexture=NULL;
+		iTexture *pTexture=nullptr;
 
 
 		if(cString::GetFileExt(asName)=="")
@@ -452,7 +452,7 @@ namespace hpl {
 				tString sNewName = cString::SetFileExt(asName,*it);
 				pTexture = static_cast<iTexture*> (FindLoadedResource(sNewName, asFilePath));
 
-				if((pTexture==NULL && asFilePath!="") || pTexture!=NULL)break;
+				if((pTexture==nullptr && asFilePath!="") || pTexture!=nullptr)break;
 			}
 		}
 		else

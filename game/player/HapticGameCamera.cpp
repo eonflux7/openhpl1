@@ -90,7 +90,7 @@ void cHapticGameCamera::OnWorldLoad()
 	mpHandEntity->SetVisible(mbHandVisible);
 	mpHandEntity->SetCastsShadows(true);
 
-	mpHandShape = mpScene->GetWorld3D()->GetPhysicsWorld()->CreateSphereShape(GetHandReachRadius(),NULL);
+	mpHandShape = mpScene->GetWorld3D()->GetPhysicsWorld()->CreateSphereShape(GetHandReachRadius(),nullptr);
     	
 	mvPrevPrxoyPos = mpLowLevelHaptic->GetProxyPosition();
 
@@ -105,16 +105,16 @@ void cHapticGameCamera::OnWorldLoad()
 
 void cHapticGameCamera::OnWorldExit()
 {
-	mpHandShape = NULL;
-	mpHandEntity = NULL;
+	mpHandShape = nullptr;
+	mpHandEntity = nullptr;
 }
 
 //-----------------------------------------------------------------------
 
 void cHapticGameCamera::Reset()
 {	
-	mpHandShape = NULL;
-	mpHandEntity = NULL;
+	mpHandShape = nullptr;
+	mpHandEntity = nullptr;
 
 	mbIsTurning = false;
 
@@ -203,7 +203,7 @@ void cHapticGameCamera::Update(float afTimeStep)
 
 void cHapticGameCamera::OnPostSceneDraw()
 {
-	if(mpHandEntity==NULL) return;
+	if(mpHandEntity==nullptr) return;
 	if(mbHandVisible==false) return;
 	if(mbActive==false) return;
 	if(mpHandEntity->IsVisible()==false) return;
@@ -237,7 +237,7 @@ void cHapticGameCamera::OnPostSceneDraw()
 
 		mpVtxProgram->UnBind();
 
-		pLowGfx->SetTexture(0, NULL);
+		pLowGfx->SetTexture(0, nullptr);
 		pLowGfx->SetBlendActive(false);
 		pLowGfx->SetDepthTestActive(true);
 	}
@@ -543,14 +543,14 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		if(pBody->IsCharacter()) continue;
 		if(pBody->IsActive()==false) continue;
 
-		if(pBody->GetHapticShape()==NULL)
+		if(pBody->GetHapticShape()==nullptr)
 		{
 			if(cMath::PointBVCollision(vProxyPos,*pBody->GetBV())==false) continue;
 
 			/////////////////////////////////
 			//Special case for water
 			iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
-			if(pEntity==NULL || pEntity->GetType() != eGameEntityType_LiquidArea) continue;
+			if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_LiquidArea) continue;
 			
 			cGameLiquidArea *pLiquid = static_cast<cGameLiquidArea*>(pEntity);
             
@@ -565,7 +565,7 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 				
 				cSurfaceData *pSurface = pLiquid->GetPhysicsMaterial()->GetSurfaceData();
 				cSurfaceImpactData *pImpact = pSurface->GetImpactDataFromSpeed(fProxySpeed * 0.3f);
-				if(pImpact == NULL) continue;
+				if(pImpact == nullptr) continue;
 
 				if(pImpact->GetPSName() != "")
 				{
@@ -626,7 +626,7 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 			}
 				
 			//Particle system (and other effects)
-            pSurface->CreateImpactEffect(fProxySpeed*0.3f,vProxyPos,1,NULL);
+            pSurface->CreateImpactEffect(fProxySpeed*0.3f,vProxyPos,1,nullptr);
 		}
 	}
 	

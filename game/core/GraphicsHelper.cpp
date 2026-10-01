@@ -78,13 +78,13 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 
 	mpLowLevelGfx->SetBlendActive(false);
 	
-	for(int i=0;i<6;++i) mpLowLevelGfx->SetTexture(i,NULL);
+	for(int i=0;i<6;++i) mpLowLevelGfx->SetTexture(i,nullptr);
 
 	mpLowLevelGfx->SetTexture(0,apTex);
 
 	mpLowLevelGfx->DrawQuad(mvVtx);
 
-	mpLowLevelGfx->SetTexture(0,NULL);
+	mpLowLevelGfx->SetTexture(0,nullptr);
 
 	mpLowLevelGfx->PopMatrix(eMatrix_ModelView);
 }
@@ -93,7 +93,7 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 
 void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
 {
-	iTexture *pTex= NULL;
+	iTexture *pTex= nullptr;
 	
 	if(asFile != "")
 		pTex = mpTexManager->Create2D(asFile,false);

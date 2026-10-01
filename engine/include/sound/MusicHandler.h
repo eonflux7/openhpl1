@@ -49,7 +49,7 @@ namespace hpl {
 	class cMusicEntry
 	{
 	public:
-		cMusicEntry() : msFileName(""), mpStream(NULL), mfMaxVolume(1),
+		cMusicEntry() : msFileName(""), mpStream(nullptr), mfMaxVolume(1),
 			mfVolume(0), mfVolumeAdd(0.01f){}
 
 		tString msFileName;

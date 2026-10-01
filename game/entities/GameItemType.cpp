@@ -354,7 +354,7 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionNum
 	if(alActionNum == 0)
 	{
 		//Make sure the model is loaded
-		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==NULL)
+		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
 			mpInit->mpPlayerHands->AddModelFromFile(apItem->GetHudModelFile());
 
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
@@ -367,7 +367,7 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionNum
 		else
 		{	
 			iHudModel *pHudModel = mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName());
-			if(pHudModel==NULL){
+			if(pHudModel==nullptr){
 				Error("Hud model with name '%s' does not exist!\n",apItem->GetHudModelName().c_str());
 				return true;
 			}
@@ -419,11 +419,11 @@ bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActi
 	if(alActionNum == 0)
 	{
 		//Make sure the model is loaded
-		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==NULL)
+		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
 			mpInit->mpPlayerHands->AddModelFromFile(apItem->GetHudModelFile());
 
 		iHudModel *pHudModel = mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName());
-		if(pHudModel==NULL){
+		if(pHudModel==nullptr){
 			Error("Hud model with name '%s' does not exist!\n",apItem->GetHudModelName().c_str());
 			return true;
 		}
@@ -493,7 +493,7 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionNum)
 	if(alActionNum == 0)
 	{
 		//Make sure the model is loaded
-		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==NULL)
+		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
 			mpInit->mpPlayerHands->AddModelFromFile(apItem->GetHudModelFile());
 
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
@@ -506,7 +506,7 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionNum)
 		else
 		{	
 			iHudModel *pHudModel = mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName());
-			if(pHudModel==NULL){
+			if(pHudModel==nullptr){
 				Error("Hud model with name '%s' does not exist!\n",apItem->GetHudModelName().c_str());
 				return true;
 			}

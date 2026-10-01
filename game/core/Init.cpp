@@ -176,7 +176,7 @@ bool gbUsingUserSettings=false;
 cInit::cInit(void)  : iUpdateable("Init")
 {
 	mbDestroyGraphics = true;
-	mpSmokeTest = NULL;
+	mpSmokeTest = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
 	mlMaxSoundDataNum = 120;
@@ -405,7 +405,7 @@ bool cInit::Init(tString asCommandLine)
 	else
 		cGLSLProgram::SetShaderDirectory(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "shaders/");
 
-	iLowLevelGameSetup *pSetUp = NULL;
+	iLowLevelGameSetup *pSetUp = nullptr;
 
 	pSetUp = hplNew( cSDLGameSetup, () );
 	mpGame = hplNew( cGame, ( pSetUp,Vars) );

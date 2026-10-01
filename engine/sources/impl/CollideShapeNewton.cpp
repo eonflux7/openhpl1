@@ -34,14 +34,14 @@ namespace hpl {
 											iPhysicsWorld *apWorld)
 	: iCollideShape(apWorld)
 	{
-		mpNewtonCollision = NULL;
+		mpNewtonCollision = nullptr;
 		mpNewtonWorld = apNewtonWorld;
 		mvSize = avSize;
 		mType = aType;
 
 		mfVolume = 0;
 
-		float *pMtx = NULL;
+		float *pMtx = nullptr;
 		cMatrixf mtxTranspose;
 		if(apOffsetMtx)
 		{
@@ -272,7 +272,7 @@ namespace hpl {
 		bool bCreatedPlane = false;
 		cPlanef plane;
 
-		mpNewtonCollision = NewtonCreateTreeCollision(mpNewtonWorld, NULL);
+		mpNewtonCollision = NewtonCreateTreeCollision(mpNewtonWorld, 0);
 		//Log("-- Creating mesh collision.:\n");
 		NewtonTreeCollisionBeginBuild(mpNewtonCollision);
 		for(int tri = 0; tri < alIndexNum; tri+=3)

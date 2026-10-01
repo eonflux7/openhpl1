@@ -396,7 +396,7 @@ void cSaveHandler::LoadData(const tString &asName)
 		pRenderer->SetSkyBox(pTex,true);
 	}
 	else {
-		pRenderer->SetSkyBox(NULL,false);
+		pRenderer->SetSkyBox(nullptr,false);
 	}
 
 	///////////////////////

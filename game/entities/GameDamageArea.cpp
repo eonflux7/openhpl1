@@ -55,7 +55,7 @@ iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector
 
 	//Create physics data
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
-	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,NULL);
+	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,nullptr);
 	std::vector<iPhysicsBody*> vBodies;
 	vBodies.push_back(pPhysicsWorld->CreateBody(asName,pShape));
 
@@ -69,7 +69,7 @@ iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector
 	mpInit->mpMapHandler->AddGameEntity(pArea);
 	
 	//Return something else later perhaps.
-	return NULL;
+	return nullptr;
 }
 
 
@@ -233,7 +233,7 @@ kEndSerialize()
 
 iGameEntity* cGameDamageArea_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

@@ -34,9 +34,9 @@ namespace hpl {
 		cColliderEntity(const tString &asName,iPhysicsBody* apBody, iPhysicsWorld *apWorld);
 		~cColliderEntity();
 
-		iMaterial *GetMaterial(){ return NULL;}
+		iMaterial *GetMaterial(){ return nullptr;}
 		void UpdateGraphics(cCamera3D *apCamera, float afFrameTime, cRenderList *apRenderList){}
-		iVertexBuffer* GetVertexBuffer(){ return NULL;}
+		iVertexBuffer* GetVertexBuffer(){ return nullptr;}
 
 		cBoundingVolume* GetBoundingVolume();
 

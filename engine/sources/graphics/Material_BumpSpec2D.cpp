@@ -113,7 +113,7 @@ namespace hpl {
 			cVector3f vLightPos = apLight->GetLightPosition();
 
 			cVector3f vEyePos;
-			if(apCam!=NULL)
+			if(apCam!=nullptr)
 			{
 				vEyePos = apCam->GetEyePosition();
 			}
@@ -161,20 +161,20 @@ namespace hpl {
 		if(aType == eMaterialRenderType_Z)
 		{
 			mpLowLevelGraphics->SetAlphaTestActive(false);
-			mpLowLevelGraphics->SetTexture(0, NULL);
+			mpLowLevelGraphics->SetTexture(0, nullptr);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Modulate);
 		}
 		if(aType == eMaterialRenderType_Light)
 		{
-			mpLowLevelGraphics->SetTexture(0, NULL);
-			mpLowLevelGraphics->SetTexture(1, NULL);
+			mpLowLevelGraphics->SetTexture(0, nullptr);
+			mpLowLevelGraphics->SetTexture(1, nullptr);
 
 			mpProgram[eGpuProgramType_Vertex][0]->UnBind();
 			mpProgram[eGpuProgramType_Fragment][0]->UnBind();
 		}
 		else if(aType == eMaterialRenderType_Diffuse)
 		{
-			mpLowLevelGraphics->SetTexture(0, NULL);
+			mpLowLevelGraphics->SetTexture(0, nullptr);
 			mpLowLevelGraphics->SetBlendActive(false);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorOp1, eTextureOp_Color);

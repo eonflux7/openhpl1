@@ -62,11 +62,11 @@ namespace hpl {
 					(int)mvScreenSize.x,(int)mvScreenSize.y),32,cColor(0,0,0,0),false,
 					eTextureType_Normal, eTextureTarget_Rect);
 
-				if(mpScreenBuffer[i]==NULL)
+				if(mpScreenBuffer[i]==nullptr)
 				{
 					Error("Couldn't create screenbuffer!\n");
-					mpScreenBuffer[0] = NULL;
-					mpScreenBuffer[1] = NULL;
+					mpScreenBuffer[0] = nullptr;
+					mpScreenBuffer[1] = nullptr;
 					break;
 				}
 				mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
@@ -75,7 +75,7 @@ namespace hpl {
 			}
 			else
 			{
-				mpScreenBuffer[i] = NULL;
+				mpScreenBuffer[i] = nullptr;
 				Error("Texture rectangle not supported. Posteffects will be turned off.");
 			}
 		}
@@ -126,7 +126,7 @@ namespace hpl {
 												32,cColor(0,0,0,0),false,
 												eTextureType_Normal, eTextureTarget_2D);
 
-		if(mpBloomBlurTexture == NULL) {
+		if(mpBloomBlurTexture == nullptr) {
 			Error("Couldn't create bloom blur textures!\n");
 		}
 		else {
@@ -141,7 +141,7 @@ namespace hpl {
 		if(!mpMotionBlurVP) Error("Couldn't load 'PostEffect_Motion_vp.cg'!\n");
 
 		// Disable the dynamic loop version on Mac OS X until we figure why it doesn't work
-		mpMotionBlurFP = NULL;
+		mpMotionBlurFP = nullptr;
 		#ifndef __APPLE__
 		mpMotionBlurFP = mpGpuManager->CreateProgram("PostEffect_Motion_fp.cg","main",eGpuProgramType_Fragment);
 		#endif
@@ -165,7 +165,7 @@ namespace hpl {
 																32,cColor(0,0,0,0),false,
 																eTextureType_Normal, eTextureTarget_2D);
 
-		if(mpDofBlurTexture == NULL) {
+		if(mpDofBlurTexture == nullptr) {
 			Error("Couldn't create Depth of Field blur textures!\n");
 		}
 		else {
@@ -249,7 +249,7 @@ namespace hpl {
 
 	void cRendererPostEffects::Render()
 	{
-		if(mpScreenBuffer[0] == NULL || mpScreenBuffer[1] == NULL) return;
+		if(mpScreenBuffer[0] == nullptr || mpScreenBuffer[1] == nullptr) return;
 		if(!mpLowLevelGraphics->GetCaps(eGraphicCaps_TextureTargetRectangle)) return;
 
 		if(mbActive==false ||
@@ -370,8 +370,8 @@ namespace hpl {
 		pLowLevel->CopyContextToTexure(apDestination,0, vBlurSize);
 
 		if(mbBlurFallback){
-			mpLowLevelGraphics->SetTexture(1,NULL);
-			mpLowLevelGraphics->SetTexture(2,NULL);
+			mpLowLevelGraphics->SetTexture(1,nullptr);
+			mpLowLevelGraphics->SetTexture(2,nullptr);
 		}
 	}
 
@@ -388,7 +388,7 @@ namespace hpl {
 	{
 		if(mbDofActive==false) return;
 
-		if(mpDepthOfFieldFP==NULL || mpDepthOfFieldVP==NULL) return;
+		if(mpDepthOfFieldFP==nullptr || mpDepthOfFieldVP==nullptr) return;
 
 		//////////////////////////////
 		// Setup
@@ -506,8 +506,8 @@ namespace hpl {
 		//Reset stuff
 		mpDepthOfFieldFP->UnBind();
 		mpDepthOfFieldVP->UnBind();
-		mpLowLevelGraphics->SetTexture(0,NULL);
-		mpLowLevelGraphics->SetTexture(1,NULL);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->SetTexture(1,nullptr);
 	}
 
 	//-----------------------------------------------------------------------
@@ -516,7 +516,7 @@ namespace hpl {
 	{
 		if(mbMotionBlurActive==false) return;
 
-		if(mpMotionBlurFP==NULL || mpMotionBlurVP==NULL) return;
+		if(mpMotionBlurFP==nullptr || mpMotionBlurVP==nullptr) return;
 
 		//////////////////////////////
 		// Setup
@@ -615,8 +615,8 @@ namespace hpl {
 		//Reset stuff
 		mpMotionBlurFP->UnBind();
 		mpMotionBlurVP->UnBind();
-		mpLowLevelGraphics->SetTexture(0,NULL);
-		mpLowLevelGraphics->SetTexture(1,NULL);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->SetTexture(1,nullptr);
 
 
 		//Set the new pervious values.
@@ -630,7 +630,7 @@ namespace hpl {
 	{
 		if(mbBloomActive==false) return;
 
-		if(mpBloomFP==NULL || mpBloomVP==NULL) return;
+		if(mpBloomFP==nullptr || mpBloomVP==nullptr) return;
 
 		//////////////////////////////
 		// Setup
@@ -685,8 +685,8 @@ namespace hpl {
 		mpBloomVP->UnBind();
 		mpBloomFP->UnBind();
 
-		mpLowLevelGraphics->SetTexture(0,NULL);
-		mpLowLevelGraphics->SetTexture(1,NULL);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->SetTexture(1,nullptr);
 	}
 
 	//-----------------------------------------------------------------------
@@ -778,7 +778,7 @@ namespace hpl {
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
 
 			mpLowLevelGraphics->SetBlendActive(false);
-			mpLowLevelGraphics->SetTexture(0,NULL);
+			mpLowLevelGraphics->SetTexture(0,nullptr);
 		}
 	}
 

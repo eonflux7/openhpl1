@@ -143,7 +143,7 @@ namespace hpl {
 			if(i < lFirst || i >lLast) continue;
 
 			cGlyph* pGlyph = mpDefaultFontType->GetGlyph(msText[i] - lFirst);
-			if(pGlyph==NULL)continue;
+			if(pGlyph==nullptr)continue;
 
 			fLength += pGlyph->mfAdvance * mvDefaultFontSize.x;
 			if(fLength + afLengthAdd >= afMaxSize)
@@ -169,7 +169,7 @@ namespace hpl {
 			if(i < lFirst || i >lLast) continue;
 
 			cGlyph* pGlyph = mpDefaultFontType->GetGlyph(msText[i] - lFirst);
-			if(pGlyph==NULL)continue;
+			if(pGlyph==nullptr)continue;
 
 			fLength += pGlyph->mfAdvance * mvDefaultFontSize.x;
 			if(fLength + afLengthAdd >= afMaxSize)

@@ -35,7 +35,7 @@ namespace hpl {
 
 	cAStarNode::cAStarNode(cAINode *apAINode)
 	{
-		mpParent = NULL;
+		mpParent = nullptr;
 		mpAINode = apAINode;
 	}
 
@@ -61,7 +61,7 @@ namespace hpl {
 
 		mpContainer = apContainer;
 
-		mpCallback = NULL;
+		mpCallback = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace hpl {
 		// check if there is free path from start to goal
 		if(mpContainer->FreePath(avStart,avGoal,3))
 		{
-			mpGoalNode = NULL;
+			mpGoalNode = nullptr;
 			return true;
 		}
 
@@ -96,7 +96,7 @@ namespace hpl {
 		STLDeleteAll(m_setClosedList);
 		STLDeleteAll(m_setOpenList);
 		m_setGoalNodes.clear();
-		mpGoalNode=NULL;
+		mpGoalNode=nullptr;
 
 		//Set goal position
 		mvGoal = avGoal;
@@ -124,7 +124,7 @@ namespace hpl {
 				if(mpContainer->FreePath(avStart,pAINode->GetPosition(),-1,
 										eAIFreePathFlag_SkipDynamic))
 				{
-					AddOpenNode(pAINode,NULL,fDist);
+					AddOpenNode(pAINode,nullptr,fDist);
 				}
 			}
 		}
@@ -196,7 +196,7 @@ namespace hpl {
 			if(apNodeList)
 			{
 				cAStarNode *pParentNode = mpGoalNode;
-				while(pParentNode != NULL)
+				while(pParentNode != nullptr)
 				{
 					apNodeList->push_back(pParentNode->mpAINode);
 					pParentNode = pParentNode->mpParent;
@@ -242,7 +242,7 @@ namespace hpl {
 			{
 				cAINodeEdge *pEdge = pAINode->GetEdge(i);
 
-				if(mpCallback == NULL || mpCallback->CanAddNode(pAINode, pEdge->mpNode))
+				if(mpCallback == nullptr || mpCallback->CanAddNode(pAINode, pEdge->mpNode))
 				{
 					AddOpenNode(pEdge->mpNode, pNode, pNode->mfDistance + pEdge->mfDistance);
 					//AddOpenNode(pEdge->mpNode, pNode, pNode->mfDistance + pEdge->mfSqrDistance);

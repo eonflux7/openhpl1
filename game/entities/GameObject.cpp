@@ -328,7 +328,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		{
 			pObject->mAttractProps.mfDistance = cString::ToFloat(pGameElem->Attribute("AttractDistance"),0);
 			tString sSubTypes = cString::ToString(pGameElem->Attribute("AttractSubtypes"),"");
-			cString::GetStringVec(sSubTypes,pObject->mAttractProps.mvSubtypes,NULL);
+			cString::GetStringVec(sSubTypes,pObject->mAttractProps.mvSubtypes,nullptr);
 
 			pObject->mAttractProps.mbIsEaten = cString::ToBool(pGameElem->Attribute("AttractIsEaten"),false);
 			pObject->mAttractProps.mfEatLength = cString::ToFloat(pGameElem->Attribute("AttractEatLength"),0);
@@ -423,7 +423,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 
 eObjectInteractMode cEntityLoader_GameObject::ToInteractMode(const char* apString)
 {
-	if(apString==NULL) return eObjectInteractMode_Static;
+	if(apString==nullptr) return eObjectInteractMode_Static;
 
 	tString sName = cString::ToLowerCase(apString);
 
@@ -451,9 +451,9 @@ cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mType = eGameEntityType_Object;
 	mInteractMode = eObjectInteractMode_Static;
 	
-	mpBodyCallback = NULL;
+	mpBodyCallback = nullptr;
 
-	mpCurrentAttraction = NULL;
+	mpCurrentAttraction = nullptr;
 	mfAttractCount = 4.0f;
 
 	mbIsMover = false;
@@ -505,7 +505,7 @@ void cGameObject::OnPlayerInteract()
 	iPhysicsBody *pBody = mpInit->mpPlayer->GetPickedBody();
 
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pBody);
-	if(	(pBody->GetMass()==0 && pStickArea==NULL) ||
+	if(	(pBody->GetMass()==0 && pStickArea==nullptr) ||
 		(pStickArea && pStickArea->GetCanDeatch()==false))
 	{
 		return;
@@ -537,7 +537,7 @@ void cGameObject::Update(float afTimeStep)
 		
 		for(size_t i=1; i< mvBodies.size(); ++i)
 		{
-			if(mvBodies[i]==NULL) continue;
+			if(mvBodies[i]==nullptr) continue;
 
 			float fDist = cMath::Vector3Dist(	mpInit->mpPlayer->GetCamera()->GetPosition(),
 												mvBodies[i]->GetWorldPosition());
@@ -983,7 +983,7 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 			}
 
 			mpCurrentAttraction->SetAttracted(false);
-			mpCurrentAttraction = NULL;
+			mpCurrentAttraction = nullptr;
 
 			mbDestroyMe = true;
 			return;
@@ -991,7 +991,7 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 		else if(mpCurrentAttraction->GetCurrentStateId() != STATE_MOVETO)
 		{
 			mpCurrentAttraction->SetAttracted(false);
-			mpCurrentAttraction = NULL;
+			mpCurrentAttraction = nullptr;
 			return;
 		}
 	}
@@ -1002,7 +1002,7 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 		if(mfAttractCount <=0)
 		{
 			float fClosestDist = 10000.0f;
-			iGameEnemy *pChosenEnemy = NULL;
+			iGameEnemy *pChosenEnemy = nullptr;
 
 
 			tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
@@ -1073,7 +1073,7 @@ kEndSerialize()
 
 iGameEntity* cGameObject_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

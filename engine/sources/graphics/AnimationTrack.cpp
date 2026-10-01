@@ -120,8 +120,8 @@ namespace hpl {
 		cKeyFrame ResultKeyFrame;
 		ResultKeyFrame.time = afTime;
 
-		cKeyFrame *pKeyFrameA = NULL;
-		cKeyFrame *pKeyFrameB = NULL;
+		cKeyFrame *pKeyFrameA = nullptr;
+		cKeyFrame *pKeyFrameB = nullptr;
 
 		float fT = GetKeyFramesAtTime(afTime, &pKeyFrameA, &pKeyFrameB);
 

@@ -184,7 +184,7 @@ namespace hpl {
 													1);
 
 			NewtonMaterialSetCollisionCallback(mpNewtonWorld,mlMaterialId,pMat->mlMaterialId,
-				(void*)NULL,BeginContactCallback,ProcessContactCallback);
+				(void*)nullptr,BeginContactCallback,ProcessContactCallback);
 		}
 	}
 
@@ -207,8 +207,8 @@ namespace hpl {
 	// STATIC NEWTON CALLBACKS
 	//////////////////////////////////////////////////////////////////////////
 
-	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody1 = NULL;
-	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody2 = NULL;
+	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody1 = nullptr;
+	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody2 = nullptr;
 	int cPhysicsMaterialNewton::mlContactNum =0;
 	cPhysicsContactData cPhysicsMaterialNewton::mContactData;
 
@@ -298,8 +298,8 @@ namespace hpl {
 
 		if(mlContactNum <= 0)
 		{
-			mpContactBody1 = NULL;
-			mpContactBody2 = NULL;
+			mpContactBody1 = nullptr;
+			mpContactBody2 = nullptr;
 			return;
 		}
 
@@ -344,8 +344,8 @@ namespace hpl {
 		mpContactBody2->OnCollide(mpContactBody1,&mContactData);
 
 		//Reset contact data
-		mpContactBody1 = NULL;
-		mpContactBody2 = NULL;
+		mpContactBody1 = nullptr;
+		mpContactBody2 = nullptr;
 
 		mlContactNum =0;
 

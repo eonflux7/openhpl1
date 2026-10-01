@@ -169,7 +169,7 @@ cMapHandlerSoundCallback::cMapHandlerSoundCallback(cInit *apInit)
 	TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
 	TiXmlElement* pChildElem = pRootElem->FirstChildElement();
-	for(; pChildElem != NULL; pChildElem = pChildElem->NextSiblingElement())
+	for(; pChildElem != nullptr; pChildElem = pChildElem->NextSiblingElement())
 	{
 		tString sName = cString::ToString(pChildElem->Attribute("name"),"");
 		mvEnemyHearableSounds.push_back(sName);
@@ -327,8 +327,8 @@ cMapHandler::~cMapHandler(void)
 bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 {
 	tString sMapName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
-	cWorld3D *pWorld=NULL;
-	cWorld3D *pLastMap = NULL;
+	cWorld3D *pWorld=nullptr;
+	cWorld3D *pLastMap = nullptr;
 	bool bFirstTime = false;
 	double fTimeSinceVisit=0;
 
@@ -379,7 +379,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		// SAVING /////////////////////////////
 
 		//Save the map
-		if(msCurrentMap != "" && mpScene->GetWorld3D() != NULL)
+		if(msCurrentMap != "" && mpScene->GetWorld3D() != nullptr)
 		{
 			mpInit->mpSaveHandler->SaveData(msCurrentMap);
 		}
@@ -498,7 +498,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 	}
 	else
 	{
-		if(mpScene->GetWorld3D() != NULL)
+		if(mpScene->GetWorld3D() != nullptr)
 		{
 			pWorld = mpScene->GetWorld3D();
 		}
@@ -556,7 +556,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 {	
 	tString sMapName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
-	cWorld3D *pWorld=NULL;
+	cWorld3D *pWorld=nullptr;
 
     DestroyAll();
 	mpInit->mpGame->GetSound()->GetSoundHandler()->StopAll(eSoundDest_World);
@@ -585,7 +585,7 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 													//eWorldLoadFlag_NoLights | 
 													//eWorldLoadFlag_NoEntities |
 													//eWorldLoadFlag_NoGameEntities);
-		if(pWorld==NULL){
+		if(pWorld==nullptr){
 			Error("Couldn't load map '%s'\n",asFile.c_str());	
 			return false;
 		}
@@ -599,7 +599,7 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 		mpInit->mpGame->GetResources()->GetSoundManager()->DestroyUnused(mpInit->mlMaxSoundDataNum);
 		mpInit->mpGame->GetResources()->GetParticleManager()->DestroyUnused(mpInit->mlMaxPSDataNum);
 
-		if(pWorld==NULL){
+		if(pWorld==nullptr){
 			Error("Couldn't load map '%s'\n",asFile.c_str());	
 			return false;
 		}
@@ -702,7 +702,7 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 			iLight3D *pLight = it.Next();
 			cEngineLight_SaveData saveLight;
 
-			if(pLight->IsSaved() && pLight->GetParent() == NULL && pLight->GetEntityParent()==NULL)
+			if(pLight->IsSaved() && pLight->GetParent() == nullptr && pLight->GetEntityParent()==nullptr)
 			{
 				saveLight.FromLight(pLight);
 				apSavedWorld->mlstLights.Add(saveLight);
@@ -718,7 +718,7 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 			cParticleSystem3D *pPS = it.Next();
 			cEnginePS_SaveData savePS;
 
-			if( pPS->IsSaved() && pPS->GetParent() == NULL && pPS->GetEntityParent()==NULL
+			if( pPS->IsSaved() && pPS->GetParent() == nullptr && pPS->GetEntityParent()==nullptr
 				&& pPS->IsDying()==false)
 			{
 				savePS.FromPS(pPS);
@@ -735,7 +735,7 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 			cBeam *pBeam = it.Next();
 			cEngineBeam_SaveData saveBeam;
 
-			if(pBeam->IsSaved() && pBeam->GetParent() == NULL && pBeam->GetEntityParent()==NULL)
+			if(pBeam->IsSaved() && pBeam->GetParent() == nullptr && pBeam->GetEntityParent()==nullptr)
 			{
 				saveBeam.FromBeam(pBeam);
 				apSavedWorld->mlstBeams.Add(saveBeam);
@@ -751,7 +751,7 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 			cSoundEntity *pSound = it.Next();
 			cEngineSound_SaveData saveSound;
 
-			if(pSound->IsSaved() && pSound->GetParent() == NULL && pSound->GetEntityParent()==NULL)
+			if(pSound->IsSaved() && pSound->GetParent() == nullptr && pSound->GetEntityParent()==nullptr)
 			{
 				//Check if the sound should be saved.
 				if(pSound->GetRemoveWhenOver() && pSound->GetData()->GetLoop()==false) continue;
@@ -1162,7 +1162,7 @@ void cMapHandler::RenderItemEffect()
 			iVertexBuffer *pVtxBuffer = pSubEntity->GetVertexBuffer();
 			iMaterial *pMaterial = pSubEntity->GetMaterial();
 			
-			iGpuProgram *pVtxProg = pMaterial->GetVertexProgram(eMaterialRenderType_Z,0,NULL);
+			iGpuProgram *pVtxProg = pMaterial->GetVertexProgram(eMaterialRenderType_Z,0,nullptr);
 			
 			if(pVtxProg)
 			{
@@ -1172,7 +1172,7 @@ void cMapHandler::RenderItemEffect()
 									eGpuProgramMatrixOp_Identity);
 			}
 
-			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,NULL);
+			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,nullptr);
 			if(pFragProg)
 			{
 				pFragProg->SetColor3f("ambientColor", pItem->GetFlashAlpha());
@@ -1190,7 +1190,7 @@ void cMapHandler::RenderItemEffect()
 		}
 	}
 
-	pLowGfx->SetTexture(0,NULL);
+	pLowGfx->SetTexture(0,nullptr);
 
 	pLowGfx->SetActiveTextureUnit(0);
 	pLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
@@ -1254,7 +1254,7 @@ void cMapHandler::OnPostSceneDraw()
 	}
 	
 	return;
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetTexture(0,NULL);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetTexture(0,nullptr);
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetBlendActive(false);
 	
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(false);
@@ -1464,7 +1464,7 @@ void cMapHandler::Reset()
 
 	//World3D
 	if(mpScene->GetWorld3D()) mpScene->DestroyWorld3D(mpScene->GetWorld3D());
-	mpScene->SetWorld3D(NULL);
+	mpScene->SetWorld3D(nullptr);
 
 	//Make sure no occulssion queries are left.
 	mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRenderList()->Clear();
@@ -1557,7 +1557,7 @@ cGameStickArea* cMapHandler::GetBodyStickArea(iPhysicsBody *apBody)
 
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -1636,7 +1636,7 @@ iGameEntity* cMapHandler::GetGameEntity(const tString &asName, bool abErrorMessa
 	if(it == m_mapGameEntities.end())
 	{
 		if(abErrorMessage) Error("Couldn't find game entity '%s'\n",asName.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	return it->second;

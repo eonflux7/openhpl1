@@ -40,7 +40,7 @@ namespace hpl {
 		mlHandle = alHandle;
 
 		mpContext = mpScriptEngine->CreateContext();
-		mpModule = NULL;
+		mpModule = nullptr;
 
 		//Create a unique module name
 		msModuleName = "Module_"+cString::ToString(cMath::RandRectl(0,1000000))+
@@ -72,7 +72,7 @@ namespace hpl {
 	{
 		int lLength;
 		char *pCharBuffer = LoadCharBuffer(asFileName,lLength);
-		if(pCharBuffer==NULL){
+		if(pCharBuffer==nullptr){
 			Error("Couldn't load script '%s'!\n",asFileName.c_str());
 			return false;
 		}
@@ -109,7 +109,7 @@ namespace hpl {
 
 	int cAngelScriptScript::GetFuncHandle(const tString& asFunc)
 	{
-		if(mpModule==NULL) return -1;
+		if(mpModule==nullptr) return -1;
 
 		asIScriptFunction *pFunc = mpModule->GetFunctionByName(asFunc.c_str());
 		return pFunc ? pFunc->GetId() : -1;
@@ -126,9 +126,9 @@ namespace hpl {
 
 	bool cAngelScriptScript::Run(const tString& asFuncLine)
 	{
-		if(mpModule==NULL) return true;
+		if(mpModule==nullptr) return true;
 
-		asIScriptFunction *pFunc = NULL;
+		asIScriptFunction *pFunc = nullptr;
 		std::map<tString, asIScriptFunction*>::iterator it = m_mapCompiledLines.find(asFuncLine);
 		if(it != m_mapCompiledLines.end())
 		{
@@ -140,13 +140,13 @@ namespace hpl {
 			// function compiled in the scope of this script's module.
 			tString sCode = "void ExecuteString() {\n" + asFuncLine + ";\n}";
 			if(mpModule->CompileFunction("ExecuteString", sCode.c_str(), -1, 0, &pFunc) < 0)
-				pFunc = NULL;
+				pFunc = nullptr;
 
 			mpScriptOutput->Clear();
 			m_mapCompiledLines.insert(std::map<tString, asIScriptFunction*>::value_type(asFuncLine, pFunc));
 		}
 
-		if(pFunc==NULL) return true;
+		if(pFunc==nullptr) return true;
 
 		if(mpContext->Prepare(pFunc) >= 0)
 			mpContext->Execute();
@@ -159,7 +159,7 @@ namespace hpl {
 	bool cAngelScriptScript::Run(int alHandle)
 	{
 		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
-		if(pFunc==NULL) return false;
+		if(pFunc==nullptr) return false;
 
 		mpContext->Prepare(pFunc);
 
@@ -181,8 +181,8 @@ namespace hpl {
 	char* cAngelScriptScript::LoadCharBuffer(const tString& asFileName, int& alLength)
 	{
 		FILE *pFile = fopen(asFileName.c_str(), "rb");
-		if(pFile==NULL){
-			return NULL;
+		if(pFile==nullptr){
+			return nullptr;
 		}
 
 		int lLength = (int)Platform::FileLength(pFile);

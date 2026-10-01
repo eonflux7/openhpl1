@@ -444,7 +444,7 @@ void cNotebookState_NoteList::OnEnterState(int alLastState)
 {
 	mpNotebook->SetBookType(eNotebookType_Open);
 
-	mpSelectedNote = NULL;
+	mpSelectedNote = nullptr;
 	
 	if(alLastState != eNotebookState_Note)
 		mlFirstNote = (mpNotebook->GetNoteNum() / 12) * 11; 
@@ -488,7 +488,7 @@ void cNotebookState_NoteList::OnLeaveState(int alNextState)
 
 void cNotebookState_NoteList::OnUpdate(float afTime)
 {
-	mpSelectedNote = NULL;
+	mpSelectedNote = nullptr;
 	
 	//////////////////////////////////
 	// Notes
@@ -617,7 +617,7 @@ void cNotebookState_NoteList::OnDraw()
 
 void cNotebookState_NoteList::OnMouseDown(eMButton aButton)
 {
-	if(mpSelectedNote != NULL)
+	if(mpSelectedNote != nullptr)
 	{
 		mpNotebook->SetSelectedNote(mpSelectedNote);
 		mpStateMachine->ChangeState(eNotebookState_Note);

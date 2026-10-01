@@ -57,7 +57,7 @@ namespace hpl {
 	bool cArea2D::CheckWorldCollision(tFlag alFlags)
 	{
 		cRect2f CollideRect = GetBoundingBox();
-		return mpCollider->CollideRect(CollideRect,alFlags,NULL)!=0?true:false;
+		return mpCollider->CollideRect(CollideRect,alFlags,nullptr)!=0?true:false;
 	}
 
 	//-----------------------------------------------------------------------

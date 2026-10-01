@@ -79,7 +79,7 @@ void cPreMenu::LoadConfig()
 	////////////////////////////////////////////////
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
-	if(pRootElem==NULL){
+	if(pRootElem==nullptr){
 		Error("Couldn't load root from XML document 'config/startup.cfg'\n");
 		
 		return;
@@ -88,7 +88,7 @@ void cPreMenu::LoadConfig()
 	////////////////////////////////////////////////
 	//Load the Main element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
-	if(pMainElem==NULL){
+	if(pMainElem==nullptr){
 		Error("Couldn't load Main element from XML document 'config/startup.cfg'\n");
 		
 		return;
@@ -99,7 +99,7 @@ void cPreMenu::LoadConfig()
 	////////////////////////////////////////////////
 	//Load the Logos element.
 	TiXmlElement *pLogosParentElem = pRootElem->FirstChildElement("Logos");
-	if(pLogosParentElem==NULL){
+	if(pLogosParentElem==nullptr){
 		Error("Couldn't load Logs element from XML document 'config/startup.cfg'\n");
 		
 		return;
@@ -109,7 +109,7 @@ void cPreMenu::LoadConfig()
 	////////////////////////////////////////////////
 	//Get logos
 	TiXmlElement *pLogoElem = pLogosParentElem->FirstChildElement("Logo");
-	for(; pLogoElem != NULL; pLogoElem = pLogoElem->NextSiblingElement("Logo"))
+	for(; pLogoElem != nullptr; pLogoElem = pLogoElem->NextSiblingElement("Logo"))
 	{
 		tString sFile = cString::ToString(pLogoElem->Attribute("File"),"");
 		mvTexNames.push_back(sFile);
@@ -179,8 +179,8 @@ void cPreMenu::Reset()
 		pRaindrop->mpGfx = mpRaindropGfx;
 	}
 
-	mpWindSound = NULL;
-	mpRainSound = NULL;
+	mpWindSound = nullptr;
+	mpRainSound = nullptr;
 	
 }
 
@@ -386,7 +386,7 @@ void cPreMenu::Update(float afTimeStep)
 			mfStateTimer = 0;
 			return;
 		}
-		if (mpWindSound == NULL)
+		if (mpWindSound == nullptr)
 			mpWindSound = mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_wind1",true,0);
 		
 		if ( mpWindSound  && !mbPlayingWindSound )
@@ -445,7 +445,7 @@ void cPreMenu::Update(float afTimeStep)
 	// STATE 1 (Logos)
 	else if (mlState == 1) 
 	{
-		if ( mpRainSound == NULL )
+		if ( mpRainSound == nullptr )
 			mpRainSound = mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_rain1",true,0);
 
         if ( mpWindSound && mbPlayingWindSound )
@@ -701,16 +701,16 @@ void cPreMenu::SetActive(bool abX)
 		if (mpFlashGfx)
 			mpInit->mpGame->GetGraphics()->GetDrawer()->DestroyGfxObject(mpFlashGfx);
 
-		mpRaindropGfx = NULL;
-		mpFlashGfx = NULL;
+		mpRaindropGfx = nullptr;
+		mpFlashGfx = nullptr;
 
 		if (mpLogoTexture)
 			mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpLogoTexture);
 		if (mpEpTexture)
 			mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpEpTexture);
 
-		mpLogoTexture = NULL;
-		mpEpTexture = NULL;
+		mpLogoTexture = nullptr;
+		mpEpTexture = nullptr;
 
 		for(size_t i=0; i< mvTextures.size(); ++i)
 		{
@@ -750,8 +750,8 @@ void cPreMenu::SetActive(bool abX)
 			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
 		}
 
-		mpRainSound = NULL;
-		mpWindSound = NULL;
+		mpRainSound = nullptr;
+		mpWindSound = nullptr;
 
 	}
 }

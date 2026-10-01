@@ -167,12 +167,12 @@ namespace hpl {
 			TiXmlElement* pSceneElem = pRootElem->FirstChildElement("library_visual_scenes");
 			if(pSceneElem){
 				pSceneElem = pSceneElem->FirstChildElement("visual_scene");
-				if(pSceneElem==NULL) Warning("No visual scene element found!\n");
+				if(pSceneElem==nullptr) Warning("No visual scene element found!\n");
 			}
 
-			if(pSceneElem==NULL) pSceneElem = pRootElem->FirstChildElement("scene");
+			if(pSceneElem==nullptr) pSceneElem = pRootElem->FirstChildElement("scene");
 
-			if(pSceneElem==NULL)
+			if(pSceneElem==nullptr)
 			{
 				Warning("No scene element found!\n");
 			}
@@ -891,7 +891,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pImageElem = pImageRootElem->FirstChildElement();
-		for(; pImageElem != NULL; pImageElem = pImageElem->NextSiblingElement(),++lCount)
+		for(; pImageElem != nullptr; pImageElem = pImageElem->NextSiblingElement(),++lCount)
 		{
 			cColladaImage* pImage = &(*apColladaImageVec)[lCount];
 
@@ -914,7 +914,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pTextureElem = pTextureRootElem->FirstChildElement();
-		for(; pTextureElem != NULL; pTextureElem = pTextureElem->NextSiblingElement(),++lCount)
+		for(; pTextureElem != nullptr; pTextureElem = pTextureElem->NextSiblingElement(),++lCount)
 		{
 			cColladaTexture* pTexture = &(*apColladaTextureVec)[lCount];
 
@@ -937,7 +937,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pMaterialElem = pMaterialRootElem->FirstChildElement();
-		for(; pMaterialElem != NULL; pMaterialElem = pMaterialElem->NextSiblingElement(),++lCount)
+		for(; pMaterialElem != nullptr; pMaterialElem = pMaterialElem->NextSiblingElement(),++lCount)
 		{
 			cColladaMaterial* pMaterial = &(*apColladaMaterialVec)[lCount];
 
@@ -953,7 +953,7 @@ namespace hpl {
 	static void LoadControllerVec(TiXmlElement *apRootElem, tColladaControllerVec *apColladaControllerVec)
 	{
 		TiXmlElement *pControllerRootElem = apRootElem->FirstChildElement("ControllerRoot");
-		if(pControllerRootElem==NULL)
+		if(pControllerRootElem==nullptr)
 		{
 			Warning("Could not find root element 'ControllerRoot' for controller!\n");
 			return;
@@ -966,7 +966,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pControllerElem = pControllerRootElem->FirstChildElement();
-		for(; pControllerElem != NULL; pControllerElem = pControllerElem->NextSiblingElement(),++lCount)
+		for(; pControllerElem != nullptr; pControllerElem = pControllerElem->NextSiblingElement(),++lCount)
 		{
 			cColladaController* pController = &(*apColladaControllerVec)[lCount];
 
@@ -1086,7 +1086,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pLightElem = pLightRootElem->FirstChildElement();
-		for(; pLightElem != NULL; pLightElem = pLightElem->NextSiblingElement(),++lCount)
+		for(; pLightElem != nullptr; pLightElem = pLightElem->NextSiblingElement(),++lCount)
 		{
 			cColladaLight* pLight = &(*apColladaLightVec)[lCount];
 
@@ -1103,7 +1103,7 @@ namespace hpl {
 	static void LoadAnimationVec(TiXmlElement *apRootElem, tColladaAnimationVec *apColladaAnimationVec)
 	{
 		TiXmlElement *pAnimationRootElem = apRootElem->FirstChildElement("AnimationRoot");
-		if(pAnimationRootElem==NULL)
+		if(pAnimationRootElem==nullptr)
 		{
 			Warning("Could not find root element 'AnimationRoot' for animation!\n");
 			return;
@@ -1116,7 +1116,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pAnimationElem = pAnimationRootElem->FirstChildElement();
-		for(; pAnimationElem != NULL; pAnimationElem = pAnimationElem->NextSiblingElement(),++lCount)
+		for(; pAnimationElem != nullptr; pAnimationElem = pAnimationElem->NextSiblingElement(),++lCount)
 		{
 			cColladaAnimation* pAnimation = &(*apColladaAnimationVec)[lCount];
 
@@ -1132,7 +1132,7 @@ namespace hpl {
 
 				int idx=0;
 				TiXmlElement *pChannelElem = pChannelVecElem->FirstChildElement("Channel");
-				for(; pChannelElem != NULL; pChannelElem = pChannelElem->NextSiblingElement("Channel"),++idx)
+				for(; pChannelElem != nullptr; pChannelElem = pChannelElem->NextSiblingElement("Channel"),++idx)
 				{
 					cColladaChannel *pChannel = &pAnimation->mvChannels[idx];
 
@@ -1151,7 +1151,7 @@ namespace hpl {
 
 				int idx=0;
 				TiXmlElement *pSamplerElem = pSamplerVecElem->FirstChildElement("Sampler");
-				for(; pSamplerElem != NULL; pSamplerElem = pSamplerElem->NextSiblingElement("Sampler"),++idx)
+				for(; pSamplerElem != nullptr; pSamplerElem = pSamplerElem->NextSiblingElement("Sampler"),++idx)
 				{
 					cColladaSampler *pSampler = &pAnimation->mvSamplers[idx];
 
@@ -1171,7 +1171,7 @@ namespace hpl {
 
 				int idx=0;
 				TiXmlElement *pSourceElem = pSourceVecElem->FirstChildElement("Source");
-				for(; pSourceElem != NULL; pSourceElem = pSourceElem->NextSiblingElement("Source"),++idx)
+				for(; pSourceElem != nullptr; pSourceElem = pSourceElem->NextSiblingElement("Source"),++idx)
 				{
 					cColladaAnimSource *pSource = &pAnimation->mvSources[idx];
 
@@ -1200,7 +1200,7 @@ namespace hpl {
 
 		int lCount =0;
 		TiXmlElement *pGeometryElem = pGeometryRootElem->FirstChildElement();
-		for(; pGeometryElem != NULL; pGeometryElem = pGeometryElem->NextSiblingElement(),++lCount)
+		for(; pGeometryElem != nullptr; pGeometryElem = pGeometryElem->NextSiblingElement(),++lCount)
 		{
 			cColladaGeometry* pGeometry = &(*apColladaGeometryVec)[lCount];
 
@@ -1396,7 +1396,7 @@ namespace hpl {
 
 		TiXmlElement *pTransformRootElem = apNodeElem->FirstChildElement("TransformRoot");
 		TiXmlElement *pTransformElem = pTransformRootElem->FirstChildElement("Transform");
-		for(; pTransformElem != NULL; pTransformElem = pTransformElem->NextSiblingElement("Transform"))
+		for(; pTransformElem != nullptr; pTransformElem = pTransformElem->NextSiblingElement("Transform"))
 		{
 			pNode->mlstTransforms.push_back(cColladaTransform());
 			cColladaTransform &transform = pNode->mlstTransforms.back();
@@ -1410,7 +1410,7 @@ namespace hpl {
 		}
 
 		TiXmlElement *pChildElem = apNodeElem->FirstChildElement("Node");
-		for(; pChildElem != NULL; pChildElem = pChildElem->NextSiblingElement("Node"))
+		for(; pChildElem != nullptr; pChildElem = pChildElem->NextSiblingElement("Node"))
 		{
 			LoadIterativeNode(pChildElem,pNode,apColladaScene);
 		}
@@ -1431,7 +1431,7 @@ namespace hpl {
 
 		TiXmlElement *pSceneRootElem = pSceneElem->FirstChildElement("Root");
 		TiXmlElement *pNodeElem = pSceneRootElem->FirstChildElement("Node");
-		for(; pNodeElem != NULL; pNodeElem = pNodeElem->NextSiblingElement("Node"))
+		for(; pNodeElem != nullptr; pNodeElem = pNodeElem->NextSiblingElement("Node"))
 		{
 			LoadIterativeNode(pNodeElem,&apColladaScene->mRoot,apColladaScene);
 		}

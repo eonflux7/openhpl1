@@ -54,7 +54,7 @@ iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3
 
 	//Create physics data
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
-	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,NULL);
+	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,nullptr);
 	std::vector<iPhysicsBody*> vBodies;
 	vBodies.push_back(pPhysicsWorld->CreateBody(asName,pShape));
 
@@ -69,7 +69,7 @@ iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3
 	mpInit->mpMapHandler->AddStickArea(pArea);
 
 	//Return something else later perhaps.
-	return NULL;
+	return nullptr;
 }
 
 
@@ -88,8 +88,8 @@ cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntit
 {
 	mType = eGameEntityType_StickArea;
 
-	mpAttachedBody = NULL;
-	mpLastAttachedBody = NULL;
+	mpAttachedBody = nullptr;
+	mpLastAttachedBody = nullptr;
 
 	msAttachFunction = "";
 	msDetachFunction = "";
@@ -203,7 +203,7 @@ void cGameStickArea::Update(float afTimeStep)
 	if(mpAttachedBody) return;
 
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-	iPhysicsBody *pAttachBody = NULL;
+	iPhysicsBody *pAttachBody = nullptr;
 	
 	////////////////////////////////////////////////////////
 	//Iterate all bodies in world and check for intersection
@@ -244,7 +244,7 @@ void cGameStickArea::Update(float afTimeStep)
 			{
 				if(pBody == mpLastAttachedBody)
 				{
-					mpLastAttachedBody = NULL;
+					mpLastAttachedBody = nullptr;
 				}
 				continue;
 			}
@@ -362,7 +362,7 @@ void cGameStickArea::DetachBody()
 
 		//Log("Body mass: %f\n",mpAttachedBody->GetMass());
 
-		mpAttachedBody = NULL;
+		mpAttachedBody = nullptr;
 	}
 }
 
@@ -435,7 +435,7 @@ kEndSerialize()
 
 iGameEntity* cGameStickArea_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

@@ -56,7 +56,7 @@ namespace hpl {
 
 	iSaveData* iEntity::CreateSaveData()
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

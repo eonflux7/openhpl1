@@ -44,9 +44,9 @@ namespace hpl {
 		mfButtonWidth = mpSkin->GetAttribute(eGuiSkinAttribute_ComboBoxButtonWidth).x;
 		mfSliderWidth = mpSkin->GetAttribute(eGuiSkinAttribute_ComboBoxSliderWidth).x;
 
-		mpText = NULL;
-		mpButton = NULL;
-		mpSlider = NULL;
+		mpText = nullptr;
+		mpButton = nullptr;
+		mpSlider = nullptr;
 
 		mbMenuOpen = false;
 
@@ -199,7 +199,7 @@ namespace hpl {
 	{
 		if(mbMenuOpen==false) return;
 
-		mpSet->SetAttentionWidget(NULL);
+		mpSet->SetAttentionWidget(nullptr);
 		mbMenuOpen = false;
 
 		mvSize = mpText->GetSize();
@@ -324,7 +324,7 @@ namespace hpl {
 
 			////////////////////////////////
 			// Background and borders
-			DrawBordersAndCorners(	NULL, mvGfxBorders, mvGfxCorners,
+			DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 									GetGlobalPosition() + cVector3f(0,mvSize.y-mfMenuHeight,1.4f),
 									cVector2f(mvSize.x, mfMenuHeight));
 		}

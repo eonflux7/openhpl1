@@ -40,7 +40,7 @@ namespace hpl {
 
 	iLowLevelHaptic::iLowLevelHaptic()
 	{
-		mpCamera = NULL;
+		mpCamera = nullptr;
 		mvCameraOffset = 0;
 
 		mvMinMousePos = cVector2f(-50,-50);
@@ -69,7 +69,7 @@ namespace hpl {
 	{
 		tHapticSurfaceMapIt it = m_mapSurfaces.find(asName);
 		if(it == m_mapSurfaces.end()){
-			return NULL;
+			return nullptr;
 		}
 
 		iHapticSurface* pSurface =it->second;

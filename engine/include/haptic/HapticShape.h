@@ -34,8 +34,8 @@ namespace hpl {
 	{
 	public:
 		iHapticShape(const tString& asName ,eHapticShapeType aType) :
-									mpSurface(NULL), mType(aType), msName(asName),
-									mpBody(NULL),mpSubMeshEntity(NULL), mlTransformCount(-1) {}
+									mpSurface(nullptr), mType(aType), msName(asName),
+									mpBody(nullptr),mpSubMeshEntity(nullptr), mlTransformCount(-1) {}
 		virtual ~iHapticShape(){}
 
 		eHapticShapeType GetType(){ return mType;}

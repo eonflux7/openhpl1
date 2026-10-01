@@ -165,10 +165,10 @@ cGameLamp::cGameLamp(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	msOnItem = "";
 	msOffItem = "";
 
-	mpOffMaterial = NULL;
-	mpOnMaterial = NULL;
+	mpOffMaterial = nullptr;
+	mpOnMaterial = nullptr;
 
-	mpSubMesh = NULL;
+	mpSubMesh = nullptr;
 
 	mbSaveLights = false;
 }
@@ -177,7 +177,7 @@ cGameLamp::cGameLamp(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 
 cGameLamp::~cGameLamp(void)
 {
-	mpSubMesh->SetCustomMaterial(NULL,false);
+	mpSubMesh->SetCustomMaterial(nullptr,false);
 	if(mpOffMaterial)	mpInit->mpGame->GetResources()->GetMaterialManager()->Destroy(mpOffMaterial);
 	if(mpOnMaterial)	mpInit->mpGame->GetResources()->GetMaterialManager()->Destroy(mpOnMaterial);
 }
@@ -308,7 +308,7 @@ void cGameLamp::Update(float afTimeStep)
 			if(mpOnMaterial)
 				mpSubMesh->SetCustomMaterial(mpOnMaterial,false);
 			else
-				mpSubMesh->SetCustomMaterial(NULL,false);
+				mpSubMesh->SetCustomMaterial(nullptr,false);
 		}
 		else
 		{
@@ -413,7 +413,7 @@ void cGameLamp::SetLit(bool abX, bool abFade)
 			if(mpOnMaterial)
 				mpSubMesh->SetCustomMaterial(mpOnMaterial,false);
 			else
-				mpSubMesh->SetCustomMaterial(NULL,false);
+				mpSubMesh->SetCustomMaterial(nullptr,false);
 		}
 		if(!abFade) mfAlpha = 1;
 
@@ -445,7 +445,7 @@ void cGameLamp::SetLit(bool abX, bool abFade)
 			else
 				mvParticleSystems[i]->KillInstantly();
 
-			mvParticleSystems[i] = NULL;
+			mvParticleSystems[i] = nullptr;
 		}
 		for(size_t i=0; i<mvBillboards.size(); ++i) 
 		{
@@ -539,7 +539,7 @@ void cGameLamp::Init()
 	if(mpSubMesh)
 	{
 		mpOffMaterial = mpInit->mpGame->GetResources()->GetMaterialManager()->CreateMaterial(msOffMaterialName);
-		if(mpOffMaterial==NULL){
+		if(mpOffMaterial==nullptr){
 			Warning("Could not load material '%s'\n",msOffMaterialName.c_str());
 			return;
 		}
@@ -588,7 +588,7 @@ kEndSerialize()
 
 iGameEntity* cGameLamp_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

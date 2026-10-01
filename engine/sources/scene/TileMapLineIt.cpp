@@ -31,7 +31,7 @@ namespace hpl {
 	cTileMapLineIt::cTileMapLineIt(cVector2f avStartPos, cVector2f avEndPos, cTileMap* apTileMap, int alLayer)
 	{
 		mpTileMap = apTileMap;
-		mpTile = NULL;
+		mpTile = nullptr;
 
 		mvPos = avStartPos;
 
@@ -96,7 +96,7 @@ namespace hpl {
 	{
 		GetTile();
 
-		return mpTile!=NULL;
+		return mpTile!=nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace hpl {
 			if( (mlLayer>=0 && mlLayerCount>0) || (mlLayer==-1 && mlLayerCount>= (int)mpTileMap->mvTileLayer.size()) )
 			{
 				if(mbAtLastTile){
-					mpTile = NULL;
+					mpTile = nullptr;
 					break;
 				}
 
@@ -197,7 +197,7 @@ namespace hpl {
 				if(mvTilePos.x <0 || mvTilePos.y<0 || mvTilePos.x>=mpTileMap->mvSize.x ||
 					mvTilePos.y >= mpTileMap->mvSize.y)
 				{
-					mpTile = NULL;
+					mpTile = nullptr;
 					Error("Outside of bounds!\n");
 					//should just not set mlLayer count to 0. SO that the start can be soutside of the map.
 					break;
@@ -229,7 +229,7 @@ namespace hpl {
 
 				mlLayerCount++;
 
-				if(mpTile!=NULL){
+				if(mpTile!=nullptr){
 					iTileData* pData = mpTile->GetTileData();
 					if(pData && pData->IsSolid()){
 						mlLayerCount = (int)mpTileMap->mvTileLayer.size();

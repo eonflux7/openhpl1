@@ -71,7 +71,7 @@ namespace hpl {
 		if(pResourceElem)
 		{
 			TiXmlElement *pDirElem = pResourceElem->FirstChildElement("Directory");
-			for(; pDirElem != NULL; pDirElem = pDirElem->NextSiblingElement("Directory"))
+			for(; pDirElem != nullptr; pDirElem = pDirElem->NextSiblingElement("Directory"))
 			{
 					tString sPath = pDirElem->Attribute("Path");
 					mpResources->AddResourceDir(sPath);
@@ -86,7 +86,7 @@ namespace hpl {
 		///////////////////////////
 		//Iterate the categories
 		TiXmlElement *pCatElem = pRootElem->FirstChildElement("CATEGORY");
-		for(; pCatElem != NULL; pCatElem = pCatElem->NextSiblingElement("CATEGORY"))
+		for(; pCatElem != nullptr; pCatElem = pCatElem->NextSiblingElement("CATEGORY"))
 		{
 			cLanguageCategory *pCategory = hplNew( cLanguageCategory, () );
 			tString sCatName = pCatElem->Attribute("Name");
@@ -96,12 +96,12 @@ namespace hpl {
 			///////////////////////////
 			//Iterate the entries
 			TiXmlElement *pEntryElem = pCatElem->FirstChildElement("Entry");
-			for(; pEntryElem != NULL; pEntryElem = pEntryElem->NextSiblingElement("Entry"))
+			for(; pEntryElem != nullptr; pEntryElem = pEntryElem->NextSiblingElement("Entry"))
 			{
 				cLanguageEntry *pEntry = hplNew( cLanguageEntry, () );
 				tString sEntryName = pEntryElem->Attribute("Name");
 
-				if(pEntryElem->FirstChild()==NULL)
+				if(pEntryElem->FirstChild()==nullptr)
 				{
 					pEntry->mwsText = _W("");
 				}

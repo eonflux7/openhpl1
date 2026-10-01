@@ -91,7 +91,7 @@ namespace hpl {
 	{
 		wchar_t sText[256];
 		va_list ap;
-		if (fmt == NULL) return;
+		if (fmt == nullptr) return;
 		va_start(ap, fmt);
 		vswprintf(sText, 255, fmt, ap);
 		va_end(ap);
@@ -324,7 +324,7 @@ namespace hpl {
 	{
 		wchar_t sText[256];
 		va_list ap;
-		if (fmt == NULL) return 0;
+		if (fmt == nullptr) return 0;
 		va_start(ap, fmt);
 		vswprintf(sText, 255, fmt, ap);
 		va_end(ap);

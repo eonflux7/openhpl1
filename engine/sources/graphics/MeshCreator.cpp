@@ -140,7 +140,7 @@ namespace hpl {
 		if(!pSkyBox->Compile(0))
 		{
 			hplDelete(pSkyBox);
-			return NULL;
+			return nullptr;
 		}
 		return pSkyBox;
 	}
@@ -228,7 +228,7 @@ namespace hpl {
 		if(!pBox->Compile(eVertexCompileFlag_CreateTangents))
 		{
 			hplDelete(pBox);
-			return NULL;
+			return nullptr;
 		}
 		return pBox;
 	}
@@ -312,7 +312,7 @@ namespace hpl {
 
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

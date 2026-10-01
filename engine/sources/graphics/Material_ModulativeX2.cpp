@@ -111,7 +111,7 @@ namespace hpl {
 		if(mpLowLevelGraphics->GetCaps(eGraphicCaps_GL_FragmentProgram))
 			mpFogFragProg = mpProgramManager->CreateProgram("Fog_Trans_ModX2_fp.cg","main",eGpuProgramType_Fragment);
 		else
-			mpFogFragProg = NULL;
+			mpFogFragProg = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -135,7 +135,7 @@ namespace hpl {
 		if(mpRenderSettings->mbFogActive)
 			return mpFogVtxProg;
 		else
-			return NULL;
+			return nullptr;
 	}
 
 	iMaterialProgramSetup* cMaterial_ModulativeX2::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -143,7 +143,7 @@ namespace hpl {
 		if(mpRenderSettings->mbFogActive)
 			return &gFogProgramSetup;
 		else
-			return NULL;
+			return nullptr;
 	}
 
 	bool cMaterial_ModulativeX2::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -166,7 +166,7 @@ namespace hpl {
 				return &gModulateX2Fog;
 		}
 		else
-			return NULL;
+			return nullptr;
 	}
 
 	eMaterialAlphaMode cMaterial_ModulativeX2::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -201,7 +201,7 @@ namespace hpl {
 				return mvTexture[eMaterialTexture_Diffuse];
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialBlendMode cMaterial_ModulativeX2::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)

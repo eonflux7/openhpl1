@@ -154,9 +154,9 @@ namespace hpl {
 		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
 
 		int lIdxAdd=0;
-		iMaterial *pPrevMat=NULL;
-		iMaterial *pMat =NULL;
-		const cGfxBufferObject* pObj=NULL;
+		iMaterial *pPrevMat=nullptr;
+		iMaterial *pMat =nullptr;
+		const cGfxBufferObject* pObj=nullptr;
 		tGfxBufferSetIt ObjectIt = m_setGfxBuffer.begin();
 
 		if(ObjectIt != m_setGfxBuffer.end())
@@ -164,7 +164,7 @@ namespace hpl {
 
 		while(ObjectIt != m_setGfxBuffer.end())
 		{
-			if(pMat->StartRendering(eMaterialRenderType_Diffuse,NULL,NULL)==false)
+			if(pMat->StartRendering(eMaterialRenderType_Diffuse,nullptr,nullptr)==false)
 			{
 				ObjectIt++;
 				if(ObjectIt != m_setGfxBuffer.end())pMat = ObjectIt->GetMaterial();
@@ -257,7 +257,7 @@ namespace hpl {
 				ObjectIt++;
 
 				if(ObjectIt == m_setGfxBuffer.end()){
-					pMat=NULL;
+					pMat=nullptr;
 					break;
 				}
 				else{
@@ -297,15 +297,15 @@ namespace hpl {
 												bool abAddToList)
 	{
 		cResourceImage* pImage = mpResources->GetImageManager()->CreateImage(asFileName);
-		if(pImage==NULL){
+		if(pImage==nullptr){
 			FatalError("Couldn't load image '%s'!\n", asFileName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iMaterial* pMat = mpMaterialHandler->Create(asMaterialName, eMaterialPicture_Image);
-		if(pMat==NULL){
+		if(pMat==nullptr){
 			FatalError("Couldn't create material '%s'!\n", asMaterialName.c_str());
-			return NULL;
+			return nullptr;
 		}
 		//mpResources->GetImageManager()->FlushAll();
 
@@ -324,15 +324,15 @@ namespace hpl {
 												bool abAddToList)
 	{
 		cResourceImage* pImage = mpResources->GetImageManager()->CreateFromBitmap("",apBmp);
-		if(pImage==NULL){
+		if(pImage==nullptr){
 			FatalError("Couldn't create image\n");
-			return NULL;
+			return nullptr;
 		}
 
 		iMaterial* pMat = mpMaterialHandler->Create(asMaterialName, eMaterialPicture_Image);
-		if(pMat==NULL){
+		if(pMat==nullptr){
 			FatalError("Couldn't create material '%s'!\n", asMaterialName.c_str());
-			return NULL;
+			return nullptr;
 		}
 		//mpResources->GetImageManager()->FlushAll();
 
@@ -351,16 +351,16 @@ namespace hpl {
 																bool abAddToList)
 	{
 		iTexture *pTex = mpResources->GetTextureManager()->Create2D(asFileName,false);
-		if(pTex==NULL)
+		if(pTex==nullptr)
 		{
 			FatalError("Couldn't create texture '%s'!\n", asFileName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iMaterial* pMat = mpMaterialHandler->Create(asMaterialName, eMaterialPicture_Texture);
-		if(pMat==NULL){
+		if(pMat==nullptr){
 			FatalError("Couldn't create material '%s'!\n", asMaterialName.c_str());
-			return NULL;
+			return nullptr;
 		}
 		//mpResources->GetImageManager()->FlushAll();
 
@@ -388,15 +388,15 @@ namespace hpl {
 		bool abTile,const cVector2f& avSize, const cVector2f& avPosPercent, const cVector2f& avVel)
 	{
 		cResourceImage* pImage = mpResources->GetImageManager()->CreateImage(asFileName);
-		if(pImage==NULL){
+		if(pImage==nullptr){
 			FatalError("Couldn't load image '%s'!\n", asFileName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		iMaterial* pMat = mpMaterialHandler->Create(asMaterialName, eMaterialPicture_Image);
-		if(pMat==NULL){
+		if(pMat==nullptr){
 			FatalError("Couldn't create material '%s'!\n", asMaterialName.c_str());
-			return NULL;
+			return nullptr;
 		}
 		//mpResources->GetImageManager()->FlushAll();
 

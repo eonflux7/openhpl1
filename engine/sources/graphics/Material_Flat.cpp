@@ -68,7 +68,7 @@ namespace hpl {
 
 	iGpuProgram* cMaterial_Flat::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		return NULL;//return mpProgram[eGpuProgramType_Vertex][0];
+		return nullptr;//return mpProgram[eGpuProgramType_Vertex][0];
 	}
 
 	bool cMaterial_Flat::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -83,7 +83,7 @@ namespace hpl {
 
 	iGpuProgram* cMaterial_Flat::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialAlphaMode cMaterial_Flat::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -114,7 +114,7 @@ namespace hpl {
 		if(aType == eMaterialRenderType_Z)
 		{
 				if(alUnit==0 && mbHasAlpha) return mvTexture[eMaterialTexture_Diffuse];
-				return NULL;
+				return nullptr;
 		}
 
 		if(alUnit == 0)
@@ -123,7 +123,7 @@ namespace hpl {
 			else			return mvTexture[eMaterialTexture_Illumination];
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialBlendMode cMaterial_Flat::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)

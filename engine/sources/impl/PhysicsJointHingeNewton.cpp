@@ -164,7 +164,7 @@ namespace hpl {
 		}
 		else
 		{
-			if(pHingeJoint->mpParentBody ==NULL || pHingeJoint->mpParentBody->GetMass()==0)
+			if(pHingeJoint->mpParentBody ==nullptr || pHingeJoint->mpParentBody->GetMass()==0)
 			{
 				if(	(pHingeJoint->mfStickyMaxDistance != 0 &&
 					fabs(fAngle - pHingeJoint->mfMaxAngle) < pHingeJoint->mfStickyMaxDistance)

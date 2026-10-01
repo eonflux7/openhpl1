@@ -45,11 +45,11 @@ namespace hpl {
 	{
 		if(aPicture==eMaterialPicture_Image){
 			mvImage.resize(eMaterialTexture_LastEnum);
-			mvImage.assign(mvImage.size(), NULL);
+			mvImage.assign(mvImage.size(), nullptr);
 		}
 		else {
 			mvTexture.resize(eMaterialTexture_LastEnum);
-			mvTexture.assign(mvTexture.size(), NULL);
+			mvTexture.assign(mvTexture.size(), nullptr);
 		}
 
 		mType = eMaterialType_Null;
@@ -71,7 +71,7 @@ namespace hpl {
 		mfValue = 1;
 
 		for(int i=0;i<2;i++)
-			for(int j=0;j<kMaxProgramNum;j++) mpProgram[i][j]=NULL;
+			for(int j=0;j<kMaxProgramNum;j++) mpProgram[i][j]=nullptr;
 
 		mlPassCount=0;
 
@@ -118,8 +118,8 @@ namespace hpl {
 	iTexture* iMaterial::GetTexture(eMaterialTexture aType)
 	{
 		if(mPicture==eMaterialPicture_Image){
-			if(mvImage[aType]==NULL){
-				Log("2: %d\n", aType);return NULL;
+			if(mvImage[aType]==nullptr){
+				Log("2: %d\n", aType);return nullptr;
 			}
 			return mvImage[aType]->GetTexture();
 		}

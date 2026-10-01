@@ -34,7 +34,7 @@ namespace hpl {
 	{
 		mvPosition = avPos + avSize/2;
 
-		mpTileData = NULL;
+		mpTileData = nullptr;
 		mAngle = aAngle;
 
 		mpCollMesh = apCollMesh;

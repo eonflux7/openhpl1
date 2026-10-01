@@ -42,7 +42,7 @@ namespace hpl {
 
 		mvCallbackLists.resize(eGuiMessage_LastEnum);
 
-		mpParent = NULL;
+		mpParent = nullptr;
 
 		mvPosition =0;
 		mvSize = 0;
@@ -63,7 +63,7 @@ namespace hpl {
 		mbConnectedToChildren = true;
 
 		if(mpSkin)  mpPointerGfx = mpSkin->GetGfx(eGuiSkinGfx_PointerNormal);
-		else		mpPointerGfx = NULL;
+		else		mpPointerGfx = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -239,7 +239,7 @@ namespace hpl {
 			{
 				mlstChildren.erase(it);
 
-				pChild->mpParent = NULL;
+				pChild->mpParent = nullptr;
 				pChild->SetPositionUpdated();
 				pChild->SetPosition(pChild->mvPosition + GetGlobalPosition());
 
@@ -369,7 +369,7 @@ namespace hpl {
 	{
 		if(abIsStartWidget == false && mbConnectedToChildren==false) return false;
 
-		if(apWidget == NULL) return false;
+		if(apWidget == nullptr) return false;
 		if(apWidget == this) return true;
 
 		if(mpParent) return mpParent->IsConnectedTo(apWidget,false);
@@ -498,7 +498,7 @@ namespace hpl {
 	void iWidget::DrawDefaultText(	const tWString& asText,
 									const cVector3f& avPosition,eFontAlign aAlign)
 	{
-		if(mpDefaultFontType==NULL) return;
+		if(mpDefaultFontType==nullptr) return;
 
 		mpSet->DrawFont(asText,mpDefaultFontType,avPosition,mvDefaultFontSize,
 						mDefaultFontColor, aAlign);
@@ -545,7 +545,7 @@ namespace hpl {
 		}
 		else
 		{
-			mpDefaultFont = NULL;
+			mpDefaultFont = nullptr;
 		}
 
 		OnLoadGraphics();

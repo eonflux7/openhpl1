@@ -60,7 +60,7 @@ namespace hpl {
 
 		for(int i=0; i<3; i++)
 		{
-			mvSounds[i] = NULL;
+			mvSounds[i] = nullptr;
 			//mvSoundEntries[i] = NULL;
 			mvSoundId[i] = -1;
 		}
@@ -136,7 +136,7 @@ namespace hpl {
 
 	cSoundEntry* cSoundEntity::GetSoundEntry(eSoundEntityType aType)
 	{
-		if(mvSounds[aType]==NULL) return NULL;
+		if(mvSounds[aType]==nullptr) return nullptr;
 
 		//if(mvSoundEntries[aType]==NULL)
 		//{
@@ -168,7 +168,7 @@ namespace hpl {
 			}
 		}
 
-		if(mvSounds[eSoundEntityType_Main]==NULL && mvSounds[eSoundEntityType_Start]==NULL
+		if(mvSounds[eSoundEntityType_Main]==nullptr && mvSounds[eSoundEntityType_Start]==nullptr
 			&& (mpData->GetLoop()== false || mpData->GetInterval()==0))
 		{
 			PlaySound(mpData->GetMainSoundName(),mpData->GetLoop(),eSoundEntityType_Main);
@@ -198,7 +198,7 @@ namespace hpl {
 		mbOutOfRange = false;
 		//mvSoundEntries[eSoundEntityType_Main] = NULL;
 
-		if(mvSounds[eSoundEntityType_Main]==NULL) return;
+		if(mvSounds[eSoundEntityType_Main]==nullptr) return;
 
 		//Log("entity Stopping %s\n",mpData->GetName().c_str());
 
@@ -224,7 +224,7 @@ namespace hpl {
 			}
 		}
 
-		mvSounds[eSoundEntityType_Main] = NULL;
+		mvSounds[eSoundEntityType_Main] = nullptr;
 
 		if(mbLog)Log("End\n");
 	}
@@ -259,7 +259,7 @@ namespace hpl {
 
 		if(mbLog)Log("Fade out entity start...");
 
-		if(mvSounds[eSoundEntityType_Main]==NULL)
+		if(mvSounds[eSoundEntityType_Main]==nullptr)
 		{
 			mbStopped = true;
 			return;
@@ -287,7 +287,7 @@ namespace hpl {
 
 	bool cSoundEntity::IsStopped()
 	{
-		if(mbStopped && mvSounds[eSoundEntityType_Stop]==NULL)
+		if(mbStopped && mvSounds[eSoundEntityType_Stop]==nullptr)
 		{
 			return true;
 		}
@@ -352,7 +352,7 @@ namespace hpl {
 			{
 				if(mpSoundHandler->IsValidId(mvSounds[i], mvSoundId[i])==false)
 				{
-					mvSounds[i] = NULL;
+					mvSounds[i] = nullptr;
 					//mvSoundEntries[i] = NULL;
 
 					//if the sound has stopped due to priority try starting again
@@ -399,7 +399,7 @@ namespace hpl {
 			//Sound is not playing, start it and since it has not been invoked by Play
 			//no need to play start sound. Only do this if interval is 0 else it might
 			//be a deliberate pause.
-			if(mvSounds[eSoundEntityType_Main]==NULL && mvSounds[eSoundEntityType_Start]==NULL
+			if(mvSounds[eSoundEntityType_Main]==nullptr && mvSounds[eSoundEntityType_Start]==nullptr
 				&& (mpData->GetLoop()== false || mpData->GetInterval()==0))
 			{
 				if(PlaySound(mpData->GetMainSoundName(),mpData->GetLoop(),eSoundEntityType_Main))
@@ -425,8 +425,8 @@ namespace hpl {
 			///////////////////////////////////////////////////////////
 			//Check if looping and interval is not 0.
 			//then there needs to be some updating.
-			if(mpData->GetLoop() && mpData->GetInterval()>0 && mvSounds[eSoundEntityType_Start]==NULL
-				&& mvSounds[eSoundEntityType_Main]==NULL)
+			if(mpData->GetLoop() && mpData->GetInterval()>0 && mvSounds[eSoundEntityType_Start]==nullptr
+				&& mvSounds[eSoundEntityType_Main]==nullptr)
 			{
 				mfIntervalCount += afTimeStep;
 
@@ -445,7 +445,7 @@ namespace hpl {
 
 			//////////////////////////////////////////////
 			// If the sound is looped and out of range, stop it
-			if(mvSounds[eSoundEntityType_Start]==NULL && mpData->GetLoop() && mpData->GetUse3D())
+			if(mvSounds[eSoundEntityType_Start]==nullptr && mpData->GetLoop() && mpData->GetUse3D())
 			{
 				float fRange = GetListenerSqrLength();
 				float fMaxRange = mpData->GetMaxDistance() + 1.0f; //Add one meter to avoid oscillation
@@ -460,7 +460,7 @@ namespace hpl {
 							mvSounds[eSoundEntityType_Main]->Stop();
 						}
 
-						mvSounds[eSoundEntityType_Main] = NULL;
+						mvSounds[eSoundEntityType_Main] = nullptr;
 					}
 
 					mbOutOfRange = true;
@@ -522,7 +522,7 @@ namespace hpl {
 								eSoundDest_World,true, mpData->GetPriority());
 		}
 
-		if(mvSounds[aType]==NULL)
+		if(mvSounds[aType]==nullptr)
 		{
 			if(!mbPrioRemove)
 				Error("Couldn't play sound '%s' for sound entity %s\n",asName.c_str(),msName.c_str());
@@ -583,7 +583,7 @@ namespace hpl {
 	{
 		cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
 
-		if(mbStopped && mbRemoveWhenOver) return NULL;
+		if(mbStopped && mbRemoveWhenOver) return nullptr;
 		//if(mbStopped && mbFadingOut) return NULL;
 
 		cSoundEntity *pEntity = pWorld->CreateSoundEntity(msName,msData,mbRemoveWhenOver);
@@ -613,7 +613,7 @@ namespace hpl {
 	{
 		kSaveData_SaveToBegin(cSoundEntity);
 
-		pData->msData = mpData==NULL ? "" : mpData->GetName();
+		pData->msData = mpData==nullptr ? "" : mpData->GetName();
 
 		kSaveData_SaveTo(mbStopped);
 		kSaveData_SaveTo(mbRemoveWhenOver);

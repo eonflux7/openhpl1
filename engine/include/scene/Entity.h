@@ -48,7 +48,7 @@ namespace hpl {
 	#endif
 	public:
 		iEntity(tString asName) : msName(asName), mbIsVisible(true),
-			mbIsActive(true), mpParentNode(NULL) {}
+			mbIsActive(true), mpParentNode(nullptr) {}
 
 		virtual ~iEntity();
 
@@ -61,7 +61,7 @@ namespace hpl {
 
 		iNode* GetParent(){ return mpParentNode;}
 		void SetParent(iNode* apNode){ mpParentNode = apNode;}
-		bool HasParent(){ return mpParentNode!=NULL;}
+		bool HasParent(){ return mpParentNode!=nullptr;}
 
 		bool IsActive(){ return mbIsActive; }
 		void SetActive(bool abActive){ mbIsActive = abActive; }

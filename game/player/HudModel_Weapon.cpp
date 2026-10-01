@@ -38,7 +38,7 @@
 
 void cMeleeRayCallback::Reset()
 {
-	mpClosestBody = NULL;
+	mpClosestBody = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -48,7 +48,7 @@ bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 	if(pBody->GetCollide()==false) return true;
 	if(pBody->IsCharacter()) return true;
 	
-	if(apParams->mfDist < mfShortestDist || mpClosestBody == NULL)
+	if(apParams->mfDist < mfShortestDist || mpClosestBody == nullptr)
 	{
 		mpClosestBody = pBody;
 		mfShortestDist = apParams->mfDist;
@@ -80,7 +80,7 @@ cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_Weapo
 	}
 	else
 	{
-		mpLowLevelHaptic = NULL;
+		mpLowLevelHaptic = nullptr;
 	}
 }
 
@@ -91,7 +91,7 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("MELEE");
-	if(pMeleeElem==NULL){
+	if(pMeleeElem==nullptr){
 		Error("Couldn't load MELEE element from XML document\n");
 		return;
 	}
@@ -110,7 +110,7 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	////////////////////////////////////////////////
 	//Go through the ATTACK elements.
 	TiXmlElement *pAttackElem = apRootElem->FirstChildElement("ATTACK");
-	for(; pAttackElem != NULL; pAttackElem = pAttackElem->NextSiblingElement("ATTACK"))
+	for(; pAttackElem != nullptr; pAttackElem = pAttackElem->NextSiblingElement("ATTACK"))
 	{
 		cMeleeWeaponAttack meleeAttack;
 
@@ -404,7 +404,7 @@ void cHudModel_WeaponMelee::LoadExtraEntites()
 	for(size_t i=0; i< mvAttacks.size(); ++i)
 	{
 		//Attack shapes
-		mvAttacks[i].mpCollider = pWorld->CreateBoxShape(mvAttacks[i].mvDamageSize,NULL);
+		mvAttacks[i].mpCollider = pWorld->CreateBoxShape(mvAttacks[i].mvDamageSize,nullptr);
 
 		//Preload particle system
 		mpInit->PreloadParticleSystem(mvAttacks[i].msHitPS);
@@ -570,7 +570,7 @@ void cHudModel_WeaponMelee::Attack()
 			}*/
 			if(pEnemy->GetMeshEntity()->CheckColliderShapeCollision(pPhysicsWorld,
 																	mvAttacks[mlCurrentAttack].mpCollider,
-																	mtxDamage,&lstPostions,NULL)==false)
+																	mtxDamage,&lstPostions,nullptr)==false)
 			{
 				continue;
 			}
@@ -638,7 +638,7 @@ void cHudModel_WeaponMelee::Attack()
 	//Iterate bodies
 	float fClosestHitDist = 9999.0f;
 	cVector3f vClosestHitPos;
-	iPhysicsMaterial* pClosestHitMat = NULL;
+	iPhysicsMaterial* pClosestHitMat = nullptr;
 	cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
 	while(it.HasNext())
 	{

@@ -67,7 +67,7 @@ namespace hpl {
 		if(mvEmitterData.empty())
 		{
 			Warning("Particle system '%s' has no emitters.\n",msName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		cParticleSystem3D *pPS = hplNew( cParticleSystem3D, (asName,this,mpResources,mpGraphics) );
@@ -100,7 +100,7 @@ namespace hpl {
 		TiXmlElement *pRootElem = pXmlDoc->RootElement();
 
 		TiXmlElement *pEmitterElem = pRootElem->FirstChildElement("ParticleEmitter");
-		for(; pEmitterElem != NULL; pEmitterElem = pEmitterElem->NextSiblingElement("ParticleEmitter"))
+		for(; pEmitterElem != nullptr; pEmitterElem = pEmitterElem->NextSiblingElement("ParticleEmitter"))
 		{
 			cParticleEmitterData3D_UserData *pPE = hplNew( cParticleEmitterData3D_UserData,("",
 																	mpResources,mpGraphics) );
@@ -131,7 +131,7 @@ namespace hpl {
 	{
 		mpResources = apResources;
 		mpGraphics = apGraphics;
-		mpParticleManager = NULL;
+		mpParticleManager = nullptr;
 		mpData = apData;
 
 		mbFirstUpdate = true;

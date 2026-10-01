@@ -207,7 +207,7 @@ namespace hpl {
 #ifdef INCLUDE_HAPTIC
 		mpHaptic = mpGameSetup->CreateHaptic();
 #else
-		mpHaptic = NULL;
+		mpHaptic = nullptr;
 #endif
 
 

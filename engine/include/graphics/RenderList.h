@@ -64,7 +64,7 @@ namespace hpl {
 	class cRenderNode
 	{
 	public:
-		cRenderNode() : mpState(NULL){}
+		cRenderNode() : mpState(nullptr){}
 
 		iRenderState *mpState;
 
@@ -108,7 +108,7 @@ namespace hpl {
 	class cOcclusionQueryObject
 	{
 	public:
-		cOcclusionQueryObject() : mpQuery(NULL), mpVtxBuffer(NULL),mpMatrix(NULL){}
+		cOcclusionQueryObject() : mpQuery(nullptr), mpVtxBuffer(nullptr),mpMatrix(nullptr){}
 
 		iOcclusionQuery *mpQuery;
 		iVertexBuffer *mpVtxBuffer;

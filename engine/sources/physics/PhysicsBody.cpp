@@ -50,7 +50,7 @@ namespace hpl {
 	{
 		mpWorld = apWorld;
 		mpShape = apShape;
-		mpNode = NULL;
+		mpNode = nullptr;
 
 		//Increment user count for the shape
 		apShape->IncUserCount();
@@ -61,14 +61,14 @@ namespace hpl {
 		//Set the default material so that body always has a material.
 		mpMaterial = mpWorld->GetMaterialFromName("Default");
 
-		mpCharacterBody = NULL;
+		mpCharacterBody = nullptr;
 
 		mbBlocksSound = false;
 		mbBlocksLight = true;
 
-		mpScrapeBody = NULL;
-		mpScrapeSoundEntity = NULL;
-		mpRollSoundEntity = NULL;
+		mpScrapeBody = nullptr;
+		mpScrapeSoundEntity = nullptr;
+		mpRollSoundEntity = nullptr;
 		mbHasImpact = false;
 		mbHasSlide = false;
 
@@ -79,9 +79,9 @@ namespace hpl {
 
 		mbCanAttachCharacter = false;
 
-		mpUserData = NULL;
+		mpUserData = nullptr;
 
-		mpHapticShape = NULL;
+		mpHapticShape = nullptr;
 
 		mbPushedByCharacterGravity = false;
 
@@ -128,7 +128,7 @@ namespace hpl {
 
 			pJoint->RemoveBody(this);
 
-			if(pJoint->GetParentBody()==NULL && pJoint->GetChildBody()==NULL)
+			if(pJoint->GetParentBody()==nullptr && pJoint->GetChildBody()==nullptr)
 			{
 				mpWorld->DestroyJoint(pJoint);
 			}
@@ -239,8 +239,8 @@ namespace hpl {
 							GetScrapeSoundEntity()->FadeOut(5.2f);
 						}
 
-					SetScrapeSoundEntity(NULL);
-					SetScrapeBody(NULL);
+					SetScrapeSoundEntity(nullptr);
+					SetScrapeBody(nullptr);
 				}
 				else if(mlSlideCount>0)
 				{
@@ -437,7 +437,7 @@ namespace hpl {
 
 		Warning("Invalid shape type %d!\n",apData->mType);
 
-		return NULL;
+		return nullptr;
 	}
 
 	static iCollideShape* CreateCollideShapeFromSave(cContainerList<cSaveData_iCollideShape> *apShapeList,
@@ -467,7 +467,7 @@ namespace hpl {
 
 		//Get the collider
 		iCollideShape* pShape = CreateCollideShapeFromSave(&mlstShapes,pWorld);
-		if(pShape == NULL) return NULL;
+		if(pShape == nullptr) return nullptr;
 
 		iPhysicsBody* pBody = pWorld->CreateBody(msName, pShape);
 
@@ -498,7 +498,7 @@ namespace hpl {
 		CreateSaveCollideShapes(&pData->mlstShapes);
 
 		//Material
-		pData->msMaterial = mpMaterial==NULL ? "" : mpMaterial->GetName();
+		pData->msMaterial = mpMaterial==nullptr ? "" : mpMaterial->GetName();
 
 		//Save vars
 		kSaveData_SaveTo(mbBlocksSound);

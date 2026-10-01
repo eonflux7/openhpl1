@@ -248,7 +248,7 @@ namespace hpl {
 
 		cMemoryPool(size_t alSize, T* (*apCreateFunc)())
 		{
-			mvData.resize(alSize,NULL);
+			mvData.resize(alSize,nullptr);
 			mlCurrentData = 0;
 
 			mpCreateFunc = apCreateFunc;
@@ -375,7 +375,7 @@ namespace hpl {
 				return *it;
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//--------------------------------------------------------
@@ -426,7 +426,7 @@ namespace hpl {
 		void* NextPtr()
 		{
 			if(mIt == mpCont->end())
-				return NULL;
+				return nullptr;
 			else
 			{
 				T &temp = const_cast<T &> (*mIt);
@@ -440,7 +440,7 @@ namespace hpl {
 		T Next()
 		{
 			if(mIt == mpCont->end())
-				return NULL;
+				return nullptr;
 			else
 			{
 				T &temp = const_cast<T &> (*mIt);
@@ -492,7 +492,7 @@ namespace hpl {
 		void* NextPtr()
 		{
 			if(mIt == mpCont->end())
-				return NULL;
+				return nullptr;
 			else
 			{
 				T& temp = mIt->second;
@@ -506,7 +506,7 @@ namespace hpl {
 		T Next()
 		{
 			if(mIt == mpCont->end())
-				return NULL;
+				return nullptr;
 			else
 			{
 				T temp = mIt->second;

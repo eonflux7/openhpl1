@@ -55,10 +55,10 @@ namespace hpl {
 
 		float fRadius = cMath::Max(avSize.x, avSize.z)*0.5f;
 		cMatrixf mtxOffset = cMath::MatrixRotateZ(kPi2f);
-		iCollideShape *pCollider = NULL;
+		iCollideShape *pCollider = nullptr;
 
 		if(fabs(fRadius*2.0f - avSize.y)<0.01)
-			pCollider = mpWorld->CreateSphereShape(fRadius,NULL);
+			pCollider = mpWorld->CreateSphereShape(fRadius,nullptr);
 		else
 			pCollider = mpWorld->CreateCylinderShape(fRadius, avSize.y,&mtxOffset);
 			//pCollider = mpWorld->CreateCapsuleShape(fRadius, avSize.y,&mtxOffset);
@@ -94,14 +94,14 @@ namespace hpl {
 
 		mbEnableNearbyBodies = false;
 
-		mpCamera = NULL;
+		mpCamera = nullptr;
 		mvCameraPosAdd = cVector3f(0,0,0);
 
-		mpEntity = NULL;
+		mpEntity = nullptr;
 		m_mtxEntityOffset = cMatrixf::Identity;
 		m_mtxEntityPostOffset = cMatrixf::Identity;
 
-		mpUserData = NULL;
+		mpUserData = nullptr;
 
 		mlCameraSmoothPosNum =0;
 		mlEntitySmoothPosNum =0;
@@ -133,9 +133,9 @@ namespace hpl {
 		mfPushForce = 0;
 		mbPushIn2D = true;
 
-		mpCallback = NULL;
+		mpCallback = nullptr;
 
-		mpAttachedBody = NULL;
+		mpAttachedBody = nullptr;
 		mbAttachmentJustAdded = true;
 
 
@@ -200,7 +200,7 @@ namespace hpl {
 
 	cCharacterBodyCollideGravity::cCharacterBodyCollideGravity()
 	{
-		mpCharBody = NULL;
+		mpCharBody = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -209,7 +209,7 @@ namespace hpl {
 	{
 		if(apBody->GetCanAttachCharacter())
 		{
-			if(mpCharBody->GetAttachedBody()==NULL)
+			if(mpCharBody->GetAttachedBody()==nullptr)
 			{
 				mpCharBody->SetAttachedBody(apBody);
 			}
@@ -265,7 +265,7 @@ namespace hpl {
 
 	cCharacterBodyCollidePush::cCharacterBodyCollidePush()
 	{
-		mpCharBody = NULL;
+		mpCharBody = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -633,7 +633,7 @@ namespace hpl {
 
 		//Clear attached body
 		iPhysicsBody *pLastAttached = mpAttachedBody;
-		SetAttachedBody(NULL);
+		SetAttachedBody(nullptr);
 
 		//Update the move matrix.
 		UpdateMoveMarix();
@@ -841,7 +841,7 @@ namespace hpl {
 
 						mpWorld->CheckShapeWorldCollision(&vNewPos,mpBody->GetShape(),
 							cMath::MatrixTranslate(vStepPos),mpBody,
-							false, true,NULL,mbCollideCharacter);
+							false, true,nullptr,mbCollideCharacter);
 						//Log("Old pos: (%s) StepPos: (%s) NewPos: (%s)\n",mvPosition.ToString().c_str(),
 						//							vStepPos.ToString().c_str(),vNewPos.ToString().c_str());
 						if(vNewPos == vStepPos)
@@ -906,7 +906,7 @@ namespace hpl {
 
 			vNewPos = mvPosition;
 			bool bCollide = mpWorld->CheckShapeWorldCollision(&vNewPos,mpBody->GetShape(), cMath::MatrixTranslate(mvPosition),
-												mpBody,false,true,NULL,mbCollideCharacter);
+												mpBody,false,true,nullptr,mbCollideCharacter);
 
 			//Set new velocity depending on collisions.
 			vLastVelocity.x = mvVelolcity.x;
@@ -1143,7 +1143,7 @@ namespace hpl {
 
 	void iCharacterBody::UpdateCamera()
 	{
-		if(mpCamera==NULL) return;
+		if(mpCamera==nullptr) return;
 
 		if(mlCameraSmoothPosNum <=0)
 		{
@@ -1188,7 +1188,7 @@ namespace hpl {
 
 	void iCharacterBody::UpdateEntity()
 	{
-		if(mpEntity==NULL) return;
+		if(mpEntity==nullptr) return;
 
 		if(mlEntitySmoothPosNum <=0)
 		{
@@ -1237,7 +1237,7 @@ namespace hpl {
 
 	void iCharacterBody::UpdateAttachment()
 	{
-		if(mpAttachedBody==NULL){
+		if(mpAttachedBody==nullptr){
 			mbAttachmentJustAdded = true;
 			return;
 		}
@@ -1501,7 +1501,7 @@ namespace hpl {
 			int lId = it.Next();
 			iPhysicsBody* pBody = static_cast<iPhysicsBody*>(apSaveObjectHandler->Get(lId));
 			mvExtraBodies.push_back(pBody);
-			if(pBody==NULL)
+			if(pBody==nullptr)
 			{
 				Warning("Couldn't find save object with id %d\n",lId);
 			}

@@ -60,7 +60,7 @@ namespace hpl {
 	void cSoundEntityManager::Preload(const tString& asFile)
 	{
 		cSoundEntityData *pData = CreateSoundEntity(asFile);
-		if(pData == NULL) {
+		if(pData == nullptr) {
 			Warning("Couldn't preload sound '%s'\n",asFile.c_str());
 			return;
 		}
@@ -93,7 +93,7 @@ namespace hpl {
 
 		pSoundEntity = static_cast<cSoundEntityData*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pSoundEntity==NULL && sPath!="")
+		if(pSoundEntity==nullptr && sPath!="")
 		{
 			pSoundEntity = hplNew( cSoundEntityData, (asNewName) );
 
@@ -104,7 +104,7 @@ namespace hpl {
 			else
 			{
 				hplDelete(pSoundEntity);
-				pSoundEntity =NULL;
+				pSoundEntity =nullptr;
 			}
 		}
 

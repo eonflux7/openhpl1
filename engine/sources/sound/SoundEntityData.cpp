@@ -84,7 +84,7 @@ namespace hpl {
 		////////////////////////////////////////////////
 		// MAIN
 		TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
-		if(pMainElem==NULL){
+		if(pMainElem==nullptr){
 			Error("Couldn't find MAIN element in '%s'!\n",asFile.c_str());
 			hplDelete(pDoc);
 			return false;
@@ -97,7 +97,7 @@ namespace hpl {
 		////////////////////////////////////////////////
 		// PROPERTIES
 		TiXmlElement *pPropElem = pRootElem->FirstChildElement("PROPERTIES");
-		if(pPropElem==NULL){
+		if(pPropElem==nullptr){
 			Error("Couldn't find PROPERTIES element in '%s'!\n",asFile.c_str());
 			hplDelete(pDoc);
 			return false;

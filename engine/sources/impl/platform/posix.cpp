@@ -73,9 +73,9 @@ namespace hpl {
 		struct stat statbuff;
 		tWString fileentry;
 
-		if ((dirhandle = opendir(cString::To8Char(asDir).c_str()))==NULL) return;
+		if ((dirhandle = opendir(cString::To8Char(asDir).c_str()))==nullptr) return;
 
-		while ((_entry = readdir(dirhandle)) != NULL) {
+		while ((_entry = readdir(dirhandle)) != nullptr) {
 			if (end==_W('/'))
 				swprintf(sSpec,256,_W("%ls%s"),asDir.c_str(),_entry->d_name);
 			else

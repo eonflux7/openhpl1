@@ -34,7 +34,7 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 
 	tStringVec vFilters;
 	if(asSpec != "1" && asSpec != "all")
-		cString::GetStringVec(asSpec, vFilters, NULL);
+		cString::GetStringVec(asSpec, vFilters, nullptr);
 
 	for(tWStringListIt it = lstFiles.begin(); it != lstFiles.end(); ++it)
 	{
@@ -112,7 +112,7 @@ void cSmokeTest::Update(float afTimeStep)
 		{
 			Log("SMOKE: [%d/%d] %s\n", (int)mlMap + 1, (int)mvMaps.size(), mvMaps[mlMap].c_str());
 			// Every Overture map has a level script; NULL means it failed to build
-			if(mpInit->mpGame->GetScene()->GetWorld3D()->GetScript() == NULL)
+			if(mpInit->mpGame->GetScene()->GetWorld3D()->GetScript() == nullptr)
 				Fail("%s: level script did not build", mvMaps[mlMap].c_str());
 			mStep = eStep_RunMap;
 			mlFrame = 0;

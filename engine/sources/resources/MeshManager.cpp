@@ -86,19 +86,19 @@ namespace hpl {
 			if(bFound == false){
 				Error("Couldn't create mesh '%s'\n",asName.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 		}
 
 		pMesh = static_cast<cMesh*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pMesh==NULL && sPath!="")
+		if(pMesh==nullptr && sPath!="")
 		{
 			pMesh = mpResources->GetMeshLoaderHandler()->LoadMesh(sPath,0);
-			if(pMesh == NULL)
+			if(pMesh == nullptr)
 			{
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			AddResource(pMesh);

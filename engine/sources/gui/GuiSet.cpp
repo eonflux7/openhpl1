@@ -154,7 +154,7 @@ namespace hpl {
 						cSound *apSound, cScene *apScene)
 	{
 		mpGui = apGui;
-		mpSkin = NULL;
+		mpSkin = nullptr;
 
 		msName = asName;
 
@@ -163,11 +163,11 @@ namespace hpl {
 		mpSound = apSound;
 		mpScene = apScene;
 
-		mpGfxCurrentPointer = NULL;
+		mpGfxCurrentPointer = nullptr;
 
-		mpFocusedWidget = NULL;
+		mpFocusedWidget = nullptr;
 
-		mpAttentionWidget = NULL;
+		mpAttentionWidget = nullptr;
 
 		mvDrawOffset =0;
 
@@ -333,7 +333,7 @@ namespace hpl {
 	void cGuiSet::DrawGfx(	cGuiGfxElement* apGfx, const cVector3f &avPos, const cVector2f &avSize,
 							const cColor& aColor,eGuiMaterial aMaterial)
 	{
-		if(mpCurrentClipRegion==NULL) return;
+		if(mpCurrentClipRegion==nullptr) return;
 		if(mpCurrentClipRegion->mRect.w ==0 || mpCurrentClipRegion->mRect.h==0) return;
 
 		cVector3f vAbsPos =  avPos + apGfx->GetOffset() + mvDrawOffset;
@@ -369,7 +369,7 @@ namespace hpl {
 		else				object.mvSize = avSize;
 		object.mColor = aColor;
 		if(aMaterial != eGuiMaterial_LastEnum)	object.mpCustomMaterial = mpGui->GetMaterial(aMaterial);
-		else									object.mpCustomMaterial = NULL;
+		else									object.mpCustomMaterial = nullptr;
 
 		m_setRenderObjects.insert(object);
 	}
@@ -537,7 +537,7 @@ namespace hpl {
 	{
 		cWidgetImage *pImage = hplNew( cWidgetImage, (this,mpSkin) );
 
-		cGuiGfxElement *pGfx = NULL;
+		cGuiGfxElement *pGfx = nullptr;
 		if(asFile != "")
 		{
 			if(abAnimate)
@@ -606,7 +606,7 @@ namespace hpl {
 
 	void cGuiSet::DestroyWidget(iWidget *apWidget)
 	{
-		if(apWidget == mpFocusedWidget) mpFocusedWidget = NULL;
+		if(apWidget == mpFocusedWidget) mpFocusedWidget = nullptr;
 		STLFindAndDelete(mlstWidgets,apWidget);
 	}
 
@@ -704,10 +704,10 @@ namespace hpl {
 			//Log("Lost focus %d\n",mpFocusedWidget);
 			cGuiMessageData data =  cGuiMessageData(mvMousePos,0);
 			mpFocusedWidget->ProcessMessage(eGuiMessage_LostFocus,data);
-			mpFocusedWidget = NULL;
+			mpFocusedWidget = nullptr;
 		}
 
-		if(mpAttentionWidget && mpFocusedWidget == NULL)
+		if(mpAttentionWidget && mpFocusedWidget == nullptr)
 		{
 			//Log("Got focus %d\n",apWidget);
 			mpFocusedWidget = apWidget;
@@ -764,7 +764,7 @@ namespace hpl {
 		}
 		else
 		{
-			mpGfxCurrentPointer = NULL;
+			mpGfxCurrentPointer = nullptr;
 		}
 
 	}
@@ -844,16 +844,16 @@ namespace hpl {
 
 		//////////////////////////////////
 		// Graphics setup
-		pLowLevelGraphics->SetTexture(0,NULL);
+		pLowLevelGraphics->SetTexture(0,nullptr);
 
 		//////////////////////////////////
 		// Set up variables
 
 		tGuiRenderObjectSetIt it = setRenderObjects.begin();
 
-		iGuiMaterial *pLastMaterial = NULL;
-		iTexture *pLastTexture = NULL;
-		cGuiClipRegion *pLastClipRegion = NULL;
+		iGuiMaterial *pLastMaterial = nullptr;
+		iTexture *pLastTexture = nullptr;
+		cGuiClipRegion *pLastClipRegion = nullptr;
 
 		cGuiGfxElement *pGfx = it->mpGfx;
 		iGuiMaterial *pMaterial = it->mpCustomMaterial ? it->mpCustomMaterial : pGfx->mpMaterial;
@@ -1123,7 +1123,7 @@ namespace hpl {
 		//Se if anything was clicked
 		if(bRet == false)
 		{
-			mpFocusedWidget = NULL;
+			mpFocusedWidget = nullptr;
 		}
 
 		//Lost focus callback

@@ -94,13 +94,13 @@ namespace hpl {
 		if(aType == eMaterialRenderType_Z)
 		{
 			mpLowLevelGraphics->SetAlphaTestActive(false);
-			mpLowLevelGraphics->SetTexture(0, NULL);
+			mpLowLevelGraphics->SetTexture(0, nullptr);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Modulate);
 		}
 		if(aType == eMaterialRenderType_Diffuse)
 		{
 			mpLowLevelGraphics->SetBlendActive(false);
-			mpLowLevelGraphics->SetTexture(0, NULL);
+			mpLowLevelGraphics->SetTexture(0, nullptr);
 		}
 		else if(aType == eMaterialRenderType_Light)
 		{

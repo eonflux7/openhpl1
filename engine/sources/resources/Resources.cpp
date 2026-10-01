@@ -60,10 +60,10 @@ namespace hpl {
 
 		mpFileSearcher = hplNew( cFileSearcher, (mpLowLevelResources) );
 
-		mpDefaultEntity3DLoader = NULL;
-		mpDefaultArea3DLoader = NULL;
+		mpDefaultEntity3DLoader = nullptr;
+		mpDefaultArea3DLoader = nullptr;
 
-		mpLanguageFile = NULL;
+		mpLanguageFile = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -208,7 +208,7 @@ namespace hpl {
 	{
 		if(mpLanguageFile){
 			hplDelete(mpLanguageFile);
-			mpLanguageFile = NULL;
+			mpLanguageFile = nullptr;
 		}
 
 		tString asPath = mpFileSearcher->GetFilePath(asFile);
@@ -247,7 +247,7 @@ namespace hpl {
 		tEntity2DLoaderMapIt it = m_mMapEntity2DLoaders.find(asName);
 		if(it == m_mMapEntity2DLoaders.end()){
 			Warning("No loader for type '%s' found!\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		return it->second;
@@ -265,7 +265,7 @@ namespace hpl {
 		tArea2DLoaderMapIt it = m_mMapArea2DLoaders.find(asName);
 		if(it == m_mMapArea2DLoaders.end()){
 			Warning("No loader for type '%s' found!\n",asName.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		return it->second;
@@ -293,7 +293,7 @@ namespace hpl {
 				return mpDefaultEntity3DLoader;
 			}
 			else {
-				return NULL;
+				return nullptr;
 			}
 		}
 
@@ -323,7 +323,7 @@ namespace hpl {
 				return mpDefaultArea3DLoader;
 			}
 			else {
-				return NULL;
+				return nullptr;
 			}
 		}
 
@@ -346,7 +346,7 @@ namespace hpl {
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
 		TiXmlElement* pChildElem = pRootElem->FirstChildElement();
-		for(; pChildElem != NULL; pChildElem = pChildElem->NextSiblingElement())
+		for(; pChildElem != nullptr; pChildElem = pChildElem->NextSiblingElement())
 		{
 			tString sPath = cString::ToString(pChildElem->Attribute("Path"),"");
 			if(sPath==""){

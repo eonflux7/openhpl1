@@ -54,7 +54,7 @@ iEntity3D* cAreaLoader_GameLadder::Load(const tString &asName, const cVector3f &
 
 	//Create physics data
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
-	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,NULL);
+	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,nullptr);
 	std::vector<iPhysicsBody*> vBodies;
 	vBodies.push_back(pPhysicsWorld->CreateBody(asName,pShape));
 
@@ -69,7 +69,7 @@ iEntity3D* cAreaLoader_GameLadder::Load(const tString &asName, const cVector3f &
 
 	pLadder->Setup();
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -131,7 +131,7 @@ void cGameLadder::OnPlayerInteract()
 
 		do{
 			pWorld->CheckShapeWorldCollision(&vNewPos,pCharBody->GetShape(),mtxPos,
-												pCharBody->GetBody(),false,true,NULL,true);
+												pCharBody->GetBody(),false,true,nullptr,true);
 			if(vNewPos == mtxPos.GetTranslation())
 			{
 					bFound = true;
@@ -257,7 +257,7 @@ kEndSerialize()
 
 iGameEntity* cGameLadder_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

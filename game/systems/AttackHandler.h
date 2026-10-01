@@ -84,7 +84,7 @@ public:
 
 	bool CreateLineAttack(const cVector3f& avStart, const cVector3f& avEnd, float afDamage, 
 						eAttackTargetFlag aTarget, iPhysicsBody *apSkipBody,
-						iPhysicsBody **apPickedBody=NULL);
+						iPhysicsBody **apPickedBody=nullptr);
 
 	bool CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxOffset,
 							const cVector3f &avOrigin,float afDamage, 
@@ -94,7 +94,7 @@ public:
 							
 
 	bool CreateLineDestroyBody(const cVector3f& avStart, const cVector3f& avEnd, float afStrength, 
-								float afForce,iPhysicsBody *apSkipBody, iPhysicsBody **apPickedBody=NULL);
+								float afForce,iPhysicsBody *apSkipBody, iPhysicsBody **apPickedBody=nullptr);
 
 	void CreateSplashDamage(const cVector3f& avCenter, float afRadius, float afMinDamage, 
 											float afMaxDamge,float afMinForce, float afMaxForce,

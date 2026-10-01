@@ -120,7 +120,7 @@ namespace hpl {
 	{
 		mpMaterial = apMaterial;
 
-		if(apMaterial == NULL) return;
+		if(apMaterial == nullptr) return;
 
 		cPhysicsMaterialNewton* pNewtonMat = static_cast<cPhysicsMaterialNewton*>(mpMaterial);
 
@@ -429,7 +429,7 @@ namespace hpl {
 		gDebugColor = aColor;
 		cMatrixf mtxTranspose = GetLocalMatrix().GetTranspose();
 		NewtonCollisionForEachPolygonDo(NewtonBodyGetCollision(mpNewtonBody), &mtxTranspose.m[0][0],
-										RenderDebugPolygon, NULL);
+										RenderDebugPolygon, nullptr);
 	}
 
 	//-----------------------------------------------------------------------

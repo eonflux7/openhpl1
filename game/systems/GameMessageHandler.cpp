@@ -155,7 +155,7 @@ void cGameMessageHandler::Add(const tWString& asText)
 void cGameMessageHandler::ShowNext()
 {
 	bool bFoundMess = false;
-	cGameMessage *pPrevMess = NULL;
+	cGameMessage *pPrevMess = nullptr;
 	
 	//wait till the message is fully visible.
 	if(mlstMessages.empty() == false)

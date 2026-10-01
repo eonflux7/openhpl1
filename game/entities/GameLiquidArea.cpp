@@ -54,7 +54,7 @@ iEntity3D* cAreaLoader_GameLiquidArea::Load(const tString &asName, const cVector
 
 	//Create physics data
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
-	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,NULL);
+	iCollideShape* pShape = pPhysicsWorld->CreateBoxShape(avSize,nullptr);
 	std::vector<iPhysicsBody*> vBodies;
 	vBodies.push_back(pPhysicsWorld->CreateBody(asName,pShape));
 
@@ -70,7 +70,7 @@ iEntity3D* cAreaLoader_GameLiquidArea::Load(const tString &asName, const cVector
 	pArea->Setup();
 	
 	//Return something else later perhaps.
-	return NULL;
+	return nullptr;
 }
 
 
@@ -91,7 +91,7 @@ cGameLiquidArea::cGameLiquidArea(cInit *apInit,const tString& asName) : iGameEnt
 
 	mbHasInteraction = false;
 
-	mpPhysicsMaterial = NULL;
+	mpPhysicsMaterial = nullptr;
 
 	mbHasWaves = true;
 	mfWaveAmp = 0.04f;
@@ -121,7 +121,7 @@ void cGameLiquidArea::SetPhysicsMaterial(const tString asName)
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
 	mpPhysicsMaterial = pPhysicsWorld->GetMaterialFromName(asName);
-	if(mpPhysicsMaterial==NULL){
+	if(mpPhysicsMaterial==nullptr){
 		Error("Liquid '%s' could not find material '%s'\n",GetName().c_str(), 
 														mpPhysicsMaterial->GetName().c_str());
 	}
@@ -285,7 +285,7 @@ void cGameLiquidArea::Setup()
 
 void cGameLiquidArea::SplashEffect(iPhysicsBody *apBody)
 {
-	if(mpPhysicsMaterial==NULL) return;
+	if(mpPhysicsMaterial==nullptr) return;
 
 	cSurfaceData *pSurface = mpPhysicsMaterial->GetSurfaceData();
 
@@ -298,7 +298,7 @@ void cGameLiquidArea::SplashEffect(iPhysicsBody *apBody)
     
 	cSurfaceImpactData *pImpact = pSurface->GetImpactDataFromSpeed(fSpeed);
 	
-	if(pImpact == NULL) return;
+	if(pImpact == nullptr) return;
 
 	cVector3f vPos = cMath::MatrixMul(apBody->GetLocalMatrix(),apBody->GetMassCentre());
 						
@@ -351,7 +351,7 @@ kEndSerialize()
 
 iGameEntity* cGameLiquidArea_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

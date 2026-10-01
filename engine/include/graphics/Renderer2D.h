@@ -86,7 +86,7 @@ namespace hpl {
 		cColor GetAmbientLight(){ return mAmbientLight;}
 
 		iTexture* GetLightMap(int alNum){
-			if(alNum<0 || alNum>1)return NULL;
+			if(alNum<0 || alNum>1)return nullptr;
 			return mpLightMap[alNum];
 		}
 

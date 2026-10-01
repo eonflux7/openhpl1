@@ -79,9 +79,9 @@ namespace hpl {
 		mbAttachToGround = false;
 		mbAttachBodies = true;
 
-		mpParentBody = NULL;
+		mpParentBody = nullptr;
 
-		mpNode = NULL;
+		mpNode = nullptr;
 		mlID = alID;
 
 		mlCollideFlag = eFlagBit_0;
@@ -110,7 +110,7 @@ namespace hpl {
 
 		if(mbAttachToGround)
 		{
-			if(mpParentBody != NULL)
+			if(mpParentBody != nullptr)
 			{
 				//What can be done is to add this to the force, and then att the end redcue the same amout
 				//This will allow the body to add the velocity to it's jumps for example.
@@ -132,7 +132,7 @@ namespace hpl {
 			cRect2f Rect(vTempPos.x - fXSize/2,vTempPos.y+mfGravity,
 						fXSize, mvSize.y/2);
 
-			if(mpCollider->CollideRect(Rect,GetCollideFlag(),NULL))
+			if(mpCollider->CollideRect(Rect,GetCollideFlag(),nullptr))
 			{
 				//We are still on ground.
 				mbOnGround = true;
@@ -174,7 +174,7 @@ namespace hpl {
 							tBody2DListIt it = CollideData.mlstBodies.begin();
 							if(*it != mpParentBody)
 							{
-								if(mpParentBody != NULL)DetachBody(mpParentBody);
+								if(mpParentBody != nullptr)DetachBody(mpParentBody);
 
 								SetParentBody(*it);
 								(*it)->AttachBody(this);
@@ -183,10 +183,10 @@ namespace hpl {
 						}
 						else
 						{
-							if(mpParentBody != NULL)
+							if(mpParentBody != nullptr)
 							{
 								DetachBody(mpParentBody);
-								mpParentBody = NULL;
+								mpParentBody = nullptr;
 								//Log("Detaching!\n");
 							}
 						}
@@ -213,10 +213,10 @@ namespace hpl {
 
 			if(mbOnGround==false && mbAttachToGround)
 			{
-				if(mpParentBody != NULL)
+				if(mpParentBody != nullptr)
 				{
 					DetachBody(mpParentBody);
-					mpParentBody = NULL;
+					mpParentBody = nullptr;
 					//Log("Detaching!\n");
 				}
 			}
@@ -229,7 +229,7 @@ namespace hpl {
 		{
 			UpdateCollisionMesh();
 			UpdateBoundingBox();
-			if(mpCollider->CollideBody(this,NULL))
+			if(mpCollider->CollideBody(this,nullptr))
 			{
 				if(mvLastCollidePos.x == GetPosition().x)	mvCollideCount.x++;
 

@@ -97,7 +97,7 @@ namespace hpl {
 
 		mpRootNode = hplNew( cNode3D, () );
 
-		mpScript = NULL;
+		mpScript = nullptr;
 
 		msName=asName;
 
@@ -105,7 +105,7 @@ namespace hpl {
 
 		mpPortalContainer = hplNew( cPortalContainer, () );
 
-		mpPhysicsWorld = NULL;
+		mpPhysicsWorld = nullptr;
 		mbAutoDeletePhysicsWorld = false;
 
 		msFileName = "";
@@ -414,7 +414,7 @@ namespace hpl {
 	cAreaEntity* cWorld3D::GetAreaEntity(const tString &asName)
 	{
 		tAreaEntityMapIt it = m_mapAreaEntities.find(asName);
-		if(it== m_mapAreaEntities.end()) return NULL;
+		if(it== m_mapAreaEntities.end()) return nullptr;
 
 		return it->second;
 	}
@@ -424,7 +424,7 @@ namespace hpl {
 	iEntity3D* cWorld3D::CreateEntity(const tString& asName, const cMatrixf &a_mtxTransform,
 										const tString& asFile, bool abLoadReferences)
 	{
-		iEntity3D *pEntity = NULL;
+		iEntity3D *pEntity = nullptr;
 		tString sFileName = cString::SetFileExt(asFile,"ent");
 
 		tString sPath = mpResources->GetFileSearcher()->GetFilePath(sFileName);
@@ -485,7 +485,7 @@ namespace hpl {
 
 	void cWorld3D::DestroyMeshEntity(cMeshEntity* apMesh)
 	{
-		if(apMesh==NULL) return;
+		if(apMesh==nullptr) return;
 
 		tMeshEntityListIt It=mlstMeshEntities.begin();
 		for(;It != mlstMeshEntities.end();++It)
@@ -512,7 +512,7 @@ namespace hpl {
 				return *It;
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -565,7 +565,7 @@ namespace hpl {
 		if(asGobo != "")
 		{
 			iTexture *pTexture = mpResources->GetTextureManager()->Create2D(asGobo,true);
-			if(pTexture!=NULL)
+			if(pTexture!=nullptr)
 				pLight->SetTexture(pTexture);
 			else
 				Warning("Couldn't load texture '%s' for light '%s'",asGobo.c_str(), asName.c_str());
@@ -598,7 +598,7 @@ namespace hpl {
 				return *LightIt;
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -688,9 +688,9 @@ namespace hpl {
 	{
 		cParticleSystem3D* pPS = mpResources->GetParticleManager()->CreatePS3D(asName,asType,
 																			avSize,a_mtxTransform);
-		if(pPS == NULL){
+		if(pPS == nullptr){
 			Error("Couldn't create particle system '%s' of type '%s'\n",asName.c_str(), asType.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		//Log("Created particle system '%s' of type '%s'\n",asName.c_str(), asType.c_str());
@@ -716,7 +716,7 @@ namespace hpl {
 
 	void cWorld3D::DestroyParticleSystem(cParticleSystem3D* apPS)
 	{
-		if(apPS==NULL)return;
+		if(apPS==nullptr)return;
 
 		for(int i=0; i< apPS->GetEmitterNum();++i)
 		{
@@ -772,9 +772,9 @@ namespace hpl {
 											bool abRemoveWhenOver)
 	{
 		cSoundEntityData *pData = mpResources->GetSoundEntityManager()->CreateSoundEntity(asSoundEntity);
-		if(pData==NULL){
+		if(pData==nullptr){
 			Error("Cannot find sound entity '%s'\n",asSoundEntity.c_str());
-			return NULL;
+			return nullptr;
 		}
 
 		cSoundEntity *pSound = hplNew( cSoundEntity, (asName,pData,
@@ -813,15 +813,15 @@ namespace hpl {
 			while(bodyIt.HasNext())
 			{
 				iPhysicsBody *pBody = bodyIt.Next();
-				pBody->SetScrapeSoundEntity(NULL);
-				pBody->SetRollSoundEntity(NULL);
+				pBody->SetScrapeSoundEntity(nullptr);
+				pBody->SetRollSoundEntity(nullptr);
 			}
 
 			cPhysicsJointIterator jointIt = mpPhysicsWorld->GetJointIterator();
 			while(jointIt.HasNext())
 			{
 				iPhysicsJoint *pJoint = jointIt.Next();
-				pJoint->SetSound(NULL);
+				pJoint->SetSound(nullptr);
 			}
 		}
 
@@ -865,7 +865,7 @@ namespace hpl {
 
 	cStartPosEntity* cWorld3D::GetFirstStartPosEntity()
 	{
-		if(mlstStartPosEntities.empty()) return NULL;
+		if(mlstStartPosEntities.empty()) return nullptr;
 
 		return mlstStartPosEntities.front();
 	}
@@ -886,7 +886,7 @@ namespace hpl {
 								bool abNodeIsAtCenter,
 								int alMinEdges, int alMaxEdges, float afMaxEdgeDistance,float afMaxHeight)
 	{
-		cAINodeContainer* pContainer=NULL;
+		cAINodeContainer* pContainer=nullptr;
 
 		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
@@ -914,12 +914,12 @@ namespace hpl {
 
 		//////////////////////////////////
 		//If there is no container created, create it.
-		if(pContainer == NULL)
+		if(pContainer == nullptr)
 		{
 			tTempNodeContainerMapIt ContIt = m_mapTempNodes.find(asNodeName);
 			if(ContIt == m_mapTempNodes.end()){
 				Warning("AI node type '%s' does not exist!\n",asNodeName.c_str());
-				return NULL;
+				return nullptr;
 			}
 			cTempNodeContainer *pTempCont = ContIt->second;
 
@@ -941,7 +941,7 @@ namespace hpl {
 			for(; NodeIt != pTempCont->mlstNodes.end(); ++NodeIt)
 			{
 				cTempAiNode& pNode = *NodeIt;
-				pContainer->AddNode(pNode.msName,pNode.mvPos,NULL);
+				pContainer->AddNode(pNode.msName,pNode.mvPos,nullptr);
 			}
 
 			bool bLoadedFromFile=false;
@@ -991,13 +991,13 @@ namespace hpl {
 
 	void cWorld3D::AddAINode(const tString &asName, const tString &asType, const cVector3f &avPosition)
 	{
-		cTempNodeContainer *pContainer = NULL;
+		cTempNodeContainer *pContainer = nullptr;
 		tTempNodeContainerMapIt it = m_mapTempNodes.find(asType);
 		if(it != m_mapTempNodes.end()){
 			pContainer = it->second;
 		}
 
-		if(pContainer==NULL){
+		if(pContainer==nullptr){
 			pContainer = hplNew( cTempNodeContainer, () );
 			m_mapTempNodes.insert(tTempNodeContainerMap::value_type(asType,pContainer));
 		}
@@ -1009,13 +1009,13 @@ namespace hpl {
 
 	tTempAiNodeList* cWorld3D::GetAINodeList(const tString &asType)
 	{
-		cTempNodeContainer *pContainer = NULL;
+		cTempNodeContainer *pContainer = nullptr;
 		tTempNodeContainerMapIt it = m_mapTempNodes.find(asType);
 		if(it != m_mapTempNodes.end()){
 			pContainer = it->second;
 		}
 
-		if(pContainer==NULL){
+		if(pContainer==nullptr){
 			pContainer = hplNew( cTempNodeContainer, () );
 			m_mapTempNodes.insert(tTempNodeContainerMap::value_type(asType,pContainer));
 		}
@@ -1212,7 +1212,7 @@ namespace hpl {
 			pVar->mlVal = tempVar.mlVal;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

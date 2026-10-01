@@ -37,7 +37,7 @@ namespace hpl {
 		mfZ = afZ;
 
 		mvTile.resize(alW*alH);
-		mvTile.assign(mvTile.size(),NULL);
+		mvTile.assign(mvTile.size(),nullptr);
 	}
 
 	//-----------------------------------------------------------------------
@@ -65,14 +65,14 @@ namespace hpl {
 		int lNum = alY*mvSize.x+alX;
 		if(lNum>=(int)mvTile.size()) return false;
 
-		if(aVal == NULL)
+		if(aVal == nullptr)
 		{
 			if(mvTile[lNum])hplDelete(mvTile[lNum]);
-			mvTile[lNum] = NULL;
+			mvTile[lNum] = nullptr;
 		}
 		else
 		{
-			if(mvTile[lNum]==NULL)
+			if(mvTile[lNum]==nullptr)
 				mvTile[lNum] = aVal;
 			else
 				*mvTile[lNum] = *aVal;
@@ -85,10 +85,10 @@ namespace hpl {
 
 	cTile* cTileLayer::GetAt(int alX, int alY)
 	{
-		if(alX<0 || alX>=mvSize.x || alY<0 || alY>=mvSize.y) return NULL;
+		if(alX<0 || alX>=mvSize.x || alY<0 || alY>=mvSize.y) return nullptr;
 
 		int lNum = alY*mvSize.x+alX;
-		if(lNum>=(int)mvTile.size())return NULL;
+		if(lNum>=(int)mvTile.size())return nullptr;
 
 		return  mvTile[lNum];
 	}

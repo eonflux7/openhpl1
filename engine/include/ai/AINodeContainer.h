@@ -174,7 +174,7 @@ namespace hpl {
 		* \param &avPosition Position of the node.
 		* \param *apUserData Data supplied by user.
 		 */
-		void AddNode(const tString &asName, const cVector3f &avPosition, void *apUserData=NULL);
+		void AddNode(const tString &asName, const cVector3f &avPosition, void *apUserData=nullptr);
 
 		/**
 		 * Get the number of nodes.
@@ -222,7 +222,7 @@ namespace hpl {
 		 * \return
 		 */
 		bool FreePath(const cVector3f &avStart, const cVector3f &avEnd, int alRayNum=-1,
-						tAIFreePathFlag aFlags=0, iAIFreePathCallback *apCallback=NULL);
+						tAIFreePathFlag aFlags=0, iAIFreePathCallback *apCallback=nullptr);
 
 
 		/**

@@ -102,16 +102,16 @@ namespace hpl {
 		mvVirtualSize.y = 600;
 
 
-		mpWindow = NULL;
-		mGLContext = NULL;
+		mpWindow = nullptr;
+		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
 
-		mpRenderTarget=NULL;
+		mpRenderTarget=nullptr;
 
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
-			mpCurrentTexture[i] = NULL;
+			mpCurrentTexture[i] = nullptr;
 
 		mbClearColor = true;
 		mbClearDepth = true;
@@ -225,7 +225,7 @@ namespace hpl {
 		SDL_SetNumberProperty(lProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, lFlags);
 		mpWindow = SDL_CreateWindowWithProperties(lProps);
 		SDL_DestroyProperties(lProps);
-		if(mpWindow==NULL)
+		if(mpWindow==nullptr)
 		{
 			FatalError("Unable to create window: %s\n", SDL_GetError());
 			return false;
@@ -235,9 +235,9 @@ namespace hpl {
 		{
 			// Desktop-sized fullscreen is borderless; any other size switches
 			// the display mode.
-			const SDL_DisplayMode *pMode = NULL;
+			const SDL_DisplayMode *pMode = nullptr;
 			SDL_DisplayMode closestMode;
-			if(pDesktopMode == NULL || pDesktopMode->w != alWidth || pDesktopMode->h != alHeight)
+			if(pDesktopMode == nullptr || pDesktopMode->w != alWidth || pDesktopMode->h != alHeight)
 			{
 				if(SDL_GetClosestFullscreenDisplayMode(lDisplay, alWidth, alHeight, 0.0f, false, &closestMode))
 					pMode = &closestMode;
@@ -247,7 +247,7 @@ namespace hpl {
 		}
 
 		mGLContext = SDL_GL_CreateContext(mpWindow);
-		if(mGLContext==NULL)
+		if(mGLContext==nullptr)
 		{
 			FatalError("Unable to create OpenGL context: %s\n", SDL_GetError());
 			return false;
@@ -274,9 +274,9 @@ namespace hpl {
 		if(bGLDebug && GLAD_GL_KHR_debug)
 		{
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback(GLDebugCallback, NULL);
+			glDebugMessageCallback(GLDebugCallback, nullptr);
 			// Drop notifications, keep everything else
-			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 			Log("  OpenGL debug output enabled\n");
 		}
 
@@ -311,7 +311,7 @@ namespace hpl {
 		static int lFrame = 0;
 		static const char *pFrames = SDL_getenv("OVERTURE_DUMP_FRAMES");
 		++lFrame;
-		if(pFrames==NULL || pFrames[0]==0) return;
+		if(pFrames==nullptr || pFrames[0]==0) return;
 
 		bool bDump = false;
 		for(const char *p = pFrames; *p; )
@@ -323,7 +323,7 @@ namespace hpl {
 		if(!bDump) return;
 
 		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGBA32);
-		if(pSurface==NULL) return;
+		if(pSurface==nullptr) return;
 
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadBuffer(GL_BACK);
@@ -348,7 +348,7 @@ namespace hpl {
 	{
 		int lCount = 0;
 		SDL_DisplayID *pDisplays = SDL_GetDisplays(&lCount);
-		if(pDisplays==NULL || lCount==0)
+		if(pDisplays==nullptr || lCount==0)
 		{
 			SDL_free(pDisplays);
 			return SDL_GetPrimaryDisplay();
@@ -372,7 +372,7 @@ namespace hpl {
 			for(int i=0; i<lCount; ++i)
 			{
 				const SDL_DisplayMode *pMode = SDL_GetDesktopDisplayMode(pDisplays[i]);
-				if(pMode == NULL) continue;
+				if(pMode == nullptr) continue;
 				long lArea = (long)pMode->w * pMode->h;
 				if(lArea > lBestArea){ lBestArea = lArea; lChosen = pDisplays[i]; }
 			}
@@ -783,7 +783,7 @@ namespace hpl {
 	iTexture* cLowLevelGraphicsSDL::CreateTexture(const cVector2l& avSize,int alBpp,cColor aFillCol,
 											bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		cSDLTexture *pTex=NULL;
+		cSDLTexture *pTex=nullptr;
 
 		if(aType==eTextureType_RenderTarget)
 		{
@@ -802,7 +802,7 @@ namespace hpl {
 
 			if(bRet==false){
 				hplDelete(pTex);
-				return NULL;
+				return nullptr;
 			}
 		}
 		return pTex;
@@ -903,7 +903,7 @@ namespace hpl {
 		}
 
 		//Disable this unit if NULL
-		if(apTex == NULL)
+		if(apTex == nullptr)
 		{
 			glDisable(LastTarget);
 			//glBindTexture(LastTarget,0);
@@ -1659,7 +1659,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol)
 	{
-		SetTexture(0,NULL);
+		SetTexture(0,nullptr);
 		//SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 		glBegin(GL_LINES);
@@ -1672,7 +1672,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawBoxMaxMin(const cVector3f& avMax, const cVector3f& avMin, cColor aCol)
 	{
-		SetTexture(0,NULL);
+		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 
@@ -1728,7 +1728,7 @@ namespace hpl {
 		int alSegments = 32;
 		float afAngleStep = k2Pif /(float)alSegments;
 
-		SetTexture(0,NULL);
+		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 		glBegin(GL_LINES);
@@ -1771,7 +1771,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawLine2D(const cVector2f& avBegin, const cVector2f& avEnd, float afZ, cColor aCol)
 	{
-		SetTexture(0,NULL);
+		SetTexture(0,nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 		glBegin(GL_LINES);
@@ -1786,7 +1786,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawLineRect2D(const cRect2f& aRect, float afZ, cColor aCol)
 	{
-		SetTexture(0, NULL);
+		SetTexture(0, nullptr);
 		SetBlendActive(false);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 		glBegin(GL_LINE_STRIP);
@@ -1804,7 +1804,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)
 	{
-		SetTexture(0, NULL);
+		SetTexture(0, nullptr);
 		glColor4f(aCol.r,aCol.g,aCol.b,aCol.a);
 		glBegin(GL_QUADS);
 		{
@@ -1835,7 +1835,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 							const cVector2l &avSize, const cVector2l &avTexOffset)
 	{
-		if(apTex==NULL)return;
+		if(apTex==nullptr)return;
 
 		int lScreenY = (mvScreenSize.y - avSize.y) - avPos.y;
 		int lTexY = (apTex->GetHeight() - avSize.y) - avTexOffset.y;

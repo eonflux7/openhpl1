@@ -99,7 +99,7 @@ namespace hpl {
 	cBone* cSkeleton::GetBoneByName(const tString &asName)
 	{
 		int alIdx = GetBoneIndexByName(asName);
-		if(alIdx <0) return NULL;
+		if(alIdx <0) return nullptr;
 
 		return mvBones[alIdx];
 	}

@@ -52,9 +52,9 @@ iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 	mbDestroyMe = false;
 	mbBreakMe = false;
 
-	mpMeshEntity = NULL;
+	mpMeshEntity = nullptr;
 
-	mpCharBody = NULL;
+	mpCharBody = nullptr;
 
 	mType = eGameEntityType_Unkown;
 
@@ -76,7 +76,7 @@ iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 
 	for(int i=0; i< eGameEntityScriptType_LastEnum; ++i)
 	{
-		mvCallbackScripts[i] = NULL;
+		mvCallbackScripts[i] = nullptr;
 	}
 
 	mbSaveLights = true;
@@ -131,7 +131,7 @@ iGameEntity::~iGameEntity()
 		{
 			//Make sure that this body is not picked!
 			if(mpInit->mpPlayer->GetPickedBody() == mvBodies[i])
-				mpInit->mpPlayer->GetPickRay()->mpPickedBody = NULL;
+				mpInit->mpPlayer->GetPickRay()->mpPickedBody = nullptr;
 
 			if(mpInit->mpPlayer->GetPushBody() == mvBodies[i])
 			{
@@ -147,7 +147,7 @@ iGameEntity::~iGameEntity()
 						mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 				}
 
-				mpInit->mpPlayer->SetPushBody(NULL);
+				mpInit->mpPlayer->SetPushBody(nullptr);
 			}
 			
 			
@@ -279,7 +279,7 @@ eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 	if(mvCallbackScripts[eGameEntityScriptType_PlayerInteract] || mbHasInteraction)
 	{
 		//if(fDistance <= mfMaxExamineDist) return eCrossHairState_Invalid;
-		if(apBody->GetMass()==0 && mvCallbackScripts[eGameEntityScriptType_PlayerInteract]==NULL)
+		if(apBody->GetMass()==0 && mvCallbackScripts[eGameEntityScriptType_PlayerInteract]==nullptr)
 		{
 			return eCrossHairState_None;
 		}
@@ -380,7 +380,7 @@ void iGameEntity::OnPlayerExamine()
 		//////////////////////////////
 		//Set focus on the object
 		mpInit->mpEffectHandler->GetDepthOfField()->FocusOnBody(mpInit->mpPlayer->GetPickedBody());
-		mpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(NULL);
+		mpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
 		mpInit->mpEffectHandler->GetDepthOfField()->SetActive(true,1.2f);
 
 		mpInit->mpGameMessageHandler->SetFocusIsedUsed(true);
@@ -674,7 +674,7 @@ void iGameEntity::AddCollideScript(eGameCollideScriptType aType,const tString &a
 		
 		//Get the entity
 		iGameEntity *pEntity = mpInit->mpMapHandler->GetGameEntity(asEntity);
-		if(pEntity==NULL)
+		if(pEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",asEntity.c_str());
 			hplDelete( pCallback );
@@ -754,7 +754,7 @@ void iGameEntity::AddScript(eGameEntityScriptType aType,const tString &asFunc)
 {
 	cGameEntityScript *pScript = mvCallbackScripts[aType];
 	
-	if(pScript==NULL)
+	if(pScript==nullptr)
 	{
 		pScript = hplNew( cGameEntityScript, () );
 		mvCallbackScripts[aType] = pScript;
@@ -770,7 +770,7 @@ void iGameEntity::RemoveScript(eGameEntityScriptType aType)
     if(mvCallbackScripts[aType])
 	{
 		hplDelete( mvCallbackScripts[aType] );
-		mvCallbackScripts[aType] = NULL;
+		mvCallbackScripts[aType] = nullptr;
 	}
 }
 
@@ -891,7 +891,7 @@ cEnginePS_SaveData* iGameEntity_SaveData::GetParticleSystem(cParticleSystem3D* a
 		if(mvPS[i].msName == apPS->GetName()) return &mvPS[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 cEngineSound_SaveData* iGameEntity_SaveData::GetSoundEntity(cSoundEntity* apSound)
@@ -901,7 +901,7 @@ cEngineSound_SaveData* iGameEntity_SaveData::GetSoundEntity(cSoundEntity* apSoun
 		if(mvSounds[i].msName == apSound->GetName()) return &mvSounds[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -1022,7 +1022,7 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 
 		if(pWorld->ParticleSystemExists(mvParticleSystems[i])==false)
 		{
-			mvParticleSystems[i] = NULL;
+			mvParticleSystems[i] = nullptr;
 			Warning("particle system %d in %s does not exist anymore!\n",i,GetName().c_str());
 		}
 
@@ -1212,7 +1212,7 @@ void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 		cGameCollideScript *pCallback = hplNew( cGameCollideScript, () );
 
 		pCallback->mpEntity = mpInit->mpMapHandler->GetGameEntity(savedScript.msEntity);
-		if(pCallback->mpEntity==NULL)
+		if(pCallback->mpEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",savedScript.msEntity.c_str());
 			hplDelete( pCallback );

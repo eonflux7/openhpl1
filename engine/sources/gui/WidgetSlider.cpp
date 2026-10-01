@@ -54,7 +54,7 @@ namespace hpl {
 		mlButtonValueAdd =1;
 		mlBarValueSize = 1;
 
-		for(int i=0; i<2; ++i) mvButtons[i] = NULL;
+		for(int i=0; i<2; ++i) mvButtons[i] = nullptr;
 
 		mfButtonSize = mpSkin->GetAttribute(eGuiSkinAttribute_SliderButtonSize).x;
 
@@ -258,7 +258,7 @@ namespace hpl {
 
 	void cWidgetSlider::OnChangeSize()
 	{
-		if(mvButtons[0] == NULL || mvButtons[1] == NULL) return;
+		if(mvButtons[0] == nullptr || mvButtons[1] == nullptr) return;
 
 		//////////////////////////
 		// Vertical

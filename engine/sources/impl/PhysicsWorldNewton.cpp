@@ -51,7 +51,7 @@ namespace hpl {
 	{
 		mpNewtonWorld = NewtonCreate();
 
-		if(mpNewtonWorld==NULL){
+		if(mpNewtonWorld==nullptr){
 			Warning("Couldn't create newton world!\n");
 		}
 
@@ -203,7 +203,7 @@ namespace hpl {
 
 	iCollideShape* cPhysicsWorldNewton::CreateNullShape()
 	{
-		iCollideShape *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Null, 0, NULL,
+		iCollideShape *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Null, 0, nullptr,
 													mpNewtonWorld, this) );
 		mlstShapes.push_back(pShape);
 
@@ -263,7 +263,7 @@ namespace hpl {
 	iCollideShape* cPhysicsWorldNewton::CreateMeshShape(iVertexBuffer *apVtxBuffer)
 	{
 		cCollideShapeNewton *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Mesh,
-															0, NULL, mpNewtonWorld,this) );
+															0, nullptr, mpNewtonWorld,this) );
 
 		pShape->CreateFromVertices(apVtxBuffer->GetIndices(),apVtxBuffer->GetIndexNum(),
 									apVtxBuffer->GetArray(eVertexFlag_Position),
@@ -279,7 +279,7 @@ namespace hpl {
 	iCollideShape* cPhysicsWorldNewton::CreateCompundShape(tCollideShapeVec &avShapes)
 	{
 		cCollideShapeNewton *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Compound,
-															0, NULL, mpNewtonWorld,this) );
+															0, nullptr, mpNewtonWorld,this) );
 		pShape->CreateFromShapeVec(avShapes);
 		mlstShapes.push_back(pShape);
 
@@ -450,9 +450,9 @@ namespace hpl {
 		gpRayCallback = apCallback;
 
 		if(abUsePrefilter)
-			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, RayCastPrefilterFunc);
+			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, nullptr, RayCastPrefilterFunc);
 		else
-			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, NULL);
+			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, nullptr, nullptr);
 	}
 
 	//-----------------------------------------------------------------------

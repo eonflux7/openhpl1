@@ -35,7 +35,7 @@ cPlayerState_Throw::cPlayerState_Throw(cInit *apInit,cPlayer *apPlayer) : iPlaye
 	mfLastForward = 1.0f;
 	mfLastSideways = 1.0f;
 
-	mpHudObject = NULL;
+	mpHudObject = nullptr;
 }
 
 //-----------------------------------------------------------------------

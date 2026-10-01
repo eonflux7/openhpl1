@@ -61,7 +61,7 @@ namespace hpl {
 
 		mbGraphicsUpdated = false;
 
-		mpBody = NULL;
+		mpBody = nullptr;
 
 		if(mpMeshEntity->GetMesh()->GetSkeleton())
 		{
@@ -70,15 +70,15 @@ namespace hpl {
 		}
 		else
 		{
-			mpDynVtxBuffer = NULL;
+			mpDynVtxBuffer = nullptr;
 		}
 
-		mpLocalNode = NULL;
+		mpLocalNode = nullptr;
 
 		mpEntityCallback = hplNew( cSubMeshEntityBodyUpdate, () );
 		mbUpdateBody = false;
 
-		mpMaterial = NULL;
+		mpMaterial = nullptr;
 	}
 
 	cSubMeshEntity::~cSubMeshEntity()
@@ -137,7 +137,7 @@ namespace hpl {
 
 	iMaterial* cSubMeshEntity::GetMaterial()
 	{
-		if(mpMaterial==NULL && mpSubMesh->GetMaterial()==NULL)
+		if(mpMaterial==nullptr && mpSubMesh->GetMaterial()==nullptr)
 		{
 			Error("Materials for sub entity %s are NULL!\n",GetName().c_str());
 		}
@@ -394,9 +394,9 @@ namespace hpl {
 		{
 			//Log("%s Matrix from mesh!\n",msName.c_str());
 
-			if(mpMeshEntity->IsStatic()) return NULL;
+			if(mpMeshEntity->IsStatic()) return nullptr;
 
-			return mpMeshEntity->GetModelMatrix(NULL);
+			return mpMeshEntity->GetModelMatrix(nullptr);
 		}
 	}
 
@@ -521,7 +521,7 @@ namespace hpl {
 		kSaveData_SaveTo(mbCastShadows);
 		kSaveData_SaveTo(mbUpdateBody);
 
-		pData->msMaterial = mpMaterial==NULL ?"" : mpMaterial->GetName();
+		pData->msMaterial = mpMaterial==nullptr ?"" : mpMaterial->GetName();
 
 		kSaveData_SaveObject(mpBody, mlBodyId);
 	}

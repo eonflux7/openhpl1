@@ -36,7 +36,7 @@ namespace hpl {
 	{
 	public:
 		cRenderObject2D(iMaterial* apMaterial, tVertexVec* mpVtxVec,tUIntVec* mpIdxVec,
-					ePrimitiveType aType,float afZ,cRect2f& aRect,cMatrixf *apMtx=NULL,cVector3f* apTransform=NULL);
+					ePrimitiveType aType,float afZ,cRect2f& aRect,cMatrixf *apMtx=nullptr,cVector3f* apTransform=nullptr);
 
 		cRenderObject2D(iMaterial* apMaterial, iRenderObject2DRenderer* apRenderer,
 			ePrimitiveType aType,float afZ);

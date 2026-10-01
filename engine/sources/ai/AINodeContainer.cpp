@@ -72,7 +72,7 @@ namespace hpl {
 	void cAINodeRayCallback::Reset()
 	{
 		mbIntersected = false;
-		mpCallback = NULL;
+		mpCallback = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace hpl {
 			}
 			else
 			{
-				mpNodeList = NULL;
+				mpNodeList = nullptr;
 				break;
 			}
 		}
@@ -173,7 +173,7 @@ namespace hpl {
 
 	bool cAINodeIterator::HasNext()
 	{
-		if(mpNodeList==NULL || mpNodeList->empty()) return false;
+		if(mpNodeList==nullptr || mpNodeList->empty()) return false;
 
 		return true;
 	}
@@ -196,14 +196,14 @@ namespace hpl {
 						mpNodeList = &mpContainer->GetGrid(mvGridPos)->mlstNodes;
 					}
 					else{
-						mpNodeList = NULL;
+						mpNodeList = nullptr;
 						break;
 					}
 				}
 			}
 			else
 			{
-				mpNodeList = NULL;
+				mpNodeList = nullptr;
 			}
 
 			if(mpNodeList) mNodeIt = mpNodeList->begin();
@@ -306,7 +306,7 @@ namespace hpl {
 		tAINodeMapIt it = m_mapNodes.find(asName);
 		if(it == m_mapNodes.end())
 		{
-			return NULL;
+			return nullptr;
 		}
 
 		return it->second;
@@ -499,7 +499,7 @@ namespace hpl {
 									tAIFreePathFlag aFlags,iAIFreePathCallback *apCallback)
 	{
 		iPhysicsWorld *pPhysicsWorld = mpWorld->GetPhysicsWorld();
-		if(pPhysicsWorld==NULL) return true;
+		if(pPhysicsWorld==nullptr) return true;
 
 
 		if(alRayNum<0 || alRayNum>5) alRayNum =5;
@@ -589,14 +589,14 @@ namespace hpl {
 		TiXmlElement *pRootElem = pXmlDoc->RootElement();
 
 		TiXmlElement *pNodeElem = pRootElem->FirstChildElement("Node");
-		for(; pNodeElem != NULL; pNodeElem = pNodeElem->NextSiblingElement("Node"))
+		for(; pNodeElem != nullptr; pNodeElem = pNodeElem->NextSiblingElement("Node"))
 		{
 			tString sName = cString::ToString(pNodeElem->Attribute("Name"),"");
 
 			cAINode *pNode = GetNodeFromName(sName);
 
 			TiXmlElement *pEdgeElem = pNodeElem->FirstChildElement("Edge");
-			for(; pEdgeElem != NULL; pEdgeElem = pEdgeElem->NextSiblingElement("Edge"))
+			for(; pEdgeElem != nullptr; pEdgeElem = pEdgeElem->NextSiblingElement("Edge"))
 			{
 				tString sNodeName = cString::ToString(pEdgeElem->Attribute("Node"),"");
 				cAINode *pEdgeNode = GetNodeFromName(sNodeName);

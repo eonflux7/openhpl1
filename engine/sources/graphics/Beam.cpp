@@ -58,7 +58,7 @@ namespace hpl {
 
 		mColor = cColor(1,1,1,1);
 
-		mpMaterial = NULL;
+		mpMaterial = nullptr;
 
 		mlLastRenderCount = -1;
 
@@ -295,7 +295,7 @@ namespace hpl {
 
 	cMatrixf* cBeam::GetModelMatrix(cCamera3D *apCamera)
 	{
-		if(apCamera==NULL)return &GetWorldMatrix();
+		if(apCamera==nullptr)return &GetWorldMatrix();
 
 		m_mtxTempTransform = GetWorldMatrix();
 		cVector3f vForward, vRight, vUp;
@@ -361,7 +361,7 @@ namespace hpl {
 				TiXmlElement *pRootElem = pDoc->RootElement();
 
 				TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
-				if(pMainElem!=NULL)
+				if(pMainElem!=nullptr)
 				{
 					tString sMaterial = cString::ToString(pMainElem->Attribute("Material"),"");
 					cVector2f vSize = cString::ToVector2f(pMainElem->Attribute("Size"),1);

@@ -133,7 +133,7 @@ void iHudModel::DestroyEntities()
 	
 	//Mesh entity
 	pWorld->DestroyMeshEntity(mpEntity);
-	mpEntity = NULL;
+	mpEntity = nullptr;
 	
 	//Particle systems
 	for(size_t i=0; i < mvParticleSystems.size(); ++i)
@@ -225,7 +225,7 @@ cPlayerHands::cPlayerHands(cInit *apInit)  : iUpdateable("FadeHandler")
 
 	for(int i=0; i< mlCurrentModelNum; ++i)
 	{
-		mvCurrentHudModels[i] = NULL;
+		mvCurrentHudModels[i] = nullptr;
 	}
 }
 
@@ -280,7 +280,7 @@ void cPlayerHands::Update(float afTimeStep)
 	for(int i=0; i< mlCurrentModelNum; ++i)
 	{
 		iHudModel *pHudModel = mvCurrentHudModels[i];
-		if(pHudModel==NULL) continue;
+		if(pHudModel==nullptr) continue;
 		
 		cMatrixf mtxPose;
 
@@ -328,7 +328,7 @@ void cPlayerHands::Update(float afTimeStep)
 						
 						pHudModel->DestroyEntities();
 
-						mvCurrentHudModels[i] = NULL;
+						mvCurrentHudModels[i] = nullptr;
 						
 						if(pHudModel->msNextModel!="")
 						{
@@ -377,7 +377,7 @@ void cPlayerHands::Reset()
 			pHudModel->DestroyEntities();
 		}
 		
-		mvCurrentHudModels[i] = NULL;
+		mvCurrentHudModels[i] = nullptr;
 	}
 	
 	tHudModelMapIt it = m_mapHudModels.begin();
@@ -410,7 +410,7 @@ void cPlayerHands::AddHudModel(iHudModel* apHudModel)
 
 static ePlayerHandType ToHandType(const char* apString)
 {
-	if(apString==NULL) return ePlayerHandType_Normal;
+	if(apString==nullptr) return ePlayerHandType_Normal;
     
 	tString sType = cString::ToLowerCase(apString);
 
@@ -445,7 +445,7 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	////////////////////////////////////////////////
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
-	if(pRootElem==NULL){
+	if(pRootElem==nullptr){
 		Error("Couldn't load root from XML document '%s'\n",sPath.c_str());
 		hplDelete( pXmlDoc );
 		return false;
@@ -454,14 +454,14 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
-	if(pMainElem==NULL){
+	if(pMainElem==nullptr){
 		Error("Couldn't load MAIN element from XML document '%s'\n",sPath.c_str());
 		hplDelete( pXmlDoc ); 
 		return false;
 	}
 
 	ePlayerHandType handType = ToHandType(pMainElem->Attribute("Type"));
-	iHudModel* pHudModel = NULL;
+	iHudModel* pHudModel = nullptr;
 	
 	switch(handType)
 	{
@@ -590,7 +590,7 @@ iHudModel* cPlayerHands::GetModel(const tString& asName)
 	tHudModelMapIt it = m_mapHudModels.find(cString::ToLowerCase(asName));
 	if(it == m_mapHudModels.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 	
 	return it->second;

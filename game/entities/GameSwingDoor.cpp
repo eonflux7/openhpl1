@@ -316,8 +316,8 @@ void cGameSwingDoor::BreakAction()
 {
 	if(mvBodies.empty()) return;
 
-	iPhysicsBody *pDynBody = NULL;
-	iPhysicsBody *pStaticBody = NULL;
+	iPhysicsBody *pDynBody = nullptr;
+	iPhysicsBody *pStaticBody = nullptr;
 
 	for(size_t i=0; i < mvBodies.size();++i)
 	{
@@ -325,7 +325,7 @@ void cGameSwingDoor::BreakAction()
 		if(mvBodies[i]->GetMass()==0) pStaticBody = mvBodies[i];
 	}
 
-	if(pDynBody==NULL && pStaticBody==NULL) return;
+	if(pDynBody==nullptr && pStaticBody==nullptr) return;
 
 	//////////////////
 	//Script
@@ -431,7 +431,7 @@ kEndSerialize()
 
 iGameEntity* cGameSwingDoor_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

@@ -94,7 +94,7 @@ namespace hpl {
 		if(mbDrawFrame)
 		{
 			//Background must be drawn first!
-			DrawBordersAndCorners(	NULL, mvGfxBorders, mvGfxCorners,
+			DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 									GetGlobalPosition() -
 										cVector3f(	mvGfxCorners[0]->GetActiveSize().x,
 													mvGfxCorners[0]->GetActiveSize().y,0),

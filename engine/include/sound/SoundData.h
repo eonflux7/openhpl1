@@ -31,7 +31,7 @@ namespace hpl {
 	{
 	public:
 		iSoundData(tString asName, bool abStream) : iResourceBase(asName, 0),
-		mpSoundManger(NULL), mbStream(abStream){}
+		mpSoundManger(nullptr), mbStream(abStream){}
 
 		virtual ~iSoundData(){}
 

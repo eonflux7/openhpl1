@@ -69,13 +69,13 @@ namespace hpl {
 
 		pIEData = static_cast<cImageEntityData*>(FindLoadedResource(asNewName,sPath));
 
-		if(pIEData==NULL && sPath!="")
+		if(pIEData==nullptr && sPath!="")
 		{
 			pIEData = hplNew( cImageEntityData, (asNewName,mpGraphics,mpResources) );
 
 			if(pIEData->CreateFromFile(sPath,mvImageHandle)==false){
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			if(pIEData)AddResource(pIEData);

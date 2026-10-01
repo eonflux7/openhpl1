@@ -259,7 +259,7 @@ namespace hpl {
 
 		cBillboard* CreateBillboard(const tString& asName, const cVector2f& avSize,
 									const tString& asMaterial="",
-									bool abAddToContainer=true,cMatrixf* apTransform=NULL);
+									bool abAddToContainer=true,cMatrixf* apTransform=nullptr);
 		void DestroyBillboard(cBillboard* apObject);
 		cBillboard* GetBillboard(const tString& asName);
 		cBillboardIterator GetBillboardIterator();

@@ -59,13 +59,13 @@ namespace hpl {
 	iSoundData* cSoundManager::CreateSoundData(const tString& asName, bool abStream,bool abLoopStream)
 	{
 		tString sPath;
-		iSoundData* pSound=NULL;
+		iSoundData* pSound=nullptr;
 
 		BeginLoad(asName);
 
 		pSound = FindData(asName, sPath);
 
-		if(pSound==NULL && sPath!="")
+		if(pSound==nullptr && sPath!="")
 		{
 			pSound = mpSound->GetLowLevel()->LoadSoundData(cString::GetFileName(sPath),sPath,"",abStream,
 															abLoopStream);
@@ -146,7 +146,7 @@ namespace hpl {
 
 	iSoundData *cSoundManager::FindData(const tString &asName, tString &asFilePath)
 	{
-		iSoundData *pData=NULL;
+		iSoundData *pData=nullptr;
 
 		if(cString::GetFileExt(asName)=="")
 		{
@@ -155,7 +155,7 @@ namespace hpl {
 				tString sNewName = cString::SetFileExt(asName,*it);
 				pData = static_cast<iSoundData*> (FindLoadedResource(sNewName, asFilePath));
 
-				if((pData==NULL && asFilePath!="") || pData!=NULL)break;
+				if((pData==nullptr && asFilePath!="") || pData!=nullptr)break;
 			}
 		}
 		else

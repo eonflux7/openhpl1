@@ -61,7 +61,7 @@ namespace hpl {
 		//Log("Looking for '%s' \n", sName.c_str());
 
 		tResourceNameMapIt it = m_mapNameResources.find(sName);
-		if(it == m_mapNameResources.end())return NULL;
+		if(it == m_mapNameResources.end())return nullptr;
 
 		return it->second;
 	}
@@ -71,7 +71,7 @@ namespace hpl {
 	iResourceBase* iResourceManager::GetByHandle(unsigned long alHandle)
 	{
 		tResourceHandleMapIt it = m_mapHandleResources.find(alHandle);
-		if(it == m_mapHandleResources.end())return NULL;
+		if(it == m_mapHandleResources.end())return nullptr;
 
 		return it->second;
 	}
@@ -203,7 +203,7 @@ namespace hpl {
 	iResourceBase* iResourceManager::FindLoadedResource(const tString &asName, tString &asFilePath)
 	{
 		iResourceBase* pResource = GetByName(asName);
-		if(pResource==NULL){
+		if(pResource==nullptr){
 			asFilePath = mpFileSearcher->GetFilePath(asName);
 		}
 		else {

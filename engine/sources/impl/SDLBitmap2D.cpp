@@ -30,7 +30,7 @@ namespace hpl {
 
 	cSDLBitmap2D::cSDLBitmap2D(iPixelFormat *apPxlFmt) : iBitmap2D("SDL",apPxlFmt)
 	{
-		mpSurface = NULL;
+		mpSurface = nullptr;
 		mlHeight = 0;
 		mlWidth = 0;
 
@@ -84,7 +84,7 @@ namespace hpl {
 		unsigned char* destBuffer = (unsigned char*)pBmp->GetSurface()->pixels;
 		unsigned char* srcBuffer = (unsigned char*)mpSurface->pixels;
 
-		SDL_BlitSurface(mpSurface, NULL, pBmp->GetSurface(),&rect);
+		SDL_BlitSurface(mpSurface, nullptr, pBmp->GetSurface(),&rect);
 
 		//do this little hack to set the alpha to a correct value.
 		//stupid SDL always sets it to 255..
@@ -112,7 +112,7 @@ namespace hpl {
 		rect.w = aRect.w<=0?mlWidth:aRect.w;
 		rect.h = aRect.h<=0?mlHeight:aRect.h;
 
-		unsigned int col = SDL_MapRGBA(SDL_GetPixelFormatDetails(mSDLPixelFmt32),NULL,(int)(aColor.r*255.0f),(int)(aColor.g*255.0f),
+		unsigned int col = SDL_MapRGBA(SDL_GetPixelFormatDetails(mSDLPixelFmt32),nullptr,(int)(aColor.r*255.0f),(int)(aColor.g*255.0f),
 										(int)(aColor.b*255.0f),(int)(aColor.a*255.0f));
 
 		SDL_FillSurfaceRect(mpSurface, &rect,col);
@@ -131,7 +131,7 @@ namespace hpl {
 	{
 		mpSurface = SDL_CreateSurface(avSize.x, avSize.y, mSDLPixelFmt32);
 
-		if(mpSurface==NULL) return false;
+		if(mpSurface==nullptr) return false;
 
 		mlHeight = mpSurface->h;
 		mlWidth = mpSurface->w;

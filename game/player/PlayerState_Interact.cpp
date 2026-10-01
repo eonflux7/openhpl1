@@ -32,7 +32,7 @@ float cPlayerState_Grab::mfMassDiv = 5.0f;
 
 cPlayerState_Grab::cPlayerState_Grab(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Grab)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 
 	//Init controllers
 	mGrabPid.SetErrorNum(10);
@@ -560,7 +560,7 @@ void cPlayerState_Move_BodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBod
 
 cPlayerState_Move::cPlayerState_Move(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Move)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 	mpCallback = hplNew( cPlayerState_Move_BodyCallback, (apPlayer, apInit->mpGame->GetStepSize()) );
 }
 
@@ -884,7 +884,7 @@ bool cPlayerState_Move::OnStartInventoryShortCut(int alNum)
 
 cPlayerState_Push::cPlayerState_Push(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Push)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -919,7 +919,7 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 	iPhysicsBody *pBody = mpPlayer->GetCharacterBody()->GetBody();
 	pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,pBody->GetShape(), 
 										cMath::MatrixTranslate(vPlayerPos),
-										pBody,false, true, NULL,true);
+										pBody,false, true, nullptr,true);
 	
 	mpPlayer->GetCharacterBody()->SetPosition(vNewPos,true);
 

@@ -118,7 +118,7 @@ namespace hpl {
 
 
 		// Draw the images
-		mpMaterial->StartRendering(eMaterialRenderType_Diffuse,NULL,NULL);
+		mpMaterial->StartRendering(eMaterialRenderType_Diffuse,nullptr,nullptr);
 
 		int lIdxAdd=0;
 

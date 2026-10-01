@@ -75,7 +75,7 @@ namespace hpl {
 
 		mfHeight = (float)lLineHeight;
 
-		mvGlyphs.resize(3000, NULL);
+		mvGlyphs.resize(3000, nullptr);
 
 		mvSizeRatio.x = (float)lBase / (float)lLineHeight;
 		mvSizeRatio.y = 1;
@@ -87,13 +87,13 @@ namespace hpl {
 		TiXmlElement *pPagesRootElem = pRootElem->FirstChildElement("pages");
 
 		TiXmlElement *pPageElem = pPagesRootElem->FirstChildElement("page");
-		for(; pPageElem != NULL; pPageElem = pPageElem->NextSiblingElement("page"))
+		for(; pPageElem != nullptr; pPageElem = pPageElem->NextSiblingElement("page"))
 		{
 			tString sFileName = pPageElem->Attribute("file");
 			tString sFilePath = cString::SetFilePath(sFileName,sPath);
 
 			cSDLBitmap2D *pBitmap = static_cast<cSDLBitmap2D*>(mpLowLevelResources->LoadBitmap2D(sFilePath));
-			if(pBitmap==NULL)
+			if(pBitmap==nullptr)
 			{
 				Error("Couldn't load bitmap %s for FNT file '%s'\n",sFilePath.c_str(),asFileName.c_str());
 				hplDelete(pXmlDoc);
@@ -108,7 +108,7 @@ namespace hpl {
 		TiXmlElement *pCharsRootElem = pRootElem->FirstChildElement("chars");
 
 		TiXmlElement *pCharElem = pCharsRootElem->FirstChildElement("char");
-		for(; pCharElem != NULL; pCharElem = pCharElem->NextSiblingElement("char"))
+		for(; pCharElem != nullptr; pCharElem = pCharElem->NextSiblingElement("char"))
 		{
 			//Get the info on the character
 			int lId = cString::ToInt(pCharElem->Attribute("id"),0);
@@ -136,7 +136,7 @@ namespace hpl {
 			SDL_Rect srcRect;
 			srcRect.x = lX; srcRect.y = lY;
 			srcRect.w = lW; srcRect.h = lH;
-			SDL_BlitSurface(pSourceBitmap->GetSurface(),&srcRect, pBmp->GetSurface(), NULL);
+			SDL_BlitSurface(pSourceBitmap->GetSurface(),&srcRect, pBmp->GetSurface(), nullptr);
 
 			int lBmpSize = SDL_BYTESPERPIXEL(pBmp->GetSurface()->format);
 			unsigned char* PixBuffer = (unsigned char*)pBmp->GetSurface()->pixels;

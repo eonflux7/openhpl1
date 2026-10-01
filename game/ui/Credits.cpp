@@ -141,7 +141,7 @@ void cCredits::Update(float afTimeStep)
 		if(mvTextRows[i].size()<=1) fY += fSize[lSize];
 		fY += fSize[lSize];
 	}
-	if(fY < -120 && pMusicHandler->GetCurrentSong() != NULL){
+	if(fY < -120 && pMusicHandler->GetCurrentSong() != nullptr){
 		SetActive(false);
 		pMusicHandler->Stop(0.1f);
 	}

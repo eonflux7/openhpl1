@@ -29,8 +29,8 @@ namespace hpl {
 
 	cOpenALSoundData::cOpenALSoundData(tString asName, bool abStream) : iSoundData(asName,abStream)
 	{
-		mpSample = NULL;
-		mpStream = NULL;
+		mpSample = nullptr;
+		mpStream = nullptr;
 //		mpSoundData = NULL;
 	}
 
@@ -76,7 +76,7 @@ namespace hpl {
 
 
 
-			if(mpStream == NULL )//mpSoundData==NULL){
+			if(mpStream == nullptr )//mpSoundData==NULL){
 			{
 				Error("Couldn't load sound stream '%s'\n", asFile.c_str());
 				return false;
@@ -91,7 +91,7 @@ namespace hpl {
 		{
 			mpSample = OAL_Sample_Load ( asFile.c_str() );
 //			mpSoundData = OAL_Sample_Load ( asFile.c_str() );
-			if(mpSample == NULL)//mpSoundData==NULL){
+			if(mpSample == nullptr)//mpSoundData==NULL){
 			{
 				Error("Couldn't load sound data '%s'\n", asFile.c_str());
 				return false;
@@ -110,14 +110,14 @@ namespace hpl {
 	iSoundChannel* cOpenALSoundData::CreateChannel(int alPriority)
 	{
 		//if(mpSoundData==NULL)return NULL;
-		if ( (mpSample == NULL) && (mpStream == NULL) ) return NULL;
+		if ( (mpSample == nullptr) && (mpStream == nullptr) ) return nullptr;
 
 		int lHandle;
-		iSoundChannel *pSoundChannel=NULL;
+		iSoundChannel *pSoundChannel=nullptr;
 		if(mbStream)
 		{
 			lHandle = OAL_Stream_Play ( OAL_FREE, GetStream(), 1.0f, true );
-			if(lHandle==-1)return NULL;
+			if(lHandle==-1)return nullptr;
 
 			pSoundChannel = hplNew( cOpenALSoundChannel, (this,lHandle, mpSoundManger) );
 			IncUserCount();
@@ -125,7 +125,7 @@ namespace hpl {
 		else
 		{
 			lHandle = OAL_Sample_Play ( OAL_FREE, GetSample(), 1.0f, true, alPriority);
-			if(lHandle==-1)return NULL;
+			if(lHandle==-1)return nullptr;
 
 			pSoundChannel = hplNew( cOpenALSoundChannel, (this,lHandle, mpSoundManger) );
 			IncUserCount();

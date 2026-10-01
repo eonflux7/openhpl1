@@ -100,7 +100,7 @@ cEffect_ShakeScreen::cEffect_ShakeScreen(cInit *apInit)
 	}
 	else
 	{
-		mpForce = NULL;
+		mpForce = nullptr;
 	}
 	
 }
@@ -482,7 +482,7 @@ void cEffect_DepthOfField::Reset()
 {
 	mbActive = false;
 	mfMaxBlur =0;
-	mpFocusBody = NULL;
+	mpFocusBody = nullptr;
 }
 
 void cEffect_DepthOfField::SetDisabled(bool abX)

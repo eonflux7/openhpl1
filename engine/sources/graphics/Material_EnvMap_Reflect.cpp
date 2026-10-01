@@ -156,13 +156,13 @@ namespace hpl {
 	{
 		if(aType == eMaterialRenderType_Diffuse) return &gEnvMaterialSetup;
 
-		return NULL;
+		return nullptr;
 	}
 
 	iGpuProgram* cMaterial_EnvMap_Reflect::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return &gGLState_EnvMapReflect;
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialAlphaMode cMaterial_EnvMap_Reflect::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
@@ -187,14 +187,14 @@ namespace hpl {
 
 	iTexture* cMaterial_EnvMap_Reflect::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		if(aType == eMaterialRenderType_Z) return NULL;
+		if(aType == eMaterialRenderType_Z) return nullptr;
 
 		if(alUnit == 0)
 			return mvTexture[eMaterialTexture_Diffuse];
 		if(alUnit == 1)
 			return mvTexture[eMaterialTexture_CubeMap];
 
-		return NULL;
+		return nullptr;
 	}
 
 	eMaterialBlendMode cMaterial_EnvMap_Reflect::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)

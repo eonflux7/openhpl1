@@ -60,7 +60,7 @@ namespace hpl {
 
 			if(sLowName == pSoundEnv->GetFileName()) return pSoundEnv;
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

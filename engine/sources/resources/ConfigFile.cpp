@@ -90,7 +90,7 @@ namespace hpl {
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
 
-		if(pLevelElem==NULL){
+		if(pLevelElem==nullptr){
 			TiXmlElement *pNodeChild = hplNew( TiXmlElement, (asLevel.c_str()) );
 			pLevelElem = static_cast<TiXmlElement*>(mpXmlDoc->InsertEndChild(*pNodeChild));
 			hplDelete(pNodeChild);
@@ -128,7 +128,7 @@ namespace hpl {
 	tString cConfigFile::GetString(tString asLevel, tString asName, tString asDefault)
 	{
 		const char *sVal = GetCharArray(asLevel,asName);
-		if(sVal==NULL){
+		if(sVal==nullptr){
 			return asDefault;
 		}
 
@@ -138,7 +138,7 @@ namespace hpl {
 	int cConfigFile::GetInt(tString asLevel, tString asName, int alDefault)
 	{
 		const char *sVal = GetCharArray(asLevel,asName);
-		if(sVal==NULL) return alDefault;
+		if(sVal==nullptr) return alDefault;
 
 		return cString::ToInt(sVal,alDefault);
 	}
@@ -146,7 +146,7 @@ namespace hpl {
 	float cConfigFile::GetFloat(tString asLevel, tString asName,float afDefault)
 	{
 		const char *sVal = GetCharArray(asLevel,asName);
-		if(sVal==NULL) return afDefault;
+		if(sVal==nullptr) return afDefault;
 
 		return cString::ToFloat(sVal,afDefault);
 	}
@@ -154,7 +154,7 @@ namespace hpl {
 	bool cConfigFile::GetBool(tString asLevel, tString asName, bool abDefault)
 	{
 		const char *sVal = GetCharArray(asLevel,asName);
-		if(sVal==NULL) return abDefault;
+		if(sVal==nullptr) return abDefault;
 
 		return cString::ToBool(sVal,abDefault);
 	}
@@ -170,8 +170,8 @@ namespace hpl {
 	const char* cConfigFile::GetCharArray(tString asLevel, tString asName)
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
-		if(pLevelElem==NULL){
-			return NULL;
+		if(pLevelElem==nullptr){
+			return nullptr;
 		}
 
 		return pLevelElem->Attribute(asName.c_str());

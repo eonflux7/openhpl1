@@ -196,7 +196,7 @@ namespace hpl {
 
 	void iParticleEmitter3D::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
-		if(apCamera==NULL) return;
+		if(apCamera==nullptr) return;
 
 		if(mbUpdateGfx)
 		{
@@ -626,7 +626,7 @@ namespace hpl {
 		/*cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
 
 		return pWorld->CreateParticleSystem(msName,msDataName,mvDataSize);*/
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -641,7 +641,7 @@ namespace hpl {
 	iSaveData* iParticleEmitter3D::CreateSaveData()
 	{
 		//return hplNew( cSaveData_iParticleEmitter3D, () );
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

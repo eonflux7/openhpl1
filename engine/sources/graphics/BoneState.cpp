@@ -34,8 +34,8 @@ namespace hpl {
 
 	cBoneState::cBoneState(const tString &asName,bool abAutoDeleteChildren) : cNode3D(asName,abAutoDeleteChildren)
 	{
-		mpBody = NULL;
-		mpColliderBody = NULL;
+		mpBody = nullptr;
+		mpColliderBody = nullptr;
 	}
 
 	//-----------------------------------------------------------------------

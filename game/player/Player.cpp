@@ -222,7 +222,7 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	
 	mvCrossHairs.resize(eCrossHairState_LastEnum);
 
-	for(size_t i=0; i < mvCrossHairs.size(); i++) mvCrossHairs[i] = NULL;
+	for(size_t i=0; i < mvCrossHairs.size(); i++) mvCrossHairs[i] = nullptr;
 
 	mvCrossHairs[eCrossHairState_Inactive] = mpGfxDrawer->CreateGfxObject("player_crosshair_inactive","diffalpha2d");
 	mvCrossHairs[eCrossHairState_Active] = mpGfxDrawer->CreateGfxObject("player_crosshair_active","diffalpha2d");
@@ -359,7 +359,7 @@ void cPlayer::SetStartPos(const tString& asName)
 	if(pWorld)
 	{
 		cStartPosEntity *pStart = pWorld->GetStartPosEntity(asName);
-		if(pStart==NULL)
+		if(pStart==nullptr)
 		{
 			Warning("Couldn't find start position '%s'\n",asName.c_str());
 
@@ -413,10 +413,10 @@ void cPlayer::FootStep(float afMul, const tString &asType, bool abSkipCount)
 	if(mlGroundCount<=0 && abSkipCount==false) return;
 
 	iPhysicsMaterial *pMaterial = mpGroundRayCallback->mpMaterial;
-	if(pMaterial==NULL) return;
+	if(pMaterial==nullptr) return;
 
 	cSurfaceData *pData = pMaterial->GetSurfaceData();
-	if(pData==NULL) {
+	if(pData==nullptr) {
 		Error("No surface data in material '%s'!\n",pMaterial->GetName().c_str());
 		return;
 	}
@@ -516,7 +516,7 @@ void cPlayer::AddCollideScript(eGameCollideScriptType aType,const tString &asFun
 
 		//Get the entity
 		iGameEntity *pEntity = mpInit->mpMapHandler->GetGameEntity(asEntity);
-		if(pEntity==NULL)
+		if(pEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",asEntity.c_str());
 			hplDelete( pCallback );
@@ -925,7 +925,7 @@ void cPlayer::StartInventoryShortCut(int alNum)
 
 void cPlayer::StartFlashLightButton()
 {
-	if(mpInit->mpInventory->GetItem("flashlight")!=NULL)
+	if(mpInit->mpInventory->GetItem("flashlight")!=nullptr)
 	{
 		mpFlashLight->SetActive(!mpFlashLight->IsActive());
 
@@ -939,8 +939,8 @@ void cPlayer::StartFlashLightButton()
 
 void cPlayer::StartGlowStickButton()
 {
-	if(mpInit->mpInventory->GetItem("glowstick")!=NULL ||
-		mpInit->mpInventory->GetItem("glowst1")!=NULL)
+	if(mpInit->mpInventory->GetItem("glowstick")!=nullptr ||
+		mpInit->mpInventory->GetItem("glowst1")!=nullptr)
 	{
 		mpGlowStick->SetActive(!mpGlowStick->IsActive());
 
@@ -999,7 +999,7 @@ void cPlayer::OnWorldLoad()
 	mpCharBody->GetExtraBody(0)->SetIsSaved(false);
 	mpCharBody->GetExtraBody(1)->SetIsSaved(false);
 	
-	mvMoveStates[mMoveState]->EnterState(NULL);
+	mvMoveStates[mMoveState]->EnterState(nullptr);
 	mvMoveStates[mMoveState]->Start();
 	
     mpFlashLight->OnWorldLoad();
@@ -1188,8 +1188,8 @@ void cPlayer::Update(float afTimeStep)
 	{
 		cGameCollideScript *pCallback = CollideIt->second;
 		
-		if(pCallback==NULL) continue;
-		if(pCallback->mpEntity==NULL) continue;
+		if(pCallback==nullptr) continue;
+		if(pCallback->mpEntity==nullptr) continue;
 
 		iGameEntity *pEntity = pCallback->mpEntity;
         
@@ -1341,7 +1341,7 @@ void cPlayer::Update(float afTimeStep)
 	
 	//Clear picked body
 	//mpPushBody = NULL;
-	SetPickedBody(NULL);
+	SetPickedBody(nullptr);
 
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
@@ -1381,8 +1381,8 @@ void cPlayer::Reset()
 	mfHeightAdd =0;
 
 	mfLookSpeed = 1.0f;
-	mpCharBody = NULL;
-	mpWeaponCallback = NULL;
+	mpCharBody = nullptr;
+	mpWeaponCallback = nullptr;
 	mbUpdatingCollisionCallbacks = false;
 
 	mbDamageFromPos = false;
@@ -1646,7 +1646,7 @@ void cPlayer::OnDraw()
 		}
 		
 		vSoundNames.push_back("");
-		vEntries.push_back(NULL);
+		vEntries.push_back(nullptr);
 
 		pEntryList = mpInit->mpGame->GetSound()->GetSoundHandler()->GetGuiEntryList();
 		for(tSoundEntryListIt it = pEntryList->begin(); it != pEntryList->end();++it)
@@ -1662,7 +1662,7 @@ void cPlayer::OnDraw()
 		for(int i=0; i< (int)vSoundNames.size(); i++)
 		{
 			cSoundEntry *pEntry = vEntries[i];
-			if(pEntry == NULL){
+			if(pEntry == nullptr){
 				lRow = 4;
 				lCol =0;
 				continue;
@@ -1730,7 +1730,7 @@ void cPlayer::OnPostSceneDraw()
 	iLowLevelGraphics *pLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	pLowGfx->SetMatrix(eMatrix_ModelView, pCam->GetViewMatrix());
 
-	pLowGfx->SetTexture(0,NULL);
+	pLowGfx->SetTexture(0,nullptr);
 	pLowGfx->SetBlendActive(false);
 
 	/*mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawLine(mvLineStart,mvLineEnd,cColor(1,1,1,1));
@@ -1782,7 +1782,7 @@ void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 		cGameCollideScript *pCallback = hplNew( cGameCollideScript, () );
 
 		pCallback->mpEntity = mpInit->mpMapHandler->GetGameEntity(savedScript.msEntity);
-		if(pCallback->mpEntity==NULL)
+		if(pCallback->mpEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",savedScript.msEntity.c_str());
 			hplDelete( pCallback );
@@ -1979,7 +1979,7 @@ iSaveObject* cSaveData_cPlayer::CreateSaveObject(cSaveObjectHandler *apSaveObjec
 		cSaveGame_cGameCollideScript& saveScript = it.Next();
 
 		iGameEntity* pEntity = gpInit->mpMapHandler->GetGameEntity(saveScript.msEntity);
-		if(pEntity==NULL){
+		if(pEntity==nullptr){
 			Error("Couldn't find game entity '%s'\n",saveScript.msEntity.c_str());
 			continue;
 		}
@@ -1991,7 +1991,7 @@ iSaveObject* cSaveData_cPlayer::CreateSaveObject(cSaveObjectHandler *apSaveObjec
 		gpInit->mpPlayer->m_mapCollideCallbacks.insert(tGameCollideScriptMap::value_type(saveScript.msEntity,pCallback));
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //-----------------------------------------------------------------------

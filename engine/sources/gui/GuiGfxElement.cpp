@@ -95,8 +95,8 @@ namespace hpl {
 		//Set up textures
 		for(int i=0; i<kMaxGuiTextures; ++i)
 		{
-			mvTextures[i] = NULL;
-			mvImages[i] = NULL;
+			mvTextures[i] = nullptr;
+			mvImages[i] = nullptr;
 		}
 
 		mlTextureNum =0;

@@ -78,14 +78,14 @@ namespace hpl {
 
 		pMaterial = static_cast<iMaterial*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pMaterial==NULL && sPath!="")
+		if(pMaterial==nullptr && sPath!="")
 		{
 			pMaterial = LoadFromFile(asNewName,sPath);
 
-			if(pMaterial==NULL){
+			if(pMaterial==nullptr){
 				Error("Couldn't load material '%s'\n",asNewName.c_str());
 				EndLoad();
-				return NULL;
+				return nullptr;
 			}
 
 			AddResource(pMaterial);
@@ -198,7 +198,7 @@ namespace hpl {
 
 		pMaterial = static_cast<iMaterial*>(this->FindLoadedResource(asNewName,sPath));
 
-		if(pMaterial==NULL && sPath!="")
+		if(pMaterial==nullptr && sPath!="")
 		{
 			TiXmlDocument *pDoc = hplNew( TiXmlDocument, (sPath.c_str()) );
 			if(!pDoc->LoadFile()){
@@ -208,7 +208,7 @@ namespace hpl {
 			TiXmlElement *pRoot = pDoc->RootElement();
 
 			TiXmlElement *pMain = pRoot->FirstChildElement("Main");
-			if(pMain==NULL){
+			if(pMain==nullptr){
 				hplDelete(pDoc);
 				Error("Main child not found in '%s'\n",sPath.c_str());
 				return "";
@@ -239,7 +239,7 @@ namespace hpl {
 		TiXmlDocument *pDoc = hplNew( TiXmlDocument, (asPath.c_str()) );
 		if(!pDoc->LoadFile()){
 			hplDelete(pDoc);
-			return NULL;
+			return nullptr;
 		}
 
 		TiXmlElement *pRoot = pDoc->RootElement();
@@ -247,17 +247,17 @@ namespace hpl {
 		///////////////////////////
 		//Main
 		TiXmlElement *pMain = pRoot->FirstChildElement("Main");
-		if(pMain==NULL){
+		if(pMain==nullptr){
 			hplDelete(pDoc);
 			Error("Main child not found.\n");
-			return NULL;
+			return nullptr;
 		}
 
 		const char* sType = pMain->Attribute("Type");
-		if(sType ==NULL){
+		if(sType ==nullptr){
 			hplDelete(pDoc);
 			Error("Type not found.\n");
-			return NULL;
+			return nullptr;
 		}
 
 		bool bUseAlpha = cString::ToBool(pMain->Attribute("UseAlpha"), false);
@@ -266,10 +266,10 @@ namespace hpl {
 		tString sPhysicsMatName = cString::ToString(pMain->Attribute("PhysicsMaterial"),"Default");
 
 		iMaterial* pMat = mpGraphics->GetMaterialHandler()->Create(asName,sType,eMaterialPicture_Texture);
-		if(pMat==NULL){
+		if(pMat==nullptr){
 			hplDelete(pDoc);
 			Error("Invalid material type '%s'\n",sType);
-			return NULL;
+			return nullptr;
 		}
 
 		pMat->SetHasAlpha(bUseAlpha);
@@ -281,10 +281,10 @@ namespace hpl {
 		///////////////////////////
 		//Textures
 		TiXmlElement *pTexRoot = pRoot->FirstChildElement("TextureUnits");
-		if(pTexRoot==NULL){
+		if(pTexRoot==nullptr){
 			hplDelete(pDoc);
 			Error("TextureUnits child not found.\n");
-			return NULL;
+			return nullptr;
 		}
 
 		tTextureTypeList lstTexTypes = pMat->GetTextureTypes();
@@ -294,7 +294,7 @@ namespace hpl {
 			iTexture *pTex;
 
 			TiXmlElement *pTexChild = pTexRoot->FirstChildElement(GetTextureString(it->mType).c_str());
-			if(pTexChild==NULL){
+			if(pTexChild==nullptr){
 				/*Error("Texture unit missing!");
 				hplDelete(pMat);
 				return NULL;*/
@@ -343,10 +343,10 @@ namespace hpl {
 				}
 			}
 
-			if(pTex==NULL){
+			if(pTex==nullptr){
 				hplDelete(pDoc);
 				hplDelete(pMat);
-				return NULL;
+				return nullptr;
 			}
 
 			pTex->SetFrameTime(fFrameTime);

@@ -55,12 +55,12 @@ namespace hpl {
 
 		///LIGHTING SETUP
 		mpLightMap[0] = mpResources->GetTextureManager()->Create2D("PointLight2D.bmp",false);
-		if(mpLightMap[0] == NULL)FatalError("Couldn't load PointLight2D");
+		if(mpLightMap[0] == nullptr)FatalError("Couldn't load PointLight2D");
 
 		mpLightMap[0]->SetWrapS(eTextureWrap_ClampToEdge);
 		mpLightMap[0]->SetWrapT(eTextureWrap_ClampToEdge);
 
-		mpLightMap[1]=NULL;
+		mpLightMap[1]=nullptr;
 		mPrevLightRect = cRect2f(0,0,-1,-1);
 		mAmbientLight = cColor(0.0f,0.0f,0.0f,0);
 		mfShadowZ = 9.5f;
@@ -158,7 +158,7 @@ namespace hpl {
 
 		//pMat->EditVertexes(aRenderType,apCam,pLight,pVtxVec,pTransform,aIdxAdd);
 
-		if(pTransform == NULL)
+		if(pTransform == nullptr)
 		{
 			for(i=0;i<(int)pVtxVec->size();i++)
 				mpLowLevelGraphics->AddVertexToBatch(&(*pVtxVec)[i]);
@@ -182,8 +182,8 @@ namespace hpl {
 
 	void cRenderer2D::RenderObjects(cCamera2D *apCamera,cGridMap2D *apMapLights,cWorld2D* apWorld)
 	{
-		iMaterial *pMat = NULL;
-		iMaterial *pPrevMat = NULL;
+		iMaterial *pMat = nullptr;
+		iMaterial *pPrevMat = nullptr;
 		cRect2f ClipRect;
 		unsigned int lIdxAdd =0;
 
@@ -250,7 +250,7 @@ namespace hpl {
 
 		while(ObjectIt != m_mapObject.end())
 		{
-			if(pMat->StartRendering(eMaterialRenderType_Z, apCamera,NULL)==false)
+			if(pMat->StartRendering(eMaterialRenderType_Z, apCamera,nullptr)==false)
 			{
 				ObjectIt++;//ObjectIt = m_mapObject.erase(ObjectIt);?
 				if(ObjectIt != m_mapObject.end())pMat = ObjectIt->GetMaterial();
@@ -258,13 +258,13 @@ namespace hpl {
 			}
 
 			do {
-				RenderObject(*ObjectIt,lIdxAdd,pMat,NULL, eMaterialRenderType_Z,apCamera);
+				RenderObject(*ObjectIt,lIdxAdd,pMat,nullptr, eMaterialRenderType_Z,apCamera);
 				pPrevMat = pMat;
 
 				ObjectIt++;
 
 				if(ObjectIt == m_mapObject.end()){
-					pMat=NULL;
+					pMat=nullptr;
 					break;
 				}
 				else{
@@ -383,7 +383,7 @@ namespace hpl {
 						&& ObjectIt != m_mapObject.end());
 
 					if(ObjectIt == m_mapObject.end()){
-						pMat=NULL;
+						pMat=nullptr;
 						break;
 					}
 					else{
@@ -456,7 +456,7 @@ namespace hpl {
 
 		while(ObjectIt != m_mapObject.end())
 		{
-			if(pMat->StartRendering(eMaterialRenderType_Diffuse, apCamera,NULL)==false)
+			if(pMat->StartRendering(eMaterialRenderType_Diffuse, apCamera,nullptr)==false)
 			{
 				ObjectIt++;//ObjectIt = m_mapObject.erase(ObjectIt);?
 				if(ObjectIt != m_mapObject.end())pMat = ObjectIt->GetMaterial();
@@ -466,7 +466,7 @@ namespace hpl {
 
 			do
 			{
-				RenderObject(*ObjectIt,lIdxAdd,pMat,NULL,eMaterialRenderType_Diffuse,apCamera);
+				RenderObject(*ObjectIt,lIdxAdd,pMat,nullptr,eMaterialRenderType_Diffuse,apCamera);
 				pPrevMat = pMat;
 
 				ObjectIt++;//ObjectIt = m_mapObject.erase(ObjectIt);?
@@ -475,7 +475,7 @@ namespace hpl {
 				//else pMat = ObjectIt->GetMaterial();
 
 				if(ObjectIt == m_mapObject.end()){
-					pMat=NULL;
+					pMat=nullptr;
 					break;
 				}
 				else{
@@ -530,7 +530,7 @@ namespace hpl {
 		lIdxAdd =0;
 		while(TransIt != m_mapTransObject.end())
 		{
-			if(pMat->StartRendering(eMaterialRenderType_Diffuse, apCamera,NULL)==false)
+			if(pMat->StartRendering(eMaterialRenderType_Diffuse, apCamera,nullptr)==false)
 			{
 				TransIt++;//TransIt = mapTransObject.erase(TransIt);?
 				if(TransIt != m_mapTransObject.end())pMat = TransIt->GetMaterial();
@@ -539,12 +539,12 @@ namespace hpl {
 			}
 
 			do {
-				RenderObject(*TransIt,lIdxAdd,pMat,NULL,eMaterialRenderType_Diffuse,apCamera);
+				RenderObject(*TransIt,lIdxAdd,pMat,nullptr,eMaterialRenderType_Diffuse,apCamera);
 				pPrevMat = pMat;
 
 				TransIt++;//TransIt = mapTransObject.erase(TransIt);?
 
-				if(TransIt == m_mapTransObject.end()) pMat=NULL;
+				if(TransIt == m_mapTransObject.end()) pMat=nullptr;
 				else pMat = TransIt->GetMaterial();
 			}
 			while(pMat == pPrevMat);
@@ -614,7 +614,7 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthWriteActive(false);
 		mpLowLevelGraphics->SetDepthTestActive(false);
 		mpLowLevelGraphics->SetColorWriteActive(false,false,false,false);//just draw to stencil
-		mpLowLevelGraphics->SetTexture(0,NULL);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
 
 		mpLowLevelGraphics->SetStencil(eStencilFunc_Always, 0x0,0x0,
 								eStencilOp_Replace,eStencilOp_Replace,eStencilOp_Replace);
@@ -641,7 +641,7 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 		mpLowLevelGraphics->SetDepthWriteActive(false);
 		mpLowLevelGraphics->SetColorWriteActive(false,false,false,false);//just draw to stencil
-		mpLowLevelGraphics->SetTexture(0,NULL);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
 
 		//Set the stencil buffer so above shadows don't get affected by em.
 		mpLowLevelGraphics->SetStencilActive(true);
@@ -713,7 +713,7 @@ namespace hpl {
 				cTile* pTile = pTileIt->Next();
 				cTileDataNormal* pData = static_cast<cTileDataNormal*>(pTile->GetTileData());
 
-				if(pData->GetCollideMesh()==NULL) continue;
+				if(pData->GetCollideMesh()==nullptr) continue;
 
 				bool vbTileInDir[4];
 

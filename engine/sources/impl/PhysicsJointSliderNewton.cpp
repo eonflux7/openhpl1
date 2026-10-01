@@ -157,7 +157,7 @@ namespace hpl {
 		}
 		else
 		{
-			if(pSliderJoint->mpParentBody ==NULL || pSliderJoint->mpParentBody->GetMass()==0)
+			if(pSliderJoint->mpParentBody ==nullptr || pSliderJoint->mpParentBody->GetMass()==0)
 			{
 				if(	(pSliderJoint->mfStickyMaxDistance != 0 &&
 					 fabs(fDistance - pSliderJoint->mfMaxDistance) < pSliderJoint->mfStickyMaxDistance)

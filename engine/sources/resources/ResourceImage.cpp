@@ -68,7 +68,7 @@ namespace hpl {
 	{
 		mvVtx.clear();
 		//mpFrameTexture->DecPicCount();
-		mpFrameTexture = NULL;
+		mpFrameTexture = nullptr;
 		mlHandle = -1;
 	}
 

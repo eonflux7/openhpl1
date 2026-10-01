@@ -277,7 +277,7 @@ namespace hpl {
 	cShadowVolumeBV* cBoundingVolume::GetShadowVolume(const cVector3f& avLightPos,
 														float afLightRange,bool abForceUpdate)
 	{
-		if(cMath::PointBVCollision(avLightPos, *this)) return NULL;
+		if(cMath::PointBVCollision(avLightPos, *this)) return nullptr;
 
 		if(!abForceUpdate && !mbShadowPlanesNeedUpdate) return &mShadowVolume;
 

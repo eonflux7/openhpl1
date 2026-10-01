@@ -120,13 +120,13 @@ namespace hpl {
 		bool bRet = FillStructures(asFile, &vColladaImages, &vColladaTextures,
 			&vColladaMaterials,&vColladaLights,
 			&vColladaGeometries,
-			NULL,NULL,
+			nullptr,nullptr,
 			&ColladaScene,true);
 
 		unsigned long lTime = GetApplicationTime() - lStartTime;
 		Log("Loading collada for '%s' took: %d ms\n",asFile.c_str(),lTime);
 
-		if(bRet==false) return NULL;
+		if(bRet==false) return nullptr;
 
 		cWorld3D *pWorld = apScene->CreateWorld3D(cString::SetFileExt(cString::GetFileName(asFile),""));
 		pWorld->SetFileName(cString::GetFileName(asFile));
@@ -217,11 +217,11 @@ namespace hpl {
 
 		if(sControlId==""){
 			Warning("No controller refered to the geometry!\n");
-			return NULL;
+			return nullptr;
 		}
 
 		cColladaNode* pNode = aColladaScene.GetNodeFromSource(sControlId);
-		if(pNode==NULL){
+		if(pNode==nullptr){
 			Warning("No node for controller '%s'\n",sControlId.c_str());
 		}
 
@@ -234,7 +234,7 @@ namespace hpl {
 								tColladaAnimationVec &avColladaAnimations, cSkeleton *apSkeleton, bool abHasSeveralBodies)
 	{
 		cColladaNode *pParentNode = apNode->pParent;
-		if(pParentNode && apSkeleton==NULL)
+		if(pParentNode && apSkeleton==nullptr)
 		{
 			if(avColladaAnimations.empty() == false || abHasSeveralBodies)
 			{
@@ -253,7 +253,7 @@ namespace hpl {
 		tColladaAnimationVec &avColladaAnimations, cSkeleton *apSkeleton, bool abHasSeveralBodies)
 	{
 		cColladaNode *pParentNode = apNode->pParent;
-		if(pParentNode && apSkeleton==NULL)
+		if(pParentNode && apSkeleton==nullptr)
 		{
 			if(avColladaAnimations.empty() == false || abHasSeveralBodies)
 			{
@@ -292,7 +292,7 @@ namespace hpl {
 		mFlags = aFlags;
 
 		//Fill the structures with collada file data
-		tColladaGeometryVec *pGeomVec = (aFlags & eMeshLoadFlag_NoGeometry) ? NULL : &vColladaGeometries;
+		tColladaGeometryVec *pGeomVec = (aFlags & eMeshLoadFlag_NoGeometry) ? nullptr : &vColladaGeometries;
 
 		bool bRet = FillStructures(asFile, &vColladaImages, &vColladaTextures,
 									&vColladaMaterials,&vColladaLights,
@@ -300,11 +300,11 @@ namespace hpl {
 									&vColladaAnimations,
 									&ColladaScene,true);
 
-		if(bRet==false) return NULL;
+		if(bRet==false) return nullptr;
 
 		////////////////////////
 		//Create Skeleton
-		cSkeleton * pSkeleton = NULL;
+		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
 		{
 			pSkeleton = hplNew( cSkeleton, () );
@@ -402,10 +402,10 @@ namespace hpl {
 			cColladaGeometry &Geom = vColladaGeometries[i];
 
 			cColladaNode *pGeomNode = ColladaScene.GetNodeFromSource(Geom.msId);
-			if(pGeomNode==NULL)
+			if(pGeomNode==nullptr)
 			{
 				pGeomNode = GetNodeFromController(Geom.msId,vColladaControllers,ColladaScene);
-				if(pGeomNode==NULL){
+				if(pGeomNode==nullptr){
 					Error("No node with geometry id '%s'\n",Geom.msId.c_str());
 					continue;
 				}
@@ -441,7 +441,7 @@ namespace hpl {
 					TempBV.CreateFromPoints(3);
 
 					cColladaNode *pNode = ColladaScene.GetNodeFromSource(Geom.msId);
-					if(pNode==NULL){Warning("No node for geometry '%s' found when creating joint!\n",Geom.msId.c_str()); continue;}
+					if(pNode==nullptr){Warning("No node for geometry '%s' found when creating joint!\n",Geom.msId.c_str()); continue;}
 
 
 					tString sJointType = cString::ToLowerCase(vStrings[1]);
@@ -499,7 +499,7 @@ namespace hpl {
 					pCollider->mvSize = vShapeSize;
 
 					cColladaNode *pNode = ColladaScene.GetNodeFromSource(Geom.msId);
-					if(pNode==NULL){Warning("No node for geometry '%s' when creating collider!\n",Geom.msId.c_str()); continue;}
+					if(pNode==nullptr){Warning("No node for geometry '%s' when creating collider!\n",Geom.msId.c_str()); continue;}
 
 					//Set the name of the group it is in.
 					if(pNode->pParent)
@@ -711,10 +711,10 @@ namespace hpl {
 
 			//Getting group the sub mesh is in
 			cColladaNode *pNode = ColladaScene.GetNodeFromSource(Geom.msId);
-			if(pNode==NULL)
+			if(pNode==nullptr)
 			{
 				pNode = GetNodeFromController(Geom.msId,vColladaControllers,ColladaScene);
-				if(pNode==NULL){
+				if(pNode==nullptr){
 					Warning("No node for geometry '%s' found when trying to create sub mesh, check in controllers.\n",Geom.msId.c_str());
 					continue;
 				}
@@ -761,7 +761,7 @@ namespace hpl {
 			{
 				pMaterial = mpMaterialManager->CreateMaterial(sMatName);
 			}
-			if(pMaterial==NULL)
+			if(pMaterial==nullptr)
 			{
 				Error("Couldn't create material '%s' for object '%s'\n",sMatName.c_str(),
 																		Geom.msName.c_str());
@@ -772,7 +772,7 @@ namespace hpl {
 			/////////////////////////////
 			//If there is a controller for the mesh, get vertex-bone pairs.
 			//First find the controller.
-			cColladaController *pCtrl =NULL;
+			cColladaController *pCtrl =nullptr;
 			for(size_t j=0; j<vColladaControllers.size(); j++){
 				if(vColladaControllers[j].msTarget == Geom.msId){
 					pCtrl = &vColladaControllers[j];
@@ -780,7 +780,7 @@ namespace hpl {
 				}
 			}
 			//If no controller can be found, guess the one with target=""
-			if(pCtrl==NULL){
+			if(pCtrl==nullptr){
 				for(size_t j=0; j<vColladaControllers.size(); j++){
 					if(vColladaControllers[j].msTarget == ""){
 						pCtrl = &vColladaControllers[j];
@@ -935,7 +935,7 @@ namespace hpl {
 			cColladaLight &ColladaLight = vColladaLights[i];
 
 			cColladaNode *pLightNode = ColladaScene.GetNodeFromSource(ColladaLight.msId);
-			if(pLightNode == NULL)
+			if(pLightNode == nullptr)
 			{
 				Error("Couldn't find node for light '%s'\n",ColladaLight.msId.c_str());
 				continue;
@@ -1000,7 +1000,7 @@ namespace hpl {
 
 		///////////////////////////////////////////////
 		// Create Animations
-		cAnimation *pAnimation = NULL;
+		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
 		{
 			pAnimation = hplNew( cAnimation, (pMesh->GetName(),cString::GetFileName(asFile)) );
@@ -1017,7 +1017,7 @@ namespace hpl {
 			{
 				cAnimationTrack *pTrack = CreateAnimTrack(pAnimation, pSkeleton,
 														vColladaAnimations[i],&ColladaScene);
-				if(pTrack==NULL) continue;
+				if(pTrack==nullptr) continue;
 				if(pSkeleton)
 				{
 					cBone *pBone = pSkeleton->GetBoneByName(pTrack->GetName());
@@ -1039,7 +1039,7 @@ namespace hpl {
 				{
 					cBone *pBone = pSkeleton->GetBoneByIndex(i);
 
-					if(pAnimation->GetTrackByName(pBone->GetName())==NULL)
+					if(pAnimation->GetTrackByName(pBone->GetName())==nullptr)
 					{
 						cColladaNode *pNode = ColladaScene.GetNode(pBone->GetName());
 						if(pNode)
@@ -1125,18 +1125,18 @@ namespace hpl {
 		cColladaScene ColladaScene;
 
 		//Fill the structures with collada file data
-		bool bRet = FillStructures(asFile, NULL, NULL,
-									NULL,NULL,
-									NULL,&vColladaControllers,
+		bool bRet = FillStructures(asFile, nullptr, nullptr,
+									nullptr,nullptr,
+									nullptr,&vColladaControllers,
 									&vColladaAnimations,
 									&ColladaScene,true
 									);
 
-		if(bRet==false) return NULL;
+		if(bRet==false) return nullptr;
 
 		////////////////////////
 		//Create Skeleton
-		cSkeleton * pSkeleton = NULL;
+		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
 		{
 			pSkeleton = hplNew( cSkeleton, () );
@@ -1185,7 +1185,7 @@ namespace hpl {
 
 		///////////////////////////////////////////////
 		// Create Animations
-		cAnimation *pAnimation = NULL;
+		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
 		{
 			pAnimation = hplNew( cAnimation, ("Default",cString::GetFileName(asFile)) );
@@ -1197,7 +1197,7 @@ namespace hpl {
 			{
 				cAnimationTrack *pTrack = CreateAnimTrack(pAnimation, pSkeleton,
 															vColladaAnimations[i],&ColladaScene);
-				if(pTrack==NULL) continue;
+				if(pTrack==nullptr) continue;
 				if(pSkeleton)
 				{
 					cBone *pBone = pSkeleton->GetBoneByName(pTrack->GetName());
@@ -1428,7 +1428,7 @@ namespace hpl {
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1443,7 +1443,7 @@ namespace hpl {
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1459,15 +1459,15 @@ namespace hpl {
 		tString sSepp = "_";
 		cString::GetStringVec(apNode->msName,vParams,&sSepp);
 
-		cMeshEntity *pEntity = NULL;
-		iVertexBuffer *pVtxBuffer = NULL;
+		cMeshEntity *pEntity = nullptr;
+		iVertexBuffer *pVtxBuffer = nullptr;
 
 		tString sMatName = GetMaterialTextureFile(apGeom->msMaterial,
 												avColladaMaterials,avColladaTextures,
 												avColladaImages);
 
-		cMesh *pMesh = NULL;
-		cSubMesh* pSubMesh = NULL;
+		cMesh *pMesh = nullptr;
+		cSubMesh* pSubMesh = nullptr;
 
 		bool bDrawn = false;
 
@@ -1524,12 +1524,12 @@ namespace hpl {
 			{
 				pMaterial = mpMaterialManager->CreateMaterial(sMatName);
 			}
-			if(pMaterial==NULL)
+			if(pMaterial==nullptr)
 			{
 				Error("Couldn't create material '%s' for object '%s'\n",sMatName.c_str(),
 					apNode->msName.c_str());
 				hplDelete(pMesh);
-				return NULL;
+				return nullptr;
 			}
 
 			pSubMesh->SetMaterial(pMaterial);
@@ -1608,7 +1608,7 @@ namespace hpl {
 			if(cHaptic::GetIsUsed())
 			{
 				cHaptic	*pHaptic = apWorld->GetHaptic();
-				iHapticShape *pHShape = NULL;
+				iHapticShape *pHShape = nullptr;
 
 				pHShape = pHaptic->GetLowLevel()->CreateMeshShape(pBody->GetName(),pVtxBuffer);
 				if(bDrawn) pHShape->SetSubMeshEntity(pEntity->GetSubMeshEntity(0));
@@ -1650,14 +1650,14 @@ namespace hpl {
 		}
 		else if(aShapeType == eCollideShapeType_Box)
 		{
-			return pPhysicsWorld->CreateBoxShape(avSize, NULL);
+			return pPhysicsWorld->CreateBoxShape(avSize, nullptr);
 		}
 		else if(aShapeType == eCollideShapeType_Sphere)
 		{
-			return pPhysicsWorld->CreateSphereShape(avSize.x,NULL);
+			return pPhysicsWorld->CreateSphereShape(avSize.x,nullptr);
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	cColliderEntity* cMeshLoaderCollada::CreateStaticCollider(cColladaNode* apNode, cWorld3D *apWorld,
@@ -1706,13 +1706,13 @@ namespace hpl {
 			vShapeSize.x *= 0.5;
 		}
 
-		iCollideShape *pCollideShape =NULL;
+		iCollideShape *pCollideShape =nullptr;
 
 		pCollideShape = CreatePhysicsCollider(apWorld->GetPhysicsWorld(),vShapeSize,ShapeType);
 
-		if(pCollideShape==NULL){
+		if(pCollideShape==nullptr){
 			Error("Collider was not created!");
-			return NULL;
+			return nullptr;
 		}
 
 		//Log("Creating Collider %s, type: %d size: %s\n", apGeom->msName.c_str(),(int)ShapeType,
@@ -1848,7 +1848,7 @@ namespace hpl {
 
 					cSoundEntity *pEntity = apWorld->CreateSoundEntity(sName,sFile,false);
 
-					if(pEntity == NULL)
+					if(pEntity == nullptr)
 					{
 						tString sName = vParams[1];
 						tString sFile = cString::Sub(apNode->msName,7+(int)+sName.size()+1);
@@ -1897,7 +1897,7 @@ namespace hpl {
 					iEntity3D* pEntity = apWorld->CreateEntity(sName,apNode->m_mtxWorldTransform,sFile, true);
 
 					//If no entity was loaded, try old style.
-					if(pEntity==NULL)
+					if(pEntity==nullptr)
 					{
 						tString sName = vParams[1];
 						tString sFile = cString::Sub(apNode->msName,5+(int)+sName.size()+1);
@@ -1951,7 +1951,7 @@ namespace hpl {
 					cBillboard *pBill = apWorld->CreateBillboard(sName,vSize);
 
 					//To support old versions
-					if(pBill == NULL)
+					if(pBill == nullptr)
 					{
 						sName = vParams[1];
 						sFile = cString::Sub(apNode->msName,4+(int)sName.size()+1);
@@ -2043,14 +2043,14 @@ namespace hpl {
 					cParticleSystem3D *pPS = apWorld->CreateParticleSystem(sName,sType,apNode->mvScale,
 																		apNode->m_mtxWorldTransform);
 
-					if(pPS == NULL)
+					if(pPS == nullptr)
 					{
 						sName = vParams[1];
 						sType = cString::Sub(apNode->msName,4+(int)sName.size()+1);
 						cParticleSystem3D *pPS = apWorld->CreateParticleSystem(sName,sType,apNode->mvScale,
 																				apNode->m_mtxWorldTransform);
 
-						if(pPS == NULL)
+						if(pPS == nullptr)
 						{
 							Error("Couldn't load particle system '%s' with type '%s'\n",
 														sName.c_str(), sType.c_str());

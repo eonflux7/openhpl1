@@ -139,7 +139,7 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 
 cPlayerGroundRayCallback::cPlayerGroundRayCallback()
 {
-	mpMaterial = NULL;
+	mpMaterial = nullptr;
 	mbOnGround = false;
 }
 
@@ -148,19 +148,19 @@ cPlayerGroundRayCallback::cPlayerGroundRayCallback()
 void cPlayerGroundRayCallback::Clear()
 {
 	mfMinDist = 1000;
-	mpMaterial = NULL;
+	mpMaterial = nullptr;
 }
 
 //-----------------------------------------------------------------------
 
 void cPlayerGroundRayCallback::OnWorldExit()
 {
-	mpMaterial = NULL;
+	mpMaterial = nullptr;
 }
 
 void cPlayerGroundRayCallback::Reset()
 {
-	mpMaterial = NULL;
+	mpMaterial = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -188,7 +188,7 @@ bool cPlayerGroundRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams
 cPlayerPickRayCallback::cPlayerPickRayCallback()
 {
 	mfMaxDistance = 10.0f;
-	mpPickedBody = NULL;
+	mpPickedBody = nullptr;
 
 	mLastEntityType = eGameEntityType_LastEnum;
 }
@@ -200,8 +200,8 @@ void cPlayerPickRayCallback::Clear()
 	mfPickedDist = mfMaxDistance+10.0f;
 	mfPickedAreaDist = mfMaxDistance+10.0f;
 	
-	mpPickedBody = NULL;
-	mpPickedAreaBody = NULL;
+	mpPickedBody = nullptr;
+	mpPickedAreaBody = nullptr;
 	
 	mfMinStaticDist = mfMaxDistance+10.0f;
 }
@@ -210,7 +210,7 @@ void cPlayerPickRayCallback::Clear()
 
 void cPlayerPickRayCallback::OnWorldExit()
 {
-	mpPickedBody = NULL;
+	mpPickedBody = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -229,7 +229,7 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 	if(apBody->IsCharacter()) return true;
 
 	//Check if is below current picked dist
-	iGameEntity *pEntity = NULL;
+	iGameEntity *pEntity = nullptr;
 	if(apBody->GetUserData()) pEntity = (iGameEntity*)apBody->GetUserData();
 	
 	//////////////////////////////
@@ -247,8 +247,8 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 		{
 			if(	mfPickedAreaDist > fDist &&
 				(pEntity->GetDescription() != _W("") ||
-				 pEntity->GetCallbackScript(eGameEntityScriptType_PlayerInteract) != NULL ||
-				 pEntity->GetCallbackScript(eGameEntityScriptType_PlayerExamine) != NULL ||
+				 pEntity->GetCallbackScript(eGameEntityScriptType_PlayerInteract) != nullptr ||
+				 pEntity->GetCallbackScript(eGameEntityScriptType_PlayerExamine) != nullptr ||
 				 pEntity->GetHasInteraction()))
 			{
 				mfPickedAreaDist = fDist;
@@ -274,7 +274,7 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 		if(mfPickedDist > fDist)
 		{
 			mfPickedDist = fDist;
-			mpPickedBody = NULL;
+			mpPickedBody = nullptr;
 		}
 	}
 
@@ -557,7 +557,7 @@ cPlayerHealth::cPlayerHealth(cInit *apInit)
 
 	mfTerrorCheckCount =0;
 
-	mpSoundEntry = NULL;
+	mpSoundEntry = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -566,7 +566,7 @@ void cPlayerHealth::Reset()
 {
 	mfTerrorCheckCount =0;
 	if(mpSoundEntry) mpSoundEntry->mpSound->Stop();
-	mpSoundEntry = NULL;
+	mpSoundEntry = nullptr;
 
 	mlTerrorLevel =0;
 }
@@ -580,7 +580,7 @@ void cPlayerHealth::Update(float afTimeStep)
 	if(pPlayer->GetHealth() <= 0)
 	{
 		if(mpSoundEntry) mpSoundEntry->mpSound->Stop();
-		mpSoundEntry = NULL;
+		mpSoundEntry = nullptr;
 
 		mfGfxAlpha -= afTimeStep *2.0f;
 		return;
@@ -758,7 +758,7 @@ cPlayerEarRing::cPlayerEarRing(cInit *apInit,cPlayer *apPlayer)
 	mpInit = apInit;
 	mpPlayer = apPlayer;
 
-	mpSoundEntry = NULL;
+	mpSoundEntry = nullptr;
 	mfTimeCount =0;
 
 	mbDeaf = false;
@@ -773,7 +773,7 @@ void cPlayerEarRing::Reset()
 	if(mpSoundEntry) mpSoundEntry->mpSound->Stop();
 	pSoundHandler->SetVolume(1.0f,0.1f,eSoundDest_World);
 
-	mpSoundEntry = NULL;
+	mpSoundEntry = nullptr;
 	mfTimeCount =0;
 
 	mbDeaf = false;
@@ -805,7 +805,7 @@ void cPlayerEarRing::Update(float afTimeStep)
 			{
 				mpSoundEntry->mfNormalVolumeFadeDest = 0;
 				mpSoundEntry->mfNormalVolumeFadeSpeed = -0.25f;
-				mpSoundEntry = NULL;
+				mpSoundEntry = nullptr;
 			}
 		}
 	}
@@ -850,7 +850,7 @@ void cPlayerEarRing::Stop(bool abStopDirectly)
 	if(abStopDirectly)
 	{
 		if(mpSoundEntry) mpSoundEntry->mpSound->Stop();
-		mpSoundEntry = NULL;
+		mpSoundEntry = nullptr;
 		
 		pSoundHandler->SetVolume(1,5,eSoundDest_World);
 	}
@@ -863,7 +863,7 @@ void cPlayerEarRing::Stop(bool abStopDirectly)
 		{
 			mpSoundEntry->mfNormalVolumeFadeDest = 0;
 			mpSoundEntry->mfNormalVolumeFadeSpeed = -0.25f;
-			mpSoundEntry = NULL;
+			mpSoundEntry = nullptr;
 		}
 	}
 }
@@ -885,7 +885,7 @@ cPlayerLean::cPlayerLean(cInit *apInit, cPlayer *apPlayer)
 	mfMaxMovement = 0.5f;
 	mfMaxRotation = cMath::ToRad(15);
 
-	mpHeadShape = NULL;
+	mpHeadShape = nullptr;
 }
 
 void cPlayerLean::Reset()
@@ -962,8 +962,8 @@ void cPlayerLean::Update(float afTimeStep)
 		cVector3f vPos = vStartPos + pCam->GetRight() * mfMovement;
 		
 		int lCount = 0;
-		while(pPhysicsWorld->CheckShapeWorldCollision(NULL,mpHeadShape,
-			cMath::MatrixTranslate(vPos),NULL,false,true,NULL,false))
+		while(pPhysicsWorld->CheckShapeWorldCollision(nullptr,mpHeadShape,
+			cMath::MatrixTranslate(vPos),nullptr,false,true,nullptr,false))
 		{
 			mfMovement += fReverseMov;
 			mfRotation += fReverseRot;
@@ -1314,7 +1314,7 @@ void cPlayerFlashLight::Reset()
 	mfFlickerTime =0;
 
 	mfRayCastTime = 0;
-	mpClosestBody = NULL;
+	mpClosestBody = nullptr;
 	mfClosestDist = 10000.0f;
 
 	mbDisabled = false;
@@ -1394,10 +1394,10 @@ void cPlayerFlashLight::Update(float afTimeStep)
 							mvStart =vStart;
 							mvEnd = vEnd;
 
-							mpClosestBody = NULL; mfClosestDist = 10000.0f;
+							mpClosestBody = nullptr; mfClosestDist = 10000.0f;
 							pPhysicsWorld->CastRay(this,vStart,vEnd,true,false,false,false);
 
-							if(	mpClosestBody == NULL || mpClosestBody->IsCharacter()==true)
+							if(	mpClosestBody == nullptr || mpClosestBody->IsCharacter()==true)
 							{
 								if(pEnemy->GetUsesTriggers())
 								{
@@ -1666,7 +1666,7 @@ cPlayerFlare::cPlayerFlare(cInit *apInit)
 	mfLightPulse = 1.0f;
 	mfLightPulseAdd = 0.88f;
 
-	mpLight =NULL;
+	mpLight =nullptr;
 
 	Reset();
 }
@@ -1684,14 +1684,14 @@ cPlayerFlare::~cPlayerFlare()
 void cPlayerFlare::Reset()
 {
 	mbActive = false;
-	mpLight =NULL;
+	mpLight =nullptr;
 }
 
 //-----------------------------------------------------------------------
 
 void cPlayerFlare::OnWorldLoad()
 {
-	mpLight =NULL;
+	mpLight =nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -1787,7 +1787,7 @@ void cPlayerFlare::SetActive(bool abX)
 		mfTime =  mpInit->mpGameConfig->GetFloat("Items","FlareGlowTime",1);
 		
 		mpModel = mpInit->mpPlayerHands->GetModel("Flare");
-		mpLight = NULL;
+		mpLight = nullptr;
 	}
 	else
 	{
@@ -1859,7 +1859,7 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 	{
 		tString sFileName = "effect_noise0"+cString::ToString(i);
 		cGfxObject *pObject = mpDrawer->CreateGfxObject(sFileName,"smoke2d");
-		if(pObject==NULL)
+		if(pObject==nullptr)
 		{
 			FatalError("Error loading noise filter!\n");
 		}
@@ -2409,7 +2409,7 @@ void cPlayerHidden::Update(float afTimeStep)
 		
 		mfLight =  GetMaxRGB(mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetAmbientColor());
 		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-		if(pWorld==NULL) return;
+		if(pWorld==nullptr) return;
 		iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
 		cBoundingVolume *pPlayerBV = pCharBody->GetBody()->GetBV();
 
@@ -2562,7 +2562,7 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 {
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-	if(pWorld==NULL) return;
+	if(pWorld==nullptr) return;
 
 
 	/////////////////////////////
@@ -2753,7 +2753,7 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 
 void cPlayerHidden::Reset()
 {
-	mpLight = NULL;
+	mpLight = nullptr;
 
 	mfHiddenOnTime = 1;
 	mfHiddenOffTime = 0.5f;

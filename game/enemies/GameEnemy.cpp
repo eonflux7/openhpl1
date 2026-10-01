@@ -83,7 +83,7 @@ void cLineOfSightRayCallback::Reset()
 	if(gpInit->mpPlayer->GetState() == ePlayerState_Grab)
 		mpGrabBody = gpInit->mpPlayer->GetPushBody();
 	else
-		mpGrabBody = NULL;
+		mpGrabBody = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -199,7 +199,7 @@ bool cEnemyCheckForDoor::CheckDoor(const cVector3f &avStart, const cVector3f &av
 
 static bool BodyCanBeBroken(iPhysicsBody *pBody)
 {
-	if(pBody->GetUserData()== NULL) return false;
+	if(pBody->GetUserData()== nullptr) return false;
 
 	iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 	if(pEntity->GetType() == eGameEntityType_SwingDoor)
@@ -259,7 +259,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 	//States
 	mvStates.resize(100);
-	for(size_t i=0; i < mvStates.size(); ++i) mvStates[i] = NULL;
+	for(size_t i=0; i < mvStates.size(); ++i) mvStates[i] = nullptr;
 	
 	//Player find init
 	mvLastPlayerPos = cVector3f(0,0,0);
@@ -281,10 +281,10 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 	mfPoseCount = 0;
 
 	//TODO: Should not be here
-	mpAStarAir = NULL;
-	mpAStarGround = NULL;
-	mpNodeContainerAir = NULL;
-	mpNodeContainerGround = NULL;
+	mpAStarAir = nullptr;
+	mpAStarGround = nullptr;
+	mpNodeContainerAir = nullptr;
+	mpNodeContainerGround = nullptr;
 
 	//Patroling
 	mlCurrentPatrolNode =0;
@@ -354,7 +354,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 	mfSkipSoundTriggerCount =0;
 		
-	mpCurrentAnimation = NULL;
+	mpCurrentAnimation = nullptr;
 
 	mbAnimationIsSpeedDependant = false;
 	mfAnimationSpeedMul = 1.0f;
@@ -518,7 +518,7 @@ void iGameEnemy::OnWorldLoad()
 	if(mpNodeContainerGround)
 		mpAStarGround = pWorld->CreateAStarHandler(mpNodeContainerGround);
 	else
-		mpAStarGround = NULL;
+		mpAStarGround = nullptr;
 
 	//////////////////////////////////
 	//Set up the body
@@ -867,7 +867,7 @@ void iGameEnemy::ChangeState(int alId)
 		mvStates[mlCurrentState]->OnLeaveState(mvStates[alId]);
 	
 	int lPrevState = mlCurrentState;
-	iGameEnemyState *pPrevState = NULL;
+	iGameEnemyState *pPrevState = nullptr;
 	if(mlCurrentState>=0) pPrevState = mvStates[mlCurrentState];
 	
 	mlCurrentState = alId;
@@ -938,7 +938,7 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 							bool abOverideMoveState)
 {
 	//Check if the animation is already playing.
-	if(	mpCurrentAnimation != NULL && 
+	if(	mpCurrentAnimation != nullptr && 
 		mpCurrentAnimation->GetName() == asName && 
 		mpCurrentAnimation->IsActive() &&
 		mpCurrentAnimation->IsOver()== false)
@@ -947,7 +947,7 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 	}
 
 	cAnimationState *pNewAnim = mpMeshEntity->GetAnimationStateFromName(asName);
-	if(pNewAnim==NULL){
+	if(pNewAnim==nullptr){
 		//Warning("Animation '%s' does not exist!\n",asName.c_str());
 		return;
 	}
@@ -1087,7 +1087,7 @@ void iGameEnemy::OnSetActive(bool abX)
 	{
 		cVector3f vGroundPosition = mpMover->GetCharBody()->GetFeetPosition();
 		mFindGround.GetGround(mpMover->GetCharBody()->GetPosition(),cVector3f(0,-1,0),
-								&vGroundPosition,NULL);
+								&vGroundPosition,nullptr);
 		mpMover->GetCharBody()->SetFeetPosition(vGroundPosition);
 	}
 
@@ -1201,7 +1201,7 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 		
 		if(vNormal != cVector3f(0,1,0))
 		{
-			mFindGround.GetGround(mpMover->GetCharBody()->GetPosition(),vNormal *-1.0f,&vPosition,NULL);
+			mFindGround.GetGround(mpMover->GetCharBody()->GetPosition(),vNormal *-1.0f,&vPosition,nullptr);
 			fDist = cMath::Vector3Dist(mpMover->GetCharBody()->GetPosition(),vPosition);
 			
 			//So there is no warp to the ground.
@@ -1376,7 +1376,7 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 	
 	////////////////////////////////
 	// Override animation
-	if(mbOverideMoveState && mpCurrentAnimation!=NULL)
+	if(mbOverideMoveState && mpCurrentAnimation!=nullptr)
 	{
 		if(mpCurrentAnimation->IsOver())
 		{
@@ -1609,7 +1609,7 @@ void cEntityLoader_GameEnemy::BeforeLoad(TiXmlElement *apRootElem, const cMatrix
 void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 											  cWorld3D *apWorld)
 {
-	iGameEnemy *pEnemy = NULL;
+	iGameEnemy *pEnemy = nullptr;
 
 	tString sSubtype="";
 	tString sName="";
@@ -1711,7 +1711,7 @@ kEndSerialize()
 
 iGameEntity* iGameEnemy_SaveData::CreateEntity()
 {
-	return NULL;	
+	return nullptr;	
 }
 
 //-----------------------------------------------------------------------

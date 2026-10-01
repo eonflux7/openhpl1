@@ -82,8 +82,8 @@ namespace hpl {
 	// RENDER NODE
 	//////////////////////////////////////////////////////////////////////////
 
-	cMemoryPool<iRenderState>* g_poolRenderState = NULL;
-	cMemoryPool<cRenderNode>* g_poolRenderNode = NULL;
+	cMemoryPool<iRenderState>* g_poolRenderState = nullptr;
+	cMemoryPool<cRenderNode>* g_poolRenderNode = nullptr;
 
 	//-----------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ namespace hpl {
 		}
 
 		if(mpState) g_poolRenderState->Release(mpState);
-		mpState = NULL;
+		mpState = nullptr;
 		m_setNodes.clear();
 	}
 
@@ -144,8 +144,8 @@ namespace hpl {
 
 		mpGraphics = apGraphics;
 
-		m_poolRenderState = hplNew( cMemoryPool<iRenderState>, (3000, NULL));
-		m_poolRenderNode = hplNew( cMemoryPool<cRenderNode>, (3000, NULL));
+		m_poolRenderState = hplNew( cMemoryPool<iRenderState>, (3000, nullptr));
+		m_poolRenderNode = hplNew( cMemoryPool<cRenderNode>, (3000, nullptr));
 
 		g_poolRenderState = m_poolRenderState;
 		g_poolRenderNode = m_poolRenderNode;
@@ -161,8 +161,8 @@ namespace hpl {
 		hplDelete(m_poolRenderState);
 		hplDelete(m_poolRenderNode);
 
-		g_poolRenderState = NULL;
-		g_poolRenderNode = NULL;
+		g_poolRenderState = nullptr;
+		g_poolRenderNode = nullptr;
 	}
 
 
@@ -262,7 +262,7 @@ namespace hpl {
 			if(aPassType == eMaterialRenderType_Z) return &mRootNodeDepth;
 			if(aPassType == eMaterialRenderType_Diffuse) return &mRootNodeDiffuse;
 			if(aPassType == eMaterialRenderType_Light) return &mRootNodeLight[alLightNum];
-			return NULL;
+			return nullptr;
 		}
 		else
 		{
@@ -306,10 +306,10 @@ namespace hpl {
 				//If the object uses z pass add to z tree.
 				if(pMat->UsesType(eMaterialRenderType_Z))
 				{
-					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Z, NULL);lPass++)
+					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Z, nullptr);lPass++)
 					{
 						AddToTree(pObject,eRenderListDrawType_Normal,eMaterialRenderType_Z,
-									0,NULL, false,lPass);
+									0,nullptr, false,lPass);
 					}
 				}
 
@@ -344,10 +344,10 @@ namespace hpl {
 				//If it has a diffuse pass, add to the diffuse tree.
 				if(pObject->GetMaterial()->UsesType(eMaterialRenderType_Diffuse))
 				{
-					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Diffuse,NULL);lPass++)
+					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Diffuse,nullptr);lPass++)
 					{
 						AddToTree(pObject,eRenderListDrawType_Normal,
-									eMaterialRenderType_Diffuse,0,NULL, false,lPass);
+									eMaterialRenderType_Diffuse,0,nullptr, false,lPass);
 					}
 				}
 			}

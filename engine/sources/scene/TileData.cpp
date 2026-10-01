@@ -33,14 +33,14 @@ namespace hpl {
 		mpImageManager = apImageManager;
 
 		mvImage.resize(eMaterialTexture_LastEnum);
-		mvImage.assign(mvImage.size(), NULL);
+		mvImage.assign(mvImage.size(), nullptr);
 
 		mvTileSize = avTileSize;
 		mCollisionType = eTileCollisionType_Normal;
 
-		mpMaterial=NULL;
-		mpMesh=NULL;
-		mpCollideMesh=NULL;
+		mpMaterial=nullptr;
+		mpMesh=nullptr;
+		mpCollideMesh=nullptr;
 	}
 
 	//-----------------------------------------------------------------------

@@ -75,7 +75,7 @@ namespace hpl {
 	{
 	public:
 		iPhysicsMaterial(const tString &asName, iPhysicsWorld *apWorld)
-				: msName(asName), mpWorld(apWorld),mpSurfaceData(NULL),
+				: msName(asName), mpWorld(apWorld),mpSurfaceData(nullptr),
 					mbPreloaded(false){}
 		virtual ~iPhysicsMaterial(){}
 

@@ -64,7 +64,7 @@ namespace hpl {
 
 	cWorld3D* cMeshLoaderMSH::LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -93,7 +93,7 @@ namespace hpl {
 		// LOAD SUBMESHES
 		//Load the root
 		TiXmlElement* pSubMeshesRootElem = pRootElem->FirstChildElement("SubMeshes");
-		if(pSubMeshesRootElem ==NULL)
+		if(pSubMeshesRootElem ==nullptr)
 		{
 			Error("No mesh data in XML file '%s'!\n",asFile.c_str());
 			ExitLoad();
@@ -110,7 +110,7 @@ namespace hpl {
 			//////////////////
 			//Set material
 			const char *pMatName = pSubMeshElem->Attribute("material");
-			if(pMatName==NULL){
+			if(pMatName==nullptr){
 				Error("No material found for mesh '%s'\n",asFile.c_str());
 				ExitLoad();
 			}
@@ -369,7 +369,7 @@ namespace hpl {
 
 	void cMeshLoaderMSH::FillVtxArray(float *apArray, const char* apString,int alSize)
 	{
-		if(apString==NULL){
+		if(apString==nullptr){
 			Error("Data is NULL!\n");
 			return;
 		}

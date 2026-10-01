@@ -141,44 +141,44 @@ namespace hpl {
 		cWidgetWindow* CreateWidgetWindow(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											const tWString &asText=_W(""),
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetFrame* CreateWidgetFrame(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											bool abDrawFrame=false,
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetButton* CreateWidgetButton(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											const tWString &asText=_W(""),
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetLabel* CreateWidgetLabel(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											const tWString &asText=_W(""),
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetSlider* CreateWidgetSlider(	eWidgetSliderOrientation aOrientation,
 											const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											int alMaxValue=10,
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetTextBox* CreateWidgetTextBox(const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											const tWString &asText=_W(""),
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetCheckBox* CreateWidgetCheckBox(const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
 											const tWString &asText=_W(""),
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetImage* CreateWidgetImage(const tString &asFile="",
@@ -186,18 +186,18 @@ namespace hpl {
 										const cVector2f &avSize=-1,
 										eGuiMaterial aMaterial = eGuiMaterial_Alpha,
 										bool abAnimate=false,
-										iWidget *apParent=NULL,
+										iWidget *apParent=nullptr,
 										const tString& asName = "" );
 
 		cWidgetListBox* CreateWidgetListBox(const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
-											iWidget *apParent=NULL,
+											iWidget *apParent=nullptr,
 											const tString& asName = "" );
 
 		cWidgetComboBox* CreateWidgetComboBox(const cVector3f &avLocalPos=0,
 												const cVector2f &avSize=0,
 												const tWString &asText=_W(""),
-												iWidget *apParent=NULL,
+												iWidget *apParent=nullptr,
 												const tString& asName = "");
 
 		iWidget *GetWidgetFromName(const tString& asName);

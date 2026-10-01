@@ -461,7 +461,7 @@ void cPlayerState_UseItem::OnUpdate(float afTimeStep)
 	mpPlayer->GetPickRay()->CalculateResults();	
 
 	iPhysicsBody *pBody = mpPlayer->GetPickedBody();
-	iGameEntity *pEntity = NULL;
+	iGameEntity *pEntity = nullptr;
 	if(pBody) pEntity = (iGameEntity*)pBody->GetUserData();
 
 	if(pEntity && mpPlayer->GetPickedDist() <= pEntity->GetMaxInteractDist())
@@ -479,7 +479,7 @@ void cPlayerState_UseItem::OnUpdate(float afTimeStep)
 void cPlayerState_UseItem::OnStartInteract()
 {
 	iPhysicsBody *pBody = mpPlayer->GetPickedBody();
-	iGameEntity *pEntity = NULL;
+	iGameEntity *pEntity = nullptr;
 	if(pBody) pEntity = (iGameEntity*)pBody->GetUserData();
 
 	if(pEntity && mpPlayer->GetPickedDist() <= pEntity->GetMaxExamineDist())
@@ -733,7 +733,7 @@ bool cPlayerState_Message::OnStartInventoryShortCut(int alNum)
 
 cPlayerState_Climb::cPlayerState_Climb(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Climb)
 {
-	mpLadder = NULL;
+	mpLadder = nullptr;
 
 	mfUpSpeed = mpInit->mpGameConfig->GetFloat("Movement_Climb","UpSpeed",0);
 	mfDownSpeed = mpInit->mpGameConfig->GetFloat("Movement_Climb","DownSpeed",0);
@@ -953,7 +953,7 @@ bool cPlayerState_Climb::OnMoveForwards(float afMul, float afTimeStep)
 	cMatrixf mtxPos = cMath::MatrixTranslate(mvCharPosition);
 	cVector3f vNewPos;
 	pWorld->CheckShapeWorldCollision(&vNewPos,pCharBody->GetShape(),mtxPos,
-										pCharBody->GetBody(),false,true,NULL,true);
+										pCharBody->GetBody(),false,true,nullptr,true);
 	if(vNewPos != mtxPos.GetTranslation())
 	{
 		return false;	

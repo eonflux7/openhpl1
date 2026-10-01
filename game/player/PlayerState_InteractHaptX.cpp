@@ -33,7 +33,7 @@ float cPlayerState_GrabHaptX::mfMassDiv = 5.0f;
 
 cPlayerState_GrabHaptX::cPlayerState_GrabHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Grab)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 
 	//Init controllers
 	mGrabPid.SetErrorNum(10);
@@ -657,7 +657,7 @@ void cPlayerState_MoveHaptX_BodyCallback::OnCollide(iPhysicsBody *apBody, iPhysi
 
 cPlayerState_MoveHaptX::cPlayerState_MoveHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Move)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 	mpCallback = hplNew( cPlayerState_MoveHaptX_BodyCallback, (apPlayer, apInit->mpGame->GetStepSize()) );
 }
 
@@ -980,7 +980,7 @@ bool cPlayerState_MoveHaptX::OnStartInventoryShortCut(int alNum)
 
 cPlayerState_PushHaptX::cPlayerState_PushHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Push)
 {
-	mpPushBody = NULL;
+	mpPushBody = nullptr;
 
 	mpHAlignForce = mpInit->mpGame->GetHaptic()->GetLowLevel()->CreateImpulseForce(0);
 	mpHAlignForce->SetActive(false);
@@ -1040,7 +1040,7 @@ void cPlayerState_PushHaptX::OnUpdate(float afTimeStep)
 	iPhysicsBody *pBody = mpPlayer->GetCharacterBody()->GetBody();
 	pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,pBody->GetShape(), 
 										cMath::MatrixTranslate(vPlayerPos),
-										pBody,false, true, NULL,true);
+										pBody,false, true, nullptr,true);
 	
 	mpPlayer->GetCharacterBody()->SetPosition(vNewPos,true);
 

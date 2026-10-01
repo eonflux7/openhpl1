@@ -69,7 +69,7 @@ namespace hpl {
 	bool cMultiImageEntity::Add(tString asName, tString asFile,cVector3f avLocalPos,tFlag alPartId)
 	{
 		cImageEntity* pEntity =  mpScene->GetWorld2D()->CreateImageEntity(asName,asFile);
-		if(pEntity == NULL){
+		if(pEntity == nullptr){
 			FatalError("Couldn't load image entity '%s'\n",asFile.c_str());
 			return false;
 		}
@@ -109,7 +109,7 @@ namespace hpl {
 	cImageEntity* cMultiImageEntity::GetEntity(int alPartId)
 	{
 		tMultiImagePartMapIt PartIt = m_mapEntityParts.find(alPartId);
-		if(PartIt == m_mapEntityParts.end()) return NULL;
+		if(PartIt == m_mapEntityParts.end()) return nullptr;
 
 		return PartIt->second.mvEntity[PartIt->second.mlActiveEntity];
 	}

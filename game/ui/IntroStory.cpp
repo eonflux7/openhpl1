@@ -74,7 +74,7 @@ cIntroImage::cIntroImage()
 {
 	mvCameraPosition = cVector3f(0,0,1);
 
-	mpTexture = NULL;
+	mpTexture = nullptr;
 
 	mvVtxVec.resize(4);
 
@@ -299,7 +299,7 @@ void cIntroImage::OnDraw()
 		mvVtxVec[2] = cVertex(cVector3f(800,600,40),	cVector2f(1,1),cColor(fWhite,1));
 		mvVtxVec[3] = cVertex(cVector3f(0,600,40),cVector2f(0,1),cColor(fWhite,1));
 		
-		mpLowGfx->SetTexture(0, NULL);
+		mpLowGfx->SetTexture(0, nullptr);
 
 		mpLowGfx->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
 
@@ -331,10 +331,10 @@ cIntroStory::cIntroStory(cInit *apInit)  : iUpdateable("StoryIntro")
 		mvImages[i].mpLowGfx = mpLowGfx;
 		mvImages[i].mpTexManager = mpTexManager;
 		mvImages[i].mpInit	= mpInit;
-		mvImages[i].mpTexture = NULL;
+		mvImages[i].mpTexture = nullptr;
 	}
 
-	mpBlackTexture = NULL;
+	mpBlackTexture = nullptr;
 
 	//Load font
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("font_computer.fnt");
@@ -381,7 +381,7 @@ void cIntroStory::SetActive(bool abX)
 		for(int i=0; i<INTRO_IMAGE_NUM; ++i)
 		{
 			mvImages[i].mpTexture = mpTexManager->Create2D("intro_image0"+cString::ToString(i+1),false);
-			if(mvImages[i].mpTexture==NULL){
+			if(mvImages[i].mpTexture==nullptr){
 				FatalError("Couldn't load an intro image!\n");
 			}
 			mvImages[i].mbActive = false;
@@ -407,12 +407,12 @@ void cIntroStory::SetActive(bool abX)
 		for(int i=0; i<INTRO_IMAGE_NUM; ++i)
 		{
 			if(mvImages[i].mpTexture)mpTexManager->Destroy(mvImages[i].mpTexture);
-			mvImages[i].mpTexture = NULL;
+			mvImages[i].mpTexture = nullptr;
 			mvImages[i].mbActive = false;
 		}
 
 		mpTexManager->Destroy(mpBlackTexture);
-		mpBlackTexture = NULL;
+		mpBlackTexture = nullptr;
 	}
 }
 

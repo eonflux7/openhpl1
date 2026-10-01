@@ -45,13 +45,13 @@ namespace hpl {
 		msName = asName;
 		msNodeName = "";
 
-		mpMaterial = NULL;
-		mpVtxBuffer = NULL;
+		mpMaterial = nullptr;
+		mpVtxBuffer = nullptr;
 
 		mbDoubleSided = false;
 
-		mpVertexWeights = NULL;
-		mpVertexBones = NULL;
+		mpVertexWeights = nullptr;
+		mpVertexBones = nullptr;
 
 		m_mtxLocalTransform = cMatrixf::Identity;
 
@@ -220,7 +220,7 @@ namespace hpl {
 	{
 		//Log("--- %s\n",GetName().c_str());
 
-		if(mpVtxBuffer==NULL) return;
+		if(mpVtxBuffer==nullptr) return;
 
 		int lIdxNum = mpVtxBuffer->GetIndexNum();
 

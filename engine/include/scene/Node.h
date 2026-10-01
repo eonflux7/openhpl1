@@ -69,7 +69,7 @@ namespace hpl {
 		cEntityIterator GetEntityIterator();
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData(){return NULL;}
+		virtual iSaveData* CreateSaveData(){return nullptr;}
 		virtual void SaveToSaveData(iSaveData *apSaveData);
 		virtual void LoadFromSaveData(iSaveData *apSaveData);
 		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);

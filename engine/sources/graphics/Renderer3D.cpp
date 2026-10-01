@@ -75,7 +75,7 @@ namespace hpl {
 		mpResources = apResources;
 		mpMeshCreator = apMeshCreator;
 
-		mpSkyBoxTexture = NULL;
+		mpSkyBoxTexture = nullptr;
 		mbAutoDestroySkybox = false;
 		mbSkyBoxActive = false;
 		mSkyBoxColor = cColor(1,1);
@@ -111,7 +111,7 @@ namespace hpl {
 
 		cGpuProgramManager *pProgramManager = apResources->GetGpuProgramManager();
 		mRenderSettings.mpVtxExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_vp.cg","main",eGpuProgramType_Vertex);
-		if(mRenderSettings.mpVtxExtrudeProgram==NULL)
+		if(mRenderSettings.mpVtxExtrudeProgram==nullptr)
 		{
 			Error("Couldn't load 'ShadowExtrude_vp.cg' program! Shadows will be disabled.\n");
 		}
@@ -120,14 +120,14 @@ namespace hpl {
 		if(mpLowLevelGraphics->GetCaps(eGraphicCaps_GL_FragmentProgram))
 			mRenderSettings.mpFragExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_fp.cg","main",eGpuProgramType_Fragment);
 		else
-			mRenderSettings.mpFragExtrudeProgram = NULL;
+			mRenderSettings.mpFragExtrudeProgram = nullptr;
 
 		///////////////////////////////////
 		//Load diffuse program, for stuff like query rendering
 		Log("    Diffuse Vertex\n");
 		mpDiffuseVtxProgram = pProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",
 																eGpuProgramType_Vertex);
-		if(mpDiffuseVtxProgram==NULL)
+		if(mpDiffuseVtxProgram==nullptr)
 		{
 			Error("Couldn't load 'Diffuse_Color_vp.cg'\n");
 		}
@@ -141,7 +141,7 @@ namespace hpl {
 		//Fog Vertex Program Init
 		Log("    Fog\n");
 		mpSolidFogVtxProgram = pProgramManager->CreateProgram("Fog_Solid_vp.cg","main",eGpuProgramType_Vertex);
-		if(mpSolidFogVtxProgram==NULL)
+		if(mpSolidFogVtxProgram==nullptr)
 			Error("Couldn't load 'Fog_Solid_vp.cg'\n");
 
 		mpSolidFogFragProgram = pProgramManager->CreateProgram("Fog_Solid_fp.cg","main",eGpuProgramType_Fragment);
@@ -212,7 +212,7 @@ namespace hpl {
 		mpRefractFragProgram = pProgramManager->CreateProgram("refract_fp.cg","main",eGpuProgramType_Fragment);
 		mpRefractSpecFragProgram = pProgramManager->CreateProgram("refract_special_fp.cg","main",eGpuProgramType_Fragment);
 
-		if(mpRefractFragProgram==NULL || mpRefractVtxProgram==NULL || mpRefractSpecFragProgram==NULL)
+		if(mpRefractFragProgram==nullptr || mpRefractVtxProgram==nullptr || mpRefractSpecFragProgram==nullptr)
 		{
 			mbRefractionAvailable = false;
 			Log("   Refraction will not be supported!\n");
@@ -277,11 +277,11 @@ namespace hpl {
 		mBlendMode = eMaterialBlendMode_None;
 		mChannelMode = eMaterialChannelMode_RGBA;
 
-		mpVertexProgram = NULL;
+		mpVertexProgram = nullptr;
 		mbVertexUseLight = false;
-		mpFragmentProgram = NULL;
+		mpFragmentProgram = nullptr;
 
-		mpSector = NULL;
+		mpSector = nullptr;
 
 		mbUsesLight = false;
 		mbUsesEye = false;
@@ -290,11 +290,11 @@ namespace hpl {
 
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
 		{
-			mpTexture[i] = NULL;
+			mpTexture[i] = nullptr;
 			mTextureBlend[i] = eMaterialBlendMode_None;
 		}
 
-		mpVtxBuffer = NULL;
+		mpVtxBuffer = nullptr;
 	}
 
 	void cRenderSettings::Reset(iLowLevelGraphics *apLowLevel)
@@ -307,7 +307,7 @@ namespace hpl {
 		{
 			if(mpTexture[i])
 			{
-				apLowLevel->SetTexture(i,NULL);
+				apLowLevel->SetTexture(i,nullptr);
 				//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorOp1,eTextureOp_Color);
 				//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorFunc, eTextureFunc_Modulate);
 			}
@@ -584,7 +584,7 @@ namespace hpl {
 		mRenderSettings.mpCamera = apCamera;
 
 		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
-			mpLowLevelGraphics->SetTexture(i,NULL);
+			mpLowLevelGraphics->SetTexture(i,nullptr);
 	}
 
 	//-----------------------------------------------------------------------
@@ -598,7 +598,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderFog(cCamera3D *apCamera)
 	{
-		if(mRenderSettings.mbFogActive==false || mpSolidFogVtxProgram==NULL) return;
+		if(mRenderSettings.mbFogActive==false || mpSolidFogVtxProgram==nullptr) return;
 		int i;
 		//////////////////////////////////
 		//Set textures to NULL
@@ -606,8 +606,8 @@ namespace hpl {
 		{
 			if(mRenderSettings.mpTexture[i])
 			{
-				mpLowLevelGraphics->SetTexture(i,NULL);
-				mRenderSettings.mpTexture[i] = NULL;
+				mpLowLevelGraphics->SetTexture(i,nullptr);
+				mRenderSettings.mpTexture[i] = nullptr;
 			}
 		}
 
@@ -615,7 +615,7 @@ namespace hpl {
 		//////////////////////////////////
 		//Set vertex program
 		if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
-		mRenderSettings.mpVertexProgram = NULL;
+		mRenderSettings.mpVertexProgram = nullptr;
 		mpSolidFogVtxProgram->Bind();
 
 		mpSolidFogVtxProgram->SetColor3f("fogColor",mRenderSettings.mFogColor);
@@ -627,7 +627,7 @@ namespace hpl {
 		//Set fragment program
 		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
 		if(mpSolidFogFragProgram) mpSolidFogFragProgram->Bind();
-		mRenderSettings.mpFragmentProgram = NULL;
+		mRenderSettings.mpFragmentProgram = nullptr;
 
 
 		//////////////////////////////////
@@ -692,19 +692,19 @@ namespace hpl {
 		if(mRenderSettings.mpVertexProgram)
 		{
 			mRenderSettings.mpVertexProgram->UnBind();
-			mRenderSettings.mpVertexProgram = NULL;
+			mRenderSettings.mpVertexProgram = nullptr;
 			if(mbLog) Log(" Setting Vertex program: NULL\n");
 		}
 		if(mRenderSettings.mpFragmentProgram)
 		{
 			mRenderSettings.mpFragmentProgram->UnBind();
-			mRenderSettings.mpFragmentProgram = NULL;
+			mRenderSettings.mpFragmentProgram = nullptr;
 			if(mbLog) Log(" Setting Fragment program: NULL\n");
 		}
 		if(mRenderSettings.mpVtxBuffer)
 		{
 			mRenderSettings.mpVtxBuffer->UnBind();
-			mRenderSettings.mpVtxBuffer = NULL;
+			mRenderSettings.mpVtxBuffer = nullptr;
 			if(mbLog) Log(" Setting Vertex Buffer: NULL\n");
 		}
 
@@ -712,8 +712,8 @@ namespace hpl {
 		{
 			if(mRenderSettings.mpTexture[i])
 			{
-				mpLowLevelGraphics->SetTexture(i,NULL);
-				mRenderSettings.mpTexture[i] = NULL;
+				mpLowLevelGraphics->SetTexture(i,nullptr);
+				mRenderSettings.mpTexture[i] = nullptr;
 				if(mbLog) Log(" Setting Texture %d : NULL\n",i);
 			}
 		}
@@ -752,7 +752,7 @@ namespace hpl {
 		cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
 														eMaterialRenderType_Z, 0);
 
-		mRenderSettings.mpLight = NULL;
+		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 	}
 
@@ -764,7 +764,7 @@ namespace hpl {
 		// Reset any vertex buffers,fragment or vertex programs.
 		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
 
-		mRenderSettings.mpFragmentProgram = NULL;
+		mRenderSettings.mpFragmentProgram = nullptr;
 
 		////////////////////////////
 		// Vertex program
@@ -779,13 +779,13 @@ namespace hpl {
 
 		////////////////////////
 		// Reset texture unit 0
-		mpLowLevelGraphics->SetTexture(0,NULL);
-		mRenderSettings.mpTexture[0] = NULL;
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mRenderSettings.mpTexture[0] = nullptr;
 
 		////////////////////////
 		// Keep track of what has been set
 		iVertexBuffer *pPrevBuffer = mRenderSettings.mpVtxBuffer;
-		cMatrixf *pPrevMatrix = NULL;
+		cMatrixf *pPrevMatrix = nullptr;
 		bool bFirstRound = true;
 		bool bPrevDepthTest = true;
 
@@ -909,7 +909,7 @@ namespace hpl {
 	{
 		cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
 														eMaterialRenderType_Diffuse, 0);
-		mRenderSettings.mpLight = NULL;
+		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 	}
 
@@ -976,16 +976,16 @@ namespace hpl {
 
 			bool bDepthTest = pMaterial->GetDepthTest();
 
-			eMaterialAlphaMode alphaMode = pMaterial->GetAlphaMode(eMaterialRenderType_Diffuse,0,NULL);
+			eMaterialAlphaMode alphaMode = pMaterial->GetAlphaMode(eMaterialRenderType_Diffuse,0,nullptr);
 
-			eMaterialBlendMode blendMode = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,NULL);
+			eMaterialBlendMode blendMode = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
 
-			iGpuProgram *pVtxProgram = pMaterial->GetVertexProgram(eMaterialRenderType_Diffuse,0,NULL);
-			iMaterialProgramSetup* pVtxProgramSetup = pMaterial->GetVertexProgramSetup(eMaterialRenderType_Diffuse,0,NULL);
+			iGpuProgram *pVtxProgram = pMaterial->GetVertexProgram(eMaterialRenderType_Diffuse,0,nullptr);
+			iMaterialProgramSetup* pVtxProgramSetup = pMaterial->GetVertexProgramSetup(eMaterialRenderType_Diffuse,0,nullptr);
 
-			iGpuProgram *pFragProgram = pMaterial->GetFragmentProgram(eMaterialRenderType_Diffuse,0,NULL);
+			iGpuProgram *pFragProgram = pMaterial->GetFragmentProgram(eMaterialRenderType_Diffuse,0,nullptr);
 
-			for(int i=0; i<MAX_TEXTUREUNITS; ++i) vTextures[i] = pMaterial->GetTexture(i,eMaterialRenderType_Diffuse,0,NULL);
+			for(int i=0; i<MAX_TEXTUREUNITS; ++i) vTextures[i] = pMaterial->GetTexture(i,eMaterialRenderType_Diffuse,0,nullptr);
 
 			iVertexBuffer *pVtxBuffer = pObject->GetVertexBuffer();
 
@@ -1066,10 +1066,10 @@ namespace hpl {
 					//NULL all textuer
 					for(int i=0;i<MAX_TEXTUREUNITS;i++)
 					{
-						if(mRenderSettings.mpTexture[i] != NULL)
+						if(mRenderSettings.mpTexture[i] != nullptr)
 						{
-							mpLowLevelGraphics->SetTexture(i, NULL);
-							mRenderSettings.mpTexture[i] = NULL;
+							mpLowLevelGraphics->SetTexture(i, nullptr);
+							mRenderSettings.mpTexture[i] = nullptr;
 
 							if(bLog) Log("    Set texture[%d] NULL\n",i);
 						}
@@ -1153,7 +1153,7 @@ namespace hpl {
 				//////////////////////////////
 				//Set up programs
 				bool bSpecial = false;
-				if(	pMaterial->GetTexture(eMaterialTexture_Specular)!=NULL &&
+				if(	pMaterial->GetTexture(eMaterialTexture_Specular)!=nullptr &&
 					pMaterial->GetRefractionDiffuseTexture() == eMaterialTexture_Diffuse)
 				{
 					bSpecial = true;
@@ -1163,11 +1163,11 @@ namespace hpl {
 				iGpuProgram *pRefractVtxProgram = pMaterial->GetRefractionVertexProgam();
 				iGpuProgram *pRefractFragProgram = pMaterial->GetRefractionFragmentProgam();
 
-				if(pRefractFragProgram==NULL) {
+				if(pRefractFragProgram==nullptr) {
 					if(bSpecial)	pRefractFragProgram = mpRefractSpecFragProgram;
 					else			pRefractFragProgram = mpRefractFragProgram;
 				}
-				if(pRefractVtxProgram==NULL) pRefractVtxProgram = mpRefractVtxProgram;
+				if(pRefractVtxProgram==nullptr) pRefractVtxProgram = mpRefractVtxProgram;
 
 
 
@@ -1235,7 +1235,7 @@ namespace hpl {
 				for(int i=0;i<MAX_TEXTUREUNITS;i++)
 				{
 					//float fTime;
-					iTexture *pTex = NULL;
+					iTexture *pTex = nullptr;
 					switch(i)
 					{
 						case 0: pTex = pScreen; break;
@@ -1274,7 +1274,7 @@ namespace hpl {
 
 				mRenderSettings.mpVtxBuffer = pVtxBuffer;
 
-				if(pMaterial->GetRefractionSkipsStandardTrans() || pMaterial->GetTexture(eMaterialTexture_Diffuse)==NULL)
+				if(pMaterial->GetRefractionSkipsStandardTrans() || pMaterial->GetTexture(eMaterialTexture_Diffuse)==nullptr)
 				{
 					if(bLog) Log("   Skipping normal trans rendering!\n");
 					continue;
@@ -1481,7 +1481,7 @@ namespace hpl {
 			{
 				iRenderable* pObject = objectIt.Next();
 
-				RenderDebugObject(apCamera,pObject,NULL,NULL,NULL,eMaterialRenderType_Diffuse,NULL);
+				RenderDebugObject(apCamera,pObject,nullptr,0,nullptr,eMaterialRenderType_Diffuse,nullptr);
 			}
 
 			//Render debug for lights.

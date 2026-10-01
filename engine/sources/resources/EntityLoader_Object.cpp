@@ -88,8 +88,8 @@ namespace hpl {
 		mvLights.clear();
 		mvBeams.clear();
 
-		mpEntity = NULL;
-		mpMesh = NULL;
+		mpEntity = nullptr;
+		mpMesh = nullptr;
 
 		msFileName = asFileName;
 
@@ -98,8 +98,8 @@ namespace hpl {
 		// Load MAIN
 
 		TiXmlElement* pMainElem = apRootElem->FirstChildElement("MAIN");
-		if(pMainElem==NULL){
-			Error("Couldn't load element MAIN"); return NULL;
+		if(pMainElem==nullptr){
+			Error("Couldn't load element MAIN"); return nullptr;
 		}
 
 		msName = cString::ToString(pMainElem->Attribute("Name"),"");
@@ -112,8 +112,8 @@ namespace hpl {
 		////////////////////////////////////////
 		// Load GRAPHICS
 		TiXmlElement *pGfxElem  = apRootElem->FirstChildElement("GRAPHICS");
-		if(pGfxElem==NULL){
-			Error("Couldn't load element GRAPHICS"); return NULL;
+		if(pGfxElem==nullptr){
+			Error("Couldn't load element GRAPHICS"); return nullptr;
 		}
 
 		//load XML properties
@@ -124,7 +124,7 @@ namespace hpl {
 		bool bAnimationRandStart = cString::ToBool(pGfxElem->Attribute("AnimationRandStart"),true);
 
 		mpMesh = apWorld->GetResources()->GetMeshManager()->CreateMesh(sMeshFile);
-		if(mpMesh==NULL) return NULL;
+		if(mpMesh==nullptr) return nullptr;
 
 
 		////////////////////////////////////////
@@ -138,13 +138,13 @@ namespace hpl {
 		////////////////////////////////////////
 		// Load SUBMESHES
 		TiXmlElement *pSubMeshElem  = apRootElem->FirstChildElement("SUBMESH");
-		for(; pSubMeshElem != NULL; pSubMeshElem = pSubMeshElem->NextSiblingElement("SUBMESH"))
+		for(; pSubMeshElem != nullptr; pSubMeshElem = pSubMeshElem->NextSiblingElement("SUBMESH"))
 		{
 			tString sName = cString::ToString(pSubMeshElem->Attribute("Name"),"");
 			tString sMaterialFile = cString::ToString(pSubMeshElem->Attribute("MaterialFile"),"");
 
 			cSubMeshEntity *pSubEntity = mpEntity->GetSubMeshEntityName(sName);
-			if(pSubEntity==NULL)
+			if(pSubEntity==nullptr)
 			{
 				Warning("Sub mesh '%s' does not exist in mesh '%s'!\n",sName.c_str(),
 					mpMesh->GetName().c_str());
@@ -169,7 +169,7 @@ namespace hpl {
 			mpEntity->ClearAnimations();
 
 			TiXmlElement *pAnimElem = pAnimRootElem->FirstChildElement("Animation");
-			for(; pAnimElem != NULL; pAnimElem = pAnimElem->NextSiblingElement("Animation"))
+			for(; pAnimElem != nullptr; pAnimElem = pAnimElem->NextSiblingElement("Animation"))
 			{
 				tString sFile = cString::ToString(pAnimElem->Attribute("File"),"");
 				tString sName = cString::ToString(pAnimElem->Attribute("Name"),"Unknown");
@@ -188,7 +188,7 @@ namespace hpl {
 					////////////////////////////////
 					//Get Events
 					TiXmlElement* pAnimEventElem = pAnimElem->FirstChildElement("Event");
-					for(; pAnimEventElem != NULL; pAnimEventElem = pAnimEventElem->NextSiblingElement("Event"))
+					for(; pAnimEventElem != nullptr; pAnimEventElem = pAnimEventElem->NextSiblingElement("Event"))
 					{
 						cAnimationEvent *pEvent = pState->CreateEvent();
 
@@ -215,9 +215,9 @@ namespace hpl {
 			////////////////////////////////////
 			// Properties for bodies
 			TiXmlElement *pPhysicsElem  = apRootElem->FirstChildElement("PHYSICS");
-			for(;pPhysicsElem!=NULL; pPhysicsElem = pPhysicsElem->NextSiblingElement("PHYSICS"))
+			for(;pPhysicsElem!=nullptr; pPhysicsElem = pPhysicsElem->NextSiblingElement("PHYSICS"))
 			{
-				iPhysicsBody *pBody = NULL;
+				iPhysicsBody *pBody = nullptr;
 
 				//load XML properties
 				tString sSubName = asName + "_" + cString::ToString(pPhysicsElem->Attribute("SubName"),"");
@@ -256,7 +256,7 @@ namespace hpl {
 				else
 				{
 					pBody = (iPhysicsBody*)STLFindByName(mvBodies, sSubName);
-					if(pBody==NULL){
+					if(pBody==nullptr){
 						Error("Cannot find sub entity '%s' in mesh '%s'\n", sSubName.c_str(),mpMesh->GetName().c_str());
 						continue;
 					}
@@ -277,7 +277,7 @@ namespace hpl {
 			////////////////////////////////////
 			// Properties for joints
 			TiXmlElement *pJointElem  = apRootElem->FirstChildElement("JOINT");
-			for(; pJointElem != NULL; pJointElem = pJointElem->NextSiblingElement("JOINT"))
+			for(; pJointElem != nullptr; pJointElem = pJointElem->NextSiblingElement("JOINT"))
 			{
 				tString sName = asName + "_" + cString::ToString(pJointElem->Attribute("Name"),"");
 
@@ -302,7 +302,7 @@ namespace hpl {
 		else if(mpMesh->GetNodeNum()>0)
 		{
 			//Log("nodes and anim\n");
-			iPhysicsBody *pRootBody=NULL;
+			iPhysicsBody *pRootBody=nullptr;
 
 			bUsingNodeBodies = true;
 
@@ -310,9 +310,9 @@ namespace hpl {
 										a_mtxTransform);
 
 			TiXmlElement *pPhysicsElem  = apRootElem->FirstChildElement("PHYSICS");
-			for(;pPhysicsElem!=NULL; pPhysicsElem = pPhysicsElem->NextSiblingElement("PHYSICS"))
+			for(;pPhysicsElem!=nullptr; pPhysicsElem = pPhysicsElem->NextSiblingElement("PHYSICS"))
 			{
-				iPhysicsBody *pBody = NULL;
+				iPhysicsBody *pBody = nullptr;
 
 				//load XML properties
 				tString sSubName = cString::ToString(pPhysicsElem->Attribute("SubName"),"");
@@ -344,7 +344,7 @@ namespace hpl {
 				else
 				{
 					pBody = (iPhysicsBody*)STLFindByName(mvBodies, sSubName);
-					if(pBody==NULL){
+					if(pBody==nullptr){
 						Error("Cannot find sub entity '%s' in mesh '%s'\n", sSubName.c_str(),mpMesh->GetName().c_str());
 						continue;
 					}
@@ -369,7 +369,7 @@ namespace hpl {
 			if(mpMesh->GetPhysicsJointNum()==1 && mvBodies.size() == 1)
 			{
 				iPhysicsJoint *pJoint = mpMesh->CreateJointInWorld(asName,mpMesh->GetPhysicsJoint(0),
-																NULL, mvBodies[0],a_mtxTransform,
+																nullptr, mvBodies[0],a_mtxTransform,
 																apWorld->GetPhysicsWorld());
 				if(pJoint)
 				{
@@ -394,7 +394,7 @@ namespace hpl {
 			TiXmlElement *pPhysicsElem  = apRootElem->FirstChildElement("PHYSICS");
 			if(pPhysicsElem)
 			{
-				iPhysicsBody *pBody = NULL;
+				iPhysicsBody *pBody = nullptr;
 
 				//load XML properties
 				tString sSubName = cString::ToString(pPhysicsElem->Attribute("SubName"),"");
@@ -522,12 +522,12 @@ namespace hpl {
 
 		//Iterate light elements
 		TiXmlElement *pLightElem  = apRootElem->FirstChildElement("LIGHT");
-		for(;pLightElem!=NULL; pLightElem = pLightElem->NextSiblingElement("LIGHT"))
+		for(;pLightElem!=nullptr; pLightElem = pLightElem->NextSiblingElement("LIGHT"))
 		{
 			tString sName = cString::ToString(pLightElem->Attribute("Name"),"");
 
 			iLight3D *pLight = (iLight3D*)STLFindByName(mvLights,asName+"_"+sName);
-			if(pLight == NULL){
+			if(pLight == nullptr){
 				Error("Couldn't find light %s among entity %s type: %s lights\n",sName.c_str(),	asName.c_str(),	asFileName.c_str());
 				continue;
 			}
@@ -586,22 +586,22 @@ namespace hpl {
 		////////////////////////////////////////
 		//ATTACH BILLBOARDS
 		TiXmlElement* pAttachElem = apRootElem->FirstChildElement("ATTACH_BILLBOARDS");
-		if(pAttachElem!=NULL)
+		if(pAttachElem!=nullptr)
 		{
 			TiXmlElement *pPairElem = pAttachElem->FirstChildElement();
-			for(; pPairElem != NULL; pPairElem = pPairElem->NextSiblingElement())
+			for(; pPairElem != nullptr; pPairElem = pPairElem->NextSiblingElement())
 			{
 				tString sLight = asName + "_"+ cString::ToString(pPairElem->Attribute("Light"),"");
 				tString sBillboard = asName + "_"+ cString::ToString(pPairElem->Attribute("Billboard"),"");
 
 				iLight3D *pLight = apWorld->GetLight(sLight);
-				if(pLight==NULL){
+				if(pLight==nullptr){
 					Warning("Couldn't find light '%s'\n",sLight.c_str());
 					continue;
 				}
 
 				cBillboard *pBillboard = apWorld->GetBillboard(sBillboard);
-				if(pBillboard==NULL){
+				if(pBillboard==nullptr){
 					Warning("Couldn't find billboard '%s'\n",sBillboard.c_str());
 					continue;
 				}
@@ -613,7 +613,7 @@ namespace hpl {
 
 		////////////////////////////////////////
 		// Set matrix on entity if there are no bodies.
-		if((mvBodies.size()<=0 || bUsingNodeBodies) && mpEntity->GetBody()==NULL)
+		if((mvBodies.size()<=0 || bUsingNodeBodies) && mpEntity->GetBody()==nullptr)
 		{
 			mpEntity->SetMatrix(a_mtxTransform);
 
@@ -831,7 +831,7 @@ namespace hpl {
 
 		//Load all controllers
 		TiXmlElement *pControllerElem = pJointElem->FirstChildElement("Controller");
-		for(; pControllerElem != NULL; pControllerElem = pControllerElem->NextSiblingElement("Controller"))
+		for(; pControllerElem != nullptr; pControllerElem = pControllerElem->NextSiblingElement("Controller"))
 		{
 			LoadController(pJoint,apWorld->GetPhysicsWorld(),pControllerElem);
 		}
@@ -841,7 +841,7 @@ namespace hpl {
 
 	ePhysicsControllerType GetControllerType(const char* apString)
 	{
-		if(apString == NULL) return ePhysicsControllerType_LastEnum;
+		if(apString == nullptr) return ePhysicsControllerType_LastEnum;
 
 		tString sName = apString;
 
@@ -855,7 +855,7 @@ namespace hpl {
 
 	static ePhysicsControllerInput GetControllerInput(const char* apString)
 	{
-		if(apString == NULL) return ePhysicsControllerInput_LastEnum;
+		if(apString == nullptr) return ePhysicsControllerInput_LastEnum;
 
 		tString sName = apString;
 
@@ -871,7 +871,7 @@ namespace hpl {
 
 	static ePhysicsControllerOutput GetControllerOutput(const char* apString)
 	{
-		if(apString == NULL) return ePhysicsControllerOutput_LastEnum;
+		if(apString == nullptr) return ePhysicsControllerOutput_LastEnum;
 
 		tString sName = apString;
 
@@ -885,7 +885,7 @@ namespace hpl {
 
 	static ePhysicsControllerAxis GetControllerAxis(const char* apString)
 	{
-		if(apString == NULL) return ePhysicsControllerAxis_LastEnum;
+		if(apString == nullptr) return ePhysicsControllerAxis_LastEnum;
 
 		tString sName = apString;
 
@@ -900,7 +900,7 @@ namespace hpl {
 
 	static ePhysicsControllerEnd GetControllerEnd(const char* apString)
 	{
-		if(apString == NULL) return ePhysicsControllerEnd_Null;
+		if(apString == nullptr) return ePhysicsControllerEnd_Null;
 
 		tString sName = apString;
 
@@ -982,7 +982,7 @@ namespace hpl {
 
 	eAnimationEventType cEntityLoader_Object::GetAnimationEventType(const char* apString)
 	{
-		if(apString == NULL) return eAnimationEventType_LastEnum;
+		if(apString == nullptr) return eAnimationEventType_LastEnum;
 
 		tString sName = apString;
 		sName = cString::ToLowerCase(sName);

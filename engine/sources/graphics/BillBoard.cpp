@@ -63,7 +63,7 @@ namespace hpl {
 
 		mType = eBillboardType_Point;
 
-		mpMaterial = NULL;
+		mpMaterial = nullptr;
 
 		mlLastRenderCount = -1;
 
@@ -277,14 +277,14 @@ namespace hpl {
 		if(mbHaloSourceIsParent)
 		{
 			iRenderable *pParent = static_cast<iRenderable*>(GetEntityParent());
-			if(pParent==NULL)
+			if(pParent==nullptr)
 			{
 				Error("Billboard %s has no parent!\n",msName.c_str());
 				return;
 			}
 
 			iVertexBuffer *pVtxBuffer = pParent->GetVertexBuffer();
-			if(pVtxBuffer==NULL)
+			if(pVtxBuffer==nullptr)
 			{
 				Error("Billboard '%s' parent '%s' as NULL vertex buffer!\n",msName.c_str(),
 																		pParent->GetName().c_str());
@@ -318,7 +318,7 @@ namespace hpl {
 
 	cMatrixf* cBillboard::GetModelMatrix(cCamera3D *apCamera)
 	{
-		if(apCamera==NULL)return &GetWorldMatrix();
+		if(apCamera==nullptr)return &GetWorldMatrix();
 
 		m_mtxTempTransform = GetWorldMatrix();
 		cVector3f vForward, vRight, vUp;
@@ -399,7 +399,7 @@ namespace hpl {
 				TiXmlElement *pRootElem = pDoc->RootElement();
 
 				TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
-				if(pMainElem!=NULL)
+				if(pMainElem!=nullptr)
 				{
 					mType = ToType(pMainElem->Attribute("Type"));
 					tString sMaterial = cString::ToString(pMainElem->Attribute("Material"),"");
@@ -420,7 +420,7 @@ namespace hpl {
 						{
 							tString sSizeVec = cString::ToString(pMainElem->Attribute("HaloSourceSize"),"1 1 1");
 							tFloatVec vSizeValues;
-							cString::GetFloatVec(sSizeVec,vSizeValues,NULL);
+							cString::GetFloatVec(sSizeVec,vSizeValues,nullptr);
 							SetHaloSourceSize(cVector3f(vSizeValues[0],vSizeValues[1],vSizeValues[2]));
 						}
 					}
@@ -513,7 +513,7 @@ namespace hpl {
 
 	eBillboardType cBillboard::ToType(const char* apString)
 	{
-		if(apString==NULL) return eBillboardType_Point;
+		if(apString==nullptr) return eBillboardType_Point;
 
 		tString sType = cString::ToLowerCase(apString);
 
@@ -610,7 +610,7 @@ namespace hpl {
 	{
 		kSaveData_SaveToBegin(cBillboard);
 
-		pData->msMaterial = mpMaterial==NULL ? "" : mpMaterial->GetName();
+		pData->msMaterial = mpMaterial==nullptr ? "" : mpMaterial->GetName();
 
 		kSaveData_SaveTo(mType);
 		kSaveData_SaveTo(mvSize);

@@ -82,7 +82,7 @@ namespace hpl {
 	{
 		if(alSeed==-1)
 		{
-			srand((unsigned)time(NULL) );
+			srand((unsigned)time(nullptr) );
 		}
 		else
 		{
@@ -1583,7 +1583,7 @@ namespace hpl {
 		{
 			cTriEdge &Edge = const_cast<cTriEdge&>(*EdgeIt);
 			const unsigned int *pTri1 = &apIndexArray[Edge.tri1 * 3];
-			const unsigned int *pTri2 = NULL;
+			const unsigned int *pTri2 = nullptr;
 			if(Edge.tri2 >= 0) pTri2 = &apIndexArray[Edge.tri2 * 3];
 
 			if(Edge.tri2 == -1){

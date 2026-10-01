@@ -40,8 +40,8 @@ namespace hpl {
 		mpLowLevelSound = apLowLevelSound;
 		mpResources = apResources;
 
-		mpMainSong = NULL;
-		mpLock  = NULL;
+		mpMainSong = nullptr;
+		mpLock  = nullptr;
 		mbIsPaused = false;
 	}
 
@@ -78,20 +78,20 @@ namespace hpl {
 	{
 		bool bSongIsPlaying = false;
 
-		if(mpLock!=NULL){
+		if(mpLock!=nullptr){
 			mpLock->msFileName = asFileName;
 			mpLock->mfVolume = afVolume;
 			mpLock->mbLoop = abLoop;
 			return true;
 		}
 
-		if(mpMainSong != NULL)
+		if(mpMainSong != nullptr)
 			if(asFileName == mpMainSong->msFileName) bSongIsPlaying = true;
 
 		if(!bSongIsPlaying)
 		{
 			//Put the previous song in the fading queue
-			if(mpMainSong != NULL)
+			if(mpMainSong != nullptr)
 			{
 				mpMainSong->mfVolumeAdd = afFadeStepSize;
 				mlstFadingSongs.push_back(mpMainSong);
@@ -121,7 +121,7 @@ namespace hpl {
 
 			if(LoadAndStart(asFileName, mpMainSong,0,abLoop)==false){
 				hplDelete(mpMainSong);
-				mpMainSong = NULL;
+				mpMainSong = nullptr;
 				return false;
 			}
 		}
@@ -147,7 +147,7 @@ namespace hpl {
 
 	void cMusicHandler::Stop(float afFadeStepSize)
 	{
-		if(mpMainSong==NULL)return;
+		if(mpMainSong==nullptr)return;
 
 		if(afFadeStepSize<0)afFadeStepSize=-afFadeStepSize;
 
@@ -159,14 +159,14 @@ namespace hpl {
 		}
 
 		mlstFadingSongs.push_back(mpMainSong);
-		mpMainSong = NULL;
+		mpMainSong = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cMusicHandler::Pause()
 	{
-		if(mpMainSong != NULL)mpMainSong->mpStream->SetPaused(true);
+		if(mpMainSong != nullptr)mpMainSong->mpStream->SetPaused(true);
 
 		tMusicEntryListIt it = mlstFadingSongs.begin();
 		while(it != mlstFadingSongs.end()){
@@ -181,7 +181,7 @@ namespace hpl {
 
 	void cMusicHandler::Resume()
 	{
-		if(mpMainSong != NULL)mpMainSong->mpStream->SetPaused(false);
+		if(mpMainSong != nullptr)mpMainSong->mpStream->SetPaused(false);
 
 		tMusicEntryListIt it = mlstFadingSongs.begin();
 		while(it != mlstFadingSongs.end()){
@@ -204,14 +204,14 @@ namespace hpl {
 
 	void cMusicHandler::UnLock()
 	{
-		mpLock = NULL;
+		mpLock = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
 
 	tString cMusicHandler::GetCurrentSongName()
 	{
-		if(mpMainSong!=NULL)
+		if(mpMainSong!=nullptr)
 			return mpMainSong->msFileName;
 		else
 			return "";
@@ -221,7 +221,7 @@ namespace hpl {
 
 	float cMusicHandler::GetCurrentSongVolume()
 	{
-		if(mpMainSong!=NULL)
+		if(mpMainSong!=nullptr)
 			return mpMainSong->mfVolume;
 		else
 			return 0;
@@ -240,13 +240,13 @@ namespace hpl {
 	{
 		if(mbIsPaused)return;
 
-		if(mpMainSong != NULL)
+		if(mpMainSong != nullptr)
 		{
 			if(mpMainSong->mpStream->IsPlaying()==false)
 			{
 				hplDelete(mpMainSong->mpStream);
 				hplDelete(mpMainSong);
-				mpMainSong = NULL;
+				mpMainSong = nullptr;
 			}
 			else
 			{
@@ -308,13 +308,13 @@ namespace hpl {
 	bool cMusicHandler::LoadAndStart(const tString& asFileName,cMusicEntry* apSong  ,float afVolume, bool abLoop)
 	{
 		iSoundData* pData = mpResources->GetSoundManager()->CreateSoundData(asFileName,true,abLoop);
-		if(pData==NULL){
+		if(pData==nullptr){
 			Error("Couldn't load music '%s'\n",asFileName.c_str());
 			return false;
 		}
 
 		iSoundChannel *pStream = pData->CreateChannel(256);
-		if(pStream == NULL){
+		if(pStream == nullptr){
 			Error("Couldn't stream music '%s'!\n",asFileName.c_str());
 			return false;
 		}
