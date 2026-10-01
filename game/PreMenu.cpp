@@ -72,7 +72,8 @@ void cPreMenu::LoadConfig()
 	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, ("config/startup.cfg") );
 	if(pXmlDoc->LoadFile()==false){
 		Error("Couldn't load XML document 'config/startup.cfg'\n");
-		hplDelete( pXmlDoc );
+		
+		return;
 	}
 
 	////////////////////////////////////////////////
@@ -80,7 +81,8 @@ void cPreMenu::LoadConfig()
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==NULL){
 		Error("Couldn't load root from XML document 'config/startup.cfg'\n");
-		hplDelete( pXmlDoc );
+		
+		return;
 	}
 
 	////////////////////////////////////////////////
@@ -88,7 +90,8 @@ void cPreMenu::LoadConfig()
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
 	if(pMainElem==NULL){
 		Error("Couldn't load Main element from XML document 'config/startup.cfg'\n");
-		hplDelete( pXmlDoc );
+		
+		return;
 	}
 
 	mbShowText = cString::ToBool(pMainElem->Attribute("ShowText"),false);
@@ -98,7 +101,8 @@ void cPreMenu::LoadConfig()
 	TiXmlElement *pLogosParentElem = pRootElem->FirstChildElement("Logos");
 	if(pLogosParentElem==NULL){
 		Error("Couldn't load Logs element from XML document 'config/startup.cfg'\n");
-		hplDelete( pXmlDoc );
+		
+		return;
 	}
 
 
