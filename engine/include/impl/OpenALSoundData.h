@@ -29,15 +29,15 @@ namespace hpl {
 	{
 	public:
 		cOpenALSoundData(tString asName, bool abStream);
-		~cOpenALSoundData();
+		~cOpenALSoundData() override;
 
-		bool CreateFromFile(const tString &asFile);
+		bool CreateFromFile(const tString &asFile) override;
 
-		iSoundChannel* CreateChannel(int alPriority);
+		iSoundChannel* CreateChannel(int alPriority) override;
 
 		bool IsStream(){ return mbStream;}
 
-		bool IsStereo();
+		bool IsStereo() override;
 
 		cOAL_Sample*	GetSample(){ return ( mpSample ); } //static_cast<cOAL_Sample*> (mpSoundData));}
 		cOAL_Stream*	GetStream(){ return ( mpStream ); } //static_cast<cOAL_Stream*> (mpSoundData));}

@@ -55,14 +55,14 @@ class cGameMessageHandler : public iUpdateable
 friend class cGameMessage;
 public:
 	cGameMessageHandler(cInit *apInit);
-	~cGameMessageHandler();
+	~cGameMessageHandler() override;
 
 	void Add(const tWString& asText);
 	void ShowNext();
 
-	void Update(float afTimeStep);
-	void OnDraw();
-	void Reset();
+	void Update(float afTimeStep) override;
+	void OnDraw() override;
+	void Reset() override;
 
 	void OnWorldLoad();
 	void OnWorldExit();

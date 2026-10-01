@@ -37,7 +37,7 @@ namespace hpl {
 	{
 	public:
 		cParticleSystemData3D(const tString &asName,cResources* apResources,cGraphics *apGraphics);
-		virtual ~cParticleSystemData3D();
+		~cParticleSystemData3D() override;
 
 		cParticleSystem3D* Create(tString asName, cVector3f avSize,const cMatrixf& a_mtxTransform);
 
@@ -45,9 +45,9 @@ namespace hpl {
 
 		void AddEmitterData(iParticleEmitterData *apData);
 
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		iParticleEmitterData* GetEmitterData(int alIdx) const { return mvEmitterData[alIdx]; }
 
@@ -78,8 +78,8 @@ namespace hpl {
 
 		cContainerVec<cSaveData_ParticleEmitter3D> mvEmitters;
 
-		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//----------------------------------------------------
@@ -93,11 +93,11 @@ namespace hpl {
 	public:
 		cParticleSystem3D(	const tString asName,cParticleSystemData3D *apData,
 							cResources *apResources, cGraphics *apGraphics);
-		~cParticleSystem3D();
+		~cParticleSystem3D() override;
 
-		void SetVisible(bool abVisible);
+		void SetVisible(bool abVisible) override;
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
 		bool IsDead();
 		bool IsDying();
@@ -109,7 +109,7 @@ namespace hpl {
 		iParticleEmitter3D* GetEmitter(int alIdx);
 		int GetEmitterNum();
 
-		tString GetEntityType(){ return "ParticleSystem3D"; }
+		tString GetEntityType() override{ return "ParticleSystem3D"; }
 
 		void SetDataName(const tString &asName) {msDataName = asName;}
 		void SetDataSize(const cVector3f &avSize) {mvDataSize = avSize;}
@@ -124,10 +124,10 @@ namespace hpl {
 		cParticleSystemData3D *GetData(){ return mpData;}
 
 		//SaveObject implementation
-		iSaveData* CreateSaveData();
-		void SaveToSaveData(iSaveData *apSaveData);
-		void LoadFromSaveData(iSaveData *apSaveData);
-		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
 		cResources *mpResources;

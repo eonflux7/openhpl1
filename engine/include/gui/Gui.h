@@ -67,7 +67,7 @@ namespace hpl {
 	{
 	public:
 		cGui();
-		~cGui();
+		~cGui() override;
 
 		///////////////////////////////
 		// General
@@ -75,10 +75,10 @@ namespace hpl {
 		void Init(	cResources *apResources, cGraphics* apGraphics,
 					cSound *apSound, cScene *apScene);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
-		void OnPostSceneDraw();
-		void OnPostGUIDraw();
+		void OnPostSceneDraw() override;
+		void OnPostGUIDraw() override;
 
 		iGuiMaterial* GetMaterial(eGuiMaterial aType);
 

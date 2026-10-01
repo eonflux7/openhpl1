@@ -45,10 +45,10 @@ namespace hpl {
 	{
 	public:
 		cEntityLoader_Object(const tString &asName) : iEntity3DLoader(asName){}
-		virtual ~cEntityLoader_Object(){}
+		~cEntityLoader_Object() override{}
 
 		iEntity3D* Load(const tString &asName, TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
-					cWorld3D *apWorld, const tString &asFileName, bool abLoadReferences);
+					cWorld3D *apWorld, const tString &asFileName, bool abLoadReferences) override;
 
 	protected:
 		virtual void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld){};

@@ -72,7 +72,7 @@ class cMeleeRayCallback : public iPhysicsRayCallback
 {
 public:
 	void Reset();
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	iPhysicsBody *mpClosestBody;
 	float mfShortestDist;
@@ -88,16 +88,16 @@ class cHudModel_WeaponMelee : public iHudModel
 public:
 	cHudModel_WeaponMelee();
 
-	void LoadData(TiXmlElement *apRootElem);
+	void LoadData(TiXmlElement *apRootElem) override;
 	
 	void OnAttackDown();
 	void OnAttackUp();
 
 	bool OnMouseMove(const cVector2f &avMovement);
 
-	bool UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep);
+	bool UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep) override;
 	
-	void PostSceneDraw();
+	void PostSceneDraw() override;
 
 	bool IsAttacking();
 
@@ -108,15 +108,15 @@ public:
 
 	cMeleeWeaponAttack* GetAttack(int alX){return  &mvAttacks[alX];}
 private:
-	void ResetExtraData();
+	void ResetExtraData() override;
 
 	void Attack();
 	void HitBody(iPhysicsBody *apBody);
 
 	void PlaySound(const tString &asSound);
 	
-	void LoadExtraEntites();
-	void DestroyExtraEntities();
+	void LoadExtraEntites() override;
+	void DestroyExtraEntities() override;
 
 	bool mbDrawDebug;
 

@@ -38,7 +38,7 @@ public:
 	bool mbDisableObjects;
 	bool mbDisableEnemies;
 		
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -51,11 +51,11 @@ class cGameDamageArea : public iGameEntity
 	friend class cAreaLoader_GameDamageArea;
 public:
 	cGameDamageArea(cInit *apInit,const tString& asName);
-	~cGameDamageArea(void);
+	~cGameDamageArea(void) override;
 
-	void OnPlayerPick();
+	void OnPlayerPick() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	void SetDamage(float afX){ mfDamage = afX;}
 	void SetUpdatesPerSec(float afX){ mfUpdatesPerSec = afX;}
@@ -64,10 +64,10 @@ public:
 	void SetDisableEnemies(bool abX){ mbDisableEnemies = abX;}
 	
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
-	void SetupSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
+	void SetupSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	float mfDamage;
@@ -86,9 +86,9 @@ class cAreaLoader_GameDamageArea : public iArea3DLoader
 
 public:
 	cAreaLoader_GameDamageArea(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameDamageArea();
+	~cAreaLoader_GameDamageArea() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

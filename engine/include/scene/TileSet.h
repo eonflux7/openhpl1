@@ -40,12 +40,12 @@ namespace hpl {
 	{
 	public:
 		cTileSet(tString asName,cGraphics *apGraphics ,cResources *apResources);
-		~cTileSet();
+		~cTileSet() override;
 
 		//resource stuff:
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		void Add(iTileData *apData);
 		iTileData* Get(int alNum);

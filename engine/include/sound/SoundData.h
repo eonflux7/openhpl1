@@ -33,7 +33,7 @@ namespace hpl {
 		iSoundData(tString asName, bool abStream) : iResourceBase(asName, 0),
 		mpSoundManger(nullptr), mbStream(abStream){}
 
-		virtual ~iSoundData(){}
+		~iSoundData() override{}
 
 		virtual bool CreateFromFile(const tString &asFile)=0;
 
@@ -46,9 +46,9 @@ namespace hpl {
 		void SetLoopStream(bool abX){mbLoopStream = abX;}
 		bool GetLoopStream(){ return mbLoopStream;}
 
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		void SetSoundManager(cSoundManager* apSoundManager){
 			mpSoundManger = apSoundManager;

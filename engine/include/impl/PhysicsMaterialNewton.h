@@ -35,19 +35,19 @@ namespace hpl {
 	{
 	public:
 		cPhysicsMaterialNewton(const tString &asName, iPhysicsWorld *apWorld, int alMatId=-1);
-		~cPhysicsMaterialNewton();
+		~cPhysicsMaterialNewton() override;
 
-		void SetElasticity(float afElasticity);
-		float GetElasticity() const;
-		void SetStaticFriction(float afElasticity);
-		float GetStaticFriction() const;
-		void SetKineticFriction(float afElasticity);
-		float GetKineticFriction() const;
+		void SetElasticity(float afElasticity) override;
+		float GetElasticity() const override;
+		void SetStaticFriction(float afElasticity) override;
+		float GetStaticFriction() const override;
+		void SetKineticFriction(float afElasticity) override;
+		float GetKineticFriction() const override;
 
-		void SetFrictionCombMode(ePhysicsMaterialCombMode aMode);
-		ePhysicsMaterialCombMode GetFrictionCombMode() const;
-		void SetElasticityCombMode(ePhysicsMaterialCombMode aMode);
-		ePhysicsMaterialCombMode GetElasticityCombMode() const;
+		void SetFrictionCombMode(ePhysicsMaterialCombMode aMode) override;
+		ePhysicsMaterialCombMode GetFrictionCombMode() const override;
+		void SetElasticityCombMode(ePhysicsMaterialCombMode aMode) override;
+		ePhysicsMaterialCombMode GetElasticityCombMode() const override;
 
 		void UpdateMaterials();
 

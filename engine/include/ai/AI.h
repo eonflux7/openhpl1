@@ -32,10 +32,10 @@ namespace hpl {
 	{
 	public:
 		cAI();
-		~cAI();
+		~cAI() override;
 
-		void Reset();
-		void Update(float afTimeStep);
+		void Reset() override;
+		void Update(float afTimeStep) override;
 
 		void Init();
 

@@ -173,8 +173,8 @@ namespace hpl {
 		cContainerList<cAreaEntity> mlstAreaEntities;
 		cContainerList<cScriptVar> mlstScriptVars;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//-------------------------------------------------------------------

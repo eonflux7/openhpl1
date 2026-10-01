@@ -32,8 +32,8 @@ namespace hpl {
 		float mfMaxAngle;
 		float mfMinAngle;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//-----------------------------------
@@ -47,20 +47,20 @@ namespace hpl {
 		iPhysicsJointHinge(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 			iPhysicsWorld *apWorld,const cVector3f &avPivotPoint)
 			: iPhysicsJoint(asName,apParentBody,apChildBody, apWorld,avPivotPoint){}
-		virtual ~iPhysicsJointHinge(){}
+		~iPhysicsJointHinge() override{}
 
 		virtual void SetMaxAngle(float afAngle)=0;
 		virtual void SetMinAngle(float afAngle)=0;
 		virtual float GetMaxAngle()=0;
 		virtual float GetMinAngle()=0;
 
-		ePhysicsJointType GetType(){ return ePhysicsJointType_Hinge;}
+		ePhysicsJointType GetType() override{ return ePhysicsJointType_Hinge;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		float mfMaxAngle;

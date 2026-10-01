@@ -30,8 +30,8 @@ namespace hpl {
 		kSaveData_ClassInit(cLight3DPoint)
 	public:
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -45,15 +45,15 @@ namespace hpl {
 		cLight3DPoint(tString asName, cResources *apResources);
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
-		cSectorVisibilityContainer* CreateSectorVisibility();
-		void UpdateBoundingVolume();
-		bool CreateClipRect(cRect2l &aCliprect,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
+		cSectorVisibilityContainer* CreateSectorVisibility() override;
+		void UpdateBoundingVolume() override;
+		bool CreateClipRect(cRect2l &aCliprect,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics) override;
 
 	};
 

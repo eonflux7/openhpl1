@@ -40,16 +40,16 @@ namespace hpl {
 	{
 	public:
 		cBody2D(const tString& asName, cMesh2D *apMesh, cVector2f avSize, cCollider2D* apCollider, int alID);
-		~cBody2D();
+		~cBody2D() override;
 
-		const cRect2f& GetBoundingBox();
-		bool UpdateBoundingBox();
+		const cRect2f& GetBoundingBox() override;
+		bool UpdateBoundingBox() override;
 
 		void Move(float afValue);
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
-		tString GetEntityType(){return "Body";};
+		tString GetEntityType() override{return "Body";};
 
 		cVector3f& GetPosition(){ return mvPosition;}
 		cVector3f& GetLastPosition(){ return mvLastPosition;}

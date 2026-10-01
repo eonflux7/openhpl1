@@ -43,7 +43,7 @@ namespace hpl {
 	class cSoundEntityChannelCallback : public iSoundChannelCallback
 	{
 	public:
-		void OnPriorityRelease();
+		void OnPriorityRelease() override;
 
 		cSoundEntity *mpEntity;
 	};
@@ -61,8 +61,8 @@ namespace hpl {
 		bool mbFadingOut;
 		float mfVolume;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -90,7 +90,7 @@ namespace hpl {
 						cSoundEntityManager *apSoundEntityManager,
 						cWorld3D *apWorld,
 						cSoundHandler *apSoundHandler, bool abRemoveWhenOver);
-		~cSoundEntity();
+		~cSoundEntity() override;
 
 		void Play(bool abPlayStart=true);
 		void Stop(bool abPlayEnd=true);
@@ -109,9 +109,9 @@ namespace hpl {
 		cSoundEntry* GetSoundEntry(eSoundEntityType aType);
 
 		//Entity implementation
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
-		tString GetEntityType(){ return "SoundEntity";}
+		tString GetEntityType() override{ return "SoundEntity";}
 
 		cSoundEntityData* GetData(){ return mpData;}
 
@@ -120,10 +120,10 @@ namespace hpl {
 
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
 		bool PlaySound(const tString &asName,bool abLoop,eSoundEntityType aType);

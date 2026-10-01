@@ -31,14 +31,14 @@ namespace hpl {
 	{
 	public:
 		cHaptic(iLowLevelHaptic *apLowLevelHaptic);
-		~cHaptic();
+		~cHaptic() override;
 
 		static void SetIsUsed(bool abX){ cHaptic::mbIsUsed = abX;}
 		static bool GetIsUsed(){ return cHaptic::mbIsUsed;}
 
 		void Init(cResources *apResources);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		iLowLevelHaptic * GetLowLevel(){ return mpLowLevelHaptic;}
 

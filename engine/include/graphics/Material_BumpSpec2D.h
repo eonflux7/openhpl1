@@ -30,21 +30,21 @@ namespace hpl {
 							cImageManager* apImageManager, cTextureManager *apTextureManager,
 							cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 							eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
-		~cMaterial_BumpSpec2D();
+		~cMaterial_BumpSpec2D() override;
 
-		void Compile();
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *apLight);
-		void EndRendering(eMaterialRenderType aType);
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType);
-		bool NextPass(eMaterialRenderType aType);
-		bool HasMultiplePasses(eMaterialRenderType aType);
+		void Compile() override;
+		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *apLight) override;
+		void EndRendering(eMaterialRenderType aType) override;
+		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override;
+		bool NextPass(eMaterialRenderType aType) override;
+		bool HasMultiplePasses(eMaterialRenderType aType) override;
 
-		tTextureTypeList GetTextureTypes();
+		tTextureTypeList GetTextureTypes() override;
 
 
-		eMaterialType GetType(eMaterialRenderType aType);
+		eMaterialType GetType(eMaterialRenderType aType) override;
 		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd);
+			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override;
 
 
 	private:
@@ -54,14 +54,14 @@ namespace hpl {
 	class cMaterialType_BumpSpec2D : public iMaterialType
 	{
 	public:
-		bool IsCorrect(tString asName){
+		bool IsCorrect(tString asName) override{
 			return cString::ToLowerCase(asName)=="bumpspec2d";
 		}
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
-			eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
+			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override
 		{
 			return hplNew( cMaterial_BumpSpec2D, (asName,apLowLevelGraphics,
 								apImageManager,apTextureManager,apRenderer,

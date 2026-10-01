@@ -32,14 +32,14 @@ namespace hpl {
 	{
 	public:
 		cSound(iLowLevelSound *apLowLevelSound);
-		~cSound();
+		~cSound() override;
 
 		void Init(	cResources *apResources, bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 						int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
 						int alMaxMonoSourceHint, int alMaxStereoSourceHint,
 						int alStreamingBufferSize, int alStreamingBufferCount, bool abEnableLowLevelLog, tString asDeviceName);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		iLowLevelSound* GetLowLevel(){ return mpLowLevelSound;}
 		cSoundHandler* GetSoundHandler(){ return mpSoundHandler; }

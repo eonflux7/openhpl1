@@ -84,15 +84,15 @@ class cInit : public iUpdateable
 {
 public:
 	cInit();
-	~cInit();
+	~cInit() override;
 
 	bool Init(tString asCommandLine);
 	void Run();
 	void Exit();
 	
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
 
 	void ResetGame(bool abRunInitScript);
 

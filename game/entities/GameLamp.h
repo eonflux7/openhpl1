@@ -35,7 +35,7 @@ public:
 
 	bool mbFlickering;
 
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //----------------------------------------------
@@ -59,13 +59,13 @@ class cGameLamp :	public iGameEntity
 friend class cEntityLoader_GameLamp;
 public:
 	cGameLamp(cInit *apInit,const tString& asName);
-	~cGameLamp(void);
+	~cGameLamp(void) override;
 
-	void OnPlayerInteract();
-	void OnPlayerPick();
-	bool OnUseItem(cInventoryItem *apItem);
+	void OnPlayerInteract() override;
+	void OnPlayerPick() override;
+	bool OnUseItem(cInventoryItem *apItem) override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	void SetLitChangeCallback(const tString& asCallback){ msLitChangeCallback = asCallback;}
 
@@ -76,9 +76,9 @@ public:
 	void Init();
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	void SetUpFlicker(int alIdx);
@@ -135,11 +135,11 @@ class cEntityLoader_GameLamp : public cEntityLoader_Object
 {
 public:
 	cEntityLoader_GameLamp(const tString &asName, cInit *apInit);
-	~cEntityLoader_GameLamp();
+	~cEntityLoader_GameLamp() override;
 
 private:
-	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
-	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
+	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 	cInit *mpInit;
 };

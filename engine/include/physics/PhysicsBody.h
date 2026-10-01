@@ -93,8 +93,8 @@ namespace hpl {
 		bool mbCollide;
 
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -122,7 +122,7 @@ namespace hpl {
 	#endif
 	public:
 		iPhysicsBody(const tString &asName, iPhysicsWorld *apWorld,iCollideShape *apShape);
-		virtual ~iPhysicsBody();
+		~iPhysicsBody() override;
 
 		void Destroy();
 
@@ -272,13 +272,13 @@ namespace hpl {
 		void DisableAfterSimulation(){ mbDisableAfterSimulation = true;}
 
 		//Entity implementation
-		tString GetEntityType(){ return "Body";}
+		tString GetEntityType() override{ return "Body";}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 		virtual void DeleteLowLevel()=0;
 	protected:

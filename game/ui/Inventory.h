@@ -78,13 +78,13 @@ friend class cInventory;
 public:
 	cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEquip, int alIndex);
 	
-	void OnDraw();
-	void OnMouseOver();
-	void OnMouseDown(eMButton aButton);
-	void OnMouseUp(eMButton aButton);
-	void OnDoubleClick(eMButton aButton);
-	void OnUpdate(float afTimeStep);
-	void OnShortcutDown(int alNum);
+	void OnDraw() override;
+	void OnMouseOver() override;
+	void OnMouseDown(eMButton aButton) override;
+	void OnMouseUp(eMButton aButton) override;
+	void OnDoubleClick(eMButton aButton) override;
+	void OnUpdate(float afTimeStep) override;
+	void OnShortcutDown(int alNum) override;
 
 	cInventoryItem* GetItem(){ return mpItem;}
 	void SetItem(cInventoryItem* apItem){ mpItem = apItem;}
@@ -185,11 +185,11 @@ class cInventoryBattery : public iInventoryWidget
 {
 public:
 	cInventoryBattery(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, float afZ);
-	~cInventoryBattery();
+	~cInventoryBattery() override;
 	
-	void OnDraw();
-	void OnMouseOver();
-	void OnUpdate(float afTimeStep);
+	void OnDraw() override;
+	void OnMouseOver() override;
+	void OnUpdate(float afTimeStep) override;
 
 private:
 	cGfxObject* mpGfxBatteryMeter;
@@ -202,11 +202,11 @@ class cInventoryHealth : public iInventoryWidget
 {
 public:
 	cInventoryHealth(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, float afZ);
-	~cInventoryHealth();
+	~cInventoryHealth() override;
 
-	void OnDraw();
-	void OnMouseOver();
-	void OnUpdate(float afTimeStep);
+	void OnDraw() override;
+	void OnMouseOver() override;
+	void OnUpdate(float afTimeStep) override;
 
 private:
 	cGfxObject* mpGfxFine;
@@ -279,8 +279,8 @@ public:
 	cContainerList<cInventoryPickupCallback> mlstPickupCallbacks;
 	cContainerList<cInventoryCombineCallback> mlstCombineCallbacks;
 
-	virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-	virtual int GetSaveCreatePrio();
+	iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+	int GetSaveCreatePrio() override;
 };
 
 //--------------------------------------------
@@ -291,12 +291,12 @@ class cInventory  : public iUpdateable
 friend class cSaveHandler;
 public:
 	cInventory(cInit *apInit);
-	~cInventory();
+	~cInventory() override;
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
 
 	void SetActive(bool abX);
 	bool IsActive();

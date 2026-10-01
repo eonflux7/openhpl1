@@ -53,12 +53,12 @@ namespace hpl {
 	{
 	public:
 		cAINodeGenerator();
-		~cAINodeGenerator();
+		~cAINodeGenerator() override;
 
 		void Generate(cWorld3D* apWorld,cAINodeGeneratorParams *apParams);
 
 	private:
-		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 		void SaveToFile();
 		void LoadFromFile();

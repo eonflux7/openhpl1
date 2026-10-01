@@ -112,8 +112,8 @@ class cGridMap2D;
 	public:
 		cGridMap2DRectIt(cGridMap2D* apGridMap, cVector2l avPos, cVector2l avSize);
 
-		bool HasNext();
-		iEntity2D* Next();
+		bool HasNext() override;
+		iEntity2D* Next() override;
 
 	private:
 		cGridMap2D* mpGridMap;

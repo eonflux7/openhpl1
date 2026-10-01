@@ -41,7 +41,7 @@ namespace hpl {
 
 		cGLState_ModulateX2Fog() : iGLStateProgram("ModulateX2Fog"){}
 
-		void Bind()
+		void Bind() override
 		{
 			mpLowGfx->SetActiveTextureUnit(1);
 			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Texture);
@@ -51,7 +51,7 @@ namespace hpl {
 			mpLowGfx->SetTextureConstantColor(cColor(0.5,1));
 		}
 
-		void UnBind()
+		void UnBind() override
 		{
 			mpLowGfx->SetActiveTextureUnit(1);
 			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
@@ -62,7 +62,7 @@ namespace hpl {
 		}
 
 	private:
-		void InitData(){}
+		void InitData() override{}
 	};
 
 	static cGLState_ModulateX2Fog gModulateX2Fog;
@@ -78,7 +78,7 @@ namespace hpl {
 	class cFogProgramSetup : public iMaterialProgramSetup
 	{
 	public:
-		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
 			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);

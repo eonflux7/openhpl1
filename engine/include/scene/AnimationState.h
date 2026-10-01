@@ -56,8 +56,8 @@ namespace hpl {
 
 		float mfSpecialEventTime;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//---------------------------------------------
@@ -80,7 +80,7 @@ namespace hpl {
 	public:
 		cAnimationState(cAnimation* apAnimation,const tString &asName,
 						cAnimationManager *apAnimationManager);
-		~cAnimationState();
+		~cAnimationState() override;
 
 		const char* GetName(){ return msName.c_str();}
 
@@ -149,10 +149,10 @@ namespace hpl {
 		void SetFadeStep(float afX){ mfFadeStep = afX;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
 		tString msName;

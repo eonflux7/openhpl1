@@ -29,7 +29,7 @@ namespace hpl {
 	{
 	public:
 		cPhysicsControllerNewton(const tString &asName, iPhysicsWorld *apWorld);
-		~cPhysicsControllerNewton();
+		~cPhysicsControllerNewton() override;
 	};
 };
 #endif // HPL_PHYSICS_CONTROLLER_NEWTON_H

@@ -34,16 +34,16 @@ class iGameEnemyState_Dog_Base : public iGameEnemyState
 public:
 	iGameEnemyState_Dog_Base(int alId, cInit *apInit, iGameEnemy *apEnemy);
 
-	virtual void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	virtual bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	virtual void OnTakeHit(float afDamage);
-	virtual void OnDeath(float afDamage);
-	virtual void OnFlashlight(const cVector3f &avPosition);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	void OnTakeHit(float afDamage) override;
+	void OnDeath(float afDamage) override;
+	void OnFlashlight(const cVector3f &avPosition) override;
 
-	virtual void OnAnimationOver(const tString& asAnimName){}
+	void OnAnimationOver(const tString& asAnimName) override{}
 
-	virtual void OnDraw(){}
-	virtual void OnPostSceneDraw(){}
+	void OnDraw() override{}
+	void OnPostSceneDraw() override{}
 
 protected:
 	cGameEnemy_Dog *mpEnemyDog;
@@ -58,10 +58,10 @@ public:
 	cGameEnemyState_Dog_Idle(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 								iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 };
 
 //-----------------------------------------
@@ -73,16 +73,16 @@ public:
 	cGameEnemyState_Dog_Attention(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	  void OnFlashlight(const cVector3f &avPosition);
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	  void OnFlashlight(const cVector3f &avPosition) override;
 
-	  void OnDraw();
+	  void OnDraw() override;
 private:
 	float mfTime;
 
@@ -99,16 +99,16 @@ public:
 		mbBreakingDoor = false;
 	}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	void OnFlashlight(const cVector3f &avPosition){}
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	void OnFlashlight(const cVector3f &avPosition) override{}
 
-	void OnDraw();
+	void OnDraw() override;
 private:
 	float mfUpdatePathCount;
 	float mfUpdateFreq;
@@ -133,18 +133,18 @@ public:
 	cGameEnemyState_Dog_Attack(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 
-	  void OnPostSceneDraw();
+	  void OnPostSceneDraw() override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 private:
 	float mfDamageTimer;
 	float mfJumpTimer;
@@ -160,18 +160,18 @@ public:
 	cGameEnemyState_Dog_BreakDoor(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 
-	  void OnPostSceneDraw();
+	  void OnPostSceneDraw() override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 private:
 	float mfDamageTimer;
 	float mfStopMoveTimer;
@@ -189,14 +189,14 @@ public:
 	cGameEnemyState_Dog_Flee(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 private:
 	float mfTimer;
 	float mfBackAngle;
@@ -214,17 +214,17 @@ public:
 	cGameEnemyState_Dog_CallBackup(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
 	  //void OnTakeHit(float afDamage){}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 
 private:
 	bool mbCheckAnim;
@@ -239,17 +239,17 @@ public:
 	cGameEnemyState_Dog_KnockDown(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	  void OnTakeHit(float afDamage){}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	  void OnTakeHit(float afDamage) override{}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 
 private:
 	float mfTimer;
@@ -269,15 +269,15 @@ public:
 	cGameEnemyState_Dog_Dead(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	void OnTakeHit(float afDamage){}
-	void OnFlashlight(const cVector3f &avPosition){}
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	void OnTakeHit(float afDamage) override{}
+	void OnFlashlight(const cVector3f &avPosition) override{}
 };
 
 //-----------------------------------------
@@ -289,12 +289,12 @@ public:
 	cGameEnemyState_Dog_Patrol(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 private:
 	bool mbWaiting;
 	bool mbAnimation;
@@ -315,12 +315,12 @@ public:
 										mlKnockCount =0;
 									}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume);
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
 
 	  float mfIdleSoundTime;
 	  float mfHearSoundCount;
@@ -338,10 +338,10 @@ public:
 	cGameEnemyState_Dog_MoveTo(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 								iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
 	  float mfIdleSoundTime;
 	  int mlBreakCount;
@@ -356,13 +356,13 @@ public:
 	cGameEnemyState_Dog_Eat(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 							iGameEnemyState_Dog_Base(alId, apInit,apEnemy){}
 
-	 void OnEnterState(iGameEnemyState *apPrevState);
-	 void OnLeaveState(iGameEnemyState *apNextState);
+	 void OnEnterState(iGameEnemyState *apPrevState) override;
+	 void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	 void OnUpdate(float afTimeStep);
+	 void OnUpdate(float afTimeStep) override;
 	
-	 bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	 void OnSeePlayer(const cVector3f &avPosition, float afChance);
+	 bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	 void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
 
 	 float mfTime;
 };
@@ -373,17 +373,17 @@ class cGameEnemy_Dog : public iGameEnemy
 {
 public:
 	cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
-	~cGameEnemy_Dog();
+	~cGameEnemy_Dog() override;
 	
-	void OnLoad();
+	void OnLoad() override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void ShowPlayer(const cVector3f& avPlayerFeetPos);
+	void ShowPlayer(const cVector3f& avPlayerFeetPos) override;
 
-	bool MoveToPos(const cVector3f& avFeetPos);
+	bool MoveToPos(const cVector3f& avFeetPos) override;
 
-	bool IsFighting();
+	bool IsFighting() override;
 	
 	iCollideShape *GetAttackShape(){ return mpAttackShape;}
 	iCollideShape *GetBreakDoorShape(){ return mpBreakDoorShape;}

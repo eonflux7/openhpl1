@@ -33,23 +33,23 @@ namespace hpl {
 	public:
 		cMouseSDL(cLowLevelInputSDL *apLowLevelInputSDL, iLowLevelGraphics *apLowLevelGraphics);
 
-		bool ButtonIsDown(eMButton);
+		bool ButtonIsDown(eMButton) override;
 
-		void Update();
+		void Update() override;
 
 		/**
 		* \todo Fix so it works and handles screen size
 		* \return
 		*/
-		cVector2f GetAbsPosition();
+		cVector2f GetAbsPosition() override;
 
 		/**
 		 * \todo Fix so it works and handles screen size
 		 * \return
 		 */
-		cVector2f GetRelPosition();
+		cVector2f GetRelPosition() override;
 
-		void Reset();
+		void Reset() override;
 
 		/**
 		 * Sets how much smoothening there will be in the RelPosition.
@@ -59,7 +59,7 @@ namespace hpl {
 		 * \param alBufferSize The number of values recorded
 		 */
 		void SetSmoothProperties(float afMinPercent,
-			float afMaxPercent,unsigned int alBufferSize);
+			float afMaxPercent,unsigned int alBufferSize) override;
 
 	private:
 		cVector2f mvMouseAbsPos;

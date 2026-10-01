@@ -790,7 +790,7 @@ public:
 		mlNum = alNum;
 	}
 	
-	void OnDoubleClick(eMButton aButton)
+	void OnDoubleClick(eMButton aButton) override
 	{
 		if(mlSelected <0) return;
 		
@@ -821,7 +821,7 @@ public:
 		mlNum = alNum;
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lSelected = gpSaveGameList[mlNum]->GetSelectedIndex();
 		if(lSelected <0) return;
@@ -850,7 +850,7 @@ public:
 		mlNum = alNum;
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lSelected = gpSaveGameList[mlNum]->GetSelectedIndex();
 		if(lSelected <0) return;
@@ -878,7 +878,7 @@ public:
 		mlNum = alNum;
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lSelected = gpSaveGameList[mlNum]->GetSelectedIndex();
 		if(lSelected <0) return;
@@ -923,7 +923,7 @@ public:
 	cMainMenuWidget_UseHaptics(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment){msTip = _W("");}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbHasHapticsOnRestart = !mpInit->mbHasHapticsOnRestart;
 
@@ -941,7 +941,7 @@ public:
 	cMainMenuWidget_WeightForceScale(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment){msTip = _W("");}
 
-		void OnMouseDown(eMButton aButton)
+		void OnMouseDown(eMButton aButton) override
 		{
 			float afX = mpInit->mfHapticForceMul;
 			if(aButton == eMButton_Left)
@@ -971,7 +971,7 @@ public:
 	cMainMenuWidget_InteractModeCameraSpeed(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment){msTip = _W("");}
 
-		void OnMouseDown(eMButton aButton)
+		void OnMouseDown(eMButton aButton) override
 		{
 			float afX = mpInit->mpPlayer->GetHapticCamera()->GetInteractModeCameraSpeed();
 			if(aButton == eMButton_Left)
@@ -1001,7 +1001,7 @@ public:
 	cMainMenuWidget_ActionModeCameraSpeed(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment){msTip = _W("");}
 
-		void OnMouseDown(eMButton aButton)
+		void OnMouseDown(eMButton aButton) override
 		{
 			float afX = mpInit->mpPlayer->GetHapticCamera()->GetActionModeCameraSpeed();
 			if(aButton == eMButton_Left)
@@ -1035,7 +1035,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipControlsInvertMouseY");
 	}
 	
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mpButtonHandler->mbInvertMouseY = !mpInit->mpButtonHandler->mbInvertMouseY;
 		gpInvertMouseYText->msText = mpInit->mpButtonHandler->mbInvertMouseY ? kTranslate("MainMenu","On") : 
@@ -1054,7 +1054,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipControlsMouseSensitivity");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		if(aButton == eMButton_Left)
 		{
@@ -1086,7 +1086,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipControlsToggleCrouch");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mpButtonHandler->mbToggleCrouch = !mpInit->mpButtonHandler->mbToggleCrouch;
 		gpToggleCrouchText->msText = mpInit->mpButtonHandler->mbToggleCrouch ? kTranslate("MainMenu","On")
@@ -1111,7 +1111,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipSoundVolume");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		float fVolume = mpInit->mpGame->GetSound()->GetLowLevel()->GetVolume();
 
@@ -1143,7 +1143,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipSoundHardware");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbUseSoundHardware = !mpInit->mbUseSoundHardware;
 
@@ -1166,7 +1166,7 @@ public:
 		mlDevices = OAL_Info_GetOutputDevices();
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lCurrentNum = 0;
 
@@ -1223,7 +1223,7 @@ public:
 		msTip = _W("");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbShowCrossHair = !mpInit->mbShowCrossHair;
 
@@ -1241,7 +1241,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGameFlashText");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbFlashItems = !mpInit->mbFlashItems;
 
@@ -1263,7 +1263,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGameDifficulty");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lCurrent = (int)mpInit->mDifficulty;
 		if(aButton == eMButton_Left)
@@ -1290,7 +1290,7 @@ public:
 	{
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbSimpleWeaponSwing = !mpInit->mbSimpleWeaponSwing;
 		
@@ -1307,7 +1307,7 @@ public:
 	{
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbAllowQuickSave = !mpInit->mbAllowQuickSave;
 
@@ -1325,7 +1325,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGameDisablePersonal");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbDisablePersonalNotes = !mpInit->mbDisablePersonalNotes;
 
@@ -1343,7 +1343,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGameSubtitles");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbSubtitles = !mpInit->mbSubtitles;
 
@@ -1378,7 +1378,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGameLanguage");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		if(aButton  == eMButton_Left)
 		{
@@ -1478,7 +1478,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsGamma");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mfGamma = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetGammaCorrection();
 
@@ -1522,7 +1522,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsNoiseFilter");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		bool bX = mpInit->mpPlayer->GetNoiseFilter()->IsActive();
 		mpInit->mpPlayer->GetNoiseFilter()->SetActive(!bX);
@@ -1546,7 +1546,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsShadows");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		if(aButton == eMButton_Left)
 		{
@@ -1580,7 +1580,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsTextureFilter");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		if(aButton == eMButton_Left)
 		{
@@ -1612,7 +1612,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsTextureAnisotropy");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lX = (int)mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureAnisotropy();
 
@@ -1650,7 +1650,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsFSAA");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lX = mpInit->mlFSAA;
 
@@ -1693,7 +1693,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsDOF");	
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		bool bX = mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled();
 		mpInit->mpEffectHandler->GetDepthOfField()->SetDisabled(!bX);
@@ -1714,7 +1714,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsShaderQuality");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lCurrent = iMaterial::GetQuality();
 		if(aButton == eMButton_Left)
@@ -1747,7 +1747,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsTextureQuality");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		if(aButton == eMButton_Right)
 		{
@@ -1781,7 +1781,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsResolution");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		int lCurrentNum =0;
 
@@ -1827,7 +1827,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsPostEffects");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive();
 		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(!bX);
@@ -1849,7 +1849,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsBloom");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive();
 		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(!bX);
@@ -1871,7 +1871,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsMotionBlur");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive();
 		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(!bX);
@@ -1892,7 +1892,7 @@ public:
 		msTip = kTranslate("MainMenu", "TipGraphicsVSync");
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mbVsync = !mpInit->mbVsync;
 		mpInit->mpGame->GetGraphics()->GetLowLevel()->SetVsyncActive(mpInit->mbVsync);
@@ -1911,7 +1911,7 @@ public:
 	{
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_menu_click",false,1);
 		if(gbMustRestart)
@@ -1962,13 +1962,13 @@ public:
 		mpKeyWidget->UpdateSize();
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		mpKeyWidget->msText = _W(".....");
 		mpInit->mpMainMenu->SetInputToAction(msActionName,mpKeyWidget);
 	}
 
-	void Reset()
+	void Reset() override
 	{
 		iAction *pAction = mpInit->mpGame->GetInput()->GetAction(msActionName);
 		
@@ -2006,7 +2006,7 @@ public:
 	{
 	}
 
-	void OnMouseDown(eMButton aButton)
+	void OnMouseDown(eMButton aButton) override
 	{
 		//Log("Setting deafult keys!\n");
 		mpInit->mpButtonHandler->SetDefaultKeys();

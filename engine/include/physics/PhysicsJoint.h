@@ -142,7 +142,7 @@ namespace hpl {
 	public:
 		iPhysicsJoint(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 						iPhysicsWorld *apWorld,const cVector3f &avPivotPoint);
-		virtual ~iPhysicsJoint();
+		~iPhysicsJoint() override;
 
 		const tString& GetName(){ return msName;}
 
@@ -233,10 +233,10 @@ namespace hpl {
 		cSoundEntity* GetSound(){ return mpSound;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		tString msName;

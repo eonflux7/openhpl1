@@ -74,7 +74,7 @@ class iGameEntity_SaveData : public iSerializable
 {
 	kSerializableClassInit(iGameEntity_SaveData)
 public:
-	virtual ~iGameEntity_SaveData();
+	~iGameEntity_SaveData() override;
 
 	bool mbActive;
 

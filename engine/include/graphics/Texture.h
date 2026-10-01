@@ -96,14 +96,14 @@ namespace hpl {
 				mfFrameTime(1), mAnimMode(eTextureAnimMode_Loop), mlSizeLevel(0), mvMinLevelSize(16,16),
 				mfAnisotropyDegree(1.0f),mFilter(eTextureFilter_Bilinear){}
 
-		virtual ~iTexture(){}
+		~iTexture() override{}
 
 		void SetSizeLevel(unsigned int alLevel){mlSizeLevel = alLevel;}
 		void SetMinLevelSize(const cVector2l& avSize){ mvMinLevelSize = avSize;}
 
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		/**
 		 * Create a texture from a bitmap, work only for 1D, 2D and Rect targets. Doesn't work with render targets.
@@ -145,7 +145,7 @@ namespace hpl {
 		virtual void SetGamma(float afGamma)=0;
 		virtual int GetHandle()=0;
 
-		virtual bool HasAlpha(){return false;}
+		bool HasAlpha() override{return false;}
 
 		virtual void SetWrapS(eTextureWrap aMode)=0;
 		virtual void SetWrapT(eTextureWrap aMode)=0;

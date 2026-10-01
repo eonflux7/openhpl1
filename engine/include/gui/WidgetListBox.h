@@ -32,7 +32,7 @@ namespace hpl {
 	{
 	public:
 		cWidgetListBox(cGuiSet *apSet, cGuiSkin *apSkin);
-		virtual ~cWidgetListBox();
+		~cWidgetListBox() override;
 
 		void SetBackgroundZ(float afZ){mfBackgroundZ = afZ;}
 		float GetBackgroundZ(){ return mfBackgroundZ;}
@@ -43,7 +43,7 @@ namespace hpl {
 	protected:
 		/////////////////////////
 		// Own functions
-		void UpdateProperties();
+		void UpdateProperties() override;
 
 		bool DrawText(iWidget* apWidget,cGuiMessageData& aData);
 		kGuiCalllbackDeclarationEnd(DrawText);
@@ -53,19 +53,19 @@ namespace hpl {
 
 		/////////////////////////
 		// Implemented functions
-		void OnLoadGraphics();
-		void OnInit();
-		void OnChangeSize();
+		void OnLoadGraphics() override;
+		void OnInit() override;
+		void OnChangeSize() override;
 
-		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion);
+		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion) override;
 
-		bool OnMouseMove(cGuiMessageData &aData);
-		bool OnMouseDown(cGuiMessageData &aData);
-		bool OnMouseUp(cGuiMessageData &aData);
-		bool OnMouseEnter(cGuiMessageData &aData);
-		bool OnMouseLeave(cGuiMessageData &aData);
+		bool OnMouseMove(cGuiMessageData &aData) override;
+		bool OnMouseDown(cGuiMessageData &aData) override;
+		bool OnMouseUp(cGuiMessageData &aData) override;
+		bool OnMouseEnter(cGuiMessageData &aData) override;
+		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		bool OnKeyPress(cGuiMessageData &aData);
+		bool OnKeyPress(cGuiMessageData &aData) override;
 
 		/////////////////////////
 		// Data

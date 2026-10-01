@@ -36,7 +36,7 @@ public:
 	tString msClimbUpSound;
 	tString msClimbDownSound;
 
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -49,12 +49,12 @@ class cGameLadder :	public iGameEntity
 	friend class cAreaLoader_GameLadder;
 public:
 	cGameLadder(cInit *apInit,const tString& asName);
-	~cGameLadder(void);
+	~cGameLadder(void) override;
 
-	void OnPlayerPick();
-	void OnPlayerInteract();
+	void OnPlayerPick() override;
+	void OnPlayerInteract() override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
 	void Setup();
 
@@ -77,9 +77,9 @@ public:
 	cVector3f GetStartPosition();
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 private:
 	cVector3f mvForward;
 	float mfMaxY;
@@ -97,9 +97,9 @@ class cAreaLoader_GameLadder : public iArea3DLoader
 
 public:
 	cAreaLoader_GameLadder(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameLadder();
+	~cAreaLoader_GameLadder() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

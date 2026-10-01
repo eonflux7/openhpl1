@@ -29,7 +29,7 @@ namespace hpl {
 	{
 	public:
 		cWidgetTextBox(cGuiSet *apSet, cGuiSkin *apSkin);
-		virtual ~cWidgetTextBox();
+		~cWidgetTextBox() override;
 
 		void SetMaxTextLength(int alLength);
 		int GetMaxTextLength(){return mlMaxCharacters;}
@@ -52,22 +52,22 @@ namespace hpl {
 
 		/////////////////////////
 		// Implemented functions
-		void OnLoadGraphics();
-		void OnChangeSize();
-		void OnChangeText();
+		void OnLoadGraphics() override;
+		void OnChangeSize() override;
+		void OnChangeText() override;
 
-		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion);
+		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion) override;
 
-		bool OnMouseMove(cGuiMessageData &aData);
-		bool OnMouseDown(cGuiMessageData &aData);
-		bool OnMouseDoubleClick(cGuiMessageData &aData);
-		bool OnMouseUp(cGuiMessageData &aData);
-		bool OnMouseEnter(cGuiMessageData &aData);
-		bool OnMouseLeave(cGuiMessageData &aData);
+		bool OnMouseMove(cGuiMessageData &aData) override;
+		bool OnMouseDown(cGuiMessageData &aData) override;
+		bool OnMouseDoubleClick(cGuiMessageData &aData) override;
+		bool OnMouseUp(cGuiMessageData &aData) override;
+		bool OnMouseEnter(cGuiMessageData &aData) override;
+		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		bool OnLostFocus(cGuiMessageData &aData);
+		bool OnLostFocus(cGuiMessageData &aData) override;
 
-		bool OnKeyPress(cGuiMessageData &aData);
+		bool OnKeyPress(cGuiMessageData &aData) override;
 
 		/////////////////////////
 		// Data

@@ -31,9 +31,9 @@ namespace hpl {
 	{
 	public:
 		cScriptManager(cSystem* apSystem,cResources *apResources);
-		~cScriptManager();
+		~cScriptManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		/**
 		 * Create a new script.
 		 * \param asName name of the script.
@@ -41,8 +41,8 @@ namespace hpl {
 		 */
 		iScript* CreateScript(const tString& asName);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 	private:
 		cSystem* mpSystem;

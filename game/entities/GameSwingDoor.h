@@ -36,7 +36,7 @@ public:
 	tString msBreakEntity;
 	tString msBreakPS;
 
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //----------------------------------------------
@@ -58,17 +58,17 @@ class cGameSwingDoor :	public iGameEntity
 friend class cEntityLoader_GameSwingDoor;
 public:
 	cGameSwingDoor(cInit *apInit,const tString& asName);
-	~cGameSwingDoor(void);
+	~cGameSwingDoor(void) override;
 
-	void OnPlayerInteract();
-	void OnPlayerPick();
+	void OnPlayerInteract() override;
+	void OnPlayerPick() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
-	void OnDamage(float afDamage);
-	void OnDeath(float afDamage);
+	void OnDamage(float afDamage) override;
+	void OnDeath(float afDamage) override;
 
-	void BreakAction();
+	void BreakAction() override;
 
 	void SetupBreakObject();
 
@@ -77,9 +77,9 @@ public:
 	void SetLocked(bool abX);
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	std::vector<iPhysicsController*> mvStopControllers;
@@ -98,11 +98,11 @@ class cEntityLoader_GameSwingDoor : public cEntityLoader_Object
 {
 public:
 	cEntityLoader_GameSwingDoor(const tString &asName, cInit *apInit);
-	~cEntityLoader_GameSwingDoor();
+	~cEntityLoader_GameSwingDoor() override;
 
 private:
-	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
-	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
+	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 	cInit *mpInit;
 };

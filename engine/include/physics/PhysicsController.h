@@ -108,8 +108,8 @@ namespace hpl {
 		bool mbActive;
 		bool mbPaused;
 
-		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame){return nullptr;}
-		int GetSaveCreatePrio(){return 0;}
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override{return nullptr;}
+		int GetSaveCreatePrio() override{return 0;}
 	};
 
 	//-------------------------------------------
@@ -127,7 +127,7 @@ namespace hpl {
 	#endif
 	public:
 		iPhysicsController(const tString &asName, iPhysicsWorld *apWorld);
-		virtual ~iPhysicsController();
+		~iPhysicsController() override;
 
 		void Update(float afTimeStep);
 
@@ -183,10 +183,10 @@ namespace hpl {
 		static bool mbUseInputMatrixFix;
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		cVector3f GetInputValue(ePhysicsControllerInput aInput);

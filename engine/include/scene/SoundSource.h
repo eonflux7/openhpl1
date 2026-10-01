@@ -34,11 +34,11 @@ namespace hpl {
 	{
 	public:
 		cSoundSource(const tString& asName,const tString& asSoundName, cSound* apSound, bool abVolatile);
-		~cSoundSource();
+		~cSoundSource() override;
 
-		tString GetEntityType(){ return "SoundSource";}
+		tString GetEntityType() override{ return "SoundSource";}
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
 		bool LoadData(TiXmlElement* apRootElem);
 
@@ -55,8 +55,8 @@ namespace hpl {
 		iSoundChannel* GetSoundChannel(){ return mpSoundChannel;}
 
 
-		const cRect2f& GetBoundingBox();
-		bool UpdateBoundingBox();
+		const cRect2f& GetBoundingBox() override;
+		bool UpdateBoundingBox() override;
 
 		void Stop();
 

@@ -81,7 +81,7 @@ class cLineOfSightRayCallback : public iPhysicsRayCallback
 {
 public:
 	void Reset();
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 	bool Intersected();
 
 private:
@@ -98,7 +98,7 @@ public:
 					cVector3f *apDestPosition, cVector3f *apDestNormal,
 					float afMaxDistance=10);
 	
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 	
 private:
 	bool mbIntersected;
@@ -115,8 +115,8 @@ class cEnemyCheckForDoor : public iPhysicsRayCallback
 public:
 	bool CheckDoor(const cVector3f &avStart, const cVector3f &avEnd);
 	
-	bool BeforeIntersect(iPhysicsBody *pBody);
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool BeforeIntersect(iPhysicsBody *pBody) override;
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 private:
 	bool mbIntersected;
@@ -146,7 +146,7 @@ public:
 	tString msOnAttackCallback;
 	cContainerVec<cEnemyPatrolNode> mvPatrolNodes;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //-----------------------------------------
@@ -198,34 +198,34 @@ class iGameEnemy :	public iGameEntity
 friend class cEntityLoader_GameEnemy;
 public:
 	iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
-	virtual ~iGameEnemy(void);
+	~iGameEnemy(void) override;
 
 	//Special
 	void LoadBaseProperties(TiXmlElement *apGameElem);
 
 	//Actions
-	void OnPlayerInteract();
-	void OnPlayerPick();
+	void OnPlayerInteract() override;
+	void OnPlayerPick() override;
 
 	void Setup(cWorld3D *apWorld);
 
-	void OnWorldLoad();
-	void OnPostLoadScripts();
-	void OnWorldExit();
-	void OnDraw();
-	void OnPostSceneDraw();
+	void OnWorldLoad() override;
+	void OnPostLoadScripts() override;
+	void OnWorldExit() override;
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 	virtual void ExtraPostSceneDraw(){}
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	bool IsLoading(){ return mbLoading;}
 
-	void OnDamage(float afX);
-	void OnDeath(float afX);
+	void OnDamage(float afX) override;
+	void OnDeath(float afX) override;
 
 	void OnFlashlight(const cVector3f &avPos);
 
-	virtual void OnSetActive(bool abX);
+	void OnSetActive(bool abX) override;
 
 	virtual bool MoveToPos(const cVector3f& avFeetPos)=0;
 
@@ -344,9 +344,9 @@ public:
 	virtual void OnLoad()=0;
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 protected:
 
 	void UpdateEnemyPose(float afTimeStep);
@@ -527,11 +527,11 @@ class cEntityLoader_GameEnemy : public cEntityLoader_Object
 
 public:
 	cEntityLoader_GameEnemy(const tString &asName, cInit *apInit);
-	~cEntityLoader_GameEnemy();
+	~cEntityLoader_GameEnemy() override;
 
 private:
-	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
-	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
+	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 	cInit *mpInit;
 };

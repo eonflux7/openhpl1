@@ -47,12 +47,12 @@ namespace hpl {
 	{
 	public:
 		cInput(iLowLevelInput *apLowLevelInput);
-		~cInput();
+		~cInput() override;
 
 		/**
 		 * Updates the input, called by cGame
 		 */
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		/**
 		 * Add a new action.

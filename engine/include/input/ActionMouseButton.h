@@ -32,12 +32,12 @@ namespace hpl {
 	public:
 		cActionMouseButton(tString asName,cInput* apInput, eMButton mButton);
 
-		bool IsTriggerd();
-		float GetValue();
+		bool IsTriggerd() override;
+		float GetValue() override;
 
-		tString GetInputName();
+		tString GetInputName() override;
 
-		tString GetInputType(){return "MouseButton";}
+		tString GetInputType() override{return "MouseButton";}
 
 		eMButton GetButton(){ return mButton;}
 	private:

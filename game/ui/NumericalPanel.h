@@ -74,13 +74,13 @@ class cNumericalPanel : public iUpdateable
 friend class cNumericalButton;
 public:
 	cNumericalPanel(cInit *apInit);
-	~cNumericalPanel();
+	~cNumericalPanel() override;
 	
-	void Reset();
+	void Reset() override;
 	
-	void OnDraw();
+	void OnDraw() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	void SetMousePos(const cVector2f &avPos);
 	void AddMousePos(const cVector2f &avRel);
@@ -92,7 +92,7 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
-	void OnExit();
+	void OnExit() override;
 
 	void AddDigit(int alNum);
 

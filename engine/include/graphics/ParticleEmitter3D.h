@@ -73,8 +73,8 @@ namespace hpl {
 		bool mbDying;
 		float mfFrame;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -96,13 +96,13 @@ namespace hpl {
 	public:
 		iParticleEmitter3D(	tString asName,tMaterialVec* avMaterials,unsigned int alMaxParticles,
 							cVector3f avSize, cGraphics* apGraphics,cResources *apResources);
-		virtual ~iParticleEmitter3D();
+		~iParticleEmitter3D() override;
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
-		void Render(){}
+		void Render() override{}
 
-		eParticleEmitterType GetType(){return eParticleEmitterType_3D;}
+		eParticleEmitterType GetType() override{return eParticleEmitterType_3D;}
 
 		void SetSubDivUV(const cVector2l &avSubDiv);
 
@@ -111,30 +111,30 @@ namespace hpl {
 		void SetSystem(cParticleSystem3D *apSystem){ mpParentSystem = apSystem;}
 
 		//Entity implementation
-		tString GetEntityType(){ return "ParticleEmitter3D"; }
-		bool IsVisible();
-		void SetVisible(bool abVisible){ SetRendered(abVisible); }
+		tString GetEntityType() override{ return "ParticleEmitter3D"; }
+		bool IsVisible() override;
+		void SetVisible(bool abVisible) override{ SetRendered(abVisible); }
 
 		//Renderable implementation
-		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList);
+		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
 
-		iMaterial *GetMaterial();
-		iVertexBuffer* GetVertexBuffer();
+		iMaterial *GetMaterial() override;
+		iVertexBuffer* GetVertexBuffer() override;
 
-		bool IsShadowCaster(){ return false;}
+		bool IsShadowCaster() override{ return false;}
 
-		cBoundingVolume* GetBoundingVolume();
+		cBoundingVolume* GetBoundingVolume() override;
 
-		cMatrixf* GetModelMatrix(cCamera3D *apCamera);
+		cMatrixf* GetModelMatrix(cCamera3D *apCamera) override;
 
-		int GetMatrixUpdateCount(){return GetTransformUpdateCount();}
-		eRenderableType GetRenderType(){ return eRenderableType_Normal;}
+		int GetMatrixUpdateCount() override{return GetTransformUpdateCount();}
+		eRenderableType GetRenderType() override{ return eRenderableType_Normal;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		int mlUpdateCount;

@@ -50,7 +50,7 @@ namespace hpl {
 		iEntity(tString asName) : msName(asName), mbIsVisible(true),
 			mbIsActive(true), mpParentNode(nullptr) {}
 
-		virtual ~iEntity();
+		~iEntity() override;
 
 		virtual tString GetEntityType()=0;
 
@@ -69,10 +69,10 @@ namespace hpl {
 		virtual void SetVisible(bool abVisible){ mbIsVisible = abVisible; }
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		iNode* mpParentNode;

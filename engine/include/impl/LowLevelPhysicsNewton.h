@@ -31,9 +31,9 @@ namespace hpl {
 	{
 	public:
 		cLowLevelPhysicsNewton();
-		~cLowLevelPhysicsNewton();
+		~cLowLevelPhysicsNewton() override;
 
-		iPhysicsWorld* CreateWorld();
+		iPhysicsWorld* CreateWorld() override;
 	};
 };
 #endif // HPL_LOWLEVELPHYSICS_NEWTON_H

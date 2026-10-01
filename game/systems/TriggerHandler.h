@@ -35,7 +35,7 @@ class cGameTrigger : public iEntity3D
 friend class cTriggerHandler;
 public:
 	cGameTrigger();
-	virtual ~cGameTrigger(){}
+	~cGameTrigger() override{}
 	
 	int GetPrio(){ return mlPrio;}
 	float GetTimeCount(){ return mfTimeCount;}
@@ -44,9 +44,9 @@ public:
 	float GetRadius(){ return mfRadius;}
 	void SetRadius(float afX);
 
-	cBoundingVolume* GetBoundingVolume(){ return &mBoundingVolume;}
+	cBoundingVolume* GetBoundingVolume() override{ return &mBoundingVolume;}
 	
-	virtual tString GetEntityType(){ return "GameTrigger"; }
+	tString GetEntityType() override{ return "GameTrigger"; }
 
 protected:
 	int mlPrio;
@@ -65,14 +65,14 @@ class cTriggerHandler : public iUpdateable
 {
 public:
 	cTriggerHandler(cInit *apInit);
-	~cTriggerHandler();
+	~cTriggerHandler() override;
 
 	cGameTrigger* Add(cGameTrigger *apTrigger,eGameTriggerType aType , const cVector3f &avLocalPos,
 												int alPrio, float afTime, float afRadius);
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
 private:
 	cInit *mpInit;
 	cMapHandler *mpMapHandler;

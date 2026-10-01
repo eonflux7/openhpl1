@@ -37,7 +37,7 @@ class cGameObject_SaveData : public iGameEntity_SaveData
 public:
 	eObjectInteractMode mInteractMode;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -48,8 +48,8 @@ class cGameObjectBodyCallback : public iPhysicsBodyCallback
 public:
 	cGameObjectBodyCallback(cInit *apInit, cGameObject *apObject);
 
-	bool OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody);
-	void OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,cPhysicsContactData* apContactData);
+	bool OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody) override;
+	void OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,cPhysicsContactData* apContactData) override;
 
 	cInit *mpInit;
 
@@ -164,25 +164,25 @@ friend class cEntityLoader_GameObject;
 friend class cGameObjectBodyCallback;
 public:
 	cGameObject(cInit *apInit,const tString& asName);
-	~cGameObject(void);
+	~cGameObject(void) override;
 
-	void OnPlayerInteract();
-	void OnPlayerPick();
+	void OnPlayerInteract() override;
+	void OnPlayerPick() override;
 
-	bool IsSaved(){ 
+	bool IsSaved() override{ 
 		if(mDisappearProps.mbActive) return false;
 		return mbIsSaved;
 	}
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
-	void BreakAction();
+	void BreakAction() override;
 
-	void OnDeath(float afDamage);
+	void OnDeath(float afDamage) override;
 
 	bool IsBreakable(){ return mBreakProps.mbActive;}
 
-	void OnPlayerGravityCollide(iCharacterBody *apCharBody, cCollideData *apCollideData);
+	void OnPlayerGravityCollide(iCharacterBody *apCharBody, cCollideData *apCollideData) override;
 
 	void SetInteractMode(eObjectInteractMode aInteractMode);
 	eObjectInteractMode GetInteractMode(){ return mInteractMode;}
@@ -196,9 +196,9 @@ public:
 	void SetupForceOffset();
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 private:
 	void GrabObject();
 
@@ -261,13 +261,13 @@ class cEntityLoader_GameObject : public cEntityLoader_Object
 {
 public:
 	cEntityLoader_GameObject(const tString &asName, cInit *apInit);
-	~cEntityLoader_GameObject();
+	~cEntityLoader_GameObject() override;
 	
 	static eObjectInteractMode ToInteractMode(const char* apString);
 
 private:
-	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
-	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
+	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 	
 	cInit *mpInit;

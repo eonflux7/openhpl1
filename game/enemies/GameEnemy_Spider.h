@@ -34,16 +34,16 @@ class iGameEnemyState_Spider_Base : public iGameEnemyState
 public:
 	iGameEnemyState_Spider_Base(int alId, cInit *apInit, iGameEnemy *apEnemy);
 
-	virtual void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	virtual bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	virtual void OnTakeHit(float afDamage);
-	virtual void OnDeath(float afDamage);
-	virtual void OnFlashlight(const cVector3f &avPosition);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	void OnTakeHit(float afDamage) override;
+	void OnDeath(float afDamage) override;
+	void OnFlashlight(const cVector3f &avPosition) override;
 
-	virtual void OnAnimationOver(const tString& asAnimName){}
+	void OnAnimationOver(const tString& asAnimName) override{}
 
-	virtual void OnDraw(){}
-	virtual void OnPostSceneDraw(){}
+	void OnDraw() override{}
+	void OnPostSceneDraw() override{}
 
 protected:
 	cGameEnemy_Spider *mpEnemySpider;
@@ -58,10 +58,10 @@ public:
 	cGameEnemyState_Spider_Idle(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 								iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
 	//void OnSeePlayer(const cVector3f &avPosition, float afChance){}
 
@@ -80,15 +80,15 @@ public:
 	cGameEnemyState_Spider_Hunt(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
 
-	void OnDraw();
+	void OnDraw() override;
 private:
 	float mfUpdatePathCount;
 	float mfUpdateFreq;
@@ -107,18 +107,18 @@ public:
 	cGameEnemyState_Spider_Attack(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnAnimationOver(const tString &asName);
+	void OnAnimationOver(const tString &asName) override;
 	
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	void OnFlashlight(const cVector3f &avPosition);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	void OnFlashlight(const cVector3f &avPosition) override;
 
 private:
 	float mfDamageTimer;
@@ -135,13 +135,13 @@ public:
 	cGameEnemyState_Spider_Flee(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  void OnFlashlight(const cVector3f &avPosition){}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  void OnFlashlight(const cVector3f &avPosition) override{}
 private:
 	float mfTimer;
 	float mfBackAngle;
@@ -157,16 +157,16 @@ public:
 	cGameEnemyState_Spider_KnockDown(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep);
+	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	  void OnTakeHit(float afDamage){}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	  void OnTakeHit(float afDamage) override{}
 
-	  void OnAnimationOver(const tString &asName);
+	  void OnAnimationOver(const tString &asName) override;
 
 private:
 	float mfTimer;
@@ -182,16 +182,16 @@ public:
 	cGameEnemyState_Spider_Dead(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	iGameEnemyState_Spider_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume){return false;}
-	void OnFlashlight(const cVector3f &avPosition){}
-	void OnTakeHit(float afDamage){}
-	void OnDeath(float afDamage){}
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
+	void OnFlashlight(const cVector3f &avPosition) override{}
+	void OnTakeHit(float afDamage) override{}
+	void OnDeath(float afDamage) override{}
 };
 
 //-----------------------------------------
@@ -200,17 +200,17 @@ class cGameEnemy_Spider : public iGameEnemy
 {
 public:
 	cGameEnemy_Spider(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
-	~cGameEnemy_Spider();
+	~cGameEnemy_Spider() override;
 	
-	void OnLoad();
+	void OnLoad() override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void ShowPlayer(const cVector3f& avPlayerFeetPos);
+	void ShowPlayer(const cVector3f& avPlayerFeetPos) override;
 
-	bool MoveToPos(const cVector3f& avFeetPos);
+	bool MoveToPos(const cVector3f& avFeetPos) override;
 
-	bool IsFighting();
+	bool IsFighting() override;
 	
 	iCollideShape *GetAttackShape(){ return mpAttackShape;}
 	

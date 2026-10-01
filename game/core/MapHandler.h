@@ -140,7 +140,7 @@ class cMapHandlerSoundCallback : public iSoundEntityGlobalCallback
 public:
 	cMapHandlerSoundCallback(cInit *apInit);
 
-	void OnStart(cSoundEntity *apSoundEntity);
+	void OnStart(cSoundEntity *apSoundEntity) override;
 
 private:
 	cInit *mpInit;
@@ -153,7 +153,7 @@ class cMapHandler : public iUpdateable
 friend class cMapHandlerSoundCallback;
 public:
 	cMapHandler(cInit *apInit);
-	~cMapHandler();
+	~cMapHandler() override;
 
 	bool Load(const tString &asFile,const tString& asStartPos);
 	bool LoadSimple(const tString &asFile, bool abLoadEntities);
@@ -168,11 +168,11 @@ public:
 	void DestroyAll();
 
 	void OnWorldLoad();
-	void OnStart();
-	void OnPostSceneDraw();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
+	void OnStart() override;
+	void OnPostSceneDraw() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
 
 	cWorldCache* GetWorldCache(){ return mpWorldCache;}
 

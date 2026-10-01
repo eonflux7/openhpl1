@@ -37,33 +37,33 @@ class cPlayerState_Grab : public iPlayerState
 public:
 	cPlayerState_Grab(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnDraw();
+	void OnDraw() override;
 	
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
-	bool OnJump();
+	bool OnJump() override;
 		
-	void OnStartInteractMode();
+	void OnStartInteractMode() override;
 	
-	void OnStartInteract();
-	void OnStopInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
+	void OnStartExamine() override;
 	
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 	
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	void OnStartCrouch();
-	void OnStopCrouch();
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 
 	static float mfMassDiv;
 private:
@@ -129,8 +129,8 @@ class cPlayerState_Move_BodyCallback : public iPhysicsBodyCallback
 public:
 	cPlayerState_Move_BodyCallback(cPlayer *apPlayer, float afTimeStep);
 	
-	bool OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody);
-	void OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,cPhysicsContactData* apContactData);
+	bool OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody) override;
+	void OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,cPhysicsContactData* apContactData) override;
 	
 	float mfTimeStep;
 	int mlBackCount;
@@ -144,30 +144,30 @@ class cPlayerState_Move : public iPlayerState
 {
 public:
 	cPlayerState_Move(cInit *apInit,cPlayer *apPlayer);
-	~cPlayerState_Move();
+	~cPlayerState_Move() override;
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnStartInteract();
-	void OnStopInteract();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
 	
-	bool OnJump();
+	bool OnJump() override;
 	
-	void OnStartExamine();
+	void OnStartExamine() override;
 	
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 	
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 
 private:
 	cVector3f mvForward;
@@ -198,24 +198,24 @@ class cPlayerState_Push : public iPlayerState
 public:
 	cPlayerState_Push(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
-	bool OnJump();
+	void OnUpdate(float afTimeStep) override;
+	bool OnJump() override;
 	
-	void OnStartInteract();
-	void OnStopInteract();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
 	
-	void OnStartExamine();
+	void OnStartExamine() override;
 	
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 
 private:
 	cVector3f mvForward;

@@ -55,7 +55,7 @@ namespace hpl {
 		cCharacterBodyRay();
 
 		void Clear();
-		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 		float mfMinDist;
 		bool mbCollide;
@@ -68,7 +68,7 @@ namespace hpl {
 	public:
 		cCharacterBodyCollideGravity();
 
-		void OnCollision(iPhysicsBody *apBody, cCollideData *apCollideData);
+		void OnCollision(iPhysicsBody *apBody, cCollideData *apCollideData) override;
 
 		iCharacterBody *mpCharBody;
 	};
@@ -80,7 +80,7 @@ namespace hpl {
 	public:
 		cCharacterBodyCollidePush();
 
-		void OnCollision(iPhysicsBody *apBody, cCollideData *apCollideData);
+		void OnCollision(iPhysicsBody *apBody, cCollideData *apCollideData) override;
 
 		iCharacterBody *mpCharBody;
 	};
@@ -143,8 +143,8 @@ namespace hpl {
 
 		cContainerList<int> mvExtraBodyIds;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------------
@@ -158,7 +158,7 @@ namespace hpl {
 	friend class cCharacterBodyCollideGravity;
 	public:
 		iCharacterBody(const tString &asName, iPhysicsWorld *apWorld, const cVector3f avSize);
-		virtual ~iCharacterBody();
+		~iCharacterBody() override;
 
 		const tString& GetName(){ return msName;}
 
@@ -320,10 +320,10 @@ namespace hpl {
 
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 

@@ -41,10 +41,10 @@ namespace hpl {
 		cCollideShapeNewton(eCollideShapeType aType, const cVector3f &avSize,
 							cMatrixf* apOffsetMtx,NewtonWorld* apNewtonWorld,
 							iPhysicsWorld *apWorld);
-		~cCollideShapeNewton();
+		~cCollideShapeNewton() override;
 
-		iCollideShape* GetSubShape(int alIdx);
-		int GetSubShapeNum();
+		iCollideShape* GetSubShape(int alIdx) override;
+		int GetSubShapeNum() override;
 
 		cVector3f GetInertia(float afMass);
 

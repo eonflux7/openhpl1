@@ -38,7 +38,7 @@ namespace hpl {
 	class cFogWaterProgramSetup : public iMaterialProgramSetup
 	{
 	public:
-		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
 			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);
@@ -55,7 +55,7 @@ namespace hpl {
 	class cWaterProgramSetup : public iMaterialProgramSetup
 	{
 	public:
-		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			apProgram->SetFloat("timeCount",mfTime);
 		}

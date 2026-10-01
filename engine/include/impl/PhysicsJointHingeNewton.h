@@ -29,19 +29,19 @@ namespace hpl {
 	public:
 		cPhysicsJointHingeNewton(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 			iPhysicsWorld *apWorld,const cVector3f &avPivotPoint, const cVector3f avPinDir);
-		~cPhysicsJointHingeNewton();
+		~cPhysicsJointHingeNewton() override;
 
-		void SetMaxAngle(float afAngle);
-		void SetMinAngle(float afAngle);
-		float GetMaxAngle();
-		float GetMinAngle();
+		void SetMaxAngle(float afAngle) override;
+		void SetMinAngle(float afAngle) override;
+		float GetMaxAngle() override;
+		float GetMinAngle() override;
 
-		cVector3f GetVelocity();
-		cVector3f GetAngularVelocity();
-		cVector3f GetForce();
+		cVector3f GetVelocity() override;
+		cVector3f GetAngularVelocity() override;
+		cVector3f GetForce() override;
 
-		float GetDistance();
-		float GetAngle();
+		float GetDistance() override;
+		float GetAngle() override;
 
 	private:
 		float mfPreviousAngle;

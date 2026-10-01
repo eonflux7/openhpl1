@@ -30,38 +30,38 @@ namespace hpl {
 	{
 	public:
 		cOpenALSoundChannel(iSoundData* apData, int alChannel, cSoundManager* apSoundManger);
-		~cOpenALSoundChannel();
+		~cOpenALSoundChannel() override;
 
-		void Play();
-		void Stop();
+		void Play() override;
+		void Stop() override;
 
-		void SetPaused(bool abX);
-		void SetSpeed(float afSpeed);
-		void SetVolume (float afVolume);
-		void SetLooping (bool abLoop);
-		void SetPan (float afPan);
-		void Set3D(bool ab3D);
+		void SetPaused(bool abX) override;
+		void SetSpeed(float afSpeed) override;
+		void SetVolume (float afVolume) override;
+		void SetLooping (bool abLoop) override;
+		void SetPan (float afPan) override;
+		void Set3D(bool ab3D) override;
 
-		void SetPriority(int alX);
-		int GetPriority();
+		void SetPriority(int alX) override;
+		int GetPriority() override;
 
-		void SetPositionRelative(bool abRelative);
-		void SetPosition(const cVector3f &avPos);
-		void SetVelocity(const cVector3f &avVel);
+		void SetPositionRelative(bool abRelative) override;
+		void SetPosition(const cVector3f &avPos) override;
+		void SetVelocity(const cVector3f &avVel) override;
 
-		void SetMinDistance(float fMin);
-		void SetMaxDistance(float fMax);
+		void SetMinDistance(float fMin) override;
+		void SetMaxDistance(float fMax) override;
 
-		bool IsPlaying();
+		bool IsPlaying() override;
 
-		bool IsBufferUnderrun() { return OAL_Source_IsBufferUnderrun(mlChannel);}
-		double GetElapsedTime()	{ return OAL_Source_GetElapsedTime(mlChannel);}
-		double GetTotalTime()	{ return OAL_Source_GetTotalTime(mlChannel);}
+		bool IsBufferUnderrun() override { return OAL_Source_IsBufferUnderrun(mlChannel);}
+		double GetElapsedTime() override	{ return OAL_Source_GetElapsedTime(mlChannel);}
+		double GetTotalTime() override	{ return OAL_Source_GetTotalTime(mlChannel);}
 
-		void SetAffectedByEnv(bool abAffected);
-		void SetFiltering ( bool abEnabled, int alFlags);
-		void SetFilterGain(float afGain);
-		void SetFilterGainHF(float afGainHF);
+		void SetAffectedByEnv(bool abAffected) override;
+		void SetFiltering ( bool abEnabled, int alFlags) override;
+		void SetFilterGain(float afGain) override;
+		void SetFilterGainHF(float afGainHF) override;
 
 	private:
 		int mlChannel;

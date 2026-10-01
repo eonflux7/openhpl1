@@ -88,7 +88,7 @@ namespace hpl {
 	public:
 		cPortalContainerCallback(cPortalContainer *apContainer);
 
-		void OnTransformUpdate(iEntity3D * apEntity);
+		void OnTransformUpdate(iEntity3D * apEntity) override;
 
 	private:
 		cPortalContainer *mpContainer;
@@ -101,7 +101,7 @@ namespace hpl {
 	public:
 		cPortalContainerEntityCallback(cPortalContainer *apContainer);
 
-		void OnTransformUpdate(iEntity3D * apEntity);
+		void OnTransformUpdate(iEntity3D * apEntity) override;
 
 	private:
 		cPortalContainer *mpContainer;
@@ -231,21 +231,21 @@ namespace hpl {
 	friend class cPortalContainerEntityIterator;
 	public:
 		cPortalContainer();
-		~cPortalContainer();
+		~cPortalContainer() override;
 
 		bool AddEntity(iEntity3D *pEntity);
 		bool RemoveEntity(iEntity3D *pEntity);
 
-		bool Add(iRenderable *apRenderable, bool abStatic);
-		bool Remove(iRenderable *apRenderable);
+		bool Add(iRenderable *apRenderable, bool abStatic) override;
+		bool Remove(iRenderable *apRenderable) override;
 
 		void AddLightShadowCasters(iLight3D* apLight,cFrustum* apFrustum,cRenderList *apRenderList);
 
 		void AddToRenderList(iRenderable *apObject,cFrustum* apFrustum,cRenderList *apRenderList);
 
-		void GetVisible(cFrustum* apFrustum,cRenderList *apRenderList);
+		void GetVisible(cFrustum* apFrustum,cRenderList *apRenderList) override;
 
-		void Compile();
+		void Compile() override;
 
 		//Portal Specific Stuff
 		/**

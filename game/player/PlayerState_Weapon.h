@@ -37,37 +37,37 @@ class cPlayerState_Throw : public iPlayerState
 public:
 	cPlayerState_Throw(cInit *apInit,cPlayer *apPlayer);
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnDraw();
-	void OnPostSceneDraw();
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 
-	bool OnJump();
+	bool OnJump() override;
 
-	void OnStartInteractMode();
+	void OnStartInteractMode() override;
 
-	void OnStartInteract();
-	void OnStopInteract();
-	void OnStartExamine();
-	void OnStartHolster();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
+	void OnStartExamine() override;
+	void OnStartHolster() override;
 
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 
-	void OnStartRun();
-	void OnStopRun();
+	void OnStartRun() override;
+	void OnStopRun() override;
 
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 
 	void SetHudObject(cHudModel_Throw* apHudObject){ mpHudObject = apHudObject;}
 
@@ -91,37 +91,37 @@ public:
 	
 	cPlayerState_WeaponMelee(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnDraw();
-	void OnPostSceneDraw();
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 	
-	bool OnJump();
+	bool OnJump() override;
 	
-	void OnStartInteractMode();
+	void OnStartInteractMode() override;
 	
-	void OnStartInteract();
-	void OnStopInteract();
-	void OnStartExamine();
-	void OnStartHolster();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
+	void OnStartExamine() override;
+	void OnStartHolster() override;
 	
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 	
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	void OnStartRun();
-	void OnStopRun();
+	void OnStartRun() override;
+	void OnStopRun() override;
 	
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 	
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 
 	void SetHudWeapon(cHudModel_WeaponMelee* apHudWeapon){ mpHudWeapon = apHudWeapon;}
 

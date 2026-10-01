@@ -102,8 +102,8 @@ namespace hpl {
 		void Reset();
 		void SetFlags(tAIFreePathFlag aFlags){ mFlags = aFlags;}
 
-		bool BeforeIntersect(iPhysicsBody *pBody);
-		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+		bool BeforeIntersect(iPhysicsBody *pBody) override;
+		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 		bool Intersected();
 

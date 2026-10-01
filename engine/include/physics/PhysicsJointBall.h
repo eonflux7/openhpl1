@@ -33,8 +33,8 @@ namespace hpl {
 		float mfMaxTwistAngle;
 		cVector3f mvConePin;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//-----------------------------------
@@ -48,7 +48,7 @@ namespace hpl {
 		iPhysicsJointBall(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 			iPhysicsWorld *apWorld, const cVector3f &avPivotPoint)
 			: iPhysicsJoint(asName,apParentBody,apChildBody, apWorld,avPivotPoint){}
-		virtual ~iPhysicsJointBall(){}
+		~iPhysicsJointBall() override{}
 
 		virtual void SetConeLimits(const cVector3f& avPin, float afMaxConeAngle, float afMaxTwistAngle)=0;
 		virtual cVector3f GetAngles()=0;
@@ -57,13 +57,13 @@ namespace hpl {
 		float GetMaxTwistAngle(){ return mfMaxTwistAngle;}
 		cVector3f GetConePin(){ return mvConePin;}
 
-		ePhysicsJointType GetType(){ return ePhysicsJointType_Ball;}
+		ePhysicsJointType GetType() override{ return ePhysicsJointType_Ball;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		float mfMaxConeAngle;

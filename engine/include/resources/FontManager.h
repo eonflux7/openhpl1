@@ -32,9 +32,9 @@ namespace hpl {
 	{
 	public:
 		cFontManager(cGraphics* apGraphics,cGui *apGui,cResources *apResources);
-		~cFontManager();
+		~cFontManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		/**
 		 * Create a new font
 		 * \param asName name of the font
@@ -46,8 +46,8 @@ namespace hpl {
 		iFontData* CreateFontData(const tString& asName, int alSize=16,unsigned short alFirstChar=32,
 								unsigned short alLastChar=255);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 	private:
 		cGraphics* mpGraphics;

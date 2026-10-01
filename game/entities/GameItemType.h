@@ -71,9 +71,9 @@ class cGameItemType_Normal : public cGameItemType
 public:
 	cGameItemType_Normal(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
-	void OnUse(cInventoryItem *apItem, iGameEntity *apEntity);
+	void OnUse(cInventoryItem *apItem, iGameEntity *apEntity) override;
 };
 
 //----------------------------------------------
@@ -84,10 +84,10 @@ class cGameItemType_Notebook : public cGameItemType
 public:
 	cGameItemType_Notebook(cInit *apInit);
 	
-	bool OnPickUp(cInventoryItem *apItem, bool abInGame);
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
-	tString GetShortCutAction(cInventoryItem *apItem){return "NoteBook";}
+	tString GetShortCutAction(cInventoryItem *apItem) override{return "NoteBook";}
 };
 
 //----------------------------------------------
@@ -98,7 +98,7 @@ class cGameItemType_Note : public cGameItemType
 public:
 	cGameItemType_Note(cInit *apInit);
 
-	bool OnPickUp(cInventoryItem *apItem, bool abInGame);
+	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
 
 };
 
@@ -111,7 +111,7 @@ class cGameItemType_Battery : public cGameItemType
 public:
 	cGameItemType_Battery(cInit *apInit);
 
-	bool OnPickUp(cInventoryItem *apItem, bool abInGame);
+	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
 
 };
 //----------------------------------------------
@@ -123,11 +123,11 @@ class cGameItemType_Flashlight : public cGameItemType
 public:
 	cGameItemType_Flashlight(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
-	tWString GetString(cInventoryItem *apItem);
+	tWString GetString(cInventoryItem *apItem) override;
 
-	tString GetShortCutAction(cInventoryItem *apItem){return "Flashlight";}
+	tString GetShortCutAction(cInventoryItem *apItem) override{return "Flashlight";}
 };
 
 //----------------------------------------------
@@ -139,7 +139,7 @@ class cGameItemType_WeaponMelee : public cGameItemType
 public:
 	cGameItemType_WeaponMelee(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 };
 
 //----------------------------------------------
@@ -151,7 +151,7 @@ class cGameItemType_WeaponMeleeHaptX : public cGameItemType
 public:
 	cGameItemType_WeaponMeleeHaptX(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 };
 
 //----------------------------------------------
@@ -164,7 +164,7 @@ class cGameItemType_Throw : public cGameItemType
 public:
 	cGameItemType_Throw(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 };
 
 
@@ -177,11 +177,11 @@ class cGameItemType_GlowStick : public cGameItemType
 public:
 	cGameItemType_GlowStick(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
-	tWString GetString(cInventoryItem *apItem);
+	tWString GetString(cInventoryItem *apItem) override;
 
-	tString GetShortCutAction(cInventoryItem *apItem){return "GlowStick";}
+	tString GetShortCutAction(cInventoryItem *apItem) override{return "GlowStick";}
 };
 
 //----------------------------------------------
@@ -193,7 +193,7 @@ class cGameItemType_Flare : public cGameItemType
 public:
 	cGameItemType_Flare(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 };
 
 //----------------------------------------------
@@ -205,7 +205,7 @@ class cGameItemType_Painkillers : public cGameItemType
 public:
 	cGameItemType_Painkillers(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum);
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
 };
 

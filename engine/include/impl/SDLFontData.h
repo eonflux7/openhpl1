@@ -32,8 +32,8 @@ namespace hpl {
 		cSDLFontData();
 
 		bool CreateFromFontFile(const tString &asFileName, int alSize,unsigned short alFirstChar,
-								unsigned short alLastChar);
-		bool CreateFromBitmapFile(const tString &asFileName);
+								unsigned short alLastChar) override;
+		bool CreateFromBitmapFile(const tString &asFileName) override;
 
 	private:
 

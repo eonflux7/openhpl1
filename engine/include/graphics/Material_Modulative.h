@@ -31,39 +31,39 @@ namespace hpl {
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 
-		virtual ~cMaterial_Modulative();
+		~cMaterial_Modulative() override;
 
-		tTextureTypeList GetTextureTypes();
+		tTextureTypeList GetTextureTypes() override;
 
-		bool UsesType(eMaterialRenderType aType);
+		bool UsesType(eMaterialRenderType aType) override;
 
-		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		iMaterialProgramSetup* GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iMaterialProgramSetup* GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight){ return 1;}
+		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override{ return 1;}
 
 		//////////////////////////////////////////////////////////////////
 		// Old and worthless stuff, only used by 2D renderer
-		void Compile(){}
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight){return false;}
-		void EndRendering(eMaterialRenderType aType){}
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType){return 0;}
-		bool NextPass(eMaterialRenderType aType){return false;}
-		bool HasMultiplePasses(eMaterialRenderType aType){return false;}
-		eMaterialType GetType(eMaterialRenderType aType){ return eMaterialType_Diffuse;}
+		void Compile() override{}
+		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override{return false;}
+		void EndRendering(eMaterialRenderType aType) override{}
+		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override{return 0;}
+		bool NextPass(eMaterialRenderType aType) override{return false;}
+		bool HasMultiplePasses(eMaterialRenderType aType) override{return false;}
+		eMaterialType GetType(eMaterialRenderType aType) override{ return eMaterialType_Diffuse;}
 		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd){}
+			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 
 	private:
 		iGpuProgram *mpFogVtxProg;
@@ -73,14 +73,14 @@ namespace hpl {
 	class cMaterialType_Modulative : public iMaterialType
 	{
 	public:
-		bool IsCorrect(tString asName){
+		bool IsCorrect(tString asName) override{
 			return cString::ToLowerCase(asName)=="modulative";
 		}
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
-			eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
+			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override
 		{
 			return hplNew( cMaterial_Modulative, (asName,apLowLevelGraphics,
 				apImageManager,apTextureManager,apRenderer,

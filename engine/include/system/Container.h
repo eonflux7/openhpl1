@@ -73,7 +73,7 @@ namespace hpl {
 	template<class T>
 	class cContainerVecIterator : public iContainerIterator
 	{
-		void* NextPtr(){
+		void* NextPtr() override{
 			return &Next();
 		}
 
@@ -84,7 +84,7 @@ namespace hpl {
 			mIt = apVec->begin();
 		}
 
-		bool HasNext()
+		bool HasNext() override
 		{
 			return mIt != mpVec->end();
 		}
@@ -118,15 +118,15 @@ namespace hpl {
 	class cContainerVec : public iContainer
 	{
 	private:
-		void AddVoidPtr(void **apPtr)
+		void AddVoidPtr(void **apPtr) override
 		{
 			mvVector.push_back(*((T*)apPtr));
 		}
-		void AddVoidClass(void *apClass)
+		void AddVoidClass(void *apClass) override
 		{
 			mvVector.push_back(*((T*)apClass));
 		}
-		iContainerIterator* CreateIteratorPtr()
+		iContainerIterator* CreateIteratorPtr() override
 		{
 			return hplNew( cContainerVecIterator<T>, (&mvVector) );
 		}
@@ -135,12 +135,12 @@ namespace hpl {
 		cContainerVec(){}
 
 		//////////////////////
-		size_t Size()
+		size_t Size() override
 		{
 			return mvVector.size();
 		}
 
-		void Clear()
+		void Clear() override
 		{
 			mvVector.clear();
 		}
@@ -186,7 +186,7 @@ namespace hpl {
 	template<class T>
 	class cContainerListIterator : public iContainerIterator
 	{
-		void* NextPtr(){
+		void* NextPtr() override{
 			return &Next();
 		}
 
@@ -197,7 +197,7 @@ namespace hpl {
 			mIt = apVec->begin();
 		}
 
-		bool HasNext()
+		bool HasNext() override
 		{
 			return mIt != mpVec->end();
 		}
@@ -231,15 +231,15 @@ namespace hpl {
 	class cContainerList : public iContainer
 	{
 	private:
-		void AddVoidPtr(void **apPtr)
+		void AddVoidPtr(void **apPtr) override
 		{
 			mvVector.push_back(*((T*)apPtr));
 		}
-		void AddVoidClass(void *apClass)
+		void AddVoidClass(void *apClass) override
 		{
 			mvVector.push_back(*((T*)apClass));
 		}
-		iContainerIterator* CreateIteratorPtr()
+		iContainerIterator* CreateIteratorPtr() override
 		{
 			return hplNew( cContainerListIterator<T>, (&mvVector) );
 		}
@@ -248,12 +248,12 @@ namespace hpl {
 		cContainerList(){}
 
 		//////////////////////
-		size_t Size()
+		size_t Size() override
 		{
 			return mvVector.size();
 		}
 
-		void Clear()
+		void Clear() override
 		{
 			mvVector.clear();
 		}

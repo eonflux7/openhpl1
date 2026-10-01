@@ -43,7 +43,7 @@ namespace hpl {
 	{
 	public:
 		cParticleManager(cGraphics* apGraphics,cResources *apResources);
-		~cParticleManager();
+		~cParticleManager() override;
 
 		/**
 		 * NOT USED! For now that is... there is no need for it since particle systems are not really
@@ -51,7 +51,7 @@ namespace hpl {
 		 * \param asName
 		 * \return
 		 */
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 
 		iParticleSystem2D* CreatePS2D(const tString& asName, cVector3f avSize);
 
@@ -62,8 +62,8 @@ namespace hpl {
 
 		void Preload(const tString& asFile);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 	private:
 		cGraphics* mpGraphics;
 		cResources *mpResources;

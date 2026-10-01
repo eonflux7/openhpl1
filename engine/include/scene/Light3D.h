@@ -118,14 +118,14 @@ namespace hpl {
 	#endif
 	public:
 		iLight3D(tString asName, cResources *apResources);
-		virtual ~iLight3D();
+		~iLight3D() override;
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
-		virtual void SetFarAttenuation(float afX);
-		virtual void SetNearAttenuation(float afX);
+		void SetFarAttenuation(float afX) override;
+		void SetNearAttenuation(float afX) override;
 
-		cVector3f GetLightPosition();
+		cVector3f GetLightPosition() override;
 
 		virtual bool BeginDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
 		virtual void EndDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
@@ -142,26 +142,26 @@ namespace hpl {
 		eLight3DType GetLightType(){ return mLightType;}
 
 		//iEntity implementation
-		tString GetEntityType(){ return "iLight3D";}
+		tString GetEntityType() override{ return "iLight3D";}
 
-		bool IsVisible();
-		void SetVisible(bool abVisible);
+		bool IsVisible() override;
+		void SetVisible(bool abVisible) override;
 
 		iTexture *GetFalloffMap();
 		void SetFalloffMap(iTexture* apTexture);
 
 		//Renderable implementation:
-		iMaterial *GetMaterial(){ return nullptr;}
-		iVertexBuffer* GetVertexBuffer(){ return nullptr;}
+		iMaterial *GetMaterial() override{ return nullptr;}
+		iVertexBuffer* GetVertexBuffer() override{ return nullptr;}
 
-		bool IsShadowCaster(){ return false;}
-		eRenderableType GetRenderType(){ return eRenderableType_Light;}
+		bool IsShadowCaster() override{ return false;}
+		eRenderableType GetRenderType() override{ return eRenderableType_Light;}
 
-		cBoundingVolume* GetBoundingVolume();
+		cBoundingVolume* GetBoundingVolume() override;
 
-		int GetMatrixUpdateCount(){ return GetTransformUpdateCount();}
+		int GetMatrixUpdateCount() override{ return GetTransformUpdateCount();}
 
-		cMatrixf* GetModelMatrix(cCamera3D* apCamera);
+		cMatrixf* GetModelMatrix(cCamera3D* apCamera) override;
 
 		inline void RenderShadow(iRenderable *apObject,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
 
@@ -178,15 +178,15 @@ namespace hpl {
 		bool GetOnlyAffectInSector(){return mbOnlyAffectInInSector;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
-		void OnFlickerOff();
-		void OnFlickerOn();
-		void OnSetDiffuse();
+		void OnFlickerOff() override;
+		void OnFlickerOn() override;
+		void OnSetDiffuse() override;
 
 		virtual cSectorVisibilityContainer* CreateSectorVisibility()=0;
 		virtual void ExtraXMLProperties(TiXmlElement *apMainElem){}

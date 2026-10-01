@@ -80,7 +80,7 @@ namespace hpl {
 	public:
 		cParticleEmitterData3D_UserData(const tString &asName,cResources* apResources,cGraphics *apGraphics);
 
-		iParticleEmitter* Create(tString asName, cVector3f avSize);
+		iParticleEmitter* Create(tString asName, cVector3f avSize) override;
 
 		void LoadFromElement(TiXmlElement *apElement);
 
@@ -90,7 +90,7 @@ namespace hpl {
 									cVector3f *apPosVec);
 
 	private:
-		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 		float mfShortestDist;
 		bool mbIntersected;
 		cVector3f *mpIntersectNormal;
@@ -259,15 +259,15 @@ namespace hpl {
 										cVector3f avSize, cGraphics* apGraphics,cResources *apResources,
 										cParticleEmitterData3D_UserData *apData
 										);
-		~cParticleEmitter3D_UserData(void);
+		~cParticleEmitter3D_UserData(void) override;
 
-		void Kill();
+		void Kill() override;
 
-		bool IsDying();
+		bool IsDying() override;
 
 	private:
-		void UpdateMotion(float afTimeStep);
-		void SetParticleDefaults(cParticle *apParticle);
+		void UpdateMotion(float afTimeStep) override;
+		void SetParticleDefaults(cParticle *apParticle) override;
 
 
 		cParticleEmitterData3D_UserData *mpData;

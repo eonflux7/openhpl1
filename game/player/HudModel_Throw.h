@@ -36,7 +36,7 @@ class cHudModel_Throw : public iHudModel
 public:
 	cHudModel_Throw();
 
-	void LoadData(TiXmlElement *apRootElem);
+	void LoadData(TiXmlElement *apRootElem) override;
 	
 	void OnStart();
 
@@ -45,11 +45,11 @@ public:
 
 	bool OnMouseMove(const cVector2f &avMovement);
 
-	bool UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep);
+	bool UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep) override;
 
 	void SetItem(cInventoryItem *apItem){ mpItem = apItem;}
 private:
-	void ResetExtraData();
+	void ResetExtraData() override;
 
 	bool mbButtonDown;
 	float mfChargeCount;

@@ -32,26 +32,26 @@ namespace hpl {
 	{
 	public:
 		cColliderEntity(const tString &asName,iPhysicsBody* apBody, iPhysicsWorld *apWorld);
-		~cColliderEntity();
+		~cColliderEntity() override;
 
-		iMaterial *GetMaterial(){ return nullptr;}
-		void UpdateGraphics(cCamera3D *apCamera, float afFrameTime, cRenderList *apRenderList){}
-		iVertexBuffer* GetVertexBuffer(){ return nullptr;}
+		iMaterial *GetMaterial() override{ return nullptr;}
+		void UpdateGraphics(cCamera3D *apCamera, float afFrameTime, cRenderList *apRenderList) override{}
+		iVertexBuffer* GetVertexBuffer() override{ return nullptr;}
 
-		cBoundingVolume* GetBoundingVolume();
+		cBoundingVolume* GetBoundingVolume() override;
 
-		cMatrixf* GetModelMatrix(cCamera3D* apCamera);
-		int GetMatrixUpdateCount();
+		cMatrixf* GetModelMatrix(cCamera3D* apCamera) override;
+		int GetMatrixUpdateCount() override;
 
-		eRenderableType GetRenderType(){ return eRenderableType_Dummy;}
+		eRenderableType GetRenderType() override{ return eRenderableType_Dummy;}
 
 		//Entity implementation
-		tString GetEntityType(){ return "Collider";}
-		bool IsVisible(){ return false; }
+		tString GetEntityType() override{ return "Collider";}
+		bool IsVisible() override{ return false; }
 
-		bool IsShadowCaster(){ return false;}
+		bool IsShadowCaster() override{ return false;}
 
-		void UpdateLogic(float afTimeStep){}
+		void UpdateLogic(float afTimeStep) override{}
 
 	private:
 		iPhysicsWorld* mpPhysicsWorld;

@@ -31,9 +31,9 @@ namespace hpl {
 	{
 	public:
 		cArea2D(const tString& asName,const tString& asTypeName,cCollider2D* apCollider);
-		~cArea2D();
+		~cArea2D() override;
 
-		tString GetEntityType(){ return "Area";}
+		tString GetEntityType() override{ return "Area";}
 		const tString& GetType(){ return msType;}
 		const cVector3f& GetCustom(){ return mvCustom;}
 		const cVector2f& GetSize(){ return mvSize;}
@@ -43,8 +43,8 @@ namespace hpl {
 		bool CheckWorldCollision(tFlag alFlags);
 		bool CheckBodyCollision(cBody2D *apBody);
 
-		const cRect2f& GetBoundingBox();
-		bool UpdateBoundingBox();
+		const cRect2f& GetBoundingBox() override;
+		bool UpdateBoundingBox() override;
 
 	private:
 		cCollider2D* mpCollider;

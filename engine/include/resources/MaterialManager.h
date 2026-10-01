@@ -33,15 +33,15 @@ namespace hpl {
 	{
 	public:
 		cMaterialManager(cGraphics* apGraphics,cResources *apResources);
-		~cMaterialManager();
+		~cMaterialManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		iMaterial* CreateMaterial(const tString& asName);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 		void SetTextureSizeLevel(unsigned int alLevel){ mlTextureSizeLevel = alLevel;}
 		int GetTextureSizeLevel(){ return mlTextureSizeLevel;}

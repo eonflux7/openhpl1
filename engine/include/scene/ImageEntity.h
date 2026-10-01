@@ -36,15 +36,15 @@ namespace hpl {
 	{
 	public:
 		cImageEntity(tString asName,cResources* apResources, cGraphics* apGraphics, bool abAutoDeleteData=true);
-		~cImageEntity();
+		~cImageEntity() override;
 
-		const cRect2f& GetBoundingBox();
-		bool UpdateBoundingBox();
-		tString GetEntityType(){ return "ImageEntity"; }
+		const cRect2f& GetBoundingBox() override;
+		bool UpdateBoundingBox() override;
+		tString GetEntityType() override{ return "ImageEntity"; }
 
 		void Render();
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
 		bool LoadData(TiXmlElement* apRootElem);
 

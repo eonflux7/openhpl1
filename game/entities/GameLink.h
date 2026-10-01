@@ -41,7 +41,7 @@ public:
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -54,10 +54,10 @@ class cGameLink :	public iGameEntity
 	friend class cAreaLoader_GameLink;
 public:
 	cGameLink(cInit *apInit,const tString& asName);
-	~cGameLink(void);
+	~cGameLink(void) override;
 
-	void OnPlayerPick();
-	void OnPlayerInteract();
+	void OnPlayerPick() override;
+	void OnPlayerInteract() override;
 	
 	tString msMapFile;
 	tString msMapPos;
@@ -69,9 +69,9 @@ public:
 	tString msLoadTextEntry;
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 };
 
 //--------------------------------------
@@ -81,9 +81,9 @@ class cAreaLoader_GameLink : public iArea3DLoader
 
 public:
 	cAreaLoader_GameLink(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameLink();
+	~cAreaLoader_GameLink() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

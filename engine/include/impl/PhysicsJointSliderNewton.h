@@ -29,19 +29,19 @@ namespace hpl {
 	public:
 		cPhysicsJointSliderNewton(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 							iPhysicsWorld *apWorld,const cVector3f &avPivotPoint, const cVector3f avPinDir) ;
-		~cPhysicsJointSliderNewton();
+		~cPhysicsJointSliderNewton() override;
 
-		void SetMaxDistance(float afX);
-		void SetMinDistance(float afX);
-		float GetMaxDistance();
-		float GetMinDistance();
+		void SetMaxDistance(float afX) override;
+		void SetMinDistance(float afX) override;
+		float GetMaxDistance() override;
+		float GetMinDistance() override;
 
-		cVector3f GetVelocity();
-		cVector3f GetAngularVelocity();
-		cVector3f GetForce();
+		cVector3f GetVelocity() override;
+		cVector3f GetAngularVelocity() override;
+		cVector3f GetForce() override;
 
-		float GetDistance();
-		float GetAngle();
+		float GetDistance() override;
+		float GetAngle() override;
 
 	private:
 		static unsigned LimitCallback(const NewtonJoint* pSlider, NewtonHingeSliderUpdateDesc* pDesc);

@@ -30,7 +30,7 @@ namespace hpl {
 	{
 	public:
 		iKeyboard(tString asName);
-		virtual ~iKeyboard(){}
+		~iKeyboard() override{}
 
 		/**
 		 *

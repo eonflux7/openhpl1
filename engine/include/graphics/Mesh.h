@@ -219,7 +219,7 @@ namespace hpl {
 	public:
 		cMesh(const tString asName, cMaterialManager* apMaterialManager,
 				cAnimationManager * apAnimationManager);
-		~cMesh();
+		~cMesh() override;
 
 		bool CreateFromFile(const tString asFile);
 
@@ -319,9 +319,9 @@ namespace hpl {
 		cNode3D* GetNode(int alIdx);
 
 		//Resources implementation
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 	private:
 		cMaterialManager* mpMaterialManager;

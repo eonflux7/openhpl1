@@ -29,7 +29,7 @@ namespace hpl {
 	{
 	public:
 		cWidgetFrame(cGuiSet *apSet, cGuiSkin *apSkin);
-		virtual ~cWidgetFrame();
+		~cWidgetFrame() override;
 
 		void SetDrawFrame(bool abX){ mbDrawFrame = abX;}
 		bool GetDrawFrame(){ return mbDrawFrame;}
@@ -46,16 +46,16 @@ namespace hpl {
 	protected:
 		/////////////////////////
 		// Implemented functions
-		void OnLoadGraphics();
+		void OnLoadGraphics() override;
 
-		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion);
-		void OnDrawAfterClip(float afTimeStep, cGuiClipRegion *apClipRegion);
+		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion) override;
+		void OnDrawAfterClip(float afTimeStep, cGuiClipRegion *apClipRegion) override;
 
-		bool OnMouseMove(cGuiMessageData &aData);
-		bool OnMouseDown(cGuiMessageData &aData);
-		bool OnMouseUp(cGuiMessageData &aData);
-		bool OnMouseEnter(cGuiMessageData &aData);
-		bool OnMouseLeave(cGuiMessageData &aData);
+		bool OnMouseMove(cGuiMessageData &aData) override;
+		bool OnMouseDown(cGuiMessageData &aData) override;
+		bool OnMouseUp(cGuiMessageData &aData) override;
+		bool OnMouseEnter(cGuiMessageData &aData) override;
+		bool OnMouseLeave(cGuiMessageData &aData) override;
 
 		/////////////////////////
 		// Data

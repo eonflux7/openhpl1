@@ -41,9 +41,9 @@ namespace hpl {
 						cRect2l aRect,
 						cVector2l avSrcSize, int alHandle);
 
-		bool Reload();
-		void Unload();
-		void Destroy();
+		bool Reload() override;
+		void Unload() override;
+		void Destroy() override;
 
 		//Image specific
 		int GetHeight()const{return mRect.h;}
@@ -63,7 +63,7 @@ namespace hpl {
 		const tVertexVec& GetVertexVec(){return mvVtx;}
 
 	private:
-		~cResourceImage();
+		~cResourceImage() override;
 
 		cFrameTexture *mpFrameTexture;
 		cFrameBitmap *mpFrameBitmap;

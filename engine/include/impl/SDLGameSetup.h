@@ -34,18 +34,18 @@ namespace hpl {
 	{
 	public:
 		cSDLGameSetup();
-		~cSDLGameSetup();
+		~cSDLGameSetup() override;
 
-		cInput* CreateInput(cGraphics* apGraphics);
-		cSystem* CreateSystem();
-		cGraphics* CreateGraphics();
-		cResources* CreateResources(cGraphics* apGraphics);
+		cInput* CreateInput(cGraphics* apGraphics) override;
+		cSystem* CreateSystem() override;
+		cGraphics* CreateGraphics() override;
+		cResources* CreateResources(cGraphics* apGraphics) override;
 		cScene* CreateScene(cGraphics* apGraphics, cResources* apResources, cSound* apSound,
-							cPhysics *apPhysics, cSystem *apSystem,cAI *apAI,cHaptic *apHaptic);
-		cSound* CreateSound();
-		cPhysics* CreatePhysics();
-		cAI* CreateAI();
-		cHaptic* CreateHaptic();
+							cPhysics *apPhysics, cSystem *apSystem,cAI *apAI,cHaptic *apHaptic) override;
+		cSound* CreateSound() override;
+		cPhysics* CreatePhysics() override;
+		cAI* CreateAI() override;
+		cHaptic* CreateHaptic() override;
 
 	private:
 		iLowLevelSystem *mpLowLevelSystem;

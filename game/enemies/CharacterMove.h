@@ -36,9 +36,9 @@ class cCharacterAStarCallback : public iAStarCallback, public iAIFreePathCallbac
 public:
 	cCharacterAStarCallback(cCharacterMove *apMove);
 
-	bool CanAddNode(cAINode *apParentNode,cAINode *apChildNode);
+	bool CanAddNode(cAINode *apParentNode,cAINode *apChildNode) override;
 
-	bool Intersects(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool Intersects(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	bool mbCheckDynamic;
 
@@ -51,8 +51,8 @@ class cMoverRayCallback : public iPhysicsRayCallback
 {
 public:
 	void Reset();
-	bool BeforeIntersect(iPhysicsBody *pBody);
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool BeforeIntersect(iPhysicsBody *pBody) override;
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	bool mbIntersection;
 };

@@ -35,25 +35,25 @@ private:
 public:
 	cPlayerState_NormalHaptX(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnStartInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStartExamine() override;
 	
-	void OnStartRun();
-	void OnStopRun();
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartRun() override;
+	void OnStopRun() override;
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 
-	bool OnAddYaw(float afVal){ return true;}
-	bool OnAddPitch(float afVal){return true;}
+	bool OnAddYaw(float afVal) override{ return true;}
+	bool OnAddPitch(float afVal) override{return true;}
 	
-	void OnStartInteractMode();
+	void OnStartInteractMode() override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
 };
 //////////////////////////////////////////////////////////////////////////
@@ -65,21 +65,21 @@ class cPlayerState_InteractModeHaptX : public iPlayerState
 public:
 	cPlayerState_InteractModeHaptX(cInit *apInit,cPlayer *apPlayer);
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnStartInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStartExamine() override;
 	
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 	
-	void OnStartInteractMode();
+	void OnStartInteractMode() override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 
 private:
 	ePlayerMoveState mPrevMoveState;
@@ -102,21 +102,21 @@ private:
 public:
 	cPlayerState_UseItemHaptX(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnStartInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStartExamine() override;
 	
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 	
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 	
-	bool OnStartInventory();
+	bool OnStartInventory() override;
 };
 
 
@@ -134,25 +134,25 @@ public:
 	
 	cPlayerState_MessageHaptX(cInit *apInit,cPlayer *apPlayer);
 	
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	bool OnJump();
+	bool OnJump() override;
 	
-	void OnStartInteract();
-	void OnStopInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStopInteract() override;
+	void OnStartExamine() override;
 	
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 	
-	bool OnStartInventory();
-	bool OnStartInventoryShortCut(int alNum);
+	bool OnStartInventory() override;
+	bool OnStartInventoryShortCut(int alNum) override;
 };
 
 
@@ -190,26 +190,26 @@ private:
 public:
 	cPlayerState_ClimbHaptX(cInit *apInit,cPlayer *apPlayer);
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void EnterState(iPlayerState* apPrevState);
-	void LeaveState(iPlayerState* apNextState);
+	void EnterState(iPlayerState* apPrevState) override;
+	void LeaveState(iPlayerState* apNextState) override;
 
-	void OnStartInteract();
-	void OnStartExamine();
+	void OnStartInteract() override;
+	void OnStartExamine() override;
 
-	bool OnAddYaw(float afVal);
-	bool OnAddPitch(float afVal);
+	bool OnAddYaw(float afVal) override;
+	bool OnAddPitch(float afVal) override;
 
-	bool OnMoveForwards(float afMul, float afTimeStep);
-	bool OnMoveSideways(float afMul, float afTimeStep);
+	bool OnMoveForwards(float afMul, float afTimeStep) override;
+	bool OnMoveSideways(float afMul, float afTimeStep) override;
 	
-	void OnStartCrouch();
-	void OnStopCrouch();
+	void OnStartCrouch() override;
+	void OnStopCrouch() override;
 
-	bool OnJump();
+	bool OnJump() override;
 
-	bool OnStartInventory();
+	bool OnStartInventory() override;
 
 	cGameLadder* mpLadder;
 	cVector3f mvStartPosition;

@@ -39,9 +39,9 @@ namespace hpl {
 	{
 	public:
 		cTextureManager(cGraphics* apGraphics,cResources *apResources);
-		~cTextureManager();
+		~cTextureManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		iTexture* Create1D(const tString& asName,bool abUseMipMaps, bool abCompress=false, eTextureType aType=eTextureType_Normal,
 							unsigned int alTextureSizeLevel=0);
 
@@ -66,10 +66,10 @@ namespace hpl {
 
 		iTexture* CreateAttenuation(const tString& asFallOffName);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 	private:
 		iTexture* CreateFlatTexture(const tString& asName,bool abUseMipMaps,

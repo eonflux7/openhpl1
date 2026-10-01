@@ -253,7 +253,7 @@ public:
 	}
 
 
-	void EnterState(iPlayerMoveState* apPrevState)
+	void EnterState(iPlayerMoveState* apPrevState) override
 	{
 		if(apPrevState)
 		{
@@ -311,7 +311,7 @@ public:
 		mType = ePlayerMoveState_Jump;
 	}
 
-	void EnterState(iPlayerMoveState* apPrevState)
+	void EnterState(iPlayerMoveState* apPrevState) override
 	{
 		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
 
@@ -364,14 +364,14 @@ public:
 		}
 	}
 
-	void LeaveState(iPlayerMoveState* apNextState)
+	void LeaveState(iPlayerMoveState* apNextState) override
 	{
 		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
 
 		pBody->AddForceVelocity(pBody->GetForceVelocity() * -0.7f);
 	}
 
-	void OnUpdate(float afTimeStep)
+	void OnUpdate(float afTimeStep) override
 	{
 		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
 
@@ -466,7 +466,7 @@ public:
 		mType = ePlayerMoveState_Crouch;
 	}
 
-	void EnterState(iPlayerMoveState* apPrevState)
+	void EnterState(iPlayerMoveState* apPrevState) override
 	{
 		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
 
@@ -476,7 +476,7 @@ public:
 		//pBody->SetGravityActive(false);
 	}
 
-	void LeaveState(iPlayerMoveState* apNextState)
+	void LeaveState(iPlayerMoveState* apNextState) override
 	{
 		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
         		
@@ -518,7 +518,7 @@ public:
 		pBody->SetPosition(pBody->GetPosition() - cVector3f(0,0.005f,0));
 	}
 
-	void OnUpdate(float afTimeStep)
+	void OnUpdate(float afTimeStep) override
 	{
 	}
 };

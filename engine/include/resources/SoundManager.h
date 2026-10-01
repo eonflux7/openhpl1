@@ -31,15 +31,15 @@ namespace hpl {
 	{
 	public:
 		cSoundManager(cSound* apSound,cResources *apResources);
-		~cSoundManager();
+		~cSoundManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		iSoundData* CreateSoundData(const tString& asName, bool abStream, bool abLoopStream=false);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
-		void DestroyAll();
+		void DestroyAll() override;
 
 	private:
 		cSound* mpSound;

@@ -1042,7 +1042,7 @@ class cTempCheckProxy : public iPhysicsRayCallback
 {
 public:
 	bool mbCollided;
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override
 	{
 		//if(apParams->mfT <0) return true;
 		if(pBody->GetCollide()==false || pBody->IsCharacter()) return true;

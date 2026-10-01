@@ -31,7 +31,7 @@ namespace hpl {
 	{
 	public:
 		iEntity2D(tString asName);
-		virtual ~iEntity2D(){}
+		~iEntity2D() override{}
 
 		virtual const cRect2f& GetBoundingBox()=0;
 		virtual bool UpdateBoundingBox()=0;

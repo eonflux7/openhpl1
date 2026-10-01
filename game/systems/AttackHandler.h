@@ -47,7 +47,7 @@ public:
 	cAttackRayCallback();
 
 	void Reset();
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 	
 	eAttackTargetFlag mTarget;
 	iPhysicsBody *mpSkipBody;
@@ -66,8 +66,8 @@ public:
 
 	bool CheckBlock(const cVector3f& avStart, const cVector3f&avEnd);
 	
-	bool BeforeIntersect(iPhysicsBody *pBody);
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool BeforeIntersect(iPhysicsBody *pBody) override;
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 private:
 	cInit *mpInit;
@@ -80,7 +80,7 @@ class cAttackHandler : public iUpdateable
 {
 public:
 	cAttackHandler(cInit *apInit);
-	~cAttackHandler();
+	~cAttackHandler() override;
 
 	bool CreateLineAttack(const cVector3f& avStart, const cVector3f& avEnd, float afDamage, 
 						eAttackTargetFlag aTarget, iPhysicsBody *apSkipBody,
@@ -104,9 +104,9 @@ public:
 
 	cGameSwingDoor* GetLastSwingDoor(){ return mpLastSwingDoor;}
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
 private:
 	cInit *mpInit;
 	cMapHandler *mpMapHandler;

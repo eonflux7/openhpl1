@@ -32,7 +32,7 @@ namespace hpl {
 	{
 	public:
 		iBitmap2D(tString asType,iPixelFormat *apPxlFmt) : iLowLevelPicture(asType){}
-		virtual ~iBitmap2D() {}
+		~iBitmap2D() override {}
 
 		/**
 		 * Save the bitmap to file

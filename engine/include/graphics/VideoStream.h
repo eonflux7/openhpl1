@@ -50,7 +50,7 @@ namespace hpl {
 	{
 	public:
 		iVideoStream(tString asName) : iResourceBase(asName,0){}
-		virtual ~iVideoStream(){}
+		~iVideoStream() override{}
 
 		virtual bool LoadFromFile(tString asFilePath)=0;
 
@@ -73,9 +73,9 @@ namespace hpl {
 
 		//////////////////////////////////
 		// ResourceBase implementation
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 
 	protected:

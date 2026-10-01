@@ -32,13 +32,13 @@ namespace hpl {
 	{
 	public:
 		cImageEntityManager(cGraphics* apGraphics,cResources *apResources);
-		~cImageEntityManager();
+		~cImageEntityManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		cImageEntityData* CreateData(const tString& asName);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 	private:
 		cGraphics* mpGraphics;

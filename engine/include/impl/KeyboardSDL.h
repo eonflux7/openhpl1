@@ -35,15 +35,15 @@ namespace hpl {
 	public:
 		cKeyboardSDL(cLowLevelInputSDL *apLowLevelInputSDL);
 
-		void Update();
+		void Update() override;
 
 		//Keyboard specific
-		bool KeyIsDown(eKey aKey);
-		cKeyPress GetKey();
-		bool KeyIsPressed();
-		eKeyModifier GetModifier();
-		tString KeyToString(eKey);
-		eKey StringToKey(tString);
+		bool KeyIsDown(eKey aKey) override;
+		cKeyPress GetKey() override;
+		bool KeyIsPressed() override;
+		eKeyModifier GetModifier() override;
+		tString KeyToString(eKey) override;
+		eKey StringToKey(tString) override;
 
 	private:
 		eKey SDLToKey(int alKey);

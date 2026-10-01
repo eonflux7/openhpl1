@@ -32,17 +32,17 @@ namespace hpl {
 	{
 	public:
 		cLowLevelInputSDL(iLowLevelGraphics *apLowLevelGraphics);
-		~cLowLevelInputSDL();
+		~cLowLevelInputSDL() override;
 
-		void LockInput(bool abX);
+		void LockInput(bool abX) override;
 
-		void BeginInputUpdate();
-		void EndInputUpdate();
+		void BeginInputUpdate() override;
+		void EndInputUpdate() override;
 
-		bool IsQuitRequested(){ return mbQuitRequested; }
+		bool IsQuitRequested() override{ return mbQuitRequested; }
 
-		iMouse* CreateMouse();
-		iKeyboard* CreateKeyboard();
+		iMouse* CreateMouse() override;
+		iKeyboard* CreateKeyboard() override;
 	public:
 		std::list<SDL_Event> mlstEvents;
 

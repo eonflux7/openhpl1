@@ -39,8 +39,8 @@ namespace hpl {
 		float mfAspect;
 		float mfNearClipPlane;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -52,7 +52,7 @@ namespace hpl {
 	#endif
 	public:
 		cLight3DSpot(tString asName, cResources *apResources);
-		~cLight3DSpot();
+		~cLight3DSpot() override;
 
 		const cMatrixf& GetViewMatrix();
 		const cMatrixf& GetProjectionMatrix();
@@ -70,24 +70,24 @@ namespace hpl {
 		void SetNearClipPlane(float afX) { mfNearClipPlane = afX; mbProjectionUpdated = true;}
 		float GetNearClipPlane() { return mfNearClipPlane;}
 
-		void SetFarAttenuation(float afX);
-		void SetNearAttenuation(float afX);
+		void SetFarAttenuation(float afX) override;
+		void SetNearAttenuation(float afX) override;
 
 		cFrustum* GetFrustum();
 
-		bool CollidesWithBV(cBoundingVolume *apBV);
+		bool CollidesWithBV(cBoundingVolume *apBV) override;
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
-		cSectorVisibilityContainer* CreateSectorVisibility();
-		void ExtraXMLProperties(TiXmlElement *apMainElem);
-		void UpdateBoundingVolume();
-		bool CreateClipRect(cRect2l &aCliprect,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
+		cSectorVisibilityContainer* CreateSectorVisibility() override;
+		void ExtraXMLProperties(TiXmlElement *apMainElem) override;
+		void UpdateBoundingVolume() override;
+		bool CreateClipRect(cRect2l &aCliprect,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics) override;
 
 
 		cMatrixf m_mtxProjection;

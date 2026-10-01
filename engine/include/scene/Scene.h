@@ -56,9 +56,9 @@ namespace hpl {
 	public:
 		cScene(cGraphics *apGraphics,cResources *apResources, cSound* apSound, cPhysics *apPhysics,
 				cSystem *apSystem, cAI *apAI, cHaptic *apHaptic);
-		~cScene();
+		~cScene() override;
 
-		void Reset();
+		void Reset() override;
 
 		/**
 		* Called by cGame
@@ -73,7 +73,7 @@ namespace hpl {
 
 		void RenderWorld2D(cCamera2D *apCam,cWorld2D* apWorld);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		void ClearLoadedMaps(){m_setLoadedMaps.clear();}
 		tStringSet* GetLoadedMapsSet(){ return &m_setLoadedMaps;}

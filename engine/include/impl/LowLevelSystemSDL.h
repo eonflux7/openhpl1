@@ -68,19 +68,19 @@ namespace hpl {
 	{
 	public:
 		cLowLevelSystemSDL();
-		~cLowLevelSystemSDL();
+		~cLowLevelSystemSDL() override;
 
 		void SetWindowCaption(const tString &asName);
 
-		unsigned long GetTime();
-		cDate GetDate();
+		unsigned long GetTime() override;
+		cDate GetDate() override;
 
-		iScript* CreateScript(const tString& asName);
+		iScript* CreateScript(const tString& asName) override;
 
-		bool AddScriptFunc(const tString& asFuncDecl, void* pFunc, int callConv);
-		bool AddScriptVar(const tString& asVarDecl, void *pVar);
+		bool AddScriptFunc(const tString& asFuncDecl, void* pFunc, int callConv) override;
+		bool AddScriptVar(const tString& asVarDecl, void *pVar) override;
 
-		void Sleep ( const unsigned int alMillisecs );
+		void Sleep ( const unsigned int alMillisecs ) override;
 
 	private:
 		asIScriptEngine *mpScriptEngine;

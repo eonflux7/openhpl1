@@ -53,7 +53,7 @@ namespace hpl {
 	#endif
 	public:
 		iNode() : mbActive(true){}
-		virtual ~iNode();
+		~iNode() override;
 
 		int SetVisible(bool abX, bool abCascade);
 		bool AddEntity(iEntity* apEntity);
@@ -69,10 +69,10 @@ namespace hpl {
 		cEntityIterator GetEntityIterator();
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData(){return nullptr;}
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override{return nullptr;}
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		tEntityList mlstEntity;

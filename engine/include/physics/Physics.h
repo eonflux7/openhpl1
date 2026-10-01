@@ -63,11 +63,11 @@ namespace hpl {
 	{
 	public:
 		cPhysics(iLowLevelPhysics *apLowLevelPhysics);
-		~cPhysics();
+		~cPhysics() override;
 
 		void Init(cResources *apResources);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		iPhysicsWorld* CreateWorld(bool abAddSurfaceData);
 		void DestroyWorld(iPhysicsWorld* apWorld);

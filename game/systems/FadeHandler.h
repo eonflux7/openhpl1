@@ -29,7 +29,7 @@ class cFadeHandler : public iUpdateable
 {
 public:
 	cFadeHandler(cInit *apInit);
-	~cFadeHandler();
+	~cFadeHandler() override;
 
 	void FadeOut(float afTime);
 	void FadeIn(float afTime);
@@ -37,10 +37,10 @@ public:
 
 	void SetWideScreenActive(bool abX);
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
 	
 private:
 	cInit *mpInit;

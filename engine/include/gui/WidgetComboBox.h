@@ -34,7 +34,7 @@ namespace hpl {
 	{
 	public:
 		cWidgetComboBox(cGuiSet *apSet, cGuiSkin *apSkin);
-		virtual ~cWidgetComboBox();
+		~cWidgetComboBox() override;
 
 		void SetSelectedItem(int alX,bool abMoveList=false);
 		int GetSelectedItem(){ return mlSelectedItem;}
@@ -48,7 +48,7 @@ namespace hpl {
 	protected:
 		/////////////////////////
 		// Own functions
-		void UpdateProperties();
+		void UpdateProperties() override;
 
 		void OpenMenu();
 		void CloseMenu();
@@ -67,20 +67,20 @@ namespace hpl {
 
 		/////////////////////////
 		// Implemented functions
-		void OnLoadGraphics();
-		void OnChangeSize();
-		void OnChangeText();
-		void OnInit();
+		void OnLoadGraphics() override;
+		void OnChangeSize() override;
+		void OnChangeText() override;
+		void OnInit() override;
 
-		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion);
+		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion) override;
 
-		bool OnMouseMove(cGuiMessageData &aData);
-		bool OnMouseDown(cGuiMessageData &aData);
-		bool OnMouseUp(cGuiMessageData &aData);
-		bool OnMouseEnter(cGuiMessageData &aData);
-		bool OnMouseLeave(cGuiMessageData &aData);
+		bool OnMouseMove(cGuiMessageData &aData) override;
+		bool OnMouseDown(cGuiMessageData &aData) override;
+		bool OnMouseUp(cGuiMessageData &aData) override;
+		bool OnMouseEnter(cGuiMessageData &aData) override;
+		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		bool OnLostFocus(cGuiMessageData &aData);
+		bool OnLostFocus(cGuiMessageData &aData) override;
 
 
 		/////////////////////////

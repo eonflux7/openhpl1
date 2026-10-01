@@ -35,7 +35,7 @@ namespace hpl {
 	{
 	public:
 		cAnimation(const tString &asName, const tString &asFile);
-		~cAnimation();
+		~cAnimation() override;
 
 		float GetLength();
 		void SetLength(float afTime);
@@ -52,9 +52,9 @@ namespace hpl {
 		tString& GetFileName(){ return msFileName;}
 
 		//Resources implementation
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 	private:
 		tString msAnimName;

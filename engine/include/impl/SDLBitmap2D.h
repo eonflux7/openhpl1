@@ -31,25 +31,25 @@ namespace hpl {
 	public:
 		cSDLBitmap2D(iPixelFormat *apPxlFmt);
 		cSDLBitmap2D(SDL_Surface* apSurface,iPixelFormat *apPxlFmt,const tString& asType);
-		~cSDLBitmap2D();
+		~cSDLBitmap2D() override;
 
-		bool SaveToFile(const tString& asFile);
+		bool SaveToFile(const tString& asFile) override;
 
 
-		void DrawToBitmap(iBitmap2D *apBmp, const cVector2l &avDestPos);
-		bool HasAlpha();
+		void DrawToBitmap(iBitmap2D *apBmp, const cVector2l &avDestPos) override;
+		bool HasAlpha() override;
 		/**
 		 * \todo Support 16 bit format aswell.
 		 * \param avSize
 		 * \param alBpp
 		 * \return
 		 */
-		bool Create(cVector2l avSize, unsigned int alBpp);
+		bool Create(cVector2l avSize, unsigned int alBpp) override;
 
-		void FillRect(const cRect2l &aRect, const cColor &aColor);
+		void FillRect(const cRect2l &aRect, const cColor &aColor) override;
 
-		void* GetRawData();
-		int GetNumChannels();
+		void* GetRawData() override;
+		int GetNumChannels() override;
 
 		//SDL Specific
 		SDL_Surface* GetSurface();

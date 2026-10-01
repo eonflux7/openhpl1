@@ -30,7 +30,7 @@ namespace hpl {
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
-		~cMaterial_Bump();
+		~cMaterial_Bump() override;
 
 	private:
 	};
@@ -38,14 +38,14 @@ namespace hpl {
 	class cMaterialType_Bump : public iMaterialType
 	{
 	public:
-		bool IsCorrect(tString asName){
+		bool IsCorrect(tString asName) override{
 			return cString::ToLowerCase(asName)=="bump";
 		}
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
-			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
+			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override;
 	};
 
 };

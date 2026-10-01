@@ -270,7 +270,7 @@ class cSavedWorld  : public iSerializable
 {
 	kSerializableClassInit(cSavedWorld)
 public:
-	~cSavedWorld();
+	~cSavedWorld() override;
 
 	void Reset();
 
@@ -329,7 +329,7 @@ class cSavedGame : public iSerializable
 {
 	kSerializableClassInit(cSavedGame)
 public:
-	~cSavedGame();
+	~cSavedGame() override;
 
 	void Reset();
 	void ResetWorlds();
@@ -360,7 +360,7 @@ class cSaveHandler : public iUpdateable
 {
 public:
 	cSaveHandler(cInit *apInit);
-	~cSaveHandler();
+	~cSaveHandler() override;
 
 	void SaveData(const tString &asName);
 	void LoadData(const tString &asName);
@@ -374,10 +374,10 @@ public:
 	void ClearSavedMaps();
 
     void OnWorldLoad();
-	void OnStart();
-	void Reset();
+	void OnStart() override;
+	void Reset() override;
 
-	void OnExit();
+	void OnExit() override;
 
 	const tWString& GetSaveDir(){return msSaveDir;}
 	

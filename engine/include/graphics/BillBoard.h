@@ -64,8 +64,8 @@ namespace hpl {
 		cVector3f mvHaloSourceSize;
 		bool mbHaloSourceIsParent;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -78,7 +78,7 @@ namespace hpl {
 	public:
 		cBillboard(const tString asName,const cVector2f& avSize, cResources *apResources,
 					cGraphics *apGraphics);
-		~cBillboard();
+		~cBillboard() override;
 
 		void SetMaterial(iMaterial * apMaterial);
 
@@ -118,32 +118,32 @@ namespace hpl {
 
 		/////////////////////////////////
 		//Entity implementation
-		tString GetEntityType(){ return "Billboard";}
+		tString GetEntityType() override{ return "Billboard";}
 
-		bool IsVisible();
-		void SetVisible(bool abVisible){ SetRendered(abVisible); }
+		bool IsVisible() override;
+		void SetVisible(bool abVisible) override{ SetRendered(abVisible); }
 
 		//Renderable implementations
-		iMaterial *GetMaterial(){ return mpMaterial;}
-		iVertexBuffer* GetVertexBuffer(){return mpVtxBuffer;}
+		iMaterial *GetMaterial() override{ return mpMaterial;}
+		iVertexBuffer* GetVertexBuffer() override{return mpVtxBuffer;}
 
-		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList);
+		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
 
-		bool IsShadowCaster(){ return false;}
+		bool IsShadowCaster() override{ return false;}
 
-		cBoundingVolume* GetBoundingVolume();
+		cBoundingVolume* GetBoundingVolume() override;
 
-		cMatrixf* GetModelMatrix(cCamera3D *apCamera);
+		cMatrixf* GetModelMatrix(cCamera3D *apCamera) override;
 
-		int GetMatrixUpdateCount();
+		int GetMatrixUpdateCount() override;
 
-		eRenderableType GetRenderType(){ return eRenderableType_ParticleSystem;}
+		eRenderableType GetRenderType() override{ return eRenderableType_ParticleSystem;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
 		eBillboardType ToType(const char* apString);

@@ -61,7 +61,7 @@ namespace hpl {
 	class cCollideRayCallback : public iPhysicsRayCallback
 	{
 	public:
-		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
+		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override
 		{
 			if(pBody->GetMass()!=0) return true;
 

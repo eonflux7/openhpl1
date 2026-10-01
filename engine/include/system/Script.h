@@ -220,11 +220,11 @@ namespace hpl {
 	{
 	public:
 		iScript(const tString& asName) : iResourceBase(asName,0){}
-		virtual ~iScript(){}
+		~iScript() override{}
 
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		virtual bool CreateFromFile(const tString& asFile)=0;
 

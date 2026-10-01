@@ -30,9 +30,9 @@ namespace hpl
 	public:
 		cOpenALSoundEnvironment ( );
 
-		~cOpenALSoundEnvironment ();
+		~cOpenALSoundEnvironment () override;
 
-		bool CreateFromFile(const tString &asFile);
+		bool CreateFromFile(const tString &asFile) override;
 
 		inline float GetDensity( ) { return mfDensity; }
 		inline float GetDiffusion ( ) { return mfDiffusion; }

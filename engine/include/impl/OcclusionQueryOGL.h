@@ -27,12 +27,12 @@ namespace hpl {
 	{
 	public:
 		cOcclusionQueryOGL();
-		~cOcclusionQueryOGL();
+		~cOcclusionQueryOGL() override;
 
-		void Begin();
-		void End();
-		bool FetchResults();
-		unsigned int GetSampleCount();
+		void Begin() override;
+		void End() override;
+		bool FetchResults() override;
+		unsigned int GetSampleCount() override;
 
 	public:
 		int mlLastSampleCount;

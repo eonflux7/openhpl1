@@ -35,7 +35,7 @@ public:
 	bool mbUseCustomIcon;
 	eCrossHairState mCustomIcon;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -49,9 +49,9 @@ class cGameArea : public iGameEntity
 	friend class cAreaLoader_GameArea;
 public:
 	cGameArea(cInit *apInit,const tString& asName);
-	~cGameArea(void);
+	~cGameArea(void) override;
 
-	void OnPlayerPick();
+	void OnPlayerPick() override;
 
 	void SetCustomIcon(eCrossHairState aIcon);
 	eCrossHairState GetCustomIcon(){ return mCustomIcon;}
@@ -59,9 +59,9 @@ public:
 
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 	
 private:
 	bool mbUseCustomIcon;
@@ -75,9 +75,9 @@ class cAreaLoader_GameArea : public iArea3DLoader
 
 public:
 	cAreaLoader_GameArea(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameArea();
+	~cAreaLoader_GameArea() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

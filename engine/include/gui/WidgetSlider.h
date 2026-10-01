@@ -33,7 +33,7 @@ namespace hpl {
 	{
 	public:
 		cWidgetSlider(cGuiSet *apSet, cGuiSkin *apSkin, eWidgetSliderOrientation aOrientation);
-		virtual ~cWidgetSlider();
+		~cWidgetSlider() override;
 
 		int GetValue(){ return mlValue;}
 		void SetValue(int alValue);
@@ -59,21 +59,21 @@ namespace hpl {
 
 		/////////////////////////
 		// Implemented functions
-		void OnInit();
-		void OnLoadGraphics();
-		void OnChangeSize();
-		void OnChangePosition();
+		void OnInit() override;
+		void OnLoadGraphics() override;
+		void OnChangeSize() override;
+		void OnChangePosition() override;
 
 
-		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion);
+		void OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion) override;
 
-		bool OnMouseMove(cGuiMessageData &aData);
-		bool OnMouseDown(cGuiMessageData &aData);
-		bool OnMouseUp(cGuiMessageData &aData);
-		bool OnMouseEnter(cGuiMessageData &aData);
-		bool OnMouseLeave(cGuiMessageData &aData);
+		bool OnMouseMove(cGuiMessageData &aData) override;
+		bool OnMouseDown(cGuiMessageData &aData) override;
+		bool OnMouseUp(cGuiMessageData &aData) override;
+		bool OnMouseEnter(cGuiMessageData &aData) override;
+		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		bool OnLostFocus(cGuiMessageData &aData);
+		bool OnLostFocus(cGuiMessageData &aData) override;
 
 		/////////////////////////
 		// Data

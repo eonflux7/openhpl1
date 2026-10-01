@@ -29,9 +29,9 @@ namespace hpl {
 	{
 	public:
 		cNode2D();
-		virtual ~cNode2D();
+		~cNode2D() override;
 
-		iNode* CreateChild();
+		iNode* CreateChild() override;
 		cNode2D* CreateChild2D();
 
 		cVector3f& GetPosition() { return mvPosition; }

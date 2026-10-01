@@ -103,16 +103,16 @@ class cNotebookState_Front : public iNotebookState
 public:
 	cNotebookState_Front(cInit *apInit, cNotebook *apNotebook);
 	
-	void OnEnterState(int alLastState);
-	void OnLeaveState(int alNextState);
+	void OnEnterState(int alLastState) override;
+	void OnLeaveState(int alNextState) override;
 
-	void OnUpdate(float afTime);
+	void OnUpdate(float afTime) override;
 
-	void OnDraw();
+	void OnDraw() override;
 
-	void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 
-	void OnExit();
+	void OnExit() override;
 
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpTextBack;
@@ -139,16 +139,16 @@ class cNotebookState_TaskList : public iNotebookState
 public:
 	cNotebookState_TaskList(cInit *apInit, cNotebook *apNotebook);
 
-	void OnEnterState(int alLastState);
-	void OnLeaveState(int alNextState);
+	void OnEnterState(int alLastState) override;
+	void OnLeaveState(int alNextState) override;
 
-	void OnUpdate(float afTime);
+	void OnUpdate(float afTime) override;
 
-	void OnDraw();
+	void OnDraw() override;
 
-	void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 
-	void OnExit();
+	void OnExit() override;
 
 	iFontData *mpTextFont;
 
@@ -170,13 +170,13 @@ class cNotebookState_NoteList : public iNotebookState
 public:
 	cNotebookState_NoteList(cInit *apInit, cNotebook *apNotebook);
 
-	void OnEnterState(int alLastState);
-	void OnLeaveState(int alNextState);
+	void OnEnterState(int alLastState) override;
+	void OnLeaveState(int alNextState) override;
 
-	void OnUpdate(float afTime);
-	void OnDraw();
-	void OnMouseDown(eMButton aButton);
-	void OnExit();
+	void OnUpdate(float afTime) override;
+	void OnDraw() override;
+	void OnMouseDown(eMButton aButton) override;
+	void OnExit() override;
 
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpTextBack;
@@ -210,13 +210,13 @@ class cNotebookState_Note : public iNotebookState
 public:
 	cNotebookState_Note(cInit *apInit, cNotebook *apNotebook);
 
-	void OnEnterState(int alLastState);
-	void OnLeaveState(int alNextState);
+	void OnEnterState(int alLastState) override;
+	void OnLeaveState(int alNextState) override;
 
-	void OnUpdate(float afTime);
-	void OnDraw();
-	void OnMouseDown(eMButton aButton);
-	void OnExit();
+	void OnUpdate(float afTime) override;
+	void OnDraw() override;
+	void OnMouseDown(eMButton aButton) override;
+	void OnExit() override;
 
 	iFontData *mpTextFont;
 	iFontData *mpNavigateFont;
@@ -265,12 +265,12 @@ class cNotebook : public iUpdateable
 {
 public:
 	cNotebook(cInit *apInit);
-	~cNotebook();
+	~cNotebook() override;
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void OnDraw();
-	void Reset();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void OnDraw() override;
+	void Reset() override;
 
 	void SetMousePos(const cVector2f &avPos);
 	void AddMousePos(const cVector2f &avRel);
@@ -279,7 +279,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnMouseUp(eMButton aButton);
 
-	void OnExit();
+	void OnExit() override;
 	
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}

@@ -267,12 +267,12 @@ class cEffectHandler : public iUpdateable
 {
 public:
 	cEffectHandler(cInit *apInit);
-	~cEffectHandler();
+	~cEffectHandler() override;
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
 
 	cEffect_Flash* GetFlash(){ return mpFlash;}
 	cEffect_WaveGravity* GetWaveGravity(){ return mpWaveGravity;}

@@ -37,8 +37,8 @@ namespace hpl {
 		cMatrixf m_mtxLocalTransform;
 		int mlParentId;
 
-		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------
@@ -50,9 +50,9 @@ namespace hpl {
 	#endif
 	public:
 		cNode3D(const tString &asName="", bool abAutoDeleteChildren = true);
-		virtual ~cNode3D();
+		~cNode3D() override;
 
-		iNode* CreateChild();
+		iNode* CreateChild() override;
 		cNode3D* CreateChild3D(const tString &asName="", bool abAutoDeleteChildren = true);
 
 		cVector3f GetLocalPosition();
@@ -91,10 +91,10 @@ namespace hpl {
 		void AddChild(cNode3D* apChild);
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 		void UpdateWorldTransform();
 		void SetWorldTransformUpdated();

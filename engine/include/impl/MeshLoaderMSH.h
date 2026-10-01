@@ -37,18 +37,18 @@ namespace hpl {
 	{
 	public:
 		cMeshLoaderMSH(iLowLevelGraphics *apLowLevelGraphics);
-		~cMeshLoaderMSH();
+		~cMeshLoaderMSH() override;
 
-		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags);
-		bool SaveMesh(cMesh* apMesh,const tString& asFile);
+		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags) override;
+		bool SaveMesh(cMesh* apMesh,const tString& asFile) override;
 
-		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags);
+		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags) override;
 
-		cAnimation* LoadAnimation(const tString& asFile){ return nullptr;}
+		cAnimation* LoadAnimation(const tString& asFile) override{ return nullptr;}
 
-		bool IsSupported(const tString asFileType);
+		bool IsSupported(const tString asFileType) override;
 
-		void AddSupportedTypes(tStringVec* avFileTypes);
+		void AddSupportedTypes(tStringVec* avFileTypes) override;
 
 
 	private:

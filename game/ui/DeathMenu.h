@@ -71,8 +71,8 @@ public:
 	cDeathMenuButton_Continue(cInit *apInit, cVector2f avPos, const tWString& asText) :
 								cDeathMenuButton(apInit, avPos, asText){}						
 
-	void OnMouseDown();
-	void OnMouseUp();
+	void OnMouseDown() override;
+	void OnMouseUp() override;
 };
 
 //---------------------------------------------
@@ -83,8 +83,8 @@ public:
 	cDeathMenuButton_BackToMain(cInit *apInit, cVector2f avPos, const tWString& asText) :
 								cDeathMenuButton(apInit, avPos, asText){}						
 
-	void OnMouseDown();
-	void OnMouseUp();
+	void OnMouseDown() override;
+	void OnMouseUp() override;
 };
 
 //---------------------------------------------
@@ -99,13 +99,13 @@ class cDeathMenu : public iUpdateable
 	friend class cDeathMenuButton;
 public:
 	cDeathMenu(cInit *apInit);
-	~cDeathMenu();
+	~cDeathMenu() override;
 
-	void Reset();
+	void Reset() override;
 
-	void OnDraw();
+	void OnDraw() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	void SetMousePos(const cVector2f &avPos);
 	void AddMousePos(const cVector2f &avRel);
@@ -117,7 +117,7 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
-	void OnExit();
+	void OnExit() override;
 private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;

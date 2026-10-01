@@ -57,7 +57,7 @@ namespace hpl {
 	{
 	public:
 
-		void OnTransformUpdate(iEntity3D * apEntity);
+		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
 
 	//------------------------------------------
@@ -84,8 +84,8 @@ namespace hpl {
 
 		cContainerVec<cSaveData_cAnimationState> mvAnimStates;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//------------------------------------------
@@ -101,7 +101,7 @@ namespace hpl {
 	public:
 		cMeshEntity(const tString asName,cMesh* apMesh, cMaterialManager* apMaterialManager,
 					cMeshManager* apMeshManager, cAnimationManager *apAnimationManager);
-		~cMeshEntity();
+		~cMeshEntity() override;
 
 		void SetWorld(cWorld3D *apWorld){ mpWorld = apWorld;}
 		cWorld3D* GetWorld(){ return mpWorld;}
@@ -187,31 +187,31 @@ namespace hpl {
 		bool AttachEntityToParent(iEntity3D *apEntity, const tString& asParent);
 
 		//Entity implementation
-		tString GetEntityType(){ return "Mesh";}
-		bool IsVisible(){ return IsRendered(); }
-		void SetVisible(bool abVisible){ SetRendered(abVisible); }
+		tString GetEntityType() override{ return "Mesh";}
+		bool IsVisible() override{ return IsRendered(); }
+		void SetVisible(bool abVisible) override{ SetRendered(abVisible); }
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
 		//Renderable implementation.
-		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList);
-		void SetRendered(bool abX);
-		iMaterial *GetMaterial();
-		iVertexBuffer* GetVertexBuffer();
-		bool IsShadowCaster();
-		cBoundingVolume* GetBoundingVolume();
-		cMatrixf* GetModelMatrix(cCamera3D *apCamera);
-		int GetMatrixUpdateCount();
-		eRenderableType GetRenderType();
+		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
+		void SetRendered(bool abX) override;
+		iMaterial *GetMaterial() override;
+		iVertexBuffer* GetVertexBuffer() override;
+		bool IsShadowCaster() override;
+		cBoundingVolume* GetBoundingVolume() override;
+		cMatrixf* GetModelMatrix(cCamera3D *apCamera) override;
+		int GetMatrixUpdateCount() override;
+		eRenderableType GetRenderType() override;
 
 		void SetBody(iPhysicsBody* apBody){ mpBody = apBody;}
 		iPhysicsBody* GetBody(){ return mpBody;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	private:
 		void UpdateNodeMatrixRec(const cMatrixf& a_mtxParentWorld,cNode3D *apNode);

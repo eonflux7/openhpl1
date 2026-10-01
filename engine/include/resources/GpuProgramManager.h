@@ -32,9 +32,9 @@ namespace hpl {
 	public:
 		cGpuProgramManager(cFileSearcher *apFileSearcher, iLowLevelGraphics *apLowLevelGraphics,
 			iLowLevelResources *apLowLevelResources,iLowLevelSystem *apLowLevelSystem);
-		~cGpuProgramManager();
+		~cGpuProgramManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		/**
 		 * Creates a new GPU program
 		 * \param asName name of the program
@@ -44,8 +44,8 @@ namespace hpl {
 		 */
 		iGpuProgram* CreateProgram(const tString& asName,const tString& asEntry,eGpuProgramType aType);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 	private:
 		iLowLevelGraphics *mpLowLevelGraphics;

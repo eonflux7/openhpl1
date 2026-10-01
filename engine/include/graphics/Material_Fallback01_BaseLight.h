@@ -38,38 +38,38 @@ namespace hpl {
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 
-		virtual ~iMaterial_Fallback01_BaseLight();
+		~iMaterial_Fallback01_BaseLight() override;
 
-		tTextureTypeList GetTextureTypes();
+		tTextureTypeList GetTextureTypes() override;
 
-		bool UsesType(eMaterialRenderType aType);
+		bool UsesType(eMaterialRenderType aType) override;
 
-		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight);
-		eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight);
+		iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
-		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight);
+		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override;
 
 		//////////////////////////////////////////////////////////////////
 		// Old and worthless stuff, only used by 2D renderer
-		void Compile(){}
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight){return false;}
-		void EndRendering(eMaterialRenderType aType){}
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType){return 0;}
-		bool NextPass(eMaterialRenderType aType){return false;}
-		bool HasMultiplePasses(eMaterialRenderType aType){return false;}
-		eMaterialType GetType(eMaterialRenderType aType){ return eMaterialType_Diffuse;}
+		void Compile() override{}
+		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override{return false;}
+		void EndRendering(eMaterialRenderType aType) override{}
+		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override{return 0;}
+		bool NextPass(eMaterialRenderType aType) override{return false;}
+		bool HasMultiplePasses(eMaterialRenderType aType) override{return false;}
+		eMaterialType GetType(eMaterialRenderType aType) override{ return eMaterialType_Diffuse;}
 		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd){}
+			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 
 	protected:
 		iTexture *mpNormalizationMap;
@@ -94,10 +94,10 @@ namespace hpl {
 	public:
 		cGLState_Diffuse();
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData(){}
+		void InitData() override{}
 	};
 
 	//---------------------------------------------------------------
@@ -106,12 +106,12 @@ namespace hpl {
 	{
 	public:
 		cGLState_ATIDiffuse();
-		~cGLState_ATIDiffuse();
+		~cGLState_ATIDiffuse() override;
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData();
+		void InitData() override;
 
 		int mlBind;
 	};
@@ -124,10 +124,10 @@ namespace hpl {
 	public:
 		cGLState_Bump();
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData(){}
+		void InitData() override{}
 	};
 
 	//---------------------------------------------------------------
@@ -136,12 +136,12 @@ namespace hpl {
 	{
 	public:
 		cGLState_ATIBump();
-		~cGLState_ATIBump();
+		~cGLState_ATIBump() override;
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData();
+		void InitData() override;
 
 		int mlBind;
 	};
@@ -153,10 +153,10 @@ namespace hpl {
 	public:
 		cGLState_Spot();
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData(){}
+		void InitData() override{}
 	};
 
 	//---------------------------------------------------------------
@@ -165,12 +165,12 @@ namespace hpl {
 	{
 	public:
 		cGLState_ATISpot();
-		~cGLState_ATISpot();
+		~cGLState_ATISpot() override;
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 	private:
-		void InitData();
+		void InitData() override;
 
 		int mlBind;
 	};

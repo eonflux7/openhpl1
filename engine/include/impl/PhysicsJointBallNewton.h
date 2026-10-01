@@ -29,17 +29,17 @@ namespace hpl {
 	public:
 		cPhysicsJointBallNewton(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 			iPhysicsWorld *apWorld, const cVector3f &avPivotPoint);
-		~cPhysicsJointBallNewton();
+		~cPhysicsJointBallNewton() override;
 
-		void SetConeLimits(const cVector3f& avPin, float afMaxConeAngle, float afMaxTwistAngle);
-		cVector3f GetAngles();
+		void SetConeLimits(const cVector3f& avPin, float afMaxConeAngle, float afMaxTwistAngle) override;
+		cVector3f GetAngles() override;
 
-		cVector3f GetVelocity();
-		cVector3f GetAngularVelocity();
-		cVector3f GetForce();
+		cVector3f GetVelocity() override;
+		cVector3f GetAngularVelocity() override;
+		cVector3f GetForce() override;
 
-		float GetDistance();
-		float GetAngle();
+		float GetDistance() override;
+		float GetAngle() override;
 
 	private:
 	};

@@ -40,7 +40,7 @@ namespace hpl {
 	class cAmbProgramSetup : public iMaterialProgramSetup
 	{
 	public:
-		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			if(apRenderSettings->mpSector)
 				apProgram->SetColor3f("ambientColor",apRenderSettings->mAmbientColor * apRenderSettings->mpSector->GetAmbientColor());

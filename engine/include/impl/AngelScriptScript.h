@@ -32,15 +32,15 @@ namespace hpl {
 	public:
 		cAngelScriptScript(const tString& asName, asIScriptEngine *apScriptEngine,
 					cScriptOutput *apScriptOutput, int alHandle);
-		~cAngelScriptScript();
+		~cAngelScriptScript() override;
 
-		bool CreateFromFile(const tString& asFileName);
+		bool CreateFromFile(const tString& asFileName) override;
 
-		int GetFuncHandle(const tString& asFunc);
-		void AddArg(const tString& asArg);
+		int GetFuncHandle(const tString& asFunc) override;
+		void AddArg(const tString& asArg) override;
 
-		bool Run(const tString& asFuncLine);
-		bool Run(int alHandle);
+		bool Run(const tString& asFuncLine) override;
+		bool Run(int alHandle) override;
 
 	private:
 		asIScriptEngine *mpScriptEngine;

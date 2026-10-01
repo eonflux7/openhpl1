@@ -138,9 +138,9 @@ class cHudModel_Normal : iHudModel
 public:
 	cHudModel_Normal() : iHudModel(ePlayerHandType_Normal){}
 
-	void LoadData(TiXmlElement *apRootElem){}
+	void LoadData(TiXmlElement *apRootElem) override{}
 
-	void ResetExtraData(){}
+	void ResetExtraData() override{}
 };
 
 //------------------------------------------------
@@ -154,12 +154,12 @@ class cPlayerHands : public iUpdateable
 {
 public:
 	cPlayerHands(cInit *apInit);
-	~cPlayerHands();
+	~cPlayerHands() override;
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
 
 	void OnWorldExit();
 	void OnWorldLoad();

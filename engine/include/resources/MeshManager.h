@@ -31,13 +31,13 @@ namespace hpl {
 	{
 	public:
 		cMeshManager(cGraphics* apGraphics,cResources *apResources);
-		~cMeshManager();
+		~cMeshManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 		cMesh* CreateMesh(const tString& asName);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
 	private:
 		cGraphics* mpGraphics;

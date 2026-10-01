@@ -31,22 +31,22 @@ namespace hpl
 	{
 	public:
 		cLowLevelSoundOpenAL();
-		~cLowLevelSoundOpenAL();
+		~cLowLevelSoundOpenAL() override;
 
-		void GetSupportedFormats(tStringList &alstFormats);
+		void GetSupportedFormats(tStringList &alstFormats) override;
 
 		iSoundData* LoadSoundData(const tString& asName,const tString& asFilePath,
-									const tString& asType, bool abStream,bool abLoopStream);
+									const tString& asType, bool abStream,bool abLoopStream) override;
 
-		void UpdateSound(float afTimeStep);
+		void UpdateSound(float afTimeStep) override;
 
 		void SetListenerAttributes (const cVector3f &avPos,const cVector3f &avVel,
-								const cVector3f &avForward,const cVector3f &avUp);
-		void SetListenerPosition(const cVector3f &avPos);
+								const cVector3f &avForward,const cVector3f &avUp) override;
+		void SetListenerPosition(const cVector3f &avPos) override;
 
-		void SetSetRolloffFactor(float afFactor);
+		void SetSetRolloffFactor(float afFactor) override;
 
-		void SetListenerAttenuation (bool abEnabled);
+		void SetListenerAttenuation (bool abEnabled) override;
 
 //		void LogSoundStatus();
 
@@ -55,15 +55,15 @@ namespace hpl
 					int alMaxMonoSourceHint, int alMaxStereoSourceHint,
 					int alStreamingBufferSize, int alStreamingBufferCount, bool abEnableLowLevelLog,
 					tString asDeviceName
-					);
+					) override;
 
-		void SetVolume(float afVolume);
+		void SetVolume(float afVolume) override;
 
-		void SetEnvVolume( float afEnvVolume );
+		void SetEnvVolume( float afEnvVolume ) override;
 
-		iSoundEnvironment* LoadSoundEnvironment (const tString& asFilePath);
-		void SetSoundEnvironment ( iSoundEnvironment* apSoundEnv );
-		void FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT );
+		iSoundEnvironment* LoadSoundEnvironment (const tString& asFilePath) override;
+		void SetSoundEnvironment ( iSoundEnvironment* apSoundEnv ) override;
+		void FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT ) override;
 
 	private:
 		tString mvFormats[30];

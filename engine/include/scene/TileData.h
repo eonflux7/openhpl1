@@ -63,16 +63,16 @@ namespace hpl {
 	{
 	public:
 		cTileDataNormal(cImageManager* apImageManager,cVector2f avTileSize);
-		~cTileDataNormal();
+		~cTileDataNormal() override;
 
-		void Destroy();
-		bool IsSolid(){return mbIsSolid;}
+		void Destroy() override;
+		bool IsSolid() override{return mbIsSolid;}
 		void SetIsSolid(bool abIsSolid){mbIsSolid = abIsSolid;}
 
 		eTileCollisionType GetCollisionType(){ return mCollisionType;}
 		void SetCollisionType(eTileCollisionType aCollisionType){ mCollisionType = aCollisionType;}
 
-		eTileDataType GetType(){ return eTileDataType_Normal; }
+		eTileDataType GetType() override{ return eTileDataType_Normal; }
 		tVertexVec* GetVertexVec(eTileRotation aRotation);
 		tUIntVec* GetIndexVec(eTileRotation aRotation);
 

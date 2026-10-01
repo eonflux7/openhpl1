@@ -32,13 +32,13 @@ class cButtonHandler : public iUpdateable
 {
 public:
 	cButtonHandler(cInit *apInit);
-	~cButtonHandler();
+	~cButtonHandler() override;
 
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnExit();
-	void OnPostSceneDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnExit() override;
+	void OnPostSceneDraw() override;
 
 	void SetDefaultKeys();
 

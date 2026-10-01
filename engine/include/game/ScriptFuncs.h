@@ -40,10 +40,10 @@ namespace hpl {
 	public:
 		cScriptJointCallback(cScene *apScene);
 
-		void OnMinLimit(iPhysicsJoint *apJoint);
-		void OnMaxLimit(iPhysicsJoint *apJoint);
+		void OnMinLimit(iPhysicsJoint *apJoint) override;
+		void OnMaxLimit(iPhysicsJoint *apJoint) override;
 
-		bool IsScript(){ return true;}
+		bool IsScript() override{ return true;}
 
 		tString msMaxFunc;
 		tString msMinFunc;

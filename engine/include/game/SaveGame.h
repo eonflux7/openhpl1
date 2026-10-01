@@ -223,14 +223,14 @@ namespace hpl {
 
 		cSaveDataIterator GetIterator();
 
-		void Clear();
-		size_t Size();
+		void Clear() override;
+		size_t Size() override;
 
 	private:
-		void AddVoidPtr(void **apPtr);
-		void AddVoidClass(void *apClass);
+		void AddVoidPtr(void **apPtr) override;
+		void AddVoidClass(void *apClass) override;
 
-		iContainerIterator* CreateIteratorPtr();
+		iContainerIterator* CreateIteratorPtr() override;
 
 		tSaveDataMap m_mapSaveData;
 	};

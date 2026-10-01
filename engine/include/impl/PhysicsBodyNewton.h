@@ -30,7 +30,7 @@ namespace hpl {
 
 	class cPhysicsBodyNewtonCallback : public iEntityCallback
 	{
-		void OnTransformUpdate(iEntity3D * apEntity);
+		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
 
 	class cPhysicsBodyNewton : public iPhysicsBody
@@ -38,59 +38,59 @@ namespace hpl {
 	friend class cPhysicsBodyNewtonCallback;
 	public:
 		cPhysicsBodyNewton(const tString &asName,iPhysicsWorld *apWorld,iCollideShape *apShape);
-		~cPhysicsBodyNewton();
+		~cPhysicsBodyNewton() override;
 
-		void SetMaterial(iPhysicsMaterial* apMaterial);
+		void SetMaterial(iPhysicsMaterial* apMaterial) override;
 
-		void SetLinearVelocity(const cVector3f &avVel);
-		cVector3f GetLinearVelocity() const;
-		void SetAngularVelocity(const cVector3f &avVel);
-		cVector3f GetAngularVelocity() const;
-		void SetLinearDamping(float afDamping);
-		float GetLinearDamping() const;
-		void SetAngularDamping(float afDamping);
-		float GetAngularDamping() const;
-		void SetMaxLinearSpeed(float afSpeed);
-		float GetMaxLinearSpeed() const;
-		void SetMaxAngularSpeed(float afDamping);
-		float GetMaxAngularSpeed() const;
-		cMatrixf GetInertiaMatrix();
+		void SetLinearVelocity(const cVector3f &avVel) override;
+		cVector3f GetLinearVelocity() const override;
+		void SetAngularVelocity(const cVector3f &avVel) override;
+		cVector3f GetAngularVelocity() const override;
+		void SetLinearDamping(float afDamping) override;
+		float GetLinearDamping() const override;
+		void SetAngularDamping(float afDamping) override;
+		float GetAngularDamping() const override;
+		void SetMaxLinearSpeed(float afSpeed) override;
+		float GetMaxLinearSpeed() const override;
+		void SetMaxAngularSpeed(float afDamping) override;
+		float GetMaxAngularSpeed() const override;
+		cMatrixf GetInertiaMatrix() override;
 
-		void  SetMass(float afMass);
-		float GetMass() const;
-		void  SetMassCentre(const cVector3f& avCentre);
-		cVector3f GetMassCentre() const;
+		void  SetMass(float afMass) override;
+		float GetMass() const override;
+		void  SetMassCentre(const cVector3f& avCentre) override;
+		cVector3f GetMassCentre() const override;
 
-		void AddForce(const cVector3f &avForce);
-		void AddForceAtPosition(const cVector3f &avForce, const cVector3f &avPos);
-		void AddTorque(const cVector3f &avTorque);
-		void AddImpulse(const cVector3f &avImpulse);
-		void AddImpulseAtPosition(const cVector3f &avImpulse, const cVector3f &avPos);
+		void AddForce(const cVector3f &avForce) override;
+		void AddForceAtPosition(const cVector3f &avForce, const cVector3f &avPos) override;
+		void AddTorque(const cVector3f &avTorque) override;
+		void AddImpulse(const cVector3f &avImpulse) override;
+		void AddImpulseAtPosition(const cVector3f &avImpulse, const cVector3f &avPos) override;
 
-		void SetEnabled(bool abEnabled);
-		bool GetEnabled() const;
-		void SetAutoDisable(bool abEnabled);
-		bool GetAutoDisable() const;
-		void SetAutoDisableLinearThreshold(float afThresold);
-		float GetAutoDisableLinearThreshold() const;
-		void SetAutoDisableAngularThreshold(float afThresold);
-		float GetAutoDisableAngularThreshold() const;
-		void SetAutoDisableNumSteps(int alNum);
-		int GetAutoDisableNumSteps() const;
-		void SetContinuousCollision(bool abOn);
-		bool GetContinuousCollision();
+		void SetEnabled(bool abEnabled) override;
+		bool GetEnabled() const override;
+		void SetAutoDisable(bool abEnabled) override;
+		bool GetAutoDisable() const override;
+		void SetAutoDisableLinearThreshold(float afThresold) override;
+		float GetAutoDisableLinearThreshold() const override;
+		void SetAutoDisableAngularThreshold(float afThresold) override;
+		float GetAutoDisableAngularThreshold() const override;
+		void SetAutoDisableNumSteps(int alNum) override;
+		int GetAutoDisableNumSteps() const override;
+		void SetContinuousCollision(bool abOn) override;
+		bool GetContinuousCollision() override;
 
 
-		void SetGravity(bool abEnabled);
-		bool GetGravity() const;
+		void SetGravity(bool abEnabled) override;
+		bool GetGravity() const override;
 
-		void RenderDebugGeometry(iLowLevelGraphics *apLowLevel,const cColor &aColor);
+		void RenderDebugGeometry(iLowLevelGraphics *apLowLevel,const cColor &aColor) override;
 
 		NewtonBody *GetNewtonBody(){ return mpNewtonBody;}
 
 		void ClearForces();
 
-		void DeleteLowLevel();
+		void DeleteLowLevel() override;
 
 		static void SetUseCallback(bool abX){ mbUseCallback = abX;}
 	private:

@@ -86,12 +86,12 @@ class cIntroStory : public iUpdateable
 {
 public:
 	cIntroStory(cInit *apInit);
-	~cIntroStory();
+	~cIntroStory() override;
 
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
-	void OnPostSceneDraw();
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 
 	void Exit();
 	

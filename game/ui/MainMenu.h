@@ -109,18 +109,18 @@ class cMainMenuWidget_MainButton : public cMainMenuWidget
 public:
 	cMainMenuWidget_MainButton(cInit *apInit, const cVector3f &avPos, const tWString& asText,
 								eMainMenuState aNextState);
-	~cMainMenuWidget_MainButton();
+	~cMainMenuWidget_MainButton() override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 	
-	void OnMouseOver(bool abOver);
+	void OnMouseOver(bool abOver) override;
 
-	void OnDraw();
+	void OnDraw() override;
 
-	virtual void OnMouseDown(eMButton aButton);
-	virtual void OnMouseUp(eMButton aButton){};
+	void OnMouseDown(eMButton aButton) override;
+	void OnMouseUp(eMButton aButton) override{};
 
-	void OnActivate(){
+	void OnActivate() override{
 		mfAlpha =0;
 		mfOverTimer =0;
 		mbOver=false;
@@ -144,16 +144,16 @@ class cMainMenuWidget_Button : public cMainMenuWidget
 public:
 	cMainMenuWidget_Button(cInit *apInit, const cVector3f &avPos, const tWString& asText,
 							eMainMenuState aNextState,cVector2f avFontSize, eFontAlign aAlignment);
-	~cMainMenuWidget_Button();
+	~cMainMenuWidget_Button() override;
 
-	void OnUpdate(float afTimeStep);
-	void OnMouseOver(bool abOver);
-	void OnDraw();
+	void OnUpdate(float afTimeStep) override;
+	void OnMouseOver(bool abOver) override;
+	void OnDraw() override;
 
-	virtual void OnMouseDown(eMButton aButton);
-	virtual void OnMouseUp(eMButton aButton){};
+	void OnMouseDown(eMButton aButton) override;
+	void OnMouseUp(eMButton aButton) override{};
 
-	void OnActivate(){
+	void OnActivate() override{
 		mfAlpha =0;
 		mfOverTimer =0;
 		mbOver=false;
@@ -180,11 +180,11 @@ public:
 	cMainMenuWidget_Text(cInit *apInit, const cVector3f &avPos, const tWString& asText,
 						cVector2f avFontSize, eFontAlign aAlignment,
 						cMainMenuWidget *apExtra=nullptr, float afMaxWidth=0);
-	~cMainMenuWidget_Text();
+	~cMainMenuWidget_Text() override;
 
-	void OnDraw();
-	void OnMouseDown(eMButton aButton);
-	void OnMouseOver(bool abOver);
+	void OnDraw() override;
+	void OnMouseDown(eMButton aButton) override;
+	void OnMouseOver(bool abOver) override;
 
 	void SetExtraWidget(cMainMenuWidget *apExtra){ mpExtra = apExtra;}
 	cMainMenuWidget* GetExtraWidget(){ return mpExtra;}
@@ -213,9 +213,9 @@ public:
 	cMainMenuWidget_Image(cInit *apInit, const cVector3f &avPos,const cVector2f& avSize,
 							const tString& asImageFile, const tString& asImageMat,
 							const cColor& aColor);
-	~cMainMenuWidget_Image();
+	~cMainMenuWidget_Image() override;
 
-	void OnDraw();
+	void OnDraw() override;
 
 protected:
 	cGfxObject *mpImage;
@@ -233,14 +233,14 @@ public:
 	cMainMenuWidget_List(cInit *apInit, const cVector3f &avPos,const cVector2f &avSize,
 						cVector2f avFontSize);
 						
-	~cMainMenuWidget_List();
+	~cMainMenuWidget_List() override;
 	
-	void OnUpdate(float afTimeStep);
-	void OnMouseOver(bool abOver);
-	void OnDraw();
+	void OnUpdate(float afTimeStep) override;
+	void OnMouseOver(bool abOver) override;
+	void OnDraw() override;
 
-	void OnMouseDown(eMButton aButton);
-	void OnMouseUp(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
+	void OnMouseUp(eMButton aButton) override;
 
 
 
@@ -295,7 +295,7 @@ public:
 						cVector2f avFontSize, eFontAlign aAlignment,
 						eGameDifficulty aDiffuculty);
 
-	virtual void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 
 private:
 	eGameDifficulty mDiffuculty;
@@ -308,7 +308,7 @@ class cMainMenuWidget_Continue : public cMainMenuWidget_Button
 public:
 	cMainMenuWidget_Continue(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment);
 
-	virtual void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 };
 
 //---------------------------------------------
@@ -318,7 +318,7 @@ class cMainMenuWidget_Quit : public cMainMenuWidget_Button
 public:
 	cMainMenuWidget_Quit(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment);
 
-	virtual void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 };
 
 //---------------------------------------------
@@ -328,7 +328,7 @@ class cMainMenuWidget_Resume : public cMainMenuWidget_MainButton
 public:
 	cMainMenuWidget_Resume(cInit *apInit, const cVector3f &avPos, const tWString& asText);
 
-	virtual void OnMouseDown(eMButton aButton);
+	void OnMouseDown(eMButton aButton) override;
 };
 
 //---------------------------------------------
@@ -356,15 +356,15 @@ class cMainMenu : public iUpdateable
 	friend class cMainMenuWidget;
 public:
 	cMainMenu(cInit *apInit);
-	~cMainMenu();
+	~cMainMenu() override;
 
-	void Reset();
+	void Reset() override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
-	void OnDraw();
+	void OnDraw() override;
     
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
 	void SetButtonTip(const tWString &asString){ msButtonTip = asString;}
 
@@ -380,7 +380,7 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
-	void OnExit();
+	void OnExit() override;
 
 	void Exit();
 

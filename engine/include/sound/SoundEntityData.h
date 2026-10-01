@@ -29,7 +29,7 @@ namespace hpl {
 	friend class cSoundEntity;
 	public:
 		cSoundEntityData(tString asName);
-		~cSoundEntityData();
+		~cSoundEntityData() override;
 
 		bool CreateFromFile(const tString &asFile);
 
@@ -73,9 +73,9 @@ namespace hpl {
 		int GetPriority(){ return mlPriority;}
 
 		//Resource implementation
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 	protected:
 		tString msMainSound;

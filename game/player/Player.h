@@ -74,8 +74,8 @@ public:
 	
 	cContainerList<cSaveGame_cGameCollideScript>  mlstCollideCallbacks;
 
-	virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-	virtual int GetSaveCreatePrio();
+	iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+	int GetSaveCreatePrio() override;
 };
 
 //---------------------------------------------
@@ -145,7 +145,7 @@ class cPlayer : public iUpdateable
 friend class cSaveData_cPlayer;
 public:
 	cPlayer(cInit *apInit);
-	~cPlayer();
+	~cPlayer() override;
 	
 	////////////////////////////////////////
 	//Interaction
@@ -207,11 +207,11 @@ public:
 	// Events
 	void OnWorldLoad();
 	void OnWorldExit();
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
-	void OnDraw();
-	void OnPostSceneDraw();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 
 	/////////////////////////////////////////
 	//Saving

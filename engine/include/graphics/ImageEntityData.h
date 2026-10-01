@@ -66,12 +66,12 @@ namespace hpl {
 	{
 	public:
 		cImageEntityData(tString asName,cGraphics *apGraphics ,cResources *apResources);
-		~cImageEntityData();
+		~cImageEntityData() override;
 
 		//resource stuff:
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		bool CreateFromFile(const tString &asFile,tUIntVec &avImageHandle);
 

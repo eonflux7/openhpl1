@@ -33,15 +33,15 @@ class cCredits : public iUpdateable
 {
 public:
 	cCredits(cInit *apInit);
-	~cCredits();
+	~cCredits() override;
 
-	void Reset();
+	void Reset() override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 	
-	void OnDraw();
+	void OnDraw() override;
     
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 	
 	void OnMouseDown(eMButton aButton);
 	void OnButtonDown();
@@ -49,7 +49,7 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
-	void OnExit();
+	void OnExit() override;
 private:
 	void LoadConfig();
 

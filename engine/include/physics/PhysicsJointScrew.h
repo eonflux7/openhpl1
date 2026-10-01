@@ -33,8 +33,8 @@ namespace hpl {
 		float mfMinDistance;
 		cVector3f mvPin;
 
-		virtual iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame);
-		virtual int GetSaveCreatePrio();
+		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
+		int GetSaveCreatePrio() override;
 	};
 
 	//-----------------------------------
@@ -48,7 +48,7 @@ namespace hpl {
 		iPhysicsJointScrew(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 			iPhysicsWorld *apWorld,const cVector3f &avPivotPoint)
 			: iPhysicsJoint(asName,apParentBody,apChildBody, apWorld,avPivotPoint){}
-		virtual ~iPhysicsJointScrew(){}
+		~iPhysicsJointScrew() override{}
 
 		/**
 		* Set the maximum distance the bodies can be from each other, relative to the start dist between them
@@ -61,13 +61,13 @@ namespace hpl {
 		virtual float GetMaxDistance()=0;
 		virtual float GetMinDistance()=0;
 
-		ePhysicsJointType GetType(){ return ePhysicsJointType_Screw;}
+		ePhysicsJointType GetType() override{ return ePhysicsJointType_Screw;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		float mfMaxDistance;

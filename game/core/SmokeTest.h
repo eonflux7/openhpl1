@@ -32,8 +32,8 @@ public:
 	const tString& GetFirstMap();
 	bool Failed(){ return mlFailures > 0; }
 
-	void Update(float afTimeStep);
-	void Reset();
+	void Update(float afTimeStep) override;
+	void Reset() override;
 
 private:
 	enum eStep

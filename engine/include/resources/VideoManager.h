@@ -45,18 +45,18 @@ namespace hpl {
 	{
 	public:
 		cVideoManager(cGraphics* apGraphics,cResources *apResources);
-		~cVideoManager();
+		~cVideoManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 
 		iVideoStream* CreateVideo(const tString& asName);
 
 		void AddVideoLoader(iVideoStreamLoader *apLoader);
 
-		void Destroy(iResourceBase* apResource);
-		void Unload(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
+		void Unload(iResourceBase* apResource) override;
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 	private:
 		iVideoStreamLoader *GetLoader(const tString& asFileName);
 

@@ -41,13 +41,13 @@ namespace hpl {
 	public:
 		cImageManager(cFileSearcher *apFileSearcher, iLowLevelGraphics *apLowLevelGraphics,
 						iLowLevelResources *apLowLevelResources,iLowLevelSystem *apLowLevelSystem);
-		~cImageManager();
+		~cImageManager() override;
 
-		iResourceBase* Create(const tString& asName);
+		iResourceBase* Create(const tString& asName) override;
 
-		void Destroy(iResourceBase* apResource);
+		void Destroy(iResourceBase* apResource) override;
 
-		void Unload(iResourceBase* apResource);
+		void Unload(iResourceBase* apResource) override;
 
 		//Image specifc
 		iResourceBase* CreateInFrame(const tString& asName, int alFrameHandle);

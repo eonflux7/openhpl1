@@ -53,7 +53,7 @@ namespace hpl {
 			mpNewtonChildBody = pNChild->GetNewtonBody();
 		}
 
-		virtual ~iPhysicsJointNewton()
+		~iPhysicsJointNewton() override
 		{
 			//Skip this for now and let newton handle it..
 			//Log("Destroying newton joint!\n");
@@ -63,23 +63,23 @@ namespace hpl {
 
 		///////////////////////
 
-		void SetCollideBodies(bool abX)
+		void SetCollideBodies(bool abX) override
 		{
 			NewtonJointSetCollisionState(mpNewtonJoint,abX ? 1: 0);
 		}
 
-		bool GetCollideBodies()
+		bool GetCollideBodies() override
 		{
 			return NewtonJointGetCollisionState(mpNewtonJoint)==0 ? false : true;
 		}
 
 		///////////////////////
 
-		void SetStiffness(float afX)
+		void SetStiffness(float afX) override
 		{
 			NewtonJointSetStiffness(mpNewtonJoint, afX);
 		}
-		float GetStiffness()
+		float GetStiffness() override
 		{
 			return NewtonJointGetStiffness(mpNewtonJoint);
 		}

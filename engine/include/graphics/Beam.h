@@ -52,7 +52,7 @@ namespace hpl {
 
 		/////////////////////////////////
 		//Entity implementation
-		tString GetEntityType(){ return "BeamEnd";}
+		tString GetEntityType() override{ return "BeamEnd";}
 	private:
 		cColor mColor;
 		cBeam *mpBeam;
@@ -63,7 +63,7 @@ namespace hpl {
 	class cBeamEnd_UpdateCallback : public iEntityCallback
 	{
 	public:
-		void OnTransformUpdate(iEntity3D * apEntity);
+		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
 
 	//------------------------------------------
@@ -76,7 +76,7 @@ namespace hpl {
 	friend class cBeamEnd;
 	public:
 		cBeam(const tString asName, cResources *apResources,cGraphics *apGraphics);
-		~cBeam();
+		~cBeam() override;
 
 		void SetMaterial(iMaterial * apMaterial);
 
@@ -107,27 +107,27 @@ namespace hpl {
 
 		/////////////////////////////////
 		//Entity implementation
-		tString GetEntityType(){ return "Beam";}
+		tString GetEntityType() override{ return "Beam";}
 
-		bool IsVisible();
-		void SetVisible(bool abVisible){ SetRendered(abVisible); }
+		bool IsVisible() override;
+		void SetVisible(bool abVisible) override{ SetRendered(abVisible); }
 
 		//Renderable implementations
-		iMaterial *GetMaterial(){ return mpMaterial;}
-		iVertexBuffer* GetVertexBuffer(){return mpVtxBuffer;}
+		iMaterial *GetMaterial() override{ return mpMaterial;}
+		iVertexBuffer* GetVertexBuffer() override{return mpVtxBuffer;}
 
-		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList);
+		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
 
-		bool IsShadowCaster(){ return false;}
+		bool IsShadowCaster() override{ return false;}
 
-		cBoundingVolume* GetBoundingVolume();
+		cBoundingVolume* GetBoundingVolume() override;
 
-		cMatrixf* GetModelMatrix(cCamera3D *apCamera);
+		cMatrixf* GetModelMatrix(cCamera3D *apCamera) override;
 
-		int GetMatrixUpdateCount();
+		int GetMatrixUpdateCount() override;
 
 
-		eRenderableType GetRenderType(){ return eRenderableType_ParticleSystem;}
+		eRenderableType GetRenderType() override{ return eRenderableType_ParticleSystem;}
 	private:
 		cMaterialManager* mpMaterialManager;
 		cFileSearcher *mpFileSearcher;

@@ -158,11 +158,11 @@ namespace hpl {
 	{
 	public:
 		cResources(iLowLevelResources *apLowLevelResources,iLowLevelGraphics *apLowLevelGraphics);
-		~cResources();
+		~cResources() override;
 
 		void Init(cGraphics* apGraphics,cSystem *apSystem, cSound* apSound, cScene *apScene, cGui *apGui);
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
 		iLowLevelResources* GetLowLevel();
 		cFileSearcher* GetFileSearcher();

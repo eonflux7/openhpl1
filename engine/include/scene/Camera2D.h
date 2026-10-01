@@ -30,10 +30,10 @@ namespace hpl {
 	{
 	public:
 		cCamera2D(unsigned int alW,unsigned int alH);
-		~cCamera2D();
+		~cCamera2D() override;
 
 		const cVector3f& GetPosition()const{return mvPosition;}
-		cVector3f GetEyePosition();
+		cVector3f GetEyePosition() override;
 		void SetPosition(cVector3f avPos){mvPosition = avPos;}
 
 		void SetXY(cVector2f avPos){mvPosition.x=avPos.x;mvPosition.y=avPos.y;}
@@ -43,10 +43,10 @@ namespace hpl {
 
 		void GetClipRect(cRect2f &aRect);
 
-		void SetModelViewMatrix(iLowLevelGraphics* apLowLevel);
-		void SetProjectionMatrix(iLowLevelGraphics* apLowLevel);
+		void SetModelViewMatrix(iLowLevelGraphics* apLowLevel) override;
+		void SetProjectionMatrix(iLowLevelGraphics* apLowLevel) override;
 
-		eCameraType GetType(){ return eCameraType_2D;}
+		eCameraType GetType() override{ return eCameraType_2D;}
 
 	private:
 		cVector3f mvPosition;

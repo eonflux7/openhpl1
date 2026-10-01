@@ -35,7 +35,7 @@ public:
 	float mfEnterFlashDist;
 	float mfExitFlashDist;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -44,7 +44,7 @@ class cGameItem_InViewRay : public iPhysicsRayCallback
 {
 public:
 	void SetUp(iPhysicsBody *apSkipBody);
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	bool mbIntersected;
 	iPhysicsBody *mpSkipBody;
@@ -60,17 +60,17 @@ class cGameItem :	public iGameEntity
 friend class cEntityLoader_GameItem;
 public:
 	cGameItem(cInit *apInit,const tString& asName);
-	~cGameItem(void);
+	~cGameItem(void) override;
 
-	void OnWorldLoad();
+	void OnWorldLoad() override;
 	
-	void OnPlayerPick();
+	void OnPlayerPick() override;
 
-	void OnPlayerInteract();
+	void OnPlayerInteract() override;
 	
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 
 	float GetFlashAlpha(){ return mfFlashAlpha;}
 
@@ -86,9 +86,9 @@ public:
 	tString GetHudModelName(){ return msHudModelName;}
 	
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	bool IsInView(float afMinDist);
@@ -125,12 +125,12 @@ class cEntityLoader_GameItem : public cEntityLoader_Object
 
 public:
 	cEntityLoader_GameItem(const tString &asName, cInit *apInit);
-	~cEntityLoader_GameItem();
+	~cEntityLoader_GameItem() override;
 
 	static eGameItemType ToItemType(const char* apString);
 private:
-	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
-	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	void BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
+	void AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 	cInit *mpInit;
 };

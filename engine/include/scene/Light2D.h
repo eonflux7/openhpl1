@@ -32,16 +32,16 @@ namespace hpl {
 	{
 	public:
 		iLight2D(tString asName);
-		virtual ~iLight2D(){}
+		~iLight2D() override{}
 
-		tString GetEntityType(){ return "iLight2D";}
+		tString GetEntityType() override{ return "iLight2D";}
 
-		void UpdateLogic(float afTimeStep);
+		void UpdateLogic(float afTimeStep) override;
 
-		void SetFarAttenuation(float afX);
-		void SetNearAttenuation(float afX);
+		void SetFarAttenuation(float afX) override;
+		void SetNearAttenuation(float afX) override;
 
-		cVector3f GetLightPosition();
+		cVector3f GetLightPosition() override;
 
 		virtual int Render(iLowLevelGraphics* apLowLevel, int alFirstIndex)=0;
 

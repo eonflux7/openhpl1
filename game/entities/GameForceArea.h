@@ -42,7 +42,7 @@ public:
 	bool mbAffectBodies;
 	bool mbForceAtPoint;
 		
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -55,12 +55,12 @@ class cGameForceArea : public iGameEntity
 	friend class cAreaLoader_GameForceArea;
 public:
 	cGameForceArea(cInit *apInit,const tString& asName);
-	~cGameForceArea(void);
+	~cGameForceArea(void) override;
 
 	void Setup();
 
-	void Update(float afTimeStep);
-	void OnPostSceneDraw();
+	void Update(float afTimeStep) override;
+	void OnPostSceneDraw() override;
 
 	void SetMaxForce(float afX) {mfMaxForce = afX;}
 	void SetConstant(float afX) {mfConstant = afX;}
@@ -73,10 +73,10 @@ public:
 	void SetForceAtPoint(bool abX){ mbForceAtPoint = abX;}
 	
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
-	void SetupSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
+	void SetupSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	float mfMaxForce;
@@ -99,9 +99,9 @@ class cAreaLoader_GameForceArea : public iArea3DLoader
 
 public:
 	cAreaLoader_GameForceArea(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameForceArea();
+	~cAreaLoader_GameForceArea() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

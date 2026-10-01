@@ -30,7 +30,7 @@ namespace hpl {
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
-		~cMaterial_Diffuse();
+		~cMaterial_Diffuse() override;
 
 	private:
 	};
@@ -40,14 +40,14 @@ namespace hpl {
 	public:
 		cMaterialType_Diffuse();
 
-		bool IsCorrect(tString asName){
+		bool IsCorrect(tString asName) override{
 			return cString::ToLowerCase(asName)=="diffuse";
 		}
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
 			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
-			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
+			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override;
 
 	private:
 		int mlTechLevel;

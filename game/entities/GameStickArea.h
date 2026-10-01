@@ -51,7 +51,7 @@ public:
 	
 	float mfSetMtxTime;
 	
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -64,13 +64,13 @@ class cGameStickArea : public iGameEntity
 	friend class cAreaLoader_GameStickArea;
 public:
 	cGameStickArea(cInit *apInit,const tString& asName);
-	~cGameStickArea(void);
+	~cGameStickArea(void) override;
 
-	void OnPlayerPick();
+	void OnPlayerPick() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 
-	void OnPostSceneDraw();
+	void OnPostSceneDraw() override;
 
 	iPhysicsBody* GetAttachedBody(){ return mpAttachedBody;}
 	void DetachBody();
@@ -101,10 +101,10 @@ public:
 	static bool mbAllowAttachment;
 
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
-	void SetupSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
+	void SetupSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	tString msAttachFunction;
@@ -141,9 +141,9 @@ class cAreaLoader_GameStickArea : public iArea3DLoader
 
 public:
 	cAreaLoader_GameStickArea(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameStickArea();
+	~cAreaLoader_GameStickArea() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

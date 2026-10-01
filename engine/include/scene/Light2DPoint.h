@@ -27,12 +27,12 @@ namespace hpl {
 	{
 	public:
 		cLight2DPoint(tString asName);
-		~cLight2DPoint();
+		~cLight2DPoint() override;
 
-		const cRect2f& GetBoundingBox();
-		bool UpdateBoundingBox();
+		const cRect2f& GetBoundingBox() override;
+		bool UpdateBoundingBox() override;
 
-		int Render(iLowLevelGraphics* apLowLevel, int alFirstIndex);
+		int Render(iLowLevelGraphics* apLowLevel, int alFirstIndex) override;
 	};
 
 };

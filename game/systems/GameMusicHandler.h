@@ -56,11 +56,11 @@ class cGameMusicHandler : public iUpdateable
 {
 public:
 	cGameMusicHandler(cInit *apInit);
-	~cGameMusicHandler();
+	~cGameMusicHandler() override;
 	
-	void OnStart();
-	void Update(float afTimeStep);
-	void Reset();
+	void OnStart() override;
+	void Update(float afTimeStep) override;
+	void Reset() override;
 
 	void OnWorldLoad();
 	void OnWorldExit();

@@ -458,19 +458,19 @@ namespace hpl {
 	{
 	public:
 		cMeshLoaderCollada(iLowLevelGraphics *apLowLevelGraphics);
-		~cMeshLoaderCollada();
+		~cMeshLoaderCollada() override;
 
-		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags);
-		bool SaveMesh(cMesh* apMesh,const tString& asFile){return false;}
+		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags) override;
+		bool SaveMesh(cMesh* apMesh,const tString& asFile) override{return false;}
 
-		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags);
+		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags) override;
 
-		cAnimation* LoadAnimation(const tString& asFile);
+		cAnimation* LoadAnimation(const tString& asFile) override;
 
 
-		bool IsSupported(const tString asFileType);
+		bool IsSupported(const tString asFileType) override;
 
-		void AddSupportedTypes(tStringVec* avFileTypes);
+		void AddSupportedTypes(tStringVec* avFileTypes) override;
 
 	private:
 		bool mbZToY;

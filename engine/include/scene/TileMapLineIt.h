@@ -37,13 +37,13 @@ namespace hpl {
 		 * \return
 		 */
 		cTileMapLineIt(cVector2f avStartPos, cVector2f avEndPos, cTileMap* apTileMap, int alLayer);
-		~cTileMapLineIt();
+		~cTileMapLineIt() override;
 
-		bool HasNext();
-		cTile* Next();
-		cTile* PeekNext();
-		int GetNum();
-		int GetCurrentLayer();
+		bool HasNext() override;
+		cTile* Next() override;
+		cTile* PeekNext() override;
+		int GetNum() override;
+		int GetCurrentLayer() override;
 
 
 	private:

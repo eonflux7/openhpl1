@@ -418,12 +418,12 @@ namespace hpl {
 
 		///////////////////////////
 
-		bool HasNext()
+		bool HasNext() override
 		{
 			return mIt != mpCont->end();
 		}
 
-		void* NextPtr()
+		void* NextPtr() override
 		{
 			if(mIt == mpCont->end())
 				return nullptr;
@@ -484,12 +484,12 @@ namespace hpl {
 
 		///////////////////////////
 
-		bool HasNext()
+		bool HasNext() override
 		{
 			return mIt != mpCont->end();
 		}
 
-		void* NextPtr()
+		void* NextPtr() override
 		{
 			if(mIt == mpCont->end())
 				return nullptr;

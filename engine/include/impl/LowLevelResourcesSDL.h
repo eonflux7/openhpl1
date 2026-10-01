@@ -29,15 +29,15 @@ namespace hpl {
 	{
 	public:
 		cLowLevelResourcesSDL(cLowLevelGraphicsSDL *apLowLevelGraphics);
-		~cLowLevelResourcesSDL();
+		~cLowLevelResourcesSDL() override;
 
-		void FindFilesInDir(tWStringList &alstStrings, tWString asDir, tWString asMask);
+		void FindFilesInDir(tWStringList &alstStrings, tWString asDir, tWString asMask) override;
 
-		void GetSupportedImageFormats(tStringList &alstFormats);
-		iBitmap2D* LoadBitmap2D(tString asFilePath, tString asType = "");
+		void GetSupportedImageFormats(tStringList &alstFormats) override;
+		iBitmap2D* LoadBitmap2D(tString asFilePath, tString asType = "") override;
 
-		void AddMeshLoaders(cMeshLoaderHandler* apHandler);
-		void AddVideoLoaders(cVideoManager* apManager);
+		void AddMeshLoaders(cMeshLoaderHandler* apHandler) override;
+		void AddVideoLoaders(cVideoManager* apManager) override;
 
 	private:
 		tString mvImageFormats[30];

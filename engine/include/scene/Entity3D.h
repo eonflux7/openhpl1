@@ -83,7 +83,7 @@ namespace hpl {
 	#endif
 	public:
 		iEntity3D(tString asName);
-		virtual ~iEntity3D();
+		~iEntity3D() override;
 
 		cVector3f GetLocalPosition();
 		cMatrixf& GetLocalMatrix();
@@ -132,10 +132,10 @@ namespace hpl {
 		inline void SetGlobalRenderCount(int alX){ mlGlobalRenderCount = alX;}
 
 		//SaveObject implementation
-		virtual iSaveData* CreateSaveData();
-		virtual void SaveToSaveData(iSaveData *apSaveData);
-		virtual void LoadFromSaveData(iSaveData *apSaveData);
-		virtual void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame);
+		iSaveData* CreateSaveData() override;
+		void SaveToSaveData(iSaveData *apSaveData) override;
+		void LoadFromSaveData(iSaveData *apSaveData) override;
+		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
 		cMatrixf m_mtxLocalTransform;

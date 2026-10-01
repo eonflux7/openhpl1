@@ -38,7 +38,7 @@ namespace hpl {
 	class cFogProgramSetup : public iMaterialProgramSetup
 	{
 	public:
-		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			//apProgram->SetColor3f("fogColor",apRenderSettings->mFogColor);
 			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);

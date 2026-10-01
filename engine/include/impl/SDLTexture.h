@@ -35,41 +35,41 @@ namespace hpl {
 		cSDLTexture(const tString &asName,iPixelFormat *apPxlFmt,iLowLevelGraphics* apLowLevelGraphics,
 					eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
 					bool abCompress=false);
-		~cSDLTexture();
+		~cSDLTexture() override;
 
-		bool CreateFromBitmap(iBitmap2D* pBmp);
+		bool CreateFromBitmap(iBitmap2D* pBmp) override;
 
-		bool CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps);
+		bool CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps) override;
 
-		bool CreateCubeFromBitmapVec(tBitmap2DVec *avBitmaps);
-		bool Create(unsigned int alWidth, unsigned int alHeight, cColor aCol);
+		bool CreateCubeFromBitmapVec(tBitmap2DVec *avBitmaps) override;
+		bool Create(unsigned int alWidth, unsigned int alHeight, cColor aCol) override;
 
-		bool CreateFromArray(unsigned char *apPixelData, int alChannels, const cVector3l &avSize);
+		bool CreateFromArray(unsigned char *apPixelData, int alChannels, const cVector3l &avSize) override;
 
 		void SetPixels2D(	int alLevel, const cVector2l& avOffset, const cVector2l& avSize,
-							eColorDataFormat aDataFormat, void *apPixelData);
+							eColorDataFormat aDataFormat, void *apPixelData) override;
 
 
-		float GetGamma(){return 0;}
-		void SetGamma(float afGamma){}
-		int GetHandle(){return (int) mvTextureHandles[0];}
+		float GetGamma() override{return 0;}
+		void SetGamma(float afGamma) override{}
+		int GetHandle() override{return (int) mvTextureHandles[0];}
 
-		void SetFilter(eTextureFilter aFilter);
-		void SetAnisotropyDegree(float afX);
+		void SetFilter(eTextureFilter aFilter) override;
+		void SetAnisotropyDegree(float afX) override;
 
-		void SetWrapS(eTextureWrap aMode);
-		void SetWrapT(eTextureWrap aMode);
-		void SetWrapR(eTextureWrap aMode);
+		void SetWrapS(eTextureWrap aMode) override;
+		void SetWrapT(eTextureWrap aMode) override;
+		void SetWrapR(eTextureWrap aMode) override;
 
-		void Update(float afTimeStep);
+		void Update(float afTimeStep) override;
 
-		bool HasAnimation();
-		void NextFrame();
-		void PrevFrame();
-		float GetT();
-		float GetTimeCount();
-		void SetTimeCount(float afX);
-		int GetCurrentLowlevelHandle();
+		bool HasAnimation() override;
+		void NextFrame() override;
+		void PrevFrame() override;
+		float GetT() override;
+		float GetTimeCount() override;
+		void SetTimeCount(float afX) override;
+		int GetCurrentLowlevelHandle() override;
 
 		/// SDL / OGL Specific ///////////
 

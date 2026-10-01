@@ -49,13 +49,13 @@ class cRadioHandler : public iUpdateable
 {
 public:
 	cRadioHandler(cInit *apInit);
-	~cRadioHandler();
+	~cRadioHandler() override;
 
 	void Add(const tWString& asText,const tString& asSound);
 	
-	void Update(float afTimeStep);
-	void OnDraw();
-	void Reset();
+	void Update(float afTimeStep) override;
+	void OnDraw() override;
+	void Reset() override;
 
 	void SetOnEndCallback(const tString &asFunc){ msOnEndCallback = asFunc;}
 	tString GetOnEndCallback(){ return msOnEndCallback;}

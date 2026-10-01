@@ -60,7 +60,7 @@ namespace hpl {
 		iGpuProgram(tString asName, eGpuProgramType aType) : iResourceBase(asName,0){
 			mProgramType = aType;
 		}
-		virtual ~iGpuProgram(){}
+		~iGpuProgram() override{}
 
 		static void SetLogDebugInformation(bool abX){mbDebugInfo = abX;}
 

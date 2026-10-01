@@ -139,7 +139,7 @@ namespace hpl {
 		{
 			mbSetUpDone = false;
 		}
-		virtual ~iGLStateProgram(){}
+		~iGLStateProgram() override{}
 
 		void SetUp(iLowLevelGraphics *apLowLevelGraphics)
 		{
@@ -151,25 +151,25 @@ namespace hpl {
 			}
 		}
 
-		virtual void Bind()=0;
-		virtual void UnBind()=0;
+		void Bind() override=0;
+		void UnBind() override=0;
 
-		bool CreateFromFile(const tString& asFile, const tString& asEntry){return false;}
-		bool SetFloat(const tString& asName, float afX){return false;}
+		bool CreateFromFile(const tString& asFile, const tString& asEntry) override{return false;}
+		bool SetFloat(const tString& asName, float afX) override{return false;}
 
-		bool SetVec2f(const tString& asName, float afX,float afY){return false;}
-		bool SetVec3f(const tString& asName, float afX,float afY,float afZ){return false;}
-		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW){return false;}
-		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx){return false;}
-		bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType, eGpuProgramMatrixOp mOp){return false;}
-		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true){return false;}
-		bool SetTextureToUnit(int alUnit, iTexture* apTexture){return false;}
+		bool SetVec2f(const tString& asName, float afX,float afY) override{return false;}
+		bool SetVec3f(const tString& asName, float afX,float afY,float afZ) override{return false;}
+		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW) override{return false;}
+		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx) override{return false;}
+		bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType, eGpuProgramMatrixOp mOp) override{return false;}
+		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true) override{return false;}
+		bool SetTextureToUnit(int alUnit, iTexture* apTexture) override{return false;}
 
 		eGpuProgramType GetType() { return mProgramType;}
 
-		bool Reload(){return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{return false;}
+		void Unload() override{}
+		void Destroy() override{}
 	protected:
 
 		iLowLevelGraphics *mpLowGfx;
@@ -212,12 +212,12 @@ namespace hpl {
 				cImageManager* apImageManager, cTextureManager *apTextureManager,
 				cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
 				eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
-		virtual ~iMaterial();
+		~iMaterial() override;
 
 		//resources stuff.
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		virtual void Compile()=0;
 

@@ -34,16 +34,16 @@ class iGameEnemyState_Worm_Base : public iGameEnemyState
 public:
 	iGameEnemyState_Worm_Base(int alId, cInit *apInit, iGameEnemy *apEnemy);
 
-	virtual void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	virtual bool OnHearNoise(const cVector3f &avPosition, float afVolume);
-	virtual void OnTakeHit(float afDamage);
-	virtual void OnDeath(float afDamage);
-	virtual void OnFlashlight(const cVector3f &avPosition);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
+	void OnTakeHit(float afDamage) override;
+	void OnDeath(float afDamage) override;
+	void OnFlashlight(const cVector3f &avPosition) override;
 
-	virtual void OnAnimationOver(const tString& asAnimName){}
+	void OnAnimationOver(const tString& asAnimName) override{}
 
-	virtual void OnDraw(){}
-	virtual void OnPostSceneDraw(){}
+	void OnDraw() override{}
+	void OnPostSceneDraw() override{}
 
 protected:
 	cGameEnemy_Worm *mpEnemyWorm;
@@ -58,10 +58,10 @@ public:
 	cGameEnemyState_Worm_Idle(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 								iGameEnemyState_Worm_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
 	//void OnSeePlayer(const cVector3f &avPosition, float afChance){}
 
@@ -80,16 +80,16 @@ public:
 	cGameEnemyState_Worm_Hunt(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	iGameEnemyState_Worm_Base(alId, apInit,apEnemy){}
 
-	void OnEnterState(iGameEnemyState *apPrevState);
-	void OnLeaveState(iGameEnemyState *apNextState);
+	void OnEnterState(iGameEnemyState *apPrevState) override;
+	void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void OnSeePlayer(const cVector3f &avPosition, float afChance);
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume);
+	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
+	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
 
-	void OnDraw();
-	void OnPostSceneDraw();
+	void OnDraw() override;
+	void OnPostSceneDraw() override;
 private:
 	float mfUpdatePathCount;
 	float mfUpdateFreq;
@@ -113,13 +113,13 @@ public:
 	cGameEnemyState_Worm_Dead(int alId, cInit *apInit, iGameEnemy *apEnemy) :
 	  iGameEnemyState_Worm_Base(alId, apInit,apEnemy){}
 
-	  void OnEnterState(iGameEnemyState *apPrevState);
-	  void OnLeaveState(iGameEnemyState *apNextState);
+	  void OnEnterState(iGameEnemyState *apPrevState) override;
+	  void OnLeaveState(iGameEnemyState *apNextState) override;
 
-	  void OnUpdate(float afTimeStep){}
+	  void OnUpdate(float afTimeStep) override{}
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance){}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume){ return false;}
+	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
+	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{ return false;}
 
 private:
 };
@@ -161,7 +161,7 @@ class cGameEnemy_Worm_MeshCallback : public cMeshEntityCallback
 public:
 	cGameEnemy_Worm_MeshCallback(cGameEnemy_Worm *apWorm);
 
-	void AfterAnimationUpdate(cMeshEntity *apMeshEntity, float afTimeStep);
+	void AfterAnimationUpdate(cMeshEntity *apMeshEntity, float afTimeStep) override;
 
 private:
 	cGameEnemy_Worm *mpWorm;
@@ -192,19 +192,19 @@ class cGameEnemy_Worm : public iGameEnemy
 friend class cGameEnemy_Worm_MeshCallback;
 public:
 	cGameEnemy_Worm(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
-	~cGameEnemy_Worm();
+	~cGameEnemy_Worm() override;
 	
-	void OnLoad();
+	void OnLoad() override;
 
-	void OnUpdate(float afTimeStep);
+	void OnUpdate(float afTimeStep) override;
 
-	void ExtraPostSceneDraw();
+	void ExtraPostSceneDraw() override;
 
-	void ShowPlayer(const cVector3f& avPlayerFeetPos);
+	void ShowPlayer(const cVector3f& avPlayerFeetPos) override;
 
-	bool MoveToPos(const cVector3f& avFeetPos);
+	bool MoveToPos(const cVector3f& avFeetPos) override;
 
-	bool IsFighting();
+	bool IsFighting() override;
 	
 	iCollideShape *GetAttackShape(){ return mpAttackShape;}
 

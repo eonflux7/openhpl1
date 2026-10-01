@@ -43,7 +43,7 @@ public:
 
 	bool mbHasWaves;
 		
-	iGameEntity* CreateEntity();
+	iGameEntity* CreateEntity() override;
 };
 
 //------------------------------------------
@@ -56,11 +56,11 @@ class cGameLiquidArea : public iGameEntity
 	friend class cAreaLoader_GameLiquidArea;
 public:
 	cGameLiquidArea(cInit *apInit,const tString& asName);
-	~cGameLiquidArea(void);
+	~cGameLiquidArea(void) override;
 
-	void OnPlayerPick();
+	void OnPlayerPick() override;
 
-	void Update(float afTimeStep);
+	void Update(float afTimeStep) override;
 	
 	void SetDensity(float afX){ mfDensity = afX;}
 	void SetLinearViscosity(float afX){ mfLinearViscosity = afX;}
@@ -74,10 +74,10 @@ public:
 	iPhysicsMaterial* GetPhysicsMaterial(){ return mpPhysicsMaterial;}
 	
 	//SaveObject implementation
-	iGameEntity_SaveData* CreateSaveData();
-	void SaveToSaveData(iGameEntity_SaveData *apSaveData);
-	void LoadFromSaveData(iGameEntity_SaveData *apSaveData);
-	void SetupSaveData(iGameEntity_SaveData *apSaveData);
+	iGameEntity_SaveData* CreateSaveData() override;
+	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
+	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
+	void SetupSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
 	void SplashEffect(iPhysicsBody *apBody);
@@ -105,9 +105,9 @@ class cAreaLoader_GameLiquidArea : public iArea3DLoader
 
 public:
 	cAreaLoader_GameLiquidArea(const tString &asName, cInit *apInit);
-	~cAreaLoader_GameLiquidArea();
+	~cAreaLoader_GameLiquidArea() override;
 
-	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld);
+	iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld) override;
 
 private:
 

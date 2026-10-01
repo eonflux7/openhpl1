@@ -53,7 +53,7 @@ public:
 
 	void OnWorldExit();
 
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	bool mbOnGround;
 	iPhysicsMaterial *mpMaterial;
@@ -71,7 +71,7 @@ public:
 
 	void Clear();
 
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	void CalculateResults();
 
@@ -196,7 +196,7 @@ public:
 
 	void Lean(float afMul, float afTimeStep);
 
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	void Reset();
 
@@ -301,11 +301,11 @@ class cPlayerFlashLight : iPhysicsRayCallback
 {
 public:
 	cPlayerFlashLight(cInit *apInit);
-	~cPlayerFlashLight();
+	~cPlayerFlashLight() override;
 
 	void Reset();
 	
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	void OnWorldLoad();
 	
@@ -493,7 +493,7 @@ class cPlayerHidden : public iPhysicsRayCallback
 {
 public:
 	cPlayerHidden(cInit *apInit);
-	~cPlayerHidden();
+	~cPlayerHidden() override;
 
 	void Draw();
 
@@ -508,7 +508,7 @@ public:
 	bool IsHidden(){ return mbHidden;}
 	void UnHide();
 
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams);
+	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 
 	bool HasLineOfSight(iLight3D *pLight,iPhysicsWorld *pPhysicsWorld);
 
@@ -582,9 +582,9 @@ class cPlayerBodyCallback : public iCharacterBodyCallback
 public:
 	cPlayerBodyCallback(cPlayer *apPlayer);
 
-	void OnHitGround(iCharacterBody *apCharBody,const cVector3f &avVel);
+	void OnHitGround(iCharacterBody *apCharBody,const cVector3f &avVel) override;
 	void OnGravityCollide(iCharacterBody *apCharBody,iPhysicsBody *apCollideBody,
-									cCollideData *apCollideData){}
+									cCollideData *apCollideData) override{}
 
 private:
 	cPlayer *mpPlayer;

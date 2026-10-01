@@ -42,30 +42,30 @@ namespace hpl {
 	{
 	public:
 		cGLSLProgram(tString asName, eGpuProgramType aType);
-		~cGLSLProgram();
+		~cGLSLProgram() override;
 
-		bool Reload();
-		void Unload();
-		void Destroy();
+		bool Reload() override;
+		void Unload() override;
+		void Destroy() override;
 
 		tString GetProgramName(){ return msName; }
 
-		bool CreateFromFile(const tString& asFile, const tString& asEntry="main");
+		bool CreateFromFile(const tString& asFile, const tString& asEntry="main") override;
 
-		void Bind();
-		void UnBind();
+		void Bind() override;
+		void UnBind() override;
 
-		bool SetFloat(const tString& asName, float afX);
-		bool SetVec2f(const tString& asName, float afX,float afY);
-		bool SetVec3f(const tString& asName, float afX,float afY,float afZ);
-		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW);
+		bool SetFloat(const tString& asName, float afX) override;
+		bool SetVec2f(const tString& asName, float afX,float afY) override;
+		bool SetVec3f(const tString& asName, float afX,float afY,float afZ) override;
+		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW) override;
 
-		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx);
+		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx) override;
 		bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType,
-									eGpuProgramMatrixOp mOp);
+									eGpuProgramMatrixOp mOp) override;
 
-		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true);
-		bool SetTextureToUnit(int alUnit, iTexture* apTexture);
+		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true) override;
+		bool SetTextureToUnit(int alUnit, iTexture* apTexture) override;
 
 		/// GLSL SPECIFIC //////////////////////
 

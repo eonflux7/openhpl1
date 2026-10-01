@@ -47,7 +47,7 @@ namespace hpl {
 	{
 	public:
 		cCamera3D();
-		~cCamera3D();
+		~cCamera3D() override;
 
 		const cVector3f& GetPosition()const{return mvPosition;}
 		void SetPosition(const cVector3f& avPos);
@@ -160,11 +160,11 @@ namespace hpl {
 		const cMatrixf& GetMoveMatrix();
 
 		//iCamera stuff:
-		void SetModelViewMatrix(iLowLevelGraphics* apLowLevel);
-		void SetProjectionMatrix(iLowLevelGraphics* apLowLevel);
-		cVector3f GetEyePosition();
+		void SetModelViewMatrix(iLowLevelGraphics* apLowLevel) override;
+		void SetProjectionMatrix(iLowLevelGraphics* apLowLevel) override;
+		cVector3f GetEyePosition() override;
 
-		eCameraType GetType(){ return eCameraType_3D;}
+		eCameraType GetType() override{ return eCameraType_3D;}
 
 		cVector3f GetForward();
 		cVector3f GetRight();

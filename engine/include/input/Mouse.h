@@ -29,7 +29,7 @@ namespace hpl {
 	{
 	public:
 		iMouse(tString asName);
-		virtual ~iMouse(){}
+		~iMouse() override{}
 
 		/**
 		 * Check if a mouse button is down

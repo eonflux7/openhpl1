@@ -60,7 +60,7 @@ namespace hpl {
 	{
 	public:
 		iFontData(const tString &asName, iLowLevelGraphics* apLowLevelGraphics);
-		~iFontData();
+		~iFontData() override;
 
 		virtual bool CreateFromFontFile(const tString &asFileName, int alSize,unsigned short alFirstChar,
 									unsigned short alLastChar)=0;
@@ -68,9 +68,9 @@ namespace hpl {
 		virtual bool CreateFromBitmapFile(const tString &asFileName)=0;
 
 
-		bool Reload(){ return false;}
-		void Unload(){}
-		void Destroy(){}
+		bool Reload() override{ return false;}
+		void Unload() override{}
+		void Destroy() override{}
 
 		/**
 		 * Used internally
