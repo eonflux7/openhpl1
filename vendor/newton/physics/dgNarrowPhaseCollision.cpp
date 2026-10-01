@@ -2113,6 +2113,12 @@ dgInt32 dgWorld::Collide(dgCollision *const collisionA, const dgMatrix &matrixA,
 	dgInt32 count = 0;
 	maxSize = GetMin(dgInt32(DG_MAX_CONTATCS), maxSize);
 
+	// Overture Remade: ConvexContacts swaps a convex-convex pair when body 0
+	// has no mass, and the normals returned here are then reversed. The mass
+	// of these temporary bodies was never set, so give both one.
+	collideBodyA.m_invMass = dgVector(dgFloat32(1.0f), dgFloat32(1.0f), dgFloat32(1.0f), dgFloat32(1.0f));
+	collideBodyB.m_invMass = collideBodyA.m_invMass;
+
 	collideBodyA.m_world = this;
 	collideBodyA.m_masterNode = NULL;
 	collideBodyA.m_collisionCell.m_cell = NULL;

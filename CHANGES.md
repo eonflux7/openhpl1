@@ -109,6 +109,10 @@ commit), and the last official Linux build on Steam.
   `GetEnabled` uses `NewtonBodyGetSleepState`, auto-disable uses auto-sleep.
 - `NewtonInitGlobals`/`NewtonDestroyGlobals` called around physics use.
 - Debug geometry drawn with `NewtonCollisionForEachPolygonDo`.
+- Fixed in the vendored Newton: `NewtonCollisionCollide` returned reversed
+  contact normals for convex-convex pairs (it read the mass of temporary
+  bodies that was never set). Characters were pushed into loose objects
+  instead of out of them, which could register as a fall and kill the player.
 - **Behaviour differences:**
   - Newton 2.36 has only world-wide sleep thresholds, so per-body auto-disable
     thresholds are stored but have no effect
