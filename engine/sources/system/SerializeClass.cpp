@@ -72,7 +72,7 @@ namespace hpl {
 		//Make sure that the first field type is not null
 		if(mpSavedClass && mpSavedClass->mpMemberFields[mlFieldNum].mType == eSerializeType_NULL)
 		{
-			if(mpSavedClass->msParentName!="")
+			if(mpSavedClass->msParentName[0] != '\0')
 			{
 				cSerializeSavedClass *pClass = cSerializeClass::GetClass(mpSavedClass->msParentName);
 				if(pClass) {
@@ -105,7 +105,7 @@ namespace hpl {
 
 		if(mpSavedClass->mpMemberFields[mlFieldNum].mType == eSerializeType_NULL)
 		{
-			if(mpSavedClass->msParentName!="")
+			if(mpSavedClass->msParentName[0] != '\0')
 			{
 				cSerializeSavedClass *pClass = cSerializeClass::GetClass(mpSavedClass->msParentName);
 				if(pClass) {
@@ -914,7 +914,7 @@ namespace hpl {
 					*pValuePtr = pSavedClass->mpCreateFunc();
 				}
 				else {
-					hplDelete(pValuePtr);
+					hplDelete(*pValuePtr);
 					*pValuePtr = pSavedClass->mpCreateFunc();
 				}
 
