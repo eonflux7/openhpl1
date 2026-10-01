@@ -459,6 +459,10 @@ messages (NVIDIA 615). Fixed for that:
   `hpl1_Fog_Trans.fragment` (`MOD`, `MODX2`) and the two blur programs
   `hpl1_PostEffect_Blur.fragment` (`RECT`). Light passes write 0 alpha in
   every variant; some left it undefined.
+- Removed: the per-combination files the variants replace; the `BumpSpec2D`
+  material type and its shaders (no game material uses it, and its vertex
+  shader did not compile); `hpl1_Diffuse_ColorMul.vertex` and
+  `hpl1_PostEffect_Offset`, which nothing loaded.
 - Reference images: unchanged.
 
 ## Known issues

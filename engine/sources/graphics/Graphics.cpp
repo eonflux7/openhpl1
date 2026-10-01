@@ -32,7 +32,6 @@
 #include "resources/Resources.h"
 
 //2D Materials
-#include "graphics/Material_BumpSpec2D.h"
 #include "graphics/Material_Diffuse2D.h"
 #include "graphics/Material_DiffuseAdditive2D.h"
 #include "graphics/Material_DiffuseAlpha2D.h"
@@ -130,7 +129,6 @@ namespace hpl {
 		//Add all the materials.
 		//2D
 		Log(" Adding engine materials\n");
-		mpMaterialHandler->Add(hplNew( cMaterialType_BumpSpec2D,() ) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAdditive2D,()) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAlpha2D,()) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_Diffuse2D,()) );
