@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef HPL_SQ_SCRIPT_H
-#define HPL_SQ_SCRIPT_H
+#ifndef HPL_ANGELSCRIPT_SCRIPT_H
+#define HPL_ANGELSCRIPT_SCRIPT_H
 
 #include "system/Script.h"
 #include "impl/LowLevelSystemSDL.h"
@@ -27,12 +27,12 @@
 
 namespace hpl {
 
-	class cSqScript : public iScript
+	class cAngelScriptScript : public iScript
 	{
 	public:
-		cSqScript(const tString& asName, asIScriptEngine *apScriptEngine,
+		cAngelScriptScript(const tString& asName, asIScriptEngine *apScriptEngine,
 					cScriptOutput *apScriptOutput, int alHandle);
-		~cSqScript();
+		~cAngelScriptScript();
 
 		bool CreateFromFile(const tString& asFileName);
 

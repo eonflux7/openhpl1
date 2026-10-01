@@ -41,7 +41,7 @@
 #include <string>
 
 #include "impl/LowLevelSystemSDL.h"
-#include "impl/SqScript.h"
+#include "impl/AngelScriptScript.h"
 
 #include <SDL3/SDL.h>
 
@@ -788,7 +788,7 @@ namespace hpl {
 
 	iScript* cLowLevelSystemSDL::CreateScript(const tString& asName)
 	{
-		return hplNew( cSqScript, (asName,mpScriptEngine,mpScriptOutput,mlHandleCount++) );
+		return hplNew( cAngelScriptScript, (asName,mpScriptEngine,mpScriptOutput,mlHandleCount++) );
 	}
 
 	//-----------------------------------------------------------------------

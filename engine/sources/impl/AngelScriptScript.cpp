@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "impl/SqScript.h"
+#include "impl/AngelScriptScript.h"
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
 #include "math/Math.h"
@@ -31,7 +31,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cSqScript::cSqScript(const tString& asName,asIScriptEngine *apScriptEngine,
+	cAngelScriptScript::cAngelScriptScript(const tString& asName,asIScriptEngine *apScriptEngine,
 							cScriptOutput *apScriptOutput, int alHandle)
 		: iScript(asName)
 	{
@@ -48,7 +48,7 @@ namespace hpl {
 
 	}
 
-	cSqScript::~cSqScript()
+	cAngelScriptScript::~cAngelScriptScript()
 	{
 		std::map<tString, asIScriptFunction*>::iterator it = m_mapCompiledLines.begin();
 		for(; it != m_mapCompiledLines.end(); ++it)
@@ -68,7 +68,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSqScript::CreateFromFile(const tString& asFileName)
+	bool cAngelScriptScript::CreateFromFile(const tString& asFileName)
 	{
 		int lLength;
 		char *pCharBuffer = LoadCharBuffer(asFileName,lLength);
@@ -107,7 +107,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	int cSqScript::GetFuncHandle(const tString& asFunc)
+	int cAngelScriptScript::GetFuncHandle(const tString& asFunc)
 	{
 		if(mpModule==NULL) return -1;
 
@@ -117,14 +117,14 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSqScript::AddArg(const tString& asArg)
+	void cAngelScriptScript::AddArg(const tString& asArg)
 	{
 
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cSqScript::Run(const tString& asFuncLine)
+	bool cAngelScriptScript::Run(const tString& asFuncLine)
 	{
 		if(mpModule==NULL) return true;
 
@@ -156,7 +156,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSqScript::Run(int alHandle)
+	bool cAngelScriptScript::Run(int alHandle)
 	{
 		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
 		if(pFunc==NULL) return false;
@@ -178,7 +178,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	char* cSqScript::LoadCharBuffer(const tString& asFileName, int& alLength)
+	char* cAngelScriptScript::LoadCharBuffer(const tString& asFileName, int& alLength)
 	{
 		FILE *pFile = fopen(asFileName.c_str(), "rb");
 		if(pFile==NULL){
