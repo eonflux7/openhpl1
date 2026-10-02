@@ -23,6 +23,8 @@
 #include "math/Math.h"
 
 #include "system/LowLevelSystem.h"
+#include <cmath>
+#include <limits>
 
 
 namespace hpl {
@@ -35,6 +37,7 @@ namespace hpl {
 
 	cAStarNode::cAStarNode(cAINode *apAINode)
 	{
+		mfCost = mfDistance = std::numeric_limits<float>::infinity();
 		mpParent = nullptr;
 		mpAINode = apAINode;
 	}
@@ -43,7 +46,8 @@ namespace hpl {
 
 	bool cAStarNodeCompare::operator()(cAStarNode* apNodeA,cAStarNode* apNodeB) const
 	{
-		return apNodeA->mpAINode < apNodeB->mpAINode;
+		if(apNodeA->mfCost != apNodeB->mfCost) return apNodeA->mfCost < apNodeB->mfCost;
+		return std::less<cAINode*>()(apNodeA->mpAINode, apNodeB->mpAINode);
 	}
 
 
@@ -62,15 +66,12 @@ namespace hpl {
 		mpContainer = apContainer;
 
 		mpCallback = nullptr;
+		mpGoalNode = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
 
-	cAStarHandler::~cAStarHandler()
-	{
-		STLDeleteAll(m_setClosedList);
-		STLDeleteAll(m_setOpenList);
-	}
+	cAStarHandler::~cAStarHandler() = default;
 
 	//-----------------------------------------------------------------------
 
@@ -82,21 +83,12 @@ namespace hpl {
 
 	bool cAStarHandler::GetPath(const cVector3f& avStart, const cVector3f& avGoal,tAINodeList *apNodeList)
 	{
-		/////////////////////////////////////////////////
-		// check if there is free path from start to goal
-		if(mpContainer->FreePath(avStart,avGoal,3))
-		{
-			mpGoalNode = nullptr;
-			return true;
-		}
-
-		////////////////////////////////////////////////
-		//Reset all variables
-		//These should just be cleared and pools used instead.
-		STLDeleteAll(m_setClosedList);
-		STLDeleteAll(m_setOpenList);
+		m_setOpenList.clear();
+		m_mapNodes.clear();
 		m_setGoalNodes.clear();
-		mpGoalNode=nullptr;
+		mpGoalNode = nullptr;
+
+		if(mpContainer->FreePath(avStart,avGoal,3)) return true;
 
 		//Set goal position
 		mvGoal = avGoal;
@@ -152,38 +144,6 @@ namespace hpl {
 		}
 		//Log(" Found goal\n");
 
-		/*for(int i=0; i<mpContainer->GetNodeNum(); ++i)
-		{
-			cAINode *pAINode = mpContainer->GetNode(i);
-
-			////////////////////////////////
-			//Check with Start
-			float fHeight = fabs(avStart.y - pAINode->GetPosition().y);
-			float fDist = cMath::Vector3Dist(avStart,pAINode->GetPosition());
-			//float fDist = cMath::Vector3DistSqr(avStart,pAINode->GetPosition());
-			if(fDist < fMaxDist && fHeight <= fMaxHeight)
-			{
-				//Check if path is clear
-				if(mpContainer->FreePath(avStart,pAINode->GetPosition(),-1))
-				{
-					AddOpenNode(pAINode,NULL,fDist);
-				}
-			}
-
-			////////////////////////////////
-			//Check with Goal
-			fHeight = fabs(avGoal.y - pAINode->GetPosition().y);
-			fDist = cMath::Vector3Dist(avGoal,pAINode->GetPosition());
-			//fDist = cMath::Vector3DistSqr(avGoal,pAINode->GetPosition());
-			if(fDist < fMaxDist && fHeight <= fMaxHeight)
-			{
-				//Check if path is clear
-				if(mpContainer->FreePath(avGoal,pAINode->GetPosition(),3))
-				{
-					m_setGoalNodes.insert(pAINode);
-				}
-			}
-		}*/
 
 		////////////////////////////////////////////////
 		//Iterate the algorithm
@@ -244,8 +204,7 @@ namespace hpl {
 
 				if(mpCallback == nullptr || mpCallback->CanAddNode(pAINode, pEdge->mpNode))
 				{
-					AddOpenNode(pEdge->mpNode, pNode, pNode->mfDistance + pEdge->mfDistance);
-					//AddOpenNode(pEdge->mpNode, pNode, pNode->mfDistance + pEdge->mfSqrDistance);
+					AddOpenNode(pEdge->mpNode, pNode, pEdge->mfDistance);
 				}
 			}
 
@@ -258,56 +217,29 @@ namespace hpl {
 
 	void cAStarHandler::AddOpenNode(cAINode *apAINode, cAStarNode *apParent, float afDistance)
 	{
-		//TODO: free path check with dynamic objects here.
+		if(!apAINode || !std::isfinite(afDistance) || afDistance < 0) return;
+		float fDistance = Cost(afDistance, apAINode, apParent);
+		if(!std::isfinite(fDistance) || fDistance < 0) return;
+		auto result = m_mapNodes.try_emplace(apAINode, apAINode);
+		cAStarNode *pNode = &result.first->second;
+		if(!result.second && fDistance >= pNode->mfDistance) return;
 
-		//TODO: Some pooling here would be good.
-		cAStarNode *pNode = hplNew( cAStarNode, (apAINode) );
-
-		//Check if it is in closed list.
-		tAStarNodeSetIt it = m_setClosedList.find(pNode);
-		if(it != m_setClosedList.end()){
-			hplDelete(pNode);
-			return;
-		}
-
-		//Try to add it to the open list
-		std::pair<tAStarNodeSetIt, bool> testPair = m_setOpenList.insert(pNode);
-		if(testPair.second == false){
-			hplDelete(pNode);
-			return;
-		}
-
-		pNode->mfDistance = afDistance;
-		pNode->mfCost = Cost(afDistance,apAINode,apParent) + Heuristic(pNode->mpAINode->GetPosition(), mvGoal);
+		// Erase before changing the ordering key; cheaper closed nodes reopen too.
+		m_setOpenList.erase(pNode);
+		pNode->mfDistance = fDistance;
+		pNode->mfCost = fDistance + Heuristic(apAINode->GetPosition(), mvGoal);
 		pNode->mpParent = apParent;
+		m_setOpenList.insert(pNode);
 	}
 
 	//-----------------------------------------------------------------------
 
 	cAStarNode* cAStarHandler::GetBestNode()
 	{
-		tAStarNodeSetIt it = m_setOpenList.begin();
-		tAStarNodeSetIt bestIt = it;
-		cAStarNode* pBestNode = *it; ++it;
-
-		//Iterate open list and find the best node.
-		for(; it != m_setOpenList.end(); ++it)
-		{
-			cAStarNode *pNode = *it;
-			if(pBestNode->mfCost > pNode->mfCost)
-			{
-				pBestNode = pNode;
-				bestIt = it;
-			}
-		}
-
-		//Remove node from open
-		m_setOpenList.erase(bestIt);
-
-		//Add to closed list
-		m_setClosedList.insert(pBestNode);
-
-		return pBestNode;
+		auto it = m_setOpenList.begin();
+		cAStarNode *pNode = *it;
+		m_setOpenList.erase(it);
+		return pNode;
 	}
 
 	//-----------------------------------------------------------------------
@@ -317,7 +249,8 @@ namespace hpl {
 		if(apParent)
 		{
 			float fHeight = (1+fabs(apAINode->GetPosition().y - apParent->mpAINode->GetPosition().y));
-			return afDistance * fHeight;
+			// Penalize this edge, rather than rescaling the entire route.
+			return apParent->mfDistance + afDistance * fHeight;
 		}
 		else
 			return afDistance;

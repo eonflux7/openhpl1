@@ -46,7 +46,7 @@ namespace hpl {
 		cAStarNode(cAINode *apAINode);
 
 		float mfCost;
-		float mfDistance;
+		float mfDistance; // Accumulated traversal cost, including height penalties.
 
 		cAStarNode *mpParent;
 		cAINode *mpAINode;
@@ -115,7 +115,8 @@ namespace hpl {
 		iAStarCallback *mpCallback;
 
 		tAStarNodeSet m_setOpenList;
-		tAStarNodeSet m_setClosedList;
+		// Map nodes own stable search records; the open set orders them by cost.
+		std::map<cAINode*, cAStarNode> m_mapNodes;
 	};
 
 };

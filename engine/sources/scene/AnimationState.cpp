@@ -51,6 +51,7 @@ namespace hpl {
 		mfBaseSpeed = 1.0f;
 		mfTimePos = 0;
 		mfPrevTimePos=0;
+		mfTimeDelta=0;
 
 		mbLoop =false;
 		mbPaused = false;
@@ -181,7 +182,8 @@ namespace hpl {
 
 	void cAnimationState::SetTimePosition(float afPosition)
 	{
-		if(mbLoop)
+		mfTimeDelta = 0;
+		if(mbLoop && mfLength > 0)
 		{
 			mfTimePos = cMath::Wrap(afPosition,0,mfLength);
 		}
@@ -199,6 +201,18 @@ namespace hpl {
 	float cAnimationState::GetPreviousTimePosition()
 	{
 		return mfPrevTimePos;
+	}
+
+	bool cAnimationState::HasEventInLastUpdate(float afEventTime) const
+	{
+		if(afEventTime < 0 || afEventTime >= mfLength || mfTimeDelta == 0) return false;
+		if(mbLoop && fabs(mfTimeDelta) >= mfLength) return true;
+		// Wrap() retains the endpoint itself; for events it is the start of a loop.
+		float fPrevious = mbLoop && mfPrevTimePos == mfLength ? 0 : mfPrevTimePos;
+		float fDistance = mfTimeDelta > 0 ? afEventTime - fPrevious : fPrevious - afEventTime;
+		if(mbLoop && fDistance < 0) fDistance += mfLength;
+		// A long update can cross an event repeatedly; dispatch it once per update.
+		return fDistance >= 0 && fDistance < fabs(mfTimeDelta);
 	}
 
 	//-----------------------------------------------------------------------
@@ -269,13 +283,14 @@ namespace hpl {
 
 	void cAnimationState::AddTimePosition(float afAdd)
 	{
+		mfTimeDelta = 0;
 		if(mbPaused) return;
 
 		mfPrevTimePos = mfTimePos;
 
-		mfTimePos += afAdd*mfSpeed*mfBaseSpeed;
-
-		SetTimePosition(mfTimePos);
+		float fDelta = afAdd*mfSpeed*mfBaseSpeed;
+		SetTimePosition(mfTimePos + fDelta);
+		mfTimeDelta = mbLoop ? fDelta : mfTimePos - mfPrevTimePos;
 	}
 
 	//-----------------------------------------------------------------------
@@ -321,6 +336,7 @@ namespace hpl {
 
 	kSerializeVar(msAnimationName, eSerializeType_String)
 	kSerializeVar(mfDefaultSpeed, eSerializeType_Float32)
+	kSerializeVar(mfBaseSpeed, eSerializeType_Float32)
 
 	kSerializeVar(mfLength, eSerializeType_Float32)
 	kSerializeVar(mfWeight, eSerializeType_Float32)
@@ -365,6 +381,7 @@ namespace hpl {
 
 		pData->msAnimationName = mpAnimation->GetFileName();
 		kSaveData_SaveTo(mfBaseSpeed);
+		pData->mfDefaultSpeed = mfBaseSpeed;
 
 		kSaveData_SaveTo(mfLength);
 		kSaveData_SaveTo(mfWeight);
@@ -398,6 +415,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mbPaused);
 
 		kSaveData_LoadFrom(mfFadeStep);
+		mfPrevTimePos = mfTimePos;
+		mfTimeDelta = 0;
 	}
 
 	//-----------------------------------------------------------------------

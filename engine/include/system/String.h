@@ -33,6 +33,7 @@ namespace hpl {
 		/**
 		 * Converts ascii to unicode
 		 */
+		// Use the active locale; return empty if the input cannot be converted.
 		static tWString To16Char(const tString &asString);
 
 		/**
@@ -189,8 +190,9 @@ namespace hpl {
 		static int GetLastStringPos(tString aString, tString  aChar);
 		static int GetLastStringPosW(tWString aString, tWString  aChar);
 
-		static void UIntStringToArray(unsigned int *apArray, const char* apString,int alSize);
-		static void FloatStringToArray(float *apArray, const char* apString,int alSize);
+		// Parse exactly alSize whitespace-separated values; false on malformed input.
+		static bool UIntStringToArray(unsigned int *apArray, const char* apString,int alSize);
+		static bool FloatStringToArray(float *apArray, const char* apString,int alSize);
 
 
 

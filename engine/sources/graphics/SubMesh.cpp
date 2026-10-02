@@ -29,6 +29,8 @@
 #include "system/MemoryManager.h"
 
 #include <string.h>
+#include <cmath>
+#include <limits>
 
 namespace hpl {
 
@@ -47,6 +49,7 @@ namespace hpl {
 
 		mpMaterial = nullptr;
 		mpVtxBuffer = nullptr;
+		mpParent = nullptr;
 
 		mbDoubleSided = false;
 
@@ -136,16 +139,26 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	///normalize weights here?
 	void cSubMesh::CompileBonePairs()
 	{
+		if(mpVertexWeights) hplDeleteArray(mpVertexWeights);
+		if(mpVertexBones) hplDeleteArray(mpVertexBones);
 		mpVertexWeights = hplNewArray( float, 4 * mpVtxBuffer->GetVertexNum());
 		mpVertexBones = hplNewArray( unsigned char, 4 * mpVtxBuffer->GetVertexNum()) ;
 		memset(mpVertexWeights,0,4 * mpVtxBuffer->GetVertexNum()*sizeof(float));
+		memset(mpVertexBones,0,4 * mpVtxBuffer->GetVertexNum()*sizeof(unsigned char));
 
 		for(int i=0; i < (int)mvVtxBonePairs.size(); i++)
 		{
 			cVertexBonePair &Pair = mvVtxBonePairs[i];
+			if(Pair.vtxIdx < 0 || Pair.vtxIdx >= mpVtxBuffer->GetVertexNum() ||
+				Pair.boneIdx < 0 || Pair.boneIdx > std::numeric_limits<unsigned char>::max() ||
+				!std::isfinite(Pair.weight) || Pair.weight < 0)
+			{
+				Warning("Invalid bone influence in sub mesh '%s'!\n", GetName().c_str());
+				continue;
+			}
+			if(Pair.weight == 0) continue;
 
 			float *pWeight = &mpVertexWeights[Pair.vtxIdx*4];
 			unsigned char *pBoneIdx = &mpVertexBones[Pair.vtxIdx*4];
@@ -182,22 +195,30 @@ namespace hpl {
 				continue;
 			}
 
-			float fTotal=0;
+			double fTotal=0;
 			int lNum=0;
-			while(pWeight[lNum]!=0 && lNum<=4)
+			while(lNum < 4 && pWeight[lNum]!=0)
 			{
 				fTotal += pWeight[lNum];
 				lNum++;
 			}
+			int lPackedNum = 0;
 			for(int i=0; i<lNum; ++i)
 			{
-				pWeight[lNum] = pWeight[lNum] / fTotal;
+				float fWeight = static_cast<float>(pWeight[i] / fTotal);
+				if(fWeight == 0) continue;
+				pWeight[lPackedNum] = fWeight;
+				mpVertexBones[vtx*4 + lPackedNum] = mpVertexBones[vtx*4 + i];
+				++lPackedNum;
 			}
+			// Preserve the zero-sentinel layout even if a tiny weight underflows.
+			for(int i = lPackedNum; i < 4; ++i) pWeight[i] = 0;
 		}
 
 		if(bUnconnectedVertexes)
 		{
-			Warning("Some vertices in sub mesh '%s' in mesh '%s' are not connected to a bone!\n",GetName().c_str(), mpParent->GetName().c_str());
+			Warning("Some vertices in sub mesh '%s' in mesh '%s' are not connected to a bone!\n",
+				GetName().c_str(), mpParent ? mpParent->GetName().c_str() : "<unknown>");
 		}
 	}
 

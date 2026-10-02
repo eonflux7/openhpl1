@@ -411,6 +411,15 @@ namespace hpl {
 
 	void cAINodeContainer::BuildNodeGridMap()
 	{
+		mvGrids.clear();
+		if(mvNodes.empty())
+		{
+			mvGridMapSize = 0;
+			mvGridSize = 0;
+			mvMinGridPos = mvMaxGridPos = 0;
+			mvGrids.resize(1);
+			return;
+		}
 		bool bLog=false;
 
 		if(bLog)Log("Nodes: %d\n",mvNodes.size());
@@ -574,44 +583,39 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cAINodeContainer::LoadFromFile(const tString &asFile)
+	bool cAINodeContainer::LoadFromFile(const tString &asFile)
 	{
-		BuildNodeGridMap();
-
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
-		if(pXmlDoc->LoadFile()==false)
+		TiXmlDocument document(asFile.c_str());
+		if(!document.LoadFile() || !document.RootElement())
 		{
-			Warning("Couldn't open XML file %s\n",asFile.c_str());
-			hplDelete(pXmlDoc);
-			return;
+			Warning("Couldn't read AI cache '%s'\n", asFile.c_str());
+			return false;
 		}
 
-		TiXmlElement *pRootElem = pXmlDoc->RootElement();
-
-		TiXmlElement *pNodeElem = pRootElem->FirstChildElement("Node");
-		for(; pNodeElem != nullptr; pNodeElem = pNodeElem->NextSiblingElement("Node"))
+		// Validate into temporary edges so a damaged cache cannot leave half a graph.
+		std::map<cAINode*, std::vector<cAINodeEdge>> edges;
+		for(TiXmlElement *pNodeElem = document.RootElement()->FirstChildElement("Node");
+			pNodeElem; pNodeElem = pNodeElem->NextSiblingElement("Node"))
 		{
-			tString sName = cString::ToString(pNodeElem->Attribute("Name"),"");
-
-			cAINode *pNode = GetNodeFromName(sName);
-
-			TiXmlElement *pEdgeElem = pNodeElem->FirstChildElement("Edge");
-			for(; pEdgeElem != nullptr; pEdgeElem = pEdgeElem->NextSiblingElement("Edge"))
+			cAINode *pNode = GetNodeFromName(cString::ToString(pNodeElem->Attribute("Name"), ""));
+			if(!pNode || !edges.emplace(pNode, std::vector<cAINodeEdge>()).second) return false;
+			for(TiXmlElement *pEdgeElem = pNodeElem->FirstChildElement("Edge");
+				pEdgeElem; pEdgeElem = pEdgeElem->NextSiblingElement("Edge"))
 			{
-				tString sNodeName = cString::ToString(pEdgeElem->Attribute("Node"),"");
-				cAINode *pEdgeNode = GetNodeFromName(sNodeName);
-
-				cAINodeEdge Edge;
-				Edge.mpNode = pEdgeNode;
-				Edge.mfDistance = cString::ToFloat(pEdgeElem->Attribute("Distance"),0);
-				Edge.mfSqrDistance = Edge.mfDistance*Edge.mfDistance;
-
-				pNode->mvEdges.push_back(Edge);
+				cAINodeEdge edge;
+				edge.mpNode = GetNodeFromName(cString::ToString(pEdgeElem->Attribute("Node"), ""));
+				if(!edge.mpNode || !cString::FloatStringToArray(&edge.mfDistance,
+					pEdgeElem->Attribute("Distance"), 1) || edge.mfDistance < 0) return false;
+				edge.mfSqrDistance = edge.mfDistance * edge.mfDistance;
+				edges[pNode].push_back(edge);
 			}
 		}
-
-		hplDelete(pXmlDoc);
+		if(edges.size() != mvNodes.size()) return false;
+		for(auto &entry : edges) entry.first->mvEdges.swap(entry.second);
+		BuildNodeGridMap();
+		return true;
 	}
+
 	//-----------------------------------------------------------------------
 
 	//////////////////////////////////////////////////////////////////////////
@@ -622,9 +626,11 @@ namespace hpl {
 
 	cVector2l cAINodeContainer::GetGridPosFromLocal(const cVector2f &avLocalPos)
 	{
-		cVector2l vGridPos;
-		vGridPos.x = (int)(avLocalPos.x / mvGridSize.x);
-		vGridPos.y = (int)(avLocalPos.y / mvGridSize.y);
+		cVector2l vGridPos(0);
+		if(mvGridSize.x > 0)
+			vGridPos.x = (int)cMath::Clamp(avLocalPos.x / mvGridSize.x, 0, (float)mvGridMapSize.x);
+		if(mvGridSize.y > 0)
+			vGridPos.y = (int)cMath::Clamp(avLocalPos.y / mvGridSize.y, 0, (float)mvGridMapSize.y);
 
 		if(vGridPos.x <0)vGridPos.x =0;
 		if(vGridPos.y <0)vGridPos.y =0;

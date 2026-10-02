@@ -127,6 +127,8 @@ namespace hpl {
 		}
 		else
 		{
+			mpMainSong->mbLoop = abLoop;
+			mpMainSong->mpStream->SetLooping(abLoop);
 			if(mpMainSong->mfMaxVolume == afVolume)return true;
 		}
 
@@ -322,6 +324,7 @@ namespace hpl {
 		apSong->msFileName = asFileName;
 		apSong->mpStream = pStream;
 		apSong->mpStream->SetVolume(afVolume);
+		apSong->mpStream->SetLooping(abLoop);
 
 		apSong->mpStream->Play();
 

@@ -262,7 +262,7 @@ namespace hpl {
 		/**
 		* Loads all node connections from file. Only to be done after all nodes are loaded.
 		*/
-		void LoadFromFile(const tString &asFile);
+		bool LoadFromFile(const tString &asFile);
 
 	private:
 		cVector2l GetGridPosFromLocal(const cVector2f &avLocalPos);

@@ -952,8 +952,7 @@ namespace hpl {
 
 				if(dateAIFile > dateMapFile)
 				{
-					bLoadedFromFile = true;
-					pContainer->LoadFromFile(sAiFileName);
+					bLoadedFromFile = pContainer->LoadFromFile(sAiFileName);
 				}
 			}
 

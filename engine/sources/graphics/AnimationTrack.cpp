@@ -22,6 +22,7 @@
 #include "graphics/Animation.h"
 #include "system/LowLevelSystem.h"
 #include "scene/Node3D.h"
+#include <algorithm>
 
 namespace hpl {
 
@@ -119,6 +120,13 @@ namespace hpl {
 	{
 		cKeyFrame ResultKeyFrame;
 		ResultKeyFrame.time = afTime;
+		if(mvKeyFrames.empty())
+		{
+			ResultKeyFrame.rotation = cQuaternion::Identity;
+			ResultKeyFrame.scale = 1;
+			ResultKeyFrame.trans = 0;
+			return ResultKeyFrame;
+		}
 
 		cKeyFrame *pKeyFrameA = nullptr;
 		cKeyFrame *pKeyFrameB = nullptr;
@@ -151,6 +159,11 @@ namespace hpl {
 
 	float cAnimationTrack::GetKeyFramesAtTime(float afTime, cKeyFrame** apKeyFrameA,cKeyFrame** apKeyFrameB)
 	{
+		if(mvKeyFrames.empty())
+		{
+			*apKeyFrameA = *apKeyFrameB = nullptr;
+			return 0;
+		}
 		float fTotalAnimLength = mpParent->GetLength();
 
 		// Wrap time
@@ -174,19 +187,10 @@ namespace hpl {
 			return 0.0f;//(afTime - (*apKeyFrameA)->time) / fDeltaT;
 		}
 
-		//Get the number of frames
-		const int lSize = (int)mvKeyFrames.size();
-
 		//Find the second frame.
-		int lIdxB=-1;
-		for(int i=0; i< lSize; i++)
-		{
-			if(afTime <= mvKeyFrames[i]->time)
-			{
-				lIdxB = i;
-				break;
-			}
-		}
+		auto it = std::lower_bound(mvKeyFrames.begin(), mvKeyFrames.end(), afTime,
+			[](const cKeyFrame *apFrame, float afValue) { return apFrame->time < afValue; });
+		int lIdxB = static_cast<int>(it - mvKeyFrames.begin());
 
 		//If first frame was found, the lowest time is not 0.
 		//If so return the first frame only.
@@ -203,7 +207,7 @@ namespace hpl {
 
 		float fDeltaT = (*apKeyFrameB)->time - (*apKeyFrameA)->time;
 
-		return (afTime - (*apKeyFrameA)->time) / fDeltaT;
+		return fDeltaT > 0 ? (afTime - (*apKeyFrameA)->time) / fDeltaT : 0;
 	}
 
 	//-----------------------------------------------------------------------

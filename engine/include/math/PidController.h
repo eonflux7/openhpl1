@@ -33,7 +33,8 @@ namespace hpl {
 		/////////////////////////////////////////
 		cPidController()
 		{
-			Reset();
+			p = i = d = 0;
+			SetErrorNum(1);
 		}
 		cPidController(float afP, float afI, float afD, int alErrorNum)
 		{
@@ -49,6 +50,7 @@ namespace hpl {
 		//------------------------------------
 		T Output(T aError, float afTimeStep)
 		{
+			if(afTimeStep <= 0) return aError * p;
 			mvErrors[mlErrorNum] = aError;
 			mvTimeSteps[mlErrorNum] = afTimeStep;
 
@@ -75,8 +77,10 @@ namespace hpl {
 
 		void SetErrorNum(int alErrorNum)
 		{
+			if(alErrorNum < 1) alErrorNum = 1;
 			mvErrors.resize(alErrorNum);
 			mvTimeSteps.resize(alErrorNum,0);
+			Reset();
 		}
 
 		//------------------------------------

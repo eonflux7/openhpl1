@@ -212,7 +212,20 @@ namespace hpl {
 				int lCount = 0;
 				//Get pointer to weights and bone index.
 				const float *pWeight = &mpSubMesh->mpVertexWeights[vtx*4];
-				if(*pWeight==0) continue;
+				if(*pWeight==0)
+				{
+					// Unconnected vertices retain their bind pose and their own array slot.
+					memcpy(pSkinPos, pBindPos, lVtxStride * sizeof(float));
+					memcpy(pSkinNormal, pBindNormal, 3 * sizeof(float));
+					memcpy(pSkinTangent, pBindTangent, 4 * sizeof(float));
+					pBindPos += lVtxStride;
+					pSkinPos += lVtxStride;
+					pBindNormal += 3;
+					pSkinNormal += 3;
+					pBindTangent += 4;
+					pSkinTangent += 4;
+					continue;
+				}
 
 				const unsigned char *pBoneIdx = &mpSubMesh->mpVertexBones[vtx*4];
 
@@ -235,7 +248,7 @@ namespace hpl {
 				++pWeight; ++pBoneIdx; ++lCount;
 
 				//Iterate weights until 0 is found or count < 4
-				while(*pWeight != 0 && lCount < 4)
+				while(lCount < 4 && *pWeight != 0)
 				{
 					//Log("Boneidx: %d Count %d Weight: %f\n",(int)*pBoneIdx,lCount, *pWeight);
 					const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[*pBoneIdx];
