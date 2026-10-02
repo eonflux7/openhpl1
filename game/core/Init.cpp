@@ -496,6 +496,31 @@ bool cInit::Init(tString asCommandLine)
 	}
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
+	{
+		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
+		int lType = mpConfig->GetInt("Graphics","ShadowType",eShadowType_Volumes);
+		if(lType < 0 || lType >= eShadowType_LastEnum) lType = eShadowType_Volumes;
+		pRenderer->SetShadowType((eShadowType)lType);
+
+		// The defaults are the settings' own
+		cShadowMapSettings shadows;
+		int lFilter = mpConfig->GetInt("Graphics","ShadowFilter",shadows.mFilter);
+		if(lFilter >= 0 && lFilter < eShadowMapFilter_LastEnum) shadows.mFilter = (eShadowMapFilter)lFilter;
+		shadows.mlSpotSize = mpConfig->GetInt("Graphics","ShadowSpotSize",shadows.mlSpotSize);
+		shadows.mlPointSize = mpConfig->GetInt("Graphics","ShadowPointSize",shadows.mlPointSize);
+		shadows.mfSoftness = mpConfig->GetFloat("Graphics","ShadowSoftness",shadows.mfSoftness);
+		shadows.mfLightSize = mpConfig->GetFloat("Graphics","ShadowLightSize",shadows.mfLightSize);
+		shadows.mfMaxBlur = mpConfig->GetFloat("Graphics","ShadowMaxBlur",shadows.mfMaxBlur);
+		shadows.mlSamples = mpConfig->GetInt("Graphics","ShadowSamples",shadows.mlSamples);
+		shadows.mlBlockerSamples = mpConfig->GetInt("Graphics","ShadowBlockerSamples",shadows.mlBlockerSamples);
+		shadows.mbNoise = mpConfig->GetBool("Graphics","ShadowNoise",shadows.mbNoise);
+		shadows.mfBias = mpConfig->GetFloat("Graphics","ShadowBias",shadows.mfBias);
+		shadows.mfSlopeBias = mpConfig->GetFloat("Graphics","ShadowSlopeBias",shadows.mfSlopeBias);
+		int lFaces = mpConfig->GetInt("Graphics","ShadowFaces",shadows.mFaces);
+		if(lFaces >= 0 && lFaces < eShadowMapFaces_LastEnum) shadows.mFaces = (eShadowMapFaces)lFaces;
+		shadows.mbAlphaCasters = mpConfig->GetBool("Graphics","ShadowAlphaCasters",shadows.mbAlphaCasters);
+		pRenderer->SetShadowMapSettings(shadows);
+	}
 
 	mpGame->SetLimitFPS( mpConfig->GetBool("Graphics","LimitFPS",true));
 
@@ -854,6 +879,24 @@ void cInit::Exit()
 	mpConfig->SetBool("Graphics","LimitFPS",mpGame->GetLimitFPS());
 
 	mpConfig->SetInt("Graphics","Shadows",mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows());
+	{
+		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
+		const cShadowMapSettings &shadows = pRenderer->GetShadowMapSettings();
+		mpConfig->SetInt("Graphics","ShadowType",pRenderer->GetShadowType());
+		mpConfig->SetInt("Graphics","ShadowFilter",shadows.mFilter);
+		mpConfig->SetInt("Graphics","ShadowSpotSize",shadows.mlSpotSize);
+		mpConfig->SetInt("Graphics","ShadowPointSize",shadows.mlPointSize);
+		mpConfig->SetFloat("Graphics","ShadowSoftness",shadows.mfSoftness);
+		mpConfig->SetFloat("Graphics","ShadowLightSize",shadows.mfLightSize);
+		mpConfig->SetFloat("Graphics","ShadowMaxBlur",shadows.mfMaxBlur);
+		mpConfig->SetInt("Graphics","ShadowSamples",shadows.mlSamples);
+		mpConfig->SetInt("Graphics","ShadowBlockerSamples",shadows.mlBlockerSamples);
+		mpConfig->SetBool("Graphics","ShadowNoise",shadows.mbNoise);
+		mpConfig->SetFloat("Graphics","ShadowBias",shadows.mfBias);
+		mpConfig->SetFloat("Graphics","ShadowSlopeBias",shadows.mfSlopeBias);
+		mpConfig->SetInt("Graphics","ShadowFaces",shadows.mFaces);
+		mpConfig->SetBool("Graphics","ShadowAlphaCasters",shadows.mbAlphaCasters);
+	}
 		
 	Log(" Exit Effect Handler\n");
 	hplDelete( mpEffectHandler );

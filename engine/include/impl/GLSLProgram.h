@@ -92,6 +92,9 @@ namespace hpl {
 		/// Uniform buffer binding of the hpl_State block, which has the alpha
 		/// test settings every fragment shader applies (see LinkStage()).
 		static const GLuint kStateBlockBinding = 1;
+		/// Texture unit of the hpl_ShadowMap sampler; hpl_ShadowMapDepth has
+		/// the next one. Past the units the engine binds textures to.
+		static const int kShadowMapUnit = 8;
 
 		GLuint GetHandle(){ return mlProgram; }
 

@@ -14,6 +14,19 @@
 #include <SDL3/SDL.h>
 #include <imgui.h>
 
+#include <algorithm>
+#include <set>
+
+// A tooltip that wraps instead of running off the screen
+static void Tip(const char *apText)
+{
+	if(ImGui::BeginTooltip()==false) return;
+	ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28);
+	ImGui::TextUnformatted(apText);
+	ImGui::PopTextWrapPos();
+	ImGui::EndTooltip();
+}
+
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
 
@@ -51,10 +64,19 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 	mbFly = false;
 	mbFlying = false;
 	mvFlyPos = cVector3f(0,0,0);
+	mfFlySpeed = 3.0f;
+	mvWalkPitchLimits = cVector2f(0,0);
 	mlFlySeed = 0;
 	msViewpointName[0] = 0;
 	mbAddViewpoint = false;
 	mbDeleteViewpoint = false;
+
+	mbShadowAllLights = false;
+	mbPlaceTestLight = false;
+	mbRemoveTestLight = false;
+	mbCarryTestLight = false;
+	mfTestLightRadius = 6.0f;
+	mfTestLightBrightness = 0.8f;
 
 	const char *pOpen = SDL_getenv("OVERTURE_REFVIEW");
 	if(pOpen && pOpen[0] && pOpen[0] != '0') SetOpen(true);
@@ -151,6 +173,9 @@ void cRefView::Update(float afTimeStep)
 
 	if(bDefault && pWorld) UpdateFly(afTimeStep);
 
+	if(bDefault && pWorld) UpdateTestLight();
+	mbPlaceTestLight = mbRemoveTestLight = false;
+
 	if(mbAddViewpoint || mbDeleteViewpoint)
 	{
 		if(bDefault && pWorld && msViewsMap != "")
@@ -176,13 +201,40 @@ void cRefView::UpdateFly(float afTimeStep)
 		// What is seen while choosing viewpoints is what the frames show
 		mbUsed = true;
 		mbFlying = mbFly;
-		// The body would walk off with the same keys
-		pBody->SetActive(!mbFlying);
-		mlFlySeed = 1;
+		if(mbFlying)
+		{
+			// The body would walk off with the same keys
+			pBody->SetActive(false);
+			mvWalkPitchLimits = pCamera->GetPitchLimits();
+			mlFlySeed = 1;
+		}
+		else
+		{
+			pCamera->SetPitchLimits(mvWalkPitchLimits);
+			pCamera->SetPitch(pCamera->GetPitch());
+			pBody->SetActive(true);
+			// The player goes on from where the camera got to
+			PutPlayerAtCamera();
+		}
 	}
 	if(mbFlying==false) return;
-	// A map change brings the body back
+	// A map change brings the body and the player's limits back
 	if(pBody->IsActive()) pBody->SetActive(false);
+	pCamera->SetPitchLimits(cVector2f(cMath::ToRad(89), cMath::ToRad(-89)));
+
+	// The mouse turns the camera only in the states where the player looks
+	// around freely: in the others it moves a cursor, or is held by what
+	// the player has hold of, which was left behind with the body.
+	switch(mpInit->mpPlayer->GetState())
+	{
+	case ePlayerState_Normal:
+	case ePlayerState_Message:
+	case ePlayerState_WeaponMelee:
+		break;
+	default:
+		mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
+		break;
+	}
 
 	// From where the camera is, once the player has put it on its head
 	// after a move
@@ -196,7 +248,7 @@ void cRefView::UpdateFly(float afTimeStep)
 	if(mbOpen==false)
 	{
 		cInput *pInput = mpInit->mpGame->GetInput();
-		float fSpeed = (pInput->IsTriggerd("Run") ? 12.0f : 3.0f) * afTimeStep;
+		float fSpeed = mfFlySpeed * (pInput->IsTriggerd("Run") ? 4.0f : 1.0f) * afTimeStep;
 		cVector3f vMove(0,0,0);
 		if(pInput->IsTriggerd("Forward"))	vMove += pCamera->GetForward();
 		if(pInput->IsTriggerd("Backward"))	vMove -= pCamera->GetForward();
@@ -208,6 +260,60 @@ void cRefView::UpdateFly(float afTimeStep)
 	}
 
 	pCamera->SetPosition(mvFlyPos);
+}
+
+//-----------------------------------------------------------------------
+
+// The player's body under the camera, so that the eyes are where the camera
+// is, facing the same way. From there the view is the player's again.
+void cRefView::PutPlayerAtCamera()
+{
+	iCharacterBody *pBody = mpInit->mpPlayer->GetCharacterBody();
+	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+
+	// The body puts the camera at its top, plus what the player adds
+	cVector3f vFeet = pCamera->GetPosition() - pBody->GetCameraPosAdd();
+	vFeet.y -= pBody->GetSize().y;
+	pBody->SetFeetPosition(vFeet);
+	pBody->SetYaw(pCamera->GetYaw());
+
+	mbAtView = false;
+	mbHoldDirection = false;
+}
+
+//-----------------------------------------------------------------------
+
+static const char *gsTestLightName = "RefViewTestLight";
+
+// The test light is the world's: it is found by name, and gone with the map.
+void cRefView::UpdateTestLight()
+{
+	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
+	iLight3D *pLight = pWorld->GetLight(gsTestLightName);
+
+	if(mbRemoveTestLight && pLight)
+	{
+		pWorld->DestroyLight(pLight);
+		return;
+	}
+	if(mbPlaceTestLight && pLight==nullptr)
+	{
+		pLight = pWorld->CreateLightPoint(gsTestLightName);
+		pLight->SetCastShadows(true);
+	}
+	if(pLight==nullptr) return;
+
+	if(mbPlaceTestLight || mbCarryTestLight)
+	{
+		// A little ahead of the eye, so that what is held or stood on
+		// does not swallow it
+		cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+		pLight->SetPosition(pCamera->GetPosition() + pCamera->GetForward() * 0.3f);
+	}
+	// A warm white; alpha is how strong the highlights are
+	cColor col(mfTestLightBrightness, mfTestLightBrightness * 0.92f, mfTestLightBrightness * 0.8f, 1);
+	if(!(pLight->GetDiffuseColor() == col)) pLight->SetDiffuseColor(col);
+	if(pLight->GetFarAttenuation() != mfTestLightRadius) pLight->SetFarAttenuation(mfTestLightRadius);
 }
 
 //-----------------------------------------------------------------------
@@ -379,8 +485,11 @@ void cRefView::GoTo(size_t alView, int alAngle)
 
 //-----------------------------------------------------------------------
 
+// The player goes on from the place: the camera does not jump back to
+// wherever the body was left.
 void cRefView::Release()
 {
+	if(mbAtView && mbFlying==false) PutPlayerAtCamera();
 	mbAtView = false;
 	mbHoldDirection = false;
 }
@@ -491,15 +600,17 @@ void cRefView::Draw()
 		if(ImGui::CollapsingHeader("Map", ImGuiTreeNodeFlags_DefaultOpen)) DrawMaps();
 		if(ImGui::CollapsingHeader("Place", ImGuiTreeNodeFlags_DefaultOpen)) DrawViews();
 		if(ImGui::CollapsingHeader("Viewpoints")) DrawViewpoints();
-		if(ImGui::CollapsingHeader("As in the reference images")) DrawOptions();
 		if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen)) DrawRenderer();
 
 		ImGui::Separator();
-		ImGui::TextWrapped("F2 closes the panel and gives the mouse back: look and walk, or fly, "
-							"from the place. Without Fly the camera stays at a viewpoint or light "
-							"until released.");
+		ImGui::TextWrapped("F2 closes the panel and gives the mouse back: look around from the "
+							"place. The camera stays there until Release, which puts the player "
+							"there, or Fly (Player window).");
 	}
 	ImGui::End();
+
+	DrawShadows();
+	DrawPlayer();
 
 	// Closed with the window's button
 	if(bOpen==false) SetOpen(false);
@@ -617,17 +728,12 @@ void cRefView::DrawViewpoints()
 					mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
 	ImGui::BeginDisabled(bEnabled==false);
 
-	ImGui::Checkbox("Fly", &mbFly);
-	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("With the panel closed: the movement keys move the camera, Run is faster, "
-							"Jump and Crouch go up and down. The player's body stays where it is.");
-
 	ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
 	ImGui::InputTextWithHint("##viewpoint", "name (optional)", msViewpointName, sizeof(msViewpointName));
 	ImGui::SameLine();
 	if(ImGui::Button("Add viewpoint here")) mbAddViewpoint = true;
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Saves where the camera is, where it looks and whether the flashlight is on. "
+		Tip("Saves where the camera is, where it looks and whether the flashlight is on. "
 							"An existing name is replaced.");
 
 	bool bAtManual = mbAtView && mlView < mvViews.size() && mvViews[mlView].mbManual;
@@ -645,25 +751,65 @@ void cRefView::DrawViewpoints()
 
 //-----------------------------------------------------------------------
 
-void cRefView::DrawOptions()
+// What changes how the game plays while testing.
+void cRefView::DrawPlayer()
 {
-	if(mbUsed==false) ImGui::TextDisabled("Applied once a map or place is picked here.");
-	if(mbSetFlashLight==false) mbFlashLight = mpInit->mpPlayer->GetFlashLight()->IsActive();
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// Between the other two windows
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f, pViewport->WorkPos.y + fEm),
+							ImGuiCond_FirstUseEver, ImVec2(0.5f, 0));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 24, 0), ImVec2(fEm * 24, pViewport->WorkSize.y));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	if(ImGui::Begin("Player", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
+	{
+		ImGui::End();
+		return;
+	}
+
+	bool bInGame = msViewsMap != "" && msWaitMap == "" &&
+					mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
+	ImGui::BeginDisabled(bInGame==false);
+
+	ImGui::Checkbox("Fly", &mbFly);
+	if(ImGui::IsItemHovered())
+		Tip("With the panel closed (F2): the movement keys move the camera where it looks, "
+							"Run is faster, Jump and Crouch go up and down. The player's body is switched "
+							"off meanwhile. Unticking puts the player where the camera is.");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(fEm * 10);
+	ImGui::SliderFloat("Speed", &mfFlySpeed, 0.5f, 20.0f, "%.1f m/s", ImGuiSliderFlags_Logarithmic);
+	if(ImGui::IsItemHovered()) Tip("Four times this with Run held.");
+
+	if(bInGame)
+	{
+		cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+		const cVector3f &vPos = pCamera->GetPosition();
+		ImGui::TextDisabled("Camera %.2f %.2f %.2f", vPos.x, vPos.y, vPos.z);
+	}
+
+	ImGui::Separator();
+	if(mbUsed==false) ImGui::TextDisabled("Applied once something is picked in the panel.");
+	if(mbSetFlashLight==false && bInGame) mbFlashLight = mpInit->mpPlayer->GetFlashLight()->IsActive();
 	if(ImGui::Checkbox("Flashlight on", &mbFlashLight))
 	{
 		mbSetFlashLight = true;
 		mbUsed = true;
 	}
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Its key works too. A viewpoint is saved with the flashlight as it is.");
+		Tip("Its key works too, and it does not run down. A viewpoint is saved with the flashlight as it is.");
 	ImGui::SameLine();
-	ImGui::Checkbox("No flicker", &mbNoFlicker);
+	if(ImGui::Checkbox("Cannot be hurt", &mbGodMode)) mbUsed = true;
+	if(ImGui::Checkbox("No flicker", &mbNoFlicker)) mbUsed = true;
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Flickering lights stay on. Lights already stopped stay so until the map is loaded again.");
-	ImGui::Checkbox("3D view only", &mbHide2D);
-	if(ImGui::IsItemHovered()) ImGui::SetTooltip("No HUD, fades, damage or hiding effects.");
+		Tip("Flickering lights stay on. Lights already stopped stay so until the map is loaded again.");
 	ImGui::SameLine();
-	ImGui::Checkbox("Cannot be hurt", &mbGodMode);
+	if(ImGui::Checkbox("3D view only", &mbHide2D)) mbUsed = true;
+	if(ImGui::IsItemHovered()) Tip("No HUD, fades, damage or hiding effects.");
+
+	ImGui::EndDisabled();
+	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -686,30 +832,30 @@ void cRefView::DrawRenderer()
 		tuning = cLinearLightingTuning();
 		bChanged = true;
 	}
-	if(ImGui::IsItemHovered()) ImGui::SetTooltip("The sliders back to their defaults. Ctrl+click a slider to type a value.");
+	if(ImGui::IsItemHovered()) Tip("The sliders back to their defaults. Ctrl+click a slider to type a value.");
 	ImGui::PushItemWidth(ImGui::GetFontSize() * 14);
 	bChanged |= ImGui::SliderFloat("Light power", &tuning.mfLightExp, 1.0f, 2.2f, "%.2f");
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("How a light spreads. 2.2: each light as in the original. "
+		Tip("How a light spreads. 2.2: each light as in the original. "
 							"Lower: wider and flatter, brighter towards its edge.");
 	bChanged |= ImGui::SliderFloat("Exposure", &tuning.mfExposure, 0.25f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-	if(ImGui::IsItemHovered()) ImGui::SetTooltip("Brightness of the whole 3D view, in light: 2 is one stop up.");
+	if(ImGui::IsItemHovered()) Tip("Brightness of the whole 3D view, in light: 2 is one stop up.");
 	bChanged |= ImGui::SliderFloat("Glow", &tuning.mfGlow, 0.25f, 8.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Light of halos, lamps' lit parts, additive materials and particles: "
+		Tip("Light of halos, lamps' lit parts, additive materials and particles: "
 							"how far their brightest parts go past white. Faint parts are left alone.");
 	bChanged |= ImGui::SliderFloat("Blend match", &tuning.mfBlendMatch, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Particles, see-through materials and fog: 1 covers as much as without "
+		Tip("Particles, see-through materials and fog: 1 covers as much as without "
 							"linear lighting, 0 blends them as light, which makes smoke, snow and fog heavier.");
 	bChanged |= ImGui::SliderFloat("Shoulder", &tuning.mfShoulder, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Tonemapping: the screen brightness above which bright parts roll off "
+		Tip("Tonemapping: the screen brightness above which bright parts roll off "
 							"towards white instead of clipping. Darker parts are untouched. 1 is off.");
 	ImGui::BeginDisabled(tuning.mfShoulder > 0.999f);
 	bChanged |= ImGui::SliderFloat("White", &tuning.mfWhite, 1.0f, 16.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("Tonemapping: how many times brighter than white something has to be "
+		Tip("Tonemapping: how many times brighter than white something has to be "
 							"to come out white. Higher keeps more detail in bright parts and makes them greyer.");
 	ImGui::EndDisabled();
 	ImGui::PopItemWidth();
@@ -737,15 +883,313 @@ void cRefView::DrawRenderer()
 	ImGui::PushItemWidth(ImGui::GetFontSize() * 14);
 	bChanged |= ImGui::SliderFloat("Threshold", &bloom.mfThreshold, 0.0f, 1.5f, "%.2f");
 	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("The screen brightness at which things begin to glow; 1 is white. "
+		Tip("The screen brightness at which things begin to glow; 1 is white. "
 							"Above 1 only what is brighter than white glows (needs linear lighting).");
 	bChanged |= ImGui::SliderFloat("Intensity", &bloom.mfIntensity, 0.0f, 2.0f, "%.2f");
-	if(ImGui::IsItemHovered()) ImGui::SetTooltip("How strong the glow is.");
+	if(ImGui::IsItemHovered()) Tip("How strong the glow is.");
 	bChanged |= ImGui::SliderFloat("Spread", &bloom.mfScatter, 0.0f, 1.0f, "%.2f");
-	if(ImGui::IsItemHovered()) ImGui::SetTooltip("How far the glow reaches: tight around the source, or a wide haze.");
+	if(ImGui::IsItemHovered()) Tip("How far the glow reaches: tight around the source, or a wide haze.");
 	ImGui::PopItemWidth();
 	ImGui::EndDisabled();
 	if(bChanged) pPostEffects->SetBloomTuning(bloom);
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawShadows()
+{
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + fEm, pViewport->WorkPos.y + fEm), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 30, 0), ImVec2(fEm * 30, pViewport->WorkSize.y));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	if(ImGui::Begin("Shadows", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Kept in settings.cfg, like the renderer's other options
+	cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+	cShadowMapSettings settings = pRenderer->GetShadowMapSettings();
+	bool bChanged = false;
+	ImGui::PushItemWidth(fEm * 14);
+
+	// In the order of eRendererShowShadows
+	int lShow = pRenderer->GetShowShadows();
+	if(ImGui::Combo("Shadows", &lShow, "On\0Only of what never moves\0Off\0"))
+		pRenderer->SetShowShadows((eRendererShowShadows)lShow);
+
+	int lType = pRenderer->GetShadowType();
+	if(ImGui::Combo("Kind", &lType, "Original (volumes)\0Shadow maps\0"))
+		pRenderer->SetShadowType((eShadowType)lType);
+	if(ImGui::IsItemHovered())
+		Tip("Original: the game's hard-edged shadows.\n"
+							"Shadow maps: what each light sees is drawn into a depth picture, "
+							"which the lit surfaces look themselves up in.");
+
+	ImGui::BeginDisabled(lType != eShadowType_Maps || lShow == eRendererShowShadows_None);
+
+	if(ImGui::CollapsingHeader("Edges", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		int lFilter = settings.mFilter;
+		if(ImGui::Combo("Edge", &lFilter, "Hard\0Soft\0Soft by distance\0"))
+		{
+			settings.mFilter = (eShadowMapFilter)lFilter;
+			bChanged = true;
+		}
+		ImGui::SameLine();
+		if(ImGui::Button("Reset"))
+		{
+			// The debug choices are not settings
+			cShadowMapSettings defaults;
+			defaults.mbShowOnly = settings.mbShowOnly;
+			defaults.msOnlyLight = settings.msOnlyLight;
+			settings = defaults;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered()) Tip("Everything in this window back to its default. Ctrl+click a slider to type a value.");
+
+		// Shown in centimetres
+		if(settings.mFilter == eShadowMapFilter_Soft)
+		{
+			float fSoftness = settings.mfSoftness * 100.0f;
+			if(ImGui::SliderFloat("Softness", &fSoftness, 0.0f, 20.0f, "%.1f cm"))
+			{
+				settings.mfSoftness = fSoftness / 100.0f;
+				bChanged = true;
+			}
+			if(ImGui::IsItemHovered())
+				Tip("How far the edge is blurred to each side, at 1 m from the light. "
+									"Twice that at 2 m, and so on.");
+		}
+		if(settings.mFilter == eShadowMapFilter_SoftByDistance)
+		{
+			float fLightSize = settings.mfLightSize * 100.0f;
+			if(ImGui::SliderFloat("Light size", &fLightSize, 0.0f, 50.0f, "%.1f cm"))
+			{
+				settings.mfLightSize = fLightSize / 100.0f;
+				bChanged = true;
+			}
+			if(ImGui::IsItemHovered())
+				Tip("The radius the lights are taken to have. A bigger light gives wider "
+									"edges; where a shadow starts, at what casts it, it stays sharp.");
+		}
+		if(settings.mFilter != eShadowMapFilter_Hard)
+		{
+			float fMaxBlur = settings.mfMaxBlur * 100.0f;
+			if(ImGui::SliderFloat("Widest blur", &fMaxBlur, 1.0f, 50.0f, "%.1f cm"))
+			{
+				settings.mfMaxBlur = fMaxBlur / 100.0f;
+				bChanged = true;
+			}
+			if(ImGui::IsItemHovered())
+				Tip("No edge is blurred further than this (at 1 m from the light). "
+									"Wide blurs need more samples to stay smooth.");
+
+			bChanged |= ImGui::SliderInt("Samples", &settings.mlSamples, 4, 64);
+			if(ImGui::IsItemHovered())
+				Tip("Looks into the shadow map for every lit pixel, for every light. "
+									"More: smoother edges, slower.");
+			if(settings.mFilter == eShadowMapFilter_SoftByDistance)
+			{
+				bChanged |= ImGui::SliderInt("Search samples", &settings.mlBlockerSamples, 4, 64);
+				if(ImGui::IsItemHovered())
+					Tip("Looks for what casts the shadow, to know how wide the edge is. "
+										"Too few: thin things (bars, wires) give speckled shadows.");
+			}
+			bChanged |= ImGui::Checkbox("Noise", &settings.mbNoise);
+			if(ImGui::IsItemHovered())
+				Tip("Turns the samples differently in every pixel: grain instead of bands.");
+		}
+	}
+
+	if(ImGui::CollapsingHeader("Maps", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		static const int vSizes[] = {256, 512, 1024, 2048, 4096};
+		const char *sSizes = "256\0" "512\0" "1024\0" "2048\0" "4096\0";
+		int lSpot = 0, lPoint = 0;
+		for(int i=0; i<5; ++i)
+		{
+			if(vSizes[i] <= settings.mlSpotSize) lSpot = i;
+			if(vSizes[i] <= settings.mlPointSize) lPoint = i;
+		}
+		if(ImGui::Combo("Spotlight map", &lSpot, sSizes))
+		{
+			settings.mlSpotSize = vSizes[lSpot];
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered()) Tip("Pixels a side. Smaller: blockier and blurrier edges, faster.");
+		if(ImGui::Combo("Point light map", &lPoint, sSizes))
+		{
+			settings.mlPointSize = vSizes[lPoint];
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered()) Tip("Pixels a side of each of the six directions a point light is drawn in.");
+
+		float fBias = settings.mfBias * 1000.0f;
+		if(ImGui::SliderFloat("Bias", &fBias, 0.0f, 50.0f, "%.1f mm"))
+		{
+			settings.mfBias = fBias / 1000.0f;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("How far a surface is taken towards the light before it is looked up. "
+								"Too little: lit surfaces get dark stripes or speckles. "
+								"Too much: shadows come loose from what casts them.");
+		bChanged |= ImGui::SliderFloat("Slope bias", &settings.mfSlopeBias, 0.0f, 8.0f, "%.1f texels");
+		if(ImGui::IsItemHovered())
+			Tip("More bias for surfaces the light only grazes, in pixels of the map.");
+
+		int lFaces = settings.mFaces;
+		if(ImGui::Combo("Sides drawn", &lFaces, "Both\0Towards the light\0Away from the light\0"))
+		{
+			settings.mFaces = (eShadowMapFaces)lFaces;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("Which sides of things cast the shadows.\n"
+								"Towards the light: as the original shadows; a wall seen from behind casts none.\n"
+								"Away from the light: no stripes on lit sides, but thin, one-sided things cast none.");
+		bChanged |= ImGui::Checkbox("Holes in fences and gratings", &settings.mbAlphaCasters);
+		if(ImGui::IsItemHovered())
+			Tip("Materials with holes cut into them cast shadows with the holes. "
+								"The original shadows leave these materials out.");
+	}
+
+	ImGui::EndDisabled();
+
+	bChanged |= ImGui::Checkbox("Show the shadows alone", &settings.mbShowOnly);
+	if(ImGui::IsItemHovered())
+		Tip("Grey where a light reaches, dark where its shadow is; lights add up. Works for both kinds.");
+
+	const cShadowMapStats &stats = pRenderer->GetShadowMapStats();
+	ImGui::TextDisabled("Last frame: %d lights, %d maps, %d casters", stats.mlLights, stats.mlMaps, stats.mlCasters);
+	if(ImGui::IsItemHovered())
+		Tip("Lights that cast shadows, the maps drawn for them (one for a spotlight, up to six for "
+							"a point light) and the things drawn into those. F3 shows the time they take ('Shadow maps').");
+
+	ImGui::PopItemWidth();
+	if(bChanged) pRenderer->SetShadowMapSettings(settings);
+
+	if(ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_DefaultOpen)) DrawShadowLights();
+
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawShadowLights()
+{
+	const float fEm = ImGui::GetFontSize();
+	cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
+	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
+	if(pWorld==nullptr || bDefault==false || msViewsMap == "")
+	{
+		ImGui::TextDisabled("No map loaded.");
+		return;
+	}
+
+	// The lights the last frame drew. Only compared, not used: the list is
+	// the world's.
+	std::set<iLight3D*> setInView;
+	cLight3DIterator viewIt = pRenderer->GetRenderList()->GetLightIt();
+	while(viewIt.HasNext()) setInView.insert(viewIt.Next());
+
+	std::vector<iLight3D*> vLights;
+	iLight3D *pPicked = nullptr;
+	cLight3DListIterator lightIt = pWorld->GetLightIterator();
+	while(lightIt.HasNext())
+	{
+		iLight3D *pLight = lightIt.Next();
+		if(pLight->GetName() == msShadowLight) pPicked = pLight;
+		if(mbShadowAllLights==false && setInView.count(pLight) == 0) continue;
+		vLights.push_back(pLight);
+	}
+	std::sort(vLights.begin(), vLights.end(), [](iLight3D *apA, iLight3D *apB){ return apA->GetName() < apB->GetName(); });
+
+	ImGui::Text("%d %s", (int)vLights.size(), mbShadowAllLights ? "in the map" : "in view");
+	ImGui::SameLine();
+	ImGui::Checkbox("All of the map", &mbShadowAllLights);
+
+	if(ImGui::BeginTable("##lights", 4, ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit,
+							ImVec2(-1, fEm * 8)))
+	{
+		ImGui::TableSetupColumn("Light", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Kind");
+		ImGui::TableSetupColumn("Reach");
+		ImGui::TableSetupColumn("Casters");
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableHeadersRow();
+		for(iLight3D *pLight : vLights)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::PushID(pLight);
+			if(ImGui::Selectable(pLight->GetName().c_str(), pLight == pPicked, ImGuiSelectableFlags_SpanAllColumns))
+			{
+				msShadowLight = pLight == pPicked ? "" : pLight->GetName();
+			}
+			ImGui::PopID();
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(pLight->GetLightType() == eLight3DType_Spot ? "spot" : "point");
+			ImGui::TableNextColumn();
+			ImGui::Text("%.1f m", pLight->GetFarAttenuation());
+			ImGui::TableNextColumn();
+			if(pLight->GetCastShadows())
+				ImGui::Text("%d + %d", (int)pLight->GetStaticCasters()->size(), (int)pLight->GetDynamicCasters()->size());
+			else
+				ImGui::TextDisabled("none");
+		}
+		ImGui::EndTable();
+	}
+	if(ImGui::IsItemHovered())
+		Tip("Casters: things in the light's reach that cast shadows, still + moving. "
+							"'none': the light casts no shadows. Click a light to pick it.");
+
+	// The light picked: found by name, it may have gone
+	if(msShadowLight != "" && pPicked==nullptr) msShadowLight = "";
+	cShadowMapSettings settings = pRenderer->GetShadowMapSettings();
+	bool bOnly = pPicked && settings.msOnlyLight == msShadowLight;
+	ImGui::BeginDisabled(pPicked==nullptr);
+	if(ImGui::Checkbox("Only this light", &bOnly) || (bOnly==false && settings.msOnlyLight != "" && settings.msOnlyLight != msShadowLight))
+	{
+		settings.msOnlyLight = bOnly ? msShadowLight : "";
+		pRenderer->SetShadowMapSettings(settings);
+	}
+	if(ImGui::IsItemHovered()) Tip("The other lights are not drawn. The ambient light stays.");
+	ImGui::SameLine();
+	bool bCasts = pPicked && pPicked->GetCastShadows();
+	if(ImGui::Checkbox("Casts shadows", &bCasts) && pPicked) pPicked->SetCastShadows(bCasts);
+	if(ImGui::IsItemHovered())
+		Tip("The maps say which lights cast shadows. This changes it until the map is loaded "
+							"again; try it on the flashlight.");
+	ImGui::EndDisabled();
+	// Picking no light, or losing it, shows all again
+	if(pPicked==nullptr && settings.msOnlyLight != "")
+	{
+		settings.msOnlyLight = "";
+		pRenderer->SetShadowMapSettings(settings);
+	}
+
+	ImGui::Separator();
+	bool bHasTestLight = pWorld->GetLight(gsTestLightName) != nullptr;
+	if(ImGui::Button(bHasTestLight ? "Move test light here" : "Put a test light here")) mbPlaceTestLight = true;
+	if(ImGui::IsItemHovered())
+		Tip("A point light that casts shadows, where the camera is. It is gone when the map changes.");
+	ImGui::SameLine();
+	ImGui::BeginDisabled(bHasTestLight==false);
+	if(ImGui::Button("Remove")) mbRemoveTestLight = true;
+	ImGui::EndDisabled();
+	ImGui::SameLine();
+	ImGui::Checkbox("Carry it", &mbCarryTestLight);
+	if(ImGui::IsItemHovered()) Tip("The test light stays with the camera: walk or fly, and watch the shadows move.");
+	ImGui::PushItemWidth(fEm * 14);
+	ImGui::SliderFloat("Reach", &mfTestLightRadius, 1.0f, 20.0f, "%.1f m");
+	ImGui::SliderFloat("Brightness", &mfTestLightBrightness, 0.1f, 1.0f, "%.2f");
+	ImGui::PopItemWidth();
 }
 
 //-----------------------------------------------------------------------

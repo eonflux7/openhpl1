@@ -21,3 +21,6 @@ VARYING vec3 vHalfVec;
 #ifdef SPOT
 VARYING vec4 vSpotlightUv;
 #endif
+// For the shadow map: in the spotlight's view, or relative to a point light
+// along the world's axes (hpl1_shadow.glsl)
+VARYING vec3 vShadowPos;

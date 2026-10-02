@@ -161,6 +161,10 @@ namespace hpl {
 		mlResolveFramebuffer = 0;
 		mlResolveColor = 0;
 		mlTargetFramebuffer = 0;
+		mlShadowFramebuffer = 0;
+		mvShadowMaps[0] = mvShadowMaps[1] = 0;
+		mvShadowMapSizes[0] = mvShadowMapSizes[1] = 0;
+		mvShadowSamplers[0] = mvShadowSamplers[1] = 0;
 		mlStateUniformBuffer = 0;
 
 		mlBoundVertexArray = 0;
@@ -395,7 +399,7 @@ namespace hpl {
 
 		glGenBuffers(1, &mlStateUniformBuffer);
 		glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(float)*8, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(float)*kStateUniformFloats, nullptr, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
@@ -432,6 +436,9 @@ namespace hpl {
 			FatalError("Couldn't create the framebuffers!\n");
 			return false;
 		}
+		// Something of the right kind for the light shaders' shadow samplers
+		CreateShadowMap(false, 16);
+		CreateShadowMap(true, 16);
 
 		//GL
 		Log(" Setting up OpenGL\n");
@@ -1267,6 +1274,13 @@ namespace hpl {
 		DeleteSceneFramebuffers();
 		glDeleteFramebuffers(1, &mlOutputFramebuffer);
 		glDeleteFramebuffers(1, &mlTargetFramebuffer);
+		glDeleteFramebuffers(1, &mlShadowFramebuffer);
+		glDeleteTextures(2, mvShadowMaps);
+		glDeleteSamplers(2, mvShadowSamplers);
+		mlShadowFramebuffer = 0;
+		mvShadowMaps[0] = mvShadowMaps[1] = 0;
+		mvShadowMapSizes[0] = mvShadowMapSizes[1] = 0;
+		mvShadowSamplers[0] = mvShadowSamplers[1] = 0;
 		glDeleteTextures(1, &mlOutputColor);
 		glDeleteRenderbuffers(1, &mlOutputDepthStencil);
 		mlOutputFramebuffer = mlTargetFramebuffer = mlOutputColor = mlOutputDepthStencil = 0;
@@ -2230,6 +2244,112 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// The depth texture of a kind of shadow map, at a new size. It is left
+	// bound to the two shadow map units, where SetTexture() never binds.
+	void cLowLevelGraphicsSDL::CreateShadowMap(bool abCube, int alSize)
+	{
+		const int lIdx = abCube ? 1 : 0;
+		const GLenum lTarget = abCube ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+
+		if(mvShadowSamplers[0] == 0)
+		{
+			glGenSamplers(2, mvShadowSamplers);
+			for(int i=0; i<2; ++i)
+			{
+				GLuint lSampler = mvShadowSamplers[i];
+				GLenum lFilter = i == 0 ? GL_LINEAR : GL_NEAREST;
+				glSamplerParameteri(lSampler, GL_TEXTURE_MIN_FILTER, lFilter);
+				glSamplerParameteri(lSampler, GL_TEXTURE_MAG_FILTER, lFilter);
+				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+				if(i == 0)
+				{
+					glSamplerParameteri(lSampler, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+					glSamplerParameteri(lSampler, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+				}
+				glBindSampler(cGLSLProgram::kShadowMapUnit + i, lSampler);
+			}
+			// Blurs reach across the edges of the cube map's faces
+			glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		}
+
+		if(mvShadowMaps[lIdx]) glDeleteTextures(1, &mvShadowMaps[lIdx]);
+		glGenTextures(1, &mvShadowMaps[lIdx]);
+		mvShadowMapSizes[lIdx] = alSize;
+
+		for(int i=0; i<2; ++i)
+		{
+			glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit + i);
+			glBindTexture(lTarget, mvShadowMaps[lIdx]);
+		}
+		if(abCube)
+		{
+			for(int i=0; i<6; ++i)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT24, alSize, alSize, 0,
+								GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+		}
+		else
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, alSize, alSize, 0,
+							GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+		}
+		glTexParameteri(lTarget, GL_TEXTURE_MAX_LEVEL, 0);
+		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
+
+		cGpuProfiler::Label(GL_TEXTURE, mvShadowMaps[lIdx], abCube ? "Shadow cube map" : "Shadow map");
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::BeginShadowMap(bool abCube, int alFace, int alSize)
+	{
+		const int lIdx = abCube ? 1 : 0;
+		alSize = cMath::Clamp(alSize, 16, 8192);
+		if(mvShadowMapSizes[lIdx] != alSize) CreateShadowMap(abCube, alSize);
+
+		if(mlShadowFramebuffer == 0)
+		{
+			glGenFramebuffers(1, &mlShadowFramebuffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, mlShadowFramebuffer);
+			cGpuProfiler::Label(GL_FRAMEBUFFER, mlShadowFramebuffer, "Shadow map");
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, mlShadowFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+								abCube ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + alFace : GL_TEXTURE_2D,
+								mvShadowMaps[lIdx], 0);
+		BindFramebuffer(mlShadowFramebuffer, cVector2l(alSize, alSize));
+
+		glEnable(GL_DEPTH_CLAMP);
+		glDepthMask(GL_TRUE);
+		glClearDepth(1);
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+
+	void cLowLevelGraphicsSDL::EndShadowMap()
+	{
+		glDisable(GL_DEPTH_CLAMP);
+
+		if(mpRenderTarget)
+		{
+			iTexture *pTarget = mpRenderTarget;
+			mpRenderTarget = nullptr;
+			SetRenderTarget(pTarget);
+		}
+		else if(mbInScene)	BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
+		else				BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
+	}
+
+	void cLowLevelGraphicsSDL::SetShadowMapParams(const cShadowMapParams& aParams)
+	{
+		mShadowParams = aParams;
+		mbStateChanged = true;
+	}
+
+	//-----------------------------------------------------------------------
+
 
 	cVector2f cLowLevelGraphicsSDL::GetScreenSize()
 	{
@@ -2626,9 +2746,15 @@ namespace hpl {
 			float fGlow = bConvert && bAdd ? mLinearTuning.mfGlow : 1.0f;
 			bool bAlpha = mbBlend && mBlendSrc == eBlendFunc_SrcAlpha && mBlendDest == eBlendFunc_OneMinusSrcAlpha;
 			float fAlphaMatch = bConvert && bAlpha ? cMath::Clamp(mLinearTuning.mfBlendMatch, 0.0f, 1.0f) : 0.0f;
-			float vState[8] = {	mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
-								bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
-								mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f};
+			const cShadowMapParams &shadow = mShadowParams;
+			float vState[kStateUniformFloats] = {
+				mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
+				bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
+				mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f,
+				(float)shadow.mlFilter, shadow.mfNear, shadow.mfFar, shadow.mfTexelSize,
+				shadow.mfSoftness, shadow.mfLightSize, shadow.mfMaxBlur, shadow.mbShowOnly ? 1.0f : 0.0f,
+				shadow.mfBias, shadow.mfSlopeBias, (float)shadow.mlSamples, (float)shadow.mlBlockerSamples,
+				shadow.mvUvScale.x, shadow.mvUvScale.y, shadow.mbNoise ? 1.0f : 0.0f, 0.0f};
 			glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vState), vState);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);

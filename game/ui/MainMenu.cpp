@@ -1537,7 +1537,29 @@ public:
 
 //------------------------------------------------------------
 
-tString gvShadowTypes[] = {"On","Only Static","Off"};
+// The original shadows (On, Only Static), none, and the shadow maps (Soft)
+// in one option: 0-2 are eRendererShowShadows with eShadowType_Volumes.
+static const int glShadowOptionNum = 5;
+
+static int GetShadowOption(cInit *apInit)
+{
+	cRenderer3D *pRenderer = apInit->mpGame->GetGraphics()->GetRenderer3D();
+	eRendererShowShadows show = pRenderer->GetShowShadows();
+	if(show == eRendererShowShadows_None || pRenderer->GetShadowType() == eShadowType_Volumes) return (int)show;
+	return show == eRendererShowShadows_All ? 3 : 4;
+}
+
+static tWString GetShadowOptionText(cInit *mpInit, int alOption)
+{
+	switch(alOption)
+	{
+	case 0: return kTranslate("MainMenu","On");
+	case 1: return kTranslate("MainMenu","Only Static");
+	case 2: return kTranslate("MainMenu","Off");
+	case 3: return _W("Soft");
+	}
+	return _W("Soft, Only Static");
+}
 
 class cMainMenuWidget_Shadows : public cMainMenuWidget_Button
 {
@@ -1545,28 +1567,23 @@ public:
 	cMainMenuWidget_Shadows(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
-		mlCurrent = apInit->mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows();
 		msTip = kTranslate("MainMenu", "TipGraphicsShadows");
 	}
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		if(aButton == eMButton_Left)
-		{
-			mlCurrent++;
-			if(mlCurrent >= 3) mlCurrent =0;
-		}
-		else if(aButton == eMButton_Right)
-		{
-			mlCurrent--;
-			if(mlCurrent < 0) mlCurrent =2;
-		}
+		// The F2 panel changes these too
+		int lCurrent = GetShadowOption(mpInit);
+		if(aButton == eMButton_Left)		lCurrent = (lCurrent + 1) % glShadowOptionNum;
+		else if(aButton == eMButton_Right)	lCurrent = (lCurrent + glShadowOptionNum - 1) % glShadowOptionNum;
 
-		gpShadowsText->msText = kTranslate("MainMenu",gvShadowTypes[mlCurrent]);
-		mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mlCurrent);
+		cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+		pRenderer->SetShadowType(lCurrent >= 3 ? eShadowType_Maps : eShadowType_Volumes);
+		if(lCurrent >= 3)	pRenderer->SetShowShadows(lCurrent == 3 ? eRendererShowShadows_All : eRendererShowShadows_Static);
+		else				pRenderer->SetShowShadows((eRendererShowShadows)lCurrent);
+
+		gpShadowsText->msText = GetShadowOptionText(mpInit, lCurrent);
 	}
-
-	int mlCurrent;
 };
 
 //------------------------------------------------------------
@@ -3811,7 +3828,7 @@ void cMainMenu::CreateWidgets()
 	gpTextureQualityText->SetExtraWidget(pTextureQualityButton);
 
 	vPos.y += 24;
-	sText = kTranslate("MainMenu",gvShadowTypes[mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows()]);
+	sText = GetShadowOptionText(mpInit, GetShadowOption(mpInit));
 	gpShadowsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpShadowsText); 
 	gpShadowsText->SetExtraWidget(pShadowsButton);

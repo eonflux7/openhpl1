@@ -210,9 +210,18 @@ and specular all have to be tuned again if the lighting under them changes.
   - the copies bloom, depth of field and refraction read are float with
     linear lighting on; with it off they stay 8-bit and clip at 1, as
     originally
-- [ ] **4. Soft shadows:** shadow maps (PCF/PCSS) instead of the hard-edged
-      stencil shadow volumes, or penumbra-blurred stencil shadows as an
-      interim step. The largest piece; best on settled lighting
+- [ ] **4. Soft shadows:** shadow maps instead of the hard-edged stencil
+      shadow volumes, which stay as the original setting
+  - [x] shadow maps for spotlights and point lights (cube maps), drawn for
+        every light in every frame; Soft settings of the Shadows option
+  - [x] edges: hard, a fixed blur, or a blur that widens with the distance
+        to what casts the shadow
+  - [x] a Shadows window in the F2 panel: every setting, the shadows
+        alone, the lights in view, a test light
+  - [x] play-test: looks right; a point light's map is 1024 a side by
+        default. The flashlight casts shadows
+  - [ ] keep the maps of lights where nothing moved, if drawing them every
+        frame costs too much
 - **5. The rest**, in any order:
   - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
   - [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer

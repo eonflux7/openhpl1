@@ -502,6 +502,14 @@ namespace hpl {
 						cLight3DSpot *pSpotLight = static_cast<cLight3DSpot*>(apSettings->mpLight);
 						apSettings->mpVertexProgram->SetMatrixf("spotViewProj",
 							cMath::MatrixMul(pSpotLight->GetViewProjMatrix(),*mpModelMatrix));
+						apSettings->mpVertexProgram->SetMatrixf("shadowMtx",
+							cMath::MatrixMul(pSpotLight->GetViewMatrix(),*mpModelMatrix));
+					}
+					else
+					{
+						apSettings->mpVertexProgram->SetMatrixf("shadowMtx",
+							cMath::MatrixMul(cMath::MatrixTranslate(apSettings->mpLight->GetLightPosition() * -1.0f),
+										*mpModelMatrix));
 					}
 				}
 				else
@@ -518,6 +526,12 @@ namespace hpl {
 						if(apSettings->mbLog)Log("SpotLightViewProj ");
 						cLight3DSpot *pSpotLight = static_cast<cLight3DSpot*>(apSettings->mpLight);
 						apSettings->mpVertexProgram->SetMatrixf("spotViewProj",pSpotLight->GetViewProjMatrix());
+						apSettings->mpVertexProgram->SetMatrixf("shadowMtx",pSpotLight->GetViewMatrix());
+					}
+					else
+					{
+						apSettings->mpVertexProgram->SetMatrixf("shadowMtx",
+							cMath::MatrixTranslate(apSettings->mpLight->GetLightPosition() * -1.0f));
 					}
 				}
 			}

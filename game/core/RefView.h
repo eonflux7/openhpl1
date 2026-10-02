@@ -24,11 +24,20 @@ class cInit;
 // match the frames: flashlight on, no flicker, nothing drawn in 2D, a
 // player that cannot be hurt.
 //
-// It is also where the viewpoints are chosen: fly the camera to a spot
-// (Fly, with the panel closed: the movement keys, Run for speed, Jump and
-// Crouch for up and down), open the panel and add the viewpoint. They are
-// saved to tools/refviews.txt at once, and a map that has any is captured
-// from those alone.
+// It is also where the viewpoints are chosen: fly the camera to a spot, open
+// the panel and add the viewpoint. They are saved to tools/refviews.txt at
+// once, and a map that has any is captured from those alone.
+//
+// A window of its own, Player, has what changes how the game plays while
+// testing: Fly (with the panel closed: the movement keys, Run for speed,
+// Jump and Crouch for up and down, looking is free of the player's limits),
+// which puts the player where the camera is when it is switched off, and
+// the flashlight, flicker, HUD and damage switches.
+//
+// A second window is for the shadows: which kind (the original volumes or
+// shadow maps), how the maps are made and read, what they cost, and the
+// lights in view, each of which can be drawn alone or have its shadows
+// switched. A test light can be put where the camera is, or carried along.
 //
 // While the panel is open it has the mouse and the keyboard, and the view
 // is kept exactly where the frame was taken from. Closing it (F2) gives the
@@ -50,11 +59,15 @@ private:
 	void Draw();
 	void DrawMaps();
 	void DrawViews();
-	void DrawOptions();
+	void DrawPlayer();
 	void DrawRenderer();
+	void DrawShadows();
+	void DrawShadowLights();
+	void UpdateTestLight();
 
 	void DrawViewpoints();
 	void UpdateFly(float afTimeStep);
+	void PutPlayerAtCamera();
 	void AddViewpoint();
 	void DeleteViewpoint();
 
@@ -110,8 +123,22 @@ private:
 	bool mbFly;
 	bool mbFlying;
 	cVector3f mvFlyPos;
+	float mfFlySpeed;
+	// The player's limits on looking up and down, back when flying ends
+	cVector2f mvWalkPitchLimits;
 	// Steps left before the camera's position is taken over
 	int mlFlySeed;
+
+	// The light picked in the shadow window, by name: lights come and go
+	tString msShadowLight;
+	bool mbShadowAllLights;
+
+	// A point light of the panel's own, in the map that is loaded
+	bool mbPlaceTestLight;
+	bool mbRemoveTestLight;
+	bool mbCarryTestLight;
+	float mfTestLightRadius;
+	float mfTestLightBrightness;
 
 	char msViewpointName[64];
 	bool mbAddViewpoint;

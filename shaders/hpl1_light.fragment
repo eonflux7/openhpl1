@@ -21,6 +21,7 @@
 #define HPL_LINEAR_COLOR
 
 #include "hpl1_light.glsl"
+#include "hpl1_shadow.glsl"
 
 OUTPUT
 
@@ -42,6 +43,8 @@ uniform sampler2D tex6; //specularMap
 
 void main()
 {
+	vec3 shadowPlane = hpl_ShadowPlane(vShadowPos);
+
 	vec3 diffuse = texture(tex0, vUv).xyz;
 	float attenuation = texture(tex3, dot(vLightDir,vLightDir)).x;
 
@@ -85,6 +88,16 @@ void main()
 	#endif
 #endif
 
+	// Where the light does not reach anyway the shadow map is not read
+	float shadow = 1.0;
+	if(attenuation > 0.0) shadow = hpl_Shadow(vShadowPos, shadowPlane);
+	if(hpl_ShadowMap1.w > 0.5)
+	{
+		// The shadow alone, as far as the light reaches
+		outColor = vec4(hpl_ToLinear(vec3(0.25 * shadow * step(0.001, attenuation))), 0.0);
+		return;
+	}
+
 	if(hpl_ColorSpace.x > 0.5)
 	{
 		// Diffuse and specular are converted one by one and added as
@@ -97,10 +110,10 @@ void main()
 		float amountExp = hpl_ColorSpace.z;
 		vec3 color = hpl_ToLinear(lit) * pow(max(nDotL, 0.0) * attenuation, amountExp);
 		color += hpl_ToLinear(specular) * pow(attenuation, amountExp);
-		outColor = vec4(color, 0.0);
+		outColor = vec4(color * shadow, 0.0);
 	}
 	else
 	{
-		outColor = vec4((lit * nDotL + specular) * attenuation, 0.0);
+		outColor = vec4((lit * nDotL + specular) * attenuation * shadow, 0.0);
 	}
 }

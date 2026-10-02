@@ -34,6 +34,7 @@
 #include "scene/World3D.h"
 #include "scene/RenderableContainer.h"
 #include "scene/Light3D.h"
+#include "scene/Light3DSpot.h"
 #include "math/BoundingVolume.h"
 #include "resources/GpuProgramManager.h"
 #include "graphics/GPUProgram.h"
@@ -103,6 +104,7 @@ namespace hpl {
 		mRenderSettings.mpLowLevel = mpLowLevelGraphics;
 		mRenderSettings.mbLog = false;
 		mRenderSettings.mShowShadows = eRendererShowShadows_All;
+		mRenderSettings.mShadowType = eShadowType_Volumes;
 		mRenderSettings.mpTempIndexArray = hplNewArray(unsigned int,60000);
 
 		Log("   Load Renderer3D gpu programs:\n");
@@ -892,6 +894,8 @@ namespace hpl {
 
 	void cRenderer3D::RenderLight(cCamera3D *apCamera)
 	{
+		mShadowMapStats = cShadowMapStats();
+
 		if(mDebugFlags & eRendererDebugFlag_DisableLighting) return;
 
 		cLight3DIterator lightIt = mpRenderList->GetLightIt();
@@ -903,13 +907,21 @@ namespace hpl {
 
 			iLight3D* pLight = lightIt.Next();
 
-			if(mpRenderList->GetLightObjects(lLightCount)==0)
+			if(mpRenderList->GetLightObjects(lLightCount)==0 ||
+				(mShadowMapSettings.msOnlyLight != "" && pLight->GetName() != mShadowMapSettings.msOnlyLight))
 			{
 				lLightCount++;
 				continue;
 			}
 
 			if(mbLog) Log("-----Light %s/%d ------\n",pLight->GetName().c_str(), (size_t)pLight);
+
+			// The light's shadow map, which its passes read
+			cShadowMapParams shadowParams;
+			shadowParams.mbShowOnly = mShadowMapSettings.mbShowOnly;
+			if(mRenderSettings.mShadowType == eShadowType_Maps)
+				RenderShadowMap(pLight, apCamera, shadowParams);
+			mpLowLevelGraphics->SetShadowMapParams(shadowParams);
 
 			cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
 															eMaterialRenderType_Light, lLightCount);
@@ -922,6 +934,253 @@ namespace hpl {
 
 			lLightCount++;
 		}
+
+		mpLowLevelGraphics->SetShadowMapParams(cShadowMapParams());
+	}
+
+	//-----------------------------------------------------------------------
+
+	// The directions the faces of a cube map look in, and what is up in them.
+	static const cVector3f gvCubeFaceDir[6] = {
+		cVector3f(1,0,0), cVector3f(-1,0,0), cVector3f(0,1,0),
+		cVector3f(0,-1,0), cVector3f(0,0,1), cVector3f(0,0,-1)};
+	static const cVector3f gvCubeFaceUp[6] = {
+		cVector3f(0,-1,0), cVector3f(0,-1,0), cVector3f(0,0,1),
+		cVector3f(0,0,-1), cVector3f(0,-1,0), cVector3f(0,-1,0)};
+
+	static cMatrixf CubeFaceViewMatrix(int alFace, const cVector3f &avPos)
+	{
+		const cVector3f &vForward = gvCubeFaceDir[alFace];
+		cVector3f vRight = cMath::Vector3Cross(vForward, gvCubeFaceUp[alFace]);
+		cVector3f vUp = cMath::Vector3Cross(vRight, vForward);
+
+		return cMatrixf(
+			vRight.x, vRight.y, vRight.z, -cMath::Vector3Dot(vRight, avPos),
+			vUp.x, vUp.y, vUp.z, -cMath::Vector3Dot(vUp, avPos),
+			-vForward.x, -vForward.y, -vForward.z, cMath::Vector3Dot(vForward, avPos),
+			0,0,0,1);
+	}
+
+	// A view of 90 degrees, as wide as high.
+	static cMatrixf CubeFaceProjectionMatrix(float afNear, float afFar)
+	{
+		return cMatrixf(
+			1,0,0,0,
+			0,1,0,0,
+			0,0,-(afFar + afNear)/(afFar - afNear), -(2.0f*afFar*afNear)/(afFar - afNear),
+			0,0,-1,0);
+	}
+
+	// If a sphere, given relative to the middle of a cube map, shows in a face.
+	static bool SphereInCubeFace(int alFace, const cVector3f &avCenter, float afRadius)
+	{
+		const cVector3f &vDir = gvCubeFaceDir[alFace];
+		float fAlong = cMath::Vector3Dot(vDir, avCenter);
+		if(fAlong < -afRadius) return false;
+
+		// The sides of the face's view are at 45 degrees to its direction
+		float fReach = afRadius * 1.4142136f;
+		for(int i=0; i<3; ++i)
+		{
+			if(vDir.v[i] != 0) continue;
+			if(fAlong - std::abs(avCenter.v[i]) < -fReach) return false;
+		}
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * Draws what casts shadows from a light into the light's shadow map and
+	 * fills in what the light passes need to read it. Leaves the render
+	 * settings telling what is set. False if the light has no shadow map.
+	 */
+	bool cRenderer3D::RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams)
+	{
+		if(apLight->GetCastShadows()==false || mRenderSettings.mShowShadows == eRendererShowShadows_None ||
+			mpDiffuseVtxProgram==nullptr || mpDiffuseFragProgram==nullptr)
+		{
+			return false;
+		}
+
+		const cShadowMapSettings &settings = mShadowMapSettings;
+		const bool bCube = apLight->GetLightType() == eLight3DType_Point;
+		const int lSize = bCube ? settings.mlPointSize : settings.mlSpotSize;
+		const float fFar = apLight->GetFarAttenuation();
+
+		mpLowLevelGraphics->BeginGpuSection("Shadow maps");
+		if(mbLog) Log("Rendering shadow map:\n");
+
+		///////////////////////////////
+		// Programs and state
+		if(mRenderSettings.mpVertexProgram != mpDiffuseVtxProgram)
+		{
+			if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
+			mpDiffuseVtxProgram->Bind();
+			mRenderSettings.mpVertexProgram = mpDiffuseVtxProgram;
+		}
+		if(mRenderSettings.mpFragmentProgram != mpDiffuseFragProgram)
+		{
+			if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
+			mpDiffuseFragProgram->Bind();
+			mRenderSettings.mpFragmentProgram = mpDiffuseFragProgram;
+		}
+
+		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
+		mpLowLevelGraphics->SetCullActive(settings.mFaces != eShadowMapFaces_Both);
+		if(settings.mFaces == eShadowMapFaces_AwayFromLight)
+			mpLowLevelGraphics->SetCullMode(eCullMode_Clockwise);
+
+		///////////////////////////////
+		// The maps
+		mShadowMapStats.mlLights++;
+
+		if(bCube)
+		{
+			const cVector3f vPos = apLight->GetLightPosition();
+			const float fNear = cMath::Min(settings.mfPointNear, fFar * 0.5f);
+			mpLowLevelGraphics->SetMatrix(eMatrix_Projection, CubeFaceProjectionMatrix(fNear, fFar));
+
+			for(int lFace=0; lFace<6; ++lFace)
+			{
+				// A face shows in the picture if the part of the light's
+				// reach it covers is not all on the outer side of one of
+				// the planes the camera's view ends at.
+				bool bInView = true;
+				for(int lPlane=0; lPlane<5 && bInView; ++lPlane)
+				{
+					cPlanef plane = mRenderSettings.mpFrustum->GetPlane((eFrustumPlane)lPlane);
+					bool bOutside = cMath::PlaneToPointDist(plane, vPos) < 0;
+					cVector3f vRight = cMath::Vector3Cross(gvCubeFaceDir[lFace], gvCubeFaceUp[lFace]);
+					for(int lCorner=0; lCorner<4 && bOutside; ++lCorner)
+					{
+						cVector3f vCorner = vPos + (gvCubeFaceDir[lFace] +
+									vRight * (lCorner & 1 ? 1.0f : -1.0f) +
+									gvCubeFaceUp[lFace] * (lCorner & 2 ? 1.0f : -1.0f)) * fFar;
+						bOutside = cMath::PlaneToPointDist(plane, vCorner) < 0;
+					}
+					if(bOutside) bInView = false;
+				}
+				if(bInView==false) continue;
+
+				mpLowLevelGraphics->BeginShadowMap(true, lFace, lSize);
+				mShadowMapStats.mlCasters += RenderShadowCasters(apLight, CubeFaceViewMatrix(lFace, vPos), lFace);
+				mShadowMapStats.mlMaps++;
+			}
+
+			aParams.mfNear = fNear;
+			aParams.mfTexelSize = 2.0f / (float)lSize;
+		}
+		else
+		{
+			cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(apLight);
+			mpLowLevelGraphics->SetMatrix(eMatrix_Projection, pSpot->GetProjectionMatrix());
+
+			mpLowLevelGraphics->BeginShadowMap(false, 0, lSize);
+			mShadowMapStats.mlCasters += RenderShadowCasters(apLight, pSpot->GetViewMatrix(), -1);
+			mShadowMapStats.mlMaps++;
+
+			float fTan = tan(pSpot->GetFOV() * 0.5f);
+			aParams.mfNear = pSpot->GetNearClipPlane();
+			aParams.mfTexelSize = 2.0f * fTan / (float)lSize;
+			aParams.mvUvScale = cVector2f(0.5f / (fTan * pSpot->GetAspect()), 0.5f / fTan);
+		}
+
+		mpLowLevelGraphics->EndShadowMap();
+
+		///////////////////////////////
+		// Back to how the light passes are drawn
+		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
+		mRenderSettings.mbMatrixWasNULL = false;
+
+		mpLowLevelGraphics->SetDepthWriteActive(false);
+		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
+		mpLowLevelGraphics->SetCullActive(true);
+		mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
+		mpLowLevelGraphics->SetAlphaTestActive(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid);
+
+		aParams.mlFilter = (int)settings.mFilter + 1;
+		aParams.mfFar = fFar;
+		aParams.mfSoftness = settings.mfSoftness;
+		aParams.mfLightSize = settings.mfLightSize;
+		aParams.mfMaxBlur = settings.mfMaxBlur;
+		aParams.mlSamples = cMath::Clamp(settings.mlSamples, 1, 64);
+		aParams.mlBlockerSamples = cMath::Clamp(settings.mlBlockerSamples, 1, 64);
+		aParams.mbNoise = settings.mbNoise;
+		aParams.mfBias = settings.mfBias;
+		aParams.mfSlopeBias = settings.mfSlopeBias;
+
+		mpLowLevelGraphics->EndGpuSection();
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// What casts shadows from the light, as seen in a_mtxView with the
+	// projection that is set; alFace is the face of a cube map, or -1.
+	// Returns how many were drawn.
+	int cRenderer3D::RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace)
+	{
+		const cShadowMapSettings &settings = mShadowMapSettings;
+		const cVector3f vLightPos = apLight->GetLightPosition();
+		int lDrawn = 0;
+		bool bAlphaTest = false;
+		mpLowLevelGraphics->SetAlphaTestActive(false);
+
+		tCasterCacheSet *vSets[2] = {apLight->GetStaticCasters(), apLight->GetDynamicCasters()};
+		int lSetNum = mRenderSettings.mShowShadows == eRendererShowShadows_All ? 2 : 1;
+
+		for(int lSet=0; lSet<lSetNum; ++lSet)
+		for(iRenderable *pObject : *vSets[lSet])
+		{
+			iVertexBuffer *pVtxBuffer = pObject->GetVertexBuffer();
+			if(pVtxBuffer==nullptr) continue;
+
+			if(alFace >= 0)
+			{
+				cBoundingVolume *pBV = pObject->GetBoundingVolume();
+				if(SphereInCubeFace(alFace, pBV->GetWorldCenter() - vLightPos, pBV->GetRadius())==false)
+					continue;
+			}
+
+			// Holes cut by the alpha of the texture
+			iMaterial *pMaterial = pObject->GetMaterial();
+			bool bAlpha = pMaterial && pMaterial->HasAlpha();
+			if(bAlpha && settings.mbAlphaCasters==false) continue;
+			if(bAlpha)
+			{
+				iTexture *pTexture = pMaterial->GetTexture(eMaterialTexture_Diffuse);
+				if(pTexture==nullptr) continue;
+				if(mRenderSettings.mpTexture[0] != pTexture)
+				{
+					mpLowLevelGraphics->SetTexture(0, pTexture);
+					mRenderSettings.mpTexture[0] = pTexture;
+				}
+			}
+			if(bAlpha != bAlphaTest)
+			{
+				bAlphaTest = bAlpha;
+				mpLowLevelGraphics->SetAlphaTestActive(bAlpha);
+				if(bAlpha) mpLowLevelGraphics->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+			}
+
+			cMatrixf *pModelMtx = pObject->GetModelMatrix(nullptr);
+			if(pModelMtx)	mpLowLevelGraphics->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(a_mtxView, *pModelMtx));
+			else			mpLowLevelGraphics->SetMatrix(eMatrix_ModelView, a_mtxView);
+			mpDiffuseVtxProgram->SetMatrixf("worldViewProj", eGpuProgramMatrix_ViewProjection,
+											eGpuProgramMatrixOp_Identity);
+
+			if(mRenderSettings.mpVtxBuffer != pVtxBuffer)
+			{
+				if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
+				pVtxBuffer->Bind();
+				mRenderSettings.mpVtxBuffer = pVtxBuffer;
+			}
+			pVtxBuffer->Draw();
+			++lDrawn;
+		}
+
+		return lDrawn;
 	}
 
 	//-----------------------------------------------------------------------

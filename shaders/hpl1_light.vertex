@@ -28,6 +28,7 @@ uniform vec3 EyePos;
 uniform vec3 LightPos;
 uniform vec4 LightColor;
 uniform vec3 LightDirMul;
+uniform mat4 shadowMtx;
 
 void main()
 {
@@ -38,6 +39,8 @@ void main()
 #ifdef SPOT
 	vSpotlightUv = (spotViewProj * position);
 #endif
+
+	vShadowPos = (shadowMtx * position).xyz;
 
 	vec3 lightDir = LightPos - position.xyz;
 	vLightDir = lightDir * LightDirMul;

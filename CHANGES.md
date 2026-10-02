@@ -730,6 +730,98 @@ do with colour, and what follows for this option.
 - The F2 panel's sections fold; Viewpoints and the reference image options
   start folded.
 
+### Shadow maps (option)
+
+- **Shadows** in Advanced Graphics has two more settings, Soft and Soft, Only
+  Static (`ShadowType` in `settings.cfg`: 0 the original shadow volumes, 1
+  shadow maps; `Shadows` is as before: all, only static, none). The original
+  shadows are the default and are drawn as they were.
+- With shadow maps, what a light sees is drawn into a depth texture before
+  its light passes (`cRenderer3D::RenderShadowMap`), and the light shader
+  looks every lit point up in it (`hpl1_shadow.glsl`). A spotlight has one
+  map, drawn with its own view and projection. A point light has a cube map:
+  six views of 90 degrees, of which only those are drawn whose part of the
+  light's reach can be in the picture. There is one texture of each kind,
+  used by one light after the other, so every light with shadows draws its
+  map again in every frame.
+- The same things cast shadows as before: what the maps and entities mark as
+  casting, collected per light as for the volumes. Two differences. A
+  one-sided wall seen from behind casts a shadow (the volumes are made from
+  the sides that face the light only); "Sides drawn" in the panel has the
+  original rule. And materials with holes cut by their alpha (fences,
+  gratings), which the volumes leave out, cast shadows with the holes.
+- Edges, as `ShadowFilter`:
+  - 0, hard: one sample, filtered between the map's texels.
+  - 1, soft: blurred by the same amount everywhere (`ShadowSoftness`).
+  - 2, soft by distance, the default: for every point, what is between it
+    and the light is looked for first, and the edge is blurred by how far
+    behind that the point is, for a light of radius `ShadowLightSize` (5 cm).
+    A shadow is sharp where it starts and widens with the distance, up to
+    `ShadowMaxBlur` (3 cm). The limit is low on purpose: what is right next
+    to a light, like the cage of a lamp, has a very wide edge by this rule,
+    and at 12 cm the cages' shadows across the caves were blurred away.
+
+  Blurs are radii at 1 m from the light and grow with the distance. The
+  samples are spread over a disc that faces the light and turned by a
+  different angle in every pixel (`ShadowNoise`).
+- A sample is compared with the nearer of two distances: its own, and that
+  of the lit surface's plane in its direction (the plane comes from how the
+  position changes from pixel to pixel). The first alone makes a surface
+  that slants away from the light shadow itself, the second alone puts the
+  samples behind the wall where a floor ends. With both, a small bias is
+  enough (`ShadowBias`, 5 mm, and `ShadowSlopeBias`, 1.5 texels of the map
+  for a surface at 45 degrees).
+- Map sizes are `ShadowSpotSize` (1024) and `ShadowPointSize` (1024 for each
+  of the six faces). The textures are 24-bit depth, bound to two texture
+  units past the engine's eight, once with a sampler that compares and
+  filters and once with one that returns the depth
+  (`iLowLevelGraphics::BeginShadowMap`, `SetShadowMapParams`; the values are
+  in the `hpl_State` uniform block).
+- The light's amount is multiplied by the result. With linear lighting it
+  counts as an amount of light, outside the light power.
+
+- Checked on the 83 reference viewpoints: with hard edges, 81 differ from
+  the original shadows in under 1% of their pixels (edges). One of the other
+  two is on a map with timed lights. In the other (water cave, view04) a
+  lamp lights a wall through its grille that the volumes leave dark, with
+  jagged cut-outs next to it: taken for an error of the volumes, not looked
+  into further. No GL debug messages. At 2560x1440 the maps cost about 1 ms
+  of GPU time a frame in the boat cabin, the office and the refinery (four
+  lights with shadows): 0.06 to 0.36 ms to draw them, the rest to read them.
+  With the original shadows the reference images are as before.
+
+### Shadow panel
+
+- F2 opens a second window, Shadows, next to the reference views: the kind
+  of shadows, every setting above, and "Show the shadows alone" (grey where
+  a light reaches, dark where its shadow is, for both kinds of shadows).
+- It counts what the last frame's shadow maps took: lights, maps, and
+  things drawn into them. The time is the "Shadow maps" section of the F3
+  overlay, inside "Lights".
+- Lights: the lights in view (or all of the map) with their kind, reach and
+  how many things cast shadows from them. A light can be picked, to draw it
+  alone ("Only this light") or to switch whether it casts shadows, which the
+  map or the model decides otherwise (the flashlight casts them).
+- A test light: a point light that casts shadows, put where the camera is,
+  or carried along with it, with its reach and brightness.
+
+### Player window
+
+- The F2 panel's switches for how the game plays while testing are in a
+  window of their own, Player: Fly with its speed, the camera's position,
+  and flashlight, flicker, HUD and damage (which were "As in the reference
+  images").
+- Flying looks around freely: up and down to 89 degrees instead of the
+  player's 70, and the player is kept out of the states in which the mouse
+  moves a cursor or is held by what the player has hold of (interact mode,
+  grabbing, pushing, climbing), since the body those belong to is left
+  behind.
+- Switching Fly off puts the player where the camera is, facing the same
+  way, instead of sending the camera back to where the body was left. So
+  does Release at a viewpoint. Before, the camera stayed at the viewpoint
+  while the movement keys walked the unseen body.
+- Tooltips wrap.
+
 ### Fog
 
 - Fogged maps were drawn as a flat fog colour (11 maps: outside, the shafts,

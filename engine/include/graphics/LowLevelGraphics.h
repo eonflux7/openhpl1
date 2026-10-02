@@ -229,6 +229,48 @@ namespace hpl {
 		float mfWhite = 4.0f;
 	};
 
+	/**
+	 * What the light shaders need to read the shadow map of the light that
+	 * is drawn. Lengths are in world units (metres); a blur is given as its
+	 * radius at a distance of 1 from the light, and grows with the distance.
+	 */
+	class cShadowMapParams
+	{
+	public:
+		/**
+		 * 0: the light has no shadow map. 1: hard, one filtered sample.
+		 * 2: blurred by mfSoftness. 3: blurred by how far what casts the
+		 * shadow is from what it falls on, for a light of mfLightSize.
+		 */
+		int mlFilter = 0;
+		/// The depth range the map was drawn with.
+		float mfNear = 0.05f;
+		float mfFar = 1;
+		/// The width of one texel at a distance of 1 from the light.
+		float mfTexelSize = 0;
+		/// Spotlights: texture coordinates per unit of x/z and y/z in the light's view.
+		cVector2f mvUvScale = cVector2f(1,1);
+
+		float mfSoftness = 0.02f;
+		/// Radius of the light source.
+		float mfLightSize = 0.05f;
+		/// The widest blur.
+		float mfMaxBlur = 0.03f;
+		/// Samples of the blur, and of the search for what casts the shadow (filter 3).
+		int mlSamples = 16;
+		int mlBlockerSamples = 12;
+		/// The samples are turned by a different angle in every pixel.
+		bool mbNoise = true;
+
+		/// What a surface is moved towards the light by before it is compared.
+		float mfBias = 0.01f;
+		/// The same, in texels of the map, for a surface at 45 degrees to the light.
+		float mfSlopeBias = 1.5f;
+
+		/// The light passes draw how much of the light arrives instead of the lit surface.
+		bool mbShowOnly = false;
+	};
+
 	class iLowLevelGraphics
 	{
 	public:
@@ -555,6 +597,23 @@ namespace hpl {
 		 * framebuffer)
 		 */
 		virtual void SetRenderTarget(iTexture* pTex)=0;
+
+		/**
+		 * All further drawing goes to the depth of a shadow map, cleared:
+		 * the one of spotlights, or a face (0 to 5: +x -x +y -y +z -z) of
+		 * the cube map of point lights. There is one of each, alSize pixels
+		 * a side, and the light shaders read them. Nearer than the near
+		 * plane counts as on it.
+		 */
+		virtual void BeginShadowMap(bool abCube, int alFace, int alSize)=0;
+		/**
+		 * Back to the target before BeginShadowMap().
+		 */
+		virtual void EndShadowMap()=0;
+		/**
+		 * For the light passes drawn from now on.
+		 */
+		virtual void SetShadowMapParams(const cShadowMapParams& aParams)=0;
 
 		/**
 		 * Copies the current frame buffer to a texture.

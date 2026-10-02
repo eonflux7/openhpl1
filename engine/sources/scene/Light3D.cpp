@@ -115,10 +115,11 @@ namespace hpl {
 			//Does the object cast shadows?
 			if(apObject->IsShadowCaster()==false) return;
 
-			//Can be material cast shadows?
+			//Can be material cast shadows? One with holes cut by its alpha
+			//casts them in a shadow map, and none as a shadow volume.
 			iMaterial *pMaterial = apObject->GetMaterial();
 			if(pMaterial){
-				if(pMaterial->IsTransperant() || pMaterial->HasAlpha()) return;
+				if(pMaterial->IsTransperant()) return;
 			}
 
 			//Check so that the object is the right type
@@ -172,7 +173,7 @@ namespace hpl {
 				{
 					iMaterial *pMaterial = pSub->GetMaterial();
 					if(pMaterial){
-						if(pMaterial->IsTransperant() || pMaterial->HasAlpha()) continue;
+						if(pMaterial->IsTransperant()) continue;
 					}
 				}
 
@@ -326,6 +327,7 @@ namespace hpl {
 		//////////////////////////////////////////////////////////
 		// Cast shadows
 		if(mbCastShadows && apRenderSettings->mShowShadows != eRendererShowShadows_None
+			&& apRenderSettings->mShadowType == eShadowType_Volumes
 			&& apRenderSettings->mpVtxExtrudeProgram != nullptr)
 		{
 			//Get temp index array. (Remove this when the index pool
@@ -598,6 +600,13 @@ namespace hpl {
 				iLowLevelGraphics *apLowLevelGraphics)
 	{
 		int lIndexCount = 0;
+
+		//A material with holes has no volume (only shadow maps show them)
+		if(apObject->GetForceShadow()==false)
+		{
+			iMaterial *pMaterial = apObject->GetMaterial();
+			if(pMaterial && pMaterial->HasAlpha()) return;
+		}
 
 		////////////////////////////////////////////////////////////////////////
 		//Check if the shadow volume collides with the frustum

@@ -279,6 +279,9 @@ namespace hpl {
 		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 			const cVector2l &avSize, const cVector2l &avTexOffset=0) override;
 		void SetRenderTarget(iTexture* pTex) override;
+		void BeginShadowMap(bool abCube, int alFace, int alSize) override;
+		void EndShadowMap() override;
+		void SetShadowMapParams(const cShadowMapParams& aParams) override;
 
 		void FlushRendering() override;
 		void SwapBuffers() override;
@@ -342,6 +345,16 @@ namespace hpl {
 		//Has the texture given to SetRenderTarget() attached.
 		GLuint mlTargetFramebuffer;
 
+		//Shadow maps: a 2D depth texture for spotlights ([0]) and a cube
+		//map for point lights ([1]). Both stay bound to two texture units
+		//past the engine's, kShadowMapUnit with a sampler that compares
+		//and the next with one that gives the depth.
+		GLuint mlShadowFramebuffer;
+		GLuint mvShadowMaps[2];
+		int mvShadowMapSizes[2];
+		GLuint mvShadowSamplers[2];
+		cShadowMapParams mShadowParams;
+
 		// hpl_Frame uniform block, bound to uniform buffer binding 0
 		GLuint mlFrameUniformBuffer;
 
@@ -363,6 +376,7 @@ namespace hpl {
 		float mfAlphaTestRef;
 		bool mbStateChanged;
 		GLuint mlStateUniformBuffer;
+		static const int kStateUniformFloats = 24;
 
 		//Linear lighting: also in hpl_State
 		bool mbLinearLighting;
@@ -452,6 +466,7 @@ namespace hpl {
 		void DeleteSceneFramebuffers();
 		void DeleteFramebuffers();
 		void BindFramebuffer(GLuint alFramebuffer, const cVector2l& avSize);
+		void CreateShadowMap(bool abCube, int alSize);
 		void PresentFrame();
 
 		bool DrawGammaPass();

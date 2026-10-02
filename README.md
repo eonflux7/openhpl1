@@ -131,7 +131,13 @@ flicker, no HUD, a player that cannot be hurt; each can be switched off), and
 Linear Lighting can be switched from the panel, and tuned with it on: Light
 power, Exposure, Glow and the tonemapping's Shoulder and White. The bloom
 can be switched between off, the original and the soft one, which has its
-own sliders (see CHANGES; Ctrl+click a slider to type a value). While the panel is open it
+own sliders (see CHANGES; Ctrl+click a slider to type a value). A second
+window, Shadows, switches between the original shadows and shadow maps and
+has the maps' settings, a view of the shadows alone, the lights in view (to
+draw one alone, or switch its shadows) and a test light to put anywhere or
+carry around. A third, Player, has Fly (a free camera; switching it off puts
+the player where the camera is) and the switches for flashlight, flicker,
+HUD and damage. While the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the
 camera stays at the light until "Release". The live view is not a capture:

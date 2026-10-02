@@ -84,6 +84,10 @@ namespace hpl{
 		"						// y: scale for the converted colour;\n"
 		"						// z: power for amounts of light;\n"
 		"						// w: 1 when a copy of a linear scene is drawn into it\n"
+		"	vec4 hpl_ShadowMap0; // the shadow map of the light that is drawn, see\n"
+		"	vec4 hpl_ShadowMap1; // cShadowMapParams and hpl1_shadow.glsl\n"
+		"	vec4 hpl_ShadowMap2;\n"
+		"	vec4 hpl_ShadowMap3;\n"
 		"};\n"
 		"vec3 hpl_ToLinear(vec3 c)\n"
 		"{\n"
@@ -837,6 +841,12 @@ namespace hpl{
 			GLint lLoc = glGetUniformLocation(lProgram, sName);
 			if(lLoc >= 0) glProgramUniform1i(lProgram, lLoc, i);
 		}
+		// The shadow map of the light that is drawn, as a shadow sampler and
+		// as its depth: on units of their own (hpl1_shadow.glsl)
+		GLint lShadowLoc = glGetUniformLocation(lProgram, "hpl_ShadowMap");
+		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit);
+		lShadowLoc = glGetUniformLocation(lProgram, "hpl_ShadowMapDepth");
+		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit + 1);
 
 		return lProgram;
 	}

@@ -66,6 +66,94 @@ namespace hpl {
 
 	//---------------------------------------------
 
+	/**
+	 * How shadows are made. Volumes: the original stencil shadow volumes,
+	 * hard-edged. Maps: a shadow map per light, drawn anew every frame,
+	 * with soft edges.
+	 */
+	enum eShadowType
+	{
+		eShadowType_Volumes,
+		eShadowType_Maps,
+		eShadowType_LastEnum
+	};
+
+	enum eShadowMapFilter
+	{
+		/// One sample, filtered between texels.
+		eShadowMapFilter_Hard,
+		/// The same blur everywhere.
+		eShadowMapFilter_Soft,
+		/// Sharp where the shadow is cast from close by, wider with the distance.
+		eShadowMapFilter_SoftByDistance,
+		eShadowMapFilter_LastEnum
+	};
+
+	/**
+	 * Which sides of what casts a shadow are drawn into the map.
+	 */
+	enum eShadowMapFaces
+	{
+		eShadowMapFaces_Both,
+		/// As the shadow volumes do it: a wall with one side casts no shadow from behind.
+		eShadowMapFaces_TowardsLight,
+		eShadowMapFaces_AwayFromLight,
+		eShadowMapFaces_LastEnum
+	};
+
+	/**
+	 * How the shadow maps are made and read. Lengths are in metres; a blur
+	 * is its radius at 1 metre from the light.
+	 */
+	class cShadowMapSettings
+	{
+	public:
+		eShadowMapFilter mFilter = eShadowMapFilter_SoftByDistance;
+		/// Pixels a side: of a spotlight's map, and of a face of a point light's cube map.
+		int mlSpotSize = 1024;
+		int mlPointSize = 1024;
+
+		/// eShadowMapFilter_Soft: the blur.
+		float mfSoftness = 0.02f;
+		/// eShadowMapFilter_SoftByDistance: the radius of the lights, and the
+		/// widest blur. Wider, and what is cast from close to a light (the
+		/// cage of a lamp) is blurred away.
+		float mfLightSize = 0.05f;
+		float mfMaxBlur = 0.03f;
+		int mlSamples = 16;
+		int mlBlockerSamples = 12;
+		bool mbNoise = true;
+
+		float mfBias = 0.005f;
+		float mfSlopeBias = 1.5f;
+
+		eShadowMapFaces mFaces = eShadowMapFaces_Both;
+		/// Materials with holes cut by their alpha (fences, gratings) cast shadows with the holes.
+		bool mbAlphaCasters = true;
+		/// Nearer to a point light than this counts as at this distance.
+		float mfPointNear = 0.05f;
+
+		//Debug
+		/// The light passes show how much light arrives, not the surfaces.
+		bool mbShowOnly = false;
+		/// If not empty, only the light of this name is drawn.
+		tString msOnlyLight;
+	};
+
+	/**
+	 * What the shadow maps of the last frame took.
+	 */
+	class cShadowMapStats
+	{
+	public:
+		int mlLights = 0;
+		/// Maps drawn: one for a spotlight, up to six for a point light.
+		int mlMaps = 0;
+		int mlCasters = 0;
+	};
+
+	//---------------------------------------------
+
 	class cRenderSettings
 	{
 	public:
@@ -95,6 +183,7 @@ namespace hpl {
 		cColor mFogColor;
 
 		eRendererShowShadows mShowShadows;
+		eShadowType mShadowType;
 		bool mbLog;
 		tRendererDebugFlag mDebugFlags;
 
@@ -187,6 +276,12 @@ namespace hpl {
 		eRendererShowShadows GetShowShadows();
 		void SetShowShadows(eRendererShowShadows aState);
 
+		eShadowType GetShadowType(){ return mRenderSettings.mShadowType; }
+		void SetShadowType(eShadowType aType){ mRenderSettings.mShadowType = aType; }
+		const cShadowMapSettings& GetShadowMapSettings(){ return mShadowMapSettings; }
+		void SetShadowMapSettings(const cShadowMapSettings& aSettings){ mShadowMapSettings = aSettings; }
+		const cShadowMapStats& GetShadowMapStats(){ return mShadowMapStats; }
+
 		void FetchOcclusionQueries();
 
 	private:
@@ -204,6 +299,9 @@ namespace hpl {
 		void RenderOcclusionQueries(cCamera3D *apCamera);
 
 		void RenderLight(cCamera3D *apCamera);
+
+		bool RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams);
+		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace);
 
 		void RenderDiffuse(cCamera3D *apCamera);
 
@@ -241,6 +339,9 @@ namespace hpl {
 		bool mbRefractionUsed;
 
 		cRenderSettings mRenderSettings;
+
+		cShadowMapSettings mShadowMapSettings;
+		cShadowMapStats mShadowMapStats;
 
 		cBoundingVolume mFogBV;
 
