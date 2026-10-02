@@ -124,6 +124,7 @@ namespace hpl {
 
 		//Entity implementation
 		tString GetEntityType() override{ return "SubMesh";}
+		cMeshEntity* GetMeshEntity(){ return mpMeshEntity;}
 		bool IsVisible() override{ return IsRendered(); }
 		void SetVisible(bool abVisible) override{ SetRendered(abVisible); }
 

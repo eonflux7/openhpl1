@@ -217,6 +217,14 @@ namespace hpl {
 		m_setDynamicCasters.clear();
 	}
 
+	// The static casters of a static light are collected once, for the reach
+	// it had then: with another reach they are collected again.
+	void iLight3D::ReachChanged()
+	{
+		m_setStaticCasters.clear();
+		mbStaticCasterAdded = false;
+	}
+
 	//-----------------------------------------------------------------------
 
 	bool iLight3D::CheckObjectIntersection(iRenderable *apObject)
@@ -434,6 +442,7 @@ namespace hpl {
 	void iLight3D::SetFarAttenuation(float afX)
 	{
 		mfFarAttenuation = afX;
+		ReachChanged();
 
 		mbUpdateBoundingVolume = true;
 
@@ -459,7 +468,11 @@ namespace hpl {
 
 	void iLight3D::UpdateLogic(float afTimeStep)
 	{
+		const float fReach = mfFarAttenuation;
 		UpdateLight(afTimeStep);
+		// A fade or a flicker changed the reach: what is made from it (a
+		// spotlight's projection, the static casters) is made anew
+		if(mfFarAttenuation != fReach) SetFarAttenuation(mfFarAttenuation);
 		if(mfFadeTime>0 || mbFlickering)
 		{
 			mbUpdateBoundingVolume = true;
