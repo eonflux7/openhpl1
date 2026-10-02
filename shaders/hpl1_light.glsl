@@ -17,6 +17,12 @@ VARYING vec2 vUv;
 VARYING vec3 vLightDir;
 #ifdef SPECULAR
 VARYING vec3 vHalfVec;
+// Towards the eye, in tangent space, not normalised (improved shading)
+VARYING vec3 vEyeVec;
+// A tube light (cLightLook): to its middle, and from there to one end, in
+// tangent space, not normalised
+VARYING vec3 vTubeCentre;
+VARYING vec3 vTubeAxis;
 #endif
 #ifdef SPOT
 VARYING vec4 vSpotlightUv;

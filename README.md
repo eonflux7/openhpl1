@@ -126,8 +126,9 @@ To look at those places yourself, press F2 in the game (or start it with
 `OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
 places and directions of its frames, under the names the frames are saved
 with. Picking one loads the map or puts you there; PgUp and PgDn step through
-the map's frames. The view is set up as in the frames (flashlight on, no
-flicker, no HUD, a player that cannot be hurt; each can be switched off), and
+the map's frames. The view can be set up as in the frames (no flicker and a
+player that cannot be hurt, which are on; flashlight on and no HUD, which
+are off until switched), and
 Linear Lighting can be switched from the panel, and tuned with it on: Light
 power, Exposure, Glow and the tonemapping's Shoulder and White. The bloom
 can be switched between off, the original and the soft one, which has its
@@ -136,8 +137,9 @@ window, Shadows, switches between the original shadows and shadow maps and
 has the maps' settings, a view of the shadows alone, the lights in view (to
 draw one alone, or switch its shadows) and a test light to put anywhere or
 carry around. A third, Player, has Fly (a free camera; switching it off puts
-the player where the camera is) and the switches for flashlight, flicker,
-HUD and damage. A fourth, Ambient occlusion, switches it and has its
+the player where the camera is), the switches for flashlight, flicker,
+HUD and damage, and buttons that put the flashlight, the glow stick or a
+flare in the inventory. A fourth, Ambient occlusion, switches it and has its
 quality, radius, strength and filter, and a view of the occlusion alone.
 A fifth, Lens and film, has the kinds of depth of field (with a switch to
 try it at a distance of your choosing), motion blur and noise filter, and

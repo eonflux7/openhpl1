@@ -52,6 +52,7 @@ class cMainMenu;
 class cSmokeTest;
 class cRefShots;
 class cRefView;
+class cLampLooks;
 class cPhysicsLog;
 
 #include "core/GameTypes.h"
@@ -211,6 +212,7 @@ public:
 	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
 	cRefShots *mpRefShots; // NULL unless OVERTURE_REFSHOTS is set
 	cRefView *mpRefView; // NULL during the smoke test and the reference images
+	cLampLooks *mpLampLooks;
 	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
 
 	cIntroStory* mpIntroStory;	

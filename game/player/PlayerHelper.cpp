@@ -1323,6 +1323,11 @@ void cPlayerFlashLight::Reset()
 	mfClosestDist = 10000.0f;
 
 	mbDisabled = false;
+
+	mvBouncePos = cVector3f(0,0,0);
+	mfBounceAmount = 0;
+	mfBaseReach = 0;
+	mfSetReach = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -1350,8 +1355,137 @@ void cPlayerFlashLight::OnWorldLoad()
 
 //-----------------------------------------------------------------------
 
+static const char *gsBounceLightName = "FlashlightBounce";
+
+// Gives the hand model's spotlight the look of the settings, and keeps a
+// weak point light where the beam lands: the light that comes back from
+// what is lit. That light is the world's: found by name, gone with the map.
+void cPlayerFlashLight::UpdateLook(float afTimeStep)
+{
+	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
+	if(pWorld==nullptr) return;
+
+	iHudModel *pHudModel = mpInit->mpPlayerHands->GetModel("Flashlight");
+	cLight3DSpot *pSpot = nullptr;
+	float fReachMul = mSettings.mbImproved ? cMath::Clamp(mSettings.mfReach, 0.25f, 4.0f) : 1.0f;
+	if(pHudModel)
+	{
+		for(size_t i=0; i<pHudModel->mvLights.size(); ++i)
+		{
+			if(pHudModel->mvLights[i]->GetLightType() != eLight3DType_Spot) continue;
+			pSpot = static_cast<cLight3DSpot*>(pHudModel->mvLights[i]);
+
+			// The reach: the hand model fades its lights to the radius
+			// it keeps for each, so that is what is changed. A radius
+			// that is not the one set here is the model's own (it is
+			// loaded again with every map).
+			if(pHudModel->mvLightRadii[i] != mfSetReach) mfBaseReach = pHudModel->mvLightRadii[i];
+			mfSetReach = mfBaseReach * fReachMul;
+			pHudModel->mvLightRadii[i] = mfSetReach;
+			if(pSpot->IsFading()==false && pSpot->GetFarAttenuation() != mfSetReach)
+				pSpot->SetFarAttenuation(mfSetReach);
+			break;
+		}
+	}
+
+	///////////////////////////////////////
+	// The beam
+	if(pSpot)
+	{
+		cLightLook look;
+		if(mSettings.mbImproved)
+		{
+			float fWarmth = cMath::Clamp(mSettings.mfWarmth, 0.0f, 1.0f);
+			look.mfBrightness = mSettings.mfBrightness;
+			look.mTint = cColor(1.0f, 1.0f - 0.14f * fWarmth, 1.0f - 0.34f * fWarmth, 1.0f);
+			look.mbDistanceFalloff = true;
+			// A share of the original reach: a longer beam is not dimmer close up
+			look.mfEvenAt = mSettings.mfEvenAt / fReachMul;
+			look.mfNearBoost = mSettings.mfNearBoost;
+			look.mbBeam = true;
+			look.mfBeamHotspot = mSettings.mfHotspot;
+			look.mfBeamField = mSettings.mfField;
+			look.mfBeamWidth = mSettings.mfWidth;
+		}
+		pSpot->SetLook(look);
+	}
+
+	///////////////////////////////////////
+	// The bounce
+	iLight3D *pBounce = pWorld->GetLight(gsBounceLightName);
+	bool bLit =	mSettings.mbImproved && mSettings.mfBounce > 0 && pSpot && pSpot->IsVisible() &&
+				pHudModel == mpInit->mpPlayerHands->GetCurrentModel(0);
+	if(bLit==false && pBounce==nullptr) return;
+
+	float fTarget = 0;
+	cVector3f vTargetPos = mvBouncePos;
+	cColor beamColor(0,0);
+	if(bLit)
+	{
+		// Along the beam, to the first thing that stops it
+		cVector3f vStart = pSpot->GetWorldPosition();
+		cVector3f vForward = cMath::MatrixMul(pSpot->GetWorldMatrix().GetRotation(), cVector3f(0,0,-1));
+		vForward.Normalise();
+		float fReach = pSpot->GetFarAttenuation();
+
+		mpClosestBody = nullptr; mfClosestDist = 10000.0f;
+		pWorld->GetPhysicsWorld()->CastRay(this, vStart, vStart + vForward * fReach, true,false,false,false);
+
+		if(mpClosestBody && mfClosestDist < fReach)
+		{
+			// Well off the surface: close to it the light would be a
+			// bright spot in the middle of the beam, not light on what is
+			// around it
+			float fDist = mfClosestDist - cMath::Min(mfClosestDist * 0.4f, 2.5f);
+			vTargetPos = vStart + vForward * fDist;
+
+			// As much comes back as arrives: the beam's own falloff
+			// (hpl_DistanceFalloff in hpl1_light_look.glsl)
+			float fFar2 = (mfClosestDist / fReach) * (mfClosestDist / fReach);
+			float fEven2 = (mSettings.mfEvenAt / fReachMul) * (mSettings.mfEvenAt / fReachMul);
+			float fWindow = 1.0f - fFar2 * fFar2;
+			float fLight = cMath::Min((fEven2 + 0.002f) / (fFar2 + 0.002f), mSettings.mfNearBoost);
+			fTarget = powf(fLight * fWindow * fWindow, 1.0f / 2.2f);
+		}
+		beamColor = pSpot->GetDiffuseColor();
+	}
+
+	// Eased, so that it does not jump as the beam crosses an edge
+	if(mfBounceAmount <= 0.001f) mvBouncePos = vTargetPos;
+	// (the place quickly: a light that trails the beam is seen; the amount slower)
+	float fEase = mbSnapBounce ? 1.0f : cMath::Min(afTimeStep * 10.0f, 1.0f);
+	if(mbSnapBounce) mvBouncePos = vTargetPos;
+	mbSnapBounce = false;
+	mvBouncePos = mvBouncePos + (vTargetPos - mvBouncePos) * cMath::Min(afTimeStep * 30.0f, 1.0f);
+	mfBounceAmount += (fTarget - mfBounceAmount) * fEase;
+
+	if(pBounce==nullptr)
+	{
+		pBounce = pWorld->CreateLightPoint(gsBounceLightName);
+		pBounce->SetCastShadows(false);
+	}
+
+	float fAmount = mfBounceAmount * mSettings.mfBounce * mSettings.mfBrightness;
+	if(bLit==false && mfBounceAmount <= 0.001f)
+	{
+		mfBounceAmount = 0;
+		pBounce->SetVisible(false);
+		return;
+	}
+	pBounce->SetVisible(true);
+	pBounce->SetPosition(mvBouncePos);
+	pBounce->SetFarAttenuation(4.0f);
+	// No highlights: it stands for light from a whole lit patch
+	pBounce->SetDiffuseColor(cColor(beamColor.r * fAmount, beamColor.g * fAmount * 0.93f,
+									beamColor.b * fAmount * 0.83f, 0));
+}
+
+//-----------------------------------------------------------------------
+
 void cPlayerFlashLight::Update(float afTimeStep)
 {
+	UpdateLook(afTimeStep);
+
 	if(mbActive)
 	{
 		//////////////////////////

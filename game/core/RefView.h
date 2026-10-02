@@ -20,9 +20,10 @@ class cInit;
 // It lists the maps, and for the loaded map the same places and directions
 // the reference images are taken from, named as the frames are. Picking one
 // puts the camera at the viewpoint (or the player on the start position, or
-// the camera at the light), facing that way. The options make the view
+// the camera at the light), facing that way. The options can make the view
 // match the frames: flashlight on, no flicker, nothing drawn in 2D, a
-// player that cannot be hurt.
+// player that cannot be hurt. The flashlight and the 2D are left as the
+// game has them until they are switched.
 //
 // It is also where the viewpoints are chosen: fly the camera to a spot, open
 // the panel and add the viewpoint. They are saved to tools/refviews.txt at
@@ -32,7 +33,8 @@ class cInit;
 // testing: Fly (with the panel closed: the movement keys, Run for speed,
 // Jump and Crouch for up and down, looking is free of the player's limits),
 // which puts the player where the camera is when it is switched off, and
-// the flashlight, flicker, HUD and damage switches.
+// the flashlight, flicker, HUD and damage switches. It can also put the
+// flashlight, the glow stick and flares in the inventory.
 //
 // A second window is for the shadows: which kind (the original volumes or
 // shadow maps), how the maps are made and read, what they cost, and the
@@ -62,6 +64,15 @@ public:
 	void Update(float afTimeStep) override;
 	void Reset() override;
 
+	/**
+	 * Saves two pictures of what is on screen to the home directory:
+	 * one with every option that changes the look set to the original's
+	 * (overture-compare-<time>-original.png), then one with the options
+	 * as they are (-improved.png). Takes about a second; the options are
+	 * put back afterwards.
+	 */
+	void StartCompareShots();
+
 private:
 	void Draw();
 	void DrawMaps();
@@ -72,6 +83,7 @@ private:
 	void DrawAmbientOcclusion();
 	void DrawLensAndFilm();
 	void DrawAntiAliasing();
+	void DrawShading();
 	void DrawShadowLights();
 	void UpdateTestLight();
 
@@ -87,6 +99,31 @@ private:
 	void SetView();
 	void ApplyOptions();
 	bool CanLoadMap();
+
+	void UpdateCompareShots();
+	void SetOriginalLook();
+	void RestoreLook();
+
+	//Comparison shots: the step it is at (0 = not running), steps left to
+	//wait, and the options as they were
+	int mlCompareStep = 0;
+	int mlCompareWait = 0;
+	tString msCompareFile;
+	struct cSavedLook
+	{
+		bool mbLinearLighting;
+		eBloomType mBloomType;
+		bool mbAmbientOcclusion;
+		eDepthOfFieldType mDofType;
+		eMotionBlurType mMotionBlurType;
+		eShadowType mShadowType;
+		int mlNoiseType;
+		bool mbSmaa;
+		bool mbShading;
+		bool mbFlashlight;
+		bool mbLamps;
+	};
+	cSavedLook mSavedLook;
 
 	cInit *mpInit;
 	bool mbOpen;
@@ -130,6 +167,9 @@ private:
 	bool mbSetLinearLighting;
 	// The flashlight is switched to mbFlashLight on the next step
 	bool mbSetFlashLight;
+	// Items to put in the inventory on the next step
+	enum { eGiveItem_Flashlight = 1, eGiveItem_GlowStick = 2, eGiveItem_Flare = 4 };
+	int mlGiveItems;
 
 	// Flying: the camera goes where the keys take it and the player's body
 	// stays behind, switched off

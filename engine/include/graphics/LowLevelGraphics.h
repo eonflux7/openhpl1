@@ -231,6 +231,39 @@ namespace hpl {
 		float mfWhite = 4.0f;
 	};
 
+	/**
+	 * How surfaces answer light (Milestone 5). With mbImproved off the
+	 * shaders do what the original ones did and the rest is not used.
+	 *
+	 * The game has no gloss maps: how much a surface reflects and how wide
+	 * its highlight is are both read from what it has for specular (the
+	 * specular colour map, or the normal map's alpha), bright meaning glossy.
+	 */
+	class cShadingSettings
+	{
+	public:
+		bool mbImproved = false;
+		/// Scales the highlights of lights.
+		float mfSpecular = 1.0f;
+		/// The share of light a surface with a white specular map mirrors when faced straight on.
+		float mfReflectance = 0.1f;
+		/**
+		 * Roughness (0 mirror, 1 chalk) where the specular map is black,
+		 * and where it is white. A third of the specular materials have no
+		 * map at all and count as white: with these defaults their
+		 * highlight is about as bright as the original's, which was the
+		 * same for every material and as wide as a roughness of 0.6.
+		 */
+		float mfRoughDull = 0.6f;
+		float mfRoughShiny = 0.45f;
+		/// Ambient light: how much more of it comes from above than from below (0 = the same).
+		float mfAmbientUp = 0.3f;
+		/// Ambient light: how much more of it surfaces that face the viewer get (0 = the same).
+		float mfAmbientFacing = 0.4f;
+		/// Ambient light mirrored at grazing angles by what has specular.
+		float mfAmbientSheen = 0.25f;
+	};
+
 	enum eFilmGrain
 	{
 		eFilmGrain_Off,
@@ -499,6 +532,12 @@ namespace hpl {
 		 */
 		virtual void SetLinearLightingTuning(const cLinearLightingTuning& aTuning)=0;
 		virtual const cLinearLightingTuning& GetLinearLightingTuning()=0;
+		/**
+		 * How surfaces are shaded; see cShadingSettings. Takes effect with
+		 * the next frame.
+		 */
+		virtual void SetShading(const cShadingSettings& aSettings)=0;
+		virtual const cShadingSettings& GetShading()=0;
 		/**
 		 * The grain over the 3D scene; see cFilmGrainSettings.
 		 */
@@ -792,6 +831,11 @@ namespace hpl {
 		 * For the light passes drawn from now on.
 		 */
 		virtual void SetShadowMapParams(const cShadowMapParams& aParams)=0;
+		/**
+		 * The look of the light whose passes are drawn next; the light
+		 * shaders read it (hpl_Light0..2, hpl1_light_look.glsl).
+		 */
+		virtual void SetLightLook(const cLightLook& aLook)=0;
 
 		/**
 		 * Copies the current frame buffer to a texture.

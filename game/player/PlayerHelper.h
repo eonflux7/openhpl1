@@ -297,6 +297,32 @@ private:
 
 //---------------------------------------------
 
+/**
+ * How the flashlight looks (Milestone 5). With mbImproved off it is the
+ * original: the light of the hand model with its picture and falloff ramp.
+ */
+class cFlashlightSettings
+{
+public:
+	bool mbImproved = false;
+	/// Scales the amount of light.
+	float mfBrightness = 1.0f;
+	/// 0 is the white of the original, 1 the yellow of a weak bulb.
+	float mfWarmth = 0.5f;
+	/// How far the beam goes, in times the original's 12 m.
+	float mfReach = 1.0f;
+	/// The distance, as a share of the original's reach, at which the beam is as bright as the original's.
+	float mfEvenAt = 0.4f;
+	/// How many times brighter than that it gets at most, nearer.
+	float mfNearBoost = 2.5f;
+	/// The hotspot's size, the brightness of the field around it and the beam's size (see cLightLook).
+	float mfHotspot = 0.3f;
+	float mfField = 0.45f;
+	float mfWidth = 0.9f;
+	/// The light that comes back from what the beam lands on: 0 none.
+	float mfBounce = 0.2f;
+};
+
 class cPlayerFlashLight : iPhysicsRayCallback
 {
 public:
@@ -319,7 +345,26 @@ public:
 
 	void OnPostSceneDraw();
 
+	void SetSettings(const cFlashlightSettings& aSettings)
+	{
+		// The bounce follows a switch at once, not eased
+		if(aSettings.mbImproved != mSettings.mbImproved) mbSnapBounce = true;
+		mSettings = aSettings;
+	}
+	const cFlashlightSettings& GetSettings(){ return mSettings; }
+
 private:
+	void UpdateLook(float afTimeStep);
+
+	cFlashlightSettings mSettings;
+	//Where the bounced light is, and how much of it there is, eased
+	cVector3f mvBouncePos;
+	float mfBounceAmount;
+	bool mbSnapBounce = false;
+	//The spotlight's reach as the hand model has it, and as last set here
+	float mfBaseReach;
+	float mfSetReach;
+
 	bool mbActive;
 
 	bool mbDisabled;

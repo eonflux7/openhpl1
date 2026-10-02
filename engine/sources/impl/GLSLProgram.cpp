@@ -89,6 +89,9 @@ namespace hpl{
 		"	vec4 hpl_ShadowMap1; // cShadowMapParams and hpl1_shadow.glsl\n"
 		"	vec4 hpl_ShadowMap2;\n"
 		"	vec4 hpl_ShadowMap3;\n"
+		"	vec4 hpl_Light0; // the look of the light that is drawn, see cLightLook\n"
+		"	vec4 hpl_Light1; // and hpl1_light_look.glsl\n"
+		"	vec4 hpl_Light2;\n"
 		"};\n"
 		"vec3 hpl_ToLinear(vec3 c)\n"
 		"{\n"
@@ -203,6 +206,11 @@ namespace hpl{
 		{"BumpSpec_Light_Spot",			"light",	"NORMAL_MAP SPECULAR SPOT"},
 		{"BumpColorSpec_Light",			"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
 		{"BumpColorSpec_Light_Spot",	"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP SPOT"},
+		{"Ambient_Shaded",				"ambient",	""},
+		{"Ambient_Shaded_Spec",			"ambient",	"SPECULAR"},
+		{"Ambient_Shaded_Bump",			"ambient",	"NORMAL_MAP"},
+		{"Ambient_Shaded_Bump_Spec",	"ambient",	"NORMAL_MAP SPECULAR"},
+		{"Ambient_Shaded_Bump_ColorSpec",	"ambient",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
 		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
 		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
 		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},

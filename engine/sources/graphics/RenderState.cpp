@@ -549,6 +549,22 @@ namespace hpl {
 				{
 					apSettings->mpVertexProgram->SetVec3f("EyePos",apSettings->mpCamera->GetEyePosition());
 				}
+
+				// A tube light's middle and half its length, for the
+				// highlight (cLightLook, hpl1_light_look.glsl)
+				if(apSettings->mbUsesLight && apSettings->mpLight->GetLook().HasTube())
+				{
+					const cLightLook &look = apSettings->mpLight->GetLook();
+					cVector3f vCentre = apSettings->mpLight->GetLightPosition() + look.mvTubeOffset;
+					cVector3f vAxis = look.mvTubeAxis;
+					if(mpModelMatrix)
+					{
+						vCentre = cMath::MatrixMul(*mpInvModelMatrix, vCentre);
+						vAxis = cMath::MatrixMul(mpInvModelMatrix->GetRotation(), vAxis);
+					}
+					apSettings->mpVertexProgram->SetVec3f("TubeCentre",vCentre);
+					apSettings->mpVertexProgram->SetVec3f("TubeAxis",vAxis);
+				}
 			}
 		}
 

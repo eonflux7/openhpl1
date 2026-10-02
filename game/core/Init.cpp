@@ -20,6 +20,7 @@
 #include "impl/GLSLProgram.h"
 #include <SDL3/SDL.h>
 #include "player/Player.h"
+#include "player/PlayerHelper.h"
 #include "core/ButtonHandler.h"
 #include "core/MapHandler.h"
 #include "entities/GameObject.h"
@@ -61,6 +62,7 @@
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
 #include "core/RefView.h"
+#include "core/LampLooks.h"
 #include "systems/PhysicsLog.h"
 
 #include "ui/IntroStory.h"
@@ -127,6 +129,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mpSmokeTest = nullptr;
 	mpRefShots = nullptr;
 	mpRefView = nullptr;
+	mpLampLooks = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
@@ -576,6 +579,20 @@ bool cInit::Init(tString asCommandLine)
 		mpGame->GetGraphics()->GetLowLevel()->SetLinearLightingTuning(tuning);
 	}
 
+	{
+		// The defaults are the settings' own
+		cShadingSettings shading;
+		shading.mbImproved = mpConfig->GetBool("Graphics","ShadingImproved",shading.mbImproved);
+		shading.mfSpecular = mpConfig->GetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
+		shading.mfReflectance = mpConfig->GetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
+		shading.mfRoughDull = mpConfig->GetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
+		shading.mfRoughShiny = mpConfig->GetFloat("Graphics","ShadingRoughShiny",shading.mfRoughShiny);
+		shading.mfAmbientUp = mpConfig->GetFloat("Graphics","ShadingAmbientUp",shading.mfAmbientUp);
+		shading.mfAmbientFacing = mpConfig->GetFloat("Graphics","ShadingAmbientFacing",shading.mfAmbientFacing);
+		shading.mfAmbientSheen = mpConfig->GetFloat("Graphics","ShadingAmbientSheen",shading.mfAmbientSheen);
+		mpGame->GetGraphics()->GetLowLevel()->SetShading(shading);
+	}
+
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
@@ -631,6 +648,37 @@ bool cInit::Init(tString asCommandLine)
 	mpNumericalPanel = hplNew( cNumericalPanel,(this) );
 	mpDeathMenu = hplNew( cDeathMenu,(this) );
 	mpPlayer = hplNew( cPlayer,(this) );
+	{
+		// The defaults are the settings' own
+		cFlashlightSettings flashlight;
+		flashlight.mbImproved = mpConfig->GetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
+		flashlight.mfBrightness = mpConfig->GetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
+		// Below what the panel can set: a settings file from when this was
+		// saved after the player had been deleted, which wrote 0 (no light)
+		if(flashlight.mfBrightness < 0.25f) flashlight.mfBrightness = cFlashlightSettings().mfBrightness;
+		flashlight.mfWarmth = mpConfig->GetFloat("Graphics","FlashlightWarmth",flashlight.mfWarmth);
+		flashlight.mfReach = mpConfig->GetFloat("Graphics","FlashlightReach",flashlight.mfReach);
+		flashlight.mfEvenAt = mpConfig->GetFloat("Graphics","FlashlightEvenAt",flashlight.mfEvenAt);
+		flashlight.mfNearBoost = mpConfig->GetFloat("Graphics","FlashlightNearBoost",flashlight.mfNearBoost);
+		flashlight.mfHotspot = mpConfig->GetFloat("Graphics","FlashlightHotspot",flashlight.mfHotspot);
+		flashlight.mfField = mpConfig->GetFloat("Graphics","FlashlightField",flashlight.mfField);
+		flashlight.mfWidth = mpConfig->GetFloat("Graphics","FlashlightWidth",flashlight.mfWidth);
+		flashlight.mfBounce = mpConfig->GetFloat("Graphics","FlashlightBounce",flashlight.mfBounce);
+		mpPlayer->GetFlashLight()->SetSettings(flashlight);
+	}
+	mpLampLooks = hplNew( cLampLooks,(this) );
+	{
+		cLampSettings lamps;
+		lamps.mbImproved = mpConfig->GetBool("Graphics","LampsImproved",lamps.mbImproved);
+		lamps.mfFlicker = mpConfig->GetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
+		lamps.mfSway = mpConfig->GetFloat("Graphics","LampsSway",lamps.mfSway);
+		lamps.mfColour = mpConfig->GetFloat("Graphics","LampsColour",lamps.mfColour);
+		lamps.mbFalloff = mpConfig->GetBool("Graphics","LampsFalloff",lamps.mbFalloff);
+		lamps.mfEvenAt = mpConfig->GetFloat("Graphics","LampsEvenAt",lamps.mfEvenAt);
+		lamps.mfNearBoost = mpConfig->GetFloat("Graphics","LampsNearBoost",lamps.mfNearBoost);
+		lamps.mfTube = mpConfig->GetFloat("Graphics","LampsTube",lamps.mfTube);
+		mpLampLooks->SetSettings(lamps);
+	}
 	mpMapLoadText = hplNew( cMapLoadText,(this) );
 	mpPreMenu = hplNew( cPreMenu,(this) );
 	mpCredits = hplNew( cCredits,(this) );
@@ -662,6 +710,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddUpdate("Default", mpPlayerHands);
 	mpGame->GetUpdater()->AddUpdate("Default", mpMusicHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpMapHandler);
+	mpGame->GetUpdater()->AddUpdate("Default", mpLampLooks);
 	mpGame->GetUpdater()->AddUpdate("Default", mpGameMessageHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpRadioHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpInventory);
@@ -851,6 +900,33 @@ void cInit::Exit()
 		mpConfig->SetFloat("Haptics","ActionModeCameraSpeed",mpPlayer->GetHapticCamera()->GetActionModeCameraSpeed());
 	}
 
+	// The player keeps the flashlight's settings: read before it goes
+	{
+		const cFlashlightSettings &flashlight = mpPlayer->GetFlashLight()->GetSettings();
+		mpConfig->SetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
+		mpConfig->SetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
+		mpConfig->SetFloat("Graphics","FlashlightWarmth",flashlight.mfWarmth);
+		mpConfig->SetFloat("Graphics","FlashlightReach",flashlight.mfReach);
+		mpConfig->SetFloat("Graphics","FlashlightEvenAt",flashlight.mfEvenAt);
+		mpConfig->SetFloat("Graphics","FlashlightNearBoost",flashlight.mfNearBoost);
+		mpConfig->SetFloat("Graphics","FlashlightHotspot",flashlight.mfHotspot);
+		mpConfig->SetFloat("Graphics","FlashlightField",flashlight.mfField);
+		mpConfig->SetFloat("Graphics","FlashlightWidth",flashlight.mfWidth);
+		mpConfig->SetFloat("Graphics","FlashlightBounce",flashlight.mfBounce);
+	}
+
+	{
+		const cLampSettings &lamps = mpLampLooks->GetSettings();
+		mpConfig->SetBool("Graphics","LampsImproved",lamps.mbImproved);
+		mpConfig->SetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
+		mpConfig->SetFloat("Graphics","LampsSway",lamps.mfSway);
+		mpConfig->SetFloat("Graphics","LampsColour",lamps.mfColour);
+		mpConfig->SetBool("Graphics","LampsFalloff",lamps.mbFalloff);
+		mpConfig->SetFloat("Graphics","LampsEvenAt",lamps.mfEvenAt);
+		mpConfig->SetFloat("Graphics","LampsNearBoost",lamps.mfNearBoost);
+		mpConfig->SetFloat("Graphics","LampsTube",lamps.mfTube);
+	}
+
 	// PLAYER EXIT /////////////////////
 	//Log(" Exit Save Handler\n");
 	//hplDelete( mpSaveHandler );
@@ -862,6 +938,7 @@ void cInit::Exit()
 	Log(" Exit Player\n");
 	// PLAYER EXIT /////////////////////
 	hplDelete( mpPlayer );
+	hplDelete( mpLampLooks );
 	
 	// BASE GAME EXIT //////////////////
 	Log(" Exit Button Handler\n");
@@ -988,6 +1065,18 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","LinearBlendMatch",tuning.mfBlendMatch);
 		mpConfig->SetFloat("Graphics","LinearShoulder",tuning.mfShoulder);
 		mpConfig->SetFloat("Graphics","LinearWhite",tuning.mfWhite);
+	}
+
+	{
+		const cShadingSettings &shading = mpGame->GetGraphics()->GetLowLevel()->GetShading();
+		mpConfig->SetBool("Graphics","ShadingImproved",shading.mbImproved);
+		mpConfig->SetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
+		mpConfig->SetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
+		mpConfig->SetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
+		mpConfig->SetFloat("Graphics","ShadingRoughShiny",shading.mfRoughShiny);
+		mpConfig->SetFloat("Graphics","ShadingAmbientUp",shading.mfAmbientUp);
+		mpConfig->SetFloat("Graphics","ShadingAmbientFacing",shading.mfAmbientFacing);
+		mpConfig->SetFloat("Graphics","ShadingAmbientSheen",shading.mfAmbientSheen);
 	}
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);

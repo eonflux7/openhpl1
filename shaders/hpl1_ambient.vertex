@@ -1,0 +1,32 @@
+///////////////////////////////////////////////////////
+/// AMBIENT VERTEX PROGRAM, IMPROVED SHADING ///////////
+///////////////////////////////////////////////////////
+
+// Variants: see hpl1_ambient.fragment
+
+#define position (hpl_Vertex)
+#define normal (hpl_Normal)
+#define uv (hpl_MultiTexCoord0.xy)
+#define tangent (hpl_MultiTexCoord1)
+
+out vec2 vUv;
+out vec3 vWorldPos;
+// The surface's axes in the world, not normalised
+out vec3 vTangent;
+out vec3 vBinormal;
+out vec3 vNormal;
+
+uniform mat4 worldViewProj;
+uniform mat4 objectWorldMatrix;
+
+void main()
+{
+	gl_Position = worldViewProj * position;
+	vUv = uv;
+
+	mat3 rotation = mat3(objectWorldMatrix);
+	vWorldPos = (objectWorldMatrix * position).xyz;
+	vNormal = rotation * normal;
+	vTangent = rotation * tangent.xyz;
+	vBinormal = rotation * (cross(normal, tangent.xyz) * tangent.w);
+}

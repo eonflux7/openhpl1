@@ -187,7 +187,7 @@ and specular all have to be tuned again if the lighting under them changes.
   - [ ] play-test the blend match and the halos again
   - [ ] sRGB texture formats, for filtering on linear values. Small gain;
         only if it shows
-  - [ ] energy-conserving specular
+  - energy-conserving specular: moved to Milestone 5
 - [ ] **2. Tonemapping**, colour grading. Linear lighting needs it to look
       right
   - [x] a curve in the output pass that leaves the picture alone up to a
@@ -271,9 +271,85 @@ and specular all have to be tuned again if the lighting under them changes.
     - [ ] play-test: strength, size and colour of both
   - [ ] Refraction: works (acid water in four level 1 maps) but is off by
         default and has no menu option (`Refractions` in `settings.cfg`)
-  - [ ] Shaders of their own for the materials that set a texture
-        environment (transparent, particles, HUD), in place of the
-        generated fixed-function ones, where their look changes
+  - shaders of their own for the materials that set a texture
+    environment (transparent, particles, HUD), in place of the generated
+    fixed-function ones: moved to Milestone 5
+
+## Milestone 5: materials and light sources
+
+Milestone 4 changed how light adds up and what comes after it. This one
+rewrites what is left of the 2007 shading itself: how a surface answers a
+light, what it looks like where no light reaches, and what the lights the
+player carries and walks past look like. Nothing in the game data is
+changed, and the original stays as an option.
+
+Judged by playing, like Milestone 4. With the new options off, a capture
+should match the one before.
+
+What the original does, for reference: one specular highlight of a fixed
+width (a power of 16) for all 248 specular materials, not coloured by the
+light, with the half vector made per vertex; ambient as texture × a
+constant, so normal maps show only where a light reaches; falloff from a
+painted ramp per light; the flashlight as a 256 px grey picture, pure
+white, with no light bouncing back. There are no gloss or roughness maps:
+143 materials have a specular colour map, 104 keep a specular strength in
+the normal map's alpha, 160 have no normal map at all.
+
+- [ ] **1. Surface shading** (Shading: Original / Improved, settings in the
+      F2 panel's Shading window):
+  - [x] specular per pixel: microfacet highlight (GGX) with Fresnel,
+        coloured by the light; how shiny a surface is and how wide its
+        highlight is are both read from the specular map (bright = glossy)
+  - [x] the highlight widened where the normal map changes faster than the
+        pixels can show, instead of sparkling
+  - [x] ambient that uses the normal map: more from above and towards the
+        viewer, and a sheen at grazing angles on what has specular
+  - [x] play-test: looks right with linear lighting and ambient occlusion
+        on; the defaults stay (reflectance 0.1, roughness 0.6 to 0.45,
+        ambient 0.3 from above, 0.4 towards the viewer, sheen 0.25)
+  - [ ] a menu option (the Advanced Graphics page is full)
+  - [ ] gloss per material as an attribute in the material file, for what
+        the specular map guesses wrong
+- [ ] **2. Flashlight** (Flashlight: Original / Improved, in the same
+      window):
+  - [x] falloff by distance (brighter near, fading out at its reach)
+        instead of the ramp that is flat for the first two thirds
+  - [x] the beam's picture made by the shader: a hotspot in a dimmer
+        field with a soft edge, a warm tint; no 256 px rings
+  - [x] bounce: a weak light where the beam lands, as strong as the beam
+        is there, without shadows
+  - [x] brighter than 1: a light has a look of its own (`cLightLook`:
+        brightness, tint, falloff, beam) that the light shader reads; the
+        light colour itself still stops at 1
+  - [x] Reach: how far the beam goes (6 to 36 m, 12 in the original), for
+        seeing a little further than the original allows
+  - [x] play-test: looks good, with the glow stick, the flare and the
+        lamps of step 3
+  - [ ] a menu option
+- [ ] **3. Glow stick, flare and the lamps of the world** (Lamps: Original
+      / Improved, in the same window). The kind of lamp is read from the
+      name of its entity file; nothing in the data is changed:
+  - [x] a smooth flicker of brightness and a slight sway of position for
+        flames (paraffin lamps, the flare in the hand and thrown), so their
+        shadows move
+  - [x] a colour per kind of lamp: flames orange, bulbs and emergency
+        lights warm, fluorescent tubes and tunnel lights cold, the glow
+        stick green; one slider from the original's colours to these
+  - [x] brighter near the lamp: the flashlight's falloff by distance in
+        place of the ramp, which lights most of a lamp's reach evenly
+  - [x] tube lights for the fluorescents: long highlights (with Shading:
+        Improved)
+  - [x] play-test: looks good; the defaults stay
+  - [ ] the halo of a flame flickering with it
+  - [ ] lights that are part of the maps and not of a lamp entity
+  - [ ] a menu option
+- [ ] **4. Later, in any order:**
+  - [ ] the flashlight's beam seen in the air (the cone marched through its
+        shadow map)
+  - [ ] particles and see-through materials lit by the lights; shaders of
+        their own in place of the generated fixed-function ones (from
+        Milestone 4)
+  - [ ] water and the environment map material (3 materials)
 
 ## Later / ideas
 

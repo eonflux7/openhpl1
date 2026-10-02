@@ -16,12 +16,20 @@
 //  NORMAL_MAP    per-pixel normal; with SPECULAR and no SPECULAR_MAP its
 //                alpha scales the specular term
 //  SPECULAR_MAP  specular colour map
+//
+// With the improved shading (cShadingSettings, hpl_Shading0.x) the specular
+// term of the SPECULAR variants is hpl_Highlight() of hpl1_shading.glsl
+// instead; the rest is the same.
 
 // Works on linear values itself when the scene holds them (linear lighting).
 #define HPL_LINEAR_COLOR
 
 #include "hpl1_light.glsl"
 #include "hpl1_shadow.glsl"
+#include "hpl1_light_look.glsl"
+#ifdef SPECULAR
+#include "hpl1_shading.glsl"
+#endif
 
 OUTPUT
 
@@ -47,6 +55,7 @@ void main()
 
 	vec3 diffuse = texture(tex0, vUv).xyz;
 	float attenuation = texture(tex3, dot(vLightDir,vLightDir)).x;
+	if(hpl_Light0.x > 0.5) attenuation = hpl_DistanceFalloff(dot(vLightDir,vLightDir));
 
 #ifdef NORMAL_MAP
 	vec4 bumpVec = texture(tex1, vUv);
@@ -62,10 +71,13 @@ void main()
 #endif
 
 	float nDotL = dot(lightVec, surfaceNormal);
-	vec3 lit = diffuse * vLightColor.xyz;
+	// Tint and brightness: 1 for a light as the game made it
+	vec3 lightColor = vLightColor.xyz * hpl_Light2.xyz;
+	vec3 lit = diffuse * lightColor;
 
 #ifdef SPOT
 	vec4 spotColor = texture(tex4, vSpotlightUv.xy / vSpotlightUv.w);
+	if(hpl_Light1.x > 0.5) spotColor = hpl_Beam(vSpotlightUv.xy / vSpotlightUv.w);
 	float rejectNeg = texture(tex5, vSpotlightUv.z + 0.5).x;
 	lit *= spotColor.xyz;
 	attenuation *= rejectNeg;
@@ -73,19 +85,57 @@ void main()
 
 	vec3 specular = vec3(0.0);
 #ifdef SPECULAR
+	#if defined(SPECULAR_MAP)
+	vec3 specularMap = texture(tex6, vUv).xyz;
+	#elif defined(NORMAL_MAP)
+	vec3 specularMap = vec3(clamp(bumpVec.w, 0.0, 1.0));
+	#else
+	vec3 specularMap = vec3(1.0);
+	#endif
+
 	float specAmount = clamp(dot(normalize(vHalfVec), surfaceNormal), 0.0, 1.0);
 	specAmount = pow(specAmount, 16.0) * vLightColor.w;
+	// The original highlight is white whatever the light's colour: only
+	// the brightness of the look scales it
+	specAmount *= max(hpl_Light2.x, max(hpl_Light2.y, hpl_Light2.z));
 	#ifdef SPOT
 	specAmount *= spotColor.w;
 	#endif
 
-	#if defined(SPECULAR_MAP)
-	specular = specAmount * texture(tex6, vUv).xyz;
-	#elif defined(NORMAL_MAP)
-	specular = vec3(specAmount * clamp(bumpVec.w, 0.0, 1.0));
-	#else
-	specular = vec3(specAmount);
+	specular = specAmount * specularMap;
+
+	// Improved shading: the highlight as an amount of light, of the
+	// light's colour. The falloff ramp is an amount on screen, as for the
+	// diffuse term below.
+	vec3 highlight = vec3(0.0);
+	bool improved = hpl_Shading0.x > 0.5;
+	if(improved)
+	{
+		vec3 highlightColor = lightColor;
+	#ifdef SPOT
+		highlightColor *= spotColor.xyz;
 	#endif
+		float amountExp = hpl_ColorSpace.x > 0.5 ? hpl_ColorSpace.z : 2.2;
+		vec3 toEye = hpl_Normalize(vEyeVec);
+		vec3 highlightVec = lightVec;
+		float spread = 1.0;
+		if(hpl_Light0.w > 0.5)
+		{
+			// A tube: the highlight is as long as the tube is
+			float rough = hpl_Roughness(specularMap);
+			highlightVec = hpl_TubeDirection(vTubeCentre, vTubeAxis, toEye, hpl_Normalize(surfaceNormal));
+			spread = hpl_TubeSpread(vTubeCentre, vTubeAxis, rough * rough);
+		}
+		highlight = hpl_Highlight(surfaceNormal, highlightVec, toEye, specularMap) *
+					pow(highlightColor, vec3(2.2)) * (spread * vLightColor.w * pow(attenuation, amountExp));
+		// Nothing where the light is behind the surface itself, whatever
+		// the normal map says
+		highlight *= clamp(lightVec.z * 8.0, 0.0, 1.0);
+		// Faces whose tangents are not numbers get no light in the
+		// original either
+		if(!(dot(highlight, vec3(1.0)) >= 0.0)) highlight = vec3(0.0);
+		specular = vec3(0.0);
+	}
 #endif
 
 	// Where the light does not reach anyway the shadow map is not read
@@ -110,10 +160,18 @@ void main()
 		float amountExp = hpl_ColorSpace.z;
 		vec3 color = hpl_ToLinear(lit) * pow(max(nDotL, 0.0) * attenuation, amountExp);
 		color += hpl_ToLinear(specular) * pow(attenuation, amountExp);
+#ifdef SPECULAR
+		color += highlight;
+#endif
 		outColor = vec4(color * shadow, 0.0);
 	}
 	else
 	{
 		outColor = vec4((lit * nDotL + specular) * attenuation * shadow, 0.0);
+#ifdef SPECULAR
+		// The highlight is added as what it looks like on screen, as the
+		// other terms are
+		if(improved) outColor.xyz = max(outColor.xyz, 0.0) + pow(highlight * shadow, vec3(1.0 / 2.2));
+#endif
 	}
 }

@@ -93,6 +93,8 @@ namespace hpl {
 		float mvRenderSize[4];
 		float mvDepthRange[4];
 		float mvTime[4];
+		float mvShading0[4];
+		float mvShading1[4];
 	};
 
 	static void CopyColumnMajor(float *apDest, const cMatrixf& a_mtx)
@@ -2734,6 +2736,14 @@ namespace hpl {
 		else				BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 	}
 
+	void cLowLevelGraphicsSDL::SetLightLook(const cLightLook& aLook)
+	{
+		mLightLook = aLook;
+		mbStateChanged = true;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cLowLevelGraphicsSDL::SetShadowMapParams(const cShadowMapParams& aParams)
 	{
 		mShadowParams = aParams;
@@ -3077,6 +3087,14 @@ namespace hpl {
 		data.mvTime[0] = afTime;
 		mfFrameTime = afTime;
 		data.mvTime[1] = data.mvTime[2] = data.mvTime[3] = 0;
+		data.mvShading0[0] = mShading.mbImproved ? 1.0f : 0.0f;
+		data.mvShading0[1] = mShading.mfSpecular;
+		data.mvShading0[2] = mShading.mfReflectance;
+		data.mvShading0[3] = mShading.mfAmbientSheen;
+		data.mvShading1[0] = mShading.mfRoughDull;
+		data.mvShading1[1] = mShading.mfRoughShiny;
+		data.mvShading1[2] = mShading.mfAmbientUp;
+		data.mvShading1[3] = mShading.mfAmbientFacing;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, mlFrameUniformBuffer);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
@@ -3153,6 +3171,10 @@ namespace hpl {
 			}
 			float fAlphaFunc = bToCoverage ? (float)cGLSLProgram::kAlphaToCoverage : (float)mAlphaTestFunc + 1;
 			const cShadowMapParams &shadow = mShadowParams;
+			// The colour is scaled as a screen value: brightness is an
+			// amount of light. Exactly 1 for a light as the game made it.
+			const cLightLook &look = mLightLook;
+			float fLookScale = look.mfBrightness == 1.0f ? 1.0f : powf(cMath::Max(look.mfBrightness, 0.0f), 1.0f / 2.2f);
 			float vState[kStateUniformFloats] = {
 				mbAlphaTest ? fAlphaFunc : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
 				bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
@@ -3160,7 +3182,10 @@ namespace hpl {
 				(float)shadow.mlFilter, shadow.mfNear, shadow.mfFar, shadow.mfTexelSize,
 				shadow.mfSoftness, shadow.mfLightSize, shadow.mfMaxBlur, shadow.mbShowOnly ? 1.0f : 0.0f,
 				shadow.mfBias, shadow.mfSlopeBias, (float)shadow.mlSamples, (float)shadow.mlBlockerSamples,
-				shadow.mvUvScale.x, shadow.mvUvScale.y, shadow.mbNoise ? 1.0f : 0.0f, 0.0f};
+				shadow.mvUvScale.x, shadow.mvUvScale.y, shadow.mbNoise ? 1.0f : 0.0f, 0.0f,
+				look.mbDistanceFalloff ? 1.0f : 0.0f, look.mfEvenAt, look.mfNearBoost, look.HasTube() ? 1.0f : 0.0f,
+				look.mbBeam ? 1.0f : 0.0f, look.mfBeamHotspot, look.mfBeamField, look.mfBeamWidth,
+				look.mTint.r * fLookScale, look.mTint.g * fLookScale, look.mTint.b * fLookScale, 0.0f};
 			glBindBuffer(GL_UNIFORM_BUFFER, mlStateUniformBuffer);
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vState), vState);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);

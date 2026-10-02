@@ -451,7 +451,7 @@ namespace hpl {
 
 	cVector3f iLight3D::GetLightPosition()
 	{
-		return GetWorldPosition();
+		return GetWorldPosition() + mLook.mvOffset;
 	}
 
 	//-----------------------------------------------------------------------
@@ -611,7 +611,7 @@ namespace hpl {
 		////////////////////////////////////////////////////////////////////////
 		//Check if the shadow volume collides with the frustum
 		cShadowVolumeBV *pVolume = apObject->GetBoundingVolume()->GetShadowVolume(
-												GetWorldPosition(), mfFarAttenuation, true);
+												GetLightPosition(), mfFarAttenuation, true);
 		cFrustum *pFrustum = apRenderSettings->mpFrustum;
 		if(pVolume && pFrustum)
 		{
@@ -686,7 +686,7 @@ namespace hpl {
 
 		///////////////////////////////////////////
 		//Get local light position
-		cVector3f vLocalLight = GetWorldPosition();
+		cVector3f vLocalLight = GetLightPosition();
 		cMatrixf *pInvModelMtx = apObject->GetInvModelMatrix();
 		if(pInvModelMtx){
 			vLocalLight = cMath::MatrixMul(*pInvModelMtx, vLocalLight);

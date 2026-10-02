@@ -1102,6 +1102,148 @@ kept, and the original is what a fresh `settings.cfg` has.
   0.63 ms of GPU time a frame at High and 0.72 at Ultra (F3: "SMAA" under
   "Scene output").
 
+### Improved shading (option, off by default)
+
+The first step of Milestone 5. Settings in the F2 panel's Shading window,
+kept in `settings.cfg` (`ShadingImproved` and `Shading*` under Graphics);
+no menu option yet. With it off the picture is the original's.
+
+- **Highlights.** The original's specular term is one lobe of a fixed width
+  (a power of 16) for every material, white whatever the light's colour,
+  with the half vector made per vertex. Improved replaces it
+  (`hpl_Highlight` in `shaders/hpl1_shading.glsl`) with a microfacet lobe
+  (GGX with the Smith visibility term) and Fresnel, per pixel, in the
+  light's colour and the spotlight picture's. The game has no gloss maps,
+  so a material's specular map (or the alpha of its normal map) gives both
+  how much it reflects and how smooth it is: Reflectance is what a white
+  map mirrors faced straight on, the two Roughness values are for black
+  and white. 31 of the 104 materials that keep the amount in the normal
+  map have no alpha there and count as white; the defaults make their
+  highlight about as bright as the original's.
+- The lobe is widened where the normal map changes from pixel to pixel
+  (Tokuyoshi and Kaplanyan 2019), so small bumps far away do not sparkle.
+- The highlight is an amount of light. With linear lighting it is added
+  as that and can be brighter than white; without, it is converted to a
+  screen value and clips at white like everything else.
+- **Ambient.** The original's ambient pass is texture x ambient colour, the
+  same from every side, so normal maps show only where a light reaches.
+  Improved draws the pass with `hpl1_ambient.vertex/.fragment`, which read
+  the normal map: more ambient light from above than from below, more on
+  what faces the viewer, and for what has specular a sheen at a slant.
+- Some faces in the game's meshes have tangents that are not numbers. The
+  original shaders happen to draw those with the ambient colour alone; the
+  new ones do the same on purpose (`hpl_Normalize`, and the checks in
+  `hpl1_ambient.fragment` and `hpl1_light.fragment`).
+- The settings travel in the `hpl_Frame` uniform block (`hpl_Shading0/1`).
+- `cRenderer3D::RenderZ` leaves texture unit 0 active: the new ambient pass
+  sets textures on other units, and the texture environment the renderer
+  resets after the pass (which every material without a fragment program
+  is drawn with afterwards) is that of the active unit.
+
+### Improved flashlight (option, off by default)
+
+Step 2 of Milestone 5. Flashlight: Original / Improved in the F2 panel's
+Shading window, kept in `settings.cfg` (`FlashlightImproved` and
+`Flashlight*` under Graphics).
+
+- **A look for each light** (`cLightLook` in `GraphicsTypes.h`,
+  `iLight::SetLook`): brightness, tint, falloff by distance, a beam made by
+  the shader. The renderer hands it to the light shader with each light
+  (`iLowLevelGraphics::SetLightLook`, `hpl_Light0..2` in the `hpl_State`
+  block, `shaders/hpl1_light_look.glsl`). The default look is the original
+  light exactly, and every light but the flashlight has it.
+- **Falloff.** The flashlight's ramp is at full brightness for the first
+  two thirds of its 12 m and then drops to nothing. Improved uses one over
+  the square of the distance instead: as bright as the original at a
+  chosen distance (Even at, 0.4 of the reach), up to 2.5 times brighter
+  nearer, dimmer beyond, faded out so that it ends at the same reach.
+- **Reach** (6 to 36 m; the original's is 12): the radius the hand model
+  keeps for its spotlight is scaled, so the beam, its shadow map and what
+  it is drawn on all go as far. Even at is a share of the original 12 m,
+  so a longer beam is as bright close up as a shorter one.
+- **Beam.** In place of `player_flashlight_gobo.tga` (256 pixels, grey):
+  a hotspot in a dimmer field with a soft edge and faint reflector rings,
+  computed for each pixel. Hotspot, Field and Width in the panel.
+- **Colour.** Warmth tints the light from the original's white towards
+  the yellow of a weak bulb.
+- **Bounce.** `cPlayerFlashLight::UpdateLook` casts a ray along the beam
+  and keeps a point light (`FlashlightBounce`, 4 m, no highlights, no
+  shadows) well off what the beam lands on (40% of the way back, 2.5 m at
+  most: nearer it is a bright spot in the middle of the beam), as strong as the beam is
+  at that distance times Bounce, and eased so that it does not jump at
+  edges. It can show through a thin wall.
+- The original highlight is scaled by the look's brightness only; the
+  improved one (Improved shading) takes the tint too.
+
+### Improved lamps (option, off by default)
+
+Step 3 of Milestone 5. Lamps: Original / Improved in the F2 panel's
+Shading window, kept in `settings.cfg` (`LampsImproved` and `Lamps*` under
+Graphics).
+
+- `cLampLooks` (`game/core/LampLooks.cpp`) gives the lights of lamp
+  entities, of the thrown flare and of the glow stick and flare in the hand
+  a look (`cLightLook`) on every step. The kind of lamp is read from the
+  name of the entity's file: paraffin lamps and the flare are flames; the
+  iron mine, new storage and desk lamps are bulbs; `modern_mine_flour*`
+  and the ceiling lights of the base are fluorescent tubes; then the
+  emergency lights and the tunnel lights. Lights of other entities
+  (buttons, searchlights, the UV lamp) and lights that are part of a map
+  keep the original look.
+- **Flames** waver in brightness (smooth noise, a share of 0.14 for a
+  paraffin lamp and 0.3 for the flare) and wander by a few centimetres
+  (`cLightLook::mvOffset`, which `iLight3D::GetLightPosition` adds), so
+  what they light and the shadows they cast move. Each light has its own
+  phase, from its name, and the noise is the same in every run. The
+  original's flicker (a slow fade between two colours) still runs
+  underneath. Reference captures, and "No flicker" in the F2 panel's
+  Player window, hold flames still.
+- **Colour.** Each kind has a tint that its lights' own colour is
+  multiplied by; Colour (0.5) goes from the original's colours to the full
+  tint.
+- **Falloff.** The ramp every point light uses stays near full brightness
+  for half of the reach. With "Brighter near the lamp" the lamps use the
+  flashlight's falloff by distance instead: about the same as the ramp from
+  the middle of the reach outwards, brighter close by.
+- **Tubes.** `cLightLook::mvTubeAxis` and `mvTubeOffset` say where a long
+  light is; the improved highlight is then that of the place on the tube
+  the mirrored line of sight passes closest to (Karis 2013), dimmer by as
+  much as it is longer (`hpl_TubeDirection`, `hpl_TubeSpread`). The diffuse
+  light and the shadows are still those of a point. The tube's place goes
+  to the vertex shader for each object (`TubeCentre`, `TubeAxis`).
+- Stencil shadow volumes are made from `GetLightPosition` too, so they
+  follow a swaying flame.
+- Fixed: the flashlight's settings were written to `settings.cfg` after
+  the player object had been deleted; Brightness came out as 0, which is
+  no light at all at the next start. They are written before now, and a
+  Brightness below what the panel can set is read as 1.
+
+### F2 panel: items, and what it switches on its own
+
+- The Player window has a Give row: Flashlight, Glow stick and Flare put
+  the item in the inventory (the first two once, flares add up), so their
+  keys and the inventory work as in the game on any map.
+- The panel no longer switches the flashlight on or hides the HUD by
+  itself: "Flashlight on" and "3D view only" start unticked, and going to
+  a place leaves the flashlight as it is. The reference captures
+  (`tools/refshots.py`) are as before.
+
+### Comparison shots
+
+- **F9** saves two pictures of what is on screen to the home directory:
+  `overture-compare-<date>-<time>-original.png`, taken with every option
+  that changes the look set to the original's, and `-improved.png`, with
+  the options as they are. It takes about a second (each look gets 25
+  steps of the game to settle), the F2 panel is left out, and the options
+  are put back. Switched for the first picture: linear lighting, bloom
+  (to Original), ambient occlusion, depth of field and motion blur (to
+  Original), shadows (to volumes), the noise filter (to Original), SMAA,
+  the improved shading, the improved flashlight and the improved lamps.
+  Resolution, multisampling, texture filter, render scale, field of view
+  and gamma stay: the original has those too. The game is not paused, so
+  what moves is a moment further in the second picture
+  (`cRefView::StartCompareShots`).
+
 ### Fog
 
 - Fogged maps were drawn as a flat fog colour (11 maps: outside, the shafts,

@@ -56,6 +56,7 @@ namespace hpl {
 		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iMaterialProgramSetup * GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		iMaterialProgramSetup * GetFragmentProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
@@ -92,6 +93,16 @@ namespace hpl {
 
 		iGpuProgram* mpSimpleFP;
 		iGpuProgram* mpAmbientFP;
+
+		/**
+		 * The ambient pass of the improved shading (cShadingSettings):
+		 * programs of hpl1_ambient for what the material has, loaded when
+		 * the option is first on. False if they could not be loaded.
+		 */
+		bool UseShadedAmbient();
+		iGpuProgram* mpShadedAmbientVP;
+		iGpuProgram* mpShadedAmbientFP;
+		bool mbShadedAmbientTried;
 
 		iGpuProgram* mvVtxPrograms[eBaseLightProgram_LastEnum];
 		iGpuProgram* mvFragPrograms[eBaseLightProgram_LastEnum];

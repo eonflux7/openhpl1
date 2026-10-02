@@ -53,6 +53,25 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// The improved ambient pass needs the surface's place in the world
+	class cShadedAmbientSetup : public iMaterialProgramSetup
+	{
+	public:
+		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
+		{
+		}
+
+		void SetupMatrix(cMatrixf *apModelMatrix, cRenderSettings* apRenderSettings) override
+		{
+			apRenderSettings->mpVertexProgram->SetMatrixf("objectWorldMatrix",
+												apModelMatrix ? *apModelMatrix : cMatrixf::Identity);
+		}
+	};
+
+	static cShadedAmbientSetup gShadedAmbientSetup;
+
+	//-----------------------------------------------------------------------
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -137,6 +156,10 @@ namespace hpl {
 
 		mbUseSpecular = false;
 		mbUseNormalMap = false;
+
+		mpShadedAmbientVP = nullptr;
+		mpShadedAmbientFP = nullptr;
+		mbShadedAmbientTried = false;
 	}
 
 	//-----------------------------------------------------------------------
@@ -153,7 +176,31 @@ namespace hpl {
 		}
 
 		if(mpSimpleFP) mpProgramManager->Destroy(mpSimpleFP);
+		if(mpShadedAmbientVP) mpProgramManager->Destroy(mpShadedAmbientVP);
+		if(mpShadedAmbientFP) mpProgramManager->Destroy(mpShadedAmbientFP);
+	}
 
+	//-----------------------------------------------------------------------
+
+	bool iMaterial_BaseLight::UseShadedAmbient()
+	{
+		if(mpLowLevelGraphics->GetShading().mbImproved==false) return false;
+
+		// Not in the constructor: what the material has is set by the
+		// constructors of the classes that inherit this one.
+		if(mbShadedAmbientTried==false)
+		{
+			mbShadedAmbientTried = true;
+
+			tString sName = "Ambient_Shaded";
+			if(mbUseNormalMap) sName += "_Bump";
+			if(mbUseSpecular) sName += mbUseColorSpecular ? "_ColorSpec" : "_Spec";
+
+			mpShadedAmbientVP = mpProgramManager->CreateProgram(sName + "_vp.cg","main",eGpuProgramType_Vertex);
+			mpShadedAmbientFP = mpProgramManager->CreateProgram(sName + "_fp.cg","main",eGpuProgramType_Fragment);
+		}
+
+		return mpShadedAmbientVP && mpShadedAmbientFP;
 	}
 
 	//-----------------------------------------------------------------------
@@ -176,7 +223,8 @@ namespace hpl {
 			return mvVtxPrograms[program];
 		}
 
-		if(aType == eMaterialRenderType_Z) return mpProgram[eGpuProgramType_Vertex][1];
+		if(aType == eMaterialRenderType_Z)
+			return UseShadedAmbient() ? mpShadedAmbientVP : mpProgram[eGpuProgramType_Vertex][1];
 		if(aType == eMaterialRenderType_Diffuse) return mpProgram[eGpuProgramType_Vertex][1];
 
 		return nullptr;
@@ -200,6 +248,15 @@ namespace hpl {
 
 	//------------------------------------------------------------------------------------
 
+	iMaterialProgramSetup * iMaterial_BaseLight::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	{
+		if(aType == eMaterialRenderType_Z && UseShadedAmbient()) return &gShadedAmbientSetup;
+
+		return nullptr;
+	}
+
+	//------------------------------------------------------------------------------------
+
 	iGpuProgram* iMaterial_BaseLight::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light)
@@ -217,7 +274,7 @@ namespace hpl {
 		}
 		else if(aType == eMaterialRenderType_Z)
 		{
-			return mpAmbientFP;
+			return UseShadedAmbient() ? mpShadedAmbientFP : mpAmbientFP;
 		}
 		return nullptr;
 	}
@@ -266,6 +323,11 @@ namespace hpl {
 		{
 			//if(alUnit==0 && mbHasAlpha) return mvTexture[eMaterialTexture_Diffuse];
 			if(alUnit==0) return mvTexture[eMaterialTexture_Diffuse];
+			if(UseShadedAmbient())
+			{
+				if(alUnit==1 && mbUseNormalMap) return mvTexture[eMaterialTexture_NMap];
+				if(alUnit==6 && mbUseColorSpecular) return mvTexture[eMaterialTexture_Specular];
+			}
 			return nullptr;
 		}
 		else if(aType == eMaterialRenderType_Diffuse)

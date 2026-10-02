@@ -7,15 +7,18 @@
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
+#include "core/LampLooks.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "systems/EffectHandler.h"
 #include "ui/MainMenu.h"
+#include "ui/Inventory.h"
 
 #include <SDL3/SDL.h>
 #include <imgui.h>
 
 #include <algorithm>
+#include <ctime>
 #include <set>
 
 // A tooltip that wraps instead of running off the screen
@@ -30,6 +33,12 @@ static void Tip(const char *apText)
 
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
+
+// Comparison shots: steps for a changed look to settle (shadows, the
+// flashlight's bounce, effects that keep earlier frames), and for a frame
+// to have been drawn and saved
+static const int kCompareSettleSteps = 25;
+static const int kCompareSaveSteps = 4;
 
 //-----------------------------------------------------------------------
 
@@ -53,14 +62,15 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 	mfWaitTime = 0;
 
 	mbUsed = false;
-	mbFlashLight = true;
+	mbFlashLight = false;
 	mbNoFlicker = true;
-	mbHide2D = true;
+	mbHide2D = false;
 	mbGodMode = true;
 	mbSkippingDrawing = false;
 	mbLinearLighting = false;
 	mbSetLinearLighting = false;
 	mbSetFlashLight = false;
+	mlGiveItems = 0;
 
 	mbFly = false;
 	mbFlying = false;
@@ -112,8 +122,134 @@ void cRefView::SetOpen(bool abX)
 
 //-----------------------------------------------------------------------
 
+//-----------------------------------------------------------------------
+
+// The options that change how the picture looks, all to what the original
+// game does. Resolution, multisampling, texture filter, render scale,
+// field of view and gamma are left: the original has those too.
+void cRefView::SetOriginalLook()
+{
+	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
+	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
+	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
+	cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
+	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
+
+	mSavedLook.mbLinearLighting = pGraphics->GetLinearLighting();
+	mSavedLook.mBloomType = pPostEffects->GetBloomType();
+	mSavedLook.mbAmbientOcclusion = pPostEffects->GetAmbientOcclusionActive();
+	mSavedLook.mDofType = pPostEffects->GetDepthOfFieldType();
+	mSavedLook.mMotionBlurType = pPostEffects->GetMotionBlurType();
+	mSavedLook.mShadowType = pGraphics->GetRenderer3D()->GetShadowType();
+	mSavedLook.mlNoiseType = (int)pFilter->GetType();
+	mSavedLook.mbSmaa = pLowLevel->GetSmaa().mbActive;
+	mSavedLook.mbShading = pLowLevel->GetShading().mbImproved;
+	mSavedLook.mbFlashlight = pFlashLight->GetSettings().mbImproved;
+	mSavedLook.mbLamps = mpInit->mpLampLooks->GetSettings().mbImproved;
+
+	pGraphics->SetLinearLighting(false);
+	pPostEffects->SetBloomType(eBloomType_Original);
+	pPostEffects->SetAmbientOcclusionActive(false);
+	pPostEffects->SetDepthOfFieldType(eDepthOfFieldType_Original);
+	pPostEffects->SetMotionBlurType(eMotionBlurType_Original);
+	pGraphics->GetRenderer3D()->SetShadowType(eShadowType_Volumes);
+	pFilter->SetType(eNoiseFilterType_Original);
+	cSmaaSettings smaa = pLowLevel->GetSmaa();
+	smaa.mbActive = false;
+	pLowLevel->SetSmaa(smaa);
+	cShadingSettings shading = pLowLevel->GetShading();
+	shading.mbImproved = false;
+	pLowLevel->SetShading(shading);
+	cFlashlightSettings flashlight = pFlashLight->GetSettings();
+	flashlight.mbImproved = false;
+	pFlashLight->SetSettings(flashlight);
+	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
+	lamps.mbImproved = false;
+	mpInit->mpLampLooks->SetSettings(lamps);
+}
+
+void cRefView::RestoreLook()
+{
+	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
+	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
+	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
+	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
+
+	pGraphics->SetLinearLighting(mSavedLook.mbLinearLighting);
+	pPostEffects->SetBloomType(mSavedLook.mBloomType);
+	pPostEffects->SetAmbientOcclusionActive(mSavedLook.mbAmbientOcclusion);
+	pPostEffects->SetDepthOfFieldType(mSavedLook.mDofType);
+	pPostEffects->SetMotionBlurType(mSavedLook.mMotionBlurType);
+	pGraphics->GetRenderer3D()->SetShadowType(mSavedLook.mShadowType);
+	mpInit->mpPlayer->GetNoiseFilter()->SetType((eNoiseFilterType)mSavedLook.mlNoiseType);
+	cSmaaSettings smaa = pLowLevel->GetSmaa();
+	smaa.mbActive = mSavedLook.mbSmaa;
+	pLowLevel->SetSmaa(smaa);
+	cShadingSettings shading = pLowLevel->GetShading();
+	shading.mbImproved = mSavedLook.mbShading;
+	pLowLevel->SetShading(shading);
+	cFlashlightSettings flashlight = pFlashLight->GetSettings();
+	flashlight.mbImproved = mSavedLook.mbFlashlight;
+	pFlashLight->SetSettings(flashlight);
+	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
+	lamps.mbImproved = mSavedLook.mbLamps;
+	mpInit->mpLampLooks->SetSettings(lamps);
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::StartCompareShots()
+{
+	if(mlCompareStep != 0) return;
+
+	const char *pHome = getenv("HOME");
+	time_t lNow = time(nullptr);
+	char sTime[32];
+	strftime(sTime, sizeof(sTime), "%Y%m%d-%H%M%S", localtime(&lNow));
+	msCompareFile = tString(pHome && pHome[0] ? pHome : ".") + "/overture-compare-" + sTime;
+
+	SetOriginalLook();
+	mlCompareStep = 1;
+	mlCompareWait = kCompareSettleSteps;
+}
+
+// Steps of the game's logic, not frames: 1 the original look settles,
+// 2 its picture is taken, 3 the options are back and settle, 4 their
+// picture is taken. The panel is not drawn meanwhile.
+void cRefView::UpdateCompareShots()
+{
+	if(mlCompareStep == 0) return;
+	if(--mlCompareWait > 0) return;
+
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	switch(mlCompareStep)
+	{
+	case 1:
+		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-original.png");
+		mlCompareWait = kCompareSaveSteps;
+		break;
+	case 2:
+		RestoreLook();
+		mlCompareWait = kCompareSettleSteps;
+		break;
+	case 3:
+		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-improved.png");
+		mlCompareWait = kCompareSaveSteps;
+		break;
+	default:
+		Log("Comparison shots saved: %s-original.png and -improved.png\n", msCompareFile.c_str());
+		mlCompareStep = 0;
+		return;
+	}
+	++mlCompareStep;
+}
+
+//-----------------------------------------------------------------------
+
 void cRefView::Update(float afTimeStep)
 {
+	UpdateCompareShots();
+
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
 
 	if(mbSetLinearLighting)
@@ -473,10 +609,6 @@ void cRefView::GoTo(size_t alView, int alAngle)
 		mvFlyPos = mvViews[mlView].mvPos;
 		mlFlySeed = 0;
 	}
-	// The flashlight as the frame has it
-	mbFlashLight = mvViews[mlView].mbFlashLight;
-	mbSetFlashLight = true;
-
 	// The direction is set even if it is not held after this
 	bool bHold = mbHoldDirection;
 	mbHoldDirection = true;
@@ -536,6 +668,21 @@ void cRefView::ApplyOptions()
 		mbSkippingDrawing = bSkip;
 	}
 
+	// Items asked for in the Player window. The flashlight and the glow
+	// stick are had once; flares add up.
+	if(mlGiveItems != 0 && bDefault)
+	{
+		cInventory *pInventory = mpInit->mpInventory;
+		if((mlGiveItems & eGiveItem_Flashlight) && pInventory->GetItem("flashlight")==nullptr)
+			pInventory->AddItemFromFile("flashlight","item_flashlight.ent",-1);
+		if((mlGiveItems & eGiveItem_GlowStick) && pInventory->GetItem("glowstick")==nullptr &&
+			pInventory->GetItem("glowst1")==nullptr)
+			pInventory->AddItemFromFile("glowstick","item_glowstick.ent",-1);
+		if(mlGiveItems & eGiveItem_Flare)
+			pInventory->AddItemFromFile("flare_panel","items_flare.ent",-1);
+		mlGiveItems = 0;
+	}
+
 	if(mbUsed==false || bDefault==false) return;
 
 	mpInit->mpPlayer->SetGodMode(mbGodMode);
@@ -555,6 +702,7 @@ void cRefView::ApplyOptions()
 	}
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
+	mpInit->mpLampLooks->SetStill(mbNoFlicker);
 	if(mbNoFlicker && pWorld)
 	{
 		cLight3DListIterator lightIt = pWorld->GetLightIterator();
@@ -573,6 +721,8 @@ void cRefView::ApplyOptions()
 void cRefView::Draw()
 {
 	if(mbOpen==false) return;
+	// Not in the comparison shots
+	if(mlCompareStep != 0) return;
 
 	const float fEm = ImGui::GetFontSize();
 	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
@@ -615,6 +765,7 @@ void cRefView::Draw()
 	DrawAmbientOcclusion();
 	DrawLensAndFilm();
 	DrawAntiAliasing();
+	DrawShading();
 
 	// Closed with the window's button
 	if(bOpen==false) SetOpen(false);
@@ -802,7 +953,8 @@ void cRefView::DrawPlayer()
 		mbUsed = true;
 	}
 	if(ImGui::IsItemHovered())
-		Tip("Its key works too, and it does not run down. A viewpoint is saved with the flashlight as it is.");
+		Tip("Switches it whether it is in the inventory or not; it does not run down. Its key works with "
+			"the flashlight in the inventory. A viewpoint is saved with the flashlight as it is.");
 	ImGui::SameLine();
 	if(ImGui::Checkbox("Cannot be hurt", &mbGodMode)) mbUsed = true;
 	if(ImGui::Checkbox("No flicker", &mbNoFlicker)) mbUsed = true;
@@ -811,6 +963,18 @@ void cRefView::DrawPlayer()
 	ImGui::SameLine();
 	if(ImGui::Checkbox("3D view only", &mbHide2D)) mbUsed = true;
 	if(ImGui::IsItemHovered()) Tip("No HUD, fades, damage or hiding effects.");
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Give");
+	ImGui::SameLine();
+	if(ImGui::Button("Flashlight")) mlGiveItems |= eGiveItem_Flashlight;
+	if(ImGui::IsItemHovered()) Tip("Puts the flashlight in the inventory, if it is not there: its key works then.");
+	ImGui::SameLine();
+	if(ImGui::Button("Glow stick")) mlGiveItems |= eGiveItem_GlowStick;
+	if(ImGui::IsItemHovered()) Tip("Puts the glow stick in the inventory, if it is not there: its key works then.");
+	ImGui::SameLine();
+	if(ImGui::Button("Flare")) mlGiveItems |= eGiveItem_Flare;
+	if(ImGui::IsItemHovered()) Tip("One more flare in the inventory. It is lit from there, and thrown when put away.");
 
 	ImGui::EndDisabled();
 	ImGui::End();
@@ -1393,6 +1557,221 @@ void cRefView::DrawLensAndFilm()
 
 // Multisampling, the texture filter and SMAA. Kept in settings.cfg, like
 // the renderer's other options.
+void cRefView::DrawShading()
+{
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// At the bottom left
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + fEm, pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
+							ImGuiCond_FirstUseEver, ImVec2(0, 1));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	if(ImGui::Begin("Shading", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Kept in settings.cfg, like the renderer's other options
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	cShadingSettings shading = pLowLevel->GetShading();
+	bool bChanged = false;
+
+	int lType = shading.mbImproved ? 1 : 0;
+	ImGui::SetNextItemWidth(fEm * 12);
+	if(ImGui::Combo("Shading##type", &lType, "Original\0Improved\0"))
+	{
+		shading.mbImproved = lType == 1;
+		bChanged = true;
+	}
+	if(ImGui::IsItemHovered())
+		Tip("Improved: highlights with a width and strength of their own for each surface, coloured by "
+			"the light, and ambient light that shows the normal maps. Made for linear lighting; "
+			"without it highlights clip at white.");
+	ImGui::SameLine();
+	if(ImGui::Button("Reset##shading"))
+	{
+		bool bImproved = shading.mbImproved;
+		shading = cShadingSettings();
+		shading.mbImproved = bImproved;
+		bChanged = true;
+	}
+
+	ImGui::BeginDisabled(shading.mbImproved==false);
+	ImGui::PushItemWidth(fEm * 12);
+
+	if(ImGui::CollapsingHeader("Highlights", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		bChanged |= ImGui::SliderFloat("Strength", &shading.mfSpecular, 0.0f, 4.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("Scales the highlights of all lights. 0: none.");
+		bChanged |= ImGui::SliderFloat("Reflectance", &shading.mfReflectance, 0.02f, 1.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+		if(ImGui::IsItemHovered())
+			Tip("The share of light mirrored, faced straight on, where a material's specular map is white. "
+				"A mid-grey map gets about a fifth of it. 0.04 is plastic or wet stone, above 0.5 bare metal. "
+				"Materials whose normal map has no specular amount count as white.");
+		bChanged |= ImGui::SliderFloat("Roughness, dull", &shading.mfRoughDull, 0.05f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("Where the specular map is dark: higher is a wider, fainter highlight.");
+		bChanged |= ImGui::SliderFloat("Roughness, shiny", &shading.mfRoughShiny, 0.05f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("Where the specular map is white: lower is a smaller, brighter highlight.");
+	}
+
+	if(ImGui::CollapsingHeader("Ambient light", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		bChanged |= ImGui::SliderFloat("From above", &shading.mfAmbientUp, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("How much more ambient light what faces up gets, and how much less what faces down. "
+				"0: the same from every side, as in the original.");
+		bChanged |= ImGui::SliderFloat("Towards the viewer", &shading.mfAmbientFacing, 0.0f, 1.5f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("How much more ambient light what faces the viewer gets than what is seen at a slant. "
+				"Brings out the normal maps in the dark. 0: the same from every side.");
+		bChanged |= ImGui::SliderFloat("Sheen", &shading.mfAmbientSheen, 0.0f, 2.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("Ambient light mirrored at grazing angles by what has specular, more by what is glossy.");
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::EndDisabled();
+
+	if(bChanged) pLowLevel->SetShading(shading);
+
+	///////////////////////////////////////////
+	// Flashlight
+	if(ImGui::CollapsingHeader("Flashlight##section", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
+		cFlashlightSettings flashlight = pFlashLight->GetSettings();
+		bChanged = false;
+
+		int lFlashlight = flashlight.mbImproved ? 1 : 0;
+		ImGui::SetNextItemWidth(fEm * 12);
+		if(ImGui::Combo("Flashlight", &lFlashlight, "Original\0Improved\0"))
+		{
+			flashlight.mbImproved = lFlashlight == 1;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("Improved: brighter near and fading with the distance, a beam with a hotspot made by the "
+				"shader in place of the 256 pixel picture, a warmer colour, and light coming back from "
+				"what the beam lands on.");
+		ImGui::SameLine();
+		if(ImGui::Button("Reset##flashlight"))
+		{
+			bool bImproved = flashlight.mbImproved;
+			flashlight = cFlashlightSettings();
+			flashlight.mbImproved = bImproved;
+			bChanged = true;
+		}
+
+		ImGui::BeginDisabled(flashlight.mbImproved==false);
+		ImGui::PushItemWidth(fEm * 12);
+		bChanged |= ImGui::SliderFloat("Brightness", &flashlight.mfBrightness, 0.25f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+		if(ImGui::IsItemHovered()) Tip("The amount of light: 2 is twice as much.");
+		bChanged |= ImGui::SliderFloat("Warmth", &flashlight.mfWarmth, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("0: the white of the original. 1: the yellow of a weak bulb.");
+		float fReachMetres = flashlight.mfReach * 12.0f;
+		if(ImGui::SliderFloat("Reach", &fReachMetres, 6.0f, 36.0f, "%.0f m"))
+		{
+			flashlight.mfReach = fReachMetres / 12.0f;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("How far the beam goes before it has faded out. The original's is 12 m. "
+				"Close up the beam stays as bright as it is.");
+		bChanged |= ImGui::SliderFloat("Even at", &flashlight.mfEvenAt, 0.1f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("The distance, as a share of the original's 12 m, at which the beam is as bright as its "
+				"colour says. Nearer it is brighter, farther dimmer. Higher lights more of the distance.");
+		bChanged |= ImGui::SliderFloat("Brightest", &flashlight.mfNearBoost, 1.0f, 8.0f, "%.1f times");
+		if(ImGui::IsItemHovered()) Tip("How many times brighter than that it gets at most, close up.");
+		bChanged |= ImGui::SliderFloat("Hotspot", &flashlight.mfHotspot, 0.05f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("The size of the bright middle, as a share of the cone.");
+		bChanged |= ImGui::SliderFloat("Field", &flashlight.mfField, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("How bright the beam is around the hotspot: 0 only the hotspot, 1 an even disc.");
+		bChanged |= ImGui::SliderFloat("Width", &flashlight.mfWidth, 0.3f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("The size of the beam, as a share of the cone the light has.");
+		bChanged |= ImGui::SliderFloat("Bounce", &flashlight.mfBounce, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("Light coming back from what the beam lands on: a weak light there, without shadows. 0: none.");
+		ImGui::PopItemWidth();
+		ImGui::EndDisabled();
+
+		if(bChanged) pFlashLight->SetSettings(flashlight);
+	}
+
+	///////////////////////////////////////////
+	// Lamps
+	if(ImGui::CollapsingHeader("Lamps##section", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		cLampLooks *pLampLooks = mpInit->mpLampLooks;
+		cLampSettings lamps = pLampLooks->GetSettings();
+		bChanged = false;
+
+		int lLamps = lamps.mbImproved ? 1 : 0;
+		ImGui::SetNextItemWidth(fEm * 12);
+		if(ImGui::Combo("Lamps", &lLamps, "Original\0Improved\0"))
+		{
+			lamps.mbImproved = lLamps == 1;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("The glow stick, the flare and the lamps of the world (paraffin lamps, bulbs, fluorescent "
+				"tubes, emergency and tunnel lights). Improved: flames waver and sway, each kind of lamp "
+				"has a colour of its own, lamps are brighter close by, and tubes have long highlights.");
+		ImGui::SameLine();
+		if(ImGui::Button("Reset##lamps"))
+		{
+			bool bImproved = lamps.mbImproved;
+			lamps = cLampSettings();
+			lamps.mbImproved = bImproved;
+			bChanged = true;
+		}
+		if(lamps.mbImproved) ImGui::TextDisabled("%d lamp lights in this map", pLampLooks->GetLampCount());
+
+		ImGui::BeginDisabled(lamps.mbImproved==false);
+		ImGui::PushItemWidth(fEm * 12);
+		bChanged |= ImGui::SliderFloat("Flicker", &lamps.mfFlicker, 0.0f, 3.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("How much the brightness of flames wavers (paraffin lamps, the flare). 0: steady. "
+				"The \"No flicker\" option of the Player window holds them still too.");
+		bChanged |= ImGui::SliderFloat("Sway", &lamps.mfSway, 0.0f, 3.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("How far flames wander: 1 is about 3 cm. It is what makes their shadows move.");
+		bChanged |= ImGui::SliderFloat("Colour", &lamps.mfColour, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("0: the colours the lamps have in the game. 1: each kind all its own: flames orange, "
+				"bulbs warm, tubes and tunnel lights cold, the glow stick green.");
+		bChanged |= ImGui::Checkbox("Brighter near the lamp", &lamps.mbFalloff);
+		if(ImGui::IsItemHovered())
+			Tip("Light that falls off with the distance, as the improved flashlight's does, in place of "
+				"the original's ramp, which lights most of a lamp's reach evenly.");
+		ImGui::BeginDisabled(lamps.mbFalloff==false);
+		bChanged |= ImGui::SliderFloat("Even at##lamps", &lamps.mfEvenAt, 0.1f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("The distance, as a share of the lamp's reach, at which it is as bright as its colour "
+				"says. Nearer it is brighter, farther dimmer. Higher lights more of the reach.");
+		bChanged |= ImGui::SliderFloat("Brightest##lamps", &lamps.mfNearBoost, 1.0f, 8.0f, "%.1f times");
+		if(ImGui::IsItemHovered()) Tip("How many times brighter than that it gets at most, close up.");
+		ImGui::EndDisabled();
+		bChanged |= ImGui::SliderFloat("Tube length", &lamps.mfTube, 0.0f, 2.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("Fluorescent tubes: how long their highlights are, in times the tube's own length. "
+				"0: a point, as in the original. Shows with Shading: Improved only.");
+		ImGui::PopItemWidth();
+		ImGui::EndDisabled();
+
+		if(bChanged) pLampLooks->SetSettings(lamps);
+	}
+
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
 void cRefView::DrawAntiAliasing()
 {
 	const float fEm = ImGui::GetFontSize();

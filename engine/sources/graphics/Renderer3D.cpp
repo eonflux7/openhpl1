@@ -785,6 +785,19 @@ namespace hpl {
 
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
+
+		// The improved ambient pass reads more than the diffuse texture,
+		// and setting a texture makes its unit the active one. The caller
+		// takes it that only unit 0 was used: it resets that unit's
+		// texture environment next, which every material drawn without a
+		// fragment program afterwards (halos, beams, particles) depends on.
+		for(int i=1; i<MAX_TEXTUREUNITS; ++i)
+		{
+			if(mRenderSettings.mpTexture[i]==nullptr) continue;
+			mpLowLevelGraphics->SetTexture(i,nullptr);
+			mRenderSettings.mpTexture[i] = nullptr;
+		}
+		mpLowLevelGraphics->SetActiveTextureUnit(0);
 	}
 
 	//-----------------------------------------------------------------------
@@ -930,6 +943,7 @@ namespace hpl {
 			if(mRenderSettings.mShadowType == eShadowType_Maps)
 				RenderShadowMap(pLight, apCamera, shadowParams);
 			mpLowLevelGraphics->SetShadowMapParams(shadowParams);
+			mpLowLevelGraphics->SetLightLook(pLight->GetLook());
 
 			cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
 															eMaterialRenderType_Light, lLightCount);

@@ -24,6 +24,8 @@ uniform mat4 spotViewProj;
 #endif
 #ifdef SPECULAR
 uniform vec3 EyePos;
+uniform vec3 TubeCentre;
+uniform vec3 TubeAxis;
 #endif
 uniform vec3 LightPos;
 uniform vec4 LightColor;
@@ -54,10 +56,14 @@ void main()
 
 #ifdef SPECULAR
 	//Get the halfvector for the specular term
+	vEyeVec = (rotation * (EyePos - position.xyz));
 	vHalfVec = normalize(EyePos - position.xyz);
 	//transform to tangent space
 	vHalfVec = (rotation * vHalfVec);
 	vHalfVec = normalize(vLightDir)+vHalfVec;
+
+	vTubeCentre = (rotation * (TubeCentre - position.xyz));
+	vTubeAxis = (rotation * TubeAxis);
 #endif
 
 	vLightColor = clamp(LightColor, vec4(0.0), vec4(1.0));

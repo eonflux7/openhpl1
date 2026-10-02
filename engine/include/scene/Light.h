@@ -74,6 +74,10 @@ namespace hpl {
 
 		float GetIntensity(){ return mfIntensity;}
 		void SetIntensity(float afX){ mfIntensity = afX;}
+		/// How the light looks beyond the original's; see cLightLook.
+		const cLightLook& GetLook(){ return mLook;}
+		void SetLook(const cLightLook& aLook){ mLook = aLook;}
+
 		bool GetCastShadows(){ return mbCastShadows;}
 		void SetCastShadows(bool afX){ mbCastShadows = afX;}
 
@@ -109,6 +113,8 @@ namespace hpl {
 
 		bool mbCastShadows;
 		bool mbAffectMaterial;
+
+		cLightLook mLook;
 
 		cWorld3D *mpWorld3D;
 

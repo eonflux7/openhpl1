@@ -87,6 +87,8 @@ namespace hpl {
 		void SetLinearSource(bool abX) override;
 		void SetLinearLightingTuning(const cLinearLightingTuning& aTuning) override;
 		const cLinearLightingTuning& GetLinearLightingTuning() override{ return mLinearTuning; }
+		void SetShading(const cShadingSettings& aSettings) override{ mShading = aSettings; }
+		const cShadingSettings& GetShading() override{ return mShading; }
 		void SetFilmGrain(const cFilmGrainSettings& aSettings) override{ mFilmGrain = aSettings; }
 		const cFilmGrainSettings& GetFilmGrain() override{ return mFilmGrain; }
 		void SetSmaa(const cSmaaSettings& aSettings) override{ mSmaa = aSettings; }
@@ -305,6 +307,7 @@ namespace hpl {
 		void BeginShadowMap(bool abCube, int alFace, int alSize) override;
 		void EndShadowMap() override;
 		void SetShadowMapParams(const cShadowMapParams& aParams) override;
+		void SetLightLook(const cLightLook& aLook) override;
 
 		void FlushRendering() override;
 		void SwapBuffers() override;
@@ -420,6 +423,7 @@ namespace hpl {
 		int mvShadowMapSizes[2];
 		GLuint mvShadowSamplers[2];
 		cShadowMapParams mShadowParams;
+		cLightLook mLightLook;
 
 		// hpl_Frame uniform block, bound to uniform buffer binding 0
 		GLuint mlFrameUniformBuffer;
@@ -445,12 +449,14 @@ namespace hpl {
 		float mfAlphaTestRef;
 		bool mbStateChanged;
 		GLuint mlStateUniformBuffer;
-		static const int kStateUniformFloats = 24;
+		static const int kStateUniformFloats = 36;
 
 		//Linear lighting: also in hpl_State
 		bool mbLinearLighting;
 		bool mbLinearSource;
 		cLinearLightingTuning mLinearTuning;
+		//In hpl_Frame
+		cShadingSettings mShading;
 		cFilmGrainSettings mFilmGrain;
 		//Seconds of rendering, as last given to SetFrameUniforms()
 		float mfFrameTime;

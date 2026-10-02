@@ -160,6 +160,61 @@ namespace hpl {
 		cColor col;
 	};
 
+	/**
+	 * What a light looks like beyond its colour, reach and pictures
+	 * (Milestone 5). The defaults are the original: a light of the game's
+	 * data, with its falloff ramp and, for a spotlight, its picture.
+	 */
+	class cLightLook
+	{
+	public:
+		/// Scales the amount of light. The light colour itself stops at 1.
+		float mfBrightness = 1.0f;
+		/// Multiplies the light's colour.
+		cColor mTint = cColor(1,1,1,1);
+
+		/**
+		 * Falloff by the distance (one over its square) in place of the
+		 * light's ramp, fading out at the light's reach.
+		 */
+		bool mbDistanceFalloff = false;
+		/// The distance, as a share of the reach, at which the light is as bright as its colour says.
+		float mfEvenAt = 0.4f;
+		/// How many times brighter than that it gets at most, nearer.
+		float mfNearBoost = 2.5f;
+
+		/**
+		 * Spotlights: a beam made by the shader (a hotspot in a dimmer
+		 * field with a soft edge) in place of the light's picture.
+		 */
+		bool mbBeam = false;
+		/// The hotspot's size, as a share of the cone.
+		float mfBeamHotspot = 0.3f;
+		/// How bright the field around the hotspot is: 0 none, 1 as bright as the hotspot.
+		float mfBeamField = 0.5f;
+		/// The beam's size, as a share of the cone.
+		float mfBeamWidth = 1.0f;
+
+		/**
+		 * Moves the place the light shines from, along the world's axes:
+		 * a flame that sways. The light itself stays where it is (what it
+		 * reaches, a spotlight's cone).
+		 */
+		cVector3f mvOffset = cVector3f(0,0,0);
+
+		/**
+		 * A light that is long, not a point: a fluorescent tube. From the
+		 * tube's middle to one of its ends, along the world's axes; zero
+		 * for a point. Only the highlights of the improved shading show
+		 * it.
+		 */
+		cVector3f mvTubeAxis = cVector3f(0,0,0);
+		/// Where the tube's middle is, from the light, along the world's axes.
+		cVector3f mvTubeOffset = cVector3f(0,0,0);
+
+		bool HasTube() const { return mvTubeAxis.x != 0 || mvTubeAxis.y != 0 || mvTubeAxis.z != 0; }
+	};
+
 	typedef std::list<cVertex> tVertexList;
 	typedef tVertexList::iterator tVertexListIt;
 
