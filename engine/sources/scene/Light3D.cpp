@@ -50,6 +50,7 @@ namespace hpl {
 	iLight3D::iLight3D(tString asName, cResources *apResources) : iLight(), iRenderable(asName)
 	{
 		mbStaticCasterAdded = false;
+		mbPartOfMap = false;
 
 		mbOnlyAffectInInSector = false;
 
@@ -897,7 +898,13 @@ namespace hpl {
 		for(size_t i =0; i<mvBillboards.size(); ++i)
 		{
 			cBillboard *pBill = mvBillboards[i];
-			pBill->SetColor(cColor(mDiffuseColor.r,mDiffuseColor.g,mDiffuseColor.b,1));
+			// With the look's tint and brightness, as the light shader
+			// scales the colour (a screen value): a flame's halo wavers
+			// with it. Exactly the colour for a light as the game made it.
+			float fScale = mLook.mfBrightness == 1.0f ? 1.0f : powf(cMath::Max(mLook.mfBrightness, 0.0f), 1.0f / 2.2f);
+			pBill->SetColor(cColor(	mDiffuseColor.r * mLook.mTint.r * fScale,
+									mDiffuseColor.g * mLook.mTint.g * fScale,
+									mDiffuseColor.b * mLook.mTint.b * fScale,1));
 		}
 	}
 

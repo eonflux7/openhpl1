@@ -59,6 +59,12 @@ static const c2DScreen kv2DScreens[] = {
 	{"notebook_tasks", 90, [](cInit *apInit){
 		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_TaskList);
 	}},
+	{"notebook_note", 90, [](cInit *apInit){
+		cNotebook_Note *pNote = apInit->mpNotebook->AddNote(_W("A note for the reference images"),
+															"Notes", "spiderhater");
+		apInit->mpNotebook->SetSelectedNote(pNote);
+		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_Note);
+	}},
 	{"keypad", 90, [](cInit *apInit){
 		apInit->mpNotebook->SetActive(false);
 		apInit->mpNumericalPanel->SetActive(true);
@@ -73,6 +79,9 @@ static const c2DScreen kv2DScreens[] = {
 	{"menu_graphics", 30, [](cInit *apInit){ apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphics); }},
 	{"menu_advanced", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsAdvanced);
+	}},
+	{"menu_lighting", 30, [](cInit *apInit){
+		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsLighting);
 	}},
 };
 

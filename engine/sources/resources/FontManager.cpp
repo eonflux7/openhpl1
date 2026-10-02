@@ -102,7 +102,7 @@ namespace hpl {
 				if(vectorIt != m_mapVectorFonts.end())
 				{
 					const cVectorFont &vectorFont = vectorIt->second;
-					if(pFont->SetVectorFont(vectorFont.msFile,vectorFont.mfSize,vectorFont.mfWidth)==false)
+					if(pFont->SetVectorFont(vectorFont.msFile,vectorFont.mfSize,vectorFont.mfWidth,vectorFont.mfPixels)==false)
 						Warning("Font '%s' uses its bitmaps\n",asNewName.c_str());
 				}
 			}
@@ -149,6 +149,7 @@ namespace hpl {
 			vectorFont.msFile = asDir + sFontFile;
 			vectorFont.mfSize = cString::ToFloat(pFontElem->Attribute("Size"),1);
 			vectorFont.mfWidth = cString::ToFloat(pFontElem->Attribute("Width"),1);
+			vectorFont.mfPixels = cString::ToFloat(pFontElem->Attribute("Pixels"),0);
 
 			m_mapVectorFonts[sName] = vectorFont;
 		}

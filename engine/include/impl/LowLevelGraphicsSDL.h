@@ -89,6 +89,8 @@ namespace hpl {
 		const cLinearLightingTuning& GetLinearLightingTuning() override{ return mLinearTuning; }
 		void SetShading(const cShadingSettings& aSettings) override{ mShading = aSettings; }
 		const cShadingSettings& GetShading() override{ return mShading; }
+		void SetEffects(const cEffectSettings& aSettings) override{ mEffects = aSettings; }
+		const cEffectSettings& GetEffects() override{ return mEffects; }
 		void SetFilmGrain(const cFilmGrainSettings& aSettings) override{ mFilmGrain = aSettings; }
 		const cFilmGrainSettings& GetFilmGrain() override{ return mFilmGrain; }
 		void SetSmaa(const cSmaaSettings& aSettings) override{ mSmaa = aSettings; }
@@ -457,6 +459,7 @@ namespace hpl {
 		cLinearLightingTuning mLinearTuning;
 		//In hpl_Frame
 		cShadingSettings mShading;
+		cEffectSettings mEffects;
 		cFilmGrainSettings mFilmGrain;
 		//Seconds of rendering, as last given to SetFrameUniforms()
 		float mfFrameTime;

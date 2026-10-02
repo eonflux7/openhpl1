@@ -4,6 +4,8 @@
  */
 #include "impl/GpuProfiler.h"
 
+#include <cstdlib>
+
 namespace hpl {
 
 	//-----------------------------------------------------------------------
@@ -15,7 +17,9 @@ namespace hpl {
 		mbTiming = false;
 		mbTimingThisFrame = false;
 		mlFrame = 0;
+		mlFrameNumber = 0;
 		mlDepth = 0;
+		mpLog = nullptr;
 		mlDrawCalls = mlTriangles = 0;
 		mlLastDrawCalls = mlLastTriangles = 0;
 		mfGpuFrameMs = 0;
@@ -30,6 +34,8 @@ namespace hpl {
 	void cGpuProfiler::Init()
 	{
 		mbDebugGroups = GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug;
+		const char *pLog = getenv("OVERTURE_GPU_LOG");
+		if(pLog && pLog[0] && mpLog == nullptr) mpLog = fopen(pLog, "w");
 		mbInitialized = true;
 	}
 
@@ -41,6 +47,8 @@ namespace hpl {
 				glDeleteQueries((GLsizei)frame.mvQueries.size(), frame.mvQueries.data());
 			frame = cFrame();
 		}
+		if(mpLog) fclose(mpLog);
+		mpLog = nullptr;
 		mbInitialized = false;
 	}
 
@@ -61,10 +69,12 @@ namespace hpl {
 
 		frame.mvEvents.clear();
 		frame.mlQueriesUsed = 0;
+		frame.mlNumber = ++mlFrameNumber;
+		frame.msMark = "";
 		mvOpen.clear();
 		mlDepth = 0;
 
-		mbTimingThisFrame = mbTiming;
+		mbTimingThisFrame = mbTiming || mpLog != nullptr;
 		if(mbTimingThisFrame)
 		{
 			frame.mlFrameBegin = NewQuery(frame);
@@ -79,6 +89,8 @@ namespace hpl {
 		while(mlDepth > 0) End();
 
 		cFrame& frame = mvFrames[mlFrame];
+		frame.mlDrawCalls = mlDrawCalls;
+		frame.mlTriangles = mlTriangles;
 		if(mbTimingThisFrame)
 		{
 			frame.mlFrameEnd = NewQuery(frame);
@@ -130,6 +142,13 @@ namespace hpl {
 		++mlDrawCalls;
 		if(aMode == GL_TRIANGLES)	mlTriangles += alVertices / 3;
 		else if(aMode == GL_TRIANGLE_FAN && alVertices > 2)	mlTriangles += alVertices - 2;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cGpuProfiler::Mark(const std::string& asText)
+	{
+		mvFrames[mlFrame].msMark = asText;
 	}
 
 	//-----------------------------------------------------------------------
@@ -213,6 +232,16 @@ namespace hpl {
 							it->second + (mvResults[i].mfMs - it->second) * 0.05f;
 			m_mapAverage[vKeys[i]] = fAverage;
 			mvResults[i].mfAverageMs = fAverage;
+		}
+
+		if(mpLog)
+		{
+			fprintf(mpLog, "%d\t%.3f\t%d\t%d\t%s", aFrame.mlNumber, mfGpuFrameMs, aFrame.mlDrawCalls,
+					aFrame.mlTriangles, aFrame.msMark.c_str());
+			for(size_t i=0; i<mvResults.size(); ++i)
+				fprintf(mpLog, "\t%s=%.3f", vKeys[i].c_str(), mvResults[i].mfMs);
+			fprintf(mpLog, "\n");
+			fflush(mpLog);
 		}
 	}
 

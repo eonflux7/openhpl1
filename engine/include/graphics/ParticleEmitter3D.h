@@ -118,6 +118,10 @@ namespace hpl {
 		//Renderable implementation
 		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
 
+		// Soft and lit particles, see cEffectSettings
+		bool GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw) override;
+		void SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw) override;
+
 		iMaterial *GetMaterial() override;
 		iVertexBuffer* GetVertexBuffer() override;
 
@@ -141,6 +145,9 @@ namespace hpl {
 		float mfTimeStepAccum;
 
 		iVertexBuffer *mpVtxBuffer;
+
+		iGpuProgram *mpSoftVtxProgram;
+		iGpuProgram *mpSoftFragProgram;
 
 		std::vector<cPESubDivision> mvSubDivUV;
 

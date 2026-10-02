@@ -240,6 +240,7 @@ namespace hpl {
 		mpFace = nullptr;
 		mfVectorSize = 1;
 		mfVectorWidth = 1;
+		mfVectorPixels = 0;
 	}
 
 	//-----------------------------------------------------------------------
@@ -418,7 +419,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLFontData::SetVectorFont(const tString &asFileName, float afSize, float afWidth)
+	bool cSDLFontData::SetVectorFont(const tString &asFileName, float afSize, float afWidth, float afPixels)
 	{
 		if(mpFace)
 		{
@@ -453,6 +454,8 @@ namespace hpl {
 
 		mfVectorSize = afSize;
 		mfVectorWidth = afWidth;
+		mfVectorPixels = afPixels > 0 ? afPixels : 0;
+		mfVectorPixel = mfVectorPixels > 0 ? afSize * afWidth / mfVectorPixels : 0;
 
 		////////////////////////////////////////////
 		// Advances, unhinted so that they are the same at every size.
@@ -547,10 +550,21 @@ namespace hpl {
 		// vertically, the widths stay as designed.
 		float fEm = (float)aKey.mlLineHeight * mfVectorSize;
 		float fEmWidth = fEm * mfVectorWidth * ((float)aKey.mlStretch / 256.0f);
+		FT_Int32 lLoadFlags = FT_LOAD_TARGET_LIGHT | FT_LOAD_NO_BITMAP;
+
+		// A pixel font gets the size at which each of its pixels is a whole
+		// number of screen pixels, as wide as high unless the text is
+		// stretched, and no hinting, which would move its edges.
+		if(mfVectorPixels > 0)
+		{
+			fEm = (float)GetVectorPixelScale(aKey.mlLineHeight,1) * mfVectorPixels;
+			fEmWidth = (float)GetVectorPixelScale(aKey.mlLineHeight,(float)aKey.mlStretch / 256.0f) * mfVectorPixels;
+			lLoadFlags = FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
+		}
 
 		if(FT_Set_Char_Size(mpFace,(FT_F26Dot6)(fEmWidth*64.0f + 0.5f),(FT_F26Dot6)(fEm*64.0f + 0.5f),72,72) != 0)
 			return nullptr;
-		if(FT_Load_Glyph(mpFace,lIndex,FT_LOAD_TARGET_LIGHT | FT_LOAD_NO_BITMAP) != 0)
+		if(FT_Load_Glyph(mpFace,lIndex,lLoadFlags) != 0)
 			return nullptr;
 		if(mpFace->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
 			return nullptr;

@@ -76,7 +76,8 @@ namespace hpl {
 		void SetIntensity(float afX){ mfIntensity = afX;}
 		/// How the light looks beyond the original's; see cLightLook.
 		const cLightLook& GetLook(){ return mLook;}
-		void SetLook(const cLightLook& aLook){ mLook = aLook;}
+		/// The light's halos take the look's tint and brightness too.
+		void SetLook(const cLightLook& aLook){ mLook = aLook; OnSetDiffuse();}
 
 		bool GetCastShadows(){ return mbCastShadows;}
 		void SetCastShadows(bool afX){ mbCastShadows = afX;}

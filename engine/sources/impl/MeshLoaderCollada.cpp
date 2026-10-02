@@ -2248,6 +2248,7 @@ namespace hpl {
 							if(pColladaLight->msType =="point")
 							{
 								cLight3DPoint *pLight = apWorld->CreateLightPoint(sLightName, false);
+								pLight->SetPartOfMap(true);
 
 								pLight->SetMatrix(apNode->m_mtxWorldTransform);
 								pColladaLight->mDiffuseColor.a = apNode->mvScale.y;
@@ -2275,6 +2276,7 @@ namespace hpl {
 							else if(pColladaLight->msType =="spot")
 							{
 								cLight3DSpot *pLight = apWorld->CreateLightSpot(sLightName,"", false);
+								pLight->SetPartOfMap(true);
 
 								pLight->SetMatrix(apNode->m_mtxWorldTransform);
 								pLight->SetDiffuseColor(pColladaLight->mDiffuseColor);

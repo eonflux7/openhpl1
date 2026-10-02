@@ -44,6 +44,9 @@ namespace hpl {
 	class iMaterial;
 	class iVertexBuffer;
 	class iOcclusionQuery;
+	class iGpuProgram;
+	class cGpuProgramManager;
+	class cResources;
 
 	//------------------------------------------
 
@@ -129,6 +132,10 @@ namespace hpl {
 
 		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
 
+		// Halos and shafts drawn by shaders of their own, see cEffectSettings
+		bool GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw) override;
+		void SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw) override;
+
 		bool IsShadowCaster() override{ return false;}
 
 		cBoundingVolume* GetBoundingVolume() override;
@@ -145,10 +152,32 @@ namespace hpl {
 		void LoadFromSaveData(iSaveData *apSaveData) override;
 		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
+		/// The number of distances a halo's picture is measured at, see hpl1_Halo.fragment
+		static const int kHaloKnots = 32;
+
 	private:
 		eBillboardType ToType(const char* apString);
 
 		void UpdateSourceBufferSize();
+
+		bool DrawnAsHalo();
+		bool DrawnAsShaft();
+		const cColor* GetHaloProfile();
+
+		cResources *mpResources;
+		cGpuProgramManager *mpProgramManager;
+
+		iGpuProgram *mpHaloVtxProgram;
+		iGpuProgram *mpHaloFragProgram;
+		/// The picture's colour by distance from its middle; null until asked for.
+		const cColor *mpHaloProfile;
+
+		iGpuProgram *mpShaftVtxProgram;
+		iGpuProgram *mpShaftFragProgram;
+		/// The box round the shaft, y along its axis
+		iVertexBuffer *mpShaftBuffer;
+		cVector2f mvShaftBufferSize;
+		cMatrixf m_mtxShaft;
 
 		cMaterialManager* mpMaterialManager;
 		cFileSearcher *mpFileSearcher;

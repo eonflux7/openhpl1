@@ -42,6 +42,7 @@ enum eMainMenuState
 	eMainMenuState_Options,
 	eMainMenuState_OptionsGraphics,
 	eMainMenuState_OptionsGraphicsAdvanced,
+	eMainMenuState_OptionsGraphicsLighting,
 	eMainMenuState_OptionsControls,
 	eMainMenuState_OptionsGame,
 	eMainMenuState_OptionsSound,

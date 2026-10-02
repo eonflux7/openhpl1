@@ -101,8 +101,11 @@ namespace hpl {
 		 * \param asFileName
 		 * \param afSize The em size, as a part of the line height.
 		 * \param afWidth Horizontal scale of the glyphs and their advances.
+		 * \param afPixels For a pixel font, the pixels of its grid per em: each
+		 * is drawn as a whole number of screen pixels, the most that fit in the
+		 * size with afWidth, which does not stretch the glyphs. 0 for other fonts.
 		 */
-		virtual bool SetVectorFont(const tString &asFileName, float afSize, float afWidth){ return false; }
+		virtual bool SetVectorFont(const tString &asFileName, float afSize, float afWidth, float afPixels){ return false; }
 
 
 		bool Reload() override{ return false;}
@@ -222,6 +225,16 @@ namespace hpl {
 		bool mbVerticalPixelSnap;
 		/// Advance of each character in the vector font, in line heights. Below 0 if the font lacks it.
 		tFloatVec mvVectorAdvance;
+		/// Width of a pixel of a pixel font, in line heights. 0 for other fonts.
+		float mfVectorPixel;
+
+		/**
+		 * Screen pixels that a pixel of a pixel font gets.
+		 * \param alLineHeight Line height in pixels
+		 * \param afStretch Extra horizontal scale
+		 * \return 0 if the font is not a pixel font.
+		 */
+		int GetVectorPixelScale(int alLineHeight, float afStretch);
 
 		/**
 		 * Get a vector font glyph rendered for a size on screen.

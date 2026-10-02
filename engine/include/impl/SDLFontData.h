@@ -53,7 +53,7 @@ namespace hpl {
 								unsigned short alLastChar) override;
 		bool CreateFromBitmapFile(const tString &asFileName) override;
 
-		bool SetVectorFont(const tString &asFileName, float afSize, float afWidth) override;
+		bool SetVectorFont(const tString &asFileName, float afSize, float afWidth, float afPixels) override;
 
 	protected:
 		cFontSizedGlyph* GetSizedGlyph(wchar_t alChar, int alLineHeight, float afStretch,
@@ -65,6 +65,7 @@ namespace hpl {
 		FT_FaceRec_ *mpFace;
 		float mfVectorSize;
 		float mfVectorWidth;
+		float mfVectorPixels;
 
 		tSDLFontSizedGlyphMap m_mapSizedGlyphs;
 

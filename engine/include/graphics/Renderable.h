@@ -38,6 +38,25 @@ namespace hpl {
 	class cRenderList;
 
 	class iRenderable;
+	class iGpuProgram;
+	class cRenderSettings;
+
+	/**
+	 * How a see-through object draws itself in place of what its material
+	 * says, see iRenderable::GetTransDraw(). What is left as it is here is
+	 * taken from the material and the object as usual.
+	 */
+	class cTransDraw
+	{
+	public:
+		iGpuProgram *mpVtxProgram = nullptr;
+		iGpuProgram *mpFragProgram = nullptr;
+		iVertexBuffer *mpVtxBuffer = nullptr;
+		cMatrixf *mpModelMatrix = nullptr;
+		bool mbDepthTest = true;
+		/// False to draw the faces turned away from the viewer too.
+		bool mbCull = true;
+	};
 
 	enum eRenderableType
 	{
@@ -86,6 +105,17 @@ namespace hpl {
 		virtual eRenderableType GetRenderType()=0;
 
 		virtual void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList){}
+
+		/**
+		 * For the pass of what is see-through: true if the object is drawn
+		 * with programs of its own, which it puts in aDraw.
+		 */
+		virtual bool GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw){ return false; }
+		/**
+		 * Called before each draw GetTransDraw() set up, with its programs
+		 * bound and "worldViewProj" set, for the object to set the rest.
+		 */
+		virtual void SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw){}
 
 		/**
 		 * Should return a different number each time the renderable model matrix is updated. never -1

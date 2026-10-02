@@ -122,6 +122,7 @@ private:
 		bool mbShading;
 		bool mbFlashlight;
 		bool mbLamps;
+		cEffectSettings mEffects;
 	};
 	cSavedLook mSavedLook;
 

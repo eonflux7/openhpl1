@@ -1,0 +1,42 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// Particles (iParticleEmitter3D with cEffectSettings::mbParticles): a
+// sheet fades out where it comes near what is behind it and near the
+// viewer, so that smoke has no straight line where it goes into the floor
+// or a wall and does not pop as the viewer walks through it.
+
+#include "hpl1_scene_depth.glsl"
+
+in vec4 vColor;
+in vec2 vUv;
+in float vFogUv;
+in float vDistance;
+
+OUTPUT
+
+uniform sampler2D tex0; //diffuseMap
+uniform sampler1D tex1; //fogMap
+
+uniform vec4 partLook;	// x: the distance the fade takes, 0 for none;
+						// y: 1 with fog; z: 1 when added to the scene,
+						// 0 when blended by alpha
+
+void main()
+{
+	vec4 vParticle = texture(tex0, vUv) * vColor;
+	if(partLook.y > 0.5) vParticle *= texture(tex1, vFogUv).r;
+
+	float fFade = 1.0;
+	if(partLook.x > 0.0)
+	{
+		float fScene = hpl_SceneDistanceAt(ivec2(gl_FragCoord.xy));
+		fFade = smoothstep(0.0, partLook.x, fScene - vDistance);
+		fFade *= smoothstep(hpl_DepthRange.x, hpl_DepthRange.x + partLook.x, vDistance);
+	}
+
+	if(partLook.z > 0.5)	vParticle.rgb *= fFade;
+	else					vParticle.a *= fFade;
+
+	outColor = vParticle;
+}

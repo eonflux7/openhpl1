@@ -23,6 +23,12 @@
 #include "resources/Resources.h"
 #include "resources/MaterialManager.h"
 #include "resources/FileSearcher.h"
+#include "resources/GpuProgramManager.h"
+#include "resources/LowLevelResources.h"
+#include "graphics/GPUProgram.h"
+#include "graphics/Bitmap2D.h"
+#include "graphics/Texture.h"
+#include "graphics/Renderer3D.h"
 #include "graphics/VertexBuffer.h"
 #include "graphics/Material.h"
 #include "graphics/Graphics.h"
@@ -32,6 +38,7 @@
 #include "scene/World3D.h"
 #include "scene/Scene.h"
 #include "math/Math.h"
+#include "math/BoundingVolume.h"
 
 #include "game/Game.h"
 
@@ -51,6 +58,15 @@ namespace hpl {
 		mpFileSearcher = apResources->GetFileSearcher();
 		mpLowLevelGraphics = apGraphics->GetLowLevel();
 		mpMeshCreator = apGraphics->GetMeshCreator();
+		mpResources = apResources;
+		mpProgramManager = apResources->GetGpuProgramManager();
+
+		mpHaloVtxProgram = nullptr;
+		mpHaloFragProgram = nullptr;
+		mpHaloProfile = nullptr;
+		mpShaftVtxProgram = nullptr;
+		mpShaftFragProgram = nullptr;
+		mpShaftBuffer = nullptr;
 
 		mpHaloSourceBuffer = mpMeshCreator->CreateBoxVertexBuffer(1);
 
@@ -111,6 +127,12 @@ namespace hpl {
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
 		if(mpHaloSourceBuffer) hplDelete(mpHaloSourceBuffer);
+		if(mpShaftBuffer) hplDelete(mpShaftBuffer);
+
+		if(mpHaloVtxProgram) mpProgramManager->Destroy(mpHaloVtxProgram);
+		if(mpHaloFragProgram) mpProgramManager->Destroy(mpHaloFragProgram);
+		if(mpShaftVtxProgram) mpProgramManager->Destroy(mpShaftVtxProgram);
+		if(mpShaftFragProgram) mpProgramManager->Destroy(mpShaftFragProgram);
 
 		if(mQueryObject.mpQuery)
 			mpLowLevelGraphics->DestroyOcclusionQuery(mQueryObject.mpQuery);
@@ -257,6 +279,13 @@ namespace hpl {
 	{
 		if(mbIsHalo==false) return;
 
+		// The halo's shader finds out how much of the lamp is in view
+		if(DrawnAsHalo())
+		{
+			SetHaloAlpha(1);
+			return;
+		}
+
 		////////////////////////
 		//Set the alpha
 		float fAlpha = 0;
@@ -375,6 +404,229 @@ namespace hpl {
 		m_mtxTempTransform.m[2][2] = vForward.z;
 
 		return &m_mtxTempTransform;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cBillboard::DrawnAsHalo()
+	{
+		if(mType != eBillboardType_Point || mpMaterial==nullptr) return false;
+		if(mpLowLevelGraphics->GetEffects().mbHalos==false) return false;
+		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
+	}
+
+	bool cBillboard::DrawnAsShaft()
+	{
+		if(mType != eBillboardType_Axis || mpMaterial==nullptr) return false;
+		// The small ones are glints on things held in the hand (the
+		// flashlight's lens), not air
+		if(mvSize.y < 0.5f) return false;
+		if(mpLowLevelGraphics->GetEffects().mbShafts==false) return false;
+		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
+	}
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * The colour of the material's picture at kHaloKnots distances from its
+	 * middle, evenly spaced up to the corner, each the average round the
+	 * ring. Measured once for each picture.
+	 */
+	const cColor* cBillboard::GetHaloProfile()
+	{
+		if(mpHaloProfile) return mpHaloProfile;
+
+		static std::map<tString, std::vector<cColor> > mapProfiles;
+
+		iTexture *pTexture = mpMaterial->GetTexture(eMaterialTexture_Diffuse);
+		// Textures are named after their file; one with frames after the
+		// first frame's file less its number
+		tString sName = pTexture ? pTexture->GetName() : "";
+		tString sPath = sName != "" ? mpFileSearcher->GetFilePath(sName) : "";
+		if(sPath == "" && sName != "")
+		{
+			static const char *vExts[] = {"jpg","tga","png","bmp"};
+			tString sBase = cString::SetFileExt(sName,"");
+			for(int i=0; i<8 && sPath == ""; ++i)
+				sPath = mpFileSearcher->GetFilePath(sBase + (i < 4 ? "." : "01.") + vExts[i % 4]);
+		}
+
+		std::map<tString, std::vector<cColor> >::iterator it = mapProfiles.find(sPath);
+		if(it == mapProfiles.end())
+		{
+			std::vector<cColor> vProfile(kHaloKnots, cColor(0,0));
+			std::vector<float> vWeight(kHaloKnots, 0.0f);
+
+			iBitmap2D *pBmp = sPath != "" ? mpResources->GetLowLevel()->LoadBitmap2D(sPath) : nullptr;
+			int lChannels = pBmp ? pBmp->GetNumChannels() : 0;
+			if(lChannels >= 3)
+			{
+				const unsigned char *pData = static_cast<const unsigned char*>(pBmp->GetRawData());
+				int lW = pBmp->GetWidth(), lH = pBmp->GetHeight();
+				for(int y=0; y<lH; ++y)
+				for(int x=0; x<lW; ++x)
+				{
+					float fX = ((float)x + 0.5f) / (float)lW * 2.0f - 1.0f;
+					float fY = ((float)y + 0.5f) / (float)lH * 2.0f - 1.0f;
+					float fKnot = std::sqrt(fX*fX + fY*fY) / kSqrt2f * (float)(kHaloKnots-1);
+					int lKnot = cMath::Min((int)fKnot, kHaloKnots-2);
+					float fT = cMath::Min(fKnot - (float)lKnot, 1.0f);
+
+					const unsigned char *pPixel = pData + ((size_t)y * lW + x) * lChannels;
+					cColor col(pPixel[0] / 255.0f, pPixel[1] / 255.0f, pPixel[2] / 255.0f, 1);
+					vProfile[lKnot] = vProfile[lKnot] + col * (1.0f - fT);
+					vWeight[lKnot] += 1.0f - fT;
+					vProfile[lKnot+1] = vProfile[lKnot+1] + col * fT;
+					vWeight[lKnot+1] += fT;
+				}
+				for(int i=0; i<kHaloKnots; ++i)
+					if(vWeight[i] > 0) vProfile[i] = vProfile[i] * (1.0f / vWeight[i]);
+			}
+			else
+			{
+				// No glow known: the shader adds all of the picture as "the rest"
+				Warning("Billboard '%s': the picture '%s' could not be read for its halo\n",
+						msName.c_str(), sName.c_str());
+			}
+			if(pBmp) hplDelete(pBmp);
+
+			it = mapProfiles.insert(std::make_pair(sPath, vProfile)).first;
+		}
+
+		mpHaloProfile = it->second.data();
+		return mpHaloProfile;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cBillboard::GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw)
+	{
+		if(DrawnAsHalo())
+		{
+			if(mpHaloVtxProgram==nullptr)
+			{
+				mpHaloVtxProgram = mpProgramManager->CreateProgram("Halo_vp.cg","main",eGpuProgramType_Vertex);
+				mpHaloFragProgram = mpProgramManager->CreateProgram("Halo_fp.cg","main",eGpuProgramType_Fragment);
+			}
+			if(mpHaloVtxProgram==nullptr || mpHaloFragProgram==nullptr) return false;
+
+			aDraw.mpVtxProgram = mpHaloVtxProgram;
+			aDraw.mpFragProgram = mpHaloFragProgram;
+			aDraw.mbDepthTest = mpMaterial->GetDepthTest();
+			return true;
+		}
+
+		if(DrawnAsShaft())
+		{
+			if(mpShaftVtxProgram==nullptr)
+			{
+				mpShaftVtxProgram = mpProgramManager->CreateProgram("Shaft_vp.cg","main",eGpuProgramType_Vertex);
+				mpShaftFragProgram = mpProgramManager->CreateProgram("Shaft_fp.cg","main",eGpuProgramType_Fragment);
+			}
+			if(mpShaftVtxProgram==nullptr || mpShaftFragProgram==nullptr) return false;
+
+			if(mpShaftBuffer==nullptr || mvShaftBufferSize != mvSize)
+			{
+				if(mpShaftBuffer) hplDelete(mpShaftBuffer);
+				mpShaftBuffer = mpMeshCreator->CreateBoxVertexBuffer(cVector3f(mvSize.x, mvSize.y, mvSize.x));
+				mvShaftBufferSize = mvSize;
+			}
+
+			// y along the axis; the body is round, so any two directions
+			// across it will do
+			cVector3f vUp = cMath::MatrixMul(GetWorldMatrix().GetRotation(),mvAxis);
+			vUp.Normalise();
+			cVector3f vRight = cMath::Vector3Cross(vUp, std::abs(vUp.y) < 0.9f ? cVector3f(0,1,0) : cVector3f(1,0,0));
+			vRight.Normalise();
+			cVector3f vForward = cMath::Vector3Cross(vRight, vUp);
+
+			m_mtxShaft = cMatrixf::Identity;
+			m_mtxShaft.m[0][0] = vRight.x;	m_mtxShaft.m[1][0] = vRight.y;	m_mtxShaft.m[2][0] = vRight.z;
+			m_mtxShaft.m[0][1] = vUp.x;		m_mtxShaft.m[1][1] = vUp.y;		m_mtxShaft.m[2][1] = vUp.z;
+			m_mtxShaft.m[0][2] = vForward.x;m_mtxShaft.m[1][2] = vForward.y;m_mtxShaft.m[2][2] = vForward.z;
+			m_mtxShaft.SetTranslation(GetWorldPosition());
+
+			aDraw.mpVtxProgram = mpShaftVtxProgram;
+			aDraw.mpFragProgram = mpShaftFragProgram;
+			aDraw.mpVtxBuffer = mpShaftBuffer;
+			aDraw.mpModelMatrix = &m_mtxShaft;
+			// The shader cuts the shaft off at what is in front of it, and
+			// the box is drawn by the sides turned away from the viewer
+			aDraw.mbDepthTest = false;
+			aDraw.mbCull = false;
+			return true;
+		}
+
+		return false;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cBillboard::SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw)
+	{
+		const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
+		bool bFog = apSettings->mbFogActive;
+
+		if(aDraw.mpVtxProgram == mpHaloVtxProgram)
+		{
+			// The lamp: the box the original asks about, or the box
+			// round the parent where the original draws the parent itself
+			cMatrixf mtxBox = GetWorldMatrix();
+			cVector3f vHalf = mvHaloSourceSize * 0.5f;
+			iRenderable *pParent = mbHaloSourceIsParent ? static_cast<iRenderable*>(GetEntityParent()) : nullptr;
+			if(pParent)
+			{
+				cBoundingVolume *pBV = pParent->GetBoundingVolume();
+				mtxBox = cMatrixf::Identity;
+				mtxBox.SetTranslation((pBV->GetMax() + pBV->GetMin()) * 0.5f);
+				vHalf = (pBV->GetMax() - pBV->GetMin()) * 0.5f;
+			}
+			vHalf.x = cMath::Max(vHalf.x, 0.005f);
+			vHalf.y = cMath::Max(vHalf.y, 0.005f);
+			vHalf.z = cMath::Max(vHalf.z, 0.005f);
+			for(int i=0; i<3; ++i)
+			{
+				mtxBox.m[i][0] *= vHalf.x;
+				mtxBox.m[i][1] *= vHalf.y;
+				mtxBox.m[i][2] *= vHalf.z;
+			}
+			cVector3f vEye = cMath::MatrixMul(cMath::MatrixInverse(mtxBox), apCamera->GetEyePosition());
+
+			mpHaloVtxProgram->SetMatrixf("haloBox", mtxBox);
+			mpHaloVtxProgram->SetVec3f("haloEye", vEye);
+			// The original draws the parent itself, all its faces, and the
+			// ones behind others fail the test: a lamp in full view comes
+			// out at about 0.6 (measured on the game's lamps). The box
+			// round it would come out at 1.
+			float fWhole = pParent ? 0.65f : 1.0f;
+			mpHaloVtxProgram->SetVec4f("haloParams", 0, mbIsHalo ? 1.0f : 0.0f, effects.mfHaloBrightness * fWhole, 0);
+			mpHaloVtxProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+
+			static tString vKnotNames[kHaloKnots];
+			if(vKnotNames[0] == "")
+				for(int i=0; i<kHaloKnots; ++i) vKnotNames[i] = "haloProfile[" + cString::ToString(i) + "]";
+
+			const cColor *pProfile = GetHaloProfile();
+			for(int i=0; i<kHaloKnots; ++i)
+				mpHaloFragProgram->SetVec4f(vKnotNames[i], pProfile[i].r, pProfile[i].g, pProfile[i].b, 0);
+			mpHaloFragProgram->SetVec4f("haloLook", effects.mfHaloStreaks, bFog ? 1.0f : 0.0f, 0, 0);
+		}
+		else if(aDraw.mpVtxProgram == mpShaftVtxProgram)
+		{
+			cMatrixf mtxInv = cMath::MatrixInverse(m_mtxShaft);
+			cVector3f vEye = cMath::MatrixMul(mtxInv, apCamera->GetEyePosition());
+			// The viewer looks along -z
+			cMatrixf mtxView = cMath::MatrixMul(apCamera->GetViewMatrix(), m_mtxShaft);
+
+			mpShaftFragProgram->SetVec3f("shaftEye", vEye);
+			mpShaftFragProgram->SetVec4f("shaftViewZ", -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
+			mpShaftFragProgram->SetVec4f("shaftSize", mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
+			// As the sheet's corners are coloured
+			mpShaftFragProgram->SetVec4f("shaftColor", mColor.r * mfHaloAlpha, mColor.g * mfHaloAlpha,
+													mColor.b * mfHaloAlpha, mColor.a * mfHaloAlpha);
+			mpShaftFragProgram->SetVec4f("shaftLook", effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
+			mpShaftFragProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+		}
 	}
 
 	//-----------------------------------------------------------------------

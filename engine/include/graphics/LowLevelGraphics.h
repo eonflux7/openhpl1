@@ -264,6 +264,49 @@ namespace hpl {
 		float mfAmbientSheen = 0.25f;
 	};
 
+	/**
+	 * What glows in the air (Milestone 5, step 4): the halos of lamps, the
+	 * shafts of light and the particles. Each is a picture on a flat sheet
+	 * in the original; improved, a shader of its own draws it. With all
+	 * three off nothing changes.
+	 */
+	class cEffectSettings
+	{
+	public:
+		/**
+		 * Halos (billboards that face the viewer): the glow is made from
+		 * the picture's brightness by distance from its middle, so it has
+		 * no steps or blocks, and it is hidden by what stands in front
+		 * of the lamp as read from the depth buffer, in the same frame.
+		 */
+		bool mbHalos = false;
+		float mfHaloBrightness = 1.0f;
+		/// How much of what the picture has besides the round glow (rays of a star) is kept, 0 to 1.
+		float mfHaloStreaks = 1.0f;
+		/**
+		 * Shafts (billboards that turn round an axis): the picture is spun
+		 * round the axis into a body of lit air that the view goes through.
+		 * It ends softly at what it meets and can be walked into.
+		 */
+		bool mbShafts = false;
+		float mfShaftBrightness = 1.0f;
+		/// How uneven the air is: streaks that drift along the shaft, 0 to 1.
+		float mfShaftDust = 0.35f;
+		/**
+		 * Particles: they fade out where they come near what is behind
+		 * them and near the viewer, and those blended by alpha (smoke,
+		 * dust, mist, snow, water) are lit by the lights around them.
+		 * Those added to the scene (fire, sparks) glow as they did.
+		 */
+		bool mbParticles = false;
+		/// The distance the fade takes, in times the particle's size. 0: no fade.
+		float mfParticleSoft = 1.0f;
+		/// How much the light counts: 0 is the brightness the original gives them everywhere.
+		float mfParticleLight = 1.0f;
+		/// Their brightness with no light on them, where the original's is 1.
+		float mfParticleDark = 0.55f;
+	};
+
 	enum eFilmGrain
 	{
 		eFilmGrain_Off,
@@ -538,6 +581,12 @@ namespace hpl {
 		 */
 		virtual void SetShading(const cShadingSettings& aSettings)=0;
 		virtual const cShadingSettings& GetShading()=0;
+		/**
+		 * How halos, shafts of light and particles are drawn; see
+		 * cEffectSettings. Takes effect with the next frame.
+		 */
+		virtual void SetEffects(const cEffectSettings& aSettings)=0;
+		virtual const cEffectSettings& GetEffects()=0;
 		/**
 		 * The grain over the 3D scene; see cFilmGrainSettings.
 		 */

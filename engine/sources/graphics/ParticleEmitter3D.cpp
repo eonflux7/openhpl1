@@ -20,6 +20,14 @@
 #include "system/LowLevelSystem.h"
 #include "resources/Resources.h"
 #include "graphics/Graphics.h"
+#include "graphics/LowLevelGraphics.h"
+#include "graphics/GPUProgram.h"
+#include "graphics/Material.h"
+#include "graphics/Renderer3D.h"
+#include "resources/GpuProgramManager.h"
+#include "scene/Light3D.h"
+#include "scene/Light3DSpot.h"
+#include "math/BoundingVolume.h"
 #include "scene/Camera3D.h"
 #include "math/Math.h"
 
@@ -73,6 +81,9 @@ namespace hpl {
 
 		mpVtxBuffer->Compile(0);
 
+		mpSoftVtxProgram = nullptr;
+		mpSoftFragProgram = nullptr;
+
 		//Setup vars
 		mlDirectionUpdateCount = -1;
 		mvDirection = cVector3f(0,0,0);
@@ -101,6 +112,10 @@ namespace hpl {
 	iParticleEmitter3D::~iParticleEmitter3D()
 	{
 		hplDelete(mpVtxBuffer);
+
+		cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
+		if(mpSoftVtxProgram) pProgramManager->Destroy(mpSoftVtxProgram);
+		if(mpSoftFragProgram) pProgramManager->Destroy(mpSoftFragProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -496,6 +511,123 @@ namespace hpl {
 				}
 			}
 
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool iParticleEmitter3D::GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw)
+	{
+		if(mpGraphics->GetLowLevel()->GetEffects().mbParticles==false) return false;
+
+		iMaterial *pMaterial = GetMaterial();
+		eMaterialBlendMode blend = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
+		if(blend != eMaterialBlendMode_Alpha && blend != eMaterialBlendMode_Add) return false;
+
+		if(mpSoftVtxProgram==nullptr)
+		{
+			cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
+			mpSoftVtxProgram = pProgramManager->CreateProgram("Particle_vp.cg","main",eGpuProgramType_Vertex);
+			mpSoftFragProgram = pProgramManager->CreateProgram("Particle_fp.cg","main",eGpuProgramType_Fragment);
+		}
+		if(mpSoftVtxProgram==nullptr || mpSoftFragProgram==nullptr) return false;
+
+		aDraw.mpVtxProgram = mpSoftVtxProgram;
+		aDraw.mpFragProgram = mpSoftFragProgram;
+		aDraw.mbDepthTest = pMaterial->GetDepthTest();
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void iParticleEmitter3D::SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw)
+	{
+		static const int kLights = 6;
+		static tString vPosNames[kLights], vColorNames[kLights], vDirNames[kLights];
+		if(vPosNames[0] == "")
+		{
+			for(int i=0; i<kLights; ++i)
+			{
+				vPosNames[i] = "partLightPos[" + cString::ToString(i) + "]";
+				vColorNames[i] = "partLightColor[" + cString::ToString(i) + "]";
+				vDirNames[i] = "partLightDir[" + cString::ToString(i) + "]";
+			}
+		}
+
+		const cEffectSettings &effects = mpGraphics->GetLowLevel()->GetEffects();
+		bool bAdded = GetMaterial()->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
+
+		mpSoftVtxProgram->SetMatrixf("partToWorld", *GetModelMatrix(apCamera));
+		mpSoftVtxProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+
+		// The fade takes about the size of a particle: wisps of smoke
+		// fade over more than drops of water do
+		float fSoft = cMath::Clamp(cMath::Max(mvMaxDrawSize.x, mvMaxDrawSize.y), 0.03f, 0.6f) * effects.mfParticleSoft;
+		mpSoftFragProgram->SetVec4f("partLook", fSoft, apSettings->mbFogActive ? 1.0f : 0.0f, bAdded ? 1.0f : 0.0f, 0);
+
+		/////////////////////////////////////
+		// The lights that reach the particles: the strongest few
+		int lCount = 0;
+		if(bAdded==false && effects.mfParticleLight > 0 && mpWorld)
+		{
+			iLight3D *vLights[kLights];
+			float vScores[kLights];
+			cBoundingVolume *pBV = GetBoundingVolume();
+			cVector3f vCentre = pBV->GetWorldCenter();
+
+			cLight3DListIterator lightIt = mpWorld->GetLightIterator();
+			while(lightIt.HasNext())
+			{
+				iLight3D *pLight = lightIt.Next();
+				if(pLight->IsVisible()==false) continue;
+				const cColor &col = pLight->GetDiffuseColor();
+				float fBright = cMath::Max(col.r, cMath::Max(col.g, col.b)) * pLight->GetLook().mfBrightness;
+				if(fBright <= 0.01f || pLight->GetFarAttenuation() <= 0) continue;
+				if(pLight->CollidesWithBV(pBV)==false) continue;
+
+				float fDist = cMath::Vector3Dist(pLight->GetLightPosition(), vCentre);
+				float fScore = fBright * cMath::Max(1.0f - fDist / (pLight->GetFarAttenuation() + pBV->GetRadius()), 0.05f);
+
+				// Kept in order of score
+				int lAt = lCount;
+				while(lAt > 0 && vScores[lAt-1] < fScore) --lAt;
+				if(lAt >= kLights) continue;
+				for(int i=cMath::Min(lCount, kLights-1); i>lAt; --i)
+				{
+					vLights[i] = vLights[i-1];
+					vScores[i] = vScores[i-1];
+				}
+				vLights[lAt] = pLight;
+				vScores[lAt] = fScore;
+				if(lCount < kLights) ++lCount;
+			}
+
+			for(int i=0; i<lCount; ++i)
+			{
+				iLight3D *pLight = vLights[i];
+				const cLightLook &look = pLight->GetLook();
+				cVector3f vPos = pLight->GetLightPosition();
+				cColor col = pLight->GetDiffuseColor() * look.mTint * look.mfBrightness;
+
+				float fEdge = -2.0f;
+				cVector3f vDir(0,0,-1);
+				if(pLight->GetLightType() == eLight3DType_Spot)
+				{
+					cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(pLight);
+					// A spotlight shines along its own -z
+					vDir = pSpot->GetViewMatrix().GetForward() * -1.0f;
+					fEdge = std::cos(pSpot->GetFOV() * 0.5f * (look.mbBeam ? look.mfBeamWidth : 1.0f));
+				}
+
+				mpSoftVtxProgram->SetVec4f(vPosNames[i], vPos.x, vPos.y, vPos.z, pLight->GetFarAttenuation());
+				mpSoftVtxProgram->SetVec4f(vColorNames[i], col.r, col.g, col.b, fEdge);
+				mpSoftVtxProgram->SetVec4f(vDirNames[i], vDir.x, vDir.y, vDir.z, 0);
+			}
+		}
+
+		// What the map's own light adds to the brightness in the dark
+		const cColor &ambient = apSettings->mAmbientColor;
+		float fDark = cMath::Min(effects.mfParticleDark + (ambient.r + ambient.g + ambient.b) / 3.0f, 1.0f);
+		mpSoftVtxProgram->SetVec4f("partLight", (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, 0);
 	}
 
 	//-----------------------------------------------------------------------

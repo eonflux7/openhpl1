@@ -71,6 +71,7 @@ namespace hpl {
 
 		mfBaseLine = 1;
 		mbVectorFont = false;
+		mfVectorPixel = 0;
 		mbVerticalPixelSnap = true;
 	}
 
@@ -334,6 +335,16 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	int iFontData::GetVectorPixelScale(int alLineHeight, float afStretch)
+	{
+		if(mfVectorPixel <= 0) return 0;
+
+		int lScale = (int)floorf((float)alLineHeight * mfVectorPixel * afStretch + 0.001f);
+		return lScale < 1 ? 1 : lScale;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void iFontData::DrawBitmapString(cVector3f avPos,const cVector2f& avSize, const cColor& aCol,
 									const wchar_t* apText)
 	{
@@ -428,6 +439,33 @@ namespace hpl {
 		float fBaseY = (vPos.y + vVirtualOffset.y + mfBaseLine*avSize.y) * fScale;
 		if(mbVerticalPixelSnap) fBaseY = floorf(fBaseY + 0.5f);
 
+		// A pixel font advances by whole pixels of the font, rounded down, so
+		// the text is a little shorter than GetLength says, never longer.
+		float fPixelStep = (float)GetVectorPixelScale(lLineHeight,fStretch);
+		auto VectorAdvance = [&](wchar_t alChar)
+		{
+			float fAdvance = mvVectorAdvance[alChar]*avSize.x;
+			if(fPixelStep <= 0) return fAdvance;
+			return cMath::Max(1.0f, floorf(fAdvance*fScale/fPixelStep + 0.001f)) * fPixelStep / fScale;
+		};
+
+		if(fPixelStep > 0)
+		{
+			if(aAlign != eFontAlign_Left)
+			{
+				float fShorter = 0;
+				for(int lCount=0; apText[lCount] != 0; lCount++)
+				{
+					wchar_t lChar = apText[lCount];
+					if(HasVectorGlyph(lChar)) fShorter += mvVectorAdvance[lChar]*avSize.x - VectorAdvance(lChar);
+				}
+				vPos.x += aAlign == eFontAlign_Center ? fShorter/2 : fShorter;
+			}
+
+			//Start on a whole pixel, the advances then keep the glyphs on them.
+			vPos.x = floorf((vPos.x + vVirtualOffset.x) * fScale + 0.5f) / fScale - vVirtualOffset.x;
+		}
+
 		for(int lCount=0; apText[lCount] != 0; lCount++)
 		{
 			wchar_t lChar = apText[lCount];
@@ -463,7 +501,7 @@ namespace hpl {
 												aCol);
 			}
 
-			vPos.x += mvVectorAdvance[lChar]*avSize.x;
+			vPos.x += VectorAdvance(lChar);
 		}
 	}
 

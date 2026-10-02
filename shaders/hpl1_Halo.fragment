@@ -1,0 +1,52 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The halo of a lamp (cBillboard with cEffectSettings::mbHalos).
+//
+// The halo's picture is small and has 256 levels, which shows as steps and
+// blocks where the glow fades out. The glow is drawn from haloProfile
+// instead: the picture's colour by distance from its middle, averaged
+// round the ring when the picture was loaded. What the picture has besides
+// that (the rays of a star) is taken from the picture and added.
+
+in vec4 vColor;
+in vec2 vUv;
+in float vFogUv;
+
+OUTPUT
+
+uniform sampler2D tex0; //diffuseMap
+uniform sampler1D tex1; //fogMap
+
+const int kKnots = 32;
+// The colour at kKnots distances, evenly from the middle to the corner
+uniform vec4 haloProfile[kKnots];
+uniform vec4 haloLook;	// x: how much of the rest of the picture is kept,
+						// y: 1 with fog
+
+// A curve through the knots without corners (quadratic B-spline)
+vec3 Glow(float afDistance)
+{
+	float fX = clamp(afDistance / 1.41422, 0.0, 1.0) * float(kKnots - 1) + 0.5;
+	int lKnot = int(fX);
+	float fT = fX - float(lKnot);
+	vec3 vA = haloProfile[max(lKnot - 1, 0)].rgb;
+	vec3 vB = haloProfile[min(lKnot, kKnots - 1)].rgb;
+	vec3 vC = haloProfile[min(lKnot + 1, kKnots - 1)].rgb;
+	return vA * (0.5 * (1.0 - fT) * (1.0 - fT)) + vB * (0.5 + fT * (1.0 - fT)) + vC * (0.5 * fT * fT);
+}
+
+void main()
+{
+	vec3 vGlow = Glow(length(vUv * 2.0 - 1.0));
+
+	// The picture's steps are part of what it has besides the glow: only
+	// what is more than a step counts
+	vec3 vRest = texture(tex0, vUv).rgb - vGlow;
+	vRest = sign(vRest) * max(abs(vRest) - 0.03, 0.0);
+
+	vec3 vHalo = max(vGlow + vRest * haloLook.x, 0.0);
+	if(haloLook.y > 0.5) vHalo *= texture(tex1, vFogUv).r;
+
+	outColor = vec4(vHalo * vColor.rgb, vColor.a);
+}

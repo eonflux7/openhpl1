@@ -204,15 +204,23 @@ commit), and the last official Linux build on Steam.
   has on screen and placed on whole pixels, instead of scaling the game's
   bitmap fonts. It is sharp at any resolution.
 - The fonts are in `fonts/` (copied to `<executable dir>/fonts/`): Arimo for
-  the menu and game text, Cousine for the computer text. `fonts/fonts.cfg`
-  says which file replaces which of the game's `.fnt` fonts, and at what size
-  and width. These are set so that capital letters are as tall as in the
-  original font and the game's English text is as long, so text sits where it
-  did and wraps at about the same places. Line height and baseline still come
-  from the game's `.fnt` file, and its bitmaps are used for characters the
-  font file lacks.
+  the menu and game text, Recursive Mono Casual Italic for the text on paper
+  (notebook notes and tasks), Departure Mono for the computer text.
+  `fonts/fonts.cfg` says which file replaces which of the game's `.fnt` fonts,
+  and at what size and width. These are set so that capital letters are as
+  tall as in the original font and the game's English text is as long, so text
+  sits where it did and wraps at about the same places. Line height and
+  baseline still come from the game's `.fnt` file, and its bitmaps are used
+  for characters the font file lacks.
 - The layout does not depend on the resolution: advances are the font's own,
   unhinted.
+- The computer text (pre-menu, intro and map load texts) is a pixel font
+  (`Pixels` in `fonts.cfg`). Each of its pixels is a whole number of screen
+  pixels, the most that fit in the size the text is given, and the glyphs
+  advance by whole font pixels, so the pixels are sharp, square and on one
+  grid. The text is at most its laid out size and length, and smaller where
+  the size falls between two whole scales: at 720p a font pixel is one screen
+  pixel and the letters are small and wide apart.
 - The black outline of messages, subtitles and the intro text is the glyph's
   contour widened with a round pen (`eFontEffect_Outline`), and the glow of
   hovered menu buttons is the glyph blurred (`eFontEffect_Glow`). Both used
@@ -515,6 +523,11 @@ messages (NVIDIA 615). Fixed for that:
   while the overlay is shown they are also timed with `GL_TIMESTAMP`
   queries, read four frames later if the GPU has them, so timing never
   waits for the GPU (`cGpuProfiler`).
+- With `OVERTURE_GPU_LOG=<file>` the sections are always timed and every
+  frame's times are written to that file, one line a frame; a frame that
+  is saved as a picture carries the picture's name.
+  `docs/gpu-profiler-run1.md` is a first run of it over the reference
+  viewpoints.
 - Draw calls and triangles are counted at every `glDrawElements` and
   immediate-mode draw.
 - GL objects carry names (`glObjectLabel`, `cGpuProfiler::Label`) for
@@ -1106,7 +1119,8 @@ kept, and the original is what a fresh `settings.cfg` has.
 
 The first step of Milestone 5. Settings in the F2 panel's Shading window,
 kept in `settings.cfg` (`ShadingImproved` and `Shading*` under Graphics);
-no menu option yet. With it off the picture is the original's.
+the option itself is also on the menu's Lighting page. With it off the
+picture is the original's.
 
 - **Highlights.** The original's specular term is one lobe of a fixed width
   (a power of 16) for every material, white whatever the light's colour,
@@ -1177,8 +1191,8 @@ Shading window, kept in `settings.cfg` (`FlashlightImproved` and
 
 ### Improved lamps (option, off by default)
 
-Step 3 of Milestone 5. Lamps: Original / Improved in the F2 panel's
-Shading window, kept in `settings.cfg` (`LampsImproved` and `Lamps*` under
+Step 3 of Milestone 5. Lamps: Original / Improved in the menu's Lighting
+page and the F2 panel's Shading window, kept in `settings.cfg` (`LampsImproved` and `Lamps*` under
 Graphics).
 
 - `cLampLooks` (`game/core/LampLooks.cpp`) gives the lights of lamp
@@ -1188,8 +1202,7 @@ Graphics).
   iron mine, new storage and desk lamps are bulbs; `modern_mine_flour*`
   and the ceiling lights of the base are fluorescent tubes; then the
   emergency lights and the tunnel lights. Lights of other entities
-  (buttons, searchlights, the UV lamp) and lights that are part of a map
-  keep the original look.
+  (buttons, searchlights, the UV lamp) keep the original look.
 - **Flames** waver in brightness (smooth noise, a share of 0.14 for a
   paraffin lamp and 0.3 for the flare) and wander by a few centimetres
   (`cLightLook::mvOffset`, which `iLight3D::GetLightPosition` adds), so
@@ -1213,10 +1226,85 @@ Graphics).
   to the vertex shader for each object (`TubeCentre`, `TubeAxis`).
 - Stencil shadow volumes are made from `GetLightPosition` too, so they
   follow a swaying flame.
+- **Halos.** A light's halos (the billboards attached to it) are coloured
+  by its colour times its look's tint and brightness
+  (`iLight3D::OnSetDiffuse`, which `iLight::SetLook` calls now), so a
+  paraffin lamp's halo wavers and is tinted with its light.
+- **Lights of the maps.** The 56 lights that are in the map files
+  themselves, not in a lamp entity, are marked by the map loader
+  (`iLight3D::IsPartOfMap`). Nothing says what they stand for, so their
+  colours stay; with "Lights of the maps too" (`LampsMapLights`, on) they
+  get the falloff by distance if they reach 20 m at most and use the
+  common ramp (the sky of the outside map and of the ice cave, the
+  propeller's spotlights and the lights with a falloff picture of their
+  own keep theirs). The furnace's lights (`furnlight*`) are flames. Lights
+  that scripts flash (`*spark*`, `broke1`) are left alone.
 - Fixed: the flashlight's settings were written to `settings.cfg` after
   the player object had been deleted; Brightness came out as 0, which is
   no light at all at the next start. They are written before now, and a
   Brightness below what the panel can set is read as 1.
+
+### Halos, light shafts and particles from shaders (options, off by default)
+
+Step 4 of Milestone 5, first part. Halos, Light Shafts and Particles: each
+Original / Improved in the menu's Lighting page and in the F2 panel's
+Shading window ("Halos, light shafts and particles"), kept in
+`settings.cfg` (`HalosImproved`, `ShaftsImproved`, `ParticlesImproved` and
+`Halo*`, `Shaft*`, `Particle*` under `Graphics`). With all three off the
+reference images are as before.
+
+- A see-through object can draw itself in place of what its material says
+  (`iRenderable::GetTransDraw` / `SetupTransDraw`, `cTransDraw`): programs,
+  vertex buffer, matrix, depth test and culling of its own.
+  `cRenderer3D::RenderTrans` asks each object. The settings are
+  `cEffectSettings` (`iLowLevelGraphics::SetEffects`). The scene's depth is
+  resolved before the see-through pass when any of the three is on, and
+  `hpl1_scene_depth.glsl` has `hpl_SceneDistanceAt()`, which is far away
+  where nothing was drawn (the plain conversion can give anything there).
+- **Halos** (`hpl1_Halo`, billboards that face the viewer and are added to
+  the scene). The glow is drawn from the picture's colour by distance from
+  its middle, measured when the picture is first used (32 distances, each
+  the average round the ring) and drawn as a smooth curve: no steps or
+  blocks from a 256 pixel JPEG. What the picture has besides (the rays of
+  the star-shaped halos) is taken from the picture and added ("Rays").
+  How much of the lamp is in view is read from the depth buffer in the
+  vertex shader: 24 spots on the sides of the lamp's box that face the
+  viewer, spread over at least 5 pixels. The original draws that box, or
+  the lamp's mesh, with an occlusion query and uses the count a frame or
+  more later; here the halo follows in the same frame and fades as an
+  edge passes. Lamps whose own mesh is the source are scaled by 0.65,
+  which is about what the original's count gives for a lamp in full view.
+- **Light shafts** (`hpl1_Shaft`, billboards that turn round an axis, at
+  least half a metre long: five kinds in the game, under grates, windows
+  and the end door). The picture is spun round the axis into a body of
+  lit air; the box round it is drawn and each pixel adds up the air along
+  its line of sight in ten steps, between where the line enters the body
+  (or the viewer, when inside) and where it leaves it or meets the scene.
+  From the side the shaft is about as bright as the sheet was; where it
+  meets a wall, the floor or a table it fades out; seen along its length
+  it is a disc of light. "Dust" makes the air uneven: streaks that drift
+  along the shaft. The window's bars in the boat cabin's shaft become
+  rings round the axis and no longer read as bars.
+- **Particles** (`hpl1_Particle`, emitters blended by alpha or added).
+  They fade out over about their own size in front of what is behind
+  them and close to the viewer ("Soft edges"). Those blended by alpha
+  (smoke, steam, mist, dust, snow, water) are lit at their corners by the
+  six strongest lights that reach the emitter, spotlights by their cone:
+  "In the dark" (0.55, plus the map's ambient light) of the original's
+  brightness with no light, and never more than the original's. Light is
+  not stopped by walls on its way to them. Fire and sparks glow as before.
+- Comparison shots (F9) switch the three off for the first picture.
+- Found on the way: the reference capture takes a view's frame before the
+  original's halo counts have arrived, so halos are missing or dim in some
+  reference frames of the original. Nothing was changed for it.
+
+### Lighting page in the options menu
+
+- Options, Graphics has a third page, Lighting, next to Advanced (which is
+  full): Shading, Flashlight, Lamps, Halos, Light Shafts and Particles,
+  each Original or Improved. Their
+  settings stay in the F2 panel. The reference captures include the page
+  (`2d-menu_lighting.png`).
 
 ### F2 panel: items, and what it switches on its own
 
@@ -1228,6 +1316,16 @@ Graphics).
   a place leaves the flashlight as it is. The reference captures
   (`tools/refshots.py`) are as before.
 
+### F2 panel: a place is held only while the panel is open
+
+- Fixed: after a map was loaded from the panel (which goes to the map's
+  first viewpoint), or a place was picked, the camera stayed at the place
+  with the panel closed: the movement keys walked the player's body away
+  unseen while the view stood still, until Release was pressed or Fly was
+  switched on and off. Closing the panel now puts the player at the place
+  (`cRefView::Update` calls `Release()`), and walking and looking go on
+  from there. With Fly on the camera flies on from the place as before.
+
 ### Comparison shots
 
 - **F9** saves two pictures of what is on screen to the home directory:
@@ -1238,7 +1336,8 @@ Graphics).
   are put back. Switched for the first picture: linear lighting, bloom
   (to Original), ambient occlusion, depth of field and motion blur (to
   Original), shadows (to volumes), the noise filter (to Original), SMAA,
-  the improved shading, the improved flashlight and the improved lamps.
+  the improved shading, the improved flashlight, the improved lamps, and
+  the improved halos, light shafts and particles.
   Resolution, multisampling, texture filter, render scale, field of view
   and gamma stay: the original has those too. The game is not paused, so
   what moves is a moment further in the second picture

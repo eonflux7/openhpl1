@@ -475,6 +475,11 @@ namespace hpl {
 		//Render transparent
 		if(mbLog) Log("Rendering Transperant:\n");
 		mpLowLevelGraphics->BeginGpuSection("Transparent");
+		{
+			// Their shaders read the depth of what is behind them
+			const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
+			if(effects.mbHalos || effects.mbShafts || effects.mbParticles) mpLowLevelGraphics->ResolveSceneDepth();
+		}
 		if(bOcclusionOnly==false) RenderTrans(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
@@ -1341,6 +1346,20 @@ namespace hpl {
 
 			iTexture *pRefraction = pMaterial->GetTexture(eMaterialTexture_Refraction);
 
+			/////////////////////////////////////////
+			// Halos, shafts and particles that draw themselves
+			cTransDraw ownDraw;
+			bool bOwnDraw = pObject->GetTransDraw(apCamera, ownDraw);
+			if(bOwnDraw)
+			{
+				pVtxProgram = ownDraw.mpVtxProgram;
+				pVtxProgramSetup = nullptr;
+				pFragProgram = ownDraw.mpFragProgram;
+				if(ownDraw.mpVtxBuffer) pVtxBuffer = ownDraw.mpVtxBuffer;
+				if(ownDraw.mpModelMatrix) pModelMatrix = ownDraw.mpModelMatrix;
+				bDepthTest = ownDraw.mbDepthTest;
+			}
+
 			if(mRenderSettings.mbDepthTest != bDepthTest)
 			{
 				mpLowLevelGraphics->SetDepthTestActive(bDepthTest);
@@ -1802,7 +1821,17 @@ namespace hpl {
 			///////////////////////////////////////////
 			/// Draw
 			if(bLog) Log("  Draw\n");
-			pVtxBuffer->Draw();
+			if(bOwnDraw)
+			{
+				pObject->SetupTransDraw(apCamera, &mRenderSettings, ownDraw);
+				if(ownDraw.mbCull==false) mpLowLevelGraphics->SetCullActive(false);
+				pVtxBuffer->Draw();
+				if(ownDraw.mbCull==false) mpLowLevelGraphics->SetCullActive(true);
+			}
+			else
+			{
+				pVtxBuffer->Draw();
+			}
 
 		}
 

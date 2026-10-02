@@ -21,3 +21,14 @@ float hpl_ViewDistance(float afDepth)
 {
 	return hpl_Projection[3][2] / (afDepth * 2.0 - 1.0 + hpl_Projection[2][2]);
 }
+
+// How far in front of the camera the scene is at a pixel. Where nothing
+// was drawn (the depth buffer's far end, where hpl_ViewDistance() may
+// give anything) it is far away.
+float hpl_SceneDistanceAt(ivec2 avPixel)
+{
+	float fDepth = hpl_SceneDepthAt(avPixel);
+	if(fDepth >= 1.0) return 1e9;
+	float fDistance = hpl_ViewDistance(fDepth);
+	return fDistance > 0.0 ? fDistance : 1e9;
+}

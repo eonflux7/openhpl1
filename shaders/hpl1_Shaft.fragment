@@ -1,0 +1,134 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// A shaft of light (cBillboard with cEffectSettings::mbShafts).
+//
+// The original is a picture on a sheet that turns round the shaft's axis
+// to face the viewer. Here the picture is spun round the axis into a body
+// of lit air: across the picture is the distance from the axis, up the
+// picture is along it. The line of sight is cut to the part inside the
+// body and in front of what the scene has there, and the air's brightness
+// is added up along it. Seen from the side that gives the picture; where
+// the shaft meets a wall or the floor it fades with the length of the
+// line that is left, and the viewer can stand in it.
+
+#include "hpl1_scene_depth.glsl"
+
+in vec3 vLocalPos;
+
+OUTPUT
+
+uniform sampler2D tex0; //diffuseMap
+uniform sampler1D tex1; //fogMap
+
+// All in the shaft's space
+uniform vec3 shaftEye;
+uniform vec4 shaftViewZ;	// distance in front of the viewer = dot(xyz, place) + w
+uniform vec4 shaftSize;		// x: radius, y: half the length
+uniform vec4 shaftColor;
+uniform vec4 shaftLook;		// x: brightness, y: how uneven the air is,
+							// z: 1 with fog
+uniform vec2 fogRange;		// start and end
+
+const int kSteps = 10;
+const float kMatch = 1.2;
+
+float Hash(vec3 p)
+{
+	p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419));
+	p *= 17.0;
+	return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+// Smooth noise, 0 to 1
+float Noise(vec3 p)
+{
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(Hash(i), Hash(i + vec3(1,0,0)), f.x),
+					mix(Hash(i + vec3(0,1,0)), Hash(i + vec3(1,1,0)), f.x), f.y),
+				mix(mix(Hash(i + vec3(0,0,1)), Hash(i + vec3(1,0,1)), f.x),
+					mix(Hash(i + vec3(0,1,1)), Hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
+
+void main()
+{
+	float fRadius = shaftSize.x;
+	float fHalf = shaftSize.y;
+	vec3 vDir = normalize(vLocalPos - shaftEye);
+
+	// Each line of sight is drawn once: by the side of the box it leaves through
+	vec3 vSide = abs(vLocalPos) / vec3(fRadius, fHalf, fRadius);
+	vec3 vNormal = vSide.y >= max(vSide.x, vSide.z) ? vec3(0.0, sign(vLocalPos.y), 0.0) :
+					(vSide.x >= vSide.z ? vec3(sign(vLocalPos.x), 0.0, 0.0) : vec3(0.0, 0.0, sign(vLocalPos.z)));
+	if(dot(vDir, vNormal) <= 0.0) discard;
+
+	// The part of the line inside the round body
+	float fStart = 0.0, fEnd = 1e6;
+	float fA = dot(vDir.xz, vDir.xz);
+	float fC = dot(shaftEye.xz, shaftEye.xz) - fRadius * fRadius;
+	if(fA > 1e-6)
+	{
+		float fB = dot(shaftEye.xz, vDir.xz);
+		float fRoot = fB * fB - fA * fC;
+		if(fRoot <= 0.0) discard;
+		fRoot = sqrt(fRoot);
+		fStart = (-fB - fRoot) / fA;
+		fEnd = (-fB + fRoot) / fA;
+	}
+	else if(fC > 0.0) discard;
+
+	if(abs(vDir.y) > 1e-6)
+	{
+		float fBottom = (-fHalf - shaftEye.y) / vDir.y;
+		float fTop = (fHalf - shaftEye.y) / vDir.y;
+		fStart = max(fStart, min(fBottom, fTop));
+		fEnd = min(fEnd, max(fBottom, fTop));
+	}
+	else if(abs(shaftEye.y) > fHalf) discard;
+
+	// In front of the viewer and of the scene
+	float fAhead = max(dot(shaftViewZ.xyz, vDir), 0.0001);
+	float fScene = hpl_SceneDistanceAt(ivec2(gl_FragCoord.xy));
+	fStart = max(fStart, hpl_DepthRange.x / fAhead);
+	fEnd = min(fEnd, fScene / fAhead);
+	if(fEnd <= fStart) discard;
+
+	// Steps start at a different place in each pixel: the steps show as
+	// fine grain, not as bands
+	float fJitter = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+	float fStep = (fEnd - fStart) / float(kSteps);
+	float fDrift = hpl_Time.x * 0.03;
+
+	vec3 vSum = vec3(0.0);
+	for(int i=0; i<kSteps; ++i)
+	{
+		vec3 vPos = shaftEye + vDir * (fStart + (float(i) + fJitter) * fStep);
+		float fAcross = min(length(vPos.xz) / fRadius, 1.0);
+		// One half of the picture and the other in turn
+		float fU = 0.5 + ((i & 1) == 0 ? 0.5 : -0.5) * fAcross;
+		vec3 vAir = textureLod(tex0, vec2(fU, vPos.y / (2.0 * fHalf) + 0.5), 0.0).rgb;
+
+		// Streaks along the shaft that drift
+		float fDust = Noise(vec3(vPos.x * 7.0, vPos.y * 1.3 + fDrift, vPos.z * 7.0));
+		vSum += vAir * (1.0 + (fDust * 2.0 - 1.0) * shaftLook.y);
+	}
+
+	// Through the middle from the side the sum is about the picture's
+	// value times the radius; kMatch makes the whole shaft about as
+	// bright as the sheet was (measured on the game's shafts). Lines much
+	// longer than the shaft is wide (looking along it) gain less than
+	// their length.
+	float fLength = fEnd - fStart;
+	float fGain = fLength > 2.0 * fRadius ? sqrt(2.0 * fRadius / fLength) : 1.0;
+	vec3 vShaft = vSum * (fStep / fRadius) * fGain * kMatch * shaftLook.x;
+
+	if(shaftLook.z > 0.5)
+	{
+		float fMiddle = (fStart + fEnd) * 0.5 * fAhead;
+		vShaft *= texture(tex1, (fogRange.y - fMiddle) / (fogRange.y - fogRange.x)).r;
+	}
+
+	outColor = vec4(vShaft * shaftColor.rgb, shaftColor.a);
+}

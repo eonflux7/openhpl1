@@ -1,0 +1,15 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// A shaft of light (cBillboard with cEffectSettings::mbShafts): the box
+// round it, in the shaft's own space (y along the shaft, the middle at 0).
+
+uniform mat4 worldViewProj;
+
+out vec3 vLocalPos;
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+	vLocalPos = hpl_Vertex.xyz;
+}

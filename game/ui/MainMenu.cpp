@@ -23,6 +23,7 @@
 #include "core/ButtonHandler.h"
 #include "core/MapHandler.h"
 #include "core/SaveHandler.h"
+#include "core/LampLooks.h"
 #include "ui/IntroStory.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
@@ -50,6 +51,7 @@ static eMainMenuState gvMenuBackStates[] = {
 		eMainMenuState_Start,//eMainMenuState_Options,
 		eMainMenuState_Options,//eMainMenuState_OptionsGraphics,
 		eMainMenuState_OptionsGraphics,//eMainMenuState_OptionsGraphicsAdvanced,
+		eMainMenuState_OptionsGraphics,//eMainMenuState_OptionsGraphicsLighting,
 		eMainMenuState_Options,//eMainMenuState_OptionsControls,
 		eMainMenuState_Options,//eMainMenuState_OptionsGame,
 		eMainMenuState_Options,//eMainMenuState_OptionsSound,
@@ -1446,6 +1448,7 @@ cMainMenuWidget_Text *gpRenderScaleText=nullptr;
 cMainMenuWidget_Text *gpLinearLightingText=nullptr;
 cMainMenuWidget_Text *gpAmbientOcclusionText=nullptr;
 cMainMenuWidget_Text *gpDoFText=nullptr;
+cMainMenuWidget_Text *gvImprovedText[8]={};
 
 cVector2l gvResolutions[] = {cVector2l(640,480), cVector2l(800,600), cVector2l(1024, 768),
 							cVector2l(1152,864),cVector2l(1280,720),cVector2l(1280,768),
@@ -1874,6 +1877,98 @@ public:
 	}
 };
 
+
+// The options of the Lighting page: each is the original's or the improved
+// one, with its settings in the F2 panel. The names are not in the game's
+// language files.
+enum eImprovedOption
+{
+	eImprovedOption_Shading,
+	eImprovedOption_Flashlight,
+	eImprovedOption_Lamps,
+	eImprovedOption_Halos,
+	eImprovedOption_Shafts,
+	eImprovedOption_Particles,
+	eImprovedOption_LastEnum
+};
+
+static bool GetImprovedOption(cInit *mpInit, eImprovedOption aOption)
+{
+	switch(aOption)
+	{
+	case eImprovedOption_Shading:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetShading().mbImproved;
+	case eImprovedOption_Flashlight:	return mpInit->mpPlayer->GetFlashLight()->GetSettings().mbImproved;
+	case eImprovedOption_Halos:			return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbHalos;
+	case eImprovedOption_Shafts:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbShafts;
+	case eImprovedOption_Particles:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbParticles;
+	default:							return mpInit->mpLampLooks->GetSettings().mbImproved;
+	}
+}
+
+static void SetImprovedOption(cInit *mpInit, eImprovedOption aOption, bool abX)
+{
+	if(aOption == eImprovedOption_Shading)
+	{
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		cShadingSettings shading = pLowLevel->GetShading();
+		shading.mbImproved = abX;
+		pLowLevel->SetShading(shading);
+	}
+	else if(aOption == eImprovedOption_Flashlight)
+	{
+		cFlashlightSettings flashlight = mpInit->mpPlayer->GetFlashLight()->GetSettings();
+		flashlight.mbImproved = abX;
+		mpInit->mpPlayer->GetFlashLight()->SetSettings(flashlight);
+	}
+	else if(aOption == eImprovedOption_Halos || aOption == eImprovedOption_Shafts || aOption == eImprovedOption_Particles)
+	{
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		cEffectSettings effects = pLowLevel->GetEffects();
+		if(aOption == eImprovedOption_Halos)		effects.mbHalos = abX;
+		else if(aOption == eImprovedOption_Shafts)	effects.mbShafts = abX;
+		else										effects.mbParticles = abX;
+		pLowLevel->SetEffects(effects);
+	}
+	else
+	{
+		cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
+		lamps.mbImproved = abX;
+		mpInit->mpLampLooks->SetSettings(lamps);
+	}
+}
+
+static tWString GetImprovedText(cInit *mpInit, eImprovedOption aOption)
+{
+	return GetImprovedOption(mpInit, aOption) ? _W("Improved") : _W("Original");
+}
+
+class cMainMenuWidget_Improved : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Improved(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment,
+							eImprovedOption aOption)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		mOption = aOption;
+		static const wchar_t *vTips[eImprovedOption_LastEnum] = {
+			L"Improved: highlights as wide and strong as each surface is glossy, in the light's colour, and ambient light that shows the surface's relief. Made for Linear Lighting.",
+			L"Improved: the flashlight is brighter near and fades with the distance, has a beam with a hotspot and a warmer colour, and lights up a little of what is around where it lands.",
+			L"Improved: flames waver and sway, each kind of lamp has a colour of its own, lamps are brighter close by, and fluorescent tubes have long highlights. The glow stick and the flare too.",
+			L"Improved: the glow round lamps fades out smoothly, without steps, and dims as something passes in front of the lamp.",
+			L"Improved: beams of light under grates and windows are bodies of lit air, not flat sheets. They end softly at walls and can be walked into.",
+			L"Improved: smoke, steam, mist and dust fade out where they meet walls and the floor, and are lit by the lamps and the flashlight around them."};
+		msTip = vTips[aOption];
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		SetImprovedOption(mpInit, mOption, !GetImprovedOption(mpInit, mOption));
+		gvImprovedText[mOption]->msText = GetImprovedText(mpInit, mOption);
+	}
+
+private:
+	eImprovedOption mOption;
+};
 
 //------------------------------------------------------------
 
@@ -3828,7 +3923,10 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 35;
 	AddWidgetToState(eMainMenuState_OptionsGraphics,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Advanced"),eMainMenuState_OptionsGraphicsAdvanced,23,eFontAlign_Center)) );
 
-	vPos.y += 35;
+	vPos.y += 31;
+	AddWidgetToState(eMainMenuState_OptionsGraphics,hplNew( cMainMenuWidget_Button,(mpInit,vPos,_W("Lighting"),eMainMenuState_OptionsGraphicsLighting,23,eFontAlign_Center)) );
+
+	vPos.y += 31;
 	AddWidgetToState(eMainMenuState_OptionsGraphics,hplNew( cMainMenuWidget_GfxBack,(mpInit,vPos,kTranslate("MainMenu","Back"),23,eFontAlign_Center)) ); 
 
 
@@ -4011,6 +4109,31 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpDoFText);
 	gpDoFText->SetExtraWidget(pDOFButton);
 
+
+	///////////////////////////////////
+	// Options Lighting
+	///////////////////////////////////
+	{
+		// What the menu shows may have been switched in the F2 panel since
+		static const wchar_t *vNames[eImprovedOption_LastEnum] = {L"Shading:", L"Flashlight:", L"Lamps:", L"Halos:", L"Light Shafts:", L"Particles:"};
+
+		vPos = vTextStart;
+		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,hplNew( cMainMenuWidget_Text,(mpInit,vPos,_W("Lighting"),25,eFontAlign_Center)) );
+		vPos.y += 37;
+		for(int i=0; i<eImprovedOption_LastEnum; ++i)
+		{
+			cMainMenuWidget *pButton = hplNew( cMainMenuWidget_Improved,(mpInit,vPos,vNames[i],20,eFontAlign_Right,(eImprovedOption)i) );
+			AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,pButton);
+
+			gvImprovedText[i] = hplNew( cMainMenuWidget_Text,(mpInit,vPos + cVector3f(12,0,0),
+																GetImprovedText(mpInit,(eImprovedOption)i),20,eFontAlign_Left) );
+			AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,gvImprovedText[i]);
+			gvImprovedText[i]->SetExtraWidget(pButton);
+			vPos.y += 29;
+		}
+		vPos.y += 6;
+		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_OptionsGraphics,23,eFontAlign_Center)) );
+	}
 
 	///////////////////////////////////
 	// Graphics Restart

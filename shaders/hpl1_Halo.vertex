@@ -1,0 +1,75 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The halo of a lamp (cBillboard with cEffectSettings::mbHalos): a sheet
+// that faces the viewer. How much of the lamp is in view is read from the
+// depth buffer here, once for the sheet. The original draws the lamp's box
+// and counts the pixels that pass the depth test; here spots on the sides
+// of that box that face the viewer are looked up and those with nothing
+// in front of them counted.
+
+#include "hpl1_scene_depth.glsl"
+
+uniform mat4 worldViewProj;
+uniform mat4 haloBox;		// from a cube of -1 to 1 to the lamp's box in the world
+uniform vec3 haloEye;		// the viewer's place in that cube's space
+uniform vec4 haloParams;	// y: 1 if the halo can be hidden, z: brightness
+uniform vec2 fogRange;		// start and end
+
+out vec4 vColor;
+out vec2 vUv;
+out float vFogUv;
+
+const int kSpots = 24;
+// Spots are spread over at least this many pixels, so that the halo fades
+// as an edge passes in front of a small lamp
+const float kMinPixels = 5.0;
+
+float Visible()
+{
+	vec3 vCentre = (hpl_View * haloBox[3]).xyz;
+	float fDist = -vCentre.z;
+	if(fDist <= hpl_DepthRange.x) return 0.0;
+
+	// The size of the box as seen, against the least the spots are spread over
+	mat3 mtxBox = mat3(hpl_View) * mat3(haloBox);
+	float fPixel = fDist * 2.0 / (hpl_Projection[1][1] * hpl_RenderSize.y);
+	float fSeen = max(length(mtxBox[0].xy), max(length(mtxBox[1].xy), length(mtxBox[2].xy)));
+	float fSpread = max(1.0, kMinPixels * fPixel / max(fSeen, 0.0001));
+
+	float fSum = 0.0;
+	for(int i=0; i<kSpots; ++i)
+	{
+		// Evenly through the box, then towards the viewer onto its surface
+		vec3 vIn = fract((float(i) + 0.5) * vec3(0.8191725, 0.6710436, 0.5497005)) * 2.0 - 1.0;
+		vec3 vRay = vIn - haloEye;
+		vRay = mix(vRay, vec3(1e-5), lessThan(abs(vRay), vec3(1e-5)));
+		vec3 vNear = min((-1.0 - haloEye) / vRay, (1.0 - haloEye) / vRay);
+		vIn = haloEye + vRay * clamp(max(vNear.x, max(vNear.y, vNear.z)), 0.0, 1.0);
+
+		vec3 vSpot = mtxBox * vIn;
+		vSpot.xy *= fSpread;
+		vSpot += vCentre;
+
+		vec4 vClip = hpl_Projection * vec4(vSpot, 1.0);
+		vec2 vPixel = (vClip.xy / vClip.w * 0.5 + 0.5) * hpl_RenderSize.xy;
+		// Past the edge of the picture: as at the edge
+		ivec2 vAt = clamp(ivec2(vPixel), ivec2(0), ivec2(hpl_RenderSize.xy) - 1);
+		float fScene = hpl_SceneDistanceAt(vAt);
+		// What is as far as the spot does not hide it
+		float fLimit = -vSpot.z - 0.005 - 0.002 * fDist;
+		fSum += smoothstep(fLimit - 0.01 - 0.005 * fDist, fLimit, fScene);
+	}
+	return fSum / float(kSpots);
+}
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+
+	vUv = hpl_MultiTexCoord0.xy;
+	vFogUv = (fogRange.y - gl_Position.z) / (fogRange.y - fogRange.x);
+
+	float fVisible = haloParams.y > 0.5 ? Visible() : 1.0;
+	vColor = clamp(hpl_Color, vec4(0.0), vec4(1.0)) * (fVisible * haloParams.z);
+}

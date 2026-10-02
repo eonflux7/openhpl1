@@ -1235,6 +1235,7 @@ namespace hpl {
 		DebugDumpFrame();
 		if(msSaveNextFrame != "")
 		{
+			mGpuProfiler.Mark(msSaveNextFrame);
 			SaveFrameToPNG(msSaveNextFrame);
 			msSaveNextFrame = "";
 		}

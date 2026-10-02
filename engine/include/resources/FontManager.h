@@ -66,6 +66,7 @@ namespace hpl {
 			tString msFile;
 			float mfSize;
 			float mfWidth;
+			float mfPixels;
 		};
 		std::map<tString, cVectorFont> m_mapVectorFonts;
 

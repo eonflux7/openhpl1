@@ -5,6 +5,7 @@
 #ifndef HPL_GPU_PROFILER_H
 #define HPL_GPU_PROFILER_H
 
+#include <cstdio>
 #include <map>
 #include <string>
 #include <vector>
@@ -19,6 +20,9 @@ namespace hpl {
 	 * Results are read a few frames late, once the GPU has them, so timing
 	 * never waits for the GPU. Sections of the same name and parent are
 	 * added up. Also counts draw calls and triangles.
+	 *
+	 * With OVERTURE_GPU_LOG set to a file name, timing is always on and
+	 * every frame's times are written to that file, one line a frame.
 	 */
 	class cGpuProfiler
 	{
@@ -51,6 +55,9 @@ namespace hpl {
 
 		void CountDraw(GLenum aMode, int alVertices);
 
+		/// Names the current frame in the log (OVERTURE_GPU_LOG).
+		void Mark(const std::string& asText);
+
 		/// Names a GL object for RenderDoc and the debug output (glObjectLabel).
 		static void Label(GLenum aIdentifier, GLuint alName, const std::string& asLabel);
 
@@ -76,6 +83,9 @@ namespace hpl {
 			GLuint mlFrameBegin = 0;
 			GLuint mlFrameEnd = 0;
 			bool mbPending = false;
+			int mlNumber = 0;
+			int mlDrawCalls = 0, mlTriangles = 0;
+			std::string msMark;
 		};
 
 		GLuint NewQuery(cFrame &aFrame);
@@ -89,7 +99,9 @@ namespace hpl {
 		bool mbTimingThisFrame;
 		cFrame mvFrames[kFrameLag];
 		int mlFrame;
+		int mlFrameNumber;
 		int mlDepth;
+		FILE *mpLog;
 		std::vector<int> mvOpen;	// current frame's events not ended yet
 
 		int mlDrawCalls, mlTriangles;

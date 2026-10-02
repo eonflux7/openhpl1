@@ -40,6 +40,7 @@ enum eLampKind
 	eLampKind_Tube,
 	eLampKind_CeilingTube,
 	eLampKind_TunnelLight,
+	eLampKind_MapLight,
 	eLampKind_LastEnum
 };
 
@@ -76,6 +77,8 @@ static const cLampKind gvLampKinds[eLampKind_LastEnum] = {
 	{{0.94f, 1.00f, 1.08f},	0, 0,			0,		0.7f, 0.42f},
 	// Tunnel lights: blue-white already
 	{{0.92f, 1.00f, 1.06f},	0, 0,			0,		0, 0},
+	// A light of the map: what it stands for is not known, its colour stays
+	{{1.00f, 1.00f, 1.00f},	0, 0,			0,		0, 0},
 };
 
 // The kind is in the name of the entity's file. "flour" is the data's
@@ -200,7 +203,16 @@ void cLampLooks::Update(float afTimeStep)
 		const cMatrixf *pEntityMtx = nullptr;
 		if(pEntity->GetMeshEntity()) pEntityMtx = &pEntity->GetMeshEntity()->GetWorldMatrix();
 		for(int i=0; i<pEntity->GetLightNum(); ++i)
-			SetLook(pEntity->GetLight(i), kind, pEntityMtx);
+			SetLook(pEntity->GetLight(i), kind, pEntityMtx, true);
+	}
+
+	///////////////////////////////////////
+	// The lights that are part of the map
+	cLight3DListIterator lightIt = mpInit->mpGame->GetScene()->GetWorld3D()->GetLightIterator();
+	while(lightIt.HasNext())
+	{
+		iLight3D *pLight = lightIt.Next();
+		if(pLight->IsPartOfMap()) SetMapLightLook(pLight);
 	}
 
 	///////////////////////////////////////
@@ -211,7 +223,7 @@ void cLampLooks::Update(float afTimeStep)
 	{
 		iHudModel *pModel = mpInit->mpPlayerHands->GetModel(hand.msModel);
 		if(pModel==nullptr) continue;
-		for(iLight3D *pLight : pModel->mvLights) SetLook(pLight, hand.mKind, nullptr);
+		for(iLight3D *pLight : pModel->mvLights) SetLook(pLight, hand.mKind, nullptr, true);
 	}
 
 	mbApplied = mSettings.mbImproved;
@@ -225,7 +237,35 @@ void cLampLooks::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
-void cLampLooks::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx)
+// Nothing in a map says what a light of its own stands for: a lamp of the
+// static geometry, light from a window, a fill for a dark corner. They
+// get the falloff by distance, which is what makes the lamps next to them
+// look different, unless they reach so far that they are the sky or a
+// whole cave, or have a falloff picture of their own. The furnace's
+// lights are flames. Sparks and lights that scripts flash are left alone.
+void cLampLooks::SetMapLightLook(iLight3D *apLight)
+{
+	const float kfLongestReach = 20.0f;
+
+	tString sName = cString::ToLowerCase(apLight->GetName());
+	bool bSkip = mSettings.mbMapLights==false ||
+				sName.find("spark") != tString::npos || sName.find("broke") != tString::npos;
+	if(bSkip)
+	{
+		apLight->SetLook(cLightLook());
+		return;
+	}
+
+	iTexture *pFalloff = apLight->GetFalloffMap();
+	bool bFalloff =	apLight->GetFarAttenuation() <= kfLongestReach &&
+					(pFalloff==nullptr || pFalloff->GetName().find("core_falloff_linear") != tString::npos);
+
+	SetLook(apLight, sName.find("furn") != tString::npos ? eLampKind_Flame : eLampKind_MapLight, nullptr, bFalloff);
+}
+
+//-----------------------------------------------------------------------
+
+void cLampLooks::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff)
 {
 	cLightLook look;
 	if(mSettings.mbImproved==false)
@@ -246,7 +286,7 @@ void cLampLooks::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntity
 
 	///////////////////////////////////////
 	// Falloff
-	if(mSettings.mbFalloff)
+	if(mSettings.mbFalloff && abFalloff)
 	{
 		look.mbDistanceFalloff = true;
 		look.mfEvenAt = mSettings.mfEvenAt;

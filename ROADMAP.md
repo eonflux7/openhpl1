@@ -42,35 +42,39 @@ Make sure nothing regressed before changing anything.
         noise filter, image trail, bloom quad) cover the whole width
   - [x] fix hard-coded 800/600/400/300 coordinates and mouse clamps
         (inventory, notebook, numerical panel, death menu, crosshair)
-  - [ ] play-test at 16:9: intro story, death menu, numerical panel and
+  - [x] play-test at 16:9: intro story, death menu, numerical panel and
         interact mode were not covered by the screenshot checks
   - [ ] decide whether the menu and logo screens should fill the sides (they
         are 4:3 art, shown centred with black borders)
 - [x] FOV option (vertical FOV, 70° by default; 3D is already Hor+)
-  - [ ] play-test: the hiding and enemy-close effects, the save effect and
+  - [x] play-test: the hiding and enemy-close effects, the save effect and
         held items at angles other than 70° were not looked at
 - [x] Mouse sensitivity independent of resolution (anchored to the speed at
       1440 pixels of height)
 - [x] Gamma reimplemented as a final shader pass
-  - [ ] play-test: change it in the options menu on a real display; only
+  - [x] play-test: change it in the options menu on a real display; only
         checked with frame dumps of values set in `settings.cfg`
 - [x] Uncapped / high-refresh frame rate with interpolated rendering (logic
       stays at its fixed rate)
-  - [ ] play-test on a high-refresh display: only checked headless (camera
+  - [x] play-test on a high-refresh display: only checked headless (camera
         path logged per frame, same end state as with the limit, smoke test)
   - [ ] blend skeletal animations and particles
   - [ ] a frame rate cap for when V-Sync is off
   - [ ] the main loop spins while it waits for the next step
 - [x] Display, window mode and V-Sync options for SDL3 in the menu
-  - [ ] play-test on a real desktop: only checked under a headless gamescope
+  - [x] play-test on a real desktop: only checked under a headless gamescope
         session, which has one display; switching display, fullscreen and
         resolution and restarting was not tried
   - [ ] apply them without a restart
 - [x] **Fonts** rendered from TrueType files at screen resolution, with real
       outline and glow (see CHANGES)
-  - [ ] play-test: notebook notes and task list (`cour.fnt`), credits,
-        inventory texts and non-English text were not covered by the
-        screenshot checks
+  - [x] play-test: credits, inventory texts and non-English text were not
+        covered by the screenshot checks
+  - [x] a font between handwriting and typewriter for the text on paper, and
+        a pixel font for the computer text
+    - [x] play-test: only the notebook pages and the pre-menu text were
+          checked (headless, 720p to 1440p); the intro text with its outline
+          and the map load text were not
 - [ ] High-DPI and upscaled UI assets (cursor, inventory, notebook, menu art)
 - [ ] Gamepad support (stretch)
 
@@ -184,7 +188,7 @@ and specular all have to be tuned again if the lighting under them changes.
         glow 1.45 are the defaults. Shadows may move them
   - [x] particles, alpha materials and fog cover as much as in the
         original (blend match)
-  - [ ] play-test the blend match and the halos again
+  - [x] play-test the blend match and the halos again
   - [ ] sRGB texture formats, for filtering on linear values. Small gain;
         only if it shows
   - energy-conserving specular: moved to Milestone 5
@@ -251,7 +255,7 @@ and specular all have to be tuned again if the lighting under them changes.
           Advanced Graphics, off by default), laid out after MXAO: depth in
           tiles, a 4x4 pattern and filter, half rate; settings in the F2
           panel
-    - [ ] play-test: radius, strength and "less in light"
+    - [x] play-test: radius, strength and "less in light"
     - [x] half rate ghosts when moving fast and in some scenes: off by
           default
     - [ ] if it should cost less: one filter look-up per 2x2 pixels
@@ -261,14 +265,14 @@ and specular all have to be tuned again if the lighting under them changes.
     - [x] Bokeh as a third setting of Depth of Field, Camera as a third
           setting of Motion Blur; settings in the F2 panel's Lens and film
           window
-    - [ ] play-test: blur radius and rings; shutter, longest blur and
+    - [x] play-test: blur radius and rings; shutter, longest blur and
           whether what is held in the hand stays sharp (the 0.6 m limit)
     - [ ] things that move by themselves are not blurred by Camera: a
           velocity buffer, if that is missed
-  - [ ] Film grain shader replacing the tiled noise-filter sprites
+  - [x] Film grain shader replacing the tiled noise-filter sprites
     - [x] Grain and Film Grain (grains of crystals that develop or not) as
           further settings of Noise Filter, under the HUD
-    - [ ] play-test: strength, size and colour of both
+    - [x] play-test: strength, size and colour of both
   - [ ] Refraction: works (acid water in four level 1 maps) but is off by
         default and has no menu option (`Refractions` in `settings.cfg`)
   - shaders of their own for the materials that set a texture
@@ -307,7 +311,8 @@ the normal map's alpha, 160 have no normal map at all.
   - [x] play-test: looks right with linear lighting and ambient occlusion
         on; the defaults stay (reflectance 0.1, roughness 0.6 to 0.45,
         ambient 0.3 from above, 0.4 towards the viewer, sheen 0.25)
-  - [ ] a menu option (the Advanced Graphics page is full)
+  - [x] a menu option: Options, Graphics, Lighting (a page of its own,
+        the Advanced Graphics page is full)
   - [ ] gloss per material as an attribute in the material file, for what
         the specular map guesses wrong
 - [ ] **2. Flashlight** (Flashlight: Original / Improved, in the same
@@ -325,7 +330,7 @@ the normal map's alpha, 160 have no normal map at all.
         seeing a little further than the original allows
   - [x] play-test: looks good, with the glow stick, the flare and the
         lamps of step 3
-  - [ ] a menu option
+  - [x] a menu option, on the Lighting page
 - [ ] **3. Glow stick, flare and the lamps of the world** (Lamps: Original
       / Improved, in the same window). The kind of lamp is read from the
       name of its entity file; nothing in the data is changed:
@@ -340,15 +345,32 @@ the normal map's alpha, 160 have no normal map at all.
   - [x] tube lights for the fluorescents: long highlights (with Shading:
         Improved)
   - [x] play-test: looks good; the defaults stay
-  - [ ] the halo of a flame flickering with it
-  - [ ] lights that are part of the maps and not of a lamp entity
-  - [ ] a menu option
+  - [x] the halo of a flame flickering with it: a light's halos take its
+        look's tint and brightness
+  - [x] lights that are part of the maps and not of a lamp entity (56):
+        the falloff by distance for those that reach 20 m at most and
+        have no falloff picture of their own; the furnace's lights are
+        flames; colours stay, since nothing says what kind they are
+  - [x] a menu option, on the Lighting page
+  - [x] play-test of the halos, the lights of the maps and the menu
+        page: all good
 - [ ] **4. Later, in any order:**
+  - [x] halos drawn by a shader (options, off by default): the glow from
+        the shape of the halo's picture, without its steps; hidden by
+        what is in front of the lamp as read from the depth buffer
+  - [x] light shafts as bodies of lit air in place of flat sheets: soft
+        where they meet the scene, right from every side
+  - [x] particles: soft where they meet the scene and close to the eye;
+        smoke, mist, dust and snow lit by the lights around them
+  - [x] play-test of the three
+  - [ ] particles, later: shadows on them (the flashlight's shadow map),
+        detail from the shader for the 64 pixel pictures, stretch by speed
+        and swirling for smoke
   - [ ] the flashlight's beam seen in the air (the cone marched through its
         shadow map)
-  - [ ] particles and see-through materials lit by the lights; shaders of
-        their own in place of the generated fixed-function ones (from
-        Milestone 4)
+  - [ ] see-through materials other than particles lit by the lights;
+        shaders of their own in place of the generated fixed-function ones
+        (from Milestone 4)
   - [ ] water and the environment map material (3 materials)
 
 ## Later / ideas

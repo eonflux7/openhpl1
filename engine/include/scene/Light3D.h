@@ -141,6 +141,10 @@ namespace hpl {
 		void SetAllStaticCastersAdded(bool abX){ mbStaticCasterAdded = abX;}
 		bool AllStaticCastersAdded(){ return mbStaticCasterAdded;}
 
+		/// A light that the map file itself has, not one of an entity or made by the game.
+		void SetPartOfMap(bool abX){ mbPartOfMap = abX;}
+		bool IsPartOfMap(){ return mbPartOfMap;}
+
 		eLight3DType GetLightType(){ return mLightType;}
 
 		//iEntity implementation
@@ -212,6 +216,7 @@ namespace hpl {
 		tCasterCacheSet m_setDynamicCasters;
 
 		bool mbStaticCasterAdded;
+		bool mbPartOfMap;
 
 		bool mbOnlyAffectInInSector;
 

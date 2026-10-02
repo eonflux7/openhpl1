@@ -593,6 +593,22 @@ bool cInit::Init(tString asCommandLine)
 		mpGame->GetGraphics()->GetLowLevel()->SetShading(shading);
 	}
 
+	{
+		// The defaults are the settings' own
+		cEffectSettings effects;
+		effects.mbHalos = mpConfig->GetBool("Graphics","HalosImproved",effects.mbHalos);
+		effects.mfHaloBrightness = mpConfig->GetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
+		effects.mfHaloStreaks = mpConfig->GetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
+		effects.mbShafts = mpConfig->GetBool("Graphics","ShaftsImproved",effects.mbShafts);
+		effects.mfShaftBrightness = mpConfig->GetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
+		effects.mfShaftDust = mpConfig->GetFloat("Graphics","ShaftDust",effects.mfShaftDust);
+		effects.mbParticles = mpConfig->GetBool("Graphics","ParticlesImproved",effects.mbParticles);
+		effects.mfParticleSoft = mpConfig->GetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
+		effects.mfParticleLight = mpConfig->GetFloat("Graphics","ParticleLight",effects.mfParticleLight);
+		effects.mfParticleDark = mpConfig->GetFloat("Graphics","ParticleDark",effects.mfParticleDark);
+		mpGame->GetGraphics()->GetLowLevel()->SetEffects(effects);
+	}
+
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
@@ -677,6 +693,7 @@ bool cInit::Init(tString asCommandLine)
 		lamps.mfEvenAt = mpConfig->GetFloat("Graphics","LampsEvenAt",lamps.mfEvenAt);
 		lamps.mfNearBoost = mpConfig->GetFloat("Graphics","LampsNearBoost",lamps.mfNearBoost);
 		lamps.mfTube = mpConfig->GetFloat("Graphics","LampsTube",lamps.mfTube);
+		lamps.mbMapLights = mpConfig->GetBool("Graphics","LampsMapLights",lamps.mbMapLights);
 		mpLampLooks->SetSettings(lamps);
 	}
 	mpMapLoadText = hplNew( cMapLoadText,(this) );
@@ -925,6 +942,7 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","LampsEvenAt",lamps.mfEvenAt);
 		mpConfig->SetFloat("Graphics","LampsNearBoost",lamps.mfNearBoost);
 		mpConfig->SetFloat("Graphics","LampsTube",lamps.mfTube);
+		mpConfig->SetBool("Graphics","LampsMapLights",lamps.mbMapLights);
 	}
 
 	// PLAYER EXIT /////////////////////
@@ -1077,6 +1095,20 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","ShadingAmbientUp",shading.mfAmbientUp);
 		mpConfig->SetFloat("Graphics","ShadingAmbientFacing",shading.mfAmbientFacing);
 		mpConfig->SetFloat("Graphics","ShadingAmbientSheen",shading.mfAmbientSheen);
+	}
+
+	{
+		const cEffectSettings &effects = mpGame->GetGraphics()->GetLowLevel()->GetEffects();
+		mpConfig->SetBool("Graphics","HalosImproved",effects.mbHalos);
+		mpConfig->SetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
+		mpConfig->SetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
+		mpConfig->SetBool("Graphics","ShaftsImproved",effects.mbShafts);
+		mpConfig->SetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
+		mpConfig->SetFloat("Graphics","ShaftDust",effects.mfShaftDust);
+		mpConfig->SetBool("Graphics","ParticlesImproved",effects.mbParticles);
+		mpConfig->SetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
+		mpConfig->SetFloat("Graphics","ParticleLight",effects.mfParticleLight);
+		mpConfig->SetFloat("Graphics","ParticleDark",effects.mfParticleDark);
 	}
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);

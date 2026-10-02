@@ -50,6 +50,8 @@ public:
 	float mfNearBoost = 2.5f;
 	/// Fluorescents: the length of their highlights, in times the tube's. 0: a point, as in the original.
 	float mfTube = 1.0f;
+	/// The lights that are part of the maps get the falloff too, and the flames among them waver.
+	bool mbMapLights = true;
 };
 
 //----------------------------------------
@@ -57,8 +59,9 @@ public:
 /**
  * Gives the lights of lamp entities and of the hand-held glow stick and
  * flare their look (cLightLook), each step: by the kind of lamp, which is
- * read from the entity's file name. The game data is not changed, and
- * lights of other entities and of the maps are left alone.
+ * read from the entity's file name. The lights that are part of a map get
+ * the falloff by distance, and the furnace's the flame. The game data is
+ * not changed, and lights of other entities are left alone.
  */
 class cLampLooks : public iUpdateable
 {
@@ -80,7 +83,8 @@ public:
 	int GetLampCount(){ return mlLampCount; }
 
 private:
-	void SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx);
+	void SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff);
+	void SetMapLightLook(iLight3D *apLight);
 
 	cInit *mpInit;
 
