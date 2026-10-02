@@ -151,8 +151,8 @@ namespace hpl {
 		for(int i=0; i < (int)mvVtxBonePairs.size(); i++)
 		{
 			cVertexBonePair &Pair = mvVtxBonePairs[i];
-			if(Pair.vtxIdx < 0 || Pair.vtxIdx >= mpVtxBuffer->GetVertexNum() ||
-				Pair.boneIdx < 0 || Pair.boneIdx > std::numeric_limits<unsigned char>::max() ||
+			if(Pair.vtxIdx >= static_cast<unsigned int>(mpVtxBuffer->GetVertexNum()) ||
+				Pair.boneIdx > std::numeric_limits<unsigned char>::max() ||
 				!std::isfinite(Pair.weight) || Pair.weight < 0)
 			{
 				Warning("Invalid bone influence in sub mesh '%s'!\n", GetName().c_str());
