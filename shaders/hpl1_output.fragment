@@ -2,16 +2,27 @@
 
 // Turns the finished scene into the 8-bit output picture: tex0 is the
 // scene colour (floating point, at the render size), scaled to the window
-// by the texture filter. With linear lighting (linearScene = 1) the scene
-// holds linear values, which are scaled by the exposure, tonemapped and
-// converted to screen values here. Adding noise of half a step before the conversion to
-// 8 bits breaks up banding in smooth gradients; colours that are exact 8-bit
-// values stay the same.
+// here. With linear lighting (tonemap.x = 1) the scene holds linear values,
+// which are scaled by the exposure, tonemapped and converted to screen
+// values. Then the grain, if any, on the screen values. Adding noise of
+// half a step before the conversion to 8 bits breaks up banding in smooth
+// gradients; colours that are exact 8-bit values stay the same.
+//
+// With ENCODE_ONLY the scene is only converted to screen values, pixel for
+// pixel: the picture that SMAA works on (hpl1_SMAA.fragment), which then
+// comes here as screen values to be scaled and to get its grain.
 uniform sampler2D tex0;
-uniform vec2 invOutputSize;
-uniform float linearScene;
-uniform float exposure;
-uniform vec2 tonemap; // x: where the shoulder starts, y: the light that becomes white
+uniform vec4 sceneSize; // xy: the scene's size in pixels, zw: 1 / that
+uniform vec4 invOutputSize; // xy: 1 / the output's size in pixels
+// x: 1 if the scene holds linear values, y: the exposure, z: where the
+// shoulder starts, w: the light that becomes white
+uniform vec4 tonemap;
+// x: 0 none, 1 noise, 2 film; y: strength; z: size of a grain in pixels;
+// w: a number that changes when the grain does
+uniform vec4 grain;
+// x: 0 grey to 1 coloured; y, z: the share dark and bright parts get;
+// w: film: how much the grains differ in size
+uniform vec4 grainTone;
 
 OUTPUT
 
@@ -28,20 +39,223 @@ float Noise(vec2 avPos)
 // as they do when they clip, but gradually.
 vec3 Tonemap(vec3 avColor)
 {
-    float shoulder = tonemap.x;
+    float shoulder = tonemap.z;
     if(shoulder > 0.999) return avColor;
 
     float range = 1.0 - shoulder;
-    float white = max((tonemap.y - shoulder) / range, 1.0);
+    float white = max((tonemap.w - shoulder) / range, 1.0);
     vec3 over = max(avColor - shoulder, 0.0) / range;
     vec3 curve = over * (1.0 + over / (white * white)) / (1.0 + over);
     return min(avColor, shoulder) + curve * range;
 }
 
+// Four random numbers from four whole ones (Jarzynski, Olano: Hash
+// Functions for GPU Rendering, 2020: pcg4d).
+uvec4 Hash(uvec4 v)
+{
+    v = v * 1664525u + 1013904223u;
+    v.x += v.y * v.w; v.y += v.z * v.x; v.z += v.x * v.y; v.w += v.y * v.z;
+    v ^= v >> 16u;
+    v.x += v.y * v.w; v.y += v.z * v.x; v.z += v.x * v.y; v.w += v.y * v.z;
+    return v;
+}
+
+uvec4 CellHash(ivec2 avCell, uint alLayer)
+{
+    return Hash(uvec4(uvec2(avCell), uint(grain.w), alLayer));
+}
+
+// Noise for one cell: red, green, blue and grey, each around 0 and of the
+// same spread (1), no two of them moving together.
+vec4 CellNoise(ivec2 avCell)
+{
+    vec4 r = vec4(CellHash(avCell, 0u)) * (1.0 / 4294967296.0);
+    return vec4(vec3(r.x + r.y - 1.0, r.z + r.w - 1.0, r.x - r.y) * 2.449,
+                (r.z - r.w) * 2.449);
+}
+
+// Plain grain: noise in cells of the grain's size, each pixel a blend of
+// the four cells around it.
+vec3 NoiseGrain(vec2 avPos)
+{
+    vec4 noise;
+    if(grain.z <= 1.0)
+    {
+        noise = CellNoise(ivec2(avPos));
+    }
+    else
+    {
+        vec2 at = avPos / grain.z - 0.5;
+        ivec2 cell = ivec2(floor(at));
+        vec2 f = at - vec2(cell);
+        // Smoother than a straight blend, which shows the cells' grid
+        f = f * f * (3.0 - 2.0 * f);
+        vec4 w = vec4((1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y);
+        noise = CellNoise(cell) * w.x + CellNoise(cell + ivec2(1, 0)) * w.y +
+                CellNoise(cell + ivec2(0, 1)) * w.z + CellNoise(cell + ivec2(1, 1)) * w.w;
+        // A blend of four is less spread than one
+        noise *= inversesqrt(dot(w, w));
+    }
+    return mix(noise.aaa, noise.rgb, grainTone.x) * 0.04;
+}
+
+// Grain as film has it. The picture is taken as made of grains scattered
+// over it, a little larger than a pixel, that overlap, each a clump of a
+// few crystals. A crystal either developed or did not: it has a threshold
+// of its own, drawn at random, and is developed where the picture is
+// brighter than that. A pixel shows the share of the crystals over it that
+// are developed, which is on average the picture's own value, and returned
+// is how far it is from that. So there is no grain in black or in white
+// and most in between, dark parts have faint bright specks and bright parts
+// dark ones, and as the brightness rises over a surface the same crystals
+// come on one by one (the binomial model of film grain; compare Newson,
+// Delon, Galerne: A Stochastic Film Grain Model for Resolution-Independent
+// Rendering, 2017). Colour film has crystals for red, green and blue, four
+// of each in a grain; grey film takes all twelve for the brightness.
+vec4 Thresholds(uint alBits)
+{
+    return (vec4((uvec4(alBits) >> uvec4(0u, 8u, 16u, 24u)) & 0xffu) + 0.5) * (1.0 / 256.0);
+}
+
+vec3 FilmGrain(vec2 avPos, vec3 avColor)
+{
+    vec4 value = clamp(vec4(avColor, dot(avColor, vec3(0.3, 0.58, 0.12))), 0.0, 1.0);
+
+    vec4 developed = vec4(0.0);
+    float total = 0.0;
+    // Two layers of cells with a grain in each, shifted against each
+    // other so that the cells do not show. A grain lies in the middle
+    // half of its cell and reaches no further than three quarters of a
+    // cell, so only the four cells nearest to the pixel can cover it.
+    for(uint layer = 0u; layer < 2u; ++layer)
+    {
+        vec2 at = avPos / grain.z + float(layer) * vec2(0.5, 0.5);
+        ivec2 cell = ivec2(floor(at));
+        vec2 f = at - vec2(cell);
+        ivec2 next = ivec2(step(0.5, f)) * 2 - 1;
+
+        for(int i = 0; i < 4; ++i)
+        {
+            ivec2 shift = ivec2(i & 1, i >> 1) * next;
+            uvec4 h = CellHash(cell + shift, layer + 1u);
+
+            vec2 place = 0.25 + vec2(h.x & 0xfffu, (h.x >> 12u) & 0xfffu) * (0.5 / 4096.0);
+            float size = 0.6 * (1.0 + grainTone.w * (float(h.x >> 24u) * (0.5 / 255.0) - 0.25));
+            vec2 delta = (vec2(shift) + place - f) / size;
+            float cover = max(1.0 - dot(delta, delta), 0.0);
+            if(cover <= 0.0) continue;
+            cover *= cover;
+
+            vec4 first = Thresholds(h.y), second = Thresholds(h.z), third = Thresholds(h.w);
+            vec4 grey = step(first, value.aaaa) + step(second, value.aaaa) + step(third, value.aaaa);
+            developed += cover * vec4(dot(step(first, value.rrrr), vec4(0.25)),
+                                      dot(step(second, value.gggg), vec4(0.25)),
+                                      dot(step(third, value.bbbb), vec4(0.25)),
+                                      dot(grey, vec4(1.0 / 12.0)));
+            total += cover;
+        }
+    }
+    if(total <= 0.0) return vec3(0.0);
+
+    vec4 off = developed / total - value;
+    // A colour has a third of the crystals the brightness has, and so
+    // more grain: brought to the same strength.
+    return mix(off.aaa, off.rgb * 0.577, grainTone.x);
+}
+
+// A scene larger than the output (up to twice): each of the output's
+// pixels is the average of the part of the scene it covers, every pixel of
+// the scene counted by the share of it that lies inside. avPos is the
+// middle of that part and avScale its size, in pixels of the scene.
+vec3 SceneAverage(vec2 avPos, vec2 avScale)
+{
+    vec2 low = avPos - 0.5 * avScale, high = avPos + 0.5 * avScale;
+    ivec2 first = ivec2(floor(low));
+    ivec2 last = ivec2(sceneSize.xy) - 1;
+
+    vec3 sum = vec3(0.0);
+    for(int y = 0; y < 3; ++y)
+    {
+        float edge = float(first.y + y);
+        float shareY = max(min(high.y, edge + 1.0) - max(low.y, edge), 0.0);
+        for(int x = 0; x < 3; ++x)
+        {
+            edge = float(first.x + x);
+            float shareX = max(min(high.x, edge + 1.0) - max(low.x, edge), 0.0);
+            sum += texelFetch(tex0, min(first + ivec2(x, y), last), 0).rgb * (shareX * shareY);
+        }
+    }
+    return sum / (avScale.x * avScale.y);
+}
+
+// A scene smaller than the output: a curve through four of the scene's
+// pixels each way (Catmull-Rom), which keeps edges sharper than the
+// straight blend of the nearest two. The two in the middle are fetched as
+// one filtered look-up, so it is nine look-ups and not sixteen.
+vec3 SceneCurve(vec2 avPos)
+{
+    vec2 middle = floor(avPos - 0.5) + 0.5;
+    vec2 f = avPos - middle;
+    vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+    vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+    vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+    vec2 w3 = f * f * (-0.5 + 0.5 * f);
+    vec2 w12 = w1 + w2;
+
+    vec2 uv0 = (middle - 1.0) * sceneSize.zw;
+    vec2 uv12 = (middle + w2 / w12) * sceneSize.zw;
+    vec2 uv3 = (middle + 2.0) * sceneSize.zw;
+
+    vec3 sum =
+        (textureLod(tex0, vec2(uv0.x, uv0.y), 0.0).rgb * w0.x +
+         textureLod(tex0, vec2(uv12.x, uv0.y), 0.0).rgb * w12.x +
+         textureLod(tex0, vec2(uv3.x, uv0.y), 0.0).rgb * w3.x) * w0.y +
+        (textureLod(tex0, vec2(uv0.x, uv12.y), 0.0).rgb * w0.x +
+         textureLod(tex0, vec2(uv12.x, uv12.y), 0.0).rgb * w12.x +
+         textureLod(tex0, vec2(uv3.x, uv12.y), 0.0).rgb * w3.x) * w12.y +
+        (textureLod(tex0, vec2(uv0.x, uv3.y), 0.0).rgb * w0.x +
+         textureLod(tex0, vec2(uv12.x, uv3.y), 0.0).rgb * w12.x +
+         textureLod(tex0, vec2(uv3.x, uv3.y), 0.0).rgb * w3.x) * w3.y;
+    // The curve can dip under black next to something bright
+    return max(sum, 0.0);
+}
+
+// The scene at this pixel of the output.
+vec3 SceneColor()
+{
+    vec2 scale = sceneSize.xy * invOutputSize.xy;
+    if(abs(scale.x - 1.0) < 0.001 && abs(scale.y - 1.0) < 0.001)
+        return texelFetch(tex0, ivec2(gl_FragCoord.xy), 0).rgb;
+
+    vec2 pos = gl_FragCoord.xy * scale;
+    return scale.x > 1.0 ? SceneAverage(pos, min(scale, 2.0)) : SceneCurve(pos);
+}
+
+#ifdef ENCODE_ONLY
+
 void main()
 {
-    vec3 color = texture(tex0, gl_FragCoord.xy * invOutputSize).rgb;
-    if(linearScene > 0.5) color = pow(Tonemap(max(color, 0.0) * exposure), vec3(1.0 / 2.2));
+    vec3 color = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0).rgb;
+    if(tonemap.x > 0.5) color = pow(Tonemap(max(color, 0.0) * tonemap.y), vec3(1.0 / 2.2));
+    outColor = vec4(color, 1.0);
+}
+
+#else
+
+void main()
+{
+    vec3 color = SceneColor();
+    if(tonemap.x > 0.5) color = pow(Tonemap(max(color, 0.0) * tonemap.y), vec3(1.0 / 2.2));
+    if(grain.x > 0.5)
+    {
+        color = clamp(color, 0.0, 1.0);
+        float luma = dot(color, vec3(0.3, 0.58, 0.12));
+        float share = mix(grainTone.y, grainTone.z, smoothstep(0.0, 1.0, luma));
+        vec3 off = grain.x > 1.5 ? FilmGrain(gl_FragCoord.xy, color) : NoiseGrain(gl_FragCoord.xy);
+        color += off * (grain.y * share);
+    }
     color += (Noise(gl_FragCoord.xy) - 0.5) / 255.0;
     outColor = vec4(color, 1.0);
 }
+
+#endif

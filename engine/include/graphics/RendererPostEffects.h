@@ -88,8 +88,9 @@ namespace hpl {
 		/// Only every other pixel is searched in a frame, in turns; the
 		/// others keep what they had from the frame before. Half the cost,
 		/// and the occlusion of what moves across the screen trails by a
-		/// frame in half of its pixels.
-		bool mbHalfRate = true;
+		/// frame in half of its pixels: seen as ghosting in play, so off
+		/// unless asked for.
+		bool mbHalfRate = false;
 		/// How far from a point things keep light from it.
 		float mfRadius = 0.6f;
 		/// If not 0, the radius is this share of the picture's height at
@@ -132,6 +133,65 @@ namespace hpl {
 			static const int vSamples[klQualityNum][2] = {{2,2}, {2,4}, {3,6}, {4,10}, {6,16}};
 			return vSamples[alQuality];
 		}
+	};
+
+	enum eDepthOfFieldType
+	{
+		/// The scene blended with a small blurred copy of it, object by object: the original.
+		eDepthOfFieldType_Original,
+		/// Every pixel spread over a disc as wide as it is out of focus, from the depth buffer.
+		eDepthOfFieldType_Bokeh,
+		eDepthOfFieldType_LastEnum
+	};
+
+	/**
+	 * How the depth of field is drawn. What is in focus is the game's to
+	 * say (SetDepthOfFieldFocalPlane() and the others).
+	 */
+	class cDepthOfFieldSettings
+	{
+	public:
+		/// Bokeh: the radius of the blur of what is fully out of focus, as
+		/// a share of the picture's height.
+		float mfRadius = 0.012f;
+		/// Bokeh: rings of samples around a pixel, 1 to 5. More: smoother
+		/// discs, and the cost grows with their square.
+		int mlRings = 3;
+
+		//Debug
+		/// The depth of field is on, focused as set here, whatever the
+		/// game says.
+		bool mbTest = false;
+		/// The distance in focus, and how far from it the blur is full.
+		float mfTestFocus = 2.0f;
+		float mfTestRange = 1.5f;
+	};
+
+	enum eMotionBlurType
+	{
+		/// Every object drawn again, smeared from where it was the frame before: the original.
+		eMotionBlurType_Original,
+		/// The camera's own movement, from the depth buffer, in one pass.
+		eMotionBlurType_Camera,
+		eMotionBlurType_LastEnum
+	};
+
+	/**
+	 * How the camera motion blur (eMotionBlurType_Camera) is drawn.
+	 */
+	class cMotionBlurSettings
+	{
+	public:
+		/// How long the shutter is open, in seconds: the picture is
+		/// blurred over the way it moves in that time, at any frame rate.
+		float mfShutterTime = 1.0f / 120.0f;
+		/// The longest blur, as a share of the picture's height.
+		float mfMaxLength = 0.04f;
+		/// Samples along the blur, 2 to 32.
+		int mlSamples = 8;
+		/// What is nearer than this, in metres, is not blurred: what the
+		/// player holds moves with the camera.
+		float mfNearLimit = 0.6f;
 	};
 
 	class cImageTrailEffect
@@ -198,6 +258,11 @@ namespace hpl {
 		void SetMotionBlurAmount(float afX){ mfMotionBlurAmount = afX;}
 		float GetMotionBlurAmount(){ return mfMotionBlurAmount;}
 
+		void SetMotionBlurType(eMotionBlurType aType);
+		eMotionBlurType GetMotionBlurType(){ return mMotionBlurType;}
+		void SetMotionBlurSettings(const cMotionBlurSettings& aSettings){ mMotionBlurSettings = aSettings;}
+		const cMotionBlurSettings& GetMotionBlurSettings(){ return mMotionBlurSettings;}
+
 		void SetDepthOfFieldActive(bool abX){ mbDofActive = abX;}
 		void SetDepthOfFieldMaxBlur(float afX){ mfDofMaxBlur = afX;}
 		void SetDepthOfFieldFocalPlane(float afX){ mfDofFocalPlane = afX;}
@@ -209,6 +274,22 @@ namespace hpl {
 		float GetDepthOfFieldFocalPlane(){ return mfDofFocalPlane;}
 		float GetDepthOfFieldNearPlane(){ return mfDofNearPlane;}
 		float GetDepthOfFieldFarPlane(){ return mfDofFarPlane;}
+
+		void SetDepthOfFieldType(eDepthOfFieldType aType){ mDofType = aType;}
+		eDepthOfFieldType GetDepthOfFieldType(){ return mDofType;}
+		void SetDepthOfFieldSettings(const cDepthOfFieldSettings& aSettings){ mDofSettings = aSettings;}
+		const cDepthOfFieldSettings& GetDepthOfFieldSettings(){ return mDofSettings;}
+
+		/**
+		 * If an effect draws the scene's objects again, as the original
+		 * motion blur and depth of field do: the render list keeps them
+		 * for it then.
+		 */
+		bool GetObjectsNeeded()
+		{
+			return	(mbMotionBlurActive && mMotionBlurType == eMotionBlurType_Original) ||
+					((mbDofActive || mDofSettings.mbTest) && mDofType == eDepthOfFieldType_Original);
+		}
 
 		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];}
 
@@ -237,8 +318,12 @@ eturn false if nothing was drawn
 		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource, bool abRectSource);
 
 		void RenderMotionBlur();
+		void RenderMotionBlurCamera();
 
 		void RenderDepthOfField();
+		void RenderDepthOfFieldBokeh();
+		bool CreateDepthOfFieldTextures();
+		void DrawScreenPass(iTexture *apTarget, iTexture *apSource);
 
 		bool CreateAmbientOcclusionTextures();
 		void DestroyAmbientOcclusionTextures();
@@ -288,6 +373,19 @@ eturn false if nothing was drawn
 		iGpuProgram *mpDepthOfFieldFP;
 		iTexture *mpDofBlurTexture;
 
+		//The camera motion blur
+		iGpuProgram *mpMotionCameraVP;
+		iGpuProgram *mpMotionCameraFP;
+
+		//The bokeh depth of field: its textures are half the render size
+		//and made when first needed.
+		iGpuProgram *mpBokehVP;
+		iGpuProgram *mpBokehPrefilterFP;
+		iGpuProgram *mpBokehGatherFP;
+		iGpuProgram *mpBokehFillFP;
+		iGpuProgram *mpBokehCompositeFP;
+		iTexture *mpBokehTexture[2];
+
 		//Ambient occlusion. The first two textures are in tiles (see the
 		//shader) and as large as the tiles together; the last two are of
 		//the render size. Made when first needed.
@@ -316,12 +414,19 @@ eturn false if nothing was drawn
 		bool mbMotionBlurActive;
 		float mfMotionBlurAmount;
 		bool mbMotionBlurFirstTime;
+		eMotionBlurType mMotionBlurType;
+		cMotionBlurSettings mMotionBlurSettings;
+		//The camera motion blur's frame before: what the camera saw, and when
+		cMatrixf m_mtxMotionBlurPrevViewProj;
+		float mfMotionBlurPrevTime;
 
 		bool mbDofActive;
 		float mfDofMaxBlur;
 		float mfDofFocalPlane;
 		float mfDofNearPlane;
 		float mfDofFarPlane;
+		eDepthOfFieldType mDofType;
+		cDepthOfFieldSettings mDofSettings;
 
 		bool mbActive;
 	};

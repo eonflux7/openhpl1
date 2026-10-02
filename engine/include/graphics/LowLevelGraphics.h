@@ -171,6 +171,8 @@ namespace hpl {
 
 		eGraphicCaps_AnisotropicFiltering,
 		eGraphicCaps_MaxAnisotropicFiltering,
+		/// The most samples SetMultisampling() takes
+		eGraphicCaps_MaxMultisampling,
 
 		eGraphicCaps_LastEnum
 	};
@@ -229,6 +231,133 @@ namespace hpl {
 		float mfWhite = 4.0f;
 	};
 
+	enum eFilmGrain
+	{
+		eFilmGrain_Off,
+		/// Noise added to the picture.
+		eFilmGrain_Noise,
+		/// The picture as made of grains that are developed or not.
+		eFilmGrain_Film,
+		eFilmGrain_LastEnum
+	};
+
+	/**
+	 * The grain laid over the finished 3D scene (hpl1_output.fragment),
+	 * under the 2D drawing.
+	 */
+	class cFilmGrainSettings
+	{
+	public:
+		eFilmGrain mType = eFilmGrain_Off;
+		/// How strong the grain is, 0 to 1. At 1 film grain is what its
+		/// model of twelve crystals to a grain gives.
+		float mfIntensity = 0.25f;
+		/// The size of a grain in pixels of a picture 1080 high; it grows
+		/// with the picture, and is never smaller than a pixel.
+		float mfSize = 1.5f;
+		/// 0: the grain is grey; 1: red, green and blue each have their own.
+		float mfColor = 0.3f;
+		/// How much of the grain the dark and the bright parts get, 0 to 1.
+		float mfShadows = 1.0f;
+		float mfHighlights = 1.0f;
+		/// How often the grain changes, in times a second; 0 is every frame.
+		float mfRate = 24.0f;
+		/// Film only: how much the grains differ in size, 0 to 1.
+		float mfDispersion = 0.5f;
+	};
+
+	/// What SMAA takes for an edge between two pixels.
+	enum eSmaaEdges
+	{
+		/// A difference in brightness.
+		eSmaaEdges_Luma,
+		/// The largest difference of red, green and blue.
+		eSmaaEdges_Color,
+		/// The differences of red, green and blue together, each counted
+		/// by how bright it looks.
+		eSmaaEdges_ColorWeighted,
+		/// A difference in depth alone: the outlines of things, nothing on
+		/// their surfaces.
+		eSmaaEdges_Depth,
+		eSmaaEdges_LastEnum
+	};
+
+	/**
+	 * Anti-aliasing of the finished 3D scene by its edges (SMAA 1x,
+	 * hpl1_SMAA.fragment): where neighbouring pixels differ, the shape of
+	 * the edge is followed along and the pixels on it are blended by how
+	 * much of each the true edge would cover. Works on what multisampling
+	 * does not reach (alpha-tested textures, the edges of shadows) and
+	 * along with it.
+	 */
+	class cSmaaSettings
+	{
+	public:
+		bool mbActive = false;
+		eSmaaEdges mEdges = eSmaaEdges_Color;
+		/// How much two pixels differ where there is an edge, 0.05 to 0.2
+		/// of the range from black to white. Lower finds more, and blurs
+		/// more of what is detail and not an edge.
+		float mfThreshold = 0.1f;
+		/// How far an edge is followed along, in steps of two pixels, 1 to
+		/// 112, and a diagonal one, in pixels, 0 (diagonals are not looked
+		/// for) to 20.
+		int mlSearchSteps = 16;
+		int mlDiagonalSteps = 8;
+		/// How much corners are rounded off, in percent; 100 is as much as
+		/// any other part of an edge.
+		int mlCornerRounding = 25;
+		/**
+		 * The depth helps: where it has an edge of its own (the distance
+		 * differs by more than mfDepthThreshold of itself) the threshold is
+		 * the one above times mfDepthScale times (1 - mfDepthStrength), and
+		 * elsewhere times mfDepthScale. So outlines are found though the
+		 * colours on both sides are close, as they are in the dark.
+		 */
+		bool mbDepthHelp = true;
+		float mfDepthThreshold = 0.03f;
+		float mfDepthScale = 1.0f;
+		float mfDepthStrength = 0.5f;
+		/// Shown in place of the picture: 1 the edges found, 2 the blend weights.
+		int mlShow = 0;
+
+		/// The settings of the reference implementation: low, medium, high, ultra.
+		static const int klQualityNum = 4;
+		/// The quality these settings are, klQualityNum if none.
+		int GetQuality() const
+		{
+			for(int i=0; i<klQualityNum; ++i)
+			{
+				const cSmaaSettings quality = Quality(i);
+				if(	quality.mfThreshold == mfThreshold && quality.mlSearchSteps == mlSearchSteps &&
+					quality.mlDiagonalSteps == mlDiagonalSteps && quality.mlCornerRounding == mlCornerRounding)
+					return i;
+			}
+			return klQualityNum;
+		}
+		void SetQuality(int alQuality)
+		{
+			const cSmaaSettings quality = Quality(alQuality);
+			mfThreshold = quality.mfThreshold;
+			mlSearchSteps = quality.mlSearchSteps;
+			mlDiagonalSteps = quality.mlDiagonalSteps;
+			mlCornerRounding = quality.mlCornerRounding;
+		}
+
+	private:
+		static cSmaaSettings Quality(int alQuality)
+		{
+			static const float vThreshold[klQualityNum] = {0.15f, 0.1f, 0.1f, 0.05f};
+			static const int vSteps[klQualityNum][3] = {{4,0,100}, {8,0,100}, {16,8,25}, {32,16,25}};
+			cSmaaSettings quality;
+			quality.mfThreshold = vThreshold[alQuality];
+			quality.mlSearchSteps = vSteps[alQuality][0];
+			quality.mlDiagonalSteps = vSteps[alQuality][1];
+			quality.mlCornerRounding = vSteps[alQuality][2];
+			return quality;
+		}
+	};
+
 	/**
 	 * What the light shaders need to read the shadow map of the light that
 	 * is drawn. Lengths are in world units (metres); a blur is given as its
@@ -281,7 +410,7 @@ namespace hpl {
 		 * \param alHeight
 		 * \param alBpp
 		 * \param abFullscreen
-		 * \param alMultiSampling The amount of multisamplimg, 0 = off.
+		 * \param alMultiSampling The amount of multisamplimg, 0 = off; see SetMultisampling().
 		 * \param alDisplay The display to open on, see GetDisplayNum(). -1 = pick one.
 		 * \return
 		 */
@@ -321,6 +450,19 @@ namespace hpl {
 
 		virtual int GetMultisampling()=0;
 		/**
+		 * The number of samples a pixel of the 3D scene has, 0 or 1 for
+		 * one. More than the graphics card takes (eGraphicCaps_MaxMultisampling)
+		 * is that many. Not while the scene is drawn.
+		 */
+		virtual void SetMultisampling(int alSamples)=0;
+		/**
+		 * How every texture with mipmaps is filtered: between the two
+		 * nearest mipmaps (trilinear) or from the nearest one alone, and
+		 * with how many samples along a surface seen at a slant (1 is
+		 * none, up to eGraphicCaps_MaxAnisotropicFiltering).
+		 */
+		virtual void SetTextureFilter(eTextureFilter aFilter, float afAnisotropy)=0;
+		/**
 		 * Get Size of screen
 		 * \return
 		 */
@@ -358,9 +500,34 @@ namespace hpl {
 		virtual void SetLinearLightingTuning(const cLinearLightingTuning& aTuning)=0;
 		virtual const cLinearLightingTuning& GetLinearLightingTuning()=0;
 		/**
+		 * The grain over the 3D scene; see cFilmGrainSettings.
+		 */
+		virtual void SetFilmGrain(const cFilmGrainSettings& aSettings)=0;
+		virtual const cFilmGrainSettings& GetFilmGrain()=0;
+		/**
+		 * Anti-aliasing of the finished 3D scene; see cSmaaSettings.
+		 */
+		virtual void SetSmaa(const cSmaaSettings& aSettings)=0;
+		virtual const cSmaaSettings& GetSmaa()=0;
+		/**
 		 * Starts drawing the 3D scene.
 		 */
 		virtual void BeginScene()=0;
+		/**
+		 * With multisampling: from here to EndScene() the scene is drawn
+		 * into with one sample a pixel, each the average of those it had.
+		 * For what is drawn over the whole finished picture, which has
+		 * nothing to gain from more. Screen copies and hpl_SceneDepth
+		 * are of that picture then. EndScene() does it if nobody has.
+		 */
+		virtual void ResolveScene()=0;
+		/**
+		 * With multisampling, shaders read the scene's depth
+		 * (hpl_SceneDepth) from a copy with one sample a pixel: this brings
+		 * it up to date with what has been drawn. Not needed after
+		 * ResolveScene().
+		 */
+		virtual void ResolveSceneDepth()=0;
 		/**
 		 * Ends drawing the 3D scene: it is scaled to the window, and the
 		 * drawing that follows (HUD, menus) goes on top of it.
@@ -385,8 +552,6 @@ namespace hpl {
 		 * \param abX
 		 */
 		virtual void SetVsyncActive(bool abX)=0;
-
-		virtual void SetMultisamplingActive(bool abX)=0;
 
 		virtual void SetGammaCorrection(float afX)=0;
 		virtual float GetGammaCorrection()=0;
@@ -602,6 +767,14 @@ namespace hpl {
 		 * framebuffer)
 		 */
 		virtual void SetRenderTarget(iTexture* pTex)=0;
+
+		/**
+		 * While set, the scene is drawn into without its depth and stencil
+		 * buffer, so that a pass can read the depth (hpl_SceneDepth) of
+		 * the scene it draws over. For the scene itself, not a render
+		 * target; off again when the next scene begins.
+		 */
+		virtual void SetSceneColorOnly(bool abX)=0;
 
 		/**
 		 * All further drawing goes to the depth of a shadow map, cleared:

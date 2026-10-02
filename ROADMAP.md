@@ -223,19 +223,52 @@ and specular all have to be tuned again if the lighting under them changes.
   - [ ] keep the maps of lights where nothing moved, if drawing them every
         frame costs too much
 - **5. The rest**, in any order:
-  - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
+  - [ ] Anti-aliasing and texture filtering
+    - [x] SMAA 1x as an option (Edge Smoothing in Advanced Graphics, off by
+          default): the reference implementation's searches, laid out
+          after iMMERSE's SMAA (settings as uniforms, edges by colour or
+          depth, the depth lowering the threshold); settings in the F2
+          panel
+    - [x] multisampling: resolved once, before the effects that are drawn
+          over the finished scene; changed without a restart, up to 8x;
+          alpha-tested textures get the samples too (alpha to coverage)
+    - [x] texture filter: one option (trilinear, anisotropic 2x to 16x)
+          for every texture, through sampler objects; anisotropic 16x by
+          default
+    - [x] mipmaps: alpha-tested textures keep what they cut out, cube maps
+          have them, Texture Quality averages instead of dropping pixels
+    - [x] Render Scale: an average of the covered pixels above 100%, a
+          sharper curve below
+    - [x] play-test: looks good with anisotropic 16x and 4x multisampling,
+          and with SMAA
+    - [ ] SMAA's pixels with edges gathered by a compute shader, as
+          iMMERSE does (OpenGL 4.3), if the stencil buffer is not enough
+    - [ ] multisampled scenes with linear lighting are averaged before the
+          tonemapping: edges against something brighter than white stay
+          stepped
   - [ ] Ambient occlusion from the depth buffer
     - [x] ground truth ambient occlusion as an option (Ambient Occlusion in
           Advanced Graphics, off by default), laid out after MXAO: depth in
           tiles, a 4x4 pattern and filter, half rate; settings in the F2
           panel
-    - [ ] play-test: radius, strength and "less in light"; whether the
-          shading trails visibly at half rate when the view turns fast
+    - [ ] play-test: radius, strength and "less in light"
+    - [x] half rate ghosts when moving fast and in some scenes: off by
+          default
     - [ ] if it should cost less: one filter look-up per 2x2 pixels
           (texture gather, GL 4), normals made once instead of per tile
   - [ ] Depth of field and camera motion blur from depth. The current
         effects re-render geometry per object.
+    - [x] Bokeh as a third setting of Depth of Field, Camera as a third
+          setting of Motion Blur; settings in the F2 panel's Lens and film
+          window
+    - [ ] play-test: blur radius and rings; shutter, longest blur and
+          whether what is held in the hand stays sharp (the 0.6 m limit)
+    - [ ] things that move by themselves are not blurred by Camera: a
+          velocity buffer, if that is missed
   - [ ] Film grain shader replacing the tiled noise-filter sprites
+    - [x] Grain and Film Grain (grains of crystals that develop or not) as
+          further settings of Noise Filter, under the HUD
+    - [ ] play-test: strength, size and colour of both
   - [ ] Refraction: works (acid water in four level 1 maps) but is off by
         default and has no menu option (`Refractions` in `settings.cfg`)
   - [ ] Shaders of their own for the materials that set a texture

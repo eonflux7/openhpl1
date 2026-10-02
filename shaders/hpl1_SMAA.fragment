@@ -1,0 +1,167 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// Anti-aliasing of the finished scene by its edges
+// (cLowLevelGraphicsSDL::DrawSmaa): SMAA 1x, "Enhanced Subpixel
+// Morphological Antialiasing" (Jimenez, Echevarria, Sousa, Gutierrez 2012).
+// Three passes, each a variant of this file:
+//
+//   EDGES    tex0 is the picture as it is shown (screen values). Marks the
+//            pixels that differ from the one to their left (red) or the one
+//            above (green); the rest is discarded, which leaves the stencil
+//            buffer set only where there is an edge.
+//   WEIGHTS  tex0 holds the edges, tex1 and tex2 the area and search
+//            textures. Follows each edge along to both of its ends, tells
+//            from them and the edges that cross there what shape it is a
+//            step of (a line at a slant, a corner), and looks up how much
+//            of the pixel that shape covers. Drawn only where the stencil
+//            buffer is set.
+//   BLEND    tex0 is the picture, tex1 the weights, tex2 the edges. Each
+//            pixel is blended with the neighbour across its edge by the
+//            weight.
+//
+// The searches, the look-ups and the blend are the reference
+// implementation's (SMAA.hlsl, with its own licence), which takes its
+// settings as constants. Around it this follows how the SMAA of iMMERSE
+// (Pascal Gilcher) is laid out: the settings are uniforms; where the
+// look-ups go is worked out here and not by a vertex shader; edges are
+// found by brightness, by colour (the largest difference or all of them
+// together) or by depth alone; the depth lowers the threshold where it has
+// an edge of its own; and the edges and weights can be shown. Its compute
+// shader, which gathers the pixels with edges to work on them alone, needs
+// OpenGL 4.3: the stencil buffer does that job here.
+//
+// "Left" and "above" are the pixels at x - 1 and y - 1: the picture is
+// worked on upside down, which is all the same to it.
+
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform vec4 smaaMetrics;	// xy: 1 / the picture's size in pixels, zw: its size
+uniform vec4 smaaEdge;		// x: eSmaaEdges, y: threshold, z: depth threshold,
+							// w: 1 shows the edges, 2 the weights
+uniform vec4 smaaSearch;	// x: search steps, y: diagonal steps,
+							// z: corner rounding in percent
+uniform vec4 smaaDepth;		// x: 1 if the depth helps, y: scale, z: strength
+
+#define SMAA_GLSL_3
+#define SMAA_RT_METRICS smaaMetrics
+#define SMAA_THRESHOLD smaaEdge.y
+#define SMAA_MAX_SEARCH_STEPS smaaSearch.x
+#define SMAA_MAX_SEARCH_STEPS_DIAG smaaSearch.y
+#define SMAA_CORNER_ROUNDING smaaSearch.z
+#include "SMAA.hlsl"
+
+OUTPUT
+
+//////////////////////////////////////////////////////////////////////////
+#if defined(EDGES)
+
+#include "hpl1_scene_depth.glsl"
+
+#define FAR_AWAY 10000.0
+
+ivec2 Pixel(ivec2 avPixel)
+{
+	return clamp(avPixel, ivec2(0), ivec2(smaaMetrics.zw) - 1);
+}
+
+vec3 Color(ivec2 avPixel)
+{
+	return texelFetch(tex0, Pixel(avPixel), 0).rgb;
+}
+
+float Distance(ivec2 avPixel)
+{
+	float depth = hpl_SceneDepthAt(Pixel(avPixel));
+	return depth >= 1.0 ? FAR_AWAY : min(hpl_ViewDistance(depth), FAR_AWAY);
+}
+
+// How much two colours differ, 0 to 1.
+float Difference(vec3 a, vec3 b)
+{
+	const vec3 weights = vec3(0.2126, 0.7152, 0.0722);
+	vec3 d = abs(a - b);
+	if(smaaEdge.x < 0.5) return abs(dot(a - b, weights));
+	if(smaaEdge.x > 1.5) return sqrt(dot(d * d, weights));
+	return max(max(d.r, d.g), d.b);
+}
+
+void main()
+{
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+
+	// Where the distance changes by more than a share of itself there is
+	// an outline, whatever the colours on its two sides
+	vec2 depthEdges = vec2(0.0);
+	if(smaaDepth.x > 0.5 || smaaEdge.x > 2.5)
+	{
+		float here = Distance(pixel);
+		vec2 there = vec2(Distance(pixel + ivec2(-1, 0)), Distance(pixel + ivec2(0, -1)));
+		depthEdges = step(smaaEdge.z * min(vec2(here), there), abs(here - there));
+	}
+	if(smaaEdge.x > 2.5)
+	{
+		if(depthEdges.x + depthEdges.y == 0.0) discard;
+		outColor = vec4(depthEdges, 0.0, 1.0);
+		return;
+	}
+
+	vec2 threshold = vec2(smaaEdge.y);
+	if(smaaDepth.x > 0.5) threshold *= smaaDepth.y * (1.0 - smaaDepth.z * depthEdges);
+
+	vec3 color = Color(pixel);
+	vec3 left = Color(pixel + ivec2(-1, 0));
+	vec3 top = Color(pixel + ivec2(0, -1));
+	vec2 delta = vec2(Difference(color, left), Difference(color, top));
+	vec2 edges = step(threshold, delta);
+	if(edges.x + edges.y == 0.0) discard;
+
+	// Next to a much stronger edge a weak one is not seen, and is dropped
+	// (as the reference implementation's SMAAColorEdgeDetectionPS does)
+	vec2 around = vec2(	Difference(color, Color(pixel + ivec2(1, 0))),
+						Difference(color, Color(pixel + ivec2(0, 1))));
+	vec2 beyond = vec2(	Difference(left, Color(pixel + ivec2(-2, 0))),
+						Difference(top, Color(pixel + ivec2(0, -2))));
+	vec2 strongest = max(max(delta, around), beyond);
+	edges *= step(max(strongest.x, strongest.y), SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta);
+
+	outColor = vec4(edges, 0.0, 1.0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#elif defined(WEIGHTS)
+
+void main()
+{
+	vec2 texcoord = gl_FragCoord.xy * smaaMetrics.xy;
+	vec2 pixcoord;
+	vec4 offset[3];
+	SMAABlendingWeightCalculationVS(texcoord, pixcoord, offset);
+	outColor = SMAABlendingWeightCalculationPS(texcoord, pixcoord, offset, tex0, tex1, tex2, vec4(0.0));
+}
+
+//////////////////////////////////////////////////////////////////////////
+#else
+
+void main()
+{
+	vec2 texcoord = gl_FragCoord.xy * smaaMetrics.xy;
+	if(smaaEdge.w > 1.5)
+	{
+		vec4 weights = textureLod(tex1, texcoord, 0.0);
+		outColor = vec4(weights.rgb + weights.a, 1.0);
+		return;
+	}
+	if(smaaEdge.w > 0.5)
+	{
+		outColor = vec4(textureLod(tex2, texcoord, 0.0).rg, 0.0, 1.0);
+		return;
+	}
+
+	vec4 offset;
+	SMAANeighborhoodBlendingVS(texcoord, offset);
+	outColor = vec4(SMAANeighborhoodBlendingPS(texcoord, offset, tex0, tex1).rgb, 1.0);
+}
+
+#endif

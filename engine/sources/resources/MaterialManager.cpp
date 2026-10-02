@@ -24,6 +24,7 @@
 #include "resources/Resources.h"
 #include "graphics/Material.h"
 #include "system/LowLevelSystem.h"
+#include "math/Math.h"
 #include "graphics/MaterialHandler.h"
 #include "tinyxml.h"
 
@@ -45,7 +46,8 @@ namespace hpl {
 		mpResources = apResources;
 
 		mlTextureSizeLevel =0;
-		mTextureFilter = eTextureFilter_Bilinear;
+		// As the low level graphics start out
+		mTextureFilter = eTextureFilter_Trilinear;
 		mfTextureAnisotropy = 1.0f;
 
 		mlIdCounter =0;
@@ -139,51 +141,28 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// The filter is the same for every texture with mipmaps, those of the
+	// materials and all others: iLowLevelGraphics::SetTextureFilter().
 	void cMaterialManager::SetTextureFilter(eTextureFilter aFilter)
 	{
 		if(aFilter == mTextureFilter) return;
 		mTextureFilter = aFilter;
 
-		tResourceHandleMapIt it = m_mapHandleResources.begin();
-		for(; it != m_mapHandleResources.end(); ++it)
-		{
-			iMaterial *pMat = static_cast<iMaterial*>(it->second);
-
-			for(int i=0; i<eMaterialTexture_LastEnum; ++i)
-			{
-				iTexture *pTex = pMat->GetTexture((eMaterialTexture)i);
-				if(pTex)pTex->SetFilter(aFilter);
-			}
-		}
+		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cMaterialManager::SetTextureAnisotropy(float afX)
 	{
-		if(afX <1.0 || mpGraphics->GetLowLevel()->GetCaps(eGraphicCaps_AnisotropicFiltering)==0)
-		{
-			return;
-		}
-		if(afX > (float) mpGraphics->GetLowLevel()->GetCaps(eGraphicCaps_MaxAnisotropicFiltering))
-		{
-			return;
-		}
+		// More than the graphics card does is as much as it does
+		float fMax = (float)mpGraphics->GetLowLevel()->GetCaps(eGraphicCaps_MaxAnisotropicFiltering);
+		afX = cMath::Clamp(afX, 1.0f, cMath::Max(fMax, 1.0f));
 
 		if(mfTextureAnisotropy == afX) return;
 		mfTextureAnisotropy = afX;
 
-		tResourceHandleMapIt it = m_mapHandleResources.begin();
-		for(; it != m_mapHandleResources.end(); ++it)
-		{
-			iMaterial *pMat = static_cast<iMaterial*>(it->second);
-
-			for(int i=0; i<eMaterialTexture_LastEnum; ++i)
-			{
-				iTexture *pTex = pMat->GetTexture((eMaterialTexture)i);
-				if(pTex)pTex->SetAnisotropyDegree(mfTextureAnisotropy);
-			}
-		}
+		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
 
 	//-----------------------------------------------------------------------
@@ -355,8 +334,13 @@ namespace hpl {
 			pTex->SetWrapS(wrap);
 			pTex->SetWrapT(wrap);
 
-			pTex->SetFilter(mTextureFilter);
-			pTex->SetAnisotropyDegree(mfTextureAnisotropy);
+			// What the texture's alpha cuts out stays as large in its
+			// mipmaps (0.6 is the reference of the test, see iRenderState)
+			if(it->mType == eMaterialTexture_Diffuse &&
+				pMat->GetAlphaMode(eMaterialRenderType_Z, 0, nullptr) == eMaterialAlphaMode_Trans)
+			{
+				pTex->KeepAlphaCoverage(0.6f);
+			}
 
 			pMat->SetTexture(pTex,it->mType);
 		}

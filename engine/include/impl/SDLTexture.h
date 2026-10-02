@@ -54,8 +54,7 @@ namespace hpl {
 		void SetGamma(float afGamma) override{}
 		int GetHandle() override{return (int) mvTextureHandles[0];}
 
-		void SetFilter(eTextureFilter aFilter) override;
-		void SetAnisotropyDegree(float afX) override;
+		void KeepAlphaCoverage(float afAlphaRef) override;
 
 		void SetWrapS(eTextureWrap aMode) override;
 		void SetWrapT(eTextureWrap aMode) override;
@@ -75,6 +74,10 @@ namespace hpl {
 
 		unsigned int GetTextureHandle();
 
+		/// The sampler object the texture is read through, see
+		/// cLowLevelGraphicsSDL::GetSampler().
+		GLuint GetSampler();
+
 		/// Stores 16-bit floating point channels instead of 8-bit ones.
 		/// Set before the texture is created.
 		void SetFloat(bool abX){ mbFloat = abX;}
@@ -88,11 +91,16 @@ namespace hpl {
 		void PostCreation(GLenum aGLTarget);
 
 		GLenum GetGLWrap(eTextureWrap aMode);
+		bool HasMipMaps();
+		void SamplerChanged();
 
 		void GetSettings(cSDLBitmap2D* apSrc, int &alChannels, GLenum &aFormat);
 
 		tUIntVec mvTextureHandles;
 		bool mbContainsData;
+		GLuint mlSampler;
+		bool mbSamplerMipMaps;
+		bool mbAlphaCoverageKept;
 		bool mbFloat;
 		int mlFloatChannels;
 		cLowLevelGraphicsSDL* mpGfxSDL;

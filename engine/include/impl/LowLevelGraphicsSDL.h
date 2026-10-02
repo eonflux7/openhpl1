@@ -19,6 +19,9 @@
 #ifndef HPL_LOWLEVELGRAPHICS_SDL_H
 #define HPL_LOWLEVELGRAPHICS_SDL_H
 
+#include <map>
+#include <tuple>
+
 #include <glad/gl.h>
 
 #include <SDL3/SDL.h>
@@ -64,12 +67,12 @@ namespace hpl {
 
 		void SetVsyncActive(bool abX) override;
 
-		void SetMultisamplingActive(bool abX) override;
-
 		void SetGammaCorrection(float afX) override;
 		float GetGammaCorrection() override;
 
 		int GetMultisampling() override{ return mlMultisampling;}
+		void SetMultisampling(int alSamples) override;
+		void SetTextureFilter(eTextureFilter aFilter, float afAnisotropy) override;
 
 		void SetClipPlane(int alIdx, const cPlanef& aPlane) override;
 		cPlanef GetClipPlane(int alIdx, const cPlanef& aPlane) override;
@@ -84,7 +87,13 @@ namespace hpl {
 		void SetLinearSource(bool abX) override;
 		void SetLinearLightingTuning(const cLinearLightingTuning& aTuning) override;
 		const cLinearLightingTuning& GetLinearLightingTuning() override{ return mLinearTuning; }
+		void SetFilmGrain(const cFilmGrainSettings& aSettings) override{ mFilmGrain = aSettings; }
+		const cFilmGrainSettings& GetFilmGrain() override{ return mFilmGrain; }
+		void SetSmaa(const cSmaaSettings& aSettings) override{ mSmaa = aSettings; }
+		const cSmaaSettings& GetSmaa() override{ return mSmaa; }
 		void BeginScene() override;
+		void ResolveScene() override;
+		void ResolveSceneDepth() override;
 		void EndScene() override;
 		cVector2f GetVirtualSize() override;
 		void SetVirtualSize(cVector2f avSize) override;
@@ -223,6 +232,18 @@ namespace hpl {
 		 * active unit again.
 		 */
 		void RestoreSetTexture();
+		/**
+		 * The sampler object for textures with these wrap modes, with
+		 * mipmaps or without. A texture is read through the sampler bound
+		 * to its unit, so the filter of all textures is changed by
+		 * changing a few samplers (SetTextureFilter()).
+		 */
+		GLuint GetSampler(bool abMipMaps, GLenum aWrapS, GLenum aWrapT, GLenum aWrapR);
+		/// Binds a sampler object to a texture unit, 0 for none: the
+		/// texture's own parameters are used then.
+		void BindSampler(unsigned int alUnit, GLuint alSampler);
+		/// Called by a texture whose sampler is another one now.
+		void TextureSamplerChanged(iTexture* apTex);
 		void SetActiveTextureUnit(unsigned int alUnit) override;
 		void SetTextureEnv(eTextureParam aParam, int alVal) override;
 		void SetTextureConstantColor(const cColor &aColor) override;
@@ -280,6 +301,7 @@ namespace hpl {
 		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 			const cVector2l &avSize, const cVector2l &avTexOffset=0) override;
 		void SetRenderTarget(iTexture* pTex) override;
+		void SetSceneColorOnly(bool abX) override;
 		void BeginShadowMap(bool abCube, int alFace, int alSize) override;
 		void EndShadowMap() override;
 		void SetShadowMapParams(const cShadowMapParams& aParams) override;
@@ -312,10 +334,16 @@ namespace hpl {
 			GLuint mlPipeline = 0;
 			GLuint mlVertex = 0;
 			GLuint mlFragment = 0;
+			//Defines the fragment shader is compiled with, separated by spaces
+			tString msDefines;
+			cFullscreenPass(){}
+			cFullscreenPass(const tString &asName, const tString &asDefines="") : msName(asName), msDefines(asDefines){}
 		};
 		bool CreateFullscreenPass(cFullscreenPass &aPass);
 		void DeleteFullscreenPass(cFullscreenPass &aPass);
-		void DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize);
+		void DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize,
+								GLuint alTexture1=0, GLuint alTexture2=0, bool abStencil=false);
+		void SetPassUniform(cFullscreenPass &aPass, const char *asName, float afX, float afY=0, float afZ=0, float afW=0);
 
 		//Gamma
 		float mfGammaCorrection;
@@ -323,23 +351,60 @@ namespace hpl {
 
 		//Scene to output: clamps, scales and dithers
 		cFullscreenPass mOutputPass;
+		//The same without scaling, grain and dithering: the picture SMAA works on
+		cFullscreenPass mEncodePass;
+
+		//SMAA: the scene's edges, how much the pixels on them are blended,
+		//and the blend. Its textures are of the render size and made when
+		//it is first used; the stencil buffer marks the pixels with edges.
+		cSmaaSettings mSmaa;
+		cFullscreenPass mSmaaEdgesPass;
+		cFullscreenPass mSmaaWeightsPass;
+		cFullscreenPass mSmaaWeightsNoDiagPass;
+		cFullscreenPass mSmaaBlendPass;
+		GLuint mlSmaaColor;
+		GLuint mlSmaaEdges;
+		GLuint mlSmaaWeights;
+		GLuint mlSmaaStencil;
+		GLuint mvSmaaFramebuffers[3];
+		GLuint mlSmaaAreaTexture;
+		GLuint mlSmaaSearchTexture;
+		bool CreateSmaaTextures();
+		void DeleteSmaaTextures();
+		bool DrawSmaa(GLuint alColor, GLuint alColorFramebuffer);
 
 		//Frame order: the 3D scene is drawn into the scene framebuffer at
 		//the render size (between BeginScene() and EndScene()), EndScene()
 		//copies it to the output framebuffer at the window size, the 2D
 		//drawing goes there, and SwapBuffers() copies that to the window
 		//through the gamma pass. With multisampling, the scene colour and
-		//depth are multisampled and mlResolveFramebuffer holds the resolved
-		//colour.
+		//depth are multisampled until ResolveScene(), which copies them to
+		//the textures of mlResolveFramebuffer, where the rest is drawn.
 		cVector2l mvRenderSize;
 		float mfRenderScale;
 		cVector2l mvTargetSize;
 		bool mbInScene;
+		bool mbSceneResolved;
+		bool mbInShadowMap;
 		GLuint mlSceneFramebuffer;
+		//The scene's colour without its depth and stencil, and if that is
+		//what the scene is drawn into (SetSceneColorOnly())
+		GLuint mlSceneColorFramebuffer;
+		bool mbSceneColorOnly;
+		GLuint GetSceneFramebuffer()
+		{
+			if(mlMultisampling > 0 && mbSceneResolved)
+				return mbSceneColorOnly ? mlResolveColorFramebuffer : mlResolveFramebuffer;
+			return mbSceneColorOnly ? mlSceneColorFramebuffer : mlSceneFramebuffer;
+		}
 		GLuint mlSceneColor;
 		GLuint mlSceneDepthStencil;
 		GLuint mlResolveFramebuffer;
+		GLuint mlResolveColorFramebuffer;
 		GLuint mlResolveColor;
+		GLuint mlResolveDepthStencil;
+		void BlitScene(GLbitfield aMask, int alX0, int alY0, int alX1, int alY1);
+		void BindCurrentFramebuffer();
 		GLuint mlOutputFramebuffer;
 		GLuint mlOutputColor;
 		GLuint mlOutputDepthStencil;
@@ -371,8 +436,11 @@ namespace hpl {
 		unsigned int mlActiveTextureUnit;
 
 		//Alpha test, done by the fragment shaders: hpl_State, uniform
-		//buffer binding cGLSLProgram::kStateBlockBinding
+		//buffer binding cGLSLProgram::kStateBlockBinding. In the
+		//multisampled scene the test decides for each sample (alpha to
+		//coverage).
 		bool mbAlphaTest;
+		bool mbAlphaToCoverage;
 		eAlphaTestFunc mAlphaTestFunc;
 		float mfAlphaTestRef;
 		bool mbStateChanged;
@@ -383,6 +451,9 @@ namespace hpl {
 		bool mbLinearLighting;
 		bool mbLinearSource;
 		cLinearLightingTuning mLinearTuning;
+		cFilmGrainSettings mFilmGrain;
+		//Seconds of rendering, as last given to SetFrameUniforms()
+		float mfFrameTime;
 		bool mbBlend;
 		eBlendFunc mBlendSrc;
 		eBlendFunc mBlendDest;
@@ -453,8 +524,12 @@ namespace hpl {
 		//Texture
 		iTexture* mpCurrentTexture[MAX_TEXTUREUNITS];
 
-		//Multisample
-		void CheckMultisampleCaps();
+		//Samplers, by mipmaps and the three wrap modes
+		std::map<std::tuple<bool,GLenum,GLenum,GLenum>, GLuint> m_mapSamplers;
+		GLuint mvUnitSampler[MAX_TEXTUREUNITS];
+		eTextureFilter mTextureFilter;
+		float mfTextureAnisotropy;
+		void SetSamplerFilter(GLuint alSampler, bool abMipMaps);
 
 		SDL_DisplayID ChooseDisplay(int alDisplay);
 		SDL_DisplayID GetDisplayID(int alDisplay);

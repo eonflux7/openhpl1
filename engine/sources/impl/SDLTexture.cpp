@@ -79,9 +79,9 @@ namespace hpl {
 		mbContainsData = false;
 		mbFloat = false;
 		mlFloatChannels = 4;
-
-		//Cubemap does not like mipmaps
-		if(aTarget == eTextureTarget_CubeMap) mbUseMipMaps = false;
+		mlSampler = 0;
+		mbSamplerMipMaps = false;
+		mbAlphaCoverageKept = false;
 
 		mpGfxSDL = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
 
@@ -191,13 +191,6 @@ namespace hpl {
 			glTexImage2D(target, 0, InternalFormat(lChannels), pSrc->GetWidth(), pSrc->GetHeight(),
 				0, format, GL_UNSIGNED_BYTE, pSrc->GetSurface()->pixels);
 
-			//No mip maps for cubemap
-			//if(mbUseMipMaps)
-			//{
-			//	int x = gluBuild2DMipmaps(target,4,pSrc->GetWidth(), pSrc->GetHeight(),
-			//		GL_RGBA, GL_UNSIGNED_BYTE, pSrc->GetSurface()->pixels);
-			//}
-
 			mlWidth = pSrc->GetWidth();
 			mlHeight = pSrc->GetHeight();
 			mlBpp = lChannels * 8;
@@ -207,6 +200,8 @@ namespace hpl {
 				Warning("Texture '%s' does not have a pow2 size!\n",msName.c_str());
 			}
 		}
+
+		if(mbUseMipMaps) glGenerateMipmap(GLTarget);
 
 		PostCreation(GLTarget);
 
@@ -240,18 +235,12 @@ namespace hpl {
 			glBindTexture(GLTarget, mvTextureHandles[0]);
 			cGpuProfiler::Label(GL_TEXTURE, mvTextureHandles[0], msName);
 			glTexImage2D(GLTarget, 0, GL_RGBA8, mlWidth, mlHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-			if(mbUseMipMaps && mTarget != eTextureTarget_Rect){
-				if(mFilter == eTextureFilter_Bilinear)
-					glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-				else
-					glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			}
-			else{
-				glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			}
+			glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, HasMipMaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 			glTexParameteri(GLTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GLTarget,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 			glTexParameteri(GLTarget,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+			mWrapS = mWrapT = eTextureWrap_ClampToEdge;
+			SamplerChanged();
 
 
 			mbContainsData = true;
@@ -449,108 +438,128 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetFilter(eTextureFilter aFilter)
+	// Thin things lose alpha as they are averaged into smaller mipmaps, and
+	// with it the share of their texels that pass the test. For each mipmap
+	// the alpha is found that this share of its texels reaches, and all of
+	// its alpha scaled so that this one becomes the reference.
+	void cSDLTexture::KeepAlphaCoverage(float afAlphaRef)
 	{
-		if(mFilter == aFilter) return;
+		if(mbAlphaCoverageKept || mbContainsData==false) return;
+		if(mTarget != eTextureTarget_2D || HasMipMaps()==false || mlBpp != 32 || mbFloat) return;
+		mbAlphaCoverageKept = true;
 
-		mFilter = aFilter;
-		if(mbContainsData)
+		const int lRef = cMath::Clamp((int)ceilf(afAlphaRef * 255.0f), 1, 255);
+		std::vector<unsigned char> vPixels;
+
+		for(unsigned int lHandle : mvTextureHandles)
 		{
-			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
+			glBindTexture(GL_TEXTURE_2D, lHandle);
 
-			for(size_t i=0; i < mvTextureHandles.size(); ++i)
+			float fShare = 0;
+			for(int lLevel=0; ; ++lLevel)
 			{
-				glBindTexture(GLTarget, mvTextureHandles[i]);
+				GLint lW = 0, lH = 0;
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, lLevel, GL_TEXTURE_WIDTH, &lW);
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, lLevel, GL_TEXTURE_HEIGHT, &lH);
+				if(lW <= 0 || lH <= 0) break;
 
-				if(mbUseMipMaps && mTarget != eTextureTarget_Rect){
-					if(mFilter == eTextureFilter_Bilinear)
-						glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-					else
-						glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				const size_t lTexels = (size_t)lW * lH;
+				vPixels.resize(lTexels * 4);
+				glGetTexImage(GL_TEXTURE_2D, lLevel, GL_RGBA, GL_UNSIGNED_BYTE, vPixels.data());
+
+				size_t vAlphaCount[256] = {};
+				for(size_t i=0; i<lTexels; ++i) ++vAlphaCount[vPixels[i*4 + 3]];
+
+				if(lLevel == 0)
+				{
+					size_t lPass = 0;
+					for(int i=lRef; i<256; ++i) lPass += vAlphaCount[i];
+					// All of it passes, or none: nothing to keep
+					if(lPass == 0 || lPass == lTexels) break;
+					fShare = (float)lPass / (float)lTexels;
+					continue;
 				}
-				else{
-					glTexParameteri(GLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+				size_t lWanted = (size_t)(fShare * (float)lTexels + 0.5f);
+				if(lWanted > 0)
+				{
+					int lAlpha = 255;
+					for(size_t lCount = 0; lAlpha > 1; --lAlpha)
+					{
+						lCount += vAlphaCount[lAlpha];
+						if(lCount >= lWanted) break;
+					}
+
+					float fScale = cMath::Min((float)lRef / (float)lAlpha, 16.0f);
+					if(fabsf(fScale - 1.0f) > 0.01f)
+					{
+						for(size_t i=0; i<lTexels; ++i)
+							vPixels[i*4 + 3] = (unsigned char)cMath::Min((float)vPixels[i*4 + 3] * fScale + 0.5f, 255.0f);
+						glTexSubImage2D(GL_TEXTURE_2D, lLevel, 0, 0, lW, lH, GL_RGBA, GL_UNSIGNED_BYTE, vPixels.data());
+					}
 				}
+
+				if(lW == 1 && lH == 1) break;
 			}
-
 		}
+
+		//The texture set on this unit has been replaced.
+		mpGfxSDL->RestoreSetTexture();
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetAnisotropyDegree(float afX)
+	// How the texture is read (filter, wrap) is not kept in the texture
+	// but in a sampler object, shared with every texture that is read the
+	// same way.
+	GLuint cSDLTexture::GetSampler()
 	{
-		if(!mpLowLevelGraphics->GetCaps(eGraphicCaps_AnisotropicFiltering)) return;
-		if(afX < 1.0f) return;
-		if(afX > (float) mpLowLevelGraphics->GetCaps(eGraphicCaps_MaxAnisotropicFiltering)) return;
-
-		if(mfAnisotropyDegree == afX) return;
-
-		mfAnisotropyDegree = afX;
-
-		GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
-
-		for(size_t i=0; i < mvTextureHandles.size(); ++i)
+		bool bMipMaps = HasMipMaps();
+		if(mlSampler == 0 || mbSamplerMipMaps != bMipMaps)
 		{
-			glBindTexture(GLTarget, mvTextureHandles[i]);
-
-			glTexParameterf(GLTarget,GL_TEXTURE_MAX_ANISOTROPY_EXT ,mfAnisotropyDegree);
+			mlSampler = mpGfxSDL->GetSampler(bMipMaps, GetGLWrap(mWrapS), GetGLWrap(mWrapT), GetGLWrap(mWrapR));
+			mbSamplerMipMaps = bMipMaps;
 		}
+		return mlSampler;
+	}
 
+	void cSDLTexture::SamplerChanged()
+	{
+		mlSampler = 0;
+		mpGfxSDL->TextureSamplerChanged(this);
+	}
+
+	// Rectangle and 3D textures are made without them.
+	bool cSDLTexture::HasMipMaps()
+	{
+		return mbUseMipMaps && mTarget != eTextureTarget_Rect && mTarget != eTextureTarget_3D;
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cSDLTexture::SetWrapS(eTextureWrap aMode)
 	{
-		if(mbContainsData)
-		{
-			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
-
-			for(size_t i=0; i < mvTextureHandles.size(); ++i)
-			{
-				glBindTexture(GLTarget, mvTextureHandles[i]);
-
-				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_S,GetGLWrap(aMode));
-			}
-
-		}
+		if(mWrapS == aMode) return;
+		mWrapS = aMode;
+		SamplerChanged();
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cSDLTexture::SetWrapT(eTextureWrap aMode)
 	{
-		if(mbContainsData)
-		{
-			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
-
-			for(size_t i=0; i < mvTextureHandles.size(); ++i)
-			{
-				glBindTexture(GLTarget, mvTextureHandles[i]);
-
-				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_T,GetGLWrap(aMode));
-			}
-
-		}
+		if(mWrapT == aMode) return;
+		mWrapT = aMode;
+		SamplerChanged();
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cSDLTexture::SetWrapR(eTextureWrap aMode)
 	{
-		if(mbContainsData)
-		{
-			GLenum GLTarget = mpGfxSDL->GetGLTextureTargetEnum(mTarget);
-
-			for(size_t i=0; i < mvTextureHandles.size(); ++i)
-			{
-				glBindTexture(GLTarget, mvTextureHandles[i]);
-
-				glTexParameteri(GLTarget,GL_TEXTURE_WRAP_R,GetGLWrap(aMode));
-			}
-
-		}
+		if(mWrapR == aMode) return;
+		mWrapR = aMode;
+		SamplerChanged();
 	}
 
 	//-----------------------------------------------------------------------
@@ -617,7 +626,6 @@ namespace hpl {
 			//Log("OldSize: %d x %d ",mlWidth,mlHeight);
 
 			int lOldW = mlWidth;
-			int lOldH = mlHeight;
 
 			int lSizeDiv = (int)pow((float)2,(int)mlSizeLevel);
 
@@ -635,28 +643,19 @@ namespace hpl {
 
 			pNewSrc = hplNewArray( unsigned char, lChannels * mlWidth * mlHeight);
 
-			int lWidthCount = mlWidth;
-			int lHeightCount = mlHeight;
-			int lOldAdd = lChannels*lSizeDiv;
-			int lOldHeightAdd = lChannels*lOldW*(lSizeDiv-1);
-
-			unsigned char *pOldPixel = pPixelSrc;
+			// Each new texel is the average of the old ones it covers
+			const int lBlock = lSizeDiv * lSizeDiv;
 			unsigned char *pNewPixel = pNewSrc;
-
-			while(lHeightCount)
+			for(unsigned int y=0; y<mlHeight; ++y)
+			for(unsigned int x=0; x<mlWidth; ++x)
+			for(int c=0; c<lChannels; ++c)
 			{
-				memcpy(pNewPixel, pOldPixel,lChannels);
-
-				pOldPixel += lOldAdd;
-				pNewPixel += lChannels;
-
-				lWidthCount--;
-				if(!lWidthCount)
-				{
-					lWidthCount = mlWidth;
-					lHeightCount--;
-					pOldPixel += lOldHeightAdd;
-				}
+				const unsigned char *pOldPixel = pPixelSrc + ((size_t)y*lSizeDiv*lOldW + (size_t)x*lSizeDiv)*lChannels + c;
+				int lSum = 0;
+				for(int by=0; by<lSizeDiv; ++by)
+				for(int bx=0; bx<lSizeDiv; ++bx)
+					lSum += pOldPixel[((size_t)by*lOldW + bx)*lChannels];
+				*pNewPixel++ = (unsigned char)((lSum + lBlock/2) / lBlock);
 			}
 
 			pPixelSrc = pNewSrc;
@@ -710,16 +709,9 @@ namespace hpl {
 
 	void cSDLTexture::PostCreation(GLenum aGLTarget)
 	{
-		if(mbUseMipMaps && mTarget != eTextureTarget_Rect)
-		{
-			if(mFilter == eTextureFilter_Bilinear)
-				glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-			else
-				glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		}
-		else{
-			glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
+		// What a unit without a sampler object reads it with; drawing goes
+		// through the texture's sampler (GetSampler()).
+		glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, HasMipMaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTexParameteri(aGLTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// Rectangle textures cannot repeat
 		GLint lWrap = mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;

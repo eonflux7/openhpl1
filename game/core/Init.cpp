@@ -487,14 +487,79 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(mpConfig->GetBool("Graphics", "MotionBlur", false));
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurAmount(mpConfig->GetFloat("Graphics", "MotionBlurAmount", 0.3f));
+	{
+		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
+		int lType = mpConfig->GetInt("Graphics","MotionBlurType",eMotionBlurType_Original);
+		if(lType < 0 || lType >= eMotionBlurType_LastEnum) lType = eMotionBlurType_Original;
+		pPostEffects->SetMotionBlurType((eMotionBlurType)lType);
+
+		cMotionBlurSettings motion;
+		motion.mfShutterTime = mpConfig->GetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
+		motion.mfMaxLength = mpConfig->GetFloat("Graphics","MotionBlurMaxLength",motion.mfMaxLength);
+		motion.mlSamples = mpConfig->GetInt("Graphics","MotionBlurSamples",motion.mlSamples);
+		motion.mfNearLimit = mpConfig->GetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
+		pPostEffects->SetMotionBlurSettings(motion);
+
+		lType = mpConfig->GetInt("Graphics","DepthOfFieldType",eDepthOfFieldType_Original);
+		if(lType < 0 || lType >= eDepthOfFieldType_LastEnum) lType = eDepthOfFieldType_Original;
+		pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)lType);
+
+		cDepthOfFieldSettings dof;
+		dof.mfRadius = mpConfig->GetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
+		dof.mlRings = mpConfig->GetInt("Graphics","DepthOfFieldRings",dof.mlRings);
+		// For captures; not saved
+		dof.mbTest = mpConfig->GetBool("Graphics","DepthOfFieldTest",false);
+		dof.mfTestFocus = mpConfig->GetFloat("Graphics","DepthOfFieldTestFocus",dof.mfTestFocus);
+		dof.mfTestRange = mpConfig->GetFloat("Graphics","DepthOfFieldTestRange",dof.mfTestRange);
+		pPostEffects->SetDepthOfFieldSettings(dof);
+
+		// Which grain, if any, is the noise filter's to say (cPlayerNoiseFilter)
+		iLowLevelGraphics *pLowLevel = mpGame->GetGraphics()->GetLowLevel();
+		cFilmGrainSettings grain = pLowLevel->GetFilmGrain();
+		grain.mfIntensity = mpConfig->GetFloat("Graphics","GrainIntensity",grain.mfIntensity);
+		grain.mfSize = mpConfig->GetFloat("Graphics","GrainSize",grain.mfSize);
+		grain.mfColor = mpConfig->GetFloat("Graphics","GrainColor",grain.mfColor);
+		grain.mfShadows = mpConfig->GetFloat("Graphics","GrainShadows",grain.mfShadows);
+		grain.mfHighlights = mpConfig->GetFloat("Graphics","GrainHighlights",grain.mfHighlights);
+		grain.mfRate = mpConfig->GetFloat("Graphics","GrainRate",grain.mfRate);
+		grain.mfDispersion = mpConfig->GetFloat("Graphics","GrainDispersion",grain.mfDispersion);
+		pLowLevel->SetFilmGrain(grain);
+	}
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", false));
 
 	mpEffectHandler->GetDepthOfField()->SetDisabled(!mpConfig->GetBool("Graphics", "DepthOfField", true));
 
 	mpGame->GetResources()->GetMaterialManager()->SetTextureSizeLevel(mpConfig->GetInt("Graphics","TextureSizeLevel",0));
-	mpGame->GetResources()->GetMaterialManager()->SetTextureFilter((eTextureFilter)mpConfig->GetInt("Graphics","TextureFilter",0));
-	mpGame->GetResources()->GetMaterialManager()->SetTextureAnisotropy(mpConfig->GetFloat("Graphics","TextureAnisotropy",1.0f));
+	{
+		// Trilinear with as much anisotropic filtering as there is (up to
+		// 16x), unless the settings say otherwise
+		int lFilter = mpConfig->GetInt("Graphics","TextureFilter",eTextureFilter_Trilinear);
+		if(lFilter < 0 || lFilter >= eTextureFilter_LastEnum) lFilter = eTextureFilter_Trilinear;
+		mpGame->GetResources()->GetMaterialManager()->SetTextureFilter((eTextureFilter)lFilter);
+		mpGame->GetResources()->GetMaterialManager()->SetTextureAnisotropy(mpConfig->GetFloat("Graphics","TextureAnisotropy",16.0f));
+	}
+	{
+		iLowLevelGraphics *pLowLevel = mpGame->GetGraphics()->GetLowLevel();
+		// What the graphics card made of the samples asked for
+		mlFSAA = pLowLevel->GetMultisampling();
+
+		cSmaaSettings smaa;
+		smaa.mbActive = mpConfig->GetBool("Graphics","SMAA",smaa.mbActive);
+		int lEdges = mpConfig->GetInt("Graphics","SMAAEdges",smaa.mEdges);
+		if(lEdges >= 0 && lEdges < eSmaaEdges_LastEnum) smaa.mEdges = (eSmaaEdges)lEdges;
+		smaa.mfThreshold = mpConfig->GetFloat("Graphics","SMAAThreshold",smaa.mfThreshold);
+		smaa.mlSearchSteps = mpConfig->GetInt("Graphics","SMAASearchSteps",smaa.mlSearchSteps);
+		smaa.mlDiagonalSteps = mpConfig->GetInt("Graphics","SMAADiagonalSteps",smaa.mlDiagonalSteps);
+		smaa.mlCornerRounding = mpConfig->GetInt("Graphics","SMAACornerRounding",smaa.mlCornerRounding);
+		smaa.mbDepthHelp = mpConfig->GetBool("Graphics","SMAADepthHelp",smaa.mbDepthHelp);
+		smaa.mfDepthThreshold = mpConfig->GetFloat("Graphics","SMAADepthThreshold",smaa.mfDepthThreshold);
+		smaa.mfDepthScale = mpConfig->GetFloat("Graphics","SMAADepthScale",smaa.mfDepthScale);
+		smaa.mfDepthStrength = mpConfig->GetFloat("Graphics","SMAADepthStrength",smaa.mfDepthStrength);
+		// Read only, for captures of the edges (1) or the weights (2)
+		smaa.mlShow = mpConfig->GetInt("Graphics","SMAAShow",0);
+		pLowLevel->SetSmaa(smaa);
+	}
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
 	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
@@ -872,6 +937,29 @@ void cInit::Exit()
 	}
 	mpConfig->SetBool("Graphics", "MotionBlur",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
 	mpConfig->SetFloat("Graphics", "MotionBlurAmount",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurAmount());
+	{
+		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
+		const cMotionBlurSettings &motion = pPostEffects->GetMotionBlurSettings();
+		mpConfig->SetInt("Graphics","MotionBlurType",pPostEffects->GetMotionBlurType());
+		mpConfig->SetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
+		mpConfig->SetFloat("Graphics","MotionBlurMaxLength",motion.mfMaxLength);
+		mpConfig->SetInt("Graphics","MotionBlurSamples",motion.mlSamples);
+		mpConfig->SetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
+
+		const cDepthOfFieldSettings &dof = pPostEffects->GetDepthOfFieldSettings();
+		mpConfig->SetInt("Graphics","DepthOfFieldType",pPostEffects->GetDepthOfFieldType());
+		mpConfig->SetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
+		mpConfig->SetInt("Graphics","DepthOfFieldRings",dof.mlRings);
+
+		const cFilmGrainSettings &grain = mpGame->GetGraphics()->GetLowLevel()->GetFilmGrain();
+		mpConfig->SetFloat("Graphics","GrainIntensity",grain.mfIntensity);
+		mpConfig->SetFloat("Graphics","GrainSize",grain.mfSize);
+		mpConfig->SetFloat("Graphics","GrainColor",grain.mfColor);
+		mpConfig->SetFloat("Graphics","GrainShadows",grain.mfShadows);
+		mpConfig->SetFloat("Graphics","GrainHighlights",grain.mfHighlights);
+		mpConfig->SetFloat("Graphics","GrainRate",grain.mfRate);
+		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
+	}
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
 	mpConfig->GetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 	
@@ -903,6 +991,19 @@ void cInit::Exit()
 	}
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);
+	{
+		const cSmaaSettings &smaa = mpGame->GetGraphics()->GetLowLevel()->GetSmaa();
+		mpConfig->SetBool("Graphics","SMAA",smaa.mbActive);
+		mpConfig->SetInt("Graphics","SMAAEdges",smaa.mEdges);
+		mpConfig->SetFloat("Graphics","SMAAThreshold",smaa.mfThreshold);
+		mpConfig->SetInt("Graphics","SMAASearchSteps",smaa.mlSearchSteps);
+		mpConfig->SetInt("Graphics","SMAADiagonalSteps",smaa.mlDiagonalSteps);
+		mpConfig->SetInt("Graphics","SMAACornerRounding",smaa.mlCornerRounding);
+		mpConfig->SetBool("Graphics","SMAADepthHelp",smaa.mbDepthHelp);
+		mpConfig->SetFloat("Graphics","SMAADepthThreshold",smaa.mfDepthThreshold);
+		mpConfig->SetFloat("Graphics","SMAADepthScale",smaa.mfDepthScale);
+		mpConfig->SetFloat("Graphics","SMAADepthStrength",smaa.mfDepthStrength);
+	}
 	mpConfig->SetBool("Graphics","PostEffects",mbPostEffects);
 	mpConfig->SetBool("Graphics","LimitFPS",mpGame->GetLimitFPS());
 

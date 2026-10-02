@@ -1,0 +1,115 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// Motion blur of the camera's own movement
+// (cRendererPostEffects::RenderMotionBlurCamera), in one pass over the
+// scene. tex0: the scene copy (rectangle) -> the scene.
+//
+// Where a pixel was on screen the frame before follows from its depth and
+// from how the camera has moved since: turning moves everything alike,
+// walking moves what is near more than what is far. The pixel is the
+// average of the scene along that way, as long as the shutter is open.
+// Things that move by themselves are not blurred by it.
+//
+// A sample that is nearer than the pixel counts only as far as its own
+// blur reaches the pixel: something near that hardly moves on screen is
+// not smeared over the background that streams past behind it. What is
+// nearer than a limit is taken as held by the player and left alone.
+
+// Reads and writes the scene as it is, linear or not.
+#define HPL_LINEAR_COLOR
+
+OUTPUT
+
+#include "hpl1_scene_depth.glsl"
+
+uniform sampler2DRect tex0;
+
+// From a position in the camera's view to its place on the screen of the
+// frame before
+uniform mat4 reproject;
+// x: the share of the way since the frame before that is blurred over;
+// y: the longest blur in pixels; z: samples; w: nearer than this distance
+// nothing is blurred
+uniform vec4 shutter;
+
+// The distance used for the sky
+const float FAR_AWAY = 1000.0;
+
+float PixelDistance(ivec2 avPixel)
+{
+	float depth = hpl_SceneDepthAt(avPixel);
+	return depth >= 1.0 ? FAR_AWAY : min(hpl_ViewDistance(depth), FAR_AWAY);
+}
+
+// The way, in pixels, that what is seen in a pixel (given by its middle)
+// at a distance is blurred over.
+vec2 Blur(vec2 avPixel, float afDist)
+{
+	if(afDist < shutter.w) return vec2(0.0);
+
+	vec2 ndc = avPixel * hpl_RenderSize.zw * 2.0 - 1.0;
+	vec4 before = reproject * vec4(ndc / vec2(hpl_Projection[0][0], hpl_Projection[1][1]) * afDist, -afDist, 1.0);
+	// Was behind the camera
+	if(before.w <= 0.0001) return vec2(0.0);
+
+	vec2 way = (ndc - before.xy / before.w) * 0.5 * hpl_RenderSize.xy * shutter.x;
+	float len = length(way);
+	return len > shutter.y ? way * (shutter.y / len) : way;
+}
+
+// Interleaved gradient noise (Jimenez 2014): a fixed pattern in 0..1.
+float Noise(vec2 avPos)
+{
+	return fract(52.9829189 * fract(dot(avPos, vec2(0.06711056, 0.00583715))));
+}
+
+// The average is of light. Screen values are squared for it, which is
+// close to what they stand for and cheap.
+vec3 ToLight(vec3 c)
+{
+	return hpl_ColorSpace.x > 0.5 ? c : c * c;
+}
+
+vec3 FromLight(vec3 c)
+{
+	return hpl_ColorSpace.x > 0.5 ? c : sqrt(c);
+}
+
+void main()
+{
+	vec2 pos = gl_FragCoord.xy;
+	float dist = PixelDistance(ivec2(pos));
+	vec2 way = Blur(pos, dist);
+	float len = length(way);
+
+	// Still: the scene as it is
+	if(len < 1.0) discard;
+
+	vec2 last = hpl_RenderSize.xy - 0.5;
+	int count = int(shutter.z);
+	// Each pixel's samples are shifted differently along the way: grain
+	// instead of the steps showing as copies of the picture
+	float shift = Noise(pos);
+
+	vec3 sum = ToLight(max(texelFetch(tex0, ivec2(pos)).rgb, 0.0));
+	float weights = 1.0;
+	for(int i = 0; i < count; ++i)
+	{
+		float along = (float(i) + shift) / float(count) - 0.5;
+		vec2 at = clamp(pos + way * along, vec2(0.5), last);
+
+		float atDist = PixelDistance(ivec2(at));
+		float weight = 1.0;
+		if(atDist < dist * 0.97 - 0.02)
+		{
+			float reach = 0.5 * length(Blur(at, atDist));
+			weight = clamp(reach - abs(along) * len + 1.0, 0.0, 1.0);
+		}
+
+		sum += ToLight(max(texture(tex0, at).rgb, 0.0)) * weight;
+		weights += weight;
+	}
+
+	outColor = vec4(FromLight(sum / weights), 1.0);
+}

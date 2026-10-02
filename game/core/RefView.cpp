@@ -9,6 +9,7 @@
 #include "core/MapHandler.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
+#include "systems/EffectHandler.h"
 #include "ui/MainMenu.h"
 
 #include <SDL3/SDL.h>
@@ -612,6 +613,8 @@ void cRefView::Draw()
 	DrawShadows();
 	DrawPlayer();
 	DrawAmbientOcclusion();
+	DrawLensAndFilm();
+	DrawAntiAliasing();
 
 	// Closed with the window's button
 	if(bOpen==false) SetOpen(false);
@@ -1190,6 +1193,338 @@ void cRefView::DrawAmbientOcclusion()
 	ImGui::EndDisabled();
 	if(bChanged) pPostEffects->SetAmbientOcclusionSettings(settings);
 
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawLensAndFilm()
+{
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// At the bottom, in the middle
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f,
+									pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
+							ImGuiCond_FirstUseEver, ImVec2(0.5f, 1));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	if(ImGui::Begin("Lens and film", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Kept in settings.cfg, like the renderer's other options
+	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+	ImGui::PushItemWidth(fEm * 12);
+
+	///////////////////////////////////////////
+	// Depth of field
+	if(ImGui::CollapsingHeader("Depth of field##section", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		cEffect_DepthOfField *pDoF = mpInit->mpEffectHandler->GetDepthOfField();
+		cDepthOfFieldSettings settings = pPostEffects->GetDepthOfFieldSettings();
+		bool bChanged = false;
+
+		int lType = pDoF->IsDisabled() ? 0 : 1 + (int)pPostEffects->GetDepthOfFieldType();
+		if(ImGui::Combo("Depth of field", &lType, "Off\0Original\0Bokeh\0"))
+		{
+			pDoF->SetDisabled(lType == 0);
+			if(lType > 0) pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)(lType - 1));
+		}
+		if(ImGui::IsItemHovered())
+			Tip("The game blurs what is out of focus when you look closely at something you picked up, "
+				"and where a map's script asks for it. Original: the scene blended with a small blurred copy. "
+				"Bokeh: every pixel spread over a disc, from the depth of what is on screen; "
+				"bright points become discs and what is in focus keeps its edges.");
+
+		ImGui::BeginDisabled(lType != 1 + eDepthOfFieldType_Bokeh);
+		ImGui::SameLine();
+		if(ImGui::Button("Reset##dof"))
+		{
+			// The test is not a setting
+			cDepthOfFieldSettings defaults;
+			settings.mfRadius = defaults.mfRadius;
+			settings.mlRings = defaults.mlRings;
+			bChanged = true;
+		}
+		float fPercent = settings.mfRadius * 100.0f;
+		if(ImGui::SliderFloat("Blur radius", &fPercent, 0.2f, 4.0f, "%.2f %% of height"))
+		{
+			settings.mfRadius = fPercent / 100.0f;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered()) Tip("How wide the blur of what is fully out of focus is.");
+		bChanged |= ImGui::SliderInt("Rings", &settings.mlRings, 1, 5);
+		if(ImGui::IsItemHovered())
+			Tip("Rings of samples around every pixel: 8, 22, 43, 71 or 106 samples. Too few for the radius "
+				"and a bright point shows as dots instead of a disc. F3 shows the time ('Depth of field').");
+		ImGui::EndDisabled();
+
+		ImGui::BeginDisabled(lType == 0);
+		bChanged |= ImGui::Checkbox("Try it here", &settings.mbTest);
+		if(ImGui::IsItemHovered())
+			Tip("Switches the depth of field on now, focused as set below, whatever the game asks for. "
+				"Not kept in the settings.");
+		ImGui::BeginDisabled(settings.mbTest==false);
+		bChanged |= ImGui::SliderFloat("In focus at", &settings.mfTestFocus, 0.2f, 30.0f, "%.2f m", ImGuiSliderFlags_Logarithmic);
+		bChanged |= ImGui::SliderFloat("Fully blurred", &settings.mfTestRange, 0.05f, 30.0f, "%.2f m away", ImGuiSliderFlags_Logarithmic);
+		if(ImGui::IsItemHovered()) Tip("How far in front of and behind the distance in focus the blur is full.");
+		ImGui::EndDisabled();
+		ImGui::EndDisabled();
+
+		if(bChanged) pPostEffects->SetDepthOfFieldSettings(settings);
+	}
+
+	///////////////////////////////////////////
+	// Motion blur
+	if(ImGui::CollapsingHeader("Motion blur##section", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		cMotionBlurSettings settings = pPostEffects->GetMotionBlurSettings();
+		bool bChanged = false;
+
+		int lType = pPostEffects->GetMotionBlurActive() ? 1 + (int)pPostEffects->GetMotionBlurType() : 0;
+		if(ImGui::Combo("Motion blur", &lType, "Off\0Original\0Camera\0"))
+		{
+			pPostEffects->SetMotionBlurActive(lType > 0);
+			if(lType > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lType - 1));
+		}
+		if(ImGui::IsItemHovered())
+			Tip("Original: every object is drawn a second time, smeared from where it was the frame before. "
+				"Camera: one pass that blurs the picture along the way the camera's own turning and walking "
+				"moves it, from the depth of what is on screen. Things that move by themselves stay sharp.");
+
+		ImGui::BeginDisabled(lType != 1 + eMotionBlurType_Camera);
+		ImGui::SameLine();
+		if(ImGui::Button("Reset##motion"))
+		{
+			settings = cMotionBlurSettings();
+			bChanged = true;
+		}
+		float fMs = settings.mfShutterTime * 1000.0f;
+		if(ImGui::SliderFloat("Shutter", &fMs, 0.5f, 40.0f, "%.1f ms", ImGuiSliderFlags_Logarithmic))
+		{
+			settings.mfShutterTime = fMs / 1000.0f;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered())
+			Tip("How long the shutter is open: the picture is blurred over the way it moves in that time, "
+				"the same at any frame rate. 8.3 ms is half of a frame at 60 a second, as a film camera has it; "
+				"16.7 ms is all of it.");
+		float fPercent = settings.mfMaxLength * 100.0f;
+		if(ImGui::SliderFloat("Longest blur", &fPercent, 0.5f, 15.0f, "%.1f %% of height"))
+		{
+			settings.mfMaxLength = fPercent / 100.0f;
+			bChanged = true;
+		}
+		if(ImGui::IsItemHovered()) Tip("However fast the view turns, the blur is no longer than this.");
+		bChanged |= ImGui::SliderInt("Samples", &settings.mlSamples, 2, 32);
+		if(ImGui::IsItemHovered()) Tip("Samples along the blur. Fewer: more grain in it.");
+		bChanged |= ImGui::SliderFloat("Sharp nearer than", &settings.mfNearLimit, 0.0f, 2.0f, "%.2f m");
+		if(ImGui::IsItemHovered())
+			Tip("What is nearer than this is not blurred: what you hold moves with the camera, "
+				"not across the picture.");
+		ImGui::EndDisabled();
+
+		if(bChanged) pPostEffects->SetMotionBlurSettings(settings);
+	}
+
+	///////////////////////////////////////////
+	// Grain
+	if(ImGui::CollapsingHeader("Noise filter##section", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
+		bool bChanged = false;
+
+		int lType = pFilter->IsActive() ? 1 + (int)pFilter->GetType() : 0;
+		if(ImGui::Combo("Noise filter", &lType, "Off\0Original\0Grain\0Film grain\0"))
+		{
+			pFilter->SetActive(lType > 0);
+			if(lType > 0) pFilter->SetType((eNoiseFilterType)(lType - 1));
+		}
+		if(ImGui::IsItemHovered())
+			Tip("Original: tiles of noise images over the whole screen, HUD included. "
+				"Grain: noise added to the 3D picture, under the HUD. "
+				"Film grain: the picture as made of grains that are developed or not, as on film: "
+				"none in black or white, most in between, specks in the dark.");
+
+		// After the filter has set the kind
+		cFilmGrainSettings grain = pLowLevel->GetFilmGrain();
+
+		ImGui::BeginDisabled(grain.mType == eFilmGrain_Off);
+		ImGui::SameLine();
+		if(ImGui::Button("Reset##grain"))
+		{
+			cFilmGrainSettings defaults;
+			defaults.mType = grain.mType;
+			grain = defaults;
+			bChanged = true;
+		}
+		bChanged |= ImGui::SliderFloat("Strength", &grain.mfIntensity, 0.0f, 1.0f, "%.2f");
+		bChanged |= ImGui::SliderFloat("Grain size", &grain.mfSize, 0.5f, 6.0f, "%.2f");
+		if(ImGui::IsItemHovered())
+			Tip("In pixels of a picture 1080 high. It grows with the picture, so the grain looks "
+				"the same at any resolution, and is never smaller than a pixel.");
+		bChanged |= ImGui::SliderFloat("Colour", &grain.mfColor, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("0: grey grain. 1: red, green and blue each have their own.");
+		bChanged |= ImGui::SliderFloat("In the dark", &grain.mfShadows, 0.0f, 1.0f, "%.2f");
+		bChanged |= ImGui::SliderFloat("In the light", &grain.mfHighlights, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("How much of the grain the dark and the bright parts of the picture get.");
+		bChanged |= ImGui::SliderFloat("Changes", &grain.mfRate, 0.0f, 60.0f, "%.0f times a second");
+		if(ImGui::IsItemHovered())
+			Tip("How often the grain is new. Film runs at 24. 0: every frame, which at a high frame rate "
+				"blends into a haze.");
+		ImGui::BeginDisabled(grain.mType != eFilmGrain_Film);
+		bChanged |= ImGui::SliderFloat("Size differs", &grain.mfDispersion, 0.0f, 1.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("Film grain: how much the grains differ in size.");
+		ImGui::EndDisabled();
+		ImGui::EndDisabled();
+
+		if(bChanged) pLowLevel->SetFilmGrain(grain);
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
+// Multisampling, the texture filter and SMAA. Kept in settings.cfg, like
+// the renderer's other options.
+void cRefView::DrawAntiAliasing()
+{
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// At the bottom right, folded until it is wanted: open, it covers the end
+	// of the window above it on a small screen. Its corner is put back
+	// in the screen's for a few frames when it is folded or unfolded (it
+	// takes a frame to know its new size), so that it opens upwards.
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x - fEm,
+									pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
+							mlAntiAliasingPlace > 0 ? ImGuiCond_Always : ImGuiCond_FirstUseEver, ImVec2(1, 1));
+	if(mlAntiAliasingPlace > 0) --mlAntiAliasingPlace;
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
+	ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	bool bShown = ImGui::Begin("Anti-aliasing", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize);
+	if(bShown == mbAntiAliasingFolded)
+	{
+		mbAntiAliasingFolded = !bShown;
+		mlAntiAliasingPlace = 3;
+	}
+	if(bShown==false)
+	{
+		ImGui::End();
+		return;
+	}
+	ImGui::PushItemWidth(fEm * 12);
+
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	cMaterialManager *pMaterialManager = mpInit->mpGame->GetResources()->GetMaterialManager();
+
+	// Off, 2x, 4x, 8x: as far as the graphics card goes
+	int lMaxSamples = cMath::Min(pLowLevel->GetCaps(eGraphicCaps_MaxMultisampling), 8);
+	int lSamples = 0;
+	for(int i = pLowLevel->GetMultisampling(); i > 1; i /= 2) ++lSamples;
+	if(ImGui::SliderInt("Multisampling", &lSamples, 0, lMaxSamples >= 8 ? 3 : (lMaxSamples >= 4 ? 2 : (lMaxSamples >= 2 ? 1 : 0)),
+						lSamples == 0 ? "Off" : (lSamples == 1 ? "2x" : (lSamples == 2 ? "4x" : "8x"))))
+	{
+		pLowLevel->SetMultisampling(lSamples == 0 ? 0 : 1 << lSamples);
+		mpInit->mlFSAA = pLowLevel->GetMultisampling();
+	}
+	if(ImGui::IsItemHovered())
+		Tip("Samples per pixel of the 3D scene, along the edges of surfaces and of cut-out textures. "
+			"The effects that are drawn over the finished scene work on one sample a pixel.");
+
+	int lAnisotropy = 0;
+	for(int i = (int)pMaterialManager->GetTextureAnisotropy(); i > 1; i /= 2) ++lAnisotropy;
+	int lMaxAnisotropy = 0;
+	for(int i = pLowLevel->GetCaps(eGraphicCaps_MaxAnisotropicFiltering); i > 1; i /= 2) ++lMaxAnisotropy;
+	int lFilter = pMaterialManager->GetTextureFilter() == eTextureFilter_Bilinear ? 0 : 1 + lAnisotropy;
+	static const char *vFilters[] = {"Bilinear", "Trilinear", "Anisotropic 2x", "Anisotropic 4x",
+									"Anisotropic 8x", "Anisotropic 16x"};
+	if(ImGui::SliderInt("Texture filter", &lFilter, 0, std::min(1 + lMaxAnisotropy, 5), vFilters[std::clamp(lFilter, 0, 5)]))
+	{
+		pMaterialManager->SetTextureFilter(lFilter == 0 ? eTextureFilter_Bilinear : eTextureFilter_Trilinear);
+		pMaterialManager->SetTextureAnisotropy(lFilter <= 1 ? 1.0f : (float)(1 << (lFilter - 1)));
+	}
+	if(ImGui::IsItemHovered())
+		Tip("Of every texture with mipmaps. Bilinear shows a line where one mipmap takes over from the "
+			"next; anisotropic keeps floors and walls sharp where they are seen at a slant.");
+
+	cSmaaSettings smaa = pLowLevel->GetSmaa();
+	bool bChanged = false;
+
+	ImGui::SeparatorText("SMAA");
+	bChanged |= ImGui::Checkbox("Edge smoothing (SMAA)", &smaa.mbActive);
+	if(ImGui::IsItemHovered())
+		Tip("Finds the edges in the finished picture, follows each along to tell its shape, and blends "
+			"the pixels on it by how much the true edge would cover. Also smooths what multisampling "
+			"does not: shadows, cut-out textures. F3 shows the time ('SMAA').");
+	ImGui::BeginDisabled(smaa.mbActive==false);
+	ImGui::SameLine();
+	if(ImGui::Button("Reset##smaa"))
+	{
+		cSmaaSettings defaults;
+		defaults.mbActive = smaa.mbActive;
+		smaa = defaults;
+		bChanged = true;
+	}
+	int lQuality = smaa.GetQuality();
+	static const char *vQualities[] = {"Low", "Medium", "High", "Ultra", "Custom"};
+	if(ImGui::SliderInt("Quality", &lQuality, 0, cSmaaSettings::klQualityNum - 1, vQualities[lQuality]))
+	{
+		smaa.SetQuality(lQuality);
+		bChanged = true;
+	}
+	int lEdges = smaa.mEdges;
+	if(ImGui::Combo("Edges by", &lEdges, "Brightness\0Colour, largest\0Colour, all\0Depth alone\0"))
+	{
+		smaa.mEdges = (eSmaaEdges)lEdges;
+		bChanged = true;
+	}
+	if(ImGui::IsItemHovered())
+		Tip("What makes an edge between two pixels: a difference in brightness, the largest difference "
+			"of red, green and blue, all three together, or a difference in depth alone (outlines only, "
+			"nothing on surfaces or in shadows).");
+	bChanged |= ImGui::SliderFloat("Threshold", &smaa.mfThreshold, 0.02f, 0.25f, "%.3f");
+	if(ImGui::IsItemHovered()) Tip("How much two pixels differ where there is an edge. Lower finds more, and softens more detail.");
+	bChanged |= ImGui::SliderInt("Search steps", &smaa.mlSearchSteps, 1, 112);
+	if(ImGui::IsItemHovered()) Tip("How far an edge is followed along, in steps of two pixels. Long, nearly level edges need many.");
+	bChanged |= ImGui::SliderInt("Diagonal steps", &smaa.mlDiagonalSteps, 0, 20);
+	if(ImGui::IsItemHovered()) Tip("The same for diagonal edges, in pixels. 0: diagonals are not looked for.");
+	bChanged |= ImGui::SliderInt("Corner rounding", &smaa.mlCornerRounding, 0, 100, "%d %%");
+	if(ImGui::IsItemHovered()) Tip("How much corners are smoothed. Low keeps them, and text, sharp.");
+
+	bChanged |= ImGui::Checkbox("Depth helps", &smaa.mbDepthHelp);
+	if(ImGui::IsItemHovered())
+		Tip("Where the depth has an edge the threshold is lowered: outlines are found though the "
+			"colours on both sides are close, as they are in the dark.");
+	ImGui::BeginDisabled(smaa.mbDepthHelp==false && smaa.mEdges != eSmaaEdges_Depth);
+	float fPercent = smaa.mfDepthThreshold * 100.0f;
+	if(ImGui::SliderFloat("Depth edge", &fPercent, 0.5f, 20.0f, "%.1f %% of the distance"))
+	{
+		smaa.mfDepthThreshold = fPercent / 100.0f;
+		bChanged = true;
+	}
+	ImGui::EndDisabled();
+	ImGui::BeginDisabled(smaa.mbDepthHelp==false);
+	bChanged |= ImGui::SliderFloat("Threshold there", &smaa.mfDepthStrength, 0.0f, 0.95f, "lower by %.2f");
+	bChanged |= ImGui::SliderFloat("Threshold elsewhere", &smaa.mfDepthScale, 1.0f, 4.0f, "x %.2f");
+	if(ImGui::IsItemHovered())
+		Tip("Above 1 the threshold is raised where the depth has no edge: detail on surfaces is "
+			"left alone, and there is less to do.");
+	ImGui::EndDisabled();
+
+	bChanged |= ImGui::Combo("Show", &smaa.mlShow, "Picture\0Edges\0Weights\0");
+	ImGui::EndDisabled();
+
+	if(bChanged) pLowLevel->SetSmaa(smaa);
+
+	ImGui::PopItemWidth();
 	ImGui::End();
 }
 

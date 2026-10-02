@@ -93,8 +93,7 @@ namespace hpl {
 				mpLowLevelGraphics(apLowLevelGraphics), mbCompress(abCompress),
 				mTarget(aTarget),
 				mWrapS(eTextureWrap_Repeat), mWrapT(eTextureWrap_Repeat),mWrapR(eTextureWrap_Repeat),
-				mfFrameTime(1), mAnimMode(eTextureAnimMode_Loop), mlSizeLevel(0), mvMinLevelSize(16,16),
-				mfAnisotropyDegree(1.0f),mFilter(eTextureFilter_Bilinear){}
+				mfFrameTime(1), mAnimMode(eTextureAnimMode_Loop), mlSizeLevel(0), mvMinLevelSize(16,16){}
 
 		~iTexture() override{}
 
@@ -136,10 +135,15 @@ namespace hpl {
 		virtual void SetPixels2D(int alLevel, const cVector2l& avOffset, const cVector2l& avSize,
 								eColorDataFormat aDataFormat, void *apPixelData)=0;
 
-		virtual void SetFilter(eTextureFilter aFilter)=0;
-		virtual void SetAnisotropyDegree(float afX)=0;
-		eTextureFilter GetFilter(){ return mFilter;}
-		float GetAnisotropyDegree(float afX){ return mfAnisotropyDegree;}
+		/**
+		 * For a texture that is drawn with an alpha test of afAlphaRef:
+		 * scales the alpha of each mipmap so that as large a share of it
+		 * passes the test as of the full texture. Without it what is thin
+		 * (wire, grates, leaves) passes less and less the smaller it is
+		 * drawn, and disappears. The filtering is the same for all
+		 * textures: iLowLevelGraphics::SetTextureFilter().
+		 */
+		virtual void KeepAlphaCoverage(float afAlphaRef)=0;
 
 		virtual float GetGamma()=0;
 		virtual void SetGamma(float afGamma)=0;
@@ -180,8 +184,6 @@ namespace hpl {
 		eTextureWrap mWrapS;
 		eTextureWrap mWrapT;
 		eTextureWrap mWrapR;
-		eTextureFilter mFilter;
-		float mfAnisotropyDegree;
 
 		bool mbUseMipMaps;
 		bool mbCompress;

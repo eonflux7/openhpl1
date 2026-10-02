@@ -135,6 +135,8 @@ list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
 
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)
+# The area and search textures of the SMAA reference implementation
+target_include_directories(hpl SYSTEM PRIVATE vendor/smaa)
 target_link_libraries(hpl PUBLIC
 	newton angelscript oalwrapper tinyxml glad imgui
 	SDL3::SDL3 SDL3_image::SDL3_image

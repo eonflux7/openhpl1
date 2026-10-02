@@ -1438,7 +1438,7 @@ cMainMenuWidget_Text *gpLimitFPSText=nullptr;
 cMainMenuWidget_Text *gpTextureQualityText=nullptr;
 cMainMenuWidget_Text *gpShadowsText=nullptr;
 cMainMenuWidget_Text *gpTextureFilterText=nullptr;
-cMainMenuWidget_Text *gpTextureAnisotropyText=nullptr;
+cMainMenuWidget_Text *gpSmaaText=nullptr;
 cMainMenuWidget_Text *gpGammaText=nullptr;
 cMainMenuWidget_Text *gpGammaText2=nullptr;
 cMainMenuWidget_Text *gpFSAAText=nullptr;
@@ -1517,6 +1517,16 @@ public:
 //------------------------------------------------------------
 
 
+// Off, the original noise tiles, or the grain made by a shader: plain, or as
+// film has it. The last three names are not in the game's language files.
+static tWString GetNoiseFilterText(cInit *mpInit)
+{
+	cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
+	if(pFilter->IsActive()==false) return kTranslate("MainMenu","Off");
+	static const tWString vNames[eNoiseFilterType_LastEnum] = {_W("Original"), _W("Grain"), _W("Film Grain")};
+	return vNames[pFilter->GetType()];
+}
+
 class cMainMenuWidget_NoiseFilter : public cMainMenuWidget_Button
 {
 public:
@@ -1528,11 +1538,17 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		bool bX = mpInit->mpPlayer->GetNoiseFilter()->IsActive();
-		mpInit->mpPlayer->GetNoiseFilter()->SetActive(!bX);
+		cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
 
-		gpNoiseFilterText->msText = mpInit->mpPlayer->GetNoiseFilter()->IsActive() ? 
-							kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		// Forwards with the left button, back with the right
+		int lIdx = pFilter->IsActive() ? 1 + (int)pFilter->GetType() : 0;
+		int lNum = 1 + eNoiseFilterType_LastEnum;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		pFilter->SetActive(lIdx > 0);
+		if(lIdx > 0) pFilter->SetType((eNoiseFilterType)(lIdx - 1));
+
+		gpNoiseFilterText->msText = GetNoiseFilterText(mpInit);
 	}
 };
 
@@ -1589,7 +1605,17 @@ public:
 
 //------------------------------------------------------------
 
-tString gvTextureFilter[] = {"Bilinear","Trilinear"};
+// One option for how textures are filtered: trilinear, or that with 2 to
+// 16 samples along surfaces seen at a slant, as far as the graphics card
+// goes. Bilinear is only shown when the settings file asks for it. The
+// last names are not in the game's language files.
+static tWString GetTextureFilterText(cInit *mpInit)
+{
+	cMaterialManager *pMaterialManager = mpInit->mpGame->GetResources()->GetMaterialManager();
+	int lAnisotropy = (int)pMaterialManager->GetTextureAnisotropy();
+	if(lAnisotropy > 1) return cString::To16Char("Anisotropic " + cString::ToString(lAnisotropy) + "x");
+	return kTranslate("MainMenu", pMaterialManager->GetTextureFilter() == eTextureFilter_Bilinear ? "Bilinear" : "Trilinear");
+}
 
 class cMainMenuWidget_TextureFilter : public cMainMenuWidget_Button
 {
@@ -1597,45 +1623,14 @@ public:
 	cMainMenuWidget_TextureFilter(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
-		mlCurrent = apInit->mpGame->GetResources()->GetMaterialManager()->GetTextureFilter();
-		msTip = kTranslate("MainMenu", "TipGraphicsTextureFilter");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		if(aButton == eMButton_Left)
-		{
-			mlCurrent--;
-			if(mlCurrent<0)mlCurrent=1;
-		}
-		else if(aButton == eMButton_Right)
-		{
-			mlCurrent++;
-			if(mlCurrent>1)mlCurrent=0;
-		}
-
-		gpTextureFilterText->msText = kTranslate("MainMenu",gvTextureFilter[mlCurrent]);
-		mpInit->mpGame->GetResources()->GetMaterialManager()->SetTextureFilter((eTextureFilter)mlCurrent);
-	}
-
-	int mlCurrent;
-};
-
-//------------------------------------------------------------
-
-class cMainMenuWidget_TextureAnisotropy : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_TextureAnisotropy(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		mlMax = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetCaps(eGraphicCaps_MaxAnisotropicFiltering);
+		mlMax = cMath::Max(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetCaps(eGraphicCaps_MaxAnisotropicFiltering), 1);
 		msTip = kTranslate("MainMenu", "TipGraphicsTextureAnisotropy");
 	}
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		int lX = (int)mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureAnisotropy();
+		cMaterialManager *pMaterialManager = mpInit->mpGame->GetResources()->GetMaterialManager();
+		int lX = cMath::Max((int)pMaterialManager->GetTextureAnisotropy(), 1);
 
 		if(aButton == eMButton_Left)
 		{
@@ -1647,13 +1642,10 @@ public:
 			lX /= 2;
 			if(lX < 1) lX = mlMax;
 		}
-		
-		if(lX!=1)
-			gpTextureAnisotropyText->msText = cString::To16Char(cString::ToString(lX)+"x");
-		else
-			gpTextureAnisotropyText->msText = kTranslate("MainMenu","Off");
 
-		mpInit->mpGame->GetResources()->GetMaterialManager()->SetTextureAnisotropy((float)lX);
+		pMaterialManager->SetTextureFilter(eTextureFilter_Trilinear);
+		pMaterialManager->SetTextureAnisotropy((float)lX);
+		gpTextureFilterText->msText = GetTextureFilterText(mpInit);
 	}
 
 	int mlMax;
@@ -1661,19 +1653,23 @@ public:
 
 //------------------------------------------------------------
 
+// Samples per pixel of the 3D scene: off, 2, 4, 8, as far as the graphics
+// card goes.
 class cMainMenuWidget_FSAA : public cMainMenuWidget_Button
 {
 public:
 	cMainMenuWidget_FSAA(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
-		mlMax = 4;
-		msTip = kTranslate("MainMenu", "TipGraphicsFSAA");
+		mlMax = cMath::Min(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetCaps(eGraphicCaps_MaxMultisampling), 8);
+		// Not in the game's language files
+		msTip = _W("Multisampling: several samples a pixel along the edges of surfaces, and of textures with cut-out parts. Smooths their outlines, at a cost that grows with the samples.");
 	}
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		int lX = mpInit->mlFSAA;
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		int lX = pLowLevel->GetMultisampling();
 
 		if(aButton == eMButton_Left)
 		{
@@ -1685,11 +1681,12 @@ public:
 		else if(aButton == eMButton_Right)
 		{
 			if(lX == 2)			lX = 0;
-            else if(lX == 0)	lX = -1;
+			else if(lX == 0)	lX = mlMax;
 			else				lX /= 2;
-			
-			if(lX < 0) lX = mlMax;
 		}
+
+		pLowLevel->SetMultisampling(lX);
+		lX = pLowLevel->GetMultisampling();
 
 		if(lX!=0)
 			gpFSAAText->msText = cString::To16Char(cString::ToString(lX)+"x");
@@ -1697,12 +1694,48 @@ public:
 			gpFSAAText->msText = kTranslate("MainMenu","Off");
 
 		mpInit->mlFSAA = lX;
-
-		gbMustRestart = true;
 	}
 
 	int mlMax;
-	int mlCurrent;
+};
+
+// Off, or one of its qualities. The names are not in the game's language
+// files.
+static tWString GetSmaaText(cInit *mpInit)
+{
+	const cSmaaSettings &settings = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetSmaa();
+	if(settings.mbActive==false) return kTranslate("MainMenu","Off");
+
+	static const wchar_t *vNames[] = {L"Low", L"Medium", L"High", L"Ultra", L"Custom"};
+	return vNames[settings.GetQuality()];
+}
+
+class cMainMenuWidget_Smaa : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Smaa(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("Smooths the stair steps of edges in the finished picture, also those of cut-out textures and shadows. Cheap, and works along with Anti-Aliasing.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		cSmaaSettings settings = pLowLevel->GetSmaa();
+
+		// Off, then the qualities: forwards with the left button, back with
+		// the right. Settings made by hand (F2 panel) count as the first.
+		const int lNum = 1 + cSmaaSettings::klQualityNum;
+		int lIdx = settings.mbActive ? 1 + settings.GetQuality() % cSmaaSettings::klQualityNum : 0;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		settings.mbActive = lIdx > 0;
+		if(lIdx > 0) settings.SetQuality(lIdx - 1);
+		pLowLevel->SetSmaa(settings);
+
+		gpSmaaText->msText = GetSmaaText(mpInit);
+	}
 };
 
 static const float gvRenderScales[] = {0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
@@ -1806,6 +1839,15 @@ public:
 	}
 };
 
+// Off, the original depth of field, or the one made from the depth buffer.
+// The last two names are not in the game's language files.
+static tWString GetDoFText(cInit *mpInit)
+{
+	if(mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled()) return kTranslate("MainMenu","Off");
+	return mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetDepthOfFieldType() == eDepthOfFieldType_Bokeh ?
+			_W("Bokeh") : _W("Original");
+}
+
 class cMainMenuWidget_DOF : public cMainMenuWidget_Button
 {
 public:
@@ -1817,10 +1859,18 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		bool bX = mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled();
-		mpInit->mpEffectHandler->GetDepthOfField()->SetDisabled(!bX);
+		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+		cEffect_DepthOfField *pDoF = mpInit->mpEffectHandler->GetDepthOfField();
 
-		gpDoFText->msText = bX ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		// Off, Original, Bokeh: forwards with the left button, back with the right
+		int lIdx = pDoF->IsDisabled() ? 0 : 1 + (int)pPostEffects->GetDepthOfFieldType();
+		int lNum = 1 + eDepthOfFieldType_LastEnum;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		pDoF->SetDisabled(lIdx == 0);
+		if(lIdx > 0) pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)(lIdx - 1));
+
+		gpDoFText->msText = GetDoFText(mpInit);
 	}
 };
 
@@ -2120,6 +2170,15 @@ public:
 //------------------------------------------------------------
 
 
+// Off, the original motion blur, or the camera's alone from the depth
+// buffer. The last two names are not in the game's language files.
+static tWString GetMotionBlurText(cInit *mpInit)
+{
+	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+	if(pPostEffects->GetMotionBlurActive()==false) return kTranslate("MainMenu","Off");
+	return pPostEffects->GetMotionBlurType() == eMotionBlurType_Camera ? _W("Camera") : _W("Original");
+}
+
 class cMainMenuWidget_MotionBlur : public cMainMenuWidget_Button
 {
 public:
@@ -2131,11 +2190,17 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive();
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(!bX);
+		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 
-		gpMotionBlurText->msText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive() ? 
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		// Off, Original, Camera: forwards with the left button, back with the right
+		int lIdx = pPostEffects->GetMotionBlurActive() ? 1 + (int)pPostEffects->GetMotionBlurType() : 0;
+		int lNum = 1 + eMotionBlurType_LastEnum;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		pPostEffects->SetMotionBlurActive(lIdx > 0);
+		if(lIdx > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lIdx - 1));
+
+		gpMotionBlurText->msText = GetMotionBlurText(mpInit);
 	}
 };
 
@@ -3788,7 +3853,7 @@ void cMainMenu::CreateWidgets()
 	gpDisplayText->SetExtraWidget(pWidgetDisplay);
 
 	vPos.y += 29;
-	sText = mpInit->mpPlayer->GetNoiseFilter()->IsActive() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = GetNoiseFilterText(mpInit);
 	gpNoiseFilterText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left ));
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpNoiseFilterText); 
 	gpNoiseFilterText->SetExtraWidget(pWidgetNoiseFilter);
@@ -3845,11 +3910,11 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pTextureFilterButton = hplNew( cMainMenuWidget_TextureFilter,(mpInit,vPos,kTranslate("MainMenu","Texture Filter:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureFilterButton); 
 	vPos.y += 22;
-	cMainMenuWidget *pTextureAnisotropyButton = hplNew( cMainMenuWidget_TextureAnisotropy,(mpInit,vPos,kTranslate("MainMenu","Anisotropy:"),20,eFontAlign_Right) );
-	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureAnisotropyButton); 
-	vPos.y += 22;
 	cMainMenuWidget *pFSAAButton = hplNew( cMainMenuWidget_FSAA,(mpInit,vPos,kTranslate("MainMenu","Anti-Aliasing:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pFSAAButton); 
+	vPos.y += 22;
+	cMainMenuWidget *pSmaaButton = hplNew( cMainMenuWidget_Smaa,(mpInit,vPos,_W("Edge Smoothing (SMAA):"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pSmaaButton); 
 	vPos.y += 22;
 	cMainMenuWidget *pRenderScaleButton = hplNew( cMainMenuWidget_RenderScale,(mpInit,vPos,_W("Render Scale:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pRenderScaleButton); 
@@ -3887,8 +3952,7 @@ void cMainMenu::CreateWidgets()
 	gpPostEffectsText->SetExtraWidget(pPostEffectsButton);
 
 	vPos.y += 22;
-	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive() ? kTranslate("MainMenu","On") : 
-	kTranslate("MainMenu","Off");
+	sText = GetMotionBlurText(mpInit);
 	gpMotionBlurText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpMotionBlurText);
 	gpMotionBlurText->SetExtraWidget(pMotionBlurButton);
@@ -3906,18 +3970,9 @@ void cMainMenu::CreateWidgets()
 	gpLimitFPSText->SetExtraWidget(pLimitFPSButton);
 
 	vPos.y += 22;
-	sText = kTranslate("MainMenu",gvTextureFilter[mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureFilter()]);
-	gpTextureFilterText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+	gpTextureFilterText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetTextureFilterText(mpInit),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureFilterText);
 	gpTextureFilterText->SetExtraWidget(pTextureFilterButton);
-
-	vPos.y += 22;
-	int lAniDeg = (int)mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureAnisotropy();
-	if(lAniDeg!=1)	sText = cString::To16Char(cString::ToString(lAniDeg)+"x");
-	else			sText = kTranslate("MainMenu","Off");
-	gpTextureAnisotropyText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
-	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureAnisotropyText);
-	gpTextureAnisotropyText->SetExtraWidget(pTextureAnisotropyButton);
 
 	vPos.y += 22;
 	int lFSAA = mpInit->mlFSAA;
@@ -3926,6 +3981,11 @@ void cMainMenu::CreateWidgets()
 	gpFSAAText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpFSAAText);
 	gpFSAAText->SetExtraWidget(pFSAAButton);
+
+	vPos.y += 22;
+	gpSmaaText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetSmaaText(mpInit),20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpSmaaText);
+	gpSmaaText->SetExtraWidget(pSmaaButton);
 
 	vPos.y += 22;
 	gpRenderScaleText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetRenderScaleText(mpInit->mpGame->GetGraphics()->GetRenderScale()),20,eFontAlign_Left) );
@@ -3945,8 +4005,7 @@ void cMainMenu::CreateWidgets()
 	gpAmbientOcclusionText->SetExtraWidget(pAmbientOcclusionButton);
 
 	vPos.y += 22;
-	sText = mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled() ? 
-		kTranslate("MainMenu","Off") : kTranslate("MainMenu","On");
+	sText = GetDoFText(mpInit);
 
 	gpDoFText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpDoFText);

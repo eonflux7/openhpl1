@@ -403,6 +403,18 @@ private:
 
 //---------------------------------------------
 
+// What the noise filter is made of.
+enum eNoiseFilterType
+{
+	/// Tiles of noise images drawn over the screen: the original.
+	eNoiseFilterType_Original,
+	/// Grain made by the shader that finishes the 3D scene, under the HUD:
+	/// noise, or film (eFilmGrain_Noise, eFilmGrain_Film).
+	eNoiseFilterType_Grain,
+	eNoiseFilterType_Film,
+	eNoiseFilterType_LastEnum
+};
+
 class cPlayerNoiseFilter
 {
 public:
@@ -416,8 +428,14 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
+	void SetType(eNoiseFilterType aType);
+	eNoiseFilterType GetType(){ return mType;}
+
 private:
+	void UpdateGrain();
+
 	bool mbActive;
+	eNoiseFilterType mType;
 
 	float mfAlpha;
 	float mfTimeCount;

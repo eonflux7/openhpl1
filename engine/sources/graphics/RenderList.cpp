@@ -401,9 +401,8 @@ namespace hpl {
 				m_setObjects.insert(apObject);
 
 				//MotionBlur
-				if(mpGraphics->GetRendererPostEffects()->GetMotionBlurActive()
-					|| mpGraphics->GetRenderer3D()->GetRenderSettings()->mbFogActive
-					|| mpGraphics->GetRendererPostEffects()->GetDepthOfFieldActive())
+				if(mpGraphics->GetRendererPostEffects()->GetObjectsNeeded()
+					|| mpGraphics->GetRenderer3D()->GetRenderSettings()->mbFogActive)
 				{
 					m_setMotionBlurObjects.insert(apObject);
 

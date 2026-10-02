@@ -42,6 +42,10 @@ class cInit;
 // Another window is for the ambient occlusion: on or off, how good and how
 // far it searches, how strongly it darkens, and the occlusion alone.
 //
+// The last window, Lens and film, is for the depth of field (with a test
+// that switches it on at a distance of your choosing: the game only uses
+// it now and then), the motion blur and the noise filter's grain.
+//
 // While the panel is open it has the mouse and the keyboard, and the view
 // is kept exactly where the frame was taken from. Closing it (F2) gives the
 // input back to the game: the player can look and walk around from there.
@@ -66,6 +70,8 @@ private:
 	void DrawRenderer();
 	void DrawShadows();
 	void DrawAmbientOcclusion();
+	void DrawLensAndFilm();
+	void DrawAntiAliasing();
 	void DrawShadowLights();
 	void UpdateTestLight();
 
@@ -84,6 +90,9 @@ private:
 
 	cInit *mpInit;
 	bool mbOpen;
+	//The anti-aliasing window: folded, and frames left to put it in its corner
+	bool mbAntiAliasingFolded = true;
+	int mlAntiAliasingPlace = 0;
 
 	tStringVec mvMaps;
 	char msMapFilter[64];

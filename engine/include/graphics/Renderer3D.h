@@ -271,6 +271,8 @@ namespace hpl {
 		tRendererDebugFlag GetDebugFlags(){ return mDebugFlags;}
 
 		cRenderList* GetRenderList(){ return mpRenderList;}
+		/// Seconds of rendering: the frame times given to RenderWorld(), added up.
+		float GetRenderTime(){ return mfRenderTime;}
 		cRenderSettings* GetRenderSettings(){return &mRenderSettings;}
 
 		eRendererShowShadows GetShowShadows();

@@ -58,6 +58,8 @@ namespace hpl {
 		mpAoTiledTexture = nullptr;
 		mpAoTexture[0] = nullptr;
 		mpAoTexture[1] = nullptr;
+		mpBokehTexture[0] = nullptr;
+		mpBokehTexture[1] = nullptr;
 		CreateScreenBuffers();
 
 		///////////////////////////////////////////
@@ -107,6 +109,10 @@ namespace hpl {
 		mpMotionBlurFP = mpGpuManager->CreateProgram("PostEffect_Motion_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpMotionBlurFP) Error("Couldn't load 'PostEffect_Motion_fp.cg'!\n");
 
+		mpMotionCameraVP = mpGpuManager->CreateProgram("PostEffect_MotionCamera_vp.cg","main",eGpuProgramType_Vertex);
+		mpMotionCameraFP = mpGpuManager->CreateProgram("PostEffect_MotionCamera_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpMotionCameraVP || !mpMotionCameraFP) Error("Couldn't load the 'PostEffect_MotionCamera' programs!\n");
+
 		/////////////////
 		// Depth of Field programs
 		mpDepthOfFieldVP = mpGpuManager->CreateProgram("PostEffect_DoF_vp.cg","main",eGpuProgramType_Vertex);
@@ -114,6 +120,14 @@ namespace hpl {
 
 		mpDepthOfFieldFP = mpGpuManager->CreateProgram("PostEffect_DoF_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpDepthOfFieldFP) Error("Couldn't load 'PostEffect_DoF_fp.cg'!\n");
+
+		mpBokehVP = mpGpuManager->CreateProgram("PostEffect_Bokeh_vp.cg","main",eGpuProgramType_Vertex);
+		mpBokehPrefilterFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Prefilter_fp.cg","main",eGpuProgramType_Fragment);
+		mpBokehGatherFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Gather_fp.cg","main",eGpuProgramType_Fragment);
+		mpBokehFillFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Fill_fp.cg","main",eGpuProgramType_Fragment);
+		mpBokehCompositeFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Composite_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpBokehVP || !mpBokehPrefilterFP || !mpBokehGatherFP || !mpBokehFillFP || !mpBokehCompositeFP)
+			Error("Couldn't load the 'PostEffect_Bokeh' programs!\n");
 
 		Log("  RendererPostEffects created\n");
 
@@ -138,8 +152,11 @@ namespace hpl {
 		mbMotionBlurActive = false;
 		mfMotionBlurAmount = 1.0f;
 		mbMotionBlurFirstTime = true;
+		mMotionBlurType = eMotionBlurType_Original;
+		mfMotionBlurPrevTime = 0;
 
 		//Depth of Field
+		mDofType = eDepthOfFieldType_Original;
 		mbDofActive = false;
 		mfDofMaxBlur = 1.0f;
 		mfDofFocalPlane = 1.0f;
@@ -174,6 +191,11 @@ namespace hpl {
 
 		if(mpDepthOfFieldVP) mpGpuManager->Destroy(mpDepthOfFieldVP);
 		if(mpDepthOfFieldFP) mpGpuManager->Destroy(mpDepthOfFieldFP);
+
+		iGpuProgram *vNewPrograms[] = {mpMotionCameraVP, mpMotionCameraFP, mpBokehVP, mpBokehPrefilterFP,
+										mpBokehGatherFP, mpBokehFillFP, mpBokehCompositeFP};
+		for(iGpuProgram *pProgram : vNewPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
+		for(iTexture *pTexture : mpBokehTexture) if(pTexture) hplDelete(pTexture);
 
 		if(mpBloomBlurTexture) hplDelete(mpBloomBlurTexture);
 		if(mpDofBlurTexture) hplDelete(mpDofBlurTexture);
@@ -271,6 +293,11 @@ namespace hpl {
 
 		//Made again, at the new size, when next needed
 		DestroyAmbientOcclusionTextures();
+		for(iTexture *&pTexture : mpBokehTexture)
+		{
+			if(pTexture) hplDelete(pTexture);
+			pTexture = nullptr;
+		}
 
 		//The old frames are gone
 		mImageTrailData.mbFirstPass = true;
@@ -294,6 +321,14 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cRendererPostEffects::SetMotionBlurType(eMotionBlurType aType)
+	{
+		mMotionBlurType = aType;
+		mbMotionBlurFirstTime = true;
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cRendererPostEffects::Render()
 	{
 		if(mpScreenBuffer[0] == nullptr || mpScreenBuffer[1] == nullptr) return;
@@ -301,20 +336,43 @@ namespace hpl {
 		// The occlusion alone is not a scene to blur or make glow
 		if(mbAoActive && mAoSettings.mbShowOnly) return;
 
+		// The panel's test of the depth of field does not wait for the game
+		bool bDofTest = mDofSettings.mbTest;
+		if(bDofTest)
+		{
+			float fRange = cMath::Max(mDofSettings.mfTestRange, 0.01f);
+			mfDofFocalPlane = cMath::Max(mDofSettings.mfTestFocus, 0.0f);
+			mfDofNearPlane = cMath::Max(mfDofFocalPlane - fRange, 0.0f);
+			mfDofFarPlane = mfDofFocalPlane + fRange;
+			mfDofMaxBlur = 1;
+		}
+
 		if(mbActive==false ||
 			(	mImageTrailData.mbActive==false && mbBloomActive==false &&
-				mbMotionBlurActive==false && mbDofActive==false) )
+				mbMotionBlurActive==false && mbDofActive==false && bDofTest==false) )
 		{
 			return;
 		}
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
 
+		// A multisampled scene has one sample a pixel from here on: the
+		// effects are drawn over all of it and copy it, neither of which
+		// more samples are of use to. Not with the original motion blur,
+		// which draws what moves once more against the scene's depth.
+		if(mbMotionBlurActive==false || mMotionBlurType == eMotionBlurType_Camera)
+			mpLowLevelGraphics->ResolveScene();
+
 		mpLowLevelGraphics->BeginGpuSection("Depth of field");
-		RenderDepthOfField();
+		if(mbDofActive || bDofTest)
+		{
+			if(mDofType == eDepthOfFieldType_Bokeh)	RenderDepthOfFieldBokeh();
+			else									RenderDepthOfField();
+		}
 		mpLowLevelGraphics->EndGpuSection();
 		mpLowLevelGraphics->BeginGpuSection("Motion blur");
-		RenderMotionBlur();
+		if(mMotionBlurType == eMotionBlurType_Camera)	RenderMotionBlurCamera();
+		else											RenderMotionBlur();
 		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->SetDepthTestActive(false);
@@ -441,8 +499,6 @@ namespace hpl {
 
 	void cRendererPostEffects::RenderDepthOfField()
 	{
-		if(mbDofActive==false) return;
-
 		if(mpDepthOfFieldFP==nullptr || mpDepthOfFieldVP==nullptr) return;
 
 		//////////////////////////////
@@ -564,6 +620,200 @@ namespace hpl {
 		mpDepthOfFieldVP->UnBind();
 		mpLowLevelGraphics->SetTexture(0,nullptr);
 		mpLowLevelGraphics->SetTexture(1,nullptr);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// One pass of the newer effects: a quad over apTarget (the scene when
+	// it is null) with apSource in unit 0. The fragment programs take their
+	// positions from the pixel drawn. Expects an orthographic projection of
+	// the virtual screen size.
+	void cRendererPostEffects::DrawScreenPass(iTexture *apTarget, iTexture *apSource)
+	{
+		mpLowLevelGraphics->SetRenderTarget(apTarget);
+		mpLowLevelGraphics->SetTexture(0,apSource);
+
+		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
+		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+		mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
+		mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
+		mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
+		mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// The textures of the bokeh depth of field, if they are not there yet.
+	bool cRendererPostEffects::CreateDepthOfFieldTextures()
+	{
+		if(mpBokehTexture[1]) return true;
+
+		cVector2l vSize(((int)mvScreenSize.x + 1) / 2, ((int)mvScreenSize.y + 1) / 2);
+		for(iTexture *&pTexture : mpBokehTexture)
+		{
+			if(pTexture) hplDelete(pTexture);
+			pTexture = mpLowLevelGraphics->CreateFloatTexture(vSize, 4, eTextureTarget_2D);
+			if(pTexture==nullptr) continue;
+			pTexture->SetWrapS(eTextureWrap_ClampToEdge);
+			pTexture->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+		if(!mpBokehTexture[0] || !mpBokehTexture[1])
+		{
+			Error("Couldn't create the depth of field textures!\n");
+			for(iTexture *&pTexture : mpBokehTexture)
+			{
+				if(pTexture) hplDelete(pTexture);
+				pTexture = nullptr;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// See hpl1_PostEffect_Bokeh.fragment.
+	void cRendererPostEffects::RenderDepthOfFieldBokeh()
+	{
+		if(!mpBokehVP || !mpBokehPrefilterFP || !mpBokehGatherFP || !mpBokehFillFP || !mpBokehCompositeFP) return;
+
+		// The blur of what is fully out of focus, in pixels of the scene
+		float fRadius = cMath::Clamp(mDofSettings.mfRadius, 0.0f, 0.05f) * mvScreenSize.y;
+		// The game fades the blur in and out evenly. A blur of half the
+		// width still reads as out of focus, so the fade is squared: the
+		// picture is nearly sharp half way through.
+		float fMaxBlur = cMath::Clamp(mfDofMaxBlur, 0.0f, 1.0f);
+		fMaxBlur *= fMaxBlur;
+		if(fRadius * fMaxBlur < 1.0f) return;
+
+		if(CreateDepthOfFieldTextures()==false) return;
+		mpLowLevelGraphics->ResolveSceneDepth();
+
+		cCamera3D *pCam = mpRenderList->GetCamera();
+		iTexture *pScreenTexture = GetFreeScreenTexture();
+		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+
+		mpLowLevelGraphics->SetDepthWriteActive(false);
+		mpLowLevelGraphics->SetDepthTestActive(false);
+		mpLowLevelGraphics->SetBlendActive(false);
+		mpLowLevelGraphics->PushMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
+
+		mpBokehVP->Bind();
+		mpBokehVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+
+		cVector3f vPlanes(mfDofNearPlane, mfDofFocalPlane, mfDofFarPlane);
+
+		///////////////////////////////////////////
+		// The scene at half size, with how far out of focus each pixel is
+		mpBokehPrefilterFP->Bind();
+		mpBokehPrefilterFP->SetVec3f("planes", vPlanes);
+		mpBokehPrefilterFP->SetVec2f("blur", fMaxBlur, fRadius);
+		DrawScreenPass(mpBokehTexture[0], pScreenTexture);
+		mpBokehPrefilterFP->UnBind();
+
+		///////////////////////////////////////////
+		// Every pixel gathers what is spread over it
+		mpBokehGatherFP->Bind();
+		mpBokehGatherFP->SetVec3f("disc", fRadius * 0.5f, (float)cMath::Clamp(mDofSettings.mlRings, 1, 5),
+									fRadius * 0.5f * fMaxBlur);
+		DrawScreenPass(mpBokehTexture[1], mpBokehTexture[0]);
+		mpBokehGatherFP->UnBind();
+
+		///////////////////////////////////////////
+		// The gaps between the samples smoothed over
+		mpBokehFillFP->Bind();
+		DrawScreenPass(mpBokehTexture[0], mpBokehTexture[1]);
+		mpBokehFillFP->UnBind();
+
+		///////////////////////////////////////////
+		// Over the scene, where it is out of focus. The pass reads the
+		// scene's depth, so the scene is drawn into without it; destination
+		// alpha is the renderer's own.
+		mpLowLevelGraphics->SetSceneColorOnly(true);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, false);
+		mpBokehCompositeFP->Bind();
+		mpBokehCompositeFP->SetVec3f("planes", vPlanes);
+		mpBokehCompositeFP->SetVec2f("blur", fMaxBlur, fRadius);
+		mpLowLevelGraphics->SetTexture(1,pScreenTexture);
+		DrawScreenPass(nullptr, mpBokehTexture[0]);
+		mpBokehCompositeFP->UnBind();
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
+		mpLowLevelGraphics->SetSceneColorOnly(false);
+
+		mpBokehVP->UnBind();
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->SetTexture(1,nullptr);
+		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, pCam->GetProjectionMatrix());
+		mpLowLevelGraphics->SetDepthWriteActive(true);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// See hpl1_PostEffect_MotionCamera.fragment.
+	void cRendererPostEffects::RenderMotionBlurCamera()
+	{
+		if(mbMotionBlurActive==false) return;
+		if(!mpMotionCameraVP || !mpMotionCameraFP) return;
+
+		///////////////////////////////////////////
+		// Where the camera was the frame before, and how long ago
+		cCamera3D *pCam = mpRenderList->GetCamera();
+		cMatrixf mtxViewProj = cMath::MatrixMul(pCam->GetProjectionMatrix(), pCam->GetViewMatrix());
+		cMatrixf mtxPrevViewProj = m_mtxMotionBlurPrevViewProj;
+		float fTime = mpRenderer3D->GetRenderTime();
+		float fFrameTime = fTime - mfMotionBlurPrevTime;
+		bool bFirstTime = mbMotionBlurFirstTime;
+
+		m_mtxMotionBlurPrevViewProj = mtxViewProj;
+		mfMotionBlurPrevTime = fTime;
+		mbMotionBlurFirstTime = false;
+
+		if(bFirstTime || fFrameTime < 0.0001f || mtxPrevViewProj == mtxViewProj) return;
+
+		const cMotionBlurSettings &settings = mMotionBlurSettings;
+		// The share of the way since the frame before that the shutter is open for
+		float fShutter = cMath::Max(settings.mfShutterTime, 0.0f) / fFrameTime;
+		float fMaxLength = cMath::Clamp(settings.mfMaxLength, 0.0f, 0.25f) * mvScreenSize.y;
+		if(fShutter <= 0 || fMaxLength < 1.0f) return;
+
+		// From a place in this frame's view to its place on the screen of
+		// the frame before
+		cMatrixf mtxReproject = cMath::MatrixMul(mtxPrevViewProj, cMath::MatrixInverse(pCam->GetViewMatrix()));
+
+		iTexture *pScreenTexture = GetFreeScreenTexture();
+		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+
+		mpLowLevelGraphics->SetDepthWriteActive(false);
+		mpLowLevelGraphics->SetDepthTestActive(false);
+		mpLowLevelGraphics->SetBlendActive(false);
+		mpLowLevelGraphics->PushMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
+
+		// The pass reads the scene's depth, so the scene is drawn into
+		// without it; destination alpha is the renderer's own.
+		mpLowLevelGraphics->SetSceneColorOnly(true);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, false);
+
+		mpMotionCameraVP->Bind();
+		mpMotionCameraVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+		mpMotionCameraFP->Bind();
+		mpMotionCameraFP->SetMatrixf("reproject", mtxReproject);
+		mpMotionCameraFP->SetVec4f("shutter", fShutter, fMaxLength, (float)cMath::Clamp(settings.mlSamples, 2, 32),
+									cMath::Max(settings.mfNearLimit, 0.0f));
+		DrawScreenPass(nullptr, pScreenTexture);
+		mpMotionCameraFP->UnBind();
+		mpMotionCameraVP->UnBind();
+
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
+		mpLowLevelGraphics->SetSceneColorOnly(false);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, pCam->GetProjectionMatrix());
+		mpLowLevelGraphics->SetDepthWriteActive(true);
 	}
 
 	//-----------------------------------------------------------------------
@@ -924,6 +1174,7 @@ namespace hpl {
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
 		if(CreateAmbientOcclusionTextures()==false) return false;
+		mpLowLevelGraphics->ResolveSceneDepth();
 
 		const cAmbientOcclusionSettings &settings = mAoSettings;
 		cVector2l vSize((int)mvScreenSize.x, (int)mvScreenSize.y);

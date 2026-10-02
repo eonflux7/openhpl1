@@ -1878,6 +1878,10 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 	mfTimeCount =0;
 
 	mbActive = mpInit->mpConfig->GetBool("Graphics", "NoiseFilter",true);
+	int lType = mpInit->mpConfig->GetInt("Graphics", "NoiseFilterType",eNoiseFilterType_Original);
+	if(lType < 0 || lType >= eNoiseFilterType_LastEnum) lType = eNoiseFilterType_Original;
+	mType = (eNoiseFilterType)lType;
+	UpdateGrain();
 }
 
 //-----------------------------------------------------------------------
@@ -1886,6 +1890,7 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 cPlayerNoiseFilter::~cPlayerNoiseFilter()
 {
 	mpInit->mpConfig->SetBool("Graphics", "NoiseFilter",mbActive);	
+	mpInit->mpConfig->SetInt("Graphics", "NoiseFilterType",mType);
 
 	for(size_t i=0; i< mvGfxNoise.size(); ++i)
 	{
@@ -1897,7 +1902,7 @@ cPlayerNoiseFilter::~cPlayerNoiseFilter()
 
 void cPlayerNoiseFilter::Draw()
 {
-	if(mbActive == false) return;
+	if(mbActive == false || mType != eNoiseFilterType_Original) return;
 
 	//The 20x15 tiles of the 800x600 layout, plus the columns or rows needed to
 	//reach the screen edges. Those reuse the tile images of the layout.
@@ -1920,7 +1925,7 @@ void cPlayerNoiseFilter::Draw()
 
 void cPlayerNoiseFilter::Update(float afTimeStep)
 {
-	if(mbActive == false) return;
+	if(mbActive == false || mType != eNoiseFilterType_Original) return;
 	if(mfTimeCount <=0)
 	{
 		for(int x=0;x <20;++x)
@@ -1949,6 +1954,28 @@ void cPlayerNoiseFilter::Update(float afTimeStep)
 void cPlayerNoiseFilter::SetActive(bool abX)
 {
 	mbActive = abX;
+	UpdateGrain();
+}
+
+//-----------------------------------------------------------------------
+
+void cPlayerNoiseFilter::SetType(eNoiseFilterType aType)
+{
+	mType = aType;
+	UpdateGrain();
+}
+
+//-----------------------------------------------------------------------
+
+// The shader's grain is on when the filter is, and of one of its kinds.
+void cPlayerNoiseFilter::UpdateGrain()
+{
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	cFilmGrainSettings grain = pLowLevel->GetFilmGrain();
+	grain.mType = eFilmGrain_Off;
+	if(mbActive && mType == eNoiseFilterType_Grain) grain.mType = eFilmGrain_Noise;
+	if(mbActive && mType == eNoiseFilterType_Film) grain.mType = eFilmGrain_Film;
+	pLowLevel->SetFilmGrain(grain);
 }
 
 //-----------------------------------------------------------------------

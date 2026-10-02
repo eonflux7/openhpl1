@@ -856,9 +856,10 @@ do with colour, and what follows for this option.
   - Steps are closer together near the pixel. A sample counts less the
     further it is from the point, down to nothing at the radius, by being
     drawn back to where the surface itself is.
-  - At half rate (`AOHalfRate`, on) only every other tile is drawn in a
-    frame, in turns: every other pixel is a frame old. When the view turns
-    fast the shading trails by a frame in those.
+  - At half rate (`AOHalfRate`, off by default) only every other tile is
+    drawn in a frame, in turns: every other pixel is a frame old. When the
+    view turns fast the shading trails by a frame in those, which showed
+    as ghosting in play: it was on by default at first.
 - Settings, all in the F2 panel's Ambient occlusion window:
   - `AOSlices`, `AOSteps`: directions per pixel and steps to each side of
     one. The qualities are 2x2, 2x4, 3x6 (High, the default), 4x10, 6x16.
@@ -878,18 +879,228 @@ do with colour, and what follows for this option.
   that share converted for the screen, which darkens the light by the same
   amount.
 - New in the low level: the scene's depth texture stays bound to a texture
-  unit of its own (`hpl_SceneDepth`, `hpl1_scene_depth.glsl`; multisampled
-  with anti-aliasing, where the first sample is read), and
+  unit of its own (`hpl_SceneDepth`, `hpl1_scene_depth.glsl`; with
+  anti-aliasing a copy with one sample a pixel, see "Texture filtering and
+  anti-aliasing"), and
   `CreateFloatTexture` makes float textures of one or two channels.
 - Checked: with the option off all 93 reference frames match the capture
   from before. No GL debug messages with it on, with and without
   anti-aliasing, linear lighting, and at sizes that do not divide by four.
-  At 2560x1440 in the office the default, High at half rate, costs 2.8 ms of
+  At 2560x1440 in the office High at half rate costs 2.8 ms of
   GPU time a frame (search 1.6, filter 0.6, the rest 0.6) where that map's
   light passes cost 1.65; Medium costs 2.1 (search 0.9, or 1.6 without half
   rate). The GPU's clock varies between runs: with it higher the same
   passes took two thirds of that. The F3 overlay lists the passes under
   "Ambient occlusion".
+
+### Depth of field, motion blur and grain from shaders (options)
+
+Each is a third setting of an existing option; off and the original are
+kept, and the original is what a fresh `settings.cfg` has.
+
+- **Depth of Field: Off / Original / Bokeh** (`DepthOfFieldType` 0/1). The
+  original draws every object again to blend the scene with a small blurred
+  copy of it. Bokeh works from the depth buffer
+  (`hpl1_PostEffect_Bokeh.fragment`,
+  `cRendererPostEffects::RenderDepthOfFieldBokeh`): what is out of focus is
+  spread over a disc, and what is in focus stays as sharp as it was drawn.
+  - What is in focus is still the game's to say: the same near, focus and
+    far distances and the same fading in and out as the original.
+  - Four passes: the scene at half size with each pixel's blur, a gather
+    over rings of samples (Jimenez 2014, laid out as in Unity's
+    post-processing stack), a small filter over the gaps between the
+    samples, and the result drawn over the scene where it is out of focus.
+    What is behind the focus and what is in front of it are gathered apart,
+    so a blurred background does not take in sharp things in front of it
+    and the blur of near things spreads over what is behind them. The blur
+    is made on linear values, so bright points become discs.
+  - What is in front of the focus is blurred all through, and what is
+    behind it shows through its blurred outline: taken from the samples
+    around that are not in front. (At first the sharp picture showed
+    through such things, outlines and all.)
+  - Between the distance in focus and the ones of full blur the blur
+    grows with the square of the way, slowly at first, so there is a zone
+    in focus. Growing evenly, as the original's blend does, it left a
+    narrow sharp band across a floor that runs through the focus.
+  - In front of the focus the blurred picture comes in over the same first
+    few pixels of blur as behind it. Switching to it at once, where the
+    blur reached a pixel of the half-size picture, drew a line across
+    floors and walls near the camera.
+  - The game fades the blur in and out evenly; the fade is squared here,
+    since a blur of half the width still reads as out of focus and the
+    picture seemed slow to come back.
+  - `DepthOfFieldRadius` (1.2 % of the picture's height): the blur of what is
+    fully out of focus. `DepthOfFieldRings` (3, 1 to 5): rings of samples.
+  - "Try it here" in the F2 panel switches the depth of field on at a
+    distance of your choosing, with either kind: the game itself only uses
+    it when you look closely at something and where a script asks
+    (`DepthOfFieldTest`, `DepthOfFieldTestFocus`, `DepthOfFieldTestRange`
+    are read from `settings.cfg` but not saved).
+- **Motion Blur: Off / Original / Camera** (`MotionBlurType` 0/1). The
+  original draws every object again, smeared from where it was the frame
+  before. Camera is one pass over the scene
+  (`hpl1_PostEffect_MotionCamera.fragment`,
+  `cRendererPostEffects::RenderMotionBlurCamera`): where a pixel was the
+  frame before follows from its depth and from how the camera moved, and
+  the pixel is the average of the scene along that way.
+  - Only the camera's own turning and walking blurs. Things that move by
+    themselves stay sharp, which the original does blur.
+  - `MotionBlurShutter` (1/120 s): the blur covers the way the picture moves
+    in that time, so it looks the same at any frame rate. The original's
+    amount is a share of the frame, and fades away as the frame rate rises.
+  - `MotionBlurMaxLength` (4 % of the height), `MotionBlurSamples` (8, each
+    pixel's shifted differently, so few samples show as grain, not as
+    copies of the picture).
+  - A sample nearer than the pixel counts only as far as its own blur
+    reaches the pixel. `MotionBlurNearLimit` (0.6 m): nearer than this
+    nothing is blurred, since what the player holds moves with the camera.
+  - Pixels that do not move are left as drawn.
+- **Noise Filter: Off / Original / Grain / Film Grain** (`NoiseFilterType`
+  0/1/2). The original lays tiles of six noise images over the whole
+  screen, HUD included. The other two are made by the shader that finishes
+  the 3D scene (`hpl1_output.fragment`), on the screen values, under the
+  HUD and menus.
+  - Grain is noise added to the picture, alike at every brightness.
+  - Film Grain takes the picture as made of grains, each a clump of twelve
+    crystals that are developed where the picture is brighter than a
+    threshold of their own. A pixel shows the share of the crystals over
+    it that are developed, which is on average the picture's own value. So
+    there is no grain in black or in white and most in between, dark parts
+    have faint bright specks and bright parts dark ones, and the same
+    crystals come on one by one as the brightness rises over a surface
+    (the binomial model of film grain). It does not change the picture's
+    brightness. Colour film has crystals for red, green and blue.
+  - Settings for both: `GrainIntensity` (0.25), `GrainSize` (1.5: pixels of
+    a picture 1080 high; it grows with the picture and is never under a
+    pixel), `GrainColor` (0.3; 0 is grey grain), `GrainShadows` and
+    `GrainHighlights` (1: the share dark and bright parts get), `GrainRate`
+    (24 times a second, as film; 0 is every frame), `GrainDispersion` (0.5,
+    film: how much the grains differ in size).
+  - prod80's and iMMERSE's film grain shaders for ReShade were looked at
+    for what they offer; the code here is written anew (iMMERSE's licence
+    allows no reuse).
+- All settings are in the F2 panel's Lens and film window.
+- New in the low level: `SetSceneColorOnly`, a framebuffer of the scene's
+  colour without its depth, so that a pass can read the depth of the scene
+  it draws over; `SetFilmGrain`.
+- The render list keeps the objects for the original two effects only when
+  one of them is on.
+- Checked: with the options at their originals all 93 reference frames match
+  the capture from before (the menu page's texts aside). No GL debug
+  messages with all three on, with and without anti-aliasing and linear
+  lighting. GPU time at 1280x720 in the office: Bokeh 0.36 ms, Camera
+  motion blur 0.36 ms while turning fast (nothing when still), Film Grain
+  0.25 ms, Grain 0.02 ms. Not yet play-tested: all defaults are first
+  guesses.
+
+### Texture filtering and anti-aliasing
+
+- **Texture Filter** in Advanced Graphics is one option now: Trilinear, or
+  Anisotropic 2x to 16x (as far as the graphics card goes), in place of
+  Texture Filter (Bilinear / Trilinear) and Anisotropy. A fresh
+  `settings.cfg` has anisotropic 16x; it was bilinear with none. The keys
+  are the same (`TextureFilter`, `TextureAnisotropy`), so a file from before
+  keeps what it had, and bilinear can still be asked for there.
+  - How a texture is read is no longer set on each texture but on sampler
+    objects (`cLowLevelGraphicsSDL::GetSampler`), one for each combination
+    of wrap modes, with mipmaps and without, bound to the unit along with
+    the texture. Changing the filter changes those few samplers
+    (`iLowLevelGraphics::SetTextureFilter`) instead of walking every
+    material's textures, and it reaches every texture with mipmaps: the
+    textures lights shine through were left bilinear before.
+  - Setting a texture's filter or wrap mode bound the texture to whatever
+    unit was active and left it there, behind the back of `SetTexture`,
+    which could then skip binding the texture it thought was still set.
+    Wrap modes are only kept by the texture now, and
+    `iTexture::SetFilter`/`SetAnisotropyDegree` are gone.
+- **Mipmaps.**
+  - Textures drawn with the alpha test (fences, gratings, perforated
+    metal: the materials with `UseAlpha`) keep what they cut out
+    (`iTexture::KeepAlphaCoverage`): the alpha of each mipmap is scaled so
+    that the same share of it passes the test as of the full texture.
+    Before, thin bars passed less and less the further away they were and
+    disappeared, and small holes closed. Far away such a surface keeps its
+    pattern now, which also flickers more when nothing smooths it.
+  - Cube maps have mipmaps (they were switched off), and are filtered
+    across the edges of their faces from the start, not only once a shadow
+    map had been made.
+  - Texture Quality below High averages the pixels it drops; it kept every
+    second or fourth one.
+- **Anti-Aliasing** (multisampling, `FSAA`) is changed without a restart,
+  and goes to 8x where the graphics card does.
+  - The multisampled scene is resolved once (`iLowLevelGraphics::ResolveScene`),
+    before the effects that are drawn over the whole of it (depth of field,
+    camera motion blur, bloom, image trail). They draw into and copy from
+    textures with one sample a pixel; before, each drew into all the
+    samples, and each copy resolved the scene again. The original motion
+    blur draws what moves once more against the scene's depth, so with it
+    the scene stays multisampled until the end, as before.
+  - Shaders read the scene's depth from a texture with one sample a pixel
+    (`ResolveSceneDepth`, for the ambient occlusion in the middle of the
+    scene; `ResolveScene` does it too). They were compiled to read the
+    first sample of the multisampled one, which is why changing the option
+    took a restart.
+  - Alpha-tested surfaces get the samples too: in the multisampled scene
+    the test is turned into the share of the pixel's samples that pass
+    (alpha to coverage; the alpha is how far past the reference the pixel
+    is, over the width of one pixel). The outline a texture cuts out is
+    smoothed like the edge of a triangle; before, multisampling did nothing
+    for it.
+  - `SetMultisamplingActive` (never called) and `CheckMultisampleCaps`
+    (empty) are gone.
+- **Edge Smoothing (SMAA): Off / Low / Medium / High / Ultra** in Advanced
+  Graphics (`SMAA` in `settings.cfg`, off by default). SMAA 1x (Jimenez et
+  al. 2012) on the finished scene (`cLowLevelGraphicsSDL::DrawSmaa`,
+  `hpl1_SMAA.fragment`): the scene is made into the picture as it is shown
+  (tonemapped, screen values), its edges are found, each is followed along
+  to tell its shape, and the pixels on it are blended by how much of them
+  the true edge would cover. It reaches what multisampling does not (the
+  edges of shadows, of textures and of lit areas) and works along with it.
+  - The searches, the area and search textures and the blend are the
+    reference implementation's (`shaders/SMAA.hlsl`, `vendor/smaa`, MIT).
+    What is around them follows iMMERSE's SMAA (Pascal Gilcher), whose own
+    code is not free to reuse: the settings are uniforms, where the
+    look-ups go is worked out in the fragment shader, edges are found by
+    brightness, by colour (the largest difference, or all three together)
+    or by depth alone (`SMAAEdges` 0 to 3, 1 by default), and the edges and
+    blend weights can be shown. Its compute shader, which gathers the
+    pixels with edges and works on them alone, needs OpenGL 4.3; the
+    stencil buffer does that here.
+  - The depth helps (`SMAADepthHelp`, on): where the distance changes by
+    more than 3 % of itself (`SMAADepthThreshold`) the threshold is halved
+    (`SMAADepthStrength` 0.5), so outlines are found though the colours on
+    both sides are close, as they are in the dark. The reference
+    implementation's predication also doubles the threshold everywhere
+    else (`SMAADepthScale`, 1 here): that leaves surfaces alone, and the
+    edges of shadows with them.
+  - The qualities are the reference implementation's: `SMAAThreshold`
+    0.15 / 0.1 / 0.1 / 0.05, `SMAASearchSteps` 4 / 8 / 16 / 32,
+    `SMAADiagonalSteps` none / none / 8 / 16, `SMAACornerRounding` 25 % for
+    the upper two.
+  - The output pass is split for it: `hpl1_output.fragment` with
+    `ENCODE_ONLY` makes the picture, SMAA puts the blended picture back in
+    the scene's texture, and the output pass scales it and adds the grain
+    and the dithering as before.
+- **Render Scale** is filtered by the output pass itself: above 100% each
+  pixel is the average of the scene's pixels it covers, each counted by the
+  share covered (the single filtered look-up was that at 200% only, and
+  uneven at 150%); below 100% a curve through four pixels each way
+  (Catmull-Rom) in place of the straight blend, which is sharper.
+- A sixth window in the F2 panel, Anti-aliasing (folded, at the bottom
+  right): multisampling, the texture filter (bilinear too), SMAA's settings
+  and its views of the edges and the weights (`SMAAShow` 1 / 2, read from
+  `settings.cfg` but not saved).
+- Checked: with the reference settings (trilinear, no anti-aliasing) 57 of
+  93 frames match the capture from before and 34 differ: in what is drawn
+  with the alpha test (fences, gratings and perforated metal further away,
+  which keep their pattern; the outlines of paper and chains) and where a
+  light shines through a textured pattern, which is trilinear now.
+  No GL debug messages with SMAA, with 2, 4 and 8 samples, with both
+  together and every post effect, linear lighting on and off, render scales
+  from 50 to 200%, and switching all three options from the menu; the same
+  on Mesa's software renderer. At 2560x1440 in the office SMAA costs
+  0.63 ms of GPU time a frame at High and 0.72 at Ultra (F3: "SMAA" under
+  "Scene output").
 
 ### Fog
 

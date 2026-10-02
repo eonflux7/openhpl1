@@ -75,7 +75,8 @@ namespace hpl{
 		"#define HPL_STATE\n"
 		"layout(std140) uniform hpl_State\n"
 		"{\n"
-		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off; y: reference;\n"
+		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off, 9 for \"at least\n"
+		"						// the reference\" as coverage; y: reference;\n"
 		"						// z: how far alpha is matched to the original look\n"
 		"						// when it blends into a linear scene, else 0;\n"
 		"						// w: scale for the light of what is added to a\n"
@@ -101,6 +102,13 @@ namespace hpl{
 	// After every fragment shader: the colour is clamped to 0..1, as the
 	// fixed-function pipeline did, and alpha tested as set with
 	// iLowLevelGraphics::SetAlphaTestActive/Func.
+	//
+	// In the multisampled scene the test is made for each sample instead
+	// (kAlphaToCoverage, with GL_SAMPLE_ALPHA_TO_COVERAGE): the alpha that
+	// is written is how far the fragment is past the reference, over the
+	// width of one pixel, and as many of the pixel's samples are drawn. The
+	// outline of what the texture cuts out is anti-aliased as the edge of a
+	// triangle is.
 	//
 	// Shaders work on encoded (screen) colours, as the original ones do.
 	// With linear lighting the result is converted here, so each draw gives
@@ -148,7 +156,12 @@ namespace hpl{
 		"#ifdef HPL_STATE\n"
 		"	int func = int(hpl_AlphaTest.x);\n"
 		"	float alpha = outColor.a, ref = hpl_AlphaTest.y;\n"
-		"	if(func == 1 ||\n"
+		"	if(func == 9)\n"
+		"	{\n"
+		"		outColor.a = clamp((alpha - ref) / max(fwidth(alpha), 0.0001) + 0.5, 0.0, 1.0);\n"
+		"		if(outColor.a <= 0.0) discard;\n"
+		"	}\n"
+		"	else if(func == 1 ||\n"
 		"		(func == 2 && !(alpha < ref)) || (func == 3 && !(alpha <= ref)) ||\n"
 		"		(func == 4 && !(alpha > ref)) || (func == 5 && !(alpha >= ref)) ||\n"
 		"		(func == 6 && !(alpha == ref)) || (func == 7 && !(alpha != ref)))\n"
@@ -203,6 +216,10 @@ namespace hpl{
 		{"PostEffect_AO_Occlusion",		"PostEffect_AO",	"OCCLUSION"},
 		{"PostEffect_AO_Filter",		"PostEffect_AO",	"FILTER"},
 		{"PostEffect_AO_Composite",		"PostEffect_AO",	"COMPOSITE"},
+		{"PostEffect_Bokeh_Prefilter",	"PostEffect_Bokeh",	"PREFILTER"},
+		{"PostEffect_Bokeh_Gather",		"PostEffect_Bokeh",	"GATHER"},
+		{"PostEffect_Bokeh_Fill",		"PostEffect_Bokeh",	"FILL"},
+		{"PostEffect_Bokeh_Composite",	"PostEffect_Bokeh",	"COMPOSITE"},
 	};
 
 	static const int kMaxIncludeDepth = 8;
@@ -388,11 +405,11 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName)
+	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName, const tString& asDefines)
 	{
 		std::vector<tString> vFiles;
 		GLuint lProgram = CompileStage(aStage, "hpl1_" + asName +
-									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), "", false, &vFiles);
+									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), asDefines, false, &vFiles);
 		WatchFiles(mvStageSources, vFiles);
 		return lProgram;
 	}
@@ -404,9 +421,6 @@ namespace hpl{
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
-		// The scene's depth is a multisampled texture then (hpl1_scene_depth.glsl)
-		if(mpLowLevelGraphics && mpLowLevelGraphics->GetMultisampling() > 0)
-			sSource += "#define HPL_SCENE_MULTISAMPLE\n";
 		sSource += "#line 1 1\n";
 		sSource += asSource;
 
@@ -735,6 +749,9 @@ namespace hpl{
 		glActiveTexture(GL_TEXTURE0 + alUnit);
 		glBindTexture(Target, static_cast<cSDLTexture*>(apTexture)->GetTextureHandle());
 		glActiveTexture(lPrevUnit);
+		if(mpLowLevelGraphics)
+			static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->BindSampler(alUnit,
+												static_cast<cSDLTexture*>(apTexture)->GetSampler());
 
 		return true;
 	}
@@ -766,9 +783,6 @@ namespace hpl{
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
-		// The scene's depth is a multisampled texture then (hpl1_scene_depth.glsl)
-		if(mpLowLevelGraphics && mpLowLevelGraphics->GetMultisampling() > 0)
-			sSource += "#define HPL_SCENE_MULTISAMPLE\n";
 
 		tStringVec vDefines;
 		cString::GetStringVec(asDefines, vDefines, nullptr);

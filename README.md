@@ -139,6 +139,11 @@ carry around. A third, Player, has Fly (a free camera; switching it off puts
 the player where the camera is) and the switches for flashlight, flicker,
 HUD and damage. A fourth, Ambient occlusion, switches it and has its
 quality, radius, strength and filter, and a view of the occlusion alone.
+A fifth, Lens and film, has the kinds of depth of field (with a switch to
+try it at a distance of your choosing), motion blur and noise filter, and
+their settings. A sixth, Anti-aliasing, is folded at the bottom right:
+multisampling, the texture filter, and SMAA with its settings and a view of
+the edges it finds.
 While the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the
@@ -198,10 +203,11 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   entities/  map objects and areas
   systems/   effects, fades, music, messages, radio, triggers, attacks, physics log
   ui/        menus, inventory, notebook, credits
-shaders/   GLSL shaders (from ScummVM's HPL1 port)
+shaders/   GLSL shaders (from ScummVM's HPL1 port); SMAA.hlsl is the SMAA
+           reference implementation
 testmap/   generator and level script for the physics test map
 tools/     refshots.py: reference images for renderer changes
-vendor/    newton, angelscript, oalwrapper, tinyxml, glad
+vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa
 run.sh     launcher
 ```
 
@@ -217,8 +223,11 @@ run.sh     launcher
 - **Omar Cornut and contributors**: Dear ImGui 1.92.9b (MIT)
 - **glad** OpenGL loader by David Herberth (MIT / Apache-2.0 for the
   generated code)
+- **Jorge Jimenez, Jose I. Echevarria, Belen Masia, Fernando Navarro and
+  Diego Gutierrez**: SMAA, the reference shader (`shaders/SMAA.hlsl`) and its
+  area and search textures (`vendor/smaa`) (MIT)
 
 Overture Remade is licensed under the GNU GPL v3; see [COPYING](COPYING).
 Bundled third-party code keeps its own licence (see each directory under
-`vendor/` and `engine/LICENSE-shaders`). Penumbra: Overture game assets are
+`vendor/`, `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`). Penumbra: Overture game assets are
 not covered by this licence and are not included.

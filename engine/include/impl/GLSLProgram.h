@@ -98,6 +98,9 @@ namespace hpl {
 		/// Texture unit of the hpl_SceneDepth sampler (hpl1_scene_depth.glsl):
 		/// the depth of the 3D scene.
 		static const int kSceneDepthUnit = 10;
+		/// hpl_AlphaTest.x when the alpha test is done as coverage of the
+		/// pixel's samples; the others are eAlphaTestFunc + 1.
+		static const int kAlphaToCoverage = 9;
 
 		GLuint GetHandle(){ return mlProgram; }
 
@@ -111,9 +114,10 @@ namespace hpl {
 		/**
 		 * Compiles "hpl1_<asName>.vertex" or ".fragment" from the shader
 		 * directory as a separable program, for passes that are drawn outside
-		 * the engine's program objects. The caller deletes it.
+		 * the engine's program objects, with asDefines (separated by
+		 * spaces) defined. The caller deletes it.
 		 */
-		static GLuint CreateStage(GLenum aStage, const tString& asName);
+		static GLuint CreateStage(GLenum aStage, const tString& asName, const tString& asDefines="");
 
 		/**
 		 * Compiles source made by the engine as a separable program, with

@@ -25,6 +25,10 @@
 #include "impl/SDLBitmap2D.h"
 #include "impl/SDLFontData.h"
 #include "impl/SDLTexture.h"
+
+// The look-up textures of the SMAA reference implementation
+#include "AreaTex.h"
+#include "SearchTex.h"
 #include "impl/GLSLProgram.h"
 #include "system/LowLevelSystem.h"
 #include "impl/VertexBufferVBO.h"
@@ -147,11 +151,24 @@ namespace hpl {
 		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
 		mfRenderScale = 1.0f;
-		mGammaPass.msName = "gamma_correction";
-		mOutputPass.msName = "output";
+		mGammaPass = cFullscreenPass("gamma_correction");
+		mOutputPass = cFullscreenPass("output");
+		mEncodePass = cFullscreenPass("output", "ENCODE_ONLY");
+		mSmaaEdgesPass = cFullscreenPass("SMAA", "EDGES");
+		mSmaaWeightsPass = cFullscreenPass("SMAA", "WEIGHTS");
+		mSmaaWeightsNoDiagPass = cFullscreenPass("SMAA", "WEIGHTS SMAA_DISABLE_DIAG_DETECTION");
+		mSmaaBlendPass = cFullscreenPass("SMAA", "BLEND");
+		mlSmaaColor = mlSmaaEdges = mlSmaaWeights = mlSmaaStencil = 0;
+		mvSmaaFramebuffers[0] = mvSmaaFramebuffers[1] = mvSmaaFramebuffers[2] = 0;
+		mlSmaaAreaTexture = mlSmaaSearchTexture = 0;
 
 		mbInScene = false;
+		mbSceneResolved = false;
+		mbInShadowMap = false;
 		mlSceneFramebuffer = 0;
+		mlSceneColorFramebuffer = 0;
+		mbSceneColorOnly = false;
+		mfFrameTime = 0;
 		mlFrameUniformBuffer = 0;
 		mlOutputFramebuffer = 0;
 		mlOutputColor = 0;
@@ -159,7 +176,9 @@ namespace hpl {
 		mlSceneColor = 0;
 		mlSceneDepthStencil = 0;
 		mlResolveFramebuffer = 0;
+		mlResolveColorFramebuffer = 0;
 		mlResolveColor = 0;
+		mlResolveDepthStencil = 0;
 		mlTargetFramebuffer = 0;
 		mlShadowFramebuffer = 0;
 		mvShadowMaps[0] = mvShadowMaps[1] = 0;
@@ -189,6 +208,7 @@ namespace hpl {
 		mbMatricesChanged = true;
 		mlActiveTextureUnit = 0;
 		mbAlphaTest = false;
+		mbAlphaToCoverage = false;
 		mbLinearLighting = false;
 		mbLinearSource = false;
 		mbBlend = false;
@@ -203,7 +223,12 @@ namespace hpl {
 		mpRenderTarget=nullptr;
 
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
+		{
 			mpCurrentTexture[i] = nullptr;
+			mvUnitSampler[i] = 0;
+		}
+		mTextureFilter = eTextureFilter_Trilinear;
+		mfTextureAnisotropy = 1.0f;
 
 		mbClearColor = true;
 		mbClearDepth = true;
@@ -233,9 +258,13 @@ namespace hpl {
 
 		hplDelete(mpPixelFormat);
 
-		DeleteFullscreenPass(mGammaPass);
-		DeleteFullscreenPass(mOutputPass);
+		for(cFullscreenPass *pPass : {&mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
+									&mSmaaWeightsNoDiagPass, &mSmaaBlendPass})
+			DeleteFullscreenPass(*pPass);
 		DeleteFramebuffers();
+		glDeleteTextures(1, &mlSmaaAreaTexture);
+		glDeleteTextures(1, &mlSmaaSearchTexture);
+		for(auto &sampler : m_mapSamplers) glDeleteSamplers(1, &sampler.second);
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
 		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
 		mFixedFunction.Exit();
@@ -423,9 +452,6 @@ namespace hpl {
 		cGpuProfiler::Label(GL_BUFFER, mlStreamVertexBuffer, "Stream vertices");
 		cGpuProfiler::Label(GL_BUFFER, mlStreamIndexBuffer, "Stream indices");
 
-		//Check Multisample properties
-		CheckMultisampleCaps();
-
 		//Turn off cursor as default
 		ShowCursor(false);
 
@@ -609,13 +635,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::CheckMultisampleCaps()
-	{
-
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::SetupGL()
 	{
 		//Inits GL stuff
@@ -646,7 +665,8 @@ namespace hpl {
 			LoadMatrix((eMatrix)i);
 		}
 
-		//glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+		// Cube maps are filtered across the edges of their faces
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		//Show some info
 		Log("  Max texture image units: %d\n",GetCaps(eGraphicCaps_MaxTextureImageUnits));
@@ -655,6 +675,12 @@ namespace hpl {
 			Log("  Max Anisotropic degree: %d\n",GetCaps(eGraphicCaps_MaxAnisotropicFiltering));
 	}
 	//-----------------------------------------------------------------------
+
+	// An extension until OpenGL 4.6, with the same values
+	static bool HasAnisotropicFiltering()
+	{
+		return GLAD_GL_VERSION_4_6 || GLAD_GL_EXT_texture_filter_anisotropic;
+	}
 
 	int cLowLevelGraphicsSDL::GetCaps(eGraphicCaps aType)
 	{
@@ -671,18 +697,27 @@ namespace hpl {
 		//Texture Anisotropy
 		case eGraphicCaps_AnisotropicFiltering:
 			{
-				if(GLAD_GL_EXT_texture_filter_anisotropic) return 1;
-				else return 0;
+				return HasAnisotropicFiltering() ? 1 : 0;
 			}
 
 		//Texture Anisotropy
 		case eGraphicCaps_MaxAnisotropicFiltering:
 			{
-				if(!GLAD_GL_EXT_texture_filter_anisotropic) return 0;
+				if(!HasAnisotropicFiltering()) return 0;
 
 				float fMax;
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,&fMax);
 				return (int)fMax;
+			}
+
+		//The scene is drawn into multisampled textures
+		case eGraphicCaps_MaxMultisampling:
+			{
+				GLint lSamples = 0, lColorSamples = 0, lDepthSamples = 0;
+				glGetIntegerv(GL_MAX_SAMPLES, &lSamples);
+				glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &lColorSamples);
+				glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &lDepthSamples);
+				return cMath::Min(lSamples, cMath::Min(lColorSamples, lDepthSamples));
 			}
 		}
 
@@ -708,14 +743,72 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetMultisamplingActive(bool abX)
+	void cLowLevelGraphicsSDL::SetMultisampling(int alSamples)
 	{
-		if(mlMultisampling<=0) return;
+		if(alSamples < 2) alSamples = 0;
+		alSamples = cMath::Min(alSamples, GetCaps(eGraphicCaps_MaxMultisampling));
+		if(alSamples == mlMultisampling) return;
 
-		if(abX)
-			glEnable(GL_MULTISAMPLE);
-		else
-			glDisable(GL_MULTISAMPLE);
+		mlMultisampling = alSamples;
+		DeleteSceneFramebuffers();
+		if(!CreateSceneFramebuffers()) Error("Couldn't create the scene framebuffer with %d samples!\n", alSamples);
+	}
+
+	//-----------------------------------------------------------------------
+
+	//////////////////////////////////////////////////////////////////////////
+	// SAMPLERS
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetSamplerFilter(GLuint alSampler, bool abMipMaps)
+	{
+		GLenum lMinFilter = GL_LINEAR;
+		if(abMipMaps)
+			lMinFilter = mTextureFilter == eTextureFilter_Bilinear ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+		glSamplerParameteri(alSampler, GL_TEXTURE_MIN_FILTER, lMinFilter);
+		glSamplerParameteri(alSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		if(HasAnisotropicFiltering())
+			glSamplerParameterf(alSampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, abMipMaps ? mfTextureAnisotropy : 1.0f);
+	}
+
+	GLuint cLowLevelGraphicsSDL::GetSampler(bool abMipMaps, GLenum aWrapS, GLenum aWrapT, GLenum aWrapR)
+	{
+		GLuint &lSampler = m_mapSamplers[std::make_tuple(abMipMaps, aWrapS, aWrapT, aWrapR)];
+		if(lSampler == 0)
+		{
+			glGenSamplers(1, &lSampler);
+			glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_S, aWrapS);
+			glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_T, aWrapT);
+			glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_R, aWrapR);
+			SetSamplerFilter(lSampler, abMipMaps);
+		}
+		return lSampler;
+	}
+
+	void cLowLevelGraphicsSDL::SetTextureFilter(eTextureFilter aFilter, float afAnisotropy)
+	{
+		mTextureFilter = aFilter;
+		mfTextureAnisotropy = cMath::Clamp(afAnisotropy, 1.0f, (float)cMath::Max(GetCaps(eGraphicCaps_MaxAnisotropicFiltering), 1));
+
+		for(auto &sampler : m_mapSamplers)
+			if(std::get<0>(sampler.first)) SetSamplerFilter(sampler.second, true);
+	}
+
+	// Past the units SetTexture() binds to are the scene's depth and the
+	// shadow maps, with samplers of their own.
+	void cLowLevelGraphicsSDL::BindSampler(unsigned int alUnit, GLuint alSampler)
+	{
+		if(alUnit >= MAX_TEXTUREUNITS || mvUnitSampler[alUnit] == alSampler) return;
+		mvUnitSampler[alUnit] = alSampler;
+		glBindSampler(alUnit, alSampler);
+	}
+
+	void cLowLevelGraphicsSDL::TextureSamplerChanged(iTexture* apTex)
+	{
+		for(unsigned int lUnit=0; lUnit<MAX_TEXTUREUNITS; lUnit++)
+			if(mpCurrentTexture[lUnit] == apTex) BindSampler(lUnit, static_cast<cSDLTexture*>(apTex)->GetSampler());
 	}
 
 	//-----------------------------------------------------------------------
@@ -1015,6 +1108,7 @@ namespace hpl {
 			cSDLTexture *pSDLTex = static_cast<cSDLTexture*> (apTex);
 
 			glBindTexture(NewTarget, pSDLTex->GetTextureHandle());
+			BindSampler(alUnit, pSDLTex->GetSampler());
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
@@ -1122,9 +1216,12 @@ namespace hpl {
 		if(cGLSLProgram::ReloadChangedFiles())
 		{
 			// Created again when next drawn
-			DeleteFullscreenPass(mGammaPass);
-			DeleteFullscreenPass(mOutputPass);
-			mGammaPass.mbFailed = mOutputPass.mbFailed = false;
+			for(cFullscreenPass *pPass : {&mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
+										&mSmaaWeightsNoDiagPass, &mSmaaBlendPass})
+			{
+				DeleteFullscreenPass(*pPass);
+				pPass->mbFailed = false;
+			}
 		}
 
 		BeginGpuSection("Present");
@@ -1176,10 +1273,24 @@ namespace hpl {
 		return false;
 	}
 
-	// The scene framebuffer (render size, possibly multisampled, with a
-	// resolve framebuffer then). Textures rather than renderbuffers, so later
-	// passes can read them. They are bound by hand, SetTexture() never sees
-	// them. Leaves the output framebuffer bound.
+	static GLuint CreateDepthStencilTexture(int alW, int alH)
+	{
+		GLuint lTex = 0;
+		glGenTextures(1, &lTex);
+		glBindTexture(GL_TEXTURE_2D, lTex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, alW, alH, 0,
+						GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		return lTex;
+	}
+
+	// The scene framebuffer (render size, with a depth and stencil buffer),
+	// and one with the colour alone. Multisampled, they have a pair with one
+	// sample a pixel to resolve into. Textures rather than renderbuffers, so
+	// later passes can read them. They are bound by hand, SetTexture() never
+	// sees them. Leaves the output framebuffer bound.
 	bool cLowLevelGraphicsSDL::CreateSceneFramebuffers()
 	{
 		GLint lLastTexture = 0;
@@ -1187,21 +1298,14 @@ namespace hpl {
 
 		const int lW = mvRenderSize.x, lH = mvRenderSize.y;
 		bool bOK = true;
-		// The output pass samples the single-sampled scene colour; scaling
-		// to the window is done by the filter.
+		// The output pass samples the single-sampled scene colour, and
+		// filters it when it is scaled to the window.
 		GLenum lFilter = mvRenderSize == mvScreenSize ? GL_NEAREST : GL_LINEAR;
 
+		mlMultisampling = cMath::Min(mlMultisampling, GetCaps(eGraphicCaps_MaxMultisampling));
+		if(mlMultisampling < 2) mlMultisampling = 0;
+
 		GLenum lTarget = GL_TEXTURE_2D;
-		if(mlMultisampling > 0)
-		{
-			GLint lMaxSamples = 0;
-			glGetIntegerv(GL_MAX_SAMPLES, &lMaxSamples);
-			if(mlMultisampling > lMaxSamples)
-			{
-				Warning("%d samples asked for, the most supported is %d\n", mlMultisampling, lMaxSamples);
-				mlMultisampling = lMaxSamples;
-			}
-		}
 		if(mlMultisampling > 0)
 		{
 			lTarget = GL_TEXTURE_2D_MULTISAMPLE;
@@ -1216,13 +1320,7 @@ namespace hpl {
 		else
 		{
 			mlSceneColor = CreateColorTexture(lW, lH, kSceneColorFormat, lFilter);
-			glGenTextures(1, &mlSceneDepthStencil);
-			glBindTexture(GL_TEXTURE_2D, mlSceneDepthStencil);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, lW, lH, 0,
-							GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			mlSceneDepthStencil = CreateDepthStencilTexture(lW, lH);
 		}
 
 		glGenFramebuffers(1, &mlSceneFramebuffer);
@@ -1230,27 +1328,43 @@ namespace hpl {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, lTarget, mlSceneColor, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, lTarget, mlSceneDepthStencil, 0);
 		bOK = CheckFramebuffer("Scene") && bOK;
-
-		// The depth stays bound to a unit past those SetTexture() binds to,
-		// for the passes that read it while they draw into something else.
-		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kSceneDepthUnit);
-		glBindTexture(lTarget, mlSceneDepthStencil);
-		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
-
 		cGpuProfiler::Label(GL_FRAMEBUFFER, mlSceneFramebuffer, "Scene");
+
+		// The same colour alone, for the passes that read the depth of
+		// the scene they draw over.
+		glGenFramebuffers(1, &mlSceneColorFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, mlSceneColorFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, lTarget, mlSceneColor, 0);
+		bOK = CheckFramebuffer("Scene colour") && bOK;
+		cGpuProfiler::Label(GL_FRAMEBUFFER, mlSceneColorFramebuffer, "Scene colour only");
 		cGpuProfiler::Label(GL_TEXTURE, mlSceneColor, "Scene colour");
 		cGpuProfiler::Label(GL_TEXTURE, mlSceneDepthStencil, "Scene depth/stencil");
 
 		if(mlMultisampling > 0)
 		{
 			mlResolveColor = CreateColorTexture(lW, lH, kSceneColorFormat, lFilter);
+			mlResolveDepthStencil = CreateDepthStencilTexture(lW, lH);
 			glGenFramebuffers(1, &mlResolveFramebuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlResolveColor, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mlResolveDepthStencil, 0);
 			bOK = CheckFramebuffer("Resolve") && bOK;
+			glGenFramebuffers(1, &mlResolveColorFramebuffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveColorFramebuffer);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mlResolveColor, 0);
+			bOK = CheckFramebuffer("Resolve colour") && bOK;
 			cGpuProfiler::Label(GL_FRAMEBUFFER, mlResolveFramebuffer, "Resolve");
+			cGpuProfiler::Label(GL_FRAMEBUFFER, mlResolveColorFramebuffer, "Resolve colour only");
 			cGpuProfiler::Label(GL_TEXTURE, mlResolveColor, "Resolve colour");
+			cGpuProfiler::Label(GL_TEXTURE, mlResolveDepthStencil, "Resolve depth/stencil");
 		}
+
+		// The depth with one sample a pixel stays bound to a unit past
+		// those SetTexture() binds to, for the passes that read it while
+		// they draw into something else (hpl1_scene_depth.glsl).
+		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kSceneDepthUnit);
+		glBindTexture(GL_TEXTURE_2D, mlMultisampling > 0 ? mlResolveDepthStencil : mlSceneDepthStencil);
+		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
 
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
@@ -1288,12 +1402,14 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::DeleteSceneFramebuffers()
 	{
-		GLuint vFramebuffers[] = {mlSceneFramebuffer, mlResolveFramebuffer};
-		GLuint vTextures[] = {mlSceneColor, mlSceneDepthStencil, mlResolveColor};
-		glDeleteFramebuffers(2, vFramebuffers);
-		glDeleteTextures(3, vTextures);
-		mlSceneFramebuffer = mlResolveFramebuffer = 0;
-		mlSceneColor = mlSceneDepthStencil = mlResolveColor = 0;
+		GLuint vFramebuffers[] = {mlSceneFramebuffer, mlSceneColorFramebuffer, mlResolveFramebuffer,
+									mlResolveColorFramebuffer};
+		GLuint vTextures[] = {mlSceneColor, mlSceneDepthStencil, mlResolveColor, mlResolveDepthStencil};
+		glDeleteFramebuffers(4, vFramebuffers);
+		glDeleteTextures(4, vTextures);
+		mlSceneFramebuffer = mlSceneColorFramebuffer = mlResolveFramebuffer = mlResolveColorFramebuffer = 0;
+		mlSceneColor = mlSceneDepthStencil = mlResolveColor = mlResolveDepthStencil = 0;
+		DeleteSmaaTextures();
 	}
 
 	void cLowLevelGraphicsSDL::DeleteFramebuffers()
@@ -1374,60 +1490,280 @@ namespace hpl {
 	{
 		SetRenderTarget(nullptr);
 		mbInScene = true;
+		mbSceneResolved = false;
+		mbSceneColorOnly = false;
 		mbStateChanged = true;
 		BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
 	}
 
 	//-----------------------------------------------------------------------
 
+	// The framebuffer that is drawn into, bound again after another was.
+	void cLowLevelGraphicsSDL::BindCurrentFramebuffer()
+	{
+		if(mpRenderTarget)	glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
+		else if(mbInScene)	glBindFramebuffer(GL_FRAMEBUFFER, GetSceneFramebuffer());
+		else				glBindFramebuffer(GL_FRAMEBUFFER, mlOutputFramebuffer);
+	}
+
+	// Copies a part of the multisampled scene to the textures with one
+	// sample a pixel: the colour as the average of the samples, of the depth
+	// one of them. Leaves the two framebuffers bound.
+	void cLowLevelGraphicsSDL::BlitScene(GLbitfield aMask, int alX0, int alY0, int alX1, int alY1)
+	{
+		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
+		GLboolean bDepthMask = GL_TRUE;
+		GLboolean vColorMask[4];
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &bDepthMask);
+		glGetBooleanv(GL_COLOR_WRITEMASK, vColorMask);
+		if(bScissor) glDisable(GL_SCISSOR_TEST);
+		glDepthMask(GL_TRUE);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, mlSceneFramebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlResolveFramebuffer);
+		glBlitFramebuffer(alX0, alY0, alX1, alY1, alX0, alY0, alX1, alY1, aMask, GL_NEAREST);
+
+		if(bScissor) glEnable(GL_SCISSOR_TEST);
+		glDepthMask(bDepthMask);
+		glColorMask(vColorMask[0], vColorMask[1], vColorMask[2], vColorMask[3]);
+	}
+
+	void cLowLevelGraphicsSDL::ResolveSceneDepth()
+	{
+		if(mlMultisampling <= 0 || mbInScene==false || mbSceneResolved) return;
+
+		BlitScene(GL_DEPTH_BUFFER_BIT, 0, 0, mvRenderSize.x, mvRenderSize.y);
+		BindCurrentFramebuffer();
+	}
+
+	void cLowLevelGraphicsSDL::ResolveScene()
+	{
+		if(mbInScene==false || mbSceneResolved) return;
+
+		if(mlMultisampling > 0) BlitScene(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0, 0, mvRenderSize.x, mvRenderSize.y);
+		mbSceneResolved = true;
+		mbStateChanged = true;
+		if(mlMultisampling > 0) BindCurrentFramebuffer();
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetPassUniform(cFullscreenPass &aPass, const char *asName,
+												float afX, float afY, float afZ, float afW)
+	{
+		glProgramUniform4f(aPass.mlFragment, glGetUniformLocation(aPass.mlFragment, asName), afX, afY, afZ, afW);
+	}
+
 	// Draws the scene to the output framebuffer through the output pass
-	// (resolved, scaled, converted to 8 bits with dithering) and leaves the
-	// output framebuffer bound for the 2D drawing.
+	// (scaled, converted to 8 bits with dithering), after SMAA if that is
+	// on, and leaves the output framebuffer bound for the 2D drawing.
 	void cLowLevelGraphicsSDL::EndScene()
 	{
 		SetRenderTarget(nullptr);
+		ResolveScene();
 		mbInScene = false;
+		mbSceneColorOnly = false;
 		mbStateChanged = true;
 
 		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
 		if(bScissor) glDisable(GL_SCISSOR_TEST);
 
-		GLuint lSource = mlSceneFramebuffer;
-		if(mlMultisampling > 0)
+		const bool bMultisampled = mlMultisampling > 0;
+		GLuint lColor = bMultisampled ? mlResolveColor : mlSceneColor;
+		GLuint lColorFramebuffer = bMultisampled ? mlResolveColorFramebuffer : mlSceneColorFramebuffer;
+
+		// SMAA leaves the scene as screen values
+		bool bLinear = mbLinearLighting;
+		if(mSmaa.mbActive)
 		{
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, mlSceneFramebuffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlResolveFramebuffer);
-			glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvRenderSize.x, mvRenderSize.y,
-								GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			lSource = mlResolveFramebuffer;
+			mGpuProfiler.Begin("SMAA");
+			if(DrawSmaa(lColor, lColorFramebuffer)) bLinear = false;
+			mGpuProfiler.End();
 		}
 
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 		if(CreateFullscreenPass(mOutputPass))
 		{
-			glProgramUniform2f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "invOutputSize"),
-								1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
-			glProgramUniform1f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "linearScene"),
-								mbLinearLighting ? 1.0f : 0.0f);
-			glProgramUniform1f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "exposure"),
-								mLinearTuning.mfExposure);
+			SetPassUniform(mOutputPass, "sceneSize", (float)mvRenderSize.x, (float)mvRenderSize.y,
+							1.0f / mvRenderSize.x, 1.0f / mvRenderSize.y);
+			SetPassUniform(mOutputPass, "invOutputSize", 1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
 			// The shoulder is set as a screen value; the curve works on light
-			glProgramUniform2f(mOutputPass.mlFragment, glGetUniformLocation(mOutputPass.mlFragment, "tonemap"),
-								powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
-								cMath::Max(mLinearTuning.mfWhite, 1.0f));
-			DrawFullscreenPass(mOutputPass, mlMultisampling > 0 ? mlResolveColor : mlSceneColor, mvScreenSize);
+			SetPassUniform(mOutputPass, "tonemap", bLinear ? 1.0f : 0.0f, mLinearTuning.mfExposure,
+							powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
+							cMath::Max(mLinearTuning.mfWhite, 1.0f));
+			// The grain: its cells are as large on a picture of any size,
+			// and all of it changes at its own rate
+			const cFilmGrainSettings &grain = mFilmGrain;
+			float fGrainSeed = grain.mfRate > 0 ?	floorf(mfFrameTime * grain.mfRate) :
+													mfFrameTime * 1000.0f;
+			SetPassUniform(mOutputPass, "grain", (float)grain.mType, cMath::Clamp(grain.mfIntensity, 0.0f, 1.0f),
+							cMath::Max(grain.mfSize * (float)mvScreenSize.y / 1080.0f, 1.0f),
+							fmodf(fGrainSeed, 65536.0f));
+			SetPassUniform(mOutputPass, "grainTone", cMath::Clamp(grain.mfColor, 0.0f, 1.0f),
+							cMath::Clamp(grain.mfShadows, 0.0f, 1.0f), cMath::Clamp(grain.mfHighlights, 0.0f, 1.0f),
+							cMath::Clamp(grain.mfDispersion, 0.0f, 1.0f));
+			DrawFullscreenPass(mOutputPass, lColor, mvScreenSize);
 		}
 		else
 		{
 			// Without dithering
 			bool bScaled = mvRenderSize != mvScreenSize;
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, lSource);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, lColorFramebuffer);
 			glBlitFramebuffer(0, 0, mvRenderSize.x, mvRenderSize.y, 0, 0, mvScreenSize.x, mvScreenSize.y,
 								GL_COLOR_BUFFER_BIT, bScaled ? GL_LINEAR : GL_NEAREST);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mlOutputFramebuffer);
 		}
 
 		if(bScissor) glEnable(GL_SCISSOR_TEST);
+	}
+
+	//-----------------------------------------------------------------------
+
+	//////////////////////////////////////////////////////////////////////////
+	// SMAA
+	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::DeleteSmaaTextures()
+	{
+		GLuint vTextures[] = {mlSmaaColor, mlSmaaEdges, mlSmaaWeights};
+		glDeleteFramebuffers(3, mvSmaaFramebuffers);
+		glDeleteTextures(3, vTextures);
+		glDeleteRenderbuffers(1, &mlSmaaStencil);
+		mvSmaaFramebuffers[0] = mvSmaaFramebuffers[1] = mvSmaaFramebuffers[2] = 0;
+		mlSmaaColor = mlSmaaEdges = mlSmaaWeights = mlSmaaStencil = 0;
+	}
+
+	// The textures of the passes, at the render size, and the two look-up
+	// textures of the reference implementation, which are the same at any
+	// size: the share of a pixel an edge of a given shape covers, and how
+	// far an edge goes on from where the search for its end stopped.
+	bool cLowLevelGraphicsSDL::CreateSmaaTextures()
+	{
+		if(mlSmaaColor) return mvSmaaFramebuffers[0] != 0;
+
+		GLint lLastTexture = 0, lLastAlignment = 4;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
+		glGetIntegerv(GL_UNPACK_ALIGNMENT, &lLastAlignment);
+
+		if(mlSmaaAreaTexture == 0)
+		{
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			mlSmaaAreaTexture = CreateColorTexture(AREATEX_WIDTH, AREATEX_HEIGHT, GL_RG8, GL_LINEAR);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, GL_RG, GL_UNSIGNED_BYTE, areaTexBytes);
+			mlSmaaSearchTexture = CreateColorTexture(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, GL_R8, GL_NEAREST);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, GL_RED, GL_UNSIGNED_BYTE, searchTexBytes);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, lLastAlignment);
+			cGpuProfiler::Label(GL_TEXTURE, mlSmaaAreaTexture, "SMAA area");
+			cGpuProfiler::Label(GL_TEXTURE, mlSmaaSearchTexture, "SMAA search");
+		}
+
+		const int lW = mvRenderSize.x, lH = mvRenderSize.y;
+		// The picture keeps the scene's precision: it is dithered to 8 bits later
+		mlSmaaColor = CreateColorTexture(lW, lH, kSceneColorFormat, GL_LINEAR);
+		mlSmaaEdges = CreateColorTexture(lW, lH, GL_RG8, GL_LINEAR);
+		mlSmaaWeights = CreateColorTexture(lW, lH, GL_RGBA8, GL_LINEAR);
+		glGenRenderbuffers(1, &mlSmaaStencil);
+		glBindRenderbuffer(GL_RENDERBUFFER, mlSmaaStencil);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, lW, lH);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		bool bOK = true;
+		const GLuint vTextures[3] = {mlSmaaColor, mlSmaaEdges, mlSmaaWeights};
+		const char *vNames[3] = {"SMAA picture", "SMAA edges", "SMAA weights"};
+		glGenFramebuffers(3, mvSmaaFramebuffers);
+		for(int i=0; i<3; ++i)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, mvSmaaFramebuffers[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, vTextures[i], 0);
+			if(i > 0) glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mlSmaaStencil);
+			bOK = CheckFramebuffer(vNames[i]) && bOK;
+			cGpuProfiler::Label(GL_FRAMEBUFFER, mvSmaaFramebuffers[i], vNames[i]);
+			cGpuProfiler::Label(GL_TEXTURE, vTextures[i], vNames[i]);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, lLastTexture);
+		if(bOK==false)
+		{
+			// Not tried again until the scene's size changes
+			glDeleteFramebuffers(3, mvSmaaFramebuffers);
+			mvSmaaFramebuffers[0] = mvSmaaFramebuffers[1] = mvSmaaFramebuffers[2] = 0;
+		}
+		return bOK;
+	}
+
+	// alColor holds the finished scene and is what alColorFramebuffer draws
+	// into. The scene is made into the picture as it is shown (tonemapped,
+	// as screen values: edges are judged as they look), its edges are found,
+	// then how much each pixel on them is to be blended with its neighbour,
+	// and the blended picture goes back to alColor. False if a pass is
+	// missing, and the scene is as it was.
+	bool cLowLevelGraphicsSDL::DrawSmaa(GLuint alColor, GLuint alColorFramebuffer)
+	{
+		const cSmaaSettings &settings = mSmaa;
+		int lDiagonalSteps = cMath::Clamp(settings.mlDiagonalSteps, 0, 20);
+		cFullscreenPass &weightsPass = lDiagonalSteps > 0 ? mSmaaWeightsPass : mSmaaWeightsNoDiagPass;
+
+		if(	!CreateFullscreenPass(mEncodePass) || !CreateFullscreenPass(mSmaaEdgesPass) ||
+			!CreateFullscreenPass(weightsPass) || !CreateFullscreenPass(mSmaaBlendPass)) return false;
+		if(CreateSmaaTextures()==false) return false;
+
+		const cVector2l &vSize = mvRenderSize;
+		GLfloat vClearColor[4];
+		GLint lClearStencil = 0;
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, vClearColor);
+		glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &lClearStencil);
+		glClearColor(0, 0, 0, 0);
+		glClearStencil(0);
+		glStencilMask(0xff);
+
+		///////////////////////////////////////////
+		// The picture
+		BindFramebuffer(mvSmaaFramebuffers[0], vSize);
+		SetPassUniform(mEncodePass, "tonemap", mbLinearLighting ? 1.0f : 0.0f, mLinearTuning.mfExposure,
+						powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
+						cMath::Max(mLinearTuning.mfWhite, 1.0f));
+		DrawFullscreenPass(mEncodePass, alColor, vSize);
+
+		///////////////////////////////////////////
+		// Edges: the stencil buffer is set where there is one
+		for(cFullscreenPass *pPass : {&mSmaaEdgesPass, &weightsPass, &mSmaaBlendPass})
+		{
+			SetPassUniform(*pPass, "smaaMetrics", 1.0f / vSize.x, 1.0f / vSize.y, (float)vSize.x, (float)vSize.y);
+			SetPassUniform(*pPass, "smaaEdge", (float)settings.mEdges, cMath::Clamp(settings.mfThreshold, 0.01f, 0.5f),
+							cMath::Max(settings.mfDepthThreshold, 0.0001f), (float)settings.mlShow);
+			SetPassUniform(*pPass, "smaaSearch", (float)cMath::Clamp(settings.mlSearchSteps, 1, 112),
+							(float)lDiagonalSteps, (float)cMath::Clamp(settings.mlCornerRounding, 0, 100));
+			SetPassUniform(*pPass, "smaaDepth", settings.mbDepthHelp ? 1.0f : 0.0f,
+							cMath::Max(settings.mfDepthScale, 0.0f), cMath::Clamp(settings.mfDepthStrength, 0.0f, 1.0f));
+		}
+
+		BindFramebuffer(mvSmaaFramebuffers[1], vSize);
+		glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_ALWAYS, 1, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		DrawFullscreenPass(mSmaaEdgesPass, mlSmaaColor, vSize, 0, 0, true);
+
+		///////////////////////////////////////////
+		// Blend weights, only where there are edges
+		BindFramebuffer(mvSmaaFramebuffers[2], vSize);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glStencilFunc(GL_EQUAL, 1, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		DrawFullscreenPass(weightsPass, mlSmaaEdges, vSize, mlSmaaAreaTexture, mlSmaaSearchTexture, true);
+
+		///////////////////////////////////////////
+		// The blend, back into the scene
+		BindFramebuffer(alColorFramebuffer, vSize);
+		DrawFullscreenPass(mSmaaBlendPass, mlSmaaColor, vSize, mlSmaaWeights, mlSmaaEdges);
+
+		// The renderer sets the stencil function and mask anew whenever it
+		// uses the stencil buffer
+		glClearColor(vClearColor[0], vClearColor[1], vClearColor[2], vClearColor[3]);
+		glClearStencil(lClearStencil);
+		return true;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1478,10 +1814,10 @@ namespace hpl {
 		if(aPass.mbFailed) return false;
 
 		aPass.mlVertex = cGLSLProgram::CreateStage(GL_VERTEX_SHADER, aPass.msName);
-		aPass.mlFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, aPass.msName);
+		aPass.mlFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, aPass.msName, aPass.msDefines);
 		if(aPass.mlVertex==0 || aPass.mlFragment==0)
 		{
-			Error("Couldn't create the '%s' pass!\n", aPass.msName.c_str());
+			Error("Couldn't create the '%s' pass (%s)!\n", aPass.msName.c_str(), aPass.msDefines.c_str());
 			DeleteFullscreenPass(aPass);
 			aPass.mbFailed = true;
 			return false;
@@ -1490,7 +1826,7 @@ namespace hpl {
 		glGenProgramPipelines(1,&aPass.mlPipeline);
 		glUseProgramStages(aPass.mlPipeline, GL_VERTEX_SHADER_BIT, aPass.mlVertex);
 		glUseProgramStages(aPass.mlPipeline, GL_FRAGMENT_SHADER_BIT, aPass.mlFragment);
-		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, aPass.mlPipeline, aPass.msName);
+		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, aPass.mlPipeline, aPass.msName + " " + aPass.msDefines);
 
 		return true;
 	}
@@ -1506,18 +1842,31 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	// Draws one triangle covering a viewport of avSize with the pass's
-	// shaders and alTexture (2D) on unit 0, into the bound framebuffer.
-	// Uniforms are set by the caller. All state is put back; the renderer
-	// does not expect it to change.
-	void cLowLevelGraphicsSDL::DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize)
+	// shaders and alTexture (2D) on unit 0, and the other two, if any, on
+	// units 1 and 2, into the bound framebuffer. They are read as their own
+	// parameters say, not through the samplers of the units. With abStencil
+	// the stencil test is on, as the caller has set it. Uniforms are set by
+	// the caller. All state is put back; the renderer does not expect it to
+	// change.
+	void cLowLevelGraphicsSDL::DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize,
+													GLuint alTexture1, GLuint alTexture2, bool abStencil)
 	{
-		GLint lLastUnit = 0, lLastTexture = 0, lLastPipeline = 0;
+		const GLuint vTextures[3] = {alTexture, alTexture1, alTexture2};
+		GLint lLastUnit = 0, lLastPipeline = 0;
+		GLint vLastTextures[3] = {0, 0, 0};
 		glGetIntegerv(GL_ACTIVE_TEXTURE, &lLastUnit);
 		glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, &lLastPipeline);
-		glActiveTexture(GL_TEXTURE0);
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lLastTexture);
+		for(int i=2; i>=0; --i)
+		{
+			if(vTextures[i] == 0) continue;
+			glActiveTexture(GL_TEXTURE0 + i);
+			glGetIntegerv(GL_TEXTURE_BINDING_2D, &vLastTextures[i]);
+			glBindTexture(GL_TEXTURE_2D, vTextures[i]);
+			glBindSampler(i, 0);
+		}
 
 		static const GLenum vCaps[] = {GL_DEPTH_TEST, GL_STENCIL_TEST, GL_BLEND, GL_SCISSOR_TEST, GL_CULL_FACE,
+										GL_SAMPLE_ALPHA_TO_COVERAGE,
 										GL_CLIP_DISTANCE0, GL_CLIP_DISTANCE1, GL_CLIP_DISTANCE2,
 										GL_CLIP_DISTANCE3, GL_CLIP_DISTANCE4, GL_CLIP_DISTANCE5};
 		const int lCaps = sizeof(vCaps) / sizeof(vCaps[0]);
@@ -1530,9 +1879,8 @@ namespace hpl {
 		glGetBooleanv(GL_COLOR_WRITEMASK, vLastColorMask);
 		glGetIntegerv(GL_VIEWPORT, vLastViewport);
 
-		glBindTexture(GL_TEXTURE_2D, alTexture);
-
 		for(int i=0; i<lCaps; ++i) glDisable(vCaps[i]);
+		if(abStencil) glEnable(GL_STENCIL_TEST);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glViewport(0, 0, avSize.x, avSize.y);
@@ -1545,11 +1893,21 @@ namespace hpl {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glBindProgramPipeline(lLastPipeline);
-		for(int i=0; i<lCaps; ++i) if(vLastCaps[i]) glEnable(vCaps[i]);
+		for(int i=0; i<lCaps; ++i)
+		{
+			if(vLastCaps[i])	glEnable(vCaps[i]);
+			else				glDisable(vCaps[i]);
+		}
 		glDepthMask(bLastDepthMask);
 		glColorMask(vLastColorMask[0], vLastColorMask[1], vLastColorMask[2], vLastColorMask[3]);
 		glViewport(vLastViewport[0], vLastViewport[1], vLastViewport[2], vLastViewport[3]);
-		glBindTexture(GL_TEXTURE_2D, lLastTexture);
+		for(int i=0; i<3; ++i)
+		{
+			if(vTextures[i] == 0) continue;
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, vLastTextures[i]);
+			glBindSampler(i, mvUnitSampler[i]);
+		}
 		glActiveTexture(lLastUnit);
 	}
 
@@ -2227,24 +2585,18 @@ namespace hpl {
 
 		// A multisampled framebuffer can't be copied from; resolve the area
 		// first and copy from the resolved one.
-		bool bResolve = mlMultisampling > 0 && mbInScene && mpRenderTarget == nullptr;
+		bool bResolve = mlMultisampling > 0 && mbInScene && mbSceneResolved==false && mpRenderTarget == nullptr;
 		if(bResolve)
 		{
-			GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
-			if(bScissor) glDisable(GL_SCISSOR_TEST);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mlResolveFramebuffer);
-			glBlitFramebuffer(avPos.x, lScreenY, avPos.x + avSize.x, lScreenY + avSize.y,
-								avPos.x, lScreenY, avPos.x + avSize.x, lScreenY + avSize.y,
-								GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			BlitScene(GL_COLOR_BUFFER_BIT, avPos.x, lScreenY, avPos.x + avSize.x, lScreenY + avSize.y);
 			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
-			if(bScissor) glEnable(GL_SCISSOR_TEST);
 		}
 
 		glCopyTexSubImage2D(GetGLTextureTargetEnum(apTex->GetTarget()),0,
 							avTexOffset.x, lTexY,
 							avPos.x, lScreenY, avSize.x, avSize.y);
 
-		if(bResolve) glBindFramebuffer(GL_FRAMEBUFFER, mlSceneFramebuffer);
+		if(bResolve) BindCurrentFramebuffer();
 	}
 
 	//-----------------------------------------------------------------------
@@ -2253,10 +2605,11 @@ namespace hpl {
 	{
 		if(pTex == mpRenderTarget) return;
 		mpRenderTarget = pTex;
+		mbStateChanged = true;
 
 		if(pTex == nullptr)
 		{
-			if(mbInScene)	BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
+			if(mbInScene)	BindFramebuffer(GetSceneFramebuffer(), mvRenderSize);
 			else			BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 			return;
 		}
@@ -2267,6 +2620,16 @@ namespace hpl {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GetGLTextureTargetEnum(pTex->GetTarget()),
 								static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
 		BindFramebuffer(mlTargetFramebuffer, cVector2l(pTex->GetWidth(), pTex->GetHeight()));
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetSceneColorOnly(bool abX)
+	{
+		if(mbInScene==false || abX == mbSceneColorOnly) return;
+		mbSceneColorOnly = abX;
+
+		if(mpRenderTarget==nullptr) BindFramebuffer(GetSceneFramebuffer(), mvRenderSize);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2297,8 +2660,6 @@ namespace hpl {
 				}
 				glBindSampler(cGLSLProgram::kShadowMapUnit + i, lSampler);
 			}
-			// Blurs reach across the edges of the cube map's faces
-			glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		}
 
 		if(mvShadowMaps[lIdx]) glDeleteTextures(1, &mvShadowMaps[lIdx]);
@@ -2348,6 +2709,8 @@ namespace hpl {
 								abCube ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + alFace : GL_TEXTURE_2D,
 								mvShadowMaps[lIdx], 0);
 		BindFramebuffer(mlShadowFramebuffer, cVector2l(alSize, alSize));
+		mbInShadowMap = true;
+		mbStateChanged = true;
 
 		glEnable(GL_DEPTH_CLAMP);
 		glDepthMask(GL_TRUE);
@@ -2358,6 +2721,8 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::EndShadowMap()
 	{
 		glDisable(GL_DEPTH_CLAMP);
+		mbInShadowMap = false;
+		mbStateChanged = true;
 
 		if(mpRenderTarget)
 		{
@@ -2365,7 +2730,7 @@ namespace hpl {
 			mpRenderTarget = nullptr;
 			SetRenderTarget(pTarget);
 		}
-		else if(mbInScene)	BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
+		else if(mbInScene)	BindFramebuffer(GetSceneFramebuffer(), mvRenderSize);
 		else				BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 	}
 
@@ -2710,6 +3075,7 @@ namespace hpl {
 		data.mvDepthRange[0] = afNear; data.mvDepthRange[1] = afFar;
 		data.mvDepthRange[2] = data.mvDepthRange[3] = 0;
 		data.mvTime[0] = afTime;
+		mfFrameTime = afTime;
 		data.mvTime[1] = data.mvTime[2] = data.mvTime[3] = 0;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, mlFrameUniformBuffer);
@@ -2773,9 +3139,22 @@ namespace hpl {
 			float fGlow = bConvert && bAdd ? mLinearTuning.mfGlow : 1.0f;
 			bool bAlpha = mbBlend && mBlendSrc == eBlendFunc_SrcAlpha && mBlendDest == eBlendFunc_OneMinusSrcAlpha;
 			float fAlphaMatch = bConvert && bAlpha ? cMath::Clamp(mLinearTuning.mfBlendMatch, 0.0f, 1.0f) : 0.0f;
+			// In the multisampled scene a test for "at least" decides for
+			// each sample: the fragment's alpha becomes the share of the
+			// pixel's samples it covers (kAlphaToCoverage in the shaders)
+			bool bToCoverage =	mbAlphaTest && mlMultisampling > 0 && mbInScene && mbSceneResolved==false &&
+								mpRenderTarget==nullptr && mbInShadowMap==false &&
+								(mAlphaTestFunc == eAlphaTestFunc_GreaterOrEqual || mAlphaTestFunc == eAlphaTestFunc_Greater);
+			if(bToCoverage != mbAlphaToCoverage)
+			{
+				if(bToCoverage)	glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+				else			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+				mbAlphaToCoverage = bToCoverage;
+			}
+			float fAlphaFunc = bToCoverage ? (float)cGLSLProgram::kAlphaToCoverage : (float)mAlphaTestFunc + 1;
 			const cShadowMapParams &shadow = mShadowParams;
 			float vState[kStateUniformFloats] = {
-				mbAlphaTest ? (float)mAlphaTestFunc + 1 : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
+				mbAlphaTest ? fAlphaFunc : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
 				bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
 				mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f,
 				(float)shadow.mlFilter, shadow.mfNear, shadow.mfFar, shadow.mfTexelSize,
