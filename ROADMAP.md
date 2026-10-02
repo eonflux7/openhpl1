@@ -224,7 +224,15 @@ and specular all have to be tuned again if the lighting under them changes.
         frame costs too much
 - **5. The rest**, in any order:
   - [ ] SMAA (helps alpha-tested geometry, which MSAA does not)
-  - [ ] Ambient occlusion (SSAO/GTAO) from the depth buffer
+  - [ ] Ambient occlusion from the depth buffer
+    - [x] ground truth ambient occlusion as an option (Ambient Occlusion in
+          Advanced Graphics, off by default), laid out after MXAO: depth in
+          tiles, a 4x4 pattern and filter, half rate; settings in the F2
+          panel
+    - [ ] play-test: radius, strength and "less in light"; whether the
+          shading trails visibly at half rate when the view turns fast
+    - [ ] if it should cost less: one filter look-up per 2x2 pixels
+          (texture gather, GL 4), normals made once instead of per tile
   - [ ] Depth of field and camera motion blur from depth. The current
         effects re-render geometry per object.
   - [ ] Film grain shader replacing the tiled noise-filter sprites

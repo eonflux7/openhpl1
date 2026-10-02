@@ -822,6 +822,75 @@ do with colour, and what follows for this option.
   while the movement keys walked the unseen body.
 - Tooltips wrap.
 
+### Ambient occlusion (option)
+
+- **Ambient Occlusion** in Advanced Graphics: Off (the default, the original
+  look) or one of five qualities (`AmbientOcclusion` in `settings.cfg`). It
+  darkens corners, creases and where things touch: the places that light
+  from all around reaches least. The rows of that menu page are 22 instead
+  of 24 units apart to make room for it.
+- It is worked out from the depth buffer alone
+  (`cRendererPostEffects::RenderAmbientOcclusion`,
+  `hpl1_PostEffect_AO.fragment`) as ground truth ambient occlusion (Jimenez
+  et al. 2016): for a few directions on screen, the depth is searched to both
+  sides of a pixel for the horizon, the highest thing in view, and the part
+  of the half circle over the surface that the horizons leave open counts,
+  weighted by the cosine to the surface's normal. The normals are made from
+  the depth buffer too.
+- The scene is multiplied by it between the light passes and the rest, so it
+  darkens what is lit and nothing else: lamps' lit parts (illumination
+  maps), fog, the sky, particles, halos and see-through materials are drawn
+  after it. An effect on the finished picture would darken those too.
+- The layout of the passes follows Pascal Gilcher's MXAO, the fastest
+  implementation of this known to us. Its code is not free to reuse, so
+  none of it is here: the shader is written from the papers.
+  - The depth is copied as distances into a 16-bit texture taken apart into
+    4x4 tiles, each with every fourth pixel (deinterleaved texturing). The
+    search of a pixel stays in its tile, where samples far apart on screen
+    are near each other in memory.
+  - Every tile has its own turn of the directions and shift of the steps, so
+    any 4x4 pixels search 16 different ways. A filter over 4x4 pixels
+    averages that pattern away: a guided filter (He et al. 2010) that fits
+    the occlusion as a straight line against the distance, which keeps
+    edges without weighing each sample.
+  - Steps are closer together near the pixel. A sample counts less the
+    further it is from the point, down to nothing at the radius, by being
+    drawn back to where the surface itself is.
+  - At half rate (`AOHalfRate`, on) only every other tile is drawn in a
+    frame, in turns: every other pixel is a frame old. When the view turns
+    fast the shading trails by a frame in those.
+- Settings, all in the F2 panel's Ambient occlusion window:
+  - `AOSlices`, `AOSteps`: directions per pixel and steps to each side of
+    one. The qualities are 2x2, 2x4, 3x6 (High, the default), 4x10, 6x16.
+  - `AORadius` (0.6 m): how far from a point things keep light from it.
+    `AOScreenRadius`, if not 0, is a share of the picture's height used
+    instead, the same on screen at every distance.
+  - `AOStrength` (1.6, from play-testing): the power the open share is
+    raised to; 1 is the share as computed.
+  - `AOLightFade` (0.5): how much less brightly lit parts are darkened. The
+    renderer has no picture of the ambient light alone to darken, so direct
+    light is darkened too; this holds that back where the picture is bright.
+    It needs a copy of the scene.
+  - `AOFadeDistance` (30 m), `AOFilter` (passes of the filter, 0 to 2; 1).
+  - "Show the occlusion alone" draws it as if everything were white, without
+    the post effects (`AOShowOnly`, read from `settings.cfg` but not saved).
+- With linear lighting the scene is multiplied by the open share; without, by
+  that share converted for the screen, which darkens the light by the same
+  amount.
+- New in the low level: the scene's depth texture stays bound to a texture
+  unit of its own (`hpl_SceneDepth`, `hpl1_scene_depth.glsl`; multisampled
+  with anti-aliasing, where the first sample is read), and
+  `CreateFloatTexture` makes float textures of one or two channels.
+- Checked: with the option off all 93 reference frames match the capture
+  from before. No GL debug messages with it on, with and without
+  anti-aliasing, linear lighting, and at sizes that do not divide by four.
+  At 2560x1440 in the office the default, High at half rate, costs 2.8 ms of
+  GPU time a frame (search 1.6, filter 0.6, the rest 0.6) where that map's
+  light passes cost 1.65; Medium costs 2.1 (search 0.9, or 1.6 without half
+  rate). The GPU's clock varies between runs: with it higher the same
+  passes took two thirds of that. The F3 overlay lists the passes under
+  "Ambient occlusion".
+
 ### Fog
 
 - Fogged maps were drawn as a flat fog colour (11 maps: outside, the shafts,

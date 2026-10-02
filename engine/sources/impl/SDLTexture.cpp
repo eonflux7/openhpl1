@@ -78,6 +78,7 @@ namespace hpl {
 	{
 		mbContainsData = false;
 		mbFloat = false;
+		mlFloatChannels = 4;
 
 		//Cubemap does not like mipmaps
 		if(aTarget == eTextureTarget_CubeMap) mbUseMipMaps = false;
@@ -671,8 +672,11 @@ namespace hpl {
 			glTexImage1D(GLTarget, 0, InternalFormat(lChannels), mlWidth,0,format,
 			GL_UNSIGNED_BYTE, pPixelSrc);
 		else
-			glTexImage2D(GLTarget, 0, mbFloat ? GL_RGBA16F : InternalFormat(lChannels), mlWidth, mlHeight,
+		{
+			GLenum lFloatFormat = mlFloatChannels == 1 ? GL_R16F : (mlFloatChannels == 2 ? GL_RG16F : GL_RGBA16F);
+			glTexImage2D(GLTarget, 0, mbFloat ? lFloatFormat : InternalFormat(lChannels), mlWidth, mlHeight,
 			0, format, GL_UNSIGNED_BYTE, pPixelSrc);
+		}
 
 		if(glGetError()!=GL_NO_ERROR) return false;
 

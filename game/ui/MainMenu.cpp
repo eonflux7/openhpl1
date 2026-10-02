@@ -1444,6 +1444,7 @@ cMainMenuWidget_Text *gpGammaText2=nullptr;
 cMainMenuWidget_Text *gpFSAAText=nullptr;
 cMainMenuWidget_Text *gpRenderScaleText=nullptr;
 cMainMenuWidget_Text *gpLinearLightingText=nullptr;
+cMainMenuWidget_Text *gpAmbientOcclusionText=nullptr;
 cMainMenuWidget_Text *gpDoFText=nullptr;
 
 cVector2l gvResolutions[] = {cVector2l(640,480), cVector2l(800,600), cVector2l(1024, 768),
@@ -1760,6 +1761,48 @@ public:
 		pGraphics->SetLinearLighting(!pGraphics->GetLinearLighting());
 		gpLinearLightingText->msText = pGraphics->GetLinearLighting() ?
 			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	}
+};
+
+// Off, or one of its qualities. The names are not in the game's language
+// files.
+static tWString GetAmbientOcclusionText(cInit *mpInit)
+{
+	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+	if(pPostEffects->GetAmbientOcclusionActive()==false) return kTranslate("MainMenu","Off");
+
+	static const wchar_t *vNames[] = {L"Low", L"Medium", L"High", L"Very High", L"Ultra", L"Custom"};
+	return vNames[pPostEffects->GetAmbientOcclusionSettings().GetQuality()];
+}
+
+class cMainMenuWidget_AmbientOcclusion : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_AmbientOcclusion(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("Darkens corners, creases and where things touch, which light from all around reaches least. Off is the original look.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+		cAmbientOcclusionSettings settings = pPostEffects->GetAmbientOcclusionSettings();
+
+		// Off, then the qualities: forwards with the left button, back with
+		// the right. Samples set by hand (F2 panel) count as the first.
+		const int lNum = 1 + cAmbientOcclusionSettings::klQualityNum;
+		int lIdx = pPostEffects->GetAmbientOcclusionActive() ? 1 + settings.GetQuality() % cAmbientOcclusionSettings::klQualityNum : 0;
+		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
+
+		pPostEffects->SetAmbientOcclusionActive(lIdx > 0);
+		if(lIdx > 0)
+		{
+			settings.SetQuality(lIdx - 1);
+			pPostEffects->SetAmbientOcclusionSettings(settings);
+		}
+
+		gpAmbientOcclusionText->msText = GetAmbientOcclusionText(mpInit);
 	}
 };
 
@@ -3783,37 +3826,40 @@ void cMainMenu::CreateWidgets()
 	//Buttons
 	cMainMenuWidget *pTextureQualityButton = hplNew( cMainMenuWidget_TextureQuality,(mpInit,vPos,kTranslate("MainMenu","Texture Quality:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureQualityButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pShadowsButton = hplNew( cMainMenuWidget_Shadows,(mpInit,vPos,kTranslate("MainMenu","Shadows:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pShadowsButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pPostEffectsButton = hplNew( cMainMenuWidget_PostEffects,(mpInit,vPos,kTranslate("MainMenu","Post Effects:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pPostEffectsButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pMotionBlurButton = hplNew( cMainMenuWidget_MotionBlur,(mpInit,vPos,kTranslate("MainMenu","Motion Blur:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pMotionBlurButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pVSyncButton = hplNew( cMainMenuWidget_VSync,(mpInit,vPos,kTranslate("MainMenu","VSync:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pVSyncButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pLimitFPSButton = hplNew( cMainMenuWidget_LimitFPS,(mpInit,vPos,_W("Limit to 60 FPS:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLimitFPSButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pTextureFilterButton = hplNew( cMainMenuWidget_TextureFilter,(mpInit,vPos,kTranslate("MainMenu","Texture Filter:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureFilterButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pTextureAnisotropyButton = hplNew( cMainMenuWidget_TextureAnisotropy,(mpInit,vPos,kTranslate("MainMenu","Anisotropy:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureAnisotropyButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pFSAAButton = hplNew( cMainMenuWidget_FSAA,(mpInit,vPos,kTranslate("MainMenu","Anti-Aliasing:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pFSAAButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pRenderScaleButton = hplNew( cMainMenuWidget_RenderScale,(mpInit,vPos,_W("Render Scale:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pRenderScaleButton); 
-	vPos.y += 24;
+	vPos.y += 22;
 	cMainMenuWidget *pLinearLightingButton = hplNew( cMainMenuWidget_LinearLighting,(mpInit,vPos,_W("Linear Lighting:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLinearLightingButton); 
-	vPos.y += 24;
+	vPos.y += 22;
+	cMainMenuWidget *pAmbientOcclusionButton = hplNew( cMainMenuWidget_AmbientOcclusion,(mpInit,vPos,_W("Ambient Occlusion:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pAmbientOcclusionButton); 
+	vPos.y += 22;
 	cMainMenuWidget *pDOFButton = hplNew( cMainMenuWidget_DOF,(mpInit,vPos,kTranslate("MainMenu","Depth of Field:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pDOFButton); 
 	vPos.y += 31;
@@ -3827,45 +3873,45 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureQualityText); 
 	gpTextureQualityText->SetExtraWidget(pTextureQualityButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = GetShadowOptionText(mpInit, GetShadowOption(mpInit));
 	gpShadowsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpShadowsText); 
 	gpShadowsText->SetExtraWidget(pShadowsButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive() ?	kTranslate("MainMenu","On") : 
 																					kTranslate("MainMenu","Off");
 	gpPostEffectsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left ));
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpPostEffectsText);
 	gpPostEffectsText->SetExtraWidget(pPostEffectsButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive() ? kTranslate("MainMenu","On") : 
 	kTranslate("MainMenu","Off");
 	gpMotionBlurText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpMotionBlurText);
 	gpMotionBlurText->SetExtraWidget(pMotionBlurButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = mpInit->mbVsync ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpVSyncText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpVSyncText);
 	gpVSyncText->SetExtraWidget(pVSyncButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = mpInit->mpGame->GetLimitFPS() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpLimitFPSText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLimitFPSText);
 	gpLimitFPSText->SetExtraWidget(pLimitFPSButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = kTranslate("MainMenu",gvTextureFilter[mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureFilter()]);
 	gpTextureFilterText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureFilterText);
 	gpTextureFilterText->SetExtraWidget(pTextureFilterButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	int lAniDeg = (int)mpInit->mpGame->GetResources()->GetMaterialManager()->GetTextureAnisotropy();
 	if(lAniDeg!=1)	sText = cString::To16Char(cString::ToString(lAniDeg)+"x");
 	else			sText = kTranslate("MainMenu","Off");
@@ -3873,7 +3919,7 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureAnisotropyText);
 	gpTextureAnisotropyText->SetExtraWidget(pTextureAnisotropyButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	int lFSAA = mpInit->mlFSAA;
 	if(lFSAA!=0)	sText = cString::To16Char(cString::ToString(lFSAA)+"x");
 	else			sText = kTranslate("MainMenu","Off");
@@ -3881,19 +3927,24 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpFSAAText);
 	gpFSAAText->SetExtraWidget(pFSAAButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	gpRenderScaleText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetRenderScaleText(mpInit->mpGame->GetGraphics()->GetRenderScale()),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpRenderScaleText);
 	gpRenderScaleText->SetExtraWidget(pRenderScaleButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
 	sText = mpInit->mpGame->GetGraphics()->GetLinearLighting() ?
 		kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpLinearLightingText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLinearLightingText);
 	gpLinearLightingText->SetExtraWidget(pLinearLightingButton);
 
-	vPos.y += 24;
+	vPos.y += 22;
+	gpAmbientOcclusionText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetAmbientOcclusionText(mpInit),20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpAmbientOcclusionText);
+	gpAmbientOcclusionText->SetExtraWidget(pAmbientOcclusionButton);
+
+	vPos.y += 22;
 	sText = mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled() ? 
 		kTranslate("MainMenu","Off") : kTranslate("MainMenu","On");
 

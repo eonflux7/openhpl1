@@ -74,6 +74,66 @@ namespace hpl {
 		float mfScatter = 0.55f;
 	};
 
+	/**
+	 * How the ambient occlusion is made (hpl1_PostEffect_AO.fragment) and
+	 * how the scene is darkened by it. Lengths are in metres.
+	 */
+	class cAmbientOcclusionSettings
+	{
+	public:
+		/// Directions on screen each pixel is searched in, and steps to each
+		/// side of a direction: the cost is their product.
+		int mlSlices = 3;
+		int mlSteps = 6;
+		/// Only every other pixel is searched in a frame, in turns; the
+		/// others keep what they had from the frame before. Half the cost,
+		/// and the occlusion of what moves across the screen trails by a
+		/// frame in half of its pixels.
+		bool mbHalfRate = true;
+		/// How far from a point things keep light from it.
+		float mfRadius = 0.6f;
+		/// If not 0, the radius is this share of the picture's height at
+		/// every distance instead: what is far away is searched as widely on
+		/// screen as what is near.
+		float mfScreenRadius = 0;
+		/// The power the share of light that arrives is raised to: 1 as
+		/// computed, more darkens more, 0 not at all.
+		float mfStrength = 1.6f;
+		/// The distance at which it has faded away.
+		float mfFadeDistance = 30.0f;
+		/// How much less what is brightly lit is darkened, 0 to 1.
+		float mfLightFade = 0.5f;
+		/// Passes of the filter that takes out the pattern of the samples: 0 to 2.
+		int mlFilter = 1;
+
+		//Debug
+		/// The occlusion is drawn alone, as if everything were white.
+		bool mbShowOnly = false;
+
+		/// Slices and steps as one setting, from low (0) to ultra.
+		static const int klQualityNum = 5;
+		/// \return klQualityNum when they are not one of the qualities.
+		int GetQuality() const
+		{
+			for(int i=0; i<klQualityNum; ++i)
+				if(QualitySamples(i)[0] == mlSlices && QualitySamples(i)[1] == mlSteps) return i;
+			return klQualityNum;
+		}
+		void SetQuality(int alQuality)
+		{
+			if(alQuality < 0 || alQuality >= klQualityNum) return;
+			mlSlices = QualitySamples(alQuality)[0];
+			mlSteps = QualitySamples(alQuality)[1];
+		}
+
+	private:
+		static const int* QualitySamples(int alQuality)
+		{
+			static const int vSamples[klQualityNum][2] = {{2,2}, {2,4}, {3,6}, {4,10}, {6,16}};
+			return vSamples[alQuality];
+		}
+	};
+
 	class cImageTrailEffect
 	{
 	public:
@@ -152,6 +212,21 @@ namespace hpl {
 
 		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];}
 
+		void SetAmbientOcclusionActive(bool abX){ mbAoActive = abX;}
+		bool GetAmbientOcclusionActive(){ return mbAoActive;}
+		void SetAmbientOcclusionSettings(const cAmbientOcclusionSettings& aSettings){ mAoSettings = aSettings;}
+		const cAmbientOcclusionSettings& GetAmbientOcclusionSettings(){ return mAoSettings;}
+		/**
+		 * Darkens the scene as drawn so far by the ambient occlusion, made
+		 * from the depth buffer as it is. Called by cRenderer3D between the
+		 * lights and what is not lit; not one of the effects of Render().
+		 * Leaves the low level's programs, textures 0 and 1, blending,
+		 * depth test, colour mask and projection changed.
+		 * 
+eturn false if nothing was drawn
+		 */
+		bool RenderAmbientOcclusion();
+
 		void RenderBlurTexture(iTexture *apDestination, iTexture *apSource,float afBlurAmount);
 
 	private:
@@ -164,6 +239,10 @@ namespace hpl {
 		void RenderMotionBlur();
 
 		void RenderDepthOfField();
+
+		bool CreateAmbientOcclusionTextures();
+		void DestroyAmbientOcclusionTextures();
+		void DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource, int alTurn=-1);
 
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelResources *mpLowLevelResources;
@@ -208,6 +287,24 @@ namespace hpl {
 		iGpuProgram *mpDepthOfFieldVP;
 		iGpuProgram *mpDepthOfFieldFP;
 		iTexture *mpDofBlurTexture;
+
+		//Ambient occlusion. The first two textures are in tiles (see the
+		//shader) and as large as the tiles together; the last two are of
+		//the render size. Made when first needed.
+		iGpuProgram *mpAoVP;
+		iGpuProgram *mpAoDeinterleaveFP;
+		iGpuProgram *mpAoOcclusionFP;
+		iGpuProgram *mpAoFilterFP;
+		iGpuProgram *mpAoCompositeFP;
+		iTexture *mpAoDistanceTexture;
+		iTexture *mpAoTiledTexture;
+		iTexture *mpAoTexture[2];
+		cVector2l mvAoTileSize;
+		//Frames drawn, for taking turns; and if the textures hold a frame
+		int mlAoFrame;
+		bool mbAoFilled;
+		bool mbAoActive;
+		cAmbientOcclusionSettings mAoSettings;
 
 		tVertexVec mvTexRectVtx;
 

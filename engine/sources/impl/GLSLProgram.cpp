@@ -199,6 +199,10 @@ namespace hpl{
 		{"PostEffect_BloomChain_Down",		"PostEffect_BloomChain",	"DOWN"},
 		{"PostEffect_BloomChain_Up",		"PostEffect_BloomChain",	"UP"},
 		{"PostEffect_BloomChain_Composite",	"PostEffect_BloomChain",	"COMPOSITE"},
+		{"PostEffect_AO_Deinterleave",	"PostEffect_AO",	"DEINTERLEAVE"},
+		{"PostEffect_AO_Occlusion",		"PostEffect_AO",	"OCCLUSION"},
+		{"PostEffect_AO_Filter",		"PostEffect_AO",	"FILTER"},
+		{"PostEffect_AO_Composite",		"PostEffect_AO",	"COMPOSITE"},
 	};
 
 	static const int kMaxIncludeDepth = 8;
@@ -400,6 +404,9 @@ namespace hpl{
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
+		// The scene's depth is a multisampled texture then (hpl1_scene_depth.glsl)
+		if(mpLowLevelGraphics && mpLowLevelGraphics->GetMultisampling() > 0)
+			sSource += "#define HPL_SCENE_MULTISAMPLE\n";
 		sSource += "#line 1 1\n";
 		sSource += asSource;
 
@@ -759,6 +766,9 @@ namespace hpl{
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
 		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
+		// The scene's depth is a multisampled texture then (hpl1_scene_depth.glsl)
+		if(mpLowLevelGraphics && mpLowLevelGraphics->GetMultisampling() > 0)
+			sSource += "#define HPL_SCENE_MULTISAMPLE\n";
 
 		tStringVec vDefines;
 		cString::GetStringVec(asDefines, vDefines, nullptr);
@@ -847,6 +857,8 @@ namespace hpl{
 		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit);
 		lShadowLoc = glGetUniformLocation(lProgram, "hpl_ShadowMapDepth");
 		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit + 1);
+		GLint lDepthLoc = glGetUniformLocation(lProgram, "hpl_SceneDepth");
+		if(lDepthLoc >= 0) glProgramUniform1i(lProgram, lDepthLoc, kSceneDepthUnit);
 
 		return lProgram;
 	}

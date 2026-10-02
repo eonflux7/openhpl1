@@ -467,6 +467,22 @@ bool cInit::Init(tString asCommandLine)
 		tuning.mfIntensity = mpConfig->GetFloat("Graphics","BloomIntensity",tuning.mfIntensity);
 		tuning.mfScatter = mpConfig->GetFloat("Graphics","BloomScatter",tuning.mfScatter);
 		pPostEffects->SetBloomTuning(tuning);
+
+		// Ambient occlusion: the defaults are the settings' own
+		pPostEffects->SetAmbientOcclusionActive(mpConfig->GetBool("Graphics","AmbientOcclusion",false));
+		cAmbientOcclusionSettings occlusion;
+		occlusion.mlSlices = mpConfig->GetInt("Graphics","AOSlices",occlusion.mlSlices);
+		occlusion.mlSteps = mpConfig->GetInt("Graphics","AOSteps",occlusion.mlSteps);
+		occlusion.mbHalfRate = mpConfig->GetBool("Graphics","AOHalfRate",occlusion.mbHalfRate);
+		occlusion.mfRadius = mpConfig->GetFloat("Graphics","AORadius",occlusion.mfRadius);
+		occlusion.mfScreenRadius = mpConfig->GetFloat("Graphics","AOScreenRadius",occlusion.mfScreenRadius);
+		occlusion.mfStrength = mpConfig->GetFloat("Graphics","AOStrength",occlusion.mfStrength);
+		occlusion.mfFadeDistance = mpConfig->GetFloat("Graphics","AOFadeDistance",occlusion.mfFadeDistance);
+		occlusion.mfLightFade = mpConfig->GetFloat("Graphics","AOLightFade",occlusion.mfLightFade);
+		occlusion.mlFilter = mpConfig->GetInt("Graphics","AOFilter",occlusion.mlFilter);
+		// Read only, for captures of the occlusion alone
+		occlusion.mbShowOnly = mpConfig->GetBool("Graphics","AOShowOnly",false);
+		pPostEffects->SetAmbientOcclusionSettings(occlusion);
 	}
 
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(mpConfig->GetBool("Graphics", "MotionBlur", false));
@@ -841,6 +857,18 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","BloomThreshold",pPostEffects->GetBloomTuning().mfThreshold);
 		mpConfig->SetFloat("Graphics","BloomIntensity",pPostEffects->GetBloomTuning().mfIntensity);
 		mpConfig->SetFloat("Graphics","BloomScatter",pPostEffects->GetBloomTuning().mfScatter);
+
+		const cAmbientOcclusionSettings &occlusion = pPostEffects->GetAmbientOcclusionSettings();
+		mpConfig->SetBool("Graphics","AmbientOcclusion",pPostEffects->GetAmbientOcclusionActive());
+		mpConfig->SetInt("Graphics","AOSlices",occlusion.mlSlices);
+		mpConfig->SetInt("Graphics","AOSteps",occlusion.mlSteps);
+		mpConfig->SetBool("Graphics","AOHalfRate",occlusion.mbHalfRate);
+		mpConfig->SetFloat("Graphics","AORadius",occlusion.mfRadius);
+		mpConfig->SetFloat("Graphics","AOScreenRadius",occlusion.mfScreenRadius);
+		mpConfig->SetFloat("Graphics","AOStrength",occlusion.mfStrength);
+		mpConfig->SetFloat("Graphics","AOFadeDistance",occlusion.mfFadeDistance);
+		mpConfig->SetFloat("Graphics","AOLightFade",occlusion.mfLightFade);
+		mpConfig->SetInt("Graphics","AOFilter",occlusion.mlFilter);
 	}
 	mpConfig->SetBool("Graphics", "MotionBlur",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
 	mpConfig->SetFloat("Graphics", "MotionBlurAmount",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurAmount());

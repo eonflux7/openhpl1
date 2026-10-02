@@ -95,6 +95,9 @@ namespace hpl {
 		/// Texture unit of the hpl_ShadowMap sampler; hpl_ShadowMapDepth has
 		/// the next one. Past the units the engine binds textures to.
 		static const int kShadowMapUnit = 8;
+		/// Texture unit of the hpl_SceneDepth sampler (hpl1_scene_depth.glsl):
+		/// the depth of the 3D scene.
+		static const int kSceneDepthUnit = 10;
 
 		GLuint GetHandle(){ return mlProgram; }
 

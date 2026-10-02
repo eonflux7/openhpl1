@@ -904,6 +904,26 @@ namespace hpl {
 		return pTex;
 	}
 
+	//-----------------------------------------------------------------------
+
+	iTexture* cLowLevelGraphicsSDL::CreateFloatTexture(const cVector2l& avSize, int alChannels, eTextureTarget aTarget)
+	{
+		iBitmap2D* pBmp = CreateBitmap2D(avSize,32);
+		pBmp->FillRect(cRect2l(0,0,0,0),cColor(0,0));
+
+		cSDLTexture *pTex = hplNew( cSDLTexture, ("",mpPixelFormat,this,eTextureType_Normal, false, aTarget) );
+		pTex->SetFloat(true);
+		pTex->SetFloatChannels(alChannels);
+		bool bRet = pTex->CreateFromBitmap(pBmp);
+		hplDelete(pBmp);
+
+		if(bRet==false){
+			hplDelete(pTex);
+			return nullptr;
+		}
+		return pTex;
+	}
+
 
 	//-----------------------------------------------------------------------
 
@@ -1210,6 +1230,13 @@ namespace hpl {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, lTarget, mlSceneColor, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, lTarget, mlSceneDepthStencil, 0);
 		bOK = CheckFramebuffer("Scene") && bOK;
+
+		// The depth stays bound to a unit past those SetTexture() binds to,
+		// for the passes that read it while they draw into something else.
+		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kSceneDepthUnit);
+		glBindTexture(lTarget, mlSceneDepthStencil);
+		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
+
 		cGpuProfiler::Label(GL_FRAMEBUFFER, mlSceneFramebuffer, "Scene");
 		cGpuProfiler::Label(GL_TEXTURE, mlSceneColor, "Scene colour");
 		cGpuProfiler::Label(GL_TEXTURE, mlSceneDepthStencil, "Scene depth/stencil");

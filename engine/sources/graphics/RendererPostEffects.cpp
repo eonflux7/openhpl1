@@ -54,6 +54,10 @@ namespace hpl {
 		mpBlurTempTexture = nullptr;
 		mpBloomBlurTexture = nullptr;
 		mpDofBlurTexture = nullptr;
+		mpAoDistanceTexture = nullptr;
+		mpAoTiledTexture = nullptr;
+		mpAoTexture[0] = nullptr;
+		mpAoTexture[1] = nullptr;
 		CreateScreenBuffers();
 
 		///////////////////////////////////////////
@@ -86,6 +90,16 @@ namespace hpl {
 			Error("Couldn't load the 'PostEffect_BloomChain' programs!\n");
 
 		/////////////////
+		// Ambient occlusion programs
+		mpAoVP = mpGpuManager->CreateProgram("PostEffect_AO_vp.cg","main",eGpuProgramType_Vertex);
+		mpAoDeinterleaveFP = mpGpuManager->CreateProgram("PostEffect_AO_Deinterleave_fp.cg","main",eGpuProgramType_Fragment);
+		mpAoOcclusionFP = mpGpuManager->CreateProgram("PostEffect_AO_Occlusion_fp.cg","main",eGpuProgramType_Fragment);
+		mpAoFilterFP = mpGpuManager->CreateProgram("PostEffect_AO_Filter_fp.cg","main",eGpuProgramType_Fragment);
+		mpAoCompositeFP = mpGpuManager->CreateProgram("PostEffect_AO_Composite_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpAoVP || !mpAoDeinterleaveFP || !mpAoOcclusionFP || !mpAoFilterFP || !mpAoCompositeFP)
+			Error("Couldn't load the 'PostEffect_AO' programs!\n");
+
+		/////////////////
 		// MotionBlur programs
 		mpMotionBlurVP = mpGpuManager->CreateProgram("PostEffect_Motion_vp.cg","main",eGpuProgramType_Vertex);
 		if(!mpMotionBlurVP) Error("Couldn't load 'PostEffect_Motion_vp.cg'!\n");
@@ -114,6 +128,11 @@ namespace hpl {
 		mbBloomActive = false;
 		mfBloomSpread = 2.0f;
 		mBloomType = eBloomType_Original;
+
+		//Ambient occlusion
+		mbAoActive = false;
+		mlAoFrame = 0;
+		mbAoFilled = false;
 
 		//Motion blur
 		mbMotionBlurActive = false;
@@ -145,6 +164,10 @@ namespace hpl {
 		for(iGpuProgram *pProgram : vChainPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
 		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
 		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
+
+		iGpuProgram *vAoPrograms[] = {mpAoVP, mpAoDeinterleaveFP, mpAoOcclusionFP, mpAoFilterFP, mpAoCompositeFP};
+		for(iGpuProgram *pProgram : vAoPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
+		DestroyAmbientOcclusionTextures();
 
 		if(mpMotionBlurVP) mpGpuManager->Destroy(mpMotionBlurVP);
 		if(mpMotionBlurFP) mpGpuManager->Destroy(mpMotionBlurFP);
@@ -246,6 +269,9 @@ namespace hpl {
 			vLevelSize = cVector2l(vLevelSize.x / 2, vLevelSize.y / 2);
 		}
 
+		//Made again, at the new size, when next needed
+		DestroyAmbientOcclusionTextures();
+
 		//The old frames are gone
 		mImageTrailData.mbFirstPass = true;
 		mbMotionBlurFirstTime = true;
@@ -271,6 +297,9 @@ namespace hpl {
 	void cRendererPostEffects::Render()
 	{
 		if(mpScreenBuffer[0] == nullptr || mpScreenBuffer[1] == nullptr) return;
+
+		// The occlusion alone is not a scene to blur or make glow
+		if(mbAoActive && mAoSettings.mbShowOnly) return;
 
 		if(mbActive==false ||
 			(	mImageTrailData.mbActive==false && mbBloomActive==false &&
@@ -812,6 +841,189 @@ namespace hpl {
 
 		mpBloomChainVP->UnBind();
 		mpLowLevelGraphics->SetTexture(0,nullptr);
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cRendererPostEffects::DestroyAmbientOcclusionTextures()
+	{
+		iTexture **vTextures[] = {&mpAoDistanceTexture, &mpAoTiledTexture, &mpAoTexture[0], &mpAoTexture[1]};
+		for(iTexture **pTexture : vTextures)
+		{
+			if(*pTexture) hplDelete(*pTexture);
+			*pTexture = nullptr;
+		}
+	}
+
+	// The textures of the ambient occlusion, if they are not there yet.
+	bool cRendererPostEffects::CreateAmbientOcclusionTextures()
+	{
+		if(mpAoTexture[1]) return true;
+		DestroyAmbientOcclusionTextures();
+
+		// 4x4 tiles of every fourth pixel; the last ones of a row or column
+		// are not full when the size does not divide by four.
+		cVector2l vSize((int)mvScreenSize.x, (int)mvScreenSize.y);
+		mvAoTileSize = cVector2l((vSize.x + 3) / 4, (vSize.y + 3) / 4);
+		cVector2l vTiledSize(mvAoTileSize.x * 4, mvAoTileSize.y * 4);
+
+		// Distances in one channel; occlusion and distance in two
+		mpAoDistanceTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 1, eTextureTarget_Rect);
+		mpAoTiledTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 2, eTextureTarget_Rect);
+		mpAoTexture[0] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
+		mpAoTexture[1] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
+
+		if(!mpAoDistanceTexture || !mpAoTiledTexture || !mpAoTexture[0] || !mpAoTexture[1])
+		{
+			Error("Couldn't create the ambient occlusion textures!\n");
+			DestroyAmbientOcclusionTextures();
+			return false;
+		}
+		mbAoFilled = false;
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// One pass of the ambient occlusion: a quad over apTarget (the scene
+	// when it is null) with apSource in unit 0. The fragment programs take
+	// their positions from the pixel drawn. Expects an orthographic
+	// projection of the virtual screen size. With alTurn 0 or 1 the target
+	// is taken as 4x4 tiles and only every other one is drawn, like the
+	// squares of one colour of a chess board; the rest is left as it is.
+	void cRendererPostEffects::DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource, int alTurn)
+	{
+		mpLowLevelGraphics->SetRenderTarget(apTarget);
+		mpLowLevelGraphics->SetTexture(0,apSource);
+
+		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
+		int lTiles = alTurn < 0 ? 1 : 4;
+		cVector2f vTile(vVirtSize.x / (float)lTiles, vVirtSize.y / (float)lTiles);
+		for(int y=0; y<lTiles; ++y)
+		for(int x=0; x<lTiles; ++x)
+		{
+			if(alTurn >= 0 && ((x + y) & 1) != alTurn) continue;
+
+			cVector2f vMin(vTile.x * (float)x, vTile.y * (float)y);
+			cVector2f vMax(vMin.x + vTile.x, vMin.y + vTile.y);
+			mvTexRectVtx[0] = cVertex(cVector3f(vMin.x,vMin.y,40),cVector2f(0,1),cColor(1,1.0f) );
+			mvTexRectVtx[1] = cVertex(cVector3f(vMax.x,vMin.y,40),cVector2f(1,1),cColor(1,1.0f));
+			mvTexRectVtx[2] = cVertex(cVector3f(vMax.x,vMax.y,40),cVector2f(1,0),cColor(1,1.0f));
+			mvTexRectVtx[3] = cVertex(cVector3f(vMin.x,vMax.y,40),cVector2f(0,0),cColor(1,1.0f));
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	// See hpl1_PostEffect_AO.fragment.
+	bool cRendererPostEffects::RenderAmbientOcclusion()
+	{
+		if(mbAoActive==false) return false;
+		if(!mpAoVP || !mpAoDeinterleaveFP || !mpAoOcclusionFP || !mpAoFilterFP || !mpAoCompositeFP) return false;
+
+		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
+		if(CreateAmbientOcclusionTextures()==false) return false;
+
+		const cAmbientOcclusionSettings &settings = mAoSettings;
+		cVector2l vSize((int)mvScreenSize.x, (int)mvScreenSize.y);
+		cVector2f vTileSize((float)mvAoTileSize.x, (float)mvAoTileSize.y);
+
+		///////////////////////////////////////////
+		// A copy of the scene, to tell what is brightly lit
+		float fLightFade = cMath::Clamp(settings.mfLightFade, 0.0f, 1.0f);
+		iTexture *pScreenTexture = GetFreeScreenTexture();
+		if(pScreenTexture==nullptr || settings.mbShowOnly) fLightFade = 0;
+		if(fLightFade > 0) mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,vSize);
+
+		mpLowLevelGraphics->SetDepthTestActive(false);
+		mpLowLevelGraphics->SetAlphaTestActive(false);
+		mpLowLevelGraphics->SetBlendActive(false);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
+		mpLowLevelGraphics->PushMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetVirtualSize(),-1000,1000);
+
+		mpAoVP->Bind();
+		mpAoVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+
+		///////////////////////////////////////////
+		// The depth buffer as distances, in tiles
+		mpLowLevelGraphics->BeginGpuSection("Depth tiles");
+		mpAoDeinterleaveFP->Bind();
+		mpAoDeinterleaveFP->SetVec2f("tileSize", vTileSize);
+		DrawAmbientOcclusionPass(mpAoDistanceTexture, nullptr);
+		mpAoDeinterleaveFP->UnBind();
+		mpLowLevelGraphics->EndGpuSection();
+
+		///////////////////////////////////////////
+		// The occlusion, tile by tile
+		mpLowLevelGraphics->BeginGpuSection("Search");
+		mpAoOcclusionFP->Bind();
+		mpAoOcclusionFP->SetVec2f("tileSize", vTileSize);
+		mpAoOcclusionFP->SetVec4f("reach", cMath::Max(settings.mfRadius, 0.01f),
+									cMath::Clamp(settings.mfScreenRadius, 0.0f, 1.0f),
+									cMath::Max(settings.mfFadeDistance, 0.01f),
+									cMath::Max(settings.mfStrength, 0.0f));
+		mpAoOcclusionFP->SetVec2f("samples", (float)cMath::Clamp(settings.mlSlices, 1, 16),
+									(float)cMath::Clamp(settings.mlSteps, 1, 32));
+		// At half rate the tiles are drawn in turns: every other pixel of
+		// the picture. Not before there is a frame for the others to keep.
+		DrawAmbientOcclusionPass(mpAoTiledTexture, mpAoDistanceTexture,
+								settings.mbHalfRate && mbAoFilled ? (mlAoFrame & 1) : -1);
+		++mlAoFrame;
+		mbAoFilled = true;
+		mpAoOcclusionFP->UnBind();
+		mpLowLevelGraphics->EndGpuSection();
+
+		///////////////////////////////////////////
+		// Back to the picture's layout, with the pattern filtered out
+		int lFilter = cMath::Clamp(settings.mlFilter, 0, 2);
+		mpLowLevelGraphics->BeginGpuSection("Filter");
+		mpAoFilterFP->Bind();
+		mpAoFilterFP->SetVec2f("tileSize", vTileSize);
+		// The pixels in their places first: the filter's 16 looks would
+		// each go to another tile
+		mpAoFilterFP->SetVec3f("window", 1, 0, 0);
+		DrawAmbientOcclusionPass(mpAoTexture[0], mpAoTiledTexture);
+		iTexture *pOcclusion = mpAoTexture[0];
+		for(int i=0; i<lFilter; ++i)
+		{
+			// The second window is the first mirrored: together they are
+			// centred on the pixel
+			iTexture *pTarget = mpAoTexture[pOcclusion == mpAoTexture[0] ? 1 : 0];
+			mpAoFilterFP->SetVec3f("window", 0, i == 0 ? -2.0f : -1.0f, 1);
+			DrawAmbientOcclusionPass(pTarget, pOcclusion);
+			pOcclusion = pTarget;
+		}
+		mpAoFilterFP->UnBind();
+		mpLowLevelGraphics->EndGpuSection();
+
+		///////////////////////////////////////////
+		// The scene multiplied by it, or replaced by it to show it alone.
+		// Destination alpha is the renderer's own.
+		mpLowLevelGraphics->BeginGpuSection("Blend");
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, false);
+		if(settings.mbShowOnly==false)
+		{
+			mpLowLevelGraphics->SetBlendActive(true);
+			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_Zero,eBlendFunc_SrcColor);
+		}
+		mpAoCompositeFP->Bind();
+		mpAoCompositeFP->SetFloat("lightFade", fLightFade);
+		if(fLightFade > 0) mpLowLevelGraphics->SetTexture(1,pScreenTexture);
+		DrawAmbientOcclusionPass(nullptr, pOcclusion);
+		mpAoCompositeFP->UnBind();
+		mpLowLevelGraphics->EndGpuSection();
+
+		mpAoVP->UnBind();
+		mpLowLevelGraphics->SetBlendActive(false);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		mpLowLevelGraphics->SetTexture(1,nullptr);
+		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
+
+		return true;
 	}
 
 	//-----------------------------------------------------------------------

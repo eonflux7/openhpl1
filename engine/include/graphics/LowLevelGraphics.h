@@ -404,6 +404,11 @@ namespace hpl {
 										eTextureTarget aTarget)=0;
 		virtual iTexture* CreateTexture(const cVector2l& avSize,int alBpp,cColor aFillCol,
 									bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)=0;
+		/**
+		 * A texture of 16-bit floating point values to render into, with 1,
+		 * 2 or 4 channels, filled with zeros.
+		 */
+		virtual iTexture* CreateFloatTexture(const cVector2l& avSize, int alChannels, eTextureTarget aTarget)=0;
 
 
 		virtual iPixelFormat* GetPixelFormat()=0;

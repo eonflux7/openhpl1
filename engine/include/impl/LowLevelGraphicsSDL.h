@@ -96,6 +96,7 @@ namespace hpl {
 		iTexture* CreateTexture(bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget) override;
 		iTexture* CreateTexture(const tString &asName,bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget) override;
 		iTexture* CreateTexture(iBitmap2D* apBmp,bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget) override;
+		iTexture* CreateFloatTexture(const cVector2l& avSize, int alChannels, eTextureTarget aTarget) override;
 		iTexture* CreateTexture(const cVector2l& avSize,int alBpp,cColor aFillCol,
 								bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget) override;
 

@@ -611,6 +611,7 @@ void cRefView::Draw()
 
 	DrawShadows();
 	DrawPlayer();
+	DrawAmbientOcclusion();
 
 	// Closed with the window's button
 	if(bOpen==false) SetOpen(false);
@@ -1074,6 +1075,120 @@ void cRefView::DrawShadows()
 	if(bChanged) pRenderer->SetShadowMapSettings(settings);
 
 	if(ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_DefaultOpen)) DrawShadowLights();
+
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawAmbientOcclusion()
+{
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// Under the Player window
+	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f, pViewport->WorkPos.y + fEm * 11),
+							ImGuiCond_FirstUseEver, ImVec2(0.5f, 0));
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 24, 0), ImVec2(fEm * 24, pViewport->WorkSize.y));
+	ImGui::SetNextWindowBgAlpha(0.85f);
+
+	if(ImGui::Begin("Ambient occlusion", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Kept in settings.cfg, like the renderer's other options
+	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
+	cAmbientOcclusionSettings settings = pPostEffects->GetAmbientOcclusionSettings();
+	bool bChanged = false;
+
+	bool bActive = pPostEffects->GetAmbientOcclusionActive();
+	if(ImGui::Checkbox("Ambient occlusion", &bActive)) pPostEffects->SetAmbientOcclusionActive(bActive);
+	if(ImGui::IsItemHovered())
+		Tip("Darkens corners, creases and where things touch: the places light from all around "
+			"reaches least. Worked out from the depth of what is on screen, for what is lit; "
+			"lamps' lit parts, fog, particles and see-through things are left alone.");
+
+	ImGui::BeginDisabled(bActive==false);
+	ImGui::SameLine();
+	if(ImGui::Button("Reset"))
+	{
+		// The debug choice is not a setting
+		cAmbientOcclusionSettings defaults;
+		defaults.mbShowOnly = settings.mbShowOnly;
+		settings = defaults;
+		bChanged = true;
+	}
+	if(ImGui::IsItemHovered()) Tip("Everything in this window back to its default. Ctrl+click a slider to type a value.");
+
+	ImGui::PushItemWidth(fEm * 12);
+
+	int lQuality = settings.GetQuality();
+	if(ImGui::Combo("Quality", &lQuality, "Low\0Medium\0High\0Very high\0Ultra\0Custom\0") &&
+		lQuality < cAmbientOcclusionSettings::klQualityNum)
+	{
+		settings.SetQuality(lQuality);
+		bChanged = true;
+	}
+	if(ImGui::IsItemHovered())
+		Tip("How many looks into the depth every pixel takes. A larger radius needs more of them. "
+			"F3 shows the time it takes ('Ambient occlusion').");
+	bChanged |= ImGui::SliderInt("Directions", &settings.mlSlices, 1, 8);
+	if(ImGui::IsItemHovered()) Tip("Directions on screen each pixel is searched in. More: less grain.");
+	bChanged |= ImGui::SliderInt("Steps", &settings.mlSteps, 1, 24);
+	if(ImGui::IsItemHovered())
+		Tip("Steps to each side of a direction. Too few: thin things are stepped over, and the shading comes in bands.");
+
+	bChanged |= ImGui::Checkbox("Every other pixel in a frame", &settings.mbHalfRate);
+	if(ImGui::IsItemHovered())
+		Tip("Half of the pixels are searched in a frame and the other half in the next. "
+			"Half the cost; when the view turns fast, the shading trails by a frame in half of its pixels.");
+
+	bool bScreenRadius = settings.mfScreenRadius > 0;
+	if(bScreenRadius)
+	{
+		float fPercent = settings.mfScreenRadius * 100.0f;
+		if(ImGui::SliderFloat("Radius", &fPercent, 1.0f, 30.0f, "%.1f %% of height"))
+		{
+			settings.mfScreenRadius = fPercent / 100.0f;
+			bChanged = true;
+		}
+	}
+	else
+	{
+		bChanged |= ImGui::SliderFloat("Radius", &settings.mfRadius, 0.05f, 3.0f, "%.2f m", ImGuiSliderFlags_Logarithmic);
+	}
+	if(ImGui::IsItemHovered())
+		Tip("How far from a point things keep light from it. Small: thin lines in creases. "
+			"Large: soft shading over whole corners, with less detail.");
+	if(ImGui::Checkbox("Radius grows with the distance", &bScreenRadius))
+	{
+		settings.mfScreenRadius = bScreenRadius ? 0.08f : 0.0f;
+		bChanged = true;
+	}
+	if(ImGui::IsItemHovered())
+		Tip("The same size on screen at every distance, instead of a length in the world: "
+			"what is far away gets as much shading as what is near.");
+
+	bChanged |= ImGui::SliderFloat("Strength", &settings.mfStrength, 0.0f, 3.0f, "%.2f");
+	if(ImGui::IsItemHovered()) Tip("1 darkens by the share of the surroundings that is covered. More is darker.");
+	bChanged |= ImGui::SliderFloat("Less in light", &settings.mfLightFade, 0.0f, 1.0f, "%.2f");
+	if(ImGui::IsItemHovered())
+		Tip("How much less what is brightly lit is darkened. 0: everything alike. "
+			"1: only what is dim, which is where light from all around matters.");
+	bChanged |= ImGui::SliderFloat("Fades by", &settings.mfFadeDistance, 2.0f, 100.0f, "%.0f m", ImGuiSliderFlags_Logarithmic);
+	if(ImGui::IsItemHovered()) Tip("The distance at which it has faded away.");
+	bChanged |= ImGui::Combo("Filter", &settings.mlFilter, "Off\0Once\0Twice\0");
+	if(ImGui::IsItemHovered())
+		Tip("Every pixel of a 4x4 block searches differently; the filter averages the blocks, "
+			"keeping edges. Off shows the pattern. Twice is smoother.");
+
+	bChanged |= ImGui::Checkbox("Show the occlusion alone", &settings.mbShowOnly);
+	if(ImGui::IsItemHovered()) Tip("White where nothing is darkened.");
+
+	ImGui::PopItemWidth();
+	ImGui::EndDisabled();
+	if(bChanged) pPostEffects->SetAmbientOcclusionSettings(settings);
 
 	ImGui::End();
 }

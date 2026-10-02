@@ -39,6 +39,9 @@ class cInit;
 // lights in view, each of which can be drawn alone or have its shadows
 // switched. A test light can be put where the camera is, or carried along.
 //
+// Another window is for the ambient occlusion: on or off, how good and how
+// far it searches, how strongly it darkens, and the occlusion alone.
+//
 // While the panel is open it has the mouse and the keyboard, and the view
 // is kept exactly where the frame was taken from. Closing it (F2) gives the
 // input back to the game: the player can look and walk around from there.
@@ -62,6 +65,7 @@ private:
 	void DrawPlayer();
 	void DrawRenderer();
 	void DrawShadows();
+	void DrawAmbientOcclusion();
 	void DrawShadowLights();
 	void UpdateTestLight();
 

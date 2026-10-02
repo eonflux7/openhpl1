@@ -440,17 +440,25 @@ namespace hpl {
 		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
+		//Ambient occlusion: darkens what is lit, before what glows by
+		//itself, the fog and what is see-through are drawn
+		if(mbLog) Log("Rendering Ambient occlusion:\n");
+		mpLowLevelGraphics->BeginGpuSection("Ambient occlusion");
+		bool bOcclusionOnly = RenderAmbientOcclusion(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
+
+		////////////////////////////
 		//Render Diffuse
 		if(mbLog) Log("Rendering Diffuse:\n");
 		mpLowLevelGraphics->BeginGpuSection("Diffuse");
-		RenderDiffuse(apCamera);
+		if(bOcclusionOnly==false) RenderDiffuse(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
 		//Render fog
 		if(mbLog) Log("Rendering fog:\n");
 		mpLowLevelGraphics->BeginGpuSection("Fog");
-		RenderFog(apCamera);
+		if(bOcclusionOnly==false) RenderFog(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 
@@ -461,13 +469,13 @@ namespace hpl {
 		////////////////////////////
 		if(mbLog) Log("Rendering Skybox:\n");
 		mpLowLevelGraphics->BeginGpuSection("Sky box");
-		RenderSkyBox(apCamera);
+		if(bOcclusionOnly==false) RenderSkyBox(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		//Render transparent
 		if(mbLog) Log("Rendering Transperant:\n");
 		mpLowLevelGraphics->BeginGpuSection("Transparent");
-		RenderTrans(apCamera);
+		if(bOcclusionOnly==false) RenderTrans(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		mRenderSettings.Reset(mpLowLevelGraphics);
@@ -1181,6 +1189,51 @@ namespace hpl {
 		}
 
 		return lDrawn;
+	}
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * Darkens the lit scene by the ambient occlusion
+	 * (cRendererPostEffects::RenderAmbientOcclusion) and leaves the render
+	 * settings telling what is set. True if the occlusion was drawn alone,
+	 * in place of the scene.
+	 */
+	bool cRenderer3D::RenderAmbientOcclusion(cCamera3D *apCamera)
+	{
+		if(mpPostEffects==nullptr || mpPostEffects->GetAmbientOcclusionActive()==false) return false;
+
+		///////////////////////////////
+		// Let go of what the light passes left set
+		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
+		if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
+		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
+		mRenderSettings.mpVtxBuffer = nullptr;
+		mRenderSettings.mpVertexProgram = nullptr;
+		mRenderSettings.mpFragmentProgram = nullptr;
+		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
+		{
+			if(mRenderSettings.mpTexture[i]==nullptr) continue;
+			mpLowLevelGraphics->SetTexture(i,nullptr);
+			mRenderSettings.mpTexture[i] = nullptr;
+		}
+
+		if(mpPostEffects->RenderAmbientOcclusion()==false) return false;
+
+		///////////////////////////////
+		// Back to how the passes after the lights are drawn
+		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
+		mRenderSettings.mbMatrixWasNULL = false;
+
+		mpLowLevelGraphics->SetDepthTestActive(mRenderSettings.mbDepthTest);
+		mpLowLevelGraphics->SetAlphaTestActive(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid);
+		if(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid)
+			mpLowLevelGraphics->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+		// Blending and the colour mask are set anew by what is drawn next
+		mRenderSettings.mBlendMode = eMaterialBlendMode_LastEnum;
+		mRenderSettings.mChannelMode = eMaterialChannelMode_LastEnum;
+
+		return mpPostEffects->GetAmbientOcclusionSettings().mbShowOnly;
 	}
 
 	//-----------------------------------------------------------------------

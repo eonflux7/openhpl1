@@ -137,7 +137,9 @@ has the maps' settings, a view of the shadows alone, the lights in view (to
 draw one alone, or switch its shadows) and a test light to put anywhere or
 carry around. A third, Player, has Fly (a free camera; switching it off puts
 the player where the camera is) and the switches for flashlight, flicker,
-HUD and damage. While the panel is open it
+HUD and damage. A fourth, Ambient occlusion, switches it and has its
+quality, radius, strength and filter, and a view of the occlusion alone.
+While the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the
 camera stays at the light until "Release". The live view is not a capture:

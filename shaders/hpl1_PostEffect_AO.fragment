@@ -1,0 +1,326 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// Ambient occlusion from the depth buffer
+// (cRendererPostEffects::RenderAmbientOcclusion): how much of the light
+// from all around is kept from each point by what is near it, which the
+// lit scene is darkened by.
+//
+// The occlusion is "ground truth ambient occlusion" (Jimenez, Wu, Pesce,
+// Jarabo: Practical Real-Time Strategies for Accurate Indirect Occlusion,
+// 2016): for a few directions on screen, the depth buffer is searched to
+// both sides of the pixel for the highest thing in view, the horizon, and
+// the part of the half circle above the surface that the two horizons leave
+// open is weighted by the cosine to the surface's normal. The normal is
+// made from the depth buffer too.
+//
+// How the passes are laid out follows what Pascal Gilcher's MXAO does to
+// make this fast, written anew:
+//
+//  DEINTERLEAVE  the scene's depth as distances, in tiles: the picture is
+//                taken apart into 4x4 smaller pictures, each of every
+//                fourth pixel in both directions (Bavoil: deinterleaved
+//                texturing). The search of a pixel stays inside its tile,
+//                where its far apart samples are near each other in memory.
+//  OCCLUSION     tex0: the tiled distances -> the occlusion, tiled the same
+//                way. Every tile has its own turn of the directions and
+//                shift of the steps, so the 16 pixels of any 4x4 block have
+//                16 different ones. At half rate only every other tile is
+//                drawn in a frame, in turns, and the rest keep what they
+//                had: every other pixel of the picture is a frame old.
+//  FILTER        tex0: occlusion and distance -> the same, first put back
+//                into the picture's own layout, then with the pattern of
+//                those 16 averaged away over 4x4 pixels without blurring
+//                across edges (He, Sun, Tang: Guided Image Filtering, 2010,
+//                with the distance as the guide).
+//  COMPOSITE     tex0: the filtered occlusion, tex1: a copy of the scene
+//                -> the scene, multiplied.
+//
+// Positions are in the camera's view: x to the right, y up, z the distance
+// in front of the camera.
+
+// Writes distances and factors, not colours
+#define HPL_LINEAR_COLOR
+#define HPL_NO_CLAMP
+
+OUTPUT
+
+#include "hpl1_scene_depth.glsl"
+
+const float PI = 3.14159265;
+const int TILES = 4;
+// The distance written for the sky and for what is outside the picture
+const float FAR_AWAY = 1000.0;
+
+// Pixels of one tile: the picture's size divided by TILES, rounded up
+uniform vec2 tileSize;
+
+// Where a pixel of the picture is in the tiled layout, and back.
+ivec2 ToTiles(ivec2 avPixel)
+{
+	return (avPixel % TILES) * ivec2(tileSize) + avPixel / TILES;
+}
+
+ivec2 FromTiles(ivec2 avPos)
+{
+	ivec2 tile = ivec2(tileSize);
+	return (avPos % tile) * TILES + avPos / tile;
+}
+
+// The position seen in a pixel (given by its middle) at a distance.
+vec3 ViewPos(vec2 avPixel, float afDist)
+{
+	vec2 ndc = avPixel * hpl_RenderSize.zw * 2.0 - 1.0;
+	return vec3(ndc / vec2(hpl_Projection[0][0], hpl_Projection[1][1]), 1.0) * afDist;
+}
+
+float PixelDistance(ivec2 avPixel)
+{
+	float depth = hpl_SceneDepthAt(avPixel);
+	return depth >= 1.0 ? FAR_AWAY : min(hpl_ViewDistance(depth), FAR_AWAY);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#if defined(DEINTERLEAVE)
+
+void main()
+{
+	ivec2 pixel = FromTiles(ivec2(gl_FragCoord.xy));
+	ivec2 size = ivec2(hpl_RenderSize.xy);
+
+	float dist = FAR_AWAY;
+	if(pixel.x < size.x && pixel.y < size.y) dist = PixelDistance(pixel);
+
+	outColor = vec4(dist, 0.0, 0.0, 1.0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#elif defined(OCCLUSION)
+
+uniform sampler2DRect tex0;
+
+// x: how far occluders are looked for, in metres; y: the same as a share of
+// the picture's height, used instead when not 0; z: the distance at which
+// the occlusion has faded away; w: the power the open share is raised to
+uniform vec4 reach;
+// x: directions, y: steps to each side of one
+uniform vec2 samples;
+
+// The 16 tiles in an order that spreads any run of them evenly (Bayer)
+const float kOrder[16] = float[16](
+	 0.0,  8.0,  2.0, 10.0,
+	12.0,  4.0, 14.0,  6.0,
+	 3.0, 11.0,  1.0,  9.0,
+	15.0,  7.0, 13.0,  5.0);
+
+// The samples come from distances kept in 16 bits: the point is taken this
+// much nearer (as a share of its distance), or their rounding would show as
+// occlusion on flat surfaces.
+const float kNearer = 0.002;
+// The search reaches no further than this share of the picture's height
+const float kMaxScreenReach = 0.3;
+
+void main()
+{
+	ivec2 pos = ivec2(gl_FragCoord.xy);
+	ivec2 tile = ivec2(tileSize);
+	ivec2 tileIdx = pos / tile;
+	ivec2 inTile = pos - tileIdx * tile;
+	ivec2 pixel = inTile * TILES + tileIdx;
+	ivec2 size = ivec2(hpl_RenderSize.xy);
+
+	outColor = vec4(1.0, FAR_AWAY, 0.0, 1.0);
+	if(pixel.x >= size.x || pixel.y >= size.y) return;
+
+	// The point and its neighbours from the depth buffer itself
+	float dist = PixelDistance(pixel);
+	outColor.g = dist;
+	if(dist >= FAR_AWAY) return;
+
+	// Faded with the distance, and where the search would cover no more
+	// than the pixel's own surroundings
+	float pixelsPerMetre = 0.5 * hpl_RenderSize.y * hpl_Projection[1][1] / dist;
+	float radius = reach.x;
+	float radiusPixels = radius * pixelsPerMetre;
+	if(reach.y > 0.0)
+	{
+		radiusPixels = reach.y * hpl_RenderSize.y;
+		radius = radiusPixels / pixelsPerMetre;
+	}
+	float maxPixels = kMaxScreenReach * hpl_RenderSize.y;
+	if(radiusPixels > maxPixels)
+	{
+		radius *= maxPixels / radiusPixels;
+		radiusPixels = maxPixels;
+	}
+
+	float fade = dist / max(reach.z, 0.001);
+	fade = exp2(-fade * fade) * clamp((radiusPixels - float(TILES)) / float(TILES), 0.0, 1.0);
+	if(fade < 0.004) return;
+
+	vec2 middle = vec2(pixel) + 0.5;
+	vec3 point = ViewPos(middle, dist);
+
+	// The surface's normal from the neighbours that are on the same
+	// surface: of the two to each side, the one nearer in depth.
+	vec3 left = point - ViewPos(middle - vec2(1.0, 0.0), PixelDistance(max(pixel - ivec2(1, 0), ivec2(0))));
+	vec3 right = ViewPos(middle + vec2(1.0, 0.0), PixelDistance(min(pixel + ivec2(1, 0), size - 1))) - point;
+	vec3 below = point - ViewPos(middle - vec2(0.0, 1.0), PixelDistance(max(pixel - ivec2(0, 1), ivec2(0))));
+	vec3 above = ViewPos(middle + vec2(0.0, 1.0), PixelDistance(min(pixel + ivec2(0, 1), size - 1))) - point;
+	bool useLeft = pixel.x > 0 && (pixel.x >= size.x - 1 || abs(left.z) < abs(right.z));
+	bool useBelow = pixel.y > 0 && (pixel.y >= size.y - 1 || abs(below.z) < abs(above.z));
+	vec3 normal = normalize(cross(useBelow ? below : above, useLeft ? left : right));
+
+	point *= 1.0 - kNearer;
+	vec3 toEye = -normalize(point);
+
+	// This tile's turn of the directions and shift of the steps
+	float order = kOrder[tileIdx.x + tileIdx.y * TILES];
+	float turn = order / 16.0;
+	float shift = (mod(order * 5.0 + 3.0, 16.0) + 0.5) / 16.0;
+
+	int sliceNum = int(samples.x);
+	int stepNum = int(samples.y);
+	float invRadius2 = 1.0 / (radius * radius);
+	ivec2 tileStart = tileIdx * tile;
+
+	float open = 0.0;
+	for(int slice = 0; slice < sliceNum; ++slice)
+	{
+		float angle = (float(slice) + turn) * PI / float(sliceNum);
+		vec2 dir = vec2(cos(angle), sin(angle));
+
+		// The slice is the plane through the eye, the point and this
+		// direction on screen. In it, angles are measured from the
+		// direction to the eye, towards 'side'.
+		vec3 side = normalize(vec3(dir, 0.0) - toEye * dot(dir, toEye.xy));
+
+		// The normal as it lies in the slice
+		float normalSide = dot(normal, side);
+		float normalEye = max(dot(normal, toEye), 0.0001);
+		float normalLength = sqrt(normalSide * normalSide + normalEye * normalEye);
+		float normalAngle = atan(normalSide, normalEye);
+		float sinNormal = normalSide / normalLength;
+		float cosNormal = normalEye / normalLength;
+
+		// The horizons, as cosines of their angles: they start where the
+		// surface itself is, a quarter turn from the normal to each side
+		float sum = 0.0;
+		for(int i = 0; i < 2; ++i)
+		{
+			float way = i == 0 ? -1.0 : 1.0;
+			float lowest = -way * sinNormal;
+			float horizon = lowest;
+
+			for(int s = 0; s < stepNum; ++s)
+			{
+				// Closer together near the point
+				float along = (float(s) + shift) / float(stepNum);
+				along *= along;
+
+				ivec2 tap = inTile + ivec2(round(dir * (way * along * radiusPixels / float(TILES))));
+				if(tap == inTile) continue;
+				ivec2 tapPixel = tap * TILES + tileIdx;
+				if(tap.x < 0 || tap.y < 0 || tapPixel.x >= size.x || tapPixel.y >= size.y) break;
+
+				vec3 delta = ViewPos(vec2(tapPixel) + 0.5, texelFetch(tex0, tileStart + tap).r) - point;
+				float length2 = dot(delta, delta);
+				float tapCos = dot(delta, toEye) * inversesqrt(length2);
+
+				// What is far from the point counts less, down to nothing
+				// at the radius
+				float weight = clamp(1.0 - length2 * invRadius2, 0.0, 1.0);
+				horizon = max(horizon, mix(lowest, tapCos, weight));
+			}
+
+			// The open part of this side of the half circle, weighted by
+			// the cosine to the normal
+			float h = way * acos(clamp(horizon, -1.0, 1.0));
+			sum += cosNormal + 2.0 * h * sinNormal - cos(2.0 * h - normalAngle);
+		}
+
+		open += normalLength * 0.25 * sum;
+	}
+	open = clamp(open / float(sliceNum), 0.0, 1.0);
+
+	outColor.r = mix(1.0, pow(open, reach.w), fade);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#elif defined(FILTER)
+
+uniform sampler2DRect tex0;
+
+// x: 1 when tex0 is in tiles; y: where the 4x4 window starts, relative to
+// the pixel (-2 or -1: two passes, one of each, are centred together);
+// z: 0 to only put the pixels in their places
+uniform vec3 window;
+
+vec2 Read(ivec2 avPixel)
+{
+	return texelFetch(tex0, window.x > 0.5 ? ToTiles(avPixel) : avPixel).rg;
+}
+
+void main()
+{
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	ivec2 last = ivec2(hpl_RenderSize.xy) - 1;
+
+	vec2 own = Read(pixel);
+	outColor = vec4(own, 0.0, 1.0);
+	if(window.z < 0.5) return;
+
+	// Sums of distance, distance squared, occlusion, occlusion x distance
+	vec4 sums = vec4(0.0);
+	ivec2 start = pixel + ivec2(int(window.y));
+	for(int y = 0; y < 4; ++y)
+	for(int x = 0; x < 4; ++x)
+	{
+		vec2 value = Read(clamp(start + ivec2(x, y), ivec2(0), last));
+		sums += vec4(value.g, value.g * value.g, value.r, value.r * value.g);
+	}
+	sums /= 16.0;
+
+	// The straight line that gives the occlusion from the distance best
+	// over the window, read at the pixel's own distance. Where the window
+	// is on one surface that is its average; over an edge, each side keeps
+	// its own. Differences in distance smaller than a thousandth of it do
+	// not count as an edge.
+	float variance = sums.y - sums.x * sums.x;
+	float tolerance = own.g * 0.001;
+	float slope = (sums.w - sums.x * sums.z) / (max(variance, 0.0) + tolerance * tolerance);
+	outColor.r = clamp(sums.z + slope * (own.g - sums.x), 0.0, 1.0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#else
+
+uniform sampler2DRect tex0;
+uniform sampler2DRect tex1;
+
+// How much less brightly lit parts are darkened, 0 to 1 (0: tex1 is not
+// read)
+uniform float lightFade;
+
+void main()
+{
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	float open = texelFetch(tex0, pixel).r;
+
+	// The scene holds linear values with linear lighting, screen values
+	// without.
+	bool bLinear = hpl_ColorSpace.x > 0.5;
+
+	if(lightFade > 0.0)
+	{
+		float luma = dot(texelFetch(tex1, pixel).rgb, vec3(0.3, 0.58, 0.12));
+		if(bLinear) luma = pow(max(luma, 0.0), 1.0 / 2.2);
+		open = mix(open, 1.0, lightFade * clamp(luma, 0.0, 1.0));
+	}
+
+	// The open share is an amount of light
+	float factor = bLinear ? open : pow(open, 1.0 / 2.2);
+	outColor = vec4(vec3(factor), 1.0);
+}
+
+#endif
