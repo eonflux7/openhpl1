@@ -32,6 +32,8 @@
 #include "graphics/RenderList.h"
 #include "graphics/Renderable.h"
 #include "scene/World3D.h"
+#include "scene/MeshEntity.h"
+#include "scene/SubMeshEntity.h"
 #include "scene/RenderableContainer.h"
 #include "scene/Light3D.h"
 #include "scene/Light3DSpot.h"
@@ -924,6 +926,8 @@ namespace hpl {
 
 		if(mDebugFlags & eRendererDebugFlag_DisableLighting) return;
 
+		UpdateShadowCasterGraphics(apCamera);
+
 		cLight3DIterator lightIt = mpRenderList->GetLightIt();
 
 		int lLightCount=0;
@@ -963,6 +967,46 @@ namespace hpl {
 		}
 
 		mpLowLevelGraphics->SetShadowMapParams(cShadowMapParams());
+	}
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * Brings the moving things that cast a shadow into the picture without
+	 * being in it themselves to the pose they have now. The render list does
+	 * this for what it holds (cRenderList::Add); an animated mesh that is not
+	 * in it would cast the shadow of the pose it was last seen in.
+	 */
+	void cRenderer3D::UpdateShadowCasterGraphics(cCamera3D *apCamera)
+	{
+		if(mRenderSettings.mShowShadows != eRendererShowShadows_All) return;
+
+		const int lRenderCount = mpRenderList->GetRenderCount();
+
+		cLight3DIterator lightIt = mpRenderList->GetLightIt();
+		while(lightIt.HasNext())
+		{
+			iLight3D *pLight = lightIt.Next();
+			if(pLight->GetCastShadows()==false) continue;
+
+			for(iRenderable *pObject : *pLight->GetDynamicCasters())
+			{
+				// The count of what is in the list, and of what was done here
+				// for another light
+				if(pObject->GetRenderCount() == lRenderCount) continue;
+				if(pObject->GetEntityType() != "SubMesh") continue;
+
+				// The bones first, then the vertices they move
+				cMeshEntity *pMesh = static_cast<cSubMeshEntity*>(pObject)->GetMeshEntity();
+				if(pMesh->GetRenderCount() != lRenderCount)
+				{
+					pMesh->SetRenderCount(lRenderCount);
+					pMesh->UpdateGraphics(apCamera, 0, mpRenderList);
+				}
+				pObject->SetRenderCount(lRenderCount);
+				pObject->UpdateGraphics(apCamera, 0, mpRenderList);
+			}
+		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -1032,7 +1076,8 @@ namespace hpl {
 
 		const cShadowMapSettings &settings = mShadowMapSettings;
 		const bool bCube = apLight->GetLightType() == eLight3DType_Point;
-		const int lSize = bCube ? settings.mlPointSize : settings.mlSpotSize;
+		// As large as BeginShadowMap() makes it
+		const int lSize = cMath::Clamp(bCube ? settings.mlPointSize : settings.mlSpotSize, 16, 8192);
 		const float fFar = apLight->GetFarAttenuation();
 
 		mpLowLevelGraphics->BeginGpuSection("Shadow maps");
@@ -1068,23 +1113,33 @@ namespace hpl {
 			const float fNear = cMath::Min(settings.mfPointNear, fFar * 0.5f);
 			mpLowLevelGraphics->SetMatrix(eMatrix_Projection, CubeFaceProjectionMatrix(fNear, fFar));
 
+			// How far from a lit point the map is read: the blur, and the
+			// texels around a sample that the filtering takes in.
+			float fBlur = 0;
+			if(settings.mFilter == eShadowMapFilter_Soft)				fBlur = settings.mfSoftness;
+			else if(settings.mFilter == eShadowMapFilter_SoftByDistance)	fBlur = settings.mfMaxBlur;
+			const float fMargin = fFar * (cMath::Max(fBlur, 0.0f) + 4.0f / (float)lSize);
+			const float fReach = fFar + fMargin;
+
 			for(int lFace=0; lFace<6; ++lFace)
 			{
 				// A face shows in the picture if the part of the light's
 				// reach it covers is not all on the outer side of one of
-				// the planes the camera's view ends at.
+				// the planes the camera's view ends at, by more than the
+				// margin: a face that is not drawn holds another light's
+				// map, which a sample near the edge of the picture would read.
 				bool bInView = true;
 				for(int lPlane=0; lPlane<5 && bInView; ++lPlane)
 				{
 					cPlanef plane = mRenderSettings.mpFrustum->GetPlane((eFrustumPlane)lPlane);
-					bool bOutside = cMath::PlaneToPointDist(plane, vPos) < 0;
+					bool bOutside = cMath::PlaneToPointDist(plane, vPos) < -fMargin;
 					cVector3f vRight = cMath::Vector3Cross(gvCubeFaceDir[lFace], gvCubeFaceUp[lFace]);
 					for(int lCorner=0; lCorner<4 && bOutside; ++lCorner)
 					{
 						cVector3f vCorner = vPos + (gvCubeFaceDir[lFace] +
 									vRight * (lCorner & 1 ? 1.0f : -1.0f) +
-									gvCubeFaceUp[lFace] * (lCorner & 2 ? 1.0f : -1.0f)) * fFar;
-						bOutside = cMath::PlaneToPointDist(plane, vCorner) < 0;
+									gvCubeFaceUp[lFace] * (lCorner & 2 ? 1.0f : -1.0f)) * fReach;
+						bOutside = cMath::PlaneToPointDist(plane, vCorner) < -fMargin;
 					}
 					if(bOutside) bInView = false;
 				}
@@ -1096,6 +1151,7 @@ namespace hpl {
 			}
 
 			aParams.mfNear = fNear;
+			aParams.mfFar = fFar;
 			aParams.mfTexelSize = 2.0f / (float)lSize;
 		}
 		else
@@ -1107,8 +1163,12 @@ namespace hpl {
 			mShadowMapStats.mlCasters += RenderShadowCasters(apLight, pSpot->GetViewMatrix(), -1);
 			mShadowMapStats.mlMaps++;
 
+			// Near and far as the projection has them: the map is read as
+			// it was drawn, whatever the light's reach is now.
+			const cMatrixf &mtxProj = pSpot->GetProjectionMatrix();
 			float fTan = tan(pSpot->GetFOV() * 0.5f);
-			aParams.mfNear = pSpot->GetNearClipPlane();
+			aParams.mfNear = mtxProj.m[2][3] / (mtxProj.m[2][2] - 1.0f);
+			aParams.mfFar = mtxProj.m[2][3] / (mtxProj.m[2][2] + 1.0f);
 			aParams.mfTexelSize = 2.0f * fTan / (float)lSize;
 			aParams.mvUvScale = cVector2f(0.5f / (fTan * pSpot->GetAspect()), 0.5f / fTan);
 		}
@@ -1127,7 +1187,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetAlphaTestActive(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid);
 
 		aParams.mlFilter = (int)settings.mFilter + 1;
-		aParams.mfFar = fFar;
 		aParams.mfSoftness = settings.mfSoftness;
 		aParams.mfLightSize = settings.mfLightSize;
 		aParams.mfMaxBlur = settings.mfMaxBlur;

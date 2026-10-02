@@ -803,6 +803,43 @@ do with colour, and what follows for this option.
   lights with shadows): 0.06 to 0.36 ms to draw them, the rest to read them.
   With the original shadows the reference images are as before.
 
+Fixed after a review of the above:
+
+- A face of a point light's cube map that is not drawn holds the map of
+  another light. A blurred sample near the edge of the picture could read
+  one: faces are now left out only if they are outside the picture by more
+  than the blur and a few texels.
+- A spotlight's map is read with the near and far of the projection it was
+  drawn with. They were taken from the light, whose reach a fade or a
+  flicker changes without the projection following, and every lit point
+  then counted as nearer or farther than it was drawn.
+- Past the edge of a spotlight's map nothing is in the way; the texels of
+  the edge were repeated.
+- The fixed blur (`ShadowSoftness`) is no longer limited by `ShadowMaxBlur`,
+  which belongs to the blur by distance.
+- A map size outside 16 to 8192 in `settings.cfg` gave a bias that was not
+  a number: the size is limited before it is used.
+- One sample is taken where all samples of the search found something (deep
+  in the shadow, as before where none did), and where the blur is narrower
+  than half a texel. The samples' places are turned from one to the next,
+  not each worked out with a sine and a cosine. Reading the maps takes
+  about 0.25 ms less at 2560x1440 (the light passes without the maps: 1.70
+  ms before, 1.45 ms after, over 37 viewpoints); the pictures differ less
+  than two captures of the same build do.
+
+Two things that the shadow volumes have always done as well, fixed for both:
+
+- An animated mesh that casts a shadow into the picture without being in it
+  kept the pose it was last seen in: its vertices are only moved when the
+  render list takes it up. What casts shadows from the lights in the picture
+  is now brought up to date before the lights are drawn
+  (`cRenderer3D::UpdateShadowCasterGraphics`).
+- A light that does not move collects what stands still and casts shadows
+  once. When its reach changed (a fade, a flicker, a script) the list
+  stayed: it is now collected again, and a fade or a flicker that changes
+  the reach goes through `SetFarAttenuation`, so a spotlight's projection
+  follows too (`iLight3D::UpdateLogic`, `ReachChanged`).
+
 ### Shadow panel
 
 - F2 opens a second window, Shadows, next to the reference views: the kind

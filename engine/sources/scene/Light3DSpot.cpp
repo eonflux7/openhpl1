@@ -112,6 +112,7 @@ namespace hpl {
 	void cLight3DSpot::SetFarAttenuation(float afX)
 	{
 		mfFarAttenuation = afX;
+		ReachChanged();
 
 		UpdateBoundingVolume();
 

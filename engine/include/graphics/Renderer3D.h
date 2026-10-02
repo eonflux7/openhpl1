@@ -304,6 +304,7 @@ namespace hpl {
 
 		bool RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams);
 		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace);
+		void UpdateShadowCasterGraphics(cCamera3D *apCamera);
 
 		bool RenderAmbientOcclusion(cCamera3D *apCamera);
 

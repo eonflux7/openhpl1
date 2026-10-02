@@ -101,12 +101,14 @@ float hpl_ShadowSampleDist(vec3 p, vec3 normal, float planeDist, float bias)
 	return hpl_ShadowDist(p) * scale - bias;
 }
 
-// Sample i of n on a disc of radius 1, evenly spread (Vogel's spiral).
-vec2 hpl_ShadowDisc(int i, int n, float turn)
+// The samples are evenly spread on a disc of radius 1 (Vogel's spiral):
+// sample i of n is at the radius below, and a turn of the golden angle
+// (2.3999632) further around than the one before.
+const mat2 hpl_ShadowTurn = mat2(-0.7373688, 0.6754903, -0.6754903, -0.7373688);
+
+float hpl_ShadowDiscRadius(int i, int n)
 {
-	float r = sqrt((float(i) + 0.5) / float(n));
-	float a = float(i) * 2.3999632 + turn;
-	return vec2(cos(a), sin(a)) * r;
+	return sqrt((float(i) + 0.5) / float(n));
 }
 
 // 0 to 1: how much of the light reaches pos. normal is hpl_ShadowPlane(pos).
@@ -132,12 +134,16 @@ float hpl_Shadow(vec3 pos, vec3 normal)
 	// The samples are on a disc around the point that faces the light.
 	vec3 side = normalize(cross(dir, abs(dir.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
 	vec3 up = cross(dir, side);
-	float turn = 0.0;
+	// Where the first sample is: turned differently in every pixel
+	vec2 first = vec2(1.0, 0.0);
 	if(hpl_ShadowMap3.z > 0.5)
-		turn = 6.2831853 * fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+	{
+		float turn = 6.2831853 * fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+		first = vec2(cos(turn), sin(turn));
+	}
 
 	float widest = hpl_ShadowMap1.z * len;
-	float blur = min(hpl_ShadowMap1.x * len, widest);
+	float blur = hpl_ShadowMap1.x * len;
 
 	if(filterType == 3)
 	{
@@ -146,9 +152,11 @@ float hpl_Shadow(vec3 pos, vec3 normal)
 		// where it is cast from close by and wide where from far.
 		int searchNum = int(hpl_ShadowMap2.w);
 		float along = 0.0, found = 0.0;
+		vec2 around = first;
 		for(int i = 0; i < searchNum; ++i)
 		{
-			vec2 d = hpl_ShadowDisc(i, searchNum, turn) * widest;
+			vec2 d = around * (hpl_ShadowDiscRadius(i, searchNum) * widest);
+			around = hpl_ShadowTurn * around;
 			vec3 p = pos + side * d.x + up * d.y;
 			float occluder = hpl_ShadowOccluderDist(p);
 			if(occluder < hpl_ShadowSampleDist(p, normal, planeDist, bias))
@@ -160,17 +168,25 @@ float hpl_Shadow(vec3 pos, vec3 normal)
 		// Nothing found: lit, or the samples missed something thin. One
 		// sample of the map tells, and does not flicker from pixel to pixel
 		// as lit against blurred would.
-		if(found < 0.5) return hpl_ShadowCompare(pos, dist - bias);
+		// Everything found: deep in the shadow, where the blur would give
+		// the same as one sample too.
+		if(found < 0.5 || found > float(searchNum) - 0.5) return hpl_ShadowCompare(pos, dist - bias);
 
 		along = clamp(along / found, 0.001, 1.0);
 		blur = min(hpl_ShadowMap1.y * (1.0 - along) / along, widest);
 	}
 
+	// A blur narrower than a texel: all samples would read the same four
+	// texels, as one does.
+	if(blur < 0.5 * texel) return hpl_ShadowCompare(pos, dist - bias);
+
 	int sampleNum = int(hpl_ShadowMap2.z);
 	float lit = 0.0;
+	vec2 around = first;
 	for(int i = 0; i < sampleNum; ++i)
 	{
-		vec2 d = hpl_ShadowDisc(i, sampleNum, turn) * blur;
+		vec2 d = around * (hpl_ShadowDiscRadius(i, sampleNum) * blur);
+		around = hpl_ShadowTurn * around;
 		vec3 p = pos + side * d.x + up * d.y;
 		lit += hpl_ShadowCompare(p, hpl_ShadowSampleDist(p, normal, planeDist, bias));
 	}

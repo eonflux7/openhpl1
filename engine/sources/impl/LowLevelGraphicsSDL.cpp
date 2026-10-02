@@ -2653,9 +2653,14 @@ namespace hpl {
 				GLenum lFilter = i == 0 ? GL_LINEAR : GL_NEAREST;
 				glSamplerParameteri(lSampler, GL_TEXTURE_MIN_FILTER, lFilter);
 				glSamplerParameteri(lSampler, GL_TEXTURE_MAG_FILTER, lFilter);
-				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				// Past the edge of a spotlight's map there is nothing in the
+				// way: the edge's texels repeated would stretch what they hold
+				// outwards. (A cube map has no edge, its faces are seamless.)
+				const GLfloat vBorder[4] = {1, 1, 1, 1};
+				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 				glSamplerParameteri(lSampler, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+				glSamplerParameterfv(lSampler, GL_TEXTURE_BORDER_COLOR, vBorder);
 				if(i == 0)
 				{
 					glSamplerParameteri(lSampler, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
