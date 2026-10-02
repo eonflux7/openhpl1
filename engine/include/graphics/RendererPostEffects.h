@@ -127,7 +127,8 @@ namespace hpl {
 			mlSteps = QualitySamples(alQuality)[1];
 		}
 
-	private:
+		/// Slices and steps of a quality. Each has a fragment program of
+		/// its own (PostEffect_AO_Occlusion_<slices>x<steps>).
 		static const int* QualitySamples(int alQuality)
 		{
 			static const int vSamples[klQualityNum][2] = {{2,2}, {2,4}, {3,6}, {4,10}, {6,16}};
@@ -293,9 +294,14 @@ namespace hpl {
 
 		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];}
 
-		void SetAmbientOcclusionActive(bool abX){ mbAoActive = abX;}
+		//Switched on, or to half rate, there is no frame to keep pixels of
+		void SetAmbientOcclusionActive(bool abX){ if(abX && mbAoActive==false) mbAoFilled = false; mbAoActive = abX;}
 		bool GetAmbientOcclusionActive(){ return mbAoActive;}
-		void SetAmbientOcclusionSettings(const cAmbientOcclusionSettings& aSettings){ mAoSettings = aSettings;}
+		void SetAmbientOcclusionSettings(const cAmbientOcclusionSettings& aSettings)
+		{
+			if(aSettings.mbHalfRate && mAoSettings.mbHalfRate==false) mbAoFilled = false;
+			mAoSettings = aSettings;
+		}
 		const cAmbientOcclusionSettings& GetAmbientOcclusionSettings(){ return mAoSettings;}
 		/**
 		 * Darkens the scene as drawn so far by the ambient occlusion, made
@@ -327,7 +333,8 @@ eturn false if nothing was drawn
 
 		bool CreateAmbientOcclusionTextures();
 		void DestroyAmbientOcclusionTextures();
-		void DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource, int alTurn=-1);
+		void DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource);
+		void DrawAmbientOcclusionQuad(const cVector2f& avMin, const cVector2f& avMax);
 
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelResources *mpLowLevelResources;
@@ -386,15 +393,24 @@ eturn false if nothing was drawn
 		iGpuProgram *mpBokehCompositeFP;
 		iTexture *mpBokehTexture[2];
 
-		//Ambient occlusion. The first two textures are in tiles (see the
-		//shader) and as large as the tiles together; the last two are of
-		//the render size. Made when first needed.
+		//Ambient occlusion. The distance and normal textures are a tile
+		//each (see the shader), the tiled texture is as large as the tiles
+		//together and the others are of the render size. Made when first
+		//needed.
 		iGpuProgram *mpAoVP;
 		iGpuProgram *mpAoDeinterleaveFP;
 		iGpuProgram *mpAoOcclusionFP;
+		//The same with the samples of a quality as constants, loaded when
+		//first used
+		iGpuProgram *mvAoQualityFP[cAmbientOcclusionSettings::klQualityNum];
+		bool mvAoQualityTried[cAmbientOcclusionSettings::klQualityNum];
 		iGpuProgram *mpAoFilterFP;
 		iGpuProgram *mpAoCompositeFP;
-		iTexture *mpAoDistanceTexture;
+		//The same reading the scene itself, with one sample a pixel and
+		//multisampled: no copy of the scene is needed
+		iGpuProgram *mpAoCompositeSceneFP[2];
+		iTexture *mvAoDistanceTexture[16];
+		iTexture *mvAoNormalTexture[16];
 		iTexture *mpAoTiledTexture;
 		iTexture *mpAoTexture[2];
 		cVector2l mvAoTileSize;

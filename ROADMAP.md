@@ -258,8 +258,17 @@ and specular all have to be tuned again if the lighting under them changes.
     - [x] play-test: radius, strength and "less in light"
     - [x] half rate ghosts when moving fast and in some scenes: off by
           default
-    - [ ] if it should cost less: one filter look-up per 2x2 pixels
-          (texture gather, GL 4), normals made once instead of per tile
+    - [x] made faster after a code review and measuring each pass (see
+          CHANGES): about 40% less GPU time at High with the picture as it
+          was
+    - [ ] if it should cost less still: fewer samples (3x4 or 3x3 now that
+          no step is wasted), one filter look-up per 2x2 pixels (texture
+          gather, GL 4), half rate with the old pixels moved to where they
+          are now (reprojection), which would not ghost when the camera
+          turns
+    - [ ] the scene's depth is copied for reading up to three times a frame
+          with multisampling (here, before the see-through pass, at the
+          end); once would do while nothing writes depth in between
   - [ ] Depth of field and camera motion blur from depth. The current
         effects re-render geometry per object.
     - [x] Bokeh as a third setting of Depth of Field, Camera as a third

@@ -182,6 +182,7 @@ namespace hpl {
 		mlResolveColor = 0;
 		mlResolveDepthStencil = 0;
 		mlTargetFramebuffer = 0;
+		mlTargetNum = 1;
 		mlShadowFramebuffer = 0;
 		mvShadowMaps[0] = mvShadowMaps[1] = 0;
 		mvShadowMapSizes[0] = mvShadowMapSizes[1] = 0;
@@ -1367,6 +1368,11 @@ namespace hpl {
 		// they draw into something else (hpl1_scene_depth.glsl).
 		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kSceneDepthUnit);
 		glBindTexture(GL_TEXTURE_2D, mlMultisampling > 0 ? mlResolveDepthStencil : mlSceneDepthStencil);
+		// And the scene's colour itself, for BeginSceneColorRead()
+		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kSceneColorUnit);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		glBindTexture(lTarget, mlSceneColor);
 		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
 
 		glBindTexture(GL_TEXTURE_2D, lLastTexture);
@@ -1430,6 +1436,7 @@ namespace hpl {
 		glDeleteTextures(1, &mlOutputColor);
 		glDeleteRenderbuffers(1, &mlOutputDepthStencil);
 		mlOutputFramebuffer = mlTargetFramebuffer = mlOutputColor = mlOutputDepthStencil = 0;
+		mlTargetNum = 1;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1538,6 +1545,16 @@ namespace hpl {
 
 		BlitScene(GL_DEPTH_BUFFER_BIT, 0, 0, mvRenderSize.x, mvRenderSize.y);
 		BindCurrentFramebuffer();
+	}
+
+	// A texture that is drawn into may be read at the pixel that is drawn
+	// once this has been called (OpenGL 4.5).
+	bool cLowLevelGraphicsSDL::BeginSceneColorRead()
+	{
+		if(!GLAD_GL_VERSION_4_5 || mbInScene==false || mbSceneResolved || mpRenderTarget) return false;
+
+		glTextureBarrier();
+		return true;
 	}
 
 	void cLowLevelGraphicsSDL::ResolveScene()
@@ -2606,7 +2623,7 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetRenderTarget(iTexture* pTex)
 	{
-		if(pTex == mpRenderTarget) return;
+		if(pTex == mpRenderTarget && (pTex == nullptr || mlTargetNum == 1)) return;
 		mpRenderTarget = pTex;
 		mbStateChanged = true;
 
@@ -2622,7 +2639,48 @@ namespace hpl {
 		cGpuProfiler::Label(GL_FRAMEBUFFER, mlTargetFramebuffer, "Render target");
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GetGLTextureTargetEnum(pTex->GetTarget()),
 								static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
+		// What SetRenderTargets() left attached
+		if(mlTargetNum > 1)
+		{
+			for(int i=1; i<mlTargetNum; ++i)
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, 0, 0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			mlTargetNum = 1;
+		}
 		BindFramebuffer(mlTargetFramebuffer, cVector2l(pTex->GetWidth(), pTex->GetHeight()));
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cLowLevelGraphicsSDL::SetRenderTargets(iTexture** apTextures, int alNum)
+	{
+		const int lMaxTargets = 8;
+		if(alNum <= 1)
+		{
+			SetRenderTarget(alNum == 1 ? apTextures[0] : nullptr);
+			return;
+		}
+		if(alNum > lMaxTargets) alNum = lMaxTargets;
+
+		mpRenderTarget = apTextures[0];
+		mbStateChanged = true;
+
+		if(mlTargetFramebuffer == 0) glGenFramebuffers(1, &mlTargetFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
+		cGpuProfiler::Label(GL_FRAMEBUFFER, mlTargetFramebuffer, "Render target");
+		GLenum vBuffers[lMaxTargets];
+		for(int i=0; i<alNum; ++i)
+		{
+			iTexture *pTex = apTextures[i];
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GetGLTextureTargetEnum(pTex->GetTarget()),
+									static_cast<cSDLTexture*>(pTex)->GetTextureHandle(), 0);
+			vBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+		}
+		for(int i=alNum; i<mlTargetNum; ++i)
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, 0, 0);
+		glDrawBuffers(alNum, vBuffers);
+		mlTargetNum = alNum;
+		BindFramebuffer(mlTargetFramebuffer, cVector2l(apTextures[0]->GetWidth(), apTextures[0]->GetHeight()));
 	}
 
 	//-----------------------------------------------------------------------

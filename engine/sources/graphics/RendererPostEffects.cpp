@@ -54,7 +54,8 @@ namespace hpl {
 		mpBlurTempTexture = nullptr;
 		mpBloomBlurTexture = nullptr;
 		mpDofBlurTexture = nullptr;
-		mpAoDistanceTexture = nullptr;
+		for(iTexture *&pTexture : mvAoDistanceTexture) pTexture = nullptr;
+		for(iTexture *&pTexture : mvAoNormalTexture) pTexture = nullptr;
 		mpAoTiledTexture = nullptr;
 		mpAoTexture[0] = nullptr;
 		mpAoTexture[1] = nullptr;
@@ -98,8 +99,15 @@ namespace hpl {
 		mpAoOcclusionFP = mpGpuManager->CreateProgram("PostEffect_AO_Occlusion_fp.cg","main",eGpuProgramType_Fragment);
 		mpAoFilterFP = mpGpuManager->CreateProgram("PostEffect_AO_Filter_fp.cg","main",eGpuProgramType_Fragment);
 		mpAoCompositeFP = mpGpuManager->CreateProgram("PostEffect_AO_Composite_fp.cg","main",eGpuProgramType_Fragment);
+		mpAoCompositeSceneFP[0] = mpGpuManager->CreateProgram("PostEffect_AO_Composite_Scene_fp.cg","main",eGpuProgramType_Fragment);
+		mpAoCompositeSceneFP[1] = mpGpuManager->CreateProgram("PostEffect_AO_Composite_SceneMS_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpAoVP || !mpAoDeinterleaveFP || !mpAoOcclusionFP || !mpAoFilterFP || !mpAoCompositeFP)
 			Error("Couldn't load the 'PostEffect_AO' programs!\n");
+		for(int i=0; i<cAmbientOcclusionSettings::klQualityNum; ++i)
+		{
+			mvAoQualityFP[i] = nullptr;
+			mvAoQualityTried[i] = false;
+		}
 
 		/////////////////
 		// MotionBlur programs
@@ -182,8 +190,10 @@ namespace hpl {
 		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
 		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
 
-		iGpuProgram *vAoPrograms[] = {mpAoVP, mpAoDeinterleaveFP, mpAoOcclusionFP, mpAoFilterFP, mpAoCompositeFP};
+		iGpuProgram *vAoPrograms[] = {mpAoVP, mpAoDeinterleaveFP, mpAoOcclusionFP, mpAoFilterFP, mpAoCompositeFP,
+										mpAoCompositeSceneFP[0], mpAoCompositeSceneFP[1]};
 		for(iGpuProgram *pProgram : vAoPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
+		for(iGpuProgram *pProgram : mvAoQualityFP) if(pProgram) mpGpuManager->Destroy(pProgram);
 		DestroyAmbientOcclusionTextures();
 
 		if(mpMotionBlurVP) mpGpuManager->Destroy(mpMotionBlurVP);
@@ -1097,11 +1107,17 @@ namespace hpl {
 
 	void cRendererPostEffects::DestroyAmbientOcclusionTextures()
 	{
-		iTexture **vTextures[] = {&mpAoDistanceTexture, &mpAoTiledTexture, &mpAoTexture[0], &mpAoTexture[1]};
+		iTexture **vTextures[] = {&mpAoTiledTexture, &mpAoTexture[0], &mpAoTexture[1]};
 		for(iTexture **pTexture : vTextures)
 		{
 			if(*pTexture) hplDelete(*pTexture);
 			*pTexture = nullptr;
+		}
+		for(int i=0; i<16; ++i)
+		{
+			if(mvAoDistanceTexture[i]) hplDelete(mvAoDistanceTexture[i]);
+			if(mvAoNormalTexture[i]) hplDelete(mvAoNormalTexture[i]);
+			mvAoDistanceTexture[i] = mvAoNormalTexture[i] = nullptr;
 		}
 	}
 
@@ -1117,13 +1133,20 @@ namespace hpl {
 		mvAoTileSize = cVector2l((vSize.x + 3) / 4, (vSize.y + 3) / 4);
 		cVector2l vTiledSize(mvAoTileSize.x * 4, mvAoTileSize.y * 4);
 
-		// Distances in one channel; occlusion and distance in two
-		mpAoDistanceTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 1, eTextureTarget_Rect);
+		// A tile's distances in one channel and its normals in two;
+		// occlusion and distance in two
+		bool bTiles = true;
+		for(int i=0; i<16; ++i)
+		{
+			mvAoDistanceTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 1, eTextureTarget_Rect);
+			mvAoNormalTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 2, eTextureTarget_Rect);
+			if(!mvAoDistanceTexture[i] || !mvAoNormalTexture[i]) bTiles = false;
+		}
 		mpAoTiledTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 2, eTextureTarget_Rect);
 		mpAoTexture[0] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
 		mpAoTexture[1] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
 
-		if(!mpAoDistanceTexture || !mpAoTiledTexture || !mpAoTexture[0] || !mpAoTexture[1])
+		if(!bTiles || !mpAoTiledTexture || !mpAoTexture[0] || !mpAoTexture[1])
 		{
 			Error("Couldn't create the ambient occlusion textures!\n");
 			DestroyAmbientOcclusionTextures();
@@ -1138,30 +1161,31 @@ namespace hpl {
 	// One pass of the ambient occlusion: a quad over apTarget (the scene
 	// when it is null) with apSource in unit 0. The fragment programs take
 	// their positions from the pixel drawn. Expects an orthographic
-	// projection of the virtual screen size. With alTurn 0 or 1 the target
-	// is taken as 4x4 tiles and only every other one is drawn, like the
-	// squares of one colour of a chess board; the rest is left as it is.
-	void cRendererPostEffects::DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource, int alTurn)
+	// projection of the virtual screen size.
+	// It is one triangle that reaches past the target, not the two of a
+	// quad: along the line where two meet, a multisampled pixel is drawn
+	// once for each, and the second would read what the first wrote where
+	// the scene is read as it is drawn over (BeginSceneColorRead).
+	void cRendererPostEffects::DrawAmbientOcclusionPass(iTexture *apTarget, iTexture *apSource)
 	{
 		mpLowLevelGraphics->SetRenderTarget(apTarget);
 		mpLowLevelGraphics->SetTexture(0,apSource);
 
-		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
-		int lTiles = alTurn < 0 ? 1 : 4;
-		cVector2f vTile(vVirtSize.x / (float)lTiles, vVirtSize.y / (float)lTiles);
-		for(int y=0; y<lTiles; ++y)
-		for(int x=0; x<lTiles; ++x)
-		{
-			if(alTurn >= 0 && ((x + y) & 1) != alTurn) continue;
+		cVector2f vSize = mpLowLevelGraphics->GetVirtualSize();
+		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+		mvTexRectVtx[1] = cVertex(cVector3f(vSize.x * 2,0,40),cVector2f(2,1),cColor(1,1.0f));
+		mvTexRectVtx[2] = cVertex(cVector3f(0,vSize.y * 2,40),cVector2f(0,-1),cColor(1,1.0f));
+		mvTexRectVtx[3] = mvTexRectVtx[2];
+		mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+	}
 
-			cVector2f vMin(vTile.x * (float)x, vTile.y * (float)y);
-			cVector2f vMax(vMin.x + vTile.x, vMin.y + vTile.y);
-			mvTexRectVtx[0] = cVertex(cVector3f(vMin.x,vMin.y,40),cVector2f(0,1),cColor(1,1.0f) );
-			mvTexRectVtx[1] = cVertex(cVector3f(vMax.x,vMin.y,40),cVector2f(1,1),cColor(1,1.0f));
-			mvTexRectVtx[2] = cVertex(cVector3f(vMax.x,vMax.y,40),cVector2f(1,0),cColor(1,1.0f));
-			mvTexRectVtx[3] = cVertex(cVector3f(vMin.x,vMax.y,40),cVector2f(0,0),cColor(1,1.0f));
-			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
-		}
+	void cRendererPostEffects::DrawAmbientOcclusionQuad(const cVector2f& avMin, const cVector2f& avMax)
+	{
+		mvTexRectVtx[0] = cVertex(cVector3f(avMin.x,avMin.y,40),cVector2f(0,1),cColor(1,1.0f) );
+		mvTexRectVtx[1] = cVertex(cVector3f(avMax.x,avMin.y,40),cVector2f(1,1),cColor(1,1.0f));
+		mvTexRectVtx[2] = cVertex(cVector3f(avMax.x,avMax.y,40),cVector2f(1,0),cColor(1,1.0f));
+		mvTexRectVtx[3] = cVertex(cVector3f(avMin.x,avMax.y,40),cVector2f(0,0),cColor(1,1.0f));
+		mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1181,11 +1205,26 @@ namespace hpl {
 		cVector2f vTileSize((float)mvAoTileSize.x, (float)mvAoTileSize.y);
 
 		///////////////////////////////////////////
-		// A copy of the scene, to tell what is brightly lit
+		// What is brightly lit is told from the scene itself where it can
+		// be read while it is drawn over, or else from a copy of it
 		float fLightFade = cMath::Clamp(settings.mfLightFade, 0.0f, 1.0f);
-		iTexture *pScreenTexture = GetFreeScreenTexture();
-		if(pScreenTexture==nullptr || settings.mbShowOnly) fLightFade = 0;
-		if(fLightFade > 0) mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,vSize);
+		if(settings.mbShowOnly) fLightFade = 0;
+		iGpuProgram *pCompositeFP = mpAoCompositeFP;
+		iTexture *pScreenTexture = nullptr;
+		if(fLightFade > 0)
+		{
+			iGpuProgram *pSceneFP = mpAoCompositeSceneFP[mpLowLevelGraphics->GetMultisampling() > 0 ? 1 : 0];
+			if(pSceneFP && mpLowLevelGraphics->BeginSceneColorRead())
+			{
+				pCompositeFP = pSceneFP;
+			}
+			else
+			{
+				pScreenTexture = GetFreeScreenTexture();
+				if(pScreenTexture)	mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,vSize);
+				else				fLightFade = 0;
+			}
+		}
 
 		mpLowLevelGraphics->SetDepthTestActive(false);
 		mpLowLevelGraphics->SetAlphaTestActive(false);
@@ -1199,55 +1238,113 @@ namespace hpl {
 		mpAoVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
 
 		///////////////////////////////////////////
-		// The depth buffer as distances, in tiles
+		// The depth buffer as distances and normals in tiles, a row of
+		// four tiles at once
 		mpLowLevelGraphics->BeginGpuSection("Depth tiles");
 		mpAoDeinterleaveFP->Bind();
-		mpAoDeinterleaveFP->SetVec2f("tileSize", vTileSize);
-		DrawAmbientOcclusionPass(mpAoDistanceTexture, nullptr);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+		for(int y=0; y<4; ++y)
+		{
+			iTexture *vTargets[8];
+			for(int x=0; x<4; ++x)
+			{
+				vTargets[x] = mvAoDistanceTexture[x + y * 4];
+				vTargets[4 + x] = mvAoNormalTexture[x + y * 4];
+			}
+			mpLowLevelGraphics->SetRenderTargets(vTargets, 8);
+			mpAoDeinterleaveFP->SetFloat("tileRow", (float)y);
+			DrawAmbientOcclusionQuad(0, mpLowLevelGraphics->GetVirtualSize());
+		}
 		mpAoDeinterleaveFP->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
 		///////////////////////////////////////////
 		// The occlusion, tile by tile
 		mpLowLevelGraphics->BeginGpuSection("Search");
-		mpAoOcclusionFP->Bind();
-		mpAoOcclusionFP->SetVec2f("tileSize", vTileSize);
-		mpAoOcclusionFP->SetVec4f("reach", cMath::Max(settings.mfRadius, 0.01f),
+		int lSlices = cMath::Clamp(settings.mlSlices, 1, 16);
+		// The program of the quality, if the samples are those of one
+		iGpuProgram *pOcclusionFP = mpAoOcclusionFP;
+		int lQuality = settings.GetQuality();
+		if(lQuality < cAmbientOcclusionSettings::klQualityNum)
+		{
+			if(mvAoQualityTried[lQuality]==false)
+			{
+				const int *pSamples = cAmbientOcclusionSettings::QualitySamples(lQuality);
+				char sName[64];
+				snprintf(sName, sizeof(sName), "PostEffect_AO_Occlusion_%dx%d_fp.cg", pSamples[0], pSamples[1]);
+				mvAoQualityFP[lQuality] = mpGpuManager->CreateProgram(sName,"main",eGpuProgramType_Fragment);
+				mvAoQualityTried[lQuality] = true;
+			}
+			if(mvAoQualityFP[lQuality]) pOcclusionFP = mvAoQualityFP[lQuality];
+		}
+		pOcclusionFP->Bind();
+		pOcclusionFP->SetVec2f("tileSize", vTileSize);
+		pOcclusionFP->SetVec4f("reach", cMath::Max(settings.mfRadius, 0.01f),
 									cMath::Clamp(settings.mfScreenRadius, 0.0f, 1.0f),
 									cMath::Max(settings.mfFadeDistance, 0.01f),
 									cMath::Max(settings.mfStrength, 0.0f));
-		mpAoOcclusionFP->SetVec2f("samples", (float)cMath::Clamp(settings.mlSlices, 1, 16),
-									(float)cMath::Clamp(settings.mlSteps, 1, 32));
-		// At half rate the tiles are drawn in turns: every other pixel of
-		// the picture. Not before there is a frame for the others to keep.
-		DrawAmbientOcclusionPass(mpAoTiledTexture, mpAoDistanceTexture,
-								settings.mbHalfRate && mbAoFilled ? (mlAoFrame & 1) : -1);
+		if(pOcclusionFP == mpAoOcclusionFP)
+			pOcclusionFP->SetVec2f("samples", (float)lSlices, (float)cMath::Clamp(settings.mlSteps, 1, 32));
+		mpLowLevelGraphics->SetRenderTarget(mpAoTiledTexture);
+
+		// At half rate the tiles are drawn in turns, like the squares of
+		// one colour of a chess board: every other pixel of the picture.
+		// Not before there is a frame for the others to keep.
+		int lTurn = settings.mbHalfRate && mbAoFilled ? (mlAoFrame & 1) : -1;
+		// The 16 tiles in an order that spreads any run of them evenly
+		// (Bayer): every tile has its own turn of the directions and shift
+		// of the steps
+		static const int vOrder[16] = {0, 8, 2, 10,  12, 4, 14, 6,  3, 11, 1, 9,  15, 7, 13, 5};
+		float fSliceAngle = kPif / (float)lSlices;
+		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
+		cVector2f vQuad(vVirtSize.x / 4.0f, vVirtSize.y / 4.0f);
+		for(int y=0; y<4; ++y)
+		for(int x=0; x<4; ++x)
+		{
+			if(lTurn >= 0 && ((x + y) & 1) != lTurn) continue;
+
+			int lOrder = vOrder[x + y * 4];
+			float fAngle = (float)lOrder / 16.0f * fSliceAngle;
+			float fShift = ((float)((lOrder * 5 + 3) % 16) + 0.5f) / 16.0f;
+			pOcclusionFP->SetVec4f("tilePlace", (float)x, (float)y, fShift, 0);
+			pOcclusionFP->SetVec4f("tileTurn", cos(fAngle), sin(fAngle), cos(fSliceAngle), sin(fSliceAngle));
+			mpLowLevelGraphics->SetTexture(0,mvAoDistanceTexture[x + y * 4]);
+			mpLowLevelGraphics->SetTexture(1,mvAoNormalTexture[x + y * 4]);
+
+			// Row 0 of the tiles is the lowest in the texture, and the
+			// last in the projection
+			cVector2f vMin(vQuad.x * (float)x, vQuad.y * (float)(3 - y));
+			DrawAmbientOcclusionQuad(vMin, vMin + vQuad);
+		}
+		mpLowLevelGraphics->SetTexture(1,nullptr);
 		++mlAoFrame;
 		mbAoFilled = true;
-		mpAoOcclusionFP->UnBind();
+		pOcclusionFP->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
 		///////////////////////////////////////////
-		// Back to the picture's layout, with the pattern filtered out
+		// Back to the picture's layout, with the pattern filtered out. The
+		// last pass of the filter is the blend's.
 		int lFilter = cMath::Clamp(settings.mlFilter, 0, 2);
+		iTexture *pOcclusion = mpAoTiledTexture;
 		mpLowLevelGraphics->BeginGpuSection("Filter");
-		mpAoFilterFP->Bind();
-		mpAoFilterFP->SetVec2f("tileSize", vTileSize);
-		// The pixels in their places first: the filter's 16 looks would
-		// each go to another tile
-		mpAoFilterFP->SetVec3f("window", 1, 0, 0);
-		DrawAmbientOcclusionPass(mpAoTexture[0], mpAoTiledTexture);
-		iTexture *pOcclusion = mpAoTexture[0];
-		for(int i=0; i<lFilter; ++i)
+		if(lFilter > 0)
 		{
-			// The second window is the first mirrored: together they are
-			// centred on the pixel
-			iTexture *pTarget = mpAoTexture[pOcclusion == mpAoTexture[0] ? 1 : 0];
-			mpAoFilterFP->SetVec3f("window", 0, i == 0 ? -2.0f : -1.0f, 1);
-			DrawAmbientOcclusionPass(pTarget, pOcclusion);
-			pOcclusion = pTarget;
+			mpAoFilterFP->Bind();
+			mpAoFilterFP->SetVec2f("tileSize", vTileSize);
+			// The pixels in their places first: the filter's 16 looks would
+			// each go to another tile
+			mpAoFilterFP->SetVec3f("window", 1, 0, 0);
+			DrawAmbientOcclusionPass(mpAoTexture[0], mpAoTiledTexture);
+			pOcclusion = mpAoTexture[0];
+			if(lFilter > 1)
+			{
+				mpAoFilterFP->SetVec3f("window", 0, -2, 1);
+				DrawAmbientOcclusionPass(mpAoTexture[1], pOcclusion);
+				pOcclusion = mpAoTexture[1];
+			}
+			mpAoFilterFP->UnBind();
 		}
-		mpAoFilterFP->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
 		///////////////////////////////////////////
@@ -1260,11 +1357,18 @@ namespace hpl {
 			mpLowLevelGraphics->SetBlendActive(true);
 			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_Zero,eBlendFunc_SrcColor);
 		}
-		mpAoCompositeFP->Bind();
-		mpAoCompositeFP->SetFloat("lightFade", fLightFade);
-		if(fLightFade > 0) mpLowLevelGraphics->SetTexture(1,pScreenTexture);
+		pCompositeFP->Bind();
+		pCompositeFP->SetVec2f("tileSize", vTileSize);
+		// Of two passes the second window is the first mirrored: together
+		// they are centred on the pixel
+		if(lFilter == 0)	pCompositeFP->SetVec3f("window", 1, 0, 0);
+		else				pCompositeFP->SetVec3f("window", 0, lFilter > 1 ? -1.0f : -2.0f, 1);
+		pCompositeFP->SetFloat("lightFade", fLightFade);
+		mpLowLevelGraphics->SetRenderTarget(nullptr);
+		if(pScreenTexture) mpLowLevelGraphics->SetTexture(1,pScreenTexture);
+		if(pCompositeFP != mpAoCompositeFP) mpLowLevelGraphics->BeginSceneColorRead();
 		DrawAmbientOcclusionPass(nullptr, pOcclusion);
-		mpAoCompositeFP->UnBind();
+		pCompositeFP->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
 		mpAoVP->UnBind();

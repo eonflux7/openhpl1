@@ -617,6 +617,15 @@ namespace hpl {
 		 */
 		virtual void ResolveSceneDepth()=0;
 		/**
+		 * To be called before each draw over the 3D scene by a fragment
+		 * program that reads the scene's colour through hpl_SceneColor (a
+		 * sampler2DMS when the scene is multisampled, a sampler2D when
+		 * not) at the pixel it is drawn at, and nowhere else.
+		 * \return false if the scene can't be read while it is drawn
+		 * into; the program must do with a copy then.
+		 */
+		virtual bool BeginSceneColorRead()=0;
+		/**
 		 * Ends drawing the 3D scene: it is scaled to the window, and the
 		 * drawing that follows (HUD, menus) goes on top of it.
 		 */
@@ -855,6 +864,14 @@ namespace hpl {
 		 * framebuffer)
 		 */
 		virtual void SetRenderTarget(iTexture* pTex)=0;
+
+		/**
+		 * As SetRenderTarget(), to several textures of one size at once, up
+		 * to eight: the fragment program writes to the first through
+		 * outColor and to the others through outputs it declares itself,
+		 * layout(location = 1) and up.
+		 */
+		virtual void SetRenderTargets(iTexture** apTextures, int alNum)=0;
 
 		/**
 		 * While set, the scene is drawn into without its depth and stencil

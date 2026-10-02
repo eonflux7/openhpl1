@@ -63,7 +63,7 @@ namespace hpl{
 	static const char* kFragmentPreamble =
 		"#version 330 core\n"
 		"#define VARYING in\n"
-		"#define OUTPUT out vec4 outColor;\n"
+		"#define OUTPUT layout(location = 0) out vec4 outColor;\n"
 		"#define main hpl_main\n";
 
 	// For the programs the renderer draws with (not the full-screen passes):
@@ -222,8 +222,15 @@ namespace hpl{
 		{"PostEffect_BloomChain_Composite",	"PostEffect_BloomChain",	"COMPOSITE"},
 		{"PostEffect_AO_Deinterleave",	"PostEffect_AO",	"DEINTERLEAVE"},
 		{"PostEffect_AO_Occlusion",		"PostEffect_AO",	"OCCLUSION"},
+		{"PostEffect_AO_Occlusion_2x2",	"PostEffect_AO",	"OCCLUSION SAMPLES_2X2"},
+		{"PostEffect_AO_Occlusion_2x4",	"PostEffect_AO",	"OCCLUSION SAMPLES_2X4"},
+		{"PostEffect_AO_Occlusion_3x6",	"PostEffect_AO",	"OCCLUSION SAMPLES_3X6"},
+		{"PostEffect_AO_Occlusion_4x10",	"PostEffect_AO",	"OCCLUSION SAMPLES_4X10"},
+		{"PostEffect_AO_Occlusion_6x16",	"PostEffect_AO",	"OCCLUSION SAMPLES_6X16"},
 		{"PostEffect_AO_Filter",		"PostEffect_AO",	"FILTER"},
 		{"PostEffect_AO_Composite",		"PostEffect_AO",	"COMPOSITE"},
+		{"PostEffect_AO_Composite_Scene",	"PostEffect_AO",	"COMPOSITE SCENE"},
+		{"PostEffect_AO_Composite_SceneMS",	"PostEffect_AO",	"COMPOSITE SCENE_MULTISAMPLE"},
 		{"PostEffect_Bokeh_Prefilter",	"PostEffect_Bokeh",	"PREFILTER"},
 		{"PostEffect_Bokeh_Gather",		"PostEffect_Bokeh",	"GATHER"},
 		{"PostEffect_Bokeh_Fill",		"PostEffect_Bokeh",	"FILL"},
@@ -881,6 +888,8 @@ namespace hpl{
 		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit + 1);
 		GLint lDepthLoc = glGetUniformLocation(lProgram, "hpl_SceneDepth");
 		if(lDepthLoc >= 0) glProgramUniform1i(lProgram, lDepthLoc, kSceneDepthUnit);
+		GLint lColorLoc = glGetUniformLocation(lProgram, "hpl_SceneColor");
+		if(lColorLoc >= 0) glProgramUniform1i(lProgram, lColorLoc, kSceneColorUnit);
 
 		return lProgram;
 	}

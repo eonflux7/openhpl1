@@ -98,6 +98,10 @@ namespace hpl {
 		/// Texture unit of the hpl_SceneDepth sampler (hpl1_scene_depth.glsl):
 		/// the depth of the 3D scene.
 		static const int kSceneDepthUnit = 10;
+		/// Texture unit of the hpl_SceneColor sampler: the colour of the 3D
+		/// scene as it is drawn into, multisampled if the scene is
+		/// (iLowLevelGraphics::BeginSceneColorRead).
+		static const int kSceneColorUnit = 11;
 		/// hpl_AlphaTest.x when the alpha test is done as coverage of the
 		/// pixel's samples; the others are eAlphaTestFunc + 1.
 		static const int kAlphaToCoverage = 9;

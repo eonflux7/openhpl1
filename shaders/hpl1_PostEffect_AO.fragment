@@ -17,24 +17,35 @@
 // How the passes are laid out follows what Pascal Gilcher's MXAO does to
 // make this fast, written anew:
 //
-//  DEINTERLEAVE  the scene's depth as distances, in tiles: the picture is
-//                taken apart into 4x4 smaller pictures, each of every
-//                fourth pixel in both directions (Bavoil: deinterleaved
-//                texturing). The search of a pixel stays inside its tile,
-//                where its far apart samples are near each other in memory.
-//  OCCLUSION     tex0: the tiled distances -> the occlusion, tiled the same
-//                way. Every tile has its own turn of the directions and
-//                shift of the steps, so the 16 pixels of any 4x4 block have
-//                16 different ones. At half rate only every other tile is
-//                drawn in a frame, in turns, and the rest keep what they
+//  DEINTERLEAVE  the scene's depth -> the distance and the surface's normal
+//                of every pixel, in tiles: the picture is taken apart into
+//                4x4 smaller pictures, each of every fourth pixel in both
+//                directions (Bavoil: deinterleaved texturing). The search
+//                of a pixel stays inside its tile, where its far apart
+//                samples are near each other in memory. A tile is two
+//                textures of its own, the distances and the normals, and
+//                the four tiles of a row are written at once from the four
+//                pixels they come from and those around them. So nothing
+//                ever reads every fourth pixel of a texture, which is slow:
+//                half a millisecond for one look-up a pixel at 2560x1440,
+//                where reading them in order takes a tenth.
+//  OCCLUSION     tex0: the distances of one tile, tex1: its normals -> the
+//                occlusion of that tile, in its place in a picture of all
+//                4x4 tiles. Every tile has its own turn of the directions
+//                and shift of the steps, so the 16 pixels of any 4x4 block
+//                have 16 different ones. At half rate only every other tile
+//                is drawn in a frame, in turns, and the rest keep what they
 //                had: every other pixel of the picture is a frame old.
 //  FILTER        tex0: occlusion and distance -> the same, first put back
 //                into the picture's own layout, then with the pattern of
 //                those 16 averaged away over 4x4 pixels without blurring
 //                across edges (He, Sun, Tang: Guided Image Filtering, 2010,
 //                with the distance as the guide).
-//  COMPOSITE     tex0: the filtered occlusion, tex1: a copy of the scene
-//                -> the scene, multiplied.
+//  COMPOSITE     tex0: occlusion and distance -> the scene, multiplied. It
+//                does the last pass of the filter itself. For darkening
+//                brightly lit parts less it reads the scene while it draws
+//                over it (SCENE, SCENE_MULTISAMPLE), or a copy of it in
+//                tex1 where that cannot be done.
 //
 // Positions are in the camera's view: x to the right, y up, z the distance
 // in front of the camera.
@@ -55,16 +66,10 @@ const float FAR_AWAY = 1000.0;
 // Pixels of one tile: the picture's size divided by TILES, rounded up
 uniform vec2 tileSize;
 
-// Where a pixel of the picture is in the tiled layout, and back.
+// Where a pixel of the picture is in the tiled layout.
 ivec2 ToTiles(ivec2 avPixel)
 {
-	return (avPixel % TILES) * ivec2(tileSize) + avPixel / TILES;
-}
-
-ivec2 FromTiles(ivec2 avPos)
-{
-	ivec2 tile = ivec2(tileSize);
-	return (avPos % tile) * TILES + avPos / tile;
+	return (avPixel & (TILES - 1)) * ivec2(tileSize) + (avPixel >> 2);
 }
 
 // The position seen in a pixel (given by its middle) at a distance.
@@ -80,60 +85,162 @@ float PixelDistance(ivec2 avPixel)
 	return depth >= 1.0 ? FAR_AWAY : min(hpl_ViewDistance(depth), FAR_AWAY);
 }
 
+// A direction as two numbers from 0 to 1 (an octahedron unfolded into a
+// square), and back.
+vec2 PackNormal(vec3 avNormal)
+{
+	vec3 n = avNormal / (abs(avNormal.x) + abs(avNormal.y) + abs(avNormal.z));
+	if(n.z < 0.0) n.xy = (1.0 - abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);
+	return n.xy * 0.5 + 0.5;
+}
+
+vec3 UnpackNormal(vec2 avPacked)
+{
+	vec2 f = avPacked * 2.0 - 1.0;
+	vec3 n = vec3(f, 1.0 - abs(f.x) - abs(f.y));
+	float t = max(-n.z, 0.0);
+	n.xy += vec2(n.x >= 0.0 ? -t : t, n.y >= 0.0 ? -t : t);
+	return normalize(n);
+}
+
 //////////////////////////////////////////////////////////////////////////
 #if defined(DEINTERLEAVE)
 
+// The row of tiles that is written
+uniform float tileRow;
+
+// outColor and these are the distances of the row's four tiles
+layout(location = 1) out vec4 outDistance1;
+layout(location = 2) out vec4 outDistance2;
+layout(location = 3) out vec4 outDistance3;
+// and these their normals
+layout(location = 4) out vec4 outNormal0;
+layout(location = 5) out vec4 outNormal1;
+layout(location = 6) out vec4 outNormal2;
+layout(location = 7) out vec4 outNormal3;
+
+// The distance at a pixel, or at the nearest one that is in the picture
+float DistanceAt(ivec2 avPixel)
+{
+	return PixelDistance(clamp(avPixel, ivec2(0), ivec2(hpl_RenderSize.xy) - 1));
+}
+
+// The surface's normal at a pixel from its distance and those of the
+// pixels to its sides: of the two neighbours to each side, the one nearer
+// in depth is taken to be on the same surface.
+vec2 NormalAt(ivec2 avPixel, float afDist, float afLeft, float afRight, float afBelow, float afAbove)
+{
+	ivec2 size = ivec2(hpl_RenderSize.xy);
+	vec2 middle = vec2(avPixel) + 0.5;
+	vec3 point = ViewPos(middle, afDist);
+
+	vec3 left = point - ViewPos(middle - vec2(1.0, 0.0), afLeft);
+	vec3 right = ViewPos(middle + vec2(1.0, 0.0), afRight) - point;
+	vec3 below = point - ViewPos(middle - vec2(0.0, 1.0), afBelow);
+	vec3 above = ViewPos(middle + vec2(0.0, 1.0), afAbove) - point;
+	bool useLeft = avPixel.x > 0 && (avPixel.x >= size.x - 1 || abs(left.z) < abs(right.z));
+	bool useBelow = avPixel.y > 0 && (avPixel.y >= size.y - 1 || abs(below.z) < abs(above.z));
+	return PackNormal(normalize(cross(useBelow ? below : above, useLeft ? left : right)));
+}
+
 void main()
 {
-	ivec2 pixel = FromTiles(ivec2(gl_FragCoord.xy));
+	// The first of the four pixels, one of each tile
+	ivec2 start = ivec2(gl_FragCoord.xy) * TILES + ivec2(0, int(tileRow));
 	ivec2 size = ivec2(hpl_RenderSize.xy);
 
-	float dist = FAR_AWAY;
-	if(pixel.x < size.x && pixel.y < size.y) dist = PixelDistance(pixel);
+	// The four, the one before and the one after; those below and above
+	float row[6], below[4], above[4];
+	for(int i = 0; i < 6; ++i) row[i] = DistanceAt(start + ivec2(i - 1, 0));
+	for(int i = 0; i < 4; ++i)
+	{
+		below[i] = DistanceAt(start + ivec2(i, -1));
+		above[i] = DistanceAt(start + ivec2(i, 1));
+	}
 
-	outColor = vec4(dist, 0.0, 0.0, 1.0);
+	vec4 dists = vec4(FAR_AWAY);
+	vec2 normals[4];
+	for(int i = 0; i < 4; ++i)
+	{
+		ivec2 pixel = start + ivec2(i, 0);
+		normals[i] = vec2(0.5);
+		if(pixel.x >= size.x || pixel.y >= size.y) continue;
+
+		dists[i] = row[i + 1];
+		normals[i] = NormalAt(pixel, row[i + 1], row[i], row[i + 2], below[i], above[i]);
+	}
+
+	outColor = vec4(dists[0], 0.0, 0.0, 1.0);
+	outDistance1 = vec4(dists[1], 0.0, 0.0, 1.0);
+	outDistance2 = vec4(dists[2], 0.0, 0.0, 1.0);
+	outDistance3 = vec4(dists[3], 0.0, 0.0, 1.0);
+	outNormal0 = vec4(normals[0], 0.0, 1.0);
+	outNormal1 = vec4(normals[1], 0.0, 1.0);
+	outNormal2 = vec4(normals[2], 0.0, 1.0);
+	outNormal3 = vec4(normals[3], 0.0, 1.0);
 }
 
 //////////////////////////////////////////////////////////////////////////
 #elif defined(OCCLUSION)
 
 uniform sampler2DRect tex0;
+uniform sampler2DRect tex1;
 
 // x: how far occluders are looked for, in metres; y: the same as a share of
 // the picture's height, used instead when not 0; z: the distance at which
 // the occlusion has faded away; w: the power the open share is raised to
 uniform vec4 reach;
-// x: directions, y: steps to each side of one
+// Directions, and steps to each side of one. The qualities of the menu have
+// a program each with the two as constants, which lets the compiler write
+// the loops out: the search takes a fifth less time. Other numbers come as
+// x and y of 'samples'.
+#if defined(SAMPLES_2X2)
+const int sliceNum = 2, stepNum = 2;
+#elif defined(SAMPLES_2X4)
+const int sliceNum = 2, stepNum = 4;
+#elif defined(SAMPLES_3X6)
+const int sliceNum = 3, stepNum = 6;
+#elif defined(SAMPLES_4X10)
+const int sliceNum = 4, stepNum = 10;
+#elif defined(SAMPLES_6X16)
+const int sliceNum = 6, stepNum = 16;
+#else
+#define SAMPLES_GIVEN
 uniform vec2 samples;
+#endif
 
-// The 16 tiles in an order that spreads any run of them evenly (Bayer)
-const float kOrder[16] = float[16](
-	 0.0,  8.0,  2.0, 10.0,
-	12.0,  4.0, 14.0,  6.0,
-	 3.0, 11.0,  1.0,  9.0,
-	15.0,  7.0, 13.0,  5.0);
+// The tile that is drawn. xy: its column and row, z: its shift of the steps
+uniform vec4 tilePlace;
+// xy: its first direction, zw: the cosine and sine of the angle from one
+// direction to the next
+uniform vec4 tileTurn;
 
-// The samples come from distances kept in 16 bits: the point is taken this
+// The distances are kept in 16 bits: the point is taken this
 // much nearer (as a share of its distance), or their rounding would show as
 // occlusion on flat surfaces.
 const float kNearer = 0.002;
 // The search reaches no further than this share of the picture's height
 const float kMaxScreenReach = 0.3;
 
+// acos() as a polynomial (Abramowitz and Stegun 4.4.45): within 0.0001
+float Acos(float afX)
+{
+	float x = abs(afX);
+	float y = sqrt(1.0 - x) * (1.5707288 + x * (-0.2121144 + x * (0.0742610 - x * 0.0187293)));
+	return afX < 0.0 ? PI - y : y;
+}
+
 void main()
 {
-	ivec2 pos = ivec2(gl_FragCoord.xy);
-	ivec2 tile = ivec2(tileSize);
-	ivec2 tileIdx = pos / tile;
-	ivec2 inTile = pos - tileIdx * tile;
+	ivec2 tileIdx = ivec2(tilePlace.xy);
+	ivec2 inTile = ivec2(gl_FragCoord.xy) - tileIdx * ivec2(tileSize);
 	ivec2 pixel = inTile * TILES + tileIdx;
 	ivec2 size = ivec2(hpl_RenderSize.xy);
 
 	outColor = vec4(1.0, FAR_AWAY, 0.0, 1.0);
 	if(pixel.x >= size.x || pixel.y >= size.y) return;
 
-	// The point and its neighbours from the depth buffer itself
-	float dist = PixelDistance(pixel);
+	float dist = texelFetch(tex0, inTile).r;
 	outColor.g = dist;
 	if(dist >= FAR_AWAY) return;
 
@@ -158,50 +265,45 @@ void main()
 	fade = exp2(-fade * fade) * clamp((radiusPixels - float(TILES)) / float(TILES), 0.0, 1.0);
 	if(fade < 0.004) return;
 
-	vec2 middle = vec2(pixel) + 0.5;
-	vec3 point = ViewPos(middle, dist);
+	vec3 normal = UnpackNormal(texelFetch(tex1, inTile).rg);
 
-	// The surface's normal from the neighbours that are on the same
-	// surface: of the two to each side, the one nearer in depth.
-	vec3 left = point - ViewPos(middle - vec2(1.0, 0.0), PixelDistance(max(pixel - ivec2(1, 0), ivec2(0))));
-	vec3 right = ViewPos(middle + vec2(1.0, 0.0), PixelDistance(min(pixel + ivec2(1, 0), size - 1))) - point;
-	vec3 below = point - ViewPos(middle - vec2(0.0, 1.0), PixelDistance(max(pixel - ivec2(0, 1), ivec2(0))));
-	vec3 above = ViewPos(middle + vec2(0.0, 1.0), PixelDistance(min(pixel + ivec2(0, 1), size - 1))) - point;
-	bool useLeft = pixel.x > 0 && (pixel.x >= size.x - 1 || abs(left.z) < abs(right.z));
-	bool useBelow = pixel.y > 0 && (pixel.y >= size.y - 1 || abs(below.z) < abs(above.z));
-	vec3 normal = normalize(cross(useBelow ? below : above, useLeft ? left : right));
+	// The direction a pixel of this tile is seen in, as x and y at a
+	// distance of 1, is its place in the tile x rayScale + rayBias (what
+	// ViewPos() does, in the tile's own pixels)
+	vec2 pixelRay = 2.0 * hpl_RenderSize.zw / vec2(hpl_Projection[0][0], hpl_Projection[1][1]);
+	vec2 rayScale = pixelRay * float(TILES);
+	vec2 rayBias = (vec2(tileIdx) + 0.5) * pixelRay - 1.0 / vec2(hpl_Projection[0][0], hpl_Projection[1][1]);
+	vec2 place = vec2(inTile);
 
-	point *= 1.0 - kNearer;
+	vec3 point = vec3(place * rayScale + rayBias, 1.0) * (dist * (1.0 - kNearer));
 	vec3 toEye = -normalize(point);
 
-	// This tile's turn of the directions and shift of the steps
-	float order = kOrder[tileIdx.x + tileIdx.y * TILES];
-	float turn = order / 16.0;
-	float shift = (mod(order * 5.0 + 3.0, 16.0) + 0.5) / 16.0;
-
+#if defined(SAMPLES_GIVEN)
 	int sliceNum = int(samples.x);
 	int stepNum = int(samples.y);
+#endif
 	float invRadius2 = 1.0 / (radius * radius);
-	ivec2 tileStart = tileIdx * tile;
+	float invSteps = 1.0 / float(stepNum);
+	float tileReach = radiusPixels / float(TILES);
+	// The last of the tile's pixels that are in the picture
+	vec2 tileLast = vec2((size - tileIdx - 1) / TILES);
+	float shift = tilePlace.z;
+	vec2 dir = tileTurn.xy;
 
 	float open = 0.0;
 	for(int slice = 0; slice < sliceNum; ++slice)
 	{
-		float angle = (float(slice) + turn) * PI / float(sliceNum);
-		vec2 dir = vec2(cos(angle), sin(angle));
 
 		// The slice is the plane through the eye, the point and this
 		// direction on screen. In it, angles are measured from the
 		// direction to the eye, towards 'side'.
 		vec3 side = normalize(vec3(dir, 0.0) - toEye * dot(dir, toEye.xy));
 
-		// The normal as it lies in the slice
+		// The normal as it lies in the slice: its parts towards the eye
+		// and towards 'side', and the sine of its angle from the eye
 		float normalSide = dot(normal, side);
 		float normalEye = max(dot(normal, toEye), 0.0001);
-		float normalLength = sqrt(normalSide * normalSide + normalEye * normalEye);
-		float normalAngle = atan(normalSide, normalEye);
-		float sinNormal = normalSide / normalLength;
-		float cosNormal = normalEye / normalLength;
+		float sinNormal = normalSide * inversesqrt(normalSide * normalSide + normalEye * normalEye);
 
 		// The horizons, as cosines of their angles: they start where the
 		// surface itself is, a quarter turn from the normal to each side
@@ -211,19 +313,19 @@ void main()
 			float way = i == 0 ? -1.0 : 1.0;
 			float lowest = -way * sinNormal;
 			float horizon = lowest;
+			vec2 wayDir = dir * way;
 
 			for(int s = 0; s < stepNum; ++s)
 			{
-				// Closer together near the point
-				float along = (float(s) + shift) / float(stepNum);
-				along *= along;
+				// Closer together near the point, but each about a pixel of
+				// the tile further than the one before at least: no two
+				// steps look at the same pixel, or at the point's own
+				float along = (float(s) + shift) * invSteps;
+				float far = max(along * along * tileReach, float(s) + 0.75 + 0.5 * shift);
+				// Past the picture's edge, the pixel at the edge
+				vec2 tap = clamp(place + round(wayDir * far), vec2(0.0), tileLast);
 
-				ivec2 tap = inTile + ivec2(round(dir * (way * along * radiusPixels / float(TILES))));
-				if(tap == inTile) continue;
-				ivec2 tapPixel = tap * TILES + tileIdx;
-				if(tap.x < 0 || tap.y < 0 || tapPixel.x >= size.x || tapPixel.y >= size.y) break;
-
-				vec3 delta = ViewPos(vec2(tapPixel) + 0.5, texelFetch(tex0, tileStart + tap).r) - point;
+				vec3 delta = vec3(tap * rayScale + rayBias, 1.0) * texelFetch(tex0, ivec2(tap)).r - point;
 				float length2 = dot(delta, delta);
 				float tapCos = dot(delta, toEye) * inversesqrt(length2);
 
@@ -234,12 +336,19 @@ void main()
 			}
 
 			// The open part of this side of the half circle, weighted by
-			// the cosine to the normal
-			float h = way * acos(clamp(horizon, -1.0, 1.0));
-			sum += cosNormal + 2.0 * h * sinNormal - cos(2.0 * h - normalAngle);
+			// the cosine to the normal. With h the horizon's angle and n
+			// the normal's, both from the eye, and l the normal's length
+			// in the slice, that is
+			//   l/4 (cos n + 2 h sin n - cos(2 h - n)),
+			// here with the cosine of the difference written out, which
+			// leaves the angle itself in one place only.
+			float c = clamp(horizon, -1.0, 1.0);
+			float s = sqrt(1.0 - c * c);
+			sum += (1.0 - c * c) * normalEye + way * normalSide * (Acos(c) - c * s);
 		}
 
-		open += normalLength * 0.25 * sum;
+		open += 0.5 * sum;
+		dir = vec2(dir.x * tileTurn.z - dir.y * tileTurn.w, dir.x * tileTurn.w + dir.y * tileTurn.z);
 	}
 	open = clamp(open / float(sliceNum), 0.0, 1.0);
 
@@ -247,7 +356,7 @@ void main()
 }
 
 //////////////////////////////////////////////////////////////////////////
-#elif defined(FILTER)
+#else
 
 uniform sampler2DRect tex0;
 
@@ -261,23 +370,25 @@ vec2 Read(ivec2 avPixel)
 	return texelFetch(tex0, window.x > 0.5 ? ToTiles(avPixel) : avPixel).rg;
 }
 
-void main()
+// The occlusion and the distance of a pixel, filtered.
+vec2 Filtered(ivec2 avPixel)
 {
-	ivec2 pixel = ivec2(gl_FragCoord.xy);
 	ivec2 last = ivec2(hpl_RenderSize.xy) - 1;
 
-	vec2 own = Read(pixel);
-	outColor = vec4(own, 0.0, 1.0);
-	if(window.z < 0.5) return;
+	vec2 own = Read(avPixel);
+	if(window.z < 0.5) return own;
 
-	// Sums of distance, distance squared, occlusion, occlusion x distance
+	// Sums of distance, distance squared, occlusion, occlusion x distance,
+	// the distances taken from the pixel's own: their differences are what
+	// counts, and they are small against the distances themselves
 	vec4 sums = vec4(0.0);
-	ivec2 start = pixel + ivec2(int(window.y));
+	ivec2 start = avPixel + ivec2(int(window.y));
 	for(int y = 0; y < 4; ++y)
 	for(int x = 0; x < 4; ++x)
 	{
 		vec2 value = Read(clamp(start + ivec2(x, y), ivec2(0), last));
-		sums += vec4(value.g, value.g * value.g, value.r, value.r * value.g);
+		float further = value.g - own.g;
+		sums += vec4(further, further * further, value.r, value.r * further);
 	}
 	sums /= 16.0;
 
@@ -289,23 +400,37 @@ void main()
 	float variance = sums.y - sums.x * sums.x;
 	float tolerance = own.g * 0.001;
 	float slope = (sums.w - sums.x * sums.z) / (max(variance, 0.0) + tolerance * tolerance);
-	outColor.r = clamp(sums.z + slope * (own.g - sums.x), 0.0, 1.0);
+	return vec2(clamp(sums.z - slope * sums.x, 0.0, 1.0), own.g);
+}
+
+//////////////////////////////////////////////////////////////////////////
+#if defined(FILTER)
+
+void main()
+{
+	outColor = vec4(Filtered(ivec2(gl_FragCoord.xy)), 0.0, 1.0);
 }
 
 //////////////////////////////////////////////////////////////////////////
 #else
 
-uniform sampler2DRect tex0;
+// The scene as it is where this is drawn, or a copy of it
+#if defined(SCENE_MULTISAMPLE)
+uniform sampler2DMS hpl_SceneColor;
+#elif defined(SCENE)
+uniform sampler2D hpl_SceneColor;
+#else
 uniform sampler2DRect tex1;
+#endif
 
-// How much less brightly lit parts are darkened, 0 to 1 (0: tex1 is not
-// read)
+// How much less brightly lit parts are darkened, 0 to 1 (0: the scene is
+// not read)
 uniform float lightFade;
 
 void main()
 {
 	ivec2 pixel = ivec2(gl_FragCoord.xy);
-	float open = texelFetch(tex0, pixel).r;
+	float open = Filtered(pixel).r;
 
 	// The scene holds linear values with linear lighting, screen values
 	// without.
@@ -313,7 +438,12 @@ void main()
 
 	if(lightFade > 0.0)
 	{
-		float luma = dot(texelFetch(tex1, pixel).rgb, vec3(0.3, 0.58, 0.12));
+#if defined(SCENE_MULTISAMPLE) || defined(SCENE)
+		vec3 scene = texelFetch(hpl_SceneColor, pixel, 0).rgb;
+#else
+		vec3 scene = texelFetch(tex1, pixel).rgb;
+#endif
+		float luma = dot(scene, vec3(0.3, 0.58, 0.12));
 		if(bLinear) luma = pow(max(luma, 0.0), 1.0 / 2.2);
 		open = mix(open, 1.0, lightFade * clamp(luma, 0.0, 1.0));
 	}
@@ -323,4 +453,5 @@ void main()
 	outColor = vec4(vec3(factor), 1.0);
 }
 
+#endif
 #endif

@@ -857,25 +857,32 @@ do with colour, and what follows for this option.
 - The layout of the passes follows Pascal Gilcher's MXAO, the fastest
   implementation of this known to us. Its code is not free to reuse, so
   none of it is here: the shader is written from the papers.
-  - The depth is copied as distances into a 16-bit texture taken apart into
-    4x4 tiles, each with every fourth pixel (deinterleaved texturing). The
-    search of a pixel stays in its tile, where samples far apart on screen
-    are near each other in memory.
+  - The depth is copied as distances (16 bits) and normals into 4x4 tiles,
+    each with every fourth pixel (deinterleaved texturing). The search of a
+    pixel stays in its tile, where samples far apart on screen are near each
+    other in memory. A tile is two textures of its own, and the four tiles
+    of a row are written at once from the four pixels they come from
+    (`iLowLevelGraphics::SetRenderTargets`), so no pass reads every fourth
+    pixel of a texture: that is slow (see "Made faster" below).
   - Every tile has its own turn of the directions and shift of the steps, so
     any 4x4 pixels search 16 different ways. A filter over 4x4 pixels
     averages that pattern away: a guided filter (He et al. 2010) that fits
     the occlusion as a straight line against the distance, which keeps
     edges without weighing each sample.
-  - Steps are closer together near the pixel. A sample counts less the
-    further it is from the point, down to nothing at the radius, by being
-    drawn back to where the surface itself is.
+  - Steps are closer together near the pixel, but each at least about a
+    pixel of the tile further than the one before, so no two steps look at
+    the same pixel. A sample counts less the further it is from the point,
+    down to nothing at the radius, by being drawn back to where the surface
+    itself is. Past the picture's edge the pixel at the edge is looked at.
   - At half rate (`AOHalfRate`, off by default) only every other tile is
     drawn in a frame, in turns: every other pixel is a frame old. When the
     view turns fast the shading trails by a frame in those, which showed
     as ghosting in play: it was on by default at first.
 - Settings, all in the F2 panel's Ambient occlusion window:
   - `AOSlices`, `AOSteps`: directions per pixel and steps to each side of
-    one. The qualities are 2x2, 2x4, 3x6 (High, the default), 4x10, 6x16.
+    one. The qualities are 2x2, 2x4, 3x6 (High, the default), 4x10, 6x16;
+    each has a search program of its own with the two as constants, which
+    is faster than other numbers are.
   - `AORadius` (0.6 m): how far from a point things keep light from it.
     `AOScreenRadius`, if not 0, is a share of the picture's height used
     instead, the same on screen at every distance.
@@ -884,7 +891,9 @@ do with colour, and what follows for this option.
   - `AOLightFade` (0.5): how much less brightly lit parts are darkened. The
     renderer has no picture of the ambient light alone to darken, so direct
     light is darkened too; this holds that back where the picture is bright.
-    It needs a copy of the scene.
+    The blend reads the scene's colour at the pixel it draws over
+    (`iLowLevelGraphics::BeginSceneColorRead`, `hpl_SceneColor`: OpenGL 4.5's
+    texture barrier); before 4.5 it reads a copy of the scene.
   - `AOFadeDistance` (30 m), `AOFilter` (passes of the filter, 0 to 2; 1).
   - "Show the occlusion alone" draws it as if everything were white, without
     the post effects (`AOShowOnly`, read from `settings.cfg` but not saved).
@@ -894,8 +903,10 @@ do with colour, and what follows for this option.
 - New in the low level: the scene's depth texture stays bound to a texture
   unit of its own (`hpl_SceneDepth`, `hpl1_scene_depth.glsl`; with
   anti-aliasing a copy with one sample a pixel, see "Texture filtering and
-  anti-aliasing"), and
-  `CreateFloatTexture` makes float textures of one or two channels.
+  anti-aliasing"), `CreateFloatTexture` makes float textures of one or two
+  channels, `SetRenderTargets` draws to up to eight textures at once, and
+  the scene's colour is bound to a unit of its own for
+  `BeginSceneColorRead`.
 - Checked: with the option off all 93 reference frames match the capture
   from before. No GL debug messages with it on, with and without
   anti-aliasing, linear lighting, and at sizes that do not divide by four.
@@ -905,6 +916,45 @@ do with colour, and what follows for this option.
   rate). The GPU's clock varies between runs: with it higher the same
   passes took two thirds of that. The F3 overlay lists the passes under
   "Ambient occlusion".
+- **Made faster** (2026-10-02, after a review of the code and measuring
+  pass by pass with `OVERTURE_GPU_LOG`). On an RTX 2060 at 2560x1440 with
+  2x multisampling, High, over 37 views in 10 maps, it went from 3.61 to
+  2.12 ms of GPU time a frame (42% to 30% of the frame); the picture
+  differs only by the two changes to the samples named below (at most 1.2%
+  of a frame's pixels by more than 2 of 255). What was found, with the
+  time each took off:
+  - Reading every fourth pixel of a texture is slow, and worst from the
+    copy that a multisampled scene's depth is read from: the pass that
+    made the tiles took 0.6 ms for one look-up a pixel, and the search read
+    the depth five more times that way for its normal. Now the tiles are
+    textures of their own, four written at once with their normals, and
+    the depth is read in order, once: 0.28 ms, and the search reads only
+    its tile (0.45 ms off in all).
+  - The search's time is its arithmetic and its branches, not its
+    look-ups (without them it took three quarters as long). Its loop over
+    the steps had two ways out, a step that fell on the point itself and
+    one that left the picture; the steps are now spread so that none falls
+    on the point and the edge is clamped to, which leaves no branch
+    (0.3 ms off, and the steps that were thrown away are used). With the
+    numbers of directions and steps as constants the compiler writes the
+    loops out (0.3 ms off): hence a program for each quality. A tile's
+    directions come from the renderer instead of sines and cosines per
+    pixel.
+  - The horizon's angle is used in one place instead of three: the cosine
+    of a difference is written out, which takes an arc tangent and two
+    cosines out of every direction, and the arc cosine left is a
+    polynomial. The same result within rounding; 0.06 ms off.
+  - The blend does the last pass of the filter itself instead of reading
+    what a pass before it wrote (0.1 ms off), and reads the scene it draws
+    over instead of a copy of it (0.3 ms off with multisampling, where the
+    copy needed all samples averaged first; 0.14 without). It is drawn as
+    one triangle for that: where the two of a quad meet, a multisampled
+    pixel is drawn once for each, and the second would read what the first
+    wrote.
+  - Simplifying the arithmetic of a sample by hand changed nothing: the
+    compiler had done it.
+  - Half rate, when asked for, starts from a whole frame after the option
+    or ambient occlusion itself was switched on.
 
 ### Depth of field, motion blur and grain from shaders (options)
 

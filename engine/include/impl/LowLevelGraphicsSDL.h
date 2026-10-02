@@ -98,6 +98,7 @@ namespace hpl {
 		void BeginScene() override;
 		void ResolveScene() override;
 		void ResolveSceneDepth() override;
+		bool BeginSceneColorRead() override;
 		void EndScene() override;
 		cVector2f GetVirtualSize() override;
 		void SetVirtualSize(cVector2f avSize) override;
@@ -305,6 +306,7 @@ namespace hpl {
 		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 			const cVector2l &avSize, const cVector2l &avTexOffset=0) override;
 		void SetRenderTarget(iTexture* pTex) override;
+		void SetRenderTargets(iTexture** apTextures, int alNum) override;
 		void SetSceneColorOnly(bool abX) override;
 		void BeginShadowMap(bool abCube, int alFace, int alSize) override;
 		void EndShadowMap() override;
@@ -413,8 +415,10 @@ namespace hpl {
 		GLuint mlOutputFramebuffer;
 		GLuint mlOutputColor;
 		GLuint mlOutputDepthStencil;
-		//Has the texture given to SetRenderTarget() attached.
+		//Has the texture given to SetRenderTarget() attached, or the
+		//textures given to SetRenderTargets().
 		GLuint mlTargetFramebuffer;
+		int mlTargetNum;
 
 		//Shadow maps: a 2D depth texture for spotlights ([0]) and a cube
 		//map for point lights ([1]). Both stay bound to two texture units
