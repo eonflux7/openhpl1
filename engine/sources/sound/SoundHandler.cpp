@@ -29,6 +29,7 @@
 #include "scene/World3D.h"
 #include "physics/PhysicsWorld.h"
 #include "physics/PhysicsBody.h"
+#include <limits>
 
 
 namespace hpl {
@@ -54,6 +55,7 @@ namespace hpl {
 		mpWorld3D = nullptr;
 
 		mlCount =0;
+		mlIdCount =0;
 
 		mbSilent = false;
 
@@ -264,7 +266,7 @@ namespace hpl {
 		//										pSound->GetPriority());
 
 
-		mlIdCount++;
+		mlIdCount = mlIdCount == std::numeric_limits<int>::max() ? 0 : mlIdCount + 1;
 
 		return pSound;
 	}
@@ -335,7 +337,7 @@ namespace hpl {
 
 		mlstGuiSounds.push_back(Entry);
 
-		mlIdCount++;
+		mlIdCount = mlIdCount == std::numeric_limits<int>::max() ? 0 : mlIdCount + 1;
 
 		return pSound;
 	}
@@ -788,7 +790,7 @@ namespace hpl {
 //			pSound->SetPosition(pSound->GetRelPosition());
 
 
-			if(aTypes & mAffectedByVolume)
+			if(apEntry->mEffectType & mAffectedByVolume)
 			{
 				pSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
 			}
@@ -898,7 +900,7 @@ namespace hpl {
 				float fBlock = pSound->GetBlockVolumeMul() +
 					apEntry->mfBlockMul * (1 - pSound->GetBlockVolumeMul());
 
-				if(aTypes & apEntry->mEffectType)
+				if(apEntry->mEffectType & mAffectedByVolume)
 				{
 					pSound->SetVolume(fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);
 					//pSound->SetFilterGainHF(fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);

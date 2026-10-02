@@ -18,6 +18,10 @@
  */
 #include "system/String.h"
 #include <stdlib.h>
+#include <cerrno>
+#include <cctype>
+#include <cmath>
+#include <limits>
 
 #include "system/LowLevelSystem.h"
 
@@ -33,9 +37,11 @@ namespace hpl {
 	tWString cString::To16Char(const tString &asString)
 	{
 		tWString wsTemp;
-		size_t needed = mbstowcs(nullptr,&asString[0],0);
+		size_t needed = mbstowcs(nullptr,asString.c_str(),0);
+		if(needed == static_cast<size_t>(-1) || needed == 0) return wsTemp;
 		wsTemp.resize(needed);
-		mbstowcs(&wsTemp[0],&asString[0],needed);
+		if(mbstowcs(wsTemp.data(),asString.c_str(),needed) == static_cast<size_t>(-1))
+			return tWString();
 
 		return wsTemp;
 	}
@@ -45,9 +51,11 @@ namespace hpl {
 	tString cString::To8Char(const tWString &awsString)
 	{
 		tString sTemp;
-		size_t needed = wcstombs(nullptr,&awsString[0],0);
+		size_t needed = wcstombs(nullptr,awsString.c_str(),0);
+		if(needed == static_cast<size_t>(-1) || needed == 0) return sTemp;
 		sTemp.resize(needed);
-		wcstombs(&sTemp[0],&awsString[0],needed);
+		if(wcstombs(sTemp.data(),awsString.c_str(),needed) == static_cast<size_t>(-1))
+			return tString();
 
 		return sTemp;
 	}
@@ -650,75 +658,46 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cString::UIntStringToArray(unsigned int *apArray, const char* apString,int alSize)
+	bool cString::UIntStringToArray(unsigned int *apArray, const char* apString,int alSize)
 	{
-		char vTempChar[20];
-		int lTempCharCount=0;
-
-		int lArrayCount=0;
-		int lStringCount =0;
-
-		while(lArrayCount < alSize)
+		if(alSize < 0 || !apString || (alSize > 0 && !apArray)) return false;
+		for(int i = 0; i < alSize; ++i)
 		{
-			char c= apString[lStringCount];
-
-			//if a space is found, convert the previous characters to a float.
-			if(c == ' ' || c == 0)
-			{
-				if(lTempCharCount>0)
-				{
-					vTempChar[lTempCharCount] =0;
-					apArray[lArrayCount] = (unsigned int) atoi(vTempChar);
-
-					lTempCharCount=0;
-					lArrayCount++;
-				}
-			}
-			//If character is not a space, add to temp char.
-			else
-			{
-				vTempChar[lTempCharCount] = c;
-				lTempCharCount++;
-			}
-
-			lStringCount++;
+			while(std::isspace(static_cast<unsigned char>(*apString))) ++apString;
+			if(*apString == '-' || *apString == '\0') return false;
+			char *pEnd = nullptr;
+			errno = 0;
+			unsigned long lValue = strtoul(apString, &pEnd, 10);
+			if(pEnd == apString || errno == ERANGE ||
+				lValue > std::numeric_limits<unsigned int>::max() ||
+				(*pEnd && !std::isspace(static_cast<unsigned char>(*pEnd)))) return false;
+			apArray[i] = static_cast<unsigned int>(lValue);
+			apString = pEnd;
 		}
+		while(std::isspace(static_cast<unsigned char>(*apString))) ++apString;
+		return *apString == '\0';
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cString::FloatStringToArray(float *apArray, const char* apString,int alSize)
+	bool cString::FloatStringToArray(float *apArray, const char* apString,int alSize)
 	{
-		char vTempChar[20];
-		int lTempCharCount=0;
-
-		int lArrayCount=0;
-		int lStringCount =0;
-
-		while(lArrayCount < alSize)
+		if(alSize < 0 || !apString || (alSize > 0 && !apArray)) return false;
+		for(int i = 0; i < alSize; ++i)
 		{
-			char c= apString[lStringCount];
-			//if a space is found, convert the previous characters to a float.
-			if(c == ' ' || c == 0)
-			{
-				if(lTempCharCount>0)
-				{
-					vTempChar[lTempCharCount] =0;
-					apArray[lArrayCount] = (float)atof(vTempChar);
-
-					lTempCharCount=0;
-					lArrayCount++;
-				}
-			}
-			//If character is not a space, add to temp char.
-			else
-			{
-				vTempChar[lTempCharCount] = apString[lStringCount];
-				lTempCharCount++;
-			}
-
-			lStringCount++;
+			while(std::isspace(static_cast<unsigned char>(*apString))) ++apString;
+			if(*apString == '\0') return false;
+			char *pEnd = nullptr;
+			errno = 0;
+			float fValue = strtof(apString, &pEnd);
+			if(pEnd == apString || !std::isfinite(fValue) ||
+				(*pEnd && !std::isspace(static_cast<unsigned char>(*pEnd)))) return false;
+			// Underflow to a finite subnormal or zero is safe for cached geometry.
+			apArray[i] = fValue;
+			apString = pEnd;
 		}
+		while(std::isspace(static_cast<unsigned char>(*apString))) ++apString;
+		return *apString == '\0';
 	}
 
 	//-----------------------------------------------------------------------

@@ -39,14 +39,14 @@ namespace hpl {
 		tString msName;
 
 		tString msAnimationName;
-		float mfDefaultSpeed;//Not needed later
+		float mfDefaultSpeed = 1; // Retained for older generic engine saves.
 
 		float mfLength;
 		float mfWeight;
 		float mfSpeed;
 		float mfTimePos;
 
-		float mfBaseSpeed;
+		float mfBaseSpeed = 1;
 
 		bool mbActive;
 		bool mbLoop;
@@ -111,6 +111,8 @@ namespace hpl {
 		void SetTimePosition(float afPosition);
 		float GetTimePosition();
 		float GetPreviousTimePosition();
+		// Events crossed by the last update, including looping and reverse playback.
+		bool HasEventInLastUpdate(float afEventTime) const;
 
 		/**
 		 * Set the relative postion. 0 = start, 1 = end
@@ -169,6 +171,7 @@ namespace hpl {
 		float mfSpeed;
 		float mfTimePos;
 		float mfPrevTimePos;
+		float mfTimeDelta;
 
 		float mfBaseSpeed;
 

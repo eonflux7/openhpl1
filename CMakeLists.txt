@@ -153,6 +153,16 @@ target_include_directories(overture PRIVATE game)
 target_precompile_headers(overture PRIVATE game/core/StdAfx.h)
 target_link_libraries(overture PRIVATE hpl)
 overture_warnings(overture)
+
+include(CTest)
+if(BUILD_TESTING)
+	add_executable(engine_regressions tests/engine_regressions.cpp)
+	target_link_libraries(engine_regressions PRIVATE hpl)
+	overture_warnings(engine_regressions)
+	add_test(NAME engine_regressions COMMAND engine_regressions)
+	set_tests_properties(engine_regressions PROPERTIES
+		ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
+endif()
 # The reference image viewpoints are read from, and saved to, the source tree
 target_compile_definitions(overture PRIVATE
 	OVERTURE_REFVIEWS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tools/refviews.txt")

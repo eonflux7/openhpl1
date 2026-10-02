@@ -63,33 +63,21 @@ namespace hpl {
 
 	void Platform::FindFileInDir(tWStringList &alstStrings,tWString asDir, tWString asMask)
 	{
-		//Log("Find Files in '%ls' with mask '%ls'\n",asDir.c_str(), asMask.c_str());
-		//Get the search string
-		wchar_t sSpec[256];
-		wchar_t end = asDir[asDir.size()-1];
-		//The needed structs
-		DIR *dirhandle;
-		dirent *_entry;
-		struct stat statbuff;
-		tWString fileentry;
+		if(asDir.empty()) return;
+		tString sDirectory = cString::To8Char(asDir);
+		if(sDirectory.empty()) return;
+		DIR *dirhandle = opendir(sDirectory.c_str());
+		if(!dirhandle) return;
+		if(sDirectory.back() != '/') sDirectory += '/';
 
-		if ((dirhandle = opendir(cString::To8Char(asDir).c_str()))==nullptr) return;
-
-		while ((_entry = readdir(dirhandle)) != nullptr) {
-			if (end==_W('/'))
-				swprintf(sSpec,256,_W("%ls%s"),asDir.c_str(),_entry->d_name);
-			else
-				swprintf(sSpec,256,_W("%ls/%s"),asDir.c_str(),_entry->d_name);
-
-			// skip unreadable
-			if (stat(cString::To8Char(sSpec).c_str(),&statbuff) ==-1) continue;
-			// skip directories
-			if (S_ISDIR(statbuff.st_mode)) continue;
-
-			fileentry.assign(cString::To16Char(_entry->d_name));
-
-			if (!patiMatch(asMask.c_str(),fileentry.c_str())) continue;
-			alstStrings.push_back(fileentry);
+		while(dirent *entry = readdir(dirhandle))
+		{
+			tWString fileentry = cString::To16Char(entry->d_name);
+			if(fileentry.empty()) continue;
+			struct stat statbuff;
+			tString sPath = sDirectory + entry->d_name;
+			if(stat(sPath.c_str(), &statbuff) == -1 || S_ISDIR(statbuff.st_mode)) continue;
+			if(patiMatch(asMask.c_str(), fileentry.c_str())) alstStrings.push_back(fileentry);
 		}
 		closedir(dirhandle);
 	}

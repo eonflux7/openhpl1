@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <map>
+#include <array>
+#include <limits>
+#include <cmath>
 #include <random>
 
 namespace hpl {
@@ -1259,6 +1262,9 @@ namespace hpl {
 										const float *apNormalArray,
 										int alVertexNum)
 	{
+		if(alVertexNum < 0 || alIndexNum < 0 || alIndexNum % 3 != 0 || alVtxStride < 3) return false;
+		for(int i = 0; i < alIndexNum; ++i)
+			if(apIndexArray[i] >= static_cast<unsigned int>(alVertexNum)) return false;
 		//Create two temp arrays and clear them.
 		tVector3fVec vTempTangents1;
 		tVector3fVec vTempTangents2;
@@ -1301,7 +1307,11 @@ namespace hpl {
 			cVector3f vTex1To3 = vTex3 - vTex1;
 
 			//Get the direction of the S and T tangents
-			float fR = 1.0f / (vTex1To2.x * vTex1To3.y - vTex1To2.y * vTex1To3.x);
+			float fDet = vTex1To2.x * vTex1To3.y - vTex1To2.y * vTex1To3.x;
+			float fScale = fabs(vTex1To2.x * vTex1To3.y) + fabs(vTex1To2.y * vTex1To3.x);
+			if(!std::isfinite(fDet) || fabs(fDet) <= std::numeric_limits<float>::epsilon() * fScale)
+				continue;
+			float fR = 1.0f / fDet;
 
 			cVector3f vSDir((vTex1To3.y * vPos1To2.x - vTex1To2.y * vPos1To3.x) * fR,
 							(vTex1To3.y * vPos1To2.y - vTex1To2.y * vPos1To3.y) * fR,
@@ -1312,6 +1322,9 @@ namespace hpl {
 							(vTex1To2.x * vPos1To3.y - vTex1To3.x * vPos1To2.y) * fR,
 							(vTex1To2.x * vPos1To3.z - vTex1To3.x * vPos1To2.z) * fR
 							);
+
+			if(!std::isfinite(vSDir.x) || !std::isfinite(vSDir.y) || !std::isfinite(vSDir.z) ||
+				!std::isfinite(vTDir.x) || !std::isfinite(vTDir.y) || !std::isfinite(vTDir.z)) continue;
 
 			//Add the temp arrays with the values:
 			vTempTangents1[idx1] += vSDir;
@@ -1325,42 +1338,41 @@ namespace hpl {
 			//Log("\n");
 		}
 
-		//Log("Looking for duplicates: \n");
-		//Go through the vertrices and find normal and vertex copies. Smooth the tangents on these
-		float fMaxCosAngle = -1.0f;
-		for(int i=0; i < alVertexNum; i++)
+		// Group identical positions/normals before smoothing. Keep each group's original
+		// index order so the legacy pairwise accumulation gives identical results.
+		std::map<std::array<float, 6>, std::vector<int>> groups;
+		for(int i = 0; i < alVertexNum; ++i)
 		{
-			for(int j=i+1; j< alVertexNum; j++)
+			std::array<float, 6> key;
+			bool bFinite = true;
+			for(int axis = 0; axis < 3; ++axis)
 			{
-				//Log("(%.1f, %.1f, %.1f)", apVertexArray[i+0],apVertexArray[i+1],apVertexArray[i+2]);
-				//Log(" vs ");
-				//Log("(%.1f, %.1f, %.1f)\n", apVertexArray[j+0],apVertexArray[j+1],apVertexArray[j+2]);
-
-				if(Vector3Equal(apVertexArray, i, apVertexArray, j,alVtxStride) &&
-					Vector3Equal(apNormalArray, i, apNormalArray, j,3))
+				key[axis] = apVertexArray[i * alVtxStride + axis];
+				key[axis + 3] = apNormalArray[i * 3 + axis];
+				bFinite = bFinite && std::isfinite(key[axis]) && std::isfinite(key[axis + 3]);
+			}
+			if(bFinite) groups[key].push_back(i);
+		}
+		for(const auto &group : groups)
+		{
+			const auto &indices = group.second;
+			for(size_t a = 0; a < indices.size(); ++a)
+				for(size_t b = a + 1; b < indices.size(); ++b)
 				{
-					//Log("Found at %d and %d!\n", i, j);
-
-					cVector3f vAT1 = vTempTangents1[i];
-					cVector3f vAT2 = vTempTangents2[i];
-
-					cVector3f vBT1 = vTempTangents1[j];
-					cVector3f vBT2 = vTempTangents2[j];
-
-
-					if(Vector3Dot(vAT1, vBT1)>= fMaxCosAngle)
+					int i = indices[a], j = indices[b];
+					cVector3f vAT1 = vTempTangents1[i], vBT1 = vTempTangents1[j];
+					cVector3f vAT2 = vTempTangents2[i], vBT2 = vTempTangents2[j];
+					if(Vector3Dot(vAT1, vBT1) >= -1.0f)
 					{
 						vTempTangents1[j] += vAT1;
 						vTempTangents1[i] += vBT1;
 					}
-
-					if(Vector3Dot(vAT2, vBT2)>= fMaxCosAngle)
+					if(Vector3Dot(vAT2, vBT2) >= -1.0f)
 					{
 						vTempTangents2[j] += vAT2;
 						vTempTangents2[i] += vBT2;
 					}
 				}
-			}
 		}
 
 		//Iterate through the dest array and set tangent values
@@ -1373,6 +1385,15 @@ namespace hpl {
 
 			// Gram-Schmidt orthogonalize
 			cVector3f vTan = vTempTan1 - (vNormal * cMath::Vector3Dot(vNormal, vTempTan1));
+			if(!std::isfinite(vTan.x) || !std::isfinite(vTan.y) || !std::isfinite(vTan.z) ||
+				vTan.SqrLength() <= std::numeric_limits<float>::min() || !std::isfinite(vTan.SqrLength()))
+			{
+				if(!std::isfinite(vNormal.x) || !std::isfinite(vNormal.y) || !std::isfinite(vNormal.z) ||
+					vNormal.SqrLength() == 0 || !std::isfinite(vNormal.SqrLength())) vNormal = cVector3f(0, 0, 1);
+				vNormal.Normalise();
+				cVector3f vAxis = fabs(vNormal.x) < 0.9f ? cVector3f(1, 0, 0) : cVector3f(0, 1, 0);
+				vTan = vAxis - vNormal * Vector3Dot(vNormal, vAxis);
+			}
 			vTan.Normalise();
 
 			//Log("Add tangent %d: ",vtxIdx);

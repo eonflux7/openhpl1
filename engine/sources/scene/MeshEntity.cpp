@@ -838,8 +838,7 @@ namespace hpl {
 			{
 				cAnimationEvent *pEvent = pState->GetEvent(j);
 
-				if(	pEvent->mfTime >= pState->GetPreviousTimePosition() &&
-					pEvent->mfTime < pState->GetTimePosition())
+				if(pState->HasEventInLastUpdate(pEvent->mfTime))
 				{
 					HandleAnimationEvent(pEvent);
 				}
