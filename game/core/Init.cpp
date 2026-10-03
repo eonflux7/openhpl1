@@ -17,6 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Init.h"
+#include "core/DogTestMap.h"
 #include "impl/GLSLProgram.h"
 #include <SDL3/SDL.h>
 #include "player/Player.h"
@@ -129,6 +130,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mpSmokeTest = nullptr;
 	mpRefShots = nullptr;
 	mpRefView = nullptr;
+	mpDogTestMap = nullptr;
 	mpLampLooks = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
@@ -295,6 +297,7 @@ bool cInit::Init(tString asCommandLine)
 	mbAllowQuickSave  = mpConfig->GetBool("Game","AllowQuickSave",false); 
 	mbFlashItems  = mpConfig->GetBool("Game","FlashItems",true);
 	mbShowCrossHair  = mpConfig->GetBool("Game","ShowCrossHair",false);
+	mbImprovedDogAI = mpConfig->GetBool("AI","ImprovedDogAI",true);
 	
 	mbHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
 	if(mbHapticsAvailable)
@@ -730,6 +733,7 @@ bool cInit::Init(tString asCommandLine)
 		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
 	if(mpSmokeTest==nullptr && mpRefShots==nullptr)
 		mpRefView = hplNew( cRefView,(this) );
+	mpDogTestMap = hplNew( cDogTestMap,(this) );
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -793,6 +797,7 @@ bool cInit::Init(tString asCommandLine)
 	}
 	if(mpPhysicsLog)
 		mpGame->GetUpdater()->AddUpdate("Default", mpPhysicsLog);
+	mpGame->GetUpdater()->AddUpdate("Default", mpDogTestMap);
 	
 	// SCRIPT INIT /////////////////////
 	cGameScripts::Init();
@@ -1008,6 +1013,7 @@ void cInit::Exit()
 	hplDelete( mpMainMenu );
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
 	if(mpRefShots) hplDelete( mpRefShots );
+	if(mpDogTestMap) hplDelete( mpDogTestMap );
 	if(mpRefView) hplDelete( mpRefView );
 	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
@@ -1190,6 +1196,7 @@ void cInit::Exit()
 	mpConfig->SetBool("Game","AllowQuickSave",mbAllowQuickSave); 
 	mpConfig->SetBool("Game","FlashItems",mbFlashItems); 
 	mpConfig->SetBool("Game","ShowCrossHair",mbShowCrossHair);
+	mpConfig->SetBool("AI","ImprovedDogAI",mbImprovedDogAI);
 
 	mpConfig->SetBool("Game","SimpleSwingInOptions",mbSimpleSwingInOptions); 
 

@@ -18,6 +18,7 @@ static const float kfMapTimeout = 60.0f;
 
 #ifdef OVERTURE_DOG_REGRESSIONS
 int RunDogRegressions(cInit *apInit);
+int RunDogArenaRegressions(cInit *apInit);
 #endif
 
 //-----------------------------------------------------------------------
@@ -124,6 +125,8 @@ void cSmokeTest::Update(float afTimeStep)
 #ifdef OVERTURE_DOG_REGRESSIONS
 			if(sMap == "testmap" && SDL_getenv("OVERTURE_DOG_REGRESSIONS"))
 				mlFailures += RunDogRegressions(mpInit);
+			if(sMap == "dogtest" && SDL_getenv("OVERTURE_DOG_REGRESSIONS"))
+				mlFailures += RunDogArenaRegressions(mpInit);
 #endif
 			mStep = eStep_RunMap;
 			mlFrame = 0;

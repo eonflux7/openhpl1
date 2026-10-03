@@ -60,6 +60,7 @@ public:
 
 	void SetOpen(bool abX);
 	bool IsOpen(){ return mbOpen; }
+	void ReleaseForDogTest();
 
 	void Update(float afTimeStep) override;
 	void Reset() override;

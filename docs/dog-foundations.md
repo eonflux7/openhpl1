@@ -5,6 +5,55 @@ installed game's mesh, textures, skeleton, animation clips, animation events,
 and entity definitions. No comparison lab, replacement assets, or animation
 packs are included.
 
+## AI choice and test arena
+
+**Options → AI → Dog behaviour** offers mutually exclusive Original and
+Improved choices. The choice is saved as `AI/ImprovedDogAI` in settings;
+Improved is the default on this branch. Existing Dogs adopt the choice when
+gameplay resumes. A running hunt/search restarts, while an attack or recovery
+finishes normally.
+
+Original retains the original pursuit/search decisions: live-player aiming,
+the short post-sight-loss position refresh, blind forward search, legacy
+blocked-route fallback, nearby-node sound targeting, and idle thresholds
+during hunting. Improved enables the observation, search and navigation
+changes below, including the authored hunt thresholds. Both modes retain
+shared animation and stability fixes, including corrected door-impact timing;
+Original is a comparison of decision behaviour, not a bit-for-bit legacy build.
+This setting currently applies to Dogs only.
+
+Launch the generated arena with:
+
+```sh
+cmake --build build
+OVERTURE_MAP=dogtest ./run.sh
+# Or start in a particular bay:
+OVERTURE_MAP=dogtest:sound ./run.sh
+```
+
+The F2 panel opens on entry. Choose a scenario, select an AI mode, and use
+**Reset and play** for fresh starting conditions. Reset recreates the original
+Dog and that bay's props, restores player health and position, and closes the
+panel. F2 reopens the controls and live state/clip/last-observation diagnostics.
+The map is also available in the usual F2 map list.
+
+| Bay / start | Test |
+|---|---|
+| `patrol` | Four waypoints, pauses and corners; disable sight/hearing to observe gait without a chase |
+| `hide` | A clear sight lane, central cover and a second corner for hiding and last-position search |
+| `sound` | Occluding cover and two real, hearable original wood-impact sound lures |
+| `props` | Original heavy and small pushable crates, a narrow route and a wide detour |
+| `door` | Original locked breakable door; reveal your position once to seed a pursuit |
+| `attack` | Standing/crouched jump attacks, an optional low step, and real ragdoll/getting-up via Knock down |
+
+**Reveal player position once** deliberately supplies one known position for
+fixtures where a wall or door prevents initial sight. Sound lures go through
+the normal sound-trigger system. God mode defaults on within the arena and
+can be disabled; the previous value is restored when leaving. Disabling
+perception stops fresh sightings and hearing, but does not cancel a hunt
+already in progress: reset to start a clean patrol. Loading an arena save
+starts a fresh fixture at the nearest bay rather than resuming its encounter.
+
 ## Behaviour
 
 - A Dog stops refreshing its remembered player position after a failed sight
@@ -66,6 +115,8 @@ Build with `BUILD_TESTING=ON` (CTest's default), then run:
 cmake --build --preset default
 ctest --test-dir build --output-on-failure
 python3 tools/check_dog_foundations.py --build build
+python3 tools/check_dog_foundations.py --build build --maps 'dogtest testmap'
+python3 tools/check_dog_foundations.py --build build --maps dogtest --ai original
 
 cmake --build --preset asan
 ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan --output-on-failure
@@ -86,6 +137,10 @@ corners, backwards movement, playback reuse, gait phase, vertical movement,
 door impacts, and completion delivery. The temporary Dog and its runtime
 navigation fixture are removed before the ordinary test-map save/reload;
 original-level smoke checks cover enemy save/reload on authored graphs.
+The arena checks all six stations under both AI modes: original entities and
+clips, sight-memory policy, thresholds, patrol reachability, cover and crate
+detours, sound-source positions, doors, knockdown/reset and switching an
+already spawned Dog. The arena's authored graph also survives smoke save/reload.
 
 Leak detection is disabled for graphics-driver teardown. The runner suppresses
 only AngelScript's existing `nonnull-attribute` warning in `as_string.cpp`

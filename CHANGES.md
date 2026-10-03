@@ -1471,6 +1471,18 @@ reference images are as before.
   textures, clips, jump-attack timing, damage and movement values are retained.
   See [Dog foundations](docs/dog-foundations.md) for balance effects and tests.
 
+## Dog behaviour arena and AI choice
+
+- Options → AI saves mutually exclusive Original/Improved Dog behaviour
+  choices. Original restores legacy pursuit/search decisions; both retain
+  original assets and shared animation/stability fixes.
+- `OVERTURE_MAP=dogtest` opens a generated six-bay arena for patrol, hiding,
+  sound investigation, obstacle recovery, doors and attack/get-up. F2 offers
+  fresh scenario resets, real sound lures, one-shot position reveals,
+  knockdown, perception/damage switches and live diagnostics.
+- Arena checks exercise both AI modes against authored navigation, original
+  props and sound sources, including save/reload and existing-Dog switching.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

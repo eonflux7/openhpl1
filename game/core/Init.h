@@ -54,6 +54,7 @@ class cRefShots;
 class cRefView;
 class cLampLooks;
 class cPhysicsLog;
+class cDogTestMap;
 
 #include "core/GameTypes.h"
 
@@ -101,6 +102,8 @@ public:
 	void Reset() override;
 
 	void ResetGame(bool abRunInitScript);
+	bool GetImprovedDogAI() const { return mbImprovedDogAI; }
+	void SetImprovedDogAI(bool abX) { mbImprovedDogAI = abX; }
 
 	void RunScriptCommand(const tString& asCommand);
 
@@ -214,6 +217,8 @@ public:
 	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
 	cRefShots *mpRefShots; // NULL unless OVERTURE_REFSHOTS is set
 	cRefView *mpRefView; // NULL during the smoke test and the reference images
+	cDogTestMap *mpDogTestMap;
+	bool mbImprovedDogAI = true;
 	cLampLooks *mpLampLooks;
 	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
 

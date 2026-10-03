@@ -32,6 +32,8 @@ public:
 
 int RunDogRegressions(cInit *init)
 {
+	const bool previousMode = init->GetImprovedDogAI();
+	init->SetImprovedDogAI(true);
 	int failures = 0, checks = 0;
 	auto check = [&](bool ok, const char *name) {
 		++checks;
@@ -330,6 +332,98 @@ int RunDogRegressions(cInit *init)
 	dog->ChangeState(STATE_IDLE);
 	init->mpMapHandler->RemoveGameEntity(dog);
 	player->SetFeetPosition(playerStart);
+	init->SetImprovedDogAI(previousMode);
 	Log("DOGTEST: done, %d checks, %d failure(s)\n", checks, failures);
 	return failures;
+}
+
+#include "core/DogTestMap.h"
+
+// Validate the authored arena and both selectable decision policies using
+// original entities, real physics rays and the compiled navigation graph.
+int RunDogArenaRegressions(cInit *init)
+{
+    int checks=0, failures=0;
+    auto check=[&](bool ok,const char *label) {
+        ++checks; if(!ok) ++failures;
+        Log("DOGARENA: %s %s\n",ok?"PASS":"FAIL",label);
+    };
+    const bool previousMode=init->GetImprovedDogAI();
+    auto *arena=init->mpDogTestMap;
+    arena->Update(0);
+    check(arena->GetStationCount()==6,"six stations load");
+    for(bool improved:{false,true}) {
+        init->SetImprovedDogAI(improved);
+        for(size_t i=0;i<arena->GetStationCount();++i) {
+            arena->ResetStation(i);
+            auto *dog=arena->GetDog();
+            check(dog && dog->GetHealth()>0,"station resets a living original Dog");
+            if(!dog) continue;
+            auto *mover=dog->GetMover();
+            check(mover->GetNodeContainer() && mover->GetNodeContainer()->GetNodeNum()>500,
+                "arena has an authored navigation graph");
+            check(mover->mbSmoothNavigation==improved && dog->TrackPlayerAfterSightLoss()!=improved,
+                "selected AI controls navigation and sight memory");
+            check(Near(dog->GetHuntMinSeeChance(),improved?dog->mfHuntMinSeeChance:dog->mfIdleMinSeeChance),
+                "selected AI uses its pursuit threshold");
+            dog->mbCanSeePlayer=false;
+            const cVector3f target=init->mpPlayer->GetCharacterBody()->GetFeetPosition();
+            const cVector3f memory=target+cVector3f(3,0,2);
+            dog->SetLastPlayerPos(memory);
+            check(Near(dog->GetPursuitPosition(),improved?memory:target),"selected AI chooses memory or legacy live target");
+            dog->SetUsesTriggers(false);
+            if(i==0) {
+                check(dog->GetPatrolNodeNum()==4 && dog->GetCurrentStateId()==STATE_PATROL,
+                    "patrol starts on four original-clip waypoints");
+                auto *node=mover->GetNodeContainer()->GetNodeFromName("patrol0");
+                check(node && mover->MoveToPos(node->GetPosition()),"patrol route is reachable");
+            }
+            if(i==1) {
+                const cVector3f origin(0,.05f,-26);
+                mover->GetCharBody()->SetFeetPosition(origin);
+                check(!mover->FreeDirectPathToPos(cVector3f(0,.05f,-11)),"hiding cover blocks direct pursuit");
+                check(mover->MoveToPos(cVector3f(0,.05f,-11)),"navigation routes around hiding cover");
+            }
+            if(i==2) {
+                arena->PlayLure(0); arena->PlayLure(1);
+                auto *world=init->mpGame->GetScene()->GetWorld3D();
+                cSoundEntity *a=world->GetSoundEntity("dogtestlureA");
+                cSoundEntity *b=world->GetSoundEntity("dogtestlureB");
+                check(a && b && Near(a->GetWorldPosition(),cVector3f(17,1,-17)) &&
+                    Near(b->GetWorldPosition(),cVector3f(27,1,-23)),"sound lures play at authored locations");
+            }
+            if(i==3) {
+                iGameEntity *heavy=init->mpMapHandler->GetGameEntity("heavycrate",false);
+                iGameEntity *small=init->mpMapHandler->GetGameEntity("smallcrate",false);
+                check(heavy && small && heavy->GetBodyNum()>0 && small->GetBodyNum()>0 &&
+                    heavy->GetBody(0)->GetMass()>dog->mfMaxPushMass && small->GetBody(0)->GetMass()<dog->mfMaxPushMass,
+                    "original heavy and pushable crates load");
+                check(!mover->FreeDirectPathToPos(target),"heavy crate blocks direct pursuit");
+                check(mover->MoveToPos(target,true),"dynamic route finds the crate detour");
+            }
+            if(i==4) {
+                iGameEntity *door=init->mpMapHandler->GetGameEntity("testdoor",false);
+                check(door && door->GetType()==eGameEntityType_SwingDoor,"original breakable door loads");
+                check(!mover->FreeDirectPathToPos(target),"door blocks direct pursuit");
+            }
+            if(i==5) {
+                dog->ChangeState(STATE_KNOCKDOWN);
+                check(!mover->GetCharBody()->IsActive() && dog->GetMeshEntity()->GetSkeletonPhysicsActive(),
+                    "knockdown enters original ragdoll state");
+                arena->ResetStation(i);
+                check(arena->GetDog()->GetMover()->GetCharBody()->IsActive(),"reset restores a knocked-down Dog");
+            }
+        }
+    }
+    // Mode changes also reach already spawned enemies without interrupting
+    // attacks or requiring the game/map to restart.
+    auto *dog=arena->GetDog();
+    init->SetImprovedDogAI(false); dog->OnUpdate(1.0f/60);
+    check(!dog->GetMover()->mbSmoothNavigation,"existing Dog switches to Original navigation");
+    init->SetImprovedDogAI(true); dog->OnUpdate(1.0f/60);
+    check(dog->GetMover()->mbSmoothNavigation,"existing Dog switches to Improved navigation");
+    init->SetImprovedDogAI(previousMode);
+    arena->ResetStation(0);
+    Log("DOGARENA: done, %d checks, %d failure(s)\n",checks,failures);
+    return failures;
 }

@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--build', type=Path, default=ROOT/'build')
     parser.add_argument('--out', type=Path)
     parser.add_argument('--maps', default='testmap')
+    parser.add_argument('--ai', choices=('original', 'improved'), default='improved')
     parser.add_argument('--game-dir', type=Path, default=refshots.DEFAULT_GAME_DIR)
     parser.add_argument('--timeout', type=int, default=180)
     args = parser.parse_args()
@@ -37,6 +38,7 @@ def main():
     personal.mkdir(parents=True, exist_ok=True)
     settings = {section: dict(keys) for section, keys in refshots.SETTINGS.items()}
     settings['Game']['LastInitOK'] = 'true'
+    settings['AI'] = {'ImprovedDogAI': 'true' if args.ai == 'improved' else 'false'}
     refshots.write_settings(personal/'settings.cfg', settings)
     env = dict(os.environ, OVERTURE_PROFILE_ROOT=str(profile), ALSOFT_DRIVERS='null',
                OVERTURE_SMOKE=args.maps, OVERTURE_SMOKE_FRAMES='180',
@@ -58,13 +60,15 @@ def main():
     game_log = personal/'hpl.log'
     lines = game_log.read_text(errors='replace').splitlines() if game_log.is_file() else []
     for line in lines:
-        if 'DOGTEST:' in line or 'SMOKE:' in line:
+        if 'DOGTEST:' in line or 'DOGARENA:' in line or 'SMOKE:' in line:
             print(line)
     success = result == 0 and any('SMOKE: done' in line for line in lines)
-    success = success and not any('FAIL' in line and ('DOGTEST:' in line or 'SMOKE:' in line)
+    success = success and not any('FAIL' in line and ('DOGTEST:' in line or 'DOGARENA:' in line or 'SMOKE:' in line)
                                  for line in lines)
     if 'testmap' in args.maps or args.maps in {'1', 'all'}:
         success = success and any('DOGTEST: done' in line for line in lines)
+    if 'dogtest' in args.maps or args.maps in {'1', 'all'}:
+        success = success and any('DOGARENA: done' in line for line in lines)
     print(f'{"PASS" if success else "FAIL"}, exit {result}; output: {out}')
     return 0 if success else 1
 

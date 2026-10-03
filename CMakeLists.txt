@@ -195,6 +195,14 @@ if(Python3_FOUND)
 		DEPENDS testmap/generate.py testmap/testmap.hps
 		COMMENT "Generating the test map")
 	add_custom_target(testmap ALL DEPENDS ${testmap_dir}/testmap.dae ${testmap_dir}/testmap.hps)
+	add_custom_command(
+		OUTPUT ${testmap_dir}/dogtest.dae ${testmap_dir}/dogtest.cfg ${testmap_dir}/dogtest.hps
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testmap/generate_dogtest.py ${testmap_dir}
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/testmap/dogtest.hps ${testmap_dir}/dogtest.hps
+		DEPENDS testmap/generate_dogtest.py testmap/generate.py testmap/dogtest.hps
+			${testmap_dir}/testmap.dae
+		COMMENT "Generating the Dog behaviour test map")
+	add_custom_target(dogtest ALL DEPENDS ${testmap_dir}/dogtest.dae ${testmap_dir}/dogtest.cfg ${testmap_dir}/dogtest.hps)
 else()
 	message(STATUS "Python 3 not found, the test map will not be built")
 endif()

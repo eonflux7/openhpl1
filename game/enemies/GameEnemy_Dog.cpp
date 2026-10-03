@@ -824,6 +824,122 @@ void cGameEnemyState_Dog_Hunt::OnLeaveState(iGameEnemyState *apNextState)
 
 //-----------------------------------------------------------------------
 
+// Original pursuit/search decisions, retained for in-game comparison.
+void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
+{
+	if(mpPlayer->GetHealth() <=0){
+		mpEnemy->ChangeState(STATE_IDLE);
+		return;
+	}
+
+	if(mpMover->GetStuckCounter() > 1.1f)
+	{
+		if(mpEnemy->CheckForDoor())
+		{
+			mbBreakingDoor = true;
+			mpEnemy->ChangeState(STATE_BREAKDOOR);
+			mpMover->ResetStuckCounter();
+			return;
+		}
+		else
+		{
+			mlStuckAtMaxCount++;
+			if(mlStuckAtMaxCount >= 6)
+			{
+				mpEnemy->ChangeState(STATE_IDLE);
+				return;
+			}
+		}
+		mpMover->ResetStuckCounter();
+	}
+
+	if(mfUpdatePathCount <=0)
+	{
+		mbFoundNoPath = false;
+		mfUpdatePathCount = mfUpdateFreq;
+
+		if(mbLostPlayer == false && mpMover->FreeDirectPathToChar(mpPlayer->GetCharacterBody()))
+		{
+			mbFreePlayerPath = true;
+			mpMover->Stop();
+			mpMover->SetMaxDoorToughness(-1);
+		}
+		else
+		{
+			mbFreePlayerPath = false;
+		}
+		if(mbFreePlayerPath==false && mbLostPlayer == false)
+		{
+			if(mpEnemy->GetDoorBreakCount()> 6.0f)
+			{
+				mpMover->SetMaxDoorToughness(0);
+			}
+
+			if(mpMover->MoveToPos(mpEnemy->GetLastPlayerPos())==false)
+			{
+				mfUpdatePathCount = mfUpdateFreq*5.0f;
+				mpMover->Stop();
+				mbFoundNoPath = true;
+			}
+		}
+	}
+	else
+	{
+		mfUpdatePathCount -= afTimeStep;
+	}
+	if(mbFreePlayerPath || (mbFoundNoPath && mpMover->IsMoving()==false))
+	{
+		mpMover->MoveDirectToPos(mpPlayer->GetCharacterBody()->GetFeetPosition(),afTimeStep);
+		if(mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < mpEnemyDog->mfAttackDistance)
+		{
+			float fHeight = mpMover->GetCharBody()->GetPosition().y -
+							mpPlayer->GetCharacterBody()->GetPosition().y;
+			if(fHeight < 0)
+			{
+				fHeight += mpMover->GetCharBody()->GetSize().y/2.0f;
+				float fMax = mpEnemyDog->mvAttackDamageSize.y;
+				if(fHeight > -fMax)
+				{
+					mpEnemy->ChangeState(STATE_ATTACK);
+				}
+				else
+				{
+					if(cMath::RandRectf(0,1)<0.2f)
+						mpEnemy->ChangeState(STATE_ATTACK);
+					else
+						mpEnemy->ChangeState(STATE_FLEE);
+				}
+			}
+			else
+			{
+				mpEnemy->ChangeState(STATE_ATTACK);
+			}
+
+		}
+	}
+	else if(mbFreePlayerPath==false)
+	{
+		if( mbLostPlayer==false && mpMover->IsMoving()==false && mpEnemy->CanSeePlayer()==false)
+		{
+			mbLostPlayer = true;
+			mfLostPlayerCount = mfMaxLostPlayerCount;
+		}
+
+		if(mbLostPlayer)
+		{
+			mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
+
+			mfLostPlayerCount -= afTimeStep;
+			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			{
+				mpEnemy->ChangeState(STATE_IDLE);
+				return;
+			}
+		}
+	}
+}
+
+
 void cGameEnemyState_Dog_Hunt::BeginSearch()
 {
 	mbLostPlayer = true;
@@ -867,6 +983,11 @@ void cGameEnemyState_Dog_Hunt::UpdateSearch(float afTimeStep)
 
 void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 {
+	if(!mpEnemyDog->UseImprovedAI())
+	{
+		UpdateOriginal(afTimeStep);
+		return;
+	}
 	if(mpPlayer->GetHealth() <=0)
 	{
 		mpEnemy->ChangeState(STATE_IDLE);
@@ -970,7 +1091,7 @@ void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 
 void cGameEnemyState_Dog_Hunt::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
-	if(mbLostPlayer && afChance >= mpEnemyDog->mfHuntMinSeeChance)
+	if(mbLostPlayer && afChance >= mpEnemyDog->GetHuntMinSeeChance())
 	{
 		mbLostPlayer = false;
 		mfUpdatePathCount =0;
@@ -982,7 +1103,22 @@ void cGameEnemyState_Dog_Hunt::OnSeePlayer(const cVector3f &avPosition, float af
 
 bool cGameEnemyState_Dog_Hunt::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	if(!mpEnemy->CanSeePlayer() && afVolume >= mpEnemyDog->mfHuntMinHearVolume)
+	if(!mpEnemyDog->UseImprovedAI())
+	{
+		if(mbLostPlayer && afVolume >= mpEnemyDog->GetHuntMinHearVolume())
+		{
+			cAINode *pNode = mpMover->GetAINodeAtPosInRange(avPosition,0,5,true,0.1f);
+			if(pNode)
+			{
+				mbLostPlayer = false;
+				mfUpdatePathCount = 0;
+				mpEnemy->SetLastPlayerPos(pNode->GetPosition());
+				return true;
+			}
+		}
+		return false;
+	}
+	if(!mpEnemy->CanSeePlayer() && afVolume >= mpEnemyDog->GetHuntMinHearVolume())
 	{
 		// Remember the actual sound source, not a randomly selected nearby
 		// navigation node. Only a fresh observation restarts pursuit.
@@ -1079,7 +1215,8 @@ void cGameEnemyState_Dog_Attack::OnLeaveState(iGameEnemyState *apNextState)
 
 void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 {
-	if(mpEnemy->CanSeePlayer()) mvTargetPosition = mpEnemyDog->GetPursuitPosition();
+	if(!mpEnemyDog->UseImprovedAI() || mpEnemy->CanSeePlayer())
+		mvTargetPosition = mpEnemyDog->GetPursuitPosition();
 	//Move forward
 	if(mpEnemyDog->mfAttackSpeed>0)
 	{
@@ -1985,7 +2122,8 @@ cGameEnemy_Dog::~cGameEnemy_Dog()
 
 void cGameEnemy_Dog::OnLoad()
 {
-	mpMover->SetSmoothNavigation(true);
+	mbAppliedImprovedAI = UseImprovedAI();
+	mpMover->SetSmoothNavigation(mbAppliedImprovedAI);
 	//Create attack shape
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	mpAttackShape = pPhysicsWorld->CreateBoxShape(mvAttackDamageSize,nullptr);
@@ -1999,8 +2137,18 @@ void cGameEnemy_Dog::OnLoad()
 
 cVector3f cGameEnemy_Dog::GetPursuitPosition()
 {
-	return CanSeePlayer() ? mpInit->mpPlayer->GetCharacterBody()->GetFeetPosition()
+	return !UseImprovedAI() || CanSeePlayer() ? mpInit->mpPlayer->GetCharacterBody()->GetFeetPosition()
 		: GetLastPlayerPos();
+}
+
+bool cGameEnemy_Dog::UseImprovedAI() const { return mpInit->GetImprovedDogAI(); }
+float cGameEnemy_Dog::GetHuntMinSeeChance() const
+{
+	return UseImprovedAI() ? mfHuntMinSeeChance : mfIdleMinSeeChance;
+}
+float cGameEnemy_Dog::GetHuntMinHearVolume() const
+{
+	return UseImprovedAI() ? mfHuntMinHearVolume : mfIdleMinHearVolume;
 }
 
 //-----------------------------------------------------------------------
@@ -2008,6 +2156,18 @@ cVector3f cGameEnemy_Dog::GetPursuitPosition()
 void cGameEnemy_Dog::OnUpdate(float afTimeStep)
 {
 	if(IsActive()==false) return;
+	if(mbAppliedImprovedAI != UseImprovedAI())
+	{
+		mbAppliedImprovedAI = UseImprovedAI();
+		mpMover->SetSmoothNavigation(mbAppliedImprovedAI);
+		// Reset a running search when its decision rules change. Attacks and
+		// recovery finish normally, so switching cannot interrupt a lunge.
+		if(mlCurrentState == STATE_HUNT)
+		{
+			ChangeState(STATE_IDLE);
+			ChangeState(STATE_HUNT);
+		}
+	}
 	
 	///////////////////////////////////
 	//Regenerate health:

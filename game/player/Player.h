@@ -200,6 +200,7 @@ public:
 	void Damage(float afDamage, ePlayerDamageType aType);
 	// Damage() does nothing. Not saved.
 	void SetGodMode(bool abX){ mbGodMode = abX;}
+	bool GetGodMode() const { return mbGodMode; }
 
 	void DestroyWorldObjects();
 

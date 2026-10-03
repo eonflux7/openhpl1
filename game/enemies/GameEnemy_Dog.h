@@ -123,6 +123,7 @@ private:
 
 	void BeginSearch();
 	void UpdateSearch(float afTimeStep);
+	void UpdateOriginal(float afTimeStep);
 
 	int mlStuckAtMaxCount;
 
@@ -381,7 +382,10 @@ class cGameEnemy_Dog : public iGameEnemy
 public:
 	cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
 	~cGameEnemy_Dog() override;
-	bool TrackPlayerAfterSightLoss() override { return false; }
+	bool UseImprovedAI() const;
+	bool TrackPlayerAfterSightLoss() override { return !UseImprovedAI(); }
+	float GetHuntMinSeeChance() const;
+	float GetHuntMinHearVolume() const;
 	cVector3f GetPursuitPosition();
 	
 	void OnLoad() override;
@@ -423,6 +427,7 @@ public:
 	float mfHuntForLostPlayerTime;
 	float mfHuntMinSeeChance;
 	float mfHuntMinHearVolume;
+	bool mbAppliedImprovedAI = true;
 
 	float mfAttackDistance;
 	float mfAttackSpeed;

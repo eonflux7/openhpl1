@@ -4,6 +4,7 @@
  */
 #include "core/StdAfx.h"
 #include "core/RefView.h"
+#include "core/DogTestMap.h"
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
@@ -108,7 +109,12 @@ void cRefView::SetOpen(bool abX)
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	if(mbOpen)
 	{
-		if(mvMaps.empty()) cRefShots::FindMaps(mpInit, mvMaps);
+		if(mvMaps.empty())
+		{
+			cRefShots::FindMaps(mpInit, mvMaps);
+			if(mpInit->mpGame->GetResources()->GetFileSearcher()->GetFilePath("dogtest.dae") != "")
+				mvMaps.push_back("dogtest.dae");
+		}
 		pLowLevel->SetDebugPanel([this](){ Draw(); });
 	}
 	else
@@ -639,6 +645,18 @@ void cRefView::Release()
 	mbHoldDirection = false;
 }
 
+void cRefView::ReleaseForDogTest()
+{
+	mbFly = false;
+	if(mbFlying)
+		mpInit->mpPlayer->GetCamera()->SetPitchLimits(mvWalkPitchLimits);
+	mbFlying = false;
+	mpInit->mpPlayer->GetCharacterBody()->SetActive(true);
+	mbAtView = mbHoldDirection = false;
+	mlGoToView = -1;
+	SetOpen(false);
+}
+
 //-----------------------------------------------------------------------
 
 // As cRefShots::SetView(), but the direction is the player's once the panel
@@ -735,6 +753,7 @@ void cRefView::Draw()
 	if(mbOpen==false) return;
 	// Not in the comparison shots
 	if(mlCompareStep != 0) return;
+	if(mpInit->mpDogTestMap->IsActive() && !mpInit->mpDogTestMap->DrawControls()) return;
 
 	const float fEm = ImGui::GetFontSize();
 	const ImGuiViewport *pViewport = ImGui::GetMainViewport();

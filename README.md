@@ -79,6 +79,24 @@ They require gamescope and a build with `BUILD_TESTING=ON`. See
 [Dog foundations](docs/dog-foundations.md) for scope, balance implications,
 and the full-map check.
 
+### Dog behaviour test map
+
+```
+OVERTURE_MAP=dogtest ./run.sh
+```
+
+F2 opens the Dog controls: select a bay and **Reset and play**, compare
+Original/Improved AI, play sound lures, reveal a position or knock the Dog
+down. Bays cover patrol/turning, losing sight/search, hearing, obstacle
+recovery, door breaking and attack/get-up. Start directly in a bay with
+`OVERTURE_MAP=dogtest:sound` (`patrol`, `hide`, `sound`, `props`, `door`,
+`attack`). The build generates the arena using original game entities.
+
+**Options → AI** also saves the Original/Improved Dog behaviour choice for
+normal gameplay. Improved is the branch default; both use the original
+assets and shared animation/stability fixes. See
+[Dog foundations](docs/dog-foundations.md#ai-choice-and-test-arena) for details.
+
 ### Physics test map
 
 `testmap/generate.py` builds a grey test hall (run automatically by the build,
@@ -186,7 +204,7 @@ saves.
 |---|---|
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
 | `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
-| `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog regressions when the smoke test loads `testmap` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
+| `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |

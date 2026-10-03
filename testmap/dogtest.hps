@@ -1,0 +1,9 @@
+// Dog behaviour arena. Original assets; fixtures are controlled from F2.
+void OnStart()
+{
+    SetAmbientColor(0.35f, 0.35f, 0.35f);
+    SetEnemyUseTriggers("dogtestdog", false);
+}
+void OnLoad() { SetAmbientColor(0.35f, 0.35f, 0.35f); }
+void OnUpdate() {}
+void OnExit() {}
