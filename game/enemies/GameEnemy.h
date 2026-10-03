@@ -232,6 +232,7 @@ public:
 	virtual void ShowPlayer(const cVector3f& avPlayerFeetPos){}
 
 	virtual bool IsFighting(){ return false;}
+	virtual bool TrackPlayerAfterSightLoss(){ return true; }
 
 	//Physics
 	void SetupBody();
@@ -356,7 +357,7 @@ protected:
 	
 	bool HandleSoundTrigger(cGameTrigger *apTrigger);
 	
-	bool LineOfSight(const cVector3f &avPos, const cVector3f &avSize);
+	bool LineOfSight(const cVector3f &avPos, const cVector3f &avSize, float afFOV = -1);
 
 	bool mbSetFeetAtGroundOnStart;
 	bool mbAttachMeshToBody;
@@ -391,6 +392,7 @@ protected:
 	cEnemyCheckForDoor mDoorCheck;
 
 	cAnimationState *mpCurrentAnimation;
+	bool mbAnimationCompletionSent;
 	bool mbAnimationIsSpeedDependant;
 	float mfAnimationSpeedMul;
 

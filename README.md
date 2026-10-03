@@ -68,6 +68,17 @@ Before changing gameplay code, run the smoke test on the ASan build:
 cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/overture
 ```
 
+Original-asset Dog behaviour and playback checks run in a silent headless
+session with isolated settings, saves, maps and caches:
+
+```
+python3 tools/check_dog_foundations.py --build build-asan
+```
+
+They require gamescope and a build with `BUILD_TESTING=ON`. See
+[Dog foundations](docs/dog-foundations.md) for scope, balance implications,
+and the full-map check.
+
 ### Physics test map
 
 `testmap/generate.py` builds a grey test hall (run automatically by the build,
@@ -174,6 +185,8 @@ saves.
 | Variable | Purpose |
 |---|---|
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
+| `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
+| `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog regressions when the smoke test loads `testmap` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |

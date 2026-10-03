@@ -1455,6 +1455,22 @@ reference images are as before.
 - The physics test map is no longer part of the reference images or of the
   panel's map list.
 
+## Dog AI and animation foundations
+
+- Dogs pursue observed positions after losing sight, follow fresh sound
+  locations, and pause/turn during the existing search budget using original
+  clips. Hunt thresholds load the authored hunt attributes.
+- Clearance checks, obstacle-aware route retries, and short corner lookahead
+  reduce blocked-route charges. State transitions stop the old tick; rear-wall
+  correction requires a hit and runs separately for each Dog.
+- Shared enemy playback uses horizontal gait speed, honours changed options
+  when reusing a clip, restores fixed playback speed, and delivers completion
+  once. State lookup and perception callbacks preserve the intended state and
+  FOV. Turning cannot overshoot; successful backing away is not counted as stuck.
+- Door impacts use the authored delay once per tick. Original models,
+  textures, clips, jump-attack timing, damage and movement values are retained.
+  See [Dog foundations](docs/dog-foundations.md) for balance effects and tests.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

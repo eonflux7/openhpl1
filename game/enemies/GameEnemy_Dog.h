@@ -117,6 +117,12 @@ private:
 	float mfLostPlayerCount;
 	float mfMaxLostPlayerCount;
 	bool mbFoundNoPath;
+	float mfSearchAngle;
+	int mlSearchPhase;
+	bool mbCheckDynamicPath;
+
+	void BeginSearch();
+	void UpdateSearch(float afTimeStep);
 
 	int mlStuckAtMaxCount;
 
@@ -149,6 +155,7 @@ private:
 	float mfDamageTimer;
 	float mfJumpTimer;
 	bool mbAttacked;
+	cVector3f mvTargetPosition;
 };
 
 //-----------------------------------------
@@ -374,6 +381,8 @@ class cGameEnemy_Dog : public iGameEnemy
 public:
 	cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
 	~cGameEnemy_Dog() override;
+	bool TrackPlayerAfterSightLoss() override { return false; }
+	cVector3f GetPursuitPosition();
 	
 	void OnLoad() override;
 
@@ -468,6 +477,7 @@ public:
 	float mfEatMinHearVolume;
 
 private:
+    int mlRearCheckCount;
     iCollideShape *mpAttackShape;
 	iCollideShape *mpBreakDoorShape;
 };

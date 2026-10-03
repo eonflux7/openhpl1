@@ -58,7 +58,7 @@ bool cCharacterAStarCallback::Intersects(iPhysicsBody *pBody,cPhysicsRayParams *
 	if(pBody->IsCharacter()) return false;
 	if(pBody->GetCollideCharacter()==false) return false;
 	
-	if(pBody->GetMass() == 0) return false;
+	if(pBody->GetMass() == 0) return mbCheckDynamic;
 	
 	iGameEntity *pEntity = static_cast<iGameEntity*>(pBody->GetUserData());
     
@@ -145,6 +145,7 @@ cCharacterMove::cCharacterMove(cInit *apInit)
 
 	mbMoving = false;
 	mbTurning = false;
+	mbSmoothNavigation = false;
 
 	mfTurnSpeed =0;
 
@@ -184,7 +185,7 @@ cCharacterMove::~cCharacterMove()
 
 void cCharacterMove::Update(float afTimeStep)
 {
-	if(mpCharBody->IsActive()==false) return;
+	if(mpCharBody->IsActive()==false || afTimeStep <= 0) return;
 
 	////////////////////////////////////
 	//Update Movement
@@ -233,7 +234,23 @@ void cCharacterMove::Update(float afTimeStep)
 		}
 
 		
-		float fGoalAngle = -cMath::GetAngleFromPoints2D(cVector2f(vPos.x, vPos.z), cVector2f(vGoal.x, vGoal.z));
+		cVector3f vSteerGoal = vGoal;
+		// Blend towards the next path segment near a corner, only when the
+		// body's clearance rays approve it. Keep node arrival tests unchanged.
+		if(mbSmoothNavigation && mlstNodes.size() > 1 &&
+			cMath::Vector3DistSqr(mpCharBody->GetFeetPosition(), vGoal) < 0.75f * 0.75f)
+		{
+			auto next = mlstNodes.rbegin();
+			++next;
+			cVector3f vSegment = (*next)->GetPosition() - vGoal;
+			const float fLength = vSegment.Length();
+			if(fLength > 0.001f)
+			{
+				const cVector3f vCandidate = vGoal + vSegment * (cMath::Min(0.6f, fLength) / fLength);
+				if(FreeDirectPathToPos(vCandidate)) vSteerGoal = vCandidate;
+			}
+		}
+		float fGoalAngle = -cMath::GetAngleFromPoints2D(cVector2f(vPos.x, vPos.z), cVector2f(vSteerGoal.x, vSteerGoal.z));
 		TurnToAngle(fGoalAngle);
 		mpCharBody->SetPitch(0);
 		
@@ -301,6 +318,8 @@ void cCharacterMove::Update(float afTimeStep)
 		if(mbTurning)
 		{
 			mfTurnSpeed = cMath::Min(mfAngleDistTurnMul * std::abs(fAngleDist), mfMaxTurnSpeed);
+			// Never rotate beyond the target in a single update.
+			mfTurnSpeed = cMath::Min(mfTurnSpeed, std::abs(fAngleDist) / afTimeStep);
 			
 			if(fAngleDist < 0)	mpCharBody->AddYaw(-mfTurnSpeed * afTimeStep);
 			else				mpCharBody->AddYaw(mfTurnSpeed * afTimeStep);
@@ -333,8 +352,8 @@ void cCharacterMove::Update(float afTimeStep)
 
 	float fCos = cMath::Vector3Dot(vWantedDir,vRealDir);
 
-    if( fRealSpeed/fWantedSpeed < mfStuckLimit || 
-		(std::abs(fCos) < 0.3f && fWantedSpeed > 0.001f))
+	if(std::abs(fWantedSpeed) > 0.001f &&
+		(fRealSpeed / std::abs(fWantedSpeed) < mfStuckLimit || std::abs(fCos) < 0.3f))
 	{
 		mfStuckCounter += afTimeStep;
 		//mpInit->mpEffectHandler->GetSubTitle()->Add(_W("ADD!\n"),1.0f/60.0f,false);
@@ -350,7 +369,7 @@ void cCharacterMove::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
-bool cCharacterMove::MoveToPos(const cVector3f &avPos)
+bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 {
 	if(mpAStar==nullptr) return false;
 
@@ -369,7 +388,10 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos)
 	//Get the nodes to be following
 	mlstNodes.clear();
 	//Log(" Getting path!\n");
+	const bool bPreviousDynamic = mpAStarCallback->mbCheckDynamic;
+	mpAStarCallback->mbCheckDynamic = abCheckDynamic;
 	bool bRet = mpAStar->GetPath(vStartPos,vGoalPos,&mlstNodes);
+	mpAStarCallback->mbCheckDynamic = bPreviousDynamic;
 	
 	if(bRet==false)
 	{
@@ -379,7 +401,7 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos)
 
 	mvGoalPos = vGoalPos;
 	
-	mbMoving = true;
+	mbMoving = bRet || !mbSmoothNavigation;
 	mlstNodeDistances.clear();
 
 	return bRet;
@@ -431,6 +453,30 @@ bool cCharacterMove::FreeDirectPathToChar(iCharacterBody *apBody)
 	return mpContainer->FreePath(	GetCharBody()->GetFeetPosition()+cVector3f(0,0.05f,0),
 		apBody->GetFeetPosition()+cVector3f(0,0.05f,0),
 		-1,eAIFreePathFlag_SkipDynamic);
+}
+
+bool cCharacterMove::FreeDirectPathToPos(const cVector3f &avFeetPos)
+{
+	if(!mpContainer || std::abs(GetCharBody()->GetFeetPosition().y - avFeetPos.y) > 0.8f)
+		return false;
+	// Small props the character can push do not invalidate the route; walls,
+	// doors and heavy props do. A separate query preserves A* callback state.
+	class cDirectPathCallback : public iAIFreePathCallback
+	{
+	public:
+		explicit cDirectPathCallback(float afPushMass) : mfPushMass(afPushMass) {}
+		bool Intersects(iPhysicsBody *body, cPhysicsRayParams*) override
+		{
+			if(body->IsCharacter() || !body->GetCollide() || !body->GetCollideCharacter() ||
+				!body->IsActive()) return false;
+			iGameEntity *entity = static_cast<iGameEntity*>(body->GetUserData());
+			if(entity && entity->GetType() == eGameEntityType_SwingDoor) return true;
+			return body->GetMass() == 0 || body->GetMass() >= mfPushMass;
+		}
+		float mfPushMass;
+	} callback(mfMaxPushMass);
+	return mpContainer->FreePath(GetCharBody()->GetFeetPosition() + cVector3f(0,0.05f,0),
+		avFeetPos + cVector3f(0,0.05f,0), -1, 0, &callback);
 }
 
 //-----------------------------------------------------------------------
@@ -678,5 +724,3 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 //-----------------------------------------------------------------------
 
 //-----------------------------------------------------------------------
-
-

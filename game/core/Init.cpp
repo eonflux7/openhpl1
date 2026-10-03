@@ -165,6 +165,13 @@ void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 
 //-----------------------------------------------------------------------
 
+tWString cInit::GetPersonalDir()
+{
+	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	return pProfile && pProfile[0] ? cString::To16Char(pProfile)
+		: GetSystemSpecialPath(eSystemPath_Personal);
+}
+
 bool cInit::Init(tString asCommandLine)
 {
 	/*if(asCommandLine != "")
@@ -180,11 +187,19 @@ bool cInit::Init(tString asCommandLine)
 	SetWindowCaption("Penumbra Loading...");
 
 	// PERSONAL DIR /////////////////////
-	tWString sPersonalDir = GetSystemSpecialPath(eSystemPath_Personal);
+	tWString sPersonalDir = GetPersonalDir();
 	if(	cString::GetLastCharW(sPersonalDir) != _W("/") && 
 		cString::GetLastCharW(sPersonalDir) != _W("\\"))
 	{
 		sPersonalDir += _W("/");
+	}
+
+	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	if(pProfile && pProfile[0])
+	{
+		CreateFolder(sPersonalDir);
+		CreateFolder(sPersonalDir + _W("cache"));
+		iMeshLoader::SetCacheDir(cString::To8Char(sPersonalDir) + "cache/");
 	}
 
 	// CREATE NEEDED DIRS /////////////////////

@@ -156,6 +156,9 @@ overture_warnings(overture)
 
 include(CTest)
 if(BUILD_TESTING)
+	# Opt-in in-game checks use the original dog mesh, clips and physics.
+	target_sources(overture PRIVATE tests/dog_regressions.cpp)
+	target_compile_definitions(overture PRIVATE OVERTURE_DOG_REGRESSIONS)
 	add_executable(engine_regressions tests/engine_regressions.cpp)
 	target_link_libraries(engine_regressions PRIVATE hpl)
 	overture_warnings(engine_regressions)

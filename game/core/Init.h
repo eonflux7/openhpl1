@@ -91,6 +91,8 @@ public:
 	~cInit() override;
 
 	bool Init(tString asCommandLine);
+	// Optional isolated settings, saves and caches for automated checks.
+	static tWString GetPersonalDir();
 	void Run();
 	void Exit();
 	
