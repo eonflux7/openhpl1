@@ -555,6 +555,8 @@ cPlayerHealth::cPlayerHealth(cInit *apInit)
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 	
 	mpDamageGfx = mpDrawer->CreateGfxObject("player_hurt.bmp","diffalpha2d");
+	if(cInit::IsOverture()==false)
+		mpLowOxygenGfx = mpDrawer->CreateGfxObject("player_lowoxygen.bmp","diffalpha2d");
 
 	mfGfxAlpha =0;
 	mfGfxAlphaAdd =0;
@@ -575,44 +577,58 @@ void cPlayerHealth::Reset()
 	mpSoundEntry = nullptr;
 
 	mlTerrorLevel =0;
+
+	mfOxygenAlpha = 0;
+	mfOxygenPulseSpeed = 0;
+	mfOxygenAlphaAdd = 1;
 }
 
 //-----------------------------------------------------------------------
 
 // Black Plague: the air runs out under water, about a third of a minute of
-// it, and the player gasps for it ever faster below half. Out of the water it
-// comes back five times as fast.
+// it. Below half of it a picture pulses on the screen, faster below a quarter
+// and a tenth, and the player gasps at each peak. Out of the water the air
+// comes back five times as fast and the pulse fades out quickly.
 void cPlayerHealth::UpdateOxygen(float afTimeStep)
 {
 	cPlayer *pPlayer = mpInit->mpPlayer;
+	bool bUnderwater = mpInit->mpEffectHandler->GetUnderwater()->IsActive();
 
-	if(mpInit->mpEffectHandler->GetUnderwater()->IsActive()==false)
+	if(bUnderwater)
+	{
+		pPlayer->AddOxygen(afTimeStep * -3);
+
+		float fOxygen = pPlayer->GetOxygen();
+		if(fOxygen <= 0)		pPlayer->SetHealth(0);
+		else if(fOxygen < 10)	mfOxygenPulseSpeed = 2.4f;
+		else if(fOxygen < 25)	mfOxygenPulseSpeed = 1.8f;
+		else if(fOxygen < 50)	mfOxygenPulseSpeed = 1.0f;
+	}
+	else
 	{
 		pPlayer->AddOxygen(afTimeStep * 20);
-		mfNoAirCount = 0;
-		return;
+		if(mfOxygenPulseSpeed > 0)
+		{
+			mfOxygenPulseSpeed = 3;
+			mfOxygenAlphaAdd = -1;
+		}
 	}
 
-	pPlayer->AddOxygen(afTimeStep * -3);
-	if(pPlayer->GetOxygen() <= 0)
+	if(mfOxygenPulseSpeed <= 0) return;
+
+	mfOxygenAlpha += mfOxygenPulseSpeed * afTimeStep * mfOxygenAlphaAdd;
+	if(mfOxygenAlpha < 0)
 	{
-		pPlayer->SetHealth(0);
-		return;
+		mfOxygenAlpha = 0;
+		if(mfOxygenAlphaAdd < 0) mfOxygenAlphaAdd = -mfOxygenAlphaAdd;
+
+		// At the bottom of a pulse it ends if there is air enough again
+		if(pPlayer->GetOxygen() > 50 || bUnderwater==false) mfOxygenPulseSpeed = 0;
 	}
-
-	float fOxygen = pPlayer->GetOxygen();
-	if(fOxygen >= 50)
+	else if(mfOxygenAlpha > 1 && mfOxygenAlphaAdd > 0)
 	{
-		mfNoAirCount = 0;
-		return;
-	}
-
-	float fInterval = fOxygen < 10 ? 2/2.4f : fOxygen < 25 ? 2/1.8f : 2.0f;
-
-	mfNoAirCount -= afTimeStep;
-	if(mfNoAirCount <= 0)
-	{
-		mfNoAirCount = fInterval;
+		mfOxygenAlpha = 1;
+		mfOxygenAlphaAdd = -mfOxygenAlphaAdd;
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("water_no_air",false,1);
 	}
 }
@@ -785,6 +801,12 @@ void cPlayerHealth::Update(float afTimeStep)
 
 void cPlayerHealth::Draw()
 {
+	if(mpLowOxygenGfx && mfOxygenAlpha > 0)
+	{
+		mpDrawer->DrawGfxObject(mpLowOxygenGfx,mpInit->mpGraphicsHelper->GetScreenPos(50),mpInit->mpGraphicsHelper->GetScreenSize(),
+								cColor(1, mfOxygenAlpha * 0.6f));
+	}
+
 	if(mfGfxAlpha <=0) return;
 
 	mpDrawer->DrawGfxObject(mpDamageGfx,mpInit->mpGraphicsHelper->GetScreenPos(50),mpInit->mpGraphicsHelper->GetScreenSize(),
@@ -2966,8 +2988,13 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			
 			//Do some effect
 					
+			//Black Plague: the fright only grows to its limit, the player stays hidden
+			if(mfEnemyTooCloseCount> mfEnemyTooCloseMax && cInit::IsOverture()==false)
+			{
+				mfEnemyTooCloseCount = mfEnemyTooCloseMax;
+			}
 			//Check if limit is reached
-			if(mfEnemyTooCloseCount> mfEnemyTooCloseMax)
+			else if(mfEnemyTooCloseCount> mfEnemyTooCloseMax)
 			{
 				UnHide();
 				mpInit->mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);

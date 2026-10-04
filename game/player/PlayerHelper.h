@@ -157,9 +157,13 @@ private:
 
 	cGfxObject *mpDamageGfx;
 
-	// Black Plague: air under water
+	// Black Plague: air under water. Short of it, a picture pulses on the
+	// screen and the player gasps at each peak.
 	void UpdateOxygen(float afTimeStep);
-	float mfNoAirCount = 0;
+	float mfOxygenAlpha = 0;
+	float mfOxygenPulseSpeed = 0;
+	float mfOxygenAlphaAdd = 1;
+	cGfxObject *mpLowOxygenGfx = nullptr;
 };
 
 //---------------------------------------------

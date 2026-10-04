@@ -692,6 +692,17 @@ void cInventoryHealth::OnDraw()
 
 void cInventoryHealth::OnMouseOver()
 {
+	//Black Plague: with an item in hand it says what using it here does
+	cInventoryItem *pCurrentItem = mpInit->mpInventory->GetCurrentItem();
+	if(pCurrentItem && cInit::IsOverture()==false)
+	{
+		mpInit->mpInventory->SetItemName(_W(""));
+		mpInit->mpInventory->SetItemDesc(kTranslate("Inventory","Use") + _W(" ") +
+										pCurrentItem->GetGameName() + _W(" ") +
+										kTranslate("Inventory","on myself"));
+		return;
+	}
+
 	float fPercent = mpInit->mpPlayer->GetHealth()/100.0f;
 	tWString wsText;
 

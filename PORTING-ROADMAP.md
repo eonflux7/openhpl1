@@ -224,6 +224,14 @@ terminal in its level, with sound.
         after all entities have been updated. `ReplaceEntity` without a
         body name crashed (Overture's code; Black Plague fixed it): fixed
         for all three games. Tried headless on level 2's thermostat
+  - [x] The player: short of air under water a picture pulses on the
+        screen and the player gasps at each peak, faster below a quarter
+        and a tenth of the air (`player_lowoxygen.bmp`; it was a timer
+        before); out of the water at a reset; "Use … on myself" over the
+        health in the inventory with an item in hand; hidden in the dark,
+        an enemy close by only frightens the player more, it no longer
+        drives him out of hiding and shows him to the enemies. Tried
+        headless: the pulse and gasps (under water forced), not the rest
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,

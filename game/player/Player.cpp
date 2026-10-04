@@ -1414,6 +1414,9 @@ void cPlayer::SetViewFOV(float afDegrees)
 
 void cPlayer::Reset()
 {
+	//Black Plague: out of the water
+	if(mbUnderWater) ChangeMoveState(ePlayerMoveState_Walk,false);
+
 	//Camera
 	mpCamera->SetPitchLimits(cVector2f(cMath::ToRad(70),cMath::ToRad(-70) ));
 	mpCamera->SetYawLimits(0);
