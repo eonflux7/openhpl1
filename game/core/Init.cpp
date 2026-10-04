@@ -545,6 +545,14 @@ bool cInit::Init(tString asCommandLine)
 		grain.mfRate = mpConfig->GetFloat("Graphics","GrainRate",grain.mfRate);
 		grain.mfDispersion = mpConfig->GetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		pLowLevel->SetFilmGrain(grain);
+		cPlayerEffectSettings feedback;
+		feedback.mbImproved = mpConfig->GetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
+		feedback.mfAdaptationStrength = mpConfig->GetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
+		feedback.mfAdaptationTime = mpConfig->GetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
+		feedback.mfInjuryStrength = mpConfig->GetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
+		feedback.mfPanicStrength = mpConfig->GetFloat("Graphics", "PlayerPanicStrength", feedback.mfPanicStrength);
+		feedback.mfWhiteoutGlow = mpConfig->GetFloat("Graphics", "PlayerWhiteoutGlow", feedback.mfWhiteoutGlow);
+		pLowLevel->SetPlayerEffectSettings(feedback);
 	}
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", false));
@@ -1075,6 +1083,13 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","GrainHighlights",grain.mfHighlights);
 		mpConfig->SetFloat("Graphics","GrainRate",grain.mfRate);
 		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
+		const cPlayerEffectSettings &feedback = mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings();
+		mpConfig->SetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
+		mpConfig->SetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
+		mpConfig->SetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
+		mpConfig->SetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
+		mpConfig->SetFloat("Graphics", "PlayerPanicStrength", feedback.mfPanicStrength);
+		mpConfig->SetFloat("Graphics", "PlayerWhiteoutGlow", feedback.mfWhiteoutGlow);
 	}
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
 	mpConfig->GetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());

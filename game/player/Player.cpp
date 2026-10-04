@@ -1421,6 +1421,7 @@ void cPlayer::Reset()
 	STLMapDeleteAll(m_mapCollideCallbacks);
 	
 	//Helpers
+	mpDamage->Reset();
 	mpDeath->Reset();
 	mpFlashLight->Reset();
 	mpEarRing->Stop(true);
@@ -1440,6 +1441,24 @@ void cPlayer::Reset()
 
 void cPlayer::OnDraw()
 {
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	if(!mpGfxDrawer->GetSkipDrawing())
+	{
+		cPlayerEffectState state = pLowLevel->GetPlayerEffectState();
+		state.mfAdaptation = mpHidden->GetAdaptationAmount();
+		state.mfLowHealth = mpHealth->GetVisualAmount();
+		state.mfLowHealthVision = mpHealth->GetVisionAmount();
+		state.mfBloodSeed = mpDamage->GetBloodSeed();
+		if(mpDamage->GetType() == ePlayerDamageType_Ice)
+			state.mfIceHit = mpDamage->GetVisualAmount();
+		else
+			state.mfBloodHit = mpDamage->GetVisualAmount();
+		state.mfPanic = cMath::Max(mpHidden->GetPanicAmount(), mpFearFilter->GetVisualAmount());
+		state.mfPanicPulse = mpHidden->GetPanicPulse();
+		state.mfDeath = mpDeath->GetVisualAmount();
+		state.mfDeathBlack = mpDeath->GetBlackAmount();
+		pLowLevel->SetPlayerEffectState(state);
+	}
 	/////////////////////////////////
 	// Damage
 	mpDamage->Draw();

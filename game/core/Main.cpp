@@ -21,6 +21,7 @@
 #include "core/Init.h"
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
+#include "core/RefView.h"
 
 #include <SDL3/SDL.h>
 
@@ -44,7 +45,8 @@ int hplMain(const tString& asCommandLine)
 	pInit->Run();
 
 	bool bAutoRunFailed = (pInit->mpSmokeTest && pInit->mpSmokeTest->Failed()) ||
-						(pInit->mpRefShots && pInit->mpRefShots->Failed());
+		(pInit->mpRefShots && pInit->mpRefShots->Failed()) ||
+		(pInit->mpRefView && pInit->mpRefView->EffectsCaptureFailed());
 
 	pInit->Exit();
 

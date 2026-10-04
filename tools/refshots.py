@@ -5,6 +5,7 @@
 
   refshots.py capture OUT_DIR [--maps office,worm] [--size 1280x720]
                               [--set Graphics.Shadows=2 ...]
+  refshots.py effects OUT_DIR [--size 1280x720] [--build build-asan]
   refshots.py compare REF_DIR NEW_DIR [--diff-dir DIR]
 
 capture runs the game (OVERTURE_REFSHOTS) in a headless gamescope session
@@ -13,6 +14,10 @@ alone, and with OpenAL Soft's null audio backend, so nothing is heard. It
 saves one PNG per map, place and direction, one per 2D screen (2d-*.png),
 and hpl.log, to OUT_DIR. The graphics settings are fixed (see SETTINGS) so
 that two captures differ only by the build.
+
+effects captures Original and Improved player feedback in the effects lab,
+checks its live triggers, and verifies white/black endpoints and the neutral
+output. It uses the same isolated profile and headless session as capture.
 
 compare lists the frames that differ between two captures and exits with
 1 if any do. A frame counts as changed when more than --max-pixels pixels
@@ -138,8 +143,13 @@ def capture(args):
         # OpenAL Soft's null backend: sounds play, with the same timing,
         # but nothing is heard.
         env["ALSOFT_DRIVERS"] = "null"
-        env["OVERTURE_REFSHOTS"] = args.maps
-        env["OVERTURE_REFSHOTS_DIR"] = out
+        if args.command == "effects":
+            env.pop("OVERTURE_REFSHOTS", None)
+            env["OVERTURE_MAP"] = "effectslab:link01"
+            env["OVERTURE_EFFECTS_CAPTURE"] = out
+        else:
+            env["OVERTURE_REFSHOTS"] = args.maps
+            env["OVERTURE_REFSHOTS_DIR"] = out
         with open(os.path.join(out, "run.log"), "w") as log:
             ret = run_headless(exe, width, height, args.game_dir, env, log,
                                os.path.join(home, "exit_code"), args.timeout)
@@ -150,23 +160,93 @@ def capture(args):
     finally:
         shutil.rmtree(home, ignore_errors=True)
 
+    label = "EFFECTSHOTS:" if args.command == "effects" else "REFSHOTS:"
     lines = []
     if os.path.exists(os.path.join(out, "hpl.log")):
         with open(os.path.join(out, "hpl.log"), errors="replace") as f:
-            lines = [l.rstrip() for l in f if "REFSHOTS:" in l]
+            lines = [l.rstrip() for l in f if label in l]
     for l in lines:
         if "FAIL" in l or "done" in l:
             print(l)
     frames = len([f for f in os.listdir(out) if f.endswith(".png")])
     print("%d frames in %s" % (frames, out))
 
-    done = any("REFSHOTS: done" in l for l in lines)
+    done = any(label + " done" in l for l in lines)
     failed = any("FAIL" in l for l in lines)
     if ret != 0 or not done or failed:
         print("Capture failed (exit code %d), see %s/run.log and hpl.log"
               % (ret, out))
         return 1
+    if args.command == "effects":
+        return check_effects(out)
     return 0
+
+
+def check_effects(out):
+    """Check visible feedback, neutral output, and opaque endpoints."""
+    from PIL import Image, ImageChops, ImageStat
+
+    names = ["neutral", "adaptation", "low-health", "double-vision", "blood", "ice", "panic",
+             "flash", "save", "death", "underwater", "combined"]
+    expected = [mode + "-" + name + ".png"
+                for mode in ("original", "improved") for name in names]
+    expected += ["improved-flash-full.png", "improved-save-full.png",
+                 "improved-death-full.png", "improved-combined-zero.png",
+                 "improved-panic-trough.png", "improved-panic-peak.png",
+                 "improved-blood-seed-a.png", "improved-blood-seed-b.png",
+                 "improved-blood-seed-a-repeat.png", "actual-underwater.png",
+                 "improved-double-vision-trough.png", "improved-double-vision-peak.png",
+                 "actual-low-health.png", "actual-health-between-beats.png",
+                 "actual-adaptation.png", "effects-panel.png", "actual-save.png"]
+    missing = [name for name in expected if not os.path.isfile(os.path.join(out, name))]
+    if missing:
+        print("Effects check failed: missing " + ", ".join(missing))
+        return 1
+
+    def frame(name):
+        with Image.open(os.path.join(out, name + ".png")) as source:
+            return source.convert("RGB")
+
+    failures = []
+    neutral = frame("improved-neutral")
+    for name in ("original-neutral", "improved-combined-zero"):
+        diff = ImageChops.difference(neutral, frame(name))
+        if max(ImageStat.Stat(diff).mean) > 0.05:
+            failures.append(name + " changes the neutral picture")
+    for name in names[1:]:
+        diff = ImageChops.difference(neutral, frame("improved-" + name))
+        if max(ImageStat.Stat(diff).mean) < 0.1:
+            failures.append(name + " has no visible feedback")
+    for name in ("save", "underwater"):
+        diff = ImageChops.difference(frame("original-" + name), frame("improved-" + name))
+        if max(ImageStat.Stat(diff).mean) < 0.1:
+            failures.append(name + " does not show the improved treatment")
+    splashes = ImageChops.difference(frame("improved-blood-seed-a"), frame("improved-blood-seed-b"))
+    if max(ImageStat.Stat(splashes).mean) < 0.1:
+        failures.append("blood pattern does not change between hits")
+    repeat = ImageChops.difference(frame("improved-blood-seed-a"), frame("improved-blood-seed-a-repeat"))
+    if max(ImageStat.Stat(repeat).mean) > 0.05:
+        failures.append("blood pattern does not stay still for the same hit")
+    pulse = ImageChops.difference(frame("improved-panic-trough"), frame("improved-panic-peak"))
+    if max(ImageStat.Stat(pulse).mean) < 0.1:
+        failures.append("panic pulse does not change the picture")
+    for phase in ("trough", "peak"):
+        ghost = ImageChops.difference(neutral, frame("improved-double-vision-" + phase))
+        if max(ImageStat.Stat(ghost).mean) < 0.1:
+            failures.append("double vision disappears at the pulse " + phase)
+    vision_pulse = ImageChops.difference(frame("improved-double-vision-trough"), frame("improved-double-vision-peak"))
+    if max(ImageStat.Stat(vision_pulse).mean) < 0.1:
+        failures.append("double vision does not gently pulse")
+    for name in ("improved-flash-full", "improved-save-full"):
+        if min(lo for lo, hi in frame(name).getextrema()) < 254:
+            failures.append(name + " does not reach white")
+    if max(hi for lo, hi in frame("improved-death-full").getextrema()) > 1:
+        failures.append("death does not reach black")
+    for failure in failures:
+        print("Effects check failed: " + failure)
+    if not failures:
+        print("Effects pixels: neutral output, visible feedback and opaque endpoints passed")
+    return 1 if failures else 0
 
 
 def compare(args):
@@ -230,16 +310,21 @@ def main():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="command", required=True)
 
-    c = sub.add_parser("capture", help="run the game headless and save frames")
-    c.add_argument("out_dir")
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("out_dir")
+    common.add_argument("--size", default="1280x720")
+    common.add_argument("--set", action="append", default=[], metavar="SECTION.KEY=VALUE",
+                        help="override a setting, e.g. Graphics.Shadows=2")
+    common.add_argument("--build", default="build", help="build directory, default build")
+    common.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
+    common.add_argument("--timeout", type=int, default=1200, help="seconds")
+
+    c = sub.add_parser("capture", parents=[common], help="run the game headless and save frames")
     c.add_argument("--maps", default="1",
                    help="maps whose name contains one of these (comma list), default all")
-    c.add_argument("--size", default="1280x720")
-    c.add_argument("--set", action="append", default=[], metavar="SECTION.KEY=VALUE",
-                   help="override a setting, e.g. Graphics.Shadows=2")
-    c.add_argument("--build", default="build", help="build directory, default build")
-    c.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
-    c.add_argument("--timeout", type=int, default=1200, help="seconds")
+
+    sub.add_parser("effects", parents=[common],
+                   help="capture and check player feedback in the effects lab")
 
     d = sub.add_parser("compare", help="compare two captures")
     d.add_argument("ref_dir")
@@ -251,7 +336,7 @@ def main():
                    help="pixels over the tolerance that are ignored, default 64")
 
     args = p.parse_args()
-    sys.exit(capture(args) if args.command == "capture" else compare(args))
+    sys.exit(capture(args) if args.command in ("capture", "effects") else compare(args))
 
 
 if __name__ == "__main__":

@@ -61,8 +61,10 @@ public:
 	void SetOpen(bool abX);
 	bool IsOpen(){ return mbOpen; }
 	void ReleaseForDogTest();
+	bool EffectsCaptureFailed() const { return mbEffectsCaptureFailed; }
 
 	void Update(float afTimeStep) override;
+	void OnDraw() override;
 	void Reset() override;
 
 	/**
@@ -79,6 +81,13 @@ private:
 	void DrawMaps();
 	void DrawViews();
 	void DrawPlayer();
+	void DrawPlayerEffects();
+	void DrawEffectsLab();
+	void UpdatePlayerEffects(float afTimeStep);
+	cPlayerEffectState EffectPreviewState() const;
+	void DrawLegacyEffectPreview(const cPlayerEffectState &aState);
+	void CheckEffectsCapture(bool abCondition, const char *asMessage);
+	void UpdateEffectsChecks();
 	void DrawRenderer();
 	void DrawShadows();
 	void DrawAmbientOcclusion();
@@ -124,8 +133,47 @@ private:
 		bool mbFlashlight;
 		bool mbLamps;
 		cEffectSettings mEffects;
+		bool mbPlayerEffects;
 	};
 	cSavedLook mSavedLook;
+
+	enum eEffectPreview
+	{
+		ePreview_None,
+		ePreview_Adaptation,
+		ePreview_Health,
+		ePreview_DoubleVision,
+		ePreview_Blood,
+		ePreview_Ice,
+		ePreview_Panic,
+		ePreview_Flash,
+		ePreview_Save,
+		ePreview_Death,
+		ePreview_Underwater,
+		ePreview_Combined,
+		ePreview_Last
+	};
+	int mlEffectPreview = ePreview_None;
+	float mfEffectPreviewAmount = 0.75f;
+	float mfEffectPreviewClock = 0;
+	unsigned int mlEffectPreviewBloodSeed = 17;
+	bool mbEffectPreviewAnimate = true;
+	bool mbEffectTour = false;
+	bool mbEffectsLabFullPanel = false;
+	bool mbLegacyPreviewTrail = false;
+	int mlEffectAction = 0;
+	float mfEffectBlackFade = 0;
+	cGfxObject *mvLegacyPreviewGfx[9] = {};
+	// Headless captures use the same preview as the panel, at fixed amounts.
+	tString msEffectsCapture;
+	int mlEffectsCaptureFrame = 0;
+	int mlEffectsCaptureIndex = 0;
+	float mfEffectsCaptureHealth = -1;
+	float mfEffectsCapturePanicFov = 0;
+	float mfEffectsCaptureBloodSeed = 0;
+	int mlEffectsCheckFrame = 0;
+	bool mbEffectsCaptureFailed = false;
+	bool mbEffectsCaptureHealthGap = false;
 
 	cInit *mpInit;
 	bool mbOpen;

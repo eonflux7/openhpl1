@@ -141,6 +141,8 @@ public:
 	void Update(float afTimeStep);
 
 	void Draw();
+	float GetVisualAmount() const { return cMath::Clamp(mfGfxGlobalAlpha * mfGfxAlpha, 0.0f, 1.0f); }
+	float GetVisionAmount() const { return mfVisionAmount; }
 
 private:
 	cInit *mpInit;
@@ -150,6 +152,7 @@ private:
 	float mfGfxAlpha;
 	float mfGfxAlphaAdd;
 	float mfGfxGlobalAlpha;
+	float mfVisionAmount = 0;
 
 	cSoundEntry *mpSoundEntry;
 	float mfTerrorCheckCount;
@@ -234,12 +237,18 @@ public:
 	void Update(float afTimeStep);
 
 	void Draw();
+	void Reset();
+	float GetVisualAmount() const { return mbActive ? mfAlpha : 0.0f; }
+	float GetBloodSeed() const { return (float)mlBloodSeed; }
+	ePlayerDamageType GetType() const { return mType; }
 
 private:
 	bool mbActive;
 
 	float mfAlpha;
 	float mfAlphaAdd;
+	// Visual randomness must not consume the gameplay random sequence.
+	unsigned int mlBloodSeed = 17;
 
 	cVector2f mvHeadSwingAcc;
 	cVector2f mvHeadSwingSpeed;
@@ -272,6 +281,8 @@ public:
 	void Draw();
 
 	bool IsActive(){ return mbActive;}
+	float GetVisualAmount() const { return mbActive ? mfFadeAlpha : 0.0f; }
+	float GetBlackAmount() const { return mbActive ? mfBlackAlpha : 0.0f; }
 
 	float GetHeighAdd(){ return mfHeightAdd;}
 
@@ -513,6 +524,7 @@ public:
 
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
+	float GetVisualAmount() const { return mfAlpha / mfMaxAlpha; }
 
 private:
 	bool mbActive;
@@ -569,6 +581,10 @@ public:
 
 	bool InShadows();
 	bool IsHidden(){ return mbHidden;}
+	float GetAdaptationAmount() const { return mfAdaptation; }
+	float GetPanicPulse() const;
+	float GetFeedbackFOV(float afAdaptation, float afPanic, float afPulse) const;
+	float GetPanicAmount() const { return cMath::Clamp((mfEnemyTooCloseCount - 1.2f) / (mfEnemyTooCloseMax - 1.2f), 0.0f, 1.0f); }
 	void UnHide();
 
 	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
@@ -589,6 +605,8 @@ private:
 	iLight3D *mpLight;
 
 	float mfInShadowAlpha;
+	float mfAdaptation;
+	float mfFeedbackTime;
 	float mfInShadowPulse;
 	float mfInShadowPulseAdd;
 

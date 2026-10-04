@@ -103,6 +103,7 @@ namespace hpl {
 		 * DrawAll() throws away what has been queued instead of drawing it.
 		 */
 		void SetSkipDrawing(bool abX){ mbSkipDrawing = abX;}
+		bool GetSkipDrawing() const { return mbSkipDrawing; }
 
 		/**
 		 * Create Gfx object from file
