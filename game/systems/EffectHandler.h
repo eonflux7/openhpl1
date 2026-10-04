@@ -42,6 +42,7 @@ public:
 	bool IsActive(){ return mbActive;}
 
 	void SetColor(const cColor &aColor){mColor = aColor;}
+	const cColor &GetColor() const { return mColor; }
 
 private:
 	cInit *mpInit;
@@ -105,6 +106,8 @@ public:
 	void Update(float afTimeStep);
 	void OnDraw();
 	void Reset();
+	float GetVisualAmount() const { return mbActive ? mfFlashAlpha : 0.0f; }
+
 private:
 	void NormalSaveUpdate(float afTimeStep);
 	void AutoSaveUpdate(float afTimeStep);
@@ -181,6 +184,8 @@ public:
 	void Update(float afTimeStep);
 	void OnDraw();
 	void Reset();
+	float GetVisualAmount() const { return mbActive ? mfAlpha : 0.0f; }
+
 private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
@@ -242,6 +247,7 @@ public:
 	~cEffect_WaveGravity();
 
 	void SetActive(bool abX);
+	bool IsActive() const { return mbActive; }
 	//alDir: 0=Xaxis 1=Zaxis
 	void Setup(float afMaxAngle, float afSwingLength, float afGravitySize, int alDir);
 

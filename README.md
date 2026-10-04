@@ -86,6 +86,60 @@ The log records when each body wakes and comes to rest (time, distance, peak
 speed, joint angle or distance), bodies that never settle, and what the player
 grabs and releases. Both variables work with the original maps too.
 
+### Effects lab
+
+The build also generates a small room for player feedback:
+
+```
+OVERTURE_MAP=effectslab:link01 ./run.sh
+```
+
+Its effects panel opens automatically; F2 toggles it. Switch **Original / Improved**, pick
+a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
+while the preview runs. Previews cover night adaptation, low health, blood and
+ice hits, panic, white flashes, save-point haze, death, underwater and combined
+feedback. **Double vision only** shows the displaced outline without the red
+vignette; it is also included in **Low health**. **New splash** changes the blood preview's pattern. **Stop preview**
+returns to the real game effects.
+
+The dark alcove on the left triggers real adaptation: turn the flashlight
+off, crouch and stay still. The pool on the right triggers underwater feedback;
+the artefact ahead is a working save point. Live buttons trigger harmless hit
+animations, a flash, shake, ear ringing, scripted fear and a black fade. Health
+buttons exercise the real heartbeat and movement penalties. Focus blur, grain
+and boat rocking can also be tested. **Full debug panels** reveals the existing
+renderer controls. From other maps, use **Player > Player effects > Load effects
+lab** in F2.
+
+Improved player feedback combines a shader below the HUD with subtle FOV zoom:
+night adaptation lifts dark detail, adds a blue cast and a faint vignette;
+panic pulses the zoom and blur. Blood hits add soft splashes and droplets with
+a new pattern on each hit, alongside the red vignette. Low health has a stronger
+heartbeat vignette and gently pulsing vision doubling that remains visible
+between heartbeats and eases away after healing; ice hits use noisy frost.
+White flashes spread highlights into whiteout; save points add warm haze and
+glow without the strong zoom or image trail. Underwater adds a water-colored
+tint and light blur; death fades smoothly to black. Original retains the game's
+sprites, projection changes and image trails, including the original save and
+underwater effects. The flashlight beam and shader are unchanged. The treatment
+and five sliders are kept in `settings.cfg` under `Graphics` as
+`PlayerEffectsImproved`, `PlayerAdaptationStrength`, `PlayerAdaptationTime`,
+`PlayerInjuryStrength`, `PlayerPanicStrength` and `PlayerWhiteoutGlow`.
+
+To capture and check every preview plus live adaptation, injury, fear and
+underwater transitions in an isolated headless session:
+
+```
+tools/refshots.py effects /tmp/effects
+```
+
+It writes 41 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
+neutral output, varied but stable blood patterns and full white/black endpoints,
+and exits with 1 if a check fails. Live checks also exercise real save points,
+underwater triggers, double vision between heartbeats, healing and switching
+treatments during a save. It accepts
+the same `--size`, `--set` and `--build` options as reference captures.
+
 ### Reference images
 
 `tools/refshots.py` checks that a change leaves the rendering alone. It runs
@@ -187,6 +241,7 @@ saves.
 | `OVERTURE_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
 | `OVERTURE_REFSHOTS=1` | Save reference images of every map and quit (`OVERTURE_REFSHOTS=office,worm` for some maps) to `OVERTURE_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
+| `OVERTURE_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/refshots.py effects dir` for an isolated headless run |
 
 ## Requirements
 
@@ -207,8 +262,8 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders (from ScummVM's HPL1 port); SMAA.hlsl is the SMAA
            reference implementation
-testmap/   generator and level script for the physics test map
-tools/     refshots.py: reference images for renderer changes
+testmap/   generators and level scripts for physics and player effects labs
+tools/     refshots.py: reference images and player effects checks
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa
 run.sh     launcher
 ```

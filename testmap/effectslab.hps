@@ -1,0 +1,16 @@
+// Effects lab. F2 opens the effects previews and controls.
+void OnStart()
+{
+	SetAmbientColor(0.055f, 0.055f, 0.065f);
+	SetupLiquidArea("water", 60, 0.5f, 0.5f, "NormalWater", 0.5f, 0.65f, 1, true);
+	SetupSaveArea("savepoint", "", "", "");
+	GiveItem("flashlight", "item_flashlight.ent", -1);
+}
+
+void OnLoad()
+{
+	SetAmbientColor(0.055f, 0.055f, 0.065f);
+}
+
+void OnUpdate() {}
+void OnExit() {}

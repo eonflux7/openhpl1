@@ -93,6 +93,10 @@ namespace hpl {
 		const cEffectSettings& GetEffects() override{ return mEffects; }
 		void SetFilmGrain(const cFilmGrainSettings& aSettings) override{ mFilmGrain = aSettings; }
 		const cFilmGrainSettings& GetFilmGrain() override{ return mFilmGrain; }
+		void SetPlayerEffectSettings(const cPlayerEffectSettings &aSettings) override { mPlayerEffectSettings = aSettings; }
+		const cPlayerEffectSettings &GetPlayerEffectSettings() override { return mPlayerEffectSettings; }
+		void SetPlayerEffectState(const cPlayerEffectState &aState) override { mPlayerEffectState = aState; }
+		const cPlayerEffectState &GetPlayerEffectState() override { return mPlayerEffectState; }
 		void SetSmaa(const cSmaaSettings& aSettings) override{ mSmaa = aSettings; }
 		const cSmaaSettings& GetSmaa() override{ return mSmaa; }
 		void BeginScene() override;
@@ -465,6 +469,8 @@ namespace hpl {
 		cShadingSettings mShading;
 		cEffectSettings mEffects;
 		cFilmGrainSettings mFilmGrain;
+		cPlayerEffectSettings mPlayerEffectSettings;
+		cPlayerEffectState mPlayerEffectState;
 		//Seconds of rendering, as last given to SetFrameUniforms()
 		float mfFrameTime;
 		bool mbBlend;

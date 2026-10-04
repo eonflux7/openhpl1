@@ -312,6 +312,7 @@ public:
 	cPlayerNoiseFilter* GetNoiseFilter(){ return mpNoiseFilter;}
 
 	cPlayerFearFilter* GetFearFilter(){ return mpFearFilter;}
+	cPlayerDamage *GetDamage() { return mpDamage; }
 
 	cPlayerLookAt* GetLookAt(){ return mpLookAt;}
 

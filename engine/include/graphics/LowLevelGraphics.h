@@ -342,6 +342,40 @@ namespace hpl {
 		float mfDispersion = 0.5f;
 	};
 
+	/// Player feedback drawn over the scene, below the HUD. All amounts are 0..1.
+	class cPlayerEffectState
+	{
+	public:
+		float mfAdaptation = 0;
+		float mfLowHealth = 0;
+		/// Continuous low-health severity; independent of the heartbeat veil.
+		float mfLowHealthVision = 0;
+		float mfBloodHit = 0;
+		/// A new pattern for each impact, held still while it fades.
+		float mfBloodSeed = 17;
+		float mfIceHit = 0;
+		float mfPanic = 0;
+		float mfPanicPulse = 0;
+		float mfFlash = 0;
+		float mfDeath = 0;
+		float mfDeathBlack = 0;
+		float mfSave = 0;
+		float mfUnderwater = 0;
+		cColor mWaterColor = cColor(0.5f, 0.65f, 1.0f);
+	};
+
+	class cPlayerEffectSettings
+	{
+	public:
+		bool mbImproved = true;
+		float mfAdaptationStrength = 0.65f;
+		/// Seconds to reveal shadow detail; leaving darkness is faster.
+		float mfAdaptationTime = 2.0f;
+		float mfInjuryStrength = 0.8f;
+		float mfPanicStrength = 0.65f;
+		float mfWhiteoutGlow = 0.8f;
+	};
+
 	/// What SMAA takes for an edge between two pixels.
 	enum eSmaaEdges
 	{
@@ -592,6 +626,11 @@ namespace hpl {
 		 */
 		virtual void SetFilmGrain(const cFilmGrainSettings& aSettings)=0;
 		virtual const cFilmGrainSettings& GetFilmGrain()=0;
+		virtual void SetPlayerEffectSettings(const cPlayerEffectSettings &aSettings) = 0;
+		virtual const cPlayerEffectSettings &GetPlayerEffectSettings() = 0;
+		/// Cleared before OnDraw each frame, then filled by the game's effect owners.
+		virtual void SetPlayerEffectState(const cPlayerEffectState &aState) = 0;
+		virtual const cPlayerEffectState &GetPlayerEffectState() = 0;
 		/**
 		 * Anti-aliasing of the finished 3D scene; see cSmaaSettings.
 		 */

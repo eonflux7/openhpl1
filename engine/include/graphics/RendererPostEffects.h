@@ -229,6 +229,13 @@ namespace hpl {
 		 * \param afAmount 0.0 - 1.0 are valid
 		 */
 		void SetImageTrailAmount(float afAmount){mImageTrailData.mfAmount = afAmount;}
+		/// Player trails share the pass, but cannot switch off a scripted save trail.
+		void SetPlayerImageTrailActive(bool abX)
+		{
+			if(!mbPlayerImageTrailActive && abX) mImageTrailData.mbFirstPass = true;
+			mbPlayerImageTrailActive = abX;
+		}
+		void SetPlayerImageTrailAmount(float afAmount) { mfPlayerImageTrailAmount = afAmount; }
 
 		iTexture* GetScreenBuffer(int alNum){ return mpScreenBuffer[alNum];}
 
@@ -349,6 +356,8 @@ eturn false if nothing was drawn
 		iTexture* mpScreenBuffer[2];
 
 		cImageTrailEffect mImageTrailData;
+		bool mbPlayerImageTrailActive = false;
+		float mfPlayerImageTrailAmount = 0;
 
 		iGpuProgram *mpBlurVP;
 		iGpuProgram *mpBlur2dFP;
