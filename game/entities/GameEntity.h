@@ -273,6 +273,7 @@ public:
 	bool GetBreakMe(){ return mbBreakMe;}
 	
 	void Break(){ mbBreakMe = true;}
+	void DestroyMe(){ mbDestroyMe = true;}
 
     void SetCharBody(iCharacterBody *apCharBody){ mpCharBody = apCharBody;}
 	iCharacterBody* SetCharBody(){ return mpCharBody;}

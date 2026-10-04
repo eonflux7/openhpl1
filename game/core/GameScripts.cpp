@@ -858,7 +858,8 @@ static void __stdcall ReplaceEntity(std::string asName, std::string asBodyName,
 	}
 	else
 	{
-		iPhysicsBody *pBody = pEntity->GetBody(0);
+		//Overture's code declared a second pBody here and crashed; fixed in Black Plague
+		pBody = pEntity->GetBody(0);
 	}
 
 	cMatrixf mtxTransform = pBody->GetWorldMatrix();

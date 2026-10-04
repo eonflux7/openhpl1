@@ -1441,6 +1441,7 @@ void cMapHandler::Update(float afTimeStep)
 	//LogUpdate(" Entities!\n");
 	////////////////////////////
 	//Update entities.
+	const bool bOverture = cInit::IsOverture();
 	tGameEntityMapIt GIt = m_mapGameEntities.begin();
 	for(; GIt != m_mapGameEntities.end();)
 	{
@@ -1453,7 +1454,8 @@ void cMapHandler::Update(float afTimeStep)
 			pEntity->OnUpdate(afTimeStep);
 		}
 
-		if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+		// Black Plague destroys entities only after all have been updated
+		if(bOverture && (pEntity->GetDestroyMe() || pEntity->GetBreakMe()))
 		{
 			//LogUpdate("    destroying\n");
 			if(pEntity->GetBreakMe()) pEntity->BreakAction();
@@ -1468,9 +1470,25 @@ void cMapHandler::Update(float afTimeStep)
 			//										pLowLevelSystem->GetTime() - lTime);
 			++GIt;
 		}
+	}
 
-		
+	if(bOverture==false)
+	{
+		for(GIt = m_mapGameEntities.begin(); GIt != m_mapGameEntities.end();)
+		{
+			iGameEntity *pEntity = GIt->second;
+			if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+			{
+				if(pEntity->GetBreakMe()) pEntity->BreakAction();
 
+				m_mapGameEntities.erase(GIt++);
+				hplDelete( pEntity );
+			}
+			else
+			{
+				++GIt;
+			}
+		}
 	}
 
 	////////////////////////////
@@ -1678,6 +1696,12 @@ void cMapHandler::RemoveGameItem(cGameItem *apItem)
 
 //-----------------------------------------------------------------------
 
+// Black Plague finds entities by name whatever the case of the letters
+static tString EntityKey(const tString &asName)
+{
+	return cInit::IsOverture() ? asName : cString::ToLowerCase(asName);
+}
+
 void cMapHandler::AddGameEntity(iGameEntity *apEntity)
 {
 	iGameEntity *pSameNameEntity = GetGameEntity(apEntity->GetName(),false);
@@ -1690,11 +1714,19 @@ void cMapHandler::AddGameEntity(iGameEntity *apEntity)
 	}
 
 	mpLatestEntity = apEntity;
-	m_mapGameEntities.insert(tGameEntityMap::value_type(apEntity->GetName(),apEntity));
+	m_mapGameEntities.insert(tGameEntityMap::value_type(EntityKey(apEntity->GetName()),apEntity));
 }
 
 void cMapHandler::RemoveGameEntity(iGameEntity *apEntity)
 {
+	// Black Plague: switched off now, destroyed after the entities' update
+	if(cInit::IsOverture()==false)
+	{
+		apEntity->SetActive(false);
+		apEntity->DestroyMe();
+		return;
+	}
+
 	m_mapGameEntities.erase(apEntity->GetName());
 
 	//If the entity is an enemy remove that aswel
@@ -1716,7 +1748,7 @@ void cMapHandler::RemoveGameEntity(iGameEntity *apEntity)
 
 iGameEntity* cMapHandler::GetGameEntity(const tString &asName, bool abErrorMessage)
 {
-	tGameEntityMapIt it = m_mapGameEntities.find(asName);
+	tGameEntityMapIt it = m_mapGameEntities.find(EntityKey(asName));
 	if(it == m_mapGameEntities.end())
 	{
 		if(abErrorMessage) Error("Couldn't find game entity '%s'\n",asName.c_str());

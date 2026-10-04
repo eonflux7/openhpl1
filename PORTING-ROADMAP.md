@@ -219,6 +219,11 @@ terminal in its level, with sound.
         them) and its sound environments are kept, both in save games and
         when the player leaves a map and comes back (they were lost on
         coming back before). Tried headless on level 4
+  - [x] `cMapHandler`: entities found by name whatever the case; one
+        replaced by `ReplaceEntity` is switched off at once and destroyed
+        after all entities have been updated. `ReplaceEntity` without a
+        body name crashed (Overture's code; Black Plague fixed it): fixed
+        for all three games. Tried headless on level 2's thermostat
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,
