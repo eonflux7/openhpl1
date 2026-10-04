@@ -1245,7 +1245,9 @@ void cInventory::AddItem(cGameItem *apGameItem)
 			}
 		}
 
-		if(pFoundItem)
+		//Black Plague: the item's type has a say first, else it is added as a new item
+		if(pFoundItem && (cInit::IsOverture() ||
+			GetItemType(pFoundItem->GetItemType())->OnPickUp(pFoundItem,true)))
 		{
 			pFoundItem->AddCount(apGameItem->GetCount());
 			CheckPickupCallback(apGameItem->GetName());

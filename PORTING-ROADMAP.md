@@ -232,6 +232,13 @@ terminal in its level, with sound.
         an enemy close by only frightens the player more, it no longer
         drives him out of hiding and shows him to the enemies. Tried
         headless: the pulse and gasps (under water forced), not the rest
+  - [x] Enemies: the spider's attack and the worm within 1.5 m of the
+        player run the attack callback (`SpiderAttack01`, `VaporizeWorm`
+        in Black Plague's scripts; they never ran before). Inventory: an
+        item added to a stack asks its type first, so a second collectable
+        is counted for the statistics. Checked only
+  - [x] Seen to be done already or only compiler changes: links, swing
+        doors, the effect handler, the melee weapon (haptics gone)
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,

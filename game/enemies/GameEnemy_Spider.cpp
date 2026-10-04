@@ -401,6 +401,13 @@ void cGameEnemyState_Spider_Attack::OnEnterState(iGameEnemyState *apPrevState)
 
 	mfDamageTimer = mpEnemySpider->mfAttackDamageTime;
 	mbAttacked = false;
+
+	//Black Plague: the script hears of the attack
+	if(mpEnemy->GetOnAttackCallback() != "")
+	{
+		tString sCommand = mpEnemy->GetOnAttackCallback() + "(\""+mpEnemy->GetName()+"\")";
+		mpInit->RunScriptCommand(sCommand);
+	}
 }
 
 //-----------------------------------------------------------------------

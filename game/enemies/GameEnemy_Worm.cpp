@@ -260,6 +260,15 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mfSoundCount -= afTimeStep;
 	}
 
+	//////////////////////////////
+	//Black Plague: the script hears of the player being in reach
+	if(	mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < 1.5f &&
+		mpEnemy->GetOnAttackCallback() != "")
+	{
+		tString sCommand = mpEnemy->GetOnAttackCallback() + "(\""+mpEnemy->GetName()+"\")";
+		mpInit->RunScriptCommand(sCommand);
+	}
+
 
 	//////////////////////////////
 	//Attack sound count
