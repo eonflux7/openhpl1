@@ -890,7 +890,10 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 	if(mbFreePlayerPath || (mbFoundNoPath && mpMover->IsMoving()==false))
 	{
 		mpMover->MoveDirectToPos(mpPlayer->GetCharacterBody()->GetFeetPosition(),afTimeStep);
-		if(mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < mpEnemyDog->mfAttackDistance)
+		// A nearby player behind a door must not trigger repeated lunges that
+		// reset the stuck timer before the existing door-breaking check runs.
+		if(mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < mpEnemyDog->mfAttackDistance &&
+			mpInit->mpAttackHandler->HasFreePathToPlayer(mpMover->GetCharBody()->GetPosition()))
 		{
 			float fHeight = mpMover->GetCharBody()->GetPosition().y -
 							mpPlayer->GetCharacterBody()->GetPosition().y;
@@ -1059,7 +1062,8 @@ void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 		// Keep the original attack selection/range, but do not use a hidden
 		// player's current position to aim or decide when to lunge.
 		if(mpEnemy->CanSeePlayer() &&
-			mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < mpEnemyDog->mfAttackDistance)
+			mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < mpEnemyDog->mfAttackDistance &&
+			mpInit->mpAttackHandler->HasFreePathToPlayer(mpMover->GetCharBody()->GetPosition()))
 		{
 			float fHeight = mpMover->GetCharBody()->GetPosition().y -
 				mpPlayer->GetCharacterBody()->GetPosition().y;

@@ -10,6 +10,7 @@
 #define private public
 #define protected public
 #include "enemies/GameEnemy_Dog.h"
+#include "systems/AttackHandler.h"
 #undef protected
 #undef private
 
@@ -405,6 +406,99 @@ int RunDogArenaRegressions(cInit *init)
                 iGameEntity *door=init->mpMapHandler->GetGameEntity("testdoor",false);
                 check(door && door->GetType()==eGameEntityType_SwingDoor,"original breakable door loads");
                 check(!mover->FreeDirectPathToPos(target),"door blocks direct pursuit");
+                check(door && door->GetHealth()>0 && door->GetToughness()<=dog->mlBreakDoorStrength,
+                    "door fixture has authored breakable health and toughness");
+                auto *world=init->mpGame->GetScene()->GetWorld3D();
+                auto *player=init->mpPlayer->GetCharacterBody();
+                auto *body=mover->GetCharBody();
+                body->SetFeetPosition(cVector3f(0,.05f,9.25f));
+                body->SetYaw(cMath::ToRad(180));
+                player->SetFeetPosition(cVector3f(0,.05f,10.65f));
+                bool doorwayCovered=true;
+                for(float x:{-.35f,0.0f,.35f}) {
+                    body->SetFeetPosition(cVector3f(x,.05f,9.25f));
+                    player->SetFeetPosition(cVector3f(x,.05f,10.65f));
+                    doorwayCovered &= !init->mpAttackHandler->HasFreePathToPlayer(body->GetPosition());
+                }
+                check(doorwayCovered,"closed door spans the doorway rather than standing edge-on");
+                body->SetFeetPosition(cVector3f(0,.05f,9.25f));
+                player->SetFeetPosition(cVector3f(0,.05f,10.65f));
+                init->mpPlayer->SetGodMode(false);
+                init->mpPlayer->SetHealth(100);
+                player->SetForce(0);
+                auto strike=[&](eAttackTargetFlag flags,float damage,int strength) {
+                    cMatrixf offset=cMath::MatrixRotate(cVector3f(0,body->GetYaw(),0),eEulerRotationOrder_XYZ);
+                    offset.SetTranslation(body->GetPosition()+body->GetForward()*dog->mfAttackDamageRange);
+                    return init->mpAttackHandler->CreateShapeAttack(dog->GetAttackShape(),offset,
+                        body->GetPosition(),damage,3,28,2,9,strength,flags,nullptr);
+                };
+                // A previous line attack can have skipped the held door panel.
+                // Shape attacks must supply their own skip body, not reuse it.
+                iPhysicsBody *panel=nullptr;
+                for(int j=0;door && j<door->GetBodyNum();++j)
+                    if(door->GetBody(j)->GetMass()>0) panel=door->GetBody(j);
+                init->mpAttackHandler->CreateLineAttack(body->GetPosition(),player->GetPosition(),
+                    0,eAttackTargetFlag_Player,panel);
+                const bool blockedHit=strike(eAttackTargetFlag_Player,10,dog->mlAttackStrength);
+                check(Near(init->mpPlayer->GetHealth(),100),"closed door blocks bite damage after a skipped-body line attack");
+                check(Near(player->GetForce(),cVector3f(0)),"closed door blocks bite knockback");
+                check(!blockedHit,"blocked bite is not reported as a player hit");
+                if(panel) panel->SetActive(false);
+                iPhysicsWorld *physics=world->GetPhysicsWorld();
+                iPhysicsBody *wall=physics->CreateBody("dogtest_attack_wall",
+                    physics->CreateBoxShape(cVector3f(2,2,.15f),nullptr));
+                wall->SetMatrix(cMath::MatrixTranslate(cVector3f(0,1,10)));
+                init->mpPlayer->SetHealth(100);
+                player->SetForce(0);
+                const bool wallHit=strike(eAttackTargetFlag_Player,10,dog->mlAttackStrength);
+                check(!wallHit && Near(init->mpPlayer->GetHealth(),100) && Near(player->GetForce(),cVector3f(0)),
+                    "solid wall blocks bite damage, knockback and hit feedback");
+                physics->DestroyBody(wall);
+                const bool clearHit=strike(eAttackTargetFlag_Player,10,dog->mlAttackStrength);
+                check(clearHit && init->mpPlayer->GetHealth()<100 && player->GetForce().Length()>0,
+                    "unobstructed bite still damages and pushes the player");
+                if(panel) panel->SetActive(true);
+                init->mpPlayer->SetHealth(100);
+                player->SetForce(0);
+                if(door && door->GetHealth()>0) {
+                    door->SetHealth(1);
+                    strike(eAttackTargetFlag_Player|eAttackTargetFlag_Bodies,25,dog->mlBreakDoorStrength);
+                    check(door->GetBreakMe(),"breaking strike destroys the original door");
+                    check(Near(init->mpPlayer->GetHealth(),100) && Near(player->GetForce(),cVector3f(0)),
+                        "door protects player for the strike that breaks it");
+                }
+                // Run real physics, animation and AI ticks from the authored
+                // starting positions: a route check alone cannot prove breaking.
+                for(float playerZ:{17.0f,10.65f}) {
+                    arena->ResetStation(i);
+                    dog=arena->GetDog(); mover=dog->GetMover(); body=mover->GetCharBody();
+                    player->SetFeetPosition(cVector3f(0,.05f,playerZ));
+                    init->mpPlayer->SetGodMode(false);
+                    player->SetForce(0);
+                    dog->SetUsesTriggers(true);
+                    dog->ShowPlayer(player->GetFeetPosition());
+                    door=init->mpMapHandler->GetGameEntity("testdoor",false);
+                    const float originalHealth=door?door->GetHealth():0;
+                    bool enteredBreak=false, damagedDoor=false, brokenDoor=false;
+                    const float dt=1.0f/60;
+                    for(int tick=0;tick<1800;++tick) {
+                        world->Update(dt);
+                        init->mpMapHandler->Update(dt);
+                        enteredBreak |= dog->GetCurrentStateId()==STATE_BREAKDOOR;
+                        door=init->mpMapHandler->GetGameEntity("testdoor",false);
+                        damagedDoor |= originalHealth>0 && (!door || door->GetHealth()<originalHealth);
+                        brokenDoor |= !door || door->GetBreakMe();
+                        if(tick%300==0) Log("DOGARENA: door pursuit %s playerZ %.2f tick %d state %d feet %s stuck %.2f health %.1f\n",
+                            improved?"Improved":"Original",playerZ,tick,dog->GetCurrentStateId(),body->GetFeetPosition().ToString().c_str(),
+                            mover->GetStuckCounter(),door?door->GetHealth():-1);
+                        if(brokenDoor) break;
+                    }
+                    check(enteredBreak,"natural pursuit reaches the door-breaking state");
+                    check(damagedDoor,"natural door strikes reduce authored health");
+                    check(brokenDoor && world->GetMeshEntity("testdoor_broken"),"natural pursuit breaks the door and creates original debris");
+                    check(Near(init->mpPlayer->GetHealth(),100),"player behind the door stays unharmed while it is broken");
+                }
+                init->mpPlayer->SetGodMode(true);
             }
             if(i==5) {
                 dog->ChangeState(STATE_KNOCKDOWN);

@@ -21,7 +21,7 @@ public:
     size_t GetStationCount() const { return mvStations.size(); }
     cGameEnemy_Dog *GetDog() const;
 private:
-    struct cProp { tString msName, msFile; cVector3f mvPosition; bool mbLocked; };
+    struct cProp { tString msName, msFile; cVector3f mvPosition, mvRotation; bool mbLocked; };
     struct cStation {
         tString msName, msLabel, msInstructions;
         tStringVec mvPatrol;

@@ -108,9 +108,16 @@ def build(out):
                                ('smallcrate','modern_mine_woodcrate_small.ent',(-3,-5),.4)):
                 ET.SubElement(station,'Prop',Name=n,File=file,Position=fmt(pos(v,y)))
         if name=='door':
-            wall(cx-10.8,cz-.2,cx-.8,cz+.2)
-            wall(cx+.8,cz-.2,cx+10.8,cz+.2)
-            ET.SubElement(station,'Prop',Name='testdoor',File='door_oldwood.ent',Position=fmt(pos((0,0),1.06)),Locked='true')
+            wall(cx-10.8,cz-.2,cx-.5,cz+.2)
+            wall(cx+.5,cz-.2,cx+10.8,cz+.2)
+            m.box((cx-.5,1.88,cz-.2),(cx+.5,4.5,cz+.2),'testmap_wall')
+            # This original door lies along local Z, with an offset collider.
+            ET.SubElement(station,'Prop',Name='testdoor',File='door_mine_shaft.ent',
+                          Position=fmt(pos((-.056412,0),.94)),Rotation='0 90 0',Locked='true')
+            # The coarse grid's conservative clearance excludes the narrow
+            # doorway, which is nevertheless wide enough for the original Dog.
+            for i,z in enumerate((-1.5,0,1.5)):
+                m.nodes.append(node('_node_ground_doorway'+str(i),pos((0,z))))
         if name=='attack':
             # Optional low step, outside the direct attack lane.
             m.box((cx+4,0,cz+1),(cx+8,.3,cz+4),'testmap_prop')

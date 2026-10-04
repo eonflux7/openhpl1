@@ -18,7 +18,8 @@ the short post-sight-loss position refresh, blind forward search, legacy
 blocked-route fallback, nearby-node sound targeting, and idle thresholds
 during hunting. Improved enables the observation, search and navigation
 changes below, including the authored hunt thresholds. Both modes retain
-shared animation and stability fixes, including corrected door-impact timing;
+shared animation and stability fixes, including corrected door-impact timing
+and blocked-attack checks;
 Original is a comparison of decision behaviour, not a bit-for-bit legacy build.
 This setting currently applies to Dogs only.
 
@@ -43,7 +44,7 @@ The map is also available in the usual F2 map list.
 | `hide` | A clear sight lane, central cover and a second corner for hiding and last-position search |
 | `sound` | Occluding cover and two real, hearable original wood-impact sound lures |
 | `props` | Original heavy and small pushable crates, a narrow route and a wide detour |
-| `door` | Original locked breakable door; reveal your position once to seed a pursuit |
+| `door` | Original locked mine-shaft door with authored health, toughness and debris; reveal your position once to seed a pursuit |
 | `attack` | Standing/crouched jump attacks, an optional low step, and real ragdoll/getting-up via Knock down |
 
 **Reveal player position once** deliberately supplies one known position for
@@ -98,7 +99,14 @@ The door-hit countdown now advances once per tick, matching the authored
 `BreakDoorDamageTime` (0.7 seconds for the standard Dog), instead of effectively
 halving it. Jump attack timing and damage values remain unchanged.
 
-These shared playback, perception, state-lookup, turning, and stuck-counter
+Both Dog AI modes check for a clear line to the player before lunging. This
+lets the existing stuck/door-breaking logic run when the player stands just
+behind a closed door. Shared shape attacks check occlusion before damaging
+any bodies, supply their own skipped body, and block player damage, knockback
+and hit feedback together. A door also shields the player from the strike
+that breaks it; subsequent attacks through the open doorway work normally.
+
+These shared playback, perception, attack, state-lookup, turning, and stuck-counter
 fixes also benefit other enemy types. Last-observation pursuit, the new search,
 corner lookahead, and failed-route stopping are enabled for Dogs.
 
@@ -141,6 +149,12 @@ The arena checks all six stations under both AI modes: original entities and
 clips, sight-memory policy, thresholds, patrol reachability, cover and crate
 detours, sound-source positions, doors, knockdown/reset and switching an
 already spawned Dog. The arena's authored graph also survives smoke save/reload.
+Door tests run real physics, animation and AI ticks in both modes, with the
+player nearby and farther away. They require the Dog to enter BreakDoor,
+damage the authored door and create its original debris without hurting the
+player behind it. Separate strikes verify closed-door and solid-wall
+protection, stale skipped-body state, the breaking strike, and an unobstructed
+bite's damage and knockback.
 
 Leak detection is disabled for graphics-driver teardown. The runner suppresses
 only AngelScript's existing `nonnull-attribute` warning in `as_string.cpp`

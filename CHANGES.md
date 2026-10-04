@@ -1483,6 +1483,19 @@ reference images are as before.
 - Arena checks exercise both AI modes against authored navigation, original
   props and sound sources, including save/reload and existing-Dog switching.
 
+## Closed-door Dog attacks
+
+- The arena uses the original mine-shaft door, whose authored health,
+  toughness and debris allow the Dog to break it. The previous old-wood
+  fixture had no breakable health setup.
+- Both Dog AI modes require a clear attack line before lunging, allowing
+  door-breaking to start when the player stands immediately behind a door.
+- Shared shape attacks block damage, knockback and player-hit feedback
+  together, reset skipped-body state and check occlusion before damaging
+  obstacles. The strike that breaks a door cannot also hit the player behind it.
+- Regressions exercise natural door-breaking in both modes, nearby and distant
+  players, solid walls and unobstructed bites using the original assets.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

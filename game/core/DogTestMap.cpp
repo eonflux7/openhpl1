@@ -45,6 +45,7 @@ bool cDogTestMap::LoadStations()
             station.mvProps.push_back({cString::ToString(p->Attribute("Name"),""),
                 cString::ToString(p->Attribute("File"),""),
                 cString::ToVector3f(p->Attribute("Position"),0),
+                cMath::Vector3ToRad(cString::ToVector3f(p->Attribute("Rotation"),0)),
                 cString::ToBool(p->Attribute("Locked"),false)});
         }
         for(TiXmlElement *p=e->FirstChildElement("Lure");p;p=p->NextSiblingElement("Lure"))
@@ -135,7 +136,9 @@ void cDogTestMap::ResetStation(size_t index, bool movePlayer)
     mlStation=index;
     const cStation &station=mvStations[index];
     for(const cProp &prop:station.mvProps) {
-        world->CreateEntity(prop.msName,cMath::MatrixTranslate(prop.mvPosition),prop.msFile,true);
+        cMatrixf transform=cMath::MatrixRotate(prop.mvRotation,eEulerRotationOrder_XYZ);
+        transform.SetTranslation(prop.mvPosition);
+        world->CreateEntity(prop.msName,transform,prop.msFile,true);
         iGameEntity *entity=mpInit->mpMapHandler->GetGameEntity(prop.msName,false);
         if(entity) {
             entity->OnWorldLoad();
