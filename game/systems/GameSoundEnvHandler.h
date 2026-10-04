@@ -24,6 +24,7 @@
 using namespace hpl;
 
 class cInit;
+class cSavedWorld;
 
 //////////////////////////////////////////////////////////////////////////
 // Black Plague: the reverb (EFX sound environment, soundenvs/*.snv) of the
@@ -55,6 +56,9 @@ public:
 
 	void OnWorldLoad();
 	void OnWorldExit();
+
+	void AddSaveData(cSavedWorld *apSavedWorld);
+	void LoadSaveData(cSavedWorld *apSavedWorld);
 
 	/**
 	 * afFadeTime: seconds to fade into it from the one before

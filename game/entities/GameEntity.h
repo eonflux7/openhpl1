@@ -98,6 +98,19 @@ public:
 
 	cMatrixf m_mtxTransform;
 
+	//Black Plague: where the mesh is now, and a move under way. Saves made
+	//before have none of these and leave the mesh where the map put it.
+	bool mbHasMeshTransform = false;
+	cMatrixf m_mtxMeshTransform;
+
+	cVector3f mvMoveGoal = 0;
+	float mfMoveAcceleration = 0;
+	float mfMoveSpeed = 0;
+	float mfMoveMaxSpeed = 0;
+	float mfMoveSlowDownDist = 0;
+	bool mbMoving = false;
+	tString msMoveCallback;
+
 	//Engine types
 	cContainerVec<cEngineBody_SaveData> mvBodies;
 	cContainerVec<cEnginePS_SaveData> mvPS;

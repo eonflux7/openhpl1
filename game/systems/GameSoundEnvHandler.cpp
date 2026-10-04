@@ -20,6 +20,7 @@
 #include "systems/GameSoundEnvHandler.h"
 
 #include "core/Init.h"
+#include "core/SaveHandler.h"
 #include "player/Player.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -218,6 +219,48 @@ void cGameSoundEnvHandler::SetDefaultSoundEnv(iSoundEnvironment *apSoundEnv, flo
 {
 	mpDefaultEnv = apSoundEnv;
 	mfDefaultFadeTime = afFadeTime;
+}
+
+//-----------------------------------------------------------------------
+
+void cGameSoundEnvHandler::AddSaveData(cSavedWorld *apSavedWorld)
+{
+	apSavedWorld->msDefaultSoundEnv = mpDefaultEnv ? mpDefaultEnv->GetFileName() : "";
+	apSavedWorld->mfDefaultSoundEnvFadeTime = mfDefaultFadeTime;
+
+	apSavedWorld->mlstSoundEnvs.Clear();
+	for(cSectorSoundEnv *pSectorEnv : mlstSectorEnvs)
+	{
+		cSaveWorldSoundEnv savedEnv;
+		savedEnv.msSector = pSectorEnv->mpSector ? pSectorEnv->mpSector->GetId() : "";
+		savedEnv.msSoundEnv = pSectorEnv->mpSoundEnv ? pSectorEnv->mpSoundEnv->GetFileName() : "";
+		savedEnv.mfFadeTime = pSectorEnv->mfFadeTime;
+		savedEnv.mlPrio = pSectorEnv->mlPrio;
+		apSavedWorld->mlstSoundEnvs.Add(savedEnv);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cGameSoundEnvHandler::LoadSaveData(cSavedWorld *apSavedWorld)
+{
+	cPortalContainer *pContainer = mpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer();
+
+	mpDefaultEnv = apSavedWorld->msDefaultSoundEnv=="" ? nullptr : GetSoundEnv(apSavedWorld->msDefaultSoundEnv);
+	mfDefaultFadeTime = apSavedWorld->mfDefaultSoundEnvFadeTime;
+
+	cContainerListIterator<cSaveWorldSoundEnv> it = apSavedWorld->mlstSoundEnvs.GetIterator();
+	while(it.HasNext())
+	{
+		cSaveWorldSoundEnv &savedEnv = it.Next();
+
+		cSectorSoundEnv *pSectorEnv = hplNew( cSectorSoundEnv, () );
+		pSectorEnv->mpSoundEnv = savedEnv.msSoundEnv=="" ? nullptr : GetSoundEnv(savedEnv.msSoundEnv);
+		pSectorEnv->mpSector = savedEnv.msSector=="" ? nullptr : pContainer->GetSector(savedEnv.msSector);
+		pSectorEnv->mfFadeTime = savedEnv.mfFadeTime;
+		pSectorEnv->mlPrio = savedEnv.mlPrio;
+		mlstSectorEnvs.push_back(pSectorEnv);
+	}
 }
 
 //-----------------------------------------------------------------------

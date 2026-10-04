@@ -275,6 +275,37 @@ public:
 //---------------------------------------------
 
 
+//Black Plague: what the scripts change in sectors and portals
+class cSaveWorldPortal : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldPortal)
+public:
+	int mlId;
+	bool mbActive;
+};
+
+class cSaveWorldSector : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldSector)
+public:
+	tString msId;
+	cColor mAmbient;
+	cContainerList<cSaveWorldPortal> mlstPortals;
+};
+
+//Black Plague: a sound environment linked to a sector
+class cSaveWorldSoundEnv : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldSoundEnv)
+public:
+	tString msSector;
+	tString msSoundEnv;
+	float mfFadeTime;
+	int mlPrio;
+};
+
+//---------------------------------------------
+
 class cSavedWorld  : public iSerializable
 {
 	kSerializableClassInit(cSavedWorld)
@@ -325,6 +356,13 @@ public:
 	cContainerList<cEngineSound_SaveData> mlstSounds;
 
 	cContainerList<cEngineJoint_SaveData> mlstJoints;
+
+	//Black Plague
+	cContainerList<cSaveWorldSector> mlstSectors;
+
+	tString msDefaultSoundEnv;
+	float mfDefaultSoundEnvFadeTime = 0;
+	cContainerList<cSaveWorldSoundEnv> mlstSoundEnvs;
 
 	bool PSExists(cParticleSystem3D *apPS);
 	bool BeamExists(cBeam *apPS);

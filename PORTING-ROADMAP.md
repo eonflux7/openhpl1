@@ -60,7 +60,9 @@ What gates progress from one room and map to the next.
 - [x] Moving things: `MoveEntityToArea` (`iGameEntity::MoveToPosition`),
       `TeleportEntityToArea`, `TeleportBodyToArea`, `TeleportPlayerToArea`,
       `CreateEntityAtArea`. Tried headless on the sewer's water and a crate
-  - [ ] a move under way is not kept in a save game
+  - [x] a move under way is kept in a save game (and where a mesh without
+        bodies was moved to). Tried headless on the tutorial's shelf: saved
+        half-way, loaded, it went on and called back on arriving
 - [x] Collision checks: `CheckBodyCollision`, `CheckEntityBodyCollision`,
       `CheckGameEntityCollision`
 - [x] Stick areas: `AttachBodyToStickArea`, `DetachBodyFromStickArea`
@@ -110,8 +112,8 @@ sounds, the throat grab, doors, the flashlight.
       movable counted as a door to break, deacceleration set, and
       `PlayEnemyAnim`, `SetEnemyAnimOverCallback`, `SetEnemyHuntCallback`,
       `SetEnemyPatrolOverCallback`, `SetEnemyStopAtLastPatrolNode`
-  - [ ] `iGameEntity::SetActive` in the binary also takes an object out of
-        the player's hands when it is switched off; not written
+  - [x] `iGameEntity::SetActive` in the binary also takes an object out of
+        the player's hands when it is switched off
 - [x] Security cameras (`GameCamera`): `SetupSecurityCamera`,
       `SetSecurityCameraAlerted`. Checked only (Requiem level 2 takes the
       calls); **to play-test**
@@ -207,7 +209,16 @@ terminal in its level, with sound.
       (`cSaveHandler::AutoLoadLatestAutoOrSpot`) as in Requiem
 - [ ] The rest of the 384 functions of Overture's classes that changed size
       in Black Plague (player, saves, doors, radio, inventory): go through
-      them class by class. Most menu widgets only shrank with the compiler
+      them class by class. Most menu widgets only shrank with the compiler.
+      The list, by class: `build/porting/step6/changed.txt`
+  - [x] `iGameEntity`: the move and the mesh's place saved; switched off,
+        it is taken out of the player's hands; particle systems already
+        gone are not killed again. The rest only changed with the compiler
+  - [x] `cSaveHandler`: a map's sectors (ambient colour, which portals are
+        open, as `SetSectorProperties` and `SetSectorPortalActive` leave
+        them) and its sound environments are kept, both in save games and
+        when the player leaves a map and comes back (they were lost on
+        coming back before). Tried headless on level 4
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,

@@ -169,7 +169,8 @@ iGameEntity::~iGameEntity()
 		for(size_t i=0; i<mvLights.size(); ++i) 
 			pWorld->DestroyLight(mvLights[i]);
 		for(size_t i=0; i<mvParticleSystems.size(); ++i) 
-			if(mvParticleSystems[i]) mvParticleSystems[i]->Kill();
+			if(mvParticleSystems[i] && pWorld->ParticleSystemExists(mvParticleSystems[i]))
+				mvParticleSystems[i]->Kill();
 		for(size_t i=0; i<mvBillboards.size(); ++i) 
 			pWorld->DestroyBillboard(mvBillboards[i]);
 		for(size_t i=0; i<mvBeams.size(); ++i) 
@@ -233,6 +234,24 @@ void iGameEntity::SetActive(bool abX)
 	if(mbActive == abX) return;
 
 	mbActive =abX;
+
+	//Black Plague: what the player holds, pushes or moves is let go of first
+	if(mbActive==false && cInit::IsOverture()==false)
+	{
+		cPlayer *pPlayer = mpInit->mpPlayer;
+		ePlayerState state = pPlayer->GetState();
+		if(state == ePlayerState_Grab || state == ePlayerState_Move || state == ePlayerState_Push)
+		{
+			for(size_t i=0; i<mvBodies.size(); ++i)
+			{
+				if(mvBodies[i] == pPlayer->GetPushBody())
+				{
+					pPlayer->ChangeState(ePlayerState_Normal);
+					break;
+				}
+			}
+		}
+	}
 
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
@@ -1065,6 +1084,16 @@ kSerializeVar(mbHasBeenExamined,eSerializeType_Bool)
 kSerializeVar(mbShowDescritionOnce,eSerializeType_Bool)
 kSerializeVar(mType,eSerializeType_Int32)
 kSerializeVar(m_mtxTransform, eSerializeType_Matrixf)
+kSerializeVar(mbHasMeshTransform, eSerializeType_Bool)
+kSerializeVar(m_mtxMeshTransform, eSerializeType_Matrixf)
+
+kSerializeVar(mvMoveGoal, eSerializeType_Vector3f)
+kSerializeVar(mfMoveAcceleration, eSerializeType_Float32)
+kSerializeVar(mfMoveSpeed, eSerializeType_Float32)
+kSerializeVar(mfMoveMaxSpeed, eSerializeType_Float32)
+kSerializeVar(mfMoveSlowDownDist, eSerializeType_Float32)
+kSerializeVar(mbMoving, eSerializeType_Bool)
+kSerializeVar(msMoveCallback, eSerializeType_String)
 
 kSerializeClassContainer(mlstCollideCallbacks,cSaveGame_cGameCollideScript,eSerializeType_Class)
 kSerializeClassContainer(mlstCallbackScripts,cGameEntityScript,eSerializeType_Class)
@@ -1096,6 +1125,20 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 	kCopyToVar(apSaveData,mType);
 
 	apSaveData->m_mtxTransform = m_mtxOnLoadTransform;
+
+	kCopyToVar(apSaveData,mvMoveGoal);
+	kCopyToVar(apSaveData,mfMoveAcceleration);
+	kCopyToVar(apSaveData,mfMoveSpeed);
+	kCopyToVar(apSaveData,mfMoveMaxSpeed);
+	kCopyToVar(apSaveData,mfMoveSlowDownDist);
+	kCopyToVar(apSaveData,mbMoving);
+	kCopyToVar(apSaveData,msMoveCallback);
+
+	if(mpMeshEntity)
+	{
+		apSaveData->mbHasMeshTransform = true;
+		apSaveData->m_mtxMeshTransform = mpMeshEntity->GetLocalMatrix();
+	}
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
@@ -1209,7 +1252,18 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	kCopyFromVar(apSaveData,mbHasBeenExamined);
 	kCopyFromVar(apSaveData,mType);
 
+	kCopyFromVar(apSaveData,mvMoveGoal);
+	kCopyFromVar(apSaveData,mfMoveAcceleration);
+	kCopyFromVar(apSaveData,mfMoveSpeed);
+	kCopyFromVar(apSaveData,mfMoveMaxSpeed);
+	kCopyFromVar(apSaveData,mfMoveSlowDownDist);
+	kCopyFromVar(apSaveData,mbMoving);
+	kCopyFromVar(apSaveData,msMoveCallback);
+
 	SetActive(apSaveData->mbActive);
+
+	if(mpMeshEntity && apSaveData->mbHasMeshTransform)
+		mpMeshEntity->SetMatrix(apSaveData->m_mtxMeshTransform);
 
 	//Script functions
 	cContainerListIterator<cGameEntityScript> scriptIt = apSaveData->mlstCallbackScripts.GetIterator();
