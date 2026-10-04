@@ -74,6 +74,14 @@ iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 	mbPauseControllers = false;
 	mbPauseGravity = false;
 
+	mbMoving = false;
+	mvMoveGoal = 0;
+	mfMoveAcceleration = 0;
+	mfMoveSpeed = 0;
+	mfMoveMaxSpeed = 0;
+	mfMoveSlowDownDist = 0;
+	msMoveCallback = "";
+
 	for(int i=0; i< eGameEntityScriptType_LastEnum; ++i)
 	{
 		mvCallbackScripts[i] = nullptr;
@@ -153,6 +161,9 @@ iGameEntity::~iGameEntity()
 			
 			pWorld->GetPhysicsWorld()->DestroyBody(mvBodies[i]);
 		}
+		for(cMeshEntity *pAttached : mlstAttachedMeshEntities)
+			pWorld->DestroyMeshEntity(pAttached);
+
 		if(mpMeshEntity) pWorld->DestroyMeshEntity(mpMeshEntity);
 	
 		for(size_t i=0; i<mvLights.size(); ++i) 
@@ -194,6 +205,29 @@ iGameEntity::~iGameEntity()
 
 //-----------------------------------------------------------------------
 
+bool iGameEntity::AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone)
+{
+	if(mpMeshEntity->GetMesh()->GetSkeleton()==nullptr)
+	{
+		Error("Could not attach to skeleton. No skeleton found\n.");
+		return false;
+	}
+
+	cBoneState *pBone = mpMeshEntity->GetBoneStateFromName(asBone);
+	if(pBone==nullptr)
+	{
+		Error("Could not find bone '%s'\n",asBone.c_str());
+		return false;
+	}
+
+	pBone->AddEntity(apEntity);
+	mlstAttachedMeshEntities.push_back(apEntity);
+
+	return true;
+}
+
+//-----------------------------------------------------------------------
+
 void iGameEntity::SetActive(bool abX)
 {
 	if(mbActive == abX) return;
@@ -211,6 +245,12 @@ void iGameEntity::SetActive(bool abX)
 		mpMeshEntity->SetVisible(mbActive);
 		mpMeshEntity->SetActive(mbActive);
 		if(mbActive) mpMeshEntity->UpdateLogic(0.01f);
+	}
+
+	for(cMeshEntity *pAttached : mlstAttachedMeshEntities)
+	{
+		pAttached->SetActive(mbActive);
+		pAttached->SetVisible(mbActive);
 	}
 	
 
@@ -516,9 +556,96 @@ static inline tString GetCollideCommand(const tString &asFuncName,const tString 
 
 ////////////////////////////
 
+void iGameEntity::MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float afAcceleration,
+								float afSlowDownDist, const tString& asCallback)
+{
+	mbMoving = true;
+	msMoveCallback = asCallback;
+
+	mvMoveGoal = avPos;
+	mfMoveAcceleration = afAcceleration;
+	mfMoveSpeed = 0;
+	mfMoveMaxSpeed = afMaxSpeed;
+	mfMoveSlowDownDist = afSlowDownDist;
+}
+
+//-----------------------------------------------------------------------
+
+void iGameEntity::UpdateMove(float afTimeStep)
+{
+	if(mbMoving==false) return;
+
+	cVector3f vStartPos = mvBodies.empty() ?	mpMeshEntity->GetWorldPosition() :
+												mvBodies[0]->GetWorldPosition();
+	cVector3f vPos = vStartPos;
+
+	////////////////////////////////////////////
+	// The next position
+	float fDist = cMath::Vector3Dist(mvMoveGoal, vPos);
+
+	if(mfMoveSpeed * afTimeStep >= fDist || fDist < 0.01f)
+	{
+		vPos = mvMoveGoal;
+		mbMoving = false;
+
+		if(msMoveCallback != "")
+		{
+			tString sCommand = msMoveCallback + "(\"" + msName + "\")";
+			mpInit->RunScriptCommand(sCommand);
+		}
+	}
+	else
+	{
+		cVector3f vDir = cMath::Vector3Normalize(mvMoveGoal - vPos);
+
+		//Close to the goal the speed follows the distance, further away it builds up.
+		if(fDist < mfMoveSlowDownDist)
+		{
+			float fWantedSpeed = (fDist / mfMoveSlowDownDist) * mfMoveMaxSpeed;
+			if(mfMoveSpeed > fWantedSpeed || mfMoveSpeed < 0.01f) mfMoveSpeed = fWantedSpeed;
+		}
+		else
+		{
+			mfMoveSpeed += mfMoveAcceleration * afTimeStep;
+			if(mfMoveSpeed > mfMoveMaxSpeed) mfMoveSpeed = mfMoveMaxSpeed;
+		}
+
+		vPos += vDir * mfMoveSpeed * afTimeStep;
+	}
+
+	////////////////////////////////////////////
+	// Entities without bodies
+	if(mvBodies.empty())
+	{
+		mpMeshEntity->SetPosition(vPos);
+		return;
+	}
+
+	////////////////////////////////////////////
+	// Move the body, with the speed it has for what rests on it
+	iPhysicsBody *pBody = mvBodies[0];
+
+	pBody->SetPosition(vPos);
+
+	if(mbMoving)	pBody->SetLinearVelocity((vPos - vStartPos) / afTimeStep);
+	else			pBody->SetLinearVelocity(0);
+
+	////////////////////////////////////////////
+	// Wake what is next to it
+	cBoundingVolume largeBV = *pBody->GetBV();
+	largeBV.SetLocalMinMax(largeBV.GetLocalMin() - cVector3f(0.1f), largeBV.GetLocalMax() + cVector3f(0.1f));
+
+	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	pPhysicsWorld->EnableBodiesInBV(&largeBV, true);
+}
+
+//-----------------------------------------------------------------------
+
 void iGameEntity::OnUpdate(float afTimeStep)
 {
 	if(mbActive==false) return;
+
+	UpdateMove(afTimeStep);
 
 	////////////////////////////////////////////
 	/// Script Collide test stuff

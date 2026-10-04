@@ -40,6 +40,11 @@ public:
 	float mfFadeInTime;
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
+
+	tString msLoadImage;
+	bool mbLocked = false;
+	tString msLockedSound;
+	tWString msLockedDesc;
 	
 	iGameEntity* CreateEntity() override;
 };
@@ -67,6 +72,13 @@ public:
 	float mfFadeInTime;
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
+
+	// Black Plague: the picture shown while loading, and a link that is
+	// locked says so (sound and message) in place of changing the map
+	tString msLoadImage;
+	bool mbLocked;
+	tString msLockedSound;
+	tWString msLockedDesc;
 
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;

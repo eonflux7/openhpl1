@@ -988,6 +988,7 @@ void cNotebook::Reset()
 {
 	mbActive = false;
 	mfAlpha = 0;
+	msCloseCallback = "";
 
 	STLDeleteAll(mlstTasks);
 	STLDeleteAll(mlstNotes);
@@ -1086,8 +1087,20 @@ cNotebook_Note* cNotebook::AddNote(const tWString &asName, const tString &asText
 	pNote->msText =kTranslate(asTextCat,asTextEntry);
 
 	mlstNotes.push_back(pNote);
+	mpInit->mpPlayer->mlStat_Notes++;
 
 	return pNote;
+}
+
+bool cNotebook::NoteExists(const tString &asTextCat, const tString &asTextEntry)
+{
+	tNotebook_NoteListIt it = mlstNotes.begin();
+	for(; it != mlstNotes.end(); ++it)
+	{
+		cNotebook_Note *pNote = *it;
+		if(pNote->msTextCat == asTextCat && pNote->msTextEntry == asTextEntry) return true;
+	}
+	return false;
 }
 
 void cNotebook::RemoveNote(const tString &asName)
@@ -1205,6 +1218,13 @@ void cNotebook::SetActive(bool abX)
 		{
 			mpInit->mpPlayer->SetCrossHairState(mLastCrossHairState);
 			mpInit->mpPlayer->SetCrossHairPos(cVector2f(400,300));
+		}
+
+		if(msCloseCallback != "")
+		{
+			tString sCommand = msCloseCallback + "()";
+			mpInit->RunScriptCommand(sCommand);
+			msCloseCallback = "";
 		}
 	}
 }

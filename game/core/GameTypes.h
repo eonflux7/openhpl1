@@ -45,7 +45,8 @@ enum eButtonHandlerState
 	eButtonHandlerState_PreMenu,
 	eButtonHandlerState_Credits,
 	eButtonHandlerState_DemoEndText,
-	eButtonHandlerState_Intro
+	eButtonHandlerState_Intro,
+	eButtonHandlerState_Ending,	//Black Plague
 };
 
 //---------------------------------
@@ -57,6 +58,7 @@ enum ePlayerMoveState
 	ePlayerMoveState_Still,
 	ePlayerMoveState_Jump,
 	ePlayerMoveState_Crouch,
+	ePlayerMoveState_Swim,		//Black Plague
 	ePlayerMoveState_LastEnum,
 };
 
@@ -93,6 +95,7 @@ enum ePlayerDamageType
 {
 	ePlayerDamageType_BloodSplash,
 	ePlayerDamageType_Ice,
+	ePlayerDamageType_Poison,	// Black Plague
 	ePlayerDamageType_LastEnum
 };
 
@@ -145,6 +148,11 @@ enum eGameEntityType
 	eGameEntityType_DamageArea,
 	eGameEntityType_ForceArea,
 	eGameEntityType_LiquidArea,
+	// Black Plague
+	eGameEntityType_Lever,
+	eGameEntityType_Wheel,
+	eGameEntityType_VentArea,
+	eGameEntityType_Camera,
 	eGameEntityType_LastEnum
 };
 
@@ -205,6 +213,8 @@ enum eGameItemType
 	eGameItemType_Painkillers,
 	eGameItemType_WeaponMelee,
 	eGameItemType_Throw,
+	eGameItemType_GasMask,		//Black Plague
+	eGameItemType_Collectable,	//Black Plague
 	eGameItemType_LastEnum
 };
 

@@ -80,6 +80,10 @@ public:
 	virtual void OnStartRun(){}
 	virtual void OnStopRun(){}
 
+	// Black Plague: the Rotate key held
+	virtual void OnStartRotate(){}
+	virtual void OnStopRotate(){}
+
 	virtual void OnStartCrouch(){}
 	virtual void OnStopCrouch(){}
 

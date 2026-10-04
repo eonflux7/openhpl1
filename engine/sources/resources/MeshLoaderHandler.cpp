@@ -30,6 +30,7 @@ namespace hpl {
 	bool iMeshLoader::mbUseFastMaterial = false;
 	tString iMeshLoader::msFastMaterialFile = "";
 	tString iMeshLoader::msCacheDir = "core/cache/";
+	tString iMeshLoader::msCacheWriteDir = "";
 
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS

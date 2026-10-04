@@ -344,7 +344,6 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			cEnemyPatrolNode *pPatrolNode = mpEnemy->CurrentPatrolNode();
 
 			mpEnemy->SetWaitTime(pPatrolNode->mfWaitTime);
-			mpEnemy->IncCurrentPatrolNode();
             
 			if(pPatrolNode->msAnimation != "")
 			{
@@ -353,6 +352,10 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			}
 
 			mbWaiting = true;
+
+			//Last, as in Black Plague: the callback at the end of the patrol
+			//may clear the nodes.
+			mpEnemy->IncCurrentPatrolNode();
 		}
 	}
 }

@@ -62,6 +62,9 @@ static eMainMenuState gvMenuBackStates[] = {
 		eMainMenuState_Options,//eMainMenuState_GraphicsRestart,
 
 		eMainMenuState_Start,	//eMainMenuState_FirstStart,
+
+		eMainMenuState_Start,	//eMainMenuState_AskTutorial,
+		eMainMenuState_Start,	//eMainMenuState_AskStartTutorial,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -643,6 +646,8 @@ cMainMenuWidget_NewGame::cMainMenuWidget_NewGame(cInit *apInit, const cVector3f 
 	case eGameDifficulty_Hard:	msTip = kTranslate("MainMenu", "TipDifficultyHard");
 								break;
 	}
+	// Requiem's button is the "Yes" to starting
+	if(cInit::GetGameId() == eGameId_Requiem) msTip = _W("");
 }
 //-----------------------------------------------------------------------
 
@@ -655,7 +660,8 @@ void cMainMenuWidget_NewGame::OnMouseDown(eMButton aButton)
 
 	mpInit->mDifficulty = mDiffuculty;
 	
-	if(mpInit->mbShowIntro)
+	// Requiem starts in its first map
+	if(mpInit->mbShowIntro && cInit::GetGameId() != eGameId_Requiem)
 	{
 		mpInit->mpIntroStory->SetActive(true);
 	}
@@ -667,6 +673,51 @@ void cMainMenuWidget_NewGame::OnMouseDown(eMButton aButton)
 		mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
 	}
 }
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// TUTORIAL (Black Plague)
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+// "Yes" to playing the tutorial: its map, without the game's init script
+class cMainMenuWidget_AskTutYes : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_AskTutYes(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment) {}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_menu_click",false,1);
+
+		mpInit->mpMainMenu->SetActive(false);
+		mpInit->mpGraphicsHelper->DrawLoadingScreen("");
+		mpInit->ResetGame(false);
+
+		mpInit->mpGame->GetUpdater()->SetContainer("Default");
+		mpInit->mpGame->GetScene()->SetDrawScene(true);
+		mpInit->mpMapHandler->Load("level00_tutorial.dae","link01");
+
+		mpInit->mbAskTutorial = false;
+	}
+};
+
+// "No": on to choosing the difficulty, and not asked again
+class cMainMenuWidget_AskTutNo : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_AskTutNo(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_NewGame,avFontSize,aAlignment) {}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cMainMenuWidget_Button::OnMouseDown(aButton);
+		mpInit->mbAskTutorial = false;
+	}
+};
 
 //-----------------------------------------------------------------------
 
@@ -691,37 +742,7 @@ void cMainMenuWidget_Continue::OnMouseDown(eMButton aButton)
 	
 	mpInit->mpMainMenu->SetActive(false);
 
-	tWString sAuto = _W("save/auto/") + mpInit->mpSaveHandler->GetLatest(_W("save/auto/"),_W("*.sav"));
-	tWString sSpot = _W("save/spot/") + mpInit->mpSaveHandler->GetLatest(_W("save/spot/"),_W("*.sav"));
-	
-	tWString sFile = _W("");
-
-	if(sAuto == _W("save/auto/"))
-	{
-		sFile = sSpot;
-	}
-	else if(sSpot == _W("save/spot/"))
-	{
-		sFile = sAuto;
-	}
-	else
-	{
-		tWString sSaveDir = mpInit->mpSaveHandler->GetSaveDir();
-		cDate dateAuto = FileModifiedDate(sSaveDir + sAuto);
-		cDate dateSpot = FileModifiedDate(sSaveDir + sSpot);
-		
-		if(dateAuto > dateSpot) 
-		{
-			sFile = sAuto;
-		}
-		else
-		{
-			sFile = sSpot;
-		}
-	}
-
-	if(sFile != _W(""))
-		mpInit->mpSaveHandler->LoadGameFromFile(sFile);
+	mpInit->mpSaveHandler->AutoLoadLatestAutoOrSpot();
 }
 
 //-----------------------------------------------------------------------
@@ -1155,6 +1176,30 @@ public:
 	}
 };
 
+// Black Plague: reverb and echo of the rooms (EFX). The label and tip are
+// not in the language files; the game has them in English only.
+cMainMenuWidget_Text *gpSoundEFXText=nullptr;
+
+class cMainMenuWidget_SoundEFX : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_SoundEFX(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("Enables environmental effects such as reverb and echo. Requires restart.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		mpInit->mbUseEnvAudio = !mpInit->mbUseEnvAudio;
+
+		gpSoundEFXText->msText = mpInit->mbUseEnvAudio ?
+			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+
+		gbMustRestart = true;
+	}
+};
+
 class cMainMenuWidget_SoundOutputDevice : public cMainMenuWidget_Button
 {
 public:
@@ -1221,7 +1266,7 @@ public:
 	cMainMenuWidget_ShowCrossHair(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
-		msTip = _W("");
+		msTip = kTranslate("MainMenu", "TipGameShowCrossHair");
 	}
 
 	void OnMouseDown(eMButton aButton) override
@@ -1936,6 +1981,36 @@ static void SetImprovedOption(cInit *mpInit, eImprovedOption aOption, bool abX)
 		mpInit->mpLampLooks->SetSettings(lamps);
 	}
 }
+
+// Water, some windows and particles drawn through what is behind them.
+// Black Plague's option; Overture's language file lacks its texts.
+cMainMenuWidget_Text *gpRefractionsText=nullptr;
+
+static tWString TranslateOr(cInit *mpInit, const tString &asEntry, const tWString &asFallback)
+{
+	tWString sText = kTranslate("MainMenu", asEntry);
+	return sText == _W("") ? asFallback : sText;
+}
+
+class cMainMenuWidget_Refractions : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Refractions(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = TranslateOr(mpInit,"TipGraphicsRefractions",
+			_W("Adds more realism to water, some windows and particle effects. Quite large impact on framerate."));
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+		pRenderer->SetRefractionUsed(!pRenderer->GetRefractionUsed());
+
+		gpRefractionsText->msText = pRenderer->GetRefractionUsed() ?
+			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	}
+};
 
 static tWString GetImprovedText(cInit *mpInit, eImprovedOption aOption)
 {
@@ -3282,8 +3357,27 @@ void cMainMenu::CreateWidgets()
 		}
 	}
 
-	AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","New Game"),eMainMenuState_NewGame)) ); 
-	vPos.y += 51;
+	if(cInit::GetGameId() == eGameId_BlackPlague)
+	{
+		// Asked once; after that the tutorial has its own button
+		if(mpInit->mbAskTutorial)
+		{
+			AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","New Game"),eMainMenuState_AskTutorial)) ); 
+			vPos.y += 51;
+		}
+		else
+		{
+			AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","Tutorial"),eMainMenuState_AskStartTutorial)) ); 
+			vPos.y += 51;
+			AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","New Game"),eMainMenuState_NewGame)) ); 
+			vPos.y += 51;
+		}
+	}
+	else
+	{
+		AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","New Game"),eMainMenuState_NewGame)) ); 
+		vPos.y += 51;
+	}
 	AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","Load Game"),eMainMenuState_LoadGameSpot)) ); 
 	vPos.y += 51;
 	AddWidgetToState(eMainMenuState_Start,hplNew( cMainMenuWidget_MainButton,(mpInit,vPos,kTranslate("MainMenu","Options"),eMainMenuState_Options)) ); 
@@ -3296,21 +3390,33 @@ void cMainMenu::CreateWidgets()
 	///////////////////////////////////
 
 	vPos = vTextStart;//cVector3f(400, 260, 40);
-	//AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text(mpInit,vPos,kTranslate("MainMenu","StartNewGame"),24,eFontAlign_Center)); 
-	//vPos.y += 34;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Easy"),24,eFontAlign_Center,eGameDifficulty_Easy)) ); 
-	vPos.y += 30;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","EasyDesc"),16,eFontAlign_Center)) ); 
-	vPos.y += 42;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Normal"),24,eFontAlign_Center,eGameDifficulty_Normal)) ); 
-	vPos.y += 30;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","NormalDesc"),16,eFontAlign_Center)) ); 
-	vPos.y += 42;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Hard"),24,eFontAlign_Center,eGameDifficulty_Hard)) ); 
-	vPos.y += 30;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","HardDesc"),16,eFontAlign_Center)) ); 
-	vPos.y +=46;
-	AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Start,22,eFontAlign_Center)) );
+	if(cInit::GetGameId() == eGameId_Requiem)
+	{
+		// Requiem: no difficulty, only whether to start
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("RequiemMenu","SureNewGame"),20,eFontAlign_Center)) ); 
+		vPos.y += 34;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Yes"),20,eFontAlign_Center,eGameDifficulty_Normal)) ); 
+		vPos.y += 29;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","No"),eMainMenuState_Start,20,eFontAlign_Center)) );
+	}
+	else
+	{
+		//AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text(mpInit,vPos,kTranslate("MainMenu","StartNewGame"),24,eFontAlign_Center)); 
+		//vPos.y += 34;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Easy"),24,eFontAlign_Center,eGameDifficulty_Easy)) ); 
+		vPos.y += 30;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","EasyDesc"),16,eFontAlign_Center)) ); 
+		vPos.y += 42;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Normal"),24,eFontAlign_Center,eGameDifficulty_Normal)) ); 
+		vPos.y += 30;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","NormalDesc"),16,eFontAlign_Center)) ); 
+		vPos.y += 42;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Hard"),24,eFontAlign_Center,eGameDifficulty_Hard)) ); 
+		vPos.y += 30;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","HardDesc"),16,eFontAlign_Center)) ); 
+		vPos.y +=46;
+		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Start,22,eFontAlign_Center)) );
+	}
 
 	///////////////////////////////////
 	// Continue
@@ -3340,11 +3446,16 @@ void cMainMenu::CreateWidgets()
 		
 		///////////////////////////
 		//Buttons
-		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Saved Games"),eMainMenuState_LoadGameSpot,25,eFontAlign_Center)) ); 
+		// Requiem's auto saves are its quick saves; its names are in a
+		// category of their own
+		const bool bRequiem = cInit::GetGameId() == eGameId_Requiem;
+		const tString sLoadCategory = bRequiem ? "RequiemMenu" : "MainMenu";
+		const tString sAutoName = bRequiem ? "Quick Saves" : "Auto Saves";
+		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate(sLoadCategory,"Saved Games"),eMainMenuState_LoadGameSpot,25,eFontAlign_Center)) ); 
 		vPos.y += 32;
-		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Auto Saves"),eMainMenuState_LoadGameAuto,25,eFontAlign_Center)) ); 
+		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate(sLoadCategory,sAutoName),eMainMenuState_LoadGameAuto,25,eFontAlign_Center)) ); 
 		vPos.y += 32;
-		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Favorites"),eMainMenuState_LoadGameFavorite,25,eFontAlign_Center)) ); 
+		AddWidgetToState(state,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate(sLoadCategory,"Favorites"),eMainMenuState_LoadGameFavorite,25,eFontAlign_Center)) ); 
 		
 		///////////////////////////
 		//Back
@@ -3359,9 +3470,9 @@ void cMainMenu::CreateWidgets()
 		vPos.y += 42;
 		vPos.x += 185;
 		tString sLoadType = "Saved Games";
-		if(i==1)sLoadType = "Auto Saves";
+		if(i==1)sLoadType = sAutoName;
 		if(i==2)sLoadType = "Favorites";
-		AddWidgetToState(state,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu",sLoadType)+_W(":"),21,eFontAlign_Center)) ); 
+		AddWidgetToState(state,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate(sLoadCategory,sLoadType)+_W(":"),21,eFontAlign_Center)) ); 
 		
 		///////////////////////////
 		//Saved games list
@@ -3703,6 +3814,15 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsKeySetupAction,hplNew( cMainMenuWidget_KeyButton,(mpInit,vPos,kTranslate("MainMenu","LookMode:"),
 		18,eFontAlign_Left,pTempTextWidget,"LookMode")) ); 
 
+	if(!cInit::IsOverture())
+	{
+		vPos.y += 23;
+		pTempTextWidget = hplNew( cMainMenuWidget_Text,(mpInit,vPos+cVector3f(fKeyTextXAdd,0,0),_W(""),18,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsKeySetupAction,pTempTextWidget); 
+		AddWidgetToState(eMainMenuState_OptionsKeySetupAction,hplNew( cMainMenuWidget_KeyButton,(mpInit,vPos,kTranslate("MainMenu","Rotate:"),
+			18,eFontAlign_Left,pTempTextWidget,"Rotate")) ); 
+	}
+
 
 	///////////////////////////////////
 	// Options Key Setup Misc
@@ -3741,6 +3861,22 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsKeySetupMisc,hplNew( cMainMenuWidget_KeyButton,(mpInit,vPos,kTranslate("MainMenu","Glowstick:"),
 		18,eFontAlign_Left,pTempTextWidget,"GlowStick")) ); 
 
+	// Requiem: quicksave and quickload
+	if(cInit::GetGameId() == eGameId_Requiem)
+	{
+		vPos.y += 23;
+		pTempTextWidget = hplNew( cMainMenuWidget_Text,(mpInit,vPos+cVector3f(fKeyTextXAdd,0,0),_W(""),18,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsKeySetupMisc,pTempTextWidget); 
+		AddWidgetToState(eMainMenuState_OptionsKeySetupMisc,hplNew( cMainMenuWidget_KeyButton,(mpInit,vPos,kTranslate("RequiemMenu","Quicksave:"),
+			18,eFontAlign_Left,pTempTextWidget,"SaveGame")) ); 
+
+		vPos.y += 23;
+		pTempTextWidget = hplNew( cMainMenuWidget_Text,(mpInit,vPos+cVector3f(fKeyTextXAdd,0,0),_W(""),18,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsKeySetupMisc,pTempTextWidget); 
+		AddWidgetToState(eMainMenuState_OptionsKeySetupMisc,hplNew( cMainMenuWidget_KeyButton,(mpInit,vPos,kTranslate("RequiemMenu","Quickload:"),
+			18,eFontAlign_Left,pTempTextWidget,"LoadGame")) ); 
+	}
+
 	///////////////////////////////////
 	// Options Game
 	///////////////////////////////////
@@ -3755,9 +3891,15 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetSubtitles = hplNew( cMainMenuWidget_Subtitles,(mpInit,vPos,kTranslate("MainMenu","Subtitle:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetSubtitles); 
 	vPos.y += 50;
-	cMainMenuWidget *pWidgetDifficulty = hplNew( cMainMenuWidget_Difficulty,(mpInit,vPos,kTranslate("MainMenu","Difficulty:"),20,eFontAlign_Right) );
-	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDifficulty); 
-	vPos.y += 29;
+	// Requiem has no difficulty
+	const bool bDifficultyOption = cInit::GetGameId() != eGameId_Requiem;
+	cMainMenuWidget *pWidgetDifficulty = nullptr;
+	if(bDifficultyOption)
+	{
+		pWidgetDifficulty = hplNew( cMainMenuWidget_Difficulty,(mpInit,vPos,kTranslate("MainMenu","Difficulty:"),20,eFontAlign_Right) );
+		AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDifficulty); 
+		vPos.y += 29;
+	}
 	if(mpInit->mbSimpleSwingInOptions)
 	{
 		AddWidgetToState(eMainMenuState_OptionsGame,hplNew( cMainMenuWidget_SimpleSwing,(mpInit,vPos,kTranslate("MainMenu","SimpleSwing:"),20,eFontAlign_Right)) ); 
@@ -3801,11 +3943,14 @@ void cMainMenu::CreateWidgets()
 										kTranslate("MainMenu","SetThisToLanguageOfVoice"),12,eFontAlign_Left)) );
 	vPos.y += 25;
 	
-	sText = kTranslate("MainMenu",gvDifficultyLevel[mpInit->mDifficulty]);
-	gpDifficultyText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
-	AddWidgetToState(eMainMenuState_OptionsGame,gpDifficultyText); 
-	gpDifficultyText->SetExtraWidget(pWidgetDifficulty);
-	vPos.y += 29;
+	if(bDifficultyOption)
+	{
+		sText = kTranslate("MainMenu",gvDifficultyLevel[mpInit->mDifficulty]);
+		gpDifficultyText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsGame,gpDifficultyText); 
+		gpDifficultyText->SetExtraWidget(pWidgetDifficulty);
+		vPos.y += 29;
+	}
 
 	if(mpInit->mbSimpleSwingInOptions)
 	{
@@ -3853,6 +3998,9 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetSoundOutputDevice = hplNew( cMainMenuWidget_SoundOutputDevice, (mpInit,vPos,kTranslate("MainMenu","Output Device:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundOutputDevice);
+	vPos.y += 29;
+	cMainMenuWidget *pWidgetSoundEFX = hplNew( cMainMenuWidget_SoundEFX, (mpInit,vPos,_W("EFX:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundEFX);
 	vPos.y += 35;
     AddWidgetToState(eMainMenuState_OptionsSound,hplNew( cMainMenuWidget_GfxBack, (mpInit,vPos,kTranslate("MainMenu","Back"),23,eFontAlign_Center)) ); 
 
@@ -3880,6 +4028,12 @@ void cMainMenu::CreateWidgets()
 	gpSoundOutputDevice = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundOutputDevice);
 	gpSoundOutputDevice->SetExtraWidget(pWidgetSoundOutputDevice);
+
+	vPos.y += 29;
+	sText = mpInit->mbUseEnvAudio ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	gpSoundEFXText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundEFXText);
+	gpSoundEFXText->SetExtraWidget(pWidgetSoundEFX);
 
 	///////////////////////////////////
 	// Options Graphics
@@ -4131,6 +4285,16 @@ void cMainMenu::CreateWidgets()
 			gvImprovedText[i]->SetExtraWidget(pButton);
 			vPos.y += 29;
 		}
+
+		cMainMenuWidget *pRefractionsButton = hplNew( cMainMenuWidget_Refractions,(mpInit,vPos,TranslateOr(mpInit,"Refractions:",_W("Refractions:")),20,eFontAlign_Right) );
+		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,pRefractionsButton);
+		sText = mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed() ?
+					kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		gpRefractionsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos + cVector3f(12,0,0),sText,20,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,gpRefractionsText);
+		gpRefractionsText->SetExtraWidget(pRefractionsButton);
+		vPos.y += 29;
+
 		vPos.y += 6;
 		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_OptionsGraphics,23,eFontAlign_Center)) );
 	}
@@ -4144,6 +4308,26 @@ void cMainMenu::CreateWidgets()
 						nullptr,400)) ); 
 	vPos.y += 42;
 	AddWidgetToState(eMainMenuState_GraphicsRestart,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","OK"),eMainMenuState_Options,22,eFontAlign_Center))); 
+
+	///////////////////////////////////
+	// Tutorial questions (Black Plague)
+	///////////////////////////////////
+
+	vPos = vTextStart;
+	AddWidgetToState(eMainMenuState_AskTutorial,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","AskTutorial"),16,eFontAlign_Center,
+						nullptr,400)) ); 
+	vPos.y += 42;
+	AddWidgetToState(eMainMenuState_AskTutorial,hplNew( cMainMenuWidget_AskTutYes,(mpInit,vPos,kTranslate("MainMenu","Yes"),22,eFontAlign_Center)));
+	vPos.y += 29;
+	AddWidgetToState(eMainMenuState_AskTutorial,hplNew( cMainMenuWidget_AskTutNo,(mpInit,vPos,kTranslate("MainMenu","No"),22,eFontAlign_Center)));
+
+	vPos = vTextStart;
+	AddWidgetToState(eMainMenuState_AskStartTutorial,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","AskStartTutorial"),16,eFontAlign_Center,
+						nullptr,400)) ); 
+	vPos.y += 42;
+	AddWidgetToState(eMainMenuState_AskStartTutorial,hplNew( cMainMenuWidget_AskTutYes,(mpInit,vPos,kTranslate("MainMenu","Yes"),22,eFontAlign_Center)));
+	vPos.y += 29;
+	AddWidgetToState(eMainMenuState_AskStartTutorial,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","No"),eMainMenuState_Start,22,eFontAlign_Center)));
 	
 }
 

@@ -30,7 +30,7 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 	mlFramesPerStep = pFrames ? cString::ToInt(pFrames, 120) : 120;
 
 	tWStringList lstFiles;
-	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, _W("maps"), _W("*.dae"));
+	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, cInit::GetMapsDir(), _W("*.dae"));
 	tString sTestMapDir = tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap";
 	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles,
 		cString::To16Char(sTestMapDir), _W("*.dae"));

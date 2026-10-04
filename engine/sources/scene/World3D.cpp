@@ -43,6 +43,7 @@
 #include "resources/TextureManager.h"
 #include "resources/FileSearcher.h"
 #include "resources/Resources.h"
+#include "resources/MeshLoader.h"
 #include "resources/SoundEntityManager.h"
 
 #include "scene/Scene.h"
@@ -944,10 +945,22 @@ namespace hpl {
 				pContainer->AddNode(pNode.msName,pNode.mvPos,nullptr);
 			}
 
+			// Node files rebuilt here are written to the cache write
+			// directory, like the mesh caches, and looked for there first.
+			tString sWriteAiFileName = sAiFileName;
+			if(iMeshLoader::GetCacheWriteDir() != "")
+				sWriteAiFileName = iMeshLoader::GetCacheWriteDir() + cString::GetFileName(sAiFileName);
+
 			bool bLoadedFromFile=false;
-			if(FileExists(cString::To16Char(sAiFileName)))
+			cDate dateMapFile = FileModifiedDate(cString::To16Char(sMapPath));
+			if(	sWriteAiFileName != sAiFileName &&
+				FileExists(cString::To16Char(sWriteAiFileName)) &&
+				FileModifiedDate(cString::To16Char(sWriteAiFileName)) > dateMapFile)
 			{
-				cDate dateMapFile = FileModifiedDate(cString::To16Char(sMapPath));
+				bLoadedFromFile = pContainer->LoadFromFile(sWriteAiFileName);
+			}
+			if(bLoadedFromFile==false && FileExists(cString::To16Char(sAiFileName)))
+			{
 				cDate dateAIFile = FileModifiedDate(cString::To16Char(sAiFileName));
 
 				if(dateAIFile > dateMapFile)
@@ -958,13 +971,13 @@ namespace hpl {
 
 			if(bLoadedFromFile==false)
 			{
-				Log("Rebuilding node connections and saving to '%s'\n",sAiFileName.c_str());
+				Log("Rebuilding node connections and saving to '%s'\n",sWriteAiFileName.c_str());
 
 				//Compile
 				pContainer->Compile();
 
 				//Save to disk
-				pContainer->SaveToFile(sAiFileName);
+				pContainer->SaveToFile(sWriteAiFileName);
 			}
 		}
 

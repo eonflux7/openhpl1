@@ -310,7 +310,12 @@ namespace hpl {
 			pLowLevelGraphics->SetDepthTestActive(false);
 			pLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
 
-			pLowLevelGraphics->SetOrthoProjection(mvVirtualSize,mfVirtualMinZ,mfVirtualMaxZ);
+			// A set as large as the virtual screen is centred with it, where
+			// the window is wider or taller than 4:3
+			if(mvVirtualSize == pLowLevelGraphics->GetVirtualSize())
+				pLowLevelGraphics->SetVirtualOrthoProjection(mfVirtualMinZ,mfVirtualMaxZ);
+			else
+				pLowLevelGraphics->SetOrthoProjection(mvVirtualSize,mfVirtualMinZ,mfVirtualMaxZ);
 		}
 
 		///////////////////////////////
@@ -789,8 +794,12 @@ namespace hpl {
 			cVector2f vVirtualSize = pLowLevelGraphics->GetVirtualSize();
 			cVector2f vScreenSize = pLowLevelGraphics->GetScreenSize();
 
-			cRect2l vScissorRect(	(int)((clipRect.x / vVirtualSize.x) * vScreenSize.x),  (int)((clipRect.y / vVirtualSize.y) * vScreenSize.y),
-									(int)((clipRect.w / vVirtualSize.x) * vScreenSize.x),  (int)((clipRect.h / vVirtualSize.y) * vScreenSize.y) );
+			// The virtual screen is centred in the window, see cGuiSet::Render
+			cVector2f vOffset = pLowLevelGraphics->GetVirtualOffset();
+			float fScale = vScreenSize.x / (vVirtualSize.x + vOffset.x*2);
+
+			cRect2l vScissorRect(	(int)((clipRect.x + vOffset.x) * fScale),  (int)((clipRect.y + vOffset.y) * fScale),
+									(int)(clipRect.w * fScale),  (int)(clipRect.h * fScale) );
 
 			pLowLevelGraphics->SetScissorActive(true);
 			pLowLevelGraphics->SetScissorRect(vScissorRect);

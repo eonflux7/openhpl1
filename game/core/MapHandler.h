@@ -65,6 +65,8 @@ public:
 	float mfFadeInTime;
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
+	// Black Plague: the picture shown while loading
+	tString msLoadImage;
 };
 
 //-----------------------------------------
@@ -160,7 +162,8 @@ public:
 
 	void ChangeMap(const tString &asMap, const tString &asPos, const tString &asStartSound,
 					const tString &asStopSound, float afFadeOutTime, float afFadeInTime,
-					tString asLoadTextCat, tString asLoadTextEntry);
+					tString asLoadTextCat, tString asLoadTextEntry,
+					tString asLoadImage = "");
 
 	void AddSaveData(cSavedWorld* apSavedWorld);
 	void LoadSaveData(cSavedWorld* apSavedWorld);

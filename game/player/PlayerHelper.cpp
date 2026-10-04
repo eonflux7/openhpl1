@@ -19,6 +19,7 @@
 #include "player/PlayerHelper.h"
 
 #include "core/Init.h"
+#include "systems/EffectHandler.h"
 #include "entities/GameEntity.h"
 #include "entities/GameObject.h"
 #include "entities/GameArea.h"
@@ -88,7 +89,11 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 	/////////////////////
 	//Fall damage
 	//Hard
-	if(avVel.y < mfFallSpeed_Max)
+	if(mpPlayer->GetNoFallDamage())
+	{
+		//Black Plague: the script has turned it off
+	}
+	else if(avVel.y < mfFallSpeed_Max)
 	{
 		sSound = msFallSound_Max;
 		fVol = 1.0f;
@@ -574,9 +579,49 @@ void cPlayerHealth::Reset()
 
 //-----------------------------------------------------------------------
 
+// Black Plague: the air runs out under water, about a third of a minute of
+// it, and the player gasps for it ever faster below half. Out of the water it
+// comes back five times as fast.
+void cPlayerHealth::UpdateOxygen(float afTimeStep)
+{
+	cPlayer *pPlayer = mpInit->mpPlayer;
+
+	if(mpInit->mpEffectHandler->GetUnderwater()->IsActive()==false)
+	{
+		pPlayer->AddOxygen(afTimeStep * 20);
+		mfNoAirCount = 0;
+		return;
+	}
+
+	pPlayer->AddOxygen(afTimeStep * -3);
+	if(pPlayer->GetOxygen() <= 0)
+	{
+		pPlayer->SetHealth(0);
+		return;
+	}
+
+	float fOxygen = pPlayer->GetOxygen();
+	if(fOxygen >= 50)
+	{
+		mfNoAirCount = 0;
+		return;
+	}
+
+	float fInterval = fOxygen < 10 ? 2/2.4f : fOxygen < 25 ? 2/1.8f : 2.0f;
+
+	mfNoAirCount -= afTimeStep;
+	if(mfNoAirCount <= 0)
+	{
+		mfNoAirCount = fInterval;
+		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("water_no_air",false,1);
+	}
+}
+
 void cPlayerHealth::Update(float afTimeStep)
 {
 	cPlayer *pPlayer = mpInit->mpPlayer;
+
+	if(cInit::IsOverture()==false && pPlayer->GetHealth() > 0) UpdateOxygen(afTimeStep);
 
 	if(pPlayer->GetHealth() <= 0)
 	{
@@ -1042,6 +1087,8 @@ cPlayerDamage::cPlayerDamage(cInit *apInit)
 
 	mvHitGfx[ePlayerDamageType_BloodSplash] = mpDrawer->CreateGfxObject("player_hit_blood_splash.bmp","diffalpha2d");
 	mvHitGfx[ePlayerDamageType_Ice] = mpDrawer->CreateGfxObject("player_hit_ice.bmp","diffalpha2d");
+	mvHitGfx[ePlayerDamageType_Poison] = cInit::IsOverture() ? nullptr :
+										mpDrawer->CreateGfxObject("player_hit_poison.bmp","diffalpha2d");
 
 	mvHeadSwingAcc = cVector2f(17.0f, 17.0f);
 }
@@ -1049,7 +1096,7 @@ cPlayerDamage::cPlayerDamage(cInit *apInit)
 cPlayerDamage::~cPlayerDamage()
 {
 	for(int i=0; i<ePlayerDamageType_LastEnum; ++i)
-		mpDrawer->DestroyGfxObject(mvHitGfx[i]);
+		if(mvHitGfx[i]) mpDrawer->DestroyGfxObject(mvHitGfx[i]);
 }
 
 //-----------------------------------------------------------------------
@@ -1154,7 +1201,7 @@ void cPlayerDamage::Update(float afTimeStep)
 
 void cPlayerDamage::Draw()
 {
-	if(mbActive==false) return;
+	if(mbActive==false || mvHitGfx[mType]==nullptr) return;
 
 	mpDrawer->DrawGfxObject(mvHitGfx[mType],mpInit->mpGraphicsHelper->GetScreenPos(3),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha*0.6f));
 }
@@ -2218,9 +2265,22 @@ cPlayerLookAt::~cPlayerLookAt()
 
 void cPlayerLookAt::Update(float afTimeStep)
 {
-	if(mbActive==false) return;
-	
 	cCamera3D *pCam = mpPlayer->GetCamera();
+
+	if(mbActive==false)
+	{
+		//Black Plague: the zoom lets go when the look at is over.
+		if(mfFovMul < 1.0f)
+		{
+			mfFovMul += cMath::Min((1.0f - mfFovMul) * mfFovSpeedMul, mfFovMaxSpeed);
+			if(mfFovMul > 1.0f) mfFovMul = 1.0f;
+
+			pCam->SetFOV(cMath::ToRad(70) * mfFovMul);
+			mfDestFovMul = 1.0f;
+		}
+		return;
+	}
+	
 	cVector3f vGoalAngle = cMath::GetAngleFromPoints3D(pCam->GetPosition(),mvTargetPos);
 	
 	//Get distance to goal
@@ -2239,6 +2299,15 @@ void cPlayerLookAt::Update(float afTimeStep)
 	//Add yaw
 	pCam->AddYaw(vSpeed.y * afTimeStep);
 	mpPlayer->GetCharacterBody()->SetYaw(pCam->GetYaw());    
+
+	//Black Plague: zoom in on the target
+	if(mfDestFovMul < 1.0f)
+	{
+		mfFovMul -= cMath::Min((mfFovMul - mfDestFovMul) * mfFovSpeedMul, mfFovMaxSpeed);
+		if(mfFovMul < mfDestFovMul) mfFovMul = mfDestFovMul;
+
+		pCam->SetFOV(cMath::ToRad(70) * mfFovMul);
+	}
 }
 
 void cPlayerLookAt::Reset()
@@ -2247,6 +2316,11 @@ void cPlayerLookAt::Reset()
 	mfMaxSpeed = 9999.0f;
 	mfSpeedMul = 1.0f;
 	mvTargetPos = cVector3f(0,1,0);
+
+	mfDestFovMul = 1.0f;
+	mfFovMul = 1.0f;
+	mfFovSpeedMul = 1.0f;
+	mfFovMaxSpeed = 1.0f;
 }
 
 void cPlayerLookAt::SetTarget(const cVector3f &avTargetPos, float afSpeedMul, float afMaxSpeed)
@@ -2256,9 +2330,19 @@ void cPlayerLookAt::SetTarget(const cVector3f &avTargetPos, float afSpeedMul, fl
 	mfMaxSpeed = afMaxSpeed;
 }
 
+void cPlayerLookAt::SetZoomTarget(float afFovMul, float afSpeedMul, float afMaxSpeed)
+{
+	mfDestFovMul = afFovMul;
+	mfFovSpeedMul = afSpeedMul;
+	//As in Black Plague's binary: the third value lands in the turning's
+	//max speed and the zoom keeps its own of 1.
+	mfMaxSpeed = afMaxSpeed;
+}
+
 void cPlayerLookAt::SetActive(bool abX)
 {
 	mbActive = abX;
+	if(mbActive==false) mfDestFovMul = 1.0f;
 }
 
 //-----------------------------------------------------------------------

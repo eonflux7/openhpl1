@@ -54,6 +54,11 @@ enum eMainMenuState
 
 	eMainMenuState_FirstStart,
 
+	// Black Plague: whether to play the tutorial before a new game, and
+	// whether to start it from its own button
+	eMainMenuState_AskTutorial,
+	eMainMenuState_AskStartTutorial,
+
 	eMainMenuState_LastEnum
 };
 

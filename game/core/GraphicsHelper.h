@@ -37,6 +37,9 @@ public:
 
 	void ClearScreen(const cColor &aColor);
 	void DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize, const cColor &aColor);
+	// Black Plague: blended with what is on the screen
+	void DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
+					const cColor &aColor, eBlendFunc aSrcBlend, eBlendFunc aDestBlend);
 	
 	void DrawLoadingScreen(const tString &asFile);
 

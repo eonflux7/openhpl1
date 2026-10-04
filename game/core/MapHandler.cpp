@@ -18,7 +18,11 @@
  */
 #include "core/MapHandler.h"
 
+#include <SDL3/SDL.h>
+
 #include "core/Init.h"
+#include "ui/GameGui.h"
+#include "systems/GameSoundEnvHandler.h"
 #include "player/Player.h"
 #include "player/PlayerHands.h"
 #include "entities/GameEntity.h"
@@ -40,6 +44,8 @@
 #include "core/SaveTypes.h"
 #include "systems/GameMusicHandler.h"
 #include "systems/GameMessageHandler.h"
+#include "systems/RadioHandler.h"
+#include "entities/GameVentArea.h"
 #include "ui/Inventory.h"
 #include "ui/MapLoadText.h"
 
@@ -374,6 +380,8 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpPlayer->OnWorldExit();
 		mpInit->mpPlayerHands->OnWorldExit();
 		mpInit->mpGameMessageHandler->OnWorldExit();
+		mpInit->mpRadioHandler->OnWorldExit();
+		mpInit->mpSoundEnvHandler->OnWorldExit();
 
 		////////////////////////////////////////
 		// SAVING /////////////////////////////
@@ -486,6 +494,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpPlayerHands->OnWorldLoad();
 
 		mpInit->mpMusicHandler->OnWorldLoad();
+		mpInit->mpSoundEnvHandler->OnWorldLoad();
 
 		if(bFirstTime)
 		{
@@ -639,8 +648,10 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 
 void cMapHandler::ChangeMap(const tString &asMap, const tString &asPos, const tString &asStartSound, 
 							const tString &asStopSound, float afFadeOutTime, float afFadeInTime,
-							tString asLoadTextCat, tString asLoadTextEntry)
+							tString asLoadTextCat, tString asLoadTextEntry,
+							tString asLoadImage)
 {
+	mMapChanger.msLoadImage = asLoadImage;
 	mMapChanger.msNewMap = asMap;
     mMapChanger.msPosName = asPos;
 	mMapChanger.msDoneSound = asStopSound;
@@ -1021,6 +1032,10 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				vSize = static_cast<cGameLiquidArea_SaveData*>(pSaveEntity)->mvSize;
 				sType = "liquid";
 				break;
+			case eGameEntityType_VentArea:
+				vSize = static_cast<cGameVentArea_SaveData*>(pSaveEntity)->mvSize;
+				sType = "vent";
+				break;
 			}
 
 			//Load entity
@@ -1327,9 +1342,73 @@ void cMapHandler::OnPostSceneDraw()
 
 //-----------------------------------------------------------------------
 
+// For tests: OVERTURE_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
+// script commands that many seconds after the game has started, and says so
+// in the log. With "gui:" before it a command is for the open computer terminal;
+// "save" writes an auto save, "load" loads the newest auto save. Returns true
+// when a save was loaded (the world was changed under the update).
+static bool UpdateTestScript(cInit *apInit, float afTimeStep)
+{
+	struct cCommand { float mfTime; tString msCommand; };
+	static std::vector<cCommand> vCommands;
+	static bool bRead = false;
+	static float fTime = 0;
+
+	if(bRead==false)
+	{
+		bRead = true;
+		const char *pSpec = SDL_getenv("OVERTURE_SCRIPT");
+		tStringVec vParts;
+		tString sSep = "|";
+		if(pSpec) cString::GetStringVec(pSpec, vParts, &sSep);
+		for(const tString &sPart : vParts)
+		{
+			size_t lColon = sPart.find(':');
+			if(lColon == tString::npos) continue;
+			vCommands.push_back({cString::ToFloat(sPart.substr(0, lColon).c_str(), 0), sPart.substr(lColon+1)});
+		}
+	}
+	if(vCommands.empty()) return false;
+
+	float fLastTime = fTime;
+	fTime += afTimeStep;
+	for(const cCommand &command : vCommands)
+	{
+		if(command.mfTime < fLastTime || command.mfTime >= fTime) continue;
+
+		Log("TEST SCRIPT at %.2f: %s\n", fTime, command.msCommand.c_str());
+
+		// "gui:Command();" is run in the script of the open computer terminal
+		if(command.msCommand.compare(0, 4, "gui:") == 0)
+		{
+			cGameGui *pGui = apInit->mpGameGuiHandler->GetScreenGui();
+			if(pGui) pGui->RunScriptCommand(command.msCommand.substr(4));
+			else Log(" no computer terminal is open\n");
+			continue;
+		}
+		if(command.msCommand == "save")
+		{
+			apInit->mpSaveHandler->AutoSave(_W("auto"), 10);
+			continue;
+		}
+		if(command.msCommand == "load")
+		{
+			apInit->mpSaveHandler->AutoLoad(_W("auto"));
+			return true;
+		}
+
+		apInit->RunScriptCommand(command.msCommand);
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
 void cMapHandler::Update(float afTimeStep)
 {
 	mfGameTime += (double)afTimeStep;
+
+	if(UpdateTestScript(mpInit, afTimeStep)) return;
 
 	//iLowLevelSystem *pLowLevelSystem =mpInit->mpGame->GetSystem()->GetLowLevel();
 	
@@ -1415,7 +1494,12 @@ void cMapHandler::Update(float afTimeStep)
 		}
 		else
 		{
-			mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
+			if(cInit::IsOverture())
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
+			else if(mMapChanger.msLoadImage != "")
+				mpInit->mpGraphicsHelper->DrawLoadingScreen(mMapChanger.msLoadImage);
+			else
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("loadscreen_default.jpg");
 		}
 		
 		//Fade in here so that script will over ride it.

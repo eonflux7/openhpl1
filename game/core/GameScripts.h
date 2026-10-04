@@ -30,6 +30,11 @@ class cGameScripts
 {
 public:
 	static void Init();
+
+	// Black Plague and Requiem functions that only count their calls
+	// (GameScriptsNotPorted.cpp), and the count written to the log
+	static void InitNotPorted(iLowLevelSystem *apLowLevelSystem);
+	static void LogNotPorted();
 };
 
 #endif // GAME_SCRIPTS_H

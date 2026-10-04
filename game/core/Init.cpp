@@ -34,12 +34,19 @@
 #include "entities/GameLink.h"
 #include "enemies/GameEnemy.h"
 #include "entities/GameLamp.h"
+#include "entities/GameLever.h"
+#include "entities/GameCamera.h"
+#include "entities/GameVentArea.h"
+#include "entities/GameWheel.h"
 #include "entities/GameLadder.h"
 #include "entities/GameDamageArea.h"
 #include "entities/GameForceArea.h"
 #include "entities/GameLiquidArea.h"
 
 #include "ui/Inventory.h"
+#include "ui/GameGui.h"
+#include "systems/GameSoundEnvHandler.h"
+#include "ui/Ending.h"
 #include "systems/FadeHandler.h"
 #include "core/SaveHandler.h"
 #include "systems/TriggerHandler.h"
@@ -121,6 +128,84 @@ tWString gsUserSettingsPath = _W("");
 tWString gsDefaultSettingsPath = _W("config/default_settings.cfg");
 bool gbUsingUserSettings=false;
 
+eGameId cInit::mGameId = eGameId_Overture;
+
+//-----------------------------------------------------------------------
+
+// What differs between the games' data folders. Black Plague and Requiem are
+// installed into the same folder, Requiem's own files under other names.
+struct cGameFiles
+{
+	const char *msName;
+	const wchar_t *msPersonalDir;
+	const wchar_t *msDefaultSettings;
+	const wchar_t *msGameConfig;
+	const char *msStartupConfig;
+	const char *msResources;
+	const char *msMaterials;
+	const char *msCacheDir;
+	const wchar_t *msMapsDir;
+	const char *msStartMap;
+};
+
+static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
+	{"Penumbra: Overture",
+#if defined(__linux__)
+		_W("Penumbra/OvertureRemade/"),
+#elif defined(WIN32)
+		_W("Penumbra Overture/Episode1/"),
+#else
+		_W("Penumbra/Overture/"),
+#endif
+		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level00_01_boat_cabin.dae"},
+	{"Penumbra: Black Plague", _W("Penumbra/BlackPlagueRemade/"),
+		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level01_cells.dae"},
+	{"Penumbra: Requiem", _W("Penumbra/RequiemRemade/"),
+		_W("expansion01/config/requiem_default_settings.cfg"), _W("expansion01/config/requiem_game.cfg"),
+		"expansion01/config/requiem_startup.cfg",
+		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae"},
+};
+
+//-----------------------------------------------------------------------
+
+// OVERTURE_GAME=overture|blackplague|requiem. Without it the data in the
+// working directory says which: Black Plague's folder has its first map
+// (Requiem, in the same folder, has to be asked for).
+static eGameId FindGameId()
+{
+	const char *pGame = SDL_getenv("OVERTURE_GAME");
+	if(pGame && pGame[0])
+	{
+		tString sGame = cString::ToLowerCase(pGame);
+		if(sGame == "overture") return eGameId_Overture;
+		if(sGame == "blackplague") return eGameId_BlackPlague;
+		if(sGame == "requiem") return eGameId_Requiem;
+		Warning("OVERTURE_GAME '%s' is not overture, blackplague or requiem\n", pGame);
+	}
+
+	if(FileExists(_W("maps/level01_cells.dae"))) return eGameId_BlackPlague;
+	return eGameId_Overture;
+}
+
+//-----------------------------------------------------------------------
+
+tWString cInit::GetPersonalGameDir()
+{
+	return gvGameFiles[mGameId].msPersonalDir;
+}
+
+tString cInit::GetStartupConfigFile()
+{
+	return gvGameFiles[mGameId].msStartupConfig;
+}
+
+tWString cInit::GetMapsDir()
+{
+	return gvGameFiles[mGameId].msMapsDir;
+}
+
 //-----------------------------------------------------------------------
 
 cInit::cInit(void)  : iUpdateable("Init")
@@ -179,6 +264,11 @@ bool cInit::Init(tString asCommandLine)
 	//iResourceBase::SetLogCreateAndDelete(true);
 	SetWindowCaption("Penumbra Loading...");
 
+	mGameId = FindGameId();
+	const cGameFiles &gameFiles = gvGameFiles[mGameId];
+	gsDefaultSettingsPath = gameFiles.msDefaultSettings;
+	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
+
 	// PERSONAL DIR /////////////////////
 	tWString sPersonalDir = GetSystemSpecialPath(eSystemPath_Personal);
 	if(	cString::GetLastCharW(sPersonalDir) != _W("/") && 
@@ -188,7 +278,7 @@ bool cInit::Init(tString asCommandLine)
 	}
 
 	// CREATE NEEDED DIRS /////////////////////
-	gsUserSettingsPath = sPersonalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("settings.cfg");
+	gsUserSettingsPath = sPersonalDir + PERSONAL_RELATIVEGAME + _W("settings.cfg");
 	#ifndef WIN32
 	// For Mac OS X and Linux move the OLD Episode 1 folder to Penumbra/Overture and symlink to the old path
 	if (FolderExists(sPersonalDir + PERSONAL_RELATIVEROOT _W("Penumbra Overture/Episode1"))
@@ -207,7 +297,7 @@ bool cInit::Init(tString asCommandLine)
 
 	tWString vDirs[] = { PERSONAL_RELATIVEPIECES //auto includes ,
 			PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT,
-			PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME};
+			PERSONAL_RELATIVEGAME};
 	int lDirNum = PERSONAL_RELATIVEPIECES_COUNT + 2;
 
 	//Check if directories exist and if not create
@@ -219,9 +309,16 @@ bool cInit::Init(tString asCommandLine)
 		CreateFolder(sDir);
 	}
 
+	// Mesh caches that have to be rebuilt go here, not into the game's folder
+	{
+		tWString sCacheDir = sPersonalDir + PERSONAL_RELATIVEGAME + _W("cache");
+		if(FolderExists(sCacheDir)==false) CreateFolder(sCacheDir);
+		iMeshLoader::SetCacheWriteDir(cString::To8Char(sCacheDir) + "/");
+	}
+
 	// LOG FILE SETUP /////////////////////
-	SetLogFile(sPersonalDir+PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("hpl.log"));
-	SetUpdateLogFile(sPersonalDir+PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("hpl_update.log"));
+	SetLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl.log"));
+	SetUpdateLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl_update.log"));
 
 	
 	// MAIN INIT /////////////////////
@@ -260,7 +357,7 @@ bool cInit::Init(tString asCommandLine)
 		mpConfig->Save();
 	}
 
-    mpGameConfig = hplNew( cConfigFile, (_W("config/game.cfg")) );
+    mpGameConfig = hplNew( cConfigFile, (gameFiles.msGameConfig) );
 	mpGameConfig->Load();
 
 	mvScreenSize.x = mpConfig->GetInt("Screen","Width",800);
@@ -280,6 +377,7 @@ bool cInit::Init(tString asCommandLine)
 	mbAllowQuickSave  = mpConfig->GetBool("Game","AllowQuickSave",false); 
 	mbFlashItems  = mpConfig->GetBool("Game","FlashItems",true);
 	mbShowCrossHair  = mpConfig->GetBool("Game","ShowCrossHair",false);
+	mbAskTutorial = mpConfig->GetBool("Game","AskTutorial",true);
 	
 	mbHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
 	if(mbHapticsAvailable)
@@ -307,7 +405,7 @@ bool cInit::Init(tString asCommandLine)
 	msCurrentUser = mpConfig->GetString("Game","CurrentUser","default");
 	mDifficulty = (eGameDifficulty)mpConfig->GetInt("Game","Difficulty",1);
 
-	msStartMap = mpConfig->GetString("Map","File","level00_01_boat_cabin.dae"); 
+	msStartMap = mpConfig->GetString("Map","File",gameFiles.msStartMap);
 	msStartLink = mpConfig->GetString("Map","StartPos","link01");
 
 	const char *pDirectMap = SDL_getenv("OVERTURE_MAP");
@@ -327,6 +425,9 @@ bool cInit::Init(tString asCommandLine)
 
 	mlMaxSoundChannels = mpConfig->GetInt("Sound","MaxSoundChannels",32);
 	mbUseSoundHardware = mpConfig->GetBool("Sound","UseSoundHardware",false);
+	// Reverb of the rooms (EFX). Black Plague's sound environments need it;
+	// on here unless the settings say not, where the original had it off.
+	mbUseEnvAudio = mpConfig->GetBool("Sound","UseEnvironmentalAudio",true);
 	//mbForceGenericSoundDevice = mpConfig->GetBool("Sound", "ForceGeneric", false);
 	mlStreamUpdateFreq = mpConfig->GetInt("Sound","StreamUpdateFreq",10);
 	mbUseSoundThreading = mpConfig->GetBool("Sound","UseThreading",true);
@@ -349,6 +450,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddInt("Multisampling",mlFSAA);
 	Vars.AddInt("LogicUpdateRate",60);
 	Vars.AddBool("UseSoundHardware",mbUseSoundHardware);
+	Vars.AddBool("UseEnvironmentalAudio",mbUseEnvAudio);
 	Vars.AddBool("ForceGeneric", mpConfig->GetBool("Sound", "ForceGeneric", false));
 	Vars.AddInt("MaxSoundChannels",mlMaxSoundChannels);
 	Vars.AddInt("StreamUpdateFreq",mlStreamUpdateFreq);
@@ -401,7 +503,7 @@ bool cInit::Init(tString asCommandLine)
 	cMath::Randomize();
 
 	// RESOURCE INIT /////////////////////
-	mpGame->GetResources()->LoadResourceDirsFile("resources.cfg");
+	mpGame->GetResources()->LoadResourceDirsFile(gameFiles.msResources);
 
 	// The fonts (fonts/ in the source tree) are next to the executable. They
 	// replace the glyphs of the game's bitmap fonts.
@@ -418,7 +520,7 @@ bool cInit::Init(tString asCommandLine)
 	// LANGUAGE ////////////////////////////////
 	mpGame->GetResources()->SetLanguageFile(msLanguageFile);
 
-	Log("Initializing " PRODUCT_NAME "\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n");
+	Log("Initializing %s\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n", gameFiles.msName);
 
 	//Add loaders
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameObject,("Object",this)) );
@@ -427,6 +529,14 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLamp,("Lamp",this)) );
 
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameEnemy,("Enemy",this)) );
+
+	if(IsOverture()==false)
+	{
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLever,("Lever",this)) );
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameWheel,("Wheel",this)) );
+
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameCamera,("Camera",this)) );
+	}
 
     mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameArea,("script",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLink,("link",this)) );
@@ -439,6 +549,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLiquidArea,("liquid",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameStickArea,("stick",this)) );
 #endif
+	if(IsOverture()==false)
+		mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameVentArea,("vent",this)) );
 
 		
 	/// FIRST LOADING SCREEN ////////////////////////////////////
@@ -449,7 +561,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetSound()->GetLowLevel()->SetVolume(mpConfig->GetFloat("Sound","Volume",1));
 		
 	// PHYSICS INIT /////////////////////
-	mpGame->GetPhysics()->LoadSurfaceData("materials.cfg", mpGame->GetHaptic());
+	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials, mpGame->GetHaptic());
 	
 	// EARLY GAME INIT /////////////////////
 	mpEffectHandler = hplNew( cEffectHandler, (this) );
@@ -529,7 +641,7 @@ bool cInit::Init(tString asCommandLine)
 		pLowLevel->SetFilmGrain(grain);
 	}
 
-	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", false));
+	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", !IsOverture()));
 
 	mpEffectHandler->GetDepthOfField()->SetDisabled(!mpConfig->GetBool("Graphics", "DepthOfField", true));
 
@@ -655,6 +767,9 @@ bool cInit::Init(tString asCommandLine)
 	mpMapHandler = hplNew( cMapHandler,(this) );
 	mpGameMessageHandler = hplNew( cGameMessageHandler,(this) );
 	mpRadioHandler = hplNew( cRadioHandler,(this) );
+	mpGameGuiHandler = hplNew( cGameGuiHandler,(this) );
+	mpSoundEnvHandler = hplNew( cGameSoundEnvHandler,(this) );
+	mpEnding = hplNew( cEnding,(this) );
 	mpInventory = hplNew( cInventory,(this) );
 	mpFadeHandler = hplNew( cFadeHandler,(this) );
 	mpSaveHandler = hplNew( cSaveHandler,(this) );
@@ -730,6 +845,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddUpdate("Default", mpLampLooks);
 	mpGame->GetUpdater()->AddUpdate("Default", mpGameMessageHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpRadioHandler);
+	mpGame->GetUpdater()->AddUpdate("Default", mpGameGuiHandler);
+	mpGame->GetUpdater()->AddUpdate("Default", mpSoundEnvHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpInventory);
 	mpGame->GetUpdater()->AddUpdate("Default", mpFadeHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpEffectHandler);
@@ -760,6 +877,10 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddContainer("Credits");
 	mpGame->GetUpdater()->AddUpdate("Credits", mpCredits);
 
+	// Black Plague's endings
+	mpGame->GetUpdater()->AddContainer("Ending");
+	mpGame->GetUpdater()->AddUpdate("Ending", mpEnding);
+
 	//Add to demo end text state
 	mpGame->GetUpdater()->AddContainer("DemoEndText");
 	mpGame->GetUpdater()->AddUpdate("DemoEndText", mpDemoEndText);
@@ -772,7 +893,7 @@ bool cInit::Init(tString asCommandLine)
 	if(pAutoRun)
 	{
 		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
-									"PreMenu","Credits","DemoEndText"};
+									"PreMenu","Credits","DemoEndText","Ending"};
 		for(const char *sContainer : vContainers)
 			mpGame->GetUpdater()->AddUpdate(sContainer, pAutoRun);
 	}
@@ -901,6 +1022,8 @@ void cInit::Reset()
 
 void cInit::Exit()
 {
+	cGameScripts::LogNotPorted();
+
 	mpConfig->SetBool("Haptics","Active",mbHasHapticsOnRestart);
 	mpConfig->SetBool("Haptics","Available",mbHapticsAvailable);
 	mpConfig->SetFloat("Haptics","ForceMul",mfHapticForceMul);
@@ -967,6 +1090,12 @@ void cInit::Exit()
 	//hplDelete( mpGameScripts );
 	Log(" Exit Game Message Handler\n");
 	hplDelete( mpGameMessageHandler );
+	Log(" Exit Ending\n");
+	hplDelete( mpEnding );
+	Log(" Exit Sound Environment Handler\n");
+	hplDelete( mpSoundEnvHandler );
+	Log(" Exit Game Gui Handler\n");
+	hplDelete( mpGameGuiHandler );
 	Log(" Exit Radio Handler\n");
 	hplDelete( mpRadioHandler );
 	Log(" Exit Inventory\n");
@@ -1056,10 +1185,11 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 	}
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
-	mpConfig->GetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
+	mpConfig->SetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 	
 	mpConfig->SetFloat("Sound","Volume",mpGame->GetSound()->GetLowLevel()->GetVolume());
 	mpConfig->SetBool("Sound","UseSoundHardware", mbUseSoundHardware);
+	mpConfig->SetBool("Sound","UseEnvironmentalAudio", mbUseEnvAudio);
 	mpConfig->SetInt("Sound","MaxSoundChannels",mlMaxSoundChannels);
 	mpConfig->SetInt("Sound","StreamUpdateFreq",mlStreamUpdateFreq);
 	mpConfig->SetBool("Sound","UseThreading",mbUseSoundThreading);
@@ -1175,6 +1305,7 @@ void cInit::Exit()
 	mpConfig->SetBool("Game","AllowQuickSave",mbAllowQuickSave); 
 	mpConfig->SetBool("Game","FlashItems",mbFlashItems); 
 	mpConfig->SetBool("Game","ShowCrossHair",mbShowCrossHair);
+	mpConfig->SetBool("Game","AskTutorial",mbAskTutorial);
 
 	mpConfig->SetBool("Game","SimpleSwingInOptions",mbSimpleSwingInOptions); 
 

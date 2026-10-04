@@ -248,16 +248,16 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 	}
 
 	//Set to the name of directory
-	msSaveDir = sPeronalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME;
+	msSaveDir = sPeronalDir + PERSONAL_RELATIVEGAME;
 
 	//The directories that should be created
 	tWString vDirs[] = { PERSONAL_RELATIVEPIECES
 						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT,
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME,
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/auto"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/spot"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/favorite")};
+						PERSONAL_RELATIVEGAME,
+						PERSONAL_RELATIVEGAME + _W("save"),
+						PERSONAL_RELATIVEGAME + _W("save/auto"),
+						PERSONAL_RELATIVEGAME + _W("save/spot"),
+						PERSONAL_RELATIVEGAME + _W("save/favorite")};
 	int lDirNum = PERSONAL_RELATIVEPIECES_COUNT + 6;
         
 	//Check if directories exist and if not create
@@ -665,6 +665,39 @@ void cSaveHandler::AutoSave(const tWString &asDir, int alMaxSaves)
 
 //-----------------------------------------------------------------------
 
+void cSaveHandler::AutoLoadLatestAutoOrSpot()
+{
+	tWString sAuto = _W("save/auto/") + GetLatest(_W("save/auto/"),_W("*.sav"));
+	tWString sSpot = _W("save/spot/") + GetLatest(_W("save/spot/"),_W("*.sav"));
+
+	tWString sFile = _W("");
+
+	if(sAuto == _W("save/auto/"))
+	{
+		sFile = sSpot;
+	}
+	else if(sSpot == _W("save/spot/"))
+	{
+		sFile = sAuto;
+	}
+	else
+	{
+		tWString sSaveDir = GetSaveDir();
+		cDate dateAuto = FileModifiedDate(sSaveDir + sAuto);
+		cDate dateSpot = FileModifiedDate(sSaveDir + sSpot);
+
+		if(dateAuto > dateSpot) 
+			sFile = sAuto;
+		else
+			sFile = sSpot;
+	}
+
+	if(sFile != _W(""))
+		LoadGameFromFile(sFile);
+}
+
+//-----------------------------------------------------------------------
+
 void cSaveHandler::AutoLoad(const tWString &asDir)
 {
 	tWString sFile = GetLatest(_W("save/")+asDir,_W("*.sav"));
@@ -944,6 +977,13 @@ kSerializeVar(mbItemFlash, eSerializeType_Bool)
 
 kSerializeVar(mfHealth, eSerializeType_Float32)
 kSerializeVar(mfPower, eSerializeType_Float32)
+kSerializeVar(msLowPowerCallback, eSerializeType_String)
+kSerializeVar(mfLowPowerVal, eSerializeType_Float32)
+kSerializeVar(mbNoFallDamage, eSerializeType_Bool)
+kSerializeVar(mlStat_Collectables, eSerializeType_Int32)
+kSerializeVar(mlStat_Notes, eSerializeType_Int32)
+kSerializeVar(mlStat_PlayTime, eSerializeType_Int32)
+kSerializeVar(mfOxygen, eSerializeType_Float32)
 kSerializeVar(mfMass, eSerializeType_Float32)
 
 kSerializeClassContainer(mvOnCameraPS,cPlayer_GlobalSave_CameraPS, eSerializeType_Class)

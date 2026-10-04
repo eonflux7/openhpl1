@@ -145,6 +145,12 @@ public:
 	tString msOnDeathCallback;
 	tString msOnAttackCallback;
 	cContainerVec<cEnemyPatrolNode> mvPatrolNodes;
+
+	//Black Plague
+	tString msOnHuntCallback;
+	tString msOnAnimOverCallback;
+	tString msOnPatrolOverCallback;
+	bool mbStopAtLastPatrolNode = false;
 	
 	iGameEntity* CreateEntity() override;
 };
@@ -283,6 +289,17 @@ public:
 	void SetOnDeathCallback(const tString &asFunc){ msOnDeathCallback = asFunc;}
 	void SetOnAttackCallback(const tString &asFunc){ msOnAttackCallback = asFunc;}
 	tString GetOnAttackCallback(){ return msOnAttackCallback;}
+
+	//Black Plague: called when the enemy starts to hunt, when an animation
+	//that takes the place of the moving ones is over (once) and when the
+	//last patrol node is reached (once).
+	void SetOnHuntCallback(const tString &asFunc){ msOnHuntCallback = asFunc;}
+	tString GetOnHuntCallback(){ return msOnHuntCallback;}
+	void SetOnAnimOverCallback(const tString &asFunc){ msOnAnimOverCallback = asFunc;}
+	void SetOnPatrolOverCallback(const tString &asFunc){ msOnPatrolOverCallback = asFunc;}
+	void SetStopAtLastPatrolNode(bool abX){ mbStopAtLastPatrolNode = abX;}
+
+	float GetMaxHealth(){ return mfMaxHealth;}
 	
 	//AI
 	bool CanSeePlayer();
@@ -323,12 +340,7 @@ public:
 	float GetWaitTimeCount(){ return mfWaitTimeCount;}
 
 	void SetCurrentPatrolNode(int alX){ mlCurrentPatrolNode = alX;}
-	void IncCurrentPatrolNode()
-	{ 
-		mlCurrentPatrolNode++;
-		if(mlCurrentPatrolNode >= (int)mvPatrolNodes.size())
-			mlCurrentPatrolNode =0;
-	}
+	void IncCurrentPatrolNode();
 	void SetWaitTime(float afX){ mfWaitTime = afX;}
 	void SetWaitTimeCount(float afX){ mfWaitTimeCount = afX;}
 	void AddWaitTimeCount(float afX){ mfWaitTimeCount += afX;}
@@ -356,11 +368,20 @@ protected:
 	
 	bool HandleSoundTrigger(cGameTrigger *apTrigger);
 	
-	bool LineOfSight(const cVector3f &avPos, const cVector3f &avSize);
+	bool LineOfSight(const cVector3f &avPos, const cVector3f &avSize, bool abSkipFOV);
 
 	bool mbSetFeetAtGroundOnStart;
 	bool mbAttachMeshToBody;
 	bool mbRemoveAttackerOnDisable;
+
+	//Black Plague: set by the kind of enemy before Setup
+	bool mbAccurateClimbing;
+
+	// For the test log (OVERTURE_ENEMY_LOG)
+	float mfLogCount = 0;
+
+	//The last sound made; a new one cuts it off (Black Plague)
+	cSoundEntity *mpCurrentSound;
 
 	tVector3fVec mvRayStartPoses;
 	tVector3fVec mvRayEndPoses;
@@ -405,6 +426,7 @@ protected:
 	bool mbLoading;
 
 	bool mbAlignToGroundNormal;
+	bool mbAlignToGroundSkipNormal;
 	cMatrixf m_mtxStartPose;
 	cMatrixf m_mtxGoalPose;
 	float mfPoseCount;
@@ -429,8 +451,12 @@ protected:
 
 	tString msOnDeathCallback;
 	tString msOnAttackCallback;
+	tString msOnHuntCallback;
+	tString msOnAnimOverCallback;
+	tString msOnPatrolOverCallback;
 
 	std::vector<cEnemyPatrolNode> mvPatrolNodes;
+	bool mbStopAtLastPatrolNode;
 
 	int mlCurrentPatrolNode;
 	float mfWaitTime;

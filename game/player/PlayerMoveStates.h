@@ -21,6 +21,8 @@
 
 class cPlayer;
 
+#include "systems/EffectHandler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // BASE STATE
 //////////////////////////////////////////////////////////////////////////
@@ -523,7 +525,135 @@ public:
 	}
 };
 
+//////////////////////////////////////////////////////////////////////////
+// SWIM STATE (Black Plague)
+//////////////////////////////////////////////////////////////////////////
 
+// In deep water: the player floats, sinks slowly when not swimming, swims
+// where he looks (pitch and all) and goes up to the surface with jump held.
+class cPlayerMoveState_Swim : public iPlayerMoveState
+{
+public:
+	bool mbMovingForwards;
+	bool mbMovingSideways;
+	float mfSwimSoundCount;
 
+	cPlayerMoveState_Swim(cPlayer *apPlayer, cInit *apInit) : iPlayerMoveState(apPlayer,apInit)
+	{
+		mfForwardSpeed = 2.0f;
+		mfBackwardSpeed= 1.0f;
+		mfSidewaySpeed = 1.4f;
+
+		mfForwardAcc = 8.0f;
+		mfForwardDeacc = 12.0f;
+		mfSidewayAcc = 8.0f;
+		mfSidewayDeacc = 12.0f;
+
+		//No head bobbing
+		mfMaxHeadMove = 0;
+		mfMinHeadMove = 0;
+		mfHeadMoveSpeed = 0;
+		mfHeadMoveBackSpeed = 0.33f;
+
+		mfFootStepMul = 0;
+		msStepType = "";
+
+		mbMovingForwards = false;
+		mbMovingSideways = false;
+		mfSwimSoundCount = 0;
+
+		mType = ePlayerMoveState_Swim;
+	}
+
+	void EnterState(iPlayerMoveState* apPrevState) override
+	{
+		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
+
+		//The water takes most of the speed of the fall
+		cVector3f vVel = pBody->GetForceVelocity();
+		pBody->SetForceVelocity(cVector3f(vVel.x*0.1f, vVel.y*0.5f, vVel.z*0.1f));
+
+		mPrevMoveState = apPrevState ? apPrevState->mType : ePlayerMoveState_Walk;
+
+		pBody->SetCustomGravity(cVector3f(0,-1.8f,0));
+		pBody->SetPitch(mpPlayer->GetCamera()->GetPitch());
+	}
+
+	void LeaveState(iPlayerMoveState* apNextState) override
+	{
+		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
+
+		pBody->SetCustomGravity(cVector3f(0,-18.0f,0));
+		pBody->SetPitch(0);
+	}
+
+	bool OnMoveForwards(float afMul, float afTimeStep) override
+	{
+		mbMovingForwards = afMul != 0;
+		return true;
+	}
+
+	bool OnMoveSideways(float afMul, float afTimeStep) override
+	{
+		mbMovingSideways = afMul != 0;
+		return true;
+	}
+
+	bool OnJump() override { return false;}
+
+	void OnUpdate(float afTimeStep) override
+	{
+		iCharacterBody *pBody = mpPlayer->GetCharacterBody();
+
+		if(mpPlayer->IsUnderWater()==false)
+		{
+			mpPlayer->ChangeMoveState(mPrevMoveState);
+			return;
+		}
+
+		//Swim where one looks
+		pBody->SetPitch(mpPlayer->GetCamera()->GetPitch());
+
+		bool bMoving = mbMovingForwards || mbMovingSideways;
+
+		//Sinks slowly when still
+		if(bMoving)	pBody->SetCustomGravity(0);
+		else		pBody->SetCustomGravity(cVector3f(0,-1.8f,0));
+
+		float fVelY = pBody->GetForceVelocity().y;
+		float fPosY = pBody->GetPosition().y;
+		float fHeight = pBody->GetSize().y;
+
+		//Strokes heard at the surface
+		if(bMoving && mpInit->mpEffectHandler->GetUnderwater()->IsActive()==false)
+		{
+			mfSwimSoundCount -= afTimeStep;
+			if(mfSwimSoundCount <= 0)
+			{
+				mfSwimSoundCount = 1;
+				mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("water_swim",false,1,
+																		cVector3f(0,0,1),eSoundDest_Gui);
+			}
+		}
+
+		//The water slows a fall
+		if(fVelY < 0)
+		{
+			pBody->AddForce(cVector3f(0, pBody->GetMass() * fVelY * -2, 0));
+		}
+
+		//Up to the surface with jump held
+		if(mpPlayer->GetJumpButtonDown() && fVelY < 2)
+		{
+			float fToSurface = mpPlayer->GetWaterSurfaceY() - fPosY;
+			float fHalf = fHeight * 0.5f;
+
+			if(fToSurface > fHalf)
+				pBody->AddForce(cVector3f(0, pBody->GetMass() * 10, 0));
+			else
+				pBody->AddForce(cVector3f(0, pBody->GetMass() * 10 * (fToSurface / fHalf), 0));
+		}
+	}
+};
 
 #endif // GAME_PLAYER_MOVE_STATES_H

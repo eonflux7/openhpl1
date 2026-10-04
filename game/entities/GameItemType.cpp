@@ -26,6 +26,7 @@
 #include "entities/GameEntity.h"
 #include "systems/GameMessageHandler.h"
 #include "ui/Notebook.h"
+#include "systems/EffectHandler.h"
 #include "entities/GameItem.h"
 
 #include "player/PlayerState_Weapon.h"
@@ -287,6 +288,72 @@ tWString cGameItemType_GlowStick::GetString(cInventoryItem *apItem)
 
 //-----------------------------------------------------------------------
 
+
+//////////////////////////////////////////////////////////////////////////
+//GAS MASK
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cGameItemType_GasMask::cGameItemType_GasMask(cInit *apInit)
+: cGameItemType(apInit)
+{
+	mvActions.resize(1);
+	mvActions[0] = kTranslate("Inventory", "Equip");
+
+	mvNonDropActions.resize(1);
+	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
+}
+
+bool cGameItemType_GasMask::OnAction(cInventoryItem *apItem, int alActionNum)
+{
+	//////////////
+	//Equip
+	if(alActionNum == 0)
+	{
+		cEffect_GasMask *pGasMask = mpInit->mpEffectHandler->GetGasMask();
+		pGasMask->SetActive(!pGasMask->IsActive());
+	}
+
+	return true;
+}
+
+//-----------------------------------------------------------------------
+
+tWString cGameItemType_GasMask::GetString(cInventoryItem *apItem)
+{
+	if(mpInit->mpEffectHandler->GetGasMask()->IsActive()) return kTranslate("Inventory","On");
+
+	return kTranslate("Inventory","Off");
+}
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+//COLLECTABLE
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cGameItemType_Collectable::cGameItemType_Collectable(cInit *apInit)
+: cGameItemType(apInit)
+{
+	mvActions.resize(0);
+	mvNonDropActions.resize(0);
+}
+
+bool cGameItemType_Collectable::OnPickUp(cInventoryItem *apItem, bool abInGame)
+{
+	mpInit->mpPlayer->mlStat_Collectables++;
+	return true;
+}
+
+bool cGameItemType_Collectable::OnAction(cInventoryItem *apItem, int alActionNum)
+{
+	return true;
+}
+
+//-----------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////
 //FLARE

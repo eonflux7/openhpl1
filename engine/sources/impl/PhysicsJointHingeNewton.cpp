@@ -124,6 +124,11 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// How near a limit its stop holds, and how much of the way back to it
+	// that stop pulls in one step
+	static const float kfLimitBand = 0.0087f; // half a degree
+	static const float kfLimitPull = 0.3f;
+
 	unsigned cPhysicsJointHingeNewton::LimitCallback(const NewtonJoint* pHinge, NewtonHingeSliderUpdateDesc* pDesc)
 	{
 		cPhysicsJointHingeNewton* pHingeJoint = (cPhysicsJointHingeNewton*)NewtonJointGetUserData(pHinge);
@@ -158,6 +163,33 @@ namespace hpl {
 
 			pDesc->m_accel = NewtonHingeCalculateStopAlpha (pHinge, pDesc, pHingeJoint->mfMinAngle);
 			pDesc->m_minFriction =0;
+
+			pHingeJoint->mfPreviousAngle = fAngle;
+			return 1;
+		}
+		// Within half a degree of a limit the stop already holds, pushing away
+		// from it only. Engaged only once past it, a hinge pushed onto its
+		// limit (a lever on a spring) went free one step and was stopped the
+		// next, and Newton 2 never let it come to rest there. It aims a little
+		// past the limit, so what rests there reads as being at it.
+		else if (fAngle < pHingeJoint->mfMinAngle + kfLimitBand && bSkipLimitCheck==false)
+		{
+			pHingeJoint->OnMinLimit();
+
+			float fOmega = cMath::Min(NewtonHingeGetJointOmega(pHinge), 0.0f);
+			pDesc->m_accel = (kfLimitPull * (pHingeJoint->mfMinAngle - kfLimitBand*0.25f - fAngle) / pDesc->m_timestep - fOmega) / pDesc->m_timestep;
+			pDesc->m_minFriction =0;
+
+			pHingeJoint->mfPreviousAngle = fAngle;
+			return 1;
+		}
+		else if (fAngle > pHingeJoint->mfMaxAngle - kfLimitBand && bSkipLimitCheck==false)
+		{
+			pHingeJoint->OnMaxLimit();
+
+			float fOmega = cMath::Max(NewtonHingeGetJointOmega(pHinge), 0.0f);
+			pDesc->m_accel = (kfLimitPull * (pHingeJoint->mfMaxAngle + kfLimitBand*0.25f - fAngle) / pDesc->m_timestep - fOmega) / pDesc->m_timestep;
+			pDesc->m_maxFriction =0;
 
 			pHingeJoint->mfPreviousAngle = fAngle;
 			return 1;

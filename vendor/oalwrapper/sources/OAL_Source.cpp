@@ -65,6 +65,10 @@ cOAL_Source::cOAL_Source(cOAL_SourceManager *apSourceManager, int alId, int alSe
 			cOAL_SourceSend* pSend = new cOAL_SourceSend;
 			mvSends.push_back(pSend);
 		}
+
+		// The filter the Set/Filter functions work on; the released wrapper
+		// never made it, so EFX crashed at the first source.
+		mpFilter = new cOAL_Filter;
 	}
 
 	// This resets the source

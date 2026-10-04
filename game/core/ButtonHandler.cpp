@@ -26,6 +26,7 @@
 #include "ui/NumericalPanel.h"
 #include "ui/IntroStory.h"
 #include "core/SaveHandler.h"
+#include "systems/EffectHandler.h"
 #include "core/MapHandler.h"
 #include "ui/DeathMenu.h"
 #include "ui/MapLoadText.h"
@@ -34,6 +35,9 @@
 #include "ui/DemoEndText.h"
 
 #include "ui/MainMenu.h"
+#include "ui/GameGui.h"
+#include "ui/Ending.h"
+#include "systems/RadioHandler.h"
 
 struct cButtonHandlerAction
 {
@@ -41,7 +45,14 @@ struct cButtonHandlerAction
 	tString msType;
 	int mlVal;
 	bool mbConfig;
+	// Only in Black Plague and Requiem
+	bool mbNotInOverture;
 };
+
+static bool IsActionInGame(const cButtonHandlerAction *apAction)
+{
+	return !apAction->mbNotInOverture || !cInit::IsOverture();
+}
 
 // The window height at which turning per mouse count is what it was before
 // it stopped depending on the resolution.
@@ -65,6 +76,7 @@ static cButtonHandlerAction gvDefaultActions[] = {
 {"LookMode","MouseButton",eMButton_Middle,true},
 
 {"Holster","Keyboard",eKey_x,true},
+{"Rotate","Keyboard",eKey_c,true,true},
 
 {"Examine","MouseButton",eMButton_Right,true},
 {"Interact","MouseButton",eMButton_Left,true},
@@ -144,6 +156,12 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 	cButtonHandlerAction *pBHAction = &gvDefaultActions[0];
 	while(pBHAction->msName != "")
 	{
+		if(!IsActionInGame(pBHAction))
+		{
+			++pBHAction;
+			++mlNumOfActions;
+			continue;
+		}
 		tString sName = pBHAction->msName;
 		tString sType = mpInit->mpConfig->GetString("Keys",sName+"_Type",pBHAction->msType);
 		tString sVal = mpInit->mpConfig->GetString("Keys",sName+"_Val",cString::ToString(pBHAction->mlVal));
@@ -397,6 +415,18 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->mpCredits->OnMouseDown(eMButton_Right);
 	}
 	///////////////////////////////////
+	// ENDING STATE (Black Plague)
+	///////////////////////////////////
+	else if(mState == eButtonHandlerState_Ending)
+	{
+		if(	mpInput->BecameTriggerd("Escape"))
+			mpInit->mpEnding->OnButtonDown();
+		if(mpInput->BecameTriggerd("LeftClick"))
+			mpInit->mpEnding->OnMouseDown(eMButton_Left);
+		if(mpInput->BecameTriggerd("RightClick"))
+			mpInit->mpEnding->OnMouseDown(eMButton_Right);
+	}
+	///////////////////////////////////
 	// PRE MENU STATE
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_PreMenu)
@@ -497,11 +527,12 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->ResetGame(true);
 			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
 		}*/
-		if(mpInit->mbAllowQuickSave)
+		// Requiem's quicksave and quickload are player keys, handled below
+		if(mpInit->mbAllowQuickSave && cInit::GetGameId() != eGameId_Requiem)
 		{
 			if(mpInput->BecameTriggerd("SaveGame"))
 			{
-				mpInit->mpSaveHandler->AutoSave(_W("auto"),5);
+				mpInit->mpSaveHandler->AutoSave(_W("auto"),cInit::IsOverture() ? 5 : 10);
 			}
 			if(mpInput->BecameTriggerd("LoadGame"))
 			{
@@ -516,8 +547,60 @@ void cButtonHandler::Update(float afTimeStep)
 		//Check if no jump is pressed always.
 		bool bPlayerStateIsActive = false;
 		///////////////////////////////////////
+		// Computer terminal (Black Plague) ////////////////////
+		if(mpInit->mpGameGuiHandler->HasOpenScreenGui())
+		{
+			cGui *pGui = mpInit->mpGame->GetGui();
+
+			if(mpInput->BecameTriggerd("RightClick"))
+			{
+				pGui->SendMouseClickDown(eGuiMouseButton_Right);
+				mpInput->BecameTriggerd("Examine");
+			}
+			if(mpInput->WasTriggerd("RightClick"))
+			{
+				pGui->SendMouseClickUp(eGuiMouseButton_Right);
+			}
+			if(mpInput->DoubleTriggerd("RightClick",0.2f))
+			{
+				pGui->SendMouseDoubleClick(eGuiMouseButton_Right);
+			}
+
+			if(mpInput->BecameTriggerd("LeftClick"))
+			{
+				pGui->SendMouseClickDown(eGuiMouseButton_Left);
+				mpInput->BecameTriggerd("Interact");
+			}
+			if(mpInput->WasTriggerd("LeftClick"))
+			{
+				pGui->SendMouseClickUp(eGuiMouseButton_Left);
+			}
+			if(mpInput->DoubleTriggerd("LeftClick",0.2f))
+			{
+				pGui->SendMouseDoubleClick(eGuiMouseButton_Left);
+			}
+
+			// The original gave the gui the mouse's place on the screen; here
+			// the pointer is moved as in the other menus.
+			cVector2f vRel = ReadMouseRel();
+			mpInit->mpGameGuiHandler->AddMousePos(vRel * mfMouseSensitivity);
+
+			while(mpInput->GetKeyboard()->KeyIsPressed())
+			{
+				pGui->SendKeyPress(mpInput->GetKeyboard()->GetKey());
+			}
+
+			if(mpInput->BecameTriggerd("Escape"))
+			{
+				if(mpInit->mpRadioHandler->IsActive())
+					mpInit->mpRadioHandler->NextMessage();
+				else
+					mpInit->mpGameGuiHandler->CloseScreenGui(false);
+			}
+		}
+		///////////////////////////////////////
 		// Death menu ////////////////////
-		if(mpInit->mpDeathMenu->IsActive())
+		else if(mpInit->mpDeathMenu->IsActive())
 		{
 			if(mpInput->BecameTriggerd("Escape"))
 			{
@@ -736,6 +819,16 @@ void cButtonHandler::Update(float afTimeStep)
 			{
 				if(mpPlayer->IsActive())
 				{
+					// Requiem: quicksave with the save effect, quickload the
+					// newest save
+					if(cInit::GetGameId() == eGameId_Requiem && mpInit->mbAllowQuickSave)
+					{
+						if(mpInput->BecameTriggerd("SaveGame"))
+							mpInit->mpEffectHandler->GetSaveEffect()->AutoSave(_W("auto"));
+						if(mpInput->BecameTriggerd("LoadGame"))
+							mpInit->mpSaveHandler->AutoLoadLatestAutoOrSpot();
+					}
+
 					if(mpInput->BecameTriggerd("Inventory"))
 					{
 						mpPlayer->StartInventory();
@@ -906,6 +999,11 @@ void cButtonHandler::Update(float afTimeStep)
 				{
 					mpPlayer->StartHolster();
 				}
+				if(!cInit::IsOverture())
+				{
+					if(mpInput->BecameTriggerd("Rotate")) mpPlayer->StartRotate();
+					if(mpInput->WasTriggerd("Rotate")) mpPlayer->StopRotate();
+				}
 
 				if(mpPlayer->IsActive())
 				{
@@ -950,6 +1048,7 @@ void cButtonHandler::OnExit()
 	for(int i=0; i< mlNumOfActions; ++i)
 	{
 		//Log(" Action %s\n",gvDefaultActions[i].msName.c_str());
+		if(!IsActionInGame(&gvDefaultActions[i])) continue;
 		
 		iAction *pAction = mpInput->GetAction(gvDefaultActions[i].msName);
 		tString sType="", sVal="";
@@ -969,6 +1068,11 @@ void cButtonHandler::SetDefaultKeys()
 	cButtonHandlerAction *pBHAction = &gvDefaultActions[0];
 	while(pBHAction->msName != "")
 	{
+		if(!IsActionInGame(pBHAction))
+		{
+			++pBHAction;
+			continue;
+		}
 		tString sName = pBHAction->msName;
 		tString sType = pBHAction->msType;
 		tString sVal = cString::ToString(pBHAction->mlVal);

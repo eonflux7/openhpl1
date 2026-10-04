@@ -66,6 +66,14 @@ void cGraphicsHelper::ClearScreen(const cColor &aColor)
 void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
 								  const cColor &aColor)
 {
+	DrawTexture(apTex, avPos, avSize, aColor, eBlendFunc_One, eBlendFunc_Zero);
+}
+
+void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
+								  const cColor &aColor, eBlendFunc aSrcBlend, eBlendFunc aDestBlend)
+{
+	bool bBlend = aSrcBlend != eBlendFunc_One || aDestBlend != eBlendFunc_Zero;
+
 	mpLowLevelGfx->SetDepthTestActive(false);
 	mpLowLevelGfx->PushMatrix(eMatrix_ModelView);
 	mpLowLevelGfx->SetIdentityMatrix(eMatrix_ModelView);
@@ -76,7 +84,8 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 	mvVtx[2] = cVertex(avPos + cVector3f(avSize.x,avSize.y,0),cVector2f(0.99f,0.99f),aColor);
 	mvVtx[3] = cVertex(avPos +  cVector3f(0,avSize.y,0),	cVector2f(0.01f,0.99f),aColor);
 
-	mpLowLevelGfx->SetBlendActive(false);
+	mpLowLevelGfx->SetBlendActive(bBlend);
+	if(bBlend) mpLowLevelGfx->SetBlendFunc(aSrcBlend, aDestBlend);
 	
 	for(int i=0;i<6;++i) mpLowLevelGfx->SetTexture(i,nullptr);
 
@@ -85,6 +94,8 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 	mpLowLevelGfx->DrawQuad(mvVtx);
 
 	mpLowLevelGfx->SetTexture(0,nullptr);
+
+	if(bBlend) mpLowLevelGfx->SetBlendActive(false);
 
 	mpLowLevelGfx->PopMatrix(eMatrix_ModelView);
 }

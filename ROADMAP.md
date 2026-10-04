@@ -384,8 +384,8 @@ the normal map's alpha, 160 have no normal map at all.
 
 ## Later / ideas
 
-- Penumbra: Black Plague and Requiem on the same engine (they share most of
-  HPL1)
+- Penumbra: Black Plague and Requiem on the same engine: under way, see
+  [PORTING-ROADMAP.md](PORTING-ROADMAP.md)
 - Newer Newton Dynamics or a different physics engine, if Milestone 1 tuning
   is not enough
 - Packaging (Flatpak) and an installer that finds the game data automatically

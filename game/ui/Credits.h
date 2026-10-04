@@ -53,6 +53,11 @@ public:
 private:
 	void LoadConfig();
 
+	// Black Plague and Requiem: the pages after the scrolling text
+	void DrawStatistics();
+	void DrawStatRow(float afY, const tString &asLabel, const tWString &asValue);
+	void NextPage();
+
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 
@@ -60,6 +65,11 @@ private:
 
 	tWStringVec mvTextRows;
 	float mfYPos;
+
+	// 0: the text scrolling, 1: statistics, then Black Plague's secret
+	// (2: the message, 3: the code) for all artefacts found
+	int mlPage;
+	float mfPageTime;
 		
 	bool mbActive;
 };

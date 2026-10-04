@@ -71,6 +71,10 @@ namespace hpl {
 		static void SetUseFastMaterial(bool abX) {mbUseFastMaterial = abX;}
 		static void SetFastMaterialFile(const tString& asFile) { msFastMaterialFile = asFile;}
 		static void SetCacheDir(const tString& asDir) { msCacheDir = asDir;}
+		// Where caches that had to be rebuilt are written, and looked for
+		// first. Empty: next to the ones that came with the game.
+		static void SetCacheWriteDir(const tString& asDir) { msCacheWriteDir = asDir;}
+		static const tString& GetCacheWriteDir() { return msCacheWriteDir;}
 	protected:
 		cMaterialManager *mpMaterialManager;
 		cMeshManager *mpMeshManager;
@@ -82,6 +86,7 @@ namespace hpl {
 		static bool mbUseFastMaterial;
 		static tString msFastMaterialFile;
 		static tString msCacheDir;
+		static tString msCacheWriteDir;
 
 	};
 

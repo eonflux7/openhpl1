@@ -275,53 +275,52 @@ void cGameStickArea::Update(float afTimeStep)
 		}
 	}
 	
-	////////////////////////////////////////////////////////
-	// Do some stuff with the body to be attached.
-	if(pAttachBody)
+	if(pAttachBody) AttachBody(pAttachBody);
+}
+
+//-----------------------------------------------------------------------
+
+void cGameStickArea::AttachBody(iPhysicsBody *apBody)
+{
+	if(mpAttachedBody) return;
+
+	//Log("Attaching body %s\n", apBody->GetName().c_str());
+
+	/////////////////////////
+	//If in an interact state, set the previous state		
+	if(	mpInit->mpPlayer->GetPushBody() == apBody &&
+	(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
+		mpInit->mpPlayer->GetState() == ePlayerState_Move ||
+		mpInit->mpPlayer->GetState() == ePlayerState_Push)
+	)
 	{
-		//Log("Attaching body %s\n", pAttachBody->GetName().c_str());
+		//Log(" Setting a prev state\n");
 
-		/////////////////////////
-		//If in an interact state, set the previous state		
-		if(	mpInit->mpPlayer->GetPushBody() == pAttachBody &&
-		(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
-			mpInit->mpPlayer->GetState() == ePlayerState_Move ||
-			mpInit->mpPlayer->GetState() == ePlayerState_Push)
-		)
-		{
-			//Log(" Setting a prev state\n");
-
-			ePlayerState state =  mpInit->mpPlayer->GetState();
-			ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviuosState;
-			if(prev == ePlayerState_InteractMode)
-				mpInit->mpPlayer->ChangeState(ePlayerState_InteractMode);
-			else
-				mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
-		}
-		
-		/////////////////////////
-		//Snap it into place.
-		//pAttachBody->SetMatrix(pAreaBody->GetWorldMatrix());
-		//pAttachBody->SetPosition(pAreaBody->GetWorldPosition() - pAttachBody->GetMassCentre());
-		mtxAttachedStart = pAttachBody->GetLocalMatrix();
-
-		mfSetMtxTime = 0;
-
-		pAttachBody->SetLinearVelocity(0);
-		pAttachBody->SetAngularVelocity(0);
-		
-		mbBodyGravity = pAttachBody->GetGravity();
-		pAttachBody->SetGravity(false);
-		
-		mfBodyMass = pAttachBody->GetMass();
-		pAttachBody->SetMass(0);
-
-		mpAttachedBody = pAttachBody;
-		mpLastAttachedBody = mpAttachedBody;
-
-		//Log("Attaching body!\n");
+		ePlayerState state =  mpInit->mpPlayer->GetState();
+		ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviuosState;
+		if(prev == ePlayerState_InteractMode)
+			mpInit->mpPlayer->ChangeState(ePlayerState_InteractMode);
+		else
+			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	}
+	
+	/////////////////////////
+	//Snap it into place.
+	mtxAttachedStart = apBody->GetLocalMatrix();
 
+	mfSetMtxTime = 0;
+
+	apBody->SetLinearVelocity(0);
+	apBody->SetAngularVelocity(0);
+	
+	mbBodyGravity = apBody->GetGravity();
+	apBody->SetGravity(false);
+	
+	mfBodyMass = apBody->GetMass();
+	apBody->SetMass(0);
+
+	mpAttachedBody = apBody;
+	mpLastAttachedBody = mpAttachedBody;
 }
 
 //-----------------------------------------------------------------------

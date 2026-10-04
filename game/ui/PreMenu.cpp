@@ -69,9 +69,10 @@ void cPreMenu::LoadConfig()
 {
 	////////////////////////////////////////////////
 	//Load the document
-	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, ("config/startup.cfg") );
+	tString sConfigFile = cInit::GetStartupConfigFile();
+	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sConfigFile.c_str()) );
 	if(pXmlDoc->LoadFile()==false){
-		Error("Couldn't load XML document 'config/startup.cfg'\n");
+		Error("Couldn't load XML document '%s'\n",sConfigFile.c_str());
 		
 		return;
 	}
@@ -80,7 +81,7 @@ void cPreMenu::LoadConfig()
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==nullptr){
-		Error("Couldn't load root from XML document 'config/startup.cfg'\n");
+		Error("Couldn't load root from XML document '%s'\n",sConfigFile.c_str());
 		
 		return;
 	}
@@ -89,7 +90,7 @@ void cPreMenu::LoadConfig()
 	//Load the Main element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
 	if(pMainElem==nullptr){
-		Error("Couldn't load Main element from XML document 'config/startup.cfg'\n");
+		Error("Couldn't load Main element from XML document '%s'\n",sConfigFile.c_str());
 		
 		return;
 	}
@@ -100,7 +101,7 @@ void cPreMenu::LoadConfig()
 	//Load the Logos element.
 	TiXmlElement *pLogosParentElem = pRootElem->FirstChildElement("Logos");
 	if(pLogosParentElem==nullptr){
-		Error("Couldn't load Logs element from XML document 'config/startup.cfg'\n");
+		Error("Couldn't load Logs element from XML document '%s'\n",sConfigFile.c_str());
 		
 		return;
 	}

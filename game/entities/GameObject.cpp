@@ -732,6 +732,10 @@ void cGameObject::BreakAction()
 		{
 			iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
 
+			// Black Plague: what comes out may be an enemy (a spider from
+			// its egg), which gets its first state here
+			if(cInit::IsOverture()==false) pGameEntity->OnWorldLoad();
+
 			for(int i=0; i< pGameEntity->GetBodyNum(); ++i)
 			{
 				//Add the object velocity

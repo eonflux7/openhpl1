@@ -65,18 +65,29 @@ namespace hpl {
 		//abCache = false;
 		//Log("Loading %s\n",asFile.c_str());
 
-		tString sCacheFile = cString::GetFileName(cString::SetFileExt(asFile,"collcach"));
-		sCacheFile = msCacheDir+sCacheFile;
+		tString sCacheName = cString::GetFileName(cString::SetFileExt(asFile,"collcach"));
+		tString sCacheFile = msCacheDir+sCacheName;
+		// A cache rebuilt here is written to the write directory, so the
+		// game's own folder is left as it was, and is looked for there first.
+		tString sWriteCacheFile = msCacheWriteDir=="" ? sCacheFile : msCacheWriteDir+sCacheName;
 
-		if(	abCache &&
-			FileExists(cString::To16Char(sCacheFile)) &&
-			FileExists(cString::To16Char(asFile)))
+		if(abCache && FileExists(cString::To16Char(asFile)))
 		{
 			cDate colladaDate = FileModifiedDate(cString::To16Char(asFile));
-			cDate cacheDate = FileModifiedDate(cString::To16Char(sCacheFile));
 
+			if(	sWriteCacheFile != sCacheFile &&
+				FileExists(cString::To16Char(sWriteCacheFile)) &&
+				FileModifiedDate(cString::To16Char(sWriteCacheFile)) > colladaDate)
+			{
+				sCacheFile = sWriteCacheFile;
+				bLoadCache = true;
+			}
 			//Check if cache is newer
-			if(cacheDate > colladaDate) bLoadCache = true;
+			else if(FileExists(cString::To16Char(sCacheFile)) &&
+					FileModifiedDate(cString::To16Char(sCacheFile)) > colladaDate)
+			{
+				bLoadCache = true;
+			}
 		}
 
 		/////////////////////////////////////////////////
@@ -287,7 +298,7 @@ namespace hpl {
 
 		if(abCache)
 		{
-			SaveStructures(sCacheFile,apColladaImageVec,
+			SaveStructures(sWriteCacheFile,apColladaImageVec,
 							apColladaTextureVec,
 							apColladaMaterialVec,
 							apColladaLightVec,

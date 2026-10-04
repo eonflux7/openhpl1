@@ -126,6 +126,8 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	else
 		mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMelee,(mpInit) );
 	mvItemTypes[eGameItemType_Throw] = hplNew( cGameItemType_Throw,(mpInit) );
+	mvItemTypes[eGameItemType_GasMask] = hplNew( cGameItemType_GasMask,(mpInit) );
+	mvItemTypes[eGameItemType_Collectable] = hplNew( cGameItemType_Collectable,(mpInit) );
 
 	Reset();
 }

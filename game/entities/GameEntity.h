@@ -148,6 +148,22 @@ public:
 	virtual void OnPostSceneDraw(){}
 
 	void OnUpdate(float afTimeStep);
+	void UpdateMove(float afTimeStep);
+
+	/**
+	 * Black Plague: moves the entity (its first body) in a straight line to a position.
+	 * \param afMaxSpeed speed reached, in m/s
+	 * \param afAcceleration in m/s^2
+	 * \param afSlowDownDist the speed falls off linearly inside this distance from the goal
+	 * \param asCallback script function called on arrival: Func(string asEntity)
+	 */
+	//Black Plague: hangs a mesh entity on a bone of the entity's skeleton.
+	//It is shown and hidden with the entity and destroyed with it.
+	bool AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone);
+
+	void MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float afAcceleration,
+						float afSlowDownDist, const tString& asCallback);
+	bool IsMoving(){ return mbMoving;}
 
 	eGameEntityType GetType(){ return mType;}
 
@@ -313,6 +329,14 @@ protected:
 
 	eGameEntityType mType;
 
+	cVector3f mvMoveGoal;
+	float mfMoveAcceleration;
+	float mfMoveSpeed;
+	float mfMoveMaxSpeed;
+	float mfMoveSlowDownDist;
+	bool mbMoving;
+	tString msMoveCallback;
+
 	bool mbPauseControllers;
 	bool mbPauseGravity;
 
@@ -328,6 +352,9 @@ protected:
 	std::vector<iLight3D*> mvLights;
 	std::vector<cParticleSystem3D*> mvParticleSystems;
 	std::vector<cBillboard*> mvBillboards;
+
+	//Black Plague: mesh entities hung on a bone (an Infected's weapon)
+	std::list<cMeshEntity*> mlstAttachedMeshEntities;
 	std::vector<cBeam*> mvBeams;
 	std::vector<cSoundEntity*> mvSoundEntities;
 

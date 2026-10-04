@@ -156,6 +156,10 @@ private:
 	int mlTerrorLevel;
 
 	cGfxObject *mpDamageGfx;
+
+	// Black Plague: air under water
+	void UpdateOxygen(float afTimeStep);
+	float mfNoAirCount = 0;
 };
 
 //---------------------------------------------
@@ -536,6 +540,7 @@ public:
 	void Reset();
 	
 	void SetTarget(const cVector3f &avTargetPos, float afSpeedMul, float afMaxSpeed);
+	void SetZoomTarget(float afFovMul, float afSpeedMul, float afMaxSpeed);
 	
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
@@ -546,6 +551,11 @@ private:
 
 	float mfSpeedMul;
 	float mfMaxSpeed;
+
+	float mfDestFovMul;
+	float mfFovMul;
+	float mfFovSpeedMul;
+	float mfFovMaxSpeed;
 
 	cPlayer *mpPlayer;
 };

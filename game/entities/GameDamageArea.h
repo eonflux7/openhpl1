@@ -37,6 +37,9 @@ public:
 	int mlStrength;
 	bool mbDisableObjects;
 	bool mbDisableEnemies;
+	// Black Plague: how the player is shown to be hurt, and what is heard then
+	int mDamageType = ePlayerDamageType_BloodSplash;
+	tString msDamageSound;
 		
 	iGameEntity* CreateEntity() override;
 };
@@ -62,6 +65,8 @@ public:
 	void SetStrength(int alX){ mlStrength = alX;}
 	void SetDisableObjects(bool abX){ mbDisableObjects = abX;}
 	void SetDisableEnemies(bool abX){ mbDisableEnemies = abX;}
+	void SetDamageType(ePlayerDamageType aType){ mDamageType = aType;}
+	void SetDamageSound(const tString& asX){ msDamageSound = asX;}
 	
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;
@@ -75,6 +80,9 @@ private:
 	int mlStrength;
 	bool mbDisableObjects;
 	bool mbDisableEnemies;
+	// Black Plague: how the player is shown to be hurt, and what is heard then
+	int mDamageType = ePlayerDamageType_BloodSplash;
+	tString msDamageSound;
 
 	float mfUpdateCount;
 };

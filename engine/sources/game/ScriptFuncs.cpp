@@ -1172,6 +1172,15 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetBodyProperty, string, string, float)
 
+	// Black Plague's scripts give true and false to this and to the
+	// variables below, which the script compiler of their time took as
+	// numbers. Today's does not, so there is a bool form of each.
+	static void __stdcall SetBodyPropertyBool(std::string asBody, std::string asProp, bool abVal)
+	{
+		SetBodyProperty(asBody, asProp, abVal ? 1.0f : 0.0f);
+	}
+	SCRIPT_DEFINE_FUNC_3(void, SetBodyPropertyBool, string, string, bool)
+
 	//-----------------------------------------------------------------------
 
 	static void __stdcall AttachBodiesWithJoint(std::string asParentName, std::string asChildName, std::string asJointName)
@@ -1390,6 +1399,18 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetLocalVar, string, int)
 
+	static void __stdcall CreateLocalVarBool(std::string asName, bool abVal)
+	{
+		CreateLocalVar(asName, abVal ? 1 : 0);
+	}
+	SCRIPT_DEFINE_FUNC_2(void, CreateLocalVarBool, string, bool)
+
+	static void __stdcall SetLocalVarBool(std::string asName, bool abVal)
+	{
+		SetLocalVar(asName, abVal ? 1 : 0);
+	}
+	SCRIPT_DEFINE_FUNC_2(void, SetLocalVarBool, string, bool)
+
 	static void __stdcall AddLocalVar(std::string asName, int alVal)
 	{
 		cScriptVar* pVar = gpScene->CreateLocalVar(asName);
@@ -1430,6 +1451,18 @@ namespace hpl {
 		pVar->mlVal = alVal;
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetGlobalVar, string, int)
+
+	static void __stdcall CreateGlobalVarBool(std::string asName, bool abVal)
+	{
+		CreateGlobalVar(asName, abVal ? 1 : 0);
+	}
+	SCRIPT_DEFINE_FUNC_2(void, CreateGlobalVarBool, string, bool)
+
+	static void __stdcall SetGlobalVarBool(std::string asName, bool abVal)
+	{
+		SetGlobalVar(asName, abVal ? 1 : 0);
+	}
+	SCRIPT_DEFINE_FUNC_2(void, SetGlobalVarBool, string, bool)
 
 
 	static void __stdcall AddGlobalVar(std::string asName, int alVal)
@@ -1541,6 +1574,7 @@ namespace hpl {
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetJointProperty));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetBodyProperty));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetBodyProperty));
+		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetBodyPropertyBool, "SetBodyProperty"));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetJointProperty));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(AttachBodiesWithJoint));
 
@@ -1556,12 +1590,16 @@ namespace hpl {
 		//Local vars
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateLocalVar));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetLocalVar));
+		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(CreateLocalVarBool, "CreateLocalVar"));
+		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetLocalVarBool, "SetLocalVar"));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddLocalVar));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetLocalVar));
 
 		//Global vars
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateGlobalVar));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetGlobalVar));
+		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(CreateGlobalVarBool, "CreateGlobalVar"));
+		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetGlobalVarBool, "SetGlobalVar"));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddGlobalVar));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetGlobalVar));
 	}

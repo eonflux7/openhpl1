@@ -25,6 +25,7 @@
 #include "systems/GameMessageHandler.h"
 #include "core/SaveHandler.h"
 #include "systems/RadioHandler.h"
+#include "ui/GameGui.h"
 #include "entities/GameSaveArea.h"
 #include "core/GraphicsHelper.h"
 
@@ -40,6 +41,10 @@ cEffect_Underwater::cEffect_Underwater(cInit *apInit, cGraphicsDrawer *apDrawer)
 	mpDrawer = apDrawer;
 
 	mpWhiteGfx = mpDrawer->CreateGfxObject("effect_white.jpg","smoke2d");
+
+	mpSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
+	mpLoopChannel = nullptr;
+	mfSoundCount = 0;
 
 	Reset();
 }
@@ -57,13 +62,73 @@ void cEffect_Underwater::SetActive(bool abX)
 	if(mbActive == abX) return;
 
 	mbActive = abX;
+
+	if(cInit::IsOverture()) return;
+
+	// Black Plague: a sound as the head goes under and comes up, at most once a second
+	if(mfSoundCount <= 0)
+	{
+		if(mbActive)
+		{
+			mpSoundHandler->PlayGui("water_dive_down",false,1,cVector3f(0,0,1),eSoundDest_Gui);
+		}
+		else
+		{
+			mpSoundHandler->PlayGui("water_leave",false,1,cVector3f(0,0,1),eSoundDest_Gui);
+
+			//Out of breath
+			if(mpInit->mpPlayer->GetOxygen() < 50)
+			{
+				mpSoundHandler->PlayGui("water_gasp",false,1,cVector3f(0,0,1),eSoundDest_Gui);
+				mpInit->mpPlayer->AddOxygen(20);
+			}
+		}
+	}
+	mfSoundCount = 1;
 }
 
 //-----------------------------------------------------------------------
 
 void cEffect_Underwater::Update(float afTimeStep)
 {
+	if(cInit::IsOverture()) return;
 
+	mfSoundCount -= afTimeStep;
+	if(mfSoundCount < 0) mfSoundCount = 0;
+
+	// Black Plague: the sound of being under water, faded in and out
+	if(mbActive)
+	{
+		if(mpLoopChannel==nullptr || mpSoundHandler->IsValid(mpLoopChannel)==false)
+		{
+			mpLoopChannel = mpSoundHandler->PlayGui("water_under",true,1,cVector3f(0,0,1),eSoundDest_Gui);
+
+			cSoundEntry *pEntry = mpLoopChannel ? mpSoundHandler->GetEntryFromSound(mpLoopChannel) : nullptr;
+			if(pEntry)
+			{
+				pEntry->mfNormalVolume = 0;
+				pEntry->mfNormalVolumeFadeDest = 1;
+				pEntry->mfNormalVolumeFadeSpeed = 3;
+			}
+		}
+	}
+	else if(mpLoopChannel)
+	{
+		if(mpSoundHandler->IsValid(mpLoopChannel))
+		{
+			cSoundEntry *pEntry = mpSoundHandler->GetEntryFromSound(mpLoopChannel);
+			if(pEntry)
+			{
+				pEntry->mfNormalVolumeFadeDest = 0;
+				pEntry->mfNormalVolumeFadeSpeed = -3;
+			}
+			else
+			{
+				mpLoopChannel->Stop();
+			}
+		}
+		mpLoopChannel = nullptr;
+	}
 }
 //-----------------------------------------------------------------------
 
@@ -79,6 +144,8 @@ void cEffect_Underwater::OnDraw()
 void cEffect_Underwater::Reset()
 {
 	mbActive = false;
+	mpLoopChannel = nullptr;
+	mfSoundCount = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -212,12 +279,13 @@ cEffect_SaveEffect::~cEffect_SaveEffect()
 	
 }
 
-void cEffect_SaveEffect::NormalSave(const cVector3f &avPos, cGameSaveArea *apSaveArea)
+void cEffect_SaveEffect::NormalSave(const cVector3f &avPos, cGameSaveArea *apSaveArea, bool abSave)
 {
 	mpSaveArea = apSaveArea;
+	mbSave = abSave;
 
 	msMessage = _W("");
-	if(apSaveArea->GetMessageCat() != "")
+	if(apSaveArea && apSaveArea->GetMessageCat() != "")
 	{
 		msMessage = kTranslate(apSaveArea->GetMessageCat(), apSaveArea->GetMessageEntry());
 		if(apSaveArea->GetHasBeenUsed())
@@ -254,8 +322,9 @@ void cEffect_SaveEffect::NormalSave(const cVector3f &avPos, cGameSaveArea *apSav
 	mbAutoSave = false;
 }
 
-void cEffect_SaveEffect::AutoSave()
+void cEffect_SaveEffect::AutoSave(const tWString &asName)
 {
+	msAutoSaveName = asName;
 	mbActive = true;
 	mfTime =0;
 
@@ -325,7 +394,7 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 				mlState++;
 				mpInit->mpPlayer->GetCamera()->SetFOV(mfStartFov);
 
-				mpInit->mpSaveHandler->AutoSave(_W("spot"),10);
+				if(mbSave) mpInit->mpSaveHandler->AutoSave(_W("spot"),10);
 			}
 			break;
 		}
@@ -333,7 +402,7 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 		//State 1
 	case 1:
 		{
-			if(msMessage != _W("") && mpSaveArea->GetHasBeenUsed()==false)
+			if(msMessage != _W("") && mpSaveArea && mpSaveArea->GetHasBeenUsed()==false)
 			{
 				mpInit->mpGameMessageHandler->SetBlackText(true);
 				mpInit->mpGameMessageHandler->Add(msMessage);
@@ -387,7 +456,7 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			if(lLevel==0) lMaxRand =1;
 
 			tString sEntry = "AfterSave_Default";
-			if(mpSaveArea->GetHasBeenUsed()==false)
+			if(mpSaveArea && mpSaveArea->GetHasBeenUsed()==false)
 			{
 				mpInit->mpPlayer->mlStat_NumOfSaves++;
 				int lNum = mpInit->mpPlayer->mlStat_NumOfSaves;
@@ -425,7 +494,8 @@ void cEffect_SaveEffect::AutoSaveUpdate(float afTimeStep)
 			{
 				mfFlashAlpha =  0.75f;
 				mlState++;
-				mpInit->mpSaveHandler->AutoSave(_W("auto"),5);
+				// Black Plague and Requiem keep ten auto saves
+				mpInit->mpSaveHandler->AutoSave(msAutoSaveName,cInit::IsOverture() ? 5 : 10);
 				mpInit->mpPlayer->SetActive(true);
 			}
 			break;
@@ -608,6 +678,15 @@ void cEffect_Flash::Start(float afFadeIn, float afWhite, float afFadeOut)
 	
 	mlStep = 0;
 
+	// Black Plague: starts from nothing, and a time of 0 is taken as "at once"
+	if(cInit::IsOverture()==false)
+	{
+		mfAlpha = 0;
+		if(afFadeIn == 0) afFadeIn = 0.000001f;
+		if(afWhite == 0) afWhite = 0.000001f;
+		if(afFadeOut == 0) afFadeOut = 0.000001f;
+	}
+
 	mfFadeInSpeed = 1 / afFadeIn;
 	mfWhiteSpeed = 1 / afWhite;
 	mfFadeOutSpeed = 1 / afFadeOut;
@@ -662,6 +741,393 @@ void cEffect_Flash::OnDraw()
 void cEffect_Flash::Reset()
 {
 	mbActive = false;
+	if(cInit::IsOverture()==false) mfAlpha = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// IMAGE FLASH
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cEffect_ImageFlash::cEffect_ImageFlash(cInit *apInit, cGraphicsDrawer *apDrawer)
+{
+	mpInit = apInit;
+	mpDrawer = apDrawer;
+
+	mpImageGfx = nullptr;
+	mfAlpha = 0;
+	mbActive = false;
+}
+
+cEffect_ImageFlash::~cEffect_ImageFlash()
+{
+	if(mpImageGfx) mpDrawer->DestroyGfxObject(mpImageGfx);
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_ImageFlash::Start(float afFadeIn, float afStay, float afFadeOut, const tString &asFile,
+								bool abStartFlash, bool abEndFlash)
+{
+	if(mpImageGfx)
+	{
+		mpDrawer->DestroyGfxObject(mpImageGfx);
+		mpImageGfx = nullptr;
+	}
+
+	mbActive = true;
+	mlStep = 0;
+
+	if(afFadeIn == 0) afFadeIn = 0.000001f;
+	if(afStay == 0) afStay = 0.000001f;
+	if(afFadeOut == 0) afFadeOut = 0.000001f;
+
+	mfFadeInSpeed = 1 / afFadeIn;
+	mfStaySpeed = 1 / afStay;
+	mfFadeOutSpeed = 1 / afFadeOut;
+
+	mpImageGfx = mpDrawer->CreateGfxObjectFromTexture(asFile, "diffalpha2d");
+	if(mpImageGfx == nullptr)
+	{
+		Error("Couldn't load the picture '%s' for an image flash\n", asFile.c_str());
+		mbActive = false;
+		return;
+	}
+
+	mbEndFlash = abEndFlash;
+
+	if(abStartFlash)
+	{
+		mpInit->mpEffectHandler->GetFlash()->Start(afFadeIn*0.5f, 0, afFadeIn*0.5f);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_ImageFlash::Update(float afTimeStep)
+{
+	if(mbActive==false) return;
+
+	if(mlStep ==0)
+	{
+		mfAlpha += mfFadeInSpeed * afTimeStep;
+		if(mfAlpha >= 1.0f)
+		{
+			mfAlpha = 1.0f;
+			mlStep=1;
+			mfCount = 1;
+		}
+	}
+	else if(mlStep ==1)
+	{
+		mfCount -= mfStaySpeed * afTimeStep;
+		if(mfCount <= 0)
+		{
+			if(mbEndFlash)
+			{
+				float fTime = 1 / mfFadeInSpeed;
+				mpInit->mpEffectHandler->GetFlash()->Start(fTime, 0, fTime);
+			}
+			mlStep = 2;
+		}
+	}
+	else if(mlStep ==2)
+	{
+		mfAlpha -= mfFadeOutSpeed * afTimeStep;
+		if(mfAlpha <= 0.0f)
+		{
+			mpDrawer->DestroyGfxObject(mpImageGfx);
+			mpImageGfx = nullptr;
+			mbActive = false;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_ImageFlash::OnDraw()
+{
+	if(mbActive==false) return;
+
+	// The picture is 4:3 and fills the 800 x 600 of the original. In a wider
+	// window it is made as wide as the window and loses its top and bottom.
+	cVector2f vScreen = mpInit->mpGraphicsHelper->GetScreenSize();
+	cVector2f vSize(800,600);
+	if(vScreen.x > vSize.x) vSize = cVector2f(vScreen.x, vScreen.x * 0.75f);
+	if(vScreen.y > vSize.y) vSize = cVector2f(vScreen.y / 0.75f, vScreen.y);
+
+	mpDrawer->DrawGfxObject(mpImageGfx,cVector3f(400 - vSize.x*0.5f, 300 - vSize.y*0.5f,3.1f),vSize,cColor(1,mfAlpha));
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_ImageFlash::Reset()
+{
+	if(mpImageGfx)
+	{
+		mpDrawer->DestroyGfxObject(mpImageGfx);
+		mpImageGfx = nullptr;
+	}
+
+	mfAlpha = 0;
+	mbActive = false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GAS MASK
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cEffect_GasMask::cEffect_GasMask(cInit *apInit)
+{
+	mpInit = apInit;
+	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
+	mpSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
+
+	mpGfx = nullptr;
+	mpBreathChannel = nullptr;
+	mbActive = false;
+	mfAlpha = 0;
+	mfBreathCount = 0;
+}
+
+cEffect_GasMask::~cEffect_GasMask()
+{
+	if(mpGfx) mpDrawer->DestroyGfxObject(mpGfx);
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_GasMask::SetActive(bool abX)
+{
+	if(mbActive == abX) return;
+
+	mbActive = abX;
+
+	if(mbActive)
+	{
+		mpSoundHandler->PlayGui("player_gasmask_on", false, 1, cVector3f(0,0,1), eSoundDest_Gui);
+
+		// The world is heard through the mask
+		mpSoundHandler->SetVolume(0.3f, 3.0f, eSoundDest_World);
+
+		if(mpGfx == nullptr)
+			mpGfx = mpDrawer->CreateGfxObjectFromTexture("player_gasmask.tga", "diffalpha2d");
+	}
+	else
+	{
+		mpSoundHandler->PlayGui("player_gasmask_off", false, 1, cVector3f(0,0,1), eSoundDest_Gui);
+
+		mpSoundHandler->SetVolume(1.0f, 3.0f, eSoundDest_World);
+
+		if(mpBreathChannel && mpSoundHandler->IsValid(mpBreathChannel))
+		{
+			cSoundEntry *pEntry = mpSoundHandler->GetEntryFromSound(mpBreathChannel);
+			if(pEntry)
+			{
+				pEntry->mfNormalVolumeFadeDest = 0;
+				pEntry->mfNormalVolumeFadeSpeed = -3;
+			}
+			else
+			{
+				mpBreathChannel->Stop();
+			}
+		}
+		mpBreathChannel = nullptr;
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_GasMask::Update(float afTimeStep)
+{
+	if(mbActive)
+	{
+		// A breath now and then, faster when hurt
+		mfBreathCount += afTimeStep;
+
+		float fInterval = mpInit->mpPlayer->GetHealth() < 50 ? 1.6f : 2.2f;
+		if(mfBreathCount > fInterval)
+		{
+			mfBreathCount = 0;
+			mpBreathChannel = mpSoundHandler->PlayGui("player_gasmask_breath", false, 1, cVector3f(0,0,1), eSoundDest_Gui);
+		}
+
+		if(mfAlpha < 1)
+		{
+			mfAlpha += afTimeStep*2;
+			if(mfAlpha > 1) mfAlpha = 1;
+		}
+	}
+	else if(mfAlpha > 0)
+	{
+		mfAlpha -= afTimeStep*2;
+		if(mfAlpha <= 0)
+		{
+			mfAlpha = 0;
+			if(mpGfx)
+			{
+				mpDrawer->DestroyGfxObject(mpGfx);
+				mpGfx = nullptr;
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_GasMask::OnDraw()
+{
+	if(mfAlpha <= 0 || mpGfx == nullptr) return;
+
+	// The mask's glass is drawn for 4:3; a wider window gets it over its whole width
+	mpDrawer->DrawGfxObject(mpGfx, mpInit->mpGraphicsHelper->GetScreenPos(-1),
+							mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, mfAlpha));
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_GasMask::Reset()
+{
+	mfBreathCount = 0;
+	mpBreathChannel = nullptr;
+	mfAlpha = 0;
+
+	if(mbActive)
+	{
+		mbActive = false;
+		mpSoundHandler->SetVolume(1.0f, 3.0f, eSoundDest_World);
+	}
+
+	if(mpGfx)
+	{
+		mpDrawer->DestroyGfxObject(mpGfx);
+		mpGfx = nullptr;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// DREAM FILTER
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cEffect_DreamFilter::cEffect_DreamFilter(cInit *apInit)
+{
+	mpInit = apInit;
+
+	Reset();
+}
+
+cEffect_DreamFilter::~cEffect_DreamFilter()
+{
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_DreamFilter::Start(float afAlpha, float afSpeed)
+{
+	mfMaxAlpha = afAlpha;
+	mfAlphaAdd = afSpeed;
+	if(mfAlpha > afAlpha) mfAlphaAdd = -afSpeed;
+
+	if(afSpeed == 0) mfAlpha = afAlpha;
+}
+
+void cEffect_DreamFilter::Stop(float afSpeed)
+{
+	mfMaxAlpha = 0;
+	mfAlphaAdd = -afSpeed;
+
+	if(afSpeed == 0) mfAlpha = 0;
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_DreamFilter::Update(float afTimeStep)
+{
+	mfTime += afTimeStep;
+
+	if(mfAlpha == mfMaxAlpha) return;
+
+	mfAlpha += mfAlphaAdd * afTimeStep;
+
+	if(mfAlphaAdd < 0)
+	{
+		if(mfAlpha < mfMaxAlpha) mfAlpha = mfMaxAlpha;
+	}
+	else
+	{
+		if(mfAlpha > mfMaxAlpha) mfAlpha = mfMaxAlpha;
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_DreamFilter::OnPostSceneDraw()
+{
+	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
+	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
+	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
+
+	if(pPostEffects->GetActive()==false) return;
+	if(mfAlpha <= 0) return;
+
+	iTexture *pScreenTexture = pPostEffects->GetFreeScreenTexture();
+	if(pScreenTexture == nullptr) return;
+
+	///////////////////////////////
+	// The view as it is now
+	cVector2f vSize = pLowLevel->GetRenderSize();
+	pLowLevel->CopyContextToTexure(pScreenTexture, 0, cVector2l((int)vSize.x, (int)vSize.y));
+
+	///////////////////////////////
+	// Added to itself, larger by an amount that goes up and down
+	float fT = (sinf(mfTime*2) + 1) * 0.5f * 1.3f + 0.9f;
+
+	cVector3f vPos(-5*fT, -3*fT, 0);
+	cVector2f vQuad(800 + 10*fT, 600 + 6*fT);
+	cColor col(mfAlpha, 1);
+
+	tVertexVec vVtx;
+	vVtx.push_back( cVertex(vPos,									cVector2f(0,vSize.y), col) );
+	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,0,0),			cVector2f(vSize.x,vSize.y), col) );
+	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,vQuad.y,0),	cVector2f(vSize.x,0), col) );
+	vVtx.push_back( cVertex(vPos + cVector3f(0,vQuad.y,0),			cVector2f(0,0), col) );
+
+	pLowLevel->SetDepthTestActive(false);
+	pLowLevel->PushMatrix(eMatrix_ModelView);
+	pLowLevel->SetIdentityMatrix(eMatrix_ModelView);
+	pLowLevel->SetOrthoProjection(cVector2f(800,600),-1000,1000);
+
+	for(int i=0;i<6;++i) pLowLevel->SetTexture(i,nullptr);
+
+	//A copy of the scene is drawn as it is
+	pLowLevel->SetLinearSource(true);
+
+	pLowLevel->SetBlendActive(true);
+	pLowLevel->SetBlendFunc(eBlendFunc_One, eBlendFunc_One);
+
+	pLowLevel->SetTexture(0,pScreenTexture);
+	pLowLevel->DrawQuad(vVtx);
+	pLowLevel->SetTexture(0,nullptr);
+
+	pLowLevel->SetBlendActive(false);
+	pLowLevel->SetLinearSource(false);
+
+	pLowLevel->PopMatrix(eMatrix_ModelView);
+}
+
+//-----------------------------------------------------------------------
+
+void cEffect_DreamFilter::Reset()
+{
+	mfAlpha = 0;
+	mfMaxAlpha = 0;
+	mfAlphaAdd = 0;
+	mfTime = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -675,10 +1141,13 @@ cEffect_SubTitle::cEffect_SubTitle(cInit *apInit, cGraphicsDrawer *apDrawer)
 	mpDrawer = apDrawer;
 
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
+
+	mpBlackGfx = mpDrawer->CreateGfxObject("effect_black.bmp","diffalpha2d");
+	mbBlackText = false;
 }
 cEffect_SubTitle::~cEffect_SubTitle()
 {
-
+	mpDrawer->DestroyGfxObject(mpBlackGfx);
 }
 
 void cEffect_SubTitle::Add(const tWString& asMessage, float afTime, bool abRemovePrevious)
@@ -754,7 +1223,14 @@ void cEffect_SubTitle::Update(float afTimeStep)
 }
 void cEffect_SubTitle::OnDraw()
 {
-	if(mpInit->mpRadioHandler->IsActive()  || mpInit->mbSubtitles==false) return;
+	if(mpInit->mbSubtitles==false) return;
+
+	// Black Plague: a radio message out of hearing shows no text and leaves room for these
+	if(cInit::IsOverture())
+	{
+		if(mpInit->mpRadioHandler->IsActive()) return;
+	}
+	else if(mpInit->mpRadioHandler->IsShowingText()) return;
 
 	tSubTitleListIt it = mlstSubTitles.begin();
 	for(; it != mlstSubTitles.end(); ++it)
@@ -763,7 +1239,31 @@ void cEffect_SubTitle::OnDraw()
 
 		float fAlpha = subTitle.mfAlpha * (1 - mpInit->mpInventory->GetAlpha());
 
-		if(subTitle.mbActive)
+		if(subTitle.mbActive==false) continue;
+
+		// Over an open computer terminal the text is drawn by the gui, which is on top
+		if(mpInit->mpGameGuiHandler->HasOpenScreenGui())
+		{
+			mpInit->mpGameGuiHandler->DrawText(mpFont, subTitle.msMessage, fAlpha);
+		}
+		// Black Plague: each row on a black strip of its own length
+		else if(mbBlackText)
+		{
+			tWStringVec vRows;
+			mpFont->GetWordWrapRows(750, 16, 15, subTitle.msMessage, &vRows);
+
+			float fY = 500;
+			for(size_t i=0; i<vRows.size(); ++i)
+			{
+				float fLength = mpFont->GetLength(15, vRows[i].c_str());
+
+				mpDrawer->DrawGfxObject(mpBlackGfx, cVector3f(25, fY, 46), cVector2f(fLength, 16), cColor(1, fAlpha));
+				mpFont->Draw(cVector3f(25, fY, 47), 15, cColor(1, fAlpha), eFontAlign_Left, _W("%ls"), vRows[i].c_str());
+
+				fY += 16;
+			}
+		}
+		else
 		{
 			mpFont->DrawWordWrap(cVector3f(25, 500,47),750,16,15,cColor(1,fAlpha),
 									eFontAlign_Left,subTitle.msMessage);
@@ -884,6 +1384,9 @@ cEffectHandler::cEffectHandler(cInit *apInit)  : iUpdateable("EffectHandler")
 	mpSaveEffect = hplNew( cEffect_SaveEffect,(mpInit,mpDrawer) );
 	mpShakeScreen = hplNew( cEffect_ShakeScreen,(mpInit) );
 	mpUnderwater = hplNew( cEffect_Underwater,(mpInit,mpDrawer) );
+	mpImageFlash = hplNew( cEffect_ImageFlash,(mpInit,mpDrawer) );
+	mpDreamFilter = hplNew( cEffect_DreamFilter,(mpInit) );
+	mpGasMask = hplNew( cEffect_GasMask,(mpInit) );
 
 	Reset();
 }
@@ -899,6 +1402,9 @@ cEffectHandler::~cEffectHandler(void)
 	hplDelete( mpSaveEffect );
 	hplDelete( mpShakeScreen );
 	hplDelete( mpUnderwater );
+	hplDelete( mpImageFlash );
+	hplDelete( mpDreamFilter );
+	hplDelete( mpGasMask );
 }
 
 //-----------------------------------------------------------------------
@@ -925,6 +1431,9 @@ void cEffectHandler::Update(float afTimeStep)
 	mpSaveEffect->Update(afTimeStep);
 	mpShakeScreen->Update(afTimeStep);
 	mpUnderwater->Update(afTimeStep);
+	mpImageFlash->Update(afTimeStep);
+	mpDreamFilter->Update(afTimeStep);
+	mpGasMask->Update(afTimeStep);
 }
 
 //-----------------------------------------------------------------------
@@ -938,6 +1447,9 @@ void cEffectHandler::Reset()
 	mpSaveEffect->Reset();
 	mpShakeScreen->Reset();
 	mpUnderwater->Reset();
+	mpImageFlash->Reset();
+	mpDreamFilter->Reset();
+	mpGasMask->Reset();
 }
 
 //-----------------------------------------------------------------------
@@ -948,6 +1460,15 @@ void cEffectHandler::OnDraw()
 	mpSubTitle->OnDraw();
 	mpSaveEffect->OnDraw();
 	mpUnderwater->OnDraw();
+	mpImageFlash->OnDraw();
+	mpGasMask->OnDraw();
+}
+
+//-----------------------------------------------------------------------
+
+void cEffectHandler::OnPostSceneDraw()
+{
+	mpDreamFilter->OnPostSceneDraw();
 }
 
 //-----------------------------------------------------------------------

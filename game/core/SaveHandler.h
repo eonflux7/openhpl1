@@ -242,6 +242,15 @@ public:
 	float mfHealth;
 
 	float mfPower;
+	tString msLowPowerCallback;
+	float mfLowPowerVal = 0;
+	bool mbNoFallDamage = false;
+
+	// Black Plague
+	int mlStat_Collectables = 0;
+	int mlStat_Notes = 0;
+	int mlStat_PlayTime = 0;
+	float mfOxygen = 100;
 
 	float mfMass;
 
@@ -370,6 +379,9 @@ public:
 
 	void AutoSave(const tWString &asDir, int alMaxSaves);
 	void AutoLoad(const tWString &asDir);
+	// The newest of the latest auto and spot saves (Continue, death menu,
+	// Requiem's quickload)
+	void AutoLoadLatestAutoOrSpot();
 
 	void ClearSavedMaps();
 

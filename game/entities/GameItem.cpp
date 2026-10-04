@@ -166,6 +166,8 @@ eGameItemType cEntityLoader_GameItem::ToItemType(const char* apString)
 	else if(asType == "painkillers") return eGameItemType_Painkillers;
 	else if(asType == "weaponmelee") return eGameItemType_WeaponMelee;
 	else if(asType == "throw") return eGameItemType_Throw;
+	else if(asType == "gasmask") return eGameItemType_GasMask;
+	else if(asType == "collectable") return eGameItemType_Collectable;
 
 	return  eGameItemType_Normal;
 }

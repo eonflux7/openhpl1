@@ -170,6 +170,33 @@ public:
 
 //----------------------------------------------
 
+// GAS MASK (Black Plague)
+
+class cGameItemType_GasMask : public cGameItemType
+{
+public:
+	cGameItemType_GasMask(cInit *apInit);
+
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+
+	tWString GetString(cInventoryItem *apItem) override;
+};
+
+//----------------------------------------------
+
+// COLLECTABLE (Black Plague): the artefacts, counted when picked up
+
+class cGameItemType_Collectable : public cGameItemType
+{
+public:
+	cGameItemType_Collectable(cInit *apInit);
+
+	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+};
+
+//----------------------------------------------
+
 // GLOW STICK
 
 class cGameItemType_GlowStick : public cGameItemType

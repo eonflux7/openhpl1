@@ -173,7 +173,10 @@ void cGameDamageArea::Update(float afTimeStep)
 				//Player
 				if(mpInit->mpPlayer->GetCharacterBody()->GetBody() == pBody)
 				{
-					mpInit->mpPlayer->Damage(mfDamage,ePlayerDamageType_BloodSplash);
+					mpInit->mpPlayer->Damage(mfDamage,(ePlayerDamageType)mDamageType);
+
+					if(msDamageSound != "")
+						mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui(msDamageSound,false,1);
 				}
 				else if(pEntity)
 				{
@@ -227,6 +230,8 @@ kSerializeVar(mfUpdatesPerSec, eSerializeType_Float32)
 kSerializeVar(mlStrength, eSerializeType_Int32)
 kSerializeVar(mbDisableObjects, eSerializeType_Bool)
 kSerializeVar(mbDisableEnemies, eSerializeType_Bool)
+kSerializeVar(mDamageType, eSerializeType_Int32)
+kSerializeVar(msDamageSound, eSerializeType_String)
 kEndSerialize()
 
 //-----------------------------------------------------------------------
@@ -255,6 +260,8 @@ void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mlStrength);
 	kCopyToVar(pData,mbDisableObjects);
 	kCopyToVar(pData,mbDisableEnemies);
+	kCopyToVar(pData,mDamageType);
+	kCopyToVar(pData,msDamageSound);
 
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
@@ -271,6 +278,8 @@ void cGameDamageArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mlStrength);
 	kCopyFromVar(pData,mbDisableObjects);
 	kCopyFromVar(pData,mbDisableEnemies);
+	kCopyFromVar(pData,mDamageType);
+	kCopyFromVar(pData,msDamageSound);
 
 }
 

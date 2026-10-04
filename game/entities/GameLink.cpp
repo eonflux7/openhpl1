@@ -20,6 +20,7 @@
 #include "entities/GameLink.h"
 
 #include "core/Init.h"
+#include "systems/GameMessageHandler.h"
 #include "core/MapHandler.h"
 #include "player/Player.h"
 #include "systems/RadioHandler.h"
@@ -83,6 +84,8 @@ iEntity3D* cAreaLoader_GameLink::Load(const tString &asName, const cVector3f &av
 cGameLink::cGameLink(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Link;
+
+	mbLocked = false;
 }
 
 //-----------------------------------------------------------------------
@@ -111,10 +114,23 @@ void cGameLink::OnPlayerInteract()
 {
 	//if(mpInit->mpRadioHandler->IsActive()) return;
 
+	if(mbLocked)
+	{
+		if(mpInit->mpPlayer->GetPickedDist() <= 1.8)
+		{
+			if(msLockedSound != "")
+				mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui(msLockedSound,false,1);
+
+			if(msLockedDesc != _W(""))
+				mpInit->mpGameMessageHandler->Add(msLockedDesc);
+		}
+		return;
+	}
+
 	if(mpInit->mpPlayer->GetPickedDist() <= 1.8 && msMapFile != "")
 	{
 		mpInit->mpMapHandler->ChangeMap(msMapFile, msMapPos, msStartSound, msStopSound, mfFadeOutTime,
-										mfFadeInTime,msLoadTextCat,msLoadTextEntry);
+										mfFadeInTime,msLoadTextCat,msLoadTextEntry,msLoadImage);
 	}
 }
 
@@ -145,6 +161,10 @@ kSerializeVar(mfFadeOutTime, eSerializeType_Float32)
 kSerializeVar(mfFadeInTime, eSerializeType_Float32)
 kSerializeVar(msLoadTextCat, eSerializeType_String)
 kSerializeVar(msLoadTextEntry, eSerializeType_String)
+kSerializeVar(msLoadImage, eSerializeType_String)
+kSerializeVar(mbLocked, eSerializeType_Bool)
+kSerializeVar(msLockedSound, eSerializeType_String)
+kSerializeVar(msLockedDesc, eSerializeType_WString)
 kEndSerialize()
 
 //-----------------------------------------------------------------------
@@ -176,6 +196,10 @@ void cGameLink::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mfFadeInTime);
 	kCopyToVar(pData,msLoadTextCat);
 	kCopyToVar(pData,msLoadTextEntry);
+	kCopyToVar(pData,msLoadImage);
+	kCopyToVar(pData,mbLocked);
+	kCopyToVar(pData,msLockedSound);
+	kCopyToVar(pData,msLockedDesc);
 
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
@@ -195,6 +219,10 @@ void cGameLink::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mfFadeInTime);
 	kCopyFromVar(pData,msLoadTextCat);
 	kCopyFromVar(pData,msLoadTextEntry);
+	kCopyFromVar(pData,msLoadImage);
+	kCopyFromVar(pData,mbLocked);
+	kCopyFromVar(pData,msLockedSound);
+	kCopyFromVar(pData,msLockedDesc);
 
 }
 //-----------------------------------------------------------------------

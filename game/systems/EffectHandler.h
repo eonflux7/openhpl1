@@ -52,6 +52,11 @@ private:
 	bool mbActive;
 
 	cColor mColor;
+
+	// Black Plague: the sounds of diving and of being under water
+	cSoundHandler *mpSoundHandler;
+	iSoundChannel *mpLoopChannel;
+	float mfSoundCount;
 };
 
 
@@ -99,8 +104,13 @@ public:
 	cEffect_SaveEffect(cInit *apInit, cGraphicsDrawer *apDrawer);
 	~cEffect_SaveEffect();
 
-	void NormalSave(const cVector3f &avPos, cGameSaveArea *apSaveArea);
-	void AutoSave();
+	/**
+	 * apSaveArea may be nullptr (Requiem: the effect at an area, abSave false: no game is saved)
+	 */
+	void NormalSave(const cVector3f &avPos, cGameSaveArea *apSaveArea, bool abSave=true);
+	// Requiem names the save (its quicksave); Overture and Black Plague
+	// always save as "auto"
+	void AutoSave(const tWString &asName = _W("auto"));
 
 	void Update(float afTimeStep);
 	void OnDraw();
@@ -117,10 +127,12 @@ private:
 	cGameSaveArea *mpSaveArea;
 
 	tWString msMessage;
+	tWString msAutoSaveName;
 
 	bool mbActive;
 	int mlState;
 	bool mbAutoSave;
+	bool mbSave = true;
 	
 	cVector3f mvPosition;
 	
@@ -201,6 +213,99 @@ private:
 
 //-----------------------------------------
 
+// Black Plague: a picture fades in over the view, stays and fades out
+class cEffect_ImageFlash
+{
+public:
+	cEffect_ImageFlash(cInit *apInit, cGraphicsDrawer *apDrawer);
+	~cEffect_ImageFlash();
+
+	/**
+	 * abStartFlash, abEndFlash: with a white flash as the picture comes and before it goes
+	 */
+	void Start(float afFadeIn, float afStay, float afFadeOut, const tString &asFile,
+				bool abStartFlash, bool abEndFlash);
+
+	void Update(float afTimeStep);
+	void OnDraw();
+	void Reset();
+private:
+	cInit *mpInit;
+	cGraphicsDrawer *mpDrawer;
+
+	cGfxObject *mpImageGfx;
+
+	bool mbActive;
+	float mfAlpha;
+
+	int mlStep;
+
+	float mfCount;
+	bool mbEndFlash;
+
+	float mfFadeInSpeed;
+	float mfStaySpeed;
+	float mfFadeOutSpeed;
+};
+
+//-----------------------------------------
+
+// Black Plague: the view laid over itself, a little larger and swelling
+class cEffect_DreamFilter
+{
+public:
+	cEffect_DreamFilter(cInit *apInit);
+	~cEffect_DreamFilter();
+
+	/**
+	 * afAlpha: how strong; afSpeed: how fast it gets there, per second (0 = at once)
+	 */
+	void Start(float afAlpha, float afSpeed);
+	void Stop(float afSpeed);
+
+	void Update(float afTimeStep);
+	void OnPostSceneDraw();
+	void Reset();
+private:
+	cInit *mpInit;
+
+	float mfAlpha;
+	float mfMaxAlpha;
+	float mfAlphaAdd;
+
+	float mfTime;
+};
+
+//-----------------------------------------
+
+// Black Plague: the gas mask on the player's face
+class cEffect_GasMask
+{
+public:
+	cEffect_GasMask(cInit *apInit);
+	~cEffect_GasMask();
+
+	void SetActive(bool abX);
+	bool IsActive(){ return mbActive;}
+
+	void Update(float afTimeStep);
+	void OnDraw();
+	void Reset();
+private:
+	cInit *mpInit;
+	cGraphicsDrawer *mpDrawer;
+	cSoundHandler *mpSoundHandler;
+
+	iSoundChannel *mpBreathChannel;
+	cGfxObject *mpGfx;
+
+	float mfAlpha;
+	bool mbActive;
+	float mfBreathCount;
+};
+
+//-----------------------------------------
+
 class cSubTitle
 {
 public:
@@ -224,11 +329,21 @@ public:
 	void Update(float afTimeStep);
 	void OnDraw();
 	void Reset();
+
+	/**
+	 * Black Plague: the text is put on a black strip
+	 */
+	void SetBlackText(bool abX){ mbBlackText = abX;}
+	bool GetBlackText(){ return mbBlackText;}
 private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 
 	iFontData *mpFont;
+
+	// Black Plague: for text over something bright
+	cGfxObject *mpBlackGfx;
+	bool mbBlackText;
 	
     tSubTitleList mlstSubTitles;	
 };
@@ -273,6 +388,11 @@ public:
 	void Update(float afTimeStep) override;
 	void Reset() override;
 	void OnDraw() override;
+	void OnPostSceneDraw() override;
+
+	cEffect_GasMask* GetGasMask(){ return mpGasMask;}
+	cEffect_ImageFlash* GetImageFlash(){ return mpImageFlash;}
+	cEffect_DreamFilter* GetDreamFilter(){ return mpDreamFilter;}
 
 	cEffect_Flash* GetFlash(){ return mpFlash;}
 	cEffect_WaveGravity* GetWaveGravity(){ return mpWaveGravity;}
@@ -293,6 +413,9 @@ private:
 	cEffect_SaveEffect *mpSaveEffect;
 	cEffect_ShakeScreen *mpShakeScreen;
 	cEffect_Underwater *mpUnderwater;
+	cEffect_ImageFlash *mpImageFlash;
+	cEffect_DreamFilter *mpDreamFilter;
+	cEffect_GasMask *mpGasMask;
 };
 
 

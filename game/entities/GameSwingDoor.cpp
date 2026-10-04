@@ -23,6 +23,7 @@
 #include "core/MapHandler.h"
 #include "player/Player.h"
 #include "systems/EffectHandler.h"
+#include "entities/GameStickArea.h"
 
 //-----------------------------------------------------------------------
 
@@ -204,6 +205,30 @@ void cGameSwingDoor::OnPlayerInteract()
 
 	if(fDist > mfMaxInteractDist) return;
 	if(mpInit->mbHasHaptics && mpInit->mpPlayer->mbProxyTouching==false) return;
+
+	if(cInit::IsOverture()==false)
+	{
+		//A door held by a stick area stays where it is, as does one without mass
+		iPhysicsBody *pPickedBody = mpInit->mpPlayer->GetPickedBody();
+		cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pPickedBody);
+		if(pStickArea)
+		{
+			if(pStickArea->GetCanDeatch()==false) return;
+		}
+		else if(pPickedBody->GetMass()==0)
+		{
+			return;
+		}
+
+		if(mbLocked)
+		{
+			if(msLockedDesc != _W(""))
+				mpInit->mpEffectHandler->GetSubTitle()->Add(msLockedDesc, 3.0f, true);
+
+			if(msLockedSound != "")
+				mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui(msLockedSound, false, 1);
+		}
+	}
 
 	//Set some properties
 	mpInit->mpPlayer->mfForwardUpMul = 1.0f;
@@ -421,6 +446,8 @@ void cGameSwingDoor::SetupBreakObject()
 
 kBeginSerialize(cGameSwingDoor_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbLocked, eSerializeType_Bool)
+kSerializeVar(msLockedDesc, eSerializeType_WString)
+kSerializeVar(msLockedSound, eSerializeType_String)
 
 kSerializeVar(msBreakSound, eSerializeType_String)
 kSerializeVar(msBreakEntity, eSerializeType_String)
@@ -449,6 +476,8 @@ void cGameSwingDoor::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	cGameSwingDoor_SaveData *pData = static_cast<cGameSwingDoor_SaveData*>(apSaveData);
 
 	kCopyToVar(pData,mbLocked);
+	kCopyToVar(pData,msLockedDesc);
+	kCopyToVar(pData,msLockedSound);
 
 	kCopyToVar(pData,msBreakSound);
 	kCopyToVar(pData,msBreakEntity);
@@ -462,6 +491,8 @@ void cGameSwingDoor::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	__super::LoadFromSaveData(apSaveData);
 	cGameSwingDoor_SaveData *pData = static_cast<cGameSwingDoor_SaveData*>(apSaveData);
 
+	kCopyFromVar(pData,msLockedDesc);
+	kCopyFromVar(pData,msLockedSound);
 	kCopyFromVar(pData,msBreakSound);
 	kCopyFromVar(pData,msBreakEntity);
 	kCopyFromVar(pData,msBreakPS);

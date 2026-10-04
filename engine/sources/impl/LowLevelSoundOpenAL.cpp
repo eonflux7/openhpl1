@@ -224,7 +224,8 @@ namespace hpl {
 
 		#else
 
-		cInitParams.mbUseEFX = false;
+		// OpenAL Soft has EFX on every platform
+		cInitParams.mbUseEFX = abUseEnvAudio;
 
 		Log("  Trying to open audio device... ");
 
@@ -286,7 +287,6 @@ namespace hpl {
 //		for ( int i = 0; i < OAL_ gpDevice->GetExtensions->size(); ++i )
 //			Log(" \t%s\n", (*pDeviceInfo->vsExtensions)[i].c_str());
 
-		#ifdef WIN32
 		if (abUseEnvAudio)
 		{
 			mbEnvAudioEnabled = OAL_Info_IsEFXActive();
@@ -304,7 +304,6 @@ namespace hpl {
 			else
 				Log("  Setting up Environmental Audio...Failed.\n");
 		}
-		#endif
 
 
 		//Default listener settings.
