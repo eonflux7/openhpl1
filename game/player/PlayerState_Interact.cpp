@@ -1036,9 +1036,35 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 	cVector3f vStart = mpPlayer->GetCamera()->GetPosition();
 
 	float fDistance = cMath::Vector3Dist(vStart,vEnd);
-	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*1.2f)
+	float fMaxMul = cInit::IsOverture() ? 1.2f : 1.4f;
+	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*fMaxMul)
 	{
 		mpPlayer->ChangeState(mPrevState);
+		return;
+	}
+
+	//////////////////////////////////////
+	// Black Plague: the player is kept where he was beside the body, at his
+	// own height; where something is in the way, from where he ends up.
+	if(cInit::IsOverture()==false)
+	{
+		iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+		iCharacterBody *pCharBody = mpPlayer->GetCharacterBody();
+
+		cVector3f vBodyPos = mpPushBody->GetWorldPosition();
+		cVector3f vPlayerPos(vBodyPos.x + mvRelPlayerPos.x, pCharBody->GetPosition().y, vBodyPos.z + mvRelPlayerPos.z);
+
+		cVector3f vNewPos = vPlayerPos;
+		iPhysicsBody *pBody = pCharBody->GetBody();
+		pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,pBody->GetShape(),
+											cMath::MatrixTranslate(vPlayerPos),
+											pBody,false, true, nullptr,true);
+		pCharBody->SetPosition(vNewPos,true);
+
+		if(vNewPos.x != vPlayerPos.x || vNewPos.z != vPlayerPos.z)
+			mvRelPlayerPos = pCharBody->GetPosition() - mpPushBody->GetWorldPosition();
+
+		mvLastBodyPos = mpPushBody->GetLocalPosition();
 		return;
 	}
 
@@ -1141,7 +1167,11 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 				cVector3f vOldPos = vPos;
 				cVector3f vNewPos;
 				vPos += mvForward * -1 * (fPosAdd+0.1f);
-				mpPlayer->GetCharacterBody()->SetPosition(vPos);
+				//Black Plague: moved back by the place kept beside the body (OnUpdate)
+				if(cInit::IsOverture())
+					mpPlayer->GetCharacterBody()->SetPosition(vPos);
+				else
+					mvRelPlayerPos -= mvForward * (fPosAdd+0.1f);
 
 				//Not good since slopes does not work:
 				/*pPhysicsWorld->CheckShapeWorldCollision(&vNewPos, pPlayerBody->GetShape(),
@@ -1265,6 +1295,7 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 	
 	//The pick point relative to the body
 	mvRelPickPoint = mpPlayer->GetPickedPos() - mpPushBody->GetLocalPosition();
+	mvRelPlayerPos = mpPlayer->GetCharacterBody()->GetPosition() - mpPushBody->GetWorldPosition();
 
 	//Set the last position.
 	mvLastBodyPos = mpPushBody->GetLocalPosition();

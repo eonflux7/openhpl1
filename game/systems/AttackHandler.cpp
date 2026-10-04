@@ -192,7 +192,9 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 	///////////////////////////////
 	//Set up boudning box
     cBoundingVolume tempBV = apShape->GetBoundingVolume();
-	tempBV.SetTransform(a_mtxOffset);
+	//Black Plague: a shape set off in its own volume keeps that offset
+	if(cInit::IsOverture())	tempBV.SetTransform(a_mtxOffset);
+	else					tempBV.SetTransform(cMath::MatrixMul(a_mtxOffset, tempBV.GetTransform()));
 		
 	///////////////////////////////
 	//Iterate bodies

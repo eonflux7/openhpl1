@@ -241,6 +241,7 @@ private:
 
 	iPhysicsBody *mpPushBody;
 	cVector3f mvLastBodyPos;
+	cVector3f mvRelPlayerPos;	//Black Plague: the player keeps to the body
 
 	cVector2f mvPrevPitchLimits;
 

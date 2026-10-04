@@ -69,7 +69,7 @@ public:
 
 	void SetLitChangeCallback(const tString& asCallback){ msLitChangeCallback = asCallback;}
 
-	void SetLit(bool abX, bool abFade);
+	void SetLit(bool abX, bool abFade, bool abRunCallback=true);
 
 	void SetFlicker(bool abX);
 
@@ -117,6 +117,7 @@ private:
 	float mfFlickerOnMaxLength;
 	float mfFlickerOffMaxLength;
 	cColor mFlickerOffColor;
+	cColor mOffColor = cColor(0,0);	//Black Plague: the lights' colour when off
 	float mfFlickerOffRadius;
 	bool mbFlickerFade;
 	float mfFlickerOnFadeLength;

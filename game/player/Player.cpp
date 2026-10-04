@@ -883,6 +883,18 @@ void cPlayer::Jump()
 	mfJumpCount = 0;
 }
 
+// Black Plague: a jump from a ladder is a jump, as if from the ground
+void cPlayer::JumpOffLadder()
+{
+	mlGroundCount = 25;
+	if(	mvMoveStates[mMoveState]->OnJump() &&
+		mvMoveStates[mMoveState]->mType != ePlayerMoveState_Jump && mMoveState != ePlayerMoveState_Jump)
+	{
+		ChangeMoveState(ePlayerMoveState_Jump,false);
+	}
+	mfJumpCount = 0;
+}
+
 void cPlayer::SetJumpButtonDown(bool abX)
 {
 	mbJumpButtonDown = abX;
@@ -1441,6 +1453,7 @@ void cPlayer::Reset()
 	mbNoFallDamage = false;
 	mfOxygen = 100;
 	mlStat_Collectables = 0;
+	mbHasFlashlight = false;
 	mlStat_Notes = 0;
 	mlStat_PlayTime = 0;
 	mbUnderWater = false;
@@ -1945,6 +1958,7 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_SaveTo(mfLowPowerVal);
 	kSaveData_SaveTo(mbNoFallDamage);
 	kSaveData_SaveTo(mlStat_Collectables);
+	kSaveData_SaveTo(mbHasFlashlight);
 	kSaveData_SaveTo(mlStat_Notes);
 	kSaveData_SaveTo(mlStat_PlayTime);
 	kSaveData_SaveTo(mfOxygen);
@@ -2034,6 +2048,7 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_LoadFrom(mfLowPowerVal);
 	kSaveData_LoadFrom(mbNoFallDamage);
 	kSaveData_LoadFrom(mlStat_Collectables);
+	kSaveData_LoadFrom(mbHasFlashlight);
 	kSaveData_LoadFrom(mlStat_Notes);
 	kSaveData_LoadFrom(mlStat_PlayTime);
 	kSaveData_LoadFrom(mfOxygen);

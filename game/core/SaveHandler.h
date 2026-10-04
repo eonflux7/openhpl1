@@ -248,6 +248,7 @@ public:
 
 	// Black Plague
 	int mlStat_Collectables = 0;
+	bool mbHasFlashlight = false;
 	int mlStat_Notes = 0;
 	int mlStat_PlayTime = 0;
 	float mfOxygen = 100;

@@ -237,8 +237,27 @@ terminal in its level, with sound.
         in Black Plague's scripts; they never ran before). Inventory: an
         item added to a stack asks its type first, so a second collectable
         is counted for the statistics. Checked only
+  - [x] Batteries (Black Plague): kept in the inventory, put in the
+        flashlight by their action, by dropping them on the flashlight or
+        on the meter (50 power, `player_load_battery`); the meter shows
+        only once the flashlight is found and reads "Flashlight"; item
+        types may combine items themselves (`OnCombine`), then no "cannot
+        combine" message. **To play-test**
+  - [x] Smaller: drowning sound, off the ladder out of the water, a jump
+        from a ladder is a jump, lamps' `OffColor` and their off material
+        after the fade, no lit-change callback when a save is loaded, a
+        broken object's sound and particles from its middle, the attack
+        volume keeps a shape's offset, item text hidden only while radio
+        text shows, pushing keeps the player at his place beside the body
+        (and lets go at 1.4 times the reach). Checked only
   - [x] Seen to be done already or only compiler changes: links, swing
-        doors, the effect handler, the melee weapon (haptics gone)
+        doors, the effect handler, the melee weapon (haptics gone),
+        `cPlayer::Damage`, the dog's and spider's hunt speeds (haptics)
+  - [ ] Left from the screening (`build/porting/step6/all/screen2.txt`):
+        `cMapLoadText::SetActive` takes its background from a member
+        (+0x28) instead of `other_load_text_back.jpg`; `cPlayerLookAt::Update`,
+        `cPlayer::OnPostSceneDraw`, `cInventory::AddItemFromFile` (error for
+        an unknown type), menu widgets (likely compiler only)
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,

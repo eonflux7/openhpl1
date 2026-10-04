@@ -196,8 +196,32 @@ cGameItemType_Battery::cGameItemType_Battery(cInit *apInit)
 
 bool cGameItemType_Battery::OnPickUp(cInventoryItem *apItem, bool abInGame)
 {
+	//Black Plague: batteries are kept and put in the flashlight when wanted
+	if(cInit::IsOverture()==false) return true;
+
 	mpInit->mpPlayer->AddPower(10.0f);
 	return false;
+}
+
+bool cGameItemType_Battery::OnAction(cInventoryItem *apItem, int alActionNum)
+{
+	if(cInit::IsOverture() || mpInit->mpPlayer->GetPower() > 99) return true;
+
+	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("player_load_battery",false,1);
+	mpInit->mpPlayer->AddPower(50.0f);
+
+	apItem->AddCount(-1);
+	if(apItem->GetCount() <= 0) mpInit->mpInventory->RemoveItem(apItem);
+
+	return true;
+}
+
+bool cGameItemType_Battery::OnCombine(cInventoryItem *apItem, cInventoryItem *apWithItem, int alSlotIndex)
+{
+	if(apWithItem->GetItemType() != eGameItemType_Flashlight) return false;
+
+	OnAction(apItem, 0);
+	return true;
 }
 
 //-----------------------------------------------------------------------
@@ -216,6 +240,13 @@ cGameItemType_Flashlight::cGameItemType_Flashlight(cInit *apInit)
 
 	mvNonDropActions.resize(1);
 	mvNonDropActions[0] = kTranslate("Inventory", "Turn onoff");
+}
+
+bool cGameItemType_Flashlight::OnPickUp(cInventoryItem *apItem, bool abInGame)
+{
+	//Black Plague: the battery meter shows from now on
+	mpInit->mpPlayer->mbHasFlashlight = true;
+	return true;
 }
 
 bool cGameItemType_Flashlight::OnAction(cInventoryItem *apItem, int alActionNum)

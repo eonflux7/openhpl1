@@ -1280,6 +1280,9 @@ void cPlayerDeath::Start()
 
 	mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 
+	//Black Plague: drowned
+	if(cInit::IsOverture()==false && mpInit->mpPlayer->GetOxygen() <= 0)
+		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("water_drown",false,1);
 
 	mfHeightAdd =0;
 	mfRoll =0;

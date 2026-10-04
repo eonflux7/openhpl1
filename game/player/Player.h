@@ -371,6 +371,7 @@ public:
 	void SetJumpButtonDown(bool abX);
 	bool GetJumpButtonDown(){ return mbJumpButtonDown;}
 	float GetJumpCount(){ return mfJumpCount;}
+	void JumpOffLadder();
 	float GetMaxJumpCount(){ return mfMaxJumpCount;}
 
 	/////////////////////////////////////////
@@ -378,6 +379,7 @@ public:
 	int mlStat_NumOfSaves;
 	// Black Plague: shown on the statistics page after the credits
 	int mlStat_Collectables;	//the artefacts picked up
+	bool mbHasFlashlight = false;	//Black Plague: the battery meter is shown
 	int mlStat_Notes;			//notes added to the notebook
 	int mlStat_PlayTime;		//player updates (60 a second)
 	int mlStat_MaxNotes;		//game.cfg's totals

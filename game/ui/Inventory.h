@@ -189,9 +189,12 @@ public:
 	
 	void OnDraw() override;
 	void OnMouseOver() override;
+	void OnMouseUp(eMButton aButton) override;
 	void OnUpdate(float afTimeStep) override;
 
 private:
+	bool IsShown();
+
 	cGfxObject* mpGfxBatteryMeter;
 	cGfxObject* mpGfxBatteryMeterBar;
 };
@@ -361,7 +364,8 @@ public:
 
 	void CheckPickupCallback(const tString &asItem);
 	bool CheckUseCallback(const tString &asItem, const tString &asObject);
-	bool CheckCombineCallback(const tString &asItem1,const tString &asItem2,int alSlotIndex);
+	bool CheckCombineCallback(const tString &asItem1,const tString &asItem2,int alSlotIndex,
+								bool abShowMessage=true);
 
 	//Global save
 	void SaveToGlobal(cInventory_GlobalSave *apSave);

@@ -1025,7 +1025,10 @@ void cPlayerState_Climb::OnStopCrouch()
 bool cPlayerState_Climb::OnJump()
 {
 	mpPlayer->ChangeState(ePlayerState_Normal);
-	return true;
+	if(cInit::IsOverture()) return true;
+
+	mpPlayer->JumpOffLadder();
+	return false;
 }
 
 //-----------------------------------------------------------------------

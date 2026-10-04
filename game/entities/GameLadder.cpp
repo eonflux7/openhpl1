@@ -119,6 +119,9 @@ void cGameLadder::OnPlayerInteract()
 	float fHeight = GetHeight();
 	if(GetDist2D() <= 1.4 && fabs(fHeight)<1.1f)
 	{
+		//Black Plague: out of the water onto the ladder
+		if(cInit::IsOverture()==false) mpInit->mpPlayer->SetIsUnderWater(false);
+
 		mpInit->mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 
 		///////////////////////////////

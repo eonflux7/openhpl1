@@ -52,6 +52,12 @@ public:
 
 	virtual void OnUse(cInventoryItem *apItem, iGameEntity *apEntity){}
 
+	/**
+	 * Black Plague: apItem dropped on apWithItem or the other way round.
+	 * \return true if the type did something with them
+	 */
+	virtual bool OnCombine(cInventoryItem *apItem, cInventoryItem *apWithItem, int alSlotIndex){ return false;}
+
 	virtual tString GetShortCutAction(cInventoryItem *apItem){return "";}
 
 	virtual tWString GetString(cInventoryItem *apItem){return _W("");}
@@ -112,6 +118,8 @@ public:
 	cGameItemType_Battery(cInit *apInit);
 
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
+	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnCombine(cInventoryItem *apItem, cInventoryItem *apWithItem, int alSlotIndex) override;
 
 };
 //----------------------------------------------
@@ -123,6 +131,7 @@ class cGameItemType_Flashlight : public cGameItemType
 public:
 	cGameItemType_Flashlight(cInit *apInit);
 
+	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
 	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
 
 	tWString GetString(cInventoryItem *apItem) override;
