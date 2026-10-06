@@ -1455,6 +1455,80 @@ reference images are as before.
 - The physics test map is no longer part of the reference images or of the
   panel's map list.
 
+## Dog AI and animation foundations
+
+- Dogs pursue observed positions after losing sight, follow fresh sound
+  locations, and pause/turn during the existing search budget using original
+  clips. Hunt thresholds load the authored hunt attributes.
+- Clearance checks, obstacle-aware route retries, and short corner lookahead
+  reduce blocked-route charges. State transitions stop the old tick; rear-wall
+  correction requires a hit and runs separately for each Dog.
+- Shared enemy playback uses horizontal gait speed, honours changed options
+  when reusing a clip, restores fixed playback speed, and delivers completion
+  once. State lookup and perception callbacks preserve the intended state and
+  FOV. Turning cannot overshoot; successful backing away is not counted as stuck.
+- Door impacts use the authored delay once per tick. Original models,
+  textures, clips, jump-attack timing, damage and movement values are retained.
+  See [Dog foundations](docs/dog-foundations.md) for balance effects and tests.
+
+## Dog behaviour arena and AI choice
+
+- Options → AI saves mutually exclusive Original/Improved Dog behaviour
+  choices. Original restores legacy pursuit/search decisions; both retain
+  original assets and shared animation/stability fixes.
+- `OVERTURE_MAP=dogtest` opens a generated six-bay arena for patrol, hiding,
+  sound investigation, obstacle recovery, doors and attack/get-up. F2 offers
+  fresh scenario resets, real sound lures, one-shot position reveals,
+  knockdown, perception/damage switches and live diagnostics.
+- Arena checks exercise both AI modes against authored navigation, original
+  props and sound sources, including save/reload and existing-Dog switching.
+
+## Closed-door Dog attacks
+
+- The arena uses the original mine-shaft door, whose authored health,
+  toughness and debris allow the Dog to break it. The previous old-wood
+  fixture had no breakable health setup.
+- Both Dog AI modes require a clear attack line before lunging, allowing
+  door-breaking to start when the player stands immediately behind a door.
+- Shared shape attacks block damage, knockback and player-hit feedback
+  together, reset skipped-body state and check occlusion before damaging
+  obstacles. The strike that breaks a door cannot also hit the player behind it.
+- Regressions exercise natural door-breaking in both modes, nearby and distant
+  players, solid walls and unobstructed bites using the original assets.
+
+### Player feedback and effects lab
+
+- Improved player feedback runs in the final scene shader, after tone mapping
+  and SMAA, below the HUD. Night adaptation eases in with a small FOV zoom,
+  blue shadow lift and faint vignette, keeping the aspect ratio correct.
+  Blood hits use soft splashes and droplets, randomized once per impact,
+  alongside a red vignette. Low health has a stronger heartbeat vignette
+  and gently pulsing vision doubling. The second outline stays visible between
+  heartbeats, grows with low-health severity and eases away after healing.
+  The lab can preview it independently of the red vignette. Ice hits use noisy frost. Panic pulses a small FOV zoom,
+  desaturation, dimming and blur. White flashes spread highlights before
+  reaching white; death fades smoothly to black.
+- The original treatment remains available in F2's Player effects controls,
+  alongside adaptation strength/time, injury, panic and whiteout glow. Settings
+  persist under `Graphics.Player*`. Improved is on by default. Hiding and
+  enemy panic thresholds, damage, audio and the physical death fall remain
+  driven by their existing controllers.
+- Player image trails have their own controls. Improved save points use warm
+  haze and glow instead of the strong zoom and image trail; underwater adds
+  a water-colored tint and light blur. Their original rendering remains
+  available with the original treatment. The flashlight beam/shader is unchanged. Effect amounts are
+  independent and cleared each frame; reference captures that hide the HUD
+  also omit player feedback. With all amounts zero the scene is unchanged.
+  Scripted fear now fades out as intended, and zero-duration flashes finish
+  without division by zero or leaving a flash amount behind.
+  Resetting an interrupted save also clears its image trail and overlay.
+- `OVERTURE_MAP=effectslab:link01 ./run.sh` opens a compact generated room and
+  its F2 panel. A dark alcove, lamps/props, save artefact and pool provide live
+  triggers. Safe previews include combined feedback and a tour; live controls
+  also cover shake, ear ringing, black fades, focus blur, grain and rocking.
+- `tools/refshots.py effects /tmp/effects` captures both treatments, opaque
+  endpoints and the panel, checks pixels and exercises real effect owners.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

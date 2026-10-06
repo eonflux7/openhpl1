@@ -16,6 +16,11 @@
 // Game time a map may take to load before the test gives up on it
 static const float kfMapTimeout = 60.0f;
 
+#ifdef OVERTURE_DOG_REGRESSIONS
+int RunDogRegressions(cInit *apInit);
+int RunDogArenaRegressions(cInit *apInit);
+#endif
+
 //-----------------------------------------------------------------------
 
 cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("SmokeTest")
@@ -117,6 +122,12 @@ void cSmokeTest::Update(float afTimeStep)
 			// Every Overture map has a level script; NULL means it failed to build
 			if(mpInit->mpGame->GetScene()->GetWorld3D()->GetScript() == nullptr)
 				Fail("%s: level script did not build", mvMaps[mlMap].c_str());
+#ifdef OVERTURE_DOG_REGRESSIONS
+			if(sMap == "testmap" && SDL_getenv("OVERTURE_DOG_REGRESSIONS"))
+				mlFailures += RunDogRegressions(mpInit);
+			if(sMap == "dogtest" && SDL_getenv("OVERTURE_DOG_REGRESSIONS"))
+				mlFailures += RunDogArenaRegressions(mpInit);
+#endif
 			mStep = eStep_RunMap;
 			mlFrame = 0;
 		}

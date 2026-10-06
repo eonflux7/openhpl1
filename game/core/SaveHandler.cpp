@@ -235,7 +235,7 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 	msSaveDir = _W("");
 	iLowLevelSystem *pLowLevelSystem = mpInit->mpGame->GetSystem()->GetLowLevel();
 
-	tWString sPeronalDir = GetSystemSpecialPath(eSystemPath_Personal);
+	tWString sPeronalDir = cInit::GetPersonalDir();
 	
 	if(sPeronalDir == _W(""))
 	{

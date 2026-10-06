@@ -448,6 +448,7 @@ namespace hpl {
 
 				//Draw this frame
 				//unsigned long lFTime = GetApplicationTime();
+				mpGraphics->GetLowLevel()->SetPlayerEffectState(cPlayerEffectState());
 				mpUpdater->OnDraw();
 				mpScene->Render(mpUpdater,mfFrameTime);
 				//if(mpScene->GetDrawScene()) LogUpdate("FrameTime: %d ms\n", GetApplicationTime() - lFTime);

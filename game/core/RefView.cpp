@@ -4,13 +4,16 @@
  */
 #include "core/StdAfx.h"
 #include "core/RefView.h"
+#include "core/DogTestMap.h"
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
 #include "core/LampLooks.h"
+#include "core/GraphicsHelper.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "systems/EffectHandler.h"
+#include "systems/FadeHandler.h"
 #include "ui/MainMenu.h"
 #include "ui/Inventory.h"
 
@@ -91,11 +94,24 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 
 	const char *pOpen = SDL_getenv("OVERTURE_REFVIEW");
 	if(pOpen && pOpen[0] && pOpen[0] != '0') SetOpen(true);
+	const char *pMap = SDL_getenv("OVERTURE_MAP");
+	if(pMap && tString(pMap).find("effectslab") == 0) SetOpen(true);
+	const char *pCapture = SDL_getenv("OVERTURE_EFFECTS_CAPTURE");
+	if(pCapture && pCapture[0])
+	{
+		msEffectsCapture = pCapture;
+		mbEffectPreviewAnimate = false;
+		mpInit->mpGame->GetLogicTimer()->SetFixedStep(true);
+		mpInit->mpGame->SetLimitFPS(true);
+		SetOpen(false);
+	}
 }
 
 cRefView::~cRefView()
 {
 	SetOpen(false);
+	for(cGfxObject *pGfx : mvLegacyPreviewGfx)
+		if(pGfx) mpInit->mpGame->GetGraphics()->GetDrawer()->DestroyGfxObject(pGfx);
 }
 
 //-----------------------------------------------------------------------
@@ -108,7 +124,12 @@ void cRefView::SetOpen(bool abX)
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	if(mbOpen)
 	{
-		if(mvMaps.empty()) cRefShots::FindMaps(mpInit, mvMaps);
+		if(mvMaps.empty())
+		{
+			cRefShots::FindMaps(mpInit, mvMaps);
+			if(mpInit->mpGame->GetResources()->GetFileSearcher()->GetFilePath("dogtest.dae") != "")
+				mvMaps.push_back("dogtest.dae");
+		}
 		pLowLevel->SetDebugPanel([this](){ Draw(); });
 	}
 	else
@@ -147,6 +168,10 @@ void cRefView::SetOriginalLook()
 	mSavedLook.mbFlashlight = pFlashLight->GetSettings().mbImproved;
 	mSavedLook.mbLamps = mpInit->mpLampLooks->GetSettings().mbImproved;
 	mSavedLook.mEffects = pLowLevel->GetEffects();
+	mSavedLook.mbPlayerEffects = pLowLevel->GetPlayerEffectSettings().mbImproved;
+	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
+	feedback.mbImproved = false;
+	pLowLevel->SetPlayerEffectSettings(feedback);
 
 	pGraphics->SetLinearLighting(false);
 	pPostEffects->SetBloomType(eBloomType_Original);
@@ -201,6 +226,9 @@ void cRefView::RestoreLook()
 	lamps.mbImproved = mSavedLook.mbLamps;
 	mpInit->mpLampLooks->SetSettings(lamps);
 	pLowLevel->SetEffects(mSavedLook.mEffects);
+	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
+	feedback.mbImproved = mSavedLook.mbPlayerEffects;
+	pLowLevel->SetPlayerEffectSettings(feedback);
 }
 
 //-----------------------------------------------------------------------
@@ -256,6 +284,7 @@ void cRefView::UpdateCompareShots()
 void cRefView::Update(float afTimeStep)
 {
 	UpdateCompareShots();
+	UpdatePlayerEffects(afTimeStep);
 
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
 
@@ -556,6 +585,12 @@ void cRefView::DeleteViewpoint()
 void cRefView::Reset()
 {
 	// Changing map resets every updateable; the panel keeps its state.
+	mlEffectPreview = ePreview_None;
+	mbEffectTour = false;
+	mfEffectPreviewClock = 0;
+	mbLegacyPreviewTrail = false;
+	mlEffectAction = 0;
+	mfEffectBlackFade = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -573,6 +608,7 @@ bool cRefView::CanLoadMap()
 
 void cRefView::LoadMap(const tString &asMap)
 {
+	const tString sStart = cString::SetFileExt(asMap, "") == "effectslab" ? "link01" : "";
 	mbUsed = true;
 	mbAtView = false;
 	mlGoToView = -1;
@@ -587,13 +623,13 @@ void cRefView::LoadMap(const tString &asMap)
 		mpInit->ResetGame(true);
 		mpInit->mpGame->GetUpdater()->SetContainer("Default");
 		mpInit->mpGame->GetScene()->SetDrawScene(true);
-		mpInit->mpMapHandler->Load(asMap, "");
+		mpInit->mpMapHandler->Load(asMap, sStart);
 	}
 	else
 	{
 		// Loading a map again gives its places anew
 		msViewsMap = "";
-		mpInit->mpMapHandler->ChangeMap(asMap, "", "", "", 0, 0, "", "");
+		mpInit->mpMapHandler->ChangeMap(asMap, sStart, "", "", 0, 0, "", "");
 	}
 }
 
@@ -637,6 +673,18 @@ void cRefView::Release()
 	if(mbAtView && mbFlying==false) PutPlayerAtCamera();
 	mbAtView = false;
 	mbHoldDirection = false;
+}
+
+void cRefView::ReleaseForDogTest()
+{
+	mbFly = false;
+	if(mbFlying)
+		mpInit->mpPlayer->GetCamera()->SetPitchLimits(mvWalkPitchLimits);
+	mbFlying = false;
+	mpInit->mpPlayer->GetCharacterBody()->SetActive(true);
+	mbAtView = mbHoldDirection = false;
+	mlGoToView = -1;
+	SetOpen(false);
 }
 
 //-----------------------------------------------------------------------
@@ -735,7 +783,13 @@ void cRefView::Draw()
 	if(mbOpen==false) return;
 	// Not in the comparison shots
 	if(mlCompareStep != 0) return;
+	if(mpInit->mpDogTestMap->IsActive() && !mpInit->mpDogTestMap->DrawControls()) return;
 
+	if(msViewsMap == "effectslab")
+	{
+		DrawEffectsLab();
+		if(!mbEffectsLabFullPanel) return;
+	}
 	const float fEm = ImGui::GetFontSize();
 	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x - fEm, pViewport->WorkPos.y + fEm),
@@ -989,6 +1043,7 @@ void cRefView::DrawPlayer()
 	if(ImGui::IsItemHovered()) Tip("One more flare in the inventory. It is lit from there, and thrown when put away.");
 
 	ImGui::EndDisabled();
+	if(msViewsMap != "effectslab" && ImGui::CollapsingHeader("Player effects")) DrawPlayerEffects();
 	ImGui::End();
 }
 

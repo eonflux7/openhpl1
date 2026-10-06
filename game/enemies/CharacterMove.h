@@ -76,7 +76,7 @@ public:
 	/**
 	 * returns false if no path could be found.
 	 */
-	bool MoveToPos(const cVector3f &avPos);
+	bool MoveToPos(const cVector3f &avPos, bool abCheckDynamic = false);
 	void MoveDirectToPos(const cVector3f &avFeetPos, float afTimeStep);
 
 	void TurnToAngle(float afAngle);
@@ -88,6 +88,8 @@ public:
 	// Helpers
 	
 	bool FreeDirectPathToChar(iCharacterBody *apBody);
+	bool FreeDirectPathToPos(const cVector3f &avFeetPos);
+	void SetSmoothNavigation(bool abX){ mbSmoothNavigation = abX; }
 
 	float DistanceToChar(iCharacterBody *apBody);
 	float DistanceToChar2D(iCharacterBody *apBody);
@@ -143,6 +145,7 @@ private:
 
 	bool mbMoving;
 	bool mbTurning;
+	bool mbSmoothNavigation;
 
 	float mfTurnSpeed;
 

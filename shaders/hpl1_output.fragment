@@ -231,6 +231,10 @@ vec3 SceneColor()
     return scale.x > 1.0 ? SceneAverage(pos, min(scale, 2.0)) : SceneCurve(pos);
 }
 
+#ifndef ENCODE_ONLY
+#include "hpl1_player_effects.glsl"
+#endif
+
 #ifdef ENCODE_ONLY
 
 void main()
@@ -254,6 +258,7 @@ void main()
         vec3 off = grain.x > 1.5 ? FilmGrain(gl_FragCoord.xy, color) : NoiseGrain(gl_FragCoord.xy);
         color += off * (grain.y * share);
     }
+    color = PlayerEffects(color);
     color += (Noise(gl_FragCoord.xy) - 0.5) / 255.0;
     outColor = vec4(color, 1.0);
 }

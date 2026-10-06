@@ -156,6 +156,9 @@ overture_warnings(overture)
 
 include(CTest)
 if(BUILD_TESTING)
+	# Opt-in in-game checks use the original dog mesh, clips and physics.
+	target_sources(overture PRIVATE tests/dog_regressions.cpp)
+	target_compile_definitions(overture PRIVATE OVERTURE_DOG_REGRESSIONS)
 	add_executable(engine_regressions tests/engine_regressions.cpp)
 	target_link_libraries(engine_regressions PRIVATE hpl)
 	overture_warnings(engine_regressions)
@@ -192,6 +195,22 @@ if(Python3_FOUND)
 		DEPENDS testmap/generate.py testmap/testmap.hps
 		COMMENT "Generating the test map")
 	add_custom_target(testmap ALL DEPENDS ${testmap_dir}/testmap.dae ${testmap_dir}/testmap.hps)
+	add_custom_command(
+		OUTPUT ${testmap_dir}/dogtest.dae ${testmap_dir}/dogtest.cfg ${testmap_dir}/dogtest.hps
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testmap/generate_dogtest.py ${testmap_dir}
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/testmap/dogtest.hps ${testmap_dir}/dogtest.hps
+		DEPENDS testmap/generate_dogtest.py testmap/generate.py testmap/dogtest.hps
+			${testmap_dir}/testmap.dae
+		COMMENT "Generating the Dog behaviour test map")
+	add_custom_target(dogtest ALL DEPENDS ${testmap_dir}/dogtest.dae ${testmap_dir}/dogtest.cfg ${testmap_dir}/dogtest.hps)
+	add_custom_command(
+		OUTPUT ${testmap_dir}/effectslab.dae ${testmap_dir}/effectslab.hps
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testmap/effectslab.py ${testmap_dir}
+		COMMAND ${CMAKE_COMMAND} -E copy
+			${CMAKE_CURRENT_SOURCE_DIR}/testmap/effectslab.hps ${testmap_dir}/effectslab.hps
+		DEPENDS testmap/effectslab.py testmap/effectslab.hps testmap/generate.py ${testmap_dir}/testmap.dae
+		COMMENT "Generating the effects lab")
+	add_custom_target(effectslab ALL DEPENDS ${testmap_dir}/effectslab.dae ${testmap_dir}/effectslab.hps)
 else()
 	message(STATUS "Python 3 not found, the test map will not be built")
 endif()

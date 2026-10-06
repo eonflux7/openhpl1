@@ -91,6 +91,7 @@ public:
 							float afMinMass, float afMaxMass, float afMinImpulse, float afMaxImpulse,
 							int alStrength,
 							eAttackTargetFlag aTarget, iPhysicsBody *apSkipBody);
+	bool HasFreePathToPlayer(const cVector3f &avOrigin, iPhysicsBody *apSkipBody = nullptr);
 							
 
 	bool CreateLineDestroyBody(const cVector3f& avStart, const cVector3f& avEnd, float afStrength, 

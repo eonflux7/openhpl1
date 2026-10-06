@@ -1623,6 +1623,20 @@ namespace hpl {
 			SetPassUniform(mOutputPass, "grainTone", cMath::Clamp(grain.mfColor, 0.0f, 1.0f),
 							cMath::Clamp(grain.mfShadows, 0.0f, 1.0f), cMath::Clamp(grain.mfHighlights, 0.0f, 1.0f),
 							cMath::Clamp(grain.mfDispersion, 0.0f, 1.0f));
+			const cPlayerEffectSettings &feedback = mPlayerEffectSettings;
+			const cPlayerEffectState state = feedback.mbImproved ? mPlayerEffectState : cPlayerEffectState();
+			auto Amount = [](float f)
+			{ return cMath::Clamp(f, 0.0f, 1.0f); };
+			SetPassUniform(mOutputPass, "playerEffects0", Amount(state.mfAdaptation) * Amount(feedback.mfAdaptationStrength),
+				Amount(state.mfLowHealth) * Amount(feedback.mfInjuryStrength),
+				Amount(state.mfBloodHit) * Amount(feedback.mfInjuryStrength),
+				Amount(state.mfIceHit) * Amount(feedback.mfInjuryStrength));
+			SetPassUniform(mOutputPass, "playerEffects1", Amount(state.mfPanic) * Amount(feedback.mfPanicStrength),
+				Amount(state.mfFlash), Amount(state.mfSave), Amount(state.mfDeath));
+			SetPassUniform(mOutputPass, "playerEffects2", Amount(state.mfDeathBlack), Amount(state.mfPanicPulse),
+				Amount(state.mfUnderwater), Amount(feedback.mfWhiteoutGlow));
+			SetPassUniform(mOutputPass, "playerDetails", state.mfBloodSeed, Amount(state.mfLowHealthVision) * Amount(feedback.mfInjuryStrength), 0, 0);
+			SetPassUniform(mOutputPass, "playerWaterColor", state.mWaterColor.r, state.mWaterColor.g, state.mWaterColor.b, 0);
 			DrawFullscreenPass(mOutputPass, lColor, mvScreenSize);
 		}
 		else

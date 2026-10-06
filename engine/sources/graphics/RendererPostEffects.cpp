@@ -1385,7 +1385,14 @@ namespace hpl {
 
 	void cRendererPostEffects::RenderImageTrail()
 	{
-		if(mImageTrailData.mbActive==false) return;
+		bool bPlayerTrail = mbPlayerImageTrailActive && !mpLowLevelGraphics->GetPlayerEffectSettings().mbImproved;
+		bool bActive = mImageTrailData.mbActive || bPlayerTrail;
+		float fAmount = mImageTrailData.mbActive ? mImageTrailData.mfAmount : mfPlayerImageTrailAmount;
+		if(!bActive)
+		{
+			mImageTrailData.mbFirstPass = true;
+			return;
+		}
 
 		tVertexVec vVtx;
 		vVtx.push_back( cVertex(cVector3f(0,0,40),cVector2f(0,mvScreenSize.y),cColor(1,0.6f) ) );
@@ -1401,7 +1408,7 @@ namespace hpl {
 		//The copies of the scene are drawn as they are
 		mpLowLevelGraphics->SetLinearSource(true);
 		{
-			if(mImageTrailData.mbActive)
+			if(bActive)
 			{
 				if(mImageTrailData.mbFirstPass){
 					mpLowLevelGraphics->SetBlendActive(false);
@@ -1420,7 +1427,7 @@ namespace hpl {
 
 					mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0]);
 
-					mpLowLevelGraphics->SetTextureConstantColor(cColor(1,1.0f - mImageTrailData.mfAmount));
+					mpLowLevelGraphics->SetTextureConstantColor(cColor(1, 1.0f - fAmount));
 					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Constant);
 					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Replace);
 				}
@@ -1434,7 +1441,7 @@ namespace hpl {
 			mpLowLevelGraphics->DrawQuad(vVtx);
 
 
-			if(mImageTrailData.mbActive)
+			if(bActive)
 			{
 				if(!mImageTrailData.mbFirstPass)
 				{
@@ -1443,7 +1450,7 @@ namespace hpl {
 
 					mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer]);
 
-					mpLowLevelGraphics->SetTextureConstantColor(cColor(1,mImageTrailData.mfAmount));
+					mpLowLevelGraphics->SetTextureConstantColor(cColor(1, fAmount));
 					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Constant);
 					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Replace);
 

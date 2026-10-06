@@ -33,7 +33,8 @@
 
 cAttackRayCallback::cAttackRayCallback()
 {
-	mbSkipCharacter = false;
+	mpSkipBody = nullptr;
+	Reset();
 }
 
 //-----------------------------------------------------------------------
@@ -41,6 +42,7 @@ cAttackRayCallback::cAttackRayCallback()
 void cAttackRayCallback::Reset()
 {
 	mpClosestBody = nullptr;
+	mfShortestDist = 0;
 	mbSkipCharacter = false;
 }
 
@@ -177,6 +179,18 @@ bool cAttackHandler::CreateLineAttack(const cVector3f& avStart, const cVector3f&
 
 //-----------------------------------------------------------------------
 
+bool cAttackHandler::HasFreePathToPlayer(const cVector3f &avOrigin, iPhysicsBody *apSkipBody)
+{
+	mRayCallback.Reset();
+	mRayCallback.mpSkipBody = apSkipBody;
+	mRayCallback.mbSkipCharacter = true;
+	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	pWorld->CastRay(&mRayCallback,avOrigin,
+		mpInit->mpPlayer->GetCharacterBody()->GetBody()->GetWorldPosition(),true,false,false);
+	mRayCallback.mbSkipCharacter = false;
+	return mRayCallback.mpClosestBody == nullptr;
+}
+
 bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxOffset,
 					   const cVector3f &avOrigin, float afDamage,
 					   float afMinMass, float afMaxMass, float afMinImpulse, float afMaxImpulse,
@@ -203,6 +217,10 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
+	// Snapshot occlusion before damaging any bodies. A strike that breaks a
+	// door must not also reach the player behind it due to body iteration order.
+	const bool bPlayerBlocked = (aTarget & eAttackTargetFlag_Player) &&
+		!HasFreePathToPlayer(avOrigin,apSkipBody);
 	
 	//Get bodies and add to list, this incase the portal contaniner gets changed.
 	std::list<iPhysicsBody*> lstTempBodies;
@@ -240,22 +258,11 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 			{
 				if(mpInit->mpPlayer->GetCharacterBody()->GetBody() == pBody)
 				{
-					//Check with line if there is a free path, if not skip damage.
-					cVector3f vEnd = pBody->GetWorldPosition();
-                    
-					mRayCallback.Reset();
-					mRayCallback.mbSkipCharacter = true;
-					pPhysicsWorld->CastRay(&mRayCallback,avOrigin,vEnd,true,false,false);
-					mRayCallback.mbSkipCharacter = false;
-					
-					//Damage
-					if(mRayCallback.mpClosestBody==nullptr)
-					{
-						if(afDamage>0)
-						{
-							mpInit->mpPlayer->Damage(afDamage,ePlayerDamageType_BloodSplash);
-						}
-					}
+					// A blocked strike applies neither damage nor knockback and
+					// does not produce player-hit feedback.
+					if(bPlayerBlocked) continue;
+					if(afDamage>0)
+						mpInit->mpPlayer->Damage(afDamage,ePlayerDamageType_BloodSplash);
 					
 					//Impulse
 					float fMass = mpInit->mpPlayer->GetCharacterBody()->GetMass();

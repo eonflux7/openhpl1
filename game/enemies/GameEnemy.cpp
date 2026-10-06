@@ -361,6 +361,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 	mfSkipSoundTriggerCount =0;
 		
 	mpCurrentAnimation = nullptr;
+	mbAnimationCompletionSent = false;
 
 	mbAnimationIsSpeedDependant = false;
 	mfAnimationSpeedMul = 1.0f;
@@ -920,7 +921,8 @@ void iGameEnemy::ChangeState(int alId)
 
 iGameEnemyState *iGameEnemy::GetState(int alId)
 {
-	return mvStates[mlCurrentState];
+	if(alId < 0 || alId >= (int)mvStates.size()) return nullptr;
+	return mvStates[alId];
 }
 
 
@@ -983,6 +985,12 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 		mpCurrentAnimation->IsActive() &&
 		mpCurrentAnimation->IsOver()== false)
 	{
+		// A patrol/script may reuse the movement clip with different options.
+		mpCurrentAnimation->SetLoop(abLoop);
+		mbAnimationIsSpeedDependant = abDependsOnSpeed;
+		mfAnimationSpeedMul = afSpeedMul;
+		mbOverideMoveState = abOverideMoveState;
+		if(!abDependsOnSpeed) mpCurrentAnimation->SetSpeed(afSpeedMul);
 		return;
 	}
 
@@ -1019,6 +1027,10 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 	
 
 	mpCurrentAnimation  = pNewAnim;
+	mbAnimationCompletionSent = false;
+	// Movement can leave a shared clip at speed zero. Authored base speed
+	// still applies; reset only the runtime multiplier for a fixed clip.
+	if(!abDependsOnSpeed) pNewAnim->SetSpeed(afSpeedMul);
 
 	mbAnimationIsSpeedDependant = abDependsOnSpeed;
 	mfAnimationSpeedMul = afSpeedMul;
@@ -1359,47 +1371,47 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 						pPlayerBody->GetBody()->GetBV()->GetRadius();
 
 	//Lower some stuff if player is hidden
-	float fStartFOV = mfFOV;
-	float fStartMaxSeeDist = mfMaxSeeDist;
+	float fViewFOV = mfFOV;
+	float fMaxViewDist = mfMaxSeeDist;
 	if(mbCanSeePlayer==false && fDist >1.3f) //1.3 = really close, remove all handicap.
 	{
 		if(mpInit->mDifficulty == eGameDifficulty_Easy){
-			mfFOV *= 0.6f;
-			mfMaxSeeDist *= 0.6f;
+			fViewFOV *= 0.6f;
+			fMaxViewDist *= 0.6f;
 		}
 
 		if(mpInit->mpPlayer->GetHidden()->IsHidden())
 		{
-			mfFOV *= 0.36f;
-			mfMaxSeeDist *= 0.25f;
+			fViewFOV *= 0.36f;
+			fMaxViewDist *= 0.25f;
 		}
 		else if(mpInit->mpPlayer->GetHidden()->InShadows())
 		{
 			if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
 			{
-				mfFOV *= 0.6f;
-				mfMaxSeeDist *= 0.65f;
+				fViewFOV *= 0.6f;
+				fMaxViewDist *= 0.65f;
 			}
 			else
 			{
-				mfFOV *= 0.8f;
-				mfMaxSeeDist *= 0.85f;
+				fViewFOV *= 0.8f;
+				fMaxViewDist *= 0.85f;
 			}
 		}
 	}
 
 	gfCurrentViewDist = fDist;
-	gfCurrentMaxViewDist = mfMaxSeeDist;
+	gfCurrentMaxViewDist = fMaxViewDist;
 
 	//Black Plague: a player who touches the enemy is no longer seen through
 	//a wall, but is seen from any side.
 	bool bSeen;
 	if(cInit::IsOverture())
-		bSeen = (fDist <= mfMaxSeeDist && LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(),false)) || 
+		bSeen = (fDist <= fMaxViewDist && LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fViewFOV)) ||
 				fDist <=  fMinLength;
 	else
-		bSeen = fDist <= mfMaxSeeDist && 
-				LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fDist <= fMinLength);
+		bSeen = fDist <= fMaxViewDist &&
+				LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fViewFOV, fDist <= fMinLength);
 
 	if(bSeen)
 	{
@@ -1413,10 +1425,14 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 
 			float fChance=0;
 
-			if(fDist > mfMaxSeeDist) 
+			if(fDist > fMaxViewDist || fMaxViewDist <= 0)
 				fChance =0;
 			else 
-				fChance = 1 - (fDist / mfMaxSeeDist);
+				fChance = 1 - (fDist / fMaxViewDist);
+
+			// The state entered by this callback must receive the observation
+			// that triggered it, not the previous observation's position.
+			mvLastPlayerPos = pPlayerBody->GetFeetPosition();
 
 			if(mbCanSeePlayer==false)
 			{
@@ -1424,8 +1440,6 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 				mpInit->mpPlayer->GetHidden()->UnHide();
 			}
 
-			mvLastPlayerPos = pPlayerBody->GetFeetPosition();
-			
 			mbCanSeePlayer = true;
 			mfCanSeePlayerCount = 1.0f/ 3.0f;
 			mfCalcPlayerHiddenPosCount = 1.5f;
@@ -1439,16 +1453,13 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 
 		//this is so that the enemy get a little better last pos 
 		//and thus improving path finding.
-		if(mfCalcPlayerHiddenPosCount >0)
+		if(mfCalcPlayerHiddenPosCount >0 && TrackPlayerAfterSightLoss())
 		{
 			mvLastPlayerPos = pPlayerBody->GetFeetPosition();
 		}
 
 		mbCanSeePlayer = false;
 	}
-
-	mfFOV = fStartFOV;
-	mfMaxSeeDist = fStartMaxSeeDist;
 
 }
 
@@ -1460,7 +1471,9 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 	
 	float fMoveSpeed = pBody->GetMoveSpeed(eCharDir_Forward);
 	
-	float fSpeed = pBody->GetVelocity(afTimeStep).Length();
+	cVector3f vVelocity = pBody->GetVelocity(afTimeStep);
+	vVelocity.y = 0; // Falling/step climbing is not stride distance.
+	float fSpeed = vVelocity.Length();
 	if(fMoveSpeed <0) fSpeed = -fSpeed;
 	
 	float fTurnSpeed = mpMover->GetTurnSpeed();
@@ -1469,16 +1482,22 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 	// Override animation
 	if(mbOverideMoveState && mpCurrentAnimation!=nullptr)
 	{
-		if(mpCurrentAnimation->IsOver())
+		if(mpCurrentAnimation->IsOver() && !mbAnimationCompletionSent)
 		{
-			mvStates[mlCurrentState]->OnAnimationOver(mpCurrentAnimation->GetName());
+			mbAnimationCompletionSent = true;
+			const tString sName = mpCurrentAnimation->GetName();
+			mvStates[mlCurrentState]->OnAnimationOver(sName);
 
+			//Black Plague: the script's callback for an animation played by script
 			if(msOnAnimOverCallback != "")
 			{
 				tString sCommand = msOnAnimOverCallback + "(\"" + msName + "\")";
 				msOnAnimOverCallback = "";
 				mpInit->RunScriptCommand(sCommand);
 			}
+			// Completion can replace the clip or enter another state. Let
+			// that state control its own playback on the following update.
+			return;
 		}
 		
 		if(mbAnimationIsSpeedDependant)
@@ -1571,7 +1590,7 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 		
 		/////////////////////////////////
 		//Update animation speed
-		if(mbAnimationIsSpeedDependant)
+		if(mbAnimationIsSpeedDependant && mpCurrentAnimation)
 		{
 			if(std::abs(fSpeed) > 0.05f)
 				mpCurrentAnimation->SetSpeed(std::abs(fSpeed) * mfMoveAnimSpeedMul);
@@ -1626,8 +1645,9 @@ static const cVector2f gvPosAddsBP[] = {cVector2f(0,0),
 										cVector2f(-0.25f,0)
 };	
 
-bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, bool abSkipFOV)
+bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, float afFOV, bool abSkipFOV)
 {
+	const float fFOV = afFOV >= 0 ? afFOV : mfFOV;
 	const bool bOverture = cInit::IsOverture();
 	const cVector2f *pPosAdds = bOverture ? gvPosAdds : gvPosAddsBP;
 	const int lRayNum = bOverture ? 5 : 9;
@@ -1650,7 +1670,7 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, bo
 
 	////////////////////////////////////
 	//Check if the pos is within FOV
-	if(mfFOV < k2Pif && abSkipFOV==false)
+	if(fFOV < k2Pif && abSkipFOV==false)
 	{
 		cVector3f vEnemyForward = mpMover->GetCharBody()->GetForward();
 		
@@ -1665,8 +1685,8 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, bo
 
 		//Log("X:%f Y:%f\n",cMath::ToDeg(fAngleX), cMath::ToDeg(fAngleY));
 
-		if(fAngleY > mfFOV*0.5f) return false;
-		if(fAngleX > mfFOV*mfFOVXMul*0.5f) return false;
+		if(fAngleY > fFOV*0.5f) return false;
+		if(fAngleX > fFOV*mfFOVXMul*0.5f) return false;
 	}
 
 	//Get the half with and height. Make them a little smaller so that player can slide over funk on floor.

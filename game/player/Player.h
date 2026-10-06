@@ -207,6 +207,7 @@ public:
 	void Damage(float afDamage, ePlayerDamageType aType);
 	// Damage() does nothing. Not saved.
 	void SetGodMode(bool abX){ mbGodMode = abX;}
+	bool GetGodMode() const { return mbGodMode; }
 
 	void DestroyWorldObjects();
 
@@ -339,6 +340,7 @@ public:
 	cPlayerNoiseFilter* GetNoiseFilter(){ return mpNoiseFilter;}
 
 	cPlayerFearFilter* GetFearFilter(){ return mpFearFilter;}
+	cPlayerDamage *GetDamage() { return mpDamage; }
 
 	cPlayerLookAt* GetLookAt(){ return mpLookAt;}
 

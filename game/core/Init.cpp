@@ -17,6 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Init.h"
+#include "core/DogTestMap.h"
 #include "impl/GLSLProgram.h"
 #include <SDL3/SDL.h>
 #include "player/Player.h"
@@ -214,6 +215,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mpSmokeTest = nullptr;
 	mpRefShots = nullptr;
 	mpRefView = nullptr;
+	mpDogTestMap = nullptr;
 	mpLampLooks = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
@@ -250,6 +252,13 @@ void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 
 //-----------------------------------------------------------------------
 
+tWString cInit::GetPersonalDir()
+{
+	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	return pProfile && pProfile[0] ? cString::To16Char(pProfile)
+		: GetSystemSpecialPath(eSystemPath_Personal);
+}
+
 bool cInit::Init(tString asCommandLine)
 {
 	/*if(asCommandLine != "")
@@ -270,11 +279,19 @@ bool cInit::Init(tString asCommandLine)
 	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
 
 	// PERSONAL DIR /////////////////////
-	tWString sPersonalDir = GetSystemSpecialPath(eSystemPath_Personal);
+	tWString sPersonalDir = GetPersonalDir();
 	if(	cString::GetLastCharW(sPersonalDir) != _W("/") && 
 		cString::GetLastCharW(sPersonalDir) != _W("\\"))
 	{
 		sPersonalDir += _W("/");
+	}
+
+	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	if(pProfile && pProfile[0])
+	{
+		CreateFolder(sPersonalDir);
+		CreateFolder(sPersonalDir + _W("cache"));
+		iMeshLoader::SetCacheDir(cString::To8Char(sPersonalDir) + "cache/");
 	}
 
 	// CREATE NEEDED DIRS /////////////////////
@@ -378,6 +395,7 @@ bool cInit::Init(tString asCommandLine)
 	mbFlashItems  = mpConfig->GetBool("Game","FlashItems",true);
 	mbShowCrossHair  = mpConfig->GetBool("Game","ShowCrossHair",false);
 	mbAskTutorial = mpConfig->GetBool("Game","AskTutorial",true);
+	mbImprovedDogAI = mpConfig->GetBool("AI","ImprovedDogAI",true);
 	
 	mbHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
 	if(mbHapticsAvailable)
@@ -639,6 +657,14 @@ bool cInit::Init(tString asCommandLine)
 		grain.mfRate = mpConfig->GetFloat("Graphics","GrainRate",grain.mfRate);
 		grain.mfDispersion = mpConfig->GetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		pLowLevel->SetFilmGrain(grain);
+		cPlayerEffectSettings feedback;
+		feedback.mbImproved = mpConfig->GetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
+		feedback.mfAdaptationStrength = mpConfig->GetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
+		feedback.mfAdaptationTime = mpConfig->GetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
+		feedback.mfInjuryStrength = mpConfig->GetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
+		feedback.mfPanicStrength = mpConfig->GetFloat("Graphics", "PlayerPanicStrength", feedback.mfPanicStrength);
+		feedback.mfWhiteoutGlow = mpConfig->GetFloat("Graphics", "PlayerWhiteoutGlow", feedback.mfWhiteoutGlow);
+		pLowLevel->SetPlayerEffectSettings(feedback);
 	}
 
 	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", !IsOverture()));
@@ -830,6 +856,7 @@ bool cInit::Init(tString asCommandLine)
 		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
 	if(mpSmokeTest==nullptr && mpRefShots==nullptr)
 		mpRefView = hplNew( cRefView,(this) );
+	mpDogTestMap = hplNew( cDogTestMap,(this) );
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -899,6 +926,7 @@ bool cInit::Init(tString asCommandLine)
 	}
 	if(mpPhysicsLog)
 		mpGame->GetUpdater()->AddUpdate("Default", mpPhysicsLog);
+	mpGame->GetUpdater()->AddUpdate("Default", mpDogTestMap);
 	
 	// SCRIPT INIT /////////////////////
 	cGameScripts::Init();
@@ -1122,6 +1150,7 @@ void cInit::Exit()
 	hplDelete( mpMainMenu );
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
 	if(mpRefShots) hplDelete( mpRefShots );
+	if(mpDogTestMap) hplDelete( mpDogTestMap );
 	if(mpRefView) hplDelete( mpRefView );
 	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
@@ -1183,6 +1212,13 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","GrainHighlights",grain.mfHighlights);
 		mpConfig->SetFloat("Graphics","GrainRate",grain.mfRate);
 		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
+		const cPlayerEffectSettings &feedback = mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings();
+		mpConfig->SetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
+		mpConfig->SetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
+		mpConfig->SetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
+		mpConfig->SetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
+		mpConfig->SetFloat("Graphics", "PlayerPanicStrength", feedback.mfPanicStrength);
+		mpConfig->SetFloat("Graphics", "PlayerWhiteoutGlow", feedback.mfWhiteoutGlow);
 	}
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
 	mpConfig->SetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
@@ -1306,6 +1342,7 @@ void cInit::Exit()
 	mpConfig->SetBool("Game","FlashItems",mbFlashItems); 
 	mpConfig->SetBool("Game","ShowCrossHair",mbShowCrossHair);
 	mpConfig->SetBool("Game","AskTutorial",mbAskTutorial);
+	mpConfig->SetBool("AI","ImprovedDogAI",mbImprovedDogAI);
 
 	mpConfig->SetBool("Game","SimpleSwingInOptions",mbSimpleSwingInOptions); 
 

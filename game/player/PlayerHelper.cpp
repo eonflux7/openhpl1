@@ -572,6 +572,11 @@ cPlayerHealth::cPlayerHealth(cInit *apInit)
 
 void cPlayerHealth::Reset()
 {
+	mfTimeCount = 0;
+	mfGfxAlpha = 0;
+	mfGfxAlphaAdd = 0;
+	mfGfxGlobalAlpha = 0;
+	mfVisionAmount = 0;
 	mfTerrorCheckCount =0;
 	if(mpSoundEntry) mpSoundEntry->mpSound->Stop();
 	mpSoundEntry = nullptr;
@@ -636,6 +641,14 @@ void cPlayerHealth::UpdateOxygen(float afTimeStep)
 void cPlayerHealth::Update(float afTimeStep)
 {
 	cPlayer *pPlayer = mpInit->mpPlayer;
+	float fHealth = pPlayer->GetHealth();
+	// Use a continuous severity so gradual regeneration through 25 health
+	// cannot abruptly weaken the second outline.
+	float fVisionTarget = fHealth > 0 && fHealth <= 50 ? 0.25f + 0.75f * cMath::Clamp((50.0f - fHealth) / 40.0f, 0.0f, 1.0f) : 0.0f;
+	// Double vision persists between heartbeats and eases away on healing.
+	float fVisionRate = fVisionTarget < mfVisionAmount ? 12.0f : 8.0f;
+	mfVisionAmount += (fVisionTarget - mfVisionAmount) * (1.0f - expf(-afTimeStep * fVisionRate));
+	if(fVisionTarget == 0 && mfVisionAmount < 0.001f) mfVisionAmount = 0;
 
 	if(cInit::IsOverture()==false && pPlayer->GetHealth() > 0) UpdateOxygen(afTimeStep);
 
@@ -807,6 +820,7 @@ void cPlayerHealth::Draw()
 								cColor(1, mfOxygenAlpha * 0.6f));
 	}
 
+	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
 	if(mfGfxAlpha <=0) return;
 
 	mpDrawer->DrawGfxObject(mpDamageGfx,mpInit->mpGraphicsHelper->GetScreenPos(50),mpInit->mpGraphicsHelper->GetScreenSize(),
@@ -1103,7 +1117,7 @@ cPlayerDamage::cPlayerDamage(cInit *apInit)
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 	mpPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 
-	mbActive = false;
+	Reset();
 
 	mType = ePlayerDamageType_BloodSplash;
 
@@ -1127,10 +1141,12 @@ void cPlayerDamage::Start(float afSize, ePlayerDamageType aType)
 {
 	if(mbActive) return;
 
-	mfSize = afSize;
+	mfSize = cMath::Max(afSize, 0.01f);
 
 	mType = aType;
-	
+	if(aType == ePlayerDamageType_BloodSplash)
+		mlBloodSeed = (mlBloodSeed * 25173u + 13849u) & 65535u;
+
 	mfAlpha = 0;
 	mfAlphaAdd = 4.3f;
 
@@ -1138,8 +1154,8 @@ void cPlayerDamage::Start(float afSize, ePlayerDamageType aType)
 	
 	if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
 	{
-		mpPostEffects->SetImageTrailActive(true);
-		mpPostEffects->SetImageTrailAmount(0);
+		mpPostEffects->SetPlayerImageTrailActive(true);
+		mpPostEffects->SetPlayerImageTrailAmount(0);
 	}
 
 	mvHeadSwingSpeed = cVector2f(cMath::RandRectf(-1,1), cMath::RandRectf(0,0.5f));
@@ -1200,7 +1216,7 @@ void cPlayerDamage::Update(float afTimeStep)
 	{
 		if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
 		{
-			mpPostEffects->SetImageTrailAmount(mfAlpha *0.92f);
+			mpPostEffects->SetPlayerImageTrailAmount(mfAlpha * 0.92f);
 		}
 	}
 
@@ -1212,8 +1228,8 @@ void cPlayerDamage::Update(float afTimeStep)
 		{
 			if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
 			{
-				mpPostEffects->SetImageTrailActive(false);
-				mpPostEffects->SetImageTrailAmount(0);
+				mpPostEffects->SetPlayerImageTrailActive(false);
+				mpPostEffects->SetPlayerImageTrailAmount(0);
 			}
 		}
 	}
@@ -1223,9 +1239,21 @@ void cPlayerDamage::Update(float afTimeStep)
 
 void cPlayerDamage::Draw()
 {
+	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
 	if(mbActive==false || mvHitGfx[mType]==nullptr) return;
 
 	mpDrawer->DrawGfxObject(mvHitGfx[mType],mpInit->mpGraphicsHelper->GetScreenPos(3),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha*0.6f));
+}
+
+//-----------------------------------------------------------------------
+
+void cPlayerDamage::Reset()
+{
+	mbActive = false;
+	mfAlpha = 0;
+	mfAlphaAdd = 0;
+	mfSize = 1;
+	mvHeadSwingSpeed = cVector2f(0, 0);
 }
 
 //-----------------------------------------------------------------------
@@ -1260,7 +1288,7 @@ void cPlayerDeath::Reset()
 	mfHeightAdd =0;
 	mfRoll =0;
 
-	mpPostEffects->SetImageTrailActive(false);
+	mpPostEffects->SetPlayerImageTrailActive(false);
 }
 
 //-----------------------------------------------------------------------
@@ -1296,8 +1324,8 @@ void cPlayerDeath::Start()
 	mfFadeAlpha =0;
 	mfBlackAlpha = 0;
 
-	mpPostEffects->SetImageTrailActive(true);
-	mpPostEffects->SetImageTrailAmount(0.7f);
+	mpPostEffects->SetPlayerImageTrailActive(true);
+	mpPostEffects->SetPlayerImageTrailAmount(0.7f);
 
 	mpInit->mpPlayer->GetEarRing()->Stop(false);
 
@@ -1341,6 +1369,7 @@ void cPlayerDeath::Update(float afTimeStep)
 
 void cPlayerDeath::Draw()
 {
+	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
 	if(mbActive==false) return;
 
 	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
@@ -2224,7 +2253,7 @@ void cPlayerFearFilter::Update(float afTimeStep)
 	{
 		mfAlpha += afTimeStep * 0.5f;
 		if(mfAlpha > mfMaxAlpha) mfAlpha = mfMaxAlpha;
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailAmount(mfAlpha);
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(mfAlpha);
 	}
 	else if(mfAlpha >0)
 	{
@@ -2232,11 +2261,11 @@ void cPlayerFearFilter::Update(float afTimeStep)
 		if(mfAlpha < 0)
 		{
 			mfAlpha =0;
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
+			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 		}
 		else
 		{
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailAmount(mfAlpha);
+			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(mfAlpha);
 		}
 	}
 }
@@ -2257,10 +2286,11 @@ void cPlayerFearFilter::SetActive(bool abX)
 	if(mbActive == abX) return;
 
 	mbActive = abX;
+	if(!abX) return; // Keep its amount so both treatments can fade out.
 	mfAlpha =0;
 
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(true);
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailAmount(0);
+	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(true);
+	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(0);
 }
 
 //-----------------------------------------------------------------------
@@ -2446,6 +2476,7 @@ void cPlayerHidden::OnWorldExit()
 
 void cPlayerHidden::Draw()
 {
+	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
 	/*if(mfLight <= mfMaxLight)
 	{
 		mpFont->Draw(5,12,cColor(0.3f,1,0.3f),eFontAlign_Left,_W("Light: %f\n"),mfLight);
@@ -2508,7 +2539,7 @@ void cPlayerHidden::UnHide()
 
 	if(mbEnemyTooClose)
 	{
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 	}
 
 	mfEnemyTooCloseCount =0;
@@ -2538,6 +2569,18 @@ static float GetMaxRGB(const cColor &aCol)
 void cPlayerHidden::Update(float afTimeStep)
 {
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	const cPlayerEffectSettings &feedback = pLowLevel->GetPlayerEffectSettings();
+	const bool bImproved = feedback.mbImproved;
+	float fTarget = mbHidden ? 1.0f : (mbInShadows ? 0.35f : 0.0f);
+	float fTime = cMath::Max(feedback.mfAdaptationTime, 0.1f) * (fTarget < mfAdaptation ? 0.25f : 1.0f);
+	mfAdaptation += (fTarget - mfAdaptation) * (1.0f - expf(-afTimeStep * 3.0f / fTime));
+	mfFeedbackTime = fmodf(mfFeedbackTime + afTimeStep, 4096.0f);
+	if(mpLight) mpLight->SetVisible(!bImproved);
+	cVector2f vScreen = pLowLevel->GetScreenSize();
+	mpInit->mpPlayer->GetCamera()->SetAspect(bImproved ? vScreen.x / vScreen.y : mfAspect);
+	float fPanic = cMath::Max(GetPanicAmount(), mpInit->mpPlayer->GetFearFilter()->GetVisualAmount());
+	mpInit->mpPlayer->GetCamera()->SetFOV(bImproved ? GetFeedbackFOV(mfAdaptation, fPanic, GetPanicPulse()) : mfFov);
 
 	bool bIsCrouching = false;
 	if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) bIsCrouching = true;
@@ -2552,7 +2595,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfAspect -= afTimeStep * mfAspectAdd *(1/mfHiddenOnTime);
 			if(mfAspect < mfHiddenAspect) mfAspect = mfHiddenAspect;
 
-			mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
+			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
 		}
 
 		//FOV
@@ -2561,7 +2604,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfFov += afTimeStep * mfFovAdd*(1/mfHiddenOnTime);
 			if(mfFov > mfHiddenFov) mfFov = mfHiddenFov;
 
-			mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
+			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
 		}
 
 		//Effect offset
@@ -2579,7 +2622,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfAspect += afTimeStep * mfAspectAdd * (1/mfHiddenOffTime);
 			if(mfAspect > mfStartAspect) mfAspect = mfStartAspect;
 
-			mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
+			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
 		}
 
 		//FOV
@@ -2588,7 +2631,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfFov -= afTimeStep * mfFovAdd * (1/mfHiddenOffTime);
 			if(mfFov < mfStartFov) mfFov = mfStartFov;
 
-			mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
+			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
 		}
 		
 		//Effect offset
@@ -2643,7 +2686,7 @@ void cPlayerHidden::Update(float afTimeStep)
 				{
 					mbInShadows = false;
 					mbHidden = true;
-					mpLight->SetVisible(true);
+					mpLight->SetVisible(!bImproved);
 					mpLight->SetPosition(mpInit->mpPlayer->GetCamera()->GetPosition());
 					mpLight->FadeTo(cColor(0.1f,0.1f,0.6f,0),12,mfHiddenOnTime);
 					
@@ -2668,7 +2711,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			if(!mbInShadows)
 			{
 				mpLight->FadeTo(cColor(0.09f,0.09f,0.28f,0),6,1);
-				mpLight->SetVisible(true);
+				mpLight->SetVisible(!bImproved);
 			}
 			mbInShadows = true;
 		}
@@ -2894,14 +2937,15 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMin;
 		}
 
-        pCam->SetFOV(mfFov + fAdd);
+		if(!mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
+			pCam->SetFOV(mfFov + fAdd);
 
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(true);
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailAmount(0.8f);
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(true);
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(0.8f);
 	}
 	else if(mfCloseEffectFov !=0)
 	{
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 
 		if(mfCloseEffectFov < 0)
 		{
@@ -2926,7 +2970,8 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMin;
 		}
 
-		pCam->SetFOV(mfFov + fAdd);
+		if(!mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
+			pCam->SetFOV(mfFov + fAdd);
 	}
 
 	/////////////////////////////
@@ -2964,7 +3009,15 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				vDir.Normalise();
 
 				float fAngle = cMath::Vector3Angle(pCam->GetForward(),vDir);
-				if(fAngle > pCam->GetFOV()*0.5f) continue;
+				float fTriggerFov = pCam->GetFOV();
+				if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
+				{
+					// Keep the original panic detection cone while the
+					// improved view uses a smaller FOV pulse.
+					float fLimit = mfCloseEffectFov >= 0 ? mfCloseEffectFovMax : mfCloseEffectFovMin;
+					fTriggerFov = mfFov + sinf(mfCloseEffectFov / fLimit * kPi2f) * fLimit;
+				}
+				if(fAngle > fTriggerFov * 0.5f) continue;
 
 				//Check if ther is a line of sight
 				mbIntersected = false;
@@ -3031,7 +3084,7 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 		else if(mfEnemyTooCloseCount >0)
 		{
 			mfEnemyTooCloseCount-= afTimeStep;
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
+			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 		}
 	}
 
@@ -3063,6 +3116,8 @@ void cPlayerHidden::Reset()
 	mbHidden = false;
 
 	mfInShadowAlpha = 0;
+	mfAdaptation = 0;
+	mfFeedbackTime = 0;
 	mfInShadowPulse = 0;
 	mfInShadowPulseAdd = 1;
 
@@ -3076,3 +3131,15 @@ void cPlayerHidden::Reset()
 
 //-----------------------------------------------------------------------
 
+float cPlayerHidden::GetPanicPulse() const
+{
+	return 0.5f - 0.5f * cosf(mfFeedbackTime * 4.6f);
+}
+
+float cPlayerHidden::GetFeedbackFOV(float afAdaptation, float afPanic, float afPulse) const
+{
+	const cPlayerEffectSettings &settings = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings();
+	float fAdaptation = cMath::Clamp(afAdaptation, 0.0f, 1.0f) * cMath::Clamp(settings.mfAdaptationStrength, 0.0f, 1.0f);
+	float fPanic = cMath::Clamp(afPanic, 0.0f, 1.0f) * cMath::Clamp(settings.mfPanicStrength, 0.0f, 1.0f);
+	return mfStartFov - cMath::ToRad(4.0f * fAdaptation + 3.0f * fPanic * (0.25f + 0.75f * afPulse));
+}

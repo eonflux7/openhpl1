@@ -54,6 +54,7 @@ static eMainMenuState gvMenuBackStates[] = {
 		eMainMenuState_OptionsGraphics,//eMainMenuState_OptionsGraphicsLighting,
 		eMainMenuState_Options,//eMainMenuState_OptionsControls,
 		eMainMenuState_Options,//eMainMenuState_OptionsGame,
+		eMainMenuState_Options,//eMainMenuState_OptionsAI,
 		eMainMenuState_Options,//eMainMenuState_OptionsSound,
 		eMainMenuState_OptionsControls,//eMainMenuState_OptionsKeySetupMove,
 		eMainMenuState_OptionsControls,//eMainMenuState_OptionsKeySetupAction,
@@ -1248,6 +1249,32 @@ public:
 //////////////////////////////////////////////////////////////////////////
 // OPTIONS GAME
 //////////////////////////////////////////////////////////////////////////
+
+// Mutually exclusive choices. Refresh on draw as F2 can also change the mode.
+class cMainMenuWidget_DogAI : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_DogAI(cInit *init, const cVector3f &pos, bool improved)
+		: cMainMenuWidget_Button(init,pos,improved ? _W("[ ] Improved") : _W("[ ] Original"),
+			eMainMenuState_LastEnum,22,eFontAlign_Center),
+		  mbImproved(improved)
+	{
+		msTip = improved ? _W("Remember sightings and sounds; smoother routes and search.")
+			: _W("Original Dog pursuit and search decisions, with shared stability fixes.");
+	}
+	void OnDraw() override
+	{
+		msText = mpInit->GetImprovedDogAI() == mbImproved ? _W("[x] ") : _W("[ ] ");
+		msText += mbImproved ? _W("Improved") : _W("Original");
+		cMainMenuWidget_Button::OnDraw();
+	}
+	void OnMouseDown(eMButton button) override
+	{
+		if(button == eMButton_Left) mpInit->SetImprovedDogAI(mbImproved);
+	}
+private:
+	bool mbImproved;
+};
 
 cMainMenuWidget_Text *gpLanguageText=nullptr;
 cMainMenuWidget_Text *gpSubtitlesText=nullptr;
@@ -3569,7 +3596,24 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 37;
 	AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Graphics"),eMainMenuState_OptionsGraphics,25,eFontAlign_Center)) );
 	vPos.y += 37;
+	// The Dog's behaviour: only Overture has the Dog
+	if(cInit::IsOverture())
+	{
+		AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,_W("AI"),eMainMenuState_OptionsAI,25,eFontAlign_Center)) );
+		vPos.y += 37;
+	}
 	AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Start,25,eFontAlign_Center)) );
+
+	vPos = vTextStart;
+	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_Text,(mpInit,vPos,_W("AI - Dog behaviour"),25,eFontAlign_Center)));
+	vPos.y += 45;
+	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_DogAI,(mpInit,vPos,false)));
+	vPos.y += 37;
+	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_DogAI,(mpInit,vPos,true)));
+	vPos.y += 45;
+	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_Text,(mpInit,vPos,_W("Same original model and animations in both modes."),16,eFontAlign_Center)));
+	vPos.y += 40;
+	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Options,23,eFontAlign_Center)));
 
 	///////////////////////////////////
 	// Options Controls

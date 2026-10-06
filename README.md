@@ -68,6 +68,35 @@ Before changing gameplay code, run the smoke test on the ASan build:
 cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/overture
 ```
 
+Original-asset Dog behaviour and playback checks run in a silent headless
+session with isolated settings, saves, maps and caches:
+
+```
+python3 tools/check_dog_foundations.py --build build-asan
+```
+
+They require gamescope and a build with `BUILD_TESTING=ON`. See
+[Dog foundations](docs/dog-foundations.md) for scope, balance implications,
+and the full-map check.
+
+### Dog behaviour test map
+
+```
+OVERTURE_MAP=dogtest ./run.sh
+```
+
+F2 opens the Dog controls: select a bay and **Reset and play**, compare
+Original/Improved AI, play sound lures, reveal a position or knock the Dog
+down. Bays cover patrol/turning, losing sight/search, hearing, obstacle
+recovery, door breaking and attack/get-up. Start directly in a bay with
+`OVERTURE_MAP=dogtest:sound` (`patrol`, `hide`, `sound`, `props`, `door`,
+`attack`). The build generates the arena using original game entities.
+
+**Options → AI** also saves the Original/Improved Dog behaviour choice for
+normal gameplay. Improved is the branch default; both use the original
+assets and shared animation/stability fixes. See
+[Dog foundations](docs/dog-foundations.md#ai-choice-and-test-arena) for details.
+
 ### Physics test map
 
 `testmap/generate.py` builds a grey test hall (run automatically by the build,
@@ -85,6 +114,60 @@ grep PHYS: ~/.frictionalgames/Penumbra/OvertureRemade/hpl.log
 The log records when each body wakes and comes to rest (time, distance, peak
 speed, joint angle or distance), bodies that never settle, and what the player
 grabs and releases. Both variables work with the original maps too.
+
+### Effects lab
+
+The build also generates a small room for player feedback:
+
+```
+OVERTURE_MAP=effectslab:link01 ./run.sh
+```
+
+Its effects panel opens automatically; F2 toggles it. Switch **Original / Improved**, pick
+a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
+while the preview runs. Previews cover night adaptation, low health, blood and
+ice hits, panic, white flashes, save-point haze, death, underwater and combined
+feedback. **Double vision only** shows the displaced outline without the red
+vignette; it is also included in **Low health**. **New splash** changes the blood preview's pattern. **Stop preview**
+returns to the real game effects.
+
+The dark alcove on the left triggers real adaptation: turn the flashlight
+off, crouch and stay still. The pool on the right triggers underwater feedback;
+the artefact ahead is a working save point. Live buttons trigger harmless hit
+animations, a flash, shake, ear ringing, scripted fear and a black fade. Health
+buttons exercise the real heartbeat and movement penalties. Focus blur, grain
+and boat rocking can also be tested. **Full debug panels** reveals the existing
+renderer controls. From other maps, use **Player > Player effects > Load effects
+lab** in F2.
+
+Improved player feedback combines a shader below the HUD with subtle FOV zoom:
+night adaptation lifts dark detail, adds a blue cast and a faint vignette;
+panic pulses the zoom and blur. Blood hits add soft splashes and droplets with
+a new pattern on each hit, alongside the red vignette. Low health has a stronger
+heartbeat vignette and gently pulsing vision doubling that remains visible
+between heartbeats and eases away after healing; ice hits use noisy frost.
+White flashes spread highlights into whiteout; save points add warm haze and
+glow without the strong zoom or image trail. Underwater adds a water-colored
+tint and light blur; death fades smoothly to black. Original retains the game's
+sprites, projection changes and image trails, including the original save and
+underwater effects. The flashlight beam and shader are unchanged. The treatment
+and five sliders are kept in `settings.cfg` under `Graphics` as
+`PlayerEffectsImproved`, `PlayerAdaptationStrength`, `PlayerAdaptationTime`,
+`PlayerInjuryStrength`, `PlayerPanicStrength` and `PlayerWhiteoutGlow`.
+
+To capture and check every preview plus live adaptation, injury, fear and
+underwater transitions in an isolated headless session:
+
+```
+tools/refshots.py effects /tmp/effects
+```
+
+It writes 41 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
+neutral output, varied but stable blood patterns and full white/black endpoints,
+and exits with 1 if a check fails. Live checks also exercise real save points,
+underwater triggers, double vision between heartbeats, healing and switching
+treatments during a save. It accepts
+the same `--size`, `--set` and `--build` options as reference captures.
 
 ### Reference images
 
@@ -174,6 +257,8 @@ saves.
 | Variable | Purpose |
 |---|---|
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
+| `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
+| `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |
@@ -187,6 +272,7 @@ saves.
 | `OVERTURE_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
 | `OVERTURE_REFSHOTS=1` | Save reference images of every map and quit (`OVERTURE_REFSHOTS=office,worm` for some maps) to `OVERTURE_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
+| `OVERTURE_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/refshots.py effects dir` for an isolated headless run |
 
 ## Requirements
 
@@ -207,8 +293,8 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders (from ScummVM's HPL1 port); SMAA.hlsl is the SMAA
            reference implementation
-testmap/   generator and level script for the physics test map
-tools/     refshots.py: reference images for renderer changes
+testmap/   generators and level scripts for physics and player effects labs
+tools/     refshots.py: reference images and player effects checks
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa
 run.sh     launcher
 ```
