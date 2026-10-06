@@ -1345,7 +1345,8 @@ void cMapHandler::OnPostSceneDraw()
 // For tests: OVERTURE_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
 // script commands that many seconds after the game has started, and says so
 // in the log. With "gui:" before it a command is for the open computer terminal;
-// "save" writes an auto save, "load" loads the newest auto save. Returns true
+// "save" writes an auto save, "load" loads the newest auto save, "pos:x,y,z"
+// puts the player there and "where:body" logs a body's place. Returns true
 // when a save was loaded (the world was changed under the update).
 static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 {
@@ -1384,6 +1385,28 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 			cGameGui *pGui = apInit->mpGameGuiHandler->GetScreenGui();
 			if(pGui) pGui->RunScriptCommand(command.msCommand.substr(4));
 			else Log(" no computer terminal is open\n");
+			continue;
+		}
+		// "pos:x,y,z" puts the player there (feet), "where:body" logs where a body is
+		if(command.msCommand.compare(0, 4, "pos:") == 0)
+		{
+			tFloatVec vPos;
+			cString::GetFloatVec(command.msCommand.substr(4), vPos);
+			if(vPos.size() == 3)
+				apInit->mpPlayer->GetCharacterBody()->SetFeetPosition(cVector3f(vPos[0], vPos[1], vPos[2]));
+			continue;
+		}
+		if(command.msCommand.compare(0, 6, "where:") == 0)
+		{
+			tString sName = command.msCommand.substr(6);
+			cPhysicsBodyIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pBody = it.Next();
+				if(pBody->GetName() == sName)
+					Log(" %s at %s, speed %.2f\n", sName.c_str(), pBody->GetWorldPosition().ToString().c_str(),
+						pBody->GetLinearVelocity().Length());
+			}
 			continue;
 		}
 		if(command.msCommand == "save")

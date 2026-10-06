@@ -419,6 +419,10 @@ bool cInit::Init(tString asCommandLine)
 	SetWindowCaption("Penumbra Loading...");
 
 	mGameId = FindGameId();
+	// Black Plague: resting bodies are kept 1 cm apart. With Newton 2 a heavy
+	// box sank into the floor and caught on the edges of a hole under it (the
+	// crate over level 4's ladder down to the sewers could not be moved)
+	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.01f);
 	const cGameFiles &gameFiles = gvGameFiles[mGameId];
 	gsDefaultSettingsPath = gameFiles.msDefaultSettings;
 	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
