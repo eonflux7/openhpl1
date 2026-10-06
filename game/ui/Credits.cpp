@@ -74,6 +74,15 @@ void cCredits::Reset()
 	mfYPos =600;
 	mlPage = 0;
 	mfPageTime = 0;
+
+	mfBlink = 0;
+	mfBlinkSpeed = 1;
+	mlSecretText = 0;
+	mvSecretRows.clear();
+	mlSecretChars = 0;
+	mlSecretCharsShown = 0;
+	mfCharTime = 0;
+	mfTypeSoundTime = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -146,6 +155,7 @@ void cCredits::Update(float afTimeStep)
 	if(mlPage > 0)
 	{
 		mfPageTime += afTimeStep;
+		if(cInit::GetGameId() == eGameId_Requiem) UpdateRequiemSecret(afTimeStep);
 		return;
 	}
 
@@ -197,6 +207,19 @@ void cCredits::OnButtonDown()
 		return;
 	}
 
+	// Requiem: a click shows the whole text being typed, the next one goes
+	// on to the next text
+	if(cInit::GetGameId() == eGameId_Requiem && mlPage == 3 && mlSecretText <= 3)
+	{
+		if(mlSecretCharsShown != mlSecretChars)
+		{
+			mlSecretCharsShown = mlSecretChars;
+			return;
+		}
+		SetSecretText(mlSecretText + 1);
+		if(mlSecretText <= 3) return;
+	}
+
 	// The statistics are kept three seconds, the secret pages two
 	if(mlPage == 1 && mfPageTime < 3) return;
 	if(mlPage > 1 && mfPageTime < 2) return;
@@ -217,10 +240,8 @@ void cCredits::NextPage()
 		if(cInit::GetGameId() == eGameId_Requiem)
 		{
 			mpInit->mpGame->GetSound()->GetMusicHandler()->Stop(1.8f);
-			// Requiem's secret (a message typed out, after the binary's
-			// cCredits::UpdateText) is not written yet
-			SetActive(false);
-			return;
+			mfBlink = 0;
+			mfBlinkSpeed = 1;
 		}
 		// The secret only for all artefacts found
 		if(pPlayer->mlStat_Collectables < pPlayer->mlStat_MaxCollectables)
@@ -229,7 +250,104 @@ void cCredits::NextPage()
 			return;
 		}
 	}
+	if(cInit::GetGameId() == eGameId_Requiem)
+	{
+		if(mlPage == 3)
+		{
+			mpInit->mpGame->GetSound()->GetMusicHandler()->Play("Penumbra_BP_T1.ogg",1,1.3f,false);
+			SetSecretText(0);
+		}
+		if(mlPage == 5) SetActive(false);
+		return;
+	}
 	if(mlPage == 4) SetActive(false);
+}
+
+//-----------------------------------------------------------------------
+
+void cCredits::SetSecretText(int alNum)
+{
+	mlSecretText = alNum;
+	mvSecretRows.clear();
+
+	// There are four texts; Requiem asks for a fifth that is not there
+	if(alNum <= 3)
+		mpFont->GetWordWrapRows(750,17,15,kTranslate("GUI_exp","9_10" + cString::ToString(alNum)),&mvSecretRows);
+
+	mlSecretChars = 0;
+	for(size_t i=0; i<mvSecretRows.size(); ++i) mlSecretChars += (int)mvSecretRows[i].size();
+	mlSecretCharsShown = 0;
+	mfCharTime = 0;
+	mfTypeSoundTime = 0;
+}
+
+//-----------------------------------------------------------------------
+
+void cCredits::UpdateRequiemSecret(float afTimeStep)
+{
+	if(mlPage == 2)
+	{
+		// The transmission's text fades in and out, a beep at its brightest
+		mfBlink += afTimeStep * mfBlinkSpeed;
+		if(mfBlinkSpeed > 0 && mfBlink >= 1)
+		{
+			mfBlink = 1;
+			mfBlinkSpeed = -1;
+		}
+		else if(mfBlinkSpeed <= 0 && mfBlink <= 0)
+		{
+			mfBlink = 0;
+			mfBlinkSpeed = 1;
+		}
+		if(mfBlink == 1)
+			mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("22_message_beep",false,1);
+	}
+	else if(mlPage == 3)
+	{
+		if(mlSecretCharsShown >= mlSecretChars) return;
+
+		mfCharTime -= afTimeStep;
+		mfTypeSoundTime -= afTimeStep;
+		if(mfCharTime > 0) return;
+
+		if(mfTypeSoundTime <= 0)
+		{
+			mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_type",false,1);
+			mfTypeSoundTime = 0.125f + cMath::RandRectf(-0.05f,0.05f);
+		}
+
+		++mlSecretCharsShown;
+		mfCharTime = 0.025f;
+
+		// A second's pause where a row ends before an empty one
+		int lCount = 0;
+		for(size_t i=1; i<mvSecretRows.size(); ++i)
+		{
+			lCount += (int)mvSecretRows[i-1].size();
+			if(lCount > mlSecretCharsShown) break;
+			if(lCount == mlSecretCharsShown && mvSecretRows[i].empty()) mfCharTime = 1;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cCredits::DrawSecretText()
+{
+	int lCount = 0;
+	for(size_t i=0; i<mvSecretRows.size(); ++i)
+	{
+		cVector3f vPos(25, 90 + (float)i*17, 10);
+		int lRowSize = (int)mvSecretRows[i].size();
+		if(lCount + lRowSize >= mlSecretCharsShown)
+		{
+			mpFont->Draw(vPos,15,cColor(1,1),eFontAlign_Left,_W("%ls"),
+						mvSecretRows[i].substr(0, mlSecretCharsShown - lCount).c_str());
+			return;
+		}
+		mpFont->Draw(vPos,15,cColor(1,1),eFontAlign_Left,_W("%ls"),mvSecretRows[i].c_str());
+		lCount += lRowSize;
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -273,6 +391,16 @@ void cCredits::DrawStatistics()
 
 		swprintf(sBuffer,64,_W("%d / %d"),pPlayer->mlStat_Collectables,pPlayer->mlStat_MaxCollectables);
 		DrawStatRow(fY,"Collectables found:",sBuffer);
+	}
+	else if(cInit::GetGameId() == eGameId_Requiem)
+	{
+		if(mlPage == 2)
+			mpFont->DrawWordWrap(cVector3f(400,200,10),580,18,17,cColor(1,mfBlink),eFontAlign_Center,
+								kTranslate("GUI_exp","10_aaa"));
+		else if(mlPage == 3)
+			DrawSecretText();
+		else if(mlPage == 4)
+			mpFont->Draw(cVector3f(400,300,10),25,cColor(1,1),eFontAlign_Center,_W("ikj765"));
 	}
 	else if(mlPage == 2)
 	{

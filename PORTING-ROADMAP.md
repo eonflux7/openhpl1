@@ -199,9 +199,12 @@ terminal in its level, with sound.
       Requiem: its text, music, time and collectables. The statistics are
       counted and saved (`cPlayer::mlStat_*`). Black Plague's statistics
       seen headless; **to play-test** after a play-through
-  - [ ] Requiem's secret after all its artefacts (a message typed out with
-        sounds, `cCredits::UpdateText`, texts `9_100`, `9_10x`, `10_aaa`,
-        code `ikj765`); the credits end after the statistics for now
+  - [x] Requiem's secret after all its artefacts: "Incoming
+        transmission..." fading in and out with a beep, four texts
+        (`9_100`-`9_103`) typed out with sounds and pauses at paragraphs
+        (a click shows the whole text, the next goes on), then the code
+        `ikj765`. Seen headless through to the code; **to play-test** with
+        sound
   - [x] Requiem's map change without load text or picture: a black
         screen without "Loading" (`DrawLoadingScreen` got a switch for the
         text; Requiem's check for a picture called "black" can never be

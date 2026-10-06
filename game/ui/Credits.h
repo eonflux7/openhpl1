@@ -58,6 +58,12 @@ private:
 	void DrawStatRow(float afY, const tString &asLabel, const tWString &asValue);
 	void NextPage();
 
+	// Requiem's secret: "Incoming transmission..." blinking, then a message
+	// typed out text by text, then the code
+	void UpdateRequiemSecret(float afTimeStep);
+	void SetSecretText(int alNum);
+	void DrawSecretText();
+
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 
@@ -66,10 +72,21 @@ private:
 	tWStringVec mvTextRows;
 	float mfYPos;
 
-	// 0: the text scrolling, 1: statistics, then Black Plague's secret
-	// (2: the message, 3: the code) for all artefacts found
+	// 0: the text scrolling, 1: statistics, then for all artefacts found
+	// Black Plague's secret (2: the message, 3: the code) or Requiem's
+	// (2: the transmission, 3: the typed texts, 4: the code)
 	int mlPage;
 	float mfPageTime;
+
+	float mfBlink;
+	float mfBlinkSpeed;
+
+	int mlSecretText;
+	tWStringVec mvSecretRows;
+	int mlSecretChars;
+	int mlSecretCharsShown;
+	float mfCharTime;
+	float mfTypeSoundTime;
 		
 	bool mbActive;
 };
