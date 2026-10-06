@@ -8,6 +8,7 @@
 #include "core/Init.h"
 #include "core/MapHandler.h"
 #include "core/SaveHandler.h"
+#include "core/MapChecks.h"
 
 #include <SDL3/SDL.h>
 #include <algorithm>
@@ -30,6 +31,7 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 	mStep = eStep_WaitForMap; // cInit loads the first map itself
 	mlFrame = 0;
 	mlFailures = 0;
+	mpChecks = cMapChecks::IsRequested() ? hplNew( cMapChecks,(apInit) ) : nullptr;
 
 	const char *pFrames = SDL_getenv("OVERTURE_SMOKE_FRAMES");
 	mlFramesPerStep = pFrames ? cString::ToInt(pFrames, 120) : 120;
@@ -57,6 +59,11 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 
 	Log("SMOKE: %d maps, %d frames per step\n", (int)mvMaps.size(), mlFramesPerStep);
 	if(mvMaps.empty()) Fail("no maps matched '%s'", asSpec.c_str());
+}
+
+cSmokeTest::~cSmokeTest()
+{
+	if(mpChecks) hplDelete( mpChecks );
 }
 
 //-----------------------------------------------------------------------
@@ -94,6 +101,12 @@ void cSmokeTest::Update(float afTimeStep)
 	// smoke test is in all of them but only drives the game from Default.
 	if(mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default")
 	{
+		// Script functions called by the checks open load texts and the like
+		if(mpChecks && mpChecks->IsCalling())
+		{
+			mpInit->mpGame->GetUpdater()->SetContainer("Default");
+			return;
+		}
 		if(++mlFrame * afTimeStep > kfMapTimeout)
 		{
 			Fail("stuck in container '%s'",
@@ -130,6 +143,7 @@ void cSmokeTest::Update(float afTimeStep)
 #endif
 			mStep = eStep_RunMap;
 			mlFrame = 0;
+			if(mpChecks) mpChecks->Start(sMap, mvMaps[mlMap]);
 		}
 		else if(++mlFrame * afTimeStep > kfMapTimeout)
 		{
@@ -139,6 +153,14 @@ void cSmokeTest::Update(float afTimeStep)
 		break;
 
 	case eStep_RunMap:
+		if(mpChecks && !mpChecks->Update(afTimeStep)) break;
+		if(mpInit->mpMapHandler->GetCurrentMapName() != sMap)
+		{
+			// A script took the checks to another map: go on with the next
+			mpInit->mpGame->GetUpdater()->SetContainer("Default");
+			NextMap();
+			break;
+		}
 		if(++mlFrame < mlFramesPerStep) break;
 
 		{
@@ -209,6 +231,7 @@ void cSmokeTest::NextMap()
 
 	mStep = eStep_Done;
 	RemoveFile(mpInit->mpSaveHandler->GetSaveDir() + SaveFile());
+	if(mpChecks) Log("CHECK: done, %d finding(s)\n", mpChecks->GetFindings());
 	Log("SMOKE: done, %d failure(s)\n", mlFailures);
 	mpInit->mpGame->Exit();
 }

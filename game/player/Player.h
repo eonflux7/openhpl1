@@ -200,6 +200,7 @@ public:
 	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asFunc);
 	void RemoveCollideScriptWithChildEntity(iGameEntity *apEntity);
 	void ClearCollideScripts();
+	tGameCollideScriptMap& GetCollideScripts(){ return m_mapCollideCallbacks;}
 	
 	void SetHealth(float afX);
 	void AddHealth(float afX);

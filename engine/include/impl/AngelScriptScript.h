@@ -42,6 +42,8 @@ namespace hpl {
 		bool Run(const tString& asFuncLine) override;
 		bool Run(int alHandle) override;
 
+		void GetTestCalls(tStringVec &avCalls) override;
+
 	private:
 		asIScriptEngine *mpScriptEngine;
 		cScriptOutput *mpScriptOutput;

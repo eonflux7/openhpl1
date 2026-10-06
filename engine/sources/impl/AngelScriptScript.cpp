@@ -140,7 +140,21 @@ namespace hpl {
 			// function compiled in the scope of this script's module.
 			tString sCode = "void ExecuteString() {\n" + asFuncLine + ";\n}";
 			if(mpModule->CompileFunction("ExecuteString", sCode.c_str(), -1, 0, &pFunc) < 0)
+			{
 				pFunc = nullptr;
+				// AngelScript 2.7 said nothing either, but a callback that
+				// does not compile (a missing function, an argument 2.38 does
+				// not convert) is a bug to see. The game's own hooks
+				// (OnStart(), OnLoad(), ...) are optional in every script.
+				bool bHook = asFuncLine.size() > 4 && asFuncLine.compare(0, 2, "On") == 0 &&
+							asFuncLine.compare(asFuncLine.size() - 2, 2, "()") == 0 &&
+							asFuncLine.find_first_of(" (\"") == asFuncLine.size() - 2;
+				if(!bHook)
+				{
+					Warning("Script '%s': couldn't run '%s'\n", GetName().c_str(), asFuncLine.c_str());
+					mpScriptOutput->Display();
+				}
+			}
 
 			mpScriptOutput->Clear();
 			m_mapCompiledLines.insert(std::map<tString, asIScriptFunction*>::value_type(asFuncLine, pFunc));
@@ -167,6 +181,31 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cAngelScriptScript::GetTestCalls(tStringVec &avCalls)
+	{
+		if(mpModule==nullptr) return;
+
+		for(asUINT i=0; i<mpModule->GetFunctionCount(); ++i)
+		{
+			asIScriptFunction *pFunc = mpModule->GetFunctionByIndex(i);
+			tString sCall = tString(pFunc->GetName()) + "(";
+			bool bOk = true;
+			for(asUINT j=0; j<pFunc->GetParamCount() && bOk; ++j)
+			{
+				int lTypeId;
+				pFunc->GetParam(j, &lTypeId);
+				if(j>0) sCall += ", ";
+				if(lTypeId == asTYPEID_BOOL) sCall += "false";
+				else if(lTypeId >= asTYPEID_INT8 && lTypeId <= asTYPEID_DOUBLE) sCall += "0";
+				else if(tString(mpScriptEngine->GetTypeDeclaration(lTypeId)) == "string") sCall += "\"\"";
+				else bOk = false;
+			}
+			if(bOk) avCalls.push_back(sCall + ")");
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
 	// A script function can make the game run another one before it returns
 	// (SetLampLit runs the lamp's callback). AngelScript 2.7 ran each in a
 	// context of its own; one shared context refuses Prepare while it runs,
@@ -174,10 +213,19 @@ namespace hpl {
 	void cAngelScriptScript::Execute(asIScriptFunction *apFunc)
 	{
 		bool bNested = mpContext->GetState() == asEXECUTION_ACTIVE;
-		if(bNested && mpContext->PushState() < 0) return;
+		if(bNested && mpContext->PushState() < 0)
+		{
+			Warning("Script '%s': couldn't nest a call to '%s'\n", GetName().c_str(), apFunc->GetDeclaration());
+			return;
+		}
 
-		if(mpContext->Prepare(apFunc) >= 0)
-			mpContext->Execute();
+		if(mpContext->Prepare(apFunc) >= 0 && mpContext->Execute() == asEXECUTION_EXCEPTION)
+		{
+			const asIScriptFunction *pFunc = mpContext->GetExceptionFunction();
+			Warning("Script '%s': exception '%s' in '%s' line %d\n", GetName().c_str(),
+				mpContext->GetExceptionString(), pFunc ? pFunc->GetDeclaration() : "",
+				mpContext->GetExceptionLineNumber());
+		}
 
 		if(bNested) mpContext->PopState();
 	}

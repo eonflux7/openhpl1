@@ -3,6 +3,7 @@
 #   tools/porting/headless.sh blackplague|requiem|overture [seconds]
 # Environment (OVERTURE_MAP, OVERTURE_SMOKE, OVERTURE_DUMP_FRAMES, ...) is passed on.
 # The log ends up in build/porting/home/.frictionalgames/Penumbra/<game>Remade/hpl.log
+# HEADLESS_HOME=<dir> HEADLESS_TAG=<name> run a second one beside the first.
 HERE="$(cd "$(dirname "$0")/../.." && pwd)"
 GAME="${1:-blackplague}"
 SECONDS_MAX="${2:-60}"
@@ -12,7 +13,7 @@ case "$GAME" in
 	requiem) DIR="$STEAM/Penumbra Black Plague"; PERSONAL=RequiemRemade; MAP='GlobalScript="requiem_global_script.hps" File="level00.dae"'; LANG_FILE=English_exp.lang ;;
 	*) DIR="$STEAM/Penumbra Overture"; PERSONAL=OvertureRemade; MAP=''; LANG_FILE=English.lang ;;
 esac
-SCRATCH="$HERE/build/porting/home"
+SCRATCH="${HEADLESS_HOME:-$HERE/build/porting/home}"
 mkdir -p "$SCRATCH/.frictionalgames/Penumbra/$PERSONAL"
 SETTINGS="$SCRATCH/.frictionalgames/Penumbra/$PERSONAL/settings.cfg"
 if [ ! -f "$SETTINGS" ]; then
@@ -23,12 +24,12 @@ if [ ! -f "$SETTINGS" ]; then
 		"$HOME/.frictionalgames/Penumbra/OvertureRemade/settings.cfg" > "$SETTINGS"
 	[ -n "$MAP" ] && sed -i -E "s/<Map [^>]*>/<Map $MAP StartPos=\"link01\" \/>/" "$SETTINGS"
 fi
-cat > "$HERE/build/porting/launch.sh" <<LAUNCH
+cat > "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh" <<LAUNCH
 #!/bin/sh
 export HOME="$SCRATCH" ALSOFT_DRIVERS=null OVERTURE_GAME=$GAME
 cd "$DIR"
 exec "$HERE/build/overture"
 LAUNCH
-chmod +x "$HERE/build/porting/launch.sh"
-timeout -k 3 "$SECONDS_MAX" gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- "$HERE/build/porting/launch.sh" > "$HERE/build/porting/last-run.out" 2>&1
+chmod +x "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh"
+timeout -k 3 "$SECONDS_MAX" gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh" > "$HERE/build/porting/last-run-$GAME$HEADLESS_TAG.out" 2>&1
 echo "exit $?  log: $SCRATCH/.frictionalgames/Penumbra/$PERSONAL/hpl.log"

@@ -236,6 +236,21 @@ namespace hpl {
 		exit(1);
 	}
 
+	// A warning given while a script runs says where in the script: the game's
+	// script functions warn about names the script got wrong
+	static void AddScriptPosition(tString &asMess)
+	{
+		asIScriptContext *pContext = asGetActiveContext();
+		if(pContext == nullptr || pContext->GetCallstackSize() == 0) return;
+		const asIScriptFunction *pFunc = pContext->GetFunction(0);
+		if(pFunc == nullptr) return;
+
+		char sPos[512];
+		snprintf(sPos, sizeof(sPos), " [script: %s, line %d]", pFunc->GetDeclaration(), pContext->GetLineNumber(0));
+		size_t lEnd = asMess.find_last_not_of("\n");
+		asMess.insert(lEnd == tString::npos ? 0 : lEnd + 1, sPos);
+	}
+
 	void Error(const char* fmt, ...)
 	{
 		char text[2048];
@@ -248,6 +263,7 @@ namespace hpl {
 
 		tString sMess = "ERROR: ";
 		sMess += text;
+		AddScriptPosition(sMess);
 		LogWriter().Write(sMess);
 	}
 
@@ -263,6 +279,7 @@ namespace hpl {
 
 		tString sMess = "WARNING: ";
 		sMess += text;
+		AddScriptPosition(sMess);
 		LogWriter().Write(sMess);
 	}
 
@@ -813,6 +830,10 @@ namespace hpl {
 			Error("Couldn't add func '%s'\n",asFuncDecl.c_str());
 			return false;
 		}
+
+		// For tools/porting/check_scripts.py: the declarations the scripts can call
+		static FILE *pApiFile = getenv("OVERTURE_SCRIPT_API") ? fopen(getenv("OVERTURE_SCRIPT_API"), "w") : nullptr;
+		if(pApiFile){ fprintf(pApiFile, "%s\n", asFuncDecl.c_str()); fflush(pApiFile); }
 
 		return true;
 	}

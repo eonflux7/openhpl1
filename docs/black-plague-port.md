@@ -108,3 +108,53 @@ the pointer now ranges over the whole wide window, so give `MENU_XOFF=0`
 and window pixels. At 1280 × 720 the 800 × 600 menu is centred: pixel x =
 160 + 1.2 × menu x, pixel y = 1.2 × menu y (Black Plague's main buttons at
 x 424; the first at y 298, then every 61).
+
+## Hunting bugs in bulk
+
+`OVERTURE_SMOKE=all OVERTURE_CHECKS=all tools/porting/headless.sh GAME 2400`
+loads every map and runs the checks of `game/core/MapChecks.cpp` on each,
+writing `CHECK <kind> <map>: ...` lines to the log (leads, not failures):
+
+- `settle`: bodies that move, fall more than 2 m, keep shaking or go NaN
+  in five seconds with nobody touching them, and joints that leave where
+  the map put them. Scripted motion shows up too (Requiem level 4's
+  generator, level 6's chain box): check the level script before
+  calling one a bug.
+- `pick`: things the player can use that the pick ray finds behind
+  something else from every side. `pick` lines are the ones where the
+  other body is less than 2 cm in front (overlap, ties); `pick-behind` lines
+  are usually items in closed cabinets and can be skipped.
+- `areas`: areas with a player collide callback that the game's collision
+  test does not find the player in, standing in their middle.
+- `joints`: doors, drawers, levers and wheels that move under 10° (5 cm)
+  when pushed both ways with 15 m/s² times their mass. Locked doors are
+  left out (their limits are shut).
+- `links`: start positions the player falls from, is pushed off or ends
+  up in the air at. Unused links of the maps show up here too.
+
+- `calls` (not in `all`): every function of the level script is called
+  once, one a frame, with empty strings and zeros, after the other checks;
+  a call that changes the map is followed by a change back. It finds
+  crashes and script exceptions in the game's script functions; the many
+  "couldn't find" warnings it causes are expected. Load screens it opens
+  are closed at once.
+
+Give a subset as `OVERTURE_CHECKS=settle,joints`, and maps as
+`OVERTURE_SMOKE=level07,level09`. Two runs at once need their own home:
+`HEADLESS_HOME=<dir> HEADLESS_TAG=<name>` for the second.
+`OVERTURE_CONTACT_SKIN=<metres>` overrides the contact skin, for comparing
+(`build/porting/skin/crate1.sh` pushes level 4's crate).
+
+Warnings and errors given while a script runs end with the script function
+and line (`[script: void OnUpdate(), line 3101]`), and a script line the game
+runs that does not compile (a callback that does not exist) or throws is
+logged as `Script '...': couldn't run` / `exception`.
+
+`tools/porting/check_scripts.py [game ...]` checks the level scripts against
+the functions the game registers: callbacks that are not defined (a timer,
+collide or use callback naming a missing function), functions defined twice,
+calls with an argument count no overload takes. It reads the registered
+functions from `build/porting/api/<game>.txt`, written by running the game
+once with `OVERTURE_SCRIPT_API=<that file> OVERTURE_SMOKE=none`. On
+2026-10-06 its 8 findings were all mistakes in the shipped scripts
+(functions commented out), the same in the original.
