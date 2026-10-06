@@ -103,6 +103,20 @@ namespace hpl {
 
 		cPhysicsBodyNewton *pRigidBody = static_cast<cPhysicsBodyNewton*>(apEntity);
 		cMatrixf mtxTranspose = apEntity->GetLocalMatrix().GetTranspose();
+
+		//Newton only takes a rigid matrix: a scaled one (Black Plague's maps place
+		//the artefact statue with its mesh scale) makes the body NaN under Newton 2,
+		//and one NaN body hides most of the world from ray casts. Remove the scale.
+		for(int i=0; i<3; ++i)
+		{
+			cVector3f vAxis(mtxTranspose.m[i][0], mtxTranspose.m[i][1], mtxTranspose.m[i][2]);
+			float fLength = vAxis.Length();
+			if(fLength > 0 && std::fabs(fLength - 1) > 1e-4f)
+			{
+				for(int j=0; j<3; ++j) mtxTranspose.m[i][j] /= fLength;
+			}
+		}
+
 		NewtonBodySetMatrix(pRigidBody->mpNewtonBody, &mtxTranspose.m[0][0]);
 
 		if(pRigidBody->mpNode) pRigidBody->mpNode->SetMatrix(apEntity->GetLocalMatrix());

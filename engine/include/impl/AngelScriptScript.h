@@ -56,6 +56,7 @@ namespace hpl {
 		int mlHandle;
 		tString msModuleName;
 
+		void Execute(asIScriptFunction *apFunc);
 		char* LoadCharBuffer(const tString& asFileName, int& alLength);
 	};
 };

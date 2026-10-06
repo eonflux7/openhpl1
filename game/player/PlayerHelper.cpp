@@ -228,6 +228,11 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 	//Must be positive
 	if(fDist < 0) return true;
 
+	//Skip a body the camera is in: Newton 2 hits a ray that starts inside a
+	//body at distance 0, Newton 1 (which the games shipped with) not at all.
+	//A liquid area, or level 8's card rack, which the player can walk into.
+	if(fDist < 0.001f) return true;
+
 	//Must be below max distance
 	if(fDist > mfMaxDistance) return true;
 
@@ -265,7 +270,12 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 		//Other entity
 		else
 		{
-			if(mfPickedDist > fDist)
+			//Two bodies hit at the same distance (level 8's door panels, two
+			//entities in one place): the one created first wins. Newton 2 reports
+			//them in another order than Newton 1, which picked the panel the
+			//script uses.
+			bool bTie = mpPickedBody && std::abs(mfPickedDist - fDist) < 0.0001f;
+			if(bTie ? apBody->GetSaveObjectId() < mpPickedBody->GetSaveObjectId() : mfPickedDist > fDist)
 			{
 				mfPickedDist = fDist;
 				mvPickedPos = apParams->mvPoint;

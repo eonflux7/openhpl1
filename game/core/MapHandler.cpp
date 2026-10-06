@@ -24,6 +24,7 @@
 #include "ui/GameGui.h"
 #include "systems/GameSoundEnvHandler.h"
 #include "player/Player.h"
+#include "player/PlayerHelper.h"
 #include "player/PlayerHands.h"
 #include "entities/GameEntity.h"
 #include "enemies/GameEnemy.h"
@@ -1342,12 +1343,30 @@ void cMapHandler::OnPostSceneDraw()
 
 //-----------------------------------------------------------------------
 
+// For the "rays" test command: logs every body a ray hits
+class cLogRayCallback : public iPhysicsRayCallback
+{
+public:
+	bool OnIntersect(iPhysicsBody *apBody, cPhysicsRayParams *apParams)
+	{
+		iGameEntity *pEntity = (iGameEntity*)apBody->GetUserData();
+		Log("   %.4f m: body '%s' material '%s' entity '%s' type %d active %d collide %d id %d\n",
+			apParams->mfDist, apBody->GetName().c_str(), apBody->GetMaterial()->GetName().c_str(),
+			pEntity ? pEntity->GetName().c_str() : "", pEntity ? (int)pEntity->GetType() : -1,
+			pEntity ? (int)pEntity->IsActive() : -1, (int)apBody->GetCollide(), apBody->GetSaveObjectId());
+		return true;
+	}
+};
+
 // For tests: OVERTURE_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
 // script commands that many seconds after the game has started, and says so
 // in the log. With "gui:" before it a command is for the open computer terminal;
 // "save" writes an auto save, "load" loads the newest auto save, "pos:x,y,z"
-// puts the player there and "where:body" logs a body's place. Returns true
-// when a save was loaded (the world was changed under the update).
+// puts the player there, "where:body" logs a body's place, "lookat:body"
+// turns the camera to it, "rays" logs what the pick and ground rays hit,
+// "joint:name" where a joint is, "sounds" the sound entities playing and
+// "click" uses what the player looks at.
+// Returns true when a save was loaded (the world was changed under the update).
 static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 {
 	struct cCommand { float mfTime; tString msCommand; };
@@ -1396,6 +1415,25 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 				apInit->mpPlayer->GetCharacterBody()->SetFeetPosition(cVector3f(vPos[0], vPos[1], vPos[2]));
 			continue;
 		}
+		// "ray:x,y,z,x,y,z" logs what a ray between two points hits, and what
+		// the player's pick would choose of it
+		if(command.msCommand.compare(0, 4, "ray:") == 0)
+		{
+			tFloatVec vNum;
+			cString::GetFloatVec(command.msCommand.substr(4), vNum, nullptr);
+			if(vNum.size() < 6) continue;
+			cVector3f vStart(vNum[0],vNum[1],vNum[2]), vEnd(vNum[3],vNum[4],vNum[5]);
+			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+			cLogRayCallback callback;
+			pPhysicsWorld->CastRay(&callback, vStart, vEnd, true, false, true);
+			cPlayerPickRayCallback pick;
+			pick.mfMaxDistance = cMath::Vector3Dist(vStart, vEnd);
+			pick.Clear();
+			pPhysicsWorld->CastRay(&pick, vStart, vEnd, true, false, true);
+			pick.CalculateResults();
+			Log(" pick: '%s' at %.4f m\n", pick.mpPickedBody ? pick.mpPickedBody->GetName().c_str() : "", pick.mfPickedDist);
+			continue;
+		}
 		if(command.msCommand.compare(0, 6, "where:") == 0)
 		{
 			tString sName = command.msCommand.substr(6);
@@ -1407,6 +1445,96 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 					Log(" %s at %s, speed %.2f\n", sName.c_str(), pBody->GetWorldPosition().ToString().c_str(),
 						pBody->GetLinearVelocity().Length());
 			}
+			continue;
+		}
+		// "sounds" logs the sound entities that are not stopped
+		if(command.msCommand == "sounds")
+		{
+			cSoundEntityIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetSoundEntityIterator();
+			while(it.HasNext())
+			{
+				cSoundEntity *pSound = it.Next();
+				if(pSound->IsStopped()) continue;
+				cSoundEntry *pEntry = pSound->GetSoundEntry(eSoundEntityType_Main);
+				Log(" sound '%s' (%s) playing %d volume %.2f fading out %d\n", pSound->GetName().c_str(),
+					pSound->GetData() ? pSound->GetData()->GetName().c_str() : "", pEntry != nullptr,
+					pEntry ? pEntry->mfNormalVolumeMul : 0.0f, (int)pSound->IsFadingOut());
+			}
+			continue;
+		}
+		// "joint:name" logs where a joint is between its limits
+		if(command.msCommand.compare(0, 6, "joint:") == 0)
+		{
+			tString sName = command.msCommand.substr(6);
+			cPhysicsJointIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator();
+			while(it.HasNext())
+			{
+				iPhysicsJoint *pJoint = it.Next();
+				if(pJoint->GetName() != sName) continue;
+				iPhysicsBody *pChild = pJoint->GetChildBody();
+				iPhysicsJointSlider *pSlider = pJoint->GetType() == ePhysicsJointType_Slider ? (iPhysicsJointSlider*)pJoint : nullptr;
+				Log(" %s: dist %.4f angle %.4f limits %.4f..%.4f speed %.3f child '%s' at %s frozen %d\n", sName.c_str(),
+					pJoint->GetDistance(), pJoint->GetAngle(), pSlider ? pSlider->GetMinDistance() : 0.0f, pSlider ? pSlider->GetMaxDistance() : 0.0f,
+					pJoint->GetVelocity().Length(), pChild ? pChild->GetName().c_str() : "",
+					pChild ? pChild->GetWorldPosition().ToString().c_str() : "", pChild ? (int)pChild->IsFrozen() : -1);
+			}
+			continue;
+		}
+		// "lookat:body" turns the camera to look at a body's centre
+		if(command.msCommand.compare(0, 7, "lookat:") == 0)
+		{
+			// or "lookat:x,y,z" at a point
+			tString sName = command.msCommand.substr(7);
+			tFloatVec vNum;
+			cString::GetFloatVec(sName, vNum, nullptr);
+			cPhysicsBodyIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
+			bool bPoint = vNum.size() == 3;
+			while(bPoint || it.HasNext())
+			{
+				iPhysicsBody *pBody = bPoint ? nullptr : it.Next();
+				if(pBody && pBody->GetName() != sName) continue;
+				cVector3f vTarget = pBody ? pBody->GetBoundingVolume()->GetWorldCenter() : cVector3f(vNum[0],vNum[1],vNum[2]);
+				bPoint = false;
+				cCamera3D *pCamera = apInit->mpPlayer->GetCamera();
+				cVector3f vDir = vTarget - pCamera->GetPosition();
+				pCamera->SetYaw(atan2(-vDir.x, -vDir.z));
+				pCamera->SetPitch(atan2(vDir.y, sqrt(vDir.x*vDir.x + vDir.z*vDir.z)));
+				apInit->mpPlayer->GetCharacterBody()->SetYaw(pCamera->GetYaw());
+				Log(" looking at %s from %s, %.2f m away\n", sName.c_str(), pCamera->GetPosition().ToString().c_str(), vDir.Length());
+			}
+			continue;
+		}
+		// "rays" logs what the pick ray and the ground ray hit
+		if(command.msCommand == "rays")
+		{
+			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+			cCamera3D *pCamera = apInit->mpPlayer->GetCamera();
+			cLogRayCallback callback;
+			iPhysicsBody *pPicked = apInit->mpPlayer->GetPickedBody();
+			Log(" player active %d state %d move state %d picked '%s' at %.3f m crosshair %d, pick ray from %s\n",
+				(int)apInit->mpPlayer->IsActive(), (int)apInit->mpPlayer->GetState(), (int)apInit->mpPlayer->GetMoveState(),
+				pPicked ? pPicked->GetName().c_str() : "", apInit->mpPlayer->GetPickedDist(),
+				(int)apInit->mpPlayer->GetCrossHairState(), pCamera->GetPosition().ToString().c_str());
+			pPhysicsWorld->CastRay(&callback, pCamera->GetPosition(), pCamera->GetPosition() + pCamera->GetForward()*10, true, false, true);
+			iCharacterBody *pCharBody = apInit->mpPlayer->GetCharacterBody();
+			cVector3f vStart = pCharBody->GetPosition() - cVector3f(0, pCharBody->GetShape()->GetSize().y/2-0.3f, 0);
+			Log(" ground ray from %s\n", vStart.ToString().c_str());
+			pPhysicsWorld->CastRay(&callback, vStart, vStart + cVector3f(0,-0.6f,0), true, false, false);
+			// and any NaN body: one hides most of the map from ray casts
+			cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pBody = it.Next();
+				if(std::isnan(pBody->GetWorldPosition().x) || std::isnan(pBody->GetBV()->GetMin().x))
+					Log("   NaN body: '%s'\n", pBody->GetName().c_str());
+			}
+			continue;
+		}
+		// "click" presses and lets go of Interact, as the left mouse button does
+		if(command.msCommand == "click")
+		{
+			apInit->mpPlayer->StartInteract();
+			apInit->mpPlayer->StopInteract();
 			continue;
 		}
 		if(command.msCommand == "save")

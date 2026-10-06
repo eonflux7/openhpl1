@@ -148,8 +148,7 @@ namespace hpl {
 
 		if(pFunc==nullptr) return true;
 
-		if(mpContext->Prepare(pFunc) >= 0)
-			mpContext->Execute();
+		Execute(pFunc);
 
 		return true;
 	}
@@ -161,13 +160,26 @@ namespace hpl {
 		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
 		if(pFunc==nullptr) return false;
 
-		mpContext->Prepare(pFunc);
-
-		/* Set all the args here */
-
-		mpContext->Execute();
+		Execute(pFunc);
 
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	// A script function can make the game run another one before it returns
+	// (SetLampLit runs the lamp's callback). AngelScript 2.7 ran each in a
+	// context of its own; one shared context refuses Prepare while it runs,
+	// so the inner call is nested in it instead.
+	void cAngelScriptScript::Execute(asIScriptFunction *apFunc)
+	{
+		bool bNested = mpContext->GetState() == asEXECUTION_ACTIVE;
+		if(bNested && mpContext->PushState() < 0) return;
+
+		if(mpContext->Prepare(apFunc) >= 0)
+			mpContext->Execute();
+
+		if(bNested) mpContext->PopState();
 	}
 
 	//-----------------------------------------------------------------------
