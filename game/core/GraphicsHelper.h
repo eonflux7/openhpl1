@@ -41,7 +41,7 @@ public:
 	void DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
 					const cColor &aColor, eBlendFunc aSrcBlend, eBlendFunc aDestBlend);
 	
-	void DrawLoadingScreen(const tString &asFile);
+	void DrawLoadingScreen(const tString &asFile, bool abDrawLoadingText = true);
 
 	// The whole screen in the 800x600 virtual coordinates. The 800x600 layout
 	// is centred, so in a window that isn't 4:3 the screen starts left of (or

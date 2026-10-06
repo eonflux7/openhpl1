@@ -172,7 +172,8 @@ void cMapLoadText::SetActive(bool abX)
 			mpInit->mpGame->GetHaptic()->GetLowLevel()->SetUpdateShapes(false);
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_MapLoadText);
 
-		mpBack = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("other_load_text_back.jpg",false);
+		tString sBack = cInit::IsOverture() || msBackground == "" ? tString("other_load_text_back.jpg") : msBackground;
+		mpBack = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D(sBack,false);
 		
 		mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 		mpInit->mpGraphicsHelper->DrawTexture(mpBack,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));

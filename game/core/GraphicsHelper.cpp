@@ -102,7 +102,7 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 
 //-----------------------------------------------------------------------
 
-void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
+void cGraphicsHelper::DrawLoadingScreen(const tString &asFile, bool abDrawLoadingText)
 {
 	iTexture *pTex= nullptr;
 	
@@ -115,8 +115,9 @@ void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
 		
 		if(pTex) DrawTexture(pTex,GetScreenPos(),GetScreenSize(),cColor(1,1));
 		
-		mpFont->Draw(cVector3f(400,300,50),22,cColor(1,1),eFontAlign_Center,
-					_W("%ls"),kTranslate("LoadTexts", "Loading").c_str());
+		if(abDrawLoadingText)
+			mpFont->Draw(cVector3f(400,300,50),22,cColor(1,1),eFontAlign_Center,
+						_W("%ls"),kTranslate("LoadTexts", "Loading").c_str());
 
 		mpDrawer->DrawAll();
 		

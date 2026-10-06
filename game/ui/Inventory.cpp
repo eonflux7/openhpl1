@@ -1364,7 +1364,15 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 	pItem->SetName(asName);
 	pItem->InitFromFile(asFile);
 
-	cGameItemType *pType = GetItemType(pItem->GetItemType());
+	//As Black Plague: an unknown type is an error, not a crash
+	int lType = pItem->GetItemType();
+	cGameItemType *pType = lType >= 0 && lType < (int)mvItemTypes.size() ? mvItemTypes[lType] : nullptr;
+	if(pType == nullptr)
+	{
+		Error("Item type %d does not exist!\n", lType);
+		hplDelete( pItem );
+		return;
+	}
 	if(pType->OnPickUp(pItem,false)==false)
 	{
 		CheckPickupCallback(pItem->GetName());

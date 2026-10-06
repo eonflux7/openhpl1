@@ -1508,6 +1508,8 @@ void cMapHandler::Update(float afTimeStep)
 		if(mMapChanger.msLoadTextCat != "")
 		{
 			mpInit->mpMapLoadText->SetText(mMapChanger.msLoadTextCat,mMapChanger.msLoadTextEntry);
+			mpInit->mpMapLoadText->SetBackground(mMapChanger.msLoadImage != "" ? mMapChanger.msLoadImage
+																				: tString("loadscreen_default.jpg"));
 			mpInit->mpMapLoadText->SetActive(true);
 		}
 		else
@@ -1516,6 +1518,10 @@ void cMapHandler::Update(float afTimeStep)
 				mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
 			else if(mMapChanger.msLoadImage != "")
 				mpInit->mpGraphicsHelper->DrawLoadingScreen(mMapChanger.msLoadImage);
+			//Requiem: black without "Loading" (its check for an image called
+			//"black" can never be true, so this is all it does)
+			else if(cInit::GetGameId() == eGameId_Requiem)
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("", false);
 			else
 				mpInit->mpGraphicsHelper->DrawLoadingScreen("loadscreen_default.jpg");
 		}

@@ -202,12 +202,14 @@ terminal in its level, with sound.
   - [ ] Requiem's secret after all its artefacts (a message typed out with
         sounds, `cCredits::UpdateText`, texts `9_100`, `9_10x`, `10_aaa`,
         code `ikj765`); the credits end after the statistics for now
-  - [ ] Requiem's `DrawLoadingScreen` without "Loading" in one case of
-        `cMapHandler::Update`
+  - [x] Requiem's map change without load text or picture: a black
+        screen without "Loading" (`DrawLoadingScreen` got a switch for the
+        text; Requiem's check for a picture called "black" can never be
+        true, so this is the only case it adds)
 - [x] Ten auto saves kept in the two later games (Overture: five); the
       newest auto or spot save loaded by one function
       (`cSaveHandler::AutoLoadLatestAutoOrSpot`) as in Requiem
-- [ ] The rest of the 384 functions of Overture's classes that changed size
+- [x] The rest of the 384 functions of Overture's classes that changed size
       in Black Plague (player, saves, doors, radio, inventory): go through
       them class by class. Most menu widgets only shrank with the compiler.
       The list, by class: `build/porting/step6/changed.txt`
@@ -253,11 +255,13 @@ terminal in its level, with sound.
   - [x] Seen to be done already or only compiler changes: links, swing
         doors, the effect handler, the melee weapon (haptics gone),
         `cPlayer::Damage`, the dog's and spider's hunt speeds (haptics)
-  - [ ] Left from the screening (`build/porting/step6/all/screen2.txt`):
-        `cMapLoadText::SetActive` takes its background from a member
-        (+0x28) instead of `other_load_text_back.jpg`; `cPlayerLookAt::Update`,
-        `cPlayer::OnPostSceneDraw`, `cInventory::AddItemFromFile` (error for
-        an unknown type), menu widgets (likely compiler only)
+  - [x] Left from the screening: the load text's background is the
+        link's loading picture, or `loadscreen_default.jpg` (Overture keeps
+        `other_load_text_back.jpg`; seen headless with level 3's corridor
+        picture); an item of an unknown type is an error, not a crash
+        (`cInventory::AddItemFromFile`, all games). `cPlayerLookAt::Update`
+        was done with the zoom; `cPlayer::OnPostSceneDraw` and the menu
+        widgets changed only with the compiler and the haptics
 - [x] Save games of the new entities. Tried headless: a lever stuck by
       script stays stuck at its state (level 4), a wheel stuck at its end
       keeps its angle (level 10's valve, 450°). As in the original,
