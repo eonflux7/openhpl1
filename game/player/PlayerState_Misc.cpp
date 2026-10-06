@@ -71,10 +71,23 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
-		
+
 		//Set cross hair state
 		eCrossHairState CrossState = pEntity->GetPickCrossHairState(mpPlayer->GetPickedBody());
-		
+
+		// Test hook: OVERTURE_PICK_LOG=1 logs what is under the cross hair when it changes
+		static const bool bPickLog = getenv("OVERTURE_PICK_LOG") != nullptr;
+		static iPhysicsBody *pLoggedBody = nullptr;
+		static int lLoggedState = -1;
+		if(bPickLog && (pLoggedBody != mpPlayer->GetPickedBody() || lLoggedState != (int)CrossState))
+		{
+			pLoggedBody = mpPlayer->GetPickedBody();
+			lLoggedState = (int)CrossState;
+			Log("PICK body '%s' mass %.2f entity '%s' type %d dist %.2f (interact %.2f) cross hair %d\n",
+				pLoggedBody->GetName().c_str(), pLoggedBody->GetMass(), pEntity->GetName().c_str(), (int)pEntity->GetType(),
+				mpPlayer->GetPickedDist(), pEntity->GetMaxInteractDist(), lLoggedState);
+		}
+
 		if(	CrossState == eCrossHairState_Active || 
 			(CrossState == eCrossHairState_Examine && !pEntity->GetHasBeenExamined()))
 		{

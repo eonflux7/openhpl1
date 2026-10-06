@@ -145,6 +145,12 @@ namespace hpl {
 		bool bSkipLimitCheck = false;
 		if(fabs(pHingeJoint->mfPreviousAngle - fAngle) > cMath::ToRad(300)) bSkipLimitCheck = true;
 
+		// The band is for a hinge on the static world (a lever, a door): its pull
+		// acts on the child alone, which is wrong between two moving bodies.
+		// Limits a full turn or more apart (a wheel's) are no stop to hold at.
+		const bool bUseBand = (pHingeJoint->mpParentBody == nullptr || pHingeJoint->mpParentBody->GetMass() == 0) &&
+								pHingeJoint->mfMaxAngle - pHingeJoint->mfMinAngle < k2Pif - 4*kfLimitBand;
+
 		//Max limit
 		if (fAngle > pHingeJoint->mfMaxAngle && bSkipLimitCheck==false)
 		{
@@ -172,7 +178,7 @@ namespace hpl {
 		// limit (a lever on a spring) went free one step and was stopped the
 		// next, and Newton 2 never let it come to rest there. It aims a little
 		// past the limit, so what rests there reads as being at it.
-		else if (fAngle < pHingeJoint->mfMinAngle + kfLimitBand && bSkipLimitCheck==false)
+		else if (bUseBand && fAngle < pHingeJoint->mfMinAngle + kfLimitBand && bSkipLimitCheck==false)
 		{
 			pHingeJoint->OnMinLimit();
 
@@ -183,7 +189,7 @@ namespace hpl {
 			pHingeJoint->mfPreviousAngle = fAngle;
 			return 1;
 		}
-		else if (fAngle > pHingeJoint->mfMaxAngle - kfLimitBand && bSkipLimitCheck==false)
+		else if (bUseBand && fAngle > pHingeJoint->mfMaxAngle - kfLimitBand && bSkipLimitCheck==false)
 		{
 			pHingeJoint->OnMaxLimit();
 

@@ -531,7 +531,19 @@ namespace hpl {
 					pBody->SetIsRagDoll(true);
 					pBody->SetCollideRagDoll(false);
 
-					pBody->SetMatrix(cMath::MatrixMul(a_mtxOffset, mtxBodyWorld));
+					// Newton takes rotation-only matrices: a moving body loses any scale
+					// on its first step, so joints set up while it still had the scale
+					// of a scaled entity (a mattress placed bigger in the map) were torn
+					// apart by their limits. The bodies keep the scaled layout.
+					cMatrixf mtxBody = cMath::MatrixMul(a_mtxOffset, mtxBodyWorld);
+					for(int col=0; col<3; ++col)
+					{
+						cVector3f vAxis(mtxBody.m[0][col], mtxBody.m[1][col], mtxBody.m[2][col]);
+						float fLength = vAxis.Length();
+						if(fLength <= 0) continue;
+						for(int row=0; row<3; ++row) mtxBody.m[row][col] /= fLength;
+					}
+					pBody->SetMatrix(mtxBody);
 					pBoneState->SetBody(pBody);
 					pBoneState->SetBodyMatrix(mtxBoneToBody);
 

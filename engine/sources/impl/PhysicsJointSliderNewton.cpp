@@ -141,6 +141,8 @@ namespace hpl {
 		//Avoid oscillation
 		CheckLimitAutoSleep(pSliderJoint, pSliderJoint->mfMinDistance,pSliderJoint->mfMaxDistance,fDistance);
 
+		const bool bUseBand = pSliderJoint->mpParentBody == nullptr || pSliderJoint->mpParentBody->GetMass() == 0;
+
 		if (fDistance < pSliderJoint->mfMinDistance)
 		{
 			pSliderJoint->OnMinLimit();
@@ -167,7 +169,8 @@ namespace hpl {
 		// limit (a door kept shut by its controller) went free one step and was
 		// stopped the next, and Newton 2 never let it come to rest there. It aims
 		// a little past the limit, so what rests there reads as being at it.
-		else if (fDistance < pSliderJoint->mfMinDistance + kfLimitBand)
+		// Only on the static world: the pull is on the child alone (see the hinge).
+		else if (bUseBand && fDistance < pSliderJoint->mfMinDistance + kfLimitBand)
 		{
 			pSliderJoint->OnMinLimit();
 
@@ -176,7 +179,7 @@ namespace hpl {
 			pDesc->m_minFriction =0;
 			return 1;
 		}
-		else if (fDistance > pSliderJoint->mfMaxDistance - kfLimitBand)
+		else if (bUseBand && fDistance > pSliderJoint->mfMaxDistance - kfLimitBand)
 		{
 			pSliderJoint->OnMaxLimit();
 

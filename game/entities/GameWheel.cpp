@@ -61,6 +61,12 @@ void cEntityLoader_GameWheel::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 
 	// Set the engine objects to the object
 	pObject->SetBodies(mvBodies);
+
+	// The object as the bodies' user data, so that the player can pick it
+	for(size_t i=0; i<mvBodies.size(); ++i)
+	{
+		if(mvBodies[i]) mvBodies[i]->SetUserData((void*)pObject);
+	}
 	pObject->SetJoints(mvJoints);
 	pObject->SetMeshEntity(mpEntity);
 	pObject->SetLights(mvLights);
