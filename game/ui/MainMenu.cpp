@@ -55,6 +55,7 @@ static eMainMenuState gvMenuBackStates[] = {
 		eMainMenuState_Options,//eMainMenuState_OptionsControls,
 		eMainMenuState_Options,//eMainMenuState_OptionsGame,
 		eMainMenuState_Options,//eMainMenuState_OptionsAI,
+		eMainMenuState_Options,//eMainMenuState_OptionsChangeGame,
 		eMainMenuState_Options,//eMainMenuState_OptionsSound,
 		eMainMenuState_OptionsControls,//eMainMenuState_OptionsKeySetupMove,
 		eMainMenuState_OptionsControls,//eMainMenuState_OptionsKeySetupAction,
@@ -1274,6 +1275,24 @@ public:
 	}
 private:
 	bool mbImproved;
+};
+
+// Starts another of the three games: the executable is run again in its folder
+class cMainMenuWidget_ChangeGame : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_ChangeGame(cInit *init, const cVector3f &pos, eGameId game)
+		: cMainMenuWidget_Button(init,pos,cString::To16Char(cInit::GetGameName(game)),
+			eMainMenuState_LastEnum,22,eFontAlign_Center),
+		  mGame(game)
+	{
+	}
+	void OnMouseDown(eMButton button) override
+	{
+		if(button == eMButton_Left) mpInit->RequestGameChange(mGame);
+	}
+private:
+	eGameId mGame;
 };
 
 cMainMenuWidget_Text *gpLanguageText=nullptr;
@@ -3602,7 +3621,36 @@ void cMainMenu::CreateWidgets()
 		AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,_W("AI"),eMainMenuState_OptionsAI,25,eFontAlign_Center)) );
 		vPos.y += 37;
 	}
+	if(cInit::CanChangeGame())
+	{
+		AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,_W("Change Game"),eMainMenuState_OptionsChangeGame,25,eFontAlign_Center)) );
+		vPos.y += 37;
+	}
 	AddWidgetToState(eMainMenuState_Options,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Start,25,eFontAlign_Center)) );
+
+	///////////////////////////////////
+	// Change game
+	///////////////////////////////////
+	vPos = vTextStart;
+	AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Text,(mpInit,vPos,_W("Change Game"),25,eFontAlign_Center)));
+	vPos.y += 45;
+	for(int i=0; i<eGameId_LastEnum; ++i)
+	{
+		eGameId game = (eGameId)i;
+		tWString sName = cString::To16Char(cInit::GetGameName(game));
+		if(game == cInit::GetGameId())
+			AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Text,(mpInit,vPos,sName + _W(" (playing)"),18,eFontAlign_Center)));
+		else if(cInit::FindGameFolder(game) == "")
+			AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Text,(mpInit,vPos,sName + _W(" (not found)"),18,eFontAlign_Center)));
+		else
+			AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_ChangeGame,(mpInit,vPos,game)));
+		vPos.y += 34;
+	}
+	vPos.y += 11;
+	AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Text,(mpInit,vPos,
+		_W("The game closes and starts again as the other one. Anything not saved is lost."),16,eFontAlign_Center,nullptr,560)));
+	vPos.y += 50;
+	AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_Options,23,eFontAlign_Center)));
 
 	vPos = vTextStart;
 	AddWidgetToState(eMainMenuState_OptionsAI,hplNew(cMainMenuWidget_Text,(mpInit,vPos,_W("AI - Dog behaviour"),25,eFontAlign_Center)));

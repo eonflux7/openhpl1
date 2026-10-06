@@ -125,6 +125,18 @@ public:
 	void CreateHardCodedPS(iParticleEmitterData *apPE);
 
 	static eGameId GetGameId(){ return mGameId; }
+	static const char* GetGameName(eGameId aId);
+
+	// Changing game: the executable is started again in the other game's
+	// folder after a normal exit. The folders are remembered in games.cfg
+	// next to the games' personal folders; Steam's are found without it.
+	static bool CanChangeGame();
+	// The folder holding a game's data, "" if not found
+	static tString FindGameFolder(eGameId aId);
+	// Saves and exits as Quit does; hplMain then calls RunRequestedGame
+	void RequestGameChange(eGameId aId);
+	// Does not return when it succeeds
+	static void RunRequestedGame();
 	static bool IsOverture(){ return mGameId == eGameId_Overture; }
 	// Folder of this game under the personal root, ending in a slash
 	static tWString GetPersonalGameDir();
@@ -213,6 +225,7 @@ public:
 	bool mbWeaponAttacking; //To see if it is a weapon that is dealing the damage.
 
 	static eGameId mGameId;
+	static eGameId mRequestedGameId;
 
 	tString msCurrentUser;
 

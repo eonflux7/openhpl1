@@ -46,6 +46,7 @@ enum eMainMenuState
 	eMainMenuState_OptionsControls,
 	eMainMenuState_OptionsGame,
 	eMainMenuState_OptionsAI,
+	eMainMenuState_OptionsChangeGame,
 	eMainMenuState_OptionsSound,
 	eMainMenuState_OptionsKeySetupMove,
 	eMainMenuState_OptionsKeySetupAction,

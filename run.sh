@@ -6,6 +6,9 @@
 #   ./run.sh requiem          Requiem (installed in Black Plague's folder)
 # Settings, saves and hpl.log: ~/.frictionalgames/Penumbra/OvertureRemade/
 # (BlackPlagueRemade/, RequiemRemade/)
+# Options > Change Game restarts the executable as another of the three; each
+# game's folder is remembered in ~/.frictionalgames/Penumbra/games.cfg when it
+# runs (Steam's default folders are found without it).
 HERE="$(cd "$(dirname "$0")" && pwd)"
 STEAM="$HOME/.local/share/Steam/steamapps/common"
 case "$1" in
