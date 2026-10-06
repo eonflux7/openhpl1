@@ -1284,8 +1284,14 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	}
 	
 
-	//Bodies
-	for(size_t i=0; i<mvBodies.size(); ++i)
+	//Bodies. A save can hold fewer than the entity has now (it was made
+	//from another file, or lost bodies): load those there are.
+	if(apSaveData->mvBodies.Size() != mvBodies.size())
+	{
+		Warning("Entity '%s' was saved with %d bodies, it has %d\n", msName.c_str(),
+			(int)apSaveData->mvBodies.Size(), (int)mvBodies.size());
+	}
+	for(size_t i=0; i<mvBodies.size() && i<apSaveData->mvBodies.Size(); ++i)
 	{
 		apSaveData->mvBodies[i].ToBody(mvBodies[i]);
 	}

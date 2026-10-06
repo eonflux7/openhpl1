@@ -499,6 +499,8 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 
 		if(bFirstTime)
 		{
+			LiftBodiesOutOfFloors(pWorld);
+
 			//Set a default name
 			msMapGameName = cString::To16Char(cString::SetFileExt(asFile,""));
 
@@ -818,6 +820,12 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 
 //-----------------------------------------------------------------------
 
+// Black Plague finds entities by name whatever the case of the letters
+static tString EntityKey(const tString &asName)
+{
+	return cInit::IsOverture() ? asName : cString::ToLowerCase(asName);
+}
+
 void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -973,6 +981,12 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	
 	////////////////////////////////
 	//Create Entities
+	std::set<tString> setSavedNames;
+	{
+		cContainerListIterator<iGameEntity_SaveData*> nameIt = apSavedWorld->mlstEntities.GetIterator();
+		while(nameIt.HasNext()) setSavedNames.insert(EntityKey(nameIt.Next()->msName));
+	}
+
 	cContainerListIterator<iGameEntity_SaveData*> it = apSavedWorld->mlstEntities.GetIterator();
 	while(it.HasNext())
 	{
@@ -982,9 +996,29 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		//The entity is loaded from file
 		if(pSaveEntity->msFileName!="")
 		{
+			std::set<iGameEntity*> setBefore;
+			for(auto &entity : m_mapGameEntities) setBefore.insert(entity.second);
+
 			if(pWorld->CreateEntity(pSaveEntity->msName,pSaveEntity->m_mtxTransform,pSaveEntity->msFileName, true))
 			{
-				iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
+				//A model can hold other entities (Requiem level 3's broken key
+				//box is only its key): the latest one made is then one of them.
+				//They were saved on their own and are made from that, so the
+				//ones made here go. It crashed: the box's save was loaded into
+				//the key, and the key was there twice.
+				iGameEntity *pGameEntity = nullptr;
+				std::vector<iGameEntity*> vMade;
+				for(auto &entity : m_mapGameEntities)
+					if(setBefore.count(entity.second) == 0) vMade.push_back(entity.second);
+				for(iGameEntity *pMade : vMade)
+					if(pMade->GetName() == pSaveEntity->msName) pGameEntity = pMade;
+				if(pGameEntity == nullptr) pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
+				for(iGameEntity *pMade : vMade)
+				{
+					if(pMade != pGameEntity && setSavedNames.count(EntityKey(pMade->GetName())))
+						DestroyGameEntityNow(pMade);
+				}
+
 				pGameEntity->LoadFromSaveData(pSaveEntity);
 
 				pGameEntity->SetSaveData(pSaveEntity);
@@ -1731,6 +1765,63 @@ void cMapHandler::Reset()
 
 //-----------------------------------------------------------------------
 
+// Hits of world geometry and other bodies that do not move, with normals
+class cStaticRayCallback : public iPhysicsRayCallback
+{
+public:
+	iPhysicsBody *mpSkip = nullptr;
+	float mfMinT = 2;
+	cVector3f mvNormal;
+	bool OnIntersect(iPhysicsBody *apBody, cPhysicsRayParams *apParams) override
+	{
+		if(apBody == mpSkip || apBody->GetMass() != 0 || apBody->IsCharacter() || !apBody->GetCollide()) return true;
+		iGameEntity *pEntity = (iGameEntity*)apBody->GetUserData();
+		if(pEntity && pEntity->GetType() != eGameEntityType_Object) return true; //areas
+		if(apParams->mfT < mfMinT){ mfMinT = apParams->mfT; mvNormal = apParams->mvNormal; }
+		return true;
+	}
+};
+
+// Some bodies are placed with their middle a little under the floor (level
+// 7's painkillers in a locker, 1.6 cm). Newton 1 pushed them up; Newton 2
+// only pushes a body out of a floor whose face it is in front of, so these
+// fell through the world before the player arrived. Lift them onto it.
+void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
+{
+	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
+	cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+	while(it.HasNext())
+	{
+		iPhysicsBody *pBody = it.Next();
+		if(pBody->GetMass() == 0 || pBody->IsCharacter() || pBody->IsRagDoll() || pBody->GetJointNum() > 0) continue;
+		if(!pBody->GetCollide()) continue;
+
+		cBoundingVolume *pBV = pBody->GetBV();
+		cVector3f vCenter = pBV->GetWorldCenter();
+		float fTop = pBV->GetMax().y;
+		if(fTop <= vCenter.y) continue;
+
+		//From the top of the body down to its middle: a floor in between
+		//means the middle is under it
+		cStaticRayCallback callback;
+		callback.mpSkip = pBody;
+		cVector3f vStart(vCenter.x, fTop, vCenter.z);
+		pPhysicsWorld->CastRay(&callback, vStart, vCenter, true, true, true);
+		if(callback.mfMinT > 0.99f || callback.mvNormal.y < 0.7f) continue;
+
+		float fFloorY = fTop + (vCenter.y - fTop) * callback.mfMinT;
+		float fLift = fFloorY - pBV->GetMin().y + 0.002f;
+		if(fLift <= 0) continue;
+
+		Log("Lifting body '%s' %.3f m out of the floor under it\n", pBody->GetName().c_str(), fLift);
+		cMatrixf mtxBody = pBody->GetLocalMatrix();
+		mtxBody.SetTranslation(mtxBody.GetTranslation() + cVector3f(0, fLift, 0));
+		pBody->SetMatrix(mtxBody);
+	}
+}
+
+//-----------------------------------------------------------------------
+
 void cMapHandler::DestroyAll()
 {
 	mbDestroyingAll = true;
@@ -1853,12 +1944,6 @@ void cMapHandler::RemoveGameItem(cGameItem *apItem)
 
 //-----------------------------------------------------------------------
 
-// Black Plague finds entities by name whatever the case of the letters
-static tString EntityKey(const tString &asName)
-{
-	return cInit::IsOverture() ? asName : cString::ToLowerCase(asName);
-}
-
 void cMapHandler::AddGameEntity(iGameEntity *apEntity)
 {
 	iGameEntity *pSameNameEntity = GetGameEntity(apEntity->GetName(),false);
@@ -1900,6 +1985,18 @@ void cMapHandler::RemoveGameEntity(iGameEntity *apEntity)
 		}
 	}
 
+	hplDelete( apEntity );
+}
+
+// Takes an entity out at once, not after the next update
+void cMapHandler::DestroyGameEntityNow(iGameEntity *apEntity)
+{
+	for(tGameEntityMapIt it = m_mapGameEntities.begin(); it != m_mapGameEntities.end(); ++it)
+	{
+		if(it->second == apEntity){ m_mapGameEntities.erase(it); break; }
+	}
+	mlstGameEnemies.remove_if([apEntity](iGameEnemy *pEnemy){ return (iGameEntity*)pEnemy == apEntity; });
+	if(mpLatestEntity == apEntity) mpLatestEntity = nullptr;
 	hplDelete( apEntity );
 }
 

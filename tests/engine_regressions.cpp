@@ -26,6 +26,9 @@
 #include "resources/MeshManager.h"
 #include "system/String.h"
 #include "tinyxml.h"
+#include "impl/LowLevelPhysicsNewton.h"
+#include "impl/PhysicsWorldNewton.h"
+#include "physics/CollideData.h"
 
 // Exercise search/cache internals without a physics world or graphics context.
 // These tests still call the actual engine methods, including CPU skinning.
@@ -423,6 +426,27 @@ static void TestSound()
 	Check(music.Play("test", 0.5f, 0.1f, false) && !music.mpMainSong->mpStream->GetLooping(), "loop change with volume change");
 }
 
+// Newton 2 finds no contact between convex shapes with the same centre
+// (a script asking if an entity it put in the middle of an area is in it)
+static void TestCollideSameCentre()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	cMatrixf mtxOffset = cMath::MatrixRotateZ(kPi2f);
+	iCollideShape *pCylinder = world.CreateCylinderShape(0.3f, 1.75f, &mtxOffset);
+	iCollideShape *pBox = world.CreateBoxShape(cVector3f(0.36f, 3.66f, 4.7f), nullptr);
+	for(int lAngle = 0; lAngle < 360; lAngle += 10)
+	{
+		cMatrixf mtxBox = cMath::MatrixRotateY(cMath::ToRad((float)lAngle));
+		mtxBox.SetTranslation(cVector3f(1, -0.94f, -5));
+		cMatrixf mtxCylinder = cMatrixf::Identity;
+		mtxCylinder.SetTranslation(cVector3f(1, -0.94f, -5));
+		cCollideData collideData;
+		collideData.SetMaxSize(1);
+		Check(world.CheckShapeCollision(pCylinder, mtxCylinder, pBox, mtxBox, collideData, 1), "collision of shapes with the same centre");
+	}
+}
+
 int hplMain(const hpl::tString&)
 {
 	auto directory = std::filesystem::temp_directory_path() / ("overture-regressions-" + std::to_string(getpid()));
@@ -430,7 +454,7 @@ int hplMain(const hpl::tString&)
 	try
 	{
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
-		TestAnimation(directory); TestColladaCache(directory); TestSound();
+		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

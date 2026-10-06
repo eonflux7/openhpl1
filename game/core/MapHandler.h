@@ -169,6 +169,7 @@ public:
 	void LoadSaveData(cSavedWorld* apSavedWorld);
 
 	void DestroyAll();
+	void LiftBodiesOutOfFloors(cWorld3D *apWorld);
 
 	void OnWorldLoad();
 	void OnStart() override;
@@ -196,6 +197,7 @@ public:
 
 	void AddGameEntity(iGameEntity *apEntity);
 	void RemoveGameEntity(iGameEntity *apEntity);
+	void DestroyGameEntityNow(iGameEntity *apEntity);
 	iGameEntity* GetGameEntity(const tString &asName, bool abErrorMessage=true);
 	tGameEntityIterator GetGameEntityIterator();
 

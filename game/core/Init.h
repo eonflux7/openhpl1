@@ -143,6 +143,8 @@ public:
 	// The files that are named differently in Requiem
 	static tString GetStartupConfigFile();
 	static tWString GetMapsDir();
+	//The music of the main menu and the menu before it
+	static tString GetMenuMusic();
 
 	void PreloadSoundEntityData(const tString &asFile);
 	void PreloadParticleSystem(const tString &asFile);

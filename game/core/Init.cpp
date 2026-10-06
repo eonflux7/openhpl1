@@ -154,6 +154,7 @@ struct cGameFiles
 	const char *msCacheDir;
 	const wchar_t *msMapsDir;
 	const char *msStartMap;
+	const char *msMenuMusic;
 };
 
 static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
@@ -166,14 +167,17 @@ static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
 		_W("Penumbra/Overture/"),
 #endif
 		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
-		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level00_01_boat_cabin.dae"},
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level00_01_boat_cabin.dae",
+		"music_theme.ogg"},
 	{"Penumbra: Black Plague", _W("Penumbra/BlackPlagueRemade/"),
 		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
-		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level01_cells.dae"},
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level01_cells.dae",
+		"Penumbra_BP_M1.ogg"},
 	{"Penumbra: Requiem", _W("Penumbra/RequiemRemade/"),
 		_W("expansion01/config/requiem_default_settings.cfg"), _W("expansion01/config/requiem_game.cfg"),
 		"expansion01/config/requiem_startup.cfg",
-		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae"},
+		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae",
+		"Penumbra_Requiem_M.ogg"},
 };
 
 //-----------------------------------------------------------------------
@@ -352,6 +356,11 @@ tWString cInit::GetMapsDir()
 	return gvGameFiles[mGameId].msMapsDir;
 }
 
+tString cInit::GetMenuMusic()
+{
+	return gvGameFiles[mGameId].msMenuMusic;
+}
+
 //-----------------------------------------------------------------------
 
 cInit::cInit(void)  : iUpdateable("Init")
@@ -419,10 +428,15 @@ bool cInit::Init(tString asCommandLine)
 	SetWindowCaption("Penumbra Loading...");
 
 	mGameId = FindGameId();
-	// Black Plague: resting bodies are kept 1 cm apart. With Newton 2 a heavy
+	// Black Plague: resting bodies are kept 2 mm apart. With Newton 2 a heavy
 	// box sank into the floor and caught on the edges of a hole under it (the
-	// crate over level 4's ladder down to the sewers could not be moved)
-	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.01f);
+	// crate over level 4's ladder down to the sewers could not be moved).
+	// 1 cm was tried first: from 3 mm up, small bodies never come to rest
+	// (they shake and creep off shelves; the map checks' settle test).
+	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.002f);
+	// For tests: OVERTURE_CONTACT_SKIN=<metres> sets it for any game
+	if(SDL_getenv("OVERTURE_CONTACT_SKIN"))
+		iPhysicsMaterial::SetContactSkin(cString::ToFloat(SDL_getenv("OVERTURE_CONTACT_SKIN"), 0));
 	const cGameFiles &gameFiles = gvGameFiles[mGameId];
 	gsDefaultSettingsPath = gameFiles.msDefaultSettings;
 	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
