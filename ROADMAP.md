@@ -394,10 +394,10 @@ by name. This milestone replaces that with code written for what the
 renderer is now. It can run alongside Milestone 5.
 
 Nothing here changes the picture to the eye: every step is checked
-against the reference images, with the new options off and with them on.
-It need not be exact; a few levels here and there are fine, and are noted.
-Motion blur, render scale and the effects lab are checked by the steps that
-touch them.
+against the reference images, with the new options off and with them on
+(after step 4, the improved look only). It need not be exact; a few levels
+here and there are fine, and are noted. Motion blur, render scale and the
+effects lab are checked by the steps that touch them.
 
 In this order: each step removes callers of what a later one deletes.
 
@@ -434,11 +434,33 @@ In this order: each step removes callers of what a later one deletes.
         cube map (`normalize()` does it) and the spotlight's 1D texture
         that cuts off what is behind it; the 3D attenuation texture if
         nothing reads it. The falloff ramps are game data and stay
-- [ ] **4. No matrix stack.** Model, view and projection given to each
+- [ ] **4. One look.** The improved look becomes the only one, so the
+      steps after this refactor one renderer instead of two. The original
+      look was the reference the improved one was tuned against; the tag
+      `original-look` marks the last commit with it, and its reference
+      images are kept (`captures/original-look` in the Windows kit). Who
+      wants the 2007 look exactly can play the 2007 game:
+  - [ ] the improved settings are the defaults; `refshots.py capture`
+        takes the improved look without extra settings, and its images
+        are the reference from here on
+  - [ ] linear lighting only: the encoded colour path, `HPL_LINEAR_COLOR`,
+        `SetLinearSource` and the alpha matching for blending go
+  - [ ] shadow maps only: stencil shadow volumes go (`ShadowType`, the
+        extrusion shader, silhouettes found on the CPU)
+  - [ ] the bloom chain, bokeh depth of field and camera motion blur only:
+        the original bloom, depth of field, motion blur and their 8-bit
+        screen copies go
+  - [ ] the improved shading, flashlight, lamps, halos, shafts, particles
+        and player effects only: their `...Improved` switches and the
+        original paths behind them go
+  - [ ] what is about speed or taste stays an option: shadows (off and
+        quality), ambient occlusion, SMAA, FSAA, motion blur, bloom, depth
+        of field, grain, render scale, gamma
+- [ ] **5. No matrix stack.** Model, view and projection given to each
       draw instead of pushed, popped and multiplied in place; `eMatrix`
       removed. The renderer, post effects, lights, the GUI and the game
       (enemies, the player, the HUD weapon, the intro) use it today
-- [ ] **5. Materials and programs:**
+- [ ] **6. Materials and programs:**
   - [ ] one program object of vertex and fragment shader together, in
         place of the pair the Cg-era interface binds one by one
   - [ ] shaders asked for by their GLSL name and `#define`s, not a Cg file
@@ -447,26 +469,21 @@ In this order: each step removes callers of what a later one deletes.
         uniform block, instead of about 200 calls setting them by name
   - [ ] the draw order by one sort key per draw in place of the twelve
         level state tree of `cRenderState`
-- [ ] **6. One sprite batcher for 2D.** The HUD, GUI, fonts and fades drawn
+- [ ] **7. One sprite batcher for 2D.** The HUD, GUI, fonts and fades drawn
       by a batcher of textured triangles with a blend mode per batch, in
       place of `AddVertexToBatch`, the quad batches and `DrawQuad`
-- [ ] **7. Vertex buffers and textures:**
+- [ ] **8. Vertex buffers and textures:**
   - [ ] vertices interleaved in one buffer, indices in an element buffer,
         triangles only (quads are turned into triangles when loaded)
   - [ ] named attributes instead of the `hpl_MultiTexCoord0-4` slots
   - [ ] textures with immutable storage; animated textures as one texture
         array instead of one texture per frame
-- [ ] **8. `cLowLevelGraphicsSDL` split up.** 3300 lines doing the window,
+- [ ] **9. `cLowLevelGraphicsSDL` split up.** 3300 lines doing the window,
       GL state, scene and output framebuffers, the final passes (gamma,
       SMAA, output, player effects), shadow map targets and debug drawing:
       a class for each
-- [ ] **9. The original options, rebuilt.** What stays as an option keeps
-      working the same, written the way the rest now is:
-  - [ ] stencil shadow volumes: silhouettes found on the CPU for every
-        light in every frame
-  - [ ] halos: occlusion queries per billboard
-  - [ ] billboards, beams and particles: geometry built on the CPU every
-        frame
+- [ ] **10. Billboards, beams and particles** written the way the rest
+      now is, instead of geometry built on the CPU every frame
 
 ## Later / ideas
 
