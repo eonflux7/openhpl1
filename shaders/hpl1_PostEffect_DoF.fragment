@@ -11,7 +11,7 @@
 
 // SKY: for the sky box, which is drawn over all of the screen: blurred
 // by the most there is.
-// Reads and writes the scene as it is, linear or not.
+// Reads and writes linear values.
 #define HPL_LINEAR_COLOR
 
 in float vDepth;

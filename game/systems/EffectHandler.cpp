@@ -1031,11 +1031,18 @@ cEffect_DreamFilter::cEffect_DreamFilter(cInit *apInit)
 {
 	mpInit = apInit;
 
+	cGpuProgramManager *pProgramManager = mpInit->mpGame->GetResources()->GetGpuProgramManager();
+	mpVtxProgram = pProgramManager->CreateProgram("DreamFilter_vp.cg","main",eGpuProgramType_Vertex);
+	mpFragProgram = pProgramManager->CreateProgram("DreamFilter_fp.cg","main",eGpuProgramType_Fragment);
+
 	Reset();
 }
 
 cEffect_DreamFilter::~cEffect_DreamFilter()
 {
+	cGpuProgramManager *pProgramManager = mpInit->mpGame->GetResources()->GetGpuProgramManager();
+	if(mpVtxProgram) pProgramManager->Destroy(mpVtxProgram);
+	if(mpFragProgram) pProgramManager->Destroy(mpFragProgram);
 }
 
 //-----------------------------------------------------------------------
@@ -1087,6 +1094,7 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 
 	if(pPostEffects->GetActive()==false) return;
 	if(mfAlpha <= 0) return;
+	if(mpVtxProgram==nullptr || mpFragProgram==nullptr) return;
 
 	iTexture *pScreenTexture = pPostEffects->GetFreeScreenTexture();
 	if(pScreenTexture == nullptr) return;
@@ -1118,7 +1126,9 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	for(int i=0;i<6;++i) pLowLevel->SetTexture(i,nullptr);
 
 	//A copy of the scene is drawn as it is
-	pLowLevel->SetLinearSource(true);
+	mpVtxProgram->Bind();
+	mpVtxProgram->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+	mpFragProgram->Bind();
 
 	pLowLevel->SetBlendActive(true);
 	pLowLevel->SetBlendFunc(eBlendFunc_One, eBlendFunc_One);
@@ -1128,7 +1138,8 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	pLowLevel->SetTexture(0,nullptr);
 
 	pLowLevel->SetBlendActive(false);
-	pLowLevel->SetLinearSource(false);
+	mpVtxProgram->UnBind();
+	mpFragProgram->UnBind();
 
 	pLowLevel->PopMatrix(eMatrix_ModelView);
 }

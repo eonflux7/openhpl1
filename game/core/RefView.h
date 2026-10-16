@@ -67,15 +67,6 @@ public:
 	void OnDraw() override;
 	void Reset() override;
 
-	/**
-	 * Saves two pictures of what is on screen to the home directory:
-	 * one with every option that changes the look set to the original's
-	 * (overture-compare-<time>-original.png), then one with the options
-	 * as they are (-improved.png). Takes about a second; the options are
-	 * put back afterwards.
-	 */
-	void StartCompareShots();
-
 private:
 	void Draw();
 	void DrawMaps();
@@ -109,33 +100,6 @@ private:
 	void SetView();
 	void ApplyOptions();
 	bool CanLoadMap();
-
-	void UpdateCompareShots();
-	void SetOriginalLook();
-	void RestoreLook();
-
-	//Comparison shots: the step it is at (0 = not running), steps left to
-	//wait, and the options as they were
-	int mlCompareStep = 0;
-	int mlCompareWait = 0;
-	tString msCompareFile;
-	struct cSavedLook
-	{
-		bool mbLinearLighting;
-		eBloomType mBloomType;
-		bool mbAmbientOcclusion;
-		eDepthOfFieldType mDofType;
-		eMotionBlurType mMotionBlurType;
-		eShadowType mShadowType;
-		int mlNoiseType;
-		bool mbSmaa;
-		bool mbShading;
-		bool mbFlashlight;
-		bool mbLamps;
-		cEffectSettings mEffects;
-		bool mbPlayerEffects;
-	};
-	cSavedLook mSavedLook;
 
 	enum eEffectPreview
 	{
@@ -213,8 +177,6 @@ private:
 	bool mbHide2D;
 	bool mbGodMode;
 	bool mbSkippingDrawing;
-	bool mbLinearLighting;
-	bool mbSetLinearLighting;
 	// The flashlight is switched to mbFlashLight on the next step
 	bool mbSetFlashLight;
 	// Items to put in the inventory on the next step

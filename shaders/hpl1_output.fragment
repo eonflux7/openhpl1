@@ -2,11 +2,12 @@
 
 // Turns the finished scene into the 8-bit output picture: tex0 is the
 // scene colour (floating point, at the render size), scaled to the window
-// here. With linear lighting (tonemap.x = 1) the scene holds linear values,
-// which are scaled by the exposure, tonemapped and converted to screen
-// values. Then the grain, if any, on the screen values. Adding noise of
-// half a step before the conversion to 8 bits breaks up banding in smooth
-// gradients; colours that are exact 8-bit values stay the same.
+// here. The scene holds linear values (tonemap.x = 1), which are scaled by
+// the exposure, tonemapped and converted to screen values; after SMAA it
+// holds screen values already (tonemap.x = 0). Then the grain, if any, on
+// the screen values. Adding noise of half a step before the conversion to 8
+// bits breaks up banding in smooth gradients; colours that are exact 8-bit
+// values stay the same.
 //
 // With ENCODE_ONLY the scene is only converted to screen values, pixel for
 // pixel: the picture that SMAA works on (hpl1_SMAA.fragment), which then

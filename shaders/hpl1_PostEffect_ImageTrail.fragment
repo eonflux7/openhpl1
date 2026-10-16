@@ -5,7 +5,7 @@
 // scene pixel for pixel. The alpha the blend uses is tex0's times
 // trailAlpha.x, plus trailAlpha.y.
 
-// Draws the copies as they are, linear or not.
+// Draws the copies as they are.
 #define HPL_LINEAR_COLOR
 
 OUTPUT

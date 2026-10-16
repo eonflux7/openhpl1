@@ -20,7 +20,7 @@
 // term of the SPECULAR variants is hpl_Highlight() of hpl1_shading.glsl
 // instead; the rest is the same.
 
-// Works on linear values itself when the scene holds them (linear lighting).
+// Works on linear values itself.
 #define HPL_LINEAR_COLOR
 
 #include "hpl1_light.glsl"
@@ -108,7 +108,7 @@ void main()
 	#ifdef SPOT
 		highlightColor *= spotColor.xyz;
 	#endif
-		float amountExp = hpl_ColorSpace.x > 0.5 ? hpl_ColorSpace.z : 2.2;
+		float amountExp = hpl_ColorSpace.z;
 		vec3 toEye = hpl_Normalize(vEyeVec);
 		vec3 highlightVec = lightVec;
 		float spread = 1.0;
@@ -141,30 +141,18 @@ void main()
 		return;
 	}
 
-	if(hpl_ColorSpace.x > 0.5)
-	{
-		// Diffuse and specular are converted one by one and added as
-		// light. Facing away from the light the diffuse term is negative
-		// and takes from the specular one, as it does below.
-		if(nDotL < 0.0) specular = max(specular + lit * nDotL, 0.0);
+	// Diffuse and specular are converted one by one and added as light.
+	// Facing away from the light the diffuse term is negative and takes
+	// from the specular one.
+	if(nDotL < 0.0) specular = max(specular + lit * nDotL, 0.0);
 
-		// The amount of light (N.L and the falloff ramp) has a power of its
-		// own: cLinearLightingTuning::mfLightExp.
-		float amountExp = hpl_ColorSpace.z;
-		vec3 color = hpl_ToLinear(lit) * pow(max(nDotL, 0.0) * attenuation, amountExp);
-		color += hpl_ToLinear(specular) * pow(attenuation, amountExp);
+	// The amount of light (N.L and the falloff ramp) has a power of its
+	// own: cLinearLightingTuning::mfLightExp.
+	float amountExp = hpl_ColorSpace.z;
+	vec3 color = hpl_ToLinear(lit) * pow(max(nDotL, 0.0) * attenuation, amountExp);
+	color += hpl_ToLinear(specular) * pow(attenuation, amountExp);
 #ifdef SPECULAR
-		color += highlight;
+	color += highlight;
 #endif
-		outColor = vec4(color * shadow, 0.0);
-	}
-	else
-	{
-		outColor = vec4((lit * nDotL + specular) * attenuation * shadow, 0.0);
-#ifdef SPECULAR
-		// The highlight is added as what it looks like on screen, as the
-		// other terms are
-		if(improved) outColor.xyz = max(outColor.xyz, 0.0) + pow(highlight * shadow, vec3(1.0 / 2.2));
-#endif
-	}
+	outColor = vec4(color * shadow, 0.0);
 }

@@ -78,9 +78,6 @@ namespace hpl {
 		cVector2f GetRenderSize() override;
 		void SetRenderScale(float afScale) override;
 		float GetRenderScale() override;
-		void SetLinearLighting(bool abX) override;
-		bool GetLinearLighting() override;
-		void SetLinearSource(bool abX) override;
 		void SetLinearLightingTuning(const cLinearLightingTuning& aTuning) override;
 		const cLinearLightingTuning& GetLinearLightingTuning() override{ return mLinearTuning; }
 		void SetShading(const cShadingSettings& aSettings) override{ mShading = aSettings; }
@@ -435,9 +432,7 @@ namespace hpl {
 		GLuint mlStateUniformBuffer;
 		static const int kStateUniformFloats = 36;
 
-		//Linear lighting: also in hpl_State
-		bool mbLinearLighting;
-		bool mbLinearSource;
+		//Lighting tuning: also in hpl_State
 		cLinearLightingTuning mLinearTuning;
 		//In hpl_Frame
 		cShadingSettings mShading;

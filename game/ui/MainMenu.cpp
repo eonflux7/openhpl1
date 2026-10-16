@@ -1536,7 +1536,6 @@ cMainMenuWidget_Text *gpGammaText=nullptr;
 cMainMenuWidget_Text *gpGammaText2=nullptr;
 cMainMenuWidget_Text *gpFSAAText=nullptr;
 cMainMenuWidget_Text *gpRenderScaleText=nullptr;
-cMainMenuWidget_Text *gpLinearLightingText=nullptr;
 cMainMenuWidget_Text *gpAmbientOcclusionText=nullptr;
 cMainMenuWidget_Text *gpDoFText=nullptr;
 cMainMenuWidget_Text *gvImprovedText[8]={};
@@ -1868,26 +1867,6 @@ public:
 
 		pGraphics->SetRenderScale(gvRenderScales[lIdx]);
 		gpRenderScaleText->msText = GetRenderScaleText(pGraphics->GetRenderScale());
-	}
-};
-
-class cMainMenuWidget_LinearLighting : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_LinearLighting(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		// Not in the game's language files
-		msTip = _W("Lights, transparent surfaces and effects add up as light does, instead of as screen values. Off is the original look.");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-
-		pGraphics->SetLinearLighting(!pGraphics->GetLinearLighting());
-		gpLinearLightingText->msText = pGraphics->GetLinearLighting() ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	}
 };
 
@@ -4263,9 +4242,6 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pRenderScaleButton = hplNew( cMainMenuWidget_RenderScale,(mpInit,vPos,_W("Render Scale:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pRenderScaleButton); 
 	vPos.y += 22;
-	cMainMenuWidget *pLinearLightingButton = hplNew( cMainMenuWidget_LinearLighting,(mpInit,vPos,_W("Linear Lighting:"),20,eFontAlign_Right) );
-	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLinearLightingButton); 
-	vPos.y += 22;
 	cMainMenuWidget *pAmbientOcclusionButton = hplNew( cMainMenuWidget_AmbientOcclusion,(mpInit,vPos,_W("Ambient Occlusion:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pAmbientOcclusionButton); 
 	vPos.y += 22;
@@ -4336,12 +4312,6 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpRenderScaleText);
 	gpRenderScaleText->SetExtraWidget(pRenderScaleButton);
 
-	vPos.y += 22;
-	sText = mpInit->mpGame->GetGraphics()->GetLinearLighting() ?
-		kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	gpLinearLightingText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
-	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLinearLightingText);
-	gpLinearLightingText->SetExtraWidget(pLinearLightingButton);
 
 	vPos.y += 22;
 	gpAmbientOcclusionText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetAmbientOcclusionText(mpInit),20,eFontAlign_Left) );

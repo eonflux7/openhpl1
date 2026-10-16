@@ -874,7 +874,6 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
 	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
-	mpGame->GetGraphics()->SetLinearLighting(mpConfig->GetBool("Graphics","LinearLighting",true));
 	{
 		// The defaults are the tuning's own
 		cLinearLightingTuning tuning;
@@ -1410,7 +1409,6 @@ void cInit::Exit()
 
 	mpConfig->SetFloat("Graphics","Gamma",mpGame->GetGraphics()->GetLowLevel()->GetGammaCorrection());
 	mpConfig->SetFloat("Graphics","RenderScale",mpGame->GetGraphics()->GetRenderScale());
-	mpConfig->SetBool("Graphics","LinearLighting",mpGame->GetGraphics()->GetLinearLighting());
 	{
 		const cLinearLightingTuning &tuning = mpGame->GetGraphics()->GetLowLevel()->GetLinearLightingTuning();
 		mpConfig->SetFloat("Graphics","LinearLightExp",tuning.mfLightExp);

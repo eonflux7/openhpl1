@@ -69,8 +69,8 @@ namespace hpl{
 	// For the programs the renderer draws with (not the full-screen passes):
 	// the state set through iLowLevelGraphics that fragment shaders act on
 	// (uniform buffer binding kStateBlockBinding), and the colour
-	// conversions for linear lighting. They return the colour as it is
-	// when the target does not hold linear values.
+	// conversions for the linear scene. They return the colour as it is
+	// when the target does not hold linear values (outside the scene).
 	static const char* kFragmentStatePreamble =
 		"#define HPL_STATE\n"
 		"layout(std140) uniform hpl_State\n"
@@ -78,13 +78,12 @@ namespace hpl{
 		"	vec4 hpl_AlphaTest; // x: 1 to discard what has an alpha under y,\n"
 		"						// 2 to do that as coverage, 0 for off;\n"
 		"						// z: how far alpha is matched to the original look\n"
-		"						// when it blends into a linear scene, else 0;\n"
-		"						// w: scale for the light of what is added to a\n"
-		"						// linear scene, at full brightness\n"
-		"	vec4 hpl_ColorSpace; // x: 1 when the target holds linear values;\n"
+		"						// when it blends into the scene, else 0;\n"
+		"						// w: scale for the light of what is added to the\n"
+		"						// scene, at full brightness\n"
+		"	vec4 hpl_ColorSpace; // x: 1 when the target holds linear values (the scene);\n"
 		"						// y: scale for the converted colour;\n"
-		"						// z: power for amounts of light;\n"
-		"						// w: 1 when a copy of a linear scene is drawn into it\n"
+		"						// z: power for amounts of light; w: unused\n"
 		"	vec4 hpl_ShadowMap0; // the shadow map of the light that is drawn, see\n"
 		"	vec4 hpl_ShadowMap1; // cShadowMapParams and hpl1_shadow.glsl\n"
 		"	vec4 hpl_ShadowMap2;\n"
@@ -114,13 +113,12 @@ namespace hpl{
 	// triangle is.
 	//
 	// Shaders work on encoded (screen) colours, as the original ones do.
-	// With linear lighting the result is converted here, so each draw gives
-	// the colour it always did and only the blending with what is in the
-	// target happens on linear values. A shader that reads or writes linear
-	// values itself defines HPL_LINEAR_COLOR: its result is used as it is,
-	// and not clamped at 1. Neither is a copy of the linear scene drawn back
-	// into it (iLowLevelGraphics::SetLinearSource). HPL_NO_CLAMP leaves the
-	// result unclamped at 1 without linear lighting too.
+	// In the scene, which holds linear values, the result is converted
+	// here, so each draw gives the colour it always did and only the
+	// blending with what is in the target happens on linear values. A
+	// shader that reads or writes linear values itself defines
+	// HPL_LINEAR_COLOR: its result is used as it is, and not clamped at 1.
+	// HPL_NO_CLAMP leaves the result unclamped at 1 too.
 	//
 	// What is added to the scene (halos, lit parts, additive particles) is
 	// scaled by the glow value in proportion to its own brightness: the
@@ -139,14 +137,8 @@ namespace hpl{
 		"void main()\n"
 		"{\n"
 		"	hpl_main();\n"
-		"#if defined(HPL_NO_CLAMP)\n"
+		"#if defined(HPL_NO_CLAMP) || (defined(HPL_STATE) && defined(HPL_LINEAR_COLOR))\n"
 		"	outColor = max(outColor, 0.0);\n"
-		"#elif defined(HPL_STATE) && defined(HPL_LINEAR_COLOR)\n"
-		"	if(hpl_ColorSpace.x > 0.5 || hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
-		"	else													outColor = clamp(outColor, 0.0, 1.0);\n"
-		"#elif defined(HPL_STATE)\n"
-		"	if(hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
-		"	else						outColor = clamp(outColor, 0.0, 1.0);\n"
 		"#else\n"
 		"	outColor = clamp(outColor, 0.0, 1.0);\n"
 		"#endif\n"

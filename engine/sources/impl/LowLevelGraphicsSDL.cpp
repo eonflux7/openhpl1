@@ -216,8 +216,6 @@ namespace hpl {
 		mlActiveTextureUnit = 0;
 		mfAlphaCutoff = 0;
 		mbAlphaToCoverage = false;
-		mbLinearLighting = false;
-		mbLinearSource = false;
 		mbBlend = false;
 		mBlendSrc = eBlendFunc_One;
 		mBlendDest = eBlendFunc_Zero;
@@ -1364,23 +1362,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetLinearLighting(bool abX)
-	{
-		mbLinearLighting = abX;
-		mbStateChanged = true;
-	}
-
-	bool cLowLevelGraphicsSDL::GetLinearLighting()
-	{
-		return mbLinearLighting;
-	}
-
-	void cLowLevelGraphicsSDL::SetLinearSource(bool abX)
-	{
-		mbLinearSource = abX;
-		mbStateChanged = true;
-	}
-
 	void cLowLevelGraphicsSDL::SetLinearLightingTuning(const cLinearLightingTuning& aTuning)
 	{
 		mLinearTuning = aTuning;
@@ -1487,7 +1468,7 @@ namespace hpl {
 		GLuint lColorFramebuffer = bMultisampled ? mlResolveColorFramebuffer : mlSceneColorFramebuffer;
 
 		// SMAA leaves the scene as screen values
-		bool bLinear = mbLinearLighting;
+		bool bLinear = true;
 		if(mSmaa.mbActive)
 		{
 			mGpuProfiler.Begin("SMAA");
@@ -1649,7 +1630,7 @@ namespace hpl {
 		///////////////////////////////////////////
 		// The picture
 		BindFramebuffer(mvSmaaFramebuffers[0], vSize);
-		SetPassUniform(mEncodePass, "tonemap", mbLinearLighting ? 1.0f : 0.0f, mLinearTuning.mfExposure,
+		SetPassUniform(mEncodePass, "tonemap", 1.0f, mLinearTuning.mfExposure,
 						powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
 						cMath::Max(mLinearTuning.mfWhite, 1.0f));
 		DrawFullscreenPass(mEncodePass, alColor, vSize);
@@ -2941,13 +2922,13 @@ namespace hpl {
 
 		if(mbStateChanged)
 		{
-			// Colours are converted for the scene when it holds linear
-			// values, unless what is drawn is linear already. "Modulate x2"
-			// (destination x source x 2) doubles on encoded values: on
-			// linear ones that is 2^2.2, of which the blend supplies 2. What
-			// is added to the scene gets the glow value (the light passes
-			// are added too, but do their own conversion).
-			bool bConvert = mbLinearLighting && mbInScene && !mbLinearSource;
+			// Colours are converted for the scene, which holds linear
+			// values. "Modulate x2" (destination x source x 2) doubles on
+			// encoded values: on linear ones that is 2^2.2, of which the
+			// blend supplies 2. What is added to the scene gets the glow
+			// value (the light passes are added too, but do their own
+			// conversion).
+			bool bConvert = mbInScene;
 			bool bMulX2 = mbBlend && mBlendSrc == eBlendFunc_DestColor && mBlendDest == eBlendFunc_SrcColor;
 			bool bAdd = mbBlend && mBlendDest == eBlendFunc_One &&
 						(mBlendSrc == eBlendFunc_One || mBlendSrc == eBlendFunc_SrcAlpha);
@@ -2976,7 +2957,7 @@ namespace hpl {
 			float vState[kStateUniformFloats] = {
 				fAlphaTest, mfAlphaCutoff, fAlphaMatch, fGlow,
 				bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
-				mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f,
+				0.0f,
 				(float)shadow.mlFilter, shadow.mfNear, shadow.mfFar, shadow.mfTexelSize,
 				shadow.mfSoftness, shadow.mfLightSize, shadow.mfMaxBlur, shadow.mbShowOnly ? 1.0f : 0.0f,
 				shadow.mfBias, shadow.mfSlopeBias, (float)shadow.mlSamples, (float)shadow.mlBlockerSamples,

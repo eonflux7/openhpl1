@@ -279,6 +279,9 @@ private:
 	float mfAlphaAdd;
 
 	float mfTime;
+
+	iGpuProgram *mpVtxProgram;
+	iGpuProgram *mpFragProgram;
 };
 
 //-----------------------------------------

@@ -118,9 +118,11 @@ namespace hpl {
 	class iOcclusionQuery;
 
 	/**
-	 * The values linear lighting is tuned with. The defaults were chosen by
-	 * playing; 2.2, 1, 1, a blend match of 0 and a shoulder of 1 leave
-	 * everything as the conversion gives it.
+	 * The values linear lighting is tuned with. The 3D scene is added up
+	 * and blended on values proportional to light, and converted for the
+	 * screen when it is finished. The defaults were chosen by playing; 2.2,
+	 * 1, 1, a blend match of 0 and a shoulder of 1 leave everything as the
+	 * conversion gives it.
 	 */
 	class cLinearLightingTuning
 	{
@@ -128,8 +130,8 @@ namespace hpl {
 		/**
 		 * The power the amount of light (N.L and the falloff ramp, which
 		 * were made to look right on screen values) is raised to. 2.2 gives
-		 * one light the look it has without linear lighting; 1.0 takes them
-		 * as amounts of light, which is wider and flatter.
+		 * one light the look it had on screen values (the original); 1.0
+		 * takes them as amounts of light, which is wider and flatter.
 		 */
 		float mfLightExp = 1.8f;
 		/// Scales the light of the finished scene before it is converted for the screen.
@@ -143,8 +145,8 @@ namespace hpl {
 		float mfGlow = 1.45f;
 		/**
 		 * How far the alpha of what is blended over the scene (particles,
-		 * alpha materials, fog) is changed to cover as much as it does
-		 * without linear lighting: 0 leaves it, 1 matches it.
+		 * alpha materials, fog) is changed to cover as much as it did on
+		 * screen values (the original): 0 leaves it, 1 matches it.
 		 */
 		float mfBlendMatch = 1.0f;
 		/**
@@ -518,20 +520,7 @@ namespace hpl {
 		virtual void SetRenderScale(float afScale)=0;
 		virtual float GetRenderScale()=0;
 		/**
-		 * Linear lighting: the 3D scene is added up and blended on values
-		 * proportional to light, and converted for the screen when it is
-		 * finished. Off, it is done on the screen values, as originally.
-		 */
-		virtual void SetLinearLighting(bool abX)=0;
-		virtual bool GetLinearLighting()=0;
-		/**
-		 * Set while drawing something into the scene that holds linear
-		 * values already (a copy of the scene), so that it is not converted
-		 * again. Only matters with linear lighting.
-		 */
-		virtual void SetLinearSource(bool abX)=0;
-		/**
-		 * How linear lighting looks; see cLinearLightingTuning.
+		 * How the lighting looks; see cLinearLightingTuning.
 		 */
 		virtual void SetLinearLightingTuning(const cLinearLightingTuning& aTuning)=0;
 		virtual const cLinearLightingTuning& GetLinearLightingTuning()=0;

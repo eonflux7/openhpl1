@@ -66,14 +66,6 @@ namespace hpl {
 		void SetRenderScale(float afScale);
 		float GetRenderScale();
 
-		/**
-		 * Linear lighting: lights, transparent surfaces and effects add up
-		 * and blend on values proportional to light instead of on screen
-		 * values. Off is the original look.
-		 */
-		void SetLinearLighting(bool abX);
-		bool GetLinearLighting();
-
 	private:
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelResources *mpLowLevelResources;

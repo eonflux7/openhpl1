@@ -432,10 +432,6 @@ void main()
 	ivec2 pixel = ivec2(gl_FragCoord.xy);
 	float open = Filtered(pixel).r;
 
-	// The scene holds linear values with linear lighting, screen values
-	// without.
-	bool bLinear = hpl_ColorSpace.x > 0.5;
-
 	if(lightFade > 0.0)
 	{
 #if defined(SCENE_MULTISAMPLE) || defined(SCENE)
@@ -444,13 +440,12 @@ void main()
 		vec3 scene = texelFetch(tex1, pixel, 0).rgb;
 #endif
 		float luma = dot(scene, vec3(0.3, 0.58, 0.12));
-		if(bLinear) luma = pow(max(luma, 0.0), 1.0 / 2.2);
+		luma = pow(max(luma, 0.0), 1.0 / 2.2);
 		open = mix(open, 1.0, lightFade * clamp(luma, 0.0, 1.0));
 	}
 
 	// The open share is an amount of light
-	float factor = bLinear ? open : pow(open, 1.0 / 2.2);
-	outColor = vec4(vec3(factor), 1.0);
+	outColor = vec4(vec3(open), 1.0);
 }
 
 #endif

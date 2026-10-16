@@ -237,10 +237,9 @@ namespace hpl {
 			mpScreenBuffer[i] = nullptr;
 		}
 
-		// With linear lighting the copies hold linear values, which need
-		// more than 8 bits in the dark end: floating point then. Without,
-		// 8 bits clamp and round the scene as the original's copies did.
-		int lBpp = mpLowLevelGraphics->GetLinearLighting() ? 64 : 32;
+		// The copies hold linear values, which need more than 8 bits in
+		// the dark end: floating point
+		int lBpp = 64;
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
 		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());

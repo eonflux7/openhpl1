@@ -37,12 +37,6 @@ static void Tip(const char *apText)
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
 
-// Comparison shots: steps for a changed look to settle (shadows, the
-// flashlight's bounce, effects that keep earlier frames), and for a frame
-// to have been drawn and saved
-static const int kCompareSettleSteps = 25;
-static const int kCompareSaveSteps = 4;
-
 //-----------------------------------------------------------------------
 
 cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
@@ -70,8 +64,6 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 	mbHide2D = false;
 	mbGodMode = true;
 	mbSkippingDrawing = false;
-	mbLinearLighting = false;
-	mbSetLinearLighting = false;
 	mbSetFlashLight = false;
 	mlGiveItems = 0;
 
@@ -143,156 +135,11 @@ void cRefView::SetOpen(bool abX)
 
 //-----------------------------------------------------------------------
 
-//-----------------------------------------------------------------------
-
-// The options that change how the picture looks, all to what the original
-// game does. Resolution, multisampling, texture filter, render scale,
-// field of view and gamma are left: the original has those too.
-void cRefView::SetOriginalLook()
-{
-	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
-	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
-	cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
-	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
-
-	mSavedLook.mbLinearLighting = pGraphics->GetLinearLighting();
-	mSavedLook.mBloomType = pPostEffects->GetBloomType();
-	mSavedLook.mbAmbientOcclusion = pPostEffects->GetAmbientOcclusionActive();
-	mSavedLook.mDofType = pPostEffects->GetDepthOfFieldType();
-	mSavedLook.mMotionBlurType = pPostEffects->GetMotionBlurType();
-	mSavedLook.mShadowType = pGraphics->GetRenderer3D()->GetShadowType();
-	mSavedLook.mlNoiseType = (int)pFilter->GetType();
-	mSavedLook.mbSmaa = pLowLevel->GetSmaa().mbActive;
-	mSavedLook.mbShading = pLowLevel->GetShading().mbImproved;
-	mSavedLook.mbFlashlight = pFlashLight->GetSettings().mbImproved;
-	mSavedLook.mbLamps = mpInit->mpLampLooks->GetSettings().mbImproved;
-	mSavedLook.mEffects = pLowLevel->GetEffects();
-	mSavedLook.mbPlayerEffects = pLowLevel->GetPlayerEffectSettings().mbImproved;
-	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
-	feedback.mbImproved = false;
-	pLowLevel->SetPlayerEffectSettings(feedback);
-
-	pGraphics->SetLinearLighting(false);
-	pPostEffects->SetBloomType(eBloomType_Original);
-	pPostEffects->SetAmbientOcclusionActive(false);
-	pPostEffects->SetDepthOfFieldType(eDepthOfFieldType_Original);
-	pPostEffects->SetMotionBlurType(eMotionBlurType_Original);
-	pGraphics->GetRenderer3D()->SetShadowType(eShadowType_Volumes);
-	pFilter->SetType(eNoiseFilterType_Original);
-	cSmaaSettings smaa = pLowLevel->GetSmaa();
-	smaa.mbActive = false;
-	pLowLevel->SetSmaa(smaa);
-	cShadingSettings shading = pLowLevel->GetShading();
-	shading.mbImproved = false;
-	pLowLevel->SetShading(shading);
-	cFlashlightSettings flashlight = pFlashLight->GetSettings();
-	flashlight.mbImproved = false;
-	pFlashLight->SetSettings(flashlight);
-	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
-	lamps.mbImproved = false;
-	mpInit->mpLampLooks->SetSettings(lamps);
-	cEffectSettings effects = mSavedLook.mEffects;
-	effects.mbHalos = false;
-	effects.mbShafts = false;
-	effects.mbParticles = false;
-	pLowLevel->SetEffects(effects);
-}
-
-void cRefView::RestoreLook()
-{
-	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
-	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
-	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
-
-	pGraphics->SetLinearLighting(mSavedLook.mbLinearLighting);
-	pPostEffects->SetBloomType(mSavedLook.mBloomType);
-	pPostEffects->SetAmbientOcclusionActive(mSavedLook.mbAmbientOcclusion);
-	pPostEffects->SetDepthOfFieldType(mSavedLook.mDofType);
-	pPostEffects->SetMotionBlurType(mSavedLook.mMotionBlurType);
-	pGraphics->GetRenderer3D()->SetShadowType(mSavedLook.mShadowType);
-	mpInit->mpPlayer->GetNoiseFilter()->SetType((eNoiseFilterType)mSavedLook.mlNoiseType);
-	cSmaaSettings smaa = pLowLevel->GetSmaa();
-	smaa.mbActive = mSavedLook.mbSmaa;
-	pLowLevel->SetSmaa(smaa);
-	cShadingSettings shading = pLowLevel->GetShading();
-	shading.mbImproved = mSavedLook.mbShading;
-	pLowLevel->SetShading(shading);
-	cFlashlightSettings flashlight = pFlashLight->GetSettings();
-	flashlight.mbImproved = mSavedLook.mbFlashlight;
-	pFlashLight->SetSettings(flashlight);
-	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
-	lamps.mbImproved = mSavedLook.mbLamps;
-	mpInit->mpLampLooks->SetSettings(lamps);
-	pLowLevel->SetEffects(mSavedLook.mEffects);
-	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
-	feedback.mbImproved = mSavedLook.mbPlayerEffects;
-	pLowLevel->SetPlayerEffectSettings(feedback);
-}
-
-//-----------------------------------------------------------------------
-
-void cRefView::StartCompareShots()
-{
-	if(mlCompareStep != 0) return;
-
-	const char *pHome = getenv("HOME");
-	time_t lNow = time(nullptr);
-	char sTime[32];
-	strftime(sTime, sizeof(sTime), "%Y%m%d-%H%M%S", localtime(&lNow));
-	msCompareFile = tString(pHome && pHome[0] ? pHome : ".") + "/overture-compare-" + sTime;
-
-	SetOriginalLook();
-	mlCompareStep = 1;
-	mlCompareWait = kCompareSettleSteps;
-}
-
-// Steps of the game's logic, not frames: 1 the original look settles,
-// 2 its picture is taken, 3 the options are back and settle, 4 their
-// picture is taken. The panel is not drawn meanwhile.
-void cRefView::UpdateCompareShots()
-{
-	if(mlCompareStep == 0) return;
-	if(--mlCompareWait > 0) return;
-
-	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	switch(mlCompareStep)
-	{
-	case 1:
-		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-original.png");
-		mlCompareWait = kCompareSaveSteps;
-		break;
-	case 2:
-		RestoreLook();
-		mlCompareWait = kCompareSettleSteps;
-		break;
-	case 3:
-		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-improved.png");
-		mlCompareWait = kCompareSaveSteps;
-		break;
-	default:
-		Log("Comparison shots saved: %s-original.png and -improved.png\n", msCompareFile.c_str());
-		mlCompareStep = 0;
-		return;
-	}
-	++mlCompareStep;
-}
-
-//-----------------------------------------------------------------------
-
 void cRefView::Update(float afTimeStep)
 {
-	UpdateCompareShots();
 	UpdatePlayerEffects(afTimeStep);
 
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
-
-	if(mbSetLinearLighting)
-	{
-		mbSetLinearLighting = false;
-		mpInit->mpGame->GetGraphics()->SetLinearLighting(mbLinearLighting);
-	}
 
 	if(msLoadMap != "")
 	{
@@ -781,8 +628,6 @@ void cRefView::ApplyOptions()
 void cRefView::Draw()
 {
 	if(mbOpen==false) return;
-	// Not in the comparison shots
-	if(mlCompareStep != 0) return;
 	if(mpInit->mpDogTestMap->IsActive() && !mpInit->mpDogTestMap->DrawControls()) return;
 
 	if(msViewsMap == "effectslab")
@@ -1051,16 +896,11 @@ void cRefView::DrawPlayer()
 
 void cRefView::DrawRenderer()
 {
-	// Not while a click waits for the next step: the panel can be drawn
-	// several times before it
-	if(mbSetLinearLighting==false) mbLinearLighting = mpInit->mpGame->GetGraphics()->GetLinearLighting();
-	if(ImGui::Checkbox("Linear lighting", &mbLinearLighting)) mbSetLinearLighting = true;
-
-	// The values it is tuned with: kept in settings.cfg, like the option
+	// The values the lighting is tuned with: kept in settings.cfg
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	cLinearLightingTuning tuning = pLowLevel->GetLinearLightingTuning();
 	bool bChanged = false;
-	ImGui::BeginDisabled(mbLinearLighting==false);
+	ImGui::TextUnformatted("Lighting");
 	ImGui::SameLine();
 	if(ImGui::Button("Reset"))
 	{
@@ -1081,8 +921,8 @@ void cRefView::DrawRenderer()
 							"how far their brightest parts go past white. Faint parts are left alone.");
 	bChanged |= ImGui::SliderFloat("Blend match", &tuning.mfBlendMatch, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
-		Tip("Particles, see-through materials and fog: 1 covers as much as without "
-							"linear lighting, 0 blends them as light, which makes smoke, snow and fog heavier.");
+		Tip("Particles, see-through materials and fog: 1 covers as much as in the "
+							"original, 0 blends them as light, which makes smoke, snow and fog heavier.");
 	bChanged |= ImGui::SliderFloat("Shoulder", &tuning.mfShoulder, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
 		Tip("Tonemapping: the screen brightness above which bright parts roll off "
@@ -1094,7 +934,6 @@ void cRefView::DrawRenderer()
 							"to come out white. Higher keeps more detail in bright parts and makes them greyer.");
 	ImGui::EndDisabled();
 	ImGui::PopItemWidth();
-	ImGui::EndDisabled();
 	if(bChanged) pLowLevel->SetLinearLightingTuning(tuning);
 
 	// Bloom: these too are kept in settings.cfg
@@ -1119,7 +958,7 @@ void cRefView::DrawRenderer()
 	bChanged |= ImGui::SliderFloat("Threshold", &bloom.mfThreshold, 0.0f, 1.5f, "%.2f");
 	if(ImGui::IsItemHovered())
 		Tip("The screen brightness at which things begin to glow; 1 is white. "
-							"Above 1 only what is brighter than white glows (needs linear lighting).");
+							"Above 1 only what is brighter than white glows.");
 	bChanged |= ImGui::SliderFloat("Intensity", &bloom.mfIntensity, 0.0f, 2.0f, "%.2f");
 	if(ImGui::IsItemHovered()) Tip("How strong the glow is.");
 	bChanged |= ImGui::SliderFloat("Spread", &bloom.mfScatter, 0.0f, 1.0f, "%.2f");

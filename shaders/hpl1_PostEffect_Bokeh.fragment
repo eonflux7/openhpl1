@@ -26,7 +26,7 @@
 //             smoothed over
 //  COMPOSITE  tex0: that, tex1: the scene copy -> the scene
 //
-// The textures hold linear values whatever the scene holds: light is what
+// The textures hold linear values: light is what
 // a lens spreads, and bright points become discs.
 
 #define HPL_LINEAR_COLOR
@@ -35,17 +35,6 @@
 OUTPUT
 
 #include "hpl1_scene_depth.glsl"
-
-// The scene holds linear values with linear lighting, screen values without.
-vec3 SceneToLinear(vec3 c)
-{
-	return hpl_ColorSpace.x > 0.5 ? c : pow(max(c, 0.0), vec3(2.2));
-}
-
-vec3 LinearToScene(vec3 c)
-{
-	return hpl_ColorSpace.x > 0.5 ? c : pow(max(c, 0.0), vec3(1.0 / 2.2));
-}
 
 //////////////////////////////////////////////////////////////////////////
 #if defined(PREFILTER) || defined(COMPOSITE) || (!defined(GATHER) && !defined(FILL))
@@ -98,7 +87,7 @@ void main()
 	for(int i = 0; i < 4; ++i)
 	{
 		ivec2 pixel = min(start + ivec2(i & 1, i >> 1), last);
-		vec3 color = min(SceneToLinear(texelFetch(tex0, pixel, 0).rgb), 16.0);
+		vec3 color = min(texelFetch(tex0, pixel, 0).rgb, 16.0);
 		float weight = 1.0 / (1.0 + max(color.r, max(color.g, color.b)));
 		sum += color * weight;
 		weights += weight;
@@ -250,8 +239,8 @@ void main()
 	// In focus: the scene as it is
 	if(share <= 0.0) discard;
 
-	vec3 sharp = SceneToLinear(texelFetch(tex1, pixel, 0).rgb);
-	outColor = vec4(LinearToScene(mix(sharp, blurred.rgb, share)), 1.0);
+	vec3 sharp = texelFetch(tex1, pixel, 0).rgb;
+	outColor = vec4(mix(sharp, blurred.rgb, share), 1.0);
 }
 
 #endif

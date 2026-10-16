@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////
 
 
-// Reads and writes the scene as it is, linear or not.
+// Reads and writes linear values.
 #define HPL_LINEAR_COLOR
 
 in vec2 vUv0;
