@@ -168,7 +168,7 @@ namespace hpl {
 	class cShadingSettings
 	{
 	public:
-		bool mbImproved = false;
+		bool mbImproved = true;
 		/// Scales the highlights of lights.
 		float mfSpecular = 1.0f;
 		/// The share of light a surface with a white specular map mirrors when faced straight on.
@@ -205,7 +205,7 @@ namespace hpl {
 		 * no steps or blocks, and it is hidden by what stands in front
 		 * of the lamp as read from the depth buffer, in the same frame.
 		 */
-		bool mbHalos = false;
+		bool mbHalos = true;
 		float mfHaloBrightness = 1.0f;
 		/// How much of what the picture has besides the round glow (rays of a star) is kept, 0 to 1.
 		float mfHaloStreaks = 1.0f;
@@ -214,7 +214,7 @@ namespace hpl {
 		 * round the axis into a body of lit air that the view goes through.
 		 * It ends softly at what it meets and can be walked into.
 		 */
-		bool mbShafts = false;
+		bool mbShafts = true;
 		float mfShaftBrightness = 1.0f;
 		/// How uneven the air is: streaks that drift along the shaft, 0 to 1.
 		float mfShaftDust = 0.35f;
@@ -224,7 +224,7 @@ namespace hpl {
 		 * dust, mist, snow, water) are lit by the lights around them.
 		 * Those added to the scene (fire, sparks) glow as they did.
 		 */
-		bool mbParticles = false;
+		bool mbParticles = true;
 		/// The distance the fade takes, in times the particle's size. 0: no fade.
 		float mfParticleSoft = 1.0f;
 		/// How much the light counts: 0 is the brightness the original gives them everywhere.

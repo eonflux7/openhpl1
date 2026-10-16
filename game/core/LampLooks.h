@@ -35,7 +35,7 @@ class cInit;
 class cLampSettings
 {
 public:
-	bool mbImproved = false;
+	bool mbImproved = true;
 	/// Flames: how much their brightness wavers. 1 is what each kind of flame has, 0 none.
 	float mfFlicker = 1.0f;
 	/// Flames: how far the place they shine from wanders, which moves their shadows. 1 as above.

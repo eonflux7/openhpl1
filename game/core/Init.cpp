@@ -760,8 +760,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomSpread(6);
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","BloomType",eBloomType_Original);
-		if(lType < 0 || lType >= eBloomType_LastEnum) lType = eBloomType_Original;
+		int lType = mpConfig->GetInt("Graphics","BloomType",eBloomType_Soft);
+		if(lType < 0 || lType >= eBloomType_LastEnum) lType = eBloomType_Soft;
 		pPostEffects->SetBloomType((eBloomType)lType);
 
 		// The defaults are the tuning's own
@@ -792,8 +792,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurAmount(mpConfig->GetFloat("Graphics", "MotionBlurAmount", 0.3f));
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","MotionBlurType",eMotionBlurType_Original);
-		if(lType < 0 || lType >= eMotionBlurType_LastEnum) lType = eMotionBlurType_Original;
+		int lType = mpConfig->GetInt("Graphics","MotionBlurType",eMotionBlurType_Camera);
+		if(lType < 0 || lType >= eMotionBlurType_LastEnum) lType = eMotionBlurType_Camera;
 		pPostEffects->SetMotionBlurType((eMotionBlurType)lType);
 
 		cMotionBlurSettings motion;
@@ -803,8 +803,8 @@ bool cInit::Init(tString asCommandLine)
 		motion.mfNearLimit = mpConfig->GetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
 		pPostEffects->SetMotionBlurSettings(motion);
 
-		lType = mpConfig->GetInt("Graphics","DepthOfFieldType",eDepthOfFieldType_Original);
-		if(lType < 0 || lType >= eDepthOfFieldType_LastEnum) lType = eDepthOfFieldType_Original;
+		lType = mpConfig->GetInt("Graphics","DepthOfFieldType",eDepthOfFieldType_Bokeh);
+		if(lType < 0 || lType >= eDepthOfFieldType_LastEnum) lType = eDepthOfFieldType_Bokeh;
 		pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)lType);
 
 		cDepthOfFieldSettings dof;
@@ -874,7 +874,7 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
 	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
-	mpGame->GetGraphics()->SetLinearLighting(mpConfig->GetBool("Graphics","LinearLighting",false));
+	mpGame->GetGraphics()->SetLinearLighting(mpConfig->GetBool("Graphics","LinearLighting",true));
 	{
 		// The defaults are the tuning's own
 		cLinearLightingTuning tuning;
@@ -920,8 +920,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
-		int lType = mpConfig->GetInt("Graphics","ShadowType",eShadowType_Volumes);
-		if(lType < 0 || lType >= eShadowType_LastEnum) lType = eShadowType_Volumes;
+		int lType = mpConfig->GetInt("Graphics","ShadowType",eShadowType_Maps);
+		if(lType < 0 || lType >= eShadowType_LastEnum) lType = eShadowType_Maps;
 		pRenderer->SetShadowType((eShadowType)lType);
 
 		// The defaults are the settings' own

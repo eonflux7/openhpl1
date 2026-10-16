@@ -323,7 +323,7 @@ private:
 class cFlashlightSettings
 {
 public:
-	bool mbImproved = false;
+	bool mbImproved = true;
 	/// Scales the amount of light.
 	float mfBrightness = 1.0f;
 	/// 0 is the white of the original, 1 the yellow of a weak bulb.
