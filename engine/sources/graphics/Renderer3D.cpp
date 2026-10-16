@@ -392,23 +392,10 @@ namespace hpl {
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true,true);
 		mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
 
-
-		//Set the ambient color
-		mpLowLevelGraphics->SetActiveTextureUnit(0);
-		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
-		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Constant);
-
-
-		mpLowLevelGraphics->SetTextureConstantColor(mRenderSettings.mAmbientColor);
-
 		if(mbLog) Log("Rendering ZBuffer:\n");
 		mpLowLevelGraphics->BeginGpuSection("Z");
 		RenderZ(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
-
-		//reset parameters.
-		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
 
 		////////////////////////////
 		//Render Occlusion Queries
@@ -608,8 +595,6 @@ namespace hpl {
 											apCamera->GetPosition(), apCamera->GetNearClipPlane(),
 											apCamera->GetFarClipPlane(), mfRenderTime);
 
-		mpLowLevelGraphics->SetColor(cColor(1,1,1,1));
-
 		mRenderSettings.mpCamera = apCamera;
 
 		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
@@ -783,18 +768,14 @@ namespace hpl {
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 
-		// The improved ambient pass reads more than the diffuse texture,
-		// and setting a texture makes its unit the active one. The caller
-		// takes it that only unit 0 was used: it resets that unit's
-		// texture environment next, which every material drawn without a
-		// fragment program afterwards (halos, beams, particles) depends on.
+		// The improved ambient pass reads more than the diffuse texture;
+		// those units are emptied again for what is drawn next.
 		for(int i=1; i<MAX_TEXTUREUNITS; ++i)
 		{
 			if(mRenderSettings.mpTexture[i]==nullptr) continue;
 			mpLowLevelGraphics->SetTexture(i,nullptr);
 			mRenderSettings.mpTexture[i] = nullptr;
 		}
-		mpLowLevelGraphics->SetActiveTextureUnit(0);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1161,7 +1142,7 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
 		mpLowLevelGraphics->SetCullActive(true);
 		mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
-		mpLowLevelGraphics->SetAlphaTestActive(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid);
+		mpLowLevelGraphics->SetAlphaCutoff(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid ? 0.6f : 0);
 
 		aParams.mlFilter = (int)settings.mFilter + 1;
 		aParams.mfSoftness = settings.mfSoftness;
@@ -1188,7 +1169,7 @@ namespace hpl {
 		const cVector3f vLightPos = apLight->GetLightPosition();
 		int lDrawn = 0;
 		bool bAlphaTest = false;
-		mpLowLevelGraphics->SetAlphaTestActive(false);
+		mpLowLevelGraphics->SetAlphaCutoff(0);
 
 		tCasterCacheSet *vSets[2] = {apLight->GetStaticCasters(), apLight->GetDynamicCasters()};
 		int lSetNum = mRenderSettings.mShowShadows == eRendererShowShadows_All ? 2 : 1;
@@ -1223,8 +1204,7 @@ namespace hpl {
 			if(bAlpha != bAlphaTest)
 			{
 				bAlphaTest = bAlpha;
-				mpLowLevelGraphics->SetAlphaTestActive(bAlpha);
-				if(bAlpha) mpLowLevelGraphics->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+				mpLowLevelGraphics->SetAlphaCutoff(bAlpha ? 0.6f : 0);
 			}
 
 			cMatrixf *pModelMtx = pObject->GetModelMatrix(nullptr);
@@ -1281,9 +1261,7 @@ namespace hpl {
 		mRenderSettings.mbMatrixWasNULL = false;
 
 		mpLowLevelGraphics->SetDepthTestActive(mRenderSettings.mbDepthTest);
-		mpLowLevelGraphics->SetAlphaTestActive(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid);
-		if(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid)
-			mpLowLevelGraphics->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+		mpLowLevelGraphics->SetAlphaCutoff(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid ? 0.6f : 0);
 		// Blending and the colour mask are set anew by what is drawn next
 		mRenderSettings.mBlendMode = eMaterialBlendMode_LastEnum;
 		mRenderSettings.mChannelMode = eMaterialChannelMode_LastEnum;
@@ -1386,7 +1364,7 @@ namespace hpl {
 				/////////////////////////////////////
 				//Alpha and blend mode
 				mRenderSettings.mAlphaMode = eMaterialAlphaMode_Solid;
-				mpLowLevelGraphics->SetAlphaTestActive(false);
+				mpLowLevelGraphics->SetAlphaCutoff(0);
 
 				mRenderSettings.mBlendMode = eMaterialBlendMode_None;
 				mpLowLevelGraphics->SetBlendActive(false);
@@ -1650,13 +1628,12 @@ namespace hpl {
 
 				if(alphaMode == eMaterialAlphaMode_Solid)
 				{
-					mpLowLevelGraphics->SetAlphaTestActive(false);
+					mpLowLevelGraphics->SetAlphaCutoff(0);
 					if(bLog) Log("  Set alpha test off!\n");
 				}
 				else
 				{
-					mpLowLevelGraphics->SetAlphaTestActive(true);
-					mpLowLevelGraphics->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+					mpLowLevelGraphics->SetAlphaCutoff(0.6f);
 					if(bLog) Log("  Set alpha test on!\n");
 				}
 			}

@@ -306,6 +306,10 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 	cSoundEntity::AddGlobalCallback(mpSoundCallback);
 
 	mpMapChangeTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("other_mapchange.jpg",false);
+
+	cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
+	mpFlashVtxProgram = pProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",eGpuProgramType_Vertex);
+	mpFlashFragProgram = pProgramManager->CreateProgram("Ambient_Color_fp.cg","main",eGpuProgramType_Fragment);
 }
 
 //-----------------------------------------------------------------------
@@ -313,6 +317,8 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 cMapHandler::~cMapHandler(void)
 {
 	if(mpMapChangeTexture)mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpMapChangeTexture);
+	if(mpFlashVtxProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashVtxProgram);
+	if(mpFlashFragProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashFragProgram);
 	
 	hplDelete(mpSoundCallback );
 	hplDelete( mpWorldCache );
@@ -1185,12 +1191,6 @@ void cMapHandler::RenderItemEffect()
 	pLowGfx->SetBlendActive(true);
 	pLowGfx->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
 
-	pLowGfx->SetActiveTextureUnit(0);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Constant);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Modulate);
-		
-	
 	it = mlstGameItems.begin();
 	for(; it != mlstGameItems.end(); ++it)
 	{
@@ -1201,8 +1201,6 @@ void cMapHandler::RenderItemEffect()
 
 		cMeshEntity *pMeshEntity = pItem->GetMeshEntity();
 
-		pLowGfx->SetTextureConstantColor(cColor(pItem->GetFlashAlpha(),0));
-		
 		pLowGfx->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(pCam->GetViewMatrix(), 
 														pMeshEntity->GetWorldMatrix()));
 		for(int i=0; i< pMeshEntity->GetMesh()->GetSubMeshNum(); i++)
@@ -1213,7 +1211,15 @@ void cMapHandler::RenderItemEffect()
 			iMaterial *pMaterial = pSubEntity->GetMaterial();
 			
 			iGpuProgram *pVtxProg = pMaterial->GetVertexProgram(eMaterialRenderType_Z,0,nullptr);
-			
+			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,nullptr);
+
+			//Without programs of its own: the texture times the flash
+			if(pVtxProg==nullptr && pFragProg==nullptr)
+			{
+				pVtxProg = mpFlashVtxProgram;
+				pFragProg = mpFlashFragProgram;
+			}
+
 			if(pVtxProg)
 			{
 				pVtxProg->Bind();
@@ -1222,7 +1228,6 @@ void cMapHandler::RenderItemEffect()
 									eGpuProgramMatrixOp_Identity);
 			}
 
-			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,nullptr);
 			if(pFragProg)
 			{
 				pFragProg->SetColor3f("ambientColor", pItem->GetFlashAlpha());
@@ -1241,10 +1246,6 @@ void cMapHandler::RenderItemEffect()
 	}
 
 	pLowGfx->SetTexture(0,nullptr);
-
-	pLowGfx->SetActiveTextureUnit(0);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
 
 	pLowGfx->SetBlendActive(false);
 	pLowGfx->SetDepthTestActive(true);

@@ -11,8 +11,7 @@
 
 // Variants:
 //  SPOT          spotlight texture and negative rejection
-//  SPECULAR      specular term, light vector normalised per pixel (the
-//                others look it up in the normalisation cube map)
+//  SPECULAR      specular term
 //  NORMAL_MAP    per-pixel normal; with SPECULAR and no SPECULAR_MAP its
 //                alpha scales the specular term
 //  SPECULAR_MAP  specular colour map
@@ -37,13 +36,9 @@ uniform sampler2D tex0; //diffuseMap
 #ifdef NORMAL_MAP
 uniform sampler2D tex1; //normalMap
 #endif
-#ifndef SPECULAR
-uniform samplerCube tex2; //normalCubeMap
-#endif
 uniform sampler1D tex3; //falloffMap
 #ifdef SPOT
 uniform sampler2D tex4; //spotlightMap
-uniform sampler1D tex5; //spotNegRejectMap
 #endif
 #ifdef SPECULAR_MAP
 uniform sampler2D tex6; //specularMap
@@ -64,11 +59,7 @@ void main()
 	vec3 surfaceNormal = vec3(0.0, 0.0, 1.0);
 #endif
 
-#ifdef SPECULAR
 	vec3 lightVec = normalize(vLightDir);
-#else
-	vec3 lightVec = (2.0*texture(tex2, vLightDir) - vec4(1.0)).xyz;
-#endif
 
 	float nDotL = dot(lightVec, surfaceNormal);
 	// Tint and brightness: 1 for a light as the game made it
@@ -78,7 +69,9 @@ void main()
 #ifdef SPOT
 	vec4 spotColor = texture(tex4, vSpotlightUv.xy / vSpotlightUv.w);
 	if(hpl_Light1.x > 0.5) spotColor = hpl_Beam(vSpotlightUv.xy / vSpotlightUv.w);
-	float rejectNeg = texture(tex5, vSpotlightUv.z + 0.5).x;
+	// Nothing behind the light, over a short ramp as the two texels of
+	// the original's look-up texture gave
+	float rejectNeg = clamp(2.0*vSpotlightUv.z + 0.5, 0.0, 1.0);
 	lit *= spotColor.xyz;
 	attenuation *= rejectNeg;
 #endif

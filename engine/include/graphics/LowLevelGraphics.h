@@ -47,58 +47,6 @@ namespace hpl {
 		eBlendFunc_LastEnum
 	};
 
-	enum eTextureParam
-	{
-		eTextureParam_ColorFunc,
-		eTextureParam_AlphaFunc,
-		eTextureParam_ColorSource0,
-		eTextureParam_ColorSource1,
-		eTextureParam_ColorSource2,
-		eTextureParam_AlphaSource0,
-		eTextureParam_AlphaSource1,
-		eTextureParam_AlphaSource2,
-		eTextureParam_ColorOp0,
-		eTextureParam_ColorOp1,
-		eTextureParam_ColorOp2,
-		eTextureParam_AlphaOp0,
-		eTextureParam_AlphaOp1,
-		eTextureParam_AlphaOp2,
-		eTextureParam_ColorScale,
-		eTextureParam_AlphaScale,
-		eTextureParam_LastEnum
-	};
-
-	enum eTextureOp
-	{
-		eTextureOp_Color,
-		eTextureOp_OneMinusColor,
-		eTextureOp_Alpha,
-		eTextureOp_OneMinusAlpha,
-		eTextureOp_LasEnum
-	};
-
-	enum eTextureSource
-	{
-		eTextureSource_Texture,
-		eTextureSource_Constant,
-		eTextureSource_Primary,
-		eTextureSource_Previous,
-		eTextureSource_LastEnum
-	};
-
-	enum eTextureFunc
-	{
-		eTextureFunc_Modulate,
-		eTextureFunc_Replace,
-		eTextureFunc_Add,
-		eTextureFunc_Substract,
-		eTextureFunc_AddSigned,
-		eTextureFunc_Interpolate,
-		eTextureFunc_Dot3RGB,
-		eTextureFunc_Dot3RGBA,
-		eTextureFunc_LastEnum
-	};
-
 	enum eStencilFunc
 	{
 		eStencilFunc_Never,
@@ -123,19 +71,6 @@ namespace hpl {
 		eDepthTestFunc_NotEqual,
 		eDepthTestFunc_Always,
 		eDepthTestFunc_LastEnum
-	};
-
-	enum eAlphaTestFunc
-	{
-		eAlphaTestFunc_Never,
-		eAlphaTestFunc_Less,
-		eAlphaTestFunc_LessOrEqual,
-		eAlphaTestFunc_Greater,
-		eAlphaTestFunc_GreaterOrEqual,
-		eAlphaTestFunc_Equal,
-		eAlphaTestFunc_NotEqual,
-		eAlphaTestFunc_Always,
-		eAlphaTestFunc_LastEnum
 	};
 
 	enum eStencilOp
@@ -178,8 +113,6 @@ namespace hpl {
 	#define eVtxBatchFlag_Texture0		(0x00000008)
 	#define eVtxBatchFlag_Texture1		(0x00000010)
 	#define eVtxBatchFlag_Texture2		(0x00000020)
-
-	#define kMaxClipPlanes (6)
 
 	class iFontData;
 	class iOcclusionQuery;
@@ -685,9 +618,6 @@ namespace hpl {
 		virtual void SetGammaCorrection(float afX)=0;
 		virtual float GetGammaCorrection()=0;
 
-		virtual void SetClipPlane(int alIdx, const cPlanef& aPlane)=0;
-		virtual void SetClipPlaneActive(int alIdx, bool abX)=0;
-
 		virtual iBitmap2D* CreateBitmap2D(const cVector2l &avSize, unsigned int alBpp)=0;
 		virtual iFontData* CreateFontData(const tString &asName)=0;
 
@@ -796,8 +726,11 @@ namespace hpl {
 		virtual void SetDepthTestFunc(eDepthTestFunc aFunc)=0;
 
 		//ALPHA
-		virtual void SetAlphaTestActive(bool abX)=0;
-		virtual void SetAlphaTestFunc(eAlphaTestFunc aFunc,float afRef)=0;
+		/**
+		 * Fragments with an alpha under afMin are not drawn: what materials
+		 * of eMaterialAlphaMode_Trans cut out. 0 draws them all.
+		 */
+		virtual void SetAlphaCutoff(float afMin)=0;
 
 		//STENCIL
 		virtual void SetStencilActive(bool abX)=0;
@@ -816,12 +749,6 @@ namespace hpl {
 
 		//TEXTURE
 		virtual void SetTexture(unsigned int alUnit,iTexture* apTex)=0;
-		virtual void SetActiveTextureUnit(unsigned int alUnit)=0;
-		virtual void SetTextureEnv(eTextureParam aParam, int alVal)=0;
-		virtual void SetTextureConstantColor(const cColor &aColor)=0;
-
-		//COLOR
-		virtual void SetColor(const cColor &aColor)=0;
 
 		//BLENDING
 		virtual void SetBlendActive(bool abX)=0;

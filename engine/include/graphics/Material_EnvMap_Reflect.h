@@ -34,19 +34,6 @@ namespace hpl {
 
 	//----------------------------------------------------
 
-	class cGLState_EnvMapReflect : public iGLStateProgram
-	{
-	public:
-		cGLState_EnvMapReflect();
-
-		void Bind() override;
-		void UnBind() override;
-	private:
-		void InitData() override{}
-	};
-
-	//----------------------------------------------------
-
 	class cMaterial_EnvMap_Reflect : public iMaterial
 	{
 	public:

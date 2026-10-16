@@ -208,17 +208,19 @@ namespace hpl {
 		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, 1, 1, 1, 1);
 		mlCurrentAttribChanged = ~0u;
 
+		mpDefaultVP = nullptr;
+		mpDefaultTextureFP = nullptr;
+		mpDefaultCubeFP = nullptr;
+		mlDefaultMatrixProgram = 0;
 		mbMatricesChanged = true;
 		mlActiveTextureUnit = 0;
-		mbAlphaTest = false;
+		mfAlphaCutoff = 0;
 		mbAlphaToCoverage = false;
 		mbLinearLighting = false;
 		mbLinearSource = false;
 		mbBlend = false;
 		mBlendSrc = eBlendFunc_One;
 		mBlendDest = eBlendFunc_Zero;
-		mAlphaTestFunc = eAlphaTestFunc_Always;
-		mfAlphaTestRef = 0;
 		mbStateChanged = true;
 
 		mpPixelFormat = hplNew(cSDLPixelFormat, () );
@@ -262,7 +264,9 @@ namespace hpl {
 		for(auto &sampler : m_mapSamplers) glDeleteSamplers(1, &sampler.second);
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
 		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
-		mFixedFunction.Exit();
+		if(mpDefaultVP) hplDelete(mpDefaultVP);
+		if(mpDefaultTextureFP) hplDelete(mpDefaultTextureFP);
+		if(mpDefaultCubeFP) hplDelete(mpDefaultCubeFP);
 		if(mlStreamVertexArray) glDeleteVertexArrays(1, &mlStreamVertexArray);
 		if(mlEmptyVertexArray) glDeleteVertexArrays(1, &mlEmptyVertexArray);
 		if(mlStreamVertexBuffer) glDeleteBuffers(1, &mlStreamVertexBuffer);
@@ -428,9 +432,14 @@ namespace hpl {
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
 
-		if(!mFixedFunction.Init())
+		mpDefaultVP = hplNew(cGLSLProgram, ("Default_vp.cg", eGpuProgramType_Vertex));
+		mpDefaultTextureFP = hplNew(cGLSLProgram, ("Default_Texture_fp.cg", eGpuProgramType_Fragment));
+		mpDefaultCubeFP = hplNew(cGLSLProgram, ("Default_Cube_fp.cg", eGpuProgramType_Fragment));
+		if(	mpDefaultVP->CreateFromFile("Default_vp.cg")==false || mpDefaultVP->GetCompanionHandle()==0 ||
+			mpDefaultTextureFP->CreateFromFile("Default_Texture_fp.cg")==false ||
+			mpDefaultCubeFP->CreateFromFile("Default_Cube_fp.cg")==false)
 		{
-			FatalError("Couldn't compile the fixed-function shaders!\n");
+			FatalError("Couldn't create the default programs (hpl1_Default)!\n");
 			return false;
 		}
 
@@ -819,29 +828,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// Like glClipPlane: the plane is in object space and is kept in eye
-	// space, by the model-view matrix at the time it is set.
-	void cLowLevelGraphicsSDL::SetClipPlane(int alIdx, const cPlanef& aPlane)
-	{
-		if(alIdx < 0 || alIdx >= kMaxClipPlanes) return;
-		mvClipPlanes[alIdx] = aPlane;
-
-		cMatrixf mtxInv = cMath::MatrixInverse(mvMatrixStack[eMatrix_ModelView].back());
-		float vPlane[4] = {aPlane.a, aPlane.b, aPlane.c, aPlane.d};
-		float vEye[4];
-		for(int j=0; j<4; ++j)
-			vEye[j] = vPlane[0]*mtxInv.m[0][j] + vPlane[1]*mtxInv.m[1][j] + vPlane[2]*mtxInv.m[2][j] + vPlane[3]*mtxInv.m[3][j];
-		mFixedFunction.SetClipPlane(alIdx, cPlanef(vEye[0], vEye[1], vEye[2], vEye[3]));
-	}
-	// Only the fixed-function vertex shader writes the clip distances.
-	void cLowLevelGraphicsSDL::SetClipPlaneActive(int alIdx, bool abX)
-	{
-		if(abX) glEnable(GL_CLIP_DISTANCE0 + alIdx);
-		else	glDisable(GL_CLIP_DISTANCE0 + alIdx);
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::SaveScreenToBMP(const tString& asFile)
 	{
 		glFinish();
@@ -1064,8 +1050,7 @@ namespace hpl {
 
 		glActiveTexture(GL_TEXTURE0 + alUnit);
 
-		// A unit without a texture keeps the last one bound; the
-		// fixed-function shaders leave such a unit out.
+		// A unit without a texture keeps the last one bound
 		if(apTex)
 		{
 			cSDLTexture *pSDLTex = static_cast<cSDLTexture*> (apTex);
@@ -1076,7 +1061,6 @@ namespace hpl {
 
 		mpCurrentTexture[alUnit] = apTex;
 		mlActiveTextureUnit = alUnit;
-		mFixedFunction.SetUnitTarget(alUnit, apTex ? (int)apTex->GetTarget() : -1);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1084,12 +1068,7 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::ForgetTexture(iTexture* apTex)
 	{
 		for(unsigned int lUnit=0; lUnit<MAX_TEXTUREUNITS; lUnit++)
-		{
-			if(mpCurrentTexture[lUnit] != apTex) continue;
-
-			mpCurrentTexture[lUnit] = nullptr;
-			mFixedFunction.SetUnitTarget(lUnit, -1);
-		}
+			if(mpCurrentTexture[lUnit] == apTex) mpCurrentTexture[lUnit] = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1107,37 +1086,6 @@ namespace hpl {
 
 		GLenum target = GetGLTextureTargetEnum(pTex->GetTarget());
 		glBindTexture(target, static_cast<cSDLTexture*>(pTex)->GetTextureHandle());
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetActiveTextureUnit(unsigned int alUnit)
-	{
-		glActiveTexture(GL_TEXTURE0 + alUnit);
-		mlActiveTextureUnit = alUnit;
-	}
-
-	//-----------------------------------------------------------------------
-
-	// The texture environment is per unit, and these set the active one's,
-	// as glTexEnv did.
-	void cLowLevelGraphicsSDL::SetTextureEnv(eTextureParam aParam, int alVal)
-	{
-		mFixedFunction.SetEnv(mlActiveTextureUnit, aParam, alVal);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetTextureConstantColor(const cColor &aColor)
-	{
-		mFixedFunction.SetConstantColor(mlActiveTextureUnit, aColor);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetColor(const cColor &aColor)
-	{
-		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, aColor.r, aColor.g, aColor.b, aColor.a);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2005,22 +1953,11 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetAlphaTestActive(bool abX)
+	void cLowLevelGraphicsSDL::SetAlphaCutoff(float afMin)
 	{
-		if(mbAlphaTest == abX) return;
-		mbAlphaTest = abX;
-		mbStateChanged = true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetAlphaTestFunc(eAlphaTestFunc aFunc,float afRef)
-	{
-		// The reference is clamped, as glAlphaFunc did
-		afRef = cMath::Clamp(afRef, 0.0f, 1.0f);
-		if(mAlphaTestFunc == aFunc && mfAlphaTestRef == afRef) return;
-		mAlphaTestFunc = aFunc;
-		mfAlphaTestRef = afRef;
+		afMin = cMath::Clamp(afMin, 0.0f, 1.0f);
+		if(mfAlphaCutoff == afMin) return;
+		mfAlphaCutoff = afMin;
 		mbStateChanged = true;
 	}
 
@@ -2951,7 +2888,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	// The texture matrix is only read by engine programs that ask for it
-	// (none do); the fixed-function shaders do not use one.
+	// (none do); the default programs do not use one.
 	void cLowLevelGraphicsSDL::LoadMatrix(eMatrix aMtxType)
 	{
 		if(aMtxType != eMatrix_Texture) mbMatricesChanged = true;
@@ -2971,13 +2908,27 @@ namespace hpl {
 			bWarned = true;
 		}
 
+		// What has no program of its own is drawn with hpl1_Default, with
+		// the texture on unit 0: 2D or a cube map (the sky box). Nothing
+		// draws other units or targets without a program.
 		if(lVertex==0)
 		{
-			lVertex = mFixedFunction.GetVertexStage(mvMatrixStack[eMatrix_ModelView].back(),
-													mvMatrixStack[eMatrix_Projection].back(), mbMatricesChanged);
-			mbMatricesChanged = false;
+			lVertex = mpDefaultVP->GetHandle();
+			if(mbMatricesChanged || mlDefaultMatrixProgram != lVertex)
+			{
+				mpDefaultVP->SetMatrixf("worldViewProj", cMath::MatrixMul(mvMatrixStack[eMatrix_Projection].back(),
+																		mvMatrixStack[eMatrix_ModelView].back()));
+				mlDefaultMatrixProgram = lVertex;
+				mbMatricesChanged = false;
+			}
 		}
-		if(lFragment==0) lFragment = mFixedFunction.GetFragmentStage();
+		if(lFragment==0)
+		{
+			eTextureTarget target = mpCurrentTexture[0] ? mpCurrentTexture[0]->GetTarget() : eTextureTarget_LastEnum;
+			if(target == eTextureTarget_2D)				lFragment = mpDefaultTextureFP->GetHandle();
+			else if(target == eTextureTarget_CubeMap)	lFragment = mpDefaultCubeFP->GetHandle();
+			else										lFragment = mpDefaultVP->GetCompanionHandle();
+		}
 
 		cGLSLProgram::SetPipelineStages(lVertex, lFragment);
 
@@ -3004,26 +2955,26 @@ namespace hpl {
 			float fGlow = bConvert && bAdd ? mLinearTuning.mfGlow : 1.0f;
 			bool bAlpha = mbBlend && mBlendSrc == eBlendFunc_SrcAlpha && mBlendDest == eBlendFunc_OneMinusSrcAlpha;
 			float fAlphaMatch = bConvert && bAlpha ? cMath::Clamp(mLinearTuning.mfBlendMatch, 0.0f, 1.0f) : 0.0f;
-			// In the multisampled scene a test for "at least" decides for
-			// each sample: the fragment's alpha becomes the share of the
-			// pixel's samples it covers (kAlphaToCoverage in the shaders)
-			bool bToCoverage =	mbAlphaTest && mlMultisampling > 0 && mbInScene && mbSceneResolved==false &&
-								mpRenderTarget==nullptr && mbInShadowMap==false &&
-								(mAlphaTestFunc == eAlphaTestFunc_GreaterOrEqual || mAlphaTestFunc == eAlphaTestFunc_Greater);
+			// In the multisampled scene the test decides for each sample:
+			// the fragment's alpha becomes the share of the pixel's samples
+			// it covers (kAlphaToCoverage in the shaders)
+			bool bAlphaTest = mfAlphaCutoff > 0;
+			bool bToCoverage =	bAlphaTest && mlMultisampling > 0 && mbInScene && mbSceneResolved==false &&
+								mpRenderTarget==nullptr && mbInShadowMap==false;
 			if(bToCoverage != mbAlphaToCoverage)
 			{
 				if(bToCoverage)	glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 				else			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 				mbAlphaToCoverage = bToCoverage;
 			}
-			float fAlphaFunc = bToCoverage ? (float)cGLSLProgram::kAlphaToCoverage : (float)mAlphaTestFunc + 1;
+			float fAlphaTest = bToCoverage ? (float)cGLSLProgram::kAlphaToCoverage : bAlphaTest ? 1.0f : 0.0f;
 			const cShadowMapParams &shadow = mShadowParams;
 			// The colour is scaled as a screen value: brightness is an
 			// amount of light. Exactly 1 for a light as the game made it.
 			const cLightLook &look = mLightLook;
 			float fLookScale = look.mfBrightness == 1.0f ? 1.0f : powf(cMath::Max(look.mfBrightness, 0.0f), 1.0f / 2.2f);
 			float vState[kStateUniformFloats] = {
-				mbAlphaTest ? fAlphaFunc : 0.0f, mfAlphaTestRef, fAlphaMatch, fGlow,
+				fAlphaTest, mfAlphaCutoff, fAlphaMatch, fGlow,
 				bConvert ? 1.0f : 0.0f, fScale, mLinearTuning.mfLightExp,
 				mbLinearLighting && mbInScene && mbLinearSource ? 1.0f : 0.0f,
 				(float)shadow.mlFilter, shadow.mfNear, shadow.mfFar, shadow.mfTexelSize,

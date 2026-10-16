@@ -137,21 +137,6 @@ namespace hpl {
 		mpSimpleFP = mpProgramManager->CreateProgram("Diffuse_Color_fp.cg","main",eGpuProgramType_Fragment);
 		mpAmbientFP = mpProgramManager->CreateProgram("Ambient_Color_fp.cg","main",eGpuProgramType_Fragment);
 
-		///////////////////////////////////////////
-		//Normalization map
-		mpNormalizationMap = mpTextureManager->CreateCubeMap("Normalization", false);
-		mpNormalizationMap->SetWrapS(eTextureWrap_ClampToEdge);
-		mpNormalizationMap->SetWrapT(eTextureWrap_ClampToEdge);
-
-		///////////////////////////////////////////
-		//Negative rejection
-		mpSpotNegativeRejectMap = mpTextureManager->Create1D("core_spot_negative_reject",false);
-		if(mpSpotNegativeRejectMap)
-		{
-			mpSpotNegativeRejectMap->SetWrapS(eTextureWrap_ClampToEdge);
-			mpSpotNegativeRejectMap->SetWrapT(eTextureWrap_ClampToEdge);
-		}
-
 
 		mbUseSpecular = false;
 		mbUseNormalMap = false;
@@ -165,9 +150,6 @@ namespace hpl {
 
 	iMaterial_BaseLight::~iMaterial_BaseLight()
 	{
-		if(mpNormalizationMap) mpTextureManager->Destroy(mpNormalizationMap);
-		if(mpSpotNegativeRejectMap) mpTextureManager->Destroy(mpSpotNegativeRejectMap);
-
 		for(int i=0; i<eBaseLightProgram_LastEnum; i++)
 		{
 			if(mvVtxPrograms[i])	mpProgramManager->Destroy(mvVtxPrograms[i]);
@@ -343,9 +325,6 @@ namespace hpl {
 				//Normalmap
 			case 1: if(mbUseNormalMap) return mvTexture[eMaterialTexture_NMap];break;
 
-				//Normalization map
-			case 2: return mpNormalizationMap; break;
-
 				//Falloff map
 			case 3: return apLight->GetFalloffMap();
 
@@ -356,12 +335,6 @@ namespace hpl {
 						return pSpotLight->GetTexture();
 					};
 				break;
-				//Negative rejection
-			case 5: if(apLight->GetLightType() == eLight3DType_Spot)
-					{
-						return mpSpotNegativeRejectMap;
-					}
-					break;
 				//Color specular
 			case 6:	if(mbUseColorSpecular)
 					{

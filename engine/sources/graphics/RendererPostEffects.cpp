@@ -1199,7 +1199,7 @@ namespace hpl {
 		}
 
 		mpLowLevelGraphics->SetDepthTestActive(false);
-		mpLowLevelGraphics->SetAlphaTestActive(false);
+		mpLowLevelGraphics->SetAlphaCutoff(0);
 		mpLowLevelGraphics->SetBlendActive(false);
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
 		mpLowLevelGraphics->PushMatrix(eMatrix_ModelView);

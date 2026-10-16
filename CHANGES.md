@@ -1579,6 +1579,40 @@ Render Scale 1.5 with 4× FSAA are the same apart from the known noise
 runs of the old build). The 41 images of the effects lab, which run the
 image trail, are the same.
 
+### One default shader, no texture environments
+
+- `cFixedFunctionShaders` is gone. What is drawn without a program of its
+  own (the HUD, fonts, menus, particles, billboards, beams, transparent
+  materials without fog, debug lines, the sky box) uses one shader,
+  `hpl1_Default`: the vertex colour, times the texture on unit 0 (2D, or a
+  cube map with `CUBE`). Every such draw was that already
+- gone from `iLowLevelGraphics`: `SetTextureEnv`,
+  `SetTextureConstantColor`, `SetActiveTextureUnit`, `SetColor`, the clip
+  planes (nothing used them) and the texture environment enums. The alpha
+  test is one cut-off, `SetAlphaCutoff` (0 for off), in place of the eight
+  compare functions of `glAlphaFunc`; every caller asked for "at least 0.6"
+- gone: `iGLStateProgram` and the texture environment states of the
+  environment map, Modulative and ModulativeX2. None was read: the
+  environment map draws with its vertex program's own fragment shader,
+  and the Modulative ones only stood in for a fog program that always loads
+- the item flash in `MapHandler` draws materials without programs with
+  `Diffuse_Color` and `Ambient_Color`, as the others already were
+- the light shader normalizes the light vector with `normalize()` instead
+  of the normalization cube map, and computes the spotlight's cut-off
+  behind the light instead of reading `core_spot_negative_reject`.
+  `cTextureManager::CreateAttenuation` (a 3D texture nothing read) is gone
+
+Checked on Windows against step 2, 95 reference images each. All of the
+change is the normalized light vector: with the cube map kept, the
+original look and every improved option are the same (known noise apart).
+With `normalize()`, about 30 frames of each set differ, mostly by 1 to 3
+levels on lit surfaces; a few hundred pixels a frame at most go past 4
+levels, at the edges of lights, and single pixels reach 30. The effects
+lab shows the same.
+
+From here the original look is checked to the eye, not exactly: a few
+levels are fine.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

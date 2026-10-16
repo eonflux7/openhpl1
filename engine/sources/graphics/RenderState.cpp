@@ -151,14 +151,6 @@ namespace hpl {
 		if(apSettings->mbLog) Log("Sector: %d\n",mpSector);
 
 		apSettings->mpSector = mpSector;
-		if(mpSector)
-		{
-			apSettings->mpLowLevel->SetTextureConstantColor(apSettings->mAmbientColor * mpSector->GetAmbientColor());
-		}
-		else
-		{
-			apSettings->mpLowLevel->SetTextureConstantColor(apSettings->mAmbientColor);
-		}
 
 		//To make sure that new ambient is set:
 		apSettings->mpFragmentProgram = nullptr;
@@ -200,14 +192,13 @@ namespace hpl {
 
 			if(mAlphaMode == eMaterialAlphaMode_Solid)
 			{
-				apSettings->mpLowLevel->SetAlphaTestActive(false);
+				apSettings->mpLowLevel->SetAlphaCutoff(0);
 				if(apSettings->mbLog)Log("Solid");
 			}
 			else
 			{
 
-				apSettings->mpLowLevel->SetAlphaTestActive(true);
-				apSettings->mpLowLevel->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
+				apSettings->mpLowLevel->SetAlphaCutoff(0.6f);
 				if(apSettings->mbLog)Log("Trans");
 			}
 

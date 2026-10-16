@@ -59,36 +59,6 @@ namespace hpl {
 	static cEnvMapReflect_SetUp gEnvMaterialSetup;
 
 	//////////////////////////////////////////////////////////////////////////
-	// FRAGEMENT SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	cGLState_EnvMapReflect::cGLState_EnvMapReflect()
-		: iGLStateProgram("Internal_Diffuse")
-	{
-	}
-
-	void cGLState_EnvMapReflect::Bind()
-	{
-		mpLowGfx->SetActiveTextureUnit(1);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Interpolate);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Previous);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorOp2,eTextureOp_Alpha);
-	}
-
-	void cGLState_EnvMapReflect::UnBind()
-	{
-		mpLowGfx->SetActiveTextureUnit(1);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
-
-	}
-
-	//-----------------------------------------------------------------------
-
-	cGLState_EnvMapReflect gGLState_EnvMapReflect;
-
-	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
 
@@ -104,8 +74,6 @@ namespace hpl {
 		mbIsTransperant = false;
 		mbIsGlowing= false;
 		mbUsesLights = false;
-
-		gGLState_EnvMapReflect.SetUp(apLowLevelGraphics);
 
 		///////////////////////////////////////////
 		//Load the Z pass vertex program
@@ -158,9 +126,10 @@ namespace hpl {
 		return nullptr;
 	}
 
+	// Both passes are drawn by the vertex program's own fragment shader
+	// (hpl1_Diffuse_EnvMap_Reflect.fragment for the diffuse one)
 	iGpuProgram* cMaterial_EnvMap_Reflect::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		if(aType == eMaterialRenderType_Diffuse) return &gGLState_EnvMapReflect;
 		return nullptr;
 	}
 

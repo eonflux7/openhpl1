@@ -29,46 +29,6 @@
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////
-	// FRAGMENT PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	class cGLState_ModulateX2Fog : public iGLStateProgram
-	{
-	public:
-
-		cGLState_ModulateX2Fog() : iGLStateProgram("ModulateX2Fog"){}
-
-		void Bind() override
-		{
-			mpLowGfx->SetActiveTextureUnit(1);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Texture);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Constant);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Interpolate);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorOp2,eTextureOp_OneMinusColor);
-			mpLowGfx->SetTextureConstantColor(cColor(0.5,1));
-		}
-
-		void UnBind() override
-		{
-			mpLowGfx->SetActiveTextureUnit(1);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Constant);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorOp2,eTextureOp_Color);
-			mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Modulate);
-		}
-
-	private:
-		void InitData() override{}
-	};
-
-	static cGLState_ModulateX2Fog gModulateX2Fog;
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// VERTEX PRORGAM SETUP
 	//////////////////////////////////////////////////////////////////////////
 
@@ -102,8 +62,6 @@ namespace hpl {
 		mbIsTransperant = true;
 		mbIsGlowing= false;
 		mbUsesLights = false;
-
-		gModulateX2Fog.SetUp(apLowLevelGraphics);
 
 		mpFogVtxProg = mpProgramManager->CreateProgram("Fog_Trans_vp.cg","main",eGpuProgramType_Vertex);
 
@@ -155,12 +113,7 @@ namespace hpl {
 	iGpuProgram* cMaterial_ModulativeX2::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
-		{
-			if(mpFogFragProg)
-				return mpFogFragProg;
-			else
-				return &gModulateX2Fog;
-		}
+			return mpFogFragProg;
 		else
 			return nullptr;
 	}

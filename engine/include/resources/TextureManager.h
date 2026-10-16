@@ -30,10 +30,6 @@ namespace hpl {
 
 	//------------------------------------------------------
 
-	typedef std::map<tString, iTexture*> tTextureAttenuationMap;
-	typedef std::map<tString, iTexture*>::iterator tTextureAttenuationMapIt;
-
-	//------------------------------------------------------
 
 	class cTextureManager : public iResourceManager
 	{
@@ -63,9 +59,6 @@ namespace hpl {
 		iTexture* CreateCubeMap(const tString& asName,bool abUseMipMaps, bool abCompress=false, eTextureType aType=eTextureType_Normal,
 								unsigned int alTextureSizeLevel=0);
 
-
-		iTexture* CreateAttenuation(const tString& asFallOffName);
-
 		void Destroy(iResourceBase* apResource) override;
 		void Unload(iResourceBase* apResource) override;
 
@@ -77,8 +70,6 @@ namespace hpl {
 									unsigned int alTextureSizeLevel);
 
 		iTexture* FindTexture2D(const tString &asName, tString &asFilePath);
-
-		tTextureAttenuationMap m_mapAttenuationTextures;
 
 		tStringList mlstFileFormats;
 

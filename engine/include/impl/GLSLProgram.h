@@ -103,10 +103,12 @@ namespace hpl {
 		/// (iLowLevelGraphics::BeginSceneColorRead).
 		static const int kSceneColorUnit = 11;
 		/// hpl_AlphaTest.x when the alpha test is done as coverage of the
-		/// pixel's samples; the others are eAlphaTestFunc + 1.
-		static const int kAlphaToCoverage = 9;
+		/// pixel's samples; 1 is the plain test, 0 none.
+		static const int kAlphaToCoverage = 2;
 
 		GLuint GetHandle(){ return mlProgram; }
+		/// The fragment stage that goes with a vertex program, 0 for none.
+		GLuint GetCompanionHandle(){ return mlCompanionFragment; }
 
 		/// apLowLevelGraphics supplies the matrices for SetMatrixf.
 		static bool InitPipeline(iLowLevelGraphics *apLowLevelGraphics);

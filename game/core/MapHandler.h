@@ -240,6 +240,10 @@ private:
 
 	iTexture *mpMapChangeTexture;
 
+	//The flash on items of materials without programs of their own
+	iGpuProgram *mpFlashVtxProgram;
+	iGpuProgram *mpFlashFragProgram;
+
 	cMapChanger mMapChanger;
 	cWorldCache *mpWorldCache;
 

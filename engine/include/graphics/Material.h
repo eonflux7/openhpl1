@@ -120,57 +120,6 @@ namespace hpl {
 
 	//---------------------------------------------------
 
-	class iGLStateProgram : public iGpuProgram
-	{
-	public:
-		iGLStateProgram(tString asName)
-			: iGpuProgram(asName,eGpuProgramType_Fragment)
-		{
-			mbSetUpDone = false;
-		}
-		~iGLStateProgram() override{}
-
-		void SetUp(iLowLevelGraphics *apLowLevelGraphics)
-		{
-			if(mbSetUpDone==false)
-			{
-				mpLowGfx = apLowLevelGraphics;
-				mbSetUpDone = true;
-				InitData();
-			}
-		}
-
-		void Bind() override=0;
-		void UnBind() override=0;
-
-		bool CreateFromFile(const tString& asFile, const tString& asEntry) override{return false;}
-		bool SetFloat(const tString& asName, float afX) override{return false;}
-
-		bool SetVec2f(const tString& asName, float afX,float afY) override{return false;}
-		bool SetVec3f(const tString& asName, float afX,float afY,float afZ) override{return false;}
-		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW) override{return false;}
-		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx) override{return false;}
-		bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType, eGpuProgramMatrixOp mOp) override{return false;}
-		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true) override{return false;}
-		bool SetTextureToUnit(int alUnit, iTexture* apTexture) override{return false;}
-
-		eGpuProgramType GetType() { return mProgramType;}
-
-		bool Reload() override{return false;}
-		void Unload() override{}
-		void Destroy() override{}
-	protected:
-
-		iLowLevelGraphics *mpLowGfx;
-
-		bool mbSetUpDone;
-
-		virtual void InitData()=0;
-	};
-
-	//---------------------------------------------------------------
-
-
 	class iMaterialProgramSetup
 	{
 	public:

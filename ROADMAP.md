@@ -151,7 +151,7 @@ hold up Milestone 4.
         against the reference images, and with anti-aliasing, render scale,
         gamma and motion blur)
   - the fixed-function shaders stand in for the old pipeline call by call;
-    shaders of their own for those materials are a Milestone 4 item
+    replaced by one default shader in Milestone 6
 
 ## Milestone 4: lighting, shadows and effects
 
@@ -393,8 +393,11 @@ of texture units, ask for programs by their Cg file names, and set uniforms
 by name. This milestone replaces that with code written for what the
 renderer is now. It can run alongside Milestone 5.
 
-Nothing here changes the picture: every step is checked against the
-reference images, with the new options off and with them on.
+Nothing here changes the picture to the eye: every step is checked
+against the reference images, with the new options off and with them on.
+It need not be exact; a few levels here and there are fine, and are noted.
+Motion blur, render scale and the effects lab are checked by the steps that
+touch them.
 
 In this order: each step removes callers of what a later one deletes.
 
@@ -415,16 +418,19 @@ In this order: each step removes callers of what a later one deletes.
         replaced by 2D textures
   - [x] the original blur, depth of field and image trail drawn by
         shaders of their own instead of texture environments
-- [ ] **3. Shaders for every material.** Modulative, modulative ×2, the
+- [x] **3. Shaders for every material.** Modulative, modulative ×2, the
       environment map and the 2D materials of the HUD (alpha, additive,
       smoke, font) get shaders of their own, in place of texture
       environments and the `iGLStateProgram` state objects. So do the
       remaining texture environment calls in the renderer and the game
       (the fog, the item outline in `MapHandler`). Then:
-  - [ ] `SetTextureEnv`, `SetTextureConstantColor`, `SetActiveTextureUnit`,
+  - [x] `SetTextureEnv`, `SetTextureConstantColor`, `SetActiveTextureUnit`,
         the alpha test and `SetColor` removed from `iLowLevelGraphics`
-  - [ ] `FixedFunctionShaders` and its state uniform block removed
-  - [ ] the light shader without its look-up textures: the normalization
+        (the alpha test is one cut-off now, `SetAlphaCutoff`; the low
+        level needs it for alpha to coverage)
+  - [x] `FixedFunctionShaders` and its state uniform block removed (the
+        `hpl_State` block stays: every program reads it)
+  - [x] the light shader without its look-up textures: the normalization
         cube map (`normalize()` does it) and the spotlight's 1D texture
         that cuts off what is behind it; the 3D attenuation texture if
         nothing reads it. The falloff ramps are game data and stay

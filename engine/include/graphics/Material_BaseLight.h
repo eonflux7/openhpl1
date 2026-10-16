@@ -83,9 +83,6 @@ namespace hpl {
 			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 
 	protected:
-		iTexture *mpNormalizationMap;
-		iTexture *mpSpotNegativeRejectMap;
-
 		//properties to set
 		bool mbUseSpecular;
 		bool mbUseNormalMap;

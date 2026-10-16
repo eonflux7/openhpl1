@@ -75,8 +75,8 @@ namespace hpl{
 		"#define HPL_STATE\n"
 		"layout(std140) uniform hpl_State\n"
 		"{\n"
-		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off, 9 for \"at least\n"
-		"						// the reference\" as coverage; y: reference;\n"
+		"	vec4 hpl_AlphaTest; // x: 1 to discard what has an alpha under y,\n"
+		"						// 2 to do that as coverage, 0 for off;\n"
 		"						// z: how far alpha is matched to the original look\n"
 		"						// when it blends into a linear scene, else 0;\n"
 		"						// w: scale for the light of what is added to a\n"
@@ -104,7 +104,7 @@ namespace hpl{
 
 	// After every fragment shader: the colour is clamped to 0..1, as the
 	// fixed-function pipeline did, and alpha tested as set with
-	// iLowLevelGraphics::SetAlphaTestActive/Func.
+	// iLowLevelGraphics::SetAlphaCutoff.
 	//
 	// In the multisampled scene the test is made for each sample instead
 	// (kAlphaToCoverage, with GL_SAMPLE_ALPHA_TO_COVERAGE): the alpha that
@@ -159,15 +159,12 @@ namespace hpl{
 		"#ifdef HPL_STATE\n"
 		"	int func = int(hpl_AlphaTest.x);\n"
 		"	float alpha = outColor.a, ref = hpl_AlphaTest.y;\n"
-		"	if(func == 9)\n"
+		"	if(func == 2)\n"
 		"	{\n"
 		"		outColor.a = clamp((alpha - ref) / max(fwidth(alpha), 0.0001) + 0.5, 0.0, 1.0);\n"
 		"		if(outColor.a <= 0.0) discard;\n"
 		"	}\n"
-		"	else if(func == 1 ||\n"
-		"		(func == 2 && !(alpha < ref)) || (func == 3 && !(alpha <= ref)) ||\n"
-		"		(func == 4 && !(alpha > ref)) || (func == 5 && !(alpha >= ref)) ||\n"
-		"		(func == 6 && !(alpha == ref)) || (func == 7 && !(alpha != ref)))\n"
+		"	else if(func == 1 && !(alpha >= ref))\n"
 		"		discard;\n"
 		"#endif\n"
 		"#if defined(HPL_STATE) && !defined(HPL_LINEAR_COLOR)\n"
@@ -211,6 +208,8 @@ namespace hpl{
 		{"Ambient_Shaded_Bump",			"ambient",	"NORMAL_MAP"},
 		{"Ambient_Shaded_Bump_Spec",	"ambient",	"NORMAL_MAP SPECULAR"},
 		{"Ambient_Shaded_Bump_ColorSpec",	"ambient",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
+		{"Default_Texture",				"Default",		"TEXTURE"},
+		{"Default_Cube",				"Default",		"CUBE"},
 		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
 		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
 		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},

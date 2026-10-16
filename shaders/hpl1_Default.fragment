@@ -1,0 +1,30 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The colour of what is drawn without a program of its own (see
+// hpl1_Default.vertex), times the texture on unit 0: a 2D one with
+// TEXTURE, a cube map (the sky box) with CUBE. That is clamped to 0..1,
+// also where the epilogue would leave it (a copy of the linear scene), as
+// the texture environment it replaces did.
+
+in vec4 vColor;
+in vec3 vUv;
+
+OUTPUT
+
+#if defined(CUBE)
+uniform samplerCube tex0;
+#elif defined(TEXTURE)
+uniform sampler2D tex0;
+#endif
+
+void main()
+{
+#if defined(CUBE)
+	outColor = clamp(vColor * texture(tex0, vUv), 0.0, 1.0);
+#elif defined(TEXTURE)
+	outColor = clamp(vColor * texture(tex0, vUv.xy), 0.0, 1.0);
+#else
+	outColor = vColor;
+#endif
+}

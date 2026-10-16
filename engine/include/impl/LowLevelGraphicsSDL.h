@@ -28,7 +28,6 @@
 
 #include "graphics/LowLevelGraphics.h"
 #include "impl/DebugOverlay.h"
-#include "impl/FixedFunctionShaders.h"
 #include "impl/GLSLProgram.h"
 #include "impl/GpuProfiler.h"
 #include "impl/SDLPixelFormat.h"
@@ -74,8 +73,6 @@ namespace hpl {
 		void SetMultisampling(int alSamples) override;
 		void SetTextureFilter(eTextureFilter aFilter, float afAnisotropy) override;
 
-		void SetClipPlane(int alIdx, const cPlanef& aPlane) override;
-		void SetClipPlaneActive(int alIdx, bool abX) override;
 
 		cVector2f GetScreenSize() override;
 		cVector2f GetRenderSize() override;
@@ -150,8 +147,8 @@ namespace hpl {
 
 		/**
 		 * Called before every draw: puts the bound engine programs, or the
-		 * fixed-function shaders for the stages without one, in the program
-		 * pipeline, and brings the shaders' state up to date.
+		 * default ones (hpl1_Default) for the stages without one, in the
+		 * program pipeline, and brings the shaders' state up to date.
 		 */
 		void PrepareDraw();
 
@@ -195,8 +192,7 @@ namespace hpl {
 		void SetDepthTestFunc(eDepthTestFunc aFunc) override;
 
 		//ALPHA
-		void SetAlphaTestActive(bool abX) override;
-		void SetAlphaTestFunc(eAlphaTestFunc aFunc,float afRef) override;
+		void SetAlphaCutoff(float afMin) override;
 
 		//STENCIL
 		void SetStencilActive(bool abX) override;
@@ -243,11 +239,6 @@ namespace hpl {
 		void BindSampler(unsigned int alUnit, GLuint alSampler);
 		/// Called by a texture whose sampler is another one now.
 		void TextureSamplerChanged(iTexture* apTex);
-		void SetActiveTextureUnit(unsigned int alUnit) override;
-		void SetTextureEnv(eTextureParam aParam, int alVal) override;
-		void SetTextureConstantColor(const cColor &aColor) override;
-
-		void SetColor(const cColor &aColor) override;
 
 		// POLYGONS
 		iVertexBuffer* CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,
@@ -422,22 +413,24 @@ namespace hpl {
 		cGpuProfiler mGpuProfiler;
 		cDebugOverlay mDebugOverlay;
 
-		//Clipping
-		cPlanef mvClipPlanes[kMaxClipPlanes];
-
-		//Drawing without engine programs
-		cFixedFunctionShaders mFixedFunction;
+		//What is drawn without a program of its own (hpl1_Default): the
+		//colour, and the texture on unit 0 with the fragment programs
+		cGLSLProgram *mpDefaultVP;
+		cGLSLProgram *mpDefaultTextureFP;
+		cGLSLProgram *mpDefaultCubeFP;
+		//The program worldViewProj was last set in, again if reloaded
+		GLuint mlDefaultMatrixProgram;
 		bool mbMatricesChanged;
+
+		//The unit glActiveTexture last selected
 		unsigned int mlActiveTextureUnit;
 
 		//Alpha test, done by the fragment shaders: hpl_State, uniform
 		//buffer binding cGLSLProgram::kStateBlockBinding. In the
 		//multisampled scene the test decides for each sample (alpha to
 		//coverage).
-		bool mbAlphaTest;
+		float mfAlphaCutoff;
 		bool mbAlphaToCoverage;
-		eAlphaTestFunc mAlphaTestFunc;
-		float mfAlphaTestRef;
 		bool mbStateChanged;
 		GLuint mlStateUniformBuffer;
 		static const int kStateUniformFloats = 36;
@@ -489,9 +482,8 @@ namespace hpl {
 		void ImmediateVertex(const cVector3f &avPos, const cColor &aCol, const cVector3f *apTex=nullptr);
 		void ImmediateDraw(GLenum aMode);
 
-		//The values of attributes without an array, as set by SetColor()
-		//and left by the last vertex of an immediate draw (what glColor and
-		//glTexCoord did)
+		//The values of attributes without an array, as left by the last
+		//vertex of an immediate draw (what glColor and glTexCoord did)
 		float mvCurrentAttrib[cGLSLProgram::eVertexAttrib_LastEnum][4];
 		unsigned int mlCurrentAttribChanged;
 		void SetCurrentAttrib(int alAttrib, float afX, float afY, float afZ, float afW);
@@ -554,8 +546,8 @@ namespace hpl {
 		GLenum GetGLStencilOpEnum(eStencilOp aType);
 
 		//Matrix Helper
-		// Notes that the top of the CPU stack changed, for the
-		// fixed-function shaders.
+		// Notes that the top of the CPU stack changed, for the default
+		// programs.
 		void LoadMatrix(eMatrix aMtxType);
 		// Top is the current matrix; never empty.
 		std::vector<cMatrixf> mvMatrixStack[eMatrix_LastEnum];
