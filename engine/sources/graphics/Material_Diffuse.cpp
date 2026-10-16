@@ -29,11 +29,11 @@ namespace hpl {
 
 	cMaterial_Diffuse::cMaterial_Diffuse(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 		: iMaterial_BaseLight(	"Diffuse_Light_vp.cg",
 								"Diffuse_Light_fp.cg",
-			asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+			asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 			aPicture,apRenderer3D)
 	{
 		mbUseSpecular = false;
@@ -62,11 +62,11 @@ namespace hpl {
 
 	iMaterial* cMaterialType_Diffuse::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 										cImageManager* apImageManager, cTextureManager *apTextureManager,
-										cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+										cGpuProgramManager* apProgramManager,
 										eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 	{
 		return hplNew( cMaterial_Diffuse, (asName,apLowLevelGraphics,
-								apImageManager,apTextureManager,apRenderer,
+								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
 

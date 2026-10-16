@@ -165,15 +165,6 @@ namespace hpl {
 		if(IsActive()==false) return;
 
 		//Skip as it has never been sued before right?
-		/*if(mbUsesDirection)
-		{
-			if(mlDirectionUpdateCount != GetMatrixUpdateCount())
-			{
-				mlDirectionUpdateCount = GetMatrixUpdateCount();
-				cMatrixf mtxInv = cMath::MatrixInverse(GetWorldMatrix());
-				mvDirection = mtxInv.GetUp();
-			}
-		}*/
 
 		Update(afTimeStep);
 	}
@@ -220,15 +211,7 @@ namespace hpl {
 // NEW
 			if ( mPEType == ePEType_Beam)
 			{
-//				for (int i=0; i<(int)mlNumOfParticles; i++)
-//				{
-//					cParticle *pParticle = mvParticles[i];
 
-//					for (int j = 0; j < (int) pParticle->mvBeamPoints->size(); j++)
-//					{
-
-//					}
-//				}
 
 			}
 			else
@@ -250,10 +233,6 @@ namespace hpl {
 						SetTex(&pTexArray[i*12 + 2*3],subDiv.mvUV[2]);
 						SetTex(&pTexArray[i*12 + 3*3],subDiv.mvUV[3]);
 
-						/*SetTex(&pTexArray[i*12 + 0*3], cVector3f(1,1,0));
-						SetTex(&pTexArray[i*12 + 1*3], cVector3f(0,1,0));
-						SetTex(&pTexArray[i*12 + 2*3], cVector3f(0,0,0));
-						SetTex(&pTexArray[i*12 + 3*3], cVector3f(1,0,0));*/
 					}
 				}
 
@@ -450,13 +429,6 @@ namespace hpl {
 					}
 
 					cVector3f vAdd[4];
-					/*=
-					{
-						mvRight		 +	mvForward * 1,
-						mvRight * -1 +	mvForward * 1,
-						mvRight * -1 +	mvForward * -1,
-						mvRight		 +	mvForward * -1
-					};*/
 
 					int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
 					int lVtxQuadSize = lVtxStride*4;
@@ -676,7 +648,6 @@ namespace hpl {
 
 			mBoundingVolume.SetLocalMinMax(vMin, vMax);
 
-			//Log("Min: (%f, %f, %f) Max: (%f, %f, %f)\n", vMin.x, vMin.y, vMin.z, vMax.x,vMax.y,vMax.z);
 
 			if(mCoordSystem == eParticleEmitter3DCoordSystem_Local)
 			{
@@ -707,16 +678,8 @@ namespace hpl {
 			else
 			{
 				m_mtxTemp = cMath::MatrixInverse(apCamera->GetViewMatrix());
-				//m_mtxTemp = cMath::MatrixMul(cMath::MatrixInverse(apCamera->GetViewMatrix()),
-				//								GetWorldMatrix());
 			}
 
-			//m_mtxTemp.SetTranslation(cVector3f(0,0,0));//GetWorldMatrix().GetTranslation());
-
-			//m_mtxTemp = cMatrixf::Identity;
-
-			//cMatrixf mtxCam = apCamera->GetViewMatrix();
-			//Log("MATRIX: %s\n",mtxCam.ToString().c_str());
 
 			return &m_mtxTemp;
 
@@ -755,9 +718,6 @@ namespace hpl {
 
 	iSaveObject* cSaveData_iParticleEmitter3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
-		/*cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
-
-		return pWorld->CreateParticleSystem(msName,msDataName,mvDataSize);*/
 		return nullptr;
 	}
 
@@ -772,7 +732,6 @@ namespace hpl {
 
 	iSaveData* iParticleEmitter3D::CreateSaveData()
 	{
-		//return hplNew( cSaveData_iParticleEmitter3D, () );
 		return nullptr;
 	}
 
@@ -780,31 +739,18 @@ namespace hpl {
 
 	void iParticleEmitter3D::SaveToSaveData(iSaveData *apSaveData)
 	{
-		/*kSaveData_SaveToBegin(iParticleEmitter3D);
-
-		kSaveData_SaveTo(msDataName);
-		kSaveData_SaveTo(mvDataSize);
-		kSaveData_SaveTo(mlTime);
-		kSaveData_SaveTo(mbDying);
-		kSaveData_SaveTo(mfFrame);*/
 	}
 
 	//-----------------------------------------------------------------------
 
 	void iParticleEmitter3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
-		/*kSaveData_LoadFromBegin(iParticleEmitter3D);
-
-		kSaveData_LoadFrom(mlTime);
-		kSaveData_LoadFrom(mbDying);
-		kSaveData_LoadFrom(mfFrame);*/
 	}
 
 	//-----------------------------------------------------------------------
 
 	void iParticleEmitter3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
-		//kSaveData_SetupBegin(iParticleEmitter3D);
 	}
 
 	//-----------------------------------------------------------------------

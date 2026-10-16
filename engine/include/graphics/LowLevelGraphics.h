@@ -112,13 +112,6 @@ namespace hpl {
 		eStencilFunc_LastEnum
 	};
 
-	enum eStencilFace
-	{
-		eStencilFace_Front,
-		eStencilFace_Back,
-		eStencilFace_LastEnum,
-	};
-
 	enum eDepthTestFunc
 	{
 		eDepthTestFunc_Never,
@@ -693,7 +686,6 @@ namespace hpl {
 		virtual float GetGammaCorrection()=0;
 
 		virtual void SetClipPlane(int alIdx, const cPlanef& aPlane)=0;
-		virtual cPlanef GetClipPlane(int alIdx, const cPlanef& aPlane)=0;
 		virtual void SetClipPlaneActive(int alIdx, bool abX)=0;
 
 		virtual iBitmap2D* CreateBitmap2D(const cVector2l &avSize, unsigned int alBpp)=0;
@@ -712,7 +704,6 @@ namespace hpl {
 		virtual iTexture* CreateFloatTexture(const cVector2l& avSize, int alChannels, eTextureTarget aTarget)=0;
 
 
-		virtual iPixelFormat* GetPixelFormat()=0;
 
 		virtual iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType)=0;
 
@@ -733,8 +724,6 @@ namespace hpl {
 
 		virtual void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)=0;
 
-		virtual void TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos)=0;
-		virtual void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)=0;
 
 		/// The current matrix, kept on the CPU (no GL read back).
 		virtual const cMatrixf& GetMatrix(eMatrix aMtxType)=0;
@@ -812,10 +801,6 @@ namespace hpl {
 
 		//STENCIL
 		virtual void SetStencilActive(bool abX)=0;
-		/*virtual void SetStencilTwoSideActive(bool abX)=0;
-		virtual void SetStencilFace(eStencilFace aFace)=0;
-		virtual void SetStencilFunc(eStencilFunc aFunc,int alRef, unsigned int aMask)=0;
-		virtual void SetStencilOp(eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)=0;*/
 		virtual void SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
 						eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)=0;
 		virtual void SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
@@ -841,18 +826,13 @@ namespace hpl {
 		//BLENDING
 		virtual void SetBlendActive(bool abX)=0;
 		virtual void SetBlendFunc(eBlendFunc aSrcFactor, eBlendFunc aDestFactor)=0;
-		virtual void SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
-										eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha)=0;
 
 		// POLYGONS
 		virtual iVertexBuffer* CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,
 								eVertexBufferUsageType aUsageType,
 								int alReserveVtxSize=0,int alReserveIdxSize=0)=0;
 
-		virtual void DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)=0;
 
-		virtual void DrawTri(const tVertexVec &avVtx)=0;
-		virtual void DrawTri(const cVertex* avVtx)=0;
 
 		virtual void DrawQuad(const tVertexVec &avVtx)=0;
 		virtual void DrawQuad(const tVertexVec &avVtx, const cColor aCol)=0;
@@ -861,9 +841,7 @@ namespace hpl {
 		virtual void DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)=0;
 
 		//VERTEX BATCHER
-		virtual void AddVertexToBatch(const cVertex *apVtx)=0;
 		virtual void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)=0;
-		virtual void AddVertexToBatch(const cVertex *apVtx, const cMatrixf* aMtx)=0;
 
 		virtual void AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
 									const cColor* apCol,const float& mfW, const float& mfH)=0;
@@ -874,13 +852,10 @@ namespace hpl {
 
 		virtual void AddIndexToBatch(int alIndex)=0;
 
-		virtual void AddTexCoordToBatch(unsigned int alUnit,const cVector3f *apCoord)=0;
-		virtual void SetBatchTextureUnitActive(unsigned int alUnit,bool abActive)=0;
 
 		//Add more ways to add Vertex to the batch?
 		//Index array, vtxArray, etc perhaps?
 
-		virtual void FlushTriBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true)=0;
 		virtual void FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true)=0;
 		virtual void ClearBatch()=0;
 
@@ -891,10 +866,7 @@ namespace hpl {
 
 
 		virtual void DrawLine2D(const cVector2f& avBegin, const cVector2f& avEnd, float afZ, cColor aCol)=0;
-		virtual void DrawLineRect2D(const cRect2f& aRect, float afZ, cColor aCol)=0;
-		virtual void DrawLineCircle2D(const cVector2f& avCenter, float afRadius, float afZ, cColor aCol)=0;
 
-		virtual void DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)=0;
 		// GENERAL
 		/**
 		 * All further drawing operations are rendered to this texture, which

@@ -270,9 +270,6 @@ namespace hpl {
 		mfMaxStartRadius = cString::ToFloat(apElement->Attribute("MaxStartRadius"),0);
 
 // NEW
-//		cMesh *mshTempMesh = mpResources->GetMeshManager()->CreateMesh("character_roach.dae");
-//		mVBMeshData = mshTempMesh->GetSubMeshName("polySurfaceShape38")->GetVertexBuffer();
-//		mpfMeshVtxData = mVBMeshData->GetArray(eVertexFlag_Position);
 
 
 // ---
@@ -463,7 +460,6 @@ namespace hpl {
 
 		mbUsesDirection = apData->mbUsesDirection;
 
-		//mbDying = !apData->mbRespawn;
 		mbRespawn = apData->mbRespawn;
 
 		SetSubDivUV(mpData->mvSubDiv);
@@ -482,131 +478,6 @@ namespace hpl {
 		mvMaxDrawSize = apData->mvMaxStartSize * fSizeMul;
 
 
-
-/*		int i = 0;
-		int j = 0;
-		int k = 0;
-		switch ( mPEType )
-		{
-			case ePEType_Beam:
-				hplDelete(mpVtxBuffer);								// Destroy the current Vertex Buffer, as it's filled with quads we don't need now :)
-
-				if ( apData->mbUseBeamNoise )
-				{
-					// Calculate the Frequency Points Lookup Table, this is needed to create the Vertex Buffer.It is also needed by every beam particle created,
-					// as it needs to know the type and index of each when updating.
-					while ( (i < apData->mlLowFreqPoints)  && (j < apData->mlHighFreqPoints) )
-					{
-						float fLowRelPos = (float) i / (apData->mlLowFreqPoints -1 );
-						float fHighRelPos = (float) j / (apData->mlHighFreqPoints -1 );
-						float fLastLowRelPos = 0.0f;
-
-						tBeamNoisePoint tempBNP;
-
-			//			tempBNP.lLowFreqNoiseIdx = i;
-			//			tempBNP.lHighFreqNoiseIdx = j;
-						tempBNP.fRelToBendPos = (fHighRelPos-fLastLowRelPos)/(fLowRelPos-fLastLowRelPos);
-
-						if ( fLowRelPos <= fHighRelPos )
-						{
-							if ( fLowRelPos == fHighRelPos )
-							{
-								tempBNP.noiseType = ePENoiseType_Both;
-								++i;
-								++j;
-							}
-							else
-							{
-								tempBNP.noiseType = ePENoiseType_LowFreq;
-								++i;
-							}
-
-							tempBNP.fRelToBeamPos = fLowRelPos;
-							apData->mvLFIndices.push_back (k);
-
-						}
-						else
-						{
-							tempBNP.fRelToBeamPos = fHighRelPos;
-							tempBNP.noiseType = ePENoiseType_HighFreq;
-							++j;
-						}
-
-						fLastLowRelPos = fLowRelPos;
-
-
-						mpData->mvBeamNoisePoints.push_back(tempBNP);
-						++k;
-					}
-				}
-				else
-				{
-					tBeamNoisePoint tempBNP;
-
-					tempBNP.fRelToBeamPos = 0.0f;
-					tempBNP.fRelToBendPos = 0.0f;
-					tempBNP.noiseType = ePENoiseType_None;
-
-					mpData->mvBeamNoisePoints.push_back(tempBNP);
-
-					tempBNP.fRelToBeamPos = 1.0f;
-					tempBNP.fRelToBendPos = 1.0f;
-					tempBNP.noiseType = ePENoiseType_None;
-
-					mpData->mvBeamNoisePoints.push_back(tempBNP);
-				}
-
-				mpVtxBuffer = apGraphics->GetLowLevel()->CreateVertexBuffer ( eVertexFlag_Position,		// Now that we know how many points we have, we create the Vertex Buffer
-						eVertexBufferDrawType_Tri, eVertexBufferUsageType_Stream,
-						mlMaxParticles*mpData->mvBeamNoisePoints.size()*2, mlMaxParticles*(mpData->mvBeamNoisePoints.size()-1)*6);
-
-				for ( int i = 0; i < (int) mlMaxParticles; ++i )
-				{
-					for ( int j = 0; j < (int) mpData->mvBeamNoisePoints.size()-1; ++j )
-					{
-						int lStart = j*2;
-						mpVtxBuffer->AddIndex(lStart);		// Half quad ( tri )
-						mpVtxBuffer->AddIndex(lStart+1);
-						mpVtxBuffer->AddIndex(lStart+3);
-
-						mpVtxBuffer->AddIndex(lStart+3);	// The other half
-						mpVtxBuffer->AddIndex(lStart+2);
-						mpVtxBuffer->AddIndex(lStart);
-					}
-
-				}
-
-				for ( int i = 0; i < (int) mlMaxParticles; ++i )
-				{
-					for (int j = 0; j < (int) mpData->mvBeamNoisePoints.size(); ++j )
-					{
-						mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector2f(mpData->mvBeamNoisePoints[j].fRelToBeamPos,1));
-						mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector2f(mpData->mvBeamNoisePoints[j].fRelToBeamPos,0));
-					}
-				}
-
-				for ( int i = 0; i < (int) mlMaxParticles; ++i )
-				{
-					for (int j = 0; j < (int) mpData->mvBeamNoisePoints.size()*2; ++j )
-					{
-						mpVtxBuffer->AddVertex(eVertexFlag_Position, 0);
-						mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1));
-					}
-				}
-
-				mpVtxBuffer->Compile(0);
-
-
-
-
-
-				break;
-			case ePEType_Normal:
-				break;
-			default:
-				break;
-			}
-*/
 		// ---
 
 	}
@@ -716,22 +587,6 @@ namespace hpl {
 
 // NEW
 
-//		if (mpData->mVBMeshData)
-//		{
-/*
-			cVector3f vTrans = mtxStart.GetTranslation();
-			posI = cMath::RandRectl(0,mpData->mVBMeshData->GetVertexNum()-1);
-			vTrans.x += mpData->mpfMeshVtxData[posI*4];
-			vTrans.y += mpData->mpfMeshVtxData[posI*4 + 1];
-			vTrans.z += mpData->mpfMeshVtxData[posI*4 + 2];
-
-			apParticle->mvPos = vTrans;
-			*/
-//			apParticle->mvPos = mtxStart.GetTranslation() + mpData->mVBMeshData->GetVector3( eVertexFlag_Position, cMath::RandRectl(0,mpData->mVBMeshData->GetVertexNum()-1) );
-//			++posI;
-	//		if ( posI == mpData->mVBMeshData->GetVertexNum() )
-	//			posI = 0;
-//		}
 
 // ---
 
@@ -793,7 +648,6 @@ namespace hpl {
 		// ---
 
 
-
 		///////////////////////////////////
 		//Life Span
 		apParticle->mfStartLife = cMath::RandRectf(mpData->mfMinLifeSpan,mpData->mfMaxLifeSpan );
@@ -821,46 +675,6 @@ namespace hpl {
 		//Beam Specific
 		if (mPEType == ePEType_Beam )
 		{
-			/*
-			if (apParticle->mvBeamPoints.size() == 0 )
-			{
-				for (int i = 0; i < (int) mpData->mvBeamNoisePoints.size(); ++i)
-					apParticle->mvBeamPoints.push_back(cVector(0.0f));
-			}
-
-
-			int j = 1;
-			cVector3f vLFPointPos = apParticle->mvPos + apParticle->mvVel * mpData->mvBeamNoisePoints.at(mpData->mvLFIndices[j]).fRelToBeamPos;
-			cVector3f vLastLFPointPos = apParticle->mvPos;
-			cVector3f vDir;
-			for ( int i = 1; i < (int) mpData->mvBeamNoisePoints.size(); ++i )
-			{
-				apParticle->mvBeamPoints[i] = vLastLFPointPos + vDir * mpData->mvBeamNoisePoints[i].fRelToBendPos;
-
-				switch (mpData->mvBeamNoisePoints[i].noiseType)
-				{
-
-				case ePENoiseType_HighFreq:
-					apParticle->mvBeamPoints[i] += cMath::RandRectVector3f(mpData->mvMinHighFreqNoise, mpData->mvMaxHighFreqNoise);
-					break;
-				case ePENoiseType_LowFreq:
-					++j;
-					vLastLFPointPos = vLFPointPos;
-					vLFPointPos = apParticle->mvPos + apParticle->mvVel * mpData->mvBeamNoisePoints.at(mpData->mvLFIndices[j]).fRelToBeamPos + cMath::RandRectVector3f(mpData->mvMinLowFreqNoise, mpData->mvMaxLowFreqNoise);
-					vDir = vLFPointPos - vLastLFPointPos;
-					break;
-				case ePENoiseType_Both:
-					apParticle->mvBeamPoints[i] += cMath::RandRectVector3f(mpData->mvMinHighFreqNoise, mpData->mvMaxHighFreqNoise);
-					++j;
-					vLastLFPointPos = vLFPointPos;
-					vLFPointPos = apParticle->mvPos + apParticle->mvVel * mpData->mvBeamNoisePoints.at(mpData->mvLFIndices[j]).fRelToBeamPos + cMath::RandRectVector3f(mpData->mvMinLowFreqNoise, mpData->mvMaxLowFreqNoise);
-					vDir = vLFPointPos - vLastLFPointPos;
-					break;
-				default:
-					break;
-				}
-			}
-			*/
 		}
 
 
@@ -1032,7 +846,6 @@ namespace hpl {
 			// Revolution
 			if ( mbUseRevolution )
 			{
-				//pParticle->mvRevolution += pParticle->mvRevolutionVel * afTimeStep;
 				cMatrixf mtxRotationMatrix = cMath::MatrixRotate( pParticle->mvRevolutionVel * afTimeStep,  eEulerRotationOrder_XYZ );
 				pParticle->mvPos = cMath::MatrixMul(mtxRotationMatrix, pParticle->mvPos);
 				pParticle->mvVel = cMath::MatrixMul(mtxRotationMatrix, pParticle->mvVel);
@@ -1051,8 +864,6 @@ namespace hpl {
 											mpWorld->GetPhysicsWorld(),
 											&vNormal, &vPos))
 				{
-					//Log("Coll pos: %s\n",vPos.ToString().c_str());
-					//Log("Coll normal: %s\n",vNormal.ToString().c_str());
 
 					pParticle->mvPos = vPos;
 

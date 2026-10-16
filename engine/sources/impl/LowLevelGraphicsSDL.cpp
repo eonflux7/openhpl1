@@ -242,13 +242,6 @@ namespace hpl {
 		//3 Pos floats, 4 color floats, 3 Tex coord floats .
 		mpVertexArray = (float*)hplMalloc(sizeof(float) * mlBatchStride * mlBatchArraySize);
 		mpIndexArray = (unsigned int*)hplMalloc(sizeof(unsigned int) * mlBatchArraySize); //Index is one int.
-
-		for(int i=0;i<MAX_TEXTUREUNITS;i++)
-		{
-			mpTexCoordArray[i] = (float*)hplMalloc(sizeof(float) * 3 * mlBatchArraySize);
-			mbTexCoordArrayActive[i] = false;
-			mlTexCoordArrayCount[i]=0;
-		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -257,7 +250,6 @@ namespace hpl {
 	{
 		hplFree(mpVertexArray);
 		hplFree(mpIndexArray);
-		for(int i=0;i<MAX_TEXTUREUNITS;i++)	hplFree(mpTexCoordArray[i]);
 
 		hplDelete(mpPixelFormat);
 
@@ -652,9 +644,6 @@ namespace hpl {
 		glEnable(GL_DEPTH_TEST); //enable depth testing
 		glDepthFunc(GL_LEQUAL); //function to do depth test with
 
-		//int lStencilBits=-1;
-		//glGetIntegerv(GL_STENCIL_BITS,&lStencilBits);
-		//Log(" Stencil bits: %d\n",lStencilBits);
 
 		//Stencil setup
 		glClearStencil(0);
@@ -844,10 +833,6 @@ namespace hpl {
 			vEye[j] = vPlane[0]*mtxInv.m[0][j] + vPlane[1]*mtxInv.m[1][j] + vPlane[2]*mtxInv.m[2][j] + vPlane[3]*mtxInv.m[3][j];
 		mFixedFunction.SetClipPlane(alIdx, cPlanef(vEye[0], vEye[1], vEye[2], vEye[3]));
 	}
-	cPlanef cLowLevelGraphicsSDL::GetClipPlane(int alIdx, const cPlanef& aPlane)
-	{
-		return mvClipPlanes[alIdx];
-	}
 	// Only the fixed-function vertex shader writes the clip distances.
 	void cLowLevelGraphicsSDL::SetClipPlaneActive(int alIdx, bool abX)
 	{
@@ -933,13 +918,6 @@ namespace hpl {
 	iGpuProgram* cLowLevelGraphicsSDL::CreateGpuProgram(const tString& asName, eGpuProgramType aType)
 	{
 		return hplNew( cGLSLProgram, (asName, aType) );
-	}
-
-	//-----------------------------------------------------------------------
-
-	iPixelFormat* cLowLevelGraphicsSDL::GetPixelFormat()
-	{
-		return mpPixelFormat;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1059,24 +1037,6 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 
-	void cLowLevelGraphicsSDL::TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos)
-	{
-		cMatrixf& mtx = mvMatrixStack[aMtxType].back();
-		mtx = cMath::MatrixMul(mtx, cMath::MatrixTranslate(avPos));
-		LoadMatrix(aMtxType);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)
-	{
-		cMatrixf& mtx = mvMatrixStack[aMtxType].back();
-		mtx = cMath::MatrixMul(mtx, cMath::MatrixScale(avScale));
-		LoadMatrix(aMtxType);
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)
 	{
 		SetMatrix(eMatrix_Projection, OrthoMatrix(0,avSize.x,avSize.y,0,afMin,afMax));
@@ -1190,21 +1150,6 @@ namespace hpl {
 		return hplNew( cVertexBufferVBO, (this, aFlags,aDrawType,aUsageType,alReserveVtxSize,alReserveIdxSize) );
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)
-	{
-		const cColor white(1,1,1,1);
-		const cVector3f vTex[4] = {cVector3f(0,0,0), cVector3f(1,0,0), cVector3f(1,1,0), cVector3f(0,1,0)};
-
-		ImmediateBegin(1);
-		ImmediateVertex(cVector3f(avPos.x, avPos.y,afZ), white, &vTex[0]);
-		ImmediateVertex(cVector3f(avPos.x+avSize.x, avPos.y,afZ), white, &vTex[1]);
-		ImmediateVertex(cVector3f(avPos.x+avSize.x, avPos.y+avSize.y,afZ), white, &vTex[2]);
-		ImmediateVertex(cVector3f(avPos.x, avPos.y+avSize.y,afZ), white, &vTex[3]);
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
 
 	//-----------------------------------------------------------------------
 
@@ -1964,24 +1909,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::DrawTri(const tVertexVec &avVtx)
-	{
-		assert(avVtx.size()==3);
-
-		DrawTri(avVtx.data());
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawTri(const cVertex* avVtx)
-	{
-		ImmediateBegin(1);
-		for(int i=0;i<3;i++) ImmediateVertex(avVtx[i].pos, avVtx[i].col, &avVtx[i].tex);
-		ImmediateDraw(GL_TRIANGLES);
-	}
-
-	//-----------------------------------------------------------------------
-
 	// Quads are drawn as fans: the triangles 0,1,2 and 0,2,3.
 	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx)
 	{
@@ -2209,18 +2136,6 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 
-	void cLowLevelGraphicsSDL::SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
-		eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha)
-	{
-		glBlendFuncSeparate(GetGLBlendEnum(aSrcFactorColor),
-							GetGLBlendEnum(aDestFactorColor),
-							GetGLBlendEnum(aSrcFactorAlpha),
-							GetGLBlendEnum(aDestFactorAlpha));
-	}
-
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx, const cColor aCol)
 	{
 		assert(avVtx.size()==4);
@@ -2262,36 +2177,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::AddVertexToBatch(const cVertex *apVtx)
-	{
-		//Coord
-		mpVertexArray[mlVertexCount + 0] =	apVtx->pos.x;
-		mpVertexArray[mlVertexCount + 1] =	apVtx->pos.y;
-		mpVertexArray[mlVertexCount + 2] =	apVtx->pos.z;
-		//Color
-		mpVertexArray[mlVertexCount + 3] =	apVtx->col.r;
-		mpVertexArray[mlVertexCount + 4] =	apVtx->col.g;
-		mpVertexArray[mlVertexCount + 5] =	apVtx->col.b;
-		mpVertexArray[mlVertexCount + 6] =	apVtx->col.a;
-		//Texture coord
-		mpVertexArray[mlVertexCount + 7] =	apVtx->tex.x;
-		mpVertexArray[mlVertexCount + 8] =	apVtx->tex.y;
-		mpVertexArray[mlVertexCount + 9] =	apVtx->tex.z;
-		//Normal coord
-		mpVertexArray[mlVertexCount + 10] =	apVtx->norm.x;
-		mpVertexArray[mlVertexCount + 11] =	apVtx->norm.y;
-		mpVertexArray[mlVertexCount + 12] =	apVtx->norm.z;
-
-		mlVertexCount = mlVertexCount + mlBatchStride;
-
-		if(mlVertexCount/mlBatchStride >= mlBatchArraySize)
-		{
-			//Make the array larger.
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)
 	{
 		//Coord
@@ -2299,10 +2184,6 @@ namespace hpl {
 		mpVertexArray[mlVertexCount + 1] =	apVtx->pos.y+avTransform->y;
 		mpVertexArray[mlVertexCount + 2] =	apVtx->pos.z+avTransform->z;
 
-		/*Log("Trans: %s\n",avTransform->ToString().c_str());
-		Log("Adding: %f:%f:%f\n",mpVertexArray[mlVertexCount + 0],
-									mpVertexArray[mlVertexCount + 1],
-									mpVertexArray[mlVertexCount + 2]);*/
 		//Color
 		mpVertexArray[mlVertexCount + 3] =	apVtx->col.r;
 		mpVertexArray[mlVertexCount + 4] =	apVtx->col.g;
@@ -2313,9 +2194,6 @@ namespace hpl {
 		mpVertexArray[mlVertexCount + 8] =	apVtx->tex.y;
 		mpVertexArray[mlVertexCount + 9] =	apVtx->tex.z;
 
-		/*Log("Tex: %f:%f:%f\n",mpVertexArray[mlVertexCount + 7],
-			mpVertexArray[mlVertexCount + 8],
-			mpVertexArray[mlVertexCount + 9]);*/
 
 		//Normal coord
 		mpVertexArray[mlVertexCount + 10] =	apVtx->norm.x;
@@ -2328,13 +2206,6 @@ namespace hpl {
 		{
 			//Make the array larger.
 		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::AddVertexToBatch(const cVertex *apVtx, const cMatrixf* aMtx)
-	{
-
 	}
 
 	//-----------------------------------------------------------------------
@@ -2408,42 +2279,8 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::AddTexCoordToBatch(unsigned int alUnit,const cVector3f *apCoord)
-	{
-		unsigned int lCount = mlTexCoordArrayCount[alUnit];
-
-		mpTexCoordArray[alUnit][lCount+0] = apCoord->x;
-		mpTexCoordArray[alUnit][lCount+1] = apCoord->y;
-		mpTexCoordArray[alUnit][lCount+2] = apCoord->z;
-
-		mlTexCoordArrayCount[alUnit]+=3;
-	}
-
-	//-----------------------------------------------------------------------
-
 	// Flushing has always pointed every unit at the vertices' own texture
 	// coordinates, so the extra arrays are not drawn with.
-	void cLowLevelGraphicsSDL::SetBatchTextureUnitActive(unsigned int alUnit,bool abActive)
-	{
-		mbTexCoordArrayActive[alUnit] = abActive;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::FlushTriBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear)
-	{
-		DrawBatch(aTypeFlags, false);
-
-		if(abAutoClear){
-			mlIndexCount = 0;
-			mlVertexCount = 0;
-			for(int i=0;i<MAX_TEXTUREUNITS;i++)
-				mlTexCoordArrayCount[i]=0;
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear)
 	{
 		DrawBatch(aTypeFlags, true);
@@ -2451,8 +2288,6 @@ namespace hpl {
 		if(abAutoClear){
 			mlIndexCount = 0;
 			mlVertexCount = 0;
-			for(int i=0;i<MAX_TEXTUREUNITS;i++)
-				mlTexCoordArrayCount[i]=0;
 		}
 	}
 
@@ -2469,7 +2304,6 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol)
 	{
 		SetTexture(0,nullptr);
-		//SetBlendActive(false);
 		ImmediateBegin(0);
 		ImmediateVertex(avBegin, aCol);
 		ImmediateVertex(avEnd, aCol);
@@ -2561,34 +2395,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::DrawLineRect2D(const cRect2f& aRect, float afZ, cColor aCol)
-	{
-		SetTexture(0, nullptr);
-		SetBlendActive(false);
-		ImmediateBegin(0);
-		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x,aRect.y+aRect.h,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
-		ImmediateDraw(GL_LINE_STRIP);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)
-	{
-		SetTexture(0, nullptr);
-		ImmediateBegin(0);
-		ImmediateVertex(cVector3f(aRect.x,aRect.y,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x+aRect.w,aRect.y+aRect.h,afZ), aCol);
-		ImmediateVertex(cVector3f(aRect.x,aRect.y+aRect.h,afZ), aCol);
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
-
-	//-----------------------------------------------------------------------
-
 	/**
 	 * \todo Implement this.
 	 * \param avCenter
@@ -2596,13 +2402,6 @@ namespace hpl {
 	 * \param afZ
 	 * \param aCol
 	 */
-	void cLowLevelGraphicsSDL::DrawLineCircle2D(const cVector2f& avCenter, float afRadius, float afZ, cColor aCol)
-	{
-		//Implement later
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
 							const cVector2l &avSize, const cVector2l &avTexOffset)
 	{
@@ -2611,9 +2410,6 @@ namespace hpl {
 		int lScreenY = (mvTargetSize.y - avSize.y) - avPos.y;
 		int lTexY = (apTex->GetHeight() - avSize.y) - avTexOffset.y;
 
-		//Log("TExoffset: %d %d\n",avTexOffset.x,lTexY);
-		//Log("ScreenOffset: %d %d (h: %d s: %d p: %d)\n",avPos.x,lScreenY,mvScreenSize.y,
-		//												avSize.y,avPos.y);
 
 		SetTexture(0, apTex);
 

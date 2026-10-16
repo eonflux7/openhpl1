@@ -1529,6 +1529,33 @@ reference images are as before.
 - `tools/refshots.py effects /tmp/effects` captures both treatments, opaque
   endpoints and the panel, checks pixels and exercises real effect owners.
 
+## Milestone 6: the rest of the 2007 renderer
+
+### Dead code removed
+
+What the game never reaches, with the reference images unchanged (original
+look and every improved option on):
+
+- the 2D engine of HPL1, made for 2D games and never used by Penumbra:
+  `cWorld2D` and `cScene::LoadMap2D`, tile maps and tile sets, 2D lights and
+  their stencil shadows, 2D cameras, 2D bodies and colliders, image
+  entities, 2D particles, background images and `cRenderer2D`. Materials
+  no longer take the 2D renderer, and the 2D entity and area loaders and
+  the tile set and image entity managers are gone from `cResources`. The
+  tag `hpl1-2d-engine` marks the last commit that has it
+- the `Diffuse2D` material (`diff2d`), which no file of the three games
+  names
+- low-level graphics functions nothing called: `DrawRect`, `DrawTri`, the
+  triangle batch and its extra texture coordinate arrays, two
+  `AddVertexToBatch` overloads, `TranslateMatrix`, `ScaleMatrix`,
+  `GetClipPlane`, `GetPixelFormat`, `SetBlendFuncSeparate`, the 2D line,
+  rectangle and circle drawing, and the commented-out stencil functions
+- about 700 lines of commented-out code in the renderer, materials,
+  particles, meshes, lights and the GL implementation
+
+`tools/refshots.py --windows` runs the Windows build from WSL, hidden and
+silent, in place of the gamescope session.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

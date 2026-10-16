@@ -104,8 +104,8 @@ public:
 	TestResources() : cResources(nullptr, nullptr)
 	{
 		mpLowLevelSystem = nullptr;
-		mpImageManager = nullptr; mpGpuProgramManager = nullptr; mpTileSetManager = nullptr;
-		mpImageEntityManager = nullptr; mpParticleManager = nullptr; mpSoundManager = nullptr;
+		mpImageManager = nullptr; mpGpuProgramManager = nullptr;
+		mpParticleManager = nullptr; mpSoundManager = nullptr;
 		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
 		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
 		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;

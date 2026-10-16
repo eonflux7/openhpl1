@@ -162,7 +162,6 @@ namespace hpl {
 
 		for(int i=0; i<256; ++i) {
 			pFogArray[i*2 + 0] = 255;
-			//pFogArray[i*2 + 0] = 255 - (unsigned char)i;
 			pFogArray[i*2 + 1] = 255 - (unsigned char)i;
 		}
 
@@ -309,8 +308,6 @@ namespace hpl {
 			if(mpTexture[i])
 			{
 				apLowLevel->SetTexture(i,nullptr);
-				//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorOp1,eTextureOp_Color);
-				//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorFunc, eTextureFunc_Modulate);
 			}
 		}
 
@@ -392,12 +389,9 @@ namespace hpl {
 
 		////////////////////////////
 		// Render Z
-		//mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_E);
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true,true);
 		mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
 
-		//mpLowLevelGraphics->SetColorWriteActive(false, false, false,false);
-		//mRenderSettings.mChannelMode = eMaterialChannelMode_Z;
 
 		//Set the ambient color
 		mpLowLevelGraphics->SetActiveTextureUnit(0);
@@ -405,7 +399,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
 		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Constant);
 
-		//mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource1,eTextureSource_Constant);
 
 		mpLowLevelGraphics->SetTextureConstantColor(mRenderSettings.mAmbientColor);
 
@@ -416,7 +409,6 @@ namespace hpl {
 
 		//reset parameters.
 		mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-		//mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource1,eTextureSource_Previous);
 
 		////////////////////////////
 		//Render Occlusion Queries
@@ -568,7 +560,6 @@ namespace hpl {
 		while(it.HasNext())
 		{
 			cOcclusionQueryObject *pObject = it.Next();
-			//LogUpdate("Query: %d!\n",pObject->mpQuery);
 
 			// Takes the newest finished result, without waiting
 			pObject->mpQuery->FetchResults();
@@ -671,7 +662,6 @@ namespace hpl {
 		//////////////////////////////////
 		// Blend mode
 		mpLowLevelGraphics->SetBlendActive(true);
-		//mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_Zero);
 		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
 		mRenderSettings.mBlendMode = eMaterialBlendMode_LastEnum;
 
@@ -847,21 +837,11 @@ namespace hpl {
 		{
 			cOcclusionQueryObject *pObject = it.Next();
 
-			/*if(pObject->mbDepthTest) {
-				mpLowLevelGraphics->SetColorWriteActive(true, true,true,true);
-				mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
-			}
-			else {
-				mpLowLevelGraphics->SetColorWriteActive(false, false, false, false);
-				mRenderSettings.mChannelMode = eMaterialChannelMode_Z;
-			}*/
-
 
 			/////////////////////
 			//Set depth test
 			if(bPrevDepthTest != pObject->mbDepthTest)
 			{
-				//mpLowLevelGraphics->SetDepthTestActive(pObject->mbDepthTest);
 				if(pObject->mbDepthTest)
 					mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 				else
@@ -912,10 +892,7 @@ namespace hpl {
 
 		mRenderSettings.mpVtxBuffer = pPrevBuffer;
 
-		//mpLowLevelGraphics->FlushRendering();
 
-		//if(bPrevDepthTest==false)
-		//	mpLowLevelGraphics->SetDepthTestActive(true);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1326,14 +1303,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/*void cRenderer3D::RenderTrans(cCamera3D *apCamera)
-	{
-		cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Trans,
-														eMaterialRenderType_Diffuse, 0);
-		mRenderSettings.mpLight = NULL;
-		pNode->Render(&mRenderSettings);
-	}*/
-
 
 	void cRenderer3D::RenderTrans(cCamera3D *apCamera)
 	{
@@ -1344,11 +1313,6 @@ namespace hpl {
 
 		iTexture *vTextures[MAX_TEXTUREUNITS];
 
-		/*for(int i=0;i<MAX_TEXTUREUNITS;i++)
-		{
-			mpLowLevelGraphics->SetTexture(i,NULL);
-			mRenderSettings.mpTexture[i] = NULL;
-		}*/
 
 		cVector3f vForward = apCamera->GetForward();
 
@@ -1361,25 +1325,6 @@ namespace hpl {
 
 			if(bLog) Log(" Rendering '%s'\n",pObject->GetName().c_str());
 
-			/*if(pObject->GetIsOneSided())
-			{
-				cVector3f vNormal;
-
-				if(pObject->GetModelMatrix(apCamera))
-				{
-					vNormal = cMath::MatrixMul(pObject->GetWorldMatrix().GetRotation(), pObject->GetOneSidedNormal());
-					vNormal = cMath::MatrixMul(apCamera->GetViewMatrix().GetRotation(), vNormal);
-				}
-				else
-				{
-					vNormal = cMath::MatrixMul(apCamera->GetViewMatrix().GetRotation(), pObject->GetOneSidedNormal());
-				}
-
-				if(cMath::Vector3Dot(vNormal, cVector3f(0,0,1)) < -0.5f)
-				{
-					continue;
-				}
-			}*/
 
 			/////////////////////////////////////////
 			// Get all data needed
@@ -1561,10 +1506,6 @@ namespace hpl {
 					cVector2l vOffset = cVector2l(clipRect.x,clipRect.y);
 					cVector2l vSize = cVector2l(clipRect.w,clipRect.h);
 
-					/*Log("  ScreenSize: %d:%d Offset: %d:%d Size: %d:%d Scale: %d\n",vScreenSize.x,vScreenSize.y,
-					vOffset.x,vOffset.y,
-					vSize.x, vSize.y,
-					lScale);*/
 
 					mpLowLevelGraphics->CopyContextToTexure(pScreen,vOffset,vSize,vOffset);
 					if(bLog) Log("   Copy clipped screen texture\n");
@@ -1593,7 +1534,6 @@ namespace hpl {
 					else			pRefractFragProgram = mpRefractFragProgram;
 				}
 				if(pRefractVtxProgram==nullptr) pRefractVtxProgram = mpRefractVtxProgram;
-
 
 
 				/////////////////////////////////////
@@ -1657,7 +1597,6 @@ namespace hpl {
 				//Textures
 				for(int i=0;i<MAX_TEXTUREUNITS;i++)
 				{
-					//float fTime;
 					iTexture *pTex = nullptr;
 					switch(i)
 					{

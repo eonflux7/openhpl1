@@ -123,9 +123,6 @@ namespace hpl {
 		}
 		else
 		{
-			//Log("Delete + Generate!\n");
-			//glDeleteTextures(1,(GLuint *)&mvTextureHandles[0]);
-			//glGenTextures(1,(GLuint *)&mvTextureHandles[0]);
 		}
 
 		return CreateFromBitmapToHandle(pBmp,0);
@@ -594,11 +591,6 @@ namespace hpl {
 		}
 
 		//For some reason checking for ARB texture is not working on radeon cards.
-		/*if(mTarget == eTextureTarget_Rect && !GLEE_ARB_texture_rectangle)
-		{
-		Error("Rectangle texture target not supported\n");
-		return false;
-		}*/
 
 		GLenum GLTarget =InitCreation(alHandleIdx);
 
@@ -623,7 +615,6 @@ namespace hpl {
 		unsigned char *pNewSrc = nullptr;
 		if(mlSizeLevel>0 && (int)mlWidth > mvMinLevelSize.x*2)
 		{
-			//Log("OldSize: %d x %d ",mlWidth,mlHeight);
 
 			int lOldW = mlWidth;
 
@@ -639,7 +630,6 @@ namespace hpl {
 				lSizeDiv/=2;
 			}
 
-			//Log("NewSize: %d x %d SizeDiv: %d\n",mlWidth,mlHeight,lSizeDiv);
 
 			pNewSrc = hplNewArray( unsigned char, lChannels * mlWidth * mlHeight);
 
@@ -661,8 +651,6 @@ namespace hpl {
 			pPixelSrc = pNewSrc;
 		}
 
-		//Log("Loading %s  %d x %d\n",msName.c_str(), pSrc->GetWidth(), pSrc->GetHeight());
-		//Log("Channels: %d Format: %x\n",lChannels, format);
 
 		//Clear error flags
 		while(glGetError()!=GL_NO_ERROR);

@@ -109,7 +109,6 @@ namespace hpl {
 
 	//---------------------------------------------------
 
-	class cRenderer2D;
 	class cRenderer3D;
 	class cRenderSettings;
 	class cTextureManager;
@@ -200,7 +199,7 @@ namespace hpl {
 	public:
 		iMaterial(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 				cImageManager* apImageManager, cTextureManager *apTextureManager,
-				cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+				cGpuProgramManager* apProgramManager,
 				eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 		~iMaterial() override;
 
@@ -341,7 +340,6 @@ namespace hpl {
 		iLowLevelGraphics* mpLowLevelGraphics;
 		cImageManager* mpImageManager;
 		cTextureManager* mpTextureManager;
-		cRenderer2D* mpRenderer;
 		cRenderer3D* mpRenderer3D;
 		cRenderSettings *mpRenderSettings;
 		cGpuProgramManager* mpProgramManager;
@@ -380,7 +378,7 @@ namespace hpl {
 		virtual bool IsCorrect(tString asName)=0;
 		virtual iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D)=0;
 	};
 

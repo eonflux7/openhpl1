@@ -1471,7 +1471,6 @@ namespace hpl {
 			}
 
 
-
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Texture);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource1,eTextureSource_Previous);
 			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Modulate);

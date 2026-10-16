@@ -25,7 +25,6 @@
 
 namespace hpl {
 
-	class cMesh2D;
 	class iVertexBuffer;
 	class iLowLevelGraphics;
 	class cResources;
@@ -37,7 +36,6 @@ namespace hpl {
 		cMeshCreator(iLowLevelGraphics *apLowLevelGraphics, cResources *apResources);
 		~cMeshCreator();
 
-		cMesh2D *Create2D(tString asName, cVector2f mvSize);
 
 		cMesh* CreateBox(const tString &asName, cVector3f avSize, const tString &asMaterial);
 

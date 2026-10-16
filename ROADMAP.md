@@ -382,6 +382,86 @@ the normal map's alpha, 160 have no normal map at all.
         (from Milestone 4)
   - [ ] water and the environment map material (3 materials)
 
+## Milestone 6: the rest of the 2007 renderer
+
+Milestones 3 to 5 put a modern frame and new looks on top of the HPL1
+renderer; underneath, the engine still talks to it as to OpenGL 1.x. Every
+draw goes through texture environments, an alpha test, a matrix stack and
+quads, which shaders generated for each combination stand in for
+(`FixedFunctionShaders`). Materials describe themselves as numbered passes
+of texture units, ask for programs by their Cg file names, and set uniforms
+by name. This milestone replaces that with code written for what the
+renderer is now. It can run alongside Milestone 5.
+
+Nothing here changes the picture: every step is checked against the
+reference images, with the new options off and with them on.
+
+In this order: each step removes callers of what a later one deletes.
+
+- [x] **1. Dead code.** Remove what the game never reaches:
+  - [x] the 2D engine of HPL1: 2D worlds, tile maps, 2D lights and their
+        stencil shadows, 2D cameras, 2D bodies and colliders, image
+        entities, 2D particles, background images and `cRenderer2D`
+  - [x] the `Diffuse2D` material
+  - [x] low-level functions nothing calls (`DrawRect`, `DrawTri`, the texture
+        coordinate batching), the commented-out stencil functions, and
+        commented-out code in the renderer
+- [ ] **2. Post effects read the frame, not a copy of it.** Bloom, depth of
+      field, motion blur, ambient occlusion, image trail and refraction
+      copy the screen with `CopyContextToTexure`; they read the scene
+      texture instead, or draw into a target of their own (the open item
+      of Milestone 3's off-screen frame):
+  - [ ] rectangle textures (`sampler2DRect`, coordinates in pixels)
+        replaced by 2D textures
+  - [ ] the original blur, depth of field and image trail drawn by
+        shaders of their own instead of texture environments
+- [ ] **3. Shaders for every material.** Modulative, modulative ×2, the
+      environment map and the 2D materials of the HUD (alpha, additive,
+      smoke, font) get shaders of their own, in place of texture
+      environments and the `iGLStateProgram` state objects. So do the
+      remaining texture environment calls in the renderer and the game
+      (the fog, the item outline in `MapHandler`). Then:
+  - [ ] `SetTextureEnv`, `SetTextureConstantColor`, `SetActiveTextureUnit`,
+        the alpha test and `SetColor` removed from `iLowLevelGraphics`
+  - [ ] `FixedFunctionShaders` and its state uniform block removed
+  - [ ] the light shader without its look-up textures: the normalization
+        cube map (`normalize()` does it) and the spotlight's 1D texture
+        that cuts off what is behind it; the 3D attenuation texture if
+        nothing reads it. The falloff ramps are game data and stay
+- [ ] **4. No matrix stack.** Model, view and projection given to each
+      draw instead of pushed, popped and multiplied in place; `eMatrix`
+      removed. The renderer, post effects, lights, the GUI and the game
+      (enemies, the player, the HUD weapon, the intro) use it today
+- [ ] **5. Materials and programs:**
+  - [ ] one program object of vertex and fragment shader together, in
+        place of the pair the Cg-era interface binds one by one
+  - [ ] shaders asked for by their GLSL name and `#define`s, not a Cg file
+        name translated (`CgNameToShaderBase`)
+  - [ ] uniform locations looked up once, values for a material in a
+        uniform block, instead of about 200 calls setting them by name
+  - [ ] the draw order by one sort key per draw in place of the twelve
+        level state tree of `cRenderState`
+- [ ] **6. One sprite batcher for 2D.** The HUD, GUI, fonts and fades drawn
+      by a batcher of textured triangles with a blend mode per batch, in
+      place of `AddVertexToBatch`, the quad batches and `DrawQuad`
+- [ ] **7. Vertex buffers and textures:**
+  - [ ] vertices interleaved in one buffer, indices in an element buffer,
+        triangles only (quads are turned into triangles when loaded)
+  - [ ] named attributes instead of the `hpl_MultiTexCoord0-4` slots
+  - [ ] textures with immutable storage; animated textures as one texture
+        array instead of one texture per frame
+- [ ] **8. `cLowLevelGraphicsSDL` split up.** 3300 lines doing the window,
+      GL state, scene and output framebuffers, the final passes (gamma,
+      SMAA, output, player effects), shadow map targets and debug drawing:
+      a class for each
+- [ ] **9. The original options, rebuilt.** What stays as an option keeps
+      working the same, written the way the rest now is:
+  - [ ] stencil shadow volumes: silhouettes found on the CPU for every
+        light in every frame
+  - [ ] halos: occlusion queries per billboard
+  - [ ] billboards, beams and particles: geometry built on the CPU every
+        frame
+
 ## Later / ideas
 
 - Penumbra: Black Plague and Requiem on the same engine: under way, see

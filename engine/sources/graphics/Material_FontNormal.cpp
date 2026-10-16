@@ -28,9 +28,9 @@ namespace hpl {
 
 	cMaterial_FontNormal::cMaterial_FontNormal(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-	: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+	: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 				aPicture,apRenderer3D)
 	{
 		mbIsTransperant = true;
@@ -80,7 +80,6 @@ namespace hpl {
 	{
 		if(aType == eMaterialRenderType_Diffuse)
 		{
-			//mpLowLevelGraphics->SetTextureParam(eTextureParam_AlphaSource0,eTextureSource_Texture);
 		}
 
 	}

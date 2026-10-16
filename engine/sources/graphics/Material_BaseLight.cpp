@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_BaseLight.h"
-#include "graphics/Renderer2D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
 #include "resources/GpuProgramManager.h"
@@ -83,9 +82,9 @@ namespace hpl {
 										const tString& asLightFragmentProgram,
 		const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 					aPicture,apRenderer3D)
 	{
 		mbIsTransperant = false;
@@ -321,7 +320,6 @@ namespace hpl {
 	{
 		if(aType == eMaterialRenderType_Z)
 		{
-			//if(alUnit==0 && mbHasAlpha) return mvTexture[eMaterialTexture_Diffuse];
 			if(alUnit==0) return mvTexture[eMaterialTexture_Diffuse];
 			if(UseShadedAmbient())
 			{

@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "system/LowLevelSystem.h"
 #include "resources/TextureManager.h"
@@ -37,7 +36,7 @@ namespace hpl {
 
 	iMaterial::iMaterial(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 		: iResourceBase(asName, 0)
 	{
@@ -56,7 +55,6 @@ namespace hpl {
 		mpLowLevelGraphics = apLowLevelGraphics;
 		mpImageManager = apImageManager;
 		mpTextureManager = apTextureManager;
-		mpRenderer = apRenderer;
 		mpRenderer3D = apRenderer3D;
 		mpRenderSettings = mpRenderer3D->GetRenderSettings();
 		mpProgramManager = apProgramManager;
@@ -106,10 +104,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/*void iMaterial::Destroy()
-	{
-
-	}*/
 
 	//-----------------------------------------------------------------------
 

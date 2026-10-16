@@ -30,7 +30,6 @@
 #include "math/Math.h"
 
 
-
 namespace hpl {
 
 	template<class T>
@@ -206,10 +205,7 @@ namespace hpl {
 			}
 			else
 			{
-				//apSettings->mpLowLevel->SetTextureConstantColor(cColor(0,0));
-				//apSettings->mpLowLevel->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Constant);
 
-				//apSettings->mpLowLevel->SetAlphaTestActive(false);
 				apSettings->mpLowLevel->SetAlphaTestActive(true);
 				apSettings->mpLowLevel->SetAlphaTestFunc(eAlphaTestFunc_GreaterOrEqual, 0.6f);
 				if(apSettings->mbLog)Log("Trans");
@@ -338,7 +334,6 @@ namespace hpl {
 				{
 					if(apSettings->mbLog)Log("Setting light properites ");
 
-					//mpVtxProgram->SetFloat("LightRadius",mpLight->GetFarAttenuation());
 					mpVtxProgram->SetColor4f("LightColor",mpLight->GetDiffuseColor());
 
 					apSettings->mpLight = mpLight;
@@ -358,7 +353,6 @@ namespace hpl {
 			if(apSettings->mpVertexProgram && mbUsesLight && mpLight != apSettings->mpLight)
 			{
 				if(apSettings->mbLog)Log("Setting new light properites\n");
-				//mpVtxProgram->SetFloat("LightRadius",mpLight->GetFarAttenuation());
 				mpVtxProgram->SetColor4f("LightColor",mpLight->GetDiffuseColor());
 
 				apSettings->mpLight = mpLight;
@@ -381,7 +375,6 @@ namespace hpl {
 					Log("Setting fragment program: NULL");
 			}
 
-			//if(mpFragProgram==NULL && apSettings->mpFragmentProgram) apSettings->mpFragmentProgram->UnBind();
 			if(apSettings->mpFragmentProgram) apSettings->mpFragmentProgram->UnBind();
 
 			apSettings->mpFragmentProgram = mpFragProgram;

@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_Water.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
@@ -42,8 +41,6 @@ namespace hpl {
 		{
 			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
 			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);
-			//apProgram->SetFloat("timeCount",mfTime);
-			//Log("Setting %f\n",mfTime);
 		}
 		float mfTime;
 	};
@@ -73,16 +70,15 @@ namespace hpl {
 
 	cMaterial_Water::cMaterial_Water(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 					aPicture,apRenderer3D)
 	{
 		mbIsTransperant = true;
 		mbIsGlowing= false;
 		mbUsesLights = false;
 
-		//gModulateFog.SetUp(apLowLevelGraphics);
 
 		mpFogVtxProg = mpProgramManager->CreateProgram("Water_Fog_vp.cg","main",
 														eGpuProgramType_Vertex);

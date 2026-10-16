@@ -28,9 +28,9 @@ namespace hpl {
 
 	cMaterial_DiffuseAlpha2D::cMaterial_DiffuseAlpha2D(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-	: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+	: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 				aPicture,apRenderer3D)
 	{
 		mbIsTransperant = true;
@@ -68,8 +68,6 @@ namespace hpl {
 			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
 
 			mpLowLevelGraphics->SetTexture(0, GetTexture(eMaterialTexture_Diffuse));
-			//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorOp1,eTextureOp_Alpha);
-			//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorFunc, eTextureFunc_Modulate);
 
 			return true;
 		}
@@ -82,8 +80,6 @@ namespace hpl {
 	{
 		if(aType == eMaterialRenderType_Diffuse)
 		{
-			//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorOp1,eTextureOp_Color);
-			//mpLowLevelGraphics->SetTextureParam(eTextureParam_ColorFunc, eTextureFunc_Modulate);
 		}
 
 	}

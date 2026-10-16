@@ -197,7 +197,9 @@ menu pages. All at 1280x720 with fixed graphics settings. `--maps office,worm` l
 some maps (compare such a capture only with one of the same maps: frames
 depend on the maps visited before), `--size` changes the resolution and
 `--set Graphics.Shadows=2` any setting. `compare` lists the frames that differ and exits with 1 if any
-do.
+do. From WSL, `--windows --build <build-windows>` runs a Windows build instead
+(`--build` may be a path on a Windows drive), with its window hidden; pass
+the Windows game data with `--game-dir`.
 
 Two captures of the same build are identical except for a few pixels in a
 few frames, which `compare` ignores (`--tolerance`, `--max-pixels`), and

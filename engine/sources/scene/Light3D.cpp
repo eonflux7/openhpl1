@@ -38,7 +38,6 @@
 #include "scene/PortalContainer.h"
 
 
-
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -101,7 +100,6 @@ namespace hpl {
 
 	void iLight3D::AddShadowCaster(iRenderable* apObject, cFrustum* apFrustum, bool abStatic,cRenderList *apRenderList)
 	{
-		//Log("Testing: %s\n",apObject->GetName().c_str());
 		/////////////////////////////////////////////////////
 		// Check if the object should be added
 		eRenderableType renderType = apObject->GetRenderType();
@@ -129,7 +127,6 @@ namespace hpl {
 			}
 		}
 
-		//Log("Right type!\n");
 
 		//Check if the object has all ready been added
 		if(abStatic)
@@ -141,18 +138,11 @@ namespace hpl {
 			if(m_setDynamicCasters.find(apObject) != m_setDynamicCasters.end()) return;
 		}
 
-		//Log("Not in list!\n");
 
 		//Check if the object touches the light.
-		//if(CollidesWithBV(apObject->GetBoundingVolume())==false){
-		//	return;
-		//}
 
 		if(CheckObjectIntersection(apObject)==false) return;
 
-		//Log("Collides!\n");
-
-		//Log("Shadow is in frustum!\n");
 
 		////////////////////////////////////////////////////
 		// All checks passed, add the object!
@@ -229,9 +219,6 @@ namespace hpl {
 
 	bool iLight3D::CheckObjectIntersection(iRenderable *apObject)
 	{
-		//Log("------ Checking %s with light %s -----\n",apObject->GetName().c_str(), GetName().c_str());
-		//Log(" BV: min: %s max: %s\n",	apObject->GetBoundingVolume()->GetMin().ToString().c_str(),
-		//								apObject->GetBoundingVolume()->GetMax().ToString().c_str());
 
 		//////////////////////////////////////////////////////////////
 		// If the lights cast shadows, cull objects that are in shadow
@@ -245,7 +232,6 @@ namespace hpl {
 				if(mpVisSectorCont) hplDelete(mpVisSectorCont);
 
 				mpVisSectorCont = CreateSectorVisibility();
-				//Log("Creating Visibility container!\n");
 			}
 
 
@@ -255,7 +241,6 @@ namespace hpl {
 			//It is not attached to any room. Just use BV test.
 			if(pDataList->empty())
 			{
-				//Log("Empty data list using BV\n");
 				return CollidesWithBV(apObject->GetBoundingVolume());
 			}
 			//The object is in one or more sectors
@@ -267,21 +252,17 @@ namespace hpl {
 				{
 					cSector* pSector = static_cast<cSector*>(*it);
 
-					//Log("Checking intersection in sector %s\n",pSector->GetId().c_str());
 
 					cSectorVisibility *pVisSector = mpVisSectorCont->GetSectorVisibilty(pSector);
 					if(pVisSector)
 					{
 						if(pVisSector->IntersectionBV(apObject->GetBoundingVolume()))
 						{
-							//Log("Intersected!\n");
-							//Log("-----------------------");
 							return true;
 						}
 					}
 				}
 
-				//Log("-----------------------");
 				return false;
 			}
 
@@ -291,7 +272,6 @@ namespace hpl {
 		//Light is not in shadow, do not do any culling
 		else
 		{
-			//Log("No shadow, using BV\n");
 			return CollidesWithBV(apObject->GetBoundingVolume());
 		}
 
@@ -303,17 +283,6 @@ namespace hpl {
 	bool iLight3D::BeginDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics)
 	{
 		// Clear Stencil Buffer
-/*		apLowLevelGraphics->SetClearStencilActive(true);
-		apLowLevelGraphics->SetClearDepthActive(false);
-		apLowLevelGraphics->SetClearColorActive(false);
-
-		apLowLevelGraphics->SetClearStencil(0);
-
-		apLowLevelGraphics->ClearScreen();
-
-		apLowLevelGraphics->SetClearStencilActive(false);
-		apLowLevelGraphics->SetClearDepthActive(true);
-		apLowLevelGraphics->SetClearColorActive(true);*/
 
 
 		cRect2l ClipRect;
@@ -412,7 +381,6 @@ namespace hpl {
 			}
 
 			//Make rendering ready for the objects.
-			//apLowLevelGraphics->SetStencilTwoSideActive(false);
 
 			apLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
 
@@ -792,18 +760,6 @@ namespace hpl {
 				}
 
 				//DEBUG:
-				/*if(!(bDoubleSided && Edge.invert_tri2==false))
-				{
-					//apRenderSettings->mpVtxExtrudeProgram->UnBind();
-					apLowLevelGraphics->SetDepthTestActive(false);
-					apLowLevelGraphics->SetStencilActive(false);
-					apLowLevelGraphics->DrawLine(
-						pSubMesh->GetVertexBuffer()->GetVector3(eVertexFlag_Position,Edge.point1),
-						pSubMesh->GetVertexBuffer()->GetVector3(eVertexFlag_Position,Edge.point2),
-						cColor(1,0.9f,0,1));
-					apLowLevelGraphics->SetStencilActive(true);
-					apLowLevelGraphics->SetDepthTestActive(true);
-				}*/
 			}
 		}
 
@@ -819,9 +775,6 @@ namespace hpl {
 				if(Data.facingLight){
 					memcpy(pCurrentIndexPos,&pIdxArray[idx],3*sizeof(unsigned int));
 					pCurrentIndexPos += 3; lIndexCount+=3;
-					/*mpIndexArray[lIndexCount+0] = pIdxArray[idx+0];
-					mpIndexArray[lIndexCount+1] = pIdxArray[idx+1];
-					mpIndexArray[lIndexCount+2] = pIdxArray[idx+2];*/
 
 					if(bDoubleSided){
 						mpIndexArray[lIndexCount+0] = pIdxArray[idx+2]+lOffset;

@@ -75,7 +75,6 @@ namespace hpl {
 		void SetTextureFilter(eTextureFilter aFilter, float afAnisotropy) override;
 
 		void SetClipPlane(int alIdx, const cPlanef& aPlane) override;
-		cPlanef GetClipPlane(int alIdx, const cPlanef& aPlane) override;
 		void SetClipPlaneActive(int alIdx, bool abX) override;
 
 		cVector2f GetScreenSize() override;
@@ -119,7 +118,6 @@ namespace hpl {
 								bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget) override;
 
 
-		iPixelFormat* GetPixelFormat() override;
 
 		iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType) override;
 
@@ -134,8 +132,6 @@ namespace hpl {
 
 		void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA) override;
 
-		void TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos) override;
-		void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale) override;
 
 		const cMatrixf& GetMatrix(eMatrix aMtxType) override{ return mvMatrixStack[aMtxType].back(); }
 
@@ -204,10 +200,6 @@ namespace hpl {
 
 		//STENCIL
 		void SetStencilActive(bool abX) override;
-		/*void SetStencilTwoSideActive(bool abX);
-		void SetStencilFace(eStencilFace aFace);
-		void SetStencilFunc(eStencilFunc aFunc,int alRef, unsigned int aMask);
-		void SetStencilOp(eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp);*/
 		void SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
 				eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp) override;
 		void SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
@@ -224,8 +216,6 @@ namespace hpl {
 		//BLENDING
 		void SetBlendActive(bool abX) override;
 		void SetBlendFunc(eBlendFunc aSrcFactor, eBlendFunc aDestFactor) override;
-		void SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
-			eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha) override;
 
 
 		// TEXTURE
@@ -264,10 +254,7 @@ namespace hpl {
 										eVertexBufferUsageType aUsageType,
 										int alReserveVtxSize=0,int alReserveIdxSize=0) override;
 
-		void DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ) override;
 
-		void DrawTri(const tVertexVec &avVtx) override;
-		void DrawTri(const cVertex* avVtx) override;
 
 		void DrawQuad(const tVertexVec &avVtx) override;
 		void DrawQuad(const tVertexVec &avVtx, const cColor aCol) override;
@@ -275,9 +262,7 @@ namespace hpl {
 		void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol) override;
 		void DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs) override;
 
-		void AddVertexToBatch(const cVertex *apVtx) override;
 		void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform) override;
-		void AddVertexToBatch(const cVertex *apVtx, const cMatrixf* aMtx) override;
 
 		void AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
 										const cColor* apCol,const float& mfW, const float& mfH) override;
@@ -286,12 +271,9 @@ namespace hpl {
 									const cVector3f& avTex) override;
 
 
-		void AddTexCoordToBatch(unsigned int alUnit,const cVector3f *apCoord) override;
-		void SetBatchTextureUnitActive(unsigned int alUnit,bool abActive) override;
 
 		void AddIndexToBatch(int alIndex) override;
 
-		void FlushTriBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true) override;
 		void FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true) override;
 		void ClearBatch() override;
 
@@ -301,10 +283,7 @@ namespace hpl {
 		void DrawSphere(const cVector3f& avPos, float afRadius, cColor aCol) override;
 
 		void DrawLine2D(const cVector2f& avBegin, const cVector2f& avEnd, float afZ, cColor aCol) override;
-		void DrawLineRect2D(const cRect2f& aRect, float afZ, cColor aCol) override;
-		void DrawLineCircle2D(const cVector2f& avCenter, float afRadius, float afZ, cColor aCol) override;
 
-		void DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol) override;
 
 		//FRAMEBUFFER
 		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
@@ -526,9 +505,6 @@ namespace hpl {
 
 		unsigned int mlBatchStride;
 
-		float *mpTexCoordArray[MAX_TEXTUREUNITS];
-		bool mbTexCoordArrayActive[MAX_TEXTUREUNITS];
-		unsigned int mlTexCoordArrayCount[MAX_TEXTUREUNITS];
 
 		unsigned int mlBatchArraySize;
 

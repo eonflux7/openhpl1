@@ -30,11 +30,11 @@ namespace hpl {
 
 	cMaterial_BumpSpec::cMaterial_BumpSpec(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 		: iMaterial_BaseLight(	"DiffuseSpec_Light_vp.cg",
 								"BumpSpec_Light_fp.cg",
-			asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+			asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 			aPicture,apRenderer3D)
 	{
 		mbUseSpecular = true;
@@ -58,11 +58,11 @@ namespace hpl {
 
 	iMaterial* cMaterialType_BumpSpec::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 	{
 		return hplNew( cMaterial_BumpSpec, (asName,apLowLevelGraphics,
-								apImageManager,apTextureManager,apRenderer,
+								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
 

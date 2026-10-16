@@ -127,7 +127,6 @@ namespace hpl {
 	}
 
 
-
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
@@ -294,11 +293,6 @@ namespace hpl {
 			{
 				//Use the set cotainer instead for now:
 				m_setTransperantObjects.insert(pObject);
-				/*for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Diffuse, NULL);lPass++)
-				{
-					AddToTree(pObject,eRenderListDrawType_Trans,
-								eMaterialRenderType_Light,0,NULL, true,lPass);
-				}*/
 			}
 			//If object is not trans add to another tree.
 			else
@@ -452,20 +446,17 @@ namespace hpl {
 
 	cRenderNode* cRenderList::InsertNode(cRenderNode* apListNode, cRenderNode* apTempNode)
 	{
-		//Log("Searching for node... ");
 		//Create a node with the state.
 
 		tRenderNodeSetIt it = apListNode->m_setNodes.find(apTempNode);
 
 		if(it != apListNode->m_setNodes.end())
 		{
-			//Log("Node found!\n");
 			//node found, return it.
 			return *it;
 		}
 		else
 		{
-			//Log("Node NOT found, creating new.\n");
 			//no node found, create one and return it.
 			cRenderNode *pNode = m_poolRenderNode->Create();
 			pNode->mpState = m_poolRenderState->Create();
@@ -481,18 +472,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/*cRenderNode* cRenderList::InsertNode(cRenderNode* apListNode, cRenderNode* apTempNode)
-	{
-		std::pair<tRenderNodeSetIt, bool> ret = apListNode->m_setNodes.insert(apTempNode);
-		if(ret.second == false)
-		{
-			m_poolRenderState->Release(apTempNode->mpState);
-			m_poolRenderNode->Release(apTempNode);
-			return *ret.first;
-		}
-
-		return apTempNode;
-	}*/
 
 	//-----------------------------------------------------------------------
 
@@ -500,7 +479,6 @@ namespace hpl {
 								eMaterialRenderType aPassType, int alLightNum,iLight3D* apLight,
 								bool abUseDepth, int alPass)
 	{
-		//Log("------ OBJECT ------------\n");
 
 		cRenderNode *pNode = GetRootNode(aObjectType,aPassType, alLightNum);
 		iMaterial *pMaterial = apObject->GetMaterial();
@@ -531,9 +509,6 @@ namespace hpl {
 		/////// SECTOR //////////////
 		if(aPassType == eMaterialRenderType_Z)
 		{
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 			pTempState->mType = eRenderStateType_Sector;
 			pTempState->mpSector = apObject->GetCurrentSector();
@@ -543,9 +518,6 @@ namespace hpl {
 
 		/////// PASS //////////////
 		{
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_Pass;
@@ -555,11 +527,7 @@ namespace hpl {
 		}
 		/////// DEPTH TEST //////////////
 		{
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
-			//Log("\nDepth level, Z: %f\n",apObject->GetZ());
 
 			pTempState->mType = eRenderStateType_DepthTest;
 			pTempState->mbDepthTest = pMaterial->GetDepthTest();
@@ -570,10 +538,6 @@ namespace hpl {
 		/////// DEPTH //////////////
 		if(abUseDepth)
 		{
-			//Log("\nDepth level, Z: %f\n",apObject->GetZ());
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_Depth;
@@ -584,10 +548,6 @@ namespace hpl {
 
 		/////// ALPHA MODE //////////////
 		{
-			//Log("\nAlpha level %d\n", pMaterial->GetAlphaMode(mType,alPass));
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_AlphaMode;
@@ -598,10 +558,6 @@ namespace hpl {
 
 		/////// BLEND MODE //////////////
 		{
-			//Log("\nBlend level %d : %d\n",pMaterial->GetBlendMode(mType,alPass),pMaterial->GetChannelMode(mType,alPass));
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_BlendMode;
@@ -614,10 +570,6 @@ namespace hpl {
 
 		/////// VERTEX PROGRAM //////////////
 		{
-			//Log("\nVertex program level\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 			pTempState->mType = eRenderStateType_VertexProgram;
 
@@ -632,10 +584,6 @@ namespace hpl {
 
 		/////// FRAGMENT PROGRAM //////////////
 		{
-			//Log("\nFragment program level\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_FragmentProgram;
@@ -648,10 +596,6 @@ namespace hpl {
 
 		/////// TEXTURE //////////////
 		{
-			//Log("\nTexture level\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_Texture;
@@ -666,10 +610,6 @@ namespace hpl {
 
 		/////// VERTEX BUFFER //////////////
 		{
-			//Log("\nVertex buffer level\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_VertexBuffer;
@@ -681,10 +621,6 @@ namespace hpl {
 
 		/////// MATRIX //////////////
 		{
-			//Log("\nMatrix level\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_Matrix;
@@ -698,10 +634,6 @@ namespace hpl {
 
 		/////// RENDER //////////////
 		{
-			//Log("\nRender leaf!\n");
-			//pTempNode = m_poolRenderNode->Create();
-			//pTempState = m_poolRenderState->Create();
-			//pTempNode->mpState = pTempState;
 
 
 			pTempState->mType = eRenderStateType_Render;
@@ -711,227 +643,10 @@ namespace hpl {
 			InsertNode(pNode, pTempNode);
 		}
 
-		//Log("-------------------------\n");
 	}
 
 	//----------------------------------------------------------------------------------------------
 
-	/*void cRenderList::AddToTree(iRenderable* apObject,eRenderListDrawType aObjectType,
-								eMaterialRenderType aPassType, int alLightNum,iLight3D* apLight,
-								bool abUseDepth, int alPass)
-	{
-		//Log("------ OBJECT ------------\n");
-
-		cRenderNode *pNode = GetRootNode(aObjectType,aPassType, alLightNum);
-		iMaterial *pMaterial = apObject->GetMaterial();
-		iRenderState *pTempState = NULL;//mTempNode.mpState;
-		cRenderNode *pTempNode = NULL;
-
-		//-------------- EXPLAINATION ----------------------------------
-		// Go through each render state type and set the appropriate
-		// variables for each type. The most important states are set first.
-		// The state is then inserted to a tree structure, where each state type is a level.
-		//                       Example:
-		//                 |----------root--------|
-		//           |---pass              |-----pass----|
-		//       depth-test            depth-test     depth-test
-		//              ............etc......................
-		// After each insertion a pointer to the inserted or existing (if variables already existed)
-		// node is returned
-		// This is then passed on the next state, the state inserted (or exist found) there and so on.
-		// At each insertion, it is first checked if a state with variables exist, and if so, use that.
-		// if not, a new node is created and inserted.
-		// The temp node state is used as storage for the data to skip the overhead of deletion
-		// and creation when testing if state exist. Instead new data is only created if the state
-		// is new.
-		// Each Render state has the same class, but uses different var depending on type, this to
-		// skip the overhead of using inheritance.
-		//-------------------------------------------------------------
-
-		/////// SECTOR //////////////
-		if(aPassType == eMaterialRenderType_Z)
-		{
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-			pTempState->mType = eRenderStateType_Sector;
-			pTempState->mpSector = apObject->GetCurrentSector();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// PASS //////////////
-		{
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_Pass;
-			pTempState->mlPass = alPass;
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-		/////// DEPTH TEST //////////////
-		{
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-			//Log("\nDepth level, Z: %f\n",apObject->GetZ());
-
-			pTempState->mType = eRenderStateType_DepthTest;
-			pTempState->mbDepthTest = pMaterial->GetDepthTest();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// DEPTH //////////////
-		if(abUseDepth)
-		{
-			//Log("\nDepth level, Z: %f\n",apObject->GetZ());
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_Depth;
-			pTempState->mfZ = apObject->GetZ();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// ALPHA MODE //////////////
-		{
-			//Log("\nAlpha level %d\n", pMaterial->GetAlphaMode(mType,alPass));
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_AlphaMode;
-			pTempState->mAlphaMode = pMaterial->GetAlphaMode(aPassType,alPass, apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// BLEND MODE //////////////
-		{
-			//Log("\nBlend level %d : %d\n",pMaterial->GetBlendMode(mType,alPass),pMaterial->GetChannelMode(mType,alPass));
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_BlendMode;
-
-			pTempState->mBlendMode = pMaterial->GetBlendMode(aPassType,alPass,apLight);
-			pTempState->mChannelMode = pMaterial->GetChannelMode(aPassType,alPass,apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// VERTEX PROGRAM //////////////
-		{
-			//Log("\nVertex program level\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-			pTempState->mType = eRenderStateType_VertexProgram;
-
-			pTempState->mpVtxProgram = pMaterial->GetVertexProgram(aPassType,alPass,apLight);
-			pTempState->mpVtxProgramSetup = pMaterial->GetVertexProgramSetup(aPassType,alPass,apLight);
-			pTempState->mbUsesLight = pMaterial->VertexProgramUsesLight(aPassType, alPass,apLight);
-			pTempState->mbUsesEye = pMaterial->VertexProgramUsesEye(aPassType, alPass,apLight);
-			pTempState->mpLight = apLight;
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// FRAGMENT PROGRAM //////////////
-		{
-			//Log("\nFragment program level\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_FragmentProgram;
-
-			pTempState->mpFragProgram = pMaterial->GetFragmentProgram(aPassType,alPass,apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// TEXTURE //////////////
-		{
-			//Log("\nTexture level\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_Texture;
-
-			for(int i=0; i<MAX_TEXTUREUNITS;i++)
-			{
-				pTempState->mpTexture[i] = pMaterial->GetTexture(i,aPassType, alPass,apLight);
-			}
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// VERTEX BUFFER //////////////
-		{
-			//Log("\nVertex buffer level\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_VertexBuffer;
-
-			pTempState->mpVtxBuffer = apObject->GetVertexBuffer();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// MATRIX //////////////
-		{
-			//Log("\nMatrix level\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_Matrix;
-
-			pTempState->mpModelMatrix = apObject->GetModelMatrix(mpCamera);
-			pTempState->mpInvModelMatrix = apObject->GetInvModelMatrix();
-			pTempState->mvScale = apObject->GetCalcScale();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// RENDER //////////////
-		{
-			//Log("\nRender leaf!\n");
-			pTempNode = m_poolRenderNode->Create();
-			pTempState = m_poolRenderState->Create();
-			pTempNode->mpState = pTempState;
-
-
-			pTempState->mType = eRenderStateType_Render;
-
-			pTempState->mpObject = apObject;
-
-			InsertNode(pNode, pTempNode);
-		}
-
-		//Log("-------------------------\n");
-	}*/
 
 	//-----------------------------------------------------------------------
 

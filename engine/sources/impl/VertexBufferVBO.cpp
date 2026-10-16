@@ -189,7 +189,6 @@ namespace hpl {
 
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-				//Log("%d-Handle: %d, size: %d \n",i,mvArrayHandle[i], mvVertexArray);
 			}
 		}
 
@@ -205,7 +204,6 @@ namespace hpl {
 		//The arrays may have changed (tangents)
 		DeleteVertexArray();
 
-		//Log("VBO compile done!\n");
 
 		return true;
 	}

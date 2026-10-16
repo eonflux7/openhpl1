@@ -89,7 +89,6 @@ namespace hpl {
 								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
 
 
-
 		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
 								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
 								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
@@ -377,8 +376,6 @@ namespace hpl {
 			vRight.Normalise();
 			vForward = cMath::Vector3Cross(vRight, vUp);
 
-			//vForward.Normalise();
-			//vUp.Normalise();
 		}
 
 		if(mfForwardOffset!=0)
@@ -902,7 +899,6 @@ namespace hpl {
 
 		if(mbIsHalo)
 		{
-			//Log("Setting up halo billboard '%s'\n",msName.c_str());
 		}
 	}
 

@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_Additive.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
@@ -40,7 +39,6 @@ namespace hpl {
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
-			//apProgram->SetColor3f("fogColor",apRenderSettings->mFogColor);
 			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
 			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);
 		}
@@ -58,9 +56,9 @@ namespace hpl {
 
 	cMaterial_Additive::cMaterial_Additive(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 					aPicture,apRenderer3D)
 	{
 		mbIsTransperant = true;

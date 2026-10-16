@@ -27,7 +27,6 @@ namespace hpl {
 
 	enum eCameraType
 	{
-		eCameraType_2D,
 		eCameraType_3D,
 		eCameraType_LastEnum
 	};

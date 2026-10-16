@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/MeshCreator.h"
-#include "graphics/Mesh2d.h"
 #include "system/String.h"
 #include "system/LowLevelSystem.h"
 #include "graphics/LowLevelGraphics.h"
@@ -119,7 +118,6 @@ namespace hpl {
 					}
 
 
-					//Log("Side: (%.0f : %.0f : %.0f) [ ", vDir.x,  vDir.y,vDir.z);
 					for(int i=0;i<4;i++)
 					{
 						int idx = i;
@@ -130,9 +128,7 @@ namespace hpl {
 						pSkyBox->AddVertex(eVertexFlag_Texture0, vDir+vAdd[idx]);
 
 						vSide = vDir+vAdd[idx];
-						//Log("%d: (%.1f : %.1f : %.1f) ", i,vSide.x,  vSide.y,vSide.z);
 					}
-					//Log("\n");
 				}
 
 		for(int i=0;i<24;i++) pSkyBox->AddIndex(i);
@@ -196,7 +192,6 @@ namespace hpl {
 					}
 
 
-					//Log("Side: (%.0f : %.0f : %.0f) [ ", vDir.x,  vDir.y,vDir.z);
 					for(int i=0;i<4;i++)
 					{
 						int idx = GetBoxIdx(i,x,y,z);
@@ -211,8 +206,6 @@ namespace hpl {
 						pBox->AddVertex(eVertexFlag_Texture0,vCoord);
 
 						vSide = vDir+vAdd[idx];
-						//Log("%d: Tex: (%.1f : %.1f : %.1f) ", i,vTex.x,  vTex.y,vTex.z);
-						//Log("%d: (%.1f : %.1f : %.1f) ", i,vSide.x,  vSide.y,vSide.z);
 					}
 
 					for(int i=0;i<3;i++)pBox->AddIndex(lVtxIdx + i);
@@ -222,7 +215,6 @@ namespace hpl {
 
 					lVtxIdx +=4;
 
-					//Log("\n");
 				}
 
 		if(!pBox->Compile(eVertexCompileFlag_CreateTangents))
@@ -265,54 +257,6 @@ namespace hpl {
 		if(x + y + z > 0) idx = 3-i;
 
 		return idx;
-	}
-
-	//-----------------------------------------------------------------------
-
-	cMesh2D* cMeshCreator::Create2D(tString asName, cVector2f mvSize)
-	{
-		int i;
-		tString sMeshName = cString::ToLowerCase(asName);
-		cMesh2D* pMesh;
-
-		/// SQUARE ///////////////////////
-		if(sMeshName == "square")
-		{
-			cVector2f vPos[4] = {cVector2f(mvSize.x/2,-mvSize.y/2),cVector2f(mvSize.x/2,mvSize.y/2)
-								,cVector2f(-mvSize.x/2,mvSize.y/2),cVector2f(-mvSize.x/2,-mvSize.y/2)};
-
-			pMesh = hplNew( cMesh2D, () );
-			for(i=0;i<4;i++){
-				pMesh->AddVertex(vPos[i],0,1);
-				pMesh->AddEdgeIndex(i);
-			}
-			for(i=1;i<4;i++)pMesh->AddIndex(i);
-			for(i=0;i<3;i++)pMesh->AddIndex(i<2?i:3);
-
-			return pMesh;
-		}
-		/// TRIANGLE ///////////////////////
-		else if(sMeshName == "tri_1_to_1")
-		{
-			cVector2f vPos[3] = {cVector2f(mvSize.x/2,-mvSize.y/2),cVector2f(mvSize.x/2,mvSize.y/2)
-				,cVector2f(-mvSize.x/2,mvSize.y/2)};
-
-			pMesh = hplNew( cMesh2D, () );
-			for(i=0;i<3;i++){
-				pMesh->AddVertex(vPos[i],0,1);
-				pMesh->AddEdgeIndex(i);
-				pMesh->AddIndex(i);
-			}
-
-			return pMesh;
-		}
-		/// OTHER PRIMITIVE ///////////////////////
-		else
-		{
-
-		}
-
-		return nullptr;
 	}
 
 	//-----------------------------------------------------------------------

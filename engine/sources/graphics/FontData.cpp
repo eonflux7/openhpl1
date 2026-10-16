@@ -27,6 +27,7 @@
 
 #include "graphics/GraphicsDrawer.h"
 #include "graphics/GfxObject.h"
+#include "graphics/Material.h"
 
 #include "resources/ResourceImage.h"
 
@@ -52,7 +53,6 @@ namespace hpl {
 		mvSize = avSize;
 		mfAdvance = afAdvance;
 	}
-
 
 
 	cGlyph::~cGlyph()
@@ -212,14 +212,11 @@ namespace hpl {
 
 		for(pos = 0; pos < asString.size();pos++)
 		{
-			//Log("char: %d\n",(char)asString[pos]);
 			if(asString[pos] == _W(' ') || asString[pos] == _W('\n'))
 			{
 				tWString temp = asString.substr(first_letter, pos-first_letter);
 				fTextLength =  GetLength(avSize,temp.c_str());
 
-				//Log("r:%d p:%d f:%d l:%d Temp:'%s'\n",rows,pos,first_letter,last_space,
-													//temp.c_str());
 				bool nothing = true;
 				if(fTextLength > afLength)
 				{
@@ -546,7 +543,6 @@ namespace hpl {
 	{
 		mvGlyphs.push_back(apGlyph);
 	}
-
 
 
 	//-----------------------------------------------------------------------
