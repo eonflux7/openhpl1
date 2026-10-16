@@ -260,7 +260,6 @@ namespace hpl {
 		void DrawQuad(const tVertexVec &avVtx, const cColor aCol) override;
 		void DrawQuad(const tVertexVec &avVtx,const float afZ) override;
 		void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol) override;
-		void DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs) override;
 
 		void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform) override;
 
@@ -286,8 +285,7 @@ namespace hpl {
 
 
 		//FRAMEBUFFER
-		void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
-			const cVector2l &avSize, const cVector2l &avTexOffset=0) override;
+		bool DrawSceneCopy(iTexture* apTarget, const cVector2l &avPos, const cVector2l &avSize) override;
 		void SetRenderTarget(iTexture* pTex) override;
 		void SetRenderTargets(iTexture** apTextures, int alNum) override;
 		void SetSceneColorOnly(bool abX) override;
@@ -332,8 +330,12 @@ namespace hpl {
 		bool CreateFullscreenPass(cFullscreenPass &aPass);
 		void DeleteFullscreenPass(cFullscreenPass &aPass);
 		void DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize,
-								GLuint alTexture1=0, GLuint alTexture2=0, bool abStencil=false);
+								GLuint alTexture1=0, GLuint alTexture2=0, bool abStencil=false,
+								const cVector2l &avPos=0);
 		void SetPassUniform(cFullscreenPass &aPass, const char *asName, float afX, float afY=0, float afZ=0, float afW=0);
+
+		//The scene into a texture (DrawSceneCopy())
+		cFullscreenPass mSceneCopyPass;
 
 		//Gamma
 		float mfGammaCorrection;

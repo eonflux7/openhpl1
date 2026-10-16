@@ -16,7 +16,7 @@ in vec4 vColor;
 
 OUTPUT
 
-uniform sampler2DRect tex0; //screenMap
+uniform sampler2D tex0; //screenMap, of the render size
 uniform sampler2D tex1; //refractMap
 uniform sampler2D tex2; //diffuseMap
 
@@ -46,8 +46,9 @@ void main()
 
 	vec3 waterColor = texture(tex2, uv_offset1).xyz;
 
-	vec4 screenColor = texture(tex0, gl_FragCoord.xy + offset.xy * -scale);
-	if(screenColor.w < 0.5) screenColor = texture(tex0, gl_FragCoord.xy);
+	vec2 texel = 1.0 / vec2(textureSize(tex0, 0));
+	vec4 screenColor = texture(tex0, (gl_FragCoord.xy + offset.xy * -scale) * texel);
+	if(screenColor.w < 0.5) screenColor = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
 
 	// The colouring below was made for screen values.
 	screenColor.xyz = hpl_ToEncoded(screenColor.xyz);

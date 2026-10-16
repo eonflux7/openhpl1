@@ -9,7 +9,6 @@
 /// BLUR FRAGMENT PROGRAM //////////////////////////////
 ///////////////////////////////////////////////////////
 
-// RECT: the source is a rectangle texture (pixel coordinates).
 
 // Reads and writes the scene as it is, linear or not.
 #define HPL_LINEAR_COLOR
@@ -21,11 +20,7 @@ in vec2 vUv3;
 
 OUTPUT
 
-#ifdef RECT
-uniform sampler2DRect tex0;
-#else
 uniform sampler2D tex0;
-#endif
 
 void main()
 {

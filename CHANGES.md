@@ -1556,6 +1556,29 @@ look and every improved option on):
 `tools/refshots.py --windows` runs the Windows build from WSL, hidden and
 silent, in place of the gamescope session.
 
+### Post effects without screen copies
+
+- `CopyContextToTexure` is gone. Bloom, depth of field, motion blur,
+  ambient occlusion, the image trail, refraction and the dream filter draw
+  the scene into a texture of their own (`DrawSceneCopy`, shader
+  `hpl1_scene_copy`), pixel for pixel from the scene texture. The textures
+  keep their format: 8 bits without Linear Lighting, so values clamp at 1
+  and round as the copies did, and float with it
+- rectangle textures are gone (`eTextureTarget_Rect`, `sampler2DRect`).
+  Shaders read exact pixels with `texelFetch`, and filtered reads sample
+  the same places in 0..1 coordinates
+- the depth of field's sky pass (`PostEffect_DoF` with `SKY`) and the image
+  trail (`hpl1_PostEffect_ImageTrail`) have shaders of their own in place
+  of texture environments. `DrawQuadMultiTex` is gone, and the blur has
+  one program for both of its passes
+
+Checked on Windows against the build before it, 95 reference images each:
+original look, every improved option, original and camera motion blur, and
+Render Scale 1.5 with 4× FSAA are the same apart from the known noise
+(the keypad, and a floor edge in icecave-view04 that also changes between
+runs of the old build). The 41 images of the effects lab, which run the
+image trail, are the same.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

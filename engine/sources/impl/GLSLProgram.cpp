@@ -214,8 +214,7 @@ namespace hpl{
 		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
 		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
 		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},
-		{"PostEffect_Blur_2D",			"PostEffect_Blur",	""},
-		{"PostEffect_Blur_Rect",		"PostEffect_Blur",	"RECT"},
+		{"PostEffect_DoF_Sky",			"PostEffect_DoF",	"SKY"},
 		{"PostEffect_BloomChain_Prefilter",	"PostEffect_BloomChain",	"PREFILTER"},
 		{"PostEffect_BloomChain_Down",		"PostEffect_BloomChain",	"DOWN"},
 		{"PostEffect_BloomChain_Up",		"PostEffect_BloomChain",	"UP"},
@@ -753,7 +752,6 @@ namespace hpl{
 		{
 		case eTextureTarget_1D:			Target = GL_TEXTURE_1D; break;
 		case eTextureTarget_2D:			Target = GL_TEXTURE_2D; break;
-		case eTextureTarget_Rect:		Target = GL_TEXTURE_RECTANGLE; break;
 		case eTextureTarget_CubeMap:	Target = GL_TEXTURE_CUBE_MAP; break;
 		case eTextureTarget_3D:			Target = GL_TEXTURE_3D; break;
 		default: break;

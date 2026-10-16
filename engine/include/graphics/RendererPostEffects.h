@@ -324,11 +324,13 @@ eturn false if nothing was drawn
 		void RenderBlurTexture(iTexture *apDestination, iTexture *apSource,float afBlurAmount);
 
 	private:
+		bool DrawSceneCopy(iTexture *apTarget);
+
 		void RenderImageTrail();
 
 		void RenderBloom();
 		void RenderBloomChain();
-		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource, bool abRectSource);
+		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource);
 
 		void RenderMotionBlur();
 		void RenderMotionBlurCamera();
@@ -356,12 +358,13 @@ eturn false if nothing was drawn
 		iTexture* mpScreenBuffer[2];
 
 		cImageTrailEffect mImageTrailData;
+		iGpuProgram *mpImageTrailVP;
+		iGpuProgram *mpImageTrailFP;
 		bool mbPlayerImageTrailActive = false;
 		float mfPlayerImageTrailAmount = 0;
 
 		iGpuProgram *mpBlurVP;
-		iGpuProgram *mpBlur2dFP;
-		iGpuProgram *mpBlurRectFP;
+		iGpuProgram *mpBlurFP;
 		//Holds the horizontal pass of RenderBlurTexture(), same size as the
 		//blur textures.
 		iTexture *mpBlurTempTexture;
@@ -387,6 +390,8 @@ eturn false if nothing was drawn
 
 		iGpuProgram *mpDepthOfFieldVP;
 		iGpuProgram *mpDepthOfFieldFP;
+		//What the sky box is blurred by
+		iGpuProgram *mpDepthOfFieldSkyFP;
 		iTexture *mpDofBlurTexture;
 
 		//The camera motion blur

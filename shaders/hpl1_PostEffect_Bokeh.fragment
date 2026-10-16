@@ -18,7 +18,7 @@
 // the blur of what is behind must not take in sharp things in front of it,
 // and the blur of what is in front spreads over whatever is behind it.
 //
-//  PREFILTER  tex0: the scene copy (rectangle) -> half size, with how far
+//  PREFILTER  tex0: the scene copy -> half size, with how far
 //             out of focus each pixel is in alpha
 //  GATHER     tex0: that -> the blurred picture; alpha: how much of the
 //             pixel the blur of things in front covers
@@ -81,7 +81,7 @@ float PixelBlur(ivec2 avPixel)
 //////////////////////////////////////////////////////////////////////////
 #if defined(PREFILTER)
 
-uniform sampler2DRect tex0;
+uniform sampler2D tex0;
 
 void main()
 {
@@ -98,7 +98,7 @@ void main()
 	for(int i = 0; i < 4; ++i)
 	{
 		ivec2 pixel = min(start + ivec2(i & 1, i >> 1), last);
-		vec3 color = min(SceneToLinear(texelFetch(tex0, pixel).rgb), 16.0);
+		vec3 color = min(SceneToLinear(texelFetch(tex0, pixel, 0).rgb), 16.0);
 		float weight = 1.0 / (1.0 + max(color.r, max(color.g, color.b)));
 		sum += color * weight;
 		weights += weight;
@@ -231,7 +231,7 @@ void main()
 #else
 
 uniform sampler2D tex0;
-uniform sampler2DRect tex1;
+uniform sampler2D tex1;
 
 void main()
 {
@@ -250,7 +250,7 @@ void main()
 	// In focus: the scene as it is
 	if(share <= 0.0) discard;
 
-	vec3 sharp = SceneToLinear(texelFetch(tex1, pixel).rgb);
+	vec3 sharp = SceneToLinear(texelFetch(tex1, pixel, 0).rgb);
 	outColor = vec4(LinearToScene(mix(sharp, blurred.rgb, share)), 1.0);
 }
 

@@ -222,7 +222,7 @@ namespace hpl {
 			mlWidth = alWidth;
 			mlHeight = alHeight;
 
-			if((!cMath::IsPow2(mlHeight) || !cMath::IsPow2(mlWidth)) && mTarget != eTextureTarget_Rect)
+			if((!cMath::IsPow2(mlHeight) || !cMath::IsPow2(mlWidth)) && !msName.empty())
 			{
 				Warning("Texture '%s' does not have a pow2 size!\n",msName.c_str());
 			}
@@ -291,7 +291,7 @@ namespace hpl {
 				0, format, GL_UNSIGNED_BYTE, apPixelData);
 		}
 
-		if(mbUseMipMaps && mTarget != eTextureTarget_Rect && mTarget != eTextureTarget_3D)
+		if(mbUseMipMaps && mTarget != eTextureTarget_3D)
 		{
 			glGenerateMipmap(GLTarget);
 		}
@@ -307,7 +307,7 @@ namespace hpl {
 	void cSDLTexture::SetPixels2D(	int alLevel, const cVector2l& avOffset, const cVector2l& avSize,
 									eColorDataFormat aDataFormat, void *apPixelData)
 	{
-		if(mTarget != eTextureTarget_2D && mTarget != eTextureTarget_Rect) return;
+		if(mTarget != eTextureTarget_2D) return;
 
 		glTexSubImage2D(TextureTargetToGL(mTarget),alLevel,avOffset.x,avOffset.y, avSize.x,avSize.y,
 						ColorFormatToGL(aDataFormat),GL_UNSIGNED_BYTE,apPixelData);
@@ -526,10 +526,10 @@ namespace hpl {
 		mpGfxSDL->TextureSamplerChanged(this);
 	}
 
-	// Rectangle and 3D textures are made without them.
+	// 3D textures are made without them.
 	bool cSDLTexture::HasMipMaps()
 	{
-		return mbUseMipMaps && mTarget != eTextureTarget_Rect && mTarget != eTextureTarget_3D;
+		return mbUseMipMaps && mTarget != eTextureTarget_3D;
 	}
 
 	//-----------------------------------------------------------------------
@@ -599,7 +599,8 @@ namespace hpl {
 		mlWidth = pBitmapSrc->GetWidth();
 		mlHeight = pBitmapSrc->GetHeight();
 
-		if((!cMath::IsPow2(mlHeight) || !cMath::IsPow2(mlWidth)) && mTarget != eTextureTarget_Rect)
+		// Not of the textures made for drawing into, of the screen's size
+		if((!cMath::IsPow2(mlHeight) || !cMath::IsPow2(mlWidth)) && !msName.empty())
 		{
 			Warning("Texture '%s' does not have a pow2 size!\n",msName.c_str());
 		}
@@ -667,7 +668,7 @@ namespace hpl {
 
 		if(glGetError()!=GL_NO_ERROR) return false;
 
-		if(mbUseMipMaps && mTarget != eTextureTarget_Rect)
+		if(mbUseMipMaps)
 		{
 			glGenerateMipmap(GLTarget);
 		}
@@ -701,11 +702,9 @@ namespace hpl {
 		// through the texture's sampler (GetSampler()).
 		glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, HasMipMaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTexParameteri(aGLTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// Rectangle textures cannot repeat
-		GLint lWrap = mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_S,lWrap);
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_T,lWrap);
-		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_R,lWrap);
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		glTexParameteri(aGLTarget,GL_TEXTURE_WRAP_R,GL_REPEAT);
 		SetSwizzle(aGLTarget, mlBpp / 8);
 
 
@@ -741,7 +740,7 @@ namespace hpl {
 		{
 		// GL_CLAMP is gone from the core profile; drivers treated it as this
 		case eTextureWrap_Clamp: return GL_CLAMP_TO_EDGE;
-		case eTextureWrap_Repeat: return mTarget == eTextureTarget_Rect ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+		case eTextureWrap_Repeat: return GL_REPEAT;
 		case eTextureWrap_ClampToEdge: return GL_CLAMP_TO_EDGE;
 		case eTextureWrap_ClampToBorder: return GL_CLAMP_TO_BORDER;
 		}

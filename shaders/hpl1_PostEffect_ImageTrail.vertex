@@ -1,0 +1,11 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// A quad over the screen for the image trail.
+
+uniform mat4 worldViewProj;
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+}

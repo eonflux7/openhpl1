@@ -105,9 +105,9 @@ hold up Milestone 4.
 - [ ] **Off-screen frame.** Render the scene into a framebuffer object:
   - [x] colour and depth/stencil textures; later passes can read the depth
   - [x] gamma reads the frame texture; the blur renders into its own
-        textures (`SetRenderTarget`). The copies left are of effects that
-        read the frame while drawing over it (bloom, depth of field, motion
-        blur, image trail, refraction)
+        textures (`SetRenderTarget`). Effects that read the frame while
+        drawing over it (bloom, depth of field, motion blur, image trail,
+        refraction) draw it into a texture of their own (Milestone 6)
   - [x] multisampling through a multisampled target and a resolve
   - [x] one fixed frame order: scene → post effects → output transform → HUD →
         gamma → window (the output transform is a plain copy until there is
@@ -406,14 +406,14 @@ In this order: each step removes callers of what a later one deletes.
   - [x] low-level functions nothing calls (`DrawRect`, `DrawTri`, the texture
         coordinate batching), the commented-out stencil functions, and
         commented-out code in the renderer
-- [ ] **2. Post effects read the frame, not a copy of it.** Bloom, depth of
+- [x] **2. Post effects read the frame, not a copy of it.** Bloom, depth of
       field, motion blur, ambient occlusion, image trail and refraction
       copy the screen with `CopyContextToTexure`; they read the scene
       texture instead, or draw into a target of their own (the open item
       of Milestone 3's off-screen frame):
-  - [ ] rectangle textures (`sampler2DRect`, coordinates in pixels)
+  - [x] rectangle textures (`sampler2DRect`, coordinates in pixels)
         replaced by 2D textures
-  - [ ] the original blur, depth of field and image trail drawn by
+  - [x] the original blur, depth of field and image trail drawn by
         shaders of their own instead of texture environments
 - [ ] **3. Shaders for every material.** Modulative, modulative ×2, the
       environment map and the 2D materials of the HUD (alpha, additive,

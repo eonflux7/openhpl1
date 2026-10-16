@@ -41,7 +41,6 @@ namespace hpl {
 	{
 		eTextureTarget_1D,
 		eTextureTarget_2D,
-		eTextureTarget_Rect,
 		eTextureTarget_CubeMap,
 		eTextureTarget_3D,
 		eTextureTarget_LastEnum
@@ -105,7 +104,7 @@ namespace hpl {
 		void Destroy() override{}
 
 		/**
-		 * Create a texture from a bitmap, work only for 1D, 2D and Rect targets. Doesn't work with render targets.
+		 * Create a texture from a bitmap, work only for 1D and 2D targets. Doesn't work with render targets.
 		 * \param pBmp
 		 * \return
 		 */

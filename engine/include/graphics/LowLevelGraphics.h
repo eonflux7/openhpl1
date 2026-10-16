@@ -838,7 +838,6 @@ namespace hpl {
 		virtual void DrawQuad(const tVertexVec &avVtx, const cColor aCol)=0;
 		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ)=0;
 		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol)=0;
-		virtual void DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)=0;
 
 		//VERTEX BATCHER
 		virtual void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)=0;
@@ -915,14 +914,15 @@ namespace hpl {
 		virtual void SetLightLook(const cLightLook& aLook)=0;
 
 		/**
-		 * Copies the current frame buffer to a texture.
-		 * \param apTex The texture the framebuffer is copied to.
-		 * \param &avPos The Screenpositon
-		 * \param &avSize The size of the screen.
-		 * \param &avTexOffset The position on the texture.
+		 * Draws a part of the 3D scene as it is drawn so far into the same
+		 * part of apTarget, a 2D texture of the render size: for what reads
+		 * the scene while it draws over it. The target's format decides
+		 * the precision: 8 bits clamp to 0..1 and round, as the copies of
+		 * the screen in the original did.
+		 * \param avPos The part's top left corner, in pixels from the top.
+		 * \return false if nothing was drawn (no scene, or a render target is set)
 		 */
-		virtual void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
-										const cVector2l &avSize, const cVector2l &avTexOffset=0)=0;
+		virtual bool DrawSceneCopy(iTexture* apTarget, const cVector2l &avPos, const cVector2l &avSize)=0;
 		virtual void FlushRendering()=0;
 		virtual void SwapBuffers()=0;
 	};

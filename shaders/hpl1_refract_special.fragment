@@ -19,7 +19,7 @@ in vec4 vColor;
 
 OUTPUT
 
-uniform sampler2DRect tex0; //screenMap
+uniform sampler2D tex0; //screenMap, of the render size
 uniform sampler2D tex1; //refractMap
 uniform sampler2D tex2; //alphaMap
 
@@ -34,5 +34,5 @@ void main()
 	uv2.y += sin(t + uv2.x*10) * 0.001 * scale;
 	vec3 offset = vec3(((texture(tex1, uv2)*2.0) - vec4(1.0)) * alpha * vColor.w);
 
-	outColor.xyz = (texture(tex0,gl_FragCoord.xy - offset.xy*scale)).xyz;
+	outColor.xyz = (texture(tex0,(gl_FragCoord.xy - offset.xy*scale) * hpl_RenderSize.zw)).xyz;
 }

@@ -7,7 +7,7 @@
 // textures hold linear values whatever the scene holds. Positions come from
 // the pixel drawn, so the passes need no texture coordinates.
 //
-//  PREFILTER  tex0: the scene copy (rectangle) -> the first, half size level
+//  PREFILTER  tex0: the scene copy -> the first, half size level
 //  DOWN       tex0: a level -> the level half its size
 //  UP         tex0: the blended level below, tex1: this level -> blended level
 //  COMPOSITE  tex0: the blended first level -> the scene, with an additive blend
@@ -18,12 +18,10 @@
 
 OUTPUT
 
+uniform sampler2D tex0;
 #ifdef PREFILTER
-uniform sampler2DRect tex0;
 // x: the light the bloom starts at, y: half the width of the soft start
 uniform vec2 threshold;
-#else
-uniform sampler2D tex0;
 #endif
 #ifdef UP
 uniform sampler2D tex1;

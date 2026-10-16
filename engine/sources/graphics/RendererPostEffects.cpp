@@ -73,8 +73,7 @@ namespace hpl {
 		mpBlurVP = mpGpuManager->CreateProgram("PostEffect_Blur_vp.cg","main",eGpuProgramType_Vertex);
 		if(!mpBlurVP) Error("Couldn't load 'PostEffect_Blur_vp.cg'!\n");
 
-		mpBlurRectFP = mpGpuManager->CreateProgram("PostEffect_Blur_Rect_fp.cg","main",eGpuProgramType_Fragment);
-		mpBlur2dFP = mpGpuManager->CreateProgram("PostEffect_Blur_2D_fp.cg","main",eGpuProgramType_Fragment);
+		mpBlurFP = mpGpuManager->CreateProgram("PostEffect_Blur_fp.cg","main",eGpuProgramType_Fragment);
 
 		/////////////////
 		// Bloom programs
@@ -128,6 +127,8 @@ namespace hpl {
 
 		mpDepthOfFieldFP = mpGpuManager->CreateProgram("PostEffect_DoF_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpDepthOfFieldFP) Error("Couldn't load 'PostEffect_DoF_fp.cg'!\n");
+		mpDepthOfFieldSkyFP = mpGpuManager->CreateProgram("PostEffect_DoF_Sky_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpDepthOfFieldSkyFP) Error("Couldn't load 'PostEffect_DoF_Sky_fp.cg'!\n");
 
 		mpBokehVP = mpGpuManager->CreateProgram("PostEffect_Bokeh_vp.cg","main",eGpuProgramType_Vertex);
 		mpBokehPrefilterFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Prefilter_fp.cg","main",eGpuProgramType_Fragment);
@@ -136,6 +137,12 @@ namespace hpl {
 		mpBokehCompositeFP = mpGpuManager->CreateProgram("PostEffect_Bokeh_Composite_fp.cg","main",eGpuProgramType_Fragment);
 		if(!mpBokehVP || !mpBokehPrefilterFP || !mpBokehGatherFP || !mpBokehFillFP || !mpBokehCompositeFP)
 			Error("Couldn't load the 'PostEffect_Bokeh' programs!\n");
+
+		/////////////////
+		// Image trail programs
+		mpImageTrailVP = mpGpuManager->CreateProgram("PostEffect_ImageTrail_vp.cg","main",eGpuProgramType_Vertex);
+		mpImageTrailFP = mpGpuManager->CreateProgram("PostEffect_ImageTrail_fp.cg","main",eGpuProgramType_Fragment);
+		if(!mpImageTrailVP || !mpImageTrailFP) Error("Couldn't load the 'PostEffect_ImageTrail' programs!\n");
 
 		Log("  RendererPostEffects created\n");
 
@@ -180,8 +187,7 @@ namespace hpl {
 			if(mpScreenBuffer[i])hplDelete(mpScreenBuffer[i]);
 
 		if(mpBlurVP) mpGpuManager->Destroy(mpBlurVP);
-		if(mpBlur2dFP) mpGpuManager->Destroy(mpBlur2dFP);
-		if(mpBlurRectFP) mpGpuManager->Destroy(mpBlurRectFP);
+		if(mpBlurFP) mpGpuManager->Destroy(mpBlurFP);
 
 		if(mpBloomVP) mpGpuManager->Destroy(mpBloomVP);
 		if(mpBloomFP) mpGpuManager->Destroy(mpBloomFP);
@@ -201,9 +207,11 @@ namespace hpl {
 
 		if(mpDepthOfFieldVP) mpGpuManager->Destroy(mpDepthOfFieldVP);
 		if(mpDepthOfFieldFP) mpGpuManager->Destroy(mpDepthOfFieldFP);
+		if(mpDepthOfFieldSkyFP) mpGpuManager->Destroy(mpDepthOfFieldSkyFP);
 
 		iGpuProgram *vNewPrograms[] = {mpMotionCameraVP, mpMotionCameraFP, mpBokehVP, mpBokehPrefilterFP,
-										mpBokehGatherFP, mpBokehFillFP, mpBokehCompositeFP};
+										mpBokehGatherFP, mpBokehFillFP, mpBokehCompositeFP,
+										mpImageTrailVP, mpImageTrailFP};
 		for(iGpuProgram *pProgram : vNewPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
 		for(iTexture *pTexture : mpBokehTexture) if(pTexture) hplDelete(pTexture);
 
@@ -230,7 +238,8 @@ namespace hpl {
 		}
 
 		// With linear lighting the copies hold linear values, which need
-		// more than 8 bits in the dark end: floating point then.
+		// more than 8 bits in the dark end: floating point then. Without,
+		// 8 bits clamp and round the scene as the original's copies did.
 		int lBpp = mpLowLevelGraphics->GetLinearLighting() ? 64 : 32;
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
@@ -239,7 +248,7 @@ namespace hpl {
 		{
 			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
 				(int)mvScreenSize.x,(int)mvScreenSize.y),lBpp,cColor(0,0,0,0),false,
-				eTextureType_Normal, eTextureTarget_Rect);
+				eTextureType_Normal, eTextureTarget_2D);
 
 			if(mpScreenBuffer[i]==nullptr)
 			{
@@ -404,9 +413,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	//TODO: Support source texture as 2D
-
-	// Blurs apSource into apDestination, which must be the size of
+	// Blurs apSource, of the render size, into apDestination, which must be the size of
 	// mpBlurTempTexture: a horizontal pass into mpBlurTempTexture, then a
 	// vertical one into apDestination. Expects an orthographic projection
 	// of the virtual screen size.
@@ -421,7 +428,7 @@ namespace hpl {
 		}
 
 		bool bProgramsLoaded = false;
-		if(mpBlurRectFP && mpBlur2dFP && mpBlurVP) bProgramsLoaded = true;
+		if(mpBlurFP && mpBlurVP) bProgramsLoaded = true;
 
 		iLowLevelGraphics *pLowLevel = mpLowLevelGraphics;
 		// The quad fills the render target.
@@ -435,15 +442,15 @@ namespace hpl {
 		//Shader setup
 		if(bProgramsLoaded)
 		{
-			//Setup vertex program
+			//Setup vertex program; the steps are pixels of the source
 			mpBlurVP->Bind();
 			mpBlurVP->SetFloat("xOffset",1);
 			mpBlurVP->SetFloat("yOffset",0);
-			mpBlurVP->SetFloat("amount",afBlurAmount);
+			mpBlurVP->SetFloat("amount",afBlurAmount / (float)apSource->GetWidth());
 			mpBlurVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
 
 			//Setup fragment program
-			mpBlurRectFP->Bind();
+			mpBlurFP->Bind();
 		}
 
 		//Draw the screen texture with blur
@@ -451,9 +458,9 @@ namespace hpl {
 		pLowLevel->SetTexture(0,apSource);
 
 		{
-			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,mvScreenSize.y),cColor(1,1.0f) );
-			mvTexRectVtx[1] = cVertex(cVector3f(vBlurDrawSize.x,0,40),cVector2f(mvScreenSize.x,mvScreenSize.y),cColor(1,1.0f));
-			mvTexRectVtx[2] = cVertex(cVector3f(vBlurDrawSize.x,vBlurDrawSize.y,40),cVector2f(mvScreenSize.x,0),cColor(1,1.0f));
+			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+			mvTexRectVtx[1] = cVertex(cVector3f(vBlurDrawSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
+			mvTexRectVtx[2] = cVertex(cVector3f(vBlurDrawSize.x,vBlurDrawSize.y,40),cVector2f(1,0),cColor(1,1.0f));
 			mvTexRectVtx[3] = cVertex(cVector3f(0,vBlurDrawSize.y,40),cVector2f(0,0),cColor(1,1.0f));
 
 			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
@@ -469,9 +476,6 @@ namespace hpl {
 			mpBlurVP->SetFloat("xOffset",0);
 			mpBlurVP->SetFloat("yOffset",1);
 			mpBlurVP->SetFloat("amount",(1 / pLowLevel->GetRenderSize().x) * afBlurAmount);
-
-			mpBlurRectFP->UnBind();
-			mpBlur2dFP->Bind();
 		}
 
 		//Set texture and draw
@@ -490,7 +494,7 @@ namespace hpl {
 		//Shader setup
 		if(bProgramsLoaded)
 		{
-			mpBlur2dFP->UnBind();
+			mpBlurFP->UnBind();
 			mpBlurVP->UnBind();
 		}
 
@@ -521,8 +525,8 @@ namespace hpl {
 		//Size of the virtual screen
 		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
 
-		//Copy screen to texture
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		//The scene, to read while it is drawn over
+		DrawSceneCopy(pScreenTexture);
 
 		//Set up things needed for blurring
 		mpLowLevelGraphics->SetDepthWriteActive(false);
@@ -540,32 +544,20 @@ namespace hpl {
 
 		//The sky box is not among the objects drawn below, so blur all of
 		//the screen by the maximum amount.
-		if(mpRenderer3D->GetSkyBoxActive())
+		if(mpRenderer3D->GetSkyBoxActive() && mpDepthOfFieldSkyFP)
 		{
-			tVector3fVec vUvVec; vUvVec.resize(4);
+			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+			mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
+			mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
+			mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
 
-			vUvVec[0] = cVector2f(0,1);
-			vUvVec[1] = cVector2f(1,1);
-			vUvVec[2] = cVector2f(1,0);
-			vUvVec[3] = cVector2f(0,0);
-
-			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),					cVector2f(0,mvScreenSize.y),			cColor(1,1.0f) );
-			mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),			cVector2f(mvScreenSize.x,mvScreenSize.y),	cColor(1,1.0f));
-			mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(mvScreenSize.x,0),			cColor(1,1.0f));
-			mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),			cVector2f(0,0),						cColor(1,1.0f));
-
-			mpLowLevelGraphics->SetActiveTextureUnit(1);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Constant);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Interpolate);
-			mpLowLevelGraphics->SetTextureConstantColor(cColor(mfDofMaxBlur,mfDofMaxBlur));
-
-			mpLowLevelGraphics->SetLinearSource(true);
-			mpLowLevelGraphics->DrawQuadMultiTex(mvTexRectVtx,vUvVec);
-			mpLowLevelGraphics->SetLinearSource(false);
-
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Modulate);
+			mpDepthOfFieldVP->Bind();
+			mpDepthOfFieldVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+			mpDepthOfFieldSkyFP->Bind();
+			mpDepthOfFieldSkyFP->SetFloat("maxBlur",mfDofMaxBlur);
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+			mpDepthOfFieldSkyFP->UnBind();
+			mpDepthOfFieldVP->UnBind();
 		}
 
 		//Set things back to normal
@@ -701,7 +693,7 @@ namespace hpl {
 
 		cCamera3D *pCam = mpRenderList->GetCamera();
 		iTexture *pScreenTexture = GetFreeScreenTexture();
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		DrawSceneCopy(pScreenTexture);
 
 		mpLowLevelGraphics->SetDepthWriteActive(false);
 		mpLowLevelGraphics->SetDepthTestActive(false);
@@ -794,7 +786,7 @@ namespace hpl {
 		cMatrixf mtxReproject = cMath::MatrixMul(mtxPrevViewProj, cMath::MatrixInverse(pCam->GetViewMatrix()));
 
 		iTexture *pScreenTexture = GetFreeScreenTexture();
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		DrawSceneCopy(pScreenTexture);
 
 		mpLowLevelGraphics->SetDepthWriteActive(false);
 		mpLowLevelGraphics->SetDepthTestActive(false);
@@ -841,8 +833,8 @@ namespace hpl {
 		//Size of the virtual screen
 		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
 
-		//Copy screen to texture
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		//The scene, to read while it is drawn over
+		DrawSceneCopy(pScreenTexture);
 
 		///////////////////////////////////////////
 		//Draw motion blur objects
@@ -953,9 +945,8 @@ namespace hpl {
 
 		iTexture *pScreenTexture = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
 
-		//Copy screen to texture
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,
-												cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		//The scene, to read while it is drawn over
+		DrawSceneCopy(pScreenTexture);
 
 		//Get the blur texture
 		RenderBlurTexture(mpBloomBlurTexture,pScreenTexture,mfBloomSpread);
@@ -982,20 +973,12 @@ namespace hpl {
 
 		//Draw
 		{
-			tVector3fVec vUvVec; vUvVec.resize(4);
-
-			vUvVec[0] = cVector2f(0,mvScreenSize.y);
-			vUvVec[1] = cVector2f(mvScreenSize.x,mvScreenSize.y);
-			vUvVec[2] = cVector2f(mvScreenSize.x,0);
-			vUvVec[3] = cVector2f(0,0);
-
-
 			mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
 			mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
 			mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
 			mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
 
-			mpLowLevelGraphics->DrawQuadMultiTex(mvTexRectVtx, vUvVec);
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
 		}
 
 		mpBloomVP->UnBind();
@@ -1011,8 +994,7 @@ namespace hpl {
 	// is null) with apSource in unit 0. The fragment programs take their
 	// positions from the pixel drawn. Expects an orthographic projection of
 	// the virtual screen size.
-	void cRendererPostEffects::DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource,
-												bool abRectSource)
+	void cRendererPostEffects::DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource)
 	{
 		cVector2f vTargetSize = apTarget ?	cVector2f((float)apTarget->GetWidth(), (float)apTarget->GetHeight()) :
 											mvScreenSize;
@@ -1021,17 +1003,8 @@ namespace hpl {
 		mpLowLevelGraphics->SetRenderTarget(apTarget);
 		mpLowLevelGraphics->SetTexture(0,apSource);
 
-		// A rectangle texture is addressed in pixels, the others from 0 to 1
-		if(abRectSource)
-		{
-			apFP->SetVec2f("sourceTexel", 1, 1);
-			apFP->SetVec2f("targetToSource", vSourceSize.x / vTargetSize.x, vSourceSize.y / vTargetSize.y);
-		}
-		else
-		{
-			apFP->SetVec2f("sourceTexel", 1.0f / vSourceSize.x, 1.0f / vSourceSize.y);
-			apFP->SetVec2f("targetToSource", 1.0f / vTargetSize.x, 1.0f / vTargetSize.y);
-		}
+		apFP->SetVec2f("sourceTexel", 1.0f / vSourceSize.x, 1.0f / vSourceSize.y);
+		apFP->SetVec2f("targetToSource", 1.0f / vTargetSize.x, 1.0f / vTargetSize.y);
 
 		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
 		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
@@ -1050,8 +1023,7 @@ namespace hpl {
 		if(!mpBloomChainVP || !mpBloomPrefilterFP || !mpBloomDownFP || !mpBloomUpFP || !mpBloomCompositeFP) return;
 
 		iTexture *pScreenTexture = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
-		mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,
-												cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
+		DrawSceneCopy(pScreenTexture);
 
 		mpLowLevelGraphics->SetBlendActive(false);
 
@@ -1064,7 +1036,7 @@ namespace hpl {
 		float fThreshold = powf(cMath::Max(mBloomTuning.mfThreshold, 0.0f), 2.2f);
 		mpBloomPrefilterFP->Bind();
 		mpBloomPrefilterFP->SetVec2f("threshold", fThreshold, fThreshold * 0.5f);
-		DrawBloomPass(mpBloomPrefilterFP, mvBloomDown[0], pScreenTexture, true);
+		DrawBloomPass(mpBloomPrefilterFP, mvBloomDown[0], pScreenTexture);
 		mpBloomPrefilterFP->UnBind();
 
 		///////////////////////////////////////////
@@ -1072,7 +1044,7 @@ namespace hpl {
 		size_t lLevels = mvBloomDown.size();
 		mpBloomDownFP->Bind();
 		for(size_t i = 1; i < lLevels; ++i)
-			DrawBloomPass(mpBloomDownFP, mvBloomDown[i], mvBloomDown[i-1], false);
+			DrawBloomPass(mpBloomDownFP, mvBloomDown[i], mvBloomDown[i-1]);
 		mpBloomDownFP->UnBind();
 
 		///////////////////////////////////////////
@@ -1083,7 +1055,7 @@ namespace hpl {
 		for(int i = (int)lLevels - 2; i >= 0; --i)
 		{
 			mpLowLevelGraphics->SetTexture(1,mvBloomDown[i]);
-			DrawBloomPass(mpBloomUpFP, mvBloomUp[i], pBelow, false);
+			DrawBloomPass(mpBloomUpFP, mvBloomUp[i], pBelow);
 			pBelow = mvBloomUp[i];
 		}
 		mpBloomUpFP->UnBind();
@@ -1095,7 +1067,7 @@ namespace hpl {
 		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
 		mpBloomCompositeFP->Bind();
 		mpBloomCompositeFP->SetFloat("intensity", mBloomTuning.mfIntensity);
-		DrawBloomPass(mpBloomCompositeFP, nullptr, pBelow, false);
+		DrawBloomPass(mpBloomCompositeFP, nullptr, pBelow);
 		mpBloomCompositeFP->UnBind();
 		mpLowLevelGraphics->SetBlendActive(false);
 
@@ -1138,13 +1110,13 @@ namespace hpl {
 		bool bTiles = true;
 		for(int i=0; i<16; ++i)
 		{
-			mvAoDistanceTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 1, eTextureTarget_Rect);
-			mvAoNormalTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 2, eTextureTarget_Rect);
+			mvAoDistanceTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 1, eTextureTarget_2D);
+			mvAoNormalTexture[i] = mpLowLevelGraphics->CreateFloatTexture(mvAoTileSize, 2, eTextureTarget_2D);
 			if(!mvAoDistanceTexture[i] || !mvAoNormalTexture[i]) bTiles = false;
 		}
-		mpAoTiledTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 2, eTextureTarget_Rect);
-		mpAoTexture[0] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
-		mpAoTexture[1] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_Rect);
+		mpAoTiledTexture = mpLowLevelGraphics->CreateFloatTexture(vTiledSize, 2, eTextureTarget_2D);
+		mpAoTexture[0] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_2D);
+		mpAoTexture[1] = mpLowLevelGraphics->CreateFloatTexture(vSize, 2, eTextureTarget_2D);
 
 		if(!bTiles || !mpAoTiledTexture || !mpAoTexture[0] || !mpAoTexture[1])
 		{
@@ -1221,8 +1193,8 @@ namespace hpl {
 			else
 			{
 				pScreenTexture = GetFreeScreenTexture();
-				if(pScreenTexture)	mpLowLevelGraphics->CopyContextToTexure(pScreenTexture,0,vSize);
-				else				fLightFade = 0;
+				if(pScreenTexture && DrawSceneCopy(pScreenTexture)==false) pScreenTexture = nullptr;
+				if(pScreenTexture==nullptr) fLightFade = 0;
 			}
 		}
 
@@ -1383,6 +1355,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// Each frame is the scene laid over the frame before: the scene by
+	// 1 - amount, the last frame by amount. The last frame is kept in one
+	// screen buffer and the scene drawn into the other, which keeps the
+	// result for the next frame.
 	void cRendererPostEffects::RenderImageTrail()
 	{
 		bool bPlayerTrail = mbPlayerImageTrailActive && !mpLowLevelGraphics->GetPlayerEffectSettings().mbImproved;
@@ -1393,95 +1369,71 @@ namespace hpl {
 			mImageTrailData.mbFirstPass = true;
 			return;
 		}
+		if(mpImageTrailVP==nullptr || mpImageTrailFP==nullptr) return;
 
-		tVertexVec vVtx;
-		vVtx.push_back( cVertex(cVector3f(0,0,40),cVector2f(0,mvScreenSize.y),cColor(1,0.6f) ) );
-		vVtx.push_back( cVertex(cVector3f(800,0,40),cVector2f(mvScreenSize.x,mvScreenSize.y),cColor(1,0.6f)) );
-		vVtx.push_back( cVertex(cVector3f(800,600,40),cVector2f(mvScreenSize.x,0),cColor(1,0.6f)) );
-		vVtx.push_back( cVertex(cVector3f(0,600,40),cVector2f(0,0),cColor(1,0.6f)) );
+		iTexture *pScene = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
+		iTexture *pLastFrame = mpScreenBuffer[mImageTrailData.mlCurrentBuffer];
 
+		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
+		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
+		mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
+		mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
+		mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
 
-		mpLowLevelGraphics->CopyContextToTexure(mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0],0, cVector2l(
-			(int)mpLowLevelGraphics->GetRenderSize().x,
-			(int)mpLowLevelGraphics->GetRenderSize().y));
+		DrawSceneCopy(pScene);
 
-		//The copies of the scene are drawn as they are
-		mpLowLevelGraphics->SetLinearSource(true);
+		mpImageTrailVP->Bind();
+		mpImageTrailVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
+		mpImageTrailFP->Bind();
+
+		if(mImageTrailData.mbFirstPass)
 		{
-			if(bActive)
-			{
-				if(mImageTrailData.mbFirstPass){
-					mpLowLevelGraphics->SetBlendActive(false);
-					mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0]);
-				}
-				else {
-
-					mpLowLevelGraphics->SetClearDepthActive(false);
-					mpLowLevelGraphics->SetClearColor(cColor(0,0));
-					mpLowLevelGraphics->ClearScreen();
-					mpLowLevelGraphics->SetClearDepthActive(true);
-
-					//Draw the new image to screen transparently
-					mpLowLevelGraphics->SetBlendActive(true);
-					mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_Zero);
-
-					mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0]);
-
-					mpLowLevelGraphics->SetTextureConstantColor(cColor(1, 1.0f - fAmount));
-					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Constant);
-					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Replace);
-				}
-			}
-			else
-			{
-				mpLowLevelGraphics->SetBlendActive(false);
-				mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0]);
-			}
-
-			mpLowLevelGraphics->DrawQuad(vVtx);
-
-
-			if(bActive)
-			{
-				if(!mImageTrailData.mbFirstPass)
-				{
-					//Draw the old Blurred image to screen
-					mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_One);
-
-					mpLowLevelGraphics->SetTexture(0,mpScreenBuffer[mImageTrailData.mlCurrentBuffer]);
-
-					mpLowLevelGraphics->SetTextureConstantColor(cColor(1, fAmount));
-					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Constant);
-					mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Replace);
-
-					mpLowLevelGraphics->DrawQuad(vVtx);
-				}
-				else
-				{
-					mImageTrailData.mbFirstPass = false;
-				}
-				mImageTrailData.mlCurrentBuffer = mImageTrailData.mlCurrentBuffer==0?1:0;
-
-
-				//Copy screen to new blur buffer
-				mpLowLevelGraphics->CopyContextToTexure(mpScreenBuffer[mImageTrailData.mlCurrentBuffer],0, cVector2l(
-					(int)mpLowLevelGraphics->GetRenderSize().x,
-					(int)mpLowLevelGraphics->GetRenderSize().y));
-
-			}
-
-
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource0,eTextureSource_Texture);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaSource1,eTextureSource_Previous);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_AlphaFunc,eTextureFunc_Modulate);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-			mpLowLevelGraphics->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
-
+			//The scene as it is; the alpha is the original's
 			mpLowLevelGraphics->SetBlendActive(false);
-			mpLowLevelGraphics->SetTexture(0,nullptr);
+			mpImageTrailFP->SetVec2f("trailAlpha", 0.6f, 0);
+			mpLowLevelGraphics->SetTexture(0,pScene);
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+
+			mImageTrailData.mbFirstPass = false;
 		}
-		mpLowLevelGraphics->SetLinearSource(false);
+		else
+		{
+			mpLowLevelGraphics->SetClearDepthActive(false);
+			mpLowLevelGraphics->SetClearColor(cColor(0,0));
+			mpLowLevelGraphics->ClearScreen();
+			mpLowLevelGraphics->SetClearDepthActive(true);
+
+			//The new image, transparently
+			mpLowLevelGraphics->SetBlendActive(true);
+			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_Zero);
+			mpImageTrailFP->SetVec2f("trailAlpha", 0, 1.0f - fAmount);
+			mpLowLevelGraphics->SetTexture(0,pScene);
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+
+			//The old blurred image added
+			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_One);
+			mpImageTrailFP->SetVec2f("trailAlpha", 0, fAmount);
+			mpLowLevelGraphics->SetTexture(0,pLastFrame);
+			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
+		}
+
+		mpImageTrailFP->UnBind();
+		mpImageTrailVP->UnBind();
+		mpLowLevelGraphics->SetBlendActive(false);
+		mpLowLevelGraphics->SetTexture(0,nullptr);
+
+		//The result, for the next frame
+		mImageTrailData.mlCurrentBuffer = mImageTrailData.mlCurrentBuffer==0?1:0;
+		DrawSceneCopy(mpScreenBuffer[mImageTrailData.mlCurrentBuffer]);
+	}
+
+	//-----------------------------------------------------------------------
+
+	// The scene into apTarget, a screen buffer, to be read while the scene
+	// is drawn over.
+	bool cRendererPostEffects::DrawSceneCopy(iTexture *apTarget)
+	{
+		return mpLowLevelGraphics->DrawSceneCopy(apTarget, 0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
 	}
 
 	//-----------------------------------------------------------------------

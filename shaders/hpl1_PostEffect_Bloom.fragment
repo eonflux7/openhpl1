@@ -13,17 +13,16 @@
 #define HPL_LINEAR_COLOR
 
 in vec2 vUv0;
-in vec2 vUv1;
 
 OUTPUT
 
 uniform sampler2D tex0; //blurTex
-uniform sampler2DRect tex1; //screenTex
+uniform sampler2D tex1; //screenTex, of the render size
 
 void main()
 {
 	vec4 blurCol = texture(tex0, vUv0);
-	vec4 screenCol = texture(tex1, vUv1);
+	vec4 screenCol = texelFetch(tex1, ivec2(gl_FragCoord.xy), 0);
 
 	// The sum below was made for screen values, and for a blur that ends
 	// at white.

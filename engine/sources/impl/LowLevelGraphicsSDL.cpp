@@ -123,7 +123,6 @@ namespace hpl {
 		{
 		case eTextureTarget_1D:		return GL_TEXTURE_1D;
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
-		case eTextureTarget_Rect:	return GL_TEXTURE_RECTANGLE;
 		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
 		}
@@ -153,6 +152,7 @@ namespace hpl {
 		mGLContext = nullptr;
 		mfGammaCorrection = 1.0f;
 		mfRenderScale = 1.0f;
+		mSceneCopyPass = cFullscreenPass("scene_copy");
 		mGammaPass = cFullscreenPass("gamma_correction");
 		mOutputPass = cFullscreenPass("output");
 		mEncodePass = cFullscreenPass("output", "ENCODE_ONLY");
@@ -253,7 +253,7 @@ namespace hpl {
 
 		hplDelete(mpPixelFormat);
 
-		for(cFullscreenPass *pPass : {&mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
+		for(cFullscreenPass *pPass : {&mSceneCopyPass, &mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
 									&mSmaaWeightsNoDiagPass, &mSmaaBlendPass})
 			DeleteFullscreenPass(*pPass);
 		DeleteFramebuffers();
@@ -1164,7 +1164,7 @@ namespace hpl {
 		if(cGLSLProgram::ReloadChangedFiles())
 		{
 			// Created again when next drawn
-			for(cFullscreenPass *pPass : {&mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
+			for(cFullscreenPass *pPass : {&mSceneCopyPass, &mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
 										&mSmaaWeightsNoDiagPass, &mSmaaBlendPass})
 			{
 				DeleteFullscreenPass(*pPass);
@@ -1820,7 +1820,8 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// Draws one triangle covering a viewport of avSize with the pass's
+	// Draws one triangle covering a viewport of avSize (at avPos, from the
+	// bottom left) with the pass's
 	// shaders and alTexture (2D) on unit 0, and the other two, if any, on
 	// units 1 and 2, into the bound framebuffer. They are read as their own
 	// parameters say, not through the samplers of the units. With abStencil
@@ -1828,7 +1829,8 @@ namespace hpl {
 	// the caller. All state is put back; the renderer does not expect it to
 	// change.
 	void cLowLevelGraphicsSDL::DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize,
-													GLuint alTexture1, GLuint alTexture2, bool abStencil)
+													GLuint alTexture1, GLuint alTexture2, bool abStencil,
+													const cVector2l &avPos)
 	{
 		const GLuint vTextures[3] = {alTexture, alTexture1, alTexture2};
 		GLint lLastUnit = 0, lLastPipeline = 0;
@@ -1862,7 +1864,7 @@ namespace hpl {
 		if(abStencil) glEnable(GL_STENCIL_TEST);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glViewport(0, 0, avSize.x, avSize.y);
+		glViewport(avPos.x, avPos.y, avSize.x, avSize.y);
 
 		glBindProgramPipeline(aPass.mlPipeline);
 
@@ -1920,23 +1922,6 @@ namespace hpl {
 	}
 
 	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)
-	{
-		int lExtraUnits = cMath::Min((int)avExtraUvs.size()/4, cFixedFunctionShaders::kTexCoordUnits - 1);
-
-		ImmediateBegin(1 + lExtraUnits);
-		for(int i=0;i<4;i++)
-		{
-			cVector3f vTex[cFixedFunctionShaders::kTexCoordUnits];
-			vTex[0] = avVtx[i].tex;
-			for(int unit=0; unit<lExtraUnits; ++unit) vTex[unit + 1] = avExtraUvs[unit*4 + i];
-
-			ImmediateVertex(avVtx[i].pos, avVtx[i].col, vTex);
-		}
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
-
 
 	//-----------------------------------------------------------------------
 
@@ -2395,38 +2380,30 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/**
-	 * \todo Implement this.
-	 * \param avCenter
-	 * \param afRadius
-	 * \param afZ
-	 * \param aCol
-	 */
-	void cLowLevelGraphicsSDL::CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
-							const cVector2l &avSize, const cVector2l &avTexOffset)
+	// The scene is read by a pass of its own: the target's format converts
+	// the values, as a copy into it would. A multisampled scene has the
+	// part resolved first.
+	bool cLowLevelGraphicsSDL::DrawSceneCopy(iTexture* apTarget, const cVector2l &avPos, const cVector2l &avSize)
 	{
-		if(apTex==nullptr)return;
+		if(apTarget==nullptr || mbInScene==false || mpRenderTarget) return false;
+		if(avSize.x <= 0 || avSize.y <= 0) return false;
+		if(!CreateFullscreenPass(mSceneCopyPass)) return false;
 
-		int lScreenY = (mvTargetSize.y - avSize.y) - avPos.y;
-		int lTexY = (apTex->GetHeight() - avSize.y) - avTexOffset.y;
+		// GL counts rows from the bottom
+		cVector2l vPos(avPos.x, mvRenderSize.y - avSize.y - avPos.y);
 
-
-		SetTexture(0, apTex);
-
-		// A multisampled framebuffer can't be copied from; resolve the area
-		// first and copy from the resolved one.
-		bool bResolve = mlMultisampling > 0 && mbInScene && mbSceneResolved==false && mpRenderTarget == nullptr;
-		if(bResolve)
+		GLuint lColor = mlSceneColor;
+		if(mlMultisampling > 0)
 		{
-			BlitScene(GL_COLOR_BUFFER_BIT, avPos.x, lScreenY, avPos.x + avSize.x, lScreenY + avSize.y);
-			glBindFramebuffer(GL_FRAMEBUFFER, mlResolveFramebuffer);
+			if(mbSceneResolved==false)
+				BlitScene(GL_COLOR_BUFFER_BIT, vPos.x, vPos.y, vPos.x + avSize.x, vPos.y + avSize.y);
+			lColor = mlResolveColor;
 		}
 
-		glCopyTexSubImage2D(GetGLTextureTargetEnum(apTex->GetTarget()),0,
-							avTexOffset.x, lTexY,
-							avPos.x, lScreenY, avSize.x, avSize.y);
-
-		if(bResolve) BindCurrentFramebuffer();
+		SetRenderTarget(apTarget);
+		DrawFullscreenPass(mSceneCopyPass, lColor, avSize, 0, 0, false, vPos);
+		SetRenderTarget(nullptr);
+		return true;
 	}
 
 	//-----------------------------------------------------------------------
@@ -2876,10 +2853,6 @@ namespace hpl {
 		{
 		case eTextureTarget_1D:		return GL_TEXTURE_1D;
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
-		case eTextureTarget_Rect:
-			{
-				return GL_TEXTURE_RECTANGLE;
-			}
 		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
 		}

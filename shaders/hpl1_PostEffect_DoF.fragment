@@ -9,6 +9,8 @@
 /// DEPTH OF FIELD FRAGMENT PROGRAM /////////////////
 ///////////////////////////////////////////////////////
 
+// SKY: for the sky box, which is drawn over all of the screen: blurred
+// by the most there is.
 // Reads and writes the scene as it is, linear or not.
 #define HPL_LINEAR_COLOR
 
@@ -18,13 +20,16 @@ in float vDepth;
 
 OUTPUT
 
-uniform sampler2DRect tex0; //screenMap
+uniform sampler2D tex0; //screenMap, of the render size
 uniform sampler2D tex1; //blurMap
 uniform vec3 planes;
 uniform float maxBlur;
 
 void main()
 {
+#ifdef SKY
+	float blur = maxBlur;
+#else
 	float blur = 0.0;
 
 	if(vDepth < planes.y) {
@@ -35,6 +40,7 @@ void main()
 	}
 
 	blur = clamp(blur, 0.0, maxBlur);
+#endif
 
-	outColor = texture(tex0,gl_FragCoord.xy) * (1.0-blur) + texture(tex1,gl_FragCoord.xy/hpl_RenderSize.xy) *blur;
+	outColor = texelFetch(tex0,ivec2(gl_FragCoord.xy),0) * (1.0-blur) + texture(tex1,gl_FragCoord.xy/hpl_RenderSize.xy) *blur;
 }

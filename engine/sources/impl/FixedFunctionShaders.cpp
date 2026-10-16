@@ -56,7 +56,6 @@ namespace hpl {
 		{
 		case eTextureTarget_1D:			return "sampler1D";
 		case eTextureTarget_2D:			return "sampler2D";
-		case eTextureTarget_Rect:		return "sampler2DRect";
 		case eTextureTarget_CubeMap:	return "samplerCube";
 		case eTextureTarget_3D:			return "sampler3D";
 		}

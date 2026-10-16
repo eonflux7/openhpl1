@@ -1,0 +1,20 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+// The image trail (cRendererPostEffects::RenderImageTrail): tex0, a copy
+// of the scene or the frame before, of the render size, drawn over the
+// scene pixel for pixel. The alpha the blend uses is tex0's times
+// trailAlpha.x, plus trailAlpha.y.
+
+// Draws the copies as they are, linear or not.
+#define HPL_LINEAR_COLOR
+
+OUTPUT
+
+uniform sampler2D tex0;
+uniform vec2 trailAlpha;
+
+void main()
+{
+	vec4 color = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
+	outColor = vec4(color.rgb, color.a * trailAlpha.x + trailAlpha.y);
+}

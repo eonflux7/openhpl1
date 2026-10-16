@@ -1,0 +1,16 @@
+// hpl1_scene_copy.fragment
+//
+// The scene into a texture of the same size (iLowLevelGraphics::DrawSceneCopy),
+// pixel for pixel. The target's format converts it.
+
+// Values past white are kept for a floating point target
+#define HPL_NO_CLAMP
+
+uniform sampler2D tex0;
+
+OUTPUT
+
+void main()
+{
+    outColor = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
+}

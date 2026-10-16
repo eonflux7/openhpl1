@@ -12,10 +12,8 @@
 #define position (hpl_Vertex)
 #define color (hpl_Color.xyz)
 vec2 uv0 = hpl_MultiTexCoord0.xy;
-vec2 uv1 = hpl_MultiTexCoord1.xy;
 
 out vec2 vUv0;
-out vec2 vUv1;
 
 uniform mat4 worldViewProj;
 
@@ -24,5 +22,4 @@ void main()
 	gl_Position = (worldViewProj * position);
 
 	vUv0 = uv0;
-	vUv1 = uv1;
 }

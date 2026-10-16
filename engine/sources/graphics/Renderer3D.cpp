@@ -1500,19 +1500,18 @@ namespace hpl {
 				}
 
 				//////////////////////////////
-				//Copy Screen To Texture
+				//The scene, to read while it is drawn over
 				if(bHasClipRect)
 				{
 					cVector2l vOffset = cVector2l(clipRect.x,clipRect.y);
 					cVector2l vSize = cVector2l(clipRect.w,clipRect.h);
 
-
-					mpLowLevelGraphics->CopyContextToTexure(pScreen,vOffset,vSize,vOffset);
+					mpLowLevelGraphics->DrawSceneCopy(pScreen,vOffset,vSize);
 					if(bLog) Log("   Copy clipped screen texture\n");
 				}
 				else
 				{
-					mpLowLevelGraphics->CopyContextToTexure(pScreen,0,vScreenSize);
+					mpLowLevelGraphics->DrawSceneCopy(pScreen,0,vScreenSize);
 					if(bLog) Log("   Copy full screen screen texture\n");
 				}
 

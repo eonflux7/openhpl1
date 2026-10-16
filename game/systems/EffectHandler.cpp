@@ -1094,7 +1094,7 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	///////////////////////////////
 	// The view as it is now
 	cVector2f vSize = pLowLevel->GetRenderSize();
-	pLowLevel->CopyContextToTexure(pScreenTexture, 0, cVector2l((int)vSize.x, (int)vSize.y));
+	if(!pLowLevel->DrawSceneCopy(pScreenTexture, 0, cVector2l((int)vSize.x, (int)vSize.y))) return;
 
 	///////////////////////////////
 	// Added to itself, larger by an amount that goes up and down
@@ -1105,9 +1105,9 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	cColor col(mfAlpha, 1);
 
 	tVertexVec vVtx;
-	vVtx.push_back( cVertex(vPos,									cVector2f(0,vSize.y), col) );
-	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,0,0),			cVector2f(vSize.x,vSize.y), col) );
-	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,vQuad.y,0),	cVector2f(vSize.x,0), col) );
+	vVtx.push_back( cVertex(vPos,									cVector2f(0,1), col) );
+	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,0,0),			cVector2f(1,1), col) );
+	vVtx.push_back( cVertex(vPos + cVector3f(vQuad.x,vQuad.y,0),	cVector2f(1,0), col) );
 	vVtx.push_back( cVertex(vPos + cVector3f(0,vQuad.y,0),			cVector2f(0,0), col) );
 
 	pLowLevel->SetDepthTestActive(false);
