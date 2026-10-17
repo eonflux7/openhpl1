@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs Overture Remade against the game data of Penumbra: Overture, or of
+# Runs OpenHPL1 against the game data of Penumbra: Overture, or of
 # Black Plague or Requiem (which are not fully ported):
 #   ./run.sh                  Overture
 #   ./run.sh blackplague      Black Plague

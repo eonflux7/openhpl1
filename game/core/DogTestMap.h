@@ -1,4 +1,4 @@
-/* Overture Remade, GNU GPL v3 or later. See COPYING. */
+/* OpenHPL1, GNU GPL v3 or later. See COPYING. */
 #ifndef GAME_DOG_TEST_MAP_H
 #define GAME_DOG_TEST_MAP_H
 #include "core/StdAfx.h"

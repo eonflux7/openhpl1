@@ -1,5 +1,5 @@
 @echo off
-rem Builds Overture Remade on Windows with Visual Studio (MSVC) and vcpkg.
+rem Builds OpenHPL1 on Windows with Visual Studio (MSVC) and vcpkg.
 rem Output: build-windows\overture.exe, with its DLLs, shaders and fonts.
 rem The first run builds the vcpkg dependencies, which takes a while.
 setlocal

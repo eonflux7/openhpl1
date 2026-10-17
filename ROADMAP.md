@@ -1,7 +1,9 @@
 # Roadmap
 
-Overture Remade keeps Penumbra: Overture playing as the original did, then
-improves it. Each milestone ends with a playable build.
+OpenHPL1 modernises HPL1 while preserving Penumbra: Overture's gameplay.
+This roadmap covers Overture and the shared engine; Black Plague and Requiem
+have their own [porting roadmap](PORTING-ROADMAP.md). Each milestone ends
+with a playable build.
 
 ## ✅ Milestone 0: native 64-bit build
 

@@ -1,4 +1,4 @@
-/* Overture Remade, GNU GPL v3 or later. See COPYING. */
+/* OpenHPL1, GNU GPL v3 or later. See COPYING. */
 #include "core/DogTestMap.h"
 #include "core/Init.h"
 #include "core/MapHandler.h"

@@ -1,4 +1,4 @@
-// This file is part of Overture Remade, licensed under the GNU GPL v3 or later.
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or later.
 #ifndef HPL_SDL_GRAPHICS_WINDOW_H
 #define HPL_SDL_GRAPHICS_WINDOW_H
 #include <SDL3/SDL.h>

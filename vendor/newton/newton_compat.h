@@ -1,4 +1,4 @@
-// Overture Remade: stand-ins for the ScummVM headers this Newton 2.36 copy
+// OpenHPL1: stand-ins for the ScummVM headers this Newton 2.36 copy
 // was adapted to (common/scummsys.h, common/util.h, common/system.h, hpl1/debug.h).
 #ifndef NEWTON_COMPAT_H
 #define NEWTON_COMPAT_H

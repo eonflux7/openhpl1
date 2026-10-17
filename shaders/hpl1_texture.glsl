@@ -1,4 +1,4 @@
-// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
 // later. See COPYING.
 
 // A linked sampler variant selects either a normal 2D texture or one layer

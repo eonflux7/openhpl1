@@ -1,4 +1,4 @@
-// This file is part of Overture Remade, licensed under the GNU GPL v3 or later.
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or later.
 #ifndef HPL_GLGRAPHICSSTATE_H
 #define HPL_GLGRAPHICSSTATE_H
 #include <glad/gl.h>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is part of Overture Remade, licensed under the GNU GPL v3 or
+# This file is part of OpenHPL1, licensed under the GNU GPL v3 or
 # later. See COPYING.
 #
 # Generates the physics test map: a grey hall with the game's doors, drawers,
@@ -246,7 +246,7 @@ def write_collada(path, m):
         f.write(f'''<?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.0">
   <asset>
-    <contributor><authoring_tool>Overture Remade testmap/generate.py</authoring_tool></contributor>
+    <contributor><authoring_tool>OpenHPL1 testmap/generate.py</authoring_tool></contributor>
     <unit name="meter" meter="1.000000"/>
     <up_axis>Y_UP</up_axis>
   </asset>

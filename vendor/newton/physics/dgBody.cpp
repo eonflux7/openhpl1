@@ -189,7 +189,7 @@ void dgBody::SetMatrixIgnoreSleep(const dgMatrix &matrix) {
 	SetMatrix(matrix);
 }
 
-// Overture Remade: a step can leave a body's pose NaN (e.g. bodies given a
+// OpenHPL1: a step can leave a body's pose NaN (e.g. bodies given a
 // scaled matrix that start out overlapping, like the rock piles in
 // level01_06_workshop). A NaN AABB breaks the broadphase: sorted cell lists
 // stop at it, so ray casts miss every body after it. Put the body back to its

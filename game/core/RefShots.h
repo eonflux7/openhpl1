@@ -1,5 +1,5 @@
 /*
- * This file is part of Overture Remade, licensed under the GNU GPL v3 or
+ * This file is part of OpenHPL1, licensed under the GNU GPL v3 or
  * later. See COPYING.
  */
 #ifndef GAME_REF_SHOTS_H

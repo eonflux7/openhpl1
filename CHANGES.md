@@ -1,9 +1,25 @@
 # Changes from the original
 
-Everything Overture Remade changes compared to the code Frictional Games
+Everything OpenHPL1 changes compared to the code Frictional Games
 released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
+
+## OpenHPL1 consolidation
+
+- Renamed the project to **OpenHPL1**, with repository name `openhpl1`, to
+  reflect the shared engine and the experimental Black Plague/Requiem ports.
+  Updated CMake, the Windows dependency manifest and the default Windows sync
+  destination. The executable name `overture`, `OVERTURE_*` variables and
+  existing per-game settings/save directories remain compatible.
+- Integrated the remaining porting work into `main`: changing a hinge,
+  slider or screw limit wakes its connected bodies, so scripted mechanisms
+  respond after they have settled. Enlarging Newton's world bounds also
+  reactivates bodies created outside the original bounds. Engine regressions
+  cover sleeping joints moving to new limits and excluded bodies resuming
+  simulation after a world resize.
+- Corrected valve placements in the physics test map and added sleeping-body
+  state to joint diagnostics.
 
 ## Milestone 0: native 64-bit Linux build
 

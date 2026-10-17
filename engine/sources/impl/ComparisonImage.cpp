@@ -1,4 +1,4 @@
-/* This file is part of Overture Remade, licensed under the GNU GPL v3 or later. */
+/* This file is part of OpenHPL1, licensed under the GNU GPL v3 or later. */
 #include "impl/ComparisonImage.h"
 
 #include <algorithm>

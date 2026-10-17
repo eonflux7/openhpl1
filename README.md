@@ -1,17 +1,28 @@
-# Overture Remade
+# OpenHPL1
 
-A modernised source port of **Penumbra: Overture** (Frictional Games, 2007),
-built from the open-source HPL1 engine and game code. It runs natively on
-64-bit Linux and Windows against the game data from your own copy of the game.
+A modernised **HPL1 engine** and source port of **Penumbra: Overture**, with
+experimental support for **Black Plague** and **Requiem**. Built from
+Frictional Games' open-source HPL1 engine and Overture game code, it runs
+natively on 64-bit Linux and Windows against the data from your own games.
 
 The goal is to keep the game playing exactly like the original while bringing
 the engine up to date: native widescreen, a modern renderer and a long list of
 quality-of-life fixes. See [ROADMAP.md](ROADMAP.md).
 
-> You need a copy of Penumbra: Overture (e.g. from Steam). This repository
+> You need your own copy of each game you want to play. This repository
 > contains no game assets.
 
+The project was previously called Overture Remade; its repository and checkout
+are now named `openhpl1`. The executable remains `overture` (`overture.exe` on
+Windows), and existing `OVERTURE_*` variables and per-game settings/save
+folders keep their names for compatibility.
+
 ## Status
+
+Overture is the main supported game. Black Plague and Requiem load their maps
+and have substantial game code implemented, but still need playthrough testing
+and have missing features. See [PORTING-ROADMAP.md](PORTING-ROADMAP.md) and
+[the porting notes](docs/black-plague-port.md) for their current limitations.
 
 **Milestone 0 done:** the game builds and runs as a native 64-bit Linux
 executable. It boots, plays the intro and menus and loads levels at full speed.
@@ -118,7 +129,7 @@ nothing is shown or heard. Settings, saves and `hpl.log` are in
 game's `Episode1`. The test programs are Linux-only and not built with MSVC.
 
 From WSL, `platform/windows/sync.sh` mirrors the source tree to a Windows
-drive (default `/mnt/e/dev/penumbra/overture-remade`) to build it there.
+drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
 
 Before changing gameplay code, run the smoke test on the ASan build:
 
@@ -317,12 +328,15 @@ desktop resolution. The renderer uses the improved look throughout.
 
 ```
 ./run.sh
+./run.sh blackplague
+./run.sh requiem
 ```
 
 `run.sh` changes into the game data directory and starts the executable. By
 default it looks in the Steam location
-`~/.local/share/Steam/steamapps/common/Penumbra Overture`; set
-`OVERTURE_GAME_DIR` to use another install.
+`~/.local/share/Steam/steamapps/common/Penumbra Overture`, or `Penumbra Black
+Plague` for Black Plague and Requiem; set `OVERTURE_GAME_DIR` to use another
+install. Requiem uses the Black Plague installation with the expansion added.
 
 Settings, saves and the log (`hpl.log`) are stored in
 `~/.frictionalgames/Penumbra/OvertureRemade/`. The original game's folder
@@ -334,6 +348,7 @@ saves.
 
 | Variable | Purpose |
 |---|---|
+| `OVERTURE_GAME` | Select `overture`, `blackplague` or `requiem`; `run.sh` also accepts the game as its first argument |
 | `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
 | `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
 | `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
@@ -393,7 +408,7 @@ run.sh     launcher
   Diego Gutierrez**: SMAA, the reference shader (`shaders/SMAA.hlsl`) and its
   area and search textures (`vendor/smaa`) (MIT)
 
-Overture Remade is licensed under the GNU GPL v3; see [COPYING](COPYING).
+OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).
 Bundled third-party code keeps its own licence (see each directory under
 `vendor/`, `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`). Penumbra: Overture game assets are
 not covered by this licence and are not included.

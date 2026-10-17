@@ -1,5 +1,5 @@
 @echo off
-rem Runs Overture Remade against the Penumbra: Overture game data.
+rem Runs OpenHPL1 against the Penumbra: Overture game data.
 rem Settings, saves and hpl.log: Documents\Penumbra Overture\OvertureRemade\
 rem Arguments are passed to the game; set OVERTURE_GAME_DIR to use another copy.
 setlocal
