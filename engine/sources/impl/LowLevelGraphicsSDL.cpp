@@ -235,7 +235,6 @@ namespace hpl {
 
 		mbClearColor = true;
 		mbClearDepth = true;
-		mbClearStencil = false;
 
 		//Create the batch arrays:
 		mlBatchStride = 13;
@@ -1874,7 +1873,6 @@ namespace hpl {
 
 		if(mbClearColor)bitmask |= GL_COLOR_BUFFER_BIT;
 		if(mbClearDepth)bitmask |= GL_DEPTH_BUFFER_BIT;
-		if(mbClearStencil)bitmask |= GL_STENCIL_BUFFER_BIT;
 
 		glClear(bitmask);
 	}
@@ -1887,9 +1885,6 @@ namespace hpl {
 	void cLowLevelGraphicsSDL::SetClearDepth(float afDepth){
 		glClearDepth(afDepth);
 	}
-	void cLowLevelGraphicsSDL::SetClearStencil(int alVal){
-		glClearStencil(alVal);
-	}
 
 	//-----------------------------------------------------------------------
 
@@ -1898,9 +1893,6 @@ namespace hpl {
 	}
 	void cLowLevelGraphicsSDL::SetClearDepthActive(bool abX){
 		mbClearDepth=abX;
-	}
-	void cLowLevelGraphicsSDL::SetClearStencilActive(bool abX){
-		mbClearStencil=abX;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1940,46 +1932,6 @@ namespace hpl {
 		if(mfAlphaCutoff == afMin) return;
 		mfAlphaCutoff = afMin;
 		mbStateChanged = true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencilActive(bool abX)
-	{
-		if(abX) glEnable(GL_STENCIL_TEST);
-		else glDisable(GL_STENCIL_TEST);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
-					eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)
-	{
-		glStencilFunc(GetGLStencilFuncEnum(aFunc), alRef, aMask);
-
-		glStencilOp(GetGLStencilOpEnum(aFailOp), GetGLStencilOpEnum(aZFailOp),
-					GetGLStencilOpEnum(aZPassOp));
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
-					int alRef, unsigned int aMask,
-					eStencilOp aFrontFailOp,eStencilOp aFrontZFailOp,eStencilOp aFrontZPassOp,
-					eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp)
-	{
-		glStencilFuncSeparate(GL_FRONT, GetGLStencilFuncEnum(aFrontFunc), alRef, aMask);
-		glStencilOpSeparate(GL_FRONT, GetGLStencilOpEnum(aFrontFailOp), GetGLStencilOpEnum(aFrontZFailOp),
-							GetGLStencilOpEnum(aFrontZPassOp));
-
-		glStencilFuncSeparate(GL_BACK, GetGLStencilFuncEnum(aBackFunc), alRef, aMask);
-		glStencilOpSeparate(GL_BACK, GetGLStencilOpEnum(aBackFailOp), GetGLStencilOpEnum(aBackZFailOp),
-							GetGLStencilOpEnum(aBackZPassOp));
-	}
-
-	void cLowLevelGraphicsSDL::SetStencilTwoSide(bool abX)
-	{
-		// Front and back state are always separate; SetStencil() sets both.
 	}
 
 	//-----------------------------------------------------------------------
@@ -2791,42 +2743,6 @@ namespace hpl {
 		case eDepthTestFunc_Equal:			return GL_EQUAL;
 		case eDepthTestFunc_NotEqual:			return GL_NOTEQUAL;
 		case eDepthTestFunc_Always:			return GL_ALWAYS;
-		}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLenum cLowLevelGraphicsSDL::GetGLStencilFuncEnum(eStencilFunc aType)
-	{
-		switch(aType)
-		{
-		case eStencilFunc_Never:			return GL_NEVER;
-		case eStencilFunc_Less:				return GL_LESS;
-		case eStencilFunc_LessOrEqual:		return GL_LEQUAL;
-		case eStencilFunc_Greater:			return GL_GREATER;
-		case eStencilFunc_GreaterOrEqual:	return GL_GEQUAL;
-		case eStencilFunc_Equal:			return GL_EQUAL;
-		case eStencilFunc_NotEqual:			return GL_NOTEQUAL;
-		case eStencilFunc_Always:			return GL_ALWAYS;
-		}
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLenum cLowLevelGraphicsSDL::GetGLStencilOpEnum(eStencilOp aType)
-	{
-		switch(aType)
-		{
-		case eStencilOp_Keep:			return GL_KEEP;
-		case eStencilOp_Zero:			return GL_ZERO;
-		case eStencilOp_Replace:		return GL_REPLACE;
-		case eStencilOp_Increment:		return GL_INCR;
-		case eStencilOp_Decrement:		return GL_DECR;
-		case eStencilOp_Invert:			return GL_INVERT;
-		case eStencilOp_IncrementWrap:	return GL_INCR_WRAP;
-		case eStencilOp_DecrementWrap:	return GL_DECR_WRAP;
 		}
 		return 0;
 	}

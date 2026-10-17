@@ -19,6 +19,7 @@
 #include "math/BoundingVolume.h"
 
 #include "math/Math.h"
+#include "math/MeshTypes.h"
 #include "graphics/LowLevelGraphics.h"
 
 

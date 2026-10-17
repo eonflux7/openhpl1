@@ -744,9 +744,6 @@ namespace hpl {
 			iVertexBuffer *pVtxBuffer = CreateVertexBuffer(Geom, UsageType);//, vExtraVtxVec);
 			pSubMesh->SetVertexBuffer(pVtxBuffer);
 
-			//Create an extra set of vertices for shadow rendering
-			pVtxBuffer->CreateShadowDouble(true);
-
 			/////////////////////////////
 			//Add material
 			tString sMatName = GetMaterialTextureFile(Geom.msMaterial,vColladaMaterials,vColladaTextures,
@@ -863,22 +860,6 @@ namespace hpl {
 				}
 			}
 
-			//Create triangle data for the geometry
-			cMath::CreateTriangleData(*pSubMesh->GetTriangleVecPtr(),
-								pVtxBuffer->GetIndices(), pVtxBuffer->GetIndexNum(),
-								pVtxBuffer->GetArray(eVertexFlag_Position),
-								kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)],
-								pVtxBuffer->GetVertexNum());
-
-			//Create edges for the geometry.
-			bool bDoubleSided = false;
-			cMath::CreateEdges(*pSubMesh->GetEdgeVecPtr(),
-								pVtxBuffer->GetIndices(), pVtxBuffer->GetIndexNum(),
-								pVtxBuffer->GetArray(eVertexFlag_Position),
-								kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)],
-								pVtxBuffer->GetVertexNum(),
-								&bDoubleSided);
-			pSubMesh->SetDoubleSided(bDoubleSided);
 
 			pSubMesh->Compile();
 		}
@@ -1485,32 +1466,11 @@ namespace hpl {
 			//tColladaExtraVtxListVec vExtraVtxVec;
 			pVtxBuffer = CreateVertexBuffer(*apGeom, eVertexBufferUsageType_Static); ///,&apNode->m_mtxWorldTransform);
 
-			//Check if If the mesh casts shadows:
-			pVtxBuffer->CreateShadowDouble(true);
-
 			//Transform vertex buffer with world transform
 			pVtxBuffer->Transform(apNode->m_mtxWorldTransform);
 			//Log("%s transform: (%s)\n", apNode->msName.c_str(), apNode->m_mtxWorldTransform.ToString().c_str());
 
 			pSubMesh->SetVertexBuffer(pVtxBuffer);
-
-			//Create triangle data for the geometry
-			cMath::CreateTriangleData(*pSubMesh->GetTriangleVecPtr(),
-				pVtxBuffer->GetIndices(), pVtxBuffer->GetIndexNum(),
-				pVtxBuffer->GetArray(eVertexFlag_Position),
-				kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)],
-				pVtxBuffer->GetVertexNum());
-
-			//Create edges for the geometry.
-			bool bDoubleSided = false;
-			cMath::CreateEdges(*pSubMesh->GetEdgeVecPtr(),
-				pVtxBuffer->GetIndices(), pVtxBuffer->GetIndexNum(),
-				pVtxBuffer->GetArray(eVertexFlag_Position),
-				kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)],
-				pVtxBuffer->GetVertexNum(),
-				&bDoubleSided);
-
-			pSubMesh->SetDoubleSided(bDoubleSided);
 
 			pSubMesh->Compile();
 

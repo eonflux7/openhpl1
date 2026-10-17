@@ -47,19 +47,6 @@ namespace hpl {
 		eBlendFunc_LastEnum
 	};
 
-	enum eStencilFunc
-	{
-		eStencilFunc_Never,
-		eStencilFunc_Less,
-		eStencilFunc_LessOrEqual,
-		eStencilFunc_Greater,
-		eStencilFunc_GreaterOrEqual,
-		eStencilFunc_Equal,
-		eStencilFunc_NotEqual,
-		eStencilFunc_Always,
-		eStencilFunc_LastEnum
-	};
-
 	enum eDepthTestFunc
 	{
 		eDepthTestFunc_Never,
@@ -71,19 +58,6 @@ namespace hpl {
 		eDepthTestFunc_NotEqual,
 		eDepthTestFunc_Always,
 		eDepthTestFunc_LastEnum
-	};
-
-	enum eStencilOp
-	{
-		eStencilOp_Keep,
-		eStencilOp_Zero,
-		eStencilOp_Replace,
-		eStencilOp_Increment,
-		eStencilOp_Decrement,
-		eStencilOp_Invert,
-		eStencilOp_IncrementWrap,
-		eStencilOp_DecrementWrap,
-		eStencilOp_LastEnum
 	};
 
 	enum eCullMode
@@ -698,11 +672,9 @@ namespace hpl {
 
 		virtual void SetClearColor(const cColor& aCol)=0;
 		virtual void SetClearDepth(float afDepth)=0;
-		virtual void SetClearStencil(int alVal)=0;
 
 		virtual void SetClearColorActive(bool abX)=0;
 		virtual void SetClearDepthActive(bool abX)=0;
-		virtual void SetClearStencilActive(bool abX)=0;
 
 		virtual void SetColorWriteActive(bool abR,bool abG,bool abB,bool abA)=0;
 		virtual void SetDepthWriteActive(bool abX)=0;
@@ -720,17 +692,6 @@ namespace hpl {
 		 * of eMaterialAlphaMode_Trans cut out. 0 draws them all.
 		 */
 		virtual void SetAlphaCutoff(float afMin)=0;
-
-		//STENCIL
-		virtual void SetStencilActive(bool abX)=0;
-		virtual void SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
-						eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)=0;
-		virtual void SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
-						int alRef, unsigned int aMask,
-						eStencilOp aFrontFailOp,eStencilOp aFrontZFailOp,eStencilOp aFrontZPassOp,
-						eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp)=0;
-		virtual void SetStencilTwoSide(bool abX)=0;
-
 
 		//SCISSOR
 		virtual void SetScissorActive(bool abX)=0;

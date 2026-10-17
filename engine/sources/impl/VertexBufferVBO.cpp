@@ -66,7 +66,6 @@ namespace hpl {
 
 		mbCompiled = false;
 
-		mbHasShadowDouble = false;
 
 		mpLowLevelGraphics = apLowLevelGraphics;
 	}
@@ -249,33 +248,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cVertexBufferVBO::CreateShadowDouble(bool abUpdateData)
-	{
-		int lIdx = cMath::Log2ToInt(eVertexFlag_Position);
-
-		//Set to new size.
-		int lSize = (int)mvVertexArray[lIdx].size();
-		mvVertexArray[lIdx].reserve(lSize*2);
-
-		int lCount = lSize /4;
-		for(int i=0; i< lCount; i++)
-		{
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+0]);
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+1]);
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+2]);
-			mvVertexArray[lIdx].push_back(0);//0);
-		}
-
-		mbHasShadowDouble = true;
-
-		if(abUpdateData)
-		{
-			UpdateData(eVertexFlag_Position, false);
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::Transform(const cMatrixf &a_mtxTransform)
 	{
 		float *pPosArray = GetArray(eVertexFlag_Position);
@@ -289,8 +261,6 @@ namespace hpl {
 
 		int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
 
-		int lOffset = GetVertexNum()*4;
-
 		for(int i=0; i<lVtxNum; i++)
 		{
 			float* pPos = &pPosArray[i*lVtxStride];
@@ -300,11 +270,6 @@ namespace hpl {
 
 			cVector3f vPos = cMath::MatrixMul(a_mtxTransform, cVector3f(pPos[0],pPos[1],pPos[2]));
 			pPos[0] = vPos.x; pPos[1] = vPos.y; pPos[2] = vPos.z;
-
-			if(mbHasShadowDouble){
-				float* pExtraPos = &pPosArray[i*lVtxStride + lOffset];
-				pExtraPos[0] = vPos.x; pExtraPos[1] = vPos.y; pExtraPos[2] = vPos.z;
-			}
 
 			cVector3f vNorm = cMath::MatrixMul(mtxRot, cVector3f(pNorm[0],pNorm[1],pNorm[2]));
 			vNorm.Normalise();
@@ -482,7 +447,6 @@ namespace hpl {
 		memcpy(pVtxBuff->GetIndices(), GetIndices(), GetIndexNum() * sizeof(unsigned int) );
 
 		pVtxBuff->mbTangents = mbTangents;
-		pVtxBuff->mbHasShadowDouble = mbHasShadowDouble;
 
 		pVtxBuff->Compile(0);
 
@@ -494,11 +458,7 @@ namespace hpl {
 	int cVertexBufferVBO::GetVertexNum()
 	{
 		int idx = cMath::Log2ToInt((int)eVertexFlag_Position);
-		int lSize = (int)mvVertexArray[idx].size()/kvVertexElements[idx];
-
-		//If there is a shadow double, just return the length of the first half.
-		if(mbHasShadowDouble) return lSize / 2;
-		else return lSize;
+		return (int)mvVertexArray[idx].size()/kvVertexElements[idx];
 	}
 	int cVertexBufferVBO::GetIndexNum()
 	{

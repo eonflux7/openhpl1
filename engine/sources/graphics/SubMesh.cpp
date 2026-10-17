@@ -51,7 +51,6 @@ namespace hpl {
 		mpVtxBuffer = nullptr;
 		mpParent = nullptr;
 
-		mbDoubleSided = false;
 
 		mpVertexWeights = nullptr;
 		mpVertexBones = nullptr;

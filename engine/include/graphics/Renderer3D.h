@@ -66,18 +66,6 @@ namespace hpl {
 
 	//---------------------------------------------
 
-	/**
-	 * How shadows are made. Volumes: the original stencil shadow volumes,
-	 * hard-edged. Maps: a shadow map per light, drawn anew every frame,
-	 * with soft edges.
-	 */
-	enum eShadowType
-	{
-		eShadowType_Volumes,
-		eShadowType_Maps,
-		eShadowType_LastEnum
-	};
-
 	enum eShadowMapFilter
 	{
 		/// One sample, filtered between texels.
@@ -163,11 +151,7 @@ namespace hpl {
 		void Reset(iLowLevelGraphics *apLowLevel);
 
 		//Setings that doesn't change:
-		iGpuProgram *mpVtxExtrudeProgram;
-		iGpuProgram *mpFragExtrudeProgram;
 		iLowLevelGraphics* mpLowLevel;
-
-		unsigned int *mpTempIndexArray;
 
 		//Setting that changes
 		iLight3D* mpLight;
@@ -183,13 +167,10 @@ namespace hpl {
 		cColor mFogColor;
 
 		eRendererShowShadows mShowShadows;
-		eShadowType mShadowType;
 		bool mbLog;
 		tRendererDebugFlag mDebugFlags;
 
 		//State settings
-		int mlLastShadowAlgo;
-
 		bool mbDepthTest;
 
 		eMaterialAlphaMode mAlphaMode;
@@ -278,8 +259,6 @@ namespace hpl {
 		eRendererShowShadows GetShowShadows();
 		void SetShowShadows(eRendererShowShadows aState);
 
-		eShadowType GetShadowType(){ return mRenderSettings.mShadowType; }
-		void SetShadowType(eShadowType aType){ mRenderSettings.mShadowType = aType; }
 		const cShadowMapSettings& GetShadowMapSettings(){ return mShadowMapSettings; }
 		void SetShadowMapSettings(const cShadowMapSettings& aSettings){ mShadowMapSettings = aSettings; }
 		const cShadowMapStats& GetShadowMapStats(){ return mShadowMapStats; }

@@ -70,7 +70,6 @@ public:
 	void AddIndex(unsigned) override {}
 	bool Compile(tVertexCompileFlag) override { return true; }
 	void UpdateData(tVertexFlag, bool) override {}
-	void CreateShadowDouble(bool) override {}
 	void Transform(const cMatrixf&) override {}
 	void Draw(eVertexBufferDrawType) override {}
 	void DrawIndices(unsigned*, int, eVertexBufferDrawType) override {}

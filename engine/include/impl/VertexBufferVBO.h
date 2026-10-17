@@ -39,7 +39,6 @@ namespace hpl {
 		bool Compile(tVertexCompileFlag aFlags) override;
 		void UpdateData(tVertexFlag aTypes, bool abIndices) override;
 
-		void CreateShadowDouble(bool abUpdateData) override;
 
 		void Transform(const cMatrixf &mtxTransform) override;
 
@@ -88,7 +87,6 @@ namespace hpl {
 
 		tUIntVec mvIndexArray;
 
-		bool mbHasShadowDouble;
 
 		bool mbCompiled;
 	};

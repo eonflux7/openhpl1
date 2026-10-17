@@ -106,22 +106,10 @@ namespace hpl {
 		mRenderSettings.mpLowLevel = mpLowLevelGraphics;
 		mRenderSettings.mbLog = false;
 		mRenderSettings.mShowShadows = eRendererShowShadows_All;
-		mRenderSettings.mShadowType = eShadowType_Volumes;
-		mRenderSettings.mpTempIndexArray = hplNewArray(unsigned int,60000);
 
 		Log("   Load Renderer3D gpu programs:\n");
 
-		Log("    Extrude\n");
-
 		cGpuProgramManager *pProgramManager = apResources->GetGpuProgramManager();
-		mRenderSettings.mpVtxExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_vp.cg","main",eGpuProgramType_Vertex);
-		if(mRenderSettings.mpVtxExtrudeProgram==nullptr)
-		{
-			Error("Couldn't load 'ShadowExtrude_vp.cg' program! Shadows will be disabled.\n");
-		}
-
-
-		mRenderSettings.mpFragExtrudeProgram = pProgramManager->CreateProgram("ShadowExtrude_fp.cg","main",eGpuProgramType_Fragment);
 
 		///////////////////////////////////
 		//Load diffuse program, for stuff like query rendering
@@ -232,11 +220,6 @@ namespace hpl {
 
 	cRenderer3D::~cRenderer3D()
 	{
-		hplDeleteArray(mRenderSettings.mpTempIndexArray);
-
-		if(mRenderSettings.mpVtxExtrudeProgram) mpResources->GetGpuProgramManager()->Destroy(mRenderSettings.mpVtxExtrudeProgram);
-		if(mRenderSettings.mpFragExtrudeProgram) mpResources->GetGpuProgramManager()->Destroy(mRenderSettings.mpFragExtrudeProgram);
-
 		if(mpDiffuseVtxProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseVtxProgram);
 		if(mpDiffuseFragProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseFragProgram);
 
@@ -269,8 +252,6 @@ namespace hpl {
 
 	void cRenderSettings::Clear()
 	{
-		mlLastShadowAlgo = 0;
-
 		mbDepthTest = true;
 
 		mAlphaMode = eMaterialAlphaMode_Solid;
@@ -580,7 +561,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 
-		mpLowLevelGraphics->SetClearStencilActive(false);
 		mpLowLevelGraphics->ClearScreen();
 
 		//////////////////////////////////////////////////
@@ -907,8 +887,7 @@ namespace hpl {
 			// The light's shadow map, which its passes read
 			cShadowMapParams shadowParams;
 			shadowParams.mbShowOnly = mShadowMapSettings.mbShowOnly;
-			if(mRenderSettings.mShadowType == eShadowType_Maps)
-				RenderShadowMap(pLight, apCamera, shadowParams);
+			RenderShadowMap(pLight, apCamera, shadowParams);
 			mpLowLevelGraphics->SetShadowMapParams(shadowParams);
 			mpLowLevelGraphics->SetLightLook(pLight->GetLook());
 

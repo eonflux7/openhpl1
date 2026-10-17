@@ -995,15 +995,7 @@ void cRefView::DrawShadows()
 	if(ImGui::Combo("Shadows", &lShow, "On\0Only of what never moves\0Off\0"))
 		pRenderer->SetShowShadows((eRendererShowShadows)lShow);
 
-	int lType = pRenderer->GetShadowType();
-	if(ImGui::Combo("Kind", &lType, "Original (volumes)\0Shadow maps\0"))
-		pRenderer->SetShadowType((eShadowType)lType);
-	if(ImGui::IsItemHovered())
-		Tip("Original: the game's hard-edged shadows.\n"
-							"Shadow maps: what each light sees is drawn into a depth picture, "
-							"which the lit surfaces look themselves up in.");
-
-	ImGui::BeginDisabled(lType != eShadowType_Maps || lShow == eRendererShowShadows_None);
+	ImGui::BeginDisabled(lShow == eRendererShowShadows_None);
 
 	if(ImGui::CollapsingHeader("Edges", ImGuiTreeNodeFlags_DefaultOpen))
 	{

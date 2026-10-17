@@ -172,11 +172,9 @@ namespace hpl {
 
 		void SetClearColor(const cColor& aCol) override;
 		void SetClearDepth(float afDepth) override;
-		void SetClearStencil(int alVal) override;
 
 		void SetClearColorActive(bool abX) override;
 		void SetClearDepthActive(bool abX) override;
-		void SetClearStencilActive(bool abX) override;
 
 		void SetColorWriteActive(bool abR,bool abG,bool abB,bool abA) override;
 		void SetDepthWriteActive(bool abX) override;
@@ -190,17 +188,6 @@ namespace hpl {
 
 		//ALPHA
 		void SetAlphaCutoff(float afMin) override;
-
-		//STENCIL
-		void SetStencilActive(bool abX) override;
-		void SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
-				eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp) override;
-		void SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
-				int alRef, unsigned int aMask,
-				eStencilOp aFrontFailOp,eStencilOp aFrontZFailOp,eStencilOp aFrontZPassOp,
-				eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp) override;
-		void SetStencilTwoSide(bool abX) override;
-
 
 		//SCISSOR
 		void SetScissorActive(bool abX) override;
@@ -500,7 +487,6 @@ namespace hpl {
 		//Clearing
 		bool mbClearColor;
 		bool mbClearDepth;
-		bool mbClearStencil;
 
 		//Rendertarget variables
 		iTexture* mpRenderTarget;
@@ -535,10 +521,6 @@ namespace hpl {
 		//Depth helper
 		GLenum GetGLDepthTestFuncEnum(eDepthTestFunc aType);
 
-
-		//Stencil helper
-		GLenum GetGLStencilFuncEnum(eStencilFunc aType);
-		GLenum GetGLStencilOpEnum(eStencilOp aType);
 
 		//Matrix Helper
 		// Notes that the top of the CPU stack changed, for the default

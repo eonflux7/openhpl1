@@ -919,9 +919,6 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
-		int lType = mpConfig->GetInt("Graphics","ShadowType",eShadowType_Maps);
-		if(lType < 0 || lType >= eShadowType_LastEnum) lType = eShadowType_Maps;
-		pRenderer->SetShadowType((eShadowType)lType);
 
 		// The defaults are the settings' own
 		cShadowMapSettings shadows;
@@ -1466,7 +1463,6 @@ void cInit::Exit()
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
 		const cShadowMapSettings &shadows = pRenderer->GetShadowMapSettings();
-		mpConfig->SetInt("Graphics","ShadowType",pRenderer->GetShadowType());
 		mpConfig->SetInt("Graphics","ShadowFilter",shadows.mFilter);
 		mpConfig->SetInt("Graphics","ShadowSpotSize",shadows.mlSpotSize);
 		mpConfig->SetInt("Graphics","ShadowPointSize",shadows.mlPointSize);
