@@ -1,6 +1,6 @@
 // hpl1_shading.glsl
 //
-// The improved shading (cShadingSettings in hpl_Frame): what a surface does
+// The shading (cShadingSettings in hpl_Frame): what a surface does
 // with light beyond the original's texture x light x N.L.
 //
 // The game has no gloss maps. What a material has for specular (a colour

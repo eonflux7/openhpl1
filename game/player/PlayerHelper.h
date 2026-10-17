@@ -317,13 +317,13 @@ private:
 //---------------------------------------------
 
 /**
- * How the flashlight looks (Milestone 5). With mbImproved off it is the
- * original: the light of the hand model with its picture and falloff ramp.
+ * How the flashlight looks (Milestone 5): brighter near and fading with
+ * the distance, a beam with a hotspot, and a little light that comes back
+ * from where it lands.
  */
 class cFlashlightSettings
 {
 public:
-	bool mbImproved = true;
 	/// Scales the amount of light.
 	float mfBrightness = 1.0f;
 	/// 0 is the white of the original, 1 the yellow of a weak bulb.
@@ -364,12 +364,7 @@ public:
 
 	void OnPostSceneDraw();
 
-	void SetSettings(const cFlashlightSettings& aSettings)
-	{
-		// The bounce follows a switch at once, not eased
-		if(aSettings.mbImproved != mSettings.mbImproved) mbSnapBounce = true;
-		mSettings = aSettings;
-	}
+	void SetSettings(const cFlashlightSettings& aSettings){ mSettings = aSettings; }
 	const cFlashlightSettings& GetSettings(){ return mSettings; }
 
 private:
@@ -379,7 +374,6 @@ private:
 	//Where the bounced light is, and how much of it there is, eased
 	cVector3f mvBouncePos;
 	float mfBounceAmount;
-	bool mbSnapBounce = false;
 	//The spotlight's reach as the hand model has it, and as last set here
 	float mfBaseReach;
 	float mfSetReach;

@@ -489,8 +489,6 @@ namespace hpl {
 
 	bool iParticleEmitter3D::GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw)
 	{
-		if(mpGraphics->GetLowLevel()->GetEffects().mbParticles==false) return false;
-
 		iMaterial *pMaterial = GetMaterial();
 		eMaterialBlendMode blend = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
 		if(blend != eMaterialBlendMode_Alpha && blend != eMaterialBlendMode_Add) return false;

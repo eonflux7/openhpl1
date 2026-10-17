@@ -92,9 +92,9 @@ namespace hpl {
 		iGpuProgram* mpAmbientFP;
 
 		/**
-		 * The ambient pass of the improved shading (cShadingSettings):
-		 * programs of hpl1_ambient for what the material has, loaded when
-		 * the option is first on. False if they could not be loaded.
+		 * The ambient pass of the shading (cShadingSettings): programs of
+		 * hpl1_ambient for what the material has, loaded when first used.
+		 * False if they could not be loaded.
 		 */
 		bool UseShadedAmbient();
 		iGpuProgram* mpShadedAmbientVP;

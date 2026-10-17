@@ -68,20 +68,15 @@ namespace hpl {
 		mpShaftFragProgram = nullptr;
 		mpShaftBuffer = nullptr;
 
-		mpHaloSourceBuffer = mpMeshCreator->CreateBoxVertexBuffer(1);
-
 		mvSize = avSize;
 		mvAxis = cVector3f(0,1,0);
 
 		mColor = cColor(1,1,1,1);
 		mfForwardOffset =0;
-		mfHaloAlpha = 1.0f;
 
 		mType = eBillboardType_Point;
 
 		mpMaterial = nullptr;
-
-		mlLastRenderCount = -1;
 
 		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
 								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0 |
@@ -125,18 +120,12 @@ namespace hpl {
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
-		if(mpHaloSourceBuffer) hplDelete(mpHaloSourceBuffer);
 		if(mpShaftBuffer) hplDelete(mpShaftBuffer);
 
 		if(mpHaloVtxProgram) mpProgramManager->Destroy(mpHaloVtxProgram);
 		if(mpHaloFragProgram) mpProgramManager->Destroy(mpHaloFragProgram);
 		if(mpShaftVtxProgram) mpProgramManager->Destroy(mpShaftVtxProgram);
 		if(mpShaftFragProgram) mpProgramManager->Destroy(mpShaftFragProgram);
-
-		if(mQueryObject.mpQuery)
-			mpLowLevelGraphics->DestroyOcclusionQuery(mQueryObject.mpQuery);
-		if(mMaxQueryObject.mpQuery)
-			mpLowLevelGraphics->DestroyOcclusionQuery(mMaxQueryObject.mpQuery);
 	}
 
 	//-----------------------------------------------------------------------
@@ -216,35 +205,10 @@ namespace hpl {
 
 		for(int i=0; i<4;++i)
 		{
-			pColors[0] = mColor.r * mfHaloAlpha;
-			pColors[1] = mColor.g * mfHaloAlpha;
-			pColors[2] = mColor.b * mfHaloAlpha;
-			pColors[3] = mColor.a * mfHaloAlpha;
-			pColors+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::SetHaloAlpha(float afX)
-	{
-		if(mfHaloAlpha == afX)
-		{
-			return;
-		}
-
-		mfHaloAlpha = afX;
-
-		float *pColors = mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		for(int i=0; i<4;++i)
-		{
-			pColors[0] = mColor.r * mfHaloAlpha;
-			pColors[1] = mColor.g * mfHaloAlpha;
-			pColors[2] = mColor.b * mfHaloAlpha;
-			pColors[3] = mColor.a * mfHaloAlpha;
+			pColors[0] = mColor.r;
+			pColors[1] = mColor.g;
+			pColors[2] = mColor.b;
+			pColors[3] = mColor.a;
 			pColors+=4;
 		}
 
@@ -270,76 +234,6 @@ namespace hpl {
 	cBoundingVolume* cBillboard::GetBoundingVolume()
 	{
 		return &mBoundingVolume;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
-	{
-		if(mbIsHalo==false) return;
-
-		// The halo's shader finds out how much of the lamp is in view
-		if(DrawnAsHalo())
-		{
-			SetHaloAlpha(1);
-			return;
-		}
-
-		////////////////////////
-		//Set the alpha
-		float fAlpha = 0;
-
-		if(mlLastRenderCount == apRenderList->GetLastRenderCount())
-		{
-			if(mMaxQueryObject.mpQuery->GetSampleCount()>0)
-			{
-				fAlpha =	(float)mQueryObject.mpQuery->GetSampleCount() /
-							(float)mMaxQueryObject.mpQuery->GetSampleCount();
-			}
-		}
-		SetHaloAlpha(fAlpha);
-		mlLastRenderCount = apRenderList->GetRenderCount();
-
-		////////////////////////
-		//Add the queries
-		if(mbHaloSourceIsParent)
-		{
-			iRenderable *pParent = static_cast<iRenderable*>(GetEntityParent());
-			if(pParent==nullptr)
-			{
-				Error("Billboard %s has no parent!\n",msName.c_str());
-				return;
-			}
-
-			iVertexBuffer *pVtxBuffer = pParent->GetVertexBuffer();
-			if(pVtxBuffer==nullptr)
-			{
-				Error("Billboard '%s' parent '%s' as NULL vertex buffer!\n",msName.c_str(),
-																		pParent->GetName().c_str());
-				return;
-			}
-
-			mQueryObject.mpMatrix = pParent->GetModelMatrix(apCamera);
-			mQueryObject.mpVtxBuffer = pVtxBuffer;
-
-			mMaxQueryObject.mpMatrix = pParent->GetModelMatrix(apCamera);
-			mMaxQueryObject.mpVtxBuffer = pVtxBuffer;
-		}
-		else
-		{
-			mQueryObject.mpMatrix = &GetWorldMatrix();
-			mQueryObject.mpVtxBuffer = mpHaloSourceBuffer;
-
-			mMaxQueryObject.mpMatrix = &GetWorldMatrix();
-			mMaxQueryObject.mpVtxBuffer = mpHaloSourceBuffer;
-		}
-
-		mQueryObject.mbDepthTest = true;
-		mMaxQueryObject.mbDepthTest = false;
-
-		apRenderList->AddOcclusionQuery(&mQueryObject);
-		apRenderList->AddOcclusionQuery(&mMaxQueryObject);
-
 	}
 
 	//-----------------------------------------------------------------------
@@ -408,7 +302,6 @@ namespace hpl {
 	bool cBillboard::DrawnAsHalo()
 	{
 		if(mType != eBillboardType_Point || mpMaterial==nullptr) return false;
-		if(mpLowLevelGraphics->GetEffects().mbHalos==false) return false;
 		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 	}
 
@@ -418,7 +311,6 @@ namespace hpl {
 		// The small ones are glints on things held in the hand (the
 		// flashlight's lens), not air
 		if(mvSize.y < 0.5f) return false;
-		if(mpLowLevelGraphics->GetEffects().mbShafts==false) return false;
 		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 	}
 
@@ -619,8 +511,7 @@ namespace hpl {
 			mpShaftFragProgram->SetVec4f("shaftViewZ", -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
 			mpShaftFragProgram->SetVec4f("shaftSize", mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
 			// As the sheet's corners are coloured
-			mpShaftFragProgram->SetVec4f("shaftColor", mColor.r * mfHaloAlpha, mColor.g * mfHaloAlpha,
-													mColor.b * mfHaloAlpha, mColor.a * mfHaloAlpha);
+			mpShaftFragProgram->SetVec4f("shaftColor", mColor.r, mColor.g, mColor.b, mColor.a);
 			mpShaftFragProgram->SetVec4f("shaftLook", effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
 			mpShaftFragProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
 		}
@@ -719,20 +610,6 @@ namespace hpl {
 	void cBillboard::SetIsHalo(bool abX)
 	{
 		mbIsHalo = abX;
-
-		if(mbIsHalo)
-		{
-			mQueryObject.mpQuery = mpLowLevelGraphics->CreateOcclusionQuery();
-			mMaxQueryObject.mpQuery = mpLowLevelGraphics->CreateOcclusionQuery();
-
-			mfHaloAlpha = 1; //THis is to make sure that the new alpha is set to the mesh.
-			SetHaloAlpha(0);
-		}
-		else if(mQueryObject.mpQuery)
-		{
-			mpLowLevelGraphics->DestroyOcclusionQuery(mQueryObject.mpQuery);
-			mpLowLevelGraphics->DestroyOcclusionQuery(mMaxQueryObject.mpQuery);
-		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -740,8 +617,6 @@ namespace hpl {
 	void cBillboard::SetHaloSourceSize(const cVector3f &avSize)
 	{
 		mvHaloSourceSize = avSize;
-
-		UpdateSourceBufferSize();
 	}
 
 	//-----------------------------------------------------------------------
@@ -772,37 +647,6 @@ namespace hpl {
 		Warning("Invalid billboard type '%s'\n",apString);
 
 		return eBillboardType_Point;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::UpdateSourceBufferSize()
-	{
-		int lNum = mpHaloSourceBuffer->GetVertexNum();
-		float *pPositions = mpHaloSourceBuffer->GetArray(eVertexFlag_Position);
-
-		for(int i=0; i<lNum;++i)
-		{
-			//X
-			if(pPositions[0] < 0)
-				pPositions[0] = -mvHaloSourceSize.x*0.5f;
-			else
-				pPositions[0] = mvHaloSourceSize.x*0.5f;
-			//Y
-			if(pPositions[1] < 0)
-				pPositions[1] = -mvHaloSourceSize.y*0.5f;
-			else
-				pPositions[1] = mvHaloSourceSize.y*0.5f;
-			//Z
-			if(pPositions[2] < 0)
-				pPositions[2] = -mvHaloSourceSize.z*0.5f;
-			else
-				pPositions[2] = mvHaloSourceSize.z*0.5f;
-
-			pPositions += 4;
-		}
-
-		mpHaloSourceBuffer->UpdateData(eVertexFlag_Position, false);
 	}
 
 	//-----------------------------------------------------------------------
@@ -866,7 +710,8 @@ namespace hpl {
 		kSaveData_SaveTo(mvAxis);
 		kSaveData_SaveTo(mfForwardOffset);
 		kSaveData_SaveTo(mColor);
-		kSaveData_SaveTo(mfHaloAlpha);
+		// Read by the builds that faded halos by occlusion queries
+		pData->mfHaloAlpha = 1;
 
 		kSaveData_SaveTo(mbIsHalo);
 		kSaveData_SaveTo(mvHaloSourceSize);
@@ -884,7 +729,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mvAxis);
 		kSaveData_LoadFrom(mfForwardOffset);
 		kSaveData_LoadFrom(mColor);
-		kSaveData_LoadFrom(mfHaloAlpha);
 
 		SetIsHalo(pData->mbIsHalo);
 		SetHaloSourceSize(pData->mvHaloSourceSize);

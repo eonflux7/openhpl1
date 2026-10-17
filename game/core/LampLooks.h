@@ -29,13 +29,12 @@ class cInit;
 
 /**
  * How the glow stick, the flare and the lamps of the world look
- * (Milestone 5). With mbImproved off they are the original's: a colour, a
- * reach and the falloff ramp, the same for a flame and a tube.
+ * (Milestone 5). The original's were a colour, a reach and the falloff
+ * ramp, the same for a flame and a tube.
  */
 class cLampSettings
 {
 public:
-	bool mbImproved = true;
 	/// Flames: how much their brightness wavers. 1 is what each kind of flame has, 0 none.
 	float mfFlicker = 1.0f;
 	/// Flames: how far the place they shine from wanders, which moves their shadows. 1 as above.
@@ -90,8 +89,6 @@ private:
 
 	cLampSettings mSettings;
 	bool mbStill;
-	// Looks were given out and have not been taken back
-	bool mbApplied;
 	double mfTime;
 	int mlLampCount;
 };

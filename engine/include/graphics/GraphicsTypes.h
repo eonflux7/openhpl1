@@ -205,8 +205,7 @@ namespace hpl {
 		/**
 		 * A light that is long, not a point: a fluorescent tube. From the
 		 * tube's middle to one of its ends, along the world's axes; zero
-		 * for a point. Only the highlights of the improved shading show
-		 * it.
+		 * for a point. Only the highlights show it.
 		 */
 		cVector3f mvTubeAxis = cVector3f(0,0,0);
 		/// Where the tube's middle is, from the light, along the world's axes.

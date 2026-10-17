@@ -1461,27 +1461,17 @@ void cRefView::DrawShading()
 	cShadingSettings shading = pLowLevel->GetShading();
 	bool bChanged = false;
 
-	int lType = shading.mbImproved ? 1 : 0;
-	ImGui::SetNextItemWidth(fEm * 12);
-	if(ImGui::Combo("Shading##type", &lType, "Original\0Improved\0"))
-	{
-		shading.mbImproved = lType == 1;
-		bChanged = true;
-	}
+	ImGui::TextUnformatted("Shading");
 	if(ImGui::IsItemHovered())
-		Tip("Improved: highlights with a width and strength of their own for each surface, coloured by "
-			"the light, and ambient light that shows the normal maps. Made for linear lighting; "
-			"without it highlights clip at white.");
+		Tip("Highlights with a width and strength of their own for each surface, coloured by "
+			"the light, and ambient light that shows the normal maps.");
 	ImGui::SameLine();
 	if(ImGui::Button("Reset##shading"))
 	{
-		bool bImproved = shading.mbImproved;
 		shading = cShadingSettings();
-		shading.mbImproved = bImproved;
 		bChanged = true;
 	}
 
-	ImGui::BeginDisabled(shading.mbImproved==false);
 	ImGui::PushItemWidth(fEm * 12);
 
 	if(ImGui::CollapsingHeader("Highlights", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1517,7 +1507,6 @@ void cRefView::DrawShading()
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::EndDisabled();
 
 	if(bChanged) pLowLevel->SetShading(shading);
 
@@ -1529,27 +1518,16 @@ void cRefView::DrawShading()
 		cFlashlightSettings flashlight = pFlashLight->GetSettings();
 		bChanged = false;
 
-		int lFlashlight = flashlight.mbImproved ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Flashlight", &lFlashlight, "Original\0Improved\0"))
+		if(ImGui::Button("Reset##flashlight"))
 		{
-			flashlight.mbImproved = lFlashlight == 1;
+			flashlight = cFlashlightSettings();
 			bChanged = true;
 		}
 		if(ImGui::IsItemHovered())
-			Tip("Improved: brighter near and fading with the distance, a beam with a hotspot made by the "
+			Tip("Brighter near and fading with the distance, a beam with a hotspot made by the "
 				"shader in place of the 256 pixel picture, a warmer colour, and light coming back from "
 				"what the beam lands on.");
-		ImGui::SameLine();
-		if(ImGui::Button("Reset##flashlight"))
-		{
-			bool bImproved = flashlight.mbImproved;
-			flashlight = cFlashlightSettings();
-			flashlight.mbImproved = bImproved;
-			bChanged = true;
-		}
 
-		ImGui::BeginDisabled(flashlight.mbImproved==false);
 		ImGui::PushItemWidth(fEm * 12);
 		bChanged |= ImGui::SliderFloat("Brightness", &flashlight.mfBrightness, 0.25f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
 		if(ImGui::IsItemHovered()) Tip("The amount of light: 2 is twice as much.");
@@ -1581,7 +1559,6 @@ void cRefView::DrawShading()
 		if(ImGui::IsItemHovered())
 			Tip("Light coming back from what the beam lands on: a weak light there, without shadows. 0: none.");
 		ImGui::PopItemWidth();
-		ImGui::EndDisabled();
 
 		if(bChanged) pFlashLight->SetSettings(flashlight);
 	}
@@ -1594,29 +1571,19 @@ void cRefView::DrawShading()
 		cLampSettings lamps = pLampLooks->GetSettings();
 		bChanged = false;
 
-		int lLamps = lamps.mbImproved ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Lamps", &lLamps, "Original\0Improved\0"))
+		if(ImGui::Button("Reset##lamps"))
 		{
-			lamps.mbImproved = lLamps == 1;
+			lamps = cLampSettings();
 			bChanged = true;
 		}
 		if(ImGui::IsItemHovered())
 			Tip("The glow stick, the flare and the lamps of the world (paraffin lamps, bulbs, fluorescent "
-				"tubes, emergency and tunnel lights). Improved: flames waver and sway, and their halos "
+				"tubes, emergency and tunnel lights): flames waver and sway, and their halos "
 				"with them, each kind of lamp has a colour of its own, lamps are brighter close by, and "
 				"tubes have long highlights.");
 		ImGui::SameLine();
-		if(ImGui::Button("Reset##lamps"))
-		{
-			bool bImproved = lamps.mbImproved;
-			lamps = cLampSettings();
-			lamps.mbImproved = bImproved;
-			bChanged = true;
-		}
-		if(lamps.mbImproved) ImGui::TextDisabled("%d lights with a look in this map", pLampLooks->GetLampCount());
+		ImGui::TextDisabled("%d lights with a look in this map", pLampLooks->GetLampCount());
 
-		ImGui::BeginDisabled(lamps.mbImproved==false);
 		ImGui::PushItemWidth(fEm * 12);
 		bChanged |= ImGui::SliderFloat("Flicker", &lamps.mfFlicker, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered())
@@ -1644,14 +1611,13 @@ void cRefView::DrawShading()
 		bChanged |= ImGui::SliderFloat("Tube length", &lamps.mfTube, 0.0f, 2.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("Fluorescent tubes: how long their highlights are, in times the tube's own length. "
-				"0: a point, as in the original. Shows with Shading: Improved only.");
+				"0: a point, as in the original.");
 		bChanged |= ImGui::Checkbox("Lights of the maps too", &lamps.mbMapLights);
 		if(ImGui::IsItemHovered())
 			Tip("The lights that are part of a map and not of a lamp (56 in the game): brighter near "
 				"them as well, unless they reach further than 20 m or have a falloff of their own, "
 				"and the furnace's lights waver. Their colours stay.");
 		ImGui::PopItemWidth();
-		ImGui::EndDisabled();
 
 		if(bChanged) pLampLooks->SetSettings(lamps);
 	}
@@ -1663,67 +1629,41 @@ void cRefView::DrawShading()
 		cEffectSettings effects = pLowLevel->GetEffects();
 		bChanged = false;
 
-		int lHalos = effects.mbHalos ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Halos", &lHalos, "Original\0Improved\0"))
-		{
-			effects.mbHalos = lHalos == 1;
-			bChanged = true;
-		}
-		if(ImGui::IsItemHovered())
-			Tip("The glow round lamps. Improved: drawn by a shader from the shape of the halo's picture, "
-				"so the glow fades out without steps or blocks, and hidden by what stands in front of "
-				"the lamp as the depth buffer has it: it fades as an edge passes, in the same frame.");
-		ImGui::SameLine();
 		if(ImGui::Button("Reset##effects"))
 		{
-			cEffectSettings fresh;
-			fresh.mbHalos = effects.mbHalos;
-			fresh.mbShafts = effects.mbShafts;
-			fresh.mbParticles = effects.mbParticles;
-			effects = fresh;
+			effects = cEffectSettings();
 			bChanged = true;
 		}
 		ImGui::PushItemWidth(fEm * 12);
-		ImGui::BeginDisabled(effects.mbHalos==false);
+		ImGui::TextUnformatted("Halos");
+		if(ImGui::IsItemHovered())
+			Tip("The glow round lamps, drawn by a shader from the shape of the halo's picture, "
+				"so the glow fades out without steps or blocks, and hidden by what stands in front of "
+				"the lamp as the depth buffer has it: it fades as an edge passes, in the same frame.");
 		bChanged |= ImGui::SliderFloat("Brightness##halo", &effects.mfHaloBrightness, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("1: as bright as the original's.");
 		bChanged |= ImGui::SliderFloat("Rays", &effects.mfHaloStreaks, 0.0f, 1.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("How much is kept of what a halo's picture has besides the round glow: the rays of the "
 				"star-shaped ones. 0: only the glow.");
-		ImGui::EndDisabled();
 
-		int lShafts = effects.mbShafts ? 1 : 0;
-		if(ImGui::Combo("Light shafts", &lShafts, "Original\0Improved\0"))
-		{
-			effects.mbShafts = lShafts == 1;
-			bChanged = true;
-		}
+		ImGui::TextUnformatted("Light shafts");
 		if(ImGui::IsItemHovered())
-			Tip("The beams of light under grates and windows. Improved: a body of lit air in place of a "
+			Tip("The beams of light under grates and windows: a body of lit air in place of a "
 				"flat sheet. It ends softly at walls and the floor, looks right from every side and "
 				"can be walked into.");
-		ImGui::BeginDisabled(effects.mbShafts==false);
 		bChanged |= ImGui::SliderFloat("Brightness##shaft", &effects.mfShaftBrightness, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("1: as bright as the original's, seen from the side.");
 		bChanged |= ImGui::SliderFloat("Dust", &effects.mfShaftDust, 0.0f, 1.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("How uneven the lit air is: streaks that drift along the shaft. 0: even.");
-		ImGui::EndDisabled();
 
-		int lParticles = effects.mbParticles ? 1 : 0;
-		if(ImGui::Combo("Particles", &lParticles, "Original\0Improved\0"))
-		{
-			effects.mbParticles = lParticles == 1;
-			bChanged = true;
-		}
+		ImGui::TextUnformatted("Particles");
 		if(ImGui::IsItemHovered())
-			Tip("Smoke, steam, mist, dust, snow, drops, fire and sparks. Improved: they fade out where "
+			Tip("Smoke, steam, mist, dust, snow, drops, fire and sparks: they fade out where "
 				"they meet the floor and walls and close to the eye, and all but fire and sparks are "
 				"lit by the lamps and the flashlight around them: dim in the dark, as bright as the original "
 				"draws them in the light. "
 				"Light is not stopped by walls on its way to them.");
-		ImGui::BeginDisabled(effects.mbParticles==false);
 		bChanged |= ImGui::SliderFloat("Soft edges", &effects.mfParticleSoft, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("The distance over which a particle fades out in front of what is behind it, in times "
@@ -1735,7 +1675,6 @@ void cRefView::DrawShading()
 		if(ImGui::IsItemHovered())
 			Tip("Their brightness where no light reaches them, where the original's is 1. The map's "
 				"ambient light is added to it.");
-		ImGui::EndDisabled();
 		ImGui::PopItemWidth();
 
 		if(bChanged) pLowLevel->SetEffects(effects);

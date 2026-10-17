@@ -263,7 +263,6 @@ namespace hpl {
 		void SetShadowMapSettings(const cShadowMapSettings& aSettings){ mShadowMapSettings = aSettings; }
 		const cShadowMapStats& GetShadowMapStats(){ return mShadowMapStats; }
 
-		void FetchOcclusionQueries();
 
 	private:
 		inline void BeginRendering(cCamera3D* apCamera);
@@ -277,7 +276,6 @@ namespace hpl {
 
 		void RenderZ(cCamera3D *apCamera);
 
-		void RenderOcclusionQueries(cCamera3D *apCamera);
 
 		void RenderLight(cCamera3D *apCamera);
 

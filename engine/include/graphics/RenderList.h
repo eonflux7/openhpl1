@@ -26,7 +26,6 @@
 #include "system/SystemTypes.h"
 #include "scene/Light3D.h"
 #include "graphics/Material.h"
-#include "graphics/OcclusionQuery.h"
 #include "graphics/VertexBuffer.h"
 
 namespace hpl {
@@ -105,31 +104,6 @@ namespace hpl {
 
 	//-------------------------------------------------------------
 
-	class cOcclusionQueryObject
-	{
-	public:
-		cOcclusionQueryObject() : mpQuery(nullptr), mpVtxBuffer(nullptr),mpMatrix(nullptr){}
-
-		iOcclusionQuery *mpQuery;
-		iVertexBuffer *mpVtxBuffer;
-		cMatrixf *mpMatrix;
-		bool mbDepthTest;
-	};
-
-	class cOcclusionQueryObject_Compare
-	{
-	public:
-		bool operator()(const cOcclusionQueryObject* pObjectA,const cOcclusionQueryObject* pObjectB) const;
-	};
-
-	typedef std::set<cOcclusionQueryObject*,cOcclusionQueryObject_Compare> tOcclusionQueryObjectSet;
-	typedef tOcclusionQueryObjectSet::iterator tOcclusionQueryObjectSetIt;
-
-	typedef cSTLIterator<cOcclusionQueryObject*, tOcclusionQueryObjectSet,
-						tOcclusionQueryObjectSetIt> cOcclusionQueryObjectIterator;
-
-	//-------------------------------------------------------------
-
 	typedef std::set<iRenderable*> tRenderableSet;
 	typedef tRenderableSet::iterator tRenderableSetIt;
 
@@ -153,10 +127,6 @@ namespace hpl {
 
 		bool Add(iRenderable* apObject);
 		void Clear();
-
-		void AddOcclusionQuery(cOcclusionQueryObject *apObject);
-
-		cOcclusionQueryObjectIterator GetQueryIterator();
 
 		cFogObjectIterator GetFogIterator();
 
@@ -194,8 +164,6 @@ namespace hpl {
 		int mvObjectsPerLight[MAX_NUM_OF_LIGHTS];
 
 		tRenderableSet m_setObjects;
-
-		tOcclusionQueryObjectSet m_setQueries;
 
 		tFogObjectSet m_setFogObjects;
 		tTransperantObjectSet m_setTransperantObjects;

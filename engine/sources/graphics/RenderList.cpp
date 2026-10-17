@@ -62,23 +62,6 @@ namespace hpl {
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// QUERY COMPARE
-	//////////////////////////////////////////////////////////////////////////
-
-	bool cOcclusionQueryObject_Compare::operator()(	const cOcclusionQueryObject* pObjectA,
-													const cOcclusionQueryObject* pObjectB) const
-	{
-		if(pObjectA->mpVtxBuffer != pObjectB->mpVtxBuffer)
-			return pObjectA->mpVtxBuffer < pObjectB->mpVtxBuffer;
-
-		if(pObjectA->mpMatrix != pObjectB->mpMatrix)
-			return pObjectA->mpMatrix < pObjectB->mpMatrix;
-
-		return (int)pObjectA->mbDepthTest < (int)pObjectB->mbDepthTest;
-	}
-
-
-	//////////////////////////////////////////////////////////////////////////
 	// RENDER NODE
 	//////////////////////////////////////////////////////////////////////////
 
@@ -181,7 +164,6 @@ namespace hpl {
 		//Clear containers.
 		m_setLights.clear();
 		m_setObjects.clear();
-		m_setQueries.clear();
 		m_setFogObjects.clear();
 		m_setTransperantObjects.clear();
 
@@ -196,20 +178,6 @@ namespace hpl {
 
 		mlLastRenderCount = mlRenderCount;
 		mlRenderCount++;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cRenderList::AddOcclusionQuery(cOcclusionQueryObject *apObject)
-	{
-		m_setQueries.insert(apObject);
-	}
-
-	//-----------------------------------------------------------------------
-
-	cOcclusionQueryObjectIterator cRenderList::GetQueryIterator()
-	{
-		return cOcclusionQueryObjectIterator(&m_setQueries);
 	}
 
 	//-----------------------------------------------------------------------

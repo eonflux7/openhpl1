@@ -55,12 +55,8 @@ void main()
 	vLightDir = (rotation * vLightDir);
 
 #ifdef SPECULAR
-	//Get the halfvector for the specular term
+	//Towards the eye, in tangent space
 	vEyeVec = (rotation * (EyePos - position.xyz));
-	vHalfVec = normalize(EyePos - position.xyz);
-	//transform to tangent space
-	vHalfVec = (rotation * vHalfVec);
-	vHalfVec = normalize(vLightDir)+vHalfVec;
 
 	vTubeCentre = (rotation * (TubeCentre - position.xyz));
 	vTubeAxis = (rotation * TubeAxis);

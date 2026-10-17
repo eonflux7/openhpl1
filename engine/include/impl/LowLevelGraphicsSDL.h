@@ -164,8 +164,6 @@ namespace hpl {
 		/////////// DRAWING METHODS /////////////////////////
 
 		// OCCLUSION
-		iOcclusionQuery* CreateOcclusionQuery() override;
-		void DestroyOcclusionQuery(iOcclusionQuery *apQuery) override;
 
 		// CLEARING THE FRAMEBUFFER
 		void ClearScreen() override;

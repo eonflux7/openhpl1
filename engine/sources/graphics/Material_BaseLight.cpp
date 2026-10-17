@@ -52,7 +52,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// The improved ambient pass needs the surface's place in the world
+	// The shaded ambient pass needs the surface's place in the world
 	class cShadedAmbientSetup : public iMaterialProgramSetup
 	{
 	public:
@@ -165,8 +165,6 @@ namespace hpl {
 
 	bool iMaterial_BaseLight::UseShadedAmbient()
 	{
-		if(mpLowLevelGraphics->GetShading().mbImproved==false) return false;
-
 		// Not in the constructor: what the material has is set by the
 		// constructors of the classes that inherit this one.
 		if(mbShadedAmbientTried==false)

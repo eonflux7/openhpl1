@@ -877,7 +877,6 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cShadingSettings shading;
-		shading.mbImproved = mpConfig->GetBool("Graphics","ShadingImproved",shading.mbImproved);
 		shading.mfSpecular = mpConfig->GetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
 		shading.mfReflectance = mpConfig->GetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
 		shading.mfRoughDull = mpConfig->GetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
@@ -891,13 +890,10 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cEffectSettings effects;
-		effects.mbHalos = mpConfig->GetBool("Graphics","HalosImproved",effects.mbHalos);
 		effects.mfHaloBrightness = mpConfig->GetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
 		effects.mfHaloStreaks = mpConfig->GetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
-		effects.mbShafts = mpConfig->GetBool("Graphics","ShaftsImproved",effects.mbShafts);
 		effects.mfShaftBrightness = mpConfig->GetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
 		effects.mfShaftDust = mpConfig->GetFloat("Graphics","ShaftDust",effects.mfShaftDust);
-		effects.mbParticles = mpConfig->GetBool("Graphics","ParticlesImproved",effects.mbParticles);
 		effects.mfParticleSoft = mpConfig->GetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		effects.mfParticleLight = mpConfig->GetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		effects.mfParticleDark = mpConfig->GetFloat("Graphics","ParticleDark",effects.mfParticleDark);
@@ -962,7 +958,6 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cFlashlightSettings flashlight;
-		flashlight.mbImproved = mpConfig->GetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
 		flashlight.mfBrightness = mpConfig->GetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
 		// Below what the panel can set: a settings file from when this was
 		// saved after the player had been deleted, which wrote 0 (no light)
@@ -980,7 +975,6 @@ bool cInit::Init(tString asCommandLine)
 	mpLampLooks = hplNew( cLampLooks,(this) );
 	{
 		cLampSettings lamps;
-		lamps.mbImproved = mpConfig->GetBool("Graphics","LampsImproved",lamps.mbImproved);
 		lamps.mfFlicker = mpConfig->GetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
 		lamps.mfSway = mpConfig->GetFloat("Graphics","LampsSway",lamps.mfSway);
 		lamps.mfColour = mpConfig->GetFloat("Graphics","LampsColour",lamps.mfColour);
@@ -1225,7 +1219,6 @@ void cInit::Exit()
 	// The player keeps the flashlight's settings: read before it goes
 	{
 		const cFlashlightSettings &flashlight = mpPlayer->GetFlashLight()->GetSettings();
-		mpConfig->SetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
 		mpConfig->SetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
 		mpConfig->SetFloat("Graphics","FlashlightWarmth",flashlight.mfWarmth);
 		mpConfig->SetFloat("Graphics","FlashlightReach",flashlight.mfReach);
@@ -1239,7 +1232,6 @@ void cInit::Exit()
 
 	{
 		const cLampSettings &lamps = mpLampLooks->GetSettings();
-		mpConfig->SetBool("Graphics","LampsImproved",lamps.mbImproved);
 		mpConfig->SetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
 		mpConfig->SetFloat("Graphics","LampsSway",lamps.mfSway);
 		mpConfig->SetFloat("Graphics","LampsColour",lamps.mfColour);
@@ -1402,7 +1394,6 @@ void cInit::Exit()
 
 	{
 		const cShadingSettings &shading = mpGame->GetGraphics()->GetLowLevel()->GetShading();
-		mpConfig->SetBool("Graphics","ShadingImproved",shading.mbImproved);
 		mpConfig->SetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
 		mpConfig->SetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
 		mpConfig->SetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
@@ -1414,13 +1405,10 @@ void cInit::Exit()
 
 	{
 		const cEffectSettings &effects = mpGame->GetGraphics()->GetLowLevel()->GetEffects();
-		mpConfig->SetBool("Graphics","HalosImproved",effects.mbHalos);
 		mpConfig->SetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
 		mpConfig->SetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
-		mpConfig->SetBool("Graphics","ShaftsImproved",effects.mbShafts);
 		mpConfig->SetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
 		mpConfig->SetFloat("Graphics","ShaftDust",effects.mfShaftDust);
-		mpConfig->SetBool("Graphics","ParticlesImproved",effects.mbParticles);
 		mpConfig->SetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		mpConfig->SetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		mpConfig->SetFloat("Graphics","ParticleDark",effects.mfParticleDark);

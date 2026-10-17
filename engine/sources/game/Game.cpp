@@ -407,7 +407,6 @@ namespace hpl {
 			//cpu at the same time and make query checks etc after logic update.
 			//If any delete has occured in the update this might crash. so skip it for now.
 			/*if(mbRenderOnce==false)	{
-				mpGraphics->GetRenderer3D()->FetchOcclusionQueries();
 				mpUpdater->OnPostBufferSwap();
 			}*/
 
@@ -461,7 +460,6 @@ namespace hpl {
 				//Log("Swap done: %d\n", GetApplicationTime());
 				//if(mbRenderOnce)
 				{
-					mpGraphics->GetRenderer3D()->FetchOcclusionQueries();
 					mpUpdater->OnPostBufferSwap();
 				}
 

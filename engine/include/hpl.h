@@ -69,7 +69,6 @@
 #include "graphics/BoneState.h"
 #include "graphics/Animation.h"
 #include "graphics/AnimationTrack.h"
-#include "graphics/OcclusionQuery.h"
 #include "graphics/VideoStream.h"
 
 #include "math/MathTypes.h"

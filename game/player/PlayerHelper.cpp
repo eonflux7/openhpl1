@@ -1478,7 +1478,7 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 
 	iHudModel *pHudModel = mpInit->mpPlayerHands->GetModel("Flashlight");
 	cLight3DSpot *pSpot = nullptr;
-	float fReachMul = mSettings.mbImproved ? cMath::Clamp(mSettings.mfReach, 0.25f, 4.0f) : 1.0f;
+	float fReachMul = cMath::Clamp(mSettings.mfReach, 0.25f, 4.0f);
 	if(pHudModel)
 	{
 		for(size_t i=0; i<pHudModel->mvLights.size(); ++i)
@@ -1504,27 +1504,24 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 	if(pSpot)
 	{
 		cLightLook look;
-		if(mSettings.mbImproved)
-		{
-			float fWarmth = cMath::Clamp(mSettings.mfWarmth, 0.0f, 1.0f);
-			look.mfBrightness = mSettings.mfBrightness;
-			look.mTint = cColor(1.0f, 1.0f - 0.14f * fWarmth, 1.0f - 0.34f * fWarmth, 1.0f);
-			look.mbDistanceFalloff = true;
-			// A share of the original reach: a longer beam is not dimmer close up
-			look.mfEvenAt = mSettings.mfEvenAt / fReachMul;
-			look.mfNearBoost = mSettings.mfNearBoost;
-			look.mbBeam = true;
-			look.mfBeamHotspot = mSettings.mfHotspot;
-			look.mfBeamField = mSettings.mfField;
-			look.mfBeamWidth = mSettings.mfWidth;
-		}
+		float fWarmth = cMath::Clamp(mSettings.mfWarmth, 0.0f, 1.0f);
+		look.mfBrightness = mSettings.mfBrightness;
+		look.mTint = cColor(1.0f, 1.0f - 0.14f * fWarmth, 1.0f - 0.34f * fWarmth, 1.0f);
+		look.mbDistanceFalloff = true;
+		// A share of the original reach: a longer beam is not dimmer close up
+		look.mfEvenAt = mSettings.mfEvenAt / fReachMul;
+		look.mfNearBoost = mSettings.mfNearBoost;
+		look.mbBeam = true;
+		look.mfBeamHotspot = mSettings.mfHotspot;
+		look.mfBeamField = mSettings.mfField;
+		look.mfBeamWidth = mSettings.mfWidth;
 		pSpot->SetLook(look);
 	}
 
 	///////////////////////////////////////
 	// The bounce
 	iLight3D *pBounce = pWorld->GetLight(gsBounceLightName);
-	bool bLit =	mSettings.mbImproved && mSettings.mfBounce > 0 && pSpot && pSpot->IsVisible() &&
+	bool bLit =	mSettings.mfBounce > 0 && pSpot && pSpot->IsVisible() &&
 				pHudModel == mpInit->mpPlayerHands->GetCurrentModel(0);
 	if(bLit==false && pBounce==nullptr) return;
 
@@ -1564,9 +1561,7 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 	// Eased, so that it does not jump as the beam crosses an edge
 	if(mfBounceAmount <= 0.001f) mvBouncePos = vTargetPos;
 	// (the place quickly: a light that trails the beam is seen; the amount slower)
-	float fEase = mbSnapBounce ? 1.0f : cMath::Min(afTimeStep * 10.0f, 1.0f);
-	if(mbSnapBounce) mvBouncePos = vTargetPos;
-	mbSnapBounce = false;
+	float fEase = cMath::Min(afTimeStep * 10.0f, 1.0f);
 	mvBouncePos = mvBouncePos + (vTargetPos - mvBouncePos) * cMath::Min(afTimeStep * 30.0f, 1.0f);
 	mfBounceAmount += (fTarget - mfBounceAmount) * fEase;
 

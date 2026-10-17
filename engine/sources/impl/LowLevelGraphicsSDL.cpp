@@ -33,7 +33,6 @@
 #include "system/LowLevelSystem.h"
 #include "impl/VertexBufferVBO.h"
 
-#include "impl/OcclusionQueryOGL.h"
 #include "system/String.h"
 
 #include <SDL3_image/SDL_image.h>
@@ -1851,22 +1850,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	//-----------------------------------------------------------------------
-
-	iOcclusionQuery* cLowLevelGraphicsSDL::CreateOcclusionQuery()
-	{
-		return hplNew(cOcclusionQueryOGL, () );
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DestroyOcclusionQuery(iOcclusionQuery *apQuery)
-	{
-		if(apQuery)	hplDelete(apQuery);
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::ClearScreen()
 	{
 		GLbitfield bitmask=0;
@@ -2768,7 +2751,7 @@ namespace hpl {
 		data.mvTime[0] = afTime;
 		mfFrameTime = afTime;
 		data.mvTime[1] = data.mvTime[2] = data.mvTime[3] = 0;
-		data.mvShading0[0] = mShading.mbImproved ? 1.0f : 0.0f;
+		data.mvShading0[0] = 0;
 		data.mvShading0[1] = mShading.mfSpecular;
 		data.mvShading0[2] = mShading.mfReflectance;
 		data.mvShading0[3] = mShading.mfAmbientSheen;

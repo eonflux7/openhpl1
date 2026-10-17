@@ -379,21 +379,11 @@ namespace hpl {
 		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
-		//Render Occlusion Queries
-		mpLowLevelGraphics->SetColorWriteActive(false, false, false,false);
-		mRenderSettings.mChannelMode = eMaterialChannelMode_Z;
-
-		if(mbLog) Log("Rendering Occlusion Queries:\n");
-		mpLowLevelGraphics->SetDepthWriteActive(false);
-		mpLowLevelGraphics->BeginGpuSection("Occlusion queries");
-		RenderOcclusionQueries(apCamera);
-		mpLowLevelGraphics->EndGpuSection();
-
-		////////////////////////////
 		//Render lighting
 		mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true,true);
 
+		mpLowLevelGraphics->SetDepthWriteActive(false);
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
 
 		if(mbLog) Log("Rendering Lighting:\n");
@@ -437,11 +427,9 @@ namespace hpl {
 		//Render transparent
 		if(mbLog) Log("Rendering Transperant:\n");
 		mpLowLevelGraphics->BeginGpuSection("Transparent");
-		{
-			// Their shaders read the depth of what is behind them
-			const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
-			if(effects.mbHalos || effects.mbShafts || effects.mbParticles) mpLowLevelGraphics->ResolveSceneDepth();
-		}
+		// The shaders of halos, shafts and particles read the depth of what
+		// is behind them
+		mpLowLevelGraphics->ResolveSceneDepth();
 		if(bOcclusionOnly==false) RenderTrans(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
@@ -515,28 +503,6 @@ namespace hpl {
 	void cRenderer3D::SetFogEnd(float afX)
 	{
 		mRenderSettings.mfFogEnd = afX;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cRenderer3D::FetchOcclusionQueries()
-	{
-		if(mbLog) Log("Fetching Occlusion Queries Result:\n");
-
-		//With depth test
-		cOcclusionQueryObjectIterator it = mpRenderList->GetQueryIterator();
-		while(it.HasNext())
-		{
-			cOcclusionQueryObject *pObject = it.Next();
-
-			// Takes the newest finished result, without waiting
-			pObject->mpQuery->FetchResults();
-
-			if(mbLog) Log(" Query: %d SampleCount: %d\n",	pObject->mpQuery,
-															pObject->mpQuery->GetSampleCount());
-		}
-
-		if(mbLog) Log("Done fetching queries\n");
 	}
 
 	//-----------------------------------------------------------------------
@@ -748,7 +714,7 @@ namespace hpl {
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 
-		// The improved ambient pass reads more than the diffuse texture;
+		// The shaded ambient pass reads more than the diffuse texture;
 		// those units are emptied again for what is drawn next.
 		for(int i=1; i<MAX_TEXTUREUNITS; ++i)
 		{
@@ -756,104 +722,6 @@ namespace hpl {
 			mpLowLevelGraphics->SetTexture(i,nullptr);
 			mRenderSettings.mpTexture[i] = nullptr;
 		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cRenderer3D::RenderOcclusionQueries(cCamera3D *apCamera)
-	{
-		//////////////////////////////////////////////////
-		// Reset any vertex buffers,fragment or vertex programs.
-		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
-
-		mRenderSettings.mpFragmentProgram = nullptr;
-
-		////////////////////////////
-		// Vertex program
-		if(mRenderSettings.mpVertexProgram != mpDiffuseVtxProgram)
-		{
-			if(mRenderSettings.mpVertexProgram)mRenderSettings.mpVertexProgram->UnBind();
-			mRenderSettings.mpVertexProgram = mpDiffuseVtxProgram;
-
-			mpDiffuseVtxProgram->Bind();
-			if(mbLog) Log(" Binding vertex program %d\n",mpDiffuseVtxProgram);
-		}
-
-		////////////////////////
-		// Reset texture unit 0
-		mpLowLevelGraphics->SetTexture(0,nullptr);
-		mRenderSettings.mpTexture[0] = nullptr;
-
-		////////////////////////
-		// Keep track of what has been set
-		iVertexBuffer *pPrevBuffer = mRenderSettings.mpVtxBuffer;
-		cMatrixf *pPrevMatrix = nullptr;
-		bool bFirstRound = true;
-		bool bPrevDepthTest = true;
-
-		//////////////////////////////////
-		//Iterate the query objects
-		cOcclusionQueryObjectIterator it = mpRenderList->GetQueryIterator();
-		while(it.HasNext())
-		{
-			cOcclusionQueryObject *pObject = it.Next();
-
-
-			/////////////////////
-			//Set depth test
-			if(bPrevDepthTest != pObject->mbDepthTest)
-			{
-				if(pObject->mbDepthTest)
-					mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
-				else
-					mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Always);
-
-				bPrevDepthTest = pObject->mbDepthTest;
-				if(mbLog) Log(" Setting depth test %d\n",pObject->mbDepthTest?1:0);
-			}
-
-			/////////////////////
-			//Set matrix
-			if(pPrevMatrix != pObject->mpMatrix || bFirstRound)
-			{
-				if(pObject->mpMatrix)
-				{
-					mpLowLevelGraphics->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(apCamera->GetViewMatrix(),*pObject->mpMatrix));
-				}
-				else
-				{
-					mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
-				}
-				pPrevMatrix = pObject->mpMatrix;
-				//Set the vertex program matrix.
-				mpDiffuseVtxProgram->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,
-																eGpuProgramMatrixOp_Identity);
-
-				if(mbLog) Log(" Setting matrix %d\n",pObject->mpMatrix);
-			}
-			/////////////////////
-			//Set Vertex buffer and draw
-			if(pPrevBuffer != pObject->mpVtxBuffer)
-			{
-				if(pPrevBuffer) pPrevBuffer->UnBind();
-				pObject->mpVtxBuffer->Bind();
-				pPrevBuffer = pObject->mpVtxBuffer;
-
-				if(mbLog) Log(" Setting vtx buffer %d\n",pObject->mpVtxBuffer);
-			}
-
-			pObject->mpQuery->Begin();
-			pObject->mpVtxBuffer->Draw();
-			pObject->mpQuery->End();
-
-			if(mbLog) Log(" Render with query: %d\n",pObject->mpQuery);
-
-			bFirstRound = false;
-		}
-
-		mRenderSettings.mpVtxBuffer = pPrevBuffer;
-
-
 	}
 
 	//-----------------------------------------------------------------------
