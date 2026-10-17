@@ -20,22 +20,17 @@ OUTPUT
 uniform sampler2D tex0;
 #ifdef PREFILTER
 // x: the light the bloom starts at, y: half the width of the soft start
-uniform vec2 threshold;
 #endif
 #ifdef UP
 uniform sampler2D tex1;
-uniform float scatter;
 #endif
 // The vertex shader's companion is compiled without a variant, as this one.
 #if !defined(PREFILTER) && !defined(DOWN) && !defined(UP)
-uniform float intensity;
 #endif
 
 // What a texture coordinate of 1 pixel of the source is, and what the
 // position of the pixel drawn is multiplied by to get its place in the
 // source.
-uniform vec2 sourceTexel;
-uniform vec2 targetToSource;
 
 #if defined(PREFILTER) || defined(DOWN)
 vec3 Sample(vec2 avUv)

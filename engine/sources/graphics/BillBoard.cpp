@@ -60,12 +60,9 @@ namespace hpl {
 		mpMeshCreator = apGraphics->GetMeshCreator();
 		mpResources = apResources;
 		mpProgramManager = apResources->GetGpuProgramManager();
-
-		mpHaloVtxProgram = nullptr;
-		mpHaloFragProgram = nullptr;
+		mpHaloProgram = nullptr;
 		mpHaloProfile = nullptr;
-		mpShaftVtxProgram = nullptr;
-		mpShaftFragProgram = nullptr;
+		mpShaftProgram = nullptr;
 		mpShaftBuffer = nullptr;
 
 		mvSize = avSize;
@@ -122,10 +119,8 @@ namespace hpl {
 		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
 		if(mpShaftBuffer) hplDelete(mpShaftBuffer);
 
-		if(mpHaloVtxProgram) mpProgramManager->Destroy(mpHaloVtxProgram);
-		if(mpHaloFragProgram) mpProgramManager->Destroy(mpHaloFragProgram);
-		if(mpShaftVtxProgram) mpProgramManager->Destroy(mpShaftVtxProgram);
-		if(mpShaftFragProgram) mpProgramManager->Destroy(mpShaftFragProgram);
+		if(mpHaloProgram) mpProgramManager->Destroy(mpHaloProgram);
+		if(mpShaftProgram) mpProgramManager->Destroy(mpShaftProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -392,27 +387,24 @@ namespace hpl {
 	{
 		if(DrawnAsHalo())
 		{
-			if(mpHaloVtxProgram==nullptr)
+			if(mpHaloProgram==nullptr)
 			{
-				mpHaloVtxProgram = mpProgramManager->CreateProgram("Halo_vp.cg","main",eGpuProgramType_Vertex);
-				mpHaloFragProgram = mpProgramManager->CreateProgram("Halo_fp.cg","main",eGpuProgramType_Fragment);
+				mpHaloProgram = mpProgramManager->CreateProgram("Halo");
 			}
-			if(mpHaloVtxProgram==nullptr || mpHaloFragProgram==nullptr) return false;
+			if(mpHaloProgram==nullptr) return false;
 
-			aDraw.mpVtxProgram = mpHaloVtxProgram;
-			aDraw.mpFragProgram = mpHaloFragProgram;
+			aDraw.mpProgram = mpHaloProgram;
 			aDraw.mbDepthTest = mpMaterial->GetDepthTest();
 			return true;
 		}
 
 		if(DrawnAsShaft())
 		{
-			if(mpShaftVtxProgram==nullptr)
+			if(mpShaftProgram==nullptr)
 			{
-				mpShaftVtxProgram = mpProgramManager->CreateProgram("Shaft_vp.cg","main",eGpuProgramType_Vertex);
-				mpShaftFragProgram = mpProgramManager->CreateProgram("Shaft_fp.cg","main",eGpuProgramType_Fragment);
+				mpShaftProgram = mpProgramManager->CreateProgram("Shaft");
 			}
-			if(mpShaftVtxProgram==nullptr || mpShaftFragProgram==nullptr) return false;
+			if(mpShaftProgram==nullptr) return false;
 
 			if(mpShaftBuffer==nullptr || mvShaftBufferSize != mvSize)
 			{
@@ -435,8 +427,7 @@ namespace hpl {
 			m_mtxShaft.m[0][2] = vForward.x;m_mtxShaft.m[1][2] = vForward.y;m_mtxShaft.m[2][2] = vForward.z;
 			m_mtxShaft.SetTranslation(GetWorldPosition());
 
-			aDraw.mpVtxProgram = mpShaftVtxProgram;
-			aDraw.mpFragProgram = mpShaftFragProgram;
+			aDraw.mpProgram = mpShaftProgram;
 			aDraw.mpVtxBuffer = mpShaftBuffer;
 			aDraw.mpModelMatrix = &m_mtxShaft;
 			// The shader cuts the shaft off at what is in front of it, and
@@ -456,7 +447,7 @@ namespace hpl {
 		const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
 		bool bFog = apSettings->mbFogActive;
 
-		if(aDraw.mpVtxProgram == mpHaloVtxProgram)
+		if(aDraw.mpProgram == mpHaloProgram)
 		{
 			// The lamp: the box the original asks about, or the box
 			// round the parent where the original draws the parent itself
@@ -481,39 +472,35 @@ namespace hpl {
 			}
 			cVector3f vEye = cMath::MatrixMul(cMath::MatrixInverse(mtxBox), apCamera->GetEyePosition());
 
-			mpHaloVtxProgram->SetMatrixf("haloBox", mtxBox);
-			mpHaloVtxProgram->SetVec3f("haloEye", vEye);
+			mpHaloProgram->SetMatrixf(eProgramParam::haloBox, mtxBox);
+			mpHaloProgram->SetVec3f(eProgramParam::haloEye, vEye);
 			// The original draws the parent itself, all its faces, and the
 			// ones behind others fail the test: a lamp in full view comes
 			// out at about 0.6 (measured on the game's lamps). The box
 			// round it would come out at 1.
 			float fWhole = pParent ? 0.65f : 1.0f;
-			mpHaloVtxProgram->SetVec4f("haloParams", 0, mbIsHalo ? 1.0f : 0.0f, effects.mfHaloBrightness * fWhole, 0);
-			mpHaloVtxProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
-
-			static tString vKnotNames[kHaloKnots];
-			if(vKnotNames[0] == "")
-				for(int i=0; i<kHaloKnots; ++i) vKnotNames[i] = "haloProfile[" + cString::ToString(i) + "]";
+			mpHaloProgram->SetVec4f(eProgramParam::haloParams, 0, mbIsHalo ? 1.0f : 0.0f, effects.mfHaloBrightness * fWhole, 0);
+			mpHaloProgram->SetVec2f(eProgramParam::fogRange, apSettings->mfFogStart, apSettings->mfFogEnd);
 
 			const cColor *pProfile = GetHaloProfile();
 			for(int i=0; i<kHaloKnots; ++i)
-				mpHaloFragProgram->SetVec4f(vKnotNames[i], pProfile[i].r, pProfile[i].g, pProfile[i].b, 0);
-			mpHaloFragProgram->SetVec4f("haloLook", effects.mfHaloStreaks, bFog ? 1.0f : 0.0f, 0, 0);
+				mpHaloProgram->SetVec4f(iGpuProgram::Element(eProgramParam::haloProfile, i), pProfile[i].r, pProfile[i].g, pProfile[i].b, 0);
+			mpHaloProgram->SetVec4f(eProgramParam::haloLook, effects.mfHaloStreaks, bFog ? 1.0f : 0.0f, 0, 0);
 		}
-		else if(aDraw.mpVtxProgram == mpShaftVtxProgram)
+		else if(aDraw.mpProgram == mpShaftProgram)
 		{
 			cMatrixf mtxInv = cMath::MatrixInverse(m_mtxShaft);
 			cVector3f vEye = cMath::MatrixMul(mtxInv, apCamera->GetEyePosition());
 			// The viewer looks along -z
 			cMatrixf mtxView = cMath::MatrixMul(apCamera->GetViewMatrix(), m_mtxShaft);
 
-			mpShaftFragProgram->SetVec3f("shaftEye", vEye);
-			mpShaftFragProgram->SetVec4f("shaftViewZ", -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
-			mpShaftFragProgram->SetVec4f("shaftSize", mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
+			mpShaftProgram->SetVec3f(eProgramParam::shaftEye, vEye);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftViewZ, -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftSize, mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
 			// As the sheet's corners are coloured
-			mpShaftFragProgram->SetVec4f("shaftColor", mColor.r, mColor.g, mColor.b, mColor.a);
-			mpShaftFragProgram->SetVec4f("shaftLook", effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
-			mpShaftFragProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftColor, mColor.r, mColor.g, mColor.b, mColor.a);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftLook, effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
+			mpShaftProgram->SetVec2f(eProgramParam::fogRange, apSettings->mfFogStart, apSettings->mfFogEnd);
 		}
 	}
 

@@ -21,7 +21,6 @@
 
 #include "graphics/Material.h"
 
-
 namespace hpl {
 
 	class cMaterial_Smoke2D : public iMaterial
@@ -34,15 +33,7 @@ namespace hpl {
 		~cMaterial_Smoke2D() override;
 
 		void Compile() override;
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override;
-		void EndRendering(eMaterialRenderType aType) override;
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override;
-		bool NextPass(eMaterialRenderType aType) override;
-		bool HasMultiplePasses(eMaterialRenderType aType) override;
-
-		eMaterialType GetType(eMaterialRenderType aType) override;
-		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override;
+		std::optional<cSpriteBlend> GetSpriteBlend() const override { return cSpriteBlend(eBlendFunc_Zero,eBlendFunc_OneMinusSrcColor); }
 
 	private:
 	};

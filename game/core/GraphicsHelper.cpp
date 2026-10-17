@@ -75,29 +75,27 @@ void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const
 	bool bBlend = aSrcBlend != eBlendFunc_One || aDestBlend != eBlendFunc_Zero;
 
 	mpLowLevelGfx->SetDepthTestActive(false);
-	mpLowLevelGfx->PushMatrix(eMatrix_ModelView);
-	mpLowLevelGfx->SetIdentityMatrix(eMatrix_ModelView);
-	mpLowLevelGfx->SetVirtualOrthoProjection(-1000,1000);
-	
+	const cDrawMatrices previousMatrices = mpLowLevelGfx->GetDrawMatrices();
+	mpLowLevelGfx->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+		mpLowLevelGfx->CreateVirtualOrthoProjection(-1000, 1000));
+
 	mvVtx[0] = cVertex(avPos + cVector3f(0,0,0),	cVector2f(0.01f,0.01f),aColor );
 	mvVtx[1] = cVertex(avPos + cVector3f(avSize.x,0,0),	cVector2f(0.99f,0.01f),aColor);
 	mvVtx[2] = cVertex(avPos + cVector3f(avSize.x,avSize.y,0),cVector2f(0.99f,0.99f),aColor);
 	mvVtx[3] = cVertex(avPos +  cVector3f(0,avSize.y,0),	cVector2f(0.01f,0.99f),aColor);
 
-	mpLowLevelGfx->SetBlendActive(bBlend);
-	if(bBlend) mpLowLevelGfx->SetBlendFunc(aSrcBlend, aDestBlend);
 	
 	for(int i=0;i<6;++i) mpLowLevelGfx->SetTexture(i,nullptr);
 
-	mpLowLevelGfx->SetTexture(0,apTex);
-
-	mpLowLevelGfx->DrawQuad(mvVtx);
+	cSpriteBatch batch;
+	batch.Add(apTex, cSpriteBlend(aSrcBlend,aDestBlend,bBlend), mvVtx);
+	batch.Flush(mpLowLevelGfx);
 
 	mpLowLevelGfx->SetTexture(0,nullptr);
 
 	if(bBlend) mpLowLevelGfx->SetBlendActive(false);
 
-	mpLowLevelGfx->PopMatrix(eMatrix_ModelView);
+	mpLowLevelGfx->SetDrawMatrices(previousMatrices);
 }
 
 //-----------------------------------------------------------------------

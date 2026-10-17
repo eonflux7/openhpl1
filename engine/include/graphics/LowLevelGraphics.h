@@ -21,31 +21,16 @@
 
 #include <functional>
 
-#include "math/MathTypes.h"
+#include "math/Math.h"
 #include "system/SystemTypes.h"
 #include "graphics/GraphicsTypes.h"
+#include "graphics/SpriteBatch.h"
 #include "graphics/Bitmap2D.h"
 #include "graphics/Texture.h"
 #include "graphics/GPUProgram.h"
 #include "graphics/VertexBuffer.h"
 
 namespace hpl {
-
-	enum eBlendFunc
-	{
-		eBlendFunc_Zero,
-		eBlendFunc_One,
-		eBlendFunc_SrcColor,
-		eBlendFunc_OneMinusSrcColor,
-		eBlendFunc_DestColor,
-		eBlendFunc_OneMinusDestColor,
-		eBlendFunc_SrcAlpha,
-		eBlendFunc_OneMinusSrcAlpha,
-		eBlendFunc_DestAlpha,
-		eBlendFunc_OneMinusDestAlpha,
-		eBlendFunc_SrcAlphaSaturate,
-		eBlendFunc_LastEnum
-	};
 
 	enum eDepthTestFunc
 	{
@@ -78,15 +63,6 @@ namespace hpl {
 
 		eGraphicCaps_LastEnum
 	};
-
-	typedef tFlag tVtxBatchFlag;
-
-	#define eVtxBatchFlag_Normal		(0x00000001)
-	#define eVtxBatchFlag_Position		(0x00000002)
-	#define eVtxBatchFlag_Color0		(0x00000004)
-	#define eVtxBatchFlag_Texture0		(0x00000008)
-	#define eVtxBatchFlag_Texture1		(0x00000010)
-	#define eVtxBatchFlag_Texture2		(0x00000020)
 
 	class iFontData;
 
@@ -406,6 +382,20 @@ namespace hpl {
 		bool mbShowOnly = false;
 	};
 
+	/// Complete transform for a draw. Screen-space passes use identity model/view.
+	struct cDrawMatrices
+	{
+		cMatrixf mModel = cMatrixf::Identity;
+		cMatrixf mView = cMatrixf::Identity;
+		cMatrixf mProjection = cMatrixf::Identity;
+
+		cMatrixf GetModelViewProjection() const
+		{
+			// Keep the multiplication order used by the original renderer.
+			return cMath::MatrixMul(mProjection, cMath::MatrixMul(mView, mModel));
+		}
+	};
+
 	class iLowLevelGraphics
 	{
 	public:
@@ -592,7 +582,7 @@ namespace hpl {
 
 
 
-		virtual iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType)=0;
+		virtual iGpuProgram* CreateGpuProgram(const tString& asName)=0;
 
 		//TODO: Kinda quick and diry, better to have a screen to Bitmap.
 		// and then a save as in the Bitmap.
@@ -605,15 +595,13 @@ namespace hpl {
 
 		/////////// MATRIX METHODS //////////////////////////
 
-		virtual void PushMatrix(eMatrix aMtxType)=0;
-		virtual void PopMatrix(eMatrix aMtxType)=0;
-		virtual void SetIdentityMatrix(eMatrix aMtxType)=0;
-
-		virtual void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)=0;
-
-
-		/// The current matrix, kept on the CPU (no GL read back).
-		virtual const cMatrixf& GetMatrix(eMatrix aMtxType)=0;
+		/// Supply model, view and projection together before drawing.
+		virtual void SetDrawMatrices(const cDrawMatrices &aMatrices) = 0;
+		void SetDrawMatrices(const cMatrixf &aModel, const cMatrixf &aView, const cMatrixf &aProjection)
+		{
+			SetDrawMatrices(cDrawMatrices{aModel, aView, aProjection});
+		}
+		virtual const cDrawMatrices &GetDrawMatrices() const = 0;
 
 		/**
 		 * Per-frame values for shaders, the hpl_Frame block in
@@ -648,12 +636,12 @@ namespace hpl {
 		/// Gives ImGui the mouse and the keyboard, and frees the pointer.
 		virtual void SetDebugPanelInput(bool abX)=0;
 
-		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
+		virtual cMatrixf CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax) = 0;
 		/**
 		 * Ortho projection of the whole screen in virtual coordinates,
 		 * -GetVirtualOffset() to GetVirtualSize()+GetVirtualOffset().
 		 */
-		virtual void SetVirtualOrthoProjection(float afMin, float afMax)=0;
+		virtual cMatrixf CreateVirtualOrthoProjection(float afMin, float afMax) = 0;
 
 		/////////// DRAWING METHODS /////////////////////////
 
@@ -694,36 +682,18 @@ namespace hpl {
 		virtual void SetBlendActive(bool abX)=0;
 		virtual void SetBlendFunc(eBlendFunc aSrcFactor, eBlendFunc aDestFactor)=0;
 
+		// Sprite triangles use the current matrices, clip region and depth state.
+		virtual void DrawSpriteBatch(const cSpriteVertex* apVertices, size_t alCount,
+			iTexture* apTexture, const cSpriteBlend& aBlend)=0;
+
 		// POLYGONS
 		virtual iVertexBuffer* CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,
 								eVertexBufferUsageType aUsageType,
 								int alReserveVtxSize=0,int alReserveIdxSize=0)=0;
 
 
-
-		virtual void DrawQuad(const tVertexVec &avVtx)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx, const cColor aCol)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol)=0;
-
-		//VERTEX BATCHER
-		virtual void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)=0;
-
-		virtual void AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
-									const cColor* apCol,const float& mfW, const float& mfH)=0;
-
-		virtual void AddVertexToBatch_Raw(	const cVector3f& avPos, const cColor &aColor,
-											const cVector3f& avTex)=0;
-
-
-		virtual void AddIndexToBatch(int alIndex)=0;
-
-
-		//Add more ways to add Vertex to the batch?
-		//Index array, vtxArray, etc perhaps?
-
-		virtual void FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true)=0;
-		virtual void ClearBatch()=0;
+		// World/debug and post-effect geometry; caller supplies triangles and render state.
+		virtual void DrawTriangles(const tVertexVec& avVertices)=0;
 
 		//some primitive:
 		virtual void DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol)=0;

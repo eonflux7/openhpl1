@@ -41,10 +41,8 @@ OUTPUT
 
 // Distances from the camera: x: full blur in front, y: in focus, z: full
 // blur behind
-uniform vec3 planes;
 // x: the most blur there is now, 0 to 1; y: the radius of full blur in
 // pixels of the scene
-uniform vec2 blur;
 
 // How far out of focus a pixel of the scene is: 0 in focus, 1 fully
 // blurred behind it, -1 in front of it.
@@ -107,7 +105,6 @@ uniform sampler2D tex0;
 
 // In pixels of tex0: x: the radius of full blur; z: the radius of the most
 // blur there is now, which is as far as the samples go. y: rings of samples
-uniform vec3 disc;
 
 // A blur's edge is this many pixels soft
 const float kMargin = 2.0;

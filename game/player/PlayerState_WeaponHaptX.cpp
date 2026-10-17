@@ -628,19 +628,15 @@ void cPlayerState_WeaponMeleeHaptX::OnPostSceneDraw()
 	mtxWeapon = cMath::MatrixMul(cMath::MatrixRotateY(fYaw),mtxWeapon);
 	mtxWeapon = cMath::MatrixMul(cMath::MatrixTranslate(vProxyPos),mtxWeapon);
 
-	cMatrixf mtxCollider = cMath::MatrixMul(pCamera->GetViewMatrix(),mtxWeapon);
-
 	cBoundingVolume boundingVolume = mpCollider->GetBoundingVolume();
 	boundingVolume.SetTransform(cMath::MatrixMul(mtxWeapon, boundingVolume.GetTransform()));
 
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(boundingVolume.GetMax(),boundingVolume.GetMin(),cColor(0,0,1,1));
 
-	
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,mtxCollider);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxWeapon, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vSize*0.5f,vSize*-0.5f,cColor(0,1,0,1));
 
-
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,pCamera->GetViewMatrix());
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(cMatrixf::Identity, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 
 	//mpBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(0,1,0,1));

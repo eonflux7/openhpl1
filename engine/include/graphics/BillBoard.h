@@ -156,13 +156,11 @@ namespace hpl {
 		cResources *mpResources;
 		cGpuProgramManager *mpProgramManager;
 
-		iGpuProgram *mpHaloVtxProgram;
-		iGpuProgram *mpHaloFragProgram;
+		iGpuProgram *mpHaloProgram;
 		/// The picture's colour by distance from its middle; null until asked for.
 		const cColor *mpHaloProfile;
 
-		iGpuProgram *mpShaftVtxProgram;
-		iGpuProgram *mpShaftFragProgram;
+		iGpuProgram *mpShaftProgram;
 		/// The box round the shaft, y along its axis
 		iVertexBuffer *mpShaftBuffer;
 		cVector2f mvShaftBufferSize;

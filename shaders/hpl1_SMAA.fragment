@@ -37,12 +37,8 @@
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
-uniform vec4 smaaMetrics;	// xy: 1 / the picture's size in pixels, zw: its size
-uniform vec4 smaaEdge;		// x: eSmaaEdges, y: threshold, z: depth threshold,
 							// w: 1 shows the edges, 2 the weights
-uniform vec4 smaaSearch;	// x: search steps, y: diagonal steps,
 							// z: corner rounding in percent
-uniform vec4 smaaDepth;		// x: 1 if the depth helps, y: scale, z: strength
 
 #define SMAA_GLSL_3
 #define SMAA_RT_METRICS smaaMetrics

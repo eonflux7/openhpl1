@@ -1001,8 +1001,7 @@ cEffect_DreamFilter::cEffect_DreamFilter(cInit *apInit)
 	mpInit = apInit;
 
 	cGpuProgramManager *pProgramManager = mpInit->mpGame->GetResources()->GetGpuProgramManager();
-	mpVtxProgram = pProgramManager->CreateProgram("DreamFilter_vp.cg","main",eGpuProgramType_Vertex);
-	mpFragProgram = pProgramManager->CreateProgram("DreamFilter_fp.cg","main",eGpuProgramType_Fragment);
+	mpProgram = pProgramManager->CreateProgram("DreamFilter");
 
 	Reset();
 }
@@ -1010,8 +1009,7 @@ cEffect_DreamFilter::cEffect_DreamFilter(cInit *apInit)
 cEffect_DreamFilter::~cEffect_DreamFilter()
 {
 	cGpuProgramManager *pProgramManager = mpInit->mpGame->GetResources()->GetGpuProgramManager();
-	if(mpVtxProgram) pProgramManager->Destroy(mpVtxProgram);
-	if(mpFragProgram) pProgramManager->Destroy(mpFragProgram);
+	if(mpProgram) pProgramManager->Destroy(mpProgram);
 }
 
 //-----------------------------------------------------------------------
@@ -1063,7 +1061,7 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 
 	if(pPostEffects->GetActive()==false) return;
 	if(mfAlpha <= 0) return;
-	if(mpVtxProgram==nullptr || mpFragProgram==nullptr) return;
+	if(mpProgram==nullptr) return;
 
 	iTexture *pScreenTexture = pPostEffects->GetFreeScreenTexture();
 	if(pScreenTexture == nullptr) return;
@@ -1088,29 +1086,27 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	vVtx.push_back( cVertex(vPos + cVector3f(0,vQuad.y,0),			cVector2f(0,0), col) );
 
 	pLowLevel->SetDepthTestActive(false);
-	pLowLevel->PushMatrix(eMatrix_ModelView);
-	pLowLevel->SetIdentityMatrix(eMatrix_ModelView);
-	pLowLevel->SetOrthoProjection(cVector2f(800,600),-1000,1000);
+	const cDrawMatrices previousMatrices = pLowLevel->GetDrawMatrices();
+	pLowLevel->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+		pLowLevel->CreateOrthoProjection(cVector2f(800, 600), -1000, 1000));
 
 	for(int i=0;i<6;++i) pLowLevel->SetTexture(i,nullptr);
 
 	//A copy of the scene is drawn as it is
-	mpVtxProgram->Bind();
-	mpVtxProgram->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
-	mpFragProgram->Bind();
+	mpProgram->SetMatrixf(eProgramParam::worldViewProj, pLowLevel->GetDrawMatrices().GetModelViewProjection());
+	mpProgram->Bind();
 
 	pLowLevel->SetBlendActive(true);
 	pLowLevel->SetBlendFunc(eBlendFunc_One, eBlendFunc_One);
 
 	pLowLevel->SetTexture(0,pScreenTexture);
-	pLowLevel->DrawQuad(vVtx);
+	pLowLevel->DrawTriangles({vVtx[0], vVtx[1], vVtx[2], vVtx[0], vVtx[2], vVtx[3]});
 	pLowLevel->SetTexture(0,nullptr);
 
 	pLowLevel->SetBlendActive(false);
-	mpVtxProgram->UnBind();
-	mpFragProgram->UnBind();
+	mpProgram->UnBind();
 
-	pLowLevel->PopMatrix(eMatrix_ModelView);
+	pLowLevel->SetDrawMatrices(previousMatrices);
 }
 
 //-----------------------------------------------------------------------

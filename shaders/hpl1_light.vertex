@@ -18,19 +18,10 @@
 
 #include "hpl1_light.glsl"
 
-uniform mat4 worldViewProj;
 #ifdef SPOT
-uniform mat4 spotViewProj;
 #endif
 #ifdef SPECULAR
-uniform vec3 EyePos;
-uniform vec3 TubeCentre;
-uniform vec3 TubeAxis;
 #endif
-uniform vec3 LightPos;
-uniform vec4 LightColor;
-uniform vec3 LightDirMul;
-uniform mat4 shadowMtx;
 
 void main()
 {

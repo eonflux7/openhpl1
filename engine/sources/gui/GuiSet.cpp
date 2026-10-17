@@ -66,41 +66,8 @@ namespace hpl {
 	bool cGuiRenderObjectCompare::operator()(	const cGuiRenderObject& aObjectA,
 												const cGuiRenderObject& aObjectB) const
 	{
-		//Z
-		float fZA = aObjectA.mvPos.z;
-		float fZB = aObjectB.mvPos.z;
-		if(fZA != fZB)
-		{
-			return fZA < fZB;
-		}
-
-		//Clip Region
-		cGuiClipRegion *pClipA = aObjectA.mpClipRegion;
-		cGuiClipRegion *pClipB = aObjectB.mpClipRegion;
-		if(pClipA != pClipB)
-		{
-			return pClipA > pClipB;
-		}
-
-		//Material
-		iGuiMaterial *pMaterialA = aObjectA.mpCustomMaterial ? aObjectA.mpCustomMaterial : aObjectA.mpGfx->mpMaterial;
-		iGuiMaterial *pMaterialB = aObjectB.mpCustomMaterial ? aObjectB.mpCustomMaterial : aObjectB.mpGfx->mpMaterial;
-		if(pMaterialA != pMaterialB)
-		{
-			return pMaterialA > pMaterialB;
-		}
-
-		//Texture
-		iTexture *pTextureA = aObjectA.mpGfx->mvTextures[0];
-		iTexture *pTextureB = aObjectB.mpGfx->mvTextures[0];
-		if(pTextureA != pTextureB)
-		{
-			return pTextureA > pTextureB;
-		}
-
-		//Equal
-		return false;
-
+		// As with HUD sprites, preserve submission order for equal depths.
+		return aObjectA.mvPos.z < aObjectB.mvPos.z;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -296,11 +263,8 @@ namespace hpl {
 
 			//Create the final model matrix
 			cMatrixf mtxModel = cMath::MatrixMul(m_mtx3DTransform, mtxPreMul);
-			mtxModel = cMath::MatrixMul(pCam->GetViewMatrix(), mtxModel);
 
-			pLowLevelGraphics->SetMatrix(eMatrix_ModelView, mtxModel);
-
-			//No need for projection matrix, should be setup, right? :)
+			pLowLevelGraphics->SetDrawMatrices(mtxModel, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
 			pLowLevelGraphics->SetCullActive(mbCullBackface);
 		}
@@ -308,14 +272,13 @@ namespace hpl {
 		else
 		{
 			pLowLevelGraphics->SetDepthTestActive(false);
-			pLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
 
 			// A set as large as the virtual screen is centred with it, where
 			// the window is wider or taller than 4:3
-			if(mvVirtualSize == pLowLevelGraphics->GetVirtualSize())
-				pLowLevelGraphics->SetVirtualOrthoProjection(mfVirtualMinZ,mfVirtualMaxZ);
-			else
-				pLowLevelGraphics->SetOrthoProjection(mvVirtualSize,mfVirtualMinZ,mfVirtualMaxZ);
+			const cMatrixf mtxProjection = mvVirtualSize == pLowLevelGraphics->GetVirtualSize()
+				? pLowLevelGraphics->CreateVirtualOrthoProjection(mfVirtualMinZ, mfVirtualMaxZ)
+				: pLowLevelGraphics->CreateOrthoProjection(mvVirtualSize, mfVirtualMinZ, mfVirtualMaxZ);
+			pLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity, mtxProjection);
 		}
 
 		///////////////////////////////
@@ -818,144 +781,32 @@ namespace hpl {
 	{
 		iLowLevelGraphics *pLowLevelGraphics = mpGraphics->GetLowLevel();
 
-		if(kLogRender)Log("-------------------\n");
-
-		///////////////////////////////////////
-		//See if there is anything to draw
-		tGuiRenderObjectSet &setRenderObjects = m_setRenderObjects;
-		if(setRenderObjects.empty())
+		cSpriteBatch batch;
+		cGuiClipRegion* clip = nullptr;
+		for(const cGuiRenderObject& object : m_setRenderObjects)
 		{
-			if(kLogRender) Log("------------------------\n");
-			return;
+			if(clip != object.mpClipRegion)
+			{
+				batch.Flush(pLowLevelGraphics);
+				pLowLevelGraphics->SetScissorActive(false);
+				clip = object.mpClipRegion;
+				SetClipArea(pLowLevelGraphics, clip);
+			}
+			cGuiGfxElement* gfx = object.mpGfx;
+			iGuiMaterial* material = object.mpCustomMaterial ? object.mpCustomMaterial : gfx->mpMaterial;
+			std::array<cSpriteVertex,4> corners;
+			for(int i=0; i<4; ++i)
+			{
+				const cVertex& vertex = gfx->mvVtx[i];
+				corners[i] = cSpriteVertex(cVector3f(vertex.pos.x * object.mvSize.x + object.mvPos.x,
+					vertex.pos.y * object.mvSize.y + object.mvPos.y, object.mvPos.z),
+					vertex.col * object.mColor, vertex.tex);
+			}
+			batch.Add(gfx->mvTextures[0], material->GetBlend(), corners);
 		}
-
-		//////////////////////////////////
-		// Graphics setup
-		pLowLevelGraphics->SetTexture(0,nullptr);
-
-		//////////////////////////////////
-		// Set up variables
-
-		tGuiRenderObjectSetIt it = setRenderObjects.begin();
-
-		iGuiMaterial *pLastMaterial = nullptr;
-		iTexture *pLastTexture = nullptr;
-		cGuiClipRegion *pLastClipRegion = nullptr;
-
-		cGuiGfxElement *pGfx = it->mpGfx;
-		iGuiMaterial *pMaterial = it->mpCustomMaterial ? it->mpCustomMaterial : pGfx->mpMaterial;
-		iTexture *pTexture = pGfx->mvTextures[0];
-		cGuiClipRegion *pClipRegion = it->mpClipRegion;
-
-		int lIdxAdd=0;
-
-		///////////////////////////////////
-		// Iterate objects
-		while(it != setRenderObjects.end())
-		{
-			///////////////////////////////
-			//Start rendering
-			if(pLastMaterial != pMaterial){
-				pMaterial->BeforeRender();
-				if(kLogRender)Log("Material %s before\n",pMaterial->GetName().c_str());
-			}
-
-			////////////////////////////
-			// SetClip area
-			if(pLastClipRegion != pClipRegion)
-			{
-				SetClipArea(pLowLevelGraphics,pClipRegion);
-			}
-
-			pLowLevelGraphics->SetTexture(0,pTexture);
-			if(kLogRender)Log("Texture %d\n",pTexture);
-
-			//////////////////////////
-			//Iterate for all with same texture and material
-			do
-			{
-				cGuiRenderObject object = *it;
-				cGuiGfxElement *pGfx = object.mpGfx;
-
-				if(kLogRender)
-				{
-					if(pGfx->mvImages[0])
-						Log(" gfx: %d '%s'\n",pGfx,pGfx->mvImages[0]->GetName().c_str());
-					else
-						Log(" gfx: %d 'null'\n");
-				}
-
-				///////////////////////////
-				// Add object to batch
-				for(int i=0; i<4; ++i)
-				{
-					cVertex &vtx = pGfx->mvVtx[i];
-					cVector3f& vVtxPos = vtx.pos;
-					cVector3f& vPos = object.mvPos;
-					pLowLevelGraphics->AddVertexToBatch_Raw(
-						cVector3f(	vVtxPos.x * object.mvSize.x + vPos.x,
-						vVtxPos.y * object.mvSize.y + vPos.y,
-						vPos.z),
-						vtx.col * object.mColor,
-						vtx.tex);
-				}
-
-				for(int i=0;i<4;i++)
-					pLowLevelGraphics->AddIndexToBatch(lIdxAdd + i);
-
-				lIdxAdd += 4;
-
-				///////////////////////////
-				//Set last texture
-				pLastMaterial =  pMaterial;
-				pLastTexture =   pTexture;
-				pLastClipRegion = pClipRegion;
-
-				/////////////////////////////
-				//Get next object
-				++it; if(it == setRenderObjects.end()) break;
-
-				pGfx = it->mpGfx;
-				pMaterial = it->mpCustomMaterial ? it->mpCustomMaterial : pGfx->mpMaterial;
-				pTexture = it->mpGfx->mvTextures[0];
-				pClipRegion = it->mpClipRegion;
-			}
-			while(	pTexture == pLastTexture &&
-					pMaterial == pLastMaterial &&
-					pClipRegion == pLastClipRegion);
-
-			//////////////////////////////
-			// Render batch
-			pLowLevelGraphics->FlushQuadBatch(	eVtxBatchFlag_Position | eVtxBatchFlag_Texture0 |
-												eVtxBatchFlag_Color0,false);
-			pLowLevelGraphics->ClearBatch();
-			lIdxAdd=0;
-
-			/////////////////////////////////
-			//Clip region end
-			if(pLastClipRegion  != pClipRegion  || it == setRenderObjects.end())
-			{
-				if(pLastClipRegion->mRect.w >0)
-				{
-					pLowLevelGraphics->SetScissorActive(false);
-				}
-			}
-
-			/////////////////////////////////
-			//Material end
-			if(pLastMaterial != pMaterial || it == setRenderObjects.end())
-			{
-				pLastMaterial->AfterRender();
-				if(kLogRender)Log("Material %d '%s' after. new: %d '%s'\n",	pLastMaterial,pLastMaterial->GetName().c_str(),
-																		pMaterial,pMaterial->GetName().c_str());
-			}
-		}
-
-		///////////////////////////////
-		//Clear render objects
+		batch.Flush(pLowLevelGraphics);
+		pLowLevelGraphics->SetScissorActive(false);
 		m_setRenderObjects.clear();
-
-		if(kLogRender)Log("---------- END %d -----------\n");
 	}
 	//-----------------------------------------------------------------------
 

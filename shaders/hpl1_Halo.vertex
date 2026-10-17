@@ -10,11 +10,6 @@
 
 #include "hpl1_scene_depth.glsl"
 
-uniform mat4 worldViewProj;
-uniform mat4 haloBox;		// from a cube of -1 to 1 to the lamp's box in the world
-uniform vec3 haloEye;		// the viewer's place in that cube's space
-uniform vec4 haloParams;	// y: 1 if the halo can be hidden, z: brightness
-uniform vec2 fogRange;		// start and end
 
 out vec4 vColor;
 out vec2 vUv;

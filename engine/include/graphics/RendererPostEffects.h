@@ -248,7 +248,7 @@ eturn false if nothing was drawn
 		bool DrawSceneCopy(iTexture *apTarget);
 
 		void RenderBloom();
-		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource);
+		void DrawBloomPass(iGpuProgram *apProgram, iTexture *apTarget, iTexture *apSource);
 
 		void RenderMotionBlur();
 
@@ -276,43 +276,39 @@ eturn false if nothing was drawn
 		//The bloom: each level is half the size of the one before.
 		//mvBloomUp[i] is level i blended with all the levels below it; the
 		//last level has none below and is used as it is.
-		iGpuProgram *mpBloomChainVP;
-		iGpuProgram *mpBloomPrefilterFP;
-		iGpuProgram *mpBloomDownFP;
-		iGpuProgram *mpBloomUpFP;
-		iGpuProgram *mpBloomCompositeFP;
+		iGpuProgram *mpBloomPrefilterProgram;
+		iGpuProgram *mpBloomDownProgram;
+		iGpuProgram *mpBloomUpProgram;
+		iGpuProgram *mpBloomCompositeProgram;
 		std::vector<iTexture*> mvBloomDown;
 		std::vector<iTexture*> mvBloomUp;
 
 		//The motion blur
-		iGpuProgram *mpMotionCameraVP;
-		iGpuProgram *mpMotionCameraFP;
+		iGpuProgram *mpMotionCameraProgram;
 
 		//The depth of field: its textures are half the render size
 		//and made when first needed.
-		iGpuProgram *mpBokehVP;
-		iGpuProgram *mpBokehPrefilterFP;
-		iGpuProgram *mpBokehGatherFP;
-		iGpuProgram *mpBokehFillFP;
-		iGpuProgram *mpBokehCompositeFP;
+		iGpuProgram *mpBokehPrefilterProgram;
+		iGpuProgram *mpBokehGatherProgram;
+		iGpuProgram *mpBokehFillProgram;
+		iGpuProgram *mpBokehCompositeProgram;
 		iTexture *mpBokehTexture[2];
 
 		//Ambient occlusion. The distance and normal textures are a tile
 		//each (see the shader), the tiled texture is as large as the tiles
 		//together and the others are of the render size. Made when first
 		//needed.
-		iGpuProgram *mpAoVP;
-		iGpuProgram *mpAoDeinterleaveFP;
-		iGpuProgram *mpAoOcclusionFP;
+		iGpuProgram *mpAoDeinterleaveProgram;
+		iGpuProgram *mpAoOcclusionProgram;
 		//The same with the samples of a quality as constants, loaded when
 		//first used
-		iGpuProgram *mvAoQualityFP[cAmbientOcclusionSettings::klQualityNum];
+		iGpuProgram *mvAoQualityProgram[cAmbientOcclusionSettings::klQualityNum];
 		bool mvAoQualityTried[cAmbientOcclusionSettings::klQualityNum];
-		iGpuProgram *mpAoFilterFP;
-		iGpuProgram *mpAoCompositeFP;
+		iGpuProgram *mpAoFilterProgram;
+		iGpuProgram *mpAoCompositeProgram;
 		//The same reading the scene itself, with one sample a pixel and
 		//multisampled: no copy of the scene is needed
-		iGpuProgram *mpAoCompositeSceneFP[2];
+		iGpuProgram *mpAoCompositeSceneProgram[2];
 		iTexture *mvAoDistanceTexture[16];
 		iTexture *mvAoNormalTexture[16];
 		iTexture *mpAoTiledTexture;

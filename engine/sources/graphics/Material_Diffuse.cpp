@@ -31,8 +31,7 @@ namespace hpl {
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial_BaseLight(	"Diffuse_Light_vp.cg",
-								"Diffuse_Light_fp.cg",
+		: iMaterial_BaseLight("",
 			asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 			aPicture,apRenderer3D)
 	{

@@ -20,8 +20,6 @@ uniform sampler1D tex1; //fogMap
 
 const int kKnots = 32;
 // The colour at kKnots distances, evenly from the middle to the corner
-uniform vec4 haloProfile[kKnots];
-uniform vec4 haloLook;	// x: how much of the rest of the picture is kept,
 						// y: 1 with fog
 
 // A curve through the knots without corners (quadratic B-spline)

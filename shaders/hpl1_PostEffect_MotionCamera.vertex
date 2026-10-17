@@ -3,7 +3,6 @@
 
 // A quad over the whole target for the camera motion blur.
 
-uniform mat4 worldViewProj;
 
 void main()
 {

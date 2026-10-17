@@ -74,27 +74,9 @@ namespace hpl {
 
 	bool cGfxBufferCompare::operator()(const cGfxBufferObject& aObjectA,const cGfxBufferObject& aObjectB) const
 	{
-		if(aObjectA.GetZ() != aObjectB.GetZ())
-		{
-			return aObjectA.GetZ() < aObjectB.GetZ();
-		}
-		else if(aObjectA.GetMaterial()->GetTexture(eMaterialTexture_Diffuse) !=
-			aObjectB.GetMaterial()->GetTexture(eMaterialTexture_Diffuse))
-		{
-			return aObjectA.GetMaterial()->GetTexture(eMaterialTexture_Diffuse) >
-				aObjectB.GetMaterial()->GetTexture(eMaterialTexture_Diffuse);
-		}
-		else if(aObjectA.GetMaterial()->GetType(eMaterialRenderType_Diffuse) !=
-			aObjectB.GetMaterial()->GetType(eMaterialRenderType_Diffuse))
-		{
-			return aObjectA.GetMaterial()->GetType(eMaterialRenderType_Diffuse) >
-				aObjectB.GetMaterial()->GetType(eMaterialRenderType_Diffuse);
-		}
-		else
-		{
-
-		}
-		return false;
+		// Equivalent keys retain submission order; texture addresses must not
+		// decide which of two overlapping translucent sprites covers the other.
+		return aObjectA.GetZ() < aObjectB.GetZ();
 	}
 
 	//-----------------------------------------------------------------------
@@ -153,140 +135,39 @@ namespace hpl {
 
 		//Set all states
 		mpLowLevelGraphics->SetDepthTestActive(false);
-		mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
+		mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+			mpLowLevelGraphics->CreateVirtualOrthoProjection(-1000, 1000));
 
-		mpLowLevelGraphics->SetVirtualOrthoProjection(-1000,1000);
-
-		int lIdxAdd=0;
-		iMaterial *pPrevMat=nullptr;
-		iMaterial *pMat =nullptr;
-		const cGfxBufferObject* pObj=nullptr;
-		tGfxBufferSetIt ObjectIt = m_setGfxBuffer.begin();
-
-		if(ObjectIt != m_setGfxBuffer.end())
-			pMat = ObjectIt->GetMaterial();
-
-		while(ObjectIt != m_setGfxBuffer.end())
+		cSpriteBatch batch;
+		for(const cGfxBufferObject& object : m_setGfxBuffer)
 		{
-			if(pMat->StartRendering(eMaterialRenderType_Diffuse,nullptr,nullptr)==false)
+			std::array<cSpriteVertex,4> corners;
+			for(int i=0; i<4; ++i) corners[i] = cSpriteVertex(*object.mpObject->GetVtxPtr(i));
+			if(object.mbIsColorAndSize)
 			{
-				ObjectIt++;
-				if(ObjectIt != m_setGfxBuffer.end())pMat = ObjectIt->GetMaterial();
-
-				continue;
-			}
-
-			do
-			{
-				pObj = &(*ObjectIt);
-				if(pObj->mbIsColorAndSize)
+				const float w = object.mvSize.x * 0.5f, h = object.mvSize.y * 0.5f;
+				const cMatrixf translate = cMath::MatrixTranslate(object.mvTransform + cVector3f(w,h,0));
+				const cMatrixf rotate = cMath::MatrixRotateZ(object.mfAngle);
+				const cVector3f positions[] = {{-w,-h,0}, {w,-h,0}, {w,h,0}, {-w,h,0}};
+				for(int i=0; i<4; ++i)
 				{
-					cVector3f vPos[4];
-					float fW = pObj->mvSize.x*0.5f;
-					float fH = pObj->mvSize.y*0.5f;
-					cMatrixf mtxTrans = cMath::MatrixTranslate(pObj->mvTransform + cVector3f(fW,fH,0));
-					vPos[0] = cVector3f(-fW,-fH,0);
-					vPos[1] = cVector3f(fW,-fH,0);
-					vPos[2] = cVector3f(fW,fH,0);
-					vPos[3] = cVector3f(-fW,fH,0);
-
-					if (pObj->mfAngle != 0)
-					{
-						cMatrixf mtxRot = cMath::MatrixRotateZ(pObj->mfAngle);
-						vPos[0] = cMath::MatrixMul(mtxRot,vPos[0]);
-						vPos[1] = cMath::MatrixMul(mtxRot,vPos[1]);
-						vPos[2] = cMath::MatrixMul(mtxRot,vPos[2]);
-						vPos[3] = cMath::MatrixMul(mtxRot,vPos[3]);
-					}
-
-					vPos[0] = cMath::MatrixMul(mtxTrans,vPos[0]);
-					vPos[1] = cMath::MatrixMul(mtxTrans,vPos[1]);
-					vPos[2] = cMath::MatrixMul(mtxTrans,vPos[2]);
-					vPos[3] = cMath::MatrixMul(mtxTrans,vPos[3]);
-
-					if(pObj->mbFlipH)
-					{
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(0),
-							&vPos[0],
-							&pObj->mColor,
-							0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(1),
-							&vPos[1],
-							&pObj->mColor,
-							0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(2),
-							&vPos[2],
-							&pObj->mColor,
-							0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(3),
-							&vPos[3],
-							&pObj->mColor,
-							pObj->mvSize.x,pObj->mvSize.y);
-					}
-					else
-					{
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(0),
-																	&vPos[0],
-																	&pObj->mColor,
-																	0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(1),
-																	&vPos[1],
-																	&pObj->mColor,
-																	0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(2),
-																	&vPos[2],
-																	&pObj->mColor,
-																	0,0);
-						mpLowLevelGraphics->AddVertexToBatch_Size2D(pObj->mpObject->GetVtxPtr(3),
-																	&vPos[3],
-																	&pObj->mColor,
-																	0,0);
-					}
-
-					for(int i=0;i<4;i++)
-						mpLowLevelGraphics->AddIndexToBatch(lIdxAdd + i);
+					cVector3f pos = positions[i];
+					if(object.mfAngle != 0) pos = cMath::MatrixMul(rotate, pos);
+					corners[i].pos = cMath::MatrixMul(translate, pos);
+					corners[i].col = object.mColor;
 				}
-				else
-				{
-					for(int i=0;i<(int)pObj->mpObject->GetVertexVec()->size();i++)
-					{
-						mpLowLevelGraphics->AddVertexToBatch(pObj->mpObject->GetVtxPtr(i),
-																&pObj->mvTransform);
-						mpLowLevelGraphics->AddIndexToBatch(lIdxAdd + i);
-					}
-				}
-				lIdxAdd+=(int)pObj->mpObject->GetVertexVec()->size();
-
-				pPrevMat = pMat;
-				ObjectIt++;
-
-				if(ObjectIt == m_setGfxBuffer.end()){
-					pMat=nullptr;
-					break;
-				}
-				else{
-					pMat = ObjectIt->GetMaterial();
-				}
+				// Preserve the existing sized-draw geometry, including its flip-H offset.
+				if(object.mbFlipH) corners[3].pos += cVector3f(object.mvSize.x,object.mvSize.y,0);
 			}
-			while(	pMat->GetType(eMaterialRenderType_Diffuse) ==
-					pPrevMat->GetType(eMaterialRenderType_Diffuse)
-					&&
-					pMat->GetTexture(eMaterialTexture_Diffuse) ==
-					pPrevMat->GetTexture(eMaterialTexture_Diffuse)
-				);
-
-			lIdxAdd =0;
-
-			do
+			else
 			{
-				mpLowLevelGraphics->FlushQuadBatch(pPrevMat->GetBatchFlags(eMaterialRenderType_Diffuse),false);
+				for(auto& vertex : corners) vertex.pos += object.mvTransform;
 			}
-			while(pPrevMat->NextPass(eMaterialRenderType_Diffuse));
-
-			mpLowLevelGraphics->ClearBatch();
-
-			pPrevMat->EndRendering(eMaterialRenderType_Diffuse);
+			iMaterial* material = object.GetMaterial();
+			const auto blend = material->GetSpriteBlend();
+			if(blend) batch.Add(material->GetTexture(eMaterialTexture_Diffuse), *blend, corners);
 		}
+		batch.Flush(mpLowLevelGraphics);
 
 		//Clear the buffer of objects.
 		m_setGfxBuffer.clear();

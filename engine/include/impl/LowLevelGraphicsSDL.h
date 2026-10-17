@@ -113,21 +113,16 @@ namespace hpl {
 
 
 
-		iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType) override;
+		iGpuProgram* CreateGpuProgram(const tString& asName) override;
 
 		void SaveScreenToBMP(const tString& asFile) override;
 		void SaveNextFrameToPNG(const tString& asFile) override { msSaveNextFrame = asFile; }
 
 		/////////// MATRIX METHODS /////////////////////////
 
-		void PushMatrix(eMatrix aMtxType) override;
-		void PopMatrix(eMatrix aMtxType) override;
-		void SetIdentityMatrix(eMatrix aMtxType) override;
-
-		void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA) override;
-
-
-		const cMatrixf& GetMatrix(eMatrix aMtxType) override{ return mvMatrixStack[aMtxType].back(); }
+		using iLowLevelGraphics::SetDrawMatrices;
+		void SetDrawMatrices(const cDrawMatrices &aMatrices) override;
+		const cDrawMatrices &GetDrawMatrices() const override { return mDrawMatrices; }
 
 		void SetFrameUniforms(const cMatrixf& a_mtxView, const cMatrixf& a_mtxProjection,
 							const cVector3f& avEyePos, float afNear, float afFar,
@@ -158,8 +153,8 @@ namespace hpl {
 		 */
 		const void* StreamIndices(const unsigned int *apIndices, int alCount);
 
-		void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax) override;
-		void SetVirtualOrthoProjection(float afMin, float afMax) override;
+		cMatrixf CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax) override;
+		cMatrixf CreateVirtualOrthoProjection(float afMin, float afMax) override;
 
 		/////////// DRAWING METHODS /////////////////////////
 
@@ -229,27 +224,11 @@ namespace hpl {
 
 
 
-		void DrawQuad(const tVertexVec &avVtx) override;
-		void DrawQuad(const tVertexVec &avVtx, const cColor aCol) override;
-		void DrawQuad(const tVertexVec &avVtx,const float afZ) override;
-		void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol) override;
+		void DrawSpriteBatch(const cSpriteVertex* apVertices, size_t alCount,
+			iTexture* apTexture, const cSpriteBlend& aBlend) override;
 
-		void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform) override;
+		void DrawTriangles(const tVertexVec& avVertices) override;
 
-		void AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
-										const cColor* apCol,const float& mfW, const float& mfH) override;
-
-		void AddVertexToBatch_Raw(	const cVector3f& avPos, const cColor &aColor,
-									const cVector3f& avTex) override;
-
-
-
-		void AddIndexToBatch(int alIndex) override;
-
-		void FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true) override;
-		void ClearBatch() override;
-
-		//PRIMITIVES
 		void DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol) override;
 		void DrawBoxMaxMin(const cVector3f& avMax, const cVector3f& avMin, cColor aCol) override;
 		void DrawSphere(const cVector3f& avPos, float afRadius, cColor aCol) override;
@@ -291,10 +270,7 @@ namespace hpl {
 		struct cFullscreenPass
 		{
 			tString msName;
-			bool mbFailed = false;
-			GLuint mlPipeline = 0;
-			GLuint mlVertex = 0;
-			GLuint mlFragment = 0;
+			cGLSLProgram* mpProgram = nullptr;
 			//Defines the fragment shader is compiled with, separated by spaces
 			tString msDefines;
 			cFullscreenPass(){}
@@ -305,7 +281,7 @@ namespace hpl {
 		void DrawFullscreenPass(cFullscreenPass &aPass, GLuint alTexture, const cVector2l &avSize,
 								GLuint alTexture1=0, GLuint alTexture2=0, bool abStencil=false,
 								const cVector2l &avPos=0);
-		void SetPassUniform(cFullscreenPass &aPass, const char *asName, float afX, float afY=0, float afZ=0, float afW=0);
+		void SetPassUniform(cFullscreenPass &aPass, eProgramParam aParam, float afX, float afY=0, float afZ=0, float afW=0);
 
 		//The scene into a texture (DrawSceneCopy())
 		cFullscreenPass mSceneCopyPass;
@@ -397,12 +373,10 @@ namespace hpl {
 
 		//What is drawn without a program of its own (hpl1_Default): the
 		//colour, and the texture on unit 0 with the fragment programs
-		cGLSLProgram *mpDefaultVP;
-		cGLSLProgram *mpDefaultTextureFP;
-		cGLSLProgram *mpDefaultCubeFP;
+		cGLSLProgram *mpDefaultProgram;
+		cGLSLProgram *mpDefaultTextureProgram;
+		cGLSLProgram *mpDefaultCubeProgram;
 		//The program worldViewProj was last set in, again if reloaded
-		GLuint mlDefaultMatrixProgram;
-		bool mbMatricesChanged;
 
 		//The unit glActiveTexture last selected
 		unsigned int mlActiveTextureUnit;
@@ -436,8 +410,7 @@ namespace hpl {
 		SDL_GLContext mGLContext;
 		cSDLPixelFormat *mpPixelFormat;
 
-		//Vertices of draws without a vertex buffer (DrawQuad and the like,
-		//the batch) are copied to the stream buffer and drawn from there
+		//Vertices of sprites and draws without a vertex buffer are copied to the stream buffer and drawn from there
 		//with mlStreamVertexArray. The fullscreen passes have no vertex data.
 		GLuint mlBoundVertexArray;
 		GLuint mlStreamVertexArray;
@@ -467,20 +440,6 @@ namespace hpl {
 		float mvCurrentAttrib[cGLSLProgram::eVertexAttrib_LastEnum][4];
 		unsigned int mlCurrentAttribChanged;
 		void SetCurrentAttrib(int alAttrib, float afX, float afY, float afZ, float afW);
-
-		std::vector<unsigned int> mvQuadIndices;
-		void DrawBatch(tVtxBatchFlag aTypeFlags, bool abQuads);
-
-		//The batch:
-		float* mpVertexArray;
-		unsigned int mlVertexCount;
-		unsigned int* mpIndexArray;
-		unsigned int mlIndexCount;
-
-		unsigned int mlBatchStride;
-
-
-		unsigned int mlBatchArraySize;
 
 		//Clearing
 		bool mbClearColor;
@@ -520,12 +479,7 @@ namespace hpl {
 		GLenum GetGLDepthTestFuncEnum(eDepthTestFunc aType);
 
 
-		//Matrix Helper
-		// Notes that the top of the CPU stack changed, for the default
-		// programs.
-		void LoadMatrix(eMatrix aMtxType);
-		// Top is the current matrix; never empty.
-		std::vector<cMatrixf> mvMatrixStack[eMatrix_LastEnum];
+		cDrawMatrices mDrawMatrices;
 
 		//Blend helper
 		GLenum GetGLBlendEnum(eBlendFunc aType);

@@ -31,8 +31,7 @@ namespace hpl {
 		cGuiMaterial_Diffuse(iLowLevelGraphics *apLowLevelGraphics):iGuiMaterial("Diffuse",apLowLevelGraphics){}
 		~cGuiMaterial_Diffuse() override{}
 
-		void BeforeRender() override;
-		void AfterRender() override;
+		cSpriteBlend GetBlend() const override;
 	};
 
 	//-----------------------------------------
@@ -43,8 +42,7 @@ namespace hpl {
 		cGuiMaterial_Alpha(iLowLevelGraphics *apLowLevelGraphics):iGuiMaterial("Alpha",apLowLevelGraphics){}
 		~cGuiMaterial_Alpha() override{}
 
-		void BeforeRender() override;
-		void AfterRender() override;
+		cSpriteBlend GetBlend() const override;
 	};
 
 	//-----------------------------------------
@@ -55,8 +53,7 @@ namespace hpl {
 		cGuiMaterial_FontNormal(iLowLevelGraphics *apLowLevelGraphics):iGuiMaterial("FontNormal",apLowLevelGraphics){}
 		~cGuiMaterial_FontNormal() override{}
 
-		void BeforeRender() override;
-		void AfterRender() override;
+		cSpriteBlend GetBlend() const override;
 	};
 
 	//-----------------------------------------
@@ -67,8 +64,7 @@ namespace hpl {
 		cGuiMaterial_Additive(iLowLevelGraphics *apLowLevelGraphics):iGuiMaterial("Additive",apLowLevelGraphics){}
 		~cGuiMaterial_Additive() override{}
 
-		void BeforeRender() override;
-		void AfterRender() override;
+		cSpriteBlend GetBlend() const override;
 	};
 
 	//-----------------------------------------
@@ -79,8 +75,7 @@ namespace hpl {
 		cGuiMaterial_Modulative(iLowLevelGraphics *apLowLevelGraphics):iGuiMaterial("Modulative",apLowLevelGraphics){}
 		~cGuiMaterial_Modulative() override{}
 
-		void BeforeRender() override;
-		void AfterRender() override;
+		cSpriteBlend GetBlend() const override;
 	};
 
 	//-----------------------------------------

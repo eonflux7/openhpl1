@@ -16,7 +16,6 @@
 out vec4 vColor;
 out vec2 vUv;
 
-uniform mat4 worldViewProj;
 
 void main()
 {

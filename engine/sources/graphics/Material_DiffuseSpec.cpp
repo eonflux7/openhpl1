@@ -31,8 +31,7 @@ namespace hpl {
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial_BaseLight(	"DiffuseSpec_Light_vp.cg",
-								"DiffuseSpec_Light_fp.cg",
+		: iMaterial_BaseLight("SPECULAR",
 			asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 			aPicture,apRenderer3D)
 	{

@@ -284,11 +284,8 @@ void cIntroImage::OnDraw()
 
 	//////////////////////////
 	///Draw
-	mpLowGfx->SetTexture(0, mpTexture);
-	mpLowGfx->SetBlendActive(true);
-	mpLowGfx->SetBlendFunc(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
-
-	mpLowGfx->DrawQuad(mvVtxVec);
+	cSpriteBatch batch;
+	batch.Add(mpTexture, cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha), mvVtxVec);
 
 	if(mfBrightness>1)
 	{
@@ -302,13 +299,10 @@ void cIntroImage::OnDraw()
 		mvVtxVec[2] = cVertex(cVector3f(vMax.x,vMax.y,40),	cVector2f(1,1),cColor(fWhite,1));
 		mvVtxVec[3] = cVertex(cVector3f(vMin.x,vMax.y,40),cVector2f(0,1),cColor(fWhite,1));
 		
-		mpLowGfx->SetTexture(0, nullptr);
-
-		mpLowGfx->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
-
-		mpLowGfx->DrawQuad(mvVtxVec);
+		batch.Add(nullptr, cSpriteBlend(eBlendFunc_One,eBlendFunc_One), mvVtxVec);
 
 	}
+	batch.Flush(mpLowGfx);
 	mpLowGfx->SetBlendActive(false);
 
 }
@@ -494,10 +488,10 @@ void cIntroStory::OnPostSceneDraw()
 	mpLowGfx->ClearScreen();
 
 	mpLowGfx->SetDepthTestActive(false);
-	mpLowGfx->PushMatrix(eMatrix_ModelView);
-	mpLowGfx->SetIdentityMatrix(eMatrix_ModelView);
-	mpLowGfx->SetVirtualOrthoProjection(-1000,1000);
-	
+	const cDrawMatrices previousMatrices = mpLowGfx->GetDrawMatrices();
+	mpLowGfx->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+		mpLowGfx->CreateVirtualOrthoProjection(-1000, 1000));
+
 	for(int i=0; i< INTRO_IMAGE_NUM; ++i)
 	{
 		if(mvImages[i].mbActive) mvImages[i].OnDraw();
@@ -508,7 +502,7 @@ void cIntroStory::OnPostSceneDraw()
 	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,vBarPos,vBarSize,cColor(1,1));
 	mpInit->mpGraphicsHelper->DrawTexture(mpBlackTexture,cVector3f(vBarPos.x,525,140),vBarSize,cColor(1,1));
 
-	mpLowGfx->PopMatrix(eMatrix_ModelView);
+	mpLowGfx->SetDrawMatrices(previousMatrices);
 }
 
 //-----------------------------------------------------------------------

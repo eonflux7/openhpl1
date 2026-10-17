@@ -20,8 +20,6 @@ uniform sampler2D tex0; //screenMap, of the render size
 uniform sampler2D tex1; //refractMap
 uniform sampler2D tex2; //diffuseMap
 
-uniform float scale;
-uniform float t;
 
 void main()
 {

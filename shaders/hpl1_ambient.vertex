@@ -16,8 +16,6 @@ out vec3 vTangent;
 out vec3 vBinormal;
 out vec3 vNormal;
 
-uniform mat4 worldViewProj;
-uniform mat4 objectWorldMatrix;
 
 void main()
 {

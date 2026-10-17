@@ -137,9 +137,6 @@ namespace hpl {
 
 	cLowLevelGraphicsSDL::cLowLevelGraphicsSDL()
 	{
-		mlBatchArraySize = 20000;
-		mlVertexCount = 0;
-		mlIndexCount =0;
 		mlMultisampling =0;
 		mlDisplay = 0;
 
@@ -207,11 +204,9 @@ namespace hpl {
 		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, 1, 1, 1, 1);
 		mlCurrentAttribChanged = ~0u;
 
-		mpDefaultVP = nullptr;
-		mpDefaultTextureFP = nullptr;
-		mpDefaultCubeFP = nullptr;
-		mlDefaultMatrixProgram = 0;
-		mbMatricesChanged = true;
+		mpDefaultProgram = nullptr;
+		mpDefaultTextureProgram = nullptr;
+		mpDefaultCubeProgram = nullptr;
 		mlActiveTextureUnit = 0;
 		mfAlphaCutoff = 0;
 		mbAlphaToCoverage = false;
@@ -234,21 +229,12 @@ namespace hpl {
 
 		mbClearColor = true;
 		mbClearDepth = true;
-
-		//Create the batch arrays:
-		mlBatchStride = 13;
-		//3 Pos floats, 4 color floats, 3 Tex coord floats .
-		mpVertexArray = (float*)hplMalloc(sizeof(float) * mlBatchStride * mlBatchArraySize);
-		mpIndexArray = (unsigned int*)hplMalloc(sizeof(unsigned int) * mlBatchArraySize); //Index is one int.
 	}
 
 	//-----------------------------------------------------------------------
 
 	cLowLevelGraphicsSDL::~cLowLevelGraphicsSDL()
 	{
-		hplFree(mpVertexArray);
-		hplFree(mpIndexArray);
-
 		hplDelete(mpPixelFormat);
 
 		for(cFullscreenPass *pPass : {&mSceneCopyPass, &mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
@@ -260,9 +246,9 @@ namespace hpl {
 		for(auto &sampler : m_mapSamplers) glDeleteSamplers(1, &sampler.second);
 		if(mlFrameUniformBuffer) glDeleteBuffers(1, &mlFrameUniformBuffer);
 		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
-		if(mpDefaultVP) hplDelete(mpDefaultVP);
-		if(mpDefaultTextureFP) hplDelete(mpDefaultTextureFP);
-		if(mpDefaultCubeFP) hplDelete(mpDefaultCubeFP);
+		if(mpDefaultProgram) hplDelete(mpDefaultProgram);
+		if(mpDefaultTextureProgram) hplDelete(mpDefaultTextureProgram);
+		if(mpDefaultCubeProgram) hplDelete(mpDefaultCubeProgram);
 		if(mlStreamVertexArray) glDeleteVertexArrays(1, &mlStreamVertexArray);
 		if(mlEmptyVertexArray) glDeleteVertexArrays(1, &mlEmptyVertexArray);
 		if(mlStreamVertexBuffer) glDeleteBuffers(1, &mlStreamVertexBuffer);
@@ -270,7 +256,7 @@ namespace hpl {
 		mDebugOverlay.Exit();
 		mGpuProfiler.Exit();
 
-		cGLSLProgram::ExitPipeline();
+		cGLSLProgram::ExitPrograms();
 
 		if(mGLContext) SDL_GL_DestroyContext(mGLContext);
 		if(mpWindow) SDL_DestroyWindow(mpWindow);
@@ -406,7 +392,7 @@ namespace hpl {
 			Log("  OpenGL debug output enabled\n");
 		}
 
-		if(!cGLSLProgram::InitPipeline(this))
+		if(!cGLSLProgram::InitPrograms(this))
 		{
 			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
 			return false;
@@ -428,12 +414,12 @@ namespace hpl {
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
 
-		mpDefaultVP = hplNew(cGLSLProgram, ("Default_vp.cg", eGpuProgramType_Vertex));
-		mpDefaultTextureFP = hplNew(cGLSLProgram, ("Default_Texture_fp.cg", eGpuProgramType_Fragment));
-		mpDefaultCubeFP = hplNew(cGLSLProgram, ("Default_Cube_fp.cg", eGpuProgramType_Fragment));
-		if(	mpDefaultVP->CreateFromFile("Default_vp.cg")==false || mpDefaultVP->GetCompanionHandle()==0 ||
-			mpDefaultTextureFP->CreateFromFile("Default_Texture_fp.cg")==false ||
-			mpDefaultCubeFP->CreateFromFile("Default_Cube_fp.cg")==false)
+		mpDefaultProgram = hplNew(cGLSLProgram, ("Default"));
+		mpDefaultTextureProgram = hplNew(cGLSLProgram, ("Default TEXTURE"));
+		mpDefaultCubeProgram = hplNew(cGLSLProgram, ("Default CUBE"));
+		if(!mpDefaultProgram->CreateFromFile("Default") ||
+			!mpDefaultTextureProgram->CreateFromFile("Default", "TEXTURE") ||
+			!mpDefaultCubeProgram->CreateFromFile("Default", "CUBE"))
 		{
 			FatalError("Couldn't create the default programs (hpl1_Default)!\n");
 			return false;
@@ -656,11 +642,7 @@ namespace hpl {
 		//Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		for(int i=0; i<eMatrix_LastEnum; ++i)
-		{
-			mvMatrixStack[i].assign(1, cMatrixf::Identity);
-			LoadMatrix((eMatrix)i);
-		}
+		SetDrawMatrices(cDrawMatrices{});
 
 		// Cube maps are filtered across the edges of their faces
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -897,9 +879,9 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cLowLevelGraphicsSDL::CreateGpuProgram(const tString& asName, eGpuProgramType aType)
+	iGpuProgram* cLowLevelGraphicsSDL::CreateGpuProgram(const tString& asName)
 	{
-		return hplNew( cGLSLProgram, (asName, aType) );
+		return hplNew( cGLSLProgram, (asName) );
 	}
 
 	//-----------------------------------------------------------------------
@@ -984,54 +966,26 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 
-	void cLowLevelGraphicsSDL::PushMatrix(eMatrix aMtxType)
+	void cLowLevelGraphicsSDL::SetDrawMatrices(const cDrawMatrices &aMatrices)
 	{
-		std::vector<cMatrixf>& vStack = mvMatrixStack[aMtxType];
-		vStack.push_back(vStack.back());
+		mDrawMatrices = aMatrices;
 	}
 
 	//-----------------------------------------------------------------------
 
-
-	void cLowLevelGraphicsSDL::PopMatrix(eMatrix aMtxType)
+	cMatrixf cLowLevelGraphicsSDL::CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax)
 	{
-		std::vector<cMatrixf>& vStack = mvMatrixStack[aMtxType];
-		if(vStack.size() > 1) vStack.pop_back();
-		LoadMatrix(aMtxType);
-	}
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)
-	{
-		mvMatrixStack[aMtxType].back() = a_mtxA;
-		LoadMatrix(aMtxType);
+		return OrthoMatrix(0, avSize.x, avSize.y, 0, afMin, afMax);
 	}
 
 	//-----------------------------------------------------------------------
 
-
-	void cLowLevelGraphicsSDL::SetIdentityMatrix(eMatrix aMtxType)
-	{
-		mvMatrixStack[aMtxType].back() = cMatrixf::Identity;
-		LoadMatrix(aMtxType);
-	}
-
-	//-----------------------------------------------------------------------
-
-
-	void cLowLevelGraphicsSDL::SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)
-	{
-		SetMatrix(eMatrix_Projection, OrthoMatrix(0,avSize.x,avSize.y,0,afMin,afMax));
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::SetVirtualOrthoProjection(float afMin, float afMax)
+	cMatrixf cLowLevelGraphicsSDL::CreateVirtualOrthoProjection(float afMin, float afMax)
 	{
 		cVector2f vOffset = GetVirtualOffset();
 
-		SetMatrix(eMatrix_Projection, OrthoMatrix(-vOffset.x, mvVirtualSize.x + vOffset.x,
-												mvVirtualSize.y + vOffset.y, -vOffset.y, afMin,afMax));
+		return OrthoMatrix(-vOffset.x, mvVirtualSize.x + vOffset.x,
+			mvVirtualSize.y + vOffset.y, -vOffset.y, afMin, afMax);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1105,16 +1059,7 @@ namespace hpl {
 	{
 		glFlush();
 
-		if(cGLSLProgram::ReloadChangedFiles())
-		{
-			// Created again when next drawn
-			for(cFullscreenPass *pPass : {&mSceneCopyPass, &mGammaPass, &mOutputPass, &mEncodePass, &mSmaaEdgesPass, &mSmaaWeightsPass,
-										&mSmaaWeightsNoDiagPass, &mSmaaBlendPass})
-			{
-				DeleteFullscreenPass(*pPass);
-				pPass->mbFailed = false;
-			}
-		}
+		cGLSLProgram::ReloadChangedFiles();
 
 		BeginGpuSection("Present");
 		PresentFrame();
@@ -1441,10 +1386,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::SetPassUniform(cFullscreenPass &aPass, const char *asName,
+	void cLowLevelGraphicsSDL::SetPassUniform(cFullscreenPass &aPass, eProgramParam aParam,
 												float afX, float afY, float afZ, float afW)
 	{
-		glProgramUniform4f(aPass.mlFragment, glGetUniformLocation(aPass.mlFragment, asName), afX, afY, afZ, afW);
+		aPass.mpProgram->SetVec4f(aParam, afX, afY, afZ, afW);
 	}
 
 	// Draws the scene to the output framebuffer through the output pass
@@ -1477,11 +1422,11 @@ namespace hpl {
 		BindFramebuffer(mlOutputFramebuffer, mvScreenSize);
 		if(CreateFullscreenPass(mOutputPass))
 		{
-			SetPassUniform(mOutputPass, "sceneSize", (float)mvRenderSize.x, (float)mvRenderSize.y,
+			SetPassUniform(mOutputPass, eProgramParam::sceneSize, (float)mvRenderSize.x, (float)mvRenderSize.y,
 							1.0f / mvRenderSize.x, 1.0f / mvRenderSize.y);
-			SetPassUniform(mOutputPass, "invOutputSize", 1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
+			SetPassUniform(mOutputPass, eProgramParam::invOutputSize, 1.0f / mvScreenSize.x, 1.0f / mvScreenSize.y);
 			// The shoulder is set as a screen value; the curve works on light
-			SetPassUniform(mOutputPass, "tonemap", bLinear ? 1.0f : 0.0f, mLinearTuning.mfExposure,
+			SetPassUniform(mOutputPass, eProgramParam::tonemap, bLinear ? 1.0f : 0.0f, mLinearTuning.mfExposure,
 							powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
 							cMath::Max(mLinearTuning.mfWhite, 1.0f));
 			// The grain: its cells are as large on a picture of any size,
@@ -1489,26 +1434,26 @@ namespace hpl {
 			const cFilmGrainSettings &grain = mFilmGrain;
 			float fGrainSeed = grain.mfRate > 0 ?	floorf(mfFrameTime * grain.mfRate) :
 													mfFrameTime * 1000.0f;
-			SetPassUniform(mOutputPass, "grain", (float)grain.mType, cMath::Clamp(grain.mfIntensity, 0.0f, 1.0f),
+			SetPassUniform(mOutputPass, eProgramParam::grain, (float)grain.mType, cMath::Clamp(grain.mfIntensity, 0.0f, 1.0f),
 							cMath::Max(grain.mfSize * (float)mvScreenSize.y / 1080.0f, 1.0f),
 							fmodf(fGrainSeed, 65536.0f));
-			SetPassUniform(mOutputPass, "grainTone", cMath::Clamp(grain.mfColor, 0.0f, 1.0f),
+			SetPassUniform(mOutputPass, eProgramParam::grainTone, cMath::Clamp(grain.mfColor, 0.0f, 1.0f),
 							cMath::Clamp(grain.mfShadows, 0.0f, 1.0f), cMath::Clamp(grain.mfHighlights, 0.0f, 1.0f),
 							cMath::Clamp(grain.mfDispersion, 0.0f, 1.0f));
 			const cPlayerEffectSettings &feedback = mPlayerEffectSettings;
 			const cPlayerEffectState &state = mPlayerEffectState;
 			auto Amount = [](float f)
 			{ return cMath::Clamp(f, 0.0f, 1.0f); };
-			SetPassUniform(mOutputPass, "playerEffects0", Amount(state.mfAdaptation) * Amount(feedback.mfAdaptationStrength),
+			SetPassUniform(mOutputPass, eProgramParam::playerEffects0, Amount(state.mfAdaptation) * Amount(feedback.mfAdaptationStrength),
 				Amount(state.mfLowHealth) * Amount(feedback.mfInjuryStrength),
 				Amount(state.mfBloodHit) * Amount(feedback.mfInjuryStrength),
 				Amount(state.mfIceHit) * Amount(feedback.mfInjuryStrength));
-			SetPassUniform(mOutputPass, "playerEffects1", Amount(state.mfPanic) * Amount(feedback.mfPanicStrength),
+			SetPassUniform(mOutputPass, eProgramParam::playerEffects1, Amount(state.mfPanic) * Amount(feedback.mfPanicStrength),
 				Amount(state.mfFlash), Amount(state.mfSave), Amount(state.mfDeath));
-			SetPassUniform(mOutputPass, "playerEffects2", Amount(state.mfDeathBlack), Amount(state.mfPanicPulse),
+			SetPassUniform(mOutputPass, eProgramParam::playerEffects2, Amount(state.mfDeathBlack), Amount(state.mfPanicPulse),
 				Amount(state.mfUnderwater), Amount(feedback.mfWhiteoutGlow));
-			SetPassUniform(mOutputPass, "playerDetails", state.mfBloodSeed, Amount(state.mfLowHealthVision) * Amount(feedback.mfInjuryStrength), 0, 0);
-			SetPassUniform(mOutputPass, "playerWaterColor", state.mWaterColor.r, state.mWaterColor.g, state.mWaterColor.b, 0);
+			SetPassUniform(mOutputPass, eProgramParam::playerDetails, state.mfBloodSeed, Amount(state.mfLowHealthVision) * Amount(feedback.mfInjuryStrength), 0, 0);
+			SetPassUniform(mOutputPass, eProgramParam::playerWaterColor, state.mWaterColor.r, state.mWaterColor.g, state.mWaterColor.b, 0);
 			DrawFullscreenPass(mOutputPass, lColor, mvScreenSize);
 		}
 		else
@@ -1628,7 +1573,7 @@ namespace hpl {
 		///////////////////////////////////////////
 		// The picture
 		BindFramebuffer(mvSmaaFramebuffers[0], vSize);
-		SetPassUniform(mEncodePass, "tonemap", 1.0f, mLinearTuning.mfExposure,
+		SetPassUniform(mEncodePass, eProgramParam::tonemap, 1.0f, mLinearTuning.mfExposure,
 						powf(cMath::Clamp(mLinearTuning.mfShoulder, 0.0f, 1.0f), 2.2f),
 						cMath::Max(mLinearTuning.mfWhite, 1.0f));
 		DrawFullscreenPass(mEncodePass, alColor, vSize);
@@ -1637,12 +1582,12 @@ namespace hpl {
 		// Edges: the stencil buffer is set where there is one
 		for(cFullscreenPass *pPass : {&mSmaaEdgesPass, &weightsPass, &mSmaaBlendPass})
 		{
-			SetPassUniform(*pPass, "smaaMetrics", 1.0f / vSize.x, 1.0f / vSize.y, (float)vSize.x, (float)vSize.y);
-			SetPassUniform(*pPass, "smaaEdge", (float)settings.mEdges, cMath::Clamp(settings.mfThreshold, 0.01f, 0.5f),
+			SetPassUniform(*pPass, eProgramParam::smaaMetrics, 1.0f / vSize.x, 1.0f / vSize.y, (float)vSize.x, (float)vSize.y);
+			SetPassUniform(*pPass, eProgramParam::smaaEdge, (float)settings.mEdges, cMath::Clamp(settings.mfThreshold, 0.01f, 0.5f),
 							cMath::Max(settings.mfDepthThreshold, 0.0001f), (float)settings.mlShow);
-			SetPassUniform(*pPass, "smaaSearch", (float)cMath::Clamp(settings.mlSearchSteps, 1, 112),
+			SetPassUniform(*pPass, eProgramParam::smaaSearch, (float)cMath::Clamp(settings.mlSearchSteps, 1, 112),
 							(float)lDiagonalSteps, (float)cMath::Clamp(settings.mlCornerRounding, 0, 100));
-			SetPassUniform(*pPass, "smaaDepth", settings.mbDepthHelp ? 1.0f : 0.0f,
+			SetPassUniform(*pPass, eProgramParam::smaaDepth, settings.mbDepthHelp ? 1.0f : 0.0f,
 							cMath::Max(settings.mfDepthScale, 0.0f), cMath::Clamp(settings.mfDepthStrength, 0.0f, 1.0f));
 		}
 
@@ -1716,33 +1661,18 @@ namespace hpl {
 	// missing or do not compile, then and later.
 	bool cLowLevelGraphicsSDL::CreateFullscreenPass(cFullscreenPass &aPass)
 	{
-		if(aPass.mlPipeline) return true;
-		if(aPass.mbFailed) return false;
-
-		aPass.mlVertex = cGLSLProgram::CreateStage(GL_VERTEX_SHADER, aPass.msName);
-		aPass.mlFragment = cGLSLProgram::CreateStage(GL_FRAGMENT_SHADER, aPass.msName, aPass.msDefines);
-		if(aPass.mlVertex==0 || aPass.mlFragment==0)
-		{
-			Error("Couldn't create the '%s' pass (%s)!\n", aPass.msName.c_str(), aPass.msDefines.c_str());
-			DeleteFullscreenPass(aPass);
-			aPass.mbFailed = true;
-			return false;
-		}
-
-		glGenProgramPipelines(1,&aPass.mlPipeline);
-		glUseProgramStages(aPass.mlPipeline, GL_VERTEX_SHADER_BIT, aPass.mlVertex);
-		glUseProgramStages(aPass.mlPipeline, GL_FRAGMENT_SHADER_BIT, aPass.mlFragment);
-		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, aPass.mlPipeline, aPass.msName + " " + aPass.msDefines);
-
+		if(aPass.mpProgram) return aPass.mpProgram->GetHandle() != 0;
+		aPass.mpProgram = hplNew(cGLSLProgram, (aPass.msName + " " + aPass.msDefines, false));
+		// Retain a failed object too: its watched files allow a later edit
+		// to recover it, and no incomplete program is ever drawn.
+		if(!aPass.mpProgram->CreateFromFile(aPass.msName, aPass.msDefines)) return false;
 		return true;
 	}
 
 	void cLowLevelGraphicsSDL::DeleteFullscreenPass(cFullscreenPass &aPass)
 	{
-		if(aPass.mlPipeline) glDeleteProgramPipelines(1,&aPass.mlPipeline);
-		if(aPass.mlVertex) glDeleteProgram(aPass.mlVertex);
-		if(aPass.mlFragment) glDeleteProgram(aPass.mlFragment);
-		aPass.mlPipeline = aPass.mlVertex = aPass.mlFragment = 0;
+		if(aPass.mpProgram) hplDelete(aPass.mpProgram);
+		aPass.mpProgram = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1760,10 +1690,11 @@ namespace hpl {
 													const cVector2l &avPos)
 	{
 		const GLuint vTextures[3] = {alTexture, alTexture1, alTexture2};
-		GLint lLastUnit = 0, lLastPipeline = 0;
+		GLint lLastUnit = 0, lLastProgram = 0, lLastMaterialBuffer = 0;
 		GLint vLastTextures[3] = {0, 0, 0};
 		glGetIntegerv(GL_ACTIVE_TEXTURE, &lLastUnit);
-		glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, &lLastPipeline);
+		glGetIntegerv(GL_CURRENT_PROGRAM, &lLastProgram);
+		glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &lLastMaterialBuffer);
 		for(int i=2; i>=0; --i)
 		{
 			if(vTextures[i] == 0) continue;
@@ -1793,14 +1724,15 @@ namespace hpl {
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glViewport(avPos.x, avPos.y, avSize.x, avSize.y);
 
-		glBindProgramPipeline(aPass.mlPipeline);
+		aPass.mpProgram->Apply();
 
 		// The vertex shader makes the triangle from the vertex numbers
 		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		BindVertexArray(mlEmptyVertexArray);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glBindProgramPipeline(lLastPipeline);
+		glUseProgram(lLastProgram);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, lLastMaterialBuffer);
 		for(int i=0; i<lCaps; ++i)
 		{
 			if(vLastCaps[i])	glEnable(vCaps[i]);
@@ -1830,7 +1762,7 @@ namespace hpl {
 		if(mfGammaCorrection > 0.999f && mfGammaCorrection < 1.001f) return false;
 		if(CreateFullscreenPass(mGammaPass)==false) return false;
 
-		glProgramUniform1f(mGammaPass.mlFragment, glGetUniformLocation(mGammaPass.mlFragment, "gamma"),
+		mGammaPass.mpProgram->SetFloat(eProgramParam::gamma,
 							mfGammaCorrection);
 		DrawFullscreenPass(mGammaPass, mlOutputColor, mvScreenSize);
 		return true;
@@ -1838,14 +1770,12 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// Quads are drawn as fans: the triangles 0,1,2 and 0,2,3.
-	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx)
+	void cLowLevelGraphicsSDL::DrawTriangles(const tVertexVec& avVertices)
 	{
-		assert(avVtx.size()==4);
-
+		assert(avVertices.size() % 3 == 0);
 		ImmediateBegin(1);
-		for(int i=0;i<4;i++) ImmediateVertex(avVtx[i].pos, avVtx[i].col, &avVtx[i].tex);
-		ImmediateDraw(GL_TRIANGLE_FAN);
+		for(const cVertex& vertex : avVertices) ImmediateVertex(vertex.pos, vertex.col, &vertex.tex);
+		ImmediateDraw(GL_TRIANGLES);
 	}
 
 	//-----------------------------------------------------------------------
@@ -1973,171 +1903,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-
-	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx, const cColor aCol)
-	{
-		assert(avVtx.size()==4);
-
-		ImmediateBegin(1);
-		for(int i=0;i<4;i++) ImmediateVertex(avVtx[i].pos, aCol, &avVtx[i].tex);
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx,const float afZ)
-	{
-		assert(avVtx.size()==4);
-
-		ImmediateBegin(1);
-		for(int i=0;i<4;i++)
-		{
-			cVector3f vTex(avVtx[i].tex.x, avVtx[i].tex.y, afZ);
-			ImmediateVertex(avVtx[i].pos, avVtx[i].col, &vTex);
-		}
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol)
-	{
-		assert(avVtx.size()==4);
-
-		ImmediateBegin(1);
-		for(int i=0;i<4;i++)
-		{
-			cVector3f vTex(avVtx[i].tex.x, avVtx[i].tex.y, afZ);
-			ImmediateVertex(avVtx[i].pos, aCol, &vTex);
-		}
-		ImmediateDraw(GL_TRIANGLE_FAN);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)
-	{
-		//Coord
-		mpVertexArray[mlVertexCount + 0] =	apVtx->pos.x+avTransform->x;
-		mpVertexArray[mlVertexCount + 1] =	apVtx->pos.y+avTransform->y;
-		mpVertexArray[mlVertexCount + 2] =	apVtx->pos.z+avTransform->z;
-
-		//Color
-		mpVertexArray[mlVertexCount + 3] =	apVtx->col.r;
-		mpVertexArray[mlVertexCount + 4] =	apVtx->col.g;
-		mpVertexArray[mlVertexCount + 5] =	apVtx->col.b;
-		mpVertexArray[mlVertexCount + 6] =	apVtx->col.a;
-		//Texture coord
-		mpVertexArray[mlVertexCount + 7] =	apVtx->tex.x;
-		mpVertexArray[mlVertexCount + 8] =	apVtx->tex.y;
-		mpVertexArray[mlVertexCount + 9] =	apVtx->tex.z;
-
-
-		//Normal coord
-		mpVertexArray[mlVertexCount + 10] =	apVtx->norm.x;
-		mpVertexArray[mlVertexCount + 11] =	apVtx->norm.y;
-		mpVertexArray[mlVertexCount + 12] =	apVtx->norm.z;
-
-		mlVertexCount = mlVertexCount + mlBatchStride;
-
-		if(mlVertexCount/mlBatchStride >= mlBatchArraySize)
-		{
-			//Make the array larger.
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
-		const cColor* apCol,const float& mfW, const float& mfH)
-	{
-		//Coord
-		mpVertexArray[mlVertexCount + 0] =	avTransform->x + mfW;
-		mpVertexArray[mlVertexCount + 1] =	avTransform->y + mfH;
-		mpVertexArray[mlVertexCount + 2] =	avTransform->z;
-
-		//Color
-		mpVertexArray[mlVertexCount + 3] =	apCol->r;
-		mpVertexArray[mlVertexCount + 4] =	apCol->g;
-		mpVertexArray[mlVertexCount + 5] =	apCol->b;
-		mpVertexArray[mlVertexCount + 6] =	apCol->a;
-
-		//Texture coord
-		mpVertexArray[mlVertexCount + 7] =	apVtx->tex.x;
-		mpVertexArray[mlVertexCount + 8] =	apVtx->tex.y;
-		mpVertexArray[mlVertexCount + 9] =	apVtx->tex.z;
-
-
-		mlVertexCount = mlVertexCount + mlBatchStride;
-
-		if(mlVertexCount/mlBatchStride >= mlBatchArraySize)
-		{
-			//Make the array larger.
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::AddVertexToBatch_Raw(	const cVector3f& avPos, const cColor &aColor,
-														const cVector3f& avTex)
-	{
-		//Coord
-		mpVertexArray[mlVertexCount + 0] =	avPos.x;
-		mpVertexArray[mlVertexCount + 1] =	avPos.y;
-		mpVertexArray[mlVertexCount + 2] =	avPos.z;
-
-		//Color
-		mpVertexArray[mlVertexCount + 3] =	aColor.r;
-		mpVertexArray[mlVertexCount + 4] =	aColor.g;
-		mpVertexArray[mlVertexCount + 5] =	aColor.b;
-		mpVertexArray[mlVertexCount + 6] =	aColor.a;
-
-		//Texture coord
-		mpVertexArray[mlVertexCount + 7] =	avTex.x;
-		mpVertexArray[mlVertexCount + 8] =	avTex.y;
-		mpVertexArray[mlVertexCount + 9] =	avTex.z;
-
-
-		mlVertexCount = mlVertexCount + mlBatchStride;
-	}
-
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::AddIndexToBatch(int alIndex)
-	{
-		mpIndexArray[mlIndexCount] = alIndex;
-		mlIndexCount++;
-
-		if(mlIndexCount>=mlBatchArraySize)
-		{
-			//Make the array larger.
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	// Flushing has always pointed every unit at the vertices' own texture
-	// coordinates, so the extra arrays are not drawn with.
-	void cLowLevelGraphicsSDL::FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear)
-	{
-		DrawBatch(aTypeFlags, true);
-
-		if(abAutoClear){
-			mlIndexCount = 0;
-			mlVertexCount = 0;
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::ClearBatch()
-	{
-		mlIndexCount = 0;
-		mlVertexCount = 0;
-	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelGraphicsSDL::DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol)
 	{
@@ -2592,6 +2357,28 @@ namespace hpl {
 			mvImmediate.insert(mvImmediate.end(), {apTex[i].x, apTex[i].y, apTex[i].z});
 	}
 
+	void cLowLevelGraphicsSDL::DrawSpriteBatch(const cSpriteVertex* apVertices, size_t alCount,
+		iTexture* apTexture, const cSpriteBlend& aBlend)
+	{
+		if(alCount == 0) return;
+		assert(alCount % 3 == 0);
+		SetTexture(0, apTexture);
+		SetBlendActive(aBlend.mbActive);
+		SetBlendFunc(aBlend.mSrc, aBlend.mDest);
+		PrepareDraw();
+		mGpuProfiler.CountDraw(GL_TRIANGLES, (int)alCount);
+		BindVertexArray(mlStreamVertexArray);
+		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
+		const size_t offset = StreamToBuffer(GL_ARRAY_BUFFER, mlStreamVertexSize, mlStreamVertexOffset,
+			apVertices, alCount * sizeof(cSpriteVertex));
+		unsigned int arrays = 0;
+		StreamArray(arrays, cGLSLProgram::eVertexAttrib_Position, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, pos));
+		StreamArray(arrays, cGLSLProgram::eVertexAttrib_Color, 4, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, col));
+		StreamArray(arrays, cGLSLProgram::eVertexAttrib_TexCoord0, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, tex));
+		SetStreamArrays(arrays);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)alCount);
+	}
+
 	void cLowLevelGraphicsSDL::ImmediateDraw(GLenum aMode)
 	{
 		const size_t lFloats = 7 + 3 * mlImmediateTexUnits;
@@ -2624,57 +2411,6 @@ namespace hpl {
 		for(int i=0; i<mlImmediateTexUnits; ++i)
 			SetCurrentAttrib(cGLSLProgram::eVertexAttrib_TexCoord0 + i, pLast[7 + 3*i], pLast[8 + 3*i],
 							pLast[9 + 3*i], 1);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cLowLevelGraphicsSDL::DrawBatch(tVtxBatchFlag aTypeFlags, bool abQuads)
-	{
-		const unsigned int *pIndices = mpIndexArray;
-		int lIndexCount = (int)mlIndexCount;
-		if(abQuads)
-		{
-			// Two triangles per quad: 0,1,2 and 0,2,3
-			mvQuadIndices.clear();
-			for(unsigned int i=0; i+3 < mlIndexCount; i+=4)
-			{
-				const unsigned int *pQuad = &mpIndexArray[i];
-				mvQuadIndices.insert(mvQuadIndices.end(),
-									{pQuad[0], pQuad[1], pQuad[2], pQuad[0], pQuad[2], pQuad[3]});
-			}
-			pIndices = mvQuadIndices.data();
-			lIndexCount = (int)mvQuadIndices.size();
-		}
-		if(lIndexCount == 0 || mlVertexCount == 0) return;
-
-		PrepareDraw();
-		mGpuProfiler.CountDraw(GL_TRIANGLES, lIndexCount);
-
-		BindVertexArray(mlStreamVertexArray);
-		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
-		size_t lOffset = StreamToBuffer(GL_ARRAY_BUFFER, mlStreamVertexSize, mlStreamVertexOffset,
-										mpVertexArray, mlVertexCount * sizeof(float));
-
-		// See AddVertexToBatch(): position, colour, texture coordinate, normal
-		const size_t lStride = sizeof(float) * mlBatchStride;
-		const size_t lTexOffset = lOffset + 7*sizeof(float);
-		unsigned int lArrays = 0;
-		if(aTypeFlags & eVtxBatchFlag_Position)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Position, 3, lStride, lOffset);
-		if(aTypeFlags & eVtxBatchFlag_Color0)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Color, 4, lStride, lOffset + 3*sizeof(float));
-		if(aTypeFlags & eVtxBatchFlag_Normal)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Normal, 3, lStride, lOffset + 10*sizeof(float));
-		if(aTypeFlags & eVtxBatchFlag_Texture0)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0, 3, lStride, lTexOffset);
-		if(aTypeFlags & eVtxBatchFlag_Texture1)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + 1, 3, lStride, lTexOffset);
-		if(aTypeFlags & eVtxBatchFlag_Texture2)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + 2, 3, lStride, lTexOffset);
-		SetStreamArrays(lArrays);
-
-		const void *pIndexOffset = StreamIndices(pIndices, lIndexCount);
-		glDrawElements(GL_TRIANGLES, lIndexCount, GL_UNSIGNED_INT, pIndexOffset);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2767,50 +2503,16 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// The texture matrix is only read by engine programs that ask for it
-	// (none do); the default programs do not use one.
-	void cLowLevelGraphicsSDL::LoadMatrix(eMatrix aMtxType)
-	{
-		if(aMtxType != eMatrix_Texture) mbMatricesChanged = true;
-	}
-
-	//-----------------------------------------------------------------------
-
 	void cLowLevelGraphicsSDL::PrepareDraw()
 	{
-		GLuint lVertex = cGLSLProgram::GetVertexStage();
-		GLuint lFragment = cGLSLProgram::GetFragmentStage();
-
-		if(lVertex==0 && lFragment!=0)
-		{
-			static bool bWarned = false;
-			if(!bWarned) Warning("A fragment program is drawn without a vertex program\n");
-			bWarned = true;
-		}
-
-		// What has no program of its own is drawn with hpl1_Default, with
-		// the texture on unit 0: 2D or a cube map (the sky box). Nothing
-		// draws other units or targets without a program.
-		if(lVertex==0)
-		{
-			lVertex = mpDefaultVP->GetHandle();
-			if(mbMatricesChanged || mlDefaultMatrixProgram != lVertex)
-			{
-				mpDefaultVP->SetMatrixf("worldViewProj", cMath::MatrixMul(mvMatrixStack[eMatrix_Projection].back(),
-																		mvMatrixStack[eMatrix_ModelView].back()));
-				mlDefaultMatrixProgram = lVertex;
-				mbMatricesChanged = false;
-			}
-		}
-		if(lFragment==0)
-		{
+		cGLSLProgram* program = cGLSLProgram::GetBoundProgram();
+		if(!program){
 			eTextureTarget target = mpCurrentTexture[0] ? mpCurrentTexture[0]->GetTarget() : eTextureTarget_LastEnum;
-			if(target == eTextureTarget_2D)				lFragment = mpDefaultTextureFP->GetHandle();
-			else if(target == eTextureTarget_CubeMap)	lFragment = mpDefaultCubeFP->GetHandle();
-			else										lFragment = mpDefaultVP->GetCompanionHandle();
+			program = target == eTextureTarget_2D ? mpDefaultTextureProgram :
+				(target == eTextureTarget_CubeMap ? mpDefaultCubeProgram : mpDefaultProgram);
 		}
-
-		cGLSLProgram::SetPipelineStages(lVertex, lFragment);
+		program->SetMatrixf(eProgramParam::worldViewProj, mDrawMatrices.GetModelViewProjection());
+		program->Apply();
 
 		if(mlCurrentAttribChanged)
 		{

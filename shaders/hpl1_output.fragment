@@ -13,17 +13,12 @@
 // pixel: the picture that SMAA works on (hpl1_SMAA.fragment), which then
 // comes here as screen values to be scaled and to get its grain.
 uniform sampler2D tex0;
-uniform vec4 sceneSize; // xy: the scene's size in pixels, zw: 1 / that
-uniform vec4 invOutputSize; // xy: 1 / the output's size in pixels
 // x: 1 if the scene holds linear values, y: the exposure, z: where the
 // shoulder starts, w: the light that becomes white
-uniform vec4 tonemap;
 // x: 0 none, 1 noise, 2 film; y: strength; z: size of a grain in pixels;
 // w: a number that changes when the grain does
-uniform vec4 grain;
 // x: 0 grey to 1 coloured; y, z: the share dark and bright parts get;
 // w: film: how much the grains differ in size
-uniform vec4 grainTone;
 
 OUTPUT
 

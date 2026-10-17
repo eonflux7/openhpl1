@@ -19,8 +19,6 @@ out vec2 vUv;
 out vec3 vNormal;
 out vec3 vEyePos;
 
-uniform vec3 EyePos;
-uniform mat4 worldViewProj;
 
 void main()
 {

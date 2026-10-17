@@ -6,7 +6,6 @@
 // debug lines. worldViewProj is set by cLowLevelGraphicsSDL::PrepareDraw
 // from the model-view and projection matrices.
 
-uniform mat4 worldViewProj;
 
 out vec4 vColor;
 out vec3 vUv;

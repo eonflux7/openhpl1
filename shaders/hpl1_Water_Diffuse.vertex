@@ -16,8 +16,6 @@
 out vec3 vColor;
 out vec2 vUv;
 
-uniform mat4 worldViewProj;
-uniform float timeCount;
 
 void main()
 {

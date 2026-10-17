@@ -18,9 +18,6 @@ out vec3 vColor;
 out vec3 vUv;
 out vec3 vUv2;
 
-uniform mat4 worldViewProj;
-uniform mat4 objectWorldMatrix;
-uniform vec3 eyeWorldPos;
 
 void main()
 {

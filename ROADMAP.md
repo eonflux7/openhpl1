@@ -460,22 +460,62 @@ In this order: each step removes callers of what a later one deletes.
   - [x] what is about speed or taste stays an option: shadows (off and
         quality), ambient occlusion, SMAA, FSAA, motion blur, bloom, depth
         of field, grain, render scale, gamma
-- [ ] **5. No matrix stack.** Model, view and projection given to each
+- [x] **5. No matrix stack.** Model, view and projection given to each
       draw instead of pushed, popped and multiplied in place; `eMatrix`
-      removed. The renderer, post effects, lights, the GUI and the game
-      (enemies, the player, the HUD weapon, the intro) use it today
-- [ ] **6. Materials and programs:**
-  - [ ] one program object of vertex and fragment shader together, in
+      removed. `SetDrawMatrices` supplies all three; the renderer, shadow
+      maps, post effects, GUI and game draws use it. Screen-space passes
+      save and restore the complete transform, including projection.
+      Shader uniforms take explicit matrices; the Cg-style matrix and
+      matrix-operation selectors are gone. Linux and Windows builds and
+      engine regressions pass; reference images, motion blur, Render Scale
+      1.5 and the effects lab match apart from the existing keypad draw-order
+      and ice-cave noise
+- [x] **6. Materials and programs:**
+  - [x] one program object of vertex and fragment shader together, in
         place of the pair the Cg-era interface binds one by one
-  - [ ] shaders asked for by their GLSL name and `#define`s, not a Cg file
+  - [x] shaders asked for by their GLSL name and `#define`s, not a Cg file
         name translated (`CgNameToShaderBase`)
-  - [ ] uniform locations looked up once, values for a material in a
+  - [x] uniform locations looked up once, values for a material in a
         uniform block, instead of about 200 calls setting them by name
-  - [ ] the draw order by one sort key per draw in place of the twelve
+  - [x] the draw order by one sort key per draw in place of the twelve
         level state tree of `cRenderState`
-- [ ] **7. One sprite batcher for 2D.** The HUD, GUI, fonts and fades drawn
+
+    Linked pairs replace every stage binding and internal fullscreen
+    pipeline. `eProgramParam` slots write each program's `hpl_Material`
+    block; samplers are resolved when linking. Flat, stable draw queues
+    replace the state tree and retain material/matrix setup boundaries.
+    Both stages and includes reload together, retaining the previous
+    program on failure and preserving material values.
+
+    Linux and Windows builds and engine regressions pass. Windows captures:
+    94/95 default, 93/95 motion blur, 29/31 at Render Scale 1.5 with 4× FSAA
+    (only the known keypad/ice-cave differences); all 29 effects-lab frames
+    and live checks pass. Valid/invalid shader reload checks pass, with all
+    95 frames matching the normal capture at unchanged tolerances.
+
+- [x] **7. One sprite batcher for 2D.** The HUD, GUI, fonts and fades drawn
       by a batcher of textured triangles with a blend mode per batch, in
-      place of `AddVertexToBatch`, the quad batches and `DrawQuad`
+      place of `AddVertexToBatch`, the quad batches and `DrawQuad`.
+
+    `cSpriteBatch` merges adjacent sprites by texture and explicit blend
+    state, emits triangles into the stream buffer and grows its CPU storage
+    as needed. HUD and GUI fonts, fades and loading/story overlays share
+    it. GUI batches flush at clip boundaries and retain the current
+    matrices/depth/culling for both screen and 3D sets. Equal-Z HUD/GUI
+    sprites retain submission order instead of sorting by addresses.
+    World/debug and post-effect callers submit explicit triangles with
+    their own programs and render state. The old fixed arrays and sprite
+    material render callbacks are removed; general vertex buffers,
+    textures and backend structure remain for steps 8–10.
+
+    Linux build/regressions and Windows build pass (the Windows kit
+    disables CTest under MSVC). The batcher-only stage matches all 95
+    baseline frames. Final comparisons: 94/95 default, 92/95 motion blur,
+    29/31 at Render Scale 1.5 with 4× FSAA; only the intentional keypad
+    ordering correction and known ice-cave variation differ. All 29
+    effects-lab frames, pixel/live checks and the GL debug run pass at
+    unchanged tolerances.
+
 - [ ] **8. Vertex buffers and textures:**
   - [ ] vertices interleaved in one buffer, indices in an element buffer,
         triangles only (quads are turned into triangles when loaded)

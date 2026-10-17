@@ -39,8 +39,8 @@ namespace hpl {
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
-			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
-			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);
+			apProgram->SetFloat(eProgramParam::fogStart,apRenderSettings->mfFogStart);
+			apProgram->SetFloat(eProgramParam::fogEnd,apRenderSettings->mfFogEnd);
 		}
 		float mfTime;
 	};
@@ -54,7 +54,7 @@ namespace hpl {
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
-			apProgram->SetFloat("timeCount",mfTime);
+			apProgram->SetFloat(eProgramParam::timeCount,mfTime);
 		}
 
 		float mfTime;
@@ -80,14 +80,11 @@ namespace hpl {
 		mbUsesLights = false;
 
 
-		mpFogVtxProg = mpProgramManager->CreateProgram("Water_Fog_vp.cg","main",
-														eGpuProgramType_Vertex);
+		mpFogProgram = mpProgramManager->CreateProgram("Water_Fog");
+		mpRefractProgram = mpProgramManager->CreateProgram("refract_water");
 
-		mpRefractVtxProg = mpProgramManager->CreateProgram("refract_water_vp.cg","main",	eGpuProgramType_Vertex);
-		mpRefractFragProg = mpProgramManager->CreateProgram("refract_water_fp.cg","main",	eGpuProgramType_Fragment);
-
-		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Water_Diffuse_vp.cg","main",eGpuProgramType_Vertex);
-		SetProgram(pVtxProg,eGpuProgramType_Vertex,0);
+		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Water_Diffuse");
+		SetProgram(pVtxProg,0);
 
 		mfTime = 0;
 	}
@@ -96,7 +93,8 @@ namespace hpl {
 
 	cMaterial_Water::~cMaterial_Water()
 	{
-		if(mpFogVtxProg) mpProgramManager->Destroy(mpFogVtxProg);
+		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
+		if(mpRefractProgram) mpProgramManager->Destroy(mpRefractProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -116,15 +114,15 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cMaterial_Water::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iGpuProgram* cMaterial_Water::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
-			return mpFogVtxProg;
+			return mpFogProgram;
 		else
-			return mpProgram[eGpuProgramType_Vertex][0];
+			return mpProgram[0];
 	}
 
-	iMaterialProgramSetup* cMaterial_Water::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iMaterialProgramSetup* cMaterial_Water::GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
 			return &gFogWaterProgramSetup;
@@ -132,20 +130,17 @@ namespace hpl {
 			return &gWaterProgramSetup;
 	}
 
-	bool cMaterial_Water::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Water::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	bool cMaterial_Water::VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Water::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	iGpuProgram* cMaterial_Water::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		return nullptr;
-	}
+
 
 	eMaterialAlphaMode cMaterial_Water::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -203,7 +198,7 @@ namespace hpl {
 		vTypes.push_back(cTextureType("",eMaterialTexture_Diffuse));
 		vTypes.push_back(cTextureType("",eMaterialTexture_Specular));
 
-		if(mpRefractVtxProg && mpRefractFragProg)
+		if(mpRefractProgram)
 			vTypes.push_back(cTextureType("",eMaterialTexture_Refraction));
 
 		return vTypes;

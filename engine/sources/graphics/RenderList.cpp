@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/RenderList.h"
+#include <algorithm>
 #include "graphics/Renderable.h"
 #include "scene/MeshEntity.h"
 #include "graphics/Material.h"
@@ -62,53 +63,46 @@ namespace hpl {
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// RENDER NODE
+	// DRAW QUEUES
 	//////////////////////////////////////////////////////////////////////////
 
-	cMemoryPool<iRenderState>* g_poolRenderState = nullptr;
-	cMemoryPool<cRenderNode>* g_poolRenderNode = nullptr;
-
-	//-----------------------------------------------------------------------
-
-	bool cRenderNodeCompare::operator()(cRenderNode* apNodeA,cRenderNode* apNodeB) const
+	void cRenderQueue::Sort()
 	{
-		int  val = apNodeA->mpState->Compare(apNodeB->mpState);
-		bool ret =  val>0 ? true : false;
-		return ret;
+		std::stable_sort(mvDraws.begin(), mvDraws.end(), [](const cRenderDraw& a, const cRenderDraw& b){
+			return a.mKey < b.mKey;
+		});
 	}
 
-	//-----------------------------------------------------------------------
-
-	void cRenderNode::DeleteChildren()
+	eRenderStateType cRenderDraw::FirstChangedState(const cRenderDraw* previous) const
 	{
-		tRenderNodeSetIt it = m_setNodes.begin();
-		for(;it != m_setNodes.end(); ++it)
-		{
-			cRenderNode* pNode = *it;
-
-			pNode->DeleteChildren();
-			g_poolRenderNode->Release(pNode);
+		if(!previous) return eRenderStateType_Sector;
+		// End of each state's part of the key, in application order.
+		const size_t ends[] = {1, 2, 3, 4, 5, 7, 9,
+			9 + MAX_TEXTUREUNITS, 10 + MAX_TEXTUREUNITS,
+			11 + MAX_TEXTUREUNITS, 12 + MAX_TEXTUREUNITS};
+		static_assert(sizeof(ends) / sizeof(ends[0]) == eRenderStateType_LastEnum, "Every state needs a key boundary");
+		size_t start = 0;
+		for(int mode = 0; mode < eRenderStateType_LastEnum; ++mode){
+			for(size_t i = start; i < ends[mode]; ++i)
+				if(mKey[i] != previous->mKey[i]) return static_cast<eRenderStateType>(mode);
+			start = ends[mode];
 		}
-
-		if(mpState) g_poolRenderState->Release(mpState);
-		mpState = nullptr;
-		m_setNodes.clear();
+		return eRenderStateType_Render; // Even equal keys represent separate draws.
 	}
 
-	//-----------------------------------------------------------------------
-
-	void cRenderNode::Render(cRenderSettings* apSettings)
+	void cRenderQueue::Render(cRenderSettings* apSettings)
 	{
-		tRenderNodeSetIt it = m_setNodes.begin();
-		for(;it != m_setNodes.end(); ++it)
-		{
-			cRenderNode* pNode = *it;
-
-			pNode->mpState->SetMode(apSettings);
-			pNode->Render(apSettings);
+		const cRenderDraw* previous = nullptr;
+		for(cRenderDraw& draw : mvDraws){
+			for(int mode = draw.FirstChangedState(previous); mode < eRenderStateType_LastEnum; ++mode){
+				if(mode == eRenderStateType_Sector && !mbSector) continue;
+				if(mode == eRenderStateType_Depth) continue;
+				draw.mState.mType = static_cast<eRenderStateType>(mode);
+				draw.mState.SetMode(apSettings);
+			}
+			previous = &draw;
 		}
 	}
-
 
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -119,18 +113,13 @@ namespace hpl {
 	cRenderList::cRenderList(cGraphics *apGraphics)
 	{
 		mfFrameTime = 0;
-		mTempNode.mpState = hplNew( iRenderState, () );
+		mDepthQueue.mbSector = true;
 
 		mlRenderCount=0;
 		mlLastRenderCount =0;
 
 		mpGraphics = apGraphics;
 
-		m_poolRenderState = hplNew( cMemoryPool<iRenderState>, (3000, nullptr));
-		m_poolRenderNode = hplNew( cMemoryPool<cRenderNode>, (3000, nullptr));
-
-		g_poolRenderState = m_poolRenderState;
-		g_poolRenderNode = m_poolRenderNode;
 	}
 
 	//-----------------------------------------------------------------------
@@ -138,13 +127,6 @@ namespace hpl {
 	cRenderList::~cRenderList()
 	{
 		Clear();
-		hplDelete(mTempNode.mpState);
-
-		hplDelete(m_poolRenderState);
-		hplDelete(m_poolRenderNode);
-
-		g_poolRenderState = nullptr;
-		g_poolRenderNode = nullptr;
 	}
 
 
@@ -167,13 +149,13 @@ namespace hpl {
 		m_setFogObjects.clear();
 		m_setTransperantObjects.clear();
 
-		mRootNodeDepth.DeleteChildren();
-		mRootNodeDiffuse.DeleteChildren();
-		mRootNodeTrans.DeleteChildren();
+		mDepthQueue.Clear();
+		mDiffuseQueue.Clear();
+		mTransQueue.Clear();
 
 		for(int i=0;i<MAX_NUM_OF_LIGHTS;i++)
 		{
-			mRootNodeLight[i].DeleteChildren();
+			mvLightQueues[i].Clear();
 		}
 
 		mlLastRenderCount = mlRenderCount;
@@ -222,18 +204,18 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cRenderNode* cRenderList::GetRootNode(eRenderListDrawType aObjectType, eMaterialRenderType aPassType, int alLightNum)
+	cRenderQueue* cRenderList::GetQueue(eRenderListDrawType aObjectType, eMaterialRenderType aPassType, int alLightNum)
 	{
 		if(aObjectType== eRenderListDrawType_Normal)
 		{
-			if(aPassType == eMaterialRenderType_Z) return &mRootNodeDepth;
-			if(aPassType == eMaterialRenderType_Diffuse) return &mRootNodeDiffuse;
-			if(aPassType == eMaterialRenderType_Light) return &mRootNodeLight[alLightNum];
+			if(aPassType == eMaterialRenderType_Z) return &mDepthQueue;
+			if(aPassType == eMaterialRenderType_Diffuse) return &mDiffuseQueue;
+			if(aPassType == eMaterialRenderType_Light) return &mvLightQueues[alLightNum];
 			return nullptr;
 		}
 		else
 		{
-			return &mRootNodeTrans;
+			return &mTransQueue;
 		}
 	}
 
@@ -246,7 +228,7 @@ namespace hpl {
 
 		for(int i=0; i<lLightNum; ++i) mvObjectsPerLight[i] =0;
 
-		// Iterate the objects to be rendered and build trees with render states.
+		// Iterate the objects to be rendered and build draw queues.
 		tRenderableSetIt it = m_setObjects.begin();
 		for(;it != m_setObjects.end();++it)
 		{
@@ -256,29 +238,29 @@ namespace hpl {
 			//Skip meshes...
 			if(pObject->GetRenderType() == eRenderableType_Mesh) continue;
 
-			//If the object is transparent add tot eh trans tree
+			//If the object is transparent add tot eh trans queue
 			if(pMat->IsTransperant())
 			{
 				//Use the set cotainer instead for now:
 				m_setTransperantObjects.insert(pObject);
 			}
-			//If object is not trans add to another tree.
+			//If object is not trans add to another queue.
 			else
 			{
-				//If the object uses z pass add to z tree.
+				//If the object uses z pass add to z queue.
 				if(pMat->UsesType(eMaterialRenderType_Z))
 				{
 					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Z, nullptr);lPass++)
 					{
-						AddToTree(pObject,eRenderListDrawType_Normal,eMaterialRenderType_Z,
+						AddDraw(pObject,eRenderListDrawType_Normal,eMaterialRenderType_Z,
 									0,nullptr, false,lPass);
 					}
 				}
 
-				//If object uses light add the object to each light's tree.
+				//If object uses light add the object to each light's queue.
 				if(pMat->UsesType(eMaterialRenderType_Light))
 				{
-					//Light trees that the object will belong to.
+					//Light queues that the object will belong to.
 					int lLightCount =0;
 
 					tLight3DSetIt lightIt = m_setLights.begin();
@@ -295,7 +277,7 @@ namespace hpl {
 
 							for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Light, pLight);++lPass)
 							{
-								AddToTree(pObject,eRenderListDrawType_Normal,
+								AddDraw(pObject,eRenderListDrawType_Normal,
 											eMaterialRenderType_Light,lLightCount,pLight, false,lPass);
 							}
 						}
@@ -303,17 +285,22 @@ namespace hpl {
 					}
 				}
 
-				//If it has a diffuse pass, add to the diffuse tree.
+				//If it has a diffuse pass, add to the diffuse queue.
 				if(pObject->GetMaterial()->UsesType(eMaterialRenderType_Diffuse))
 				{
 					for(int lPass=0; lPass< pMat->GetNumOfPasses(eMaterialRenderType_Diffuse,nullptr);lPass++)
 					{
-						AddToTree(pObject,eRenderListDrawType_Normal,
+						AddDraw(pObject,eRenderListDrawType_Normal,
 									eMaterialRenderType_Diffuse,0,nullptr, false,lPass);
 					}
 				}
 			}
 		}
+		mDepthQueue.Sort();
+		mDiffuseQueue.Sort();
+		mTransQueue.Sort();
+		for(auto& queue : mvLightQueues) queue.Sort();
+
 	}
 
 	//-----------------------------------------------------------------------
@@ -401,204 +388,52 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cRenderNode* cRenderList::InsertNode(cRenderNode* apListNode, cRenderNode* apTempNode)
-	{
-		//Create a node with the state.
-
-		tRenderNodeSetIt it = apListNode->m_setNodes.find(apTempNode);
-
-		if(it != apListNode->m_setNodes.end())
-		{
-			//node found, return it.
-			return *it;
-		}
-		else
-		{
-			//no node found, create one and return it.
-			cRenderNode *pNode = m_poolRenderNode->Create();
-			pNode->mpState = m_poolRenderState->Create();
-
-			//Copy the relevant values to the state.
-			pNode->mpState->Set(apTempNode->mpState);
-
-			apListNode->m_setNodes.insert(pNode);
-
-			return pNode;
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
-	void cRenderList::AddToTree(iRenderable* apObject,eRenderListDrawType aObjectType,
+	void cRenderList::AddDraw(iRenderable* apObject,eRenderListDrawType aObjectType,
 								eMaterialRenderType aPassType, int alLightNum,iLight3D* apLight,
 								bool abUseDepth, int alPass)
 	{
 
-		cRenderNode *pNode = GetRootNode(aObjectType,aPassType, alLightNum);
-		iMaterial *pMaterial = apObject->GetMaterial();
-		iRenderState *pTempState = mTempNode.mpState;
-		cRenderNode *pTempNode = &mTempNode;
+		cRenderQueue* queue = GetQueue(aObjectType, aPassType, alLightNum);
+		queue->mvDraws.emplace_back();
+		cRenderDraw& draw = queue->mvDraws.back();
+		iRenderState* pTempState = &draw.mState;
+		iMaterial* material = apObject->GetMaterial();
 
-		//-------------- EXPLAINATION ----------------------------------
-		// Go through each render state type and set the appropriate
-		// variables for each type. The most important states are set first.
-		// The state is then inserted to a tree structure, where each state type is a level.
-		//                       Example:
-		//                 |----------root--------|
-		//           |---pass              |-----pass----|
-		//       depth-test            depth-test     depth-test
-		//              ............etc......................
-		// After each insertion a pointer to the inserted or existing (if variables already existed)
-		// node is returned
-		// This is then passed on the next state, the state inserted (or exist found) there and so on.
-		// At each insertion, it is first checked if a state with variables exist, and if so, use that.
-		// if not, a new node is created and inserted.
-		// The temp node state is used as storage for the data to skip the overhead of deletion
-		// and creation when testing if state exist. Instead new data is only created if the state
-		// is new.
-		// Each Render state has the same class, but uses different var depending on type, this to
-		// skip the overhead of using inheritance.
-		//-------------------------------------------------------------
+		pTempState->mpSector = aPassType == eMaterialRenderType_Z ? apObject->GetCurrentSector() : nullptr;
+		pTempState->mlPass = alPass;
+		pTempState->mbDepthTest = material->GetDepthTest();
+		pTempState->mfZ = abUseDepth ? apObject->GetZ() : 0;
+		pTempState->mAlphaMode = material->GetAlphaMode(aPassType, alPass, apLight);
+		pTempState->mBlendMode = material->GetBlendMode(aPassType, alPass, apLight);
+		pTempState->mChannelMode = material->GetChannelMode(aPassType, alPass, apLight);
+		pTempState->mpProgram = material->GetProgram(aPassType, alPass, apLight);
+		pTempState->mpProgramSetup = material->GetProgramSetup(aPassType, alPass, apLight);
+		pTempState->mbUsesLight = material->ProgramUsesLight(aPassType, alPass, apLight);
+		pTempState->mbUsesEye = material->ProgramUsesEye(aPassType, alPass, apLight);
+		pTempState->mpLight = apLight;
+		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
+			pTempState->mpTexture[i] = material->GetTexture(i, aPassType, alPass, apLight);
+		pTempState->mpVtxBuffer = apObject->GetVertexBuffer();
+		pTempState->mpModelMatrix = apObject->GetModelMatrix(mpCamera);
+		pTempState->mpInvModelMatrix = apObject->GetInvModelMatrix();
+		pTempState->mvScale = apObject->GetCalcScale();
+		pTempState->mpObject = apObject;
 
-		/////// SECTOR //////////////
-		if(aPassType == eMaterialRenderType_Z)
-		{
-
-			pTempState->mType = eRenderStateType_Sector;
-			pTempState->mpSector = apObject->GetCurrentSector();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// PASS //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_Pass;
-			pTempState->mlPass = alPass;
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-		/////// DEPTH TEST //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_DepthTest;
-			pTempState->mbDepthTest = pMaterial->GetDepthTest();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// DEPTH //////////////
-		if(abUseDepth)
-		{
-
-
-			pTempState->mType = eRenderStateType_Depth;
-			pTempState->mfZ = apObject->GetZ();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// ALPHA MODE //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_AlphaMode;
-			pTempState->mAlphaMode = pMaterial->GetAlphaMode(aPassType,alPass, apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// BLEND MODE //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_BlendMode;
-
-			pTempState->mBlendMode = pMaterial->GetBlendMode(aPassType,alPass,apLight);
-			pTempState->mChannelMode = pMaterial->GetChannelMode(aPassType,alPass,apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// VERTEX PROGRAM //////////////
-		{
-
-			pTempState->mType = eRenderStateType_VertexProgram;
-
-			pTempState->mpVtxProgram = pMaterial->GetVertexProgram(aPassType,alPass,apLight);
-			pTempState->mpVtxProgramSetup = pMaterial->GetVertexProgramSetup(aPassType,alPass,apLight);
-			pTempState->mbUsesLight = pMaterial->VertexProgramUsesLight(aPassType, alPass,apLight);
-			pTempState->mbUsesEye = pMaterial->VertexProgramUsesEye(aPassType, alPass,apLight);
-			pTempState->mpLight = apLight;
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// FRAGMENT PROGRAM //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_FragmentProgram;
-
-			pTempState->mpFragProgram = pMaterial->GetFragmentProgram(aPassType,alPass,apLight);
-			pTempState->mpFragProgramSetup = pMaterial->GetFragmentProgramSetup(aPassType,alPass,apLight);
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// TEXTURE //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_Texture;
-
-			for(int i=0; i<MAX_TEXTUREUNITS;i++)
-			{
-				pTempState->mpTexture[i] = pMaterial->GetTexture(i,aPassType, alPass,apLight);
-			}
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// VERTEX BUFFER //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_VertexBuffer;
-
-			pTempState->mpVtxBuffer = apObject->GetVertexBuffer();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// MATRIX //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_Matrix;
-
-			pTempState->mpModelMatrix = apObject->GetModelMatrix(mpCamera);
-			pTempState->mpInvModelMatrix = apObject->GetInvModelMatrix();
-			pTempState->mvScale = apObject->GetCalcScale();
-
-			pNode = InsertNode(pNode, pTempNode);
-		}
-
-		/////// RENDER //////////////
-		{
-
-
-			pTempState->mType = eRenderStateType_Render;
-
-			pTempState->mpObject = apObject;
-
-			InsertNode(pNode, pTempNode);
-		}
+		auto& key = draw.mKey;
+		size_t k = 0;
+		key[k++] = reinterpret_cast<uintptr_t>(pTempState->mpSector);
+		key[k++] = alPass;
+		key[k++] = pTempState->mbDepthTest;
+		key[k++] = 0; // Transparent draws keep their separate back-to-front queue.
+		key[k++] = ~uintptr_t(pTempState->mAlphaMode);
+		key[k++] = ~uintptr_t(pTempState->mChannelMode);
+		key[k++] = ~uintptr_t(pTempState->mBlendMode);
+		key[k++] = ~reinterpret_cast<uintptr_t>(pTempState->mpProgram);
+		key[k++] = ~reinterpret_cast<uintptr_t>(pTempState->mpProgramSetup);
+		for(auto* texture : pTempState->mpTexture) key[k++] = ~reinterpret_cast<uintptr_t>(texture);
+		key[k++] = ~reinterpret_cast<uintptr_t>(pTempState->mpVtxBuffer);
+		key[k++] = ~reinterpret_cast<uintptr_t>(pTempState->mpModelMatrix);
+		key[k++] = ~reinterpret_cast<uintptr_t>(apObject);
 
 	}
 

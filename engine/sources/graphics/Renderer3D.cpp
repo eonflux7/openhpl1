@@ -111,29 +111,10 @@ namespace hpl {
 
 		cGpuProgramManager *pProgramManager = apResources->GetGpuProgramManager();
 
-		///////////////////////////////////
-		//Load diffuse program, for stuff like query rendering
-		Log("    Diffuse Vertex\n");
-		mpDiffuseVtxProgram = pProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",
-																eGpuProgramType_Vertex);
-		if(mpDiffuseVtxProgram==nullptr)
-		{
-			Error("Couldn't load 'Diffuse_Color_vp.cg'\n");
-		}
-
-		///////////////////////////////////
-		//Load diffuse frag program, used where possible. Else fixed funcion.
-		Log("    Diffuse Fragment\n");
-		mpDiffuseFragProgram = pProgramManager->CreateProgram("Diffuse_Color_fp.cg","main",	eGpuProgramType_Fragment);
-
-		///////////////////////////////////
-		//Fog Vertex Program Init
-		Log("    Fog\n");
-		mpSolidFogVtxProgram = pProgramManager->CreateProgram("Fog_Solid_vp.cg","main",eGpuProgramType_Vertex);
-		if(mpSolidFogVtxProgram==nullptr)
-			Error("Couldn't load 'Fog_Solid_vp.cg'\n");
-
-		mpSolidFogFragProgram = pProgramManager->CreateProgram("Fog_Solid_fp.cg","main",eGpuProgramType_Fragment);
+		mpDiffuseProgram = pProgramManager->CreateProgram("Diffuse_Color");
+		mpSolidFogProgram = pProgramManager->CreateProgram("Fog_Solid");
+		if(!mpDiffuseProgram || !mpSolidFogProgram)
+			Error("Couldn't load the renderer's diffuse/fog programs\n");
 
 
 		///////////////////////////////////
@@ -196,11 +177,10 @@ namespace hpl {
 		//Create Refraction programs
 		mbRefractionAvailable = true;
 
-		mpRefractVtxProgram = pProgramManager->CreateProgram("refract_vp.cg","main",eGpuProgramType_Vertex);
-		mpRefractFragProgram = pProgramManager->CreateProgram("refract_fp.cg","main",eGpuProgramType_Fragment);
-		mpRefractSpecFragProgram = pProgramManager->CreateProgram("refract_special_fp.cg","main",eGpuProgramType_Fragment);
+		mpRefractProgram = pProgramManager->CreateProgram("refract");
+		mpRefractSpecialProgram = pProgramManager->CreateProgram("refract_special", "", "refract");
 
-		if(mpRefractFragProgram==nullptr || mpRefractVtxProgram==nullptr || mpRefractSpecFragProgram==nullptr)
+		if(mpRefractProgram==nullptr || mpRefractSpecialProgram==nullptr)
 		{
 			mbRefractionAvailable = false;
 			Log("   Refraction will not be supported!\n");
@@ -220,15 +200,12 @@ namespace hpl {
 
 	cRenderer3D::~cRenderer3D()
 	{
-		if(mpDiffuseVtxProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseVtxProgram);
-		if(mpDiffuseFragProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseFragProgram);
+		if(mpDiffuseProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseProgram);
 
-		if(mpSolidFogVtxProgram)mpResources->GetGpuProgramManager()->Destroy(mpSolidFogVtxProgram);
-		if(mpSolidFogFragProgram)mpResources->GetGpuProgramManager()->Destroy(mpSolidFogFragProgram);
+		if(mpSolidFogProgram)mpResources->GetGpuProgramManager()->Destroy(mpSolidFogProgram);
 
-		if(mpRefractVtxProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractVtxProgram);
-		if(mpRefractFragProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractFragProgram);
-		if(mpRefractSpecFragProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractSpecFragProgram);
+		if(mpRefractProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractProgram);
+		if(mpRefractSpecialProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractSpecialProgram);
 
 
 		if(mpSkyBox) hplDelete(mpSkyBox);
@@ -258,9 +235,9 @@ namespace hpl {
 		mBlendMode = eMaterialBlendMode_None;
 		mChannelMode = eMaterialChannelMode_RGBA;
 
-		mpVertexProgram = nullptr;
-		mbVertexUseLight = false;
-		mpFragmentProgram = nullptr;
+		mpProgram = nullptr;
+		mpProgramSetup = nullptr;
+		mpLight = nullptr;
 
 		mpSector = nullptr;
 
@@ -280,8 +257,7 @@ namespace hpl {
 
 	void cRenderSettings::Reset(iLowLevelGraphics *apLowLevel)
 	{
-		if(mpVertexProgram)mpVertexProgram->UnBind();
-		if(mpFragmentProgram)mpFragmentProgram->UnBind();
+		if(mpProgram)mpProgram->UnBind();
 		if(mpVtxBuffer) mpVtxBuffer->UnBind();
 
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
@@ -492,7 +468,7 @@ namespace hpl {
 
 	void cRenderer3D::SetFogActive(bool abX)
 	{
-		if(mpSolidFogVtxProgram)
+		if(mpSolidFogProgram)
 			mRenderSettings.mbFogActive = abX;
 	}
 	void cRenderer3D::SetFogStart(float afX)
@@ -535,8 +511,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
 		mpLowLevelGraphics->SetDepthTestActive(true);
-
-		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
 		mpLowLevelGraphics->SetFrameUniforms(apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix(),
 											apCamera->GetPosition(), apCamera->GetNearClipPlane(),
 											apCamera->GetFarClipPlane(), mfRenderTime);
@@ -558,7 +532,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderFog(cCamera3D *apCamera)
 	{
-		if(mRenderSettings.mbFogActive==false || mpSolidFogVtxProgram==nullptr) return;
+		if(mRenderSettings.mbFogActive==false || mpSolidFogProgram==nullptr) return;
 		int i;
 		//////////////////////////////////
 		//Set textures to NULL
@@ -573,21 +547,20 @@ namespace hpl {
 
 
 		//////////////////////////////////
-		//Set vertex program
-		if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
-		mRenderSettings.mpVertexProgram = nullptr;
-		mpSolidFogVtxProgram->Bind();
+		//Set program
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+		mRenderSettings.mpProgram = nullptr;
 
-		mpSolidFogVtxProgram->SetColor3f("fogColor",mRenderSettings.mFogColor);
-		mpSolidFogVtxProgram->SetFloat("fogStart",mRenderSettings.mfFogStart);
-		mpSolidFogVtxProgram->SetFloat("fogEnd",mRenderSettings.mfFogEnd);
+		mpSolidFogProgram->SetColor3f(eProgramParam::fogColor,mRenderSettings.mFogColor);
+		mpSolidFogProgram->SetFloat(eProgramParam::fogStart,mRenderSettings.mfFogStart);
+		mpSolidFogProgram->SetFloat(eProgramParam::fogEnd,mRenderSettings.mfFogEnd);
 
 
 		//////////////////////////////////
 		//Set fragment program
-		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
-		if(mpSolidFogFragProgram) mpSolidFogFragProgram->Bind();
-		mRenderSettings.mpFragmentProgram = nullptr;
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+		if(mpSolidFogProgram) mpSolidFogProgram->Bind();
+		mRenderSettings.mpProgram = nullptr;
 
 
 		//////////////////////////////////
@@ -615,20 +588,17 @@ namespace hpl {
 			//Non static models
 			if(pMtx)
 			{
-				mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,cMath::MatrixMul(apCamera->GetViewMatrix(),
-																				*pMtx));
+				mpLowLevelGraphics->SetDrawMatrices(*pMtx, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
-				mpSolidFogVtxProgram->SetMatrixf("worldViewProj",	eGpuProgramMatrix_ViewProjection,
-																eGpuProgramMatrixOp_Identity);
+				mpSolidFogProgram->SetMatrixf(eProgramParam::worldViewProj, mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
 			}
 			//////////////////
 			//NULL Model view matrix (static)
 			else
 			{
-				mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+				mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
-				mpSolidFogVtxProgram->SetMatrixf("worldViewProj",	eGpuProgramMatrix_ViewProjection,
-																eGpuProgramMatrixOp_Identity);
+				mpSolidFogProgram->SetMatrixf(eProgramParam::worldViewProj, mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
 			}
 
 			pObject->GetVertexBuffer()->Bind();
@@ -636,8 +606,7 @@ namespace hpl {
 			pObject->GetVertexBuffer()->UnBind();
 		}
 
-		mpSolidFogVtxProgram->UnBind();
-		if(mpSolidFogFragProgram) mpSolidFogFragProgram->UnBind();
+		if(mpSolidFogProgram) mpSolidFogProgram->UnBind();
 	}
 
 	//-----------------------------------------------------------------------
@@ -648,16 +617,16 @@ namespace hpl {
 
 		if(mbLog) Log(" Drawing skybox\n");
 
-		if(mRenderSettings.mpVertexProgram)
+		if(mRenderSettings.mpProgram)
 		{
-			mRenderSettings.mpVertexProgram->UnBind();
-			mRenderSettings.mpVertexProgram = nullptr;
+			mRenderSettings.mpProgram->UnBind();
+			mRenderSettings.mpProgram = nullptr;
 			if(mbLog) Log(" Setting Vertex program: NULL\n");
 		}
-		if(mRenderSettings.mpFragmentProgram)
+		if(mRenderSettings.mpProgram)
 		{
-			mRenderSettings.mpFragmentProgram->UnBind();
-			mRenderSettings.mpFragmentProgram = nullptr;
+			mRenderSettings.mpProgram->UnBind();
+			mRenderSettings.mpProgram = nullptr;
 			if(mbLog) Log(" Setting Fragment program: NULL\n");
 		}
 		if(mRenderSettings.mpVtxBuffer)
@@ -688,11 +657,10 @@ namespace hpl {
 		mtxSky.m[1][1] = fSide;
 		mtxSky.m[2][2] = fSide;
 
-		mtxSky = cMath::MatrixMul(mtxSky,apCamera->GetViewMatrix());
+		cMatrixf mtxSkyView = apCamera->GetViewMatrix();
+		mtxSkyView.SetTranslation(0);
 
-		mtxSky.SetTranslation(0);
-
-		mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,mtxSky);
+		mpLowLevelGraphics->SetDrawMatrices(mtxSky, mtxSkyView, apCamera->GetProjectionMatrix());
 
 		mpLowLevelGraphics->SetTexture(0,mpSkyBoxTexture);
 		mRenderSettings.mpTexture[0] = mpSkyBoxTexture;
@@ -708,7 +676,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderZ(cCamera3D *apCamera)
 	{
-		cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
+		cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
 														eMaterialRenderType_Z, 0);
 
 		mRenderSettings.mpLight = nullptr;
@@ -759,7 +727,7 @@ namespace hpl {
 			mpLowLevelGraphics->SetShadowMapParams(shadowParams);
 			mpLowLevelGraphics->SetLightLook(pLight->GetLook());
 
-			cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
+			cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
 															eMaterialRenderType_Light, lLightCount);
 
 			if(pLight->BeginDraw(&mRenderSettings, mpLowLevelGraphics))
@@ -874,7 +842,7 @@ namespace hpl {
 	bool cRenderer3D::RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams)
 	{
 		if(apLight->GetCastShadows()==false || mRenderSettings.mShowShadows == eRendererShowShadows_None ||
-			mpDiffuseVtxProgram==nullptr || mpDiffuseFragProgram==nullptr)
+			mpDiffuseProgram==nullptr)
 		{
 			return false;
 		}
@@ -890,18 +858,9 @@ namespace hpl {
 
 		///////////////////////////////
 		// Programs and state
-		if(mRenderSettings.mpVertexProgram != mpDiffuseVtxProgram)
-		{
-			if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
-			mpDiffuseVtxProgram->Bind();
-			mRenderSettings.mpVertexProgram = mpDiffuseVtxProgram;
-		}
-		if(mRenderSettings.mpFragmentProgram != mpDiffuseFragProgram)
-		{
-			if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
-			mpDiffuseFragProgram->Bind();
-			mRenderSettings.mpFragmentProgram = mpDiffuseFragProgram;
-		}
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+		mpDiffuseProgram->Bind();
+		mRenderSettings.mpProgram = mpDiffuseProgram;
 
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 		mpLowLevelGraphics->SetCullActive(settings.mFaces != eShadowMapFaces_Both);
@@ -916,7 +875,7 @@ namespace hpl {
 		{
 			const cVector3f vPos = apLight->GetLightPosition();
 			const float fNear = cMath::Min(settings.mfPointNear, fFar * 0.5f);
-			mpLowLevelGraphics->SetMatrix(eMatrix_Projection, CubeFaceProjectionMatrix(fNear, fFar));
+			const cMatrixf mtxProjection = CubeFaceProjectionMatrix(fNear, fFar);
 
 			// How far from a lit point the map is read: the blur, and the
 			// texels around a sample that the filtering takes in.
@@ -951,7 +910,7 @@ namespace hpl {
 				if(bInView==false) continue;
 
 				mpLowLevelGraphics->BeginShadowMap(true, lFace, lSize);
-				mShadowMapStats.mlCasters += RenderShadowCasters(apLight, CubeFaceViewMatrix(lFace, vPos), lFace);
+				mShadowMapStats.mlCasters += RenderShadowCasters(apLight, CubeFaceViewMatrix(lFace, vPos), mtxProjection, lFace);
 				mShadowMapStats.mlMaps++;
 			}
 
@@ -962,10 +921,9 @@ namespace hpl {
 		else
 		{
 			cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(apLight);
-			mpLowLevelGraphics->SetMatrix(eMatrix_Projection, pSpot->GetProjectionMatrix());
 
 			mpLowLevelGraphics->BeginShadowMap(false, 0, lSize);
-			mShadowMapStats.mlCasters += RenderShadowCasters(apLight, pSpot->GetViewMatrix(), -1);
+			mShadowMapStats.mlCasters += RenderShadowCasters(apLight, pSpot->GetViewMatrix(), pSpot->GetProjectionMatrix(), -1);
 			mShadowMapStats.mlMaps++;
 
 			// Near and far as the projection has them: the map is read as
@@ -982,7 +940,6 @@ namespace hpl {
 
 		///////////////////////////////
 		// Back to how the light passes are drawn
-		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
 		mRenderSettings.mbMatrixWasNULL = false;
 
 		mpLowLevelGraphics->SetDepthWriteActive(false);
@@ -1007,10 +964,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// What casts shadows from the light, as seen in a_mtxView with the
-	// projection that is set; alFace is the face of a cube map, or -1.
+	// What casts shadows from the light, as seen in a_mtxView with
+	// a_mtxProjection; alFace is the face of a cube map, or -1.
 	// Returns how many were drawn.
-	int cRenderer3D::RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace)
+	int cRenderer3D::RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, const cMatrixf &a_mtxProjection, int alFace)
 	{
 		const cShadowMapSettings &settings = mShadowMapSettings;
 		const cVector3f vLightPos = apLight->GetLightPosition();
@@ -1055,10 +1012,9 @@ namespace hpl {
 			}
 
 			cMatrixf *pModelMtx = pObject->GetModelMatrix(nullptr);
-			if(pModelMtx)	mpLowLevelGraphics->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(a_mtxView, *pModelMtx));
-			else			mpLowLevelGraphics->SetMatrix(eMatrix_ModelView, a_mtxView);
-			mpDiffuseVtxProgram->SetMatrixf("worldViewProj", eGpuProgramMatrix_ViewProjection,
-											eGpuProgramMatrixOp_Identity);
+			mpLowLevelGraphics->SetDrawMatrices(pModelMtx ? *pModelMtx : cMatrixf::Identity,
+				a_mtxView, a_mtxProjection);
+			mpDiffuseProgram->SetMatrixf(eProgramParam::worldViewProj, mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
 
 			if(mRenderSettings.mpVtxBuffer != pVtxBuffer)
 			{
@@ -1088,11 +1044,9 @@ namespace hpl {
 		///////////////////////////////
 		// Let go of what the light passes left set
 		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
-		if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
-		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 		mRenderSettings.mpVtxBuffer = nullptr;
-		mRenderSettings.mpVertexProgram = nullptr;
-		mRenderSettings.mpFragmentProgram = nullptr;
+		mRenderSettings.mpProgram = nullptr;
 		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
 		{
 			if(mRenderSettings.mpTexture[i]==nullptr) continue;
@@ -1104,7 +1058,6 @@ namespace hpl {
 
 		///////////////////////////////
 		// Back to how the passes after the lights are drawn
-		mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
 		mRenderSettings.mbMatrixWasNULL = false;
 
 		mpLowLevelGraphics->SetDepthTestActive(mRenderSettings.mbDepthTest);
@@ -1120,7 +1073,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderDiffuse(cCamera3D *apCamera)
 	{
-		cRenderNode* pNode = mpRenderList->GetRootNode(eRenderListDrawType_Normal,
+		cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
 														eMaterialRenderType_Diffuse, 0);
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
@@ -1161,10 +1114,9 @@ namespace hpl {
 
 			eMaterialBlendMode blendMode = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
 
-			iGpuProgram *pVtxProgram = pMaterial->GetVertexProgram(eMaterialRenderType_Diffuse,0,nullptr);
-			iMaterialProgramSetup* pVtxProgramSetup = pMaterial->GetVertexProgramSetup(eMaterialRenderType_Diffuse,0,nullptr);
+			iGpuProgram *pProgram = pMaterial->GetProgram(eMaterialRenderType_Diffuse,0,nullptr);
+			iMaterialProgramSetup* pProgramSetup = pMaterial->GetProgramSetup(eMaterialRenderType_Diffuse,0,nullptr);
 
-			iGpuProgram *pFragProgram = pMaterial->GetFragmentProgram(eMaterialRenderType_Diffuse,0,nullptr);
 
 			for(int i=0; i<MAX_TEXTUREUNITS; ++i) vTextures[i] = pMaterial->GetTexture(i,eMaterialRenderType_Diffuse,0,nullptr);
 
@@ -1181,9 +1133,8 @@ namespace hpl {
 			bool bOwnDraw = pObject->GetTransDraw(apCamera, ownDraw);
 			if(bOwnDraw)
 			{
-				pVtxProgram = ownDraw.mpVtxProgram;
-				pVtxProgramSetup = nullptr;
-				pFragProgram = ownDraw.mpFragProgram;
+				pProgram = ownDraw.mpProgram;
+				pProgramSetup = nullptr;
 				if(ownDraw.mpVtxBuffer) pVtxBuffer = ownDraw.mpVtxBuffer;
 				if(ownDraw.mpModelMatrix) pModelMatrix = ownDraw.mpModelMatrix;
 				bDepthTest = ownDraw.mbDepthTest;
@@ -1203,10 +1154,9 @@ namespace hpl {
 			{
 				if(bLog) Log("  Start render refraction\n");
 
-				if(bLog) Log("   Unbind vtx buffer, vtx program and frag program\n");
+				if(bLog) Log("   Unbind vtx buffer, program and program\n");
 				if(mRenderSettings.mpVtxBuffer)			mRenderSettings.mpVtxBuffer->UnBind();
-				if(mRenderSettings.mpVertexProgram)		mRenderSettings.mpVertexProgram->UnBind();
-				if(mRenderSettings.mpFragmentProgram)	mRenderSettings.mpFragmentProgram->UnBind();
+				if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 
 				/////////////////////////////////////
 				//Alpha and blend mode
@@ -1275,8 +1225,8 @@ namespace hpl {
 
 					////////////////////////////////////////////////
 					//Clear alpha using 2D quad.
-					mpLowLevelGraphics->SetOrthoProjection(mpLowLevelGraphics->GetRenderSize(),-1000,1000);
-					mpLowLevelGraphics->SetIdentityMatrix(eMatrix_ModelView);
+					mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+						mpLowLevelGraphics->CreateOrthoProjection(mpLowLevelGraphics->GetRenderSize(), -1000, 1000));
 
 					if(bHasClipRect)
 					{
@@ -1297,19 +1247,15 @@ namespace hpl {
 					}
 
 					for(int i=0; i<4; ++i) mvVtxRect[i].col.a = 0;
-					mpLowLevelGraphics->DrawQuad(mvVtxRect);
-
-					//Set back to ordinary projection...
-					mpLowLevelGraphics->SetMatrix(eMatrix_Projection, apCamera->GetProjectionMatrix());
+					mpLowLevelGraphics->DrawTriangles({mvVtxRect[0], mvVtxRect[1], mvVtxRect[2], mvVtxRect[0], mvVtxRect[2], mvVtxRect[3]});
 
 					//Set Model matrix
 					if(pModelMatrix) {
-						cMatrixf mtxModel = cMath::MatrixMul(apCamera->GetViewMatrix(),	*pModelMatrix);
-						mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,mtxModel);
+						mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 						mRenderSettings.mbMatrixWasNULL = false;
 					}
 					else {
-						mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+						mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 						mRenderSettings.mbMatrixWasNULL = true;
 					}
 
@@ -1350,40 +1296,32 @@ namespace hpl {
 					if(bLog) Log("   Special = true\n");
 				}
 
-				iGpuProgram *pRefractVtxProgram = pMaterial->GetRefractionVertexProgam();
-				iGpuProgram *pRefractFragProgram = pMaterial->GetRefractionFragmentProgam();
-
-				if(pRefractFragProgram==nullptr) {
-					if(bSpecial)	pRefractFragProgram = mpRefractSpecFragProgram;
-					else			pRefractFragProgram = mpRefractFragProgram;
-				}
-				if(pRefractVtxProgram==nullptr) pRefractVtxProgram = mpRefractVtxProgram;
+				iGpuProgram *pRefractProgram = pMaterial->GetRefractionProgram();
+				if(!pRefractProgram) pRefractProgram = bSpecial ? mpRefractSpecialProgram : mpRefractProgram;
 
 
 				/////////////////////////////////////
-				//Vertex program
-				mRenderSettings.mpVertexProgram = pRefractVtxProgram;
-				pRefractVtxProgram->Bind();
-				if(bLog) Log("   Binding vtx program '%s' (%d)\n",pRefractVtxProgram->GetName().c_str(), pRefractVtxProgram);
+				//Program
+				mRenderSettings.mpProgram = pRefractProgram;
+				pRefractProgram->Bind();
+				if(bLog) Log("   Binding program '%s' (%d)\n",pRefractProgram->GetName().c_str(), pRefractProgram);
 				mRenderSettings.mbMatrixWasNULL = false;
 
 
 				//Model matrix
 				if(pModelMatrix)
 				{
-					cMatrixf mtxModel = cMath::MatrixMul(apCamera->GetViewMatrix(),	*pModelMatrix);
-					mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,mtxModel);
+					mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 					mRenderSettings.mbMatrixWasNULL = false;
 				}
 				else
 				{
-					mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+					mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 					mRenderSettings.mbMatrixWasNULL = true;
 				}
 
-				pRefractVtxProgram->SetMatrixf("worldViewProj",
-												eGpuProgramMatrix_ViewProjection,
-												eGpuProgramMatrixOp_Identity);
+				pRefractProgram->SetMatrixf(eProgramParam::worldViewProj,
+					mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
 
 				//Eye position
 				if(pMaterial->GetRefractionUsesEye())
@@ -1391,31 +1329,24 @@ namespace hpl {
 					if(pModelMatrix)
 					{
 						cVector3f vLocalEye =  cMath::MatrixMul(*pInvModelMatrix,apCamera->GetEyePosition());
-						pRefractVtxProgram->SetVec3f("EyePos",vLocalEye);
+						pRefractProgram->SetVec3f(eProgramParam::EyePos,vLocalEye);
 					}
 					else
 					{
-						pRefractVtxProgram->SetVec3f("EyePos",apCamera->GetEyePosition());
+						pRefractProgram->SetVec3f(eProgramParam::EyePos,apCamera->GetEyePosition());
 					}
 				}
 
-				/////////////////////////////////////
-				//Fragment program
-				if(bLog) Log("   Binding frag program '%s' (%d)\n",pRefractFragProgram->GetName().c_str(), pRefractFragProgram);
-				pRefractFragProgram->Bind();
-
-				mRenderSettings.mpFragmentProgram = pRefractFragProgram;
-
 				if(bSpecial)
 				{
-					pRefractFragProgram->SetFloat("t", mfRenderTime * pRefraction->GetFrameTime());
+					pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime * pRefraction->GetFrameTime());
 				}
 				else if(pMaterial->GetRefractionUsesTime())
 				{
-					pRefractFragProgram->SetFloat("t", mfRenderTime);
+					pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime);
 				}
 
-				pRefractFragProgram->SetFloat("scale", pMaterial->GetValue());
+				pRefractProgram->SetFloat(eProgramParam::scale, pMaterial->GetValue());
 
 				////////////////////////////////////
 				//Textures
@@ -1531,49 +1462,31 @@ namespace hpl {
 			}
 
 			/////////////////////////////////////////////////
-			// Vertex program
-			if(pVtxProgram != mRenderSettings.mpVertexProgram)
+			// Program
+			if(pProgram != mRenderSettings.mpProgram)
 			{
 				if(bLog){
-					if(pVtxProgram)	Log("  Set vtx program '%s' (%d)\n",pVtxProgram->GetName().c_str(), pVtxProgram);
-					else			Log("  Set vtx program NULL\n");
+					if(pProgram)	Log("  Set program '%s' (%d)\n",pProgram->GetName().c_str(), pProgram);
+					else			Log("  Set program NULL\n");
 				}
-				if(mRenderSettings.mpVertexProgram)// && pVtxProgram==NULL) //Why null??
+				if(mRenderSettings.mpProgram)// && pProgram==NULL) //Why null??
 				{
-					mRenderSettings.mpVertexProgram->UnBind();
+					mRenderSettings.mpProgram->UnBind();
 				}
-				mRenderSettings.mpVertexProgram = pVtxProgram;
+				mRenderSettings.mpProgram = pProgram;
 
-				if(pVtxProgram)
+				if(pProgram)
 				{
-					pVtxProgram->Bind();
+					pProgram->Bind();
 
-					if(pVtxProgramSetup)
+					if(pProgramSetup)
 					{
-						pVtxProgramSetup->Setup(pVtxProgram, &mRenderSettings);
+						pProgramSetup->Setup(pProgram, &mRenderSettings);
 					}
-					mRenderSettings.mpVtxProgramSetup = pVtxProgramSetup;
+					mRenderSettings.mpProgramSetup = pProgramSetup;
 
-					//reset this so all matrix setting are set to vertex program.
+					//reset this so all matrix setting are set to program.
 					mRenderSettings.mbMatrixWasNULL = false;
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Fragment program
-			if(pFragProgram != mRenderSettings.mpFragmentProgram)
-			{
-				if(bLog){
-					if(pFragProgram)Log("  Set frag program '%s' (%d)\n",pFragProgram->GetName().c_str(), pFragProgram);
-					else			Log("  Set frag program NULL\n");
-				}
-				if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
-
-				mRenderSettings.mpFragmentProgram = pFragProgram;
-
-				if(pFragProgram)
-				{
-					pFragProgram->Bind();
 				}
 			}
 
@@ -1608,34 +1521,31 @@ namespace hpl {
 			/////////////////////////////////////////////////
 			// Matrix
 			//It is a normal matrix
-			bool bSetVtxProgMatrix =false;
+			bool bSetProgramMatrix =false;
 			if(pModelMatrix)
 			{
-				cMatrixf mtxModel = cMath::MatrixMul(apCamera->GetViewMatrix(),	*pModelMatrix);
-
-				mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,mtxModel);
+				mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 				mRenderSettings.mbMatrixWasNULL = false;
-				bSetVtxProgMatrix =true;
+				bSetProgramMatrix =true;
 			}
 			//NULL matrix
 			else if(mRenderSettings.mbMatrixWasNULL==false)
 			{
-				mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+				mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 				mRenderSettings.mbMatrixWasNULL = true;
-				bSetVtxProgMatrix =true;
+				bSetProgramMatrix =true;
 			}
 
-			if(mRenderSettings.mpVertexProgram && bSetVtxProgMatrix)
+			if(mRenderSettings.mpProgram && bSetProgramMatrix)
 			{
 				//Might be quicker if this is set directly
-				mRenderSettings.mpVertexProgram->SetMatrixf("worldViewProj",
-														eGpuProgramMatrix_ViewProjection,
-														eGpuProgramMatrixOp_Identity);
-				if(mRenderSettings.mpVtxProgramSetup)
+				mRenderSettings.mpProgram->SetMatrixf(eProgramParam::worldViewProj,
+					mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
+				if(mRenderSettings.mpProgramSetup)
 				{
-					mRenderSettings.mpVtxProgramSetup->SetupMatrix(pModelMatrix,&mRenderSettings);
+					mRenderSettings.mpProgramSetup->SetupMatrix(pModelMatrix,&mRenderSettings);
 				}
 			}
 
@@ -1657,8 +1567,7 @@ namespace hpl {
 		}
 
 		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
-		if(mRenderSettings.mpVertexProgram) mRenderSettings.mpVertexProgram->UnBind();
-		if(mRenderSettings.mpFragmentProgram) mRenderSettings.mpFragmentProgram->UnBind();
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 	}
 
 	//-----------------------------------------------------------------------
@@ -1684,7 +1593,7 @@ namespace hpl {
 			if(mDebugFlags & eRendererDebugFlag_DrawLightBoundingBox)
 			{
 				mpLowLevelGraphics->SetDepthTestActive(false);
-				mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+				mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 				cLight3DIterator lightIt = mpRenderList->GetLightIt();
 				while(lightIt.HasNext())
@@ -1715,7 +1624,7 @@ namespace hpl {
 
 		if(mDebugFlags & eRendererDebugFlag_DrawBoundingBox)
 		{
-			mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+			mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 			cBoundingVolume *pBV = apObject->GetBoundingVolume();
 
@@ -1724,22 +1633,16 @@ namespace hpl {
 
 		if(mDebugFlags & eRendererDebugFlag_DrawBoundingSphere)
 		{
-			mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,apCamera->GetViewMatrix());
+			mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 			cBoundingVolume *pBV = apObject->GetBoundingVolume();
 
 			mpLowLevelGraphics->DrawSphere(pBV->GetWorldCenter(), pBV->GetRadius(),cColor(1,1.0f,1.0f,1));
 		}
 
-		cMatrixf mtxModel;
 		cMatrixf *pModelMtx = apObject->GetModelMatrix(apCamera);
-
-		if(pModelMtx)
-			mtxModel = cMath::MatrixMul(apCamera->GetViewMatrix(),*pModelMtx);
-		else
-			mtxModel = cMath::MatrixMul(apCamera->GetViewMatrix(),cMatrixf::Identity);
-
-		mpLowLevelGraphics->SetMatrix(eMatrix_ModelView,mtxModel);
+		mpLowLevelGraphics->SetDrawMatrices(pModelMtx ? *pModelMtx : cMatrixf::Identity,
+			apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
 		//Draw the debug graphics for the object.
 		for(int i=0; i< pVtxBuffer->GetVertexNum(); i++)

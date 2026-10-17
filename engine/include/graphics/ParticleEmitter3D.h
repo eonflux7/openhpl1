@@ -146,8 +146,7 @@ namespace hpl {
 
 		iVertexBuffer *mpVtxBuffer;
 
-		iGpuProgram *mpSoftVtxProgram;
-		iGpuProgram *mpSoftFragProgram;
+		iGpuProgram *mpSoftProgram;
 
 		std::vector<cPESubDivision> mvSubDivUV;
 

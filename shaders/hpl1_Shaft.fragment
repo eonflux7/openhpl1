@@ -22,13 +22,7 @@ uniform sampler2D tex0; //diffuseMap
 uniform sampler1D tex1; //fogMap
 
 // All in the shaft's space
-uniform vec3 shaftEye;
-uniform vec4 shaftViewZ;	// distance in front of the viewer = dot(xyz, place) + w
-uniform vec4 shaftSize;		// x: radius, y: half the length
-uniform vec4 shaftColor;
-uniform vec4 shaftLook;		// x: brightness, y: how uneven the air is,
 							// z: 1 with fog
-uniform vec2 fogRange;		// start and end
 
 const int kSteps = 10;
 const float kMatch = 1.2;

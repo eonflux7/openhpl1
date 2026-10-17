@@ -21,7 +21,6 @@
 
 #include "graphics/Material.h"
 
-
 namespace hpl {
 
 	class cMaterial_DiffuseAdditive2D : public iMaterial
@@ -34,17 +33,9 @@ namespace hpl {
 		~cMaterial_DiffuseAdditive2D() override;
 
 		void Compile() override;
-		bool StartRendering(eMaterialRenderType mType,iCamera* apCam,iLight *pLight) override;
-		void EndRendering(eMaterialRenderType mType) override;
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType mType) override;
-		bool NextPass(eMaterialRenderType mType) override;
-		bool HasMultiplePasses(eMaterialRenderType mType) override;
+		std::optional<cSpriteBlend> GetSpriteBlend() const override { return cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_One); }
 
 		bool UsesType(eMaterialRenderType aType) override;
-
-		eMaterialType GetType(eMaterialRenderType mType) override;
-		void EditVertexes(eMaterialRenderType mType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override;
 
 	private:
 	};

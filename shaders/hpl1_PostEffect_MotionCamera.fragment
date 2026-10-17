@@ -27,11 +27,9 @@ uniform sampler2D tex0;
 
 // From a position in the camera's view to its place on the screen of the
 // frame before
-uniform mat4 reproject;
 // x: the share of the way since the frame before that is blurred over;
 // y: the longest blur in pixels; z: samples; w: nearer than this distance
 // nothing is blurred
-uniform vec4 shutter;
 
 // The distance used for the sky
 const float FAR_AWAY = 1000.0;

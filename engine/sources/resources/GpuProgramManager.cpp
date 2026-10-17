@@ -66,41 +66,33 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cGpuProgramManager::CreateProgram(const tString& asName,const tString& asEntry,
-													eGpuProgramType aType)
+
+	iGpuProgram* cGpuProgramManager::CreateProgram(const tString& asName, const tString& asDefines, const tString& asVertex)
 	{
-		tString sPath;
-		iGpuProgram* pProgram;
-		pProgram = static_cast<iGpuProgram*>(FindLoadedResource(asName,sPath));
-
-		BeginLoad(asName);
-
-		// The game data has a file for each of the original programs. The
-		// shaders are loaded by name from the shader directory, so a program
-		// the game data does not know of is tried under its name.
-		if(pProgram==nullptr && sPath=="") sPath = asName;
-
-		if(pProgram==nullptr && sPath!="")
-		{
-			pProgram = mpLowLevelGraphics->CreateGpuProgram(asName, aType);
-
-			if(pProgram->CreateFromFile(sPath,asEntry)==false)
-			{
-				Error("Couldn't create program '%s'\n",asName.c_str());
-				hplDelete(pProgram);
+		const tString vertex = asVertex.empty() ? asName : asVertex;
+		// The general resource manager folds keys to lowercase. Encode the
+		// complete request so GLSL names and preprocessor tokens keep case.
+		const tString request = vertex + ":" + asName + ":" + asDefines;
+		const char* hex = "0123456789abcdef";
+		tString key = asName + ":";
+		for(unsigned char value : request){
+			key += hex[value >> 4]; key += hex[value & 15];
+		}
+		iGpuProgram* program = static_cast<iGpuProgram*>(GetByName(key));
+		if(!program){
+			BeginLoad(asName);
+			program = mpLowLevelGraphics->CreateGpuProgram(key);
+			if(!program->CreateFromFile(vertex + ":" + asName, asDefines)){
+				hplDelete(program);
 				EndLoad();
 				return nullptr;
 			}
-
-			AddResource(pProgram);
+			AddResource(program);
+			EndLoad();
 		}
-
-		if(pProgram)pProgram->IncUserCount();
-		else Error("Couldn't load program '%s'\n",asName.c_str());
-
-		EndLoad();
-		return pProgram;
-	 }
+		program->IncUserCount();
+		return program;
+	}
 
 	//-----------------------------------------------------------------------
 

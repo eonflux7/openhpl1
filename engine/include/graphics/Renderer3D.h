@@ -177,11 +177,9 @@ namespace hpl {
 		eMaterialBlendMode mBlendMode;
 		eMaterialChannelMode mChannelMode;
 
-		iGpuProgram* mpVertexProgram;
-		bool mbVertexUseLight;
-		iMaterialProgramSetup* mpVtxProgramSetup;
+		iGpuProgram* mpProgram;
+		iMaterialProgramSetup* mpProgramSetup;
 
-		iGpuProgram* mpFragmentProgram;
 
 		bool mbMatrixWasNULL;
 
@@ -280,7 +278,7 @@ namespace hpl {
 		void RenderLight(cCamera3D *apCamera);
 
 		bool RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams);
-		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace);
+		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, const cMatrixf &a_mtxProjection, int alFace);
 		void UpdateShadowCasterGraphics(cCamera3D *apCamera);
 
 		bool RenderAmbientOcclusion(cCamera3D *apCamera);
@@ -304,19 +302,16 @@ namespace hpl {
 
 		float mfRenderTime;
 
-		iGpuProgram *mpDiffuseVtxProgram;
-		iGpuProgram *mpDiffuseFragProgram;
-		iGpuProgram *mpSolidFogVtxProgram;
-		iGpuProgram *mpSolidFogFragProgram;
+		iGpuProgram *mpDiffuseProgram;
+		iGpuProgram *mpSolidFogProgram;
 
 		iTexture *mpFogLinearSolidTexture;
 
 		iTexture *mpFogLinearAddTexture;
 		iTexture *mpFogLinearAlphaTexture;
 
-		iGpuProgram *mpRefractVtxProgram;
-		iGpuProgram *mpRefractFragProgram;
-		iGpuProgram *mpRefractSpecFragProgram;
+		iGpuProgram *mpRefractProgram;
+		iGpuProgram *mpRefractSpecialProgram;
 		bool mbRefractionAvailable;
 		bool mbRefractionUsed;
 

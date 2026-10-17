@@ -1830,7 +1830,7 @@ void cPlayer::OnPostSceneDraw()
 {
 	cCamera3D *pCam = static_cast<cCamera3D*>(mpScene->GetCamera());
 	iLowLevelGraphics *pLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	pLowGfx->SetMatrix(eMatrix_ModelView, pCam->GetViewMatrix());
+	pLowGfx->SetDrawMatrices(cMatrixf::Identity, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
 	pLowGfx->SetTexture(0,nullptr);
 	pLowGfx->SetBlendActive(false);

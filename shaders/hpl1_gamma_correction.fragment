@@ -2,7 +2,6 @@
 
 // tex0 is a copy of the finished frame, of the same size as the window.
 uniform sampler2D tex0;
-uniform float gamma;
 
 OUTPUT
 

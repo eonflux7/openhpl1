@@ -35,7 +35,6 @@ namespace hpl {
 	{
 		mbIsTransperant = true;
 		mbIsGlowing= true;
-		mType = eMaterialType_Smoke;
 	}
 
 	//-----------------------------------------------------------------------
@@ -60,61 +59,4 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cMaterial_Smoke2D::StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight)
-	{
-		if(aType == eMaterialRenderType_Diffuse)
-		{
-			mpLowLevelGraphics->SetBlendActive(true);
-			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_Zero,eBlendFunc_OneMinusSrcColor);
-
-			mpLowLevelGraphics->SetTexture(0, GetTexture(eMaterialTexture_Diffuse));
-
-			return true;
-		}
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cMaterial_Smoke2D::EndRendering(eMaterialRenderType aType)
-	{
-	}
-
-	//-----------------------------------------------------------------------
-
-	tVtxBatchFlag cMaterial_Smoke2D::GetBatchFlags(eMaterialRenderType aType)
-	{
-		return eVtxBatchFlag_Position |	eVtxBatchFlag_Texture0 | eVtxBatchFlag_Color0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cMaterial_Smoke2D::NextPass(eMaterialRenderType aType)
-	{
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cMaterial_Smoke2D::HasMultiplePasses(eMaterialRenderType aType)
-	{
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	eMaterialType cMaterial_Smoke2D::GetType(eMaterialRenderType aType)
-	{
-		return mType;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cMaterial_Smoke2D::EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-		tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd)
-	{
-
-	}
-
-	//-----------------------------------------------------------------------
 }

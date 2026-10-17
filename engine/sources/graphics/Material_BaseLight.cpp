@@ -42,9 +42,9 @@ namespace hpl {
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
 			if(apRenderSettings->mpSector)
-				apProgram->SetColor3f("ambientColor",apRenderSettings->mAmbientColor * apRenderSettings->mpSector->GetAmbientColor());
+				apProgram->SetColor3f(eProgramParam::ambientColor,apRenderSettings->mAmbientColor * apRenderSettings->mpSector->GetAmbientColor());
 			else
-				apProgram->SetColor3f("ambientColor",apRenderSettings->mAmbientColor);
+				apProgram->SetColor3f(eProgramParam::ambientColor,apRenderSettings->mAmbientColor);
 		}
 	};
 
@@ -58,11 +58,12 @@ namespace hpl {
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
+			gAmbProgramSetup.Setup(apProgram, apRenderSettings);
 		}
 
 		void SetupMatrix(cMatrixf *apModelMatrix, cRenderSettings* apRenderSettings) override
 		{
-			apRenderSettings->mpVertexProgram->SetMatrixf("objectWorldMatrix",
+			apRenderSettings->mpProgram->SetMatrixf(eProgramParam::objectWorldMatrix,
 												apModelMatrix ? *apModelMatrix : cMatrixf::Identity);
 		}
 	};
@@ -78,8 +79,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iMaterial_BaseLight::iMaterial_BaseLight(const tString& asLightVertexProgram,
-										const tString& asLightFragmentProgram,
+	iMaterial_BaseLight::iMaterial_BaseLight(const tString& asLightDefines,
 		const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -93,56 +93,22 @@ namespace hpl {
 		mbUseColorSpecular = false;
 
 		for(int i=0; i<eBaseLightProgram_LastEnum; i++) {
-			mvVtxPrograms[i] =nullptr;
-			mvFragPrograms[i] =nullptr;
+			mvPrograms[i] =nullptr;
 		}
 
-		////////////////////////////////////////
-		//Get names for other light programs
-		tString sSpotVtxProgram = cString::Sub(asLightVertexProgram,0, (int)asLightVertexProgram.size() - 5) +
-									"Spot_vp.cg";
-
-		///////////////////////////////////////////
-		//Load the light pass vertex program
-		//Point
-		mvVtxPrograms[eBaseLightProgram_Point1] = mpProgramManager->CreateProgram(asLightVertexProgram,"main",
-			eGpuProgramType_Vertex);
-		//Spot
-		mvVtxPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram(sSpotVtxProgram,"main",
-			eGpuProgramType_Vertex);
-
-		///////////////////////////////////////////
-		//Load the light pass fragment program
-		//Point
-		mvFragPrograms[eBaseLightProgram_Point1] = mpProgramManager->CreateProgram(asLightFragmentProgram,"main",
-			eGpuProgramType_Fragment);
-
-
-		//Spot
-		tString sSpotFragProgram = cString::Sub(asLightFragmentProgram,0, (int)asLightFragmentProgram.size() - 5) +
-												"Spot_fp.cg";
-
-		mvFragPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram(sSpotFragProgram,"main",
-														eGpuProgramType_Fragment);
-
-
-		///////////////////////////////////////////
-		//Load the Z pass vertex program
-		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",eGpuProgramType_Vertex);
-		SetProgram(pVtxProg,eGpuProgramType_Vertex,1);
-
+		mvPrograms[eBaseLightProgram_Point1] = mpProgramManager->CreateProgram("light", asLightDefines);
+		mvPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram("light", asLightDefines + " SPOT");
 
 		///////////////////////////////////////////
 		//More fragment programs
-		mpSimpleFP = mpProgramManager->CreateProgram("Diffuse_Color_fp.cg","main",eGpuProgramType_Fragment);
-		mpAmbientFP = mpProgramManager->CreateProgram("Ambient_Color_fp.cg","main",eGpuProgramType_Fragment);
+		mpSimpleProgram = mpProgramManager->CreateProgram("Diffuse_Color");
+		mpAmbientProgram = mpProgramManager->CreateProgram("Ambient_Color", "", "Diffuse_Color");
 
 
 		mbUseSpecular = false;
 		mbUseNormalMap = false;
 
-		mpShadedAmbientVP = nullptr;
-		mpShadedAmbientFP = nullptr;
+		mpShadedAmbientProgram = nullptr;
 		mbShadedAmbientTried = false;
 	}
 
@@ -152,13 +118,12 @@ namespace hpl {
 	{
 		for(int i=0; i<eBaseLightProgram_LastEnum; i++)
 		{
-			if(mvVtxPrograms[i])	mpProgramManager->Destroy(mvVtxPrograms[i]);
-			if(mvFragPrograms[i])	mpProgramManager->Destroy(mvFragPrograms[i]);
+			if(mvPrograms[i])	mpProgramManager->Destroy(mvPrograms[i]);
 		}
 
-		if(mpSimpleFP) mpProgramManager->Destroy(mpSimpleFP);
-		if(mpShadedAmbientVP) mpProgramManager->Destroy(mpShadedAmbientVP);
-		if(mpShadedAmbientFP) mpProgramManager->Destroy(mpShadedAmbientFP);
+		if(mpSimpleProgram) mpProgramManager->Destroy(mpSimpleProgram);
+		if(mpAmbientProgram) mpProgramManager->Destroy(mpAmbientProgram);
+		if(mpShadedAmbientProgram) mpProgramManager->Destroy(mpShadedAmbientProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -171,15 +136,14 @@ namespace hpl {
 		{
 			mbShadedAmbientTried = true;
 
-			tString sName = "Ambient_Shaded";
-			if(mbUseNormalMap) sName += "_Bump";
-			if(mbUseSpecular) sName += mbUseColorSpecular ? "_ColorSpec" : "_Spec";
+			tString defines;
+			if(mbUseNormalMap) defines += "NORMAL_MAP ";
+			if(mbUseSpecular) defines += mbUseColorSpecular ? "SPECULAR SPECULAR_MAP" : "SPECULAR";
+			mpShadedAmbientProgram = mpProgramManager->CreateProgram("ambient", defines);
 
-			mpShadedAmbientVP = mpProgramManager->CreateProgram(sName + "_vp.cg","main",eGpuProgramType_Vertex);
-			mpShadedAmbientFP = mpProgramManager->CreateProgram(sName + "_fp.cg","main",eGpuProgramType_Fragment);
 		}
 
-		return mpShadedAmbientVP && mpShadedAmbientFP;
+		return mpShadedAmbientProgram != nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -190,28 +154,11 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* iMaterial_BaseLight::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		if(apLight && aType == eMaterialRenderType_Light)
-		{
-			eBaseLightProgram program;
 
-			if(apLight->GetLightType()==eLight3DType_Point)		program = eBaseLightProgram_Point1;
-			else if(apLight->GetLightType()==eLight3DType_Spot)	program = eBaseLightProgram_Spot1;
-
-			return mvVtxPrograms[program];
-		}
-
-		if(aType == eMaterialRenderType_Z)
-			return UseShadedAmbient() ? mpShadedAmbientVP : mpProgram[eGpuProgramType_Vertex][1];
-		if(aType == eMaterialRenderType_Diffuse) return mpProgram[eGpuProgramType_Vertex][1];
-
-		return nullptr;
-	}
 
 	//------------------------------------------------------------------------------------
 
-	bool iMaterial_BaseLight::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool iMaterial_BaseLight::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light) return true;
 		return false;
@@ -219,7 +166,7 @@ namespace hpl {
 
 	//------------------------------------------------------------------------------------
 
-	bool iMaterial_BaseLight::VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool iMaterial_BaseLight::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light && mbUseSpecular) return true;
 		return false;
@@ -227,16 +174,11 @@ namespace hpl {
 
 	//------------------------------------------------------------------------------------
 
-	iMaterialProgramSetup * iMaterial_BaseLight::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		if(aType == eMaterialRenderType_Z && UseShadedAmbient()) return &gShadedAmbientSetup;
 
-		return nullptr;
-	}
 
 	//------------------------------------------------------------------------------------
 
-	iGpuProgram* iMaterial_BaseLight::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iGpuProgram* iMaterial_BaseLight::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light)
 		{
@@ -245,25 +187,25 @@ namespace hpl {
 			if(apLight->GetLightType()==eLight3DType_Point)		program = eBaseLightProgram_Point1;
 			else if(apLight->GetLightType()==eLight3DType_Spot)	program = eBaseLightProgram_Spot1;
 
-			return mvFragPrograms[program];
+			return mvPrograms[program];
 		}
 		else if(aType == eMaterialRenderType_Diffuse)
 		{
-			return mpSimpleFP;
+			return mpSimpleProgram;
 		}
 		else if(aType == eMaterialRenderType_Z)
 		{
-			return UseShadedAmbient() ? mpShadedAmbientFP : mpAmbientFP;
+			return UseShadedAmbient() ? mpShadedAmbientProgram : mpAmbientProgram;
 		}
 		return nullptr;
 	}
 
 
-	iMaterialProgramSetup * iMaterial_BaseLight::GetFragmentProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iMaterialProgramSetup * iMaterial_BaseLight::GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Z)
 		{
-			return &gAmbProgramSetup;
+			return UseShadedAmbient() ? static_cast<iMaterialProgramSetup*>(&gShadedAmbientSetup) : &gAmbProgramSetup;
 		}
 
 		return nullptr;

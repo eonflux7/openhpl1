@@ -35,14 +35,10 @@ namespace hpl {
 		~cGpuProgramManager() override;
 
 		iResourceBase* Create(const tString& asName) override;
-		/**
-		 * Creates a new GPU program
-		 * \param asName name of the program
-		 * \param asEntry the entry point of the program (usually "main")
-		 * \param aType type of the program
-		 * \return
-		 */
-		iGpuProgram* CreateProgram(const tString& asName,const tString& asEntry,eGpuProgramType aType);
+		// GLSL base name and space-separated defines for a linked pair.
+		// asVertex selects a different vertex file; otherwise both stages
+		// use asName. The cache includes both filenames and the defines.
+		iGpuProgram* CreateProgram(const tString& asName, const tString& asDefines="", const tString& asVertex="");
 
 		void Destroy(iResourceBase* apResource) override;
 		void Unload(iResourceBase* apResource) override;

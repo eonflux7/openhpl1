@@ -35,7 +35,6 @@ namespace hpl {
 	{
 		mbIsTransperant = true;
 		mbIsGlowing= true;//Set to false later on
-		mType = eMaterialType_DiffuseAlpha;
 	}
 
 	//-----------------------------------------------------------------------
@@ -60,65 +59,4 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cMaterial_DiffuseAlpha2D::StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight)
-	{
-		if(aType == eMaterialRenderType_Diffuse)
-		{
-			mpLowLevelGraphics->SetBlendActive(true);
-			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
-
-			mpLowLevelGraphics->SetTexture(0, GetTexture(eMaterialTexture_Diffuse));
-
-			return true;
-		}
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cMaterial_DiffuseAlpha2D::EndRendering(eMaterialRenderType aType)
-	{
-		if(aType == eMaterialRenderType_Diffuse)
-		{
-		}
-
-	}
-
-	//-----------------------------------------------------------------------
-
-	tVtxBatchFlag cMaterial_DiffuseAlpha2D::GetBatchFlags(eMaterialRenderType aType)
-	{
-		return eVtxBatchFlag_Position |	eVtxBatchFlag_Texture0 | eVtxBatchFlag_Color0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cMaterial_DiffuseAlpha2D::NextPass(eMaterialRenderType aType)
-	{
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cMaterial_DiffuseAlpha2D::HasMultiplePasses(eMaterialRenderType aType)
-	{
-		return false;
-	}
-
-	//-----------------------------------------------------------------------
-
-	eMaterialType cMaterial_DiffuseAlpha2D::GetType(eMaterialRenderType aType)
-	{
-		return mType;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cMaterial_DiffuseAlpha2D::EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-		tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd)
-	{
-
-	}
-
-	//-----------------------------------------------------------------------
 }

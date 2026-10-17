@@ -4,7 +4,6 @@
 // The dream filter of Black Plague (cEffect_DreamFilter): a copy of the
 // scene added to it, a little larger.
 
-uniform mat4 worldViewProj;
 
 out vec4 vColor;
 out vec2 vUv;

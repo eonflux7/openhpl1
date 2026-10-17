@@ -49,8 +49,7 @@ namespace hpl {
 	class cTransDraw
 	{
 	public:
-		iGpuProgram *mpVtxProgram = nullptr;
-		iGpuProgram *mpFragProgram = nullptr;
+		iGpuProgram *mpProgram = nullptr;
 		iVertexBuffer *mpVtxBuffer = nullptr;
 		cMatrixf *mpModelMatrix = nullptr;
 		bool mbDepthTest = true;

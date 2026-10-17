@@ -20,6 +20,7 @@
 #define HPL_GUI_MATERIAL_H
 
 #include "system/SystemTypes.h"
+#include "graphics/SpriteBatch.h"
 namespace hpl {
 
 	class iLowLevelGraphics;
@@ -31,8 +32,7 @@ namespace hpl {
 						msName(asName), mpLowLevelGraphics(apLowLevelGraphics) {}
 		virtual ~iGuiMaterial(){}
 
-		virtual void BeforeRender()=0;
-		virtual void AfterRender()=0;
+		virtual cSpriteBlend GetBlend() const=0;
 
 		const tString& GetName() const {return msName;}
 

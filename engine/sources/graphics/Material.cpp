@@ -49,7 +49,6 @@ namespace hpl {
 			mvTexture.assign(mvTexture.size(), nullptr);
 		}
 
-		mType = eMaterialType_Null;
 		mPicture = aPicture;
 
 		mpLowLevelGraphics = apLowLevelGraphics;
@@ -66,10 +65,8 @@ namespace hpl {
 		mbDepthTest = true;
 		mfValue = 1;
 
-		for(int i=0;i<2;i++)
-			for(int j=0;j<kMaxProgramNum;j++) mpProgram[i][j]=nullptr;
+		for(auto& program : mpProgram) program = nullptr;
 
-		mlPassCount=0;
 
 		mlId = -1;
 	}
@@ -87,13 +84,8 @@ namespace hpl {
 				mpTextureManager->Destroy(mvTexture[i]);
 		}
 
-		for(i=0;i<2;i++){
-			for(int j=0;j<kMaxProgramNum;j++)
-			{
-				if(mpProgram[i][j])
-					mpProgramManager->Destroy(mpProgram[i][j]);
-			}
-		}
+		for(auto* program : mpProgram)
+			if(program) mpProgramManager->Destroy(program);
 	}
 
 	//-----------------------------------------------------------------------

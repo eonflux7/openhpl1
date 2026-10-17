@@ -308,8 +308,7 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 	mpMapChangeTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("other_mapchange.jpg",false);
 
 	cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
-	mpFlashVtxProgram = pProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",eGpuProgramType_Vertex);
-	mpFlashFragProgram = pProgramManager->CreateProgram("Ambient_Color_fp.cg","main",eGpuProgramType_Fragment);
+	mpFlashProgram = pProgramManager->CreateProgram("Ambient_Color", "", "Diffuse_Color");
 }
 
 //-----------------------------------------------------------------------
@@ -317,8 +316,7 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 cMapHandler::~cMapHandler(void)
 {
 	if(mpMapChangeTexture)mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpMapChangeTexture);
-	if(mpFlashVtxProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashVtxProgram);
-	if(mpFlashFragProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashFragProgram);
+	if(mpFlashProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashProgram);
 	
 	hplDelete(mpSoundCallback );
 	hplDelete( mpWorldCache );
@@ -1201,8 +1199,7 @@ void cMapHandler::RenderItemEffect()
 
 		cMeshEntity *pMeshEntity = pItem->GetMeshEntity();
 
-		pLowGfx->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(pCam->GetViewMatrix(), 
-														pMeshEntity->GetWorldMatrix()));
+		pLowGfx->SetDrawMatrices(pMeshEntity->GetWorldMatrix(), pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 		for(int i=0; i< pMeshEntity->GetMesh()->GetSubMeshNum(); i++)
 		{
 			cSubMeshEntity *pSubEntity = pMeshEntity->GetSubMeshEntity(i);
@@ -1210,38 +1207,20 @@ void cMapHandler::RenderItemEffect()
 			iVertexBuffer *pVtxBuffer = pSubEntity->GetVertexBuffer();
 			iMaterial *pMaterial = pSubEntity->GetMaterial();
 			
-			iGpuProgram *pVtxProg = pMaterial->GetVertexProgram(eMaterialRenderType_Z,0,nullptr);
-			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,nullptr);
-
-			//Without programs of its own: the texture times the flash
-			if(pVtxProg==nullptr && pFragProg==nullptr)
-			{
-				pVtxProg = mpFlashVtxProgram;
-				pFragProg = mpFlashFragProgram;
+			iGpuProgram* program = pMaterial->GetProgram(eMaterialRenderType_Z,0,nullptr);
+			if(!program) program = mpFlashProgram;
+			if(program){
+				program->SetColor3f(eProgramParam::ambientColor, pItem->GetFlashAlpha());
+				program->Bind();
 			}
 
-			if(pVtxProg)
-			{
-				pVtxProg->Bind();
-				pVtxProg->SetMatrixf("worldViewProj",
-									eGpuProgramMatrix_ViewProjection,
-									eGpuProgramMatrixOp_Identity);
-			}
-
-			if(pFragProg)
-			{
-				pFragProg->SetColor3f("ambientColor", pItem->GetFlashAlpha());
-				pFragProg->Bind();
-			}
-			
 			pLowGfx->SetTexture(0,pMaterial->GetTexture(eMaterialTexture_Diffuse));
 
 			pVtxBuffer->Bind();
 			pVtxBuffer->Draw();
 			pVtxBuffer->UnBind();
 
-			if(pFragProg) pFragProg->UnBind();
-			if(pVtxProg) pVtxProg->UnBind();
+			if(program) program->UnBind();
 		}
 	}
 
@@ -1262,7 +1241,7 @@ void cMapHandler::OnPostSceneDraw()
 
 
 	cCamera3D *pCam = static_cast<cCamera3D*>(mpScene->GetCamera());
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView, pCam->GetViewMatrix());
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(cMatrixf::Identity, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
 	//mpScene->GetWorld3D()->GetPhysicsWorld()->RenderDebugGeometry(
 	//	mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1));

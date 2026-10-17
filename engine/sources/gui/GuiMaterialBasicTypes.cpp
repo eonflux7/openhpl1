@@ -21,115 +21,29 @@
 #include "graphics/LowLevelGraphics.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// DIFFUSE
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Diffuse::BeforeRender()
+	cSpriteBlend cGuiMaterial_Diffuse::GetBlend() const
 	{
-		mpLowLevelGraphics->SetBlendActive(true);
-		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_Zero);
+		return cSpriteBlend(eBlendFunc_One,eBlendFunc_Zero);
 	}
 
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Diffuse::AfterRender()
+	cSpriteBlend cGuiMaterial_Alpha::GetBlend() const
 	{
+		return cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// ALPHA
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Alpha::BeforeRender()
+	cSpriteBlend cGuiMaterial_FontNormal::GetBlend() const
 	{
-		mpLowLevelGraphics->SetBlendActive(true);
-		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
+		return cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
 	}
 
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Alpha::AfterRender()
+	cSpriteBlend cGuiMaterial_Additive::GetBlend() const
 	{
-		//Not needed right?
-		//mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_OneMinusSrcAlpha);
+		return cSpriteBlend(eBlendFunc_One,eBlendFunc_One);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// FONT NORMAL
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_FontNormal::BeforeRender()
+	cSpriteBlend cGuiMaterial_Modulative::GetBlend() const
 	{
-		mpLowLevelGraphics->SetBlendActive(true);
-		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
+		return cSpriteBlend(eBlendFunc_DestColor,eBlendFunc_Zero);
 	}
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_FontNormal::AfterRender()
-	{
-		//Not needed right?
-		//mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_OneMinusSrcAlpha);
-	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// ADDITIVE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Additive::BeforeRender()
-	{
-		mpLowLevelGraphics->SetBlendActive(true);
-		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_One);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Additive::AfterRender()
-	{
-		//Not needed right?
-		//mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_OneMinusSrcAlpha);
-	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// MODULATIVE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Modulative::BeforeRender()
-	{
-		mpLowLevelGraphics->SetBlendActive(true);
-		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_DestColor, eBlendFunc_Zero);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGuiMaterial_Modulative::AfterRender()
-	{
-		//Not needed right?
-		//mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_OneMinusSrcAlpha);
-	}
-
-	//-----------------------------------------------------------------------
 
 }

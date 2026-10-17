@@ -3,7 +3,6 @@
 
 // A quad over the whole target for the soft bloom's passes.
 
-uniform mat4 worldViewProj;
 
 void main()
 {

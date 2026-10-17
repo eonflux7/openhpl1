@@ -1671,6 +1671,154 @@ reference images each:
   pass, and panic, double vision and combined show the FOV pulse at a
   slightly different point (edges only, up to 76 levels at a few pixels)
 
+### No matrix stack
+
+Draws supply model, view and projection together in `cDrawMatrices`, through
+`SetDrawMatrices`. The matrix stacks, push/pop/identity methods, `eMatrix`
+and the unused texture matrix are gone.
+
+- world geometry, lights, transparent materials, item outlines and debug
+  geometry keep model and camera view separate; shadow casters receive
+  their light's view and projection explicitly
+- the sky box uses its scale and a view without camera translation
+- post effects, the intro and texture overlays use identity model/view
+  with an explicit orthographic projection; temporary passes save and
+  restore the complete transform, including projection
+- 3D GUI sets supply their own camera projection; 2D sets explicitly
+  select a screen-centred or local orthographic projection. The projection
+  helpers return matrices instead of changing projection state
+- shaders take matrix values only: the Cg-style state-matrix overload of
+  `SetMatrixf`, `eGpuProgramMatrix` and `eGpuProgramMatrixOp` are gone.
+  The combined matrix is still computed as projection × (view × model)
+
+Checked with Linux and Windows builds and the engine regressions. Windows
+reference comparisons against step 4:
+
+- defaults: all 95 frames match within the existing tolerance
+- Render Scale 1.5 with 4× FSAA: all 31 frames match (office, water caves,
+  ice cave and outside, plus the 2D screens)
+- effects lab: all 29 frames match; the pixel and live-transition checks pass
+- motion blur: 94 of 95 match. The keypad's inventory borders draw over
+  the panel in one run: both use the same Z and the batcher sorts ties by
+  texture address. A repeat of the same new build changes those borders
+  back to the baseline, confirming the existing instability. That repeat
+  also shows the known ice-cave noise (104 and 837 pixels over tolerance
+  in view01/04)
+
+### Materials and linked programs
+
+- Each program links its vertex and fragment shaders together and draws
+  with `glUseProgram`. Materials, refraction, transparent objects, post
+  effects and the default/UI shader select one complete program. The Cg
+  stage enum, independent bindings, companion stages and separable
+  pipelines are gone; separate shader objects are no longer required.
+- `CreateProgram` takes a GLSL base name, explicit defines and an optional
+  different vertex shader name. Light, fog, ambient, bloom, AO and bokeh
+  variants use those requests directly. Resource keys distinguish both
+  stages and case-sensitive defines; `CgNameToShaderBase` and its variant
+  translation table are gone.
+- Material, object and post-effect values use `hpl_Material`, a std140
+  block at binding 2. Typed `eProgramParam` slots replace name-based
+  uploads, including array elements; setters update CPU values and a
+  dirty block is uploaded once before drawing. Each linked program owns
+  its block. Frame and render-state blocks stay at bindings 0 and 1;
+  sampler locations and bindings are resolved once when linking.
+- Hot reload watches both stages and their includes for every program,
+  including internal fullscreen passes. A replacement becomes active
+  only after both stages link and its material layout is checked. Failed
+  edits retain the old program; material values survive successful and
+  failed reloads.
+- Contiguous draw queues replace the twelve-level render-state tree,
+  its node/state pools and recursive traversal. Each draw has one
+  lexicographic key, preserving sector/pass and state priorities. A
+  change reapplies the affected state and everything after it, including
+  sector ambient setup and per-object/light matrices. Transparent objects
+  keep their back-to-front order; sprite batching is unchanged.
+- Engine regressions cover isolated parameter blocks, dirty tracking,
+  column-major matrices, array bounds and draw-queue state transitions,
+  including equal-key draws and material setup changes.
+
+Checked with the Linux and Windows builds and the engine regressions.
+The CPU and GLSL material layouts agree on all 68 fields (2,160 bytes),
+and linked programs also check the driver's block size. Windows reference
+comparisons use the existing tolerances:
+
+- defaults: 94 of 95 frames match the fresh step 5 baseline; the keypad's
+  equal-Z inventory borders account for the difference
+- motion blur: 93 of 95 match step 5; icecave-view01/04 differ by 101/836
+  pixels, the previously reproduced noise
+- Render Scale 1.5 with 4× FSAA: 29 of 31 match step 5 (office, water
+  caves, ice cave, outside and UI); icecave-view01/04 differ by 113/727
+  pixels
+- effects lab: all 29 frames match step 5; the pixel and live-transition
+  checks pass
+- shader reload: all 95 frames match the normal step 6 capture. Valid
+  edits, invalid vertex/fragment/include edits and recovery were exercised
+  on the defaults, bloom and internal output passes, with no invalid GL
+  operations. All temporary build-shader edits were restored
+
+Windows validation used the existing test copy; focused patches preserved
+its platform and capture additions.
+
+### One sprite batcher for 2D
+
+- `cSpriteBatch` builds textured triangles for the HUD, GUI, bitmap glyphs,
+  fades, loading screens and story overlays. Each batch carries a texture,
+  blend enable and source/destination factors. Only adjacent compatible
+  sprites merge, so blending never changes the requested order. Replace,
+  alpha, additive, source-alpha additive, modulative and smoke blends keep
+  their existing factors and shader colour handling.
+- Sprites carry position (including Z), colour and texture coordinates.
+  The existing HUD size/rotation/translation geometry, atlas coordinates
+  and GUI size/colour multiplication are retained. Batches draw using the
+  caller's matrices, depth and culling; GUI clip changes flush first.
+  Screen-space and 3D GUI sets use the same path.
+- Equal-Z HUD and GUI sprites now retain submission order. The old texture,
+  material and clip-region address tie-breakers could change which
+  translucent sprite covered another between identical runs. This is an
+  intentional ordering correction, including the keypad's inventory
+  borders, rather than a tolerance change.
+- `AddVertexToBatch` and its variants, index/quad batch calls, `DrawQuad`
+  overloads and the fixed 20,000-entry arrays are removed. The batcher uses
+  growing vectors; sprite material callbacks/type keys and GUI blend
+  callbacks become declarative blend descriptions. Unsupported world
+  materials still do not enter the HUD sprite path.
+- World/debug faces, refraction masks, fullscreen post effects and the
+  screen-copy overlay submit explicit triangles through `DrawTriangles`,
+  keeping their own programs and state. General mesh buffers, textures,
+  fullscreen-pass architecture and backend splitting stay outside step 7.
+- Engine regressions check triangle winding and vertex data, adjacent
+  texture/blend boundaries, more than the old array capacity, GUI blend
+  factors and stable HUD/GUI depth ties.
+
+The Linux build and engine regressions pass, including the new sprite
+checks. The Windows MSVC build passes; this test copy explicitly disables
+CTest targets under MSVC, so its validation uses the game captures.
+Focused patches preserve its Windows and capture additions.
+
+At unchanged comparison tolerances:
+
+- a fresh step 6 baseline (`/tmp/step7-before`) and the batcher-only stage
+  (`/tmp/step7-batcher`), before changing ordering, match in all 95 frames
+- the final default capture (`/tmp/step7-after`) matches 94 of 95 baseline
+  frames. Only `2d-keypad.png` changes (7,225 pixels): the inventory borders
+  now stay beneath the keypad panel. Inspection of the before/after/diff
+  images confirms the correction is confined to those borders
+- motion blur (`/tmp/step7-after-motion`) matches 92 of 95 step 6 frames:
+  the same keypad correction (7,225 pixels) and the previously reproduced
+  icecave-view01/04 variations (103/839 pixels)
+- Render Scale 1.5 with 4× FSAA (`/tmp/step7-after-scale`) matches 29 of
+  31 step 6 frames with the same office/water-cave/ice-cave/outside filter.
+  Only icecave-view01/04 vary (114/727 pixels); all UI frames match
+- the effects lab (`/tmp/step7-after-effects`) matches all 29 step 6
+  frames. Pixel checks and live transitions pass. OpenGL debug output is
+  enabled, with no GL errors or material-layout mismatches (the driver
+  reports only synchronized pixel-readback performance warnings)
+
+The fresh unchanged step 6 run itself reproduces the ice-cave variation:
+icecave-view01/04 differ from `/tmp/step6-after` by 101/837 pixels before
+any step 7 code is applied.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

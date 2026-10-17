@@ -17,9 +17,6 @@ out vec4 vColor;
 out vec2 vUv;
 out float vFogUv;
 
-uniform mat4 worldViewProj;
-uniform float fogStart;
-uniform float fogEnd;
 
 void main()
 {

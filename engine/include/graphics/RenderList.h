@@ -20,6 +20,10 @@
 #define HPL_RENDER_LIST_H
 
 #include <set>
+#include <array>
+#include <cstdint>
+#include <vector>
+#include "graphics/RenderState.h"
 
 #include "math/MathTypes.h"
 #include "graphics/GraphicsTypes.h"
@@ -49,31 +53,24 @@ namespace hpl {
 
 	//-------------------------------------------------------------
 
-	class cRenderNode;
-
-	class cRenderNodeCompare
+	// One complete state and lexicographic key per draw. Queues retain their
+	// storage between frames; no state nodes or per-level allocations.
+	struct cRenderDraw
 	{
-	public:
-		bool operator()(cRenderNode* apNodeA,cRenderNode* apNodeB) const;
+		iRenderState mState{};
+		std::array<uintptr_t, 12 + MAX_TEXTUREUNITS> mKey{};
+		eRenderStateType FirstChangedState(const cRenderDraw* apPrevious) const;
 	};
 
-	typedef std::set<cRenderNode*, cRenderNodeCompare> tRenderNodeSet;
-	typedef tRenderNodeSet::iterator tRenderNodeSetIt;
-
-	class cRenderNode
+	class cRenderQueue
 	{
 	public:
-		cRenderNode() : mpState(nullptr){}
-
-		iRenderState *mpState;
-
-		tRenderNodeSet m_setNodes;
-
-		void DeleteChildren();
+		std::vector<cRenderDraw> mvDraws;
+		bool mbSector = false;
+		void Clear(){ mvDraws.clear(); }
+		void Sort();
 		void Render(cRenderSettings* apSettings);
 	};
-
-	//-------------------------------------------------------------
 
 	class cFogObject_Compare
 	{
@@ -147,14 +144,13 @@ namespace hpl {
 
 		void SetFrameTime(float afTime){ mfFrameTime = afTime;}
 
-		cRenderNode* GetRootNode(eRenderListDrawType aObjectType ,eMaterialRenderType aPassType, int alLightNum);
+		cRenderQueue* GetQueue(eRenderListDrawType aObjectType ,eMaterialRenderType aPassType, int alLightNum);
 
 		static inline int GetGlobalRenderCount(){ return mlGlobalRenderCount;}
 
 	private:
-		cRenderNode* InsertNode(cRenderNode* apListNode, cRenderNode* apTempNode);
 
-		void AddToTree(iRenderable* apObject,eRenderListDrawType aObjectType,
+		void AddDraw(iRenderable* apObject,eRenderListDrawType aObjectType,
 						eMaterialRenderType mPassType,int alLightNum,iLight3D* apLight,
 						bool abUseDepth, int alPass);
 
@@ -168,20 +164,17 @@ namespace hpl {
 		tFogObjectSet m_setFogObjects;
 		tTransperantObjectSet m_setTransperantObjects;
 
-		cRenderNode mRootNodeDepth;
-		cRenderNode mRootNodeDiffuse;
-		cRenderNode mRootNodeLight[MAX_NUM_OF_LIGHTS];
-		cRenderNode mRootNodeTrans;
+		cRenderQueue mDepthQueue;
+		cRenderQueue mDiffuseQueue;
+		cRenderQueue mvLightQueues[MAX_NUM_OF_LIGHTS];
+		cRenderQueue mTransQueue;
 
-		cRenderNode mTempNode;
 
 		int mlRenderCount;
 		int mlLastRenderCount;
 
 		float mfFrameTime;
 
-		cMemoryPool<iRenderState>* m_poolRenderState;
-		cMemoryPool<cRenderNode>* m_poolRenderNode;
 
 		cCamera3D* mpCamera;
 

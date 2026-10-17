@@ -14,9 +14,19 @@
 #include <vector>
 #include <unistd.h>
 
+// Inspect batch contents without a graphics context, as with the cache fixtures below.
+#define private public
+#include "graphics/SpriteBatch.h"
+#undef private
+#include "graphics/GraphicsDrawer.h"
+#include "gui/GuiSet.h"
+#include "gui/GuiMaterialBasicTypes.h"
+
 #include "math/Math.h"
 #include "math/PidController.h"
 #include "graphics/VertexBuffer.h"
+#include "graphics/RenderList.h"
+#include "graphics/GPUProgram.h"
 #include "graphics/Animation.h"
 #include "graphics/AnimationTrack.h"
 #include "graphics/Mesh.h"
@@ -446,6 +456,135 @@ static void TestCollideSameCentre()
 	}
 }
 
+class TestProgram : public iGpuProgram
+{
+public:
+	TestProgram() : iGpuProgram("test") {}
+	bool Reload() override { return false; }
+	void Unload() override {}
+	void Destroy() override {}
+	bool CreateFromFile(const tString&, const tString&) override { return false; }
+	void Bind() override {}
+	void UnBind() override {}
+	bool SetTexture(const tString&, iTexture*, bool) override { return false; }
+	bool SetTextureToUnit(int, iTexture*) override { return false; }
+};
+
+static void TestProgramParameters()
+{
+	TestProgram a, b;
+	a.ParametersUploaded();
+	a.SetFloat(eProgramParam::fogStart, 0);
+	Check(!a.ParametersChanged(), "unchanged material data does not upload again");
+	a.SetFloat(eProgramParam::fogStart, 3);
+	Check(a.ParametersChanged(), "changed material data needs upload");
+	const unsigned fog = static_cast<unsigned>(eProgramParam::fogStart) * 4;
+	Check(a.GetParameterData()[fog] == 3 && b.GetParameterData()[fog] == 0, "program parameter blocks are isolated");
+	a.ParametersUploaded();
+	a.SetFloat(eProgramParam::fogStart, 3);
+	Check(!a.ParametersChanged(), "identical material update remains clean");
+	a.SetVec4f(eProgramParam::haloLook, 7, 8, 9, 10);
+	a.SetVec4f(iGpuProgram::Element(eProgramParam::haloProfile, 31), 1, 2, 3, 4);
+	Check(a.GetParameterData()[static_cast<unsigned>(eProgramParam::haloLook) * 4] == 7, "last array element preserves following member");
+	cMatrixf matrix = cMatrixf::Identity;
+	for(unsigned row=0; row<4; ++row)
+		for(unsigned col=0; col<4; ++col) matrix.m[row][col] = float(row * 4 + col);
+	a.SetMatrixf(eProgramParam::worldViewProj, matrix);
+	const float* data = a.GetParameterData() + static_cast<unsigned>(eProgramParam::worldViewProj) * 4;
+	for(unsigned row=0; row<4; ++row)
+		for(unsigned col=0; col<4; ++col)
+			Check(data[col * 4 + row] == matrix.m[row][col], "std140 matrix keeps column-major order");
+	Check(!a.SetFloat(eProgramParam::Count, 1), "invalid parameter cannot overwrite block");
+	Check(!a.SetMatrixf(eProgramParam::t, matrix), "matrix cannot overrun block");
+}
+
+static void TestDrawQueue()
+{
+	cRenderDraw first, next;
+	Check(first.FirstChangedState(nullptr) == eRenderStateType_Sector, "first draw applies all states");
+	Check(next.FirstChangedState(&first) == eRenderStateType_Render, "equal keys still draw");
+	next.mKey[6] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_BlendMode, "channel/blend key reapplies following state");
+	next = first; next.mKey[7] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "program change reapplies textures and matrices");
+	next = first; next.mKey[10 + MAX_TEXTUREUNITS] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Matrix, "matrix change preserves earlier material state");
+	next = first; next.mKey[8] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "custom setup change reapplies material and matrix values");
+	next = first; next.mKey[0] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Sector, "sector change reapplies ambient setup");
+	cRenderQueue queue;
+	for(int i=0; i<4; ++i){
+		queue.mvDraws.emplace_back();
+		queue.mvDraws.back().mKey[1] = i % 2;
+		queue.mvDraws.back().mState.mlPass = i;
+	}
+	queue.Sort();
+	const int expected[] = {0, 2, 1, 3};
+	for(int i=0; i<4; ++i) Check(queue.mvDraws[i].mState.mlPass == expected[i], "pass ordering retains equal-key draws in submission order");
+	queue.Clear();
+	Check(queue.mvDraws.empty(), "cleared queue keeps no previous draws");
+}
+
+static void TestSprites()
+{
+	cSpriteBatch batch;
+	std::array<cSpriteVertex,4> corners;
+	for(int i=0; i<4; ++i)
+		corners[i] = cSpriteVertex(cVector3f(i, i+10, i+20), cColor(i*0.1f, 0.2f, 0.3f, 0.4f), cVector3f(i*0.25f,0.5f,0));
+	const cSpriteBlend alpha(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
+	const cSpriteBlend additive(eBlendFunc_One,eBlendFunc_One);
+	// These distinct opaque handles are compared, never dereferenced.
+	int textureIds[2];
+	iTexture* textureA = reinterpret_cast<iTexture*>(&textureIds[0]);
+	iTexture* textureB = reinterpret_cast<iTexture*>(&textureIds[1]);
+	batch.Add(textureA, alpha, corners);
+	const int topology[] = {0,1,2,0,2,3};
+	for(int i=0; i<6; ++i)
+	{
+		const auto& vertex = batch.mvVertices[i];
+		const auto& original = corners[topology[i]];
+		Check(vertex.pos == original.pos && vertex.tex == original.tex && vertex.col == original.col,
+			"sprite triangles retain winding, depth, colour and UV coordinates");
+	}
+	batch.Add(textureA, alpha, corners);
+	Check(batch.mvBatches.size() == 1 && batch.mvBatches[0].mlCount == 12, "adjacent sprites share one batch");
+	batch.Add(textureB, alpha, corners);
+	batch.Add(textureA, alpha, corners);
+	batch.Add(textureA, additive, corners);
+	batch.Add(textureA, cSpriteBlend(eBlendFunc_One,eBlendFunc_One,false), corners);
+	Check(batch.mvBatches.size() == 5, "texture, blend factors and blend enable delimit batches without reordering");
+	for(size_t i=1; i<batch.mvBatches.size(); ++i)
+		Check(batch.mvBatches[i].mlFirst == batch.mvBatches[i-1].mlFirst + batch.mvBatches[i-1].mlCount,
+			"batch ranges cover triangles in submission order");
+	for(int i=0; i<20000; ++i) batch.Add(textureA, alpha, corners);
+	Check(batch.mvVertices.size() == 20006*6 && batch.mvBatches.back().mlCount == 20000*6,
+		"sprites grow beyond the old fixed array capacity without dropping triangles");
+	cSpriteBatch empty;
+	empty.Flush(nullptr);
+
+	tGfxBufferSet hud;
+	tGuiRenderObjectSet gui;
+	for(int i=0; i<5; ++i)
+	{
+		cGfxBufferObject object{};
+		object.mvTransform = cVector3f(i,0,i == 3 ? -1 : 2);
+		hud.insert(object);
+		cGuiRenderObject guiObject{};
+		guiObject.mvPos = object.mvTransform;
+		gui.insert(guiObject);
+	}
+	const int order[] = {3,0,1,2,4};
+	int i = 0;
+	for(const auto& object : hud) Check(object.mvTransform.x == order[i++], "HUD sorts depth and retains submission order at equal Z");
+	i = 0;
+	for(const auto& object : gui) Check(object.mvPos.x == order[i++], "GUI sorts depth and retains submission order at equal Z");
+	Check(cGuiMaterial_Diffuse(nullptr).GetBlend() == cSpriteBlend(eBlendFunc_One,eBlendFunc_Zero), "GUI replace blend");
+	Check(cGuiMaterial_Alpha(nullptr).GetBlend() == alpha && cGuiMaterial_FontNormal(nullptr).GetBlend() == alpha, "GUI alpha and glyph blend");
+	Check(cGuiMaterial_Additive(nullptr).GetBlend() == additive, "GUI additive blend");
+	Check(cGuiMaterial_Modulative(nullptr).GetBlend() == cSpriteBlend(eBlendFunc_DestColor,eBlendFunc_Zero), "GUI modulative blend");
+}
+
 int hplMain(const hpl::tString&)
 {
 	auto directory = std::filesystem::temp_directory_path() / ("overture-regressions-" + std::to_string(getpid()));
@@ -454,6 +593,7 @@ int hplMain(const hpl::tString&)
 	{
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
+		TestProgramParameters(); TestDrawQueue(); TestSprites();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

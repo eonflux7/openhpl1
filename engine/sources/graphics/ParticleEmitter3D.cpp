@@ -80,9 +80,7 @@ namespace hpl {
 		}
 
 		mpVtxBuffer->Compile(0);
-
-		mpSoftVtxProgram = nullptr;
-		mpSoftFragProgram = nullptr;
+		mpSoftProgram = nullptr;
 
 		//Setup vars
 		mlDirectionUpdateCount = -1;
@@ -114,8 +112,7 @@ namespace hpl {
 		hplDelete(mpVtxBuffer);
 
 		cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
-		if(mpSoftVtxProgram) pProgramManager->Destroy(mpSoftVtxProgram);
-		if(mpSoftFragProgram) pProgramManager->Destroy(mpSoftFragProgram);
+		if(mpSoftProgram) pProgramManager->Destroy(mpSoftProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -493,16 +490,14 @@ namespace hpl {
 		eMaterialBlendMode blend = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
 		if(blend != eMaterialBlendMode_Alpha && blend != eMaterialBlendMode_Add) return false;
 
-		if(mpSoftVtxProgram==nullptr)
+		if(mpSoftProgram==nullptr)
 		{
 			cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
-			mpSoftVtxProgram = pProgramManager->CreateProgram("Particle_vp.cg","main",eGpuProgramType_Vertex);
-			mpSoftFragProgram = pProgramManager->CreateProgram("Particle_fp.cg","main",eGpuProgramType_Fragment);
+			mpSoftProgram = pProgramManager->CreateProgram("Particle");
 		}
-		if(mpSoftVtxProgram==nullptr || mpSoftFragProgram==nullptr) return false;
+		if(mpSoftProgram==nullptr) return false;
 
-		aDraw.mpVtxProgram = mpSoftVtxProgram;
-		aDraw.mpFragProgram = mpSoftFragProgram;
+		aDraw.mpProgram = mpSoftProgram;
 		aDraw.mbDepthTest = pMaterial->GetDepthTest();
 		return true;
 	}
@@ -512,27 +507,17 @@ namespace hpl {
 	void iParticleEmitter3D::SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw)
 	{
 		static const int kLights = 6;
-		static tString vPosNames[kLights], vColorNames[kLights], vDirNames[kLights];
-		if(vPosNames[0] == "")
-		{
-			for(int i=0; i<kLights; ++i)
-			{
-				vPosNames[i] = "partLightPos[" + cString::ToString(i) + "]";
-				vColorNames[i] = "partLightColor[" + cString::ToString(i) + "]";
-				vDirNames[i] = "partLightDir[" + cString::ToString(i) + "]";
-			}
-		}
 
 		const cEffectSettings &effects = mpGraphics->GetLowLevel()->GetEffects();
 		bool bAdded = GetMaterial()->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 
-		mpSoftVtxProgram->SetMatrixf("partToWorld", *GetModelMatrix(apCamera));
-		mpSoftVtxProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+		mpSoftProgram->SetMatrixf(eProgramParam::partToWorld, *GetModelMatrix(apCamera));
+		mpSoftProgram->SetVec2f(eProgramParam::fogRange, apSettings->mfFogStart, apSettings->mfFogEnd);
 
 		// The fade takes about the size of a particle: wisps of smoke
 		// fade over more than drops of water do
 		float fSoft = cMath::Clamp(cMath::Max(mvMaxDrawSize.x, mvMaxDrawSize.y), 0.03f, 0.6f) * effects.mfParticleSoft;
-		mpSoftFragProgram->SetVec4f("partLook", fSoft, apSettings->mbFogActive ? 1.0f : 0.0f, bAdded ? 1.0f : 0.0f, 0);
+		mpSoftProgram->SetVec4f(eProgramParam::partLook, fSoft, apSettings->mbFogActive ? 1.0f : 0.0f, bAdded ? 1.0f : 0.0f, 0);
 
 		/////////////////////////////////////
 		// The lights that reach the particles: the strongest few
@@ -588,16 +573,16 @@ namespace hpl {
 					fEdge = std::cos(pSpot->GetFOV() * 0.5f * (look.mbBeam ? look.mfBeamWidth : 1.0f));
 				}
 
-				mpSoftVtxProgram->SetVec4f(vPosNames[i], vPos.x, vPos.y, vPos.z, pLight->GetFarAttenuation());
-				mpSoftVtxProgram->SetVec4f(vColorNames[i], col.r, col.g, col.b, fEdge);
-				mpSoftVtxProgram->SetVec4f(vDirNames[i], vDir.x, vDir.y, vDir.z, 0);
+				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightPos, i), vPos.x, vPos.y, vPos.z, pLight->GetFarAttenuation());
+				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightColor, i), col.r, col.g, col.b, fEdge);
+				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightDir, i), vDir.x, vDir.y, vDir.z, 0);
 			}
 		}
 
 		// What the map's own light adds to the brightness in the dark
 		const cColor &ambient = apSettings->mAmbientColor;
 		float fDark = cMath::Min(effects.mfParticleDark + (ambient.r + ambient.g + ambient.b) / 3.0f, 1.0f);
-		mpSoftVtxProgram->SetVec4f("partLight", (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, 0);
+		mpSoftProgram->SetVec4f(eProgramParam::partLight, (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, 0);
 	}
 
 	//-----------------------------------------------------------------------

@@ -15,7 +15,6 @@ in vec2 vUv;
 OUTPUT
 
 uniform sampler2D tex0; //diffuseMap
-uniform vec3 ambientColor;
 
 void main()
 {

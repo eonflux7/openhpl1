@@ -64,7 +64,6 @@ const int TILES = 4;
 const float FAR_AWAY = 1000.0;
 
 // Pixels of one tile: the picture's size divided by TILES, rounded up
-uniform vec2 tileSize;
 
 // Where a pixel of the picture is in the tiled layout.
 ivec2 ToTiles(ivec2 avPixel)
@@ -107,7 +106,6 @@ vec3 UnpackNormal(vec2 avPacked)
 #if defined(DEINTERLEAVE)
 
 // The row of tiles that is written
-uniform float tileRow;
 
 // outColor and these are the distances of the row's four tiles
 layout(location = 1) out vec4 outDistance1;
@@ -189,7 +187,6 @@ uniform sampler2D tex1;
 // x: how far occluders are looked for, in metres; y: the same as a share of
 // the picture's height, used instead when not 0; z: the distance at which
 // the occlusion has faded away; w: the power the open share is raised to
-uniform vec4 reach;
 // Directions, and steps to each side of one. The qualities of the menu have
 // a program each with the two as constants, which lets the compiler write
 // the loops out: the search takes a fifth less time. Other numbers come as
@@ -206,14 +203,11 @@ const int sliceNum = 4, stepNum = 10;
 const int sliceNum = 6, stepNum = 16;
 #else
 #define SAMPLES_GIVEN
-uniform vec2 samples;
 #endif
 
 // The tile that is drawn. xy: its column and row, z: its shift of the steps
-uniform vec4 tilePlace;
 // xy: its first direction, zw: the cosine and sine of the angle from one
 // direction to the next
-uniform vec4 tileTurn;
 
 // The distances are kept in 16 bits: the point is taken this
 // much nearer (as a share of its distance), or their rounding would show as
@@ -363,7 +357,6 @@ uniform sampler2D tex0;
 // x: 1 when tex0 is in tiles; y: where the 4x4 window starts, relative to
 // the pixel (-2 or -1: two passes, one of each, are centred together);
 // z: 0 to only put the pixels in their places
-uniform vec3 window;
 
 vec2 Read(ivec2 avPixel)
 {
@@ -425,7 +418,6 @@ uniform sampler2D tex1;
 
 // How much less brightly lit parts are darkened, 0 to 1 (0: the scene is
 // not read)
-uniform float lightFade;
 
 void main()
 {

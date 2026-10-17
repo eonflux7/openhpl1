@@ -18,6 +18,12 @@ executable. It boots, plays the intro and menus and loads levels at full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
+Renderer cleanup is through **Milestone 6, step 7**: a shared triangle
+sprite batcher draws the HUD, GUI, bitmap fonts, fades and loading/story
+overlays. Batches carry their texture and blend state; equal-depth sprites retain submission order.
+Linked programs use GLSL names and defines, material values live in uniform
+blocks, and draws supply model, view and projection together.
+
 ## What's different from the original
 
 The short list. The full list is in [CHANGES.md](CHANGES.md).
@@ -212,6 +218,16 @@ possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
 scripted light sequences are timed partly by sounds. Their differences are
 listed as "unstable" and do not count.
 
+Step 7 passes the Linux build and engine regressions and the Windows build
+(the Windows kit disables CTest targets under MSVC). The batcher-only stage
+matches all 95 fresh baseline frames. Final Windows comparisons match
+94/95 default, 92/95 motion-blur and 29/31 Render Scale 1.5 with 4× FSAA
+frames at unchanged tolerances. The differences are the intentional keypad
+ordering correction and the known ice-cave variation: equal-Z inventory
+borders now stay beneath the keypad. All 29 effects-lab frames, pixel
+checks and live transitions pass, including a run with OpenGL debug output.
+See `CHANGES.md` for the implementation and results.
+
 To look at those places yourself, press F2 in the game (or start it with
 `OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
 places and directions of its frames, under the names the frames are saved
@@ -267,7 +283,7 @@ saves.
 | `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
-| `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |
+| `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OVERTURE_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OVERTURE_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
@@ -282,8 +298,7 @@ saves.
 
 ## Requirements
 
-- OpenGL 3.3 core profile with GL_ARB_separate_shader_objects (part of
-  OpenGL 4.1); any GPU from the last decade
+- OpenGL 3.3 core profile; any GPU from the last decade
 - Linux on x86-64 (Windows support is planned)
 
 ## Repository layout

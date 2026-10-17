@@ -39,12 +39,10 @@ namespace hpl {
 
 		void Update(float afTimeStep) override;
 
-		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		iMaterialProgramSetup* GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-
-		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iGpuProgram* GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iMaterialProgramSetup* GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
@@ -55,31 +53,19 @@ namespace hpl {
 
 		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override{ return 1;}
 
-		iGpuProgram* GetRefractionVertexProgam() override{ return mpRefractVtxProg;}
-		iGpuProgram* GetRefractionFragmentProgam() override{ return mpRefractFragProg;}
+		iGpuProgram* GetRefractionProgram() override{ return mpRefractProgram;}
 		bool GetRefractionUsesDiffuse() override{ return true;}
 		eMaterialTexture GetRefractionDiffuseTexture() override{ return eMaterialTexture_Specular;}
 		bool GetRefractionUsesEye() override{ return true;}
 		bool GetRefractionSkipsStandardTrans() override{ return true;}
 		bool GetRefractionUsesTime() override{ return true;}
 
-		//////////////////////////////////////////////////////////////////
-		// Old and worthless stuff, only used by 2D renderer
 		void Compile() override{}
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override{return false;}
-		void EndRendering(eMaterialRenderType aType) override{}
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override{return 0;}
-		bool NextPass(eMaterialRenderType aType) override{return false;}
-		bool HasMultiplePasses(eMaterialRenderType aType) override{return false;}
-		eMaterialType GetType(eMaterialRenderType aType) override{ return eMaterialType_Diffuse;}
-		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 
 	private:
-		iGpuProgram *mpFogVtxProg;
+		iGpuProgram *mpFogProgram;
 
-		iGpuProgram *mpRefractVtxProg;
-		iGpuProgram *mpRefractFragProg;
+		iGpuProgram *mpRefractProgram;
 
 		float mfTime;
 	};

@@ -30,7 +30,6 @@ uniform sampler2D tex1; //normalMap
 #ifdef SPECULAR_MAP
 uniform sampler2D tex6; //specularMap
 #endif
-uniform vec3 ambientColor;
 
 void main()
 {

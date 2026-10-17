@@ -29,12 +29,21 @@ namespace hpl {
 	#define MAX_TEXTUREUNITS (8)
 	#define MAX_NUM_OF_LIGHTS (30)
 
-	enum eMatrix
+
+	enum eBlendFunc
 	{
-		eMatrix_ModelView,
-		eMatrix_Projection,
-		eMatrix_Texture,
-		eMatrix_LastEnum
+		eBlendFunc_Zero,
+		eBlendFunc_One,
+		eBlendFunc_SrcColor,
+		eBlendFunc_OneMinusSrcColor,
+		eBlendFunc_DestColor,
+		eBlendFunc_OneMinusDestColor,
+		eBlendFunc_SrcAlpha,
+		eBlendFunc_OneMinusSrcAlpha,
+		eBlendFunc_DestAlpha,
+		eBlendFunc_OneMinusDestAlpha,
+		eBlendFunc_SrcAlphaSaturate,
+		eBlendFunc_LastEnum
 	};
 
 	enum eTileRotation

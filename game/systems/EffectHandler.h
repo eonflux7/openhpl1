@@ -276,8 +276,7 @@ private:
 
 	float mfTime;
 
-	iGpuProgram *mpVtxProgram;
-	iGpuProgram *mpFragProgram;
+	iGpuProgram *mpProgram;
 };
 
 //-----------------------------------------
