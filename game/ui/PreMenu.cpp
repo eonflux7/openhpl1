@@ -127,15 +127,15 @@ void cPreMenu::LoadConfig()
 void cPreMenu::Reset()
 {
 	mbActive = false;
-	mfAlpha = 0;
-	mfAlphaAdd = 0.6f;
+	mfStartupLogoBrightness = 0;
+	mfLogoBrightnessRatePerSecond = 0.6f;
 
 	mlState = 0;
 	mlCurrentLogo = 0;
 
 	mlCurrentTextChar = 0;
 	mfNewCharCount =0;
-	mfClickCount =0;
+	mfTypeSoundDelaySeconds =0;
 
 	mfFontColor =1;
 	mfLogoSizeFactor = 1.05f;
@@ -149,7 +149,7 @@ void cPreMenu::Reset()
 	mfLastTextSpeed1 = 0.25f;
 	mfLastTextSpeed2 = 0.5f;
 
-	mfAdd = 0.002f;
+	mfLogoScaleStep = 0.002f;
 	
 	mbFadeWindSound = false;
 	mbFadeRainSound = false;
@@ -195,7 +195,7 @@ void cPreMenu::OnPostSceneDraw()
 	if(mlState == 1 || mlState ==2)
 	{
 		mpInit->mpGraphicsHelper->DrawTexture(mvTextures[mlCurrentLogo],cVector3f(0,0,-10),cVector3f(800,600,0),
-												cColor(mfAlpha,1));
+												cColor(mfStartupLogoBrightness,1));
 	}
 	if (mlState == 4)
 	{
@@ -273,7 +273,7 @@ void cPreMenu::OnDraw()
 void cPreMenu::Update(float afTimeStep)
 {
 
-	mfStateTimer += afTimeStep;
+	mfStateElapsedSeconds += afTimeStep;
 
 	// Update wind sound fading
 	if (mbFadeWindSound)
@@ -386,7 +386,7 @@ void cPreMenu::Update(float afTimeStep)
 		if(mbShowText==false)
 		{
 			mlState = 1;
-			mfStateTimer = 0;
+			mfStateElapsedSeconds = 0;
 			return;
 		}
 		if (mpWindSound == nullptr)
@@ -407,14 +407,14 @@ void cPreMenu::Update(float afTimeStep)
 		if(mlCurrentTextChar < mlMaxChars)
 		{
 			mfNewCharCount -= afTimeStep;
-			mfClickCount  -=afTimeStep;
+			mfTypeSoundDelaySeconds  -=afTimeStep;
 
 			if(mfNewCharCount <=0)
 			{
-				if(mfClickCount <=0)
+				if(mfTypeSoundDelaySeconds <=0)
 				{
 					mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_type",false,1);
-					mfClickCount = (1.0f / 8.0f) + cMath::RandRectf(-0.05f,0.05f);
+					mfTypeSoundDelaySeconds = (1.0f / 8.0f) + cMath::RandRectf(-0.05f,0.05f);
 				}
 
 				mlCurrentTextChar++;
@@ -423,7 +423,7 @@ void cPreMenu::Update(float afTimeStep)
 				if(mlCurrentTextChar == mlMaxChars) 
 				{
 					mlState = 3;
-					mfStateTimer = 0;
+					mfStateElapsedSeconds = 0;
 				}
 
 				int lCharCount =0;
@@ -481,27 +481,27 @@ void cPreMenu::Update(float afTimeStep)
 			mbPlayingMusic = true;
 		}
 
-		mfAlpha += afTimeStep*mfAlphaAdd;
+		mfStartupLogoBrightness += afTimeStep*mfLogoBrightnessRatePerSecond;
 
-		if(mfAlphaAdd >0)
+		if(mfLogoBrightnessRatePerSecond >0)
 		{
-			if(mfAlpha >1){
-				mfAlpha = 1;
-				mfAlphaAdd = -mfAlphaAdd;
+			if(mfStartupLogoBrightness >1){
+				mfStartupLogoBrightness = 1;
+				mfLogoBrightnessRatePerSecond = -mfLogoBrightnessRatePerSecond;
 			}
 		}
 		else
 		{
-			if(mfAlpha <0)
+			if(mfStartupLogoBrightness <0)
 			{
-				mfAlpha =0;
-				mfAlphaAdd = -mfAlphaAdd;
+				mfStartupLogoBrightness =0;
+				mfLogoBrightnessRatePerSecond = -mfLogoBrightnessRatePerSecond;
 
 				mlCurrentLogo++;
 				if(mlCurrentLogo >= (int) mvTextures.size())
 				{
 					mlState=4;
-					mfStateTimer = 0;
+					mfStateElapsedSeconds = 0;
 				}
 			}
 		}
@@ -510,10 +510,10 @@ void cPreMenu::Update(float afTimeStep)
 	// STATE 2 (FAST FADE LOGO)
 	else if(mlState ==2)
 	{
-		mfAlpha -= cMath::Abs(mfAlphaAdd) * afTimeStep;
-		if(mfAlpha<=0)
+		mfStartupLogoBrightness -= cMath::Abs(mfLogoBrightnessRatePerSecond) * afTimeStep;
+		if(mfStartupLogoBrightness<=0)
 		{
-			mfStateTimer = 0;
+			mfStateElapsedSeconds = 0;
 			mlState=1;
 			mlCurrentLogo++;
 			if (mlCurrentLogo >= (int) mvTextures.size())
@@ -541,10 +541,10 @@ void cPreMenu::Update(float afTimeStep)
 		mlCurrentTextChar = mlMaxChars;
 		mfNewCharCount += afTimeStep;
 
-		if (mfStateTimer > 1)
+		if (mfStateElapsedSeconds > 1)
 		{
 			mlState = 5;
-			mfStateTimer = 0;
+			mfStateElapsedSeconds = 0;
 		}
 		
 	}
@@ -573,7 +573,7 @@ void cPreMenu::Update(float afTimeStep)
 		mfLastTextSpeed2 += 8 * afTimeStep;
 		mfLastTextColor -= 0.5f * afTimeStep;
 		
-		if (mfStateTimer > 0.5f)
+		if (mfStateElapsedSeconds > 0.5f)
 		{
 			if (!mbPlayingMusic) 
 			{
@@ -582,10 +582,10 @@ void cPreMenu::Update(float afTimeStep)
 			}
 		}
 
-		if (mfStateTimer > 3.5f)
+		if (mfStateElapsedSeconds > 3.5f)
 		{
 			mlState = 1;
-            mfStateTimer = 0;
+            mfStateElapsedSeconds = 0;
 		}
 
 	}
@@ -599,36 +599,36 @@ void cPreMenu::Update(float afTimeStep)
 			mbPlayingThunderSound = true;
 		}
 
-		if (mbFlash && mfStateTimer >= 0.2f)
+		if (mbFlash && mfStateElapsedSeconds >= 0.2f)
 			mbFlash = false;
 
-		if (mfStateTimer >0.5f && mfStateTimer < 1.5f)
+		if (mfStateElapsedSeconds >0.5f && mfStateElapsedSeconds < 1.5f)
 			if (mfEpFade <1) mfEpFade += afTimeStep;
 
-		if (mfStateTimer < 1)
+		if (mfStateElapsedSeconds < 1)
 		{
-			mfAdd = 0.2f * afTimeStep;
+			mfLogoScaleStep = 0.2f * afTimeStep;
 		}
-		else if ( mfStateTimer < 1.5f )
+		else if ( mfStateElapsedSeconds < 1.5f )
 		{
-			mfAdd = 0.08f * afTimeStep;
+			mfLogoScaleStep = 0.08f * afTimeStep;
 		}
-		else if ( mfStateTimer < 1.75f )
+		else if ( mfStateElapsedSeconds < 1.75f )
 		{
-			mfAdd = 0.05f *afTimeStep;
+			mfLogoScaleStep = 0.05f *afTimeStep;
 		}
-		else if ( mfStateTimer >= 1.75f )
+		else if ( mfStateElapsedSeconds >= 1.75f )
 		{
-            mfAdd = 0.03f *afTimeStep;
+            mfLogoScaleStep = 0.03f *afTimeStep;
 			
 			mfLogoFade -= 0.25f*afTimeStep;
 			mfEpFade = mfLogoFade;
 		}
 
-		mfLogoSizeFactor -= mfAdd;
+		mfLogoSizeFactor -= mfLogoScaleStep;
 		mvecLogoSize = cVector3f(1024,301,0) * mfLogoSizeFactor;
 
-		if (mfStateTimer > 5)
+		if (mfStateElapsedSeconds > 5)
 		{
 			if (mfRaindropFade > 0)
 				mfRaindropFade -= afTimeStep;
@@ -651,17 +651,17 @@ void cPreMenu::OnButtonDown()
 {
 	if(mlState ==0)	
 	{
-		mfStateTimer = 0;
+		mfStateElapsedSeconds = 0;
 		mlState = 3;
 	}
 	if(mlState ==1)
 	{
-		mfStateTimer = 0;
+		mfStateElapsedSeconds = 0;
 		mlState = 2;
 	}
 	if(mlState == 5) 
 	{
-		mfStateTimer = 0;
+		mfStateElapsedSeconds = 0;
 		mlState = 1;
 	}
 	if (mlState == 4)SetActive(false);
@@ -669,11 +669,11 @@ void cPreMenu::OnButtonDown()
 
 //-----------------------------------------------------------------------
 
-void cPreMenu::SetActive(bool abX)
+void cPreMenu::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -694,7 +694,7 @@ void cPreMenu::SetActive(bool abX)
 		mpEpTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("title_ep1.jpg",false);
 
 
-		mfAlpha =0;
+		mfStartupLogoBrightness =0;
 	}
 	else
 	{

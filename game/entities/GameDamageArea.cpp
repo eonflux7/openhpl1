@@ -68,7 +68,7 @@ iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector
 
 	mpInit->mpMapHandler->AddGameEntity(pArea);
 	
-	//Return something else later perhaps.
+	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
 
@@ -92,7 +92,7 @@ cGameDamageArea::cGameDamageArea(cInit *apInit,const tString& asName) : iGameEnt
 
 	mbHasInteraction = false;
 
-	mfUpdateCount =0;
+	mfDamageDelaySeconds =0;
 }
 
 //-----------------------------------------------------------------------
@@ -117,9 +117,9 @@ void cGameDamageArea::OnPlayerPick()
 
 void cGameDamageArea::Update(float afTimeStep)
 {
-	if(mfUpdateCount <=0)
+	if(mfDamageDelaySeconds <=0)
 	{
-		mfUpdateCount = 1/mfUpdatesPerSec;
+		mfDamageDelaySeconds = 1/mfUpdatesPerSec;
 
 		iPhysicsBody *pAreaBody = mvBodies[0];
 		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -128,7 +128,7 @@ void cGameDamageArea::Update(float afTimeStep)
 		cCollideData collideData;
 		collideData.SetMaxSize(1);
 		
-		//Get bodies and add to list, this incase the portal contaniner gets changed.
+		// Snapshot candidates in case damage changes the portal container.
 		std::list<iPhysicsBody*> lstBodies;
 		cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																	pAreaBody->GetBoundingVolume());
@@ -139,7 +139,7 @@ void cGameDamageArea::Update(float afTimeStep)
 		}
 
 		////////////////////////////////////////////////////////
-		//Iterate all bodies in world and check for intersection
+		// Check candidate bodies overlapping the area bounds.
 		std::list<iPhysicsBody*>::iterator it = lstBodies.begin();
         for(; it != lstBodies.end(); ++it)
 		{
@@ -201,7 +201,7 @@ void cGameDamageArea::Update(float afTimeStep)
 	}
 	else
 	{
-		mfUpdateCount -= afTimeStep;
+		mfDamageDelaySeconds -= afTimeStep;
 	}
 
 }

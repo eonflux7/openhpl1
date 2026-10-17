@@ -73,9 +73,9 @@ public:
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
 
-	// Black Plague: the picture shown while loading, and a link that is
-	// locked says so (sound and message) in place of changing the map
+	// Black Plague/Requiem loading-screen image.
 	tString msLoadImage;
+	// Locked interactions play feedback instead of requesting a map change.
 	bool mbLocked;
 	tString msLockedSound;
 	tWString msLockedDesc;

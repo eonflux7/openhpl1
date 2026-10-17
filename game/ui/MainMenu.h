@@ -90,11 +90,11 @@ public:
 	virtual void OnActivate(){}
 	
 	bool IsActive(){ return mbActive;}
-	void  SetActive(bool abX)
+	void  SetActive(bool abActive)
 	{ 
-		if(mbActive == abX) return;
+		if(mbActive == abActive) return;
 		
-		mbActive = abX;
+		mbActive = abActive;
 		if(mbActive) OnActivate();
 	}
 
@@ -103,7 +103,7 @@ protected:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 	
-	cVector3f mvPositon;
+	cVector3f mvWidgetPos;
 	cRect2f mRect;
 
 	float mfAlpha;
@@ -301,12 +301,12 @@ class cMainMenuWidget_NewGame : public cMainMenuWidget_Button
 public:
 	cMainMenuWidget_NewGame(cInit *apInit, const cVector3f &avPos, const tWString& asText,
 						cVector2f avFontSize, eFontAlign aAlignment,
-						eGameDifficulty aDiffuculty);
+						eGameDifficulty aDifficulty);
 
 	void OnMouseDown(eMButton aButton) override;
 
 private:
-	eGameDifficulty mDiffuculty;
+	eGameDifficulty mDifficulty;
 };
 
 //---------------------------------------------
@@ -385,7 +385,7 @@ public:
 
 	void OnMouseDoubleClick(eMButton aButton);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;
@@ -430,7 +430,7 @@ private:
 	iFontData *mpTipFont;
 
     std::vector<cMainMenuParticle> mvRainDrops;
-	float mfRainDropCount;
+	float mfRainRefreshRemainingSeconds;
 
 	std::vector<cMainMenuParticle> mvRainSplashes;
 
@@ -455,7 +455,7 @@ private:
 	tMainMenuWidgetList mlstWidgets;
 	
 	eMainMenuState mState;
-	std::vector<tMainMenuWidgetList> mvState;
+	std::vector<tMainMenuWidgetList> mvStateWidgets;
 
 	bool mbGameActive;
 

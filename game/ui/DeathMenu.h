@@ -52,7 +52,7 @@ protected:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 	
-	cVector3f mvPositon;
+	cVector3f mvPosition;
 	cRect2f mRect;
 
 	iFontData *mpFont;
@@ -114,7 +114,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnMouseUp(eMButton aButton);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;

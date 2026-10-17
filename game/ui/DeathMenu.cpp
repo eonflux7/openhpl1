@@ -37,7 +37,7 @@ cDeathMenuButton::cDeathMenuButton(cInit *apInit, cVector2f avPos, const tWStrin
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-	mvPositon = cVector3f(avPos.x, avPos.y, 40);
+	mvPosition = cVector3f(avPos.x, avPos.y, 40);
 	
 	mvFontSize = cVector2f(21,21);
 	msText = asText;
@@ -80,9 +80,9 @@ void cDeathMenuButton::OnDraw()
 {
 	float fAlpha = mpInit->mpDeathMenu->mfAlpha;
 
-	mpFont->Draw(mvPositon,mvFontSize,cColor(0.8f,0.7f,0.7f,fAlpha),eFontAlign_Center,msText.c_str());
+	mpFont->Draw(mvPosition,mvFontSize,cColor(0.8f,0.7f,0.7f,fAlpha),eFontAlign_Center,msText.c_str());
 	
-	mpFont->Draw(mvPositon+cVector3f(0,0,1),mvFontSize,cColor(1,0,0,fAlpha*mfAlpha),eFontAlign_Center,msText.c_str());
+	mpFont->Draw(mvPosition+cVector3f(0,0,1),mvFontSize,cColor(1,0,0,fAlpha*mfAlpha),eFontAlign_Center,msText.c_str());
 }
 
 //-----------------------------------------------------------------------
@@ -190,7 +190,7 @@ void cDeathMenu::OnDraw()
 							kTranslate("DeathMenu","YouAreDead").c_str());
 
 	////////////////////////////////
-	// Update buttons
+	// Draw buttons
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -262,7 +262,7 @@ void cDeathMenu::AddMousePos(const cVector2f &avRel)
 void cDeathMenu::OnMouseDown(eMButton aButton)
 {
 	////////////////////////////////
-	// Update buttons
+	// Dispatch button presses
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -280,7 +280,7 @@ void cDeathMenu::OnMouseDown(eMButton aButton)
 void cDeathMenu::OnMouseUp(eMButton aButton)
 {
 	////////////////////////////////
-	// Update buttons
+	// Dispatch button releases
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -297,11 +297,11 @@ void cDeathMenu::OnMouseUp(eMButton aButton)
 
 //-----------------------------------------------------------------------
 
-void cDeathMenu::SetActive(bool abX)
+void cDeathMenu::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{

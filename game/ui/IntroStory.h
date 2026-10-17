@@ -41,10 +41,10 @@ public:
 
 	void OnDraw();
 
-	void FadeBrightnessTo(float afDarkness,float afTime);
-	void FadeAlphaTo(float afDarkness,float afTime);
+	void FadeBrightnessTo(float afBrightness,float afDurationSeconds);
+	void FadeAlphaTo(float afAlpha,float afDurationSeconds);
 
-	void MoveTo(const cVector3f &avPos,float afTime);
+	void MoveTo(const cVector3f &avPos,float afDurationSeconds);
 
 	void Reset();
 	
@@ -52,7 +52,7 @@ public:
 	//Variables
     cVector3f mvCameraPosition;
 	cVector3f mvFinalPos;
-	cVector3f mvPosStep;
+	cVector3f mvVelocity;
 	float mfPosCount;
 	cVector3f mvPosDistMul;
 
@@ -64,11 +64,11 @@ public:
 	bool mbActive;
 
 	float mfBrightness;
-	float mfBrightnessStep;
+	float mfBrightnessRatePerSecond;
 	float mfFinalBrightness;
 
 	float mfAlpha;
-	float mfAlphaStep;
+	float mfAlphaRatePerSecond;
 	float mfFinalAlpha;
 
 
@@ -96,7 +96,7 @@ public:
 	void Exit();
 	
 	bool IsActive(){ return mbActive;}
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
     
 private:
 	void SetMessage(const tWString &asMess);
@@ -119,7 +119,7 @@ private:
 
 	cIntroImage mvImages[INTRO_IMAGE_NUM];
 
-	float mfTimerCount;
+	float mfCueRemainingSeconds;
 	int mlNextStop;
 
 	float mfVoiceVol;

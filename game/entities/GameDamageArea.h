@@ -60,13 +60,13 @@ public:
 
 	void Update(float afTimeStep) override;
 
-	void SetDamage(float afX){ mfDamage = afX;}
-	void SetUpdatesPerSec(float afX){ mfUpdatesPerSec = afX;}
-	void SetStrength(int alX){ mlStrength = alX;}
-	void SetDisableObjects(bool abX){ mbDisableObjects = abX;}
-	void SetDisableEnemies(bool abX){ mbDisableEnemies = abX;}
+	void SetDamage(float afDamage){ mfDamage = afDamage;}
+	void SetUpdatesPerSec(float afUpdatesPerSec){ mfUpdatesPerSec = afUpdatesPerSec;}
+	void SetStrength(int alStrength){ mlStrength = alStrength;}
+	void SetDisableObjects(bool abDisableObjects){ mbDisableObjects = abDisableObjects;}
+	void SetDisableEnemies(bool abDisableEnemies){ mbDisableEnemies = abDisableEnemies;}
 	void SetDamageType(ePlayerDamageType aType){ mDamageType = aType;}
-	void SetDamageSound(const tString& asX){ msDamageSound = asX;}
+	void SetDamageSound(const tString& asSound){ msDamageSound = asSound;}
 	
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;
@@ -84,7 +84,7 @@ private:
 	int mDamageType = ePlayerDamageType_BloodSplash;
 	tString msDamageSound;
 
-	float mfUpdateCount;
+	float mfDamageDelaySeconds;
 };
 
 //------------------------------------------

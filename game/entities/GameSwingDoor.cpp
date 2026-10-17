@@ -88,7 +88,7 @@ void cEntityLoader_GameSwingDoor::AfterLoad(TiXmlElement *apRootElem, const cMat
 	}
 
 	///////////////////////////////////
-	// Add a the object as user data to the body, to get the obejct later on.
+	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
 		if(mvBodies[i])
@@ -213,7 +213,7 @@ void cGameSwingDoor::OnPlayerInteract()
 		cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pPickedBody);
 		if(pStickArea)
 		{
-			if(pStickArea->GetCanDeatch()==false) return;
+			if(pStickArea->CanDetachBody()==false) return;
 		}
 		else if(pPickedBody->GetMass()==0)
 		{
@@ -270,11 +270,11 @@ void cGameSwingDoor::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
-void cGameSwingDoor::SetLocked(bool abX)
+void cGameSwingDoor::SetLocked(bool abLocked)
 {
-	if(mbLocked == abX) return;
+	if(mbLocked == abLocked) return;
 
-	mbLocked = abX;
+	mbLocked = abLocked;
 
 	for(size_t i=0; i<mvJoints.size(); ++i)
 	{
@@ -363,7 +363,7 @@ void cGameSwingDoor::BreakAction()
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
 	//////////////////
-	//Check if player os holding object
+	// Release the object if the player is holding it.
 	if( (mpInit->mpPlayer->GetState()==ePlayerState_Grab ||
 		mpInit->mpPlayer->GetState()==ePlayerState_Move ||
 		mpInit->mpPlayer->GetState()==ePlayerState_Push)

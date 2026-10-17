@@ -91,54 +91,54 @@ cIntroImage::~cIntroImage()
 
 //-----------------------------------------------------------------------
 
-void cIntroImage::MoveTo(const cVector3f &avPos,float afTime)
+void cIntroImage::MoveTo(const cVector3f &avPos,float afDurationSeconds)
 {
-	if(afTime==0)
+	if(afDurationSeconds==0)
 	{
 		mvCameraPosition = avPos;
-		mvPosStep = 0;
+		mvVelocity = 0;
 		mvFinalPos = avPos;
 	}
 	else
 	{
-		mfPosCount =afTime;
+		mfPosCount =afDurationSeconds;
 		mvFinalPos = avPos;
-		mvPosStep = (avPos - mvCameraPosition) /afTime;
+		mvVelocity = (avPos - mvCameraPosition) /afDurationSeconds;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-void cIntroImage::FadeBrightnessTo(float afBrightness,float afTime)
+void cIntroImage::FadeBrightnessTo(float afBrightness,float afDurationSeconds)
 {
-	if(afTime==0)
+	if(afDurationSeconds==0)
 	{
 		mfFinalBrightness = afBrightness;
 		mfBrightness = afBrightness;
-		mfBrightnessStep=0;
+		mfBrightnessRatePerSecond=0;
 	}
 	else
 	{
 		mfFinalBrightness = afBrightness;
-		mfBrightnessStep = (mfFinalBrightness - mfBrightness)/afTime;
+		mfBrightnessRatePerSecond = (mfFinalBrightness - mfBrightness)/afDurationSeconds;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-void cIntroImage::FadeAlphaTo(float afAlpha,float afTime)
+void cIntroImage::FadeAlphaTo(float afAlpha,float afDurationSeconds)
 {
-	if(afTime==0)
+	if(afDurationSeconds==0)
 	{
 		mfFinalAlpha = afAlpha;
 		mfAlpha = afAlpha;
-		mfAlphaStep=0;
+		mfAlphaRatePerSecond=0;
 		mfPosCount =0;
 	}
 	else
 	{
 		mfFinalAlpha = afAlpha;
-		mfAlphaStep = (mfFinalAlpha - mfAlpha)/afTime;
+		mfAlphaRatePerSecond = (mfFinalAlpha - mfAlpha)/afDurationSeconds;
 	}
 }
 
@@ -149,16 +149,16 @@ void cIntroImage::Reset()
 	mbActive = false;
 	
 	mfBrightness = 1;
-	mfBrightnessStep = 0;
+	mfBrightnessRatePerSecond = 0;
 	mfFinalBrightness =1;
 
 	mfAlpha = 1;
-	mfAlphaStep = 0;
+	mfAlphaRatePerSecond = 0;
 	mfFinalAlpha = 1;
 
 	mvCameraPosition =0;
 	mvFinalPos =0;
-	mvPosStep =0;
+	mvVelocity =0;
 	mfPosCount =0;
 
 	mvPosDistMul = 1;
@@ -174,7 +174,7 @@ void cIntroImage::Update(float afTimeStep)
 	//Position
 	if(mvCameraPosition != mvFinalPos)
 	{
-		cVector3f vStep = mvPosStep;
+		cVector3f vStep = mvVelocity;
 		cVector3f vDist = mvFinalPos - mvCameraPosition;
 
 		if(mvPosDistMul.x > 0) vStep.x = cMath::Min(vStep.x, vDist.x * mvPosDistMul.x);
@@ -184,16 +184,16 @@ void cIntroImage::Update(float afTimeStep)
 		mvCameraPosition += vStep * afTimeStep;
 		
 		//X
-		if(mvPosStep.x > 0 && mvCameraPosition.x > mvFinalPos.x) mvCameraPosition.x = mvFinalPos.x;
-		if(mvPosStep.x < 0 && mvCameraPosition.x < mvFinalPos.x) mvCameraPosition.x = mvFinalPos.x;
+		if(mvVelocity.x > 0 && mvCameraPosition.x > mvFinalPos.x) mvCameraPosition.x = mvFinalPos.x;
+		if(mvVelocity.x < 0 && mvCameraPosition.x < mvFinalPos.x) mvCameraPosition.x = mvFinalPos.x;
 		
 		//Y
-		if(mvPosStep.y > 0 && mvCameraPosition.y > mvFinalPos.y) mvCameraPosition.y = mvFinalPos.y;
-		if(mvPosStep.y < 0 && mvCameraPosition.y < mvFinalPos.y) mvCameraPosition.y = mvFinalPos.y;
+		if(mvVelocity.y > 0 && mvCameraPosition.y > mvFinalPos.y) mvCameraPosition.y = mvFinalPos.y;
+		if(mvVelocity.y < 0 && mvCameraPosition.y < mvFinalPos.y) mvCameraPosition.y = mvFinalPos.y;
 
 		//Z
-		if(mvPosStep.z > 0 && mvCameraPosition.z > mvFinalPos.z) mvCameraPosition.z = mvFinalPos.z;
-		if(mvPosStep.z < 0 && mvCameraPosition.z < mvFinalPos.z) mvCameraPosition.z = mvFinalPos.z;
+		if(mvVelocity.z > 0 && mvCameraPosition.z > mvFinalPos.z) mvCameraPosition.z = mvFinalPos.z;
+		if(mvVelocity.z < 0 && mvCameraPosition.z < mvFinalPos.z) mvCameraPosition.z = mvFinalPos.z;
 
 		mlstPrevPos.push_back(mvCameraPosition);
 		if(mlstPrevPos.size() > 14)
@@ -207,12 +207,12 @@ void cIntroImage::Update(float afTimeStep)
 	//Brightness
 	if(mfBrightness != mfFinalBrightness)
 	{
-		mfBrightness += mfBrightnessStep*afTimeStep;
-		if(mfBrightnessStep >0 && mfBrightness>=mfFinalBrightness)
+		mfBrightness += mfBrightnessRatePerSecond*afTimeStep;
+		if(mfBrightnessRatePerSecond >0 && mfBrightness>=mfFinalBrightness)
 		{
 			mfBrightness = mfFinalBrightness;
 		}
-		if(mfBrightnessStep <0 && mfBrightness<=mfFinalBrightness)
+		if(mfBrightnessRatePerSecond <0 && mfBrightness<=mfFinalBrightness)
 		{
 			mfBrightness = mfFinalBrightness;
 		}
@@ -223,12 +223,12 @@ void cIntroImage::Update(float afTimeStep)
 	//Alpha
 	if(mfAlpha != mfFinalAlpha)
 	{
-		mfAlpha += mfAlphaStep*afTimeStep;
-		if(mfAlphaStep >0 && mfAlpha>=mfFinalAlpha)
+		mfAlpha += mfAlphaRatePerSecond*afTimeStep;
+		if(mfAlphaRatePerSecond >0 && mfAlpha>=mfFinalAlpha)
 		{
 			mfAlpha = mfFinalAlpha;
 		}
-		if(mfAlphaStep <0 && mfAlpha<=mfFinalAlpha)
+		if(mfAlphaRatePerSecond <0 && mfAlpha<=mfFinalAlpha)
 		{
 			mfAlpha = mfFinalAlpha;
 		}
@@ -357,11 +357,11 @@ cIntroStory::~cIntroStory(void)
 
 //-----------------------------------------------------------------------
 
-void cIntroStory::SetActive(bool abX)
+void cIntroStory::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	msCentreText = _W("");
 	msMessage = _W("");
@@ -387,7 +387,7 @@ void cIntroStory::SetActive(bool abX)
 
 		mpBlackTexture = mpTexManager->Create2D("effect_black.bmp",false);
 
-		mfTimerCount = 0.01f;
+		mfCueRemainingSeconds = 0.01f;
 		mlNextStop = kIntro_Image00_Start;
 		Update(1);
 
@@ -419,12 +419,12 @@ void cIntroStory::Update(float afTimeStep)
 {
 	//////////////////////////////////////
 	/// Update Timer
-	if(mfTimerCount >0)
+	if(mfCueRemainingSeconds >0)
 	{
-		mfTimerCount -= afTimeStep;
+		mfCueRemainingSeconds -= afTimeStep;
 
 		/// Update the image specific stuff
-		if(mfTimerCount<=0)
+		if(mfCueRemainingSeconds<=0)
 		{
 			Image00();
 			if(mbSearchNext) Image01();
@@ -560,7 +560,7 @@ void cIntroStory::Image00()
 
 			msCentreText = kTranslate("Intro", "00_01");
 
-			mfTimerCount = 5;
+			mfCueRemainingSeconds = 5;
 			mlNextStop = kIntro_Image00_Mess2;
 
 			break;
@@ -568,7 +568,7 @@ void cIntroStory::Image00()
 	case kIntro_Image00_Mess2:
 		{
 			mvImages[5].FadeBrightnessTo(0,5);
-			mfTimerCount = 5;
+			mfCueRemainingSeconds = 5;
 			mlNextStop = kIntro_Image01_Start;
 			break;
 		}
@@ -599,7 +599,7 @@ void cIntroStory::Image01()
 			
 			mvImages[0].MoveTo(cVector3f(540,392,0.8f),28);
 
-			mfTimerCount = 5.99f;
+			mfCueRemainingSeconds = 5.99f;
 			mlNextStop = kIntro_Image01_Mess2;
 
 			//Sounds to synch to rest of it.
@@ -612,7 +612,7 @@ void cIntroStory::Image01()
 		}
 	case kIntro_Image01_Mess2:
 		{
-			mfTimerCount = 8.1f;
+			mfCueRemainingSeconds = 8.1f;
 			mlNextStop = kIntro_Image01_Mess3;
 
 			//mpInit->mpGame->GetSound()->GetMusicHandler()->Play("music_story.ogg",0.55f,0.05f,false);
@@ -624,7 +624,7 @@ void cIntroStory::Image01()
 		}
 	case kIntro_Image01_Mess3:
 		{
-			mfTimerCount = 6.0f;
+			mfCueRemainingSeconds = 6.0f;
 			mlNextStop = kIntro_Image01_Mess4;
 
 			mvImages[0].MoveTo(cVector3f(540,342,1.2f),22);
@@ -638,7 +638,7 @@ void cIntroStory::Image01()
 	
 	case kIntro_Image01_Mess4:
 		{
-			mfTimerCount = 12.0f;
+			mfCueRemainingSeconds = 12.0f;
 			mlNextStop = kIntro_Image02_Start;
 
 			mpSoundHandler->PlayStream("intro_01_04.ogg",false,mfVoiceVol);
@@ -673,7 +673,7 @@ void cIntroStory::Image02()
 
 			mvImages[1].MoveTo(cVector3f(680,492,0.6f),28);
 			
-			mfTimerCount = 11.7f;
+			mfCueRemainingSeconds = 11.7f;
 			mlNextStop = kIntro_Image02_Mess2;
 
 			mpSoundHandler->PlayStream("intro_02_01.ogg",false,mfVoiceVol);
@@ -684,7 +684,7 @@ void cIntroStory::Image02()
 		}
 	case kIntro_Image02_Mess2:
 		{
-			mfTimerCount = 4.7f;
+			mfCueRemainingSeconds = 4.7f;
 			mlNextStop = kIntro_Image02_Mess3;
 
 			mvImages[1].MoveTo(cVector3f(540,420,1.3f),31);
@@ -700,7 +700,7 @@ void cIntroStory::Image02()
 		{
 			mvImages[0].mbActive = false;
 			
-			mfTimerCount = 12.0f;
+			mfCueRemainingSeconds = 12.0f;
 			mlNextStop = kIntro_Image03_Start;
 
 			mvImages[1].MoveTo(cVector3f(540,400,2.0f),25);
@@ -743,7 +743,7 @@ void cIntroStory::Image03()
 
 			mvImages[2].MoveTo(cVector3f(530, 340,0.8f),15);
 
-			mfTimerCount = 11.6f;
+			mfCueRemainingSeconds = 11.6f;
 			mlNextStop = kIntro_Image03_Mess2;
 
 			mpSoundHandler->PlayStream("intro_03_00.ogg",false,mfVoiceVol);
@@ -755,7 +755,7 @@ void cIntroStory::Image03()
 		{
 			mvImages[1].mbActive = false;
 
-			mfTimerCount = 10.3f;
+			mfCueRemainingSeconds = 10.3f;
 			mlNextStop = kIntro_Image03_Mess3;
 
 			mvImages[2].MoveTo(cVector3f(500, 300,1.2f),25);
@@ -767,7 +767,7 @@ void cIntroStory::Image03()
 		}
 	case kIntro_Image03_Mess3:
 		{
-			mfTimerCount = 9.5f;
+			mfCueRemainingSeconds = 9.5f;
 			mlNextStop = kIntro_Image04_Start;
 			
 			mvImages[2].FadeBrightnessTo(0, 7.5f);
@@ -812,7 +812,7 @@ void cIntroStory::Image04()
 
 			mvImages[3].MoveTo(cVector3f(560, 430,1.25f),15);
 
-			mfTimerCount = 4.5f;
+			mfCueRemainingSeconds = 4.5f;
 			mlNextStop = kIntro_Image04_Mess2;
 			
 			mpSoundHandler->PlayStream("intro_04_01.ogg",false,mfVoiceVol);
@@ -821,7 +821,7 @@ void cIntroStory::Image04()
 		}
 	case kIntro_Image04_Mess2:
 		{
-			mfTimerCount = 9.0f;
+			mfCueRemainingSeconds = 9.0f;
 			mlNextStop = kIntro_Image05_Start;
 
 			mpSoundHandler->PlayStream("intro_04_02.ogg",false,mfVoiceVol);
@@ -855,7 +855,7 @@ void cIntroStory::Image05()
 
 			mvImages[4].MoveTo(cVector3f(530, 480,1.15f),15);
 
-			mfTimerCount = 4.0f;
+			mfCueRemainingSeconds = 4.0f;
 			mlNextStop = kIntro_Image05_Mess2;
 
 			//mpSoundHandler->PlayStream("intro_04_01.ogg",false,mfVoiceVol);
@@ -866,7 +866,7 @@ void cIntroStory::Image05()
 		{
 			mvImages[3].mbActive = false;
 
-			mfTimerCount = 11.0f;
+			mfCueRemainingSeconds = 11.0f;
 			mlNextStop = kIntro_Image05_Mess3;
 
 			mvImages[4].FadeBrightnessTo(0,10);

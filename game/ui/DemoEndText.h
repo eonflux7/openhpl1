@@ -44,7 +44,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnButtonDown();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;
@@ -56,8 +56,8 @@ private:
 
 	bool mbActive;
 
-	float mfAlpha;
-	float mfAlphaAdd;
+	float mfImageBrightness;
+	float mfBrightnessRatePerSecond;
 
 	int mlCurrentImage;
 

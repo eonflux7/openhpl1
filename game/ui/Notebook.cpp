@@ -737,9 +737,9 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 			if(lRowCount > 1)
 			{
 				cNotePage page;
-				page.mlStart = lStartRow;
-				page.mlEnd = lStartRow + lRowCount-1;
-				lStartRow = page.mlEnd+1;
+				page.mlFirstRow = lStartRow;
+				page.mlEndRow = lStartRow + lRowCount-1;
+				lStartRow = page.mlEndRow+1;
 				mvPages.push_back(page);
 			}
 			//No text on page, skip the newer page.
@@ -748,26 +748,26 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 				lStartRow++;
 			}
 			lRowCount =0;
-			//Log("NEWPAGE Added page: %d - %d\n",page.mlStart,page.mlEnd);
+			//Log("NEWPAGE Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 		else if(lRowCount >= mlMaxRows)
 		{
 			cNotePage page;
-			page.mlStart = lStartRow;
-			page.mlEnd = lStartRow + lRowCount;
-			lStartRow = page.mlEnd;
+			page.mlFirstRow = lStartRow;
+			page.mlEndRow = lStartRow + lRowCount;
+			lStartRow = page.mlEndRow;
 			mvPages.push_back(page);
 			lRowCount =0;
-			//Log("MAX ROW Added page: %d - %d\n",page.mlStart,page.mlEnd);
+			//Log("MAX ROW Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 	}
 	if(lStartRow < (int)mvRows.size())
 	{
 		cNotePage page;
-		page.mlStart = lStartRow;
-		page.mlEnd = (int)mvRows.size();
+		page.mlFirstRow = lStartRow;
+		page.mlEndRow = (int)mvRows.size();
 		mvPages.push_back(page);
-		//Log("Added page: %d - %d\n",page.mlStart,page.mlEnd);
+		//Log("Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 	}
 
 	mlCurrentPage =0;
@@ -818,7 +818,7 @@ void cNotebookState_Note::OnDraw()
 	//////////////////////////////////
 	// Draw page text
 	cVector3f vPos(235, 107, 70);
-	for(int i=mvPages[mlCurrentPage].mlStart; i<mvPages[mlCurrentPage].mlEnd; ++i)
+	for(int i=mvPages[mlCurrentPage].mlFirstRow; i<mvPages[mlCurrentPage].mlEndRow; ++i)
 	{
 		mpTextFont->Draw(vPos,mvSize,cColor(0,1.0f*mpNotebook->GetAlpha()),
 							eFontAlign_Left,mvRows[i].c_str());
@@ -1177,9 +1177,9 @@ void cNotebook::SetBookType(eNotebookType aType)
 
 //-----------------------------------------------------------------------
 
-void cNotebook::SetActive(bool abX)
+void cNotebook::SetActive(bool abActive)
 {
-	mbActive = abX;
+	mbActive = abActive;
 	if(mbActive)
 	{
 		if(mpInit->mbHasHaptics)

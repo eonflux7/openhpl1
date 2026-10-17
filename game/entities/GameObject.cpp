@@ -255,7 +255,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 
 		pObject->mbDestroyable = cString::ToBool(pGameElem->Attribute("Destroyable"),false);
 		pObject->mfDestroyStrength = cString::ToFloat(pGameElem->Attribute("DestroyStrength"),0.0f);
-		pObject->msDestoySound = cString::ToString(pGameElem->Attribute("DestoySound"),"");
+		pObject->msDestroySound = cString::ToString(pGameElem->Attribute("DestoySound"),"");
 
 		pObject->mbPauseControllers = cString::ToBool(pGameElem->Attribute("PauseControllers"),true);
 		pObject->mbPauseGravity = cString::ToBool(pGameElem->Attribute("PauseGravity"),true);
@@ -276,7 +276,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 
 			pObject->mDisappearProps.mfMinCloseDistance =  cString::ToFloat(pGameElem->Attribute("DisappearMinCloseDist"),0);
 
-			pObject->mDisappearProps.mfTime = cMath::RandRectf(pObject->mDisappearProps.mfMinTime,
+			pObject->mDisappearProps.mfRemainingSeconds = cMath::RandRectf(pObject->mDisappearProps.mfMinTime,
 																pObject->mDisappearProps.mfMaxTime);
 		}
 
@@ -397,7 +397,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	}
 
 	///////////////////////////////////
-	// Add a the object as user data to the body, to get the obejct later on.
+	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
 		if(mvBodies[i])
@@ -453,13 +453,13 @@ cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	
 	mpBodyCallback = nullptr;
 
-	mpCurrentAttraction = nullptr;
-	mfAttractCount = 4.0f;
+	mpAttractedEnemy = nullptr;
+	mfAttractionCheckDelaySeconds = 4.0f;
 
 	mbIsMover = false;
 	mbForceLightOffset = false;
 
-	mfCloseToSameCount = cMath::RandRectf(0, 5.5f);
+	mfDuplicateCheckDelaySeconds = cMath::RandRectf(0, 5.5f);
 }
 
 //-----------------------------------------------------------------------
@@ -506,7 +506,7 @@ void cGameObject::OnPlayerInteract()
 
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pBody);
 	if(	(pBody->GetMass()==0 && pStickArea==nullptr) ||
-		(pStickArea && pStickArea->GetCanDeatch()==false))
+		(pStickArea && pStickArea->CanDetachBody()==false))
 	{
 		return;
 	}
@@ -531,7 +531,6 @@ void cGameObject::Update(float afTimeStep)
 	// Disappear
 	if(mDisappearProps.mbActive)
 	{
-		//TODO: Check per body!
 		float fMinDist = cMath::Vector3Dist(mpInit->mpPlayer->GetCamera()->GetPosition(),
 											mvBodies[0]->GetWorldPosition());
 		
@@ -546,8 +545,8 @@ void cGameObject::Update(float afTimeStep)
 
 		if(fMinDist >= mDisappearProps.mfMinDistance)
 		{
-			mDisappearProps.mfTime -= afTimeStep;
-			if(mDisappearProps.mfTime <=0)
+			mDisappearProps.mfRemainingSeconds -= afTimeStep;
+			if(mDisappearProps.mfRemainingSeconds <=0)
 			{
 				Break();
 			}
@@ -558,9 +557,9 @@ void cGameObject::Update(float afTimeStep)
 			cVector3f vPos = mpMeshEntity->GetBoundingVolume()->GetWorldCenter();
 			float fMinSqrDist =	mDisappearProps.mfMinCloseDistance*
 								mDisappearProps.mfMinCloseDistance;
-			if(mfCloseToSameCount <=0)
+			if(mfDuplicateCheckDelaySeconds <=0)
 			{
-				mfCloseToSameCount = 5.5f;
+				mfDuplicateCheckDelaySeconds = 5.5f;
 
 				tGameEntityIterator it = mpInit->mpMapHandler->GetGameEntityIterator();
 				while(it.HasNext())
@@ -577,14 +576,14 @@ void cGameObject::Update(float afTimeStep)
 									vPos);
 					if(fSqrDist < fMinSqrDist)
 					{
-						mDisappearProps.mfTime =0;
+						mDisappearProps.mfRemainingSeconds =0;
 						Break();
 					}
                 }
 			}
 			else
 			{
-				mfCloseToSameCount -= afTimeStep;
+				mfDuplicateCheckDelaySeconds -= afTimeStep;
 			}
 		}
 	}
@@ -695,7 +694,7 @@ void cGameObject::BreakAction()
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	
 	//////////////////
-	//Check if player os holding object
+	// Release the object if the player is holding it.
 	if( (mpInit->mpPlayer->GetState()==ePlayerState_Grab ||
 		 mpInit->mpPlayer->GetState()==ePlayerState_Move ||
 		 mpInit->mpPlayer->GetState()==ePlayerState_Push)
@@ -970,36 +969,36 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 
 	///////////////////////////////////////////////
 	//Check if the current attraction is near enough
-	if(mpCurrentAttraction)
+	if(mpAttractedEnemy)
 	{
 		////////////////////////////////////////
 		//Check for the attracted enemy
-		iCharacterBody *pBody =  mpCurrentAttraction->GetMover()->GetCharBody();
+		iCharacterBody *pBody =  mpAttractedEnemy->GetMover()->GetCharBody();
 		float fDist = cMath::Vector3Dist(	pBody->GetFeetPosition(),
 											mvBodies[0]->GetWorldPosition());
 
 		//Check if the enemy have become busy.
-		if(	(mpCurrentAttraction->GetCurrentStateId() != STATE_MOVETO  && fDist <pBody->GetSize().x*0.75f)
+		if(	(mpAttractedEnemy->GetCurrentStateId() != STATE_MOVETO  && fDist <pBody->GetSize().x*0.75f)
 			||
 			(mAttractProps.mbIsEaten && fDist <pBody->GetSize().x*0.75f))
 		{
 			//Use half the width here.
 			if(mAttractProps.mbIsEaten)
 			{
-				mpCurrentAttraction->SetTempFloat(mAttractProps.mfEatLength);
-				mpCurrentAttraction->ChangeState(STATE_EAT);
+				mpAttractedEnemy->SetTempFloat(mAttractProps.mfEatLength);
+				mpAttractedEnemy->ChangeState(STATE_EAT);
 			}
 
-			mpCurrentAttraction->SetAttracted(false);
-			mpCurrentAttraction = nullptr;
+			mpAttractedEnemy->SetAttracted(false);
+			mpAttractedEnemy = nullptr;
 
 			mbDestroyMe = true;
 			return;
 		}
-		else if(mpCurrentAttraction->GetCurrentStateId() != STATE_MOVETO)
+		else if(mpAttractedEnemy->GetCurrentStateId() != STATE_MOVETO)
 		{
-			mpCurrentAttraction->SetAttracted(false);
-			mpCurrentAttraction = nullptr;
+			mpAttractedEnemy->SetAttracted(false);
+			mpAttractedEnemy = nullptr;
 			return;
 		}
 	}
@@ -1007,7 +1006,7 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 	//Check if any enemy is near enough to be attracted
 	else
 	{
-		if(mfAttractCount <=0)
+		if(mfAttractionCheckDelaySeconds <=0)
 		{
 			float fClosestDist = 10000.0f;
 			iGameEnemy *pChosenEnemy = nullptr;
@@ -1049,17 +1048,17 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 			{
 				if(pChosenEnemy->MoveToPos(mvBodies[0]->GetWorldPosition() +cVector3f(0,0.2f,0)))
 				{
-					mpCurrentAttraction = pChosenEnemy;
+					mpAttractedEnemy = pChosenEnemy;
 					pChosenEnemy->SetAttracted(true);
 					m_setAttractedEnemies.insert(pChosenEnemy);
 				}
 			}
 
-			mfAttractCount = 0.2f;
+			mfAttractionCheckDelaySeconds = 0.2f;
 		}
 		else
 		{
-			mfAttractCount -= afTimeStep;
+			mfAttractionCheckDelaySeconds -= afTimeStep;
 		}
 	}
 }

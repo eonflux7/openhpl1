@@ -70,7 +70,7 @@ iEntity3D* cAreaLoader_GameForceArea::Load(const tString &asName, const cVector3
 
 	pArea->Setup();
 	
-	//Return something else later perhaps.
+	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
 
@@ -113,8 +113,8 @@ cGameForceArea::~cGameForceArea(void)
 
 void cGameForceArea::Setup()
 {
-	mvUp = cMath::MatrixInverse(mvBodies[0]->GetWorldMatrix()).GetUp();
-	mvUp.Normalise();
+	mvForceDirection = cMath::MatrixInverse(mvBodies[0]->GetWorldMatrix()).GetUp();
+	mvForceDirection.Normalise();
 }
 
 //-----------------------------------------------------------------------
@@ -131,7 +131,7 @@ void cGameForceArea::Update(float afTimeStep)
 	//Log("---------- UPDATE -------------\n");
 
 	////////////////////////////////////////////////////////
-	//Iterate all bodies in world and check for intersection
+	// Check candidate bodies overlapping the area bounds.
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																pAreaBody->GetBoundingVolume());
 	while(bodyIt.HasNext())
@@ -175,58 +175,58 @@ void cGameForceArea::Update(float afTimeStep)
 			{
 				iCharacterBody *pCharBody = pBody->GetCharacterBody();
 
-				float fRelSpeed = cMath::Vector3Dot(mvUp, pCharBody->GetForceVelocity());
-				float fDiff = mfDestSpeed - fRelSpeed;
+				float fSpeedAlongForce = cMath::Vector3Dot(mvForceDirection, pCharBody->GetForceVelocity());
+				float fSpeedError = mfDestSpeed - fSpeedAlongForce;
 
 				//If speed is above wanted, do nothing.
-				if(fDiff<=0) continue;
+				if(fSpeedError<=0) continue;
 
-				float fForce = fDiff * mfConstant;
+				float fForce = fSpeedError * mfConstant;
 				if(mfMaxForce != 0 && fForce > mfMaxForce) fForce = mfMaxForce;
 				if(mbMulWithMass) fForce *= pCharBody->GetMass();
 
-				fForce *= 10; //Character needs to extra force.
+				fForce *= 10; // Apply the character-specific force multiplier.
 
 				//Log("Vel: %s Speed: %f Force: %f\n",pCharBody->GetForceVelocity().ToString().c_str(),
-				//									fRelSpeed,fForce);
+				//									fSpeedAlongForce,fForce);
 
-                pCharBody->AddForce(mvUp * fForce);                				                				
+                pCharBody->AddForce(mvForceDirection * fForce);
 			}
 			///////////////////////////////
 			//Add Body Force
 			else if(mbAffectBodies)
 			{
-				cVector3f vPos =0;
+				cVector3f vContactWorldPos =0;
 				if(mbForceAtPoint)
 				{
 					for(int i=0; i< collideData.mlNumOfPoints; ++i)
 					{
-						vPos += collideData.mvContactPoints[i].mvPoint;
+						vContactWorldPos += collideData.mvContactPoints[i].mvPoint;
 					}
-					vPos = vPos / (float)collideData.mlNumOfPoints;
+					vContactWorldPos = vContactWorldPos / (float)collideData.mlNumOfPoints;
 				}
 
 				//Get relative speed
-				cVector3f vVel = mbForceAtPoint ?	pBody->GetVelocityAtPosition(vPos) :
+				cVector3f vBodyVelocity = mbForceAtPoint ?	pBody->GetVelocityAtPosition(vContactWorldPos) :
 													pBody->GetLinearVelocity();
 
-				float fRelSpeed = cMath::Vector3Dot(mvUp, vVel);
-				float fDiff = mfDestSpeed - fRelSpeed;
+				float fSpeedAlongForce = cMath::Vector3Dot(mvForceDirection, vBodyVelocity);
+				float fSpeedError = mfDestSpeed - fSpeedAlongForce;
 				
 				//If speed is above wanted, do nothing.
-				if(fDiff<=0) continue;
+				if(fSpeedError<=0) continue;
 
-                float fForce = fDiff * mfConstant;
+                float fForce = fSpeedError * mfConstant;
 				if(mfMaxForce != 0 && fForce > mfMaxForce) fForce = mfMaxForce;
 				if(mbMulWithMass) fForce *= pBody->GetMass();
 
 				if(mbForceAtPoint)
 				{
-					pBody->AddForceAtPosition(mvUp * fForce,vPos);
+					pBody->AddForceAtPosition(mvForceDirection * fForce,vContactWorldPos);
 				}
 				else
 				{
-					pBody->AddForce(mvUp * fForce);
+					pBody->AddForce(mvForceDirection * fForce);
 				}
 			}
 		}

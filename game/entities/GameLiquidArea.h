@@ -62,12 +62,12 @@ public:
 
 	void Update(float afTimeStep) override;
 	
-	void SetDensity(float afX){ mfDensity = afX;}
-	void SetLinearViscosity(float afX){ mfLinearViscosity = afX;}
-	void SetAngularViscosity(float afX){ mfAngularViscosity = afX;}
+	void SetDensity(float afDensity){ mfDensity = afDensity;}
+	void SetLinearViscosity(float afLinearViscosity){ mfLinearViscosity = afLinearViscosity;}
+	void SetAngularViscosity(float afAngularViscosity){ mfAngularViscosity = afAngularViscosity;}
 	void SetPhysicsMaterial(const tString asName);
 	void SetColor(const cColor &aColor){ mColor = aColor;}
-	void SetHasWaves(bool abX){ mbHasWaves = abX;}
+	void SetHasWaves(bool abHasWaves){ mbHasWaves = abHasWaves;}
     
 	void Setup();
 
@@ -90,10 +90,10 @@ private:
 	iPhysicsMaterial *mpPhysicsMaterial;
 
 	bool mbHasWaves;
-	float mfWaveAmp;
-	float mfWaveFreq;
+	float mfWaveAmplitude;
+	float mfWaveAngularFrequency; // Radians per second.
 
-	float mfTimeCount;
+	float mfWaveElapsedSeconds;
 
 	cPlanef mSurfacePlane;
 };
@@ -115,4 +115,4 @@ private:
 };
 
 
-#endif // GAME_GAME_DAMAGE_AREA_H
+#endif // GAME_GAME_LIQUID_AREA_H

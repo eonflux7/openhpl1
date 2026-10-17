@@ -78,7 +78,7 @@ void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
 	{
-		pObject->mfSpottedPlayerTime = cString::ToFloat(pGameElem->Attribute("SpottedPlayerTime"),3.0f);
+		pObject->mfAlertDurationSeconds = cString::ToFloat(pGameElem->Attribute("SpottedPlayerTime"),3.0f);
 		pObject->mAlertColor = cString::ToColor(pGameElem->Attribute("AlertColor"),cColor(1,1));
 		pObject->msAlertSound = cString::ToString(pGameElem->Attribute("AlertSound"),"");
 		pObject->msTurnSound = cString::ToString(pGameElem->Attribute("TurnSound"),"");
@@ -109,7 +109,7 @@ cGameCamera::cGameCamera(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mType = eGameEntityType_Camera;
 	mbHasInteraction = false;
 
-	mfSpottedPlayerTime = 3.0f;
+	mfAlertDurationSeconds = 3.0f;
 	mfLightRadius = 0;
 
 	mfMinAngle = cMath::ToRad(-30);
@@ -122,11 +122,11 @@ cGameCamera::cGameCamera(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mfDir = 1;
 	mfPauseCount = 0;
 
-	mfCheckCount = 0;
+	mfVisibilityCheckDelaySeconds = 0;
 	mbAlerted = false;
-	mlSpottedCount = 0;
+	mlDetectionScore = 0;
 	mbRayHit = false;
-	mfAlertCount = 0;
+	mfAlertRemainingSeconds = 0;
 
 	mpTurnSound = nullptr;
 }
@@ -161,14 +161,14 @@ void cGameCamera::Init()
 
 //-----------------------------------------------------------------------
 
-void cGameCamera::Setup(float afMinAngle, float afMaxAngle, float afMinPause, float afMaxPause, float afSpeed,
+void cGameCamera::Setup(float afMinAngle, float afMaxAngle, float afMinPauseSeconds, float afMaxPauseSeconds, float afRadiansPerSecond,
 						const tString &asSpottedCallback, const tString &asAlertOverCallback)
 {
 	mfMinAngle = afMinAngle;
 	mfMaxAngle = afMaxAngle;
-	mfMinPause = afMinPause;
-	mfMaxPause = afMaxPause;
-	mfSpeed = afSpeed;
+	mfMinPause = afMinPauseSeconds;
+	mfMaxPause = afMaxPauseSeconds;
+	mfSpeed = afRadiansPerSecond;
 	msSpottedCallback = asSpottedCallback;
 	msAlertOverCallback = asAlertOverCallback;
 }
@@ -181,12 +181,12 @@ void cGameCamera::Update(float afTimeStep)
 
 	//////////////////////////////////////
 	// In alert: still, until the time is up
-	if(mfAlertCount > 0)
+	if(mfAlertRemainingSeconds > 0)
 	{
 		StopTurnSound();
 
-		mfAlertCount -= afTimeStep;
-		if(mfAlertCount <= 0)
+		mfAlertRemainingSeconds -= afTimeStep;
+		if(mfAlertRemainingSeconds <= 0)
 		{
 			SetAlerted(false);
 
@@ -232,12 +232,12 @@ void cGameCamera::Update(float afTimeStep)
 
 	//////////////////////////////////////
 	// Look for the player, four times a second
-	if(mfCheckCount > 0)
+	if(mfVisibilityCheckDelaySeconds > 0)
 	{
-		mfCheckCount -= afTimeStep;
+		mfVisibilityCheckDelaySeconds -= afTimeStep;
 		return;
 	}
-	mfCheckCount = 0.25f;
+	mfVisibilityCheckDelaySeconds = 0.25f;
 
 	iCharacterBody *pPlayerBody = mpInit->mpPlayer->GetCharacterBody();
 	iLight3D *pLight = mvLights[0];
@@ -249,34 +249,34 @@ void cGameCamera::Update(float afTimeStep)
 	if(	cMath::CheckCollisionBV(*pLight->GetBoundingVolume(), *pPlayerBody->GetBody()->GetBV()) &&
 		HasLineOfSight(pLight,pPhysicsWorld))
 	{
-		//Seen at four checks before the alert
-		mlSpottedCount++;
-		if(mlSpottedCount >= 4)
+		// Alert at score four; missed checks reduce the score by one.
+		mlDetectionScore++;
+		if(mlDetectionScore >= 4)
 		{
-			mlSpottedCount = 4;
+			mlDetectionScore = 4;
 			PlayerIsSpotted();
 		}
 	}
 	else
 	{
-		mlSpottedCount--;
-		if(mlSpottedCount < 0) mlSpottedCount = 0;
+		mlDetectionScore--;
+		if(mlDetectionScore < 0) mlDetectionScore = 0;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-void cGameCamera::OnSetActive(bool abX)
+void cGameCamera::OnSetActive(bool abActive)
 {
-	if(abX==false) StopTurnSound();
+	if(abActive==false) StopTurnSound();
 }
 
 //-----------------------------------------------------------------------
 
-void cGameCamera::SetAlerted(bool abX)
+void cGameCamera::SetAlerted(bool abAlerted)
 {
-	if(mbAlerted == abX) return;
-	mbAlerted = abX;
+	if(mbAlerted == abAlerted) return;
+	mbAlerted = abAlerted;
 
 	if(mvLights.empty()) return;
 
@@ -285,7 +285,7 @@ void cGameCamera::SetAlerted(bool abX)
 		mvLights[0]->SetDiffuseColor(cColor(0,0));
 		mvLights[0]->FadeTo(mAlertColor,mfLightRadius,0.3f);
 
-		mfAlertCount = mfSpottedPlayerTime;
+		mfAlertRemainingSeconds = mfAlertDurationSeconds;
 
 		if(msAlertSound != "")
 		{
@@ -297,21 +297,21 @@ void cGameCamera::SetAlerted(bool abX)
 	else
 	{
 		mvLights[0]->FadeTo(mNormalColor,mfLightRadius,1.0f);
-		mfAlertCount = 0;
+		mfAlertRemainingSeconds = 0;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-bool cGameCamera::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
+bool cGameCamera::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams)
 {
-	if(pBody->IsCharacter() || pBody->GetCollide()==false || pBody->GetBlocksLight()==false)
+	if(apBody->IsCharacter() || apBody->GetCollide()==false || apBody->GetBlocksLight()==false)
 	{
 		return true;
 	}
 
 	//Things that can be seen through do not hide the player
-	iGameEntity* pEntity = (iGameEntity*)pBody->GetUserData();
+	iGameEntity* pEntity = (iGameEntity*)apBody->GetUserData();
 	if(pEntity && pEntity->GetMeshEntity())
 	{
 		cMeshEntity *pMeshEntity = pEntity->GetMeshEntity();
@@ -368,28 +368,28 @@ bool cGameCamera::HasLineOfSight(iLight3D *apLight, iPhysicsWorld *apPhysicsWorl
 
 	//Rays from the middle, head, feet and both sides: seen when no more
 	//than two of them are blocked.
-	cVector3f vPosAdd[5];
-	const int lPosAddNum = 5;
+	cVector3f vPlayerSampleOffsets[5];
+	const int lRayTargetCount = 5;
 
-	vPosAdd[0] = cVector3f(0,0,0); 
-	vPosAdd[1] = cVector3f(0,pCharBody->GetSize().y/2 -0.1f,0); 
-	vPosAdd[2] = cVector3f(0,-(pCharBody->GetSize().y/2 + 0.1f),0); 
+	vPlayerSampleOffsets[0] = cVector3f(0,0,0);
+	vPlayerSampleOffsets[1] = cVector3f(0,pCharBody->GetSize().y/2 -0.1f,0);
+	vPlayerSampleOffsets[2] = cVector3f(0,-(pCharBody->GetSize().y/2 + 0.1f),0);
 
 	cVector3f vRight = cMath::Vector3Cross(	cMath::Vector3Normalize(apLight->GetWorldPosition()-vPlayerPos),
 											cVector3f(0,1,0));
-	vPosAdd[3] = vRight * (pCharBody->GetSize().x *0.4f);
-	vPosAdd[4] = vRight * (pCharBody->GetSize().x *-0.4f);
+	vPlayerSampleOffsets[3] = vRight * (pCharBody->GetSize().x *0.4f);
+	vPlayerSampleOffsets[4] = vRight * (pCharBody->GetSize().x *-0.4f);
 	
-	int lCount =0;
-	for(int i=0; i<lPosAddNum; ++i)
+	int lBlockedRayCount =0;
+	for(int i=0; i<lRayTargetCount; ++i)
 	{
 		mbRayHit = false;
-		apPhysicsWorld->CastRay(this,vPlayerPos + vPosAdd[i],apLight->GetWorldPosition(),
+		apPhysicsWorld->CastRay(this,vPlayerPos + vPlayerSampleOffsets[i],apLight->GetWorldPosition(),
 								false,false,false,false);
-		if(mbRayHit) ++lCount;
+		if(mbRayHit) ++lBlockedRayCount;
 	}
 
-	return lCount <= 2;
+	return lBlockedRayCount <= 2;
 }
 
 //-----------------------------------------------------------------------

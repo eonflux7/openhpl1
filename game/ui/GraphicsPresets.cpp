@@ -44,10 +44,10 @@ namespace {
 		{false, 0, 1, 4},
 	};
 
-	int ClampAnisotropy(cInit *apInit, int alX)
+	int ClampAnisotropy(cInit *apInit, int alAnisotropy)
 	{
 		int lMax = cMath::Max(apInit->mpGame->GetGraphics()->GetLowLevel()->GetCaps(eGraphicCaps_MaxAnisotropicFiltering), 1);
-		return cMath::Min(alX, lMax);
+		return cMath::Min(alAnisotropy, lMax);
 	}
 }
 

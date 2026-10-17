@@ -148,8 +148,8 @@ public:
 	const tString& GetName(){ return msName;}
 
 	bool IsActive(){ return mbActive;}
-	void SetActive(bool abX);
-	virtual void OnSetActive(bool abX){}
+	void SetActive(bool abActive);
+	virtual void OnSetActive(bool abActive){}
 
 	virtual bool IsSaved(){ return mbIsSaved;}
 
@@ -163,17 +163,17 @@ public:
 	void OnUpdate(float afTimeStep);
 	void UpdateMove(float afTimeStep);
 
+	// On success, the attached mesh follows entity visibility and destruction;
+	// failure leaves it unattached when the skeleton or named bone is absent.
+	bool AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone);
+
 	/**
-	 * Black Plague: moves the entity (its first body) in a straight line to a position.
+	 * Black Plague: moves the first body, or the mesh if bodyless, toward a world position.
 	 * \param afMaxSpeed speed reached, in m/s
 	 * \param afAcceleration in m/s^2
 	 * \param afSlowDownDist the speed falls off linearly inside this distance from the goal
 	 * \param asCallback script function called on arrival: Func(string asEntity)
 	 */
-	//Black Plague: hangs a mesh entity on a bone of the entity's skeleton.
-	//It is shown and hidden with the entity and destroyed with it.
-	bool AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone);
-
 	void MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float afAcceleration,
 						float afSlowDownDist, const tString& asCallback);
 	bool IsMoving(){ return mbMoving;}
@@ -185,7 +185,7 @@ public:
 	void SetDescription(const tWString& asDesc){ msDescription = asDesc;}
 	const tWString& GetDescription(){ return msDescription;}
 
-	void SetShowDescritionOnce(bool abX){mbShowDescritionOnce = abX;}
+	void SetShowDescritionOnce(bool abShowOnce){mbShowDescritionOnce = abShowOnce;}
 	bool GetShowDescritionOnce(){ return mbShowDescritionOnce;}
 
 	bool GetHasBeenExamined(){ return mbHasBeenExamined;}
@@ -193,16 +193,16 @@ public:
 	void SetGameName(const tWString& asName){ msGameName = asName;}
 	const tWString& GetGameName(){ return msGameName;}
 
-	iPhysicsBody *GetBody(int alNum){ return mvBodies[alNum];}
+	iPhysicsBody *GetBody(int alIndex){ return mvBodies[alIndex];}
 	int GetBodyNum(){ return (int)mvBodies.size();}
 	void SetBodies(std::vector<iPhysicsBody*> &avBodies){ mvBodies = avBodies;}
 
-	iPhysicsJoint *GetJoint(int alNum){ return mvJoints[alNum];}
+	iPhysicsJoint *GetJoint(int alIndex){ return mvJoints[alIndex];}
 	int GetJointNum(){ return (int)mvJoints.size();}
 	void SetJoints(std::vector<iPhysicsJoint*> &avJoints){ mvJoints = avJoints;}
 
 	int GetLightNum(){ return (int)mvLights.size();}
-	iLight3D* GetLight(int alX){ return mvLights[alX];}
+	iLight3D* GetLight(int alIndex){ return mvLights[alIndex];}
 	void SetLights(std::vector<iLight3D*> &avLights){mvLights = avLights;}
 
 	
@@ -212,16 +212,17 @@ public:
 	void SetSoundEntities(std::vector<cSoundEntity*> &avSoundEntities){mvSoundEntities = avSoundEntities;}
 	
 	size_t GetHapticShapeNum(){ return mvHapticShapes.size();}
-	iHapticShape* GetHapticShape(size_t alNum){ return mvHapticShapes[alNum];}
+	iHapticShape* GetHapticShape(size_t alIndex){ return mvHapticShapes[alIndex];}
 	void SetHapticShapes(std::vector<iHapticShape*> &avShapes){mvHapticShapes = avShapes;}
 
 	void DestroyLight(iLight3D *apLight);
 	void DestroyParticleSystem(cParticleSystem3D* apPS);
 	void DestroyBillboard(cBillboard* apBillboard);
-	void SetSoundEntity(cSoundEntity* apSound);
+	// Remove from the entity list and destroy through the world.
+	void DestroySoundEntity(cSoundEntity* apSound);
 	
 	cMeshEntity *GetMeshEntity(){return mpMeshEntity;}
-	void SetMeshEntity(cMeshEntity *apEnity){mpMeshEntity = apEnity;}
+	void SetMeshEntity(cMeshEntity *apEntity){mpMeshEntity = apEntity;}
 	
 	void PlayerPick();
 	void PlayerInteract();
@@ -243,15 +244,15 @@ public:
 	bool GetHasInteraction(){ return mbHasInteraction;}
 
 	float GetMaxExamineDist(){ return mfMaxExamineDist;}
-	void SetMaxExamineDist(float afX){ mfMaxExamineDist = afX;}
+	void SetMaxExamineDist(float afDistance){ mfMaxExamineDist = afDistance;}
 	float GetMaxInteractDist(){ return mfMaxInteractDist;}
-	void SetMaxInteractDist(float afX){ mfMaxInteractDist = afX;}
+	void SetMaxInteractDist(float afDistance){ mfMaxInteractDist = afDistance;}
 
 	virtual eCrossHairState GetPickCrossHairState(iPhysicsBody *apBody);
 	virtual float GetPickedDistance();
 
 	void AddCollideScript(eGameCollideScriptType aType,const tString &asFunc, const tString &asEntity);
-	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asFunc);
+	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asEntity);
 	void RemoveCollideScriptWithChildEntity(iGameEntity *apEntity);
 	
 	void AddScript(eGameEntityScriptType aType,const tString &asFunc);
@@ -266,7 +267,7 @@ public:
 	float GetHealth(){ return mfHealth;}
 	void SetHealth(float afHealth);
 
-	void SetToughness(int alX){ mlToughness = alX;}
+	void SetToughness(int alToughness){ mlToughness = alToughness;}
 	int GetToughness(){ return mlToughness;}
 
 	bool GetDestroyMe(){ return mbDestroyMe;}
@@ -276,15 +277,15 @@ public:
 	void DestroyMe(){ mbDestroyMe = true;}
 
     void SetCharBody(iCharacterBody *apCharBody){ mpCharBody = apCharBody;}
-	iCharacterBody* SetCharBody(){ return mpCharBody;}
+	iCharacterBody* GetCharBody(){ return mpCharBody;}
 
 	void SetUpTransMaterials();
-	void SetTransActive(bool abX);
+	void SetTransActive(bool abActive);
 
-	void SetPauseControllers(bool abX){ mbPauseControllers = abX;}
+	void SetPauseControllers(bool abPause){ mbPauseControllers = abPause;}
 	bool GetPauseControllers(){ return mbPauseControllers;}
 
-	void SetPauseGravity(bool abX){ mbPauseGravity = abX;}
+	void SetPauseGravity(bool abPause){ mbPauseGravity = abPause;}
 	bool GetPauseGravity(){ return mbPauseGravity;}
 
 	const cMatrixf& GetOnLoadTransform(){ return m_mtxOnLoadTransform;}

@@ -76,9 +76,9 @@ public:
 
 	void SetupPhysics(cWorld3D *apWorld);
 
-	void SetLocked(bool abX);
-	void SetLockedDesc(const tWString& asX){ msLockedDesc = asX;}
-	void SetLockedSound(const tString& asX){ msLockedSound = asX;}
+	void SetLocked(bool abLocked);
+	void SetLockedDesc(const tWString& asDescription){ msLockedDesc = asDescription;}
+	void SetLockedSound(const tString& asSound){ msLockedSound = asSound;}
 
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;

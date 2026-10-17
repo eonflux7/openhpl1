@@ -68,11 +68,11 @@ cGameItemType_Normal::cGameItemType_Normal(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Use");
 }
 
-bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Use
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		if(mpInit->mpInventory->IsActive())
 			mpInit->mpInventory->SetActive(false);
@@ -82,7 +82,7 @@ bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionNum)
 	}
 	//////////////
 	//Drop
-	else if(alActionNum == 1)
+	else if(alActionIndex == 1)
 	{
 		apItem->Drop();
 		mpInit->mpInventory->RemoveItem(apItem);
@@ -132,11 +132,11 @@ bool cGameItemType_Notebook::OnPickUp(cInventoryItem *apItem, bool abInGame)
 	return true;
 }
 
-bool cGameItemType_Notebook::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Notebook::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Read
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		mpInit->mpNotebook->SetActive(true);
 	}
@@ -203,7 +203,7 @@ bool cGameItemType_Battery::OnPickUp(cInventoryItem *apItem, bool abInGame)
 	return false;
 }
 
-bool cGameItemType_Battery::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Battery::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	if(cInit::IsOverture() || mpInit->mpPlayer->GetPower() > 99) return true;
 
@@ -249,11 +249,11 @@ bool cGameItemType_Flashlight::OnPickUp(cInventoryItem *apItem, bool abInGame)
 	return true;
 }
 
-bool cGameItemType_Flashlight::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Flashlight::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
-	//Read
-	if(alActionNum == 0)
+	// Toggle the flashlight.
+	if(alActionIndex == 0)
 	{
 		mpInit->mpPlayer->StartFlashLightButton();
 	}
@@ -288,11 +288,11 @@ cGameItemType_GlowStick::cGameItemType_GlowStick(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-bool cGameItemType_GlowStick::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_GlowStick::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		if(mpInit->mpPlayer->GetGlowStick()->IsActive())
 		{
@@ -336,11 +336,11 @@ cGameItemType_GasMask::cGameItemType_GasMask(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-bool cGameItemType_GasMask::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_GasMask::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		cEffect_GasMask *pGasMask = mpInit->mpEffectHandler->GetGasMask();
 		pGasMask->SetActive(!pGasMask->IsActive());
@@ -379,7 +379,7 @@ bool cGameItemType_Collectable::OnPickUp(cInventoryItem *apItem, bool abInGame)
 	return true;
 }
 
-bool cGameItemType_Collectable::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Collectable::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	return true;
 }
@@ -402,11 +402,11 @@ cGameItemType_Flare::cGameItemType_Flare(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-bool cGameItemType_Flare::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Flare::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		if(mpInit->mpPlayer->GetFlare()->IsActive()==false)
 		{
@@ -445,11 +445,11 @@ cGameItemType_WeaponMelee::cGameItemType_WeaponMelee(cInit *apInit)
 
 //-----------------------------------------------------------------------
 
-bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		//Make sure the model is loaded
 		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
@@ -510,11 +510,11 @@ cGameItemType_WeaponMeleeHaptX::cGameItemType_WeaponMeleeHaptX(cInit *apInit)
 
 //-----------------------------------------------------------------------
 
-bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		//Make sure the model is loaded
 		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
@@ -584,11 +584,11 @@ cGameItemType_Throw::cGameItemType_Throw(cInit *apInit)
 
 //-----------------------------------------------------------------------
 
-bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Equip
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		//Make sure the model is loaded
 		if(mpInit->mpPlayerHands->GetModel(apItem->GetHudModelName())==nullptr)
@@ -621,7 +621,7 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionNum)
 
 			pThrowState->SetHudObject(pHud);
 
-			//change state to melee
+			// Enter the throwing state.
 			mpInit->mpPlayer->ChangeState(ePlayerState_Throw);
 		}
 	}
@@ -633,7 +633,7 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionNum)
 //-----------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////
-// PAINLKILLERS
+// PAINKILLERS
 //////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
@@ -648,11 +648,11 @@ cGameItemType_Painkillers::cGameItemType_Painkillers(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Eat");
 }
 
-bool cGameItemType_Painkillers::OnAction(cInventoryItem *apItem, int alActionNum)
+bool cGameItemType_Painkillers::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
 	//////////////
 	//Eat
-	if(alActionNum == 0)
+	if(alActionIndex == 0)
 	{
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("player_eat_painkillers",false,1);
 		

@@ -68,7 +68,7 @@ iEntity3D* cAreaLoader_GameArea::Load(const tString &asName, const cVector3f &av
 
 	//Log("Loaded area %s\n",asName.c_str());
 	
-	//Return something else later perhaps.
+	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
 

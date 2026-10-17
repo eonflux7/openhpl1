@@ -843,9 +843,9 @@ cInventoryContext::~cInventoryContext()
 
 //-----------------------------------------------------------------------
 
-void cInventoryContext::SetActive(bool abX)
+void cInventoryContext::SetActive(bool abActive)
 {
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -1232,10 +1232,10 @@ void cInventory::OnDraw()
 
 //-----------------------------------------------------------------------
 
-void cInventory::SetActive(bool abX)
+void cInventory::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
-	mbActive = abX;
+	if(mbActive == abActive) return;
+	mbActive = abActive;
     
 	if(mbActive)
 	{
@@ -1487,7 +1487,7 @@ void cInventory::OnMouseDown(eMButton aButton)
 		return;
 	}
 
-	//To this to remove context temporarly.
+	// Right-click context menus are disabled here.
 	if(aButton == eMButton_Right) return;
 	
 	/////////////////////////////////

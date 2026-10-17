@@ -243,7 +243,7 @@ cGameGui::cGameGui(cInit *apInit, const tString &asName)
 	msName = asName;
 
 	mbFullScreen = false;
-	mbDestroyMe = false;
+	mbCloseRequested = false;
 
 	mpSkin = nullptr;
 	mpSet = nullptr;
@@ -439,7 +439,7 @@ void cGameGui::CreateTextViewer(const tWString &asLabel, const tString &asTextCa
 								const tString &asTextEntry, const tString &asCallback,
 								bool abNewNote)
 {
-	// Owned by the set once it closes itself
+	// The close button queues deletion through the GUI set.
 	hplNew( cGameGuiTextView, (mpInit, this, asLabel, asTextCat, asTextEntry, asCallback, abNewNote) );
 }
 
@@ -891,7 +891,7 @@ void cGameGuiHandler::Update(float afTimeStep)
 {
 	if(mpScreenGui == nullptr) return;
 
-	if(mpScreenGui->mbDestroyMe)
+	if(mpScreenGui->mbCloseRequested)
 	{
 		DestroyScreenGui();
 		return;
@@ -969,12 +969,12 @@ void cGameGuiHandler::OpenScreenGui(const tString &asFile)
 
 //-----------------------------------------------------------------------
 
-void cGameGuiHandler::CloseScreenGui(bool abLater)
+void cGameGuiHandler::CloseScreenGui(bool abDeferClose)
 {
 	if(mpScreenGui)
 	{
-		if(abLater)
-			mpScreenGui->mbDestroyMe = true;
+		if(abDeferClose)
+			mpScreenGui->mbCloseRequested = true;
 		else
 			DestroyScreenGui();
 	}

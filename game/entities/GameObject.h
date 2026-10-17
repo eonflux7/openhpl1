@@ -70,7 +70,7 @@ public:
 	float mfMinTime;
 	float mfMaxTime;
     
-	float mfTime;
+	float mfRemainingSeconds;
 	float mfMinDistance;
 
 	float mfMinCloseDistance;
@@ -191,7 +191,7 @@ public:
 	
 	bool IsDestroyable(){ return mbDestroyable;}
 	float GetDestroyStrength(){ return mfDestroyStrength;}
-	const tString& GetDestroySound(){ return msDestoySound;}
+	const tString& GetDestroySound(){ return msDestroySound;}
 
 	void SetupForceOffset();
 
@@ -210,8 +210,8 @@ private:
 
 	void UpdateAttraction(float afTimeStep);
 	std::set<iGameEnemy*> m_setAttractedEnemies;
-	iGameEnemy* mpCurrentAttraction;
-	float mfAttractCount;
+	iGameEnemy* mpAttractedEnemy;
+	float mfAttractionCheckDelaySeconds;
 	
 	eObjectInteractMode mInteractMode;
 
@@ -234,7 +234,7 @@ private:
 
 	bool mbDestroyable;
 	float mfDestroyStrength;
-	tString msDestoySound;
+	tString msDestroySound;
 
 	bool mbForceLightOffset;
 	cVector3f mvLightOffset;
@@ -242,7 +242,7 @@ private:
 
 	float mfHapticTorqueMul;
 
-	float mfCloseToSameCount;
+	float mfDuplicateCheckDelaySeconds;
 
 	cObjectBreakProperties mBreakProps;
 

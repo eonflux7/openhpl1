@@ -53,7 +53,7 @@ public:
 	 * alType: 0 ending 1 (Mail01, Mail02), 3 ending 2 (Mail03 - Mail05).
 	 * Switched off with 1 it goes back to the game, with anything else to the credits.
 	 */
-	void SetActive(bool abX, int alType);
+	void SetActive(bool abActive, int alType);
 	bool IsActive(){ return mbActive;}
 
 private:
@@ -71,11 +71,11 @@ private:
 
 	int mlTextLength;
 	int mlShownChars;
-	float mfCharCount;
-	float mfTypeSoundCount;
+	float mfCharacterDelaySeconds;
+	float mfTypeSoundDelaySeconds;
 
 	float mfTextColor;
-	float mfCount;
+	float mfWaitElapsedSeconds;
 	float mfAlpha;
 
 	// "Message sent" blinking

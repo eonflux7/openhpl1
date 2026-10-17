@@ -457,7 +457,7 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(mpPlayer->GetPushBody());
 	if(pStickArea)
 	{
-		if(pStickArea->GetCanDeatch()){
+		if(pStickArea->CanDetachBody()){
 			pStickArea->DetachBody();
 		}
 		else {
@@ -871,9 +871,9 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 {
 	//Detach the body if stuck to a sticky area
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(mpPlayer->GetPushBody());
-	if(pStickArea && pStickArea->GetCanDeatch())
+	if(pStickArea && pStickArea->CanDetachBody())
 	{
-		if(pStickArea->GetCanDeatch()){
+		if(pStickArea->CanDetachBody()){
 			pStickArea->DetachBody();
 		}
 		else {
@@ -1254,9 +1254,9 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 {
 	//Detach the body if stuck to a sticky area
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(mpPlayer->GetPushBody());
-	if(pStickArea && pStickArea->GetCanDeatch())
+	if(pStickArea && pStickArea->CanDetachBody())
 	{
-		if(pStickArea->GetCanDeatch()){
+		if(pStickArea->CanDetachBody()){
 			pStickArea->DetachBody();
 		}
 		else {

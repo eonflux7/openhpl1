@@ -43,8 +43,6 @@ cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 	//Load fonts
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 	
-	//Load config file
-	
 	//Load text
 	tWString sText = cInit::GetGameId() == eGameId_Requiem ? kTranslate("RequiemMenu", "CreditsText") :
 															kTranslate("MainMenu", "CreditsText");
@@ -73,16 +71,16 @@ void cCredits::Reset()
 	
 	mfYPos =600;
 	mlPage = 0;
-	mfPageTime = 0;
+	mfPageElapsedSeconds = 0;
 
 	mfBlink = 0;
 	mfBlinkSpeed = 1;
-	mlSecretText = 0;
+	mlSecretTextIndex = 0;
 	mvSecretRows.clear();
 	mlSecretChars = 0;
 	mlSecretCharsShown = 0;
-	mfCharTime = 0;
-	mfTypeSoundTime = 0;
+	mfCharacterDelaySeconds = 0;
+	mfTypeSoundDelaySeconds = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -154,7 +152,7 @@ void cCredits::Update(float afTimeStep)
 
 	if(mlPage > 0)
 	{
-		mfPageTime += afTimeStep;
+		mfPageElapsedSeconds += afTimeStep;
 		if(cInit::GetGameId() == eGameId_Requiem) UpdateRequiemSecret(afTimeStep);
 		return;
 	}
@@ -186,7 +184,7 @@ void cCredits::Update(float afTimeStep)
 	else if(fY < -280)
 	{
 		++mlPage;
-		mfPageTime = 0;
+		mfPageElapsedSeconds = 0;
 	}
 }
 
@@ -209,20 +207,20 @@ void cCredits::OnButtonDown()
 
 	// Requiem: a click shows the whole text being typed, the next one goes
 	// on to the next text
-	if(cInit::GetGameId() == eGameId_Requiem && mlPage == 3 && mlSecretText <= 3)
+	if(cInit::GetGameId() == eGameId_Requiem && mlPage == 3 && mlSecretTextIndex <= 3)
 	{
 		if(mlSecretCharsShown != mlSecretChars)
 		{
 			mlSecretCharsShown = mlSecretChars;
 			return;
 		}
-		SetSecretText(mlSecretText + 1);
-		if(mlSecretText <= 3) return;
+		SetSecretText(mlSecretTextIndex + 1);
+		if(mlSecretTextIndex <= 3) return;
 	}
 
 	// The statistics are kept three seconds, the secret pages two
-	if(mlPage == 1 && mfPageTime < 3) return;
-	if(mlPage > 1 && mfPageTime < 2) return;
+	if(mlPage == 1 && mfPageElapsedSeconds < 3) return;
+	if(mlPage > 1 && mfPageElapsedSeconds < 2) return;
 
 	NextPage();
 }
@@ -232,7 +230,7 @@ void cCredits::OnButtonDown()
 void cCredits::NextPage()
 {
 	++mlPage;
-	mfPageTime = 0;
+	mfPageElapsedSeconds = 0;
 
 	if(mlPage == 2)
 	{
@@ -265,20 +263,20 @@ void cCredits::NextPage()
 
 //-----------------------------------------------------------------------
 
-void cCredits::SetSecretText(int alNum)
+void cCredits::SetSecretText(int alTextIndex)
 {
-	mlSecretText = alNum;
+	mlSecretTextIndex = alTextIndex;
 	mvSecretRows.clear();
 
 	// There are four texts; Requiem asks for a fifth that is not there
-	if(alNum <= 3)
-		mpFont->GetWordWrapRows(750,17,15,kTranslate("GUI_exp","9_10" + cString::ToString(alNum)),&mvSecretRows);
+	if(alTextIndex <= 3)
+		mpFont->GetWordWrapRows(750,17,15,kTranslate("GUI_exp","9_10" + cString::ToString(alTextIndex)),&mvSecretRows);
 
 	mlSecretChars = 0;
 	for(size_t i=0; i<mvSecretRows.size(); ++i) mlSecretChars += (int)mvSecretRows[i].size();
 	mlSecretCharsShown = 0;
-	mfCharTime = 0;
-	mfTypeSoundTime = 0;
+	mfCharacterDelaySeconds = 0;
+	mfTypeSoundDelaySeconds = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -306,18 +304,18 @@ void cCredits::UpdateRequiemSecret(float afTimeStep)
 	{
 		if(mlSecretCharsShown >= mlSecretChars) return;
 
-		mfCharTime -= afTimeStep;
-		mfTypeSoundTime -= afTimeStep;
-		if(mfCharTime > 0) return;
+		mfCharacterDelaySeconds -= afTimeStep;
+		mfTypeSoundDelaySeconds -= afTimeStep;
+		if(mfCharacterDelaySeconds > 0) return;
 
-		if(mfTypeSoundTime <= 0)
+		if(mfTypeSoundDelaySeconds <= 0)
 		{
 			mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_type",false,1);
-			mfTypeSoundTime = 0.125f + cMath::RandRectf(-0.05f,0.05f);
+			mfTypeSoundDelaySeconds = 0.125f + cMath::RandRectf(-0.05f,0.05f);
 		}
 
 		++mlSecretCharsShown;
-		mfCharTime = 0.025f;
+		mfCharacterDelaySeconds = 0.025f;
 
 		// A second's pause where a row ends before an empty one
 		int lCount = 0;
@@ -325,7 +323,7 @@ void cCredits::UpdateRequiemSecret(float afTimeStep)
 		{
 			lCount += (int)mvSecretRows[i-1].size();
 			if(lCount > mlSecretCharsShown) break;
-			if(lCount == mlSecretCharsShown && mvSecretRows[i].empty()) mfCharTime = 1;
+			if(lCount == mlSecretCharsShown && mvSecretRows[i].empty()) mfCharacterDelaySeconds = 1;
 		}
 	}
 }
@@ -415,11 +413,11 @@ void cCredits::DrawStatistics()
 
 //-----------------------------------------------------------------------
 
-void cCredits::SetActive(bool abX)
+void cCredits::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -444,7 +442,7 @@ void cCredits::SetActive(bool abX)
 		default:					pMusic->Play("penumbra_music_E1_E",1,0.3f,false); break;
 		}
 		mlPage = 0;
-		mfPageTime = 0;
+		mfPageElapsedSeconds = 0;
 
 		Log("Set Active!\n");
 	}

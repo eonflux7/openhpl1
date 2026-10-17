@@ -46,7 +46,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnButtonDown();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;
@@ -61,7 +61,7 @@ private:
 	// Requiem's secret: "Incoming transmission..." blinking, then a message
 	// typed out text by text, then the code
 	void UpdateRequiemSecret(float afTimeStep);
-	void SetSecretText(int alNum);
+	void SetSecretText(int alTextIndex);
 	void DrawSecretText();
 
 	cInit *mpInit;
@@ -76,17 +76,17 @@ private:
 	// Black Plague's secret (2: the message, 3: the code) or Requiem's
 	// (2: the transmission, 3: the typed texts, 4: the code)
 	int mlPage;
-	float mfPageTime;
+	float mfPageElapsedSeconds;
 
 	float mfBlink;
 	float mfBlinkSpeed;
 
-	int mlSecretText;
+	int mlSecretTextIndex;
 	tWStringVec mvSecretRows;
 	int mlSecretChars;
 	int mlSecretCharsShown;
-	float mfCharTime;
-	float mfTypeSoundTime;
+	float mfCharacterDelaySeconds;
+	float mfTypeSoundDelaySeconds;
 		
 	bool mbActive;
 };

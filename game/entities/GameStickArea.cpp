@@ -68,7 +68,7 @@ iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3
 	mpInit->mpMapHandler->AddGameEntity(pArea);
 	mpInit->mpMapHandler->AddStickArea(pArea);
 
-	//Return something else later perhaps.
+	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
 
@@ -148,7 +148,7 @@ void cGameStickArea::Update(float afTimeStep)
 			cMatrixf mtxGoal = pAreaBody->GetWorldMatrix();
 			mtxGoal.SetTranslation(pAreaBody->GetWorldPosition() - mpAttachedBody->GetMassCentre());
 		
-			cMatrixf mtxNew = cMath::MatrixSlerp(mfSetMtxTime,mtxAttachedStart,mtxGoal,true);
+			cMatrixf mtxNew = cMath::MatrixSlerp(mfSetMtxTime,m_mtxAttachedStart,mtxGoal,true);
         
 			mpAttachedBody->SetMatrix(mtxNew);
 		}
@@ -159,7 +159,7 @@ void cGameStickArea::Update(float afTimeStep)
 
 			cVector3f vGoal = pAreaBody->GetWorldPosition() - mpAttachedBody->GetMassCentre();
 
-			cVector3f vNew =	mtxAttachedStart.GetTranslation()* (1-mfSetMtxTime) +
+			cVector3f vNew =	m_mtxAttachedStart.GetTranslation()* (1-mfSetMtxTime) +
 								vGoal *mfSetMtxTime;
 
 			mpAttachedBody->SetPosition(vNew);
@@ -171,7 +171,7 @@ void cGameStickArea::Update(float afTimeStep)
 			
 			cMatrixf mtxGoal = pAreaBody->GetWorldMatrix();
 			
-			cMatrixf mtxNew = cMath::MatrixSlerp(mfSetMtxTime,mtxAttachedStart,mtxGoal,true);
+			cMatrixf mtxNew = cMath::MatrixSlerp(mfSetMtxTime,m_mtxAttachedStart,mtxGoal,true);
 
 			mtxNew.SetTranslation(mpAttachedBody->GetWorldPosition());
 			mpAttachedBody->SetMatrix(mtxNew);
@@ -227,20 +227,20 @@ void cGameStickArea::Update(float afTimeStep)
 			//Bounding volume check
 			//if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 
-            bool bCheck = false;
+            bool bPassesBoundsCheck = false;
 			if(mbCheckCenterInArea)
 			{
 				cVector3f vPos =	pBody->GetLocalPosition() + 
 									cMath::MatrixMul(	pBody->GetLocalMatrix().GetRotation(),
 														pBody->GetMassCentre());
-				bCheck = cMath::PointBVCollision(vPos,*pAreaBody->GetBV());
+				bPassesBoundsCheck = cMath::PointBVCollision(vPos,*pAreaBody->GetBV());
 			}
 			else
 			{
-				bCheck = cMath::CheckCollisionBV(*pBody->GetBV(),*pAreaBody->GetBV());
+				bPassesBoundsCheck = cMath::CheckCollisionBV(*pBody->GetBV(),*pAreaBody->GetBV());
 			}
 
-			if(bCheck==false)
+			if(bPassesBoundsCheck==false)
 			{
 				if(pBody == mpLastAttachedBody)
 				{
@@ -264,7 +264,7 @@ void cGameStickArea::Update(float afTimeStep)
 				if(msAttachFunction!="")
 				{
 					mbAllowAttachment = false;
-					tString sCommand = GetCallbackFunc(msAttachFunction,pBody);
+					tString sCommand = BuildBodyCallbackCommand(msAttachFunction,pBody);
 					mpInit->RunScriptCommand(sCommand);
 
 					if(mbAllowAttachment==false) continue;
@@ -305,8 +305,8 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 	}
 	
 	/////////////////////////
-	//Snap it into place.
-	mtxAttachedStart = apBody->GetLocalMatrix();
+	// Capture the starting pose before interpolation into the area.
+	m_mtxAttachedStart = apBody->GetLocalMatrix();
 
 	mfSetMtxTime = 0;
 
@@ -338,7 +338,7 @@ void cGameStickArea::DetachBody()
 		//Callback function
 		if(msDetachFunction!="")
 		{
-			tString sCommand = GetCallbackFunc(msDetachFunction,mpAttachedBody);
+			tString sCommand = BuildBodyCallbackCommand(msDetachFunction,mpAttachedBody);
 			mpInit->RunScriptCommand(sCommand);
 		}
 
@@ -367,7 +367,7 @@ void cGameStickArea::DetachBody()
 
 //-----------------------------------------------------------------------
 
-bool cGameStickArea::GetCanDeatch()
+bool cGameStickArea::CanDetachBody()
 { 
 	if(mfSetMtxTime < 1) return false;
     
@@ -376,7 +376,7 @@ bool cGameStickArea::GetCanDeatch()
 
 //-----------------------------------------------------------------------
 
-tString cGameStickArea::GetCallbackFunc(const tString &asFunc,iPhysicsBody *apBody)
+tString cGameStickArea::BuildBodyCallbackCommand(const tString &asFunc,iPhysicsBody *apBody)
 {
 	return asFunc + "(\"" + msName + "\",\"" + apBody->GetName() + "\")"; 
 }

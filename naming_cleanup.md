@@ -1,10 +1,11 @@
 # Code readability audit and cleanup plan
 
 Status: audit started on 2026-10-18. The FadeHandler pilot, RadioHandler
-positional-distance batch and systems pass are verified by the default Linux
-build and both CTest suites. All 20 `game/systems/` headers/sources have now
-been reviewed for naming/comments; A2 remains open for `game/ui/`. The wider
-inventory and later phases remain open.
+positional-distance batch, systems pass and UI pass are verified by the default
+Linux build and both CTest suites. All 20 `game/systems/` and 26 `game/ui/`
+headers/sources have been reviewed for naming/comments; A2 is complete.
+All 36 `game/entities/` headers/sources are now reviewed. A3 remains open for
+player/enemy audits; the wider inventory and later phases also remain open.
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -179,10 +180,10 @@ callers. Isolate and record findings with unresolved compatibility risks so
 independent work can continue; ask only when a material ambiguity or risk
 requires user input. Report any remaining scope explicitly.
 
-The next pass covers `game/ui/` under A2. The systems pass, including
-RadioHandler's queue, callback and subtitle naming, is recorded below. Keep
-findings grouped by responsibility and risk without turning each group into
-a separate user turn.
+The systems and UI passes under A2 are recorded below. The next planned
+phase is A3: bounded mechanism/state reviews in entities, player and enemies.
+Keep findings grouped by responsibility and risk without turning each group
+into a separate user turn.
 
 1. Inspect status and relevant diffs; preserve unrelated work. Read the header,
    implementation, callers, current guide and relevant tests before choosing
@@ -218,10 +219,10 @@ below are inspection candidates, not claims that those files are faulty.
 
 | Phase | Scope and deliverable | Exit criteria | Status |
 | --- | --- | --- | --- |
-| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Started: FadeHandler seed inspection only |
+| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Started: systems/UI/entities inventoried; wider scope open |
 | A1: pilot | Audit `game/systems/FadeHandler.h` / `.cpp`, direct callers and compatibility sites; resolve R01–R03 or record reasons to retain them; inspect comments separately | First naming batch validated; comment decisions recorded; actual results establish the pattern for later batches | Verified |
-| A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Systems naming/comment review complete; UI open |
-| A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Open |
+| A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Verified: all 20 systems and 26 UI files reviewed |
+| A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Entities verified: 36/36 files reviewed; player/enemies open |
 | A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Open |
 | A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Open |
 | A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Open |
@@ -250,9 +251,11 @@ For every phase, maintain a short record with these entries:
 - Exit decision: open, implementation complete with validation pending, or
   verified; identify any explicitly deferred work.
 
-Coverage includes all 20 headers/sources in `game/systems/`, with reviewed
-concepts, callers and retained names recorded below. `game/ui/` remains open;
-reading an inventory/subtitle caller does not count as reviewing that UI file.
+Coverage includes all 20 headers/sources in `game/systems/` and all 26 in
+`game/ui/`, with reviewed concepts, callers and retained names recorded below.
+A3 covers all 36 entity files through the three passes below. Player/enemy
+files remain unaudited except for supporting caller reads and detach-call edits. A4–A6 remain
+unreviewed except for supporting callers inspected in earlier passes.
 
 ### A1: FadeHandler pilot record (2026-10-18)
 
@@ -378,9 +381,285 @@ Validation and exit:
   systems; Dog fixtures call the unchanged attack APIs but were not run.
   Sanitizer builds, isolated game smoke, Dog checks, audio/manual play, visual
   captures and Windows checks were not run for this naming/comment pass.
-- Systems naming/comment review is complete; A2 remains open for all 26 UI
-  headers/sources. Later phases and gameplay/renderer validation in ROADMAP
+- Systems naming/comment review was complete at this point; the following UI
+  pass closes A2. Later phases and gameplay/renderer validation in ROADMAP
   remain open.
+
+### A2: UI naming and comments pass (2026-10-18)
+
+Reviewed all 26 headers/sources: `Credits.h` / `.cpp`, `DeathMenu.h` / `.cpp`,
+`DemoEndText.h` / `.cpp`, `Ending.h` / `.cpp`, `GameGui.h` / `.cpp`,
+`GraphicsPresets.h` / `.cpp`, `IntroStory.h` / `.cpp`, `Inventory.h` / `.cpp`,
+`MainMenu.h` / `.cpp`, `MapLoadText.h` / `.cpp`, `Notebook.h` / `.cpp`,
+`NumericalPanel.h` / `.cpp` and `PreMenu.h` / `.cpp`. Reviewed activation/input,
+menu states/options/save lists, intro cues/image fades, typed endings/secrets,
+loading prompts, terminal widgets/pop-ups/callbacks/deferred closure, inventory
+slots/items/combining/persistence and notebook pagination/handoff/persistence.
+`GraphicsPresets.h` is retained unchanged; 25 files have naming/comment edits.
+All findings below use the shared validation evidence following the table.
+
+| ID / status | Location and evidence | Implemented mapping / resolution | Risk |
+| --- | --- | --- | --- |
+| R15 / verified | UI activation declarations and definitions use opaque `abX`; [Inventory.h](game/ui/Inventory.h) also hides slot/count setter roles | `abX -> abActive` for activation; inventory setters use `abEquip`, `abNotebookActive`, `abDroppedInSlot`; `alX -> alIndex`, `alEquipIndex`, `alAmount`, `alCount` in their respective setters | Low; argument names only; method names and callers retained |
+| R16 / verified | [DeathMenu.h](game/ui/DeathMenu.h), [NumericalPanel.h](game/ui/NumericalPanel.h) and [MainMenu.h](game/ui/MainMenu.h) contain `mvPositon`; new-game difficulty and key-widget arguments are misspelled | `mvPositon -> mvPosition` in death/numerical buttons, `mvPositon -> mvWidgetPos` in main-menu widgets; `mDiffuculty/aDiffuculty -> mDifficulty/aDifficulty`, `apKeyWiget -> apKeyWidget` | Medium; inherited member uses checked; main-menu list's distinct `mvPosition` retained to avoid changing member binding/depth |
+| R17 / verified | [IntroStory.h](game/ui/IntroStory.h) calls both brightness and alpha `afDarkness`; steps are multiplied by timestep and cue count is decremented | Header `afDarkness -> afBrightness/afAlpha` matches definitions; movement/fade `afTime -> afDurationSeconds`; `mvPosStep -> mvVelocity`, `mfBrightnessStep -> mfBrightnessRatePerSecond`, `mfAlphaStep -> mfAlphaRatePerSecond`, `mfTimerCount -> mfCueRemainingSeconds` | Low; image-local names and private cue timer; zero-duration handling, clamping, smoothing and cue order retained |
+| R18 / verified | [Credits.h](game/ui/Credits.h): page elapsed time, typing delays and secret text index have generic time/number names | `mfPageTime -> mfPageElapsedSeconds`, `mfCharTime -> mfCharacterDelaySeconds`, `mfTypeSoundTime -> mfTypeSoundDelaySeconds`, `mlSecretText -> mlSecretTextIndex`, `alNum -> alTextIndex`; removed orphan config-loading comment | Low; private state only; statistics, collectable gates, translations and secret codes retained |
+| R19 / verified | [Ending.h](game/ui/Ending.h): three `Count` members measure waits/delays; typing comment implies a pause after every row | `mfCount -> mfWaitElapsedSeconds`, `mfCharCount -> mfCharacterDelaySeconds`, `mfTypeSoundCount -> mfTypeSoundDelaySeconds`; comment now states the pause is before an empty row | Low; private timers; ending selectors, click skips, script return/credits transitions and sound cadence retained |
+| R20 / verified | [DemoEndText](game/ui/DemoEndText.h) and [PreMenu](game/ui/PreMenu.h) pass `mfAlpha` as grayscale brightness with opacity fixed at 1 | Demo `mfAlpha -> mfImageBrightness`, `mfAlphaAdd -> mfBrightnessRatePerSecond`; premenu `mfAlpha -> mfStartupLogoBrightness`, `mfAlphaAdd -> mfLogoBrightnessRatePerSecond`, `mfClickCount -> mfTypeSoundDelaySeconds`, `mfStateTimer -> mfStateElapsedSeconds`, `mfAdd -> mfLogoScaleStep` | Low; private visual/timing names; logo scale step already includes timestep and remains a step, not a rate |
+| R21 / verified | [MapLoadText.h](game/ui/MapLoadText.h): `mfAlpha` controls colour and sinusoidal offsets, not opacity; `mpBack` is a texture | `mfAlpha -> mfPulsePhase`, `mfAlphaAdd -> mfPulseRatePerSecond`, `mpBack -> mpBackgroundTexture` | Low; private names; oscillation bounds, background selection and immediate loading draw retained |
+| R22 / verified | [GameGui.h](game/ui/GameGui.h): `mbDestroyMe` and `abLater` obscure a deferred screen-close request | `mbDestroyMe -> mbCloseRequested`, `abLater -> abDeferClose`; declaration explains safe closure from the screen script; text-view comment states that the close button queues deletion through the GUI set | Low; header/source uses only; script wrapper still requests deferred closure; focus, callbacks and destruction order retained |
+| R23 / verified | [Notebook.h](game/ui/Notebook.h): note page `mlStart/mlEnd` do not identify rows or their boundary convention | `mlStart -> mlFirstRow`, `mlEnd -> mlEndRow` in `cNotePage`; documented exclusive end and excluded page marker; updated disabled diagnostic comments | Low; transient page records only; task-page bounds, note/task DTOs and pagination arithmetic retained |
+| R24 / verified | [MainMenu.cpp](game/ui/MainMenu.cpp): `cTempFileAndData` actually holds a save filename/date; state lists, rain timer and haptic/post-effect locals lack roles; [GraphicsPresets.cpp](game/ui/GraphicsPresets.cpp) clamp uses `alX` | `cTempFileAndData -> cSaveFileEntry`, `tTempFileAndDataSet/It -> tSaveFileEntrySet/It`, `setTempFiles -> setSaveFiles`, `mvState -> mvStateWidgets`, `mfRainDropCount -> mfRainRefreshRemainingSeconds`, haptic `afX -> fForceScale/fCameraSpeed`, `bX -> bPostEffectsActive`; clamp `alX -> alAnisotropy` | Low; implementation-local helper and private names; date ordering, widget membership, settings values and limits retained |
+| R25 / verified | [Inventory.h](game/ui/Inventory.h): `Check*Callback` methods execute scripts; death/numerical draw/input loops are labelled updates | Added callback dispatch contract; clarified disabled right-click context menus; corrected button loop labels to drawing/press/release dispatch | Low; comments only; no callback API or execution changes |
+| R26 / retained | Inventory callback `bKillMe`, inventory/notebook DTOs, menu settings, updater names and established UI classes/files | Retained serialized names, including `bKillMe` and `mbNoteBookActive`; retained class/file and lifecycle names, state/asset/translation strings and public script signatures | Compatibility-sensitive names intentionally retained; no pending rename |
+
+Compatibility and caller evidence:
+
+- Read UI construction, updater containers and destruction in `Init.cpp`, input
+  routing in `ButtonHandler.cpp`, script forwarding/registration in
+  `GameScripts.cpp`, loading-screen selection in `MapHandler.cpp`, item actions
+  in `GameItemType.cpp` and inventory entry/shortcut calls in `Player.cpp`.
+  No caller expressions or script wrappers require edits.
+- Read inventory/notebook global save mappings and callback serialization in
+  UI sources and `SaveHandler.h` / `.cpp`, plus callback records in
+  `GameTypes.h`. All serialization invocations and arguments are unchanged.
+  Main-menu save file listing still sorts by date with the same comparator;
+  no save paths, file operations, format strings or settings identifiers change.
+- Confirmed brightness through `cColor(float afVal, float afA)` and draw uses;
+  timing units through `cLogicTimer::GetStepSize`, the updater and timestep
+  arithmetic. Read `iGuiPopUp::SelfDestruct`, `cGuiSet::DestroyPopUp` and queued
+  pop-up deletion before correcting the terminal text-view comment.
+- Retained short scoped math/loop names, documented preset quality encodings,
+  callback macros, notebook task-page inclusive bounds and the terminal's
+  fixed 800 x 600 coordinates. Legacy unused declarations/write-only fields
+  and disabled code are not removed in this naming pass. This review does not
+  establish their correctness or change ownership policy.
+
+Validation and exit:
+
+- Default Linux build passed. Existing missing-initializer warnings in unchanged
+  `ButtonHandler.cpp` and a variable-tracking compiler note in unchanged
+  `GameScripts.cpp` were observed. Both CTest suites passed (2/2), including
+  software EGL `renderer_regressions` with no skips.
+- Token comparison of all 26 UI files against `981e71e` confirms 432 identifier
+  substitutions across 52 old/new mappings, plus comments/whitespace only.
+  String/character literals, operators, constants, serialization invocations
+  and updater registration strings match. Reviewed old-name searches and
+  inherited-member bindings; local documentation links and `git diff --check`
+  passed. No tests were added to mirror renames.
+- Existing regressions do not directly exercise these game UI flows. Manual
+  menu/inventory/notebook/terminal/ending interaction, audio checks and visual
+  captures were not run. Sanitizer and Windows checks were not run for this
+  identifier/comment-only pass; no behaviour or renderer path change is claimed.
+- Exit decision: A2 systems/UI naming and comment review is verified and
+  complete, with no deferred naming findings from this UI pass. A0's wider
+  inventory and A3–A7 remain open; ROADMAP's gameplay/renderer validation work
+  remains unchanged.
+
+### A3: environmental-area naming and comments pass (2026-10-18)
+
+Objective: clarify environmental-volume configuration, damage scheduling and
+force/wave calculations without changing physics, game selection or external
+identifiers. Reviewed all eight headers/sources for `GameArea`,
+`GameDamageArea`, `GameForceArea` and `GameLiquidArea`. Seven files changed;
+`GameArea.h` is retained unchanged. Reviewed loaders, area-body creation,
+picking, damage cadence/target selection, force calculation/contact averaging,
+liquid camera/body checks, swimming, buoyancy, waves, splash effects and save
+mapping. This is a bounded start to A3, not an entities-wide audit.
+
+| ID / status | Location and evidence | Implemented mapping / resolution | Risk |
+| --- | --- | --- | --- |
+| R27 / verified | [GameDamageArea.h](game/entities/GameDamageArea.h), [GameForceArea.h](game/entities/GameForceArea.h), [GameLiquidArea.h](game/entities/GameLiquidArea.h): setter arguments use `afX`, `alX`, `abX`, `asX` | Damage: `afX -> afDamage/afUpdatesPerSec`, `alX -> alStrength`, `abX -> abDisableObjects/abDisableEnemies`, `asX -> asSound`; force: `afX -> afMaxForce/afSpeedErrorGain/afTargetSpeed/afMaxMass`, `abX -> abMultiplyByMass/abAffectCharacters/abAffectBodies/abForceAtContact`; liquid: `afX -> afDensity/afLinearViscosity/afAngularViscosity`, `abX -> abHasWaves`, each in its respective setter | Low; inline argument names only; public methods and script wrappers unchanged |
+| R28 / verified | [GameDamageArea.cpp](game/entities/GameDamageArea.cpp): `mfUpdateCount` is assigned reciprocal update frequency and decremented by timestep | `mfUpdateCount -> mfDamageDelaySeconds` in header/source; distinguish a countdown from an update count | Low; private, nonserialized timer; initial immediate damage, reset/decrement branches, early return and frequency edge cases preserved |
+| R29 / verified | [GameForceArea.cpp](game/entities/GameForceArea.cpp): `mvUp` drives force, `fRelSpeed/fDiff` project velocity and subtract it from target speed; `vPos` averages contacts | `mvUp -> mvForceDirection`, `fRelSpeed -> fSpeedAlongForce`, `fDiff -> fSpeedError`, `vPos -> vContactWorldPos`, `vVel -> vBodyVelocity`; declaration comment explains `SetConstant` as proportional speed-error gain | Low; private/local names; inverse-matrix direction calculation, contact limit, gain/clamping/mass order, character multiplier and force application preserved |
+| R30 / verified | [GameLiquidArea.cpp](game/entities/GameLiquidArea.cpp): elapsed timestep multiplies sine frequency; offsets modify a temporary buoyancy plane | `mfTimeCount -> mfWaveElapsedSeconds`, `mfWaveAmp -> mfWaveAmplitude`, `mfWaveFreq -> mfWaveAngularFrequency` (radians per second); wave-block `vPos -> vMassCentreWorldPos`, `fAddX/fAddZ -> fWaveOffsetX/fWaveOffsetZ`, `tempPlane -> waveSurfacePlane` | Low; private/local names only; persisted surface plane, wave flag, constants, splash positions and swim branches unchanged |
+| R31 / verified | Area loaders contain speculative return comments; candidate loops claim to scan all world bodies; force/liquid closing-guard comments name DamageArea | Explain map-handler ownership and null scene-entity return; retain candidate-snapshot rationale, state bounded candidate iteration, correct force multiplier/guard comments and remove orphan wave heading | Low; comments only; ownership verified in map registration/destruction; no lifecycle change |
+| R32 / retained | Area DTOs, serialization/copy macros and script/loader registrations expose configuration identifiers | Retain all DTO/class/member identifiers, including `mfConstant`, `mfDestSpeed`, `mbMulWithMass`, `mbForceAtPoint`, `mfUpdatesPerSec`, material names and `mSurfacePlane`; retain established class/file/method names | Compatibility-sensitive names intentionally retained; no pending rename |
+
+Compatibility and caller evidence:
+
+- Read `GameScripts.cpp` area icon/splash/teleport uses and all three setup
+  wrappers, including Black Plague's damage overload and registration alias.
+  Their declarations, call expressions, registration signatures and literals
+  require no changes. Read loader registration in `Init.cpp` and saved-area
+  recreation in `MapHandler.cpp`; `script`, `damage`, `force` and `liquid`
+  loader names, entity types, saved sizes/transforms and setup/load order stay
+  unchanged. No script, save, settings or asset identifiers change.
+- Read all four serialization blocks, DTO declarations and save/load/setup
+  methods. The renamed private timers, direction and wave parameters do not
+  appear in serialization/copy macros. Compared those macro invocations exactly.
+- Confirmed seconds in `cLogicTimer::GetStepSize`; checked Newton collision
+  contact output, `iPhysicsBody::GetVelocityAtPosition` and
+  `cPhysicsBodyNewton::AddForceAtPosition` before naming contact coordinates.
+  Read `AddGameEntity` and entity destruction in `MapHandler.cpp` before
+  documenting ownership, and damage/death forwarding in `GameEntity.cpp` /
+  `GameObject.cpp` for the candidate-snapshot comment.
+- Retained short scoped math/loop names, disabled diagnostics, unused legacy
+  declarations and existing error paths. This pass does not fix or validate
+  their behaviour. No renderer or physics algorithm changes were made.
+
+Validation and exit:
+
+- Default Linux build and both CTest suites passed (2/2), including software
+  EGL `renderer_regressions` with no skips. The existing `GameScripts.cpp`
+  variable-tracking compiler note remains. Existing tests do not directly
+  exercise these game-area flows; no tests were added to mirror renames.
+- Token comparison against this pass's starting sources confirms 90 permitted
+  identifier substitutions across the eight reviewed files, plus comments and
+  whitespace only. All other tokens, literals and serialization/copy macro
+  invocations are unchanged. Old-name searches, local documentation links and
+  `git diff --check` passed. All 25 previously modified UI files are byte-for-byte
+  preserved; the existing UI documentation record remains in place.
+- Sanitizer builds, isolated game smoke/save/reload, manual area/swimming/audio
+  checks, visual captures and Windows checks were not run for this
+  identifier/comment-only batch. No gameplay, save-compatibility or visual
+  validation is claimed beyond source equivalence and the existing suites.
+- Exit decision: this bounded environmental-area review is verified; A3 stays
+  open. Remaining entity pairs: `GameCamera`, `GameEntity`, `GameItem`,
+  `GameItemType`, `GameLadder`, `GameLamp`, `GameLever`, `GameLink`, `GameObject`,
+  `GameSaveArea`, `GameStickArea`, `GameSwingDoor`, `GameVentArea` and `GameWheel`
+  (28 headers/sources). All `game/player/` and `game/enemies/` remain unaudited.
+  The next interaction/traversal pass is recorded below. A0's wider
+  inventory, A4–A7 and ROADMAP's gameplay/renderer validation remain open.
+
+### A3: traversal and save-area naming/comments pass (2026-10-18)
+
+Objective: clarify ladder reach/entry queries, vent entry motion and save-area
+roles without changing state transitions, collision checks or persistence.
+Reviewed all eight headers/sources for `GameLink`, `GameLadder`, `GameVentArea`
+and `GameSaveArea`: loaders, picking/interactions, locked feedback/map changes,
+ladder entry search and climb handoff, vent entry/latch/crouch/clearance/motion,
+save-effect handoff and all serialization mappings. Seven files changed;
+`GameLink.cpp` is retained unchanged. This brings A3 to 16/36 entity files.
+
+| ID / status | Location and evidence | Implemented mapping / resolution | Risk |
+| --- | --- | --- | --- |
+| R33 / verified | [GameLadder.h](game/entities/GameLadder.h), [GameLadder.cpp](game/entities/GameLadder.cpp): `GetHeight` returns picked Y minus player Y, not ladder height; `GetDist2D` measures player distance in XZ | `GetHeight -> GetPickedHeightOffset`, `GetDist2D -> GetPlayerDistanceXZ`, local `fHeight -> fPickedHeightOffset`; declaration states signed offset; `vPosA -> vPlayerPosition`, `vPosB -> vLadderPosition/vPickedPosition` within the respective queries | Medium; C++ query declarations/definitions and two internal call sites updated; no script binding, overrides or save coupling found |
+| R34 / verified | [GameLadder.cpp](game/entities/GameLadder.cpp): entry search moves `mtxPos` upward until collision output matches it; sound setters use `asX` | `mtxPos -> mtxEntryPosition`, `vNewPos -> vResolvedPosition`, `bFound -> bEntryClear`, setter `asX -> asSound`; comments identify upward clearance search and initial position, make blocked-entry feedback TODO actionable | Low; locals/arguments/comments only; search step/limit, walk/swim changes and climb handoff order preserved |
+| R35 / verified | [GameVentArea.h](game/entities/GameVentArea.h), [GameVentArea.cpp](game/entities/GameVentArea.cpp): vector `mvMoveSpeed` integrates with timestep; `mfMoveTime` is decremented; positions distinguish floor/character/collision output | `mvMoveSpeed -> mvEntryVelocity`, `mfMoveTime -> mfEntryRemainingSeconds`, `vFloorPos -> vFloorCentre`, `vBodyPos -> vCrouchedCentre`, `vNewPos -> vResolvedCentre`; document attempt latch and conditional carry toward the floor centre | Low; private nonserialized motion state and locals only; persisted `mbPlayerInside` retained; jump/crouch/failure handling, one-second duration and gravity/collision toggles unchanged |
+| R36 / verified | [GameSaveArea.cpp](game/entities/GameSaveArea.cpp): loader calls a save area `pLink`; [GameSaveArea.h](game/entities/GameSaveArea.h) hides used-state argument | `pLink -> pSaveArea`, `abX -> abUsed`; roles now match save-area construction and use | Low; local/inline argument only; save-effect calls and persisted `mbHasBeenUsed` unchanged |
+| R37 / retained | [GameLink.h](game/entities/GameLink.h) and all four DTOs expose persisted link/sound/message/used-state fields | Retain established class/file/lifecycle names, link fields including fade times and all save macros; split loading-image and locked-interaction comments at the relevant members | Compatibility-sensitive names intentionally retained; link implementation already clear; no pending rename |
+
+Compatibility and caller evidence:
+
+- Read `GameScripts.cpp` link setup, load-image/text overloads, lock setters,
+  ladder sound setup and save-area setup plus their registrations. All script
+  signatures, strings, wrapper bodies and call expressions remain unchanged.
+  Read `Init.cpp` loader registrations and `MapHandler.cpp` saved-area recreation;
+  `link`, `ladder`, `vent` and `save` names and load/setup ordering are retained.
+- Read climb entry in `PlayerState_Misc.cpp` and its HaptX counterpart before
+  documenting entry position; both still consume `mvStartPosition` and the
+  unchanged rotation/sound accessors. These supporting reads do not constitute
+  a player-state audit. Read `cEffect_SaveEffect::NormalSave` and the used-state
+  update before retaining save-area fields and getter/setter contracts.
+- Checked the collision resolver's output contract in `PhysicsWorld.cpp`, all
+  four DTO/serialization/copy mappings and repository uses of the renamed
+  ladder queries. Their only call sites are ladder pick/interact methods.
+  Vent motion members are not serialized; the attempt latch is set before
+  clearance succeeds and is saved as `mbPlayerInside`, unchanged.
+
+Validation and exit:
+
+- Default Linux build and both CTest suites passed (2/2), including software
+  EGL renderer regressions with no skips. The existing `GameScripts.cpp`
+  variable-tracking compiler note remains. Token comparison of all eight files
+  against this pass's starting sources confirms 69 permitted identifier
+  substitutions plus comments/whitespace only. All other tokens, literals and
+  serialization/copy macro invocations are unchanged. Local documentation links,
+  old-name review and `git diff --check` passed.
+- All 32 source files modified before this pass are byte-for-byte preserved.
+  No tests were added to mirror renames. Existing suites do not directly cover
+  ladder, vent, link or save-area interactions; game smoke/save/reload and manual
+  traversal/visual checks were not run. Sanitizer and Windows checks were not
+  run for this identifier/comment-only pass; no state/physics refactor is claimed.
+- Exit decision: this bounded pass is verified; A3 remains open. Remaining
+  entity pairs: `GameCamera`, `GameEntity`, `GameItem`, `GameItemType`, `GameLamp`,
+  `GameLever`, `GameObject`, `GameStickArea`, `GameSwingDoor` and `GameWheel`
+  (20 headers/sources), plus all player/enemy files. The remaining entity pass is
+  recorded below. Other audit phases and ROADMAP validation priorities remain open.
+
+### A3: remaining entities and accumulated diff review (2026-10-18)
+
+Objective: finish the entity subsystem audit, preserve behaviour and external
+identifiers, then review the complete uncommitted UI/entity cleanup diff.
+Reviewed the remaining 20 headers/sources: `GameCamera`, `GameEntity`, `GameItem`,
+`GameItemType`, `GameLamp`, `GameLever`, `GameObject`, `GameStickArea`,
+`GameSwingDoor` and `GameWheel` pairs. All 36 entity files are reviewed; 34 have
+edits across the three passes, while `GameArea.h` and `GameLink.cpp` are retained
+unchanged. No player/enemy-wide audit is claimed.
+
+Reviewed concepts: loader properties and engine-resource association, ownership/
+activation/destruction, player pick/interact/examine dispatch, deferred collision
+callback removal, scripted movement and attachment, entity variables, body/light/
+particle/sound/animation persistence, collision damage, break/disappear/attraction
+behaviour, item visibility pulses and inventory actions, lamp fades/materials/
+flickering, camera scans/detection/alerts/rays, lever/wheel transitions and return
+motion, wheel angle accumulation/controller/joint coupling, door locking/breakage,
+and stick-area acceptance/pose interpolation/attachment/detachment/save restoration.
+
+| ID / status | Location and evidence | Implemented mapping / resolution | Risk |
+| --- | --- | --- | --- |
+| R38 / verified | [GameStickArea.h](game/entities/GameStickArea.h), [GameStickArea.cpp](game/entities/GameStickArea.cpp): detach APIs are misspelled; `GetCallbackFunc` constructs a command, not a function lookup | `GetCanDeatch -> CanDetachBody`, `SetCanDeatch -> SetCanDetach`, `GetCallbackFunc -> BuildBodyCallbackCommand`; update all entity, script-wrapper and normal/HaptX player call sites | Medium; cross-file C++ API rename; script signature/argument `abCanDeatch` and saved `mbCanDeatch` unchanged; interpolation gate retained |
+| R39 / verified | Stick-area arguments are opaque; `mfSetMtxTime` measures interpolation progress despite its name; attach comment implies immediate snapping | Setter `asX -> asFunction/asSound/asParticleSystem`, `abX -> abCanDetach/abCheckCenter/abMoveBody/abRotateBody`, `afX -> afDurationSeconds`; `mtxAttachedStart -> m_mtxAttachedStart`, `bCheck -> bPassesBoundsCheck`; document progress completion at >=1 and captured interpolation start pose | Low; private/local/argument names and comments; persisted `mfSetMtxTime` retained; attachment order, callbacks, mass/gravity handling and extrapolation unchanged |
+| R40 / verified | [GameLever.h](game/entities/GameLever.h), [GameWheel.h](game/entities/GameWheel.h), [GameSwingDoor.h](game/entities/GameSwingDoor.h): setters use `abX/asX`; wheel limit helper `fLeft` does not identify angle | Lever/wheel `abX -> abStuck`; door `abX -> abLocked`, `asX -> asDescription/asSound`; wheel `fLeft -> fRemainingAngle`; state-transition comments preserve enter-before-leave order; document accumulated angle and signed radians/second, and unrestricted spin direction zero | Low; names/comments only; saved states/angles, joint limits, callback ordering and original connected-offset calculation retained |
+| R41 / verified | [GameCamera.h](game/entities/GameCamera.h), [GameCamera.cpp](game/entities/GameCamera.cpp): transient timers and visibility score have generic count names | `mfSpottedPlayerTime -> mfAlertDurationSeconds`, `mfCheckCount -> mfVisibilityCheckDelaySeconds`, `mfAlertCount -> mfAlertRemainingSeconds`, `mlSpottedCount -> mlDetectionScore`; setup `afMinPause/afMaxPause -> afMinPauseSeconds/afMaxPauseSeconds`, `afSpeed -> afRadiansPerSecond`; `abX -> abActive/abAlerted`, ray `pBody -> apBody`, `vPosAdd -> vPlayerSampleOffsets`, `lPosAddNum -> lRayTargetCount`, `lCount -> lBlockedRayCount` | Low; private/local/argument names; saved scan/pause state and `SpottedPlayerTime` asset key retained; comment describes score decay without claiming consecutive detections |
+| R42 / verified | [GameItem.h](game/entities/GameItem.h), [GameItem.cpp](game/entities/GameItem.cpp): `IsInView(afMinDist)` rejects distances above the argument; check/flash timers are counts | `afMinDist -> afMaxDistance`, ray declaration `pBody -> apBody`; `mfCheckFlashCount -> mfFlashCheckElapsedSeconds`, `mfCheckFlashMax -> mfFlashCheckIntervalSeconds`, `mfStartFlashCount -> mfFlashEvidenceSeconds`, `mfFlashAlphaAdd -> mfFlashDirection`; correct ray-segment comment | Low; private/argument names; flash direction is a sign, with separate rise/fall rates retained; persisted thresholds/flash flag, ray tests and item pickup order unchanged |
+| R43 / verified | [GameLamp.h](game/entities/GameLamp.h), [GameLamp.cpp](game/entities/GameLamp.cpp): `mfAlpha` scales billboard colour while lights fade independently | `mfAlpha -> mfBillboardFade`, `mfTurnOnTime/mfTurnOffTime -> mfTurnOnDurationSeconds/mfTurnOffDurationSeconds`, `alIdx -> alLightIndex`, `abX -> abLit/abFlickering`; correct duplicated update-alpha heading | Low; private/argument names; material swapping, particles, sound, callback/load policy and asset property names unchanged |
+| R44 / verified | [GameEntity.h](game/entities/GameEntity.h), [GameEntity.cpp](game/entities/GameEntity.cpp): `SetSoundEntity` destroys a sound; zero-argument `SetCharBody` returns a pointer; movement documentation precedes bone attachment | `SetSoundEntity -> DestroySoundEntity`, getter `SetCharBody() -> GetCharBody()`; move movement contract to `MoveToPosition`, include bodyless mesh movement and clarify successful attachment lifecycle/failure; `vTempBodies -> vSavedBodies`, `lCount -> lSavedParticleIndex`; fix `RemoveCollideScript` declaration `asFunc -> asEntity` | Medium; public C++ API names, but no callers/registrations of the two mislabeled methods; setter overload retained; no ownership, callback or persistence changes |
+| R45 / verified | Entity inline setters/accessors hide role or misspell entity argument | `abX -> abActive/abShowOnce/abPause`, body/joint/light/haptic accessor `alNum/alX -> alIndex`, distance `afX -> afDistance`, toughness `alX -> alToughness`, `apEnity -> apEntity`; clarify destructor/collision-body-list comments | Low; argument names/comments only; virtual contracts and saved legacy spelling `mbShowDescritionOnce` retained |
+| R46 / verified | [GameObject.h](game/entities/GameObject.h), [GameObject.cpp](game/entities/GameObject.cpp): attraction and duplicate-check delays are counts; disappearance state and destroy-sound member lack clear roles | `mfAttractCount -> mfAttractionCheckDelaySeconds`, `mfCloseToSameCount -> mfDuplicateCheckDelaySeconds`, `mpCurrentAttraction -> mpAttractedEnemy`, disappear `mfTime -> mfRemainingSeconds`, `msDestoySound -> msDestroySound`; remove stale per-body TODO because loop already checks each body | Low; private/transient property names; asset attribute `DestoySound` retained; enemy selection, break/deletion order and thresholds unchanged |
+| R47 / verified | [GameItemType.h](game/entities/GameItemType.h), [GameItemType.cpp](game/entities/GameItemType.cpp): actions use count-like `alActionNum`; argument has member prefix; throw/flashlight comments name other actions | `alActionNum -> alActionIndex` in base/overrides/definitions, `GetActions` argument `mbCanBeDropped -> abCanBeDropped`; correct throw/flashlight action labels and painkillers heading | Low; argument names/comments only; action indices, item lifetime, batteries/equipment/notes/collectables and public action strings unchanged |
+| R48 / retained | All entity save DTOs/macros, script callbacks/registrations, asset attributes and existing game branches | Retain saved field/class names, including stick-area progress/typos, camera scan state, entity movement/callback/animation data and wheel coupling data; retain clear class/file/lifecycle names and short local math names | Compatibility-sensitive identifiers intentionally retained; no deferred naming finding |
+
+Caller and compatibility evidence:
+
+- Read script setup/lock/stuck/state/speed/connection wrappers, callback command
+  construction and registrations in `GameScripts.cpp`; only its C++ call to
+  `SetCanDetach` changes. Read all normal/HaptX grab/move/push detach uses before
+  replacing the C++ query. These two player files have call-site changes only;
+  their wider state-machine audits remain for the next A3 work.
+- Checked inventory pickup/action/use/combine dispatch, loader registration in
+  `Init.cpp`, map entity lookup/update/destruction and saved recreation in
+  `MapHandler.cpp`, as well as enemy character-body setup and object-attraction
+  calls. Lifecycle and callback ordering remain intact; no files/build lists,
+  script signatures, setting keys, updater names or normal profiles change.
+- Read every entity serialization block and save/load/setup implementation.
+  Compared all serialization/copy macro invocations and literals exactly.
+  Verified timing from timestep use and camera/wheel angular units from update
+  arithmetic and script forwarding. Retained original unusual calculations,
+  disabled code and error paths rather than mixing behavioural fixes into cleanup.
+
+Validation and accumulated diff review:
+
+- Default Linux build and both CTest suites passed (2/2), including software EGL
+  renderer regressions with no skips. Existing nested-comment warnings in unchanged `GameEnemy_Worm.cpp` and the
+  `GameScripts.cpp` variable-tracking note remain. Existing suites do not
+  directly cover these entity interactions; no tests were added to mirror renames.
+- This pass's 20 entity files plus three caller files have 323 permitted identifier
+  substitutions, with comments/whitespace only otherwise. All 39 previously
+  modified source files remain byte-for-byte intact, including the complete UI
+  cleanup and earlier environmental/traversal edits.
+- Reviewed the complete uncommitted source diff against `981e71e`, including UI,
+  all entity batches and the three supporting callers. Across 62 modified C++
+  files, token comparison confirms 914 identifier substitutions; other tokens,
+  constants, literals and serialization/copy invocations match. Checked rename
+  destinations that already existed: parameter scopes, entity/world sound APIs,
+  main-menu difficulty access and the separate inherited widget/list positions
+  retain their original bindings. Reviewed changed comments against their code.
+- Review corrected the new camera sample-offset name to avoid implying that the
+  offsets locate the light ray target, and documented stick progress as complete
+  at >=1 rather than suggesting clamping. No remaining behaviour or compatibility
+  issues were found in the cleanup diff. Documentation links and diff whitespace
+  passed; this source review does not establish correctness of existing code.
+- Sanitizers, in-game smoke/save/reload, manual mechanism/camera/item/lamp/audio
+  checks, visual captures and Windows checks were not run for this verified
+  identifier/comment-only pass. Hardware/visual/gameplay coverage remains limited
+  to the evidence recorded in ROADMAP; no new gameplay or visual pass is claimed.
+- Exit decision: the full `game/entities/` naming/comment audit is verified and
+  complete. A3 remains open for all `game/player/` and `game/enemies/` beyond the
+  supporting reads/edits above. A0's wider inventory and A4–A7 remain open. Next
+  A3 scope is bounded player interaction/state reviews, followed by enemy states;
+  ROADMAP's existing gameplay/renderer validation remains unchanged.
 
 ## Structural refactoring
 

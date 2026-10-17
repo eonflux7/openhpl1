@@ -58,7 +58,7 @@ private:
 	cGraphicsDrawer *mpDrawer;
 	cNumericalPanel *mpPanel;
 
-	cVector3f mvPositon;
+	cVector3f mvPosition;
 	cRect2f mRect;
 
 	int mlNum;
@@ -89,7 +89,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnMouseUp(eMButton aButton);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;

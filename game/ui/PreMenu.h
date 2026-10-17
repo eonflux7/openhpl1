@@ -57,7 +57,7 @@ public:
 	void OnMouseDown(eMButton aButton);
 	void OnButtonDown();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;
@@ -81,17 +81,17 @@ private:
 	int mlCurrentTextChar;
 	int mlMaxChars;
 	float mfNewCharCount;
-	float mfClickCount;
+	float mfTypeSoundDelaySeconds;
 
-	float mfAlpha;
-	float mfAlphaAdd;
+	float mfStartupLogoBrightness;
+	float mfLogoBrightnessRatePerSecond;
 
 	int mlState;
 	int mlCurrentLogo;
 
 	bool mbActive;
 
-	float mfStateTimer;
+	float mfStateElapsedSeconds;
 
 	cVector3f mvecLastTextPos;
 	
@@ -118,7 +118,7 @@ private:
 	cVector3f mvecLogoSize;
 	float	mfLogoFade;
 	float	mfEpFade;
-	float	mfAdd;
+	float	mfLogoScaleStep;
 
 	iSoundChannel* mpRainSound;
 	iSoundChannel* mpWindSound;

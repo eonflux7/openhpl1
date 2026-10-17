@@ -62,15 +62,16 @@ public:
 	void Update(float afTimeStep) override;
 	void OnPostSceneDraw() override;
 
-	void SetMaxForce(float afX) {mfMaxForce = afX;}
-	void SetConstant(float afX) {mfConstant = afX;}
-	void SetDestSpeed(float afX) {mfDestSpeed = afX;}
-	void SetMaxMass(float afX) {mfMaxMass = afX;}
+	void SetMaxForce(float afMaxForce) {mfMaxForce = afMaxForce;}
+	// Proportional gain applied to the speed error along the force direction.
+	void SetConstant(float afSpeedErrorGain) {mfConstant = afSpeedErrorGain;}
+	void SetDestSpeed(float afTargetSpeed) {mfDestSpeed = afTargetSpeed;}
+	void SetMaxMass(float afMaxMass) {mfMaxMass = afMaxMass;}
 
-	void SetMulWithMass(bool abX){mbMulWithMass = abX;}
-	void SetAffectCharacters(bool abX){mbAffectCharacters = abX;}
-	void SetAffectBodies(bool abX){mbAffectBodies = abX;}
-	void SetForceAtPoint(bool abX){ mbForceAtPoint = abX;}
+	void SetMulWithMass(bool abMultiplyByMass){mbMulWithMass = abMultiplyByMass;}
+	void SetAffectCharacters(bool abAffectCharacters){mbAffectCharacters = abAffectCharacters;}
+	void SetAffectBodies(bool abAffectBodies){mbAffectBodies = abAffectBodies;}
+	void SetForceAtPoint(bool abForceAtContact){ mbForceAtPoint = abForceAtContact;}
 	
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;
@@ -89,7 +90,7 @@ private:
 	bool mbAffectBodies;
 	bool mbForceAtPoint;
 
-	cVector3f mvUp;
+	cVector3f mvForceDirection;
 };
 
 //------------------------------------------
@@ -109,4 +110,4 @@ private:
 };
 
 
-#endif // GAME_GAME_DAMAGE_AREA_H
+#endif // GAME_GAME_FORCE_AREA_H

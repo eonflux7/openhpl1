@@ -69,7 +69,7 @@ iEntity3D* cAreaLoader_GameLiquidArea::Load(const tString &asName, const cVector
 
 	pArea->Setup();
 	
-	//Return something else later perhaps.
+	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
 
@@ -94,10 +94,10 @@ cGameLiquidArea::cGameLiquidArea(cInit *apInit,const tString& asName) : iGameEnt
 	mpPhysicsMaterial = nullptr;
 
 	mbHasWaves = true;
-	mfWaveAmp = 0.04f;
-	mfWaveFreq = 3;
+	mfWaveAmplitude = 0.04f;
+	mfWaveAngularFrequency = 3;
 
-	mfTimeCount =0;
+	mfWaveElapsedSeconds =0;
 }
 
 //-----------------------------------------------------------------------
@@ -149,11 +149,7 @@ void cGameLiquidArea::Update(float afTimeStep)
     cCollideData collideData;
 	collideData.SetMaxSize(1);
 
-	mfTimeCount += afTimeStep;
-
-	////////////////////////////////////////////////////////
-	//Update waves
-	
+	mfWaveElapsedSeconds += afTimeStep;
 
 	////////////////////////////////////////////////////////
 	//Check if player camera is in water.
@@ -177,7 +173,7 @@ void cGameLiquidArea::Update(float afTimeStep)
 	bool bPlayerDeep = false;
 
 	////////////////////////////////////////////////////////
-	//Iterate all bodies in world and check for intersection
+	// Check candidate bodies overlapping the area bounds.
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																	pAreaBody->GetBoundingVolume());
 	while(bodyIt.HasNext())
@@ -269,23 +265,23 @@ void cGameLiquidArea::Update(float afTimeStep)
 				}
 
 				if(mbHasWaves){
-					cVector3f vPos = cMath::MatrixMul(pBody->GetLocalMatrix(),pBody->GetMassCentre());
+					cVector3f vMassCentreWorldPos = cMath::MatrixMul(pBody->GetLocalMatrix(),pBody->GetMassCentre());
 
-					float fAddX = sin(mfTimeCount * mfWaveFreq + vPos.x * 15)*mfWaveAmp;
-					float fAddZ = sin(mfTimeCount * mfWaveFreq + vPos.z * 15)*mfWaveAmp;
+					float fWaveOffsetX = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.x * 15)*mfWaveAmplitude;
+					float fWaveOffsetZ = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.z * 15)*mfWaveAmplitude;
 					
-					//pBody->AddForce(cVector3f(0, 9.8f * (fAddZ+fAddX)*pBody->GetMass()*2, 0));
+					//pBody->AddForce(cVector3f(0, 9.8f * (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()*2, 0));
 					//pBody->AddForce(cVector3f(0, 9.8f * cMath::RandRectf(-0.1, 0.1f)*pBody->GetMass()*2, 0));
-					//Log("F:%f Amp %f\n",fAddZ+fAddX,mfWaveAmp);
-					//pBody->AddTorque(cVector3f((fAddZ+fAddX)*pBody->GetMass(), (fAddZ+fAddX)*pBody->GetMass(), 
-					//							(fAddZ+fAddX)*pBody->GetMass()));
+					//Log("F:%f Amp %f\n",fWaveOffsetZ+fWaveOffsetX,mfWaveAmplitude);
+					//pBody->AddTorque(cVector3f((fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(), (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(),
+					//							(fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()));
 
-					cPlanef tempPlane;
-					tempPlane.FromNormalPoint(	cVector3f(0,1,0),
-													cVector3f(0,fSurfaceY + fAddX + fAddZ,0));
+					cPlanef waveSurfacePlane;
+					waveSurfacePlane.FromNormalPoint(	cVector3f(0,1,0),
+													cVector3f(0,fSurfaceY + fWaveOffsetX + fWaveOffsetZ,0));
 					
 
-					pBody->SetBuoyancySurface(tempPlane);
+					pBody->SetBuoyancySurface(waveSurfacePlane);
 					pBody->SetEnabled(true);
 				}
     		}

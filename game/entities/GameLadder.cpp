@@ -107,8 +107,8 @@ cGameLadder::~cGameLadder(void)
 
 void cGameLadder::OnPlayerPick()
 {
-	float fHeight = GetHeight();
-	if(GetDist2D() <= 1.4 && fabs(fHeight)<1.1f)
+	float fPickedHeightOffset = GetPickedHeightOffset();
+	if(GetPlayerDistanceXZ() <= 1.4 && fabs(fPickedHeightOffset)<1.1f)
 	{
 		mpInit->mpPlayer->SetCrossHairState(eCrossHairState_Ladder);
 	}
@@ -116,8 +116,8 @@ void cGameLadder::OnPlayerPick()
 
 void cGameLadder::OnPlayerInteract()
 {
-	float fHeight = GetHeight();
-	if(GetDist2D() <= 1.4 && fabs(fHeight)<1.1f)
+	float fPickedHeightOffset = GetPickedHeightOffset();
+	if(GetPlayerDistanceXZ() <= 1.4 && fabs(fPickedHeightOffset)<1.1f)
 	{
 		//Black Plague: out of the water onto the ladder
 		if(cInit::IsOverture()==false) mpInit->mpPlayer->SetIsUnderWater(false);
@@ -125,28 +125,28 @@ void cGameLadder::OnPlayerInteract()
 		mpInit->mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 
 		///////////////////////////////
-		//Check if the pos infront of the ladder is free.
+		// Search upward for a clear entry position in front of the ladder.
 		iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
 		iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-		cMatrixf mtxPos = cMath::MatrixTranslate(GetStartPosition());
-		cVector3f vNewPos;
-		bool bFound = false;
+		cMatrixf mtxEntryPosition = cMath::MatrixTranslate(GetStartPosition());
+		cVector3f vResolvedPosition;
+		bool bEntryClear = false;
 
 		do{
-			pWorld->CheckShapeWorldCollision(&vNewPos,pCharBody->GetShape(),mtxPos,
+			pWorld->CheckShapeWorldCollision(&vResolvedPosition,pCharBody->GetShape(),mtxEntryPosition,
 												pCharBody->GetBody(),false,true,nullptr,true);
-			if(vNewPos == mtxPos.GetTranslation())
+			if(vResolvedPosition == mtxEntryPosition.GetTranslation())
 			{
-					bFound = true;
+					bEntryClear = true;
 					break;
 			}
 			
-			mtxPos.SetTranslation(mtxPos.GetTranslation() + cVector3f(0,0.1f,0));
+			mtxEntryPosition.SetTranslation(mtxEntryPosition.GetTranslation() + cVector3f(0,0.1f,0));
 		}
-		while(mtxPos.GetTranslation().y <= mfMaxY);
+		while(mtxEntryPosition.GetTranslation().y <= mfMaxY);
 		
-		if(bFound==false) {
-			//TODO: Message?
+		if(bEntryClear==false) {
+			// TODO: Give feedback when no clear ladder entry position is found.
 			return;
 		}
 
@@ -154,7 +154,7 @@ void cGameLadder::OnPlayerInteract()
 		//Set state
 		cPlayerState_Climb* pState = static_cast<cPlayerState_Climb*>(mpInit->mpPlayer->GetStateData(ePlayerState_Climb));
 		pState->mpLadder = this;
-		pState->mvStartPosition = mtxPos.GetTranslation();
+		pState->mvStartPosition = mtxEntryPosition.GetTranslation();
 
 		mpInit->mpPlayer->ChangeState(ePlayerState_Climb);
 	}
@@ -183,25 +183,25 @@ void cGameLadder::Setup()
 
 //-----------------------------------------------------------------------
 
-float cGameLadder::GetDist2D()
+float cGameLadder::GetPlayerDistanceXZ()
 {
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
-	cVector3f vPosA = pCharBody->GetPosition();
-	vPosA.y =0;
-	cVector3f vPosB = mvBodies[0]->GetWorldPosition();
-	vPosB.y =0;
-	return cMath::Vector3Dist(vPosA,vPosB);
+	cVector3f vPlayerPosition = pCharBody->GetPosition();
+	vPlayerPosition.y =0;
+	cVector3f vLadderPosition = mvBodies[0]->GetWorldPosition();
+	vLadderPosition.y =0;
+	return cMath::Vector3Dist(vPlayerPosition,vLadderPosition);
 }
 
 //-----------------------------------------------------------------------
 
-float cGameLadder::GetHeight()
+float cGameLadder::GetPickedHeightOffset()
 {
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
-	cVector3f vPosA = pCharBody->GetPosition();
-	cVector3f vPosB = mpInit->mpPlayer->GetPickedPos();
+	cVector3f vPlayerPosition = pCharBody->GetPosition();
+	cVector3f vPickedPosition = mpInit->mpPlayer->GetPickedPos();
 	
-	return vPosB.y - vPosA.y;
+	return vPickedPosition.y - vPlayerPosition.y;
 }
 
 //-----------------------------------------------------------------------

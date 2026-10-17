@@ -64,18 +64,18 @@ public:
 
 	void Update(float afTimeStep) override;
 
-	void OnSetActive(bool abX) override;
+	void OnSetActive(bool abActive) override;
 
 	void Init();
 
-	// The angles are in radians, to each side of how the camera was placed
-	void Setup(	float afMinAngle, float afMaxAngle, float afMinPause, float afMaxPause, float afSpeed,
+	// Angles are radians relative to placement; pauses are seconds, speed is radians/second.
+	void Setup(	float afMinAngle, float afMaxAngle, float afMinPauseSeconds, float afMaxPauseSeconds, float afRadiansPerSecond,
 				const tString &asSpottedCallback, const tString &asAlertOverCallback);
 
-	void SetAlerted(bool abX);
+	void SetAlerted(bool abAlerted);
 	bool IsAlerted(){ return mbAlerted;}
 
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
+	bool OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams) override;
 
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;
@@ -89,8 +89,8 @@ private:
 	void PlayTurnSound();
 	void StopTurnSound();
 
-	// How long an alert lasts
-	float mfSpottedPlayerTime;
+	// Alert duration in seconds.
+	float mfAlertDurationSeconds;
 	cColor mAlertColor;
 	cColor mNormalColor;
 	float mfLightRadius;
@@ -115,11 +115,11 @@ private:
 	float mfDir;
 	float mfPauseCount;
 
-	float mfCheckCount;
+	float mfVisibilityCheckDelaySeconds;
 	bool mbAlerted;
-	int mlSpottedCount;
+	int mlDetectionScore;
 	bool mbRayHit;
-	float mfAlertCount;
+	float mfAlertRemainingSeconds;
 
 	cSoundEntity *mpTurnSound;
 };

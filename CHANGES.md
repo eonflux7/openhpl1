@@ -63,6 +63,95 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### UI naming and comment cleanup
+
+- Audited all 26 `game/ui/` headers/sources, completing A2 in
+  `naming_cleanup.md`. Distinguished logo/image brightness and loading-prompt
+  pulse phase from opacity; named intro rates/durations, typing delays, page
+  waits and rain refresh timing explicitly. Corrected widget position,
+  difficulty and key-widget spelling; clarified menu state widget lists and
+  the save-file entry helper.
+- Made terminal closure requests/deferred closure explicit. Documented notebook
+  row bounds and inventory callback dispatch; corrected misleading typing,
+  pop-up deletion and button-loop comments. Preserved script signatures,
+  serialized fields/classes, settings/asset/translation strings, updater names,
+  callback/destruction order, drawing operations and timing constants.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions with no skips. Token comparison of all 26
+  UI files against `981e71e` found only permitted identifier substitutions,
+  comments and whitespace; serialization macros and all literals are unchanged.
+  Documentation links and diff whitespace passed. Existing ButtonHandler
+  missing-initializer warnings remain. CTest does not directly cover these UI
+  flows; manual interaction, audio/visual captures, sanitizers and Windows
+  checks were not run for this naming/comment-only pass.
+
+### Environmental-area naming and comment cleanup
+
+- Began A3 with all eight headers/sources for generic, damage, force and liquid
+  areas reviewed. Named damage delay and elapsed wave time in seconds, wave
+  amplitude/angular frequency, force direction/speed error and contact/wave
+  coordinates. Replaced opaque setter arguments and clarified proportional gain,
+  candidate iteration, loader ownership and misleading guard comments.
+- Preserved script signatures, loader names, save fields/classes and all
+  serialization/copy macros. Damage cadence, force/contact calculations,
+  buoyancy, swimming branches, sound/effect calls and constants are unchanged.
+  The prior uncommitted UI cleanup is preserved. A3 remains open for the other
+  28 entity headers/sources and all player/enemy files; see `naming_cleanup.md`.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions with no skips. Token comparison of the eight
+  area files confirms only 90 permitted identifier substitutions plus comments
+  and whitespace; literals and serialization/copy macros are unchanged.
+  Documentation links and diff whitespace passed. Existing suites do not
+  directly cover these area flows. Sanitizers, game smoke/save/reload, manual
+  gameplay/audio/visual checks and Windows checks were not run for this
+  naming/comment-only batch.
+
+### Traversal and save-area naming and comment cleanup
+
+- Reviewed all eight link, ladder, vent and save-area headers/sources, bringing
+  A3 to 16/36 entity files. Ladder queries now identify player XZ distance and
+  picked-point height offset; entry-search locals and comments describe collision
+  clearance. Vent names distinguish entry velocity, remaining seconds and floor/
+  crouched/resolved positions; comments explain the persisted entry-attempt latch.
+  Save-area loader/setter names now describe their roles, and link comments
+  distinguish loading images from locked-interaction feedback.
+- Preserved script signatures, serialized fields/classes and every save/copy
+  macro invocation. Reach thresholds, search steps, state/collision/gravity
+  transitions, vent timing and save/map-change calls are unchanged. Prior UI and
+  environmental-area source edits are preserved byte-for-byte.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions with no skips. Token comparison confirms 69
+  permitted identifier substitutions plus comments/whitespace; other tokens and
+  literals match. Documentation links and diff checks passed. Existing suites
+  do not directly cover these interactions; in-game traversal/save/reload and
+  visual checks were not run for this naming/comment-only pass.
+
+### Remaining entity naming cleanup and diff review
+
+- Completed review of all 36 `game/entities/` headers/sources. Clarified camera
+  detection/alert timing, item visibility limits/flash timing, lamp billboard
+  fading, object disappearance/attraction checks and joint-mechanism arguments.
+  Corrected C++ stick-area detach spelling and callback-command naming, updating
+  the script wrapper and normal/HaptX player callers while retaining persisted
+  `mbCanDeatch` and script parameter spelling.
+- Renamed the entity sound-destruction operation to `DestroySoundEntity` and its
+  character-body getter to `GetCharBody`; aligned declaration arguments and moved
+  movement documentation onto its declaration. Documented stick interpolation
+  progress and enter-before-leave callback order; corrected misleading action,
+  loader and lifecycle comments. Serialization/copy macros, script/save/settings/
+  asset identifiers, arithmetic and callback/resource ordering are unchanged.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions with no skips. This pass's 23 source/caller
+  files have 323 permitted identifier substitutions; all 39 prior modified source
+  files are byte-for-byte preserved. Reviewed the full accumulated diff against
+  `981e71e`: 914 identifier substitutions across 62 C++ files, with all other
+  tokens/literals and serialization/copy macros unchanged. Reviewed existing-name
+  bindings and comment contracts, corrected review nits and found no remaining
+  behaviour/compatibility issues in the cleanup. Links and diff checks passed.
+- A3 remains open for player/enemy audits. Existing suites do not directly cover
+  entity gameplay flows; in-game save/reload, mechanism/audio/visual checks and
+  Windows/sanitizer validation were not run for this naming/comment-only pass.
+
 ### Readability audit plan
 
 - Expanded `naming_cleanup.md` into a phased audit of function, class, file and

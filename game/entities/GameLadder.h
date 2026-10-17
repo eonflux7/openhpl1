@@ -58,8 +58,9 @@ public:
 	
 	void Setup();
 
-	float GetDist2D();
-	float GetHeight();
+	float GetPlayerDistanceXZ();
+	// Signed vertical offset from the player centre to the picked point.
+	float GetPickedHeightOffset();
 
 	const cVector3f& GetForward(){ return mvForward;}
 	float GetMaxY(){ return mfMaxY;}
@@ -69,11 +70,12 @@ public:
 	const tString& GetClimbUpSound(){ return msClimbUpSound;}
 	const tString& GetClimbDownSound(){ return msClimbDownSound;}
 
-	void SetAttachSound(const tString& asX){ msAttachSound = asX;}
-	void SetClimbUpSound(const tString& asX){ msClimbUpSound = asX;}
-	void SetClimbDownSound(const tString& asX){ msClimbDownSound = asX;}
+	void SetAttachSound(const tString& asSound){ msAttachSound = asSound;}
+	void SetClimbUpSound(const tString& asSound){ msClimbUpSound = asSound;}
+	void SetClimbDownSound(const tString& asSound){ msClimbDownSound = asSound;}
 
 	cVector3f GetStartRotation();
+	// Initial climb position, before the entry collision-clearance search.
 	cVector3f GetStartPosition();
 
 	//SaveObject implementation

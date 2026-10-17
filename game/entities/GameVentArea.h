@@ -24,9 +24,8 @@
 
 using namespace hpl;
 
-// An area of Black Plague at the mouth of a ventilation shaft: a player who
-// jumps into it is made to crouch and is carried to the middle of its floor,
-// if there is room for him there. Written after the game's binary.
+// Black Plague/Requiem vent entry: crouch a jumping player, then carry them
+// toward the floor centre if clearance permits. Written after the game's binary.
 
 //------------------------------------------
 
@@ -64,9 +63,10 @@ public:
 
 private:
 	bool mbMovingPlayer;
-	cVector3f mvMoveSpeed;
-	float mfMoveTime;
+	cVector3f mvEntryVelocity;
+	float mfEntryRemainingSeconds;
 
+	// Entry-attempt latch; cleared outside the bounds or below the floor.
 	bool mbPlayerInside;
 };
 

@@ -89,10 +89,10 @@ public:
 	cInventoryItem* GetItem(){ return mpItem;}
 	void SetItem(cInventoryItem* apItem){ mpItem = apItem;}
 
-	void SetIndex(int alX){ mlIndex = alX;}
-	void SetEquip(bool abX){ mbEquip = abX;}
+	void SetIndex(int alIndex){ mlIndex = alIndex;}
+	void SetEquip(bool abEquip){ mbEquip = abEquip;}
 	
-	void SetEquipIndex(int alX){ mlEquipIndex = alX;}
+	void SetEquipIndex(int alEquipIndex){ mlEquipIndex = alEquipIndex;}
 	int GetEquipIndex(){ return mlEquipIndex;}
 
 private:
@@ -148,8 +148,8 @@ public:
 
 	bool HasCount(){ return mbHasCount;}
 	int GetCount(){ return mlCount;}
-	void AddCount(int alX){ mlCount += alX;}
-	void SetCount(int alX){ mlCount = alX;}
+	void AddCount(int alAmount){ mlCount += alAmount;}
+	void SetCount(int alCount){ mlCount = alCount;}
 private:
 	cInit *mpInit;
 	tString msName;
@@ -225,7 +225,7 @@ public:
 	cInventoryContext(cInit *apInit);
 	~cInventoryContext();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void Draw();
@@ -301,7 +301,7 @@ public:
 	void Reset() override;
 	void OnDraw() override;
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive();
 
 	float GetAlpha(){ return mfAlpha;}
@@ -317,7 +317,7 @@ public:
 	void SetMousePos(const cVector2f &avPos);
 	void AddMousePos(const cVector2f &avRel);
 
-	void SetNoteBookActive(bool abX){ mbNoteBookIsActive = abX;}
+	void SetNoteBookActive(bool abNotebookActive){ mbNoteBookIsActive = abNotebookActive;}
 	bool GetNoteBookActive(){ return mbNoteBookIsActive;}
 	
     void OnMouseDown(eMButton aButton);
@@ -348,7 +348,7 @@ public:
 
 	cGameItemType* GetItemType(int alIndex){ return mvItemTypes[alIndex];}
 
-	void SetDroppedInSlot(bool abX){ mbDroppedInSlot = abX;}
+	void SetDroppedInSlot(bool abDroppedInSlot){ mbDroppedInSlot = abDroppedInSlot;}
 
 	void SetMessage(const tWString &asMessage);
 
@@ -362,6 +362,7 @@ public:
 
 	void ClearCallbacks();
 
+	// These checks execute matching script callbacks; true means a match was dispatched.
 	void CheckPickupCallback(const tString &asItem);
 	bool CheckUseCallback(const tString &asItem, const tString &asObject);
 	bool CheckCombineCallback(const tString &asItem1,const tString &asItem2,int alSlotIndex,

@@ -77,8 +77,8 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
 	{
-		pObject->mfTurnOnTime = cString::ToFloat(pGameElem->Attribute("TurnOnTime"),0);
-		pObject->mfTurnOffTime = cString::ToFloat(pGameElem->Attribute("TurnOffTime"),0);
+		pObject->mfTurnOnDurationSeconds = cString::ToFloat(pGameElem->Attribute("TurnOnTime"),0);
+		pObject->mfTurnOffDurationSeconds = cString::ToFloat(pGameElem->Attribute("TurnOffTime"),0);
 
 		if(mpInit->mbHasHaptics==false)
 			pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("InteractDist"),1.8f);
@@ -120,7 +120,7 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	}
 
 	///////////////////////////////////
-	// Add a the object as user data to the body, to get the obejct later on.
+	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
 		if(mvBodies[i])
@@ -153,9 +153,9 @@ cGameLamp::cGameLamp(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mbLit = true;
 	mfMaxInteractDist = 2.1f;
 
-	mfAlpha = 1;
-	mfTurnOnTime = 2;
-	mfTurnOffTime = 1;
+	mfBillboardFade = 1;
+	mfTurnOnDurationSeconds = 2;
+	mfTurnOffDurationSeconds = 1;
 
 	mbInteractOff = true;
 	mbInteractOn = true;
@@ -274,7 +274,7 @@ bool cGameLamp::OnUseItem(cInventoryItem *apItem)
 void cGameLamp::Update(float afTimeStep)
 {
 	////////////////////////////////
-	//Update alpha
+	// Enable flickering after the light fade finishes.
 	if(mbFlickering && mbLit)
 	{
 		for(size_t i=0; i<mvLights.size(); ++i) 
@@ -318,20 +318,20 @@ void cGameLamp::Update(float afTimeStep)
 	}
 
 	////////////////////////////////
-	//Update alpha
+	// Update billboard fade.
 	bool bChanged = false;
-	if(mbLit && mfAlpha < 1)
+	if(mbLit && mfBillboardFade < 1)
 	{
-		mfAlpha += (1/mfTurnOnTime)*afTimeStep;
-		if(mfAlpha > 1.0f) mfAlpha = 1.0f;
+		mfBillboardFade += (1/mfTurnOnDurationSeconds)*afTimeStep;
+		if(mfBillboardFade > 1.0f) mfBillboardFade = 1.0f;
 		bChanged = true;
 	}
-	else if(mbLit==false && mfAlpha>0)
+	else if(mbLit==false && mfBillboardFade>0)
 	{
-		mfAlpha -= (1/mfTurnOffTime)*afTimeStep;
-		if(mfAlpha < 0)
+		mfBillboardFade -= (1/mfTurnOffDurationSeconds)*afTimeStep;
+		if(mfBillboardFade < 0)
 		{
-			mfAlpha = 0;
+			mfBillboardFade = 0;
 			if(mpSubMesh && mpOffMaterial && cInit::IsOverture()==false)
 				mpSubMesh->SetCustomMaterial(mpOffMaterial,false);
 		}
@@ -344,9 +344,9 @@ void cGameLamp::Update(float afTimeStep)
 	{
 		for(size_t i=0; i<mvBillboards.size(); ++i) 
 		{
-			mvBillboards[i]->SetColor(mvBBColors[i] * mfAlpha);
+			mvBillboards[i]->SetColor(mvBBColors[i] * mfBillboardFade);
 			
-			if(mfAlpha ==0) 
+			if(mfBillboardFade ==0)
 				mvBillboards[i]->SetVisible(false);
 			else if(mvBillboards[i]->IsVisible()==false)
 				mvBillboards[i]->SetVisible(true);
@@ -356,11 +356,11 @@ void cGameLamp::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
-void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
+void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 {
-	if(mbLit == abX) return;
+	if(mbLit == abLit) return;
 
-	mbLit = abX;
+	mbLit = abLit;
 
 	cWorld3D *pWorld= mpInit->mpGame->GetScene()->GetWorld3D();
 
@@ -374,7 +374,7 @@ void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 			if(abFade)
 			{
 				mvLights[i]->SetFlickerActive(false);
-				mvLights[i]->FadeTo(mvLightColors[i],mvLights[i]->GetFarAttenuation(),mfTurnOnTime);
+				mvLights[i]->FadeTo(mvLightColors[i],mvLights[i]->GetFarAttenuation(),mfTurnOnDurationSeconds);
 			}
 			else
 			{
@@ -421,7 +421,7 @@ void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 			else
 				mpSubMesh->SetCustomMaterial(nullptr,false);
 		}
-		if(!abFade) mfAlpha = 1;
+		if(!abFade) mfBillboardFade = 1;
 
 		if(msTurnOnSound!="" && abFade)
 		{
@@ -438,7 +438,7 @@ void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 			//Black Plague: an off colour (an indicator light) instead of dark
 			mvLights[i]->SetFlickerActive(false);
 			if(abFade)
-				mvLights[i]->FadeTo(mOffColor,mvLights[i]->GetFarAttenuation(),mfTurnOffTime);
+				mvLights[i]->FadeTo(mOffColor,mvLights[i]->GetFarAttenuation(),mfTurnOffDurationSeconds);
 			else
 			{
 				if(mOffColor.r==0 && mOffColor.g==0 && mOffColor.b==0)
@@ -470,7 +470,7 @@ void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 		if(mpSubMesh && mpOffMaterial && (abFade==false || cInit::IsOverture()))
 			mpSubMesh->SetCustomMaterial(mpOffMaterial,false);
 
-        if(!abFade)mfAlpha = 0;
+        if(!abFade)mfBillboardFade = 0;
 
 		if(msTurnOffSound!="" && abFade)
 		{
@@ -489,9 +489,9 @@ void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 
 //-----------------------------------------------------------------------
 
-void cGameLamp::SetFlicker(bool abX)
+void cGameLamp::SetFlicker(bool abFlickering)
 {
-	mbFlickering = abX;
+	mbFlickering = abFlickering;
 	for(size_t i=0; i<mvLights.size(); ++i) 
 	{
 		mvLights[i]->SetFlickerActive(mbFlickering);
@@ -570,9 +570,9 @@ void cGameLamp::Init()
 
 //-----------------------------------------------------------------------
 
-void cGameLamp::SetUpFlicker(int alIdx)
+void cGameLamp::SetUpFlicker(int alLightIndex)
 {
-	mvLights[alIdx]->SetFlicker( mFlickerOffColor, mfFlickerOffRadius,
+	mvLights[alLightIndex]->SetFlicker( mFlickerOffColor, mfFlickerOffRadius,
 		mfFlickerOnMinLength, mfFlickerOnMaxLength,
 		msFlickerOnSound,msFlickerOnPS,
 		mfFlickerOffMinLength, mfFlickerOffMaxLength,

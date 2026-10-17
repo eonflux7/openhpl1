@@ -1542,7 +1542,7 @@ static void __stdcall SetupStickArea(	std::string asArea, bool abCanDeatch,
 	}
 	cGameStickArea *pArea = static_cast<cGameStickArea*>(pEntity);
 
-    pArea->SetCanDeatch(abCanDeatch);
+    pArea->SetCanDetach(abCanDeatch);
 
 	pArea->SetRotateBody(abRotateBody);
 	pArea->SetMoveBody(abMoveBody);

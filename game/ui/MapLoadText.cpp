@@ -60,10 +60,10 @@ cMapLoadText::~cMapLoadText(void)
 
 void cMapLoadText::Reset()
 {
-	mpBack = nullptr;
+	mpBackgroundTexture = nullptr;
 	mbActive = false;
-	mfAlpha = 0;
-	mfAlphaAdd = 1;
+	mfPulsePhase = 0;
+	mfPulseRatePerSecond = 1;
 }
 
 //-----------------------------------------------------------------------
@@ -71,7 +71,7 @@ void cMapLoadText::Reset()
 void cMapLoadText::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-	mpInit->mpGraphicsHelper->DrawTexture(mpBack,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
+	mpInit->mpGraphicsHelper->DrawTexture(mpBackgroundTexture,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
 }
 
 //-----------------------------------------------------------------------
@@ -106,13 +106,13 @@ void cMapLoadText::DrawText(bool abLoading)
 		tWString wsText = kTranslate("LoadTexts", "ClickToContinue");
 
 		mpTextFont->Draw(cVector3f(400,550,25),
-			17,cColor(0.75f*mfAlpha, 1, 0.75f*mfAlpha, 1),
+			17,cColor(0.75f*mfPulsePhase, 1, 0.75f*mfPulsePhase, 1),
 			eFontAlign_Center,wsText.c_str());
 
-		mpTextFont->Draw(cVector3f(401+ 10*sin(mfAlpha*kPi2f),551,23),
+		mpTextFont->Draw(cVector3f(401+ 10*sin(mfPulsePhase*kPi2f),551,23),
 			17,cColor(0.1f, 0.1f, 0.1f, 0.7f),
 			eFontAlign_Center,wsText.c_str());
-		mpTextFont->Draw(cVector3f(399+ -10*sin(mfAlpha*kPi2f),549,23),
+		mpTextFont->Draw(cVector3f(399+ -10*sin(mfPulsePhase*kPi2f),549,23),
 			17,cColor(0.1f, 0.1f, 0.1f, 0.7f),
 			eFontAlign_Center,wsText.c_str());
 
@@ -123,19 +123,19 @@ void cMapLoadText::DrawText(bool abLoading)
 
 void cMapLoadText::Update(float afTimeStep)
 {
-	mfAlpha += mfAlphaAdd*afTimeStep;
-	if(mfAlphaAdd <0)
+	mfPulsePhase += mfPulseRatePerSecond*afTimeStep;
+	if(mfPulseRatePerSecond <0)
 	{
-		if(mfAlpha <=0){
-			mfAlpha =0;
-			mfAlphaAdd = -mfAlphaAdd;
+		if(mfPulsePhase <=0){
+			mfPulsePhase =0;
+			mfPulseRatePerSecond = -mfPulseRatePerSecond;
 		}
 	}
 	else
 	{
-		if(mfAlpha >=1){
-			mfAlpha =1;
-			mfAlphaAdd = -mfAlphaAdd;
+		if(mfPulsePhase >=1){
+			mfPulsePhase =1;
+			mfPulseRatePerSecond = -mfPulseRatePerSecond;
 		}
 	}
 }
@@ -154,11 +154,11 @@ void cMapLoadText::OnMouseUp(eMButton aButton)
 
 //-----------------------------------------------------------------------
 
-void cMapLoadText::SetActive(bool abX)
+void cMapLoadText::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -173,10 +173,10 @@ void cMapLoadText::SetActive(bool abX)
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_MapLoadText);
 
 		tString sBack = cInit::IsOverture() || msBackground == "" ? tString("other_load_text_back.jpg") : msBackground;
-		mpBack = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D(sBack,false);
+		mpBackgroundTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D(sBack,false);
 		
 		mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-		mpInit->mpGraphicsHelper->DrawTexture(mpBack,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
+		mpInit->mpGraphicsHelper->DrawTexture(mpBackgroundTexture,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
 		DrawText(true);
 		mpDrawer->DrawAll();
 		mpInit->mpGraphicsHelper->SwapBuffers();
@@ -185,8 +185,8 @@ void cMapLoadText::SetActive(bool abX)
 	}
 	else
 	{
-		if(mpBack) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBack);
-		mpBack = nullptr;
+		if(mpBackgroundTexture) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBackgroundTexture);
+		mpBackgroundTexture = nullptr;
 
 		mpInit->mpGame->GetUpdater()->SetContainer("Default");
 		mpInit->mpGame->GetScene()->SetDrawScene(true);

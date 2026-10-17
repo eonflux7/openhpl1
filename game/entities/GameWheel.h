@@ -100,7 +100,7 @@ public:
 
 	eGameWheelState GetState(){ return mState;}
 
-	// The angle turned in all, in radians, and how fast it turns
+	// Accumulated angle in radians; signed angular speed in radians per second.
 	float GetAngle(){ return mfAngle;}
 	float GetSpeed();
 
@@ -108,7 +108,7 @@ public:
 
 	// Holds the wheel at an end of its travel
 	void SetStuck(eGameWheelState aState);
-	void SetIsStuck(bool abX);
+	void SetIsStuck(bool abStuck);
 
 	// The joint's limits follow the wheel: afMin at the wheel's least
 	// angle, afMax at its greatest, kept afRange apart
@@ -142,7 +142,7 @@ private:
 	float mfPrevJointAngle;
 	float mfJointAngle;
 
-	// 1 or -1: the wheel only turns that way, and not back
+	// 0: unrestricted; 1 or -1: one-way rotation in that direction.
 	int mlSpinDir;
 	float mfSpinLimitJointAngle;
 	float mfSpinMaxAngle;

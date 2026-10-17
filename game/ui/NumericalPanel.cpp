@@ -36,7 +36,7 @@ cNumericalButton::cNumericalButton(cInit *apInit, cNumericalPanel* apPanel, cVec
 	mpPanel = apPanel;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-    mvPositon = cVector3f(avPos.x, avPos.y, 40);
+    mvPosition = cVector3f(avPos.x, avPos.y, 40);
 
 	mRect.x = avPos.x;
 	mRect.y = avPos.y;
@@ -78,11 +78,11 @@ void cNumericalButton::OnUpdate(float afTimeStep)
 void cNumericalButton::OnDraw()
 {
 	if(mbOver && mpPanel->mbMouseIsDown)
-		mpDrawer->DrawGfxObject(mpGfxDown,mvPositon,cVector2f(mRect.w,mRect.h),cColor(1,mpPanel->mfAlpha));
+		mpDrawer->DrawGfxObject(mpGfxDown,mvPosition,cVector2f(mRect.w,mRect.h),cColor(1,mpPanel->mfAlpha));
 	else
-		mpDrawer->DrawGfxObject(mpGfxUp,mvPositon,cVector2f(mRect.w,mRect.h),cColor(1,mpPanel->mfAlpha));
+		mpDrawer->DrawGfxObject(mpGfxUp,mvPosition,cVector2f(mRect.w,mRect.h),cColor(1,mpPanel->mfAlpha));
 
-	cVector3f vFontPos = mvPositon + cVector3f(mRect.w/2,1,1);
+	cVector3f vFontPos = mvPosition + cVector3f(mRect.w/2,1,1);
 
 	tWString sChar;
 	if(mlNum==-1) sChar =_W("*");
@@ -202,7 +202,7 @@ void cNumericalPanel::OnDraw()
 	mpDrawer->DrawGfxObject(mpGfxPanel,cVector3f(280,170,10),cVector2f(270,300),cColor(1,mfAlpha));
 
 	////////////////////////////////
-	// Update buttons
+	// Draw buttons
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -275,7 +275,7 @@ void cNumericalPanel::AddMousePos(const cVector2f &avRel)
 void cNumericalPanel::OnMouseDown(eMButton aButton)
 {
 	////////////////////////////////
-	// Update buttons
+	// Dispatch button presses
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -293,7 +293,7 @@ void cNumericalPanel::OnMouseDown(eMButton aButton)
 void cNumericalPanel::OnMouseUp(eMButton aButton)
 {
 	////////////////////////////////
-	// Update buttons
+	// Dispatch button releases
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
 	{
@@ -310,11 +310,11 @@ void cNumericalPanel::OnMouseUp(eMButton aButton)
 
 //-----------------------------------------------------------------------
 
-void cNumericalPanel::SetActive(bool abX)
+void cNumericalPanel::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{

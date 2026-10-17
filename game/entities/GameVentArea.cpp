@@ -82,8 +82,8 @@ cGameVentArea::cGameVentArea(cInit *apInit,const tString& asName) : iGameEntity(
 	mbHasInteraction = false;
 
 	mbMovingPlayer = false;
-	mvMoveSpeed = 0;
-	mfMoveTime = 0;
+	mvEntryVelocity = 0;
+	mfEntryRemainingSeconds = 0;
 
 	mbPlayerInside = false;
 }
@@ -117,10 +117,10 @@ void cGameVentArea::Update(float afTimeStep)
 	// The player is being carried in
 	if(mbMovingPlayer)
 	{
-		pCharBody->SetFeetPosition(pCharBody->GetFeetPosition() + mvMoveSpeed * afTimeStep, false);
+		pCharBody->SetFeetPosition(pCharBody->GetFeetPosition() + mvEntryVelocity * afTimeStep, false);
 
-		mfMoveTime -= afTimeStep;
-		if(mfMoveTime <= 0)
+		mfEntryRemainingSeconds -= afTimeStep;
+		if(mfEntryRemainingSeconds <= 0)
 		{
 			mbMovingPlayer = false;
 			pCharBody->SetGravityActive(true);
@@ -135,18 +135,18 @@ void cGameVentArea::Update(float afTimeStep)
 	iPhysicsBody *pAreaBody = mvBodies[0];
 	iPhysicsBody *pPlayerBody = pCharBody->GetBody();
 
-	cVector3f vFloorPos = pAreaBody->GetLocalPosition();
-	vFloorPos.y -= pAreaBody->GetShape()->GetSize().y * 0.5f;
+	cVector3f vFloorCentre = pAreaBody->GetLocalPosition();
+	vFloorCentre.y -= pAreaBody->GetShape()->GetSize().y * 0.5f;
 
 	if(	cMath::CheckCollisionBV(*pPlayerBody->GetBV(), *pAreaBody->GetBV())==false ||
-		pPlayerBody->GetLocalPosition().y < vFloorPos.y)
+		pPlayerBody->GetLocalPosition().y < vFloorCentre.y)
 	{
 		mbPlayerInside = false;
 		return;
 	}
 
 	////////////////////////////////////////////
-	// Only a jump into the area counts, and once
+	// Attempt entry once per visit, while the player is jumping.
 	if(mbPlayerInside || pPlayer->GetMoveState() != ePlayerMoveState_Jump) return;
 
 	cCollideData collideData;
@@ -164,11 +164,11 @@ void cGameVentArea::Update(float afTimeStep)
 
 	////////////////////////////////////////////
 	// Is there room for the crouching player on the middle of the floor?
-	cVector3f vBodyPos = vFloorPos + cVector3f(0, pCharBody->GetSize().y * 0.5f, 0);
-	cVector3f vNewPos(0);
-	pPhysicsWorld->CheckShapeWorldCollision(&vNewPos, pCharBody->GetShape(), cMath::MatrixTranslate(vBodyPos),
+	cVector3f vCrouchedCentre = vFloorCentre + cVector3f(0, pCharBody->GetSize().y * 0.5f, 0);
+	cVector3f vResolvedCentre(0);
+	pPhysicsWorld->CheckShapeWorldCollision(&vResolvedCentre, pCharBody->GetShape(), cMath::MatrixTranslate(vCrouchedCentre),
 											pPlayerBody, false, true, nullptr, true);
-	if(vNewPos != vBodyPos)
+	if(vResolvedCentre != vCrouchedCentre)
 	{
 		pPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 		return;
@@ -177,8 +177,8 @@ void cGameVentArea::Update(float afTimeStep)
 	////////////////////////////////////////////
 	// Carry the player there in a second
 	mbMovingPlayer = true;
-	mfMoveTime = 1.0f;
-	mvMoveSpeed = (vFloorPos - pCharBody->GetFeetPosition()) / mfMoveTime;
+	mfEntryRemainingSeconds = 1.0f;
+	mvEntryVelocity = (vFloorCentre - pCharBody->GetFeetPosition()) / mfEntryRemainingSeconds;
 
 	pCharBody->SetGravityActive(false);
 	pCharBody->SetTestCollision(false);

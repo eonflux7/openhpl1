@@ -81,7 +81,7 @@ cMainMenuWidget::cMainMenuWidget(cInit *apInit, const cVector3f &avPos, const cV
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-	mvPositon = cVector3f(avPos.x, avPos.y, 40);
+	mvWidgetPos = cVector3f(avPos.x, avPos.y, 40);
 	
 	mRect.w = avSize.x;
 	mRect.h = avSize.y;
@@ -171,14 +171,14 @@ void cMainMenuWidget_MainButton::OnMouseDown(eMButton aButton)
 
 void cMainMenuWidget_MainButton::OnDraw()
 {
-	mpFont->Draw(mvPositon,mvFontSize,cColor(0.62f + mfAlpha*0.3f,1),eFontAlign_Center,msText.c_str());
+	mpFont->Draw(mvWidgetPos,mvFontSize,cColor(0.62f + mfAlpha*0.3f,1),eFontAlign_Center,msText.c_str());
 
 	float fAdd = sin(mfOverTimer) * 16.0f;
 
 	if(mfAlpha >0)
 	{
-		mpFont->Draw(mvPositon + cVector3f(fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
-		mpFont->Draw(mvPositon + cVector3f(-fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
+		mpFont->Draw(mvWidgetPos + cVector3f(fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
+		mpFont->Draw(mvWidgetPos + cVector3f(-fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
 	}
 }
 
@@ -270,14 +270,14 @@ void cMainMenuWidget_Button::OnMouseDown(eMButton aButton)
 
 void cMainMenuWidget_Button::OnDraw()
 {
-	mpFont->Draw(mvPositon,mvFontSize,cColor(0.62f ,1),mAlignment,msText.c_str());
+	mpFont->Draw(mvWidgetPos,mvFontSize,cColor(0.62f ,1),mAlignment,msText.c_str());
 
 	if(mfAlpha > 0)
 	{
 		float fX = 0.8f + sin(mfOverTimer)*0.2f;
 		
-		mpFont->Draw(mvPositon+cVector3f(0,0,1),mvFontSize,cColor(0.9f,0.95f,1.0f,mfAlpha*fX),mAlignment,msText.c_str());
-		mpFont->DrawEffect(eFontEffect_Glow,3,mvPositon+cVector3f(0,0,-1),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*fX),mAlignment,msText);
+		mpFont->Draw(mvWidgetPos+cVector3f(0,0,1),mvFontSize,cColor(0.9f,0.95f,1.0f,mfAlpha*fX),mAlignment,msText.c_str());
+		mpFont->DrawEffect(eFontEffect_Glow,3,mvWidgetPos+cVector3f(0,0,-1),mvFontSize,cColor(0.1f,0.32f,1.0f,mfAlpha*fX),mAlignment,msText);
 	}
 
 }
@@ -341,9 +341,9 @@ void cMainMenuWidget_Text::UpdateSize()
 void cMainMenuWidget_Text::OnDraw()
 {
 	if(mfMaxWidth <=0)
-		mpFont->Draw(mvPositon,mvFontSize,cColor(0.9f,1),mAlignment,_W("%ls"),msText.c_str());
+		mpFont->Draw(mvWidgetPos,mvFontSize,cColor(0.9f,1),mAlignment,_W("%ls"),msText.c_str());
 	else
-		mpFont->DrawWordWrap(	mvPositon,mfMaxWidth,mvFontSize.y+1,
+		mpFont->DrawWordWrap(	mvWidgetPos,mfMaxWidth,mvFontSize.y+1,
 								mvFontSize,cColor(0.9f,1),mAlignment,msText.c_str());
 }
 
@@ -399,7 +399,7 @@ cMainMenuWidget_Image::~cMainMenuWidget_Image()
 
 void cMainMenuWidget_Image::OnDraw()
 {
-	mpDrawer->DrawGfxObject(mpImage,mvPositon,mvSize,mColor);
+	mpDrawer->DrawGfxObject(mpImage,mvWidgetPos,mvSize,mColor);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -512,42 +512,42 @@ void cMainMenuWidget_List::OnMouseOver(bool abOver)
 
 void cMainMenuWidget_List::OnDraw()
 {
-	mpDrawer->DrawGfxObject(mpBackGfx,mvPositon-cVector3f(0,0,1),mvSize,cColor(0.05f,0.05f,0.1f,1));
+	mpDrawer->DrawGfxObject(mpBackGfx,mvWidgetPos-cVector3f(0,0,1),mvSize,cColor(0.05f,0.05f,0.1f,1));
 	
 	//Up
 	mpDrawer->DrawGfxObject(mpUpGfx,
-							cVector3f(mvPositon.x + mvSize.x - 14,mvPositon.y,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x + mvSize.x - 14,mvWidgetPos.y,mvWidgetPos.z+1),
 							cVector2f(14,14), cColor(1,1));
 	//Down
 	mpDrawer->DrawGfxObject(mpDownGfx,
-							cVector3f(mvPositon.x + mvSize.x - 14,mvPositon.y + mvSize.y - 14,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x + mvSize.x - 14,mvWidgetPos.y + mvSize.y - 14,mvWidgetPos.z+1),
 							cVector2f(14,14), cColor(1,1));
 	//Slide
 	mpDrawer->DrawGfxObject(mpSlideGfx,
-							cVector3f(mvPositon.x + mvSize.x - 14,mvPositon.y + 14,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x + mvSize.x - 14,mvWidgetPos.y + 14,mvWidgetPos.z+1),
 							cVector2f(14,mvSize.y-28), cColor(1,1));
 
 	//Border Top
 	mpDrawer->DrawGfxObject(mpBorderTopGfx,
-							cVector3f(mvPositon.x + 3,mvPositon.y,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x + 3,mvWidgetPos.y,mvWidgetPos.z+1),
 							cVector2f(mvSize.x-17,3), cColor(1,1));
 	//Border Bottom
 	mpDrawer->DrawGfxObject(mpBorderBottomGfx,
-							cVector3f(mvPositon.x + 3,mvPositon.y+mvSize.y - 3,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x + 3,mvWidgetPos.y+mvSize.y - 3,mvWidgetPos.z+1),
 							cVector2f(mvSize.x-17,3), cColor(1,1));
 
 	//Border Left
 	mpDrawer->DrawGfxObject(mpBorderLeftGfx,
-							cVector3f(mvPositon.x,mvPositon.y,mvPositon.z+1),
+							cVector3f(mvWidgetPos.x,mvWidgetPos.y,mvWidgetPos.z+1),
 							cVector2f(3,mvSize.y), cColor(1,1));
 
 	//Slider Button
-	cVector3f vButtonStart = cVector3f(mvPositon.x + mvSize.x - 14,mvPositon.y+14,mvPositon.z+2);
+	cVector3f vButtonStart = cVector3f(mvWidgetPos.x + mvSize.x - 14,mvWidgetPos.y+14,mvWidgetPos.z+2);
 	mpDrawer->DrawGfxObject(mpSlideButtonGfx,vButtonStart + cVector3f(0,mfSlideButtonPos,0),
 								cVector2f(14,mfSlideButtonSize), cColor(1,1));
 	
 	
-	cVector3f vPos = mvPositon + cVector3f(5,3,0);
+	cVector3f vPos = mvWidgetPos + cVector3f(5,3,0);
 
 	for(size_t i=mlFirstRow; i< mvEntries.size(); ++i)
 	{
@@ -572,7 +572,7 @@ void cMainMenuWidget_List::OnDraw()
 void cMainMenuWidget_List::OnMouseDown(eMButton aButton)
 {
 	cVector2f vLocalMouse = mpInit->mpMainMenu->GetMousePos() - 
-							cVector2f(mvPositon.x,mvPositon.y);
+							cVector2f(mvWidgetPos.x,mvWidgetPos.y);
 
 	//Scrollbar
 	if(vLocalMouse.x > mvSize.x - 14)
@@ -634,13 +634,13 @@ const tWString& cMainMenuWidget_List::GetSelectedEntry()
 cMainMenuWidget_NewGame::cMainMenuWidget_NewGame(cInit *apInit, const cVector3f &avPos, 
 											   const tWString& asText,
 											   cVector2f avFontSize, eFontAlign aAlignment,
-											   eGameDifficulty aDiffuculty)
+											   eGameDifficulty aDifficulty)
 					: cMainMenuWidget_Button(apInit,avPos,asText,
 											eMainMenuState_LastEnum,avFontSize,aAlignment)
 {
-	mDiffuculty = aDiffuculty;
+	mDifficulty = aDifficulty;
 
-	switch(mDiffuculty)
+	switch(mDifficulty)
 	{
 	case eGameDifficulty_Easy:	msTip = kTranslate("MainMenu", "TipDifficultyEasy");
 								break;
@@ -661,7 +661,7 @@ void cMainMenuWidget_NewGame::OnMouseDown(eMButton aButton)
 	mpInit->mpMainMenu->SetActive(false);
 	mpInit->ResetGame(true);
 
-	mpInit->mDifficulty = mDiffuculty;
+	mpInit->mDifficulty = mDifficulty;
 	
 	// Requiem starts in its first map
 	if(mpInit->mbShowIntro && cInit::GetGameId() != eGameId_Requiem)
@@ -968,23 +968,23 @@ public:
 
 		void OnMouseDown(eMButton aButton) override
 		{
-			float afX = mpInit->mfHapticForceMul;
+			float fForceScale = mpInit->mfHapticForceMul;
 			if(aButton == eMButton_Left)
 			{
-				afX += 0.1f;
-				if(afX>3.0f) afX = 3.0f;
+				fForceScale += 0.1f;
+				if(fForceScale>3.0f) fForceScale = 3.0f;
 			}
 			else if(aButton == eMButton_Right)
 			{
-				afX -= 0.1f;
-				if(afX<0.0f) afX = 0.0f;
+				fForceScale -= 0.1f;
+				if(fForceScale<0.0f) fForceScale = 0.0f;
 			}
 
 			char sTempVec[256];
-			sprintf(sTempVec,"%.1f",afX);
+			sprintf(sTempVec,"%.1f",fForceScale);
 			gpWidgetWeightForceScaleText->msText = cString::To16Char(sTempVec);
 
-			mpInit->mfHapticForceMul = afX;
+			mpInit->mfHapticForceMul = fForceScale;
 		}
 };
 
@@ -998,23 +998,23 @@ public:
 
 		void OnMouseDown(eMButton aButton) override
 		{
-			float afX = mpInit->mpPlayer->GetHapticCamera()->GetInteractModeCameraSpeed();
+			float fCameraSpeed = mpInit->mpPlayer->GetHapticCamera()->GetInteractModeCameraSpeed();
 			if(aButton == eMButton_Left)
 			{
-				afX += 0.1f;
-				if(afX>3.0f) afX = 3.0f;
+				fCameraSpeed += 0.1f;
+				if(fCameraSpeed>3.0f) fCameraSpeed = 3.0f;
 			}
 			else if(aButton == eMButton_Right)
 			{
-				afX -= 0.1f;
-				if(afX<0.1f) afX = 0.1f;
+				fCameraSpeed -= 0.1f;
+				if(fCameraSpeed<0.1f) fCameraSpeed = 0.1f;
 			}
 
 			char sTempVec[256];
-			sprintf(sTempVec,"%.1f",afX);
+			sprintf(sTempVec,"%.1f",fCameraSpeed);
 			gpWidgetInteractModeCameraSpeedText->msText = cString::To16Char(sTempVec);
 
-			mpInit->mpPlayer->GetHapticCamera()->SetInteractModeCameraSpeed(afX);
+			mpInit->mpPlayer->GetHapticCamera()->SetInteractModeCameraSpeed(fCameraSpeed);
 		}
 };
 
@@ -1028,23 +1028,23 @@ public:
 
 		void OnMouseDown(eMButton aButton) override
 		{
-			float afX = mpInit->mpPlayer->GetHapticCamera()->GetActionModeCameraSpeed();
+			float fCameraSpeed = mpInit->mpPlayer->GetHapticCamera()->GetActionModeCameraSpeed();
 			if(aButton == eMButton_Left)
 			{
-				afX += 0.1f;
-				if(afX>3.0f) afX = 3.0f;
+				fCameraSpeed += 0.1f;
+				if(fCameraSpeed>3.0f) fCameraSpeed = 3.0f;
 			}
 			else if(aButton == eMButton_Right)
 			{
-				afX -= 0.1f;
-				if(afX<0.1f) afX = 0.1f;
+				fCameraSpeed -= 0.1f;
+				if(fCameraSpeed<0.1f) fCameraSpeed = 0.1f;
 			}
 
 			char sTempVec[256];
-			sprintf(sTempVec,"%.1f",afX);
+			sprintf(sTempVec,"%.1f",fCameraSpeed);
 			gpWidgetActionModeCameraSpeedText->msText = cString::To16Char(sTempVec);
 
-			mpInit->mpPlayer->GetHapticCamera()->SetActionModeCameraSpeed(afX);
+			mpInit->mpPlayer->GetHapticCamera()->SetActionModeCameraSpeed(fCameraSpeed);
 		}
 };
 
@@ -2156,9 +2156,9 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		bool bX = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive();
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(!bX);
-		mpInit->mbPostEffects = !bX;
+		bool bPostEffectsActive = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive();
+		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(!bPostEffectsActive);
+		mpInit->mbPostEffects = !bPostEffectsActive;
 
 		gpPostEffectsText->msText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive() ? 
 			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
@@ -2393,11 +2393,11 @@ class cMainMenuWidget_KeyButton : public cMainMenuWidget_Button
 {
 public:
 	cMainMenuWidget_KeyButton(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, 
-								eFontAlign aAlignment, cMainMenuWidget_Text *apKeyWiget,
+								eFontAlign aAlignment, cMainMenuWidget_Text *apKeyWidget,
 								const tString &asActionName)
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
-		mpKeyWidget = apKeyWiget;
+		mpKeyWidget = apKeyWidget;
 		msActionName = asActionName;
 
 		iAction *pAction = mpInit->mpGame->GetInput()->GetAction(asActionName);
@@ -2532,7 +2532,7 @@ cMainMenu::cMainMenu(cInit *apInit)  : iUpdateable("MainMenu")
 	//////////////////////////////////
 	//Init widgets
 	
-	mvState.resize(eMainMenuState_LastEnum);
+	mvStateWidgets.resize(eMainMenuState_LastEnum);
 	
 	Reset();
 }
@@ -2579,7 +2579,7 @@ void cMainMenu::Reset()
 	mbGameActive = false;
 
 	//Effects:
-	mfRainDropCount = 0;
+	mfRainRefreshRemainingSeconds = 0;
 
 }
 
@@ -2793,7 +2793,7 @@ void cMainMenu::Update(float afTimeStep)
 		}
 
 		//Rain drops
-		if(mfRainDropCount<=0)
+		if(mfRainRefreshRemainingSeconds<=0)
 		{
 			for(size_t i=0; i < mvRainDrops.size(); ++i)
 			{
@@ -2810,11 +2810,11 @@ void cMainMenu::Update(float afTimeStep)
 				mvRainDrops[i].mpGfx = mpGfxRainDrop;
 			}
 
-			mfRainDropCount = 1.0f/37.0f;
+			mfRainRefreshRemainingSeconds = 1.0f/37.0f;
 		}
 		else
 		{
-			mfRainDropCount -= afTimeStep;
+			mfRainRefreshRemainingSeconds -= afTimeStep;
 		}
 	}
 
@@ -2929,12 +2929,12 @@ void cMainMenu::OnMouseDoubleClick(eMButton aButton)
 
 //-----------------------------------------------------------------------
 
-void cMainMenu::SetActive(bool abX)
+void cMainMenu::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
 	
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -3100,8 +3100,8 @@ void cMainMenu::SetState(eMainMenuState aState)
 	}
 		
 	//Set all widgets for current state as active.
-	it = mvState[aState].begin();
-	for(; it != mvState[aState].end(); ++it)
+	it = mvStateWidgets[aState].begin();
+	for(; it != mvStateWidgets[aState].end(); ++it)
 	{
 		cMainMenuWidget *pWidget = *it;
 		pWidget->SetActive(true);
@@ -3175,8 +3175,8 @@ bool cMainMenu::CheckForInput()
 
 void cMainMenu::ResetWidgets(eMainMenuState aState)
 {
-	tMainMenuWidgetListIt it = mvState[aState].begin();
-	for(; it != mvState[aState].end(); ++it)
+	tMainMenuWidgetListIt it = mvStateWidgets[aState].begin();
+	for(; it != mvStateWidgets[aState].end(); ++it)
 	{
 		cMainMenuWidget *pWidget = *it;
 		pWidget->Reset();
@@ -3191,24 +3191,24 @@ void cMainMenu::ResetWidgets(eMainMenuState aState)
 
 //-----------------------------------------------------------------------
 
-class cTempFileAndData
+class cSaveFileEntry
 {
 public:
-	cTempFileAndData(const tWString& asFile, const cDate& aDate)
+	cSaveFileEntry(const tWString& asFile, const cDate& aDate)
 	{
 		msFile = asFile;
 		mDate = aDate;
 	}
 	
-	bool operator<(const cTempFileAndData &aA) const
+	bool operator<(const cSaveFileEntry &aA) const
 	{
 		return mDate < aA.mDate;
 	}
-	bool operator>(const cTempFileAndData &aA) const
+	bool operator>(const cSaveFileEntry &aA) const
 	{
 		return mDate > aA.mDate;
 	}
-	bool operator==(const cTempFileAndData &aA) const
+	bool operator==(const cSaveFileEntry &aA) const
 	{
 		return mDate == aA.mDate;
 	}
@@ -3217,8 +3217,8 @@ public:
 	cDate mDate;
 };
 
-typedef std::multiset<cTempFileAndData,std::greater<cTempFileAndData> > tTempFileAndDataSet;
-typedef tTempFileAndDataSet::iterator tTempFileAndDataSetIt;
+typedef std::multiset<cSaveFileEntry,std::greater<cSaveFileEntry> > tSaveFileEntrySet;
+typedef tSaveFileEntrySet::iterator tSaveFileEntrySetIt;
 
 
 //-----------------------------------------------------------------------
@@ -3237,7 +3237,7 @@ void cMainMenu::CreateWidgets()
 	///////////////////////////////
 	//Erase all previous
 	STLDeleteAll(mlstWidgets);
-	for(size_t i=0; i< eMainMenuState_LastEnum; ++i) mvState[i].clear();
+	for(size_t i=0; i< eMainMenuState_LastEnum; ++i) mvStateWidgets[i].clear();
 
 	///////////////////////////////
 	// First start
@@ -3440,7 +3440,7 @@ void cMainMenu::CreateWidgets()
 		iLowLevelSystem *pLowLevelSystem = mpInit->mpGame->GetSystem()->GetLowLevel();
 
 		tWStringList lstFiles;
-		tTempFileAndDataSet setTempFiles;
+		tSaveFileEntrySet setSaveFiles;
 		
 		tWString sFullPath = mpInit->mpSaveHandler->GetSaveDir() + sDir;
 		pLowLevelResources->FindFilesInDir(lstFiles,sFullPath,_W("*.sav"));
@@ -3451,15 +3451,15 @@ void cMainMenu::CreateWidgets()
 			tWString sFile = *fileIt;
 			cDate date = FileModifiedDate(sFullPath+_W("/")+sFile);
             
-			setTempFiles.insert(cTempFileAndData(sFile,date));
+			setSaveFiles.insert(cSaveFileEntry(sFile,date));
 		}
 
 		//Go through the sorted array and add to File vector and as list entries
 		gvSaveGameFileVec[i].clear();
-		tTempFileAndDataSetIt dateIt = setTempFiles.begin();
-		for(; dateIt != setTempFiles.end(); ++dateIt)
+		tSaveFileEntrySetIt dateIt = setSaveFiles.begin();
+		for(; dateIt != setSaveFiles.end(); ++dateIt)
 		{
-			const cTempFileAndData &temp = *dateIt;
+			const cSaveFileEntry &temp = *dateIt;
 
 			tWString sFile = temp.msFile;
 
@@ -4313,7 +4313,7 @@ void cMainMenu::CreateWidgets()
 void cMainMenu::AddWidgetToState(eMainMenuState aState, cMainMenuWidget *apWidget)
 {
 	mlstWidgets.push_back(apWidget);
-	mvState[aState].push_back(apWidget);
+	mvStateWidgets[aState].push_back(apWidget);
 }
 
 //---------------------------------------------------------------------

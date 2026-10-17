@@ -223,7 +223,7 @@ void cGameLever::OnPlayerInteract()
 
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pBody);
 	if(	(pBody->GetMass()==0 && pStickArea==nullptr) ||
-		(pStickArea && pStickArea->GetCanDeatch()==false))
+		(pStickArea && pStickArea->CanDetachBody()==false))
 	{
 		return;
 	}
@@ -266,7 +266,7 @@ void cGameLever::Update(float afTimeStep)
 	}
 
 	////////////////////////////////////
-	// A new state
+	// Dispatch enter before leave, then apply endpoint effects.
 	if(mState != prevState)
 	{
 		RunCallback(mState, eGameLeverAction_Enter);
@@ -358,11 +358,11 @@ void cGameLever::SetStuck(eGameLeverState aState)
 
 //-----------------------------------------------------------------------
 
-void cGameLever::SetIsStuck(bool abX)
+void cGameLever::SetIsStuck(bool abStuck)
 {
-	if(mbStuck == abX) return;
+	if(mbStuck == abStuck) return;
 
-	mbStuck = abX;
+	mbStuck = abStuck;
 
 	if(mbStuck)
 	{

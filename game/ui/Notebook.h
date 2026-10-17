@@ -201,8 +201,9 @@ public:
 class cNotePage
 {
 public:
-	int mlStart;
-	int mlEnd;
+	int mlFirstRow;
+	// Exclusive; a [new_page] marker is not part of the drawn range.
+	int mlEndRow;
 };
 
 class cNotebookState_Note : public iNotebookState
@@ -281,7 +282,7 @@ public:
 
 	void OnExit() override;
 	
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	// Black Plague: script function called, once, when the notebook is closed

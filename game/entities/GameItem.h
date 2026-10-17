@@ -44,7 +44,7 @@ class cGameItem_InViewRay : public iPhysicsRayCallback
 {
 public:
 	void SetUp(iPhysicsBody *apSkipBody);
-	bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
+	bool OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams) override;
 
 	bool mbIntersected;
 	iPhysicsBody *mpSkipBody;
@@ -91,7 +91,7 @@ public:
 	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
-	bool IsInView(float afMinDist);
+	bool IsInView(float afMaxDistance);
 
 	tString msImageFile;
 	eGameItemType mItemType;
@@ -99,11 +99,11 @@ private:
 	bool mbHasCount;
 	int mlCount;
 	
-	float mfCheckFlashCount;
-	float mfCheckFlashMax;
-	float mfStartFlashCount;
+	float mfFlashCheckElapsedSeconds;
+	float mfFlashCheckIntervalSeconds;
+	float mfFlashEvidenceSeconds;
 	float mfFlashAlpha;
-	float mfFlashAlphaAdd;
+	float mfFlashDirection;
 	bool mbHasBeenFlashed;
 	float mfEnterFlashDist;
 	float mfExitFlashDist;

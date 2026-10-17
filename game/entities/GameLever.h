@@ -97,7 +97,7 @@ public:
 
 	// Holds the lever at the end it is in (or at the given end)
 	void SetStuck(eGameLeverState aState);
-	void SetIsStuck(bool abX);
+	void SetIsStuck(bool abStuck);
 
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;

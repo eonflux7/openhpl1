@@ -69,9 +69,9 @@ public:
 
 	void SetLitChangeCallback(const tString& asCallback){ msLitChangeCallback = asCallback;}
 
-	void SetLit(bool abX, bool abFade, bool abRunCallback=true);
+	void SetLit(bool abLit, bool abFade, bool abRunCallback=true);
 
-	void SetFlicker(bool abX);
+	void SetFlicker(bool abFlickering);
 
 	void Init();
 
@@ -81,13 +81,13 @@ public:
 	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
 
 private:
-	void SetUpFlicker(int alIdx);
+	void SetUpFlicker(int alLightIndex);
 	
 	bool mbLit;
 
-    float mfAlpha;
-	float mfTurnOnTime;
-	float mfTurnOffTime;
+    float mfBillboardFade;
+	float mfTurnOnDurationSeconds;
+	float mfTurnOffDurationSeconds;
 
 	bool mbInteractOff;
 	bool mbInteractOn;

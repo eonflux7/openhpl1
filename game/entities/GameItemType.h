@@ -39,8 +39,8 @@ public:
 	cGameItemType(cInit *apInit);
 	virtual ~cGameItemType();
 
-	tWStringVec* GetActions(bool mbCanBeDropped){ 
-			if(mbCanBeDropped)					
+	tWStringVec* GetActions(bool abCanBeDropped){
+			if(abCanBeDropped)
 				return &mvActions;
 			else
 				return &mvNonDropActions;
@@ -48,7 +48,7 @@ public:
 
 	virtual bool OnPickUp(cInventoryItem *apItem, bool abInGame){ return true;}
 
-	virtual bool OnAction(cInventoryItem *apItem, int alActionNum){return true;}
+	virtual bool OnAction(cInventoryItem *apItem, int alActionIndex){return true;}
 
 	virtual void OnUse(cInventoryItem *apItem, iGameEntity *apEntity){}
 
@@ -77,7 +77,7 @@ class cGameItemType_Normal : public cGameItemType
 public:
 	cGameItemType_Normal(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 	void OnUse(cInventoryItem *apItem, iGameEntity *apEntity) override;
 };
@@ -91,7 +91,7 @@ public:
 	cGameItemType_Notebook(cInit *apInit);
 	
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 	tString GetShortCutAction(cInventoryItem *apItem) override{return "NoteBook";}
 };
@@ -118,7 +118,7 @@ public:
 	cGameItemType_Battery(cInit *apInit);
 
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 	bool OnCombine(cInventoryItem *apItem, cInventoryItem *apWithItem, int alSlotIndex) override;
 
 };
@@ -132,7 +132,7 @@ public:
 	cGameItemType_Flashlight(cInit *apInit);
 
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 	tWString GetString(cInventoryItem *apItem) override;
 
@@ -148,7 +148,7 @@ class cGameItemType_WeaponMelee : public cGameItemType
 public:
 	cGameItemType_WeaponMelee(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
 //----------------------------------------------
@@ -160,7 +160,7 @@ class cGameItemType_WeaponMeleeHaptX : public cGameItemType
 public:
 	cGameItemType_WeaponMeleeHaptX(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
 //----------------------------------------------
@@ -173,7 +173,7 @@ class cGameItemType_Throw : public cGameItemType
 public:
 	cGameItemType_Throw(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
 
@@ -186,7 +186,7 @@ class cGameItemType_GasMask : public cGameItemType
 public:
 	cGameItemType_GasMask(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 	tWString GetString(cInventoryItem *apItem) override;
 };
@@ -201,7 +201,7 @@ public:
 	cGameItemType_Collectable(cInit *apInit);
 
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
 //----------------------------------------------
@@ -213,7 +213,7 @@ class cGameItemType_GlowStick : public cGameItemType
 public:
 	cGameItemType_GlowStick(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 	tWString GetString(cInventoryItem *apItem) override;
 
@@ -229,7 +229,7 @@ class cGameItemType_Flare : public cGameItemType
 public:
 	cGameItemType_Flare(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
 //----------------------------------------------
@@ -241,7 +241,7 @@ class cGameItemType_Painkillers : public cGameItemType
 public:
 	cGameItemType_Painkillers(cInit *apInit);
 
-	bool OnAction(cInventoryItem *apItem, int alActionNum) override;
+	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 };
 

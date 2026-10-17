@@ -62,7 +62,7 @@ public:
 
 	void SetSound(const tString &asSound){ msSound = asSound;}
 
-	void SetHasBeenUsed(bool abX){ mbHasBeenUsed = abX;}
+	void SetHasBeenUsed(bool abUsed){ mbHasBeenUsed = abUsed;}
 
 	tString& GetMessageCat(){ return msMessageCat; }
 	tString& GetMessageEntry(){ return msMessageEntry;}

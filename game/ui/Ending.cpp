@@ -63,11 +63,11 @@ void cEnding::Reset()
 
 	mlTextLength = 0;
 	mlShownChars = 0;
-	mfCharCount = 0;
-	mfTypeSoundCount = 0;
+	mfCharacterDelaySeconds = 0;
+	mfTypeSoundDelaySeconds = 0;
 
 	mfTextColor = 1;
-	mfCount = 0;
+	mfWaitElapsedSeconds = 0;
 	mfAlpha = 1;
 
 	mfBlinkMin = 0;
@@ -95,7 +95,7 @@ void cEnding::OnDraw()
 
 	DrawText();
 
-	if(mlState == 5 && mlShownChars >= mlTextLength && mfCount >= 3)
+	if(mlState == 5 && mlShownChars >= mlTextLength && mfWaitElapsedSeconds >= 3)
 	{
 		mpFont->Draw(cVector3f(400,550,0),15,cColor(1,mfBlinkAlpha * mfAlpha),eFontAlign_Center,
 					_W("%ls"),kTranslate("Ending","MessageSent").c_str());
@@ -116,10 +116,10 @@ void cEnding::Update(float afTimeStep)
 	case 0:
 		if(bTextDone)
 		{
-			mfCount += afTimeStep;
-			if(mfCount >= 3)
+			mfWaitElapsedSeconds += afTimeStep;
+			if(mfWaitElapsedSeconds >= 3)
 			{
-				mfCount = 0;
+				mfWaitElapsedSeconds = 0;
 				mlState = 1;
 				SetCurrentText("Mail02");
 			}
@@ -127,25 +127,25 @@ void cEnding::Update(float afTimeStep)
 		break;
 	//The screen fades
 	case 1:
-		mfCount += afTimeStep;
-		if(mfCount >= 3)
+		mfWaitElapsedSeconds += afTimeStep;
+		if(mfWaitElapsedSeconds >= 3)
 		{
 			mfAlpha -= 0.5f * afTimeStep;
 			if(mfAlpha <= 0)
 			{
 				mfAlpha = 0;
-				mfCount = 0;
+				mfWaitElapsedSeconds = 0;
 				mlState = 2;
 			}
 		}
 		break;
 	//Back to the game
 	case 2:
-		mfCount += afTimeStep;
-		if(mfCount >= 3)
+		mfWaitElapsedSeconds += afTimeStep;
+		if(mfWaitElapsedSeconds >= 3)
 		{
 			mfAlpha = 1;
-			mfCount = 0;
+			mfWaitElapsedSeconds = 0;
 			SetActive(false, 1);
 			mpInit->mpFadeHandler->FadeIn(5);
 			return;
@@ -155,10 +155,10 @@ void cEnding::Update(float afTimeStep)
 	case 3:
 		if(bTextDone)
 		{
-			mfCount += afTimeStep;
-			if(mfCount >= 3)
+			mfWaitElapsedSeconds += afTimeStep;
+			if(mfWaitElapsedSeconds >= 3)
 			{
-				mfCount = 0;
+				mfWaitElapsedSeconds = 0;
 				mlState = 4;
 				SetCurrentText("Mail04");
 			}
@@ -167,10 +167,10 @@ void cEnding::Update(float afTimeStep)
 	case 4:
 		if(bTextDone)
 		{
-			mfCount += afTimeStep;
-			if(mfCount >= 3)
+			mfWaitElapsedSeconds += afTimeStep;
+			if(mfWaitElapsedSeconds >= 3)
 			{
-				mfCount = 0;
+				mfWaitElapsedSeconds = 0;
 				mlState = 5;
 				SetCurrentText("Mail05");
 			}
@@ -180,8 +180,8 @@ void cEnding::Update(float afTimeStep)
 	case 5:
 		if(bTextDone)
 		{
-			mfCount += afTimeStep;
-			if(mfCount >= 3)
+			mfWaitElapsedSeconds += afTimeStep;
+			if(mfWaitElapsedSeconds >= 3)
 			{
 				mfBlinkAlpha += afTimeStep * mfBlinkSpeed;
 				if(mfBlinkSpeed > 0)
@@ -204,10 +204,10 @@ void cEnding::Update(float afTimeStep)
 				}
 			}
 
-			if(mfCount >= 9)
+			if(mfWaitElapsedSeconds >= 9)
 			{
 				mlState++;
-				mfCount = 0;
+				mfWaitElapsedSeconds = 0;
 				SetActive(false, 0);
 				return;
 			}
@@ -236,29 +236,29 @@ void cEnding::OnButtonDown()
 {
 	if(mlState == 1)
 	{
-		if(mfCount < 3)	mfCount = 3;
+		if(mfWaitElapsedSeconds < 3)	mfWaitElapsedSeconds = 3;
 		else			mfAlpha = 0;
 		return;
 	}
 	if(mlState == 2)
 	{
-		mfCount = 3;
+		mfWaitElapsedSeconds = 3;
 		return;
 	}
 
 	if(mlShownChars < mlTextLength)
 		mlShownChars = mlTextLength;
 	else
-		mfCount = 1000;
+		mfWaitElapsedSeconds = 1000;
 }
 
 //-----------------------------------------------------------------------
 
-void cEnding::SetActive(bool abX, int alType)
+void cEnding::SetActive(bool abActive, int alType)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -280,7 +280,7 @@ void cEnding::SetActive(bool abX, int alType)
 		}
 
 		mbTextActive = true;
-		mfCount = 0;
+		mfWaitElapsedSeconds = 0;
 	}
 	else if(alType == 1)
 	{
@@ -314,33 +314,32 @@ void cEnding::SetCurrentText(const tString &asEntry)
 	for(size_t i=0; i<mvRows.size(); ++i) mlTextLength += (int)mvRows[i].size();
 
 	mlShownChars = 0;
-	mfTypeSoundCount = 0;
-	mfCharCount = 0;
+	mfTypeSoundDelaySeconds = 0;
+	mfCharacterDelaySeconds = 0;
 }
 
 //-----------------------------------------------------------------------
 
-// The text is typed: a character every 1/19 s, a little longer at the end of
-// a row, with the sound of a key now and then.
+// Type a character every 1/19 s, pausing before an empty row, with occasional key sounds.
 void cEnding::UpdateText(float afTimeStep)
 {
 	if(mbTextActive==false || mlShownChars >= mlTextLength) return;
 
-	mfCharCount -= afTimeStep;
-	mfTypeSoundCount -= afTimeStep;
+	mfCharacterDelaySeconds -= afTimeStep;
+	mfTypeSoundDelaySeconds -= afTimeStep;
 
-	if(mfCharCount > 0) return;
+	if(mfCharacterDelaySeconds > 0) return;
 
-	if(mfTypeSoundCount <= 0)
+	if(mfTypeSoundDelaySeconds <= 0)
 	{
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_type",false,1);
-		mfTypeSoundCount = 0.125f + cMath::RandRectf(-0.05f, 0.05f);
+		mfTypeSoundDelaySeconds = 0.125f + cMath::RandRectf(-0.05f, 0.05f);
 	}
 
 	mlShownChars++;
-	mfCharCount = 0.0526f;
+	mfCharacterDelaySeconds = 0.0526f;
 
-	//A pause at the end of a row
+	// Pause before an empty row.
 	int lCount = 0;
 	for(size_t i=0; i<mvRows.size(); ++i)
 	{
@@ -348,7 +347,7 @@ void cEnding::UpdateText(float afTimeStep)
 		if(lCount > mlShownChars) break;
 		if(lCount == mlShownChars && i+1 < mvRows.size() && mvRows[i+1].size() == 0)
 		{
-			mfCharCount = 1;
+			mfCharacterDelaySeconds = 1;
 			break;
 		}
 	}

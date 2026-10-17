@@ -76,28 +76,29 @@ public:
 	void AttachBody(iPhysicsBody *apBody);
 	void DetachBody();
 
-	void SetAttachFunction(const tString& asX){ msAttachFunction = asX;}
-	void SetDetachFunction(const tString& asX){ msDetachFunction = asX;}
+	void SetAttachFunction(const tString& asFunction){ msAttachFunction = asFunction;}
+	void SetDetachFunction(const tString& asFunction){ msDetachFunction = asFunction;}
 
-	void SetAttachSound(const tString& asX){ msAttachSound = asX;}
-	void SetDetachSound(const tString& asX){ msDetachSound = asX;}
+	void SetAttachSound(const tString& asSound){ msAttachSound = asSound;}
+	void SetDetachSound(const tString& asSound){ msDetachSound = asSound;}
 
-	void SetAttachPS(const tString& asX){ msAttachPS = asX;}
-	void SetDetachPS(const tString& asX){ msDetachPS = asX;}
+	void SetAttachPS(const tString& asParticleSystem){ msAttachPS = asParticleSystem;}
+	void SetDetachPS(const tString& asParticleSystem){ msDetachPS = asParticleSystem;}
 
-	void SetCanDeatch(bool abX){ mbCanDeatch = abX;}
-	bool GetCanDeatch();
+	void SetCanDetach(bool abCanDetach){ mbCanDeatch = abCanDetach;}
+	// Detachment is blocked until pose interpolation completes.
+	bool CanDetachBody();
 
-	void SetCheckCenterInArea(bool abX){ mbCheckCenterInArea = abX;}
+	void SetCheckCenterInArea(bool abCheckCenter){ mbCheckCenterInArea = abCheckCenter;}
 
-	void SetPoseTime(float afX){ mfPoseTime = afX;}
+	void SetPoseTime(float afDurationSeconds){ mfPoseTime = afDurationSeconds;}
 
-	void SetMoveBody(bool abX) {mbMoveBody = abX;}
+	void SetMoveBody(bool abMoveBody) {mbMoveBody = abMoveBody;}
 	bool GetMoveBody(){ return mbMoveBody;}
-	void SetRotateBody(bool abX) {mbRotateBody = abX;}
+	void SetRotateBody(bool abRotateBody) {mbRotateBody = abRotateBody;}
 	bool GetRotateBody(){ return mbRotateBody;}
 
-	tString GetCallbackFunc(const tString &asFunc,iPhysicsBody *apBody);
+	tString BuildBodyCallbackCommand(const tString &asFunc,iPhysicsBody *apBody);
 	
 	static bool mbAllowAttachment;
 
@@ -131,8 +132,8 @@ private:
 	iPhysicsBody *mpAttachedBody;
 	iPhysicsBody *mpLastAttachedBody;
 
-	float mfSetMtxTime;
-	cMatrixf mtxAttachedStart;
+	float mfSetMtxTime; // Pose interpolation progress; complete at >=1.
+	cMatrixf m_mtxAttachedStart;
 };
 
 //------------------------------------------

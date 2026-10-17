@@ -137,7 +137,7 @@ public:
 	static eGuiMessage StringToGuiMessage(const tString &asType);
 	static tString GuiMessageToString(eGuiMessage aMessage);
 
-	bool mbDestroyMe;
+	bool mbCloseRequested;
 
 private:
 	void LoadFontsFromElement(TiXmlElement *apElement);
@@ -181,9 +181,8 @@ public:
 	void OnDraw() override;
 
 	void OpenScreenGui(const tString &asFile);
-	// abLater is for a screen that closes itself from its own script: it is
-	// then taken down at the next update.
-	void CloseScreenGui(bool abLater);
+	// Defer closure until the next update when called from the screen's own script.
+	void CloseScreenGui(bool abDeferClose);
 
 	bool HasOpenScreenGui(){ return mpScreenGui != nullptr;}
 	cGameGui* GetScreenGui(){ return mpScreenGui;}

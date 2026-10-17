@@ -54,7 +54,7 @@ public:
 	// Black Plague: the picture behind the text (Overture's is fixed)
 	void SetBackground(const tString &asFile){ msBackground = asFile; }
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void OnExit() override;
@@ -69,14 +69,14 @@ private:
 
 	tWStringVec mvRows;
 
-	iTexture *mpBack;
+	iTexture *mpBackgroundTexture;
 
 	tString msTextCat;
 	tString msTextEntry;
 	tString msBackground;
 
-	float mfAlpha;
-	float mfAlphaAdd;
+	float mfPulsePhase;
+	float mfPulseRatePerSecond;
 
 	bool mbActive;
 };

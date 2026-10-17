@@ -226,7 +226,7 @@ void cGameWheel::OnPlayerInteract()
 
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(pBody);
 	if(	(pBody->GetMass()==0 && pStickArea==nullptr) ||
-		(pStickArea && pStickArea->GetCanDeatch()==false))
+		(pStickArea && pStickArea->CanDetachBody()==false))
 	{
 		return;
 	}
@@ -321,7 +321,7 @@ void cGameWheel::Update(float afTimeStep)
 	}
 
 	////////////////////////////////////
-	// A new state
+	// Dispatch enter before leave, then apply endpoint effects.
 	if(mState != prevState)
 	{
 		RunCallback(mState, eGameWheelAction_Enter);
@@ -392,11 +392,11 @@ void cGameWheel::SetStuck(eGameWheelState aState)
 
 //-----------------------------------------------------------------------
 
-void cGameWheel::SetIsStuck(bool abX)
+void cGameWheel::SetIsStuck(bool abStuck)
 {
-	if(mbStuck == abX) return;
+	if(mbStuck == abStuck) return;
 
-	mbStuck = abX;
+	mbStuck = abStuck;
 
 	if(mbStuck)
 	{
@@ -468,11 +468,11 @@ void cGameWheel::ConnectToController(iGameEntity *apEntity, const tString& asCon
 // the side of the hinge's zero where its angle does not wrap.
 void cGameWheel::SetMaxJointAngle(float afAngle)
 {
-	float fLeft = afAngle - mfAngle;
+	float fRemainingAngle = afAngle - mfAngle;
 
-	if(fLeft <= kPif)
+	if(fRemainingAngle <= kPif)
 	{
-		float fLimit = mfJointAngle + fLeft;
+		float fLimit = mfJointAngle + fRemainingAngle;
 
 		if(	(mfJointAngle >= 0 && fLimit <= kPif) ||
 			(mfJointAngle < 0 && fLimit < 0))
@@ -487,11 +487,11 @@ void cGameWheel::SetMaxJointAngle(float afAngle)
 
 void cGameWheel::SetMinJointAngle(float afAngle)
 {
-	float fLeft = mfAngle - afAngle;
+	float fRemainingAngle = mfAngle - afAngle;
 
-	if(fLeft <= kPif)
+	if(fRemainingAngle <= kPif)
 	{
-		float fLimit = mfJointAngle - fLeft;
+		float fLimit = mfJointAngle - fRemainingAngle;
 
 		if(	(mfJointAngle >= 0 && fLimit >= 0) ||
 			(mfJointAngle < 0 && fLimit > -kPif))

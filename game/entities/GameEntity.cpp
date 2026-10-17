@@ -103,7 +103,7 @@ iGameEntity::~iGameEntity()
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
 	//////////////////////////////////////////////
-	// Remove all references to from all otter
+	// Remove collision-callback references from the player and other entities.
 	//Log("Deleting '%s'\n",msName.c_str());
 
 	//Player
@@ -132,7 +132,7 @@ iGameEntity::~iGameEntity()
 	}
 	
 	//////////////////////////////////////////////
-	// Destroy all graphics in the entity!
+	// Release world resources when entity-owned destruction is enabled.
     if(pWorld && mpInit->mbDestroyGraphics)
 	{
 		for(size_t i=0; i<mvBodies.size(); ++i)
@@ -229,11 +229,11 @@ bool iGameEntity::AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &a
 
 //-----------------------------------------------------------------------
 
-void iGameEntity::SetActive(bool abX)
+void iGameEntity::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive =abX;
+	mbActive =abActive;
 
 	//Black Plague: what the player holds, pushes or moves is let go of first
 	if(mbActive==false && cInit::IsOverture()==false)
@@ -318,7 +318,7 @@ eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 	//////////////////////////////////////////
 	//Interaction available
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(apBody);
-	if(apBody->GetMass()!=0 || mType == eGameEntityType_Area || (pStickArea && pStickArea->GetCanDeatch()) )
+	if(apBody->GetMass()!=0 || mType == eGameEntityType_Area || (pStickArea && pStickArea->CanDetachBody()) )
 	{
 		if(mvCallbackScripts[eGameEntityScriptType_PlayerInteract] || mbHasInteraction)
 		{
@@ -368,7 +368,7 @@ void iGameEntity::DestroyBillboard(cBillboard* apBillboard)
 	STLFindAndRemove(mvBillboards,apBillboard);
 	mpInit->mpGame->GetScene()->GetWorld3D()->DestroyBillboard(apBillboard);
 }
-void iGameEntity::SetSoundEntity(cSoundEntity* apSound)
+void iGameEntity::DestroySoundEntity(cSoundEntity* apSound)
 {
 	STLFindAndRemove(mvSoundEntities,apSound);
 	mpInit->mpGame->GetScene()->GetWorld3D()->DestroySoundEntity(apSound);
@@ -538,11 +538,11 @@ void iGameEntity::SetUpTransMaterials()
 	}
 }
 
-void iGameEntity::SetTransActive(bool abX)
+void iGameEntity::SetTransActive(bool abActive)
 {
-	if(mbTransActive == abX) return;
+	if(mbTransActive == abActive) return;
 
-	mbTransActive = abX;
+	mbTransActive = abActive;
 	
 	if(mbTransShadow)
 	{
@@ -672,12 +672,12 @@ void iGameEntity::OnUpdate(float afTimeStep)
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
 	////////////////
-	// If entity has character body add it to the array and then remove.
-	std::vector<iPhysicsBody*> vTempBodies;
+	// Temporarily use the character body for collision callback checks.
+	std::vector<iPhysicsBody*> vSavedBodies;
 	if(mpCharBody){
 		for(size_t i=0; i<mvBodies.size(); ++i) 
 		{
-			vTempBodies.push_back(mvBodies[i]);
+			vSavedBodies.push_back(mvBodies[i]);
 		}
 		mvBodies.clear();
 		mvBodies.push_back(mpCharBody->GetBody());
@@ -764,11 +764,11 @@ void iGameEntity::OnUpdate(float afTimeStep)
 	mbUpdatingCollisionCallbacks = false;
 
 	////////////////
-	// If entity has character body remove the previuously added.
+	// Restore the entity body list after character collision checks.
 	if(mpCharBody){
 		mvBodies.clear();
-		for(size_t i=0; i<vTempBodies.size(); ++i) 
-			mvBodies.push_back(vTempBodies[i]);
+		for(size_t i=0; i<vSavedBodies.size(); ++i)
+			mvBodies.push_back(vSavedBodies[i]);
 	}
 	
 	//if(msName == "liftclose") Log("--- End collision test\n");
@@ -1307,7 +1307,7 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	}
 
 	//Particle Systems
-	int lCount=0;
+	int lSavedParticleIndex=0;
 	for(std::vector<cParticleSystem3D*>::iterator it = mvParticleSystems.begin();
 		it != mvParticleSystems.end();)
 	{
@@ -1329,7 +1329,7 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 		{
 			//check if a null was previously saved
 			if(apSaveData->mvPS.Size() == mvParticleSystems.size() &&
-				apSaveData->mvPS[lCount].msType == "")
+				apSaveData->mvPS[lSavedParticleIndex].msType == "")
 			{
 				++it;
 			}
@@ -1341,7 +1341,7 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 			}
 		}
 		
-		++lCount;
+		++lSavedParticleIndex;
 	}
 
 	//Sounds

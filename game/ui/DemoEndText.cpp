@@ -59,8 +59,8 @@ void cDemoEndText::Reset()
 {
 	mbActive = false;
 
-	mfAlpha = 0;
-	mfAlphaAdd = 0.6f;
+	mfImageBrightness = 0;
+	mfBrightnessRatePerSecond = 0.6f;
 
 	mlCurrentImage = 0;
 }
@@ -75,7 +75,7 @@ void cDemoEndText::OnPostSceneDraw()
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 
 	mpInit->mpGraphicsHelper->DrawTexture(mvTextures[mlCurrentImage],0,
-											cVector2f(800,600),cColor(mfAlpha,1));
+											cVector2f(800,600),cColor(mfImageBrightness,1));
 	
 }
 
@@ -90,17 +90,17 @@ void cDemoEndText::OnDraw()
 
 void cDemoEndText::Update(float afTimeStep)
 {
-	mfAlpha += mfAlphaAdd * afTimeStep;
+	mfImageBrightness += mfBrightnessRatePerSecond * afTimeStep;
 
-	if(mfAlphaAdd >0)
+	if(mfBrightnessRatePerSecond >0)
 	{
-		if(mfAlpha > 1) mfAlpha =1;
+		if(mfImageBrightness > 1) mfImageBrightness =1;
 	}
 	else
 	{
-		if(mfAlpha < 0){
-			mfAlpha =0;
-			mfAlphaAdd = - mfAlphaAdd;
+		if(mfImageBrightness < 0){
+			mfImageBrightness =0;
+			mfBrightnessRatePerSecond = - mfBrightnessRatePerSecond;
 			if(mlCurrentImage >= (int)mvTextures.size()-1)
 			{
 				SetActive(false);
@@ -124,19 +124,19 @@ void cDemoEndText::OnMouseDown(eMButton aButton)
 
 void cDemoEndText::OnButtonDown()
 {
-	if(mfAlphaAdd > 0 && mfAlpha == 1)
+	if(mfBrightnessRatePerSecond > 0 && mfImageBrightness == 1)
 	{
-		mfAlphaAdd = - mfAlphaAdd;
+		mfBrightnessRatePerSecond = - mfBrightnessRatePerSecond;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-void cDemoEndText::SetActive(bool abX)
+void cDemoEndText::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -157,7 +157,7 @@ void cDemoEndText::SetActive(bool abX)
 		}
 		
 
-		mfAlpha =0;
+		mfImageBrightness =0;
 	}
 	else
 	{

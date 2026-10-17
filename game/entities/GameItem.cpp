@@ -43,7 +43,7 @@ bool cGameItem_InViewRay::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *ap
 {
 	float &fDist = apParams->mfDist;
 	
-	//Must be positive
+	// Ignore intersections outside the camera-to-item ray segment.
 	if(apParams->mfT < 0 || apParams->mfT >1) return true;
 	
 	//No characters or skip body allowed
@@ -100,7 +100,7 @@ void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	pObject->SetHapticShapes(mvHapticShapes);
 
 	///////////////////////////////////
-	// Add a the object as user data to the body, to get the obejct later on.
+	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
 		mvBodies[i]->SetUserData((void*)pObject);
@@ -191,11 +191,11 @@ cGameItem::cGameItem(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mfMaxExamineDist = 4.0f;
 
 
-	mfCheckFlashCount =0;
-	mfCheckFlashMax = 1.0f / 20.0f;
-	mfStartFlashCount =0;
+	mfFlashCheckElapsedSeconds =0;
+	mfFlashCheckIntervalSeconds = 1.0f / 20.0f;
+	mfFlashEvidenceSeconds =0;
 	mfFlashAlpha =0;
-	mfFlashAlphaAdd = -1;
+	mfFlashDirection = -1;
 	mbHasBeenFlashed = false;
 	mfEnterFlashDist = 2;
 	mfExitFlashDist = 5;
@@ -247,14 +247,14 @@ void cGameItem::OnPlayerInteract()
 
 //-----------------------------------------------------------------------
 
-bool cGameItem::IsInView(float afMinDist)
+bool cGameItem::IsInView(float afMaxDistance)
 {
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	
 	//Distance
 	float fDistSqr = cMath::Vector3DistSqr(	pCam->GetPosition(), 
 											mvBodies[0]->GetWorldPosition());
-	if(fDistSqr > afMinDist*afMinDist){
+	if(fDistSqr > afMaxDistance*afMaxDistance){
 		return false;
 	}
 
@@ -292,24 +292,24 @@ void cGameItem::Update(float afTimeStep)
 
 	//////////////////////////////////////
 	// Update flash
-	if(mfFlashAlphaAdd > 0 || mfFlashAlpha > 0)
+	if(mfFlashDirection > 0 || mfFlashAlpha > 0)
 	{
-		if(mfFlashAlphaAdd <0)
+		if(mfFlashDirection <0)
 		{
-			mfFlashAlpha += mfFlashAlphaAdd * afTimeStep * 0.8f;
+			mfFlashAlpha += mfFlashDirection * afTimeStep * 0.8f;
 			if(mfFlashAlpha <=0)
 			{
 				mfFlashAlpha =0;
-				//mfFlashAlphaAdd = -mfFlashAlphaAdd;
+				//mfFlashDirection = -mfFlashDirection;
 			}
 		}
 		else
 		{
-			mfFlashAlpha += mfFlashAlphaAdd * afTimeStep * 1.5f;
+			mfFlashAlpha += mfFlashDirection * afTimeStep * 1.5f;
 			if(mfFlashAlpha >=1)
 			{
 				mfFlashAlpha =1;
-				mfFlashAlphaAdd = -mfFlashAlphaAdd;
+				mfFlashDirection = -mfFlashDirection;
 			}
 		}
 	}
@@ -317,53 +317,53 @@ void cGameItem::Update(float afTimeStep)
 	// Check if player is near
 	else if(mbHasBeenFlashed == false)
 	{
-		mfCheckFlashCount += afTimeStep;
+		mfFlashCheckElapsedSeconds += afTimeStep;
 		
-		if(mfCheckFlashCount >= mfCheckFlashMax)
+		if(mfFlashCheckElapsedSeconds >= mfFlashCheckIntervalSeconds)
 		{
-			mfCheckFlashCount =0;
+			mfFlashCheckElapsedSeconds =0;
 			if(IsInView(mfEnterFlashDist))
 			{
-				mfStartFlashCount += mfCheckFlashMax;
+				mfFlashEvidenceSeconds += mfFlashCheckIntervalSeconds;
 			}
 			else
 			{
-				mfStartFlashCount -= mfCheckFlashMax;
-				if(mfStartFlashCount<0)mfStartFlashCount =0;
+				mfFlashEvidenceSeconds -= mfFlashCheckIntervalSeconds;
+				if(mfFlashEvidenceSeconds<0)mfFlashEvidenceSeconds =0;
 			}
 		}
 
-		if(mfStartFlashCount >= 0.1f)
+		if(mfFlashEvidenceSeconds >= 0.1f)
 		{
-			mfStartFlashCount =0;
+			mfFlashEvidenceSeconds =0;
 			mbHasBeenFlashed = true;
 			mfFlashAlpha =0;
-			mfFlashAlphaAdd = 1;
+			mfFlashDirection = 1;
 		}
 	}
 	//////////////////////////////////////
 	// Check if player is out of flash area.
 	else
 	{
-		mfCheckFlashCount += afTimeStep;
-		if(mfCheckFlashCount >= mfCheckFlashMax)
+		mfFlashCheckElapsedSeconds += afTimeStep;
+		if(mfFlashCheckElapsedSeconds >= mfFlashCheckIntervalSeconds)
 		{
-			mfCheckFlashCount =0;
+			mfFlashCheckElapsedSeconds =0;
 			if(IsInView(mfExitFlashDist)==false)
 			{
-				mfStartFlashCount += mfCheckFlashMax;
+				mfFlashEvidenceSeconds += mfFlashCheckIntervalSeconds;
 			}
 			else
 			{
-				mfStartFlashCount -= mfCheckFlashMax;
-				if(mfStartFlashCount<0)mfStartFlashCount =0;
+				mfFlashEvidenceSeconds -= mfFlashCheckIntervalSeconds;
+				if(mfFlashEvidenceSeconds<0)mfFlashEvidenceSeconds =0;
 			}
 		}
 
-		if(mfStartFlashCount >= 0.75f)
+		if(mfFlashEvidenceSeconds >= 0.75f)
 		{
 			mbHasBeenFlashed = false;
-			mfStartFlashCount =0;
+			mfFlashEvidenceSeconds =0;
 		}
 	}
 }

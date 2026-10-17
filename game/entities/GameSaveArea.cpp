@@ -48,9 +48,9 @@ cAreaLoader_GameSaveArea::~cAreaLoader_GameSaveArea()
 iEntity3D* cAreaLoader_GameSaveArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
 {
-	cGameSaveArea *pLink = hplNew( cGameSaveArea, (mpInit,asName) );
+	cGameSaveArea *pSaveArea = hplNew( cGameSaveArea, (mpInit,asName) );
 
-	pLink->m_mtxOnLoadTransform = a_mtxTransform;
+	pSaveArea->m_mtxOnLoadTransform = a_mtxTransform;
 
 	//Create physics data
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
@@ -62,10 +62,10 @@ iEntity3D* cAreaLoader_GameSaveArea::Load(const tString &asName, const cVector3f
 	vBodies[0]->SetCollideCharacter(false);
 	vBodies[0]->SetMatrix(a_mtxTransform);
 
-	vBodies[0]->SetUserData(pLink);
-	pLink->SetBodies(vBodies);
+	vBodies[0]->SetUserData(pSaveArea);
+	pSaveArea->SetBodies(vBodies);
 
-	mpInit->mpMapHandler->AddGameEntity(pLink);
+	mpInit->mpMapHandler->AddGameEntity(pSaveArea);
 
 	return nullptr;
 }
