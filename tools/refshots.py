@@ -4,7 +4,7 @@
 """Reference images for renderer changes.
 
   refshots.py capture OUT_DIR [--maps office,worm] [--size 1280x720]
-                              [--set Graphics.Shadows=0 ...]
+                              [--set Graphics.Shadows=2 ...]
   refshots.py effects OUT_DIR [--size 1280x720] [--build build-asan]
   refshots.py compare REF_DIR NEW_DIR [--diff-dir DIR]
 
@@ -46,13 +46,13 @@ DEFAULT_GAME_DIR = os.path.expanduser(
     "~/.local/share/Steam/steamapps/common/Penumbra Overture")
 
 # Section -> key -> value. Refractions are on (off by default in the game)
-# so that refracting materials are covered, and so are shadows, ambient
-# occlusion, SMAA and multisampling; the noise filter is off, it is a
-# random overlay on every frame.
+# so that refracting materials are covered, and so are shadows (0: all),
+# ambient occlusion, SMAA and multisampling; the noise filter is off, it is
+# a random overlay on every frame.
 SETTINGS = {
     "Screen": {"Width": "1280", "Height": "720", "FullScreen": "false",
                "Vsync": "false", "Display": "-1"},
-    "Graphics": {"Shadows": "2", "ShaderQuality": "3", "PostEffects": "true",
+    "Graphics": {"Shadows": "0", "ShaderQuality": "3", "PostEffects": "true",
                  "Bloom": "true", "MotionBlur": "false",
                  "MotionBlurAmount": "0.3", "DepthOfField": "true",
                  "Refractions": "true", "Gamma": "1.0", "FSAA": "4",
@@ -352,7 +352,7 @@ def main():
     common.add_argument("out_dir")
     common.add_argument("--size", default="1280x720")
     common.add_argument("--set", action="append", default=[], metavar="SECTION.KEY=VALUE",
-                        help="override a setting, e.g. Graphics.Shadows=0")
+                        help="override a setting, e.g. Graphics.Shadows=2")
     common.add_argument("--build", default="build", help="build directory, default build")
     common.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
     common.add_argument("--timeout", type=int, default=1200, help="seconds")
