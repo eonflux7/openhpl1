@@ -638,7 +638,7 @@ namespace hpl {
 
 		//////////////////////////////////
 		// Render objects
-		cMotionBlurObjectIterator it = mpRenderList->GetMotionBlurIterator();
+		cFogObjectIterator it = mpRenderList->GetFogIterator();
 
 		while(it.HasNext())
 		{

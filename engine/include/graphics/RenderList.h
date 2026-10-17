@@ -76,17 +76,17 @@ namespace hpl {
 
 	//-------------------------------------------------------------
 
-	class cMotionBlurObject_Compare
+	class cFogObject_Compare
 	{
 	public:
 		bool operator()(iRenderable* pObjectA,iRenderable* pObjectB) const;
 	};
 
-	typedef std::multiset<iRenderable*,cMotionBlurObject_Compare> tMotionBlurObjectSet;
-	typedef tMotionBlurObjectSet::iterator tMotionBlurObjectSetIt;
+	typedef std::multiset<iRenderable*,cFogObject_Compare> tFogObjectSet;
+	typedef tFogObjectSet::iterator tFogObjectSetIt;
 
-	typedef cSTLIterator<iRenderable*, tMotionBlurObjectSet,
-							tMotionBlurObjectSetIt> cMotionBlurObjectIterator;
+	typedef cSTLIterator<iRenderable*, tFogObjectSet,
+							tFogObjectSetIt> cFogObjectIterator;
 
 	//-------------------------------------------------------------
 
@@ -158,7 +158,7 @@ namespace hpl {
 
 		cOcclusionQueryObjectIterator GetQueryIterator();
 
-		cMotionBlurObjectIterator GetMotionBlurIterator();
+		cFogObjectIterator GetFogIterator();
 
 		cTransperantObjectIterator GetTransperantIterator();
 
@@ -197,7 +197,7 @@ namespace hpl {
 
 		tOcclusionQueryObjectSet m_setQueries;
 
-		tMotionBlurObjectSet m_setMotionBlurObjects;
+		tFogObjectSet m_setFogObjects;
 		tTransperantObjectSet m_setTransperantObjects;
 
 		cRenderNode mRootNodeDepth;

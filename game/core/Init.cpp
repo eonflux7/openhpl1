@@ -757,12 +757,8 @@ bool cInit::Init(tString asCommandLine)
 	// GRAPHICS INIT ////////////////////
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(mbPostEffects);
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(mpConfig->GetBool("Graphics", "Bloom", true));
-	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomSpread(6);
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","BloomType",eBloomType_Soft);
-		if(lType < 0 || lType >= eBloomType_LastEnum) lType = eBloomType_Soft;
-		pPostEffects->SetBloomType((eBloomType)lType);
 
 		// The defaults are the tuning's own
 		cBloomTuning tuning;
@@ -789,12 +785,8 @@ bool cInit::Init(tString asCommandLine)
 	}
 
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(mpConfig->GetBool("Graphics", "MotionBlur", false));
-	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurAmount(mpConfig->GetFloat("Graphics", "MotionBlurAmount", 0.3f));
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","MotionBlurType",eMotionBlurType_Camera);
-		if(lType < 0 || lType >= eMotionBlurType_LastEnum) lType = eMotionBlurType_Camera;
-		pPostEffects->SetMotionBlurType((eMotionBlurType)lType);
 
 		cMotionBlurSettings motion;
 		motion.mfShutterTime = mpConfig->GetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
@@ -802,10 +794,6 @@ bool cInit::Init(tString asCommandLine)
 		motion.mlSamples = mpConfig->GetInt("Graphics","MotionBlurSamples",motion.mlSamples);
 		motion.mfNearLimit = mpConfig->GetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
 		pPostEffects->SetMotionBlurSettings(motion);
-
-		lType = mpConfig->GetInt("Graphics","DepthOfFieldType",eDepthOfFieldType_Bokeh);
-		if(lType < 0 || lType >= eDepthOfFieldType_LastEnum) lType = eDepthOfFieldType_Bokeh;
-		pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)lType);
 
 		cDepthOfFieldSettings dof;
 		dof.mfRadius = mpConfig->GetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
@@ -1337,7 +1325,6 @@ void cInit::Exit()
 	mpConfig->SetBool("Graphics", "Bloom",mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive());
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		mpConfig->SetInt("Graphics","BloomType",pPostEffects->GetBloomType());
 		mpConfig->SetFloat("Graphics","BloomThreshold",pPostEffects->GetBloomTuning().mfThreshold);
 		mpConfig->SetFloat("Graphics","BloomIntensity",pPostEffects->GetBloomTuning().mfIntensity);
 		mpConfig->SetFloat("Graphics","BloomScatter",pPostEffects->GetBloomTuning().mfScatter);
@@ -1355,18 +1342,15 @@ void cInit::Exit()
 		mpConfig->SetInt("Graphics","AOFilter",occlusion.mlFilter);
 	}
 	mpConfig->SetBool("Graphics", "MotionBlur",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
-	mpConfig->SetFloat("Graphics", "MotionBlurAmount",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurAmount());
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
 		const cMotionBlurSettings &motion = pPostEffects->GetMotionBlurSettings();
-		mpConfig->SetInt("Graphics","MotionBlurType",pPostEffects->GetMotionBlurType());
 		mpConfig->SetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
 		mpConfig->SetFloat("Graphics","MotionBlurMaxLength",motion.mfMaxLength);
 		mpConfig->SetInt("Graphics","MotionBlurSamples",motion.mlSamples);
 		mpConfig->SetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
 
 		const cDepthOfFieldSettings &dof = pPostEffects->GetDepthOfFieldSettings();
-		mpConfig->SetInt("Graphics","DepthOfFieldType",pPostEffects->GetDepthOfFieldType());
 		mpConfig->SetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
 		mpConfig->SetInt("Graphics","DepthOfFieldRings",dof.mlRings);
 

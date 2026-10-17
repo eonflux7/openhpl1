@@ -1897,13 +1897,9 @@ public:
 	}
 };
 
-// Off, the original depth of field, or the one made from the depth buffer.
-// The last two names are not in the game's language files.
 static tWString GetDoFText(cInit *mpInit)
 {
-	if(mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled()) return kTranslate("MainMenu","Off");
-	return mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetDepthOfFieldType() == eDepthOfFieldType_Bokeh ?
-			_W("Bokeh") : _W("Original");
+	return kTranslate("MainMenu", mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled() ? "Off" : "On");
 }
 
 class cMainMenuWidget_DOF : public cMainMenuWidget_Button
@@ -1917,16 +1913,8 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 		cEffect_DepthOfField *pDoF = mpInit->mpEffectHandler->GetDepthOfField();
-
-		// Off, Original, Bokeh: forwards with the left button, back with the right
-		int lIdx = pDoF->IsDisabled() ? 0 : 1 + (int)pPostEffects->GetDepthOfFieldType();
-		int lNum = 1 + eDepthOfFieldType_LastEnum;
-		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
-
-		pDoF->SetDisabled(lIdx == 0);
-		if(lIdx > 0) pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)(lIdx - 1));
+		pDoF->SetDisabled(!pDoF->IsDisabled());
 
 		gpDoFText->msText = GetDoFText(mpInit);
 	}
@@ -2313,13 +2301,9 @@ public:
 
 //-----------------------------------------------------------
 
-// Off, the original bloom, or the soft one. The last two names are not in
-// the game's language files.
 static tWString GetBloomText(cInit *mpInit)
 {
-	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-	if(pPostEffects->GetBloomActive()==false) return kTranslate("MainMenu","Off");
-	return pPostEffects->GetBloomType() == eBloomType_Soft ? _W("Soft") : _W("Original");
+	return kTranslate("MainMenu", mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive() ? "On" : "Off");
 }
 
 class cMainMenuWidget_Bloom : public cMainMenuWidget_Button
@@ -2334,14 +2318,7 @@ public:
 	void OnMouseDown(eMButton aButton) override
 	{
 		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-
-		// Off, Original, Soft: forwards with the left button, back with the right
-		int lIdx = pPostEffects->GetBloomActive() ? 1 + (int)pPostEffects->GetBloomType() : 0;
-		int lNum = 1 + eBloomType_LastEnum;
-		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
-
-		pPostEffects->SetBloomActive(lIdx > 0);
-		if(lIdx > 0) pPostEffects->SetBloomType((eBloomType)(lIdx - 1));
+		pPostEffects->SetBloomActive(!pPostEffects->GetBloomActive());
 
 		gpBloomText->msText = GetBloomText(mpInit);
 	}
@@ -2350,13 +2327,9 @@ public:
 //------------------------------------------------------------
 
 
-// Off, the original motion blur, or the camera's alone from the depth
-// buffer. The last two names are not in the game's language files.
 static tWString GetMotionBlurText(cInit *mpInit)
 {
-	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-	if(pPostEffects->GetMotionBlurActive()==false) return kTranslate("MainMenu","Off");
-	return pPostEffects->GetMotionBlurType() == eMotionBlurType_Camera ? _W("Camera") : _W("Original");
+	return kTranslate("MainMenu", mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive() ? "On" : "Off");
 }
 
 class cMainMenuWidget_MotionBlur : public cMainMenuWidget_Button
@@ -2371,14 +2344,7 @@ public:
 	void OnMouseDown(eMButton aButton) override
 	{
 		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-
-		// Off, Original, Camera: forwards with the left button, back with the right
-		int lIdx = pPostEffects->GetMotionBlurActive() ? 1 + (int)pPostEffects->GetMotionBlurType() : 0;
-		int lNum = 1 + eMotionBlurType_LastEnum;
-		lIdx = (lIdx + (aButton == eMButton_Right ? lNum - 1 : 1)) % lNum;
-
-		pPostEffects->SetMotionBlurActive(lIdx > 0);
-		if(lIdx > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lIdx - 1));
+		pPostEffects->SetMotionBlurActive(!pPostEffects->GetMotionBlurActive());
 
 		gpMotionBlurText->msText = GetMotionBlurText(mpInit);
 	}

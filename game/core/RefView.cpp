@@ -938,16 +938,11 @@ void cRefView::DrawRenderer()
 
 	// Bloom: these too are kept in settings.cfg
 	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-	int lBloom = pPostEffects->GetBloomActive() ? 1 + (int)pPostEffects->GetBloomType() : 0;
-	ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14);
-	if(ImGui::Combo("Bloom", &lBloom, "Off\0Original\0Soft\0"))
-	{
-		pPostEffects->SetBloomActive(lBloom > 0);
-		if(lBloom > 0) pPostEffects->SetBloomType((eBloomType)(lBloom - 1));
-	}
+	bool bBloom = pPostEffects->GetBloomActive();
+	if(ImGui::Checkbox("Bloom", &bBloom)) pPostEffects->SetBloomActive(bBloom);
 	cBloomTuning bloom = pPostEffects->GetBloomTuning();
 	bChanged = false;
-	ImGui::BeginDisabled(lBloom != 1 + eBloomType_Soft);
+	ImGui::BeginDisabled(bBloom==false);
 	ImGui::SameLine();
 	if(ImGui::Button("Reset##bloom"))
 	{
@@ -1289,19 +1284,14 @@ void cRefView::DrawLensAndFilm()
 		cDepthOfFieldSettings settings = pPostEffects->GetDepthOfFieldSettings();
 		bool bChanged = false;
 
-		int lType = pDoF->IsDisabled() ? 0 : 1 + (int)pPostEffects->GetDepthOfFieldType();
-		if(ImGui::Combo("Depth of field", &lType, "Off\0Original\0Bokeh\0"))
-		{
-			pDoF->SetDisabled(lType == 0);
-			if(lType > 0) pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)(lType - 1));
-		}
+		bool bDof = !pDoF->IsDisabled();
+		if(ImGui::Checkbox("Depth of field", &bDof)) pDoF->SetDisabled(!bDof);
 		if(ImGui::IsItemHovered())
 			Tip("The game blurs what is out of focus when you look closely at something you picked up, "
-				"and where a map's script asks for it. Original: the scene blended with a small blurred copy. "
-				"Bokeh: every pixel spread over a disc, from the depth of what is on screen; "
-				"bright points become discs and what is in focus keeps its edges.");
+				"and where a map's script asks for it. Every pixel is spread over a disc, from the depth of "
+				"what is on screen; bright points become discs and what is in focus keeps its edges.");
 
-		ImGui::BeginDisabled(lType != 1 + eDepthOfFieldType_Bokeh);
+		ImGui::BeginDisabled(bDof==false);
 		ImGui::SameLine();
 		if(ImGui::Button("Reset##dof"))
 		{
@@ -1324,7 +1314,7 @@ void cRefView::DrawLensAndFilm()
 				"and a bright point shows as dots instead of a disc. F3 shows the time ('Depth of field').");
 		ImGui::EndDisabled();
 
-		ImGui::BeginDisabled(lType == 0);
+		ImGui::BeginDisabled(bDof==false);
 		bChanged |= ImGui::Checkbox("Try it here", &settings.mbTest);
 		if(ImGui::IsItemHovered())
 			Tip("Switches the depth of field on now, focused as set below, whatever the game asks for. "
@@ -1346,18 +1336,13 @@ void cRefView::DrawLensAndFilm()
 		cMotionBlurSettings settings = pPostEffects->GetMotionBlurSettings();
 		bool bChanged = false;
 
-		int lType = pPostEffects->GetMotionBlurActive() ? 1 + (int)pPostEffects->GetMotionBlurType() : 0;
-		if(ImGui::Combo("Motion blur", &lType, "Off\0Original\0Camera\0"))
-		{
-			pPostEffects->SetMotionBlurActive(lType > 0);
-			if(lType > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lType - 1));
-		}
+		bool bMotion = pPostEffects->GetMotionBlurActive();
+		if(ImGui::Checkbox("Motion blur", &bMotion)) pPostEffects->SetMotionBlurActive(bMotion);
 		if(ImGui::IsItemHovered())
-			Tip("Original: every object is drawn a second time, smeared from where it was the frame before. "
-				"Camera: one pass that blurs the picture along the way the camera's own turning and walking "
+			Tip("One pass that blurs the picture along the way the camera's own turning and walking "
 				"moves it, from the depth of what is on screen. Things that move by themselves stay sharp.");
 
-		ImGui::BeginDisabled(lType != 1 + eMotionBlurType_Camera);
+		ImGui::BeginDisabled(bMotion==false);
 		ImGui::SameLine();
 		if(ImGui::Button("Reset##motion"))
 		{

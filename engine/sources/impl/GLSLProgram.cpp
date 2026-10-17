@@ -205,7 +205,6 @@ namespace hpl{
 		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
 		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
 		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},
-		{"PostEffect_DoF_Sky",			"PostEffect_DoF",	"SKY"},
 		{"PostEffect_BloomChain_Prefilter",	"PostEffect_BloomChain",	"PREFILTER"},
 		{"PostEffect_BloomChain_Down",		"PostEffect_BloomChain",	"DOWN"},
 		{"PostEffect_BloomChain_Up",		"PostEffect_BloomChain",	"UP"},

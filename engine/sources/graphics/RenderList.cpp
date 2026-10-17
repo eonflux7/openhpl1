@@ -35,10 +35,10 @@ namespace hpl {
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// MOTION BLUR OBJECT COMPARE
+	// FOG OBJECT COMPARE
 	//////////////////////////////////////////////////////////////////////////
 
-	bool cMotionBlurObject_Compare::operator()(	iRenderable* pObjectA,
+	bool cFogObject_Compare::operator()(	iRenderable* pObjectA,
 												iRenderable* pObjectB) const
 	{
 		//TODO: perhaps Z here...
@@ -182,7 +182,7 @@ namespace hpl {
 		m_setLights.clear();
 		m_setObjects.clear();
 		m_setQueries.clear();
-		m_setMotionBlurObjects.clear();
+		m_setFogObjects.clear();
 		m_setTransperantObjects.clear();
 
 		mRootNodeDepth.DeleteChildren();
@@ -214,9 +214,9 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cMotionBlurObjectIterator cRenderList::GetMotionBlurIterator()
+	cFogObjectIterator cRenderList::GetFogIterator()
 	{
-		return cMotionBlurObjectIterator(&m_setMotionBlurObjects);
+		return cFogObjectIterator(&m_setFogObjects);
 	}
 
 	//-----------------------------------------------------------------------
@@ -394,21 +394,10 @@ namespace hpl {
 			{
 				m_setObjects.insert(apObject);
 
-				//MotionBlur
-				if(mpGraphics->GetRendererPostEffects()->GetObjectsNeeded()
-					|| mpGraphics->GetRenderer3D()->GetRenderSettings()->mbFogActive)
+				//Drawn again for the fog
+				if(mpGraphics->GetRenderer3D()->GetRenderSettings()->mbFogActive)
 				{
-					m_setMotionBlurObjects.insert(apObject);
-
-					if(apObject->GetPrevRenderCount() != GetLastRenderCount())
-					{
-						cMatrixf *pMtx = apObject->GetModelMatrix(mpCamera);
-						if(pMtx)
-						{
-							apObject->SetPrevMatrix(*pMtx);
-						}
-					}
-					apObject->SetPrevRenderCount(mlRenderCount);
+					m_setFogObjects.insert(apObject);
 				}
 			}
 
