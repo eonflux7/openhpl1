@@ -123,8 +123,7 @@ The build also generates a small room for player feedback:
 OVERTURE_MAP=effectslab:link01 ./run.sh
 ```
 
-Its effects panel opens automatically; F2 toggles it. Switch **Original / Improved**, pick
-a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
+Its effects panel opens automatically; F2 toggles it. Pick a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
 while the preview runs. Previews cover night adaptation, low health, blood and
 ice hits, panic, white flashes, save-point haze, death, underwater and combined
 feedback. **Double vision only** shows the displaced outline without the red
@@ -140,7 +139,7 @@ and boat rocking can also be tested. **Full debug panels** reveals the existing
 renderer controls. From other maps, use **Player > Player effects > Load effects
 lab** in F2.
 
-Improved player feedback combines a shader below the HUD with subtle FOV zoom:
+Player feedback is a shader below the HUD with subtle FOV zoom:
 night adaptation lifts dark detail, adds a blue cast and a faint vignette;
 panic pulses the zoom and blur. Blood hits add soft splashes and droplets with
 a new pattern on each hit, alongside the red vignette. Low health has a stronger
@@ -148,11 +147,10 @@ heartbeat vignette and gently pulsing vision doubling that remains visible
 between heartbeats and eases away after healing; ice hits use noisy frost.
 White flashes spread highlights into whiteout; save points add warm haze and
 glow without the strong zoom or image trail. Underwater adds a water-colored
-tint and light blur; death fades smoothly to black. Original retains the game's
-sprites, projection changes and image trails, including the original save and
-underwater effects. The flashlight beam and shader are unchanged. The treatment
-and five sliders are kept in `settings.cfg` under `Graphics` as
-`PlayerEffectsImproved`, `PlayerAdaptationStrength`, `PlayerAdaptationTime`,
+tint and light blur; death fades smoothly to black. The game's original
+sprites, projection changes and image trails are gone (Milestone 6). The five
+sliders are kept in `settings.cfg` under `Graphics` as
+`PlayerAdaptationStrength`, `PlayerAdaptationTime`,
 `PlayerInjuryStrength`, `PlayerPanicStrength` and `PlayerWhiteoutGlow`.
 
 To capture and check every preview plus live adaptation, injury, fear and
@@ -162,11 +160,11 @@ underwater transitions in an isolated headless session:
 tools/refshots.py effects /tmp/effects
 ```
 
-It writes 41 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
+It writes 29 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
 neutral output, varied but stable blood patterns and full white/black endpoints,
 and exits with 1 if a check fails. Live checks also exercise real save points,
-underwater triggers, double vision between heartbeats, healing and switching
-treatments during a save. It accepts
+underwater triggers, double vision between heartbeats, healing and an
+interrupted save. It accepts
 the same `--size`, `--set` and `--build` options as reference captures.
 
 ### Reference images
@@ -193,10 +191,17 @@ position, and up to six of the map's lights, looking in four directions
 from each. All with the flashlight on. These frames show the 3D view only, without the HUD, fades
 or menus. Then it loads the first map again and saves the 2D screens over
 it (`2d-*.png`): HUD, inventory, notebook, keypad, a message and the main
-menu pages. All at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
+menu pages. All at 1280x720 with fixed graphics settings: shadows,
+ambient occlusion, SMAA and 4x multisampling on, the noise filter off.
+`--maps office,worm` limits it to
 some maps (compare such a capture only with one of the same maps: frames
 depend on the maps visited before), `--size` changes the resolution and
-`--set Graphics.Shadows=2` any setting. `compare` lists the frames that differ and exits with 1 if any
+`--set Graphics.Shadows=2` any setting (2 is shadows off).
+
+The game has one look since Milestone 6: the improved one, which the
+original 2007 look was the reference for. The tag `original-look` marks the
+last commit that has the original look as well, and the reference images
+of it are kept in the Windows kit (`captures/original-look`). `compare` lists the frames that differ and exits with 1 if any
 do. From WSL, `--windows --build <build-windows>` runs a Windows build instead
 (`--build` may be a path on a Windows drive), with its window hidden; pass
 the Windows game data with `--game-dir`.
@@ -214,21 +219,20 @@ with. Picking one loads the map or puts you there; PgUp and PgDn step through
 the map's frames. The view can be set up as in the frames (no flicker and a
 player that cannot be hurt, which are on; flashlight on and no HUD, which
 are off until switched), and
-Linear Lighting can be switched from the panel, and tuned with it on: Light
-power, Exposure, Glow and the tonemapping's Shoulder and White. The bloom
-can be switched between off, the original and the soft one, which has its
-own sliders (see CHANGES; Ctrl+click a slider to type a value). A second
-window, Shadows, switches between the original shadows and shadow maps and
-has the maps' settings, a view of the shadows alone, the lights in view (to
+the lighting can be tuned from the panel: Light power, Exposure, Glow, Blend
+match and the tonemapping's Shoulder and White. The bloom can be switched
+off and has its own sliders (see CHANGES; Ctrl+click a slider to type a
+value). A second window, Shadows, switches shadows and has the maps'
+settings, a view of the shadows alone, the lights in view (to
 draw one alone, or switch its shadows) and a test light to put anywhere or
 carry around. A third, Player, has Fly (a free camera; switching it off puts
 the player where the camera is), the switches for flashlight, flicker,
 HUD and damage, and buttons that put the flashlight, the glow stick or a
 flare in the inventory. A fourth, Ambient occlusion, switches it and has its
 quality, radius, strength and filter, and a view of the occlusion alone.
-A fifth, Lens and film, has the kinds of depth of field (with a switch to
-try it at a distance of your choosing), motion blur and noise filter, and
-their settings. A sixth, Anti-aliasing, is folded at the bottom right:
+A fifth, Lens and film, has the depth of field (with a switch to try it at
+a distance of your choosing), motion blur and noise filter, and their
+settings. A sixth, Anti-aliasing, is folded at the bottom right:
 multisampling, the texture filter, and SMAA with its settings and a view of
 the edges it finds.
 While the panel is open it

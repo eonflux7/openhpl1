@@ -434,26 +434,30 @@ In this order: each step removes callers of what a later one deletes.
         cube map (`normalize()` does it) and the spotlight's 1D texture
         that cuts off what is behind it; the 3D attenuation texture if
         nothing reads it. The falloff ramps are game data and stay
-- [ ] **4. One look.** The improved look becomes the only one, so the
+- [x] **4. One look.** The improved look becomes the only one, so the
       steps after this refactor one renderer instead of two. The original
       look was the reference the improved one was tuned against; the tag
       `original-look` marks the last commit with it, and its reference
       images are kept (`captures/original-look` in the Windows kit). Who
       wants the 2007 look exactly can play the 2007 game:
-  - [ ] the improved settings are the defaults; `refshots.py capture`
+  - [x] the improved settings are the defaults; `refshots.py capture`
         takes the improved look without extra settings, and its images
         are the reference from here on
-  - [ ] linear lighting only: the encoded colour path, `HPL_LINEAR_COLOR`,
-        `SetLinearSource` and the alpha matching for blending go
-  - [ ] shadow maps only: stencil shadow volumes go (`ShadowType`, the
+  - [x] linear lighting only: the encoded colour path and
+        `SetLinearSource` go. `HPL_LINEAR_COLOR` stays to mark the shaders
+        that write linear values (the materials still write screen
+        values), and so does the alpha matching for blending: it is part
+        of the improved look
+  - [x] shadow maps only: stencil shadow volumes go (`ShadowType`, the
         extrusion shader, silhouettes found on the CPU)
-  - [ ] the bloom chain, bokeh depth of field and camera motion blur only:
+  - [x] the bloom chain, bokeh depth of field and camera motion blur only:
         the original bloom, depth of field, motion blur and their 8-bit
         screen copies go
-  - [ ] the improved shading, flashlight, lamps, halos, shafts, particles
+  - [x] the improved shading, flashlight, lamps, halos, shafts, particles
         and player effects only: their `...Improved` switches and the
-        original paths behind them go
-  - [ ] what is about speed or taste stays an option: shadows (off and
+        original paths behind them go (with the halos' occlusion queries
+        and the image trail)
+  - [x] what is about speed or taste stays an option: shadows (off and
         quality), ambient occlusion, SMAA, FSAA, motion blur, bloom, depth
         of field, grain, render scale, gamma
 - [ ] **5. No matrix stack.** Model, view and projection given to each

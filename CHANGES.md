@@ -1613,6 +1613,64 @@ lab shows the same.
 From here the original look is checked to the eye, not exactly: a few
 levels are fine.
 
+### One look
+
+The improved look is the only one. The original 2007 look was the
+reference it was tuned against; the tag `original-look` marks the last
+commit with it, and its reference images are kept in the Windows kit
+(`captures/original-look`).
+
+- the improved settings are the defaults, and `refshots.py capture` takes
+  the improved look without extra settings, with shadows, ambient
+  occlusion, SMAA and 4x multisampling on. `Graphics.Shadows=2` is shadows
+  off: the improved captures until now had it, so they never showed the
+  shadow maps
+- linear lighting only: the Linear Lighting option, the branches of the
+  light and post-effect shaders for a scene of screen values, the 8-bit
+  screen copies and `SetLinearSource` are gone. The dream filter (Black
+  Plague) draws its copy of the scene with a shader of its own
+  (`hpl1_DreamFilter`). `HPL_LINEAR_COLOR` stays, to mark the shaders that
+  write linear values, and so does the alpha matching: without it smoke,
+  snow and fog cover more (31 frames change, outside by 46 levels on
+  average)
+- shadow maps only: the stencil shadow volumes are gone, with
+  `ShadowType`, the `ShadowExtrude` programs, the triangle normals and
+  edges of every submesh (recomputed each frame for skinned meshes), the
+  doubled positions in vertex buffers and the stencil functions of
+  `iLowLevelGraphics`. Shadows is On, Only Static or Off
+- the bloom chain, bokeh depth of field and camera motion blur only: the
+  original bloom, depth of field and motion blur are gone, with their
+  types, the blur passes, the objects drawn again for them and the
+  previous matrices of renderables and cameras. Bloom, Motion Blur and
+  Depth of Field are On or Off
+- the improved shading, flashlight, lamps, halos, shafts, particles and
+  player effects only: their `...Improved` settings and the original paths
+  are gone, with the occlusion queries that faded halos, the image trail,
+  and the overlay pictures, zooms and hiding light of the original player
+  effects. The Lighting page of the menu keeps Refractions; the settings
+  are in the F2 panel
+- the F9 comparison shots, which switched to the original look, are gone
+
+Checked on Windows area by area, each against the capture before it, 95
+reference images each:
+
+- defaults against the improved look of step 3: the same (the keypad
+  apart)
+- linear lighting only: every 3D frame the same; the menu pages lose their
+  rows. Motion blur and Render Scale 1.5 with 4x FSAA the same, apart from
+  the known noise; the effects lab the same apart from original-combined,
+  which changes as much between two runs of one build
+- shadow maps only, against a new capture with shadows on: the same apart
+  from the menu and the known noise (icecave-view01/04, 101 and 836 px)
+- the post effects: the same, also with motion blur (93 of 95), Render
+  Scale (92 of 95) and in the effects lab (41 of 41)
+- shading, flashlight, lamps, halos, shafts and particles: the same apart
+  from the Lighting menu page; the halos without occlusion queries change
+  no frame
+- player effects: the same. The effects lab has 29 frames; all checks
+  pass, and panic, double vision and combined show the FOV pulse at a
+  slightly different point (edges only, up to 76 levels at a few pixels)
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
