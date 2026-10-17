@@ -19,7 +19,7 @@ With --windows, run from WSL, the Windows build in --build is run instead
 (--build may be absolute, e.g. a build-windows on a Windows drive), with
 its window hidden in place of the gamescope session.
 
-effects captures Original and Improved player feedback in the effects lab,
+effects captures the player feedback in the effects lab,
 checks its live triggers, and verifies white/black endpoints and the neutral
 output. It uses the same isolated profile and headless session as capture.
 
@@ -225,8 +225,7 @@ def check_effects(out):
 
     names = ["neutral", "adaptation", "low-health", "double-vision", "blood", "ice", "panic",
              "flash", "save", "death", "underwater", "combined"]
-    expected = [mode + "-" + name + ".png"
-                for mode in ("original", "improved") for name in names]
+    expected = ["improved-" + name + ".png" for name in names]
     expected += ["improved-flash-full.png", "improved-save-full.png",
                  "improved-death-full.png", "improved-combined-zero.png",
                  "improved-panic-trough.png", "improved-panic-peak.png",
@@ -246,18 +245,13 @@ def check_effects(out):
 
     failures = []
     neutral = frame("improved-neutral")
-    for name in ("original-neutral", "improved-combined-zero"):
-        diff = ImageChops.difference(neutral, frame(name))
-        if max(ImageStat.Stat(diff).mean) > 0.05:
-            failures.append(name + " changes the neutral picture")
+    diff = ImageChops.difference(neutral, frame("improved-combined-zero"))
+    if max(ImageStat.Stat(diff).mean) > 0.05:
+        failures.append("improved-combined-zero changes the neutral picture")
     for name in names[1:]:
         diff = ImageChops.difference(neutral, frame("improved-" + name))
         if max(ImageStat.Stat(diff).mean) < 0.1:
             failures.append(name + " has no visible feedback")
-    for name in ("save", "underwater"):
-        diff = ImageChops.difference(frame("original-" + name), frame("improved-" + name))
-        if max(ImageStat.Stat(diff).mean) < 0.1:
-            failures.append(name + " does not show the improved treatment")
     splashes = ImageChops.difference(frame("improved-blood-seed-a"), frame("improved-blood-seed-b"))
     if max(ImageStat.Stat(splashes).mean) < 0.1:
         failures.append("blood pattern does not change between hits")

@@ -816,7 +816,6 @@ bool cInit::Init(tString asCommandLine)
 		grain.mfDispersion = mpConfig->GetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		pLowLevel->SetFilmGrain(grain);
 		cPlayerEffectSettings feedback;
-		feedback.mbImproved = mpConfig->GetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
 		feedback.mfAdaptationStrength = mpConfig->GetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
 		feedback.mfAdaptationTime = mpConfig->GetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
 		feedback.mfInjuryStrength = mpConfig->GetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
@@ -1355,7 +1354,6 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","GrainRate",grain.mfRate);
 		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		const cPlayerEffectSettings &feedback = mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings();
-		mpConfig->SetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
 		mpConfig->SetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
 		mpConfig->SetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
 		mpConfig->SetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);

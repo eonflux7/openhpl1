@@ -40,8 +40,6 @@ cEffect_Underwater::cEffect_Underwater(cInit *apInit, cGraphicsDrawer *apDrawer)
 	mpInit = apInit;
 	mpDrawer = apDrawer;
 
-	mpWhiteGfx = mpDrawer->CreateGfxObject("effect_white.jpg","smoke2d");
-
 	mpSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
 	mpLoopChannel = nullptr;
 	mfSoundCount = 0;
@@ -132,13 +130,9 @@ void cEffect_Underwater::Update(float afTimeStep)
 }
 //-----------------------------------------------------------------------
 
+// The low level tints the view (cPlayerEffectState)
 void cEffect_Underwater::OnDraw()
 {
-	if(mbActive==false) return;
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
-
-	cColor invColor(1-mColor.r,1-mColor.g,1-mColor.b,0);
-	mpDrawer->DrawGfxObject(mpWhiteGfx,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),invColor);
 }
 //-----------------------------------------------------------------------
 
@@ -304,19 +298,12 @@ void cEffect_SaveEffect::NormalSave(const cVector3f &avPos, cGameSaveArea *apSav
 	mfTime =0;
 	
 	mfStartFov = mpInit->mpPlayer->GetCamera()->GetFOV();
-	mfFov = mpInit->mpPlayer->GetCamera()->GetFOV();
 
 	mpInit->mpPlayer->SetActive(false);
 	mpInit->mpPlayer->GetLookAt()->SetActive(true);
 	mpInit->mpPlayer->GetLookAt()->SetTarget(avPos,2.1f,4);
 
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(!mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved);
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailAmount(0.8f);
-
 	mfFlashAlpha =0;
-	mFlashColor = cColor(	216.0f / 255.0f, 
-							85.0f  / 255.0f,
-							5.0f   / 255.0f, 0);
 
 	mlState = 0;
 
@@ -332,9 +319,6 @@ void cEffect_SaveEffect::AutoSave(const tWString &asName)
 	//mpInit->mpPlayer->SetActive(false);
 
 	mfFlashAlpha =0;
-	mFlashColor = cColor(	216.0f / 255.0f, 
-							85.0f  / 255.0f,
-							5.0f   / 255.0f, 0);
 
 	mlState = 0;
 
@@ -360,19 +344,12 @@ void cEffect_SaveEffect::Update(float afTimeStep)
 void cEffect_SaveEffect::OnDraw()
 {
 	if(mbActive==false) return;
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
-	{
-		// Keep an opaque backing for the save text at the white endpoint.
-		float fCover = cMath::Clamp((mfFlashAlpha - 0.9f) * 10.0f, 0.0f, 1.0f);
-		if(fCover > 0)
-			mpDrawer->DrawGfxObject(mpFlashGfx, mpInit->mpGraphicsHelper->GetScreenPos(), mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, fCover));
-		return;
-	}
 
-	mpDrawer->DrawGfxObject(mpFlashGfx,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),
-							cColor(1,1) * mfFlashAlpha + 
-							mFlashColor * (1- mfFlashAlpha) 
-							);
+	// The low level draws the flash; an opaque backing for the save text
+	// at the white endpoint
+	float fCover = cMath::Clamp((mfFlashAlpha - 0.9f) * 10.0f, 0.0f, 1.0f);
+	if(fCover > 0)
+		mpDrawer->DrawGfxObject(mpFlashGfx, mpInit->mpGraphicsHelper->GetScreenPos(), mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, fCover));
 }
 
 void cEffect_SaveEffect::Reset()
@@ -380,16 +357,12 @@ void cEffect_SaveEffect::Reset()
 	mbActive = false;
 	mfFlashAlpha = 0;
 	// The save owns the general trail; player resets only clear their own.
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
 }
 
 //-----------------------------------------------------------------------
 
 void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 {
-	bool bImproved = mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved;
-	// Follow treatment switches even while the player is paused by a save.
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(!bImproved);
 	switch(mlState)
 	{
 		///////////////////////
@@ -400,9 +373,7 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			mfFlashAlpha += 0.5f *afTimeStep;
 			if(mfFlashAlpha > 1.0f)mfFlashAlpha = 1.0f;
 
-			//Fov
-			mfFov -= (mfFov - 0.2f) * afTimeStep * 1.3f;
-			mpInit->mpPlayer->GetCamera()->SetFOV(bImproved ? mfStartFov : mfFov);
+			mpInit->mpPlayer->GetCamera()->SetFOV(mfStartFov);
 
 			if(mfTime > 3.0f)
 			{
@@ -458,7 +429,6 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			mbActive = false;
 			mpInit->mpPlayer->SetActive(true);
 			mpInit->mpPlayer->GetLookAt()->SetActive(false);
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetImageTrailActive(false);
 
 			/////////////
 			//Display message
@@ -740,9 +710,8 @@ void cEffect_Flash::Update(float afTimeStep)
 void cEffect_Flash::OnDraw()
 {
 	if(mbActive==false) return;
-	float fAlpha = mfAlpha;
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
-		fAlpha = cMath::Clamp((mfAlpha - 0.9f) * 10.0f, 0.0f, 1.0f);
+	// The low level draws the flash; this only makes its white end opaque
+	float fAlpha = cMath::Clamp((mfAlpha - 0.9f) * 10.0f, 0.0f, 1.0f);
 
 	if(fAlpha > 0)
 		mpDrawer->DrawGfxObject(mpWhiteGfx, mpInit->mpGraphicsHelper->GetScreenPos(), mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, fAlpha));

@@ -49,8 +49,7 @@ namespace hpl {
 
 		mpRenderList = apRenderList;
 
-		mpScreenBuffer[0] = nullptr;
-		mpScreenBuffer[1] = nullptr;
+		mpScreenBuffer = nullptr;
 		for(iTexture *&pTexture : mvAoDistanceTexture) pTexture = nullptr;
 		for(iTexture *&pTexture : mvAoNormalTexture) pTexture = nullptr;
 		mpAoTiledTexture = nullptr;
@@ -108,12 +107,6 @@ namespace hpl {
 		if(!mpBokehVP || !mpBokehPrefilterFP || !mpBokehGatherFP || !mpBokehFillFP || !mpBokehCompositeFP)
 			Error("Couldn't load the 'PostEffect_Bokeh' programs!\n");
 
-		/////////////////
-		// Image trail programs
-		mpImageTrailVP = mpGpuManager->CreateProgram("PostEffect_ImageTrail_vp.cg","main",eGpuProgramType_Vertex);
-		mpImageTrailFP = mpGpuManager->CreateProgram("PostEffect_ImageTrail_fp.cg","main",eGpuProgramType_Fragment);
-		if(!mpImageTrailVP || !mpImageTrailFP) Error("Couldn't load the 'PostEffect_ImageTrail' programs!\n");
-
 		Log("  RendererPostEffects created\n");
 
 		////////////////////////////////////
@@ -148,8 +141,7 @@ namespace hpl {
 
 	cRendererPostEffects::~cRendererPostEffects()
 	{
-		for(int i=0;i<2;i++)
-			if(mpScreenBuffer[i])hplDelete(mpScreenBuffer[i]);
+		if(mpScreenBuffer) hplDelete(mpScreenBuffer);
 
 		iGpuProgram *vChainPrograms[] = {mpBloomChainVP, mpBloomPrefilterFP, mpBloomDownFP, mpBloomUpFP, mpBloomCompositeFP};
 		for(iGpuProgram *pProgram : vChainPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
@@ -163,8 +155,7 @@ namespace hpl {
 		DestroyAmbientOcclusionTextures();
 
 		iGpuProgram *vNewPrograms[] = {mpMotionCameraVP, mpMotionCameraFP, mpBokehVP, mpBokehPrefilterFP,
-										mpBokehGatherFP, mpBokehFillFP, mpBokehCompositeFP,
-										mpImageTrailVP, mpImageTrailFP};
+										mpBokehGatherFP, mpBokehFillFP, mpBokehCompositeFP};
 		for(iGpuProgram *pProgram : vNewPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
 		for(iTexture *pTexture : mpBokehTexture) if(pTexture) hplDelete(pTexture);
 	}
@@ -179,34 +170,26 @@ namespace hpl {
 
 	void cRendererPostEffects::CreateScreenBuffers()
 	{
-		for(int i=0;i<2;i++)
-		{
-			if(mpScreenBuffer[i]) hplDelete(mpScreenBuffer[i]);
-			mpScreenBuffer[i] = nullptr;
-		}
+		if(mpScreenBuffer) hplDelete(mpScreenBuffer);
+		mpScreenBuffer = nullptr;
 
-		// The copies hold linear values, which need more than 8 bits in
+		// The copy holds linear values, which need more than 8 bits in
 		// the dark end: floating point
 		int lBpp = 64;
 
 		mvScreenSize = mpLowLevelGraphics->GetRenderSize();
-		Log(" Creating screen buffers size %s\n",mvScreenSize.ToString().c_str());
-		for(int i=0;i<2;i++)
+		Log(" Creating screen buffer size %s\n",mvScreenSize.ToString().c_str());
+		mpScreenBuffer = mpLowLevelGraphics->CreateTexture(cVector2l(
+			(int)mvScreenSize.x,(int)mvScreenSize.y),lBpp,cColor(0,0,0,0),false,
+			eTextureType_Normal, eTextureTarget_2D);
+		if(mpScreenBuffer)
 		{
-			mpScreenBuffer[i] = mpLowLevelGraphics->CreateTexture(cVector2l(
-				(int)mvScreenSize.x,(int)mvScreenSize.y),lBpp,cColor(0,0,0,0),false,
-				eTextureType_Normal, eTextureTarget_2D);
-
-			if(mpScreenBuffer[i]==nullptr)
-			{
-				Error("Couldn't create screenbuffer!\n");
-				if(mpScreenBuffer[0]) hplDelete(mpScreenBuffer[0]);
-				mpScreenBuffer[0] = nullptr;
-				mpScreenBuffer[1] = nullptr;
-				break;
-			}
-			mpScreenBuffer[i]->SetWrapS(eTextureWrap_ClampToEdge);
-			mpScreenBuffer[i]->SetWrapT(eTextureWrap_ClampToEdge);
+			mpScreenBuffer->SetWrapS(eTextureWrap_ClampToEdge);
+			mpScreenBuffer->SetWrapT(eTextureWrap_ClampToEdge);
+		}
+		else
+		{
+			Error("Couldn't create screenbuffer!\n");
 		}
 
 		//The levels of the bloom, from half the render size down to
@@ -250,7 +233,6 @@ namespace hpl {
 		}
 
 		//The old frames are gone
-		mImageTrailData.mbFirstPass = true;
 		mbMotionBlurFirstTime = true;
 	}
 
@@ -273,7 +255,7 @@ namespace hpl {
 
 	void cRendererPostEffects::Render()
 	{
-		if(mpScreenBuffer[0] == nullptr || mpScreenBuffer[1] == nullptr) return;
+		if(mpScreenBuffer == nullptr) return;
 
 		// The occlusion alone is not a scene to blur or make glow
 		if(mbAoActive && mAoSettings.mbShowOnly) return;
@@ -290,7 +272,7 @@ namespace hpl {
 		}
 
 		if(mbActive==false ||
-			(	mImageTrailData.mbActive==false && mbBloomActive==false &&
+			(	mbBloomActive==false &&
 				mbMotionBlurActive==false && mbDofActive==false && bDofTest==false) )
 		{
 			return;
@@ -317,10 +299,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->BeginGpuSection("Bloom");
 		RenderBloom();
-		mpLowLevelGraphics->EndGpuSection();
-
-		mpLowLevelGraphics->BeginGpuSection("Image trail");
-		RenderImageTrail();
 		mpLowLevelGraphics->EndGpuSection();
 
 		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
@@ -560,7 +538,7 @@ namespace hpl {
 		if(mbBloomActive==false || mvBloomDown.empty()) return;
 		if(!mpBloomChainVP || !mpBloomPrefilterFP || !mpBloomDownFP || !mpBloomUpFP || !mpBloomCompositeFP) return;
 
-		iTexture *pScreenTexture = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
+		iTexture *pScreenTexture = GetFreeScreenTexture();
 		DrawSceneCopy(pScreenTexture);
 
 		mpLowLevelGraphics->SetBlendActive(false);
@@ -889,80 +867,6 @@ namespace hpl {
 		mpLowLevelGraphics->PopMatrix(eMatrix_ModelView);
 
 		return true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	// Each frame is the scene laid over the frame before: the scene by
-	// 1 - amount, the last frame by amount. The last frame is kept in one
-	// screen buffer and the scene drawn into the other, which keeps the
-	// result for the next frame.
-	void cRendererPostEffects::RenderImageTrail()
-	{
-		bool bPlayerTrail = mbPlayerImageTrailActive && !mpLowLevelGraphics->GetPlayerEffectSettings().mbImproved;
-		bool bActive = mImageTrailData.mbActive || bPlayerTrail;
-		float fAmount = mImageTrailData.mbActive ? mImageTrailData.mfAmount : mfPlayerImageTrailAmount;
-		if(!bActive)
-		{
-			mImageTrailData.mbFirstPass = true;
-			return;
-		}
-		if(mpImageTrailVP==nullptr || mpImageTrailFP==nullptr) return;
-
-		iTexture *pScene = mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];
-		iTexture *pLastFrame = mpScreenBuffer[mImageTrailData.mlCurrentBuffer];
-
-		cVector2f vVirtSize = mpLowLevelGraphics->GetVirtualSize();
-		mvTexRectVtx[0] = cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f) );
-		mvTexRectVtx[1] = cVertex(cVector3f(vVirtSize.x,0,40),cVector2f(1,1),cColor(1,1.0f));
-		mvTexRectVtx[2] = cVertex(cVector3f(vVirtSize.x,vVirtSize.y,40),cVector2f(1,0),cColor(1,1.0f));
-		mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
-
-		DrawSceneCopy(pScene);
-
-		mpImageTrailVP->Bind();
-		mpImageTrailVP->SetMatrixf("worldViewProj",eGpuProgramMatrix_ViewProjection,eGpuProgramMatrixOp_Identity);
-		mpImageTrailFP->Bind();
-
-		if(mImageTrailData.mbFirstPass)
-		{
-			//The scene as it is; the alpha is the original's
-			mpLowLevelGraphics->SetBlendActive(false);
-			mpImageTrailFP->SetVec2f("trailAlpha", 0.6f, 0);
-			mpLowLevelGraphics->SetTexture(0,pScene);
-			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
-
-			mImageTrailData.mbFirstPass = false;
-		}
-		else
-		{
-			mpLowLevelGraphics->SetClearDepthActive(false);
-			mpLowLevelGraphics->SetClearColor(cColor(0,0));
-			mpLowLevelGraphics->ClearScreen();
-			mpLowLevelGraphics->SetClearDepthActive(true);
-
-			//The new image, transparently
-			mpLowLevelGraphics->SetBlendActive(true);
-			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_Zero);
-			mpImageTrailFP->SetVec2f("trailAlpha", 0, 1.0f - fAmount);
-			mpLowLevelGraphics->SetTexture(0,pScene);
-			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
-
-			//The old blurred image added
-			mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_One);
-			mpImageTrailFP->SetVec2f("trailAlpha", 0, fAmount);
-			mpLowLevelGraphics->SetTexture(0,pLastFrame);
-			mpLowLevelGraphics->DrawQuad(mvTexRectVtx);
-		}
-
-		mpImageTrailFP->UnBind();
-		mpImageTrailVP->UnBind();
-		mpLowLevelGraphics->SetBlendActive(false);
-		mpLowLevelGraphics->SetTexture(0,nullptr);
-
-		//The result, for the next frame
-		mImageTrailData.mlCurrentBuffer = mImageTrailData.mlCurrentBuffer==0?1:0;
-		DrawSceneCopy(mpScreenBuffer[mImageTrailData.mlCurrentBuffer]);
 	}
 
 	//-----------------------------------------------------------------------

@@ -76,7 +76,6 @@ private:
 	void DrawEffectsLab();
 	void UpdatePlayerEffects(float afTimeStep);
 	cPlayerEffectState EffectPreviewState() const;
-	void DrawLegacyEffectPreview(const cPlayerEffectState &aState);
 	void CheckEffectsCapture(bool abCondition, const char *asMessage);
 	void UpdateEffectsChecks();
 	void DrawRenderer();
@@ -124,10 +123,8 @@ private:
 	bool mbEffectPreviewAnimate = true;
 	bool mbEffectTour = false;
 	bool mbEffectsLabFullPanel = false;
-	bool mbLegacyPreviewTrail = false;
 	int mlEffectAction = 0;
 	float mfEffectBlackFade = 0;
-	cGfxObject *mvLegacyPreviewGfx[9] = {};
 	// Headless captures use the same preview as the panel, at fixed amounts.
 	tString msEffectsCapture;
 	int mlEffectsCaptureFrame = 0;

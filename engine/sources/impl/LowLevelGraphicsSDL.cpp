@@ -1496,7 +1496,7 @@ namespace hpl {
 							cMath::Clamp(grain.mfShadows, 0.0f, 1.0f), cMath::Clamp(grain.mfHighlights, 0.0f, 1.0f),
 							cMath::Clamp(grain.mfDispersion, 0.0f, 1.0f));
 			const cPlayerEffectSettings &feedback = mPlayerEffectSettings;
-			const cPlayerEffectState state = feedback.mbImproved ? mPlayerEffectState : cPlayerEffectState();
+			const cPlayerEffectState &state = mPlayerEffectState;
 			auto Amount = [](float f)
 			{ return cMath::Clamp(f, 0.0f, 1.0f); };
 			SetPassUniform(mOutputPass, "playerEffects0", Amount(state.mfAdaptation) * Amount(feedback.mfAdaptationStrength),

@@ -830,11 +830,6 @@ void cPlayerHealth::Draw()
 								cColor(1, mfOxygenAlpha * 0.6f));
 	}
 
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
-	if(mfGfxAlpha <=0) return;
-
-	mpDrawer->DrawGfxObject(mpDamageGfx,mpInit->mpGraphicsHelper->GetScreenPos(50),mpInit->mpGraphicsHelper->GetScreenSize(),
-							cColor(1, mfGfxGlobalAlpha * mfGfxAlpha));
 }
 
 //-----------------------------------------------------------------------
@@ -1125,7 +1120,6 @@ cPlayerDamage::cPlayerDamage(cInit *apInit)
 {
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
-	mpPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 
 	Reset();
 
@@ -1161,12 +1155,6 @@ void cPlayerDamage::Start(float afSize, ePlayerDamageType aType)
 	mfAlphaAdd = 4.3f;
 
 	mbActive = true;
-	
-	if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
-	{
-		mpPostEffects->SetPlayerImageTrailActive(true);
-		mpPostEffects->SetPlayerImageTrailAmount(0);
-	}
 
 	mvHeadSwingSpeed = cVector2f(cMath::RandRectf(-1,1), cMath::RandRectf(0,0.5f));
 	if(mvHeadSwingSpeed.x == 0 && mvHeadSwingSpeed.y == 0) mvHeadSwingSpeed.x = 1;
@@ -1220,39 +1208,19 @@ void cPlayerDamage::Update(float afTimeStep)
 		mvHeadSwingSpeed.y += (mvHeadSwingAcc.x/mfSize) * afTimeStep * 2.2f;
 		if(mvHeadSwingSpeed.y >0) mvHeadSwingSpeed.y =0;
 	}
-	
-	//Blur update
-	if(mpInit->mpPlayer->IsDead()==false)
-	{
-		if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
-		{
-			mpPostEffects->SetPlayerImageTrailAmount(mfAlpha * 0.92f);
-		}
-	}
 
 	//Has it ended?
 	if(mvHeadSwingSpeed.x == 0 && mvHeadSwingSpeed.y == 0 && mfAlpha ==0)
 	{
 		mbActive = false;
-		if(mpInit->mpPlayer->IsDead()==false)
-		{
-			if(!mpInit->mpPlayer->GetFearFilter()->IsActive())
-			{
-				mpPostEffects->SetPlayerImageTrailActive(false);
-				mpPostEffects->SetPlayerImageTrailAmount(0);
-			}
-		}
 	}
 }
 
 //-----------------------------------------------------------------------
 
+// The low level draws it (cPlayerEffectState)
 void cPlayerDamage::Draw()
 {
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
-	if(mbActive==false || mvHitGfx[mType]==nullptr) return;
-
-	mpDrawer->DrawGfxObject(mvHitGfx[mType],mpInit->mpGraphicsHelper->GetScreenPos(3),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha*0.6f));
 }
 
 //-----------------------------------------------------------------------
@@ -1278,7 +1246,6 @@ cPlayerDeath::cPlayerDeath(cInit *apInit)
 {
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
-	mpPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 
 	mpFadeGfx = mpDrawer->CreateGfxObject("player_death_fade.bmp","smoke2d");
 	mpBlackGfx = mpDrawer->CreateGfxObject("player_death_black.bmp","smoke2d");
@@ -1298,7 +1265,6 @@ void cPlayerDeath::Reset()
 	mfHeightAdd =0;
 	mfRoll =0;
 
-	mpPostEffects->SetPlayerImageTrailActive(false);
 }
 
 //-----------------------------------------------------------------------
@@ -1334,8 +1300,6 @@ void cPlayerDeath::Start()
 	mfFadeAlpha =0;
 	mfBlackAlpha = 0;
 
-	mpPostEffects->SetPlayerImageTrailActive(true);
-	mpPostEffects->SetPlayerImageTrailAmount(0.7f);
 
 	mpInit->mpPlayer->GetEarRing()->Stop(false);
 
@@ -1377,20 +1341,9 @@ void cPlayerDeath::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
+// The low level draws it (cPlayerEffectState)
 void cPlayerDeath::Draw()
 {
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
-	if(mbActive==false) return;
-
-	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
-	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
-
-	float fGrow = mfFadeAlpha*400 + mfBlackAlpha*200;
-	cVector3f vPos(vScreenPos.x - fGrow, vScreenPos.y - fGrow,4);
-	cVector2f vSize(vScreenSize.x + fGrow*2, vScreenSize.y + fGrow*2);
-	mpDrawer->DrawGfxObject(mpFadeGfx,vPos,vSize,cColor(mfFadeAlpha,0));
-
-	mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(vScreenPos.x,vScreenPos.y,5),vScreenSize,cColor(mfBlackAlpha,0));
 }
 
 
@@ -2258,20 +2211,11 @@ void cPlayerFearFilter::Update(float afTimeStep)
 	{
 		mfAlpha += afTimeStep * 0.5f;
 		if(mfAlpha > mfMaxAlpha) mfAlpha = mfMaxAlpha;
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(mfAlpha);
 	}
 	else if(mfAlpha >0)
 	{
 		mfAlpha -= afTimeStep * 0.15f;
-		if(mfAlpha < 0)
-		{
-			mfAlpha =0;
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
-		}
-		else
-		{
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(mfAlpha);
-		}
+		if(mfAlpha < 0) mfAlpha =0;
 	}
 }
 
@@ -2291,11 +2235,8 @@ void cPlayerFearFilter::SetActive(bool abX)
 	if(mbActive == abX) return;
 
 	mbActive = abX;
-	if(!abX) return; // Keep its amount so both treatments can fade out.
+	if(!abX) return; // Keep its amount so it can fade out.
 	mfAlpha =0;
-
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(true);
-	mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(0);
 }
 
 //-----------------------------------------------------------------------
@@ -2479,53 +2420,9 @@ void cPlayerHidden::OnWorldExit()
 //-----------------------------------------------------------------------
 
 
+// The low level draws it (cPlayerEffectState)
 void cPlayerHidden::Draw()
 {
-	if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved) return;
-	/*if(mfLight <= mfMaxLight)
-	{
-		mpFont->Draw(5,12,cColor(0.3f,1,0.3f),eFontAlign_Left,_W("Light: %f\n"),mfLight);
-		if(!mbHidden)
-			mpFont->Draw(cVector3f(5,19,5),12,cColor(1,1,1),eFontAlign_Left,_W("Hidden count: %f"),mfHiddenCount);
-	}
-	else
-	{
-		mpFont->Draw(5,12,cColor(1,0.3f,0.3f),eFontAlign_Left,_W("Light: %f\n"),mfLight);
-	}
-	
-	if(mbHidden)
-		mpFont->Draw(cVector3f(5,19,5),12,cColor(1,1,1),eFontAlign_Left,_W("Hidden\n"));
-	*/
-	/*float fAdd =0;
-	if(mfCloseEffectFov >= 0)
-	{
-		float fT = mfCloseEffectFov / mfCloseEffectFovMax;
-		fAdd = sin(fT * kPi2f) * mfCloseEffectFovMax;
-	}
-	else
-	{
-		float fT = mfCloseEffectFov / mfCloseEffectFovMin;
-		fAdd = sin(fT * kPi2f) * mfCloseEffectFovMin;
-	}
-
-	mpFont->Draw(5,12,cColor(1,1,1),eFontAlign_Left,"CloseCount: %f TooClose: %d\n",
-													mfEnemyTooCloseCount,
-													mbEnemyTooClose);
-
-	mpFont->Draw(cVector3f(5,19,5),12,cColor(1,1,1),eFontAlign_Left,"Fov: %f Add: %f\n",
-													mfCloseEffectFov,fAdd);*/
-
-	
-	//Draw in shadow effect
-	if(mfInShadowAlpha>0)
-	{
-		float fAlpha = (mfInShadowPulse*0.5f + 0.5f) * mfInShadowAlpha *0.85f;
-		cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
-		cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
-		mpDrawer->DrawGfxObject(mpInShadowGfx,cVector3f(vScreenPos.x-mfEffectOffset,vScreenPos.y-mfEffectOffset,0),
-								cVector2f(vScreenSize.x+mfEffectOffset*2, vScreenSize.y+mfEffectOffset*2),
-								cColor(fAlpha,fAlpha));
-	}
 }
 
 //-----------------------------------------------------------------------
@@ -2541,11 +2438,6 @@ void cPlayerHidden::UnHide()
 	mbHidden = false;
 	mfHiddenCount =0;
 	mfHiddenOnCount =0;
-
-	if(mbEnemyTooClose)
-	{
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
-	}
 
 	mfEnemyTooCloseCount =0;
 	mbEnemyTooClose = false;
@@ -2576,16 +2468,15 @@ void cPlayerHidden::Update(float afTimeStep)
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	const cPlayerEffectSettings &feedback = pLowLevel->GetPlayerEffectSettings();
-	const bool bImproved = feedback.mbImproved;
 	float fTarget = mbHidden ? 1.0f : (mbInShadows ? 0.35f : 0.0f);
 	float fTime = cMath::Max(feedback.mfAdaptationTime, 0.1f) * (fTarget < mfAdaptation ? 0.25f : 1.0f);
 	mfAdaptation += (fTarget - mfAdaptation) * (1.0f - expf(-afTimeStep * 3.0f / fTime));
 	mfFeedbackTime = fmodf(mfFeedbackTime + afTimeStep, 4096.0f);
-	if(mpLight) mpLight->SetVisible(!bImproved);
+	if(mpLight) mpLight->SetVisible(false);
 	cVector2f vScreen = pLowLevel->GetScreenSize();
-	mpInit->mpPlayer->GetCamera()->SetAspect(bImproved ? vScreen.x / vScreen.y : mfAspect);
+	mpInit->mpPlayer->GetCamera()->SetAspect(vScreen.x / vScreen.y);
 	float fPanic = cMath::Max(GetPanicAmount(), mpInit->mpPlayer->GetFearFilter()->GetVisualAmount());
-	mpInit->mpPlayer->GetCamera()->SetFOV(bImproved ? GetFeedbackFOV(mfAdaptation, fPanic, GetPanicPulse()) : mfFov);
+	mpInit->mpPlayer->GetCamera()->SetFOV(GetFeedbackFOV(mfAdaptation, fPanic, GetPanicPulse()));
 
 	bool bIsCrouching = false;
 	if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) bIsCrouching = true;
@@ -2600,7 +2491,6 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfAspect -= afTimeStep * mfAspectAdd *(1/mfHiddenOnTime);
 			if(mfAspect < mfHiddenAspect) mfAspect = mfHiddenAspect;
 
-			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
 		}
 
 		//FOV
@@ -2609,7 +2499,6 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfFov += afTimeStep * mfFovAdd*(1/mfHiddenOnTime);
 			if(mfFov > mfHiddenFov) mfFov = mfHiddenFov;
 
-			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
 		}
 
 		//Effect offset
@@ -2627,7 +2516,6 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfAspect += afTimeStep * mfAspectAdd * (1/mfHiddenOffTime);
 			if(mfAspect > mfStartAspect) mfAspect = mfStartAspect;
 
-			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetAspect(mfAspect);
 		}
 
 		//FOV
@@ -2636,7 +2524,6 @@ void cPlayerHidden::Update(float afTimeStep)
 			mfFov -= afTimeStep * mfFovAdd * (1/mfHiddenOffTime);
 			if(mfFov < mfStartFov) mfFov = mfStartFov;
 
-			if(!bImproved) mpInit->mpPlayer->GetCamera()->SetFOV(mfFov);
 		}
 		
 		//Effect offset
@@ -2691,7 +2578,7 @@ void cPlayerHidden::Update(float afTimeStep)
 				{
 					mbInShadows = false;
 					mbHidden = true;
-					mpLight->SetVisible(!bImproved);
+					mpLight->SetVisible(false);
 					mpLight->SetPosition(mpInit->mpPlayer->GetCamera()->GetPosition());
 					mpLight->FadeTo(cColor(0.1f,0.1f,0.6f,0),12,mfHiddenOnTime);
 					
@@ -2716,7 +2603,7 @@ void cPlayerHidden::Update(float afTimeStep)
 			if(!mbInShadows)
 			{
 				mpLight->FadeTo(cColor(0.09f,0.09f,0.28f,0),6,1);
-				mpLight->SetVisible(!bImproved);
+				mpLight->SetVisible(false);
 			}
 			mbInShadows = true;
 		}
@@ -2929,28 +2816,9 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				//	mpSoundHandler->PlayGui("player_scare_low",false,1);
 			}
 		}
-		
-		float fAdd =0;
-		if(mfCloseEffectFov >= 0)
-		{
-			float fT = mfCloseEffectFov / mfCloseEffectFovMax;
-			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMax;
-		}
-		else
-		{
-			float fT = mfCloseEffectFov / mfCloseEffectFovMin;
-			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMin;
-		}
-
-		if(!mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
-			pCam->SetFOV(mfFov + fAdd);
-
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(true);
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailAmount(0.8f);
 	}
 	else if(mfCloseEffectFov !=0)
 	{
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 
 		if(mfCloseEffectFov < 0)
 		{
@@ -2962,21 +2830,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			mfCloseEffectFov -= afTimeStep * cMath::ToRad(7);
 			if(mfCloseEffectFov<0) mfCloseEffectFov =0;
 		}
-
-		float fAdd =0;
-		if(mfCloseEffectFov >= 0)
-		{
-			float fT = mfCloseEffectFov / mfCloseEffectFovMax;
-			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMax;
-		}
-		else
-		{
-			float fT = mfCloseEffectFov / mfCloseEffectFovMin;
-			fAdd = sin(fT * kPi2f) * mfCloseEffectFovMin;
-		}
-
-		if(!mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
-			pCam->SetFOV(mfFov + fAdd);
 	}
 
 	/////////////////////////////
@@ -3014,14 +2867,10 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				vDir.Normalise();
 
 				float fAngle = cMath::Vector3Angle(pCam->GetForward(),vDir);
-				float fTriggerFov = pCam->GetFOV();
-				if(mpInit->mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings().mbImproved)
-				{
-					// Keep the original panic detection cone while the
-					// improved view uses a smaller FOV pulse.
-					float fLimit = mfCloseEffectFov >= 0 ? mfCloseEffectFovMax : mfCloseEffectFovMin;
-					fTriggerFov = mfFov + sinf(mfCloseEffectFov / fLimit * kPi2f) * fLimit;
-				}
+				// The original panic detection cone: the view's own FOV
+				// pulse is smaller
+				float fLimit = mfCloseEffectFov >= 0 ? mfCloseEffectFovMax : mfCloseEffectFovMin;
+				float fTriggerFov = mfFov + sinf(mfCloseEffectFov / fLimit * kPi2f) * fLimit;
 				if(fAngle > fTriggerFov * 0.5f) continue;
 
 				//Check if ther is a line of sight
@@ -3089,7 +2938,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 		else if(mfEnemyTooCloseCount >0)
 		{
 			mfEnemyTooCloseCount-= afTimeStep;
-			mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetPlayerImageTrailActive(false);
 		}
 	}
 

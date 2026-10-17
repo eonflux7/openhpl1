@@ -102,8 +102,6 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 cRefView::~cRefView()
 {
 	SetOpen(false);
-	for(cGfxObject *pGfx : mvLegacyPreviewGfx)
-		if(pGfx) mpInit->mpGame->GetGraphics()->GetDrawer()->DestroyGfxObject(pGfx);
 }
 
 //-----------------------------------------------------------------------
@@ -435,7 +433,6 @@ void cRefView::Reset()
 	mlEffectPreview = ePreview_None;
 	mbEffectTour = false;
 	mfEffectPreviewClock = 0;
-	mbLegacyPreviewTrail = false;
 	mlEffectAction = 0;
 	mfEffectBlackFade = 0;
 }

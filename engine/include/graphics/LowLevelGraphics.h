@@ -264,7 +264,6 @@ namespace hpl {
 	class cPlayerEffectSettings
 	{
 	public:
-		bool mbImproved = true;
 		float mfAdaptationStrength = 0.65f;
 		/// Seconds to reveal shadow detail; leaving darkness is faster.
 		float mfAdaptationTime = 2.0f;

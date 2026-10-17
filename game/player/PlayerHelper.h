@@ -269,7 +269,6 @@ private:
 
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
-	cRendererPostEffects *mpPostEffects;
 };
 
 //---------------------------------------------
@@ -311,7 +310,6 @@ private:
 
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
-	cRendererPostEffects *mpPostEffects;
 };
 
 //---------------------------------------------

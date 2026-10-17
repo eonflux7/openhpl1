@@ -48,8 +48,6 @@ private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 
-	cGfxObject *mpWhiteGfx;
-
 	bool mbActive;
 
 	cColor mColor;
@@ -140,12 +138,10 @@ private:
 	cVector3f mvPosition;
 	
 	float mfFlashAlpha;
-	cColor mFlashColor;
 	
 	float mfTime;
 	
 	float mfStartFov;
-	float mfFov;
 };
 
 //-----------------------------------------

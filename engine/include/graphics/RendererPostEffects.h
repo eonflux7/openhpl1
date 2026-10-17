@@ -171,17 +171,6 @@ namespace hpl {
 		float mfNearLimit = 0.6f;
 	};
 
-	class cImageTrailEffect
-	{
-	public:
-		cImageTrailEffect() : mbActive(false), mbFirstPass(false), mlCurrentBuffer(0) {}
-
-		bool mbActive;
-		bool mbFirstPass;
-		int mlCurrentBuffer;
-		float mfAmount;
-	};
-
 	class cResources;
 
 	class cRendererPostEffects
@@ -195,25 +184,6 @@ namespace hpl {
 		 * Render post effects, called by cScene
 		 */
 		void Render();
-
-		void SetImageTrailActive(bool abX){
-			if(!mImageTrailData.mbActive && abX) mImageTrailData.mbFirstPass = true;
-			mImageTrailData.mbActive = abX;}
-		bool GetImageTrailActive(){return mImageTrailData.mbActive;}
-		/**
-		 * Set the amount of blur
-		 * \param afAmount 0.0 - 1.0 are valid
-		 */
-		void SetImageTrailAmount(float afAmount){mImageTrailData.mfAmount = afAmount;}
-		/// Player trails share the pass, but cannot switch off a scripted save trail.
-		void SetPlayerImageTrailActive(bool abX)
-		{
-			if(!mbPlayerImageTrailActive && abX) mImageTrailData.mbFirstPass = true;
-			mbPlayerImageTrailActive = abX;
-		}
-		void SetPlayerImageTrailAmount(float afAmount) { mfPlayerImageTrailAmount = afAmount; }
-
-		iTexture* GetScreenBuffer(int alNum){ return mpScreenBuffer[alNum];}
 
 		void SetActive(bool abX){ mbActive = abX;}
 		bool GetActive(){ return mbActive;}
@@ -251,7 +221,8 @@ namespace hpl {
 		void SetDepthOfFieldSettings(const cDepthOfFieldSettings& aSettings){ mDofSettings = aSettings;}
 		const cDepthOfFieldSettings& GetDepthOfFieldSettings(){ return mDofSettings;}
 
-		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];}
+		/// A screen copy for an effect to draw the scene into and read
+		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer;}
 
 		//Switched on, or to half rate, there is no frame to keep pixels of
 		void SetAmbientOcclusionActive(bool abX){ if(abX && mbAoActive==false) mbAoFilled = false; mbAoActive = abX;}
@@ -275,8 +246,6 @@ eturn false if nothing was drawn
 
 	private:
 		bool DrawSceneCopy(iTexture *apTarget);
-
-		void RenderImageTrail();
 
 		void RenderBloom();
 		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource);
@@ -302,13 +271,7 @@ eturn false if nothing was drawn
 
 		cVector2f mvScreenSize;
 
-		iTexture* mpScreenBuffer[2];
-
-		cImageTrailEffect mImageTrailData;
-		iGpuProgram *mpImageTrailVP;
-		iGpuProgram *mpImageTrailFP;
-		bool mbPlayerImageTrailActive = false;
-		float mfPlayerImageTrailAmount = 0;
+		iTexture* mpScreenBuffer;
 
 		//The bloom: each level is half the size of the one before.
 		//mvBloomUp[i] is level i blended with all the levels below it; the
