@@ -1,5 +1,10 @@
 # AO implementation review
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 Reviewed on 2026-10-02 for an RTX 2060 at 2560×1440 using the High preset.
 The reported AO cost is approximately 40% of the GPU frame. This is a code
 review; no GPU benchmarks were run and no implementation files were changed.
@@ -20,7 +25,7 @@ reduce that, but the cost is understandable.
 ### 1. Simplify the horizon integral without changing its mathematics
 
 The slice integration in
-[hpl1_PostEffect_AO.fragment](shaders/hpl1_PostEffect_AO.fragment), around
+[hpl1_PostEffect_AO.fragment](../../shaders/hpl1_PostEffect_AO.fragment), around
 lines 198–242, evaluates one `atan` and two additional `cos` calls per
 slice. The double-angle identities eliminate those. Each side’s
 contribution, including the current `normalLength * 0.25` weighting,
@@ -52,7 +57,7 @@ benefit needs measurement.
 ### 2. Combine the last filter pass with compositing
 
 The pass sequence in
-[RendererPostEffects.cpp](engine/sources/graphics/RendererPostEffects.cpp),
+[RendererPostEffects.cpp](../../engine/sources/graphics/RendererPostEffects.cpp),
 around lines 1230–1268, always writes the final filtered AO texture,
 then reads it again to blend. With the default one filter pass, calculate
 the filtered factor directly in the composite shader. This removes one
@@ -65,7 +70,7 @@ MXAO also performs its final filtering inside compositing.
 ### 3. Avoid fetching the same rounded tap repeatedly
 
 The search loop in
-[hpl1_PostEffect_AO.fragment](shaders/hpl1_PostEffect_AO.fragment), around
+[hpl1_PostEffect_AO.fragment](../../shaders/hpl1_PostEffect_AO.fragment), around
 lines 215–234, skips the center pixel, but different steps can round to
 the same non-center coordinate. Because their calculations are identical,
 repeated taps contribute nothing. Track the previous tap within each
@@ -77,7 +82,7 @@ against the extra comparison and registers.
 ### 4. Use texture gathers for the filter
 
 Each filter pass in
-[hpl1_PostEffect_AO.fragment](shaders/hpl1_PostEffect_AO.fragment), around
+[hpl1_PostEffect_AO.fragment](../../shaders/hpl1_PostEffect_AO.fragment), around
 lines 269–292, performs 16 neighborhood fetches plus the center fetch:
 about **63 million fetch instructions at 1440p**. Four 2×2 gathers per
 channel can replace the neighborhood reads. That reduces texture
@@ -91,7 +96,7 @@ and provide a fallback for the renderer’s OpenGL 3.3 baseline.
 ### 5. Specialize common quality presets and precompute their directions
 
 The loop limits are uniforms, and the slice directions in
-[hpl1_PostEffect_AO.fragment](shaders/hpl1_PostEffect_AO.fragment), around
+[hpl1_PostEffect_AO.fragment](../../shaders/hpl1_PostEffect_AO.fragment), around
 lines 188–191, recompute sine/cosine per pixel despite being identical
 throughout a tile.
 
@@ -117,12 +122,12 @@ reinterleave pass. These are more substantial changes.
   runs only one. A centered kernel would avoid this.
 - **Half-rate history needs invalidation.** The activation/settings
   setters in
-  [RendererPostEffects.h](engine/include/graphics/RendererPostEffects.h),
+  [RendererPostEffects.h](../../engine/include/graphics/RendererPostEffects.h),
   around lines 296–298, do not reset `mbAoFilled`. Re-enabling AO or
   changing settings can therefore mix stale values into the first frame.
   Camera cuts need the same treatment.
 - **The depth bias deserves tuning.** The 0.2% offset in
-  [hpl1_PostEffect_AO.fragment](shaders/hpl1_PostEffect_AO.fragment), around
+  [hpl1_PostEffect_AO.fragment](../../shaders/hpl1_PostEffect_AO.fragment), around
   line 174, moves the point 6 cm toward the camera along the depth axis
   at 30 m. It suppresses precision artifacts, but can weaken contact
   occlusion.

@@ -2,6 +2,9 @@
 #ifndef HPL_GLSHADOWTARGETS_H
 #define HPL_GLSHADOWTARGETS_H
 #include <glad/gl.h>
+#include <cstdint>
+#include <map>
+#include <vector>
 #include "impl/GLGraphicsState.h"
 #include "impl/GLRenderTargets.h"
 
@@ -18,6 +21,13 @@ namespace hpl
 		void Init();
 		void Reset();
 		bool IsActive() const { return mbInShadowMap; }
+		void NotifyDrawFailed() { mbDrawFailed = true; }
+		// Select/bind a light's retained map. Returns the mask of valid faces;
+		// zero identity or an over-budget map uses the uncached scratch target.
+		unsigned SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
+			const std::vector<uint64_t> &avSignature, size_t alBudgetBytes);
+		size_t GetCacheBytes() const { return mlCacheBytes; }
+		size_t GetCacheEntries() const { return mCache.size(); }
 		cGLShadowTargets(const cGLShadowTargets &) = delete;
 		cGLShadowTargets &operator=(const cGLShadowTargets &) = delete;
 
@@ -26,7 +36,25 @@ namespace hpl
 		void EndShadowMap();
 
 	private:
+		struct cCachedMap
+		{
+			GLuint mlTexture = 0;
+			bool mbCube = false;
+			int mlResolution = 0;
+			unsigned mlValidFaceMask = 0;
+			uint64_t mlLastUseSerial = 0;
+			size_t mlBytes = 0;
+			std::vector<uint64_t> mvSignature;
+		};
+		GLuint AllocateShadowMap(bool abCube, int alSize);
+		void BindShadowMap(bool abCube, GLuint alTexture);
+		void Evict(std::map<uint64_t, cCachedMap>::iterator aEntry);
 		void CreateShadowMap(bool abCube, int alSize);
+		std::map<uint64_t, cCachedMap> mCache;
+		cCachedMap *mpSelectedMap = nullptr;
+		size_t mlCacheBytes = 0;
+		uint64_t mlUseSerial = 0;
+		unsigned mlPendingFaceMask = 0;
 		cGLGraphicsState &mState;
 		cGLRenderTargets &mTargets;
 		GLuint mlShadowFramebuffer = 0;
@@ -34,6 +62,7 @@ namespace hpl
 		int mvShadowMapSizes[2] = {};
 		GLuint mvShadowSamplers[2] = {};
 		bool mbInShadowMap = false;
+		bool mbDrawFailed = false;
 	};
 } // namespace hpl
 #endif

@@ -20,6 +20,7 @@
 #define HPL_TEXTURE_H
 
 #include <vector>
+#include <cstdint>
 #include "graphics/LowLevelPicture.h"
 #include "graphics/Bitmap2D.h"
 #include "graphics/PixelFormat.h"
@@ -96,6 +97,12 @@ namespace hpl {
 				mfFrameTime(1), mAnimMode(eTextureAnimMode_Loop), mlSizeLevel(0), mvMinLevelSize(16,16){}
 
 		~iTexture() override{}
+		// Raw texture writers must also mark changes before cached shadows read them.
+		uint64_t GetContentRevision() const { return mlContentRevision; }
+		void MarkContentChanged() { mlContentRevision = ++mlNextContentRevision; }
+		static void SamplingChanged() { ++mlSamplingRevision; }
+		static uint64_t GetSamplingRevision() { return mlSamplingRevision; }
+		virtual int GetAnimationFrame() const { return 0; }
 
 		void SetSizeLevel(unsigned int alLevel){mlSizeLevel = alLevel;}
 		void SetMinLevelSize(const cVector2l& avSize){ mvMinLevelSize = avSize;}
@@ -179,6 +186,9 @@ namespace hpl {
 		virtual int GetCurrentLowlevelHandle()=0;
 
 	protected:
+		inline static uint64_t mlNextContentRevision = 0;
+		inline static uint64_t mlSamplingRevision = 0;
+		uint64_t mlContentRevision = ++mlNextContentRevision;
 		eTextureType mType;
 		eTextureTarget mTarget;
 		eTextureWrap mWrapS;

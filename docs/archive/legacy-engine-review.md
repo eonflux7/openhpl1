@@ -1,5 +1,10 @@
 # Legacy engine review — 2026-10-02
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 Reviewed against `0d37bfe`, using the original import (`cc845cb`) to identify
 logic that has survived the port. “Untouched” here includes files with
 mechanical nullptr/override/include changes, and original functions inside
@@ -17,7 +22,7 @@ These are the findings I would address first:
 1. **Bone-weight compilation reads outside its allocation and does not
    normalize the weights. High priority; reproduced.**
 
-   [SubMesh.cpp](../engine/sources/graphics/SubMesh.cpp), lines 173–195.
+   [SubMesh.cpp](../../engine/sources/graphics/SubMesh.cpp), lines 173–195.
    The loop tests `pWeight[lNum]` before checking the index, and allows
    `lNum <= 4` even though each vertex has four slots, indexed 0–3. A vertex
    with four nonzero influences reads the following vertex's weights, or
@@ -41,8 +46,8 @@ These are the findings I would address first:
 2. **Collada cache numeric parsers can overrun both input and stack buffers.
    High priority; reproduced.**
 
-   [String.cpp](../engine/sources/system/String.cpp), lines 653–722;
-   [MeshLoaderColladaLoader.cpp](../engine/sources/impl/MeshLoaderColladaLoader.cpp),
+   [String.cpp](../../engine/sources/system/String.cpp), lines 653–722;
+   [MeshLoaderColladaLoader.cpp](../../engine/sources/impl/MeshLoaderColladaLoader.cpp),
    for example lines 1004, 1017 and 1224.
 
    `FloatStringToArray()` and `UIntStringToArray()` keep reading until they
@@ -68,7 +73,7 @@ These are the findings I would address first:
 3. **Skinning loses its vertex position after an unweighted vertex.
    Medium priority; confirmed by source and caller tracing.**
 
-   [SubMeshEntity.cpp](../engine/sources/scene/SubMeshEntity.cpp), lines
+   [SubMeshEntity.cpp](../../engine/sources/scene/SubMeshEntity.cpp), lines
    209–262. `if (*pWeight == 0) continue;` advances the loop's vertex index
    without advancing the position, normal or tangent pointers. The next
    weighted vertex therefore uses the preceding vertex's geometry and
@@ -85,8 +90,8 @@ These are the findings I would address first:
 4. **A* discards cheaper routes to an already-open node.
    Medium priority; reproduced.**
 
-   [AStar.cpp](../engine/sources/ai/AStar.cpp), lines 259–282;
-   [CharacterMove.cpp](../game/enemies/CharacterMove.cpp), line 372.
+   [AStar.cpp](../../engine/sources/ai/AStar.cpp), lines 259–282;
+   [CharacterMove.cpp](../../game/enemies/CharacterMove.cpp), line 372.
 
    When insertion into the open set fails because the same AI node is
    already present, `AddOpenNode()` deletes the candidate and returns. It
@@ -105,8 +110,8 @@ These are the findings I would address first:
 5. **Failed character conversion is treated as a huge string size.
    Medium priority; reproduced.**
 
-   [String.cpp](../engine/sources/system/String.cpp), lines 33–50;
-   [posix.cpp](../engine/sources/impl/platform/posix.cpp), line 89.
+   [String.cpp](../../engine/sources/system/String.cpp), lines 33–50;
+   [posix.cpp](../../engine/sources/impl/platform/posix.cpp), line 89.
 
    `mbstowcs()` and `wcstombs()` return `size_t(-1)` on an invalid or
    unrepresentable sequence. Both conversion helpers pass that value
@@ -123,9 +128,9 @@ These are the findings I would address first:
 6. **Degenerate UV triangles produce NaN tangents.
    Medium priority; reproduced.**
 
-   [Math.cpp](../engine/sources/math/Math.cpp), line 1304;
-   [VertexBufferVBO.cpp](../engine/sources/impl/VertexBufferVBO.cpp), line 163;
-   [MeshLoaderColladaHelpers.cpp](../engine/sources/impl/MeshLoaderColladaHelpers.cpp),
+   [Math.cpp](../../engine/sources/math/Math.cpp), line 1304;
+   [VertexBufferVBO.cpp](../../engine/sources/impl/VertexBufferVBO.cpp), line 163;
+   [MeshLoaderColladaHelpers.cpp](../../engine/sources/impl/MeshLoaderColladaHelpers.cpp),
    line 1569.
 
    Tangent generation divides by the UV determinant without checking zero
@@ -141,7 +146,7 @@ These are the findings I would address first:
 7. **3D sounds use inconsistent global-volume masks.
    Medium priority; confirmed by source.**
 
-   [SoundHandler.cpp](../engine/sources/sound/SoundHandler.cpp), lines
+   [SoundHandler.cpp](../../engine/sources/sound/SoundHandler.cpp), lines
    720, 791 and 901.
 
    The relative 2D path correctly tests a sound's `mEffectType` against
@@ -160,8 +165,8 @@ These are the findings I would address first:
 8. **The sound channel ID counter starts uninitialized.
    Small fix; confirmed by source.**
 
-   [SoundHandler.h](../engine/include/sound/SoundHandler.h), line 202;
-   [SoundHandler.cpp](../engine/sources/sound/SoundHandler.cpp), constructor
+   [SoundHandler.h](../../engine/include/sound/SoundHandler.h), line 202;
+   [SoundHandler.cpp](../../engine/sources/sound/SoundHandler.cpp), constructor
    at line 42 and the `SetId(mlIdCount)` calls in both playback paths.
 
    The constructor initializes `mlCount`, but never `mlIdCount`. Both

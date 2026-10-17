@@ -447,7 +447,7 @@ namespace hpl {
 		cCamera3D *pCam = mpRenderList->GetCamera();
 		cMatrixf mtxViewProj = cMath::MatrixMul(pCam->GetProjectionMatrix(), pCam->GetViewMatrix());
 		cMatrixf mtxPrevViewProj = m_mtxMotionBlurPrevViewProj;
-		float fTime = mpRenderer3D->GetRenderTime();
+		float fTime = mpRenderer3D->GetAccumulatedFrameTime();
 		float fFrameTime = fTime - mfMotionBlurPrevTime;
 		bool bFirstTime = mbMotionBlurFirstTime;
 

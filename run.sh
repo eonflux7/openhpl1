@@ -21,4 +21,4 @@ esac
 export OVERTURE_GAME
 GAME_DIR="${OVERTURE_GAME_DIR:-$DEFAULT_DIR}"
 cd "$GAME_DIR" || { echo "Game data not found: $GAME_DIR (set OVERTURE_GAME_DIR)"; exit 1; }
-exec "$HERE/build/overture" "$@"
+exec "$HERE/build/openhpl1" "$@"

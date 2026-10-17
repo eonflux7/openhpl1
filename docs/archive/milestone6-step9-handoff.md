@@ -1,5 +1,10 @@
 # Milestone 6, step 9 handoff
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 Continue Overture Remade with ROADMAP step 9: split `cLowLevelGraphicsSDL`
 into classes for its window/context, GL state, scene/output framebuffers,
 final passes, shadow-map targets and debug drawing responsibilities.

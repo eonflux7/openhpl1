@@ -71,7 +71,7 @@ namespace hpl {
 		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 		aPicture,apRenderer3D)
 	{
-		mbIsTransperant = false;
+		mbIsTransparent = false;
 		mbIsGlowing= false;
 		mbUsesLights = false;
 

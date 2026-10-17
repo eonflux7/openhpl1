@@ -248,7 +248,7 @@ namespace hpl {
 			if(pObject->GetRenderType() == eRenderableType_Mesh) continue;
 
 			// See-through objects were recorded in submission order by Add().
-			if(pMat->IsTransperant() == false)
+			if(pMat->IsTransparent() == false)
 			{
 				//If the object uses z pass add to z queue.
 				if(pMat->UsesType(eMaterialRenderType_Z))
@@ -334,7 +334,7 @@ namespace hpl {
 		{
 			//Add a normal renderable
 		case eRenderableType_Normal: case eRenderableType_ParticleSystem:
-			if(apObject->GetMaterial()->IsTransperant())
+			if(apObject->GetMaterial()->IsTransparent())
 			{
 				//Calculate the Z for the trans object
 				cVector3f vCameraPos = cMath::MatrixMul(cRenderList::GetCamera()->GetViewMatrix(),

@@ -14,7 +14,7 @@ if not "%~1"=="" set "OVERTURE_SMOKE=%~1"
 set "OVERTURE_PROFILE_ROOT=%HERE%build-windows\smoke-profile"
 if not exist "%OVERTURE_PROFILE_ROOT%" mkdir "%OVERTURE_PROFILE_ROOT%"
 cd /d "%OVERTURE_GAME_DIR%" || exit /b 1
-start "" /wait "%HERE%build-windows\overture.exe"
+start "" /wait "%HERE%build-windows\openhpl1.exe"
 set "RESULT=%ERRORLEVEL%"
 echo Smoke test exit code %RESULT%; log in %OVERTURE_PROFILE_ROOT%
 exit /b %RESULT%

@@ -1,5 +1,10 @@
 # GPU profiler, run 1
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 2026-10-02, branch `shading` (742dce9 plus uncommitted work).
 
 Ambient occlusion is the biggest GPU cost by a wide margin: about 3.5 ms, 41%

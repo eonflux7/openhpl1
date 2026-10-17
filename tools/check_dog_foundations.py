@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--game-dir', type=Path, default=refshots.DEFAULT_GAME_DIR)
     parser.add_argument('--timeout', type=int, default=180)
     args = parser.parse_args()
-    exe = args.build.resolve()/'overture'
+    exe = args.build.resolve()/'openhpl1'
     if not exe.is_file() or not shutil.which('gamescope'):
         parser.error('Build the game with BUILD_TESTING=ON and install gamescope first.')
     out = (args.out or args.build/'dog-foundations-check').resolve()

@@ -1,5 +1,10 @@
 # Colour-space audit
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 The first step of Milestone 4 (gamma-correct lighting). Nothing was changed:
 this is what the renderer and the game data do today, read from the code and
 from the Penumbra: Overture data, and what follows from it for the linear

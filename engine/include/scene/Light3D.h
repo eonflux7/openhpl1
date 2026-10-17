@@ -19,6 +19,8 @@
 #ifndef HPL_LIGHT3D_H
 #define HPL_LIGHT3D_H
 
+#include <cstdint>
+
 #include <list>
 #include <set>
 #include "scene/Entity3D.h"
@@ -138,6 +140,8 @@ namespace hpl {
 		bool IsPartOfMap(){ return mbPartOfMap;}
 
 		eLight3DType GetLightType(){ return mLightType;}
+		// Runtime identity, independent of reused addresses and serialized IDs.
+		uint64_t GetShadowCacheId() const { return mlShadowCacheId; }
 
 		//iEntity implementation
 		tString GetEntityType() override{ return "iLight3D";}
@@ -180,6 +184,8 @@ namespace hpl {
 		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
 	protected:
+		inline static uint64_t mlNextShadowCacheId = 0;
+		uint64_t mlShadowCacheId = ++mlNextShadowCacheId;
 		void OnFlickerOff() override;
 		void OnFlickerOn() override;
 		void OnSetDiffuse() override;

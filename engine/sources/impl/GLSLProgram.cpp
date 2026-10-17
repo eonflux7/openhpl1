@@ -17,7 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/GLSLProgram.h"
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "impl/GpuProfiler.h"
 #include "graphics/LowLevelGraphics.h"
 #include "system/LowLevelSystem.h"
@@ -325,16 +325,15 @@ namespace hpl{
 			variant = mTextureVariants.emplace(alArrayMask, linked).first;
 		}
 		if(!variant->second.handle) return false;
-		glUseProgram(variant->second.handle);
-		mpAppliedProgram = this;
-		mlCurrentHandle = variant->second.handle;
+		ApplyBindings(variant->second.handle);
 		mlCurrentMask = alArrayMask;
 		if(apLayers) for(int i=0; i<8; ++i)
 			if(variant->second.layers[i] >= 0) glUniform1f(variant->second.layers[i], apLayers[i]);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
 		if(ParametersChanged()) {
+			const unsigned first = GetFirstChangedParameter();
 			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<unsigned>(eProgramParam::Count) * 16, GetParameterData());
+			glBufferSubData(GL_UNIFORM_BUFFER, first * 16, GetChangedParameterCount() * 16,
+				GetParameterData() + first * 4);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			ParametersUploaded();
 		}
@@ -422,7 +421,7 @@ namespace hpl{
 			if(current == (GLint)entry.second.handle) glUseProgram(replacements[entry.first].handle);
 			// A program can be the current GL binding without being the
 			// logical engine program. Keep the restoration handle valid.
-			if(mpAppliedProgram == this && entry.first == mlCurrentMask)
+			if(mlCurrentHandle && entry.first == mlCurrentMask)
 				mlCurrentHandle = replacements[entry.first].handle;
 			glDeleteProgram(entry.second.handle);
 		}
@@ -443,7 +442,10 @@ namespace hpl{
 			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(mvParameters), GetParameterData(), GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			ParametersUploaded();
 		}
+		static uint64_t nextRevision = 0;
+		mlRevision = ++nextRevision;
 		return true;
 	}
 
@@ -499,11 +501,21 @@ namespace hpl{
 	void cGLSLProgram::Bind(){ mpBoundProgram = this; }
 	void cGLSLProgram::UnBind(){ if(mpBoundProgram == this) mpBoundProgram = nullptr; }
 
+	void cGLSLProgram::ApplyBindings(GLuint alHandle)
+	{
+		// Each sampler layout has its own linked handle, but all layouts of
+		// this program share a material buffer. Bindings are restored by raw
+		// clients (including ImGui), or explicitly invalidated at the boundary.
+		const bool changedProgram = mpAppliedProgram != this;
+		if(changedProgram || mlCurrentHandle != alHandle) glUseProgram(alHandle);
+		if(changedProgram) glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
+		mlCurrentHandle = alHandle;
+		mpAppliedProgram = this;
+	}
+
 	void cGLSLProgram::RebindCurrent()
 	{
-		glUseProgram(mlCurrentHandle);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
-		mpAppliedProgram = this;
+		ApplyBindings(mlCurrentHandle);
 	}
 
 	bool cGLSLProgram::SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable)

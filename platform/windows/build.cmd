@@ -1,6 +1,6 @@
 @echo off
 rem Builds OpenHPL1 on Windows with Visual Studio (MSVC) and vcpkg.
-rem Output: build-windows\overture.exe, with its DLLs, shaders and fonts.
+rem Output: build-windows\openhpl1.exe, with its DLLs, shaders and fonts.
 rem The first run builds the vcpkg dependencies, which takes a while.
 setlocal
 cd /d "%~dp0\..\.."
@@ -25,4 +25,4 @@ if not defined VCINSTALLDIR (
 cmake --preset windows || exit /b 1
 cmake --build --preset windows %* || exit /b 1
 echo.
-echo Built build-windows\overture.exe
+echo Built build-windows\openhpl1.exe

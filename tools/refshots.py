@@ -143,7 +143,7 @@ def capture(args):
         settings.setdefault(m.group(1), {})[m.group(2)] = m.group(3)
 
     exe = os.path.join(SOURCE, args.build,
-                       "overture.exe" if args.windows else "overture")
+                       "openhpl1.exe" if args.windows else "openhpl1")
     if not os.path.exists(exe):
         sys.exit("No executable at %s" % exe)
     if not os.path.isdir(args.game_dir):
@@ -350,7 +350,7 @@ def main():
     common.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
     common.add_argument("--timeout", type=int, default=1200, help="seconds")
     common.add_argument("--windows", action="store_true",
-                        help="run the Windows build (overture.exe in --build) from WSL")
+                        help="run the Windows build (openhpl1.exe in --build) from WSL")
 
     c = sub.add_parser("capture", parents=[common], help="run the game headless and save frames")
     c.add_argument("--maps", default="1",

@@ -118,7 +118,7 @@ namespace hpl {
 			//casts them in a shadow map, and none as a shadow volume.
 			iMaterial *pMaterial = apObject->GetMaterial();
 			if(pMaterial){
-				if(pMaterial->IsTransperant()) return;
+				if(pMaterial->IsTransparent()) return;
 			}
 
 			//Check so that the object is the right type
@@ -164,7 +164,7 @@ namespace hpl {
 				{
 					iMaterial *pMaterial = pSub->GetMaterial();
 					if(pMaterial){
-						if(pMaterial->IsTransperant()) continue;
+						if(pMaterial->IsTransparent()) continue;
 					}
 				}
 

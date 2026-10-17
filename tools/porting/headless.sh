@@ -28,7 +28,7 @@ cat > "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh" <<LAUNCH
 #!/bin/sh
 export HOME="$SCRATCH" ALSOFT_DRIVERS=null OVERTURE_GAME=$GAME
 cd "$DIR"
-exec "$HERE/build/overture"
+exec "$HERE/build/openhpl1"
 LAUNCH
 chmod +x "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh"
 timeout -k 3 "$SECONDS_MAX" gamescope --backend headless -W 1280 -H 720 -w 1280 -h 720 -- "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh" > "$HERE/build/porting/last-run-$GAME$HEADLESS_TAG.out" 2>&1

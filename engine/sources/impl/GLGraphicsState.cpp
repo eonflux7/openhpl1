@@ -18,7 +18,7 @@
  */
 #include "impl/GLGraphicsState.h"
 #include "impl/GLGraphicsHelpers.h"
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "impl/GpuProfiler.h"
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
@@ -177,6 +177,7 @@ namespace hpl
 
 	void cGLGraphicsState::SetTextureFilter(eTextureFilter aFilter, float afAnisotropy)
 	{
+		iTexture::SamplingChanged();
 		mTextureFilter = aFilter;
 		mfTextureAnisotropy = cMath::Clamp(afAnisotropy, 1.0f, (float)cMath::Max(GetCaps(eGraphicCaps_MaxAnisotropicFiltering), 1));
 
@@ -194,7 +195,7 @@ namespace hpl
 	void cGLGraphicsState::TextureSamplerChanged(iTexture *apTex)
 	{
 		for(unsigned int lUnit = 0; lUnit < MAX_TEXTUREUNITS; lUnit++)
-			if(mpCurrentTexture[lUnit] == apTex) BindSampler(lUnit, static_cast<cSDLTexture *>(apTex)->GetSampler());
+			if(mpCurrentTexture[lUnit] == apTex) BindSampler(lUnit, static_cast<cGLTexture *>(apTex)->GetSampler());
 	}
 
 	void cGLGraphicsState::SetTexture(unsigned int alUnit, iTexture *apTex)
@@ -210,14 +211,14 @@ namespace hpl
 		// A unit without a texture keeps the last one bound
 		if(apTex)
 		{
-			cSDLTexture *pSDLTex = static_cast<cSDLTexture *>(apTex);
+			cGLTexture *pGLTexture = static_cast<cGLTexture *>(apTex);
 
-			glBindTexture(NewTarget, pSDLTex->GetTextureHandle());
-			BindSampler(alUnit, pSDLTex->GetSampler());
+			glBindTexture(NewTarget, pGLTexture->GetTextureHandle());
+			BindSampler(alUnit, pGLTexture->GetSampler());
 			if(NewTarget == GL_TEXTURE_2D)
-				mvUnitTexture2D[alUnit] = pSDLTex->GetTextureHandle();
+				mvUnitTexture2D[alUnit] = pGLTexture->GetTextureHandle();
 			else if(NewTarget == GL_TEXTURE_2D_ARRAY)
-				mvUnitTextureArray[alUnit] = pSDLTex->GetTextureHandle();
+				mvUnitTextureArray[alUnit] = pGLTexture->GetTextureHandle();
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
@@ -254,7 +255,7 @@ namespace hpl
 
 	void cGLGraphicsState::TextureStorageChanged(iTexture *apTex, GLuint alOldHandle)
 	{
-		const GLuint lNewHandle = static_cast<cSDLTexture *>(apTex)->GetTextureHandle();
+		const GLuint lNewHandle = static_cast<cGLTexture *>(apTex)->GetTextureHandle();
 		const GLenum newTarget = TextureTargetToGL(apTex->GetTarget());
 
 		GLint active = GL_TEXTURE0;
@@ -295,7 +296,7 @@ namespace hpl
 		// longer selects it (SetTexture(nullptr) keeps the binding). Match
 		// the cached handle independently of mpCurrentTexture so a later
 		// fullscreen pass cannot restore a deleted name.
-		const GLuint lHandle = static_cast<cSDLTexture *>(apTex)->GetTextureHandle();
+		const GLuint lHandle = static_cast<cGLTexture *>(apTex)->GetTextureHandle();
 		for(unsigned int lUnit = 0; lUnit < MAX_TEXTUREUNITS; lUnit++)
 		{
 			if(mpCurrentTexture[lUnit] == apTex) mpCurrentTexture[lUnit] = nullptr;
@@ -317,7 +318,7 @@ namespace hpl
 		if(pTex == nullptr) return;
 
 		GLenum target = TextureTargetToGL(pTex->GetTarget());
-		glBindTexture(target, static_cast<cSDLTexture *>(pTex)->GetTextureHandle());
+		glBindTexture(target, static_cast<cGLTexture *>(pTex)->GetTextureHandle());
 	}
 
 	void cGLGraphicsState::SetDrawMatrices(const cDrawMatrices &aMatrices)
@@ -582,7 +583,7 @@ namespace hpl
 			if(mpCurrentTexture[i] && mpCurrentTexture[i]->GetTarget() == eTextureTarget_2DArray)
 			{
 				arrayMask |= 1u << i;
-				layers[i] = static_cast<cSDLTexture *>(mpCurrentTexture[i])->GetAnimationFrame();
+				layers[i] = static_cast<cGLTexture *>(mpCurrentTexture[i])->GetAnimationFrame();
 			}
 		if(!program->Apply(arrayMask, layers)) return false;
 

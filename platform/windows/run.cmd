@@ -11,4 +11,4 @@ echo Game data not found: "%OVERTURE_GAME_DIR%". Set OVERTURE_GAME_DIR.
 exit /b 1
 :found
 cd /d "%OVERTURE_GAME_DIR%" || exit /b 1
-start "" "%HERE%build-windows\overture.exe" %*
+start "" "%HERE%build-windows\openhpl1.exe" %*

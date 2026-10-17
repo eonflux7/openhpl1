@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "impl/SDLBitmap2D.h"
 #include "impl/GpuProfiler.h"
 
@@ -71,10 +71,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cSDLTexture::cSDLTexture(const tString &asName,iPixelFormat *apPxlFmt,iLowLevelGraphics* apLowLevelGraphics,
-								eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
-								bool abCompress)
-	: iTexture(asName,"OGL",apPxlFmt,apLowLevelGraphics,aType,abUseMipMaps, aTarget, abCompress)
+	cGLTexture::cGLTexture(const tString &asName, iPixelFormat *apPxlFmt, iLowLevelGraphics *apLowLevelGraphics,
+		eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
+		bool abCompress)
+	: iTexture(asName, "OGL", apPxlFmt, apLowLevelGraphics, aType, abUseMipMaps, aTarget, abCompress)
 	{
 		mbContainsData = false;
 		mbFloat = false;
@@ -93,7 +93,7 @@ namespace hpl {
 
 	}
 
-	cSDLTexture::~cSDLTexture()
+	cGLTexture::~cGLTexture()
 	{
 		mpGfxSDL->ForgetTexture(this);
 
@@ -109,15 +109,14 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::CreateFromBitmap(iBitmap2D* pBmp)
+	bool cGLTexture::CreateFromBitmap(iBitmap2D *apBitmap)
 	{
-
-		return CreateFromBitmapToHandle(pBmp,0);
+		return UploadBitmap(apBitmap, 0);
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps)
+	bool cGLTexture::CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps)
 	{
 		if(avBitmaps->empty() || mTarget != eTextureTarget_2D || mType == eTextureType_RenderTarget) return false;
 		GLint maxLayers = 0;
@@ -135,14 +134,14 @@ namespace hpl {
 		mlFrameCount = (int)avBitmaps->size();
 		mTarget = eTextureTarget_2DArray;
 		for(int i=0; i<mlFrameCount; ++i)
-			if(!CreateFromBitmapToHandle((*avBitmaps)[i], i)) return false;
+			if(!UploadBitmap((*avBitmaps)[i], i)) return false;
 
 		return true;
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::CreateCubeFromBitmapVec(tBitmap2DVec *avBitmaps)
+	bool cGLTexture::CreateCubeFromBitmapVec(tBitmap2DVec *avBitmaps)
 	{
 		if(mType == eTextureType_RenderTarget || mTarget != eTextureTarget_CubeMap)
 		{
@@ -156,7 +155,7 @@ namespace hpl {
 
 		cSDLBitmap2D* first = static_cast<cSDLBitmap2D*>((*avBitmaps)[0]);
 		int channels; GLenum format;
-		GetSettings(first, channels, format);
+		GetBitmapFormat(first, channels, format);
 		for(int i=0; i<6; ++i) {
 			auto* face = static_cast<cSDLBitmap2D*>((*avBitmaps)[i]);
 			if(face->GetWidth() != first->GetWidth() || face->GetHeight() != first->GetHeight() ||
@@ -175,7 +174,7 @@ namespace hpl {
 
 			int lChannels;
 			GLenum format;
-			GetSettings(pSrc, lChannels,format);
+			GetBitmapFormat(pSrc, lChannels, format);
 
 			glTexSubImage2D(target, 0, 0, 0, pSrc->GetWidth(), pSrc->GetHeight(),
 				format, GL_UNSIGNED_BYTE, pSrc->GetSurface()->pixels);
@@ -192,7 +191,7 @@ namespace hpl {
 
 		if(mbUseMipMaps) glGenerateMipmap(GLTarget);
 
-		PostCreation(GLTarget);
+		FinishUpload(GLTarget);
 
 		return true;
 	}
@@ -200,7 +199,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::Create(unsigned int alWidth, unsigned int alHeight, cColor aCol)
+	bool cGLTexture::Create(unsigned int alWidth, unsigned int alHeight, cColor aCol)
 	{
 
 		if(mType == eTextureType_RenderTarget)
@@ -238,7 +237,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::CreateFromArray(unsigned char *apPixelData, int alChannels, const cVector3l &avSize)
+	bool cGLTexture::CreateFromArray(unsigned char *apPixelData, int alChannels, const cVector3l &avSize)
 	{
 		GLenum GLTarget = TextureTargetToGL(mTarget);
 
@@ -268,7 +267,7 @@ namespace hpl {
 			glGenerateMipmap(GLTarget);
 		}
 
-		PostCreation(GLTarget);
+		FinishUpload(GLTarget);
 
 		return true;
 	}
@@ -276,10 +275,11 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetPixels2D(	int alLevel, const cVector2l& avOffset, const cVector2l& avSize,
-									eColorDataFormat aDataFormat, void *apPixelData)
+	void cGLTexture::SetPixels2D(int alLevel, const cVector2l &avOffset, const cVector2l &avSize,
+		eColorDataFormat aDataFormat, void *apPixelData)
 	{
 		if(mTarget != eTextureTarget_2D) return;
+		MarkContentChanged();
 
 		glBindTexture(GL_TEXTURE_2D, mlTextureHandle);
 		glTexSubImage2D(TextureTargetToGL(mTarget),alLevel,avOffset.x,avOffset.y, avSize.x,avSize.y,
@@ -291,7 +291,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::Update(float afTimeStep)
+	void cGLTexture::Update(float afTimeStep)
 	{
 		if(mlFrameCount > 1)
 		{
@@ -326,12 +326,12 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::HasAnimation()
+	bool cGLTexture::HasAnimation()
 	{
 		return mlFrameCount > 1;
 	}
 
-	void cSDLTexture::NextFrame()
+	void cGLTexture::NextFrame()
 	{
 		mfTimeCount += mfTimeDir;
 
@@ -361,7 +361,7 @@ namespace hpl {
 		}
 	}
 
-	void cSDLTexture::PrevFrame()
+	void cGLTexture::PrevFrame()
 	{
 		mfTimeCount -= mfTimeDir;
 
@@ -391,20 +391,20 @@ namespace hpl {
 		}
 	}
 
-	float cSDLTexture::GetT()
+	float cGLTexture::GetT()
 	{
 		return cMath::Modulus(mfTimeCount,1.0f);
 	}
 
-	float cSDLTexture::GetTimeCount()
+	float cGLTexture::GetTimeCount()
 	{
 		return mfTimeCount;
 	}
-	void cSDLTexture::SetTimeCount(float afX)
+	void cGLTexture::SetTimeCount(float afX)
 	{
 		mfTimeCount = afX;
 	}
-	int cSDLTexture::GetCurrentLowlevelHandle()
+	int cGLTexture::GetCurrentLowlevelHandle()
 	{
 		return GetTextureHandle();
 	}
@@ -415,11 +415,12 @@ namespace hpl {
 	// with it the share of their texels that pass the test. For each mipmap
 	// the alpha is found that this share of its texels reaches, and all of
 	// its alpha scaled so that this one becomes the reference.
-	void cSDLTexture::KeepAlphaCoverage(float afAlphaRef)
+	void cGLTexture::KeepAlphaCoverage(float afAlphaRef)
 	{
 		if(mbAlphaCoverageKept || mbContainsData==false) return;
 		if((mTarget != eTextureTarget_2D && mTarget != eTextureTarget_2DArray) || HasMipMaps()==false || mlBpp != 32 || mbFloat) return;
 		mbAlphaCoverageKept = true;
+		MarkContentChanged();
 
 		const int lRef = cMath::Clamp((int)ceilf(afAlphaRef * 255.0f), 1, 255);
 		std::vector<unsigned char> vPixels;
@@ -478,32 +479,33 @@ namespace hpl {
 	// How the texture is read (filter, wrap) is not kept in the texture
 	// but in a sampler object, shared with every texture that is read the
 	// same way.
-	GLuint cSDLTexture::GetSampler()
+	GLuint cGLTexture::GetSampler()
 	{
 		bool bMipMaps = HasMipMaps();
 		if(mlSampler == 0 || mbSamplerMipMaps != bMipMaps)
 		{
-			mlSampler = mpGfxSDL->GetSampler(bMipMaps, GetGLWrap(mWrapS), GetGLWrap(mWrapT), GetGLWrap(mWrapR));
+			mlSampler = mpGfxSDL->GetSampler(bMipMaps, ToGLWrapMode(mWrapS), ToGLWrapMode(mWrapT), ToGLWrapMode(mWrapR));
 			mbSamplerMipMaps = bMipMaps;
 		}
 		return mlSampler;
 	}
 
-	void cSDLTexture::SamplerChanged()
+	void cGLTexture::SamplerChanged()
 	{
+		MarkContentChanged();
 		mlSampler = 0;
 		mpGfxSDL->TextureSamplerChanged(this);
 	}
 
 	// 3D textures are made without them.
-	bool cSDLTexture::HasMipMaps()
+	bool cGLTexture::HasMipMaps()
 	{
 		return mbUseMipMaps && mTarget != eTextureTarget_3D;
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetWrapS(eTextureWrap aMode)
+	void cGLTexture::SetWrapS(eTextureWrap aMode)
 	{
 		if(mWrapS == aMode) return;
 		mWrapS = aMode;
@@ -512,7 +514,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetWrapT(eTextureWrap aMode)
+	void cGLTexture::SetWrapT(eTextureWrap aMode)
 	{
 		if(mWrapT == aMode) return;
 		mWrapT = aMode;
@@ -521,7 +523,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::SetWrapR(eTextureWrap aMode)
+	void cGLTexture::SetWrapR(eTextureWrap aMode)
 	{
 		if(mWrapR == aMode) return;
 		mWrapR = aMode;
@@ -530,12 +532,12 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	unsigned int cSDLTexture::GetTextureHandle()
+	unsigned int cGLTexture::GetTextureHandle()
 	{
 		return mlTextureHandle;
 	}
 
-	int cSDLTexture::GetAnimationFrame() const
+	int cGLTexture::GetAnimationFrame() const
 	{
 		// SetTimeCount is used by callers to synchronize animations. Guard
 		// out-of-range input without changing the legacy loop/oscillate timing.
@@ -550,7 +552,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::CreateFromBitmapToHandle(iBitmap2D* pBmp, int alHandleIdx)
+	bool cGLTexture::UploadBitmap(iBitmap2D *apBitmap, int alLayer)
 	{
 		if(mType == eTextureType_RenderTarget)
 		{
@@ -558,11 +560,9 @@ namespace hpl {
 			return false;
 		}
 
-		//For some reason checking for ARB texture is not working on radeon cards.
-
 		GLenum GLTarget = TextureTargetToGL(mTarget);
 
-		cSDLBitmap2D *pBitmapSrc = static_cast<cSDLBitmap2D*>(pBmp);
+		cSDLBitmap2D *pBitmapSrc = static_cast<cSDLBitmap2D *>(apBitmap);
 
 		mlWidth = pBitmapSrc->GetWidth();
 		mlHeight = pBitmapSrc->GetHeight();
@@ -575,7 +575,7 @@ namespace hpl {
 
 		int lChannels =0;
 		GLenum format =0;
-		GetSettings(pBitmapSrc,lChannels,format);
+		GetBitmapFormat(pBitmapSrc, lChannels, format);
 
 		mlBpp = lChannels * 8;
 
@@ -630,15 +630,15 @@ namespace hpl {
 		if(mTarget == eTextureTarget_1D)
 			glTexSubImage1D(GLTarget, 0, 0, mlWidth, format, GL_UNSIGNED_BYTE, pPixelSrc);
 		else if(mTarget == eTextureTarget_2DArray)
-			glTexSubImage3D(GLTarget, 0, 0, 0, alHandleIdx, mlWidth, mlHeight, 1, format, GL_UNSIGNED_BYTE, pPixelSrc);
+			glTexSubImage3D(GLTarget, 0, 0, 0, alLayer, mlWidth, mlHeight, 1, format, GL_UNSIGNED_BYTE, pPixelSrc);
 		else
 			glTexSubImage2D(GLTarget, 0, 0, 0, mlWidth, mlHeight, format, GL_UNSIGNED_BYTE, pPixelSrc);
 
-		if(mbUseMipMaps && (mTarget != eTextureTarget_2DArray || alHandleIdx+1 == mlFrameCount))
+		if(mbUseMipMaps && (mTarget != eTextureTarget_2DArray || alLayer + 1 == mlFrameCount))
 			glGenerateMipmap(GLTarget);
 		mbAlphaCoverageKept = false;
 
-		PostCreation(GLTarget);
+		FinishUpload(GLTarget);
 
 		if(mlSizeLevel>0 && pNewSrc)
 		{
@@ -650,46 +650,54 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cSDLTexture::EnsureStorage(GLenum target, GLenum format, int width, int height, int depth)
+	bool cGLTexture::EnsureStorage(GLenum aTarget, GLenum aFormat, int alWidth, int alHeight, int alDepth)
 	{
-		if(width <= 0 || height <= 0 || depth <= 0) return false;
+		if(alWidth <= 0 || alHeight <= 0 || alDepth <= 0) return false;
 		int levels = 1;
-		if(HasMipMaps()) for(int size = cMath::Max(width, height); size > 1; size /= 2) ++levels;
-		const cVector3l size(width, height, depth);
-		if(mlStorageTarget != target || mlStorageFormat != format || mvStorageSize != size || mlStorageLevels != levels)
+		if(HasMipMaps())
+			for(int size = cMath::Max(alWidth, alHeight); size > 1; size /= 2) ++levels;
+		const cVector3l size(alWidth, alHeight, alDepth);
+		if(mlStorageTarget != aTarget || mlStorageFormat != aFormat || mvStorageSize != size || mlStorageLevels != levels)
 		{
 			GLuint replacement = 0;
 			glGenTextures(1, &replacement);
-			glBindTexture(target, replacement);
-			if(target == GL_TEXTURE_1D) glTexStorage1D(target, levels, format, width);
-			else if(target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY)
-				glTexStorage3D(target, levels, format, width, height, depth);
-			else glTexStorage2D(target, levels, format, width, height);
+			glBindTexture(aTarget, replacement);
+			if(aTarget == GL_TEXTURE_1D)
+				glTexStorage1D(aTarget, levels, aFormat, alWidth);
+			else if(aTarget == GL_TEXTURE_3D || aTarget == GL_TEXTURE_2D_ARRAY)
+				glTexStorage3D(aTarget, levels, aFormat, alWidth, alHeight, alDepth);
+			else
+				glTexStorage2D(aTarget, levels, aFormat, alWidth, alHeight);
 			GLint immutable = GL_FALSE;
-			glGetTexParameteriv(target, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+			glGetTexParameteriv(aTarget, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 			if(!immutable) {
-				Error("Couldn't allocate immutable storage for texture '%s' (%d x %d x %d)\n", msName.c_str(), width, height, depth);
+				Error("Couldn't allocate immutable storage for texture '%s' (%d x %d x %d)\n", msName.c_str(), alWidth, alHeight, alDepth);
 				glDeleteTextures(1, &replacement);
-				glBindTexture(target, 0);
+				glBindTexture(aTarget, 0);
 				mpGfxSDL->RestoreSetTexture();
 				return false;
 			}
 			const GLuint oldHandle = mlTextureHandle;
 			if(mlTextureHandle) glDeleteTextures(1, &mlTextureHandle);
 			mlTextureHandle = replacement;
-			mlStorageTarget = target; mlStorageFormat = format;
+			mlStorageTarget = aTarget;
+			mlStorageFormat = aFormat;
 			mvStorageSize = size; mlStorageLevels = levels;
 			mbAlphaCoverageKept = false;
 			mpGfxSDL->TextureStorageChanged(this, oldHandle);
 		}
-		else glBindTexture(target, mlTextureHandle);
-		mlWidth = width; mlHeight = height; mlDepth = depth;
+		else
+			glBindTexture(aTarget, mlTextureHandle);
+		mlWidth = alWidth;
+		mlHeight = alHeight;
+		mlDepth = alDepth;
 		return true;
 	}
 
 
-	void cSDLTexture::PostCreation(GLenum aGLTarget)
+	void cGLTexture::FinishUpload(GLenum aGLTarget)
 	{
+		MarkContentChanged();
 		// What a unit without a sampler object reads it with; drawing goes
 		// through the texture's sampler (GetSampler()).
 		glTexParameteri(aGLTarget, GL_TEXTURE_MIN_FILTER, HasMipMaps() ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
@@ -710,7 +718,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cSDLTexture::GetSettings(cSDLBitmap2D* apSrc, int &alChannels, GLenum &aFormat)
+	void cGLTexture::GetBitmapFormat(cSDLBitmap2D *apSrc, int &alChannels, GLenum &aFormat)
 	{
 		SDL_Surface *pSurface =  apSrc->GetSurface();
 		alChannels = SDL_BYTESPERPIXEL(pSurface->format);
@@ -725,7 +733,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	GLenum cSDLTexture::GetGLWrap(eTextureWrap aMode)
+	GLenum cGLTexture::ToGLWrapMode(eTextureWrap aMode)
 	{
 		switch(aMode)
 		{

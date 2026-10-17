@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Renderer3D.h"
+#include <cstring>
 
 #include "math/Math.h"
 #include "graphics/Texture.h"
@@ -91,7 +92,7 @@ namespace hpl {
 
 		mbLog = false;
 
-		mfRenderTime =0;
+		mfAccumulatedFrameTime = 0;
 
 		mbRefractionUsed = true;
 
@@ -322,7 +323,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderWorld(cWorld3D* apWorld, cCamera3D* apCamera, float afFrameTime)
 	{
-		mfRenderTime += afFrameTime;
+		mfAccumulatedFrameTime += afFrameTime;
 
 		//////////////////////////////
 		//Setup render settings and logging
@@ -350,7 +351,7 @@ namespace hpl {
 
 		if(mbLog) Log("Rendering ZBuffer:\n");
 		mpLowLevelGraphics->BeginGpuSection("Z");
-		RenderZ(apCamera);
+		RenderAmbientAndDepth(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
@@ -363,7 +364,7 @@ namespace hpl {
 
 		if(mbLog) Log("Rendering Lighting:\n");
 		mpLowLevelGraphics->BeginGpuSection("Lights");
-		RenderLight(apCamera);
+		RenderLights(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		////////////////////////////
@@ -405,7 +406,7 @@ namespace hpl {
 		// The shaders of halos, shafts and particles read the depth of what
 		// is behind them
 		mpLowLevelGraphics->ResolveSceneDepth();
-		if(bOcclusionOnly==false) RenderTrans(apCamera);
+		if(bOcclusionOnly == false) RenderTransparent(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		mRenderSettings.Reset(mpLowLevelGraphics);
@@ -511,8 +512,8 @@ namespace hpl {
 		mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
 		mpLowLevelGraphics->SetDepthTestActive(true);
 		mpLowLevelGraphics->SetFrameUniforms(apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix(),
-											apCamera->GetPosition(), apCamera->GetNearClipPlane(),
-											apCamera->GetFarClipPlane(), mfRenderTime);
+			apCamera->GetPosition(), apCamera->GetNearClipPlane(),
+			apCamera->GetFarClipPlane(), mfAccumulatedFrameTime);
 
 		mRenderSettings.mpCamera = apCamera;
 
@@ -673,7 +674,7 @@ namespace hpl {
 	}
 	//-----------------------------------------------------------------------
 
-	void cRenderer3D::RenderZ(cCamera3D *apCamera)
+	void cRenderer3D::RenderAmbientAndDepth(cCamera3D *apCamera)
 	{
 		cRenderQueue* pNode = mpRenderList->GetQueue(eMaterialRenderType_Z, 0);
 
@@ -692,7 +693,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cRenderer3D::RenderLight(cCamera3D *apCamera)
+	void cRenderer3D::RenderLights(cCamera3D *apCamera)
 	{
 		mShadowMapStats = cShadowMapStats();
 
@@ -825,11 +826,90 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	/**
-	 * Draws what casts shadows from a light into the light's shadow map and
-	 * fills in what the light passes need to read it. Leaves the render
-	 * settings telling what is set. False if the light has no shadow map.
-	 */
+	static bool CanCastShadow(iRenderable *apObject)
+	{
+		if(apObject->GetForceShadow()) return true;
+		if(apObject->GetEntityType() == "SubMesh")
+		{
+			cMeshEntity *pMesh = static_cast<cSubMeshEntity *>(apObject)->GetMeshEntity();
+			if(pMesh->GetForceShadow()) return apObject->IsVisible();
+			if(!pMesh->IsVisible() || !pMesh->IsShadowCaster()) return false;
+		}
+		iMaterial *pMaterial = apObject->GetMaterial();
+		return apObject->IsVisible() && apObject->IsShadowCaster() && (!pMaterial || !pMaterial->IsTransparent());
+	}
+
+	bool cRenderer3D::BuildShadowMapSignature(iLight3D *light, const cMatrixf &view, const cMatrixf &projection)
+	{
+		// Compare complete inputs rather than a hash: an accidental collision
+		// must never leave an obsolete shadow in the scene. No retained pointers
+		// are dereferenced on a later frame.
+		auto &signature = mvShadowSignature;
+		signature.clear();
+		auto number = [&](float value) {
+			uint32_t bits;
+			std::memcpy(&bits, &value, sizeof(bits));
+			signature.push_back(bits);
+		};
+		auto matrix = [&](const cMatrixf &value) {
+			for(int row = 0; row < 4; ++row)
+				for(int col = 0; col < 4; ++col) number(value.m[row][col]);
+		};
+		matrix(view);
+		matrix(projection);
+		const cVector3f position = light->GetLightPosition();
+		number(position.x); number(position.y); number(position.z);
+		signature.push_back(mShadowMapSettings.mFaces);
+		signature.push_back(mShadowMapSettings.mbAlphaCasters);
+		signature.push_back(mRenderSettings.mShowShadows);
+		signature.push_back(mpDiffuseProgram->GetRevision());
+		signature.push_back(iTexture::GetSamplingRevision());
+		bool cacheable = true;
+		tCasterCacheSet *sets[] = {light->GetStaticCasters(), light->GetDynamicCasters()};
+		const int count = mRenderSettings.mShowShadows == eRendererShowShadows_All ? 2 : 1;
+		for(int i = 0; i < count; ++i)
+		{
+			signature.push_back(sets[i]->size());
+			for(iRenderable *object : *sets[i])
+			{
+				signature.push_back(reinterpret_cast<uintptr_t>(object));
+				const bool enabled = CanCastShadow(object);
+				signature.push_back(enabled);
+				if(!enabled) continue;
+				iVertexBuffer *vertices = object->GetVertexBuffer();
+				signature.push_back(vertices ? vertices->GetContentRevision() : 0);
+				if(!vertices) continue;
+				const cMatrixf *model = object->GetModelMatrix(nullptr);
+				matrix(model ? *model : cMatrixf::Identity);
+				cBoundingVolume *bounds = object->GetBoundingVolume();
+				const cVector3f centre = bounds->GetWorldCenter();
+				number(centre.x); number(centre.y); number(centre.z); number(bounds->GetRadius());
+				iMaterial *material = object->GetMaterial();
+				const bool alpha = material && material->HasAlpha();
+				signature.push_back(alpha);
+				if(alpha)
+				{
+					// Missing alpha/UV attributes inherit constants from previous
+					// streamed draws. Do not retain depth with those implicit inputs.
+					if((vertices->GetFlags() & (eVertexFlag_Color0 | eVertexFlag_TexCoord)) !=
+						(eVertexFlag_Color0 | eVertexFlag_TexCoord)) cacheable = false;
+					iTexture *texture = material->GetTexture(eMaterialTexture_Diffuse);
+					signature.push_back(texture ? texture->GetContentRevision() : 0);
+					if(texture)
+					{
+						signature.push_back(texture->GetAnimationFrame());
+						signature.push_back(texture->UsesMipMaps());
+						// Resource targets may change outside the texture upload API.
+						if(texture->GetTextureType() == eTextureType_RenderTarget) cacheable = false;
+					}
+				}
+			}
+		}
+		return cacheable;
+	}
+
+	// Populate the light-pass sampling parameters and render any missing shadow faces.
+	// Return false when the light has no shadow map; keep render settings in sync.
 	bool cRenderer3D::RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams)
 	{
 		if(apLight->GetCastShadows()==false || mRenderSettings.mShowShadows == eRendererShowShadows_None ||
@@ -843,20 +923,41 @@ namespace hpl {
 		// As large as BeginShadowMap() makes it
 		const int lSize = cMath::Clamp(bCube ? settings.mlPointSize : settings.mlSpotSize, 16, 8192);
 		const float fFar = apLight->GetFarAttenuation();
+		const cVector3f vPos = apLight->GetLightPosition();
+		const float fNear = cMath::Min(settings.mfPointNear, fFar * 0.5f);
+		cLight3DSpot *spot = bCube ? nullptr : static_cast<cLight3DSpot*>(apLight);
+		const cMatrixf projection = bCube ? CubeFaceProjectionMatrix(fNear, fFar) : spot->GetProjectionMatrix();
+		const cMatrixf view = bCube ? cMatrixf::Identity : spot->GetViewMatrix();
+		const size_t budget = size_t(cMath::Clamp(settings.mlCacheSizeMB, 0, 512)) * 1024 * 1024;
+		mvShadowSignature.clear();
+		const bool cacheable = budget && BuildShadowMapSignature(apLight, view, projection);
+		const unsigned validFaces = mpLowLevelGraphics->SelectShadowMap(cacheable ? apLight->GetShadowCacheId() : 0,
+			bCube, lSize, mvShadowSignature, budget);
+		bool rendered = false;
+		auto beginFace = [&](int face) {
+			if(validFaces & (1u << face))
+			{
+				++mShadowMapStats.mlCachedMaps;
+				return false;
+			}
+			if(!rendered)
+			{
+				if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+				mpDiffuseProgram->Bind();
+				mRenderSettings.mpProgram = mpDiffuseProgram;
+				mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
+				mpLowLevelGraphics->SetCullActive(settings.mFaces != eShadowMapFaces_Both);
+				if(settings.mFaces == eShadowMapFaces_AwayFromLight)
+					mpLowLevelGraphics->SetCullMode(eCullMode_Clockwise);
+			}
+			rendered = true;
+			mpLowLevelGraphics->BeginShadowMap(bCube, face, lSize);
+			++mShadowMapStats.mlMaps;
+			return true;
+		};
 
 		mpLowLevelGraphics->BeginGpuSection("Shadow maps");
 		if(mbLog) Log("Rendering shadow map:\n");
-
-		///////////////////////////////
-		// Programs and state
-		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
-		mpDiffuseProgram->Bind();
-		mRenderSettings.mpProgram = mpDiffuseProgram;
-
-		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
-		mpLowLevelGraphics->SetCullActive(settings.mFaces != eShadowMapFaces_Both);
-		if(settings.mFaces == eShadowMapFaces_AwayFromLight)
-			mpLowLevelGraphics->SetCullMode(eCullMode_Clockwise);
 
 		///////////////////////////////
 		// The maps
@@ -864,9 +965,6 @@ namespace hpl {
 
 		if(bCube)
 		{
-			const cVector3f vPos = apLight->GetLightPosition();
-			const float fNear = cMath::Min(settings.mfPointNear, fFar * 0.5f);
-			const cMatrixf mtxProjection = CubeFaceProjectionMatrix(fNear, fFar);
 
 			// How far from a lit point the map is read: the blur, and the
 			// texels around a sample that the filtering takes in.
@@ -881,8 +979,8 @@ namespace hpl {
 				// A face shows in the picture if the part of the light's
 				// reach it covers is not all on the outer side of one of
 				// the planes the camera's view ends at, by more than the
-				// margin: a face that is not drawn holds another light's
-				// map, which a sample near the edge of the picture would read.
+				// margin. Retained maps track each face separately, so a
+				// newly exposed face is drawn before any light pass reads it.
 				bool bInView = true;
 				for(int lPlane=0; lPlane<5 && bInView; ++lPlane)
 				{
@@ -900,9 +998,8 @@ namespace hpl {
 				}
 				if(bInView==false) continue;
 
-				mpLowLevelGraphics->BeginShadowMap(true, lFace, lSize);
-				mShadowMapStats.mlCasters += RenderShadowCasters(apLight, CubeFaceViewMatrix(lFace, vPos), mtxProjection, lFace);
-				mShadowMapStats.mlMaps++;
+				if(beginFace(lFace))
+					mShadowMapStats.mlCasters += RenderShadowCasters(apLight, CubeFaceViewMatrix(lFace, vPos), projection, lFace);
 			}
 
 			aParams.mfNear = fNear;
@@ -913,9 +1010,8 @@ namespace hpl {
 		{
 			cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(apLight);
 
-			mpLowLevelGraphics->BeginShadowMap(false, 0, lSize);
-			mShadowMapStats.mlCasters += RenderShadowCasters(apLight, pSpot->GetViewMatrix(), pSpot->GetProjectionMatrix(), -1);
-			mShadowMapStats.mlMaps++;
+			if(beginFace(0))
+				mShadowMapStats.mlCasters += RenderShadowCasters(apLight, view, projection, -1);
 
 			// Near and far as the projection has them: the map is read as
 			// it was drawn, whatever the light's reach is now.
@@ -927,17 +1023,20 @@ namespace hpl {
 			aParams.mvUvScale = cVector2f(0.5f / (fTan * pSpot->GetAspect()), 0.5f / fTan);
 		}
 
-		mpLowLevelGraphics->EndShadowMap();
+		if(rendered)
+		{
+			mpLowLevelGraphics->EndShadowMap();
 
-		///////////////////////////////
-		// Back to how the light passes are drawn
-		mRenderSettings.mbMatrixWasNULL = false;
+			///////////////////////////////
+			// Back to how the light passes are drawn
+			mRenderSettings.mbMatrixWasNULL = false;
 
-		mpLowLevelGraphics->SetDepthWriteActive(false);
-		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
-		mpLowLevelGraphics->SetCullActive(true);
-		mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
-		mpLowLevelGraphics->SetAlphaCutoff(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid ? 0.6f : 0);
+			mpLowLevelGraphics->SetDepthWriteActive(false);
+			mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
+			mpLowLevelGraphics->SetCullActive(true);
+			mpLowLevelGraphics->SetCullMode(eCullMode_CounterClockwise);
+			mpLowLevelGraphics->SetAlphaCutoff(mRenderSettings.mAlphaMode != eMaterialAlphaMode_Solid ? 0.6f : 0);
+		}
 
 		aParams.mlFilter = (int)settings.mFilter + 1;
 		aParams.mfSoftness = settings.mfSoftness;
@@ -972,6 +1071,7 @@ namespace hpl {
 		for(int lSet=0; lSet<lSetNum; ++lSet)
 		for(iRenderable *pObject : *vSets[lSet])
 		{
+			if(!CanCastShadow(pObject)) continue;
 			iVertexBuffer *pVtxBuffer = pObject->GetVertexBuffer();
 			if(pVtxBuffer==nullptr) continue;
 
@@ -1072,7 +1172,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 
-	void cRenderer3D::RenderTrans(cCamera3D *apCamera)
+	void cRenderer3D::RenderTransparent(cCamera3D *apCamera)
 	{
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
 		mpLowLevelGraphics->SetDepthWriteActive(false);
@@ -1251,11 +1351,11 @@ namespace hpl {
 
 		if(bSpecial)
 		{
-			pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime * pRefraction->GetFrameTime());
+			pRefractProgram->SetFloat(eProgramParam::t, mfAccumulatedFrameTime * pRefraction->GetFrameTime());
 		}
 		else if(draw.mbRefractionUsesTime)
 		{
-			pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime);
+			pRefractProgram->SetFloat(eProgramParam::t, mfAccumulatedFrameTime);
 		}
 
 		pRefractProgram->SetFloat(eProgramParam::scale, draw.mfValue);

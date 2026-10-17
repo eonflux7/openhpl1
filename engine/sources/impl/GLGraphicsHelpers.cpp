@@ -62,7 +62,7 @@ namespace hpl
 				return GL_RGB;
 			case eColorDataFormat_RGBA:
 				return GL_RGBA;
-			// One-channel textures are red, read as luminance (cSDLTexture)
+			// One-channel textures are red, read as luminance (cGLTexture)
 			case eColorDataFormat_ALPHA:
 				return GL_RED;
 			case eColorDataFormat_BGR:

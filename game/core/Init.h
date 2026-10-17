@@ -55,7 +55,7 @@ class cMainMenu;
 class cSmokeTest;
 class cRefShots;
 class cRefView;
-class cLampLooks;
+class cLampAppearanceController;
 class cPhysicsLog;
 class cDogTestMap;
 
@@ -265,7 +265,7 @@ public:
 	cRefView *mpRefView; // NULL during the smoke test and the reference images
 	cDogTestMap *mpDogTestMap;
 	bool mbImprovedDogAI = true;
-	cLampLooks *mpLampLooks;
+	cLampAppearanceController *mpLampAppearanceController;
 	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
 
 	cIntroStory* mpIntroStory;	

@@ -194,7 +194,7 @@ namespace hpl {
 		 * return true if the material is transparent
 		 * \return
 		 */
-		virtual bool IsTransperant() {return mbIsTransperant;}
+		virtual bool IsTransparent() { return mbIsTransparent; }
 		virtual bool IsGlowing() { return mbIsGlowing; }
 		/**
 		 * return true if the material has a light pass
@@ -235,7 +235,7 @@ namespace hpl {
 		cRenderSettings *mpRenderSettings;
 		cGpuProgramManager* mpProgramManager;
 
-		bool mbIsTransperant;
+		bool mbIsTransparent;
 		bool mbIsGlowing;
 		bool mbUsesLights;
 		bool mbHasAlpha;

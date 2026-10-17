@@ -60,7 +60,7 @@ namespace hpl {
 		mpProgramManager = apProgramManager;
 
 		mbUsesLights = false;
-		mbIsTransperant = false;
+		mbIsTransparent = false;
 		mbIsGlowing = false;
 		mbHasAlpha = false;
 		mbDepthTest = true;

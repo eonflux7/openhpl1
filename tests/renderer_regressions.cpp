@@ -3,6 +3,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <glad/gl.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <chrono>
@@ -26,7 +27,7 @@
 #include "graphics/Renderer3D.h"
 #include "resources/Resources.h"
 #undef private
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "impl/GLSLProgram.h"
 #include "impl/LowLevelResourcesSDL.h"
 #include "graphics/Graphics.h"
@@ -35,12 +36,18 @@
 #include "graphics/MeshCreator.h"
 #include "graphics/RendererPostEffects.h"
 #include "resources/GpuProgramManager.h"
+#include "resources/TextureManager.h"
+#include "scene/Light3DPoint.h"
+#include "scene/Light3DSpot.h"
 #include "math/Math.h"
 #include "scene/Camera3D.h"
 using namespace hpl;
 static void Check(bool ok, const char* message) { if(!ok) throw std::runtime_error(message); }
-static void NoErrors() { Check(glGetError() == GL_NO_ERROR, "OpenGL error in renderer storage regression"); }
-static void Immutable(iTexture& texture, GLenum target, int levels)
+static void CheckNoGLErrors()
+{
+	Check(glGetError() == GL_NO_ERROR, "OpenGL error in renderer regression");
+}
+static void CheckImmutableStorage(iTexture &texture, GLenum target, int levels)
 {
 	glBindTexture(target, texture.GetHandle());
 	GLint immutable=0, count=0;
@@ -78,11 +85,11 @@ void main() { outColor=vec4((vColor.rgb*0.5+vec3(fract(vUv),0)*0.2+vBasis)*hpl_T
 	cSDLBitmap2D white(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32),&format,"SDL");
 	cSDLBitmap2D green(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32),&format,"SDL");
 	white.FillRect(cRect2l(0,0,0,0),cColor(1,1));green.FillRect(cRect2l(0,0,0,0),cColor(0.2f,1,0.4f,1));
-	cSDLTexture texture("quad texture",&format,&gfx,eTextureType_Normal,false,eTextureTarget_2D);
+	cGLTexture texture("quad texture", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
 	Check(texture.CreateFromBitmap(&white),"quad static texture");
-	cSDLTexture animated("quad animation",&format,&gfx,eTextureType_Normal,false,eTextureTarget_2D);
+	cGLTexture animated("quad animation", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
 	tBitmap2DVec frames={&white,&green};Check(animated.CreateAnimFromBitmapVec(&frames),"quad animation array");
-	cSDLTexture target("quad target",&format,&gfx,eTextureType_RenderTarget,false,eTextureTarget_2D);
+	cGLTexture target("quad target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(target.Create(48,48,cColor(0)),"quad readback target");gfx.SetRenderTarget(&target);
 	gfx.SetDrawMatrices(cDrawMatrices{});
 	gfx.SetDepthTestActive(false);gfx.SetCullActive(false);gfx.SetAlphaCutoff(0);
@@ -121,9 +128,15 @@ void main() { outColor=vec4((vColor.rgb*0.5+vec3(fract(vUv),0)*0.2+vBasis)*hpl_T
 	}
 	Check(reference->Compile(0),"compile previous expanded geometry reference");
 	probe.Bind();
-	auto render=[&](iVertexBuffer &buffer){
-		gfx.SetClearColor(cColor(0.1f,0.2f,0.3f,0));gfx.ClearScreen();buffer.Bind();buffer.Draw();
-		std::vector<unsigned char> pixels(48*48*4);glReadPixels(0,0,48,48,GL_RGBA,GL_UNSIGNED_BYTE,pixels.data());return pixels;
+	auto render = [&](iVertexBuffer &buffer)
+	{
+		gfx.SetClearColor(cColor(0.1f, 0.2f, 0.3f, 0));
+		gfx.ClearScreen();
+		buffer.Bind();
+		buffer.Draw();
+		std::vector<unsigned char> pixels(48 * 48 * 4);
+		glReadPixels(0, 0, 48, 48, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+		return pixels;
 	};
 	for(auto *sampled:{&texture,&animated})
 	for(int layer=0;layer<(sampled==&animated?2:1);++layer)
@@ -135,17 +148,26 @@ void main() { outColor=vec4((vColor.rgb*0.5+vec3(fract(vUv),0)*0.2+vBasis)*hpl_T
 			{eBlendFunc_Zero,eBlendFunc_SrcColor},{eBlendFunc_DestColor,eBlendFunc_SrcColor},
 			{eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha},{eBlendFunc_DestAlpha,eBlendFunc_One}})
 		{
-			gfx.SetBlendActive(true);gfx.SetBlendFunc(blend.first,blend.second);
-			const auto expected=render(*reference),actual=render(*instances);
-			int drawn=0;for(size_t i=0;i<actual.size();++i){Check(std::abs(int(actual[i])-int(expected[i]))<=1,"instanced output matches expanded sheets across blend modes/layers");if(i%4==3 && actual[i])++drawn;}
-			if(blend.first==eBlendFunc_One && blend.second==eBlendFunc_Zero)
-				Check(drawn>100,"quad comparison has visible coverage");
+			gfx.SetBlendActive(true);
+			gfx.SetBlendFunc(blend.first, blend.second);
+			const auto expected = render(*reference), actual = render(*instances);
+			int coveredPixels = 0;
+			for(size_t i = 0; i < actual.size(); ++i)
+			{
+				Check(std::abs(int(actual[i]) - int(expected[i])) <= 1,
+					"instanced output matches expanded sheets across blend modes/layers");
+				if(i % 4 == 3 && actual[i]) ++coveredPixels;
+			}
+			if(blend.first == eBlendFunc_One && blend.second == eBlendFunc_Zero)
+				Check(coveredPixels > 100, "quad comparison has visible coverage");
 		}
 	}
 	// Returning from an instance array must restore kind zero for ordinary
 	// indexed and streamed draws; repeat in both directions with debug lines.
 	gfx.SetTexture(0,&texture);gfx.SetBlendActive(false);
-	instances->Draw(eVertexBufferDrawType_Lines);reference->Draw();NoErrors();
+	instances->Draw(eVertexBufferDrawType_Lines);
+	reference->Draw();
+	CheckNoGLErrors();
 	GLuint query=0;glGenQueries(1,&query);
 	instances->SetElementNum(6);
 	glBeginQuery(GL_PRIMITIVES_GENERATED,query);instances->Draw();glEndQuery(GL_PRIMITIVES_GENERATED);
@@ -224,8 +246,176 @@ void main() { outColor=vec4((vColor.rgb*0.5+vec3(fract(vUv),0)*0.2+vBasis)*hpl_T
 	instances.reset();
 	Check(!glIsVertexArray(instanceVao) && !glIsBuffer(instanceVbo),"instance resources released under external context");
 	probe.UnBind();gfx.SetTexture(0,nullptr);gfx.SetRenderTarget(nullptr);
-	glDeleteQueries(1,&query);NoErrors();
+	glDeleteQueries(1, &query);
+	CheckNoGLErrors();
 	gfx.mStream.Reset();Check(!glIsBuffer(sheetElements),"shared sheet topology released by stream owner");gfx.mState.Reset();
+}
+
+static GLint GetGLInteger(GLenum name);
+
+// Count real driver calls only inside the submission being checked. Keep this
+// instrumentation in the fixture so production draws need no counters.
+struct ProgramCalls
+{
+	static ProgramCalls *active;
+	PFNGLUSEPROGRAMPROC useProgram = glad_glUseProgram;
+	PFNGLBINDBUFFERBASEPROC bindBufferBase = glad_glBindBufferBase;
+	PFNGLBUFFERSUBDATAPROC bufferSubData = glad_glBufferSubData;
+	unsigned programs = 0, materials = 0;
+	std::vector<std::pair<GLintptr, GLsizeiptr>> uploads;
+	ProgramCalls()
+	{
+		active = this;
+		glad_glUseProgram = UseProgram;
+		glad_glBindBufferBase = BindBufferBase;
+		glad_glBufferSubData = BufferSubData;
+	}
+	~ProgramCalls()
+	{
+		glad_glUseProgram = useProgram;
+		glad_glBindBufferBase = bindBufferBase;
+		glad_glBufferSubData = bufferSubData;
+		active = nullptr;
+	}
+	static void GLAD_API_PTR UseProgram(GLuint program)
+	{
+		++active->programs;
+		active->useProgram(program);
+	}
+	static void GLAD_API_PTR BindBufferBase(GLenum target, GLuint index, GLuint buffer)
+	{
+		if(target == GL_UNIFORM_BUFFER && index == 2) ++active->materials;
+		active->bindBufferBase(target, index, buffer);
+	}
+	static void GLAD_API_PTR BufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
+	{
+		if(target == GL_UNIFORM_BUFFER) active->uploads.emplace_back(offset, size);
+		active->bufferSubData(target, offset, size, data);
+	}
+};
+ProgramCalls *ProgramCalls::active = nullptr;
+
+static void TestProgramSubmission()
+{
+	const auto directory = std::filesystem::path(cGLSLProgram::GetShaderDirectory());
+	std::ofstream(directory / "hpl1_SubmissionProbe.vertex") << R"(
+void main() { gl_Position = worldViewProj * vec4(0, 0, 0, 1); }
+)";
+	const std::string fragment = R"(
+OUTPUT
+void main() { outColor = vec4(ambientColor + vec3(fogStart, fogEnd, gamma), 1); }
+)";
+	std::ofstream(directory / "hpl1_SubmissionProbe.fragment") << fragment;
+	cGLSLProgram probe("submission probe", false), other("submission other", false);
+	probe.SetFloat(eProgramParam::fogStart, 0.125f);
+	Check(probe.CreateFromFile("SubmissionProbe") && other.CreateFromFile("SubmissionProbe"),
+		"compile submission probes");
+	Check(probe.Apply(), "initial submission");
+	GLint material = 0;
+	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &material);
+	auto checkData = [&] {
+		std::array<float, static_cast<unsigned>(eProgramParam::Count) * 4> data;
+		glBindBuffer(GL_UNIFORM_BUFFER, material);
+		glGetBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), data.data());
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		Check(std::equal(data.begin(), data.end(), probe.GetParameterData()),
+			"GPU material contents match the complete CPU block, including unchanged slots");
+	};
+	checkData();
+	{
+		ProgramCalls calls;
+		for(int i = 0; i < 128; ++i) Check(probe.Apply(), "repeat unchanged submission");
+		std::cout << "128 unchanged submissions: " << calls.programs << " program binds, "
+			<< calls.materials << " material binds, " << calls.uploads.size() << " uploads\n";
+		Check(calls.programs == 0 && calls.materials == 0 && calls.uploads.empty(),
+			"unchanged submissions avoid program/material rebinds and uploads");
+	}
+	auto upload = [&](unsigned first, unsigned count) {
+		ProgramCalls calls;
+		Check(probe.Apply(), "apply changed parameters");
+		Check(calls.programs == 0 && calls.materials == 0 && calls.uploads.size() == 1 &&
+			calls.uploads[0].first == first * 16 && calls.uploads[0].second == count * 16,
+			"one upload covers only the changed parameter interval without rebinding");
+	};
+	probe.SetFloat(eProgramParam::fogStart, 0.25f);
+	upload(static_cast<unsigned>(eProgramParam::fogStart), 1);
+	std::cout << "Changed scalar upload: 16 bytes; complete material block: "
+		<< static_cast<unsigned>(eProgramParam::Count) * 16 << " bytes\n";
+	checkData();
+	cMatrixf matrix;
+	for(unsigned row = 0; row < 4; ++row)
+		for(unsigned col = 0; col < 4; ++col) matrix.m[row][col] = float(row * 4 + col + 1);
+	probe.SetMatrixf(eProgramParam::worldViewProj, matrix);
+	upload(static_cast<unsigned>(eProgramParam::worldViewProj), 4);
+	// Updates arrive in reverse slot order; gaps must keep their old values.
+	probe.SetFloat(eProgramParam::gamma, 0.75f);
+	probe.SetVec3f(eProgramParam::ambientColor, 0.1f, 0.2f, 0.3f);
+	upload(0, static_cast<unsigned>(eProgramParam::gamma) + 1);
+	probe.SetFloat(eProgramParam::t, 0.875f);
+	upload(static_cast<unsigned>(eProgramParam::t), 1);
+	checkData();
+	{
+		ProgramCalls calls;
+		probe.SetFloat(eProgramParam::t, 0.875f);
+		Check(probe.Apply() && calls.uploads.empty(), "identical values stay clean after partial upload");
+	}
+	probe.Bind();
+	Check(other.Apply(), "switch to a different program and material");
+	Check(cGLSLProgram::GetBoundProgram() == &probe && cGLSLProgram::GetAppliedProgram() == &other,
+		"logical selection stays independent of the applied program");
+	{
+		ProgramCalls calls;
+		Check(probe.Apply() && calls.programs == 1 && calls.materials == 1 && calls.uploads.empty(),
+			"switching back restores bindings without reuploading clean data");
+	}
+	Check(GetGLInteger(GL_CURRENT_PROGRAM) == (GLint)probe.GetHandle(), "program binding restored");
+	GLint restoredMaterial = 0;
+	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &restoredMaterial);
+	Check(restoredMaterial == material, "material binding restored");
+	checkData();
+	// External clients either restore their bindings or invalidate the cache.
+	glUseProgram(0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, 0);
+	cGLSLProgram::ClearAppliedProgram();
+	Check(probe.Apply(), "recover from explicitly invalidated external bindings");
+	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &restoredMaterial);
+	Check(GetGLInteger(GL_CURRENT_PROGRAM) == (GLint)probe.GetHandle() && restoredMaterial == material,
+		"external invalidation restores both bindings");
+	probe.SetFloat(eProgramParam::fogStart, 0.625f);
+	std::ofstream(directory / "hpl1_SubmissionProbe.fragment") << fragment << "\ninvalid shader edit\n";
+	Check(!probe.Reload() && probe.Apply(), "failed reload preserves pending material updates");
+	checkData();
+	std::ofstream(directory / "hpl1_SubmissionProbe.fragment") << fragment;
+	probe.SetFloat(eProgramParam::fogEnd, 0.5f);
+	Check(other.Apply() && probe.Reload(), "reload a previously applied but inactive program");
+	probe.RebindCurrent();
+	Check(GetGLInteger(GL_CURRENT_PROGRAM) == (GLint)probe.GetHandle(), "inactive reload updates restoration handle");
+	Check(probe.Reload() && probe.Apply(), "active reload remains usable with cached bindings");
+	checkData();
+	{
+		cGLSLProgram temporary("submission temporary", false);
+		Check(temporary.CreateFromFile("SubmissionProbe") && temporary.Apply(), "temporary program applied");
+	}
+	Check(probe.Apply(), "recover after deleting the applied program and material");
+	// A texture layout change switches the linked handle, but shares its UBO.
+	cGLSLProgram textured("submission textured", false);
+	Check(textured.CreateFromFile("Default", "TEXTURE"), "texture variant submission probe");
+	float layers[8] = {};
+	Check(textured.Apply(1, layers) && textured.Apply(0, layers), "warm both sampler layouts");
+	{
+		ProgramCalls calls;
+		Check(textured.Apply(1, layers) && textured.Apply(0, layers), "switch warmed sampler layouts");
+		Check(calls.programs == 2 && calls.materials == 0, "variant switches retain the shared material binding");
+	}
+	Check(textured.Apply(1, layers), "select array layout");
+	layers[0] = 1;
+	Check(textured.Apply(1, layers), "advance animation without switching layouts");
+	const GLint layerLocation = glGetUniformLocation(GetGLInteger(GL_CURRENT_PROGRAM), "hpl_TextureLayer0");
+	float layer = -1;
+	glGetUniformfv(GetGLInteger(GL_CURRENT_PROGRAM), layerLocation, &layer);
+	Check(layerLocation >= 0 && layer == 1, "cached bindings still update animation layers");
+	cGLSLProgram::ExitPrograms();
+	CheckNoGLErrors();
 }
 
 static void TestTextures(cLowLevelGraphicsSDL& gfx)
@@ -235,11 +425,11 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 	cSDLBitmap2D green(SDL_CreateSurface(4,4,SDL_PIXELFORMAT_RGBA32), &format, "SDL");
 	red.FillRect(cRect2l(0,0,0,0), cColor(1,0,0,1));
 	green.FillRect(cRect2l(0,0,0,0), cColor(0,1,0,1));
-	cSDLTexture atlas("atlas", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
+	cGLTexture atlas("atlas", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
 	Check(atlas.CreateFromBitmap(&red), "initial atlas upload");
 	int atlasHandle=atlas.GetHandle();
 	Check(atlas.CreateFromBitmap(&green) && atlas.GetHandle()==atlasHandle, "atlas updates reuse immutable storage");
-	Immutable(atlas, GL_TEXTURE_2D, 3);
+	CheckImmutableStorage(atlas, GL_TEXTURE_2D, 3);
 	std::array<unsigned char,64> pixels{};
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 	Check(pixels[0]==0 && pixels[1]==255 && pixels[3]==255, "atlas contents updated");
@@ -250,12 +440,12 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 	Check(pixels[2]==255 && pixels[5]==255, "atlas subimage update preserves neighbors");
 
-	cSDLTexture anim("animation", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
+	cGLTexture anim("animation", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
 	tBitmap2DVec frames={&red,&green};
 	Check(anim.CreateAnimFromBitmapVec(&frames) && anim.HasAnimation(), "animation array upload");
 	// Replacing a lingering 2D binding with array storage must preserve a
 	// different array that has since become the unit's selected resource.
-	cSDLTexture promoted("promoted", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+	cGLTexture promoted("promoted", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
 	Check(promoted.CreateFromBitmap(&red), "initial static texture before animation promotion");
 	gfx.SetTexture(2, &promoted);
 	gfx.SetTexture(2, &anim);
@@ -268,7 +458,7 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 		selectedArray == anim.GetHandle(), "storage target changes preserve a different selected array");
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, anim.GetHandle());
-	Immutable(anim, GL_TEXTURE_2D_ARRAY, 3);
+	CheckImmutableStorage(anim, GL_TEXTURE_2D_ARRAY, 3);
 	std::array<unsigned char,128> layers{};
 	glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, layers.data());
 	Check(layers[0]==255 && layers[1]==0 && layers[64]==0 && layers[65]==255, "animation layers keep distinct frames");
@@ -298,21 +488,25 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 	anim.NextFrame(); Check(anim.GetAnimationFrame()==1, "oscillation start");
 	anim.PrevFrame(); Check(anim.GetAnimationFrame()==0, "previous animation frame");
 
-	cSDLTexture volume("volume", &format, &gfx, eTextureType_Normal, true, eTextureTarget_3D);
+	cGLTexture volume("volume", &format, &gfx, eTextureType_Normal, true, eTextureTarget_3D);
 	std::array<unsigned char,64> voxels{};
 	Check(volume.CreateFromArray(voxels.data(),1,cVector3l(4)), "3D texture upload");
-	Immutable(volume, GL_TEXTURE_3D, 1);
-	cSDLTexture cube("cube", &format, &gfx, eTextureType_Normal, true, eTextureTarget_CubeMap);
+	CheckImmutableStorage(volume, GL_TEXTURE_3D, 1);
+	cGLTexture cube("cube", &format, &gfx, eTextureType_Normal, true, eTextureTarget_CubeMap);
 	tBitmap2DVec faces(6,&red);
-	Check(cube.CreateCubeFromBitmapVec(&faces), "cube upload"); Immutable(cube, GL_TEXTURE_CUBE_MAP, 3);
-	cSDLTexture fog("fog", &format, &gfx, eTextureType_Normal, false, eTextureTarget_1D);
+	Check(cube.CreateCubeFromBitmapVec(&faces), "cube upload");
+	CheckImmutableStorage(cube, GL_TEXTURE_CUBE_MAP, 3);
+	cGLTexture fog("fog", &format, &gfx, eTextureType_Normal, false, eTextureTarget_1D);
 	unsigned char ramp[8]={1,2,3,4,5,6,7,8};
-	Check(fog.CreateFromArray(ramp,2,cVector3l(4,1,1)), "luminance-alpha ramp"); Immutable(fog, GL_TEXTURE_1D, 1);
+	Check(fog.CreateFromArray(ramp, 2, cVector3l(4, 1, 1)), "luminance-alpha ramp");
+	CheckImmutableStorage(fog, GL_TEXTURE_1D, 1);
 	GLint swizzle=0; glGetTexParameteriv(GL_TEXTURE_1D,GL_TEXTURE_SWIZZLE_A,&swizzle);
 	Check(swizzle==GL_GREEN, "luminance-alpha swizzle");
-	cSDLTexture target("target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
-	Check(target.Create(4,4,cColor(0)), "render target"); Immutable(target, GL_TEXTURE_2D, 1);
-	Check(target.Create(8,8,cColor(0)) && target.GetWidth()==8, "render-target resize"); Immutable(target, GL_TEXTURE_2D, 1);
+	cGLTexture target("target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	Check(target.Create(4, 4, cColor(0)), "render target");
+	CheckImmutableStorage(target, GL_TEXTURE_2D, 1);
+	Check(target.Create(8, 8, cColor(0)) && target.GetWidth() == 8, "render-target resize");
+	CheckImmutableStorage(target, GL_TEXTURE_2D, 1);
 	gfx.SetTexture(0,&target);gfx.SetTexture(2,&target);
 	gfx.SetRenderTarget(&target);
 	Check(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"render target after storage allocation");
@@ -334,15 +528,15 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 		auto* pixel=(unsigned char*)large.GetSurface()->pixels+y*large.GetSurface()->pitch+x*4;
 		pixel[0]=(x%2)*255;pixel[1]=(y%2)*255;pixel[2]=0;pixel[3]=255;
 	}
-	cSDLTexture quality("quality",&format,&gfx,eTextureType_Normal,true,eTextureTarget_2D);
+	cGLTexture quality("quality", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
 	quality.SetSizeLevel(1);tBitmap2DVec qualityFrames={&large,&large};
 	Check(quality.CreateAnimFromBitmapVec(&qualityFrames) && quality.GetWidth()==32,"array texture quality dimensions");
-	Immutable(quality,GL_TEXTURE_2D_ARRAY,6);
+	CheckImmutableStorage(quality, GL_TEXTURE_2D_ARRAY, 6);
 	std::vector<unsigned char> reduced(32*32*2*4);
 	glGetTexImage(GL_TEXTURE_2D_ARRAY,0,GL_RGBA,GL_UNSIGNED_BYTE,reduced.data());
 	Check(reduced[0]==128 && reduced[1]==128 && reduced[32*32*4]==128,"array texture quality averages each layer");
 	gfx.SetTexture(0,nullptr);
-	NoErrors();
+	CheckNoGLErrors();
 
 	// Render each layer through the engine's actual linked sampler variants.
 	cGLSLProgram program("sampling", false);
@@ -393,11 +587,11 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 			Check(material.Apply(mask,currentLayers), "independent diffuse/normal/specular animation arrays");
 		Check(material.Reload(), "reload mixed material sampler layouts");
 	}
-	NoErrors();
+	CheckNoGLErrors();
 	glDeleteBuffers(1,&vbo);glDeleteVertexArrays(1,&vao);glDeleteFramebuffers(1,&fbo);
 	gfx.SetTexture(0,nullptr);
 }
-static GLint Integer(GLenum name)
+static GLint GetGLInteger(GLenum name)
 {
 	GLint value = 0;
 	glGetIntegerv(name, &value);
@@ -407,13 +601,92 @@ static void BoundTarget(GLuint framebuffer, int width, int height)
 {
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	Check(Integer(GL_DRAW_FRAMEBUFFER_BINDING) == (GLint)framebuffer &&
-			Integer(GL_READ_FRAMEBUFFER_BINDING) == (GLint)framebuffer,
+	Check(GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING) == (GLint)framebuffer &&
+			GetGLInteger(GL_READ_FRAMEBUFFER_BINDING) == (GLint)framebuffer,
 		"restore both framebuffer bindings");
 	Check(viewport[0] == 0 && viewport[1] == 0 && viewport[2] == width && viewport[3] == height,
 		"restore target viewport");
 	Check(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "complete draw target");
 }
+static void TestShadowStorage()
+{
+	cGLGraphicsState state;
+	cGLRenderTargets targets(state);
+	cGLShadowTargets shadows(state, targets);
+	Check(state.Init() && targets.Init(cVector2l(32, 24), 4), "initialize shadow cache owners");
+	shadows.Init();
+	targets.BeginScene();
+	const GLuint scene = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+	std::vector<uint64_t> signature = {11};
+	const size_t mapBytes = 32 * 32 * 4 + sizeof(uint64_t);
+	auto texture = [&](bool cube) {
+		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
+		GLuint handle = GetGLInteger(cube ? GL_TEXTURE_BINDING_CUBE_MAP : GL_TEXTURE_BINDING_2D);
+		glActiveTexture(GL_TEXTURE0 + state.GetActiveTextureUnit());
+		return handle;
+	};
+	auto fill = [&](bool cube, int face, int size, float value) {
+		shadows.BeginShadowMap(cube, face, size);
+		glClearDepth(value);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		shadows.EndShadowMap();
+		BoundTarget(scene, 32, 24);
+	};
+	Check(shadows.SelectShadowMap(1, false, 32, signature, mapBytes * 2) == 0, "new cache entry is invalid");
+	const GLuint first = texture(false);
+	fill(false, 0, 32, 0.25f);
+	Check(shadows.SelectShadowMap(2, false, 32, signature, mapBytes * 2) == 0, "second light has independent storage");
+	const GLuint second = texture(false);
+	fill(false, 0, 32, 0.75f);
+	Check(first != second && shadows.SelectShadowMap(1, false, 32, signature, mapBytes * 2) == 1,
+		"unchanged light restores its valid map after drawing another light");
+	BoundTarget(scene, 32, 24);
+	std::array<float, 32 * 32> depth;
+	glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, depth.data());
+	glActiveTexture(GL_TEXTURE0 + state.GetActiveTextureUnit());
+	Check(std::fabs(depth[0] - 0.25f) < 1e-5f, "cached depth pixels survive another light");
+	shadows.SelectShadowMap(3, false, 32, signature, mapBytes * 2);
+	Check(glIsTexture(first) && (!glIsTexture(second) || second == texture(false)),
+		"LRU eviction preserves the most recently reused light");
+	Check(shadows.GetCacheEntries() == 2 && shadows.GetCacheBytes() <= mapBytes * 2, "shadow cache obeys its byte budget");
+	// Shrinking the budget may evict the requested old entry as well.
+	shadows.SelectShadowMap(1, false, 32, signature, mapBytes);
+	Check(shadows.GetCacheEntries() == 1 && shadows.GetCacheBytes() <= mapBytes, "budget reduction also accounts for reinsertion");
+	const size_t budget = 1024 * 1024;
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 0, "new cube has no valid faces");
+	fill(true, 0, 16, 0.125f);
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 1, "only the rendered cube face is valid");
+	fill(true, 5, 16, 0.875f);
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 33, "newly exposed face preserves existing faces");
+	std::array<float, 16 * 16> cubeDepth;
+	glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
+	glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_DEPTH_COMPONENT, GL_FLOAT, cubeDepth.data());
+	glActiveTexture(GL_TEXTURE0 + state.GetActiveTextureUnit());
+	Check(std::fabs(cubeDepth[0] - 0.125f) < 1e-5f, "rendering another cube face preserves earlier depth");
+	signature[0]++;
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 0, "changed inputs invalidate every cube face");
+	fill(true, 0, 16, 0.5f);
+	const GLuint beforeMembershipChange = texture(true);
+	signature.push_back(99);
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 0 && texture(true) == beforeMembershipChange,
+		"caster-list size changes invalidate depth without reallocating its storage");
+	signature.resize(1);
+	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 0 && texture(true) == beforeMembershipChange,
+		"shrinking the signature releases CPU storage while retaining the depth texture");
+	Check(shadows.SelectShadowMap(4, true, 32, signature, budget) == 0, "resizing replaces cached storage and validity");
+	shadows.SelectShadowMap(4, true, 32, signature, 0);
+	Check(shadows.GetCacheBytes() == 0 && shadows.GetCacheEntries() == 0, "zero budget releases retained maps");
+	fill(true, 0, 32, 0.5f);
+	Check(shadows.SelectShadowMap(4, true, 32, signature, 0) == 0, "scratch maps never claim reusable depth");
+	for(uint64_t id = 100; id < 165; ++id) shadows.SelectShadowMap(id, false, 16, signature, budget);
+	Check(shadows.GetCacheEntries() == 64, "small-map metadata also has a bounded entry count");
+	const GLuint retained = texture(false);
+	shadows.Reset();
+	Check(!glIsTexture(retained) && shadows.GetCacheBytes() == 0, "cache textures released before context teardown");
+	CheckNoGLErrors();
+}
+
 static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 {
 	// Exercise all GL owners under the caller's EGL context, without an SDL window.
@@ -436,7 +709,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	if(auto *bound = cGLSLProgram::GetBoundProgram()) bound->UnBind();
 
 	targets.BeginScene();
-	const GLuint scene = Integer(GL_DRAW_FRAMEBUFFER_BINDING);
+	const GLuint scene = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 	glClearColor(0.25f, 0.5f, 0.75f, 1);
 	glClearDepth(0.375);
 	glDepthMask(GL_TRUE);
@@ -502,7 +775,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	for(int i = 0; i < 2; ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit + i);
-		shadowTextures[i] = Integer(i ? GL_TEXTURE_BINDING_CUBE_MAP : GL_TEXTURE_BINDING_2D);
+		shadowTextures[i] = GetGLInteger(i ? GL_TEXTURE_BINDING_CUBE_MAP : GL_TEXTURE_BINDING_2D);
 		GLint sampler = 0;
 		glGetIntegeri_v(GL_SAMPLER_BINDING, cGLSLProgram::kShadowMapUnit + i, &sampler);
 		shadowSamplers[i] = sampler;
@@ -520,7 +793,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	BoundTarget(scene, 32, 24);
 	GLboolean mask[4];
 	glGetBooleanv(GL_COLOR_WRITEMASK, mask);
-	Check(glIsEnabled(GL_SCISSOR_TEST) && !Integer(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
+	Check(glIsEnabled(GL_SCISSOR_TEST) && !GetGLInteger(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
 		"depth resolve restores scissor and write masks");
 	targets.SetSceneColorOnly(true);
 	targets.ResolveScene();
@@ -553,9 +826,9 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		"post-resolve depth write is not overwritten by an older scene copy");
 	glReadPixels(28, 20, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 	Check(std::fabs(depth - 0.25f) < 0.01f, "newer resolved depth survives the depth request");
-	const GLuint resolved = Integer(GL_DRAW_FRAMEBUFFER_BINDING);
+	const GLuint resolved = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 	cSDLPixelFormat copyFormat;
-	cSDLTexture copy("scene copy", &copyFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	cGLTexture copy("scene copy", &copyFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(copy.Create(32, 24, cColor(0)), "scene copy texture");
 	Check(passes.DrawSceneCopy(&copy, cVector2l(0), cVector2l(32, 24)), "copy resolved scene through its pass");
 	BoundTarget(resolved, 32, 24);
@@ -571,27 +844,27 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	const bool bDepthWasResolved = targets.IsSceneDepthResolved();
 
 	cSDLPixelFormat format;
-	cSDLTexture texture("component target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	cGLTexture texture("component target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(texture.Create(12, 10, cColor(0)), "component resource target");
 	targets.SetRenderTarget(&texture);
-	const GLuint resource = Integer(GL_DRAW_FRAMEBUFFER_BINDING);
+	const GLuint resource = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 	shadows.BeginShadowMap(true, 3, 64);
 	shadows.EndShadowMap();
 	BoundTarget(resource, 12, 10);
 	Check(texture.Create(18, 14, cColor(0)), "resize component resource target");
 	targets.SetRenderTarget(&texture);
 	BoundTarget(resource, 18, 14);
-	cSDLTexture second("second target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	cGLTexture second("second target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(second.Create(18, 14, cColor(0)), "second render target");
 	iTexture *attachments[] = {&texture, &second};
 	targets.SetRenderTargets(attachments, 2);
 	BoundTarget(resource, 18, 14);
-	Check(Integer(GL_DRAW_BUFFER1) == GL_COLOR_ATTACHMENT1, "multiple draw buffers");
+	Check(GetGLInteger(GL_DRAW_BUFFER1) == GL_COLOR_ATTACHMENT1, "multiple draw buffers");
 	targets.SetRenderTarget(&texture);
 	BoundTarget(resource, 18, 14);
 	GLint attachment = 0;
 	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &attachment);
-	Check(attachment == 0 && Integer(GL_DRAW_BUFFER1) == GL_NONE, "single target detaches extra attachments");
+	Check(attachment == 0 && GetGLInteger(GL_DRAW_BUFFER1) == GL_NONE, "single target detaches extra attachments");
 	targets.SetRenderTarget(nullptr);
 	BoundTarget(resolved, 32, 24);
 	Check(targets.GetSceneDepthResolveCount() == beforeResource && targets.IsSceneDepthResolved() == bDepthWasResolved,
@@ -603,12 +876,12 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	cSDLBitmap2D arrayGreen(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32), &arrayFormat, "SDL");
 	arrayRed.FillRect(cRect2l(0,0,0,0), cColor(1,0,0,1));
 	arrayGreen.FillRect(cRect2l(0,0,0,0), cColor(0,1,0,1));
-	cSDLTexture array("restore array", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+	cGLTexture array("restore array", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
 	tBitmap2DVec arrayFrames={&arrayRed,&arrayGreen};
 	Check(array.CreateAnimFromBitmapVec(&arrayFrames), "array texture for pass restoration");
 	// Default-program selection follows the current texture target; a cube
 	// default must not stay selected after the cube texture is replaced.
-	cSDLTexture cube("restore cube", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_CubeMap);
+	cGLTexture cube("restore cube", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_CubeMap);
 	tBitmap2DVec cubeFaces(6, &arrayRed);
 	Check(cube.CreateCubeFromBitmapVec(&cubeFaces), "cube texture for default selection");
 	state.SetTexture(0, &cube);
@@ -622,7 +895,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 			cGLSLProgram::GetAppliedProgram()->GetProgramName() == "Default TEXTURE",
 		"a later array texture leaves the cube default behind");
 	// Replacement while unbound must also update the cached handle.
-	cSDLTexture resized("resized", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	cGLTexture resized("resized", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(resized.Create(2, 2, cColor(0)), "texture before unbound resize");
 	state.SetTexture(0, &resized);
 	state.SetTexture(0, nullptr);
@@ -635,8 +908,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		"storage replacement updates a cached handle without the resource pointer");
 
 	// A deleted texture must not be restored by a fullscreen pass.
-	cSDLTexture *pDeleted = hplNew(cSDLTexture, ("deleted", &arrayFormat, &gfx,
-		eTextureType_RenderTarget, false, eTextureTarget_2D));
+	cGLTexture *pDeleted = hplNew(cGLTexture, ("deleted", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D));
 	Check(pDeleted->Create(2, 2, cColor(0)), "texture deleted before a pass");
 	state.SetTexture(0, pDeleted);
 	// Unbinding keeps the GL texture bound; deletion still has to clear the
@@ -651,7 +923,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	state.BindSampler(0, sampler);
 	state.SetAlphaCutoff(0);
 	Check(state.PrepareDraw(targets.GetDrawState(false)), "prepare draw before output");
-	const GLint program = Integer(GL_CURRENT_PROGRAM);
+	const GLint program = GetGLInteger(GL_CURRENT_PROGRAM);
 	GLint material = 0;
 	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &material);
 	glEnable(GL_DEPTH_TEST);
@@ -673,7 +945,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	glGetIntegeri_v(GL_SAMPLER_BINDING, 0, &restoredSampler);
 	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &restoredMaterial);
 	glGetBooleanv(GL_COLOR_WRITEMASK, mask);
-	Check(Integer(GL_CURRENT_PROGRAM) == program && restoredMaterial == material && restoredSampler == (GLint)sampler,
+	Check(GetGLInteger(GL_CURRENT_PROGRAM) == program && restoredMaterial == material && restoredSampler == (GLint)sampler,
 		"fullscreen passes restore program, material and cached sampler");
 	glActiveTexture(GL_TEXTURE0);
 	GLint restoredArray = 0, restoredTexture2D = 0;
@@ -695,7 +967,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		"rebind restores the variant handle produced by the reload");
 	cGLSLProgram::ExitPrograms();
 	Check(glIsEnabled(GL_SCISSOR_TEST) && glIsEnabled(GL_DEPTH_TEST) && glIsEnabled(GL_BLEND) &&
-			glIsEnabled(GL_CULL_FACE) && !Integer(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
+			glIsEnabled(GL_CULL_FACE) && !GetGLInteger(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
 		"fullscreen passes restore capabilities and write masks");
 	state.SetScissorActive(false);
 	glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, color);
@@ -745,7 +1017,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		glClear(GL_COLOR_BUFFER_BIT);
 		passes.EndScene();
 		BoundTarget(output, 32, 24);
-		NoErrors();
+		CheckNoGLErrors();
 	}
 	// Stream draws after fullscreen passes must rebind their VAO, not trust a stale cache.
 	state.SetDepthTestActive(false);
@@ -759,13 +1031,13 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	Check(color[0] > 0.99f && color[1] < 0.01f, "streamed geometry after fullscreen draw");
 	stream.DrawLine(cVector3f(-1, 0, 0), cVector3f(1, 0, 0), cColor(0, 1, 0, 1), targets.GetDrawState(false));
 	const GLuint sceneColor = targets.GetSceneColor();
-	const GLuint streamVao = Integer(GL_VERTEX_ARRAY_BINDING), streamBuffer = Integer(GL_ARRAY_BUFFER_BINDING);
+	const GLuint streamVao = GetGLInteger(GL_VERTEX_ARRAY_BINDING), streamBuffer = GetGLInteger(GL_ARRAY_BUFFER_BINDING);
 	GLint frameBuffer = 0, stateBuffer = 0;
 	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 0, &frameBuffer);
 	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 1, &stateBuffer);
 	glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
-	shadowTextures[0] = Integer(GL_TEXTURE_BINDING_2D);
-	shadowTextures[1] = Integer(GL_TEXTURE_BINDING_CUBE_MAP);
+	shadowTextures[0] = GetGLInteger(GL_TEXTURE_BINDING_2D);
+	shadowTextures[1] = GetGLInteger(GL_TEXTURE_BINDING_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE0);
 	passes.Reset();
 	shadows.Reset();
@@ -777,7 +1049,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	for(int i = 0; i < 2; ++i) Check(!glIsTexture(shadowTextures[i]) && !glIsSampler(shadowSamplers[i]), "shadow owner teardown");
 	Check(!glIsSampler(sampler) && !glIsProgram(program) && !glIsBuffer(frameBuffer) && !glIsBuffer(stateBuffer), "draw-state owner teardown");
 	Check(!glIsVertexArray(streamVao) && !glIsBuffer(streamBuffer), "stream owner teardown");
-	NoErrors();
+	CheckNoGLErrors();
 }
 
 // Run the actual transparent executor with ordinary, custom and refractive
@@ -801,7 +1073,7 @@ public:
 	TransparentMaterial(cLowLevelGraphicsSDL &gfx, cRenderer3D &renderer)
 		: iMaterial("transparent fixture", &gfx, nullptr, nullptr, nullptr, eMaterialPicture_Texture, &renderer)
 	{
-		mbIsTransperant = true;
+		mbIsTransparent = true;
 	}
 	~TransparentMaterial() override { for(auto &texture : mvTexture) texture = nullptr; }
 	void Compile() override {}
@@ -903,7 +1175,7 @@ static void TestTransparentExecution(cLowLevelGraphicsSDL &gfx)
 	ordinary.program = &flat;
 	refractive.refraction = &read;
 	cSDLPixelFormat format;
-	cSDLTexture distortion("distortion fixture", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	cGLTexture distortion("distortion fixture", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(distortion.Create(2,2,cColor(1)), "refraction marker texture");
 	refractive.SetTexture(&distortion, eMaterialTexture_Refraction);
 	TransparentObject first(ordinary, red.get()), own(ordinary, green.get());
@@ -919,18 +1191,19 @@ static void TestTransparentExecution(cLowLevelGraphicsSDL &gfx)
 	Check(first.queries == 0 && own.queries == 0, "custom callbacks stay at execution time");
 	gfx.BeginScene();
 	gfx.SetDepthTestActive(true); gfx.SetDepthWriteActive(true);
+	gfx.SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 	gfx.SetClearColor(cColor(0,0)); gfx.SetClearDepth(1);
 	gfx.SetColorWriteActive(true,true,true,true); gfx.SetScissorActive(false); gfx.ClearScreen();
 	gfx.SetCullActive(true); gfx.SetCullMode(eCullMode_Clockwise);
 	renderer.GetRenderSettings()->Clear();
-	renderer.RenderTrans(&camera);
+	renderer.RenderTransparent(&camera);
 	float pixel[4];
 	glReadPixels(16,12,1,1,GL_RGBA,GL_FLOAT,pixel);
 	Check(std::fabs(pixel[0]-0.125f)<0.005f && std::fabs(pixel[1]-0.125f)<0.005f &&
 		std::fabs(pixel[2]-0.5f)<0.005f, "ordinary/custom/refraction/ordinary order preserves earlier scene colours");
 	Check(first.queries == 1 && own.queries == 1 && refract.queries == 1 && last.queries == 1 && own.setups == 1,
 		"each object callback runs once at its draw");
-	Check(glIsEnabled(GL_DEPTH_TEST) && glIsEnabled(GL_CULL_FACE) && !Integer(GL_DEPTH_WRITEMASK),
+	Check(glIsEnabled(GL_DEPTH_TEST) && glIsEnabled(GL_CULL_FACE) && !GetGLInteger(GL_DEPTH_WRITEMASK),
 		"following ordinary draw restores depth and culling after custom/refraction draws");
 
 	// The same linked program can have different setup objects. Changing only
@@ -946,7 +1219,276 @@ static void TestTransparentExecution(cLowLevelGraphicsSDL &gfx)
 		"setup-only transitions reapply the program and identity matrix callbacks");
 	renderer.GetRenderSettings()->Reset(&gfx);
 	gfx.mTargets.FinishScene();
-	NoErrors();
+	CheckNoGLErrors();
+}
+
+class ShadowTextureManager : public cTextureManager
+{
+public:
+	using cTextureManager::cTextureManager;
+	void Add(iResourceBase *resource) { AddResource(resource); }
+};
+class ShadowResources : public TransparentResources
+{
+public:
+	ShadowResources(cLowLevelResourcesSDL &low, cLowLevelGraphicsSDL &gfx, cGraphics &graphics, cSDLPixelFormat &format)
+		: TransparentResources(&low, &gfx)
+	{
+		mpTextureManager = hplNew(ShadowTextureManager, (&graphics, this));
+		auto *falloff = hplNew(cGLTexture, ("core_falloff_linear.BMP", &format, &gfx, eTextureType_Normal, false, eTextureTarget_1D));
+		unsigned char pixels[] = {255, 255};
+		Check(falloff->CreateFromArray(pixels, 1, cVector3l(2, 1, 1)), "fixture light falloff");
+		falloff->IncUserCount();
+		static_cast<ShadowTextureManager*>(mpTextureManager)->Add(falloff);
+	}
+};
+class ShadowObject : public TransparentObject
+{
+public:
+	using TransparentObject::TransparentObject;
+	bool casts = true;
+	bool IsShadowCaster() override { return casts; }
+	cMatrixf *GetModelMatrix(cCamera3D*) override { return &GetWorldMatrix(); }
+	int GetMatrixUpdateCount() override { return GetTransformUpdateCount(); }
+};
+class ShadowMaterial : public TransparentMaterial
+{
+public:
+	ShadowMaterial(cLowLevelGraphicsSDL &gfx, cRenderer3D &renderer) : TransparentMaterial(gfx, renderer)
+	{
+		mbIsTransparent = false;
+	}
+};
+
+static void TestShadowCaching(cLowLevelGraphicsSDL &gfx)
+{
+	Check(gfx.mState.Init(), "initialize cached shadow renderer state");
+	gfx.mStream.Init();
+	gfx.mStream.SetRenderTargets(&gfx.mTargets);
+	Check(gfx.mTargets.Init(cVector2l(32, 24), 4), "initialize cached shadow scene");
+	gfx.mShadows.Init();
+	{
+		cSDLPixelFormat format;
+		cLowLevelResourcesSDL low(&gfx);
+		cGraphics graphics(&gfx, &low);
+		ShadowResources resources(low, gfx, graphics, format);
+		cRenderList list(&graphics);
+		cMeshCreator meshes(&gfx, &resources);
+		cRenderer3D renderer(&gfx, &resources, &meshes, &list);
+		renderer.GetRenderSettings()->Clear();
+		cCamera3D camera;
+		cFrustum frustum;
+		for(auto &plane : frustum.mPlane) plane = cPlanef(0, 0, 1, 100);
+		renderer.GetRenderSettings()->mpCamera = &camera;
+		renderer.GetRenderSettings()->mpFrustum = &frustum;
+		gfx.SetFrameUniforms(camera.GetViewMatrix(), camera.GetProjectionMatrix(), cVector3f(0), 0.1f, 100, 0);
+		cShadowMapSettings settings;
+		settings.mlSpotSize = settings.mlPointSize = 64;
+		renderer.SetShadowMapSettings(settings);
+		ShadowMaterial material(gfx, renderer);
+		std::unique_ptr<iVertexBuffer> vertices(gfx.CreateVertexBuffer(
+			eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic));
+		for(const cVector3f &position : {cVector3f(-0.8f,-0.8f,-2), cVector3f(0.8f,-0.8f,-2),
+			cVector3f(0.8f,0.8f,-2), cVector3f(-0.8f,0.8f,-2)})
+		{
+			vertices->AddVertex(eVertexFlag_Position, position);
+			vertices->AddColor(eVertexFlag_Color0, cColor(1,1));
+			vertices->AddVertex(eVertexFlag_TexCoord, cVector3f(position.x > 0 ? 1 : 0, position.y > 0 ? 1 : 0, 0));
+		}
+		for(unsigned index : {0u,1u,2u,2u,3u,0u}) vertices->AddIndex(index);
+		Check(vertices->Compile(0), "shadow fixture geometry");
+		ShadowObject object(material, vertices.get());
+		object.GetBoundingVolume()->SetLocalMinMax(cVector3f(-1,-1,-2.1f), cVector3f(1,1,-1.9f));
+		cSDLBitmap2D white(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32), &format, "SDL");
+		cSDLBitmap2D holes(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32), &format, "SDL");
+		white.FillRect(cRect2l(0,0,0,0), cColor(1,1));
+		holes.FillRect(cRect2l(0,0,0,0), cColor(1,1,1,0));
+		cGLTexture alpha("shadow alpha", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+		Check(alpha.CreateFromBitmap(&white), "initial shadow texture");
+		material.SetTexture(&alpha, eMaterialTexture_Diffuse);
+		gfx.SetTexture(0, &alpha);
+		cLight3DSpot spot("cached spot", &resources), other("other spot", &resources);
+		for(auto *light : {&spot, &other})
+		{
+			light->SetCastShadows(true);
+			light->SetFarAttenuation(10);
+			light->GetStaticCasters()->insert(&object);
+		}
+		GLuint query = 0;
+		glGenQueries(1, &query);
+		gfx.BeginScene();
+		GLuint scene = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+		unsigned submission = 0;
+		auto render = [&](iLight3D &light) {
+			++submission;
+			renderer.mShadowMapStats = cShadowMapStats();
+			gfx.SetDepthTestActive(true);
+			gfx.SetDepthWriteActive(false);
+			gfx.SetScissorActive(false);
+			cShadowMapParams params;
+			glBeginQuery(GL_PRIMITIVES_GENERATED, query);
+			Check(renderer.RenderShadowMap(&light, &camera, params), "render shadow map through production renderer");
+			glEndQuery(GL_PRIMITIVES_GENERATED);
+			GLuint primitives = 0;
+			glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
+			BoundTarget(scene, gfx.mTargets.GetSize().x, gfx.mTargets.GetSize().y);
+			const GLenum error = glGetError();
+			if(error != GL_NO_ERROR) throw std::runtime_error("shadow submission " + std::to_string(submission) +
+				" produced GL error " + std::to_string(error));
+			return primitives;
+		};
+		auto depth = [&](bool cube = false, int face = 0) {
+			std::vector<float> pixels(size_t(settings.mlSpotSize) * settings.mlSpotSize);
+			glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
+			glGetTexImage(cube ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + face : GL_TEXTURE_2D,
+				0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels.data());
+			glActiveTexture(GL_TEXTURE0 + gfx.mState.GetActiveTextureUnit());
+			return pixels;
+		};
+		Check(render(spot) == 2 && renderer.GetShadowMapStats().mlMaps == 1, "first spotlight draws its casters");
+		const auto original = depth();
+		Check(*std::min_element(original.begin(), original.end()) < 0.99f, "shadow fixture contains real caster depth");
+		Check(render(other) == 2 && render(spot) == 0, "unchanged light reuses depth after another light");
+		Check(renderer.GetShadowMapStats().mlCachedMaps == 1 && depth() == original, "cache hit preserves exact depth pixels");
+		std::cout << "Unchanged spotlight: 1 cached map, 0 generated primitives (initial draw: 2)\n";
+		settings.mlCacheSizeMB = 0;
+		renderer.SetShadowMapSettings(settings);
+		Check(render(spot) == 2 && depth() == original, "uncached and cached spotlight depth match exactly");
+		settings.mlCacheSizeMB = 128;
+		renderer.SetShadowMapSettings(settings);
+		Check(render(spot) == 2 && render(spot) == 0, "reenabling the cache fills once");
+		object.SetPosition(cVector3f(0.3f,0,0));
+		Check(render(spot) == 2 && depth() != original && render(spot) == 0, "moving a door invalidates depth then reuses it");
+		vertices->GetArray(eVertexFlag_Position)[0] += 0.2f;
+		vertices->UpdateData(eVertexFlag_Position, false);
+		Check(render(spot) == 2 && render(spot) == 0, "uploaded deformation invalidates a stationary caster");
+		vertices->SetElementNum(3);
+		Check(render(spot) == 1, "element-count changes invalidate depth");
+		vertices->SetElementNum(-1);
+		Check(render(spot) == 2, "restoring all elements invalidates depth");
+		object.SetVisible(false);
+		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "hidden caster clears its old shadow");
+		const auto hidden = depth();
+		Check(*std::min_element(hidden.begin(), hidden.end()) == 1, "hidden caster leaves empty depth");
+		object.SetVisible(true);
+		Check(render(spot) == 2, "shown caster invalidates depth");
+		spot.GetStaticCasters()->clear();
+		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "removed caster clears its old shadow");
+		spot.GetDynamicCasters()->insert(&object);
+		Check(render(spot) == 2 && render(spot) == 0, "stationary dynamic caster can reuse depth");
+		renderer.SetShowShadows(eRendererShowShadows_Static);
+		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "static-only mode drops dynamic shadows");
+		renderer.SetShowShadows(eRendererShowShadows_All);
+		Check(render(spot) == 2, "restoring dynamic shadows invalidates depth");
+		spot.SetFOV(0.9f);
+		Check(render(spot) == 2 && render(spot) == 0, "spot projection changes invalidate depth");
+		spot.SetPosition(cVector3f(0.1f,0,0));
+		Check(render(spot) == 2, "moving the light invalidates depth");
+		settings.mfBias += 0.001f;
+		settings.mfSoftness += 0.001f;
+		renderer.SetShadowMapSettings(settings);
+		Check(render(spot) == 0, "sampling-only changes retain depth");
+		settings.mFaces = eShadowMapFaces_TowardsLight;
+		renderer.SetShadowMapSettings(settings);
+		Check(render(spot) == 2, "rasterized-side changes invalidate depth");
+		settings.mFaces = eShadowMapFaces_Both;
+		renderer.SetShadowMapSettings(settings);
+		material.SetHasAlpha(true);
+		Check(render(spot) == 2, "enabling alpha testing invalidates depth");
+		Check(alpha.CreateFromBitmap(&holes), "edit alpha texture without replacing its resource");
+		Check(render(spot) == 2, "alpha content edits invalidate depth");
+		const auto empty = depth();
+		Check(*std::min_element(empty.begin(), empty.end()) == 1, "transparent alpha removes caster depth");
+		unsigned char whitePixels[16];
+		std::fill(std::begin(whitePixels), std::end(whitePixels), 255);
+		alpha.SetPixels2D(0, cVector2l(0), cVector2l(2), eColorDataFormat_RGBA, whitePixels);
+		Check(render(spot) == 2 && depth() != empty, "alpha subimage updates refresh the shadow");
+		tBitmap2DVec frames = {&white, &holes};
+		cGLTexture animated("animated shadow alpha", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+		Check(animated.CreateAnimFromBitmapVec(&frames), "animated caster alpha");
+		material.SetTexture(&animated, eMaterialTexture_Diffuse);
+		const auto casterFragment = std::filesystem::path(cGLSLProgram::GetShaderDirectory()) / "hpl1_Diffuse_Color.fragment";
+		std::ifstream casterFile(casterFragment);
+		const std::string casterSource((std::istreambuf_iterator<char>(casterFile)), {});
+		casterFile.close();
+		std::ofstream(casterFragment, std::ios::app) << "\n#ifdef HPL_ARRAY_0\ninvalid new array variant\n#endif\n";
+		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "failed new caster shader skips geometry");
+		std::ofstream(casterFragment) << casterSource;
+		Check(render(spot) == 2 && render(spot) == 0, "unchanged alpha frame can reuse depth");
+		animated.SetTimeCount(1);
+		Check(render(spot) == 2 && depth() == empty, "alpha animation frame invalidates depth");
+		animated.SetTimeCount(0);
+		Check(render(spot) == 2 && depth() != empty, "reverse animation also invalidates depth");
+		Check(renderer.mpDiffuseProgram->Reload(), "reload shadow caster shader");
+		Check(render(spot) == 2, "shader revision invalidates cached depth");
+		gfx.SetTextureFilter(eTextureFilter_Trilinear, 1);
+		Check(render(spot) == 2, "sampler filtering changes invalidate depth");
+		animated.SetWrapS(eTextureWrap_ClampToEdge);
+		Check(render(spot) == 2, "alpha texture wrapping changes invalidate depth");
+		cGLTexture live("live shadow alpha", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+		Check(live.Create(2, 2, cColor(1)), "live alpha resource target");
+		live.SetPixels2D(0, cVector2l(0), cVector2l(2), eColorDataFormat_RGBA, whitePixels);
+		material.SetTexture(&live, eMaterialTexture_Diffuse);
+		Check(render(spot) == 2 && render(spot) == 2 && renderer.GetShadowMapStats().mlCachedMaps == 0,
+			"live render textures bypass reuse without discarding other retained maps");
+		material.SetTexture(&animated, eMaterialTexture_Diffuse);
+		Check(render(spot) == 0, "returning to unchanged ordinary texture restores its retained map");
+		std::unique_ptr<iVertexBuffer> implicit(gfx.CreateVertexBuffer(eVertexFlag_Position | eVertexFlag_TexCoord,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Static));
+		for(unsigned i = 0; i < 4; ++i)
+		{
+			implicit->AddVertex(eVertexFlag_Position, vertices->GetVector3(eVertexFlag_Position, i));
+			implicit->AddVertex(eVertexFlag_TexCoord, vertices->GetVector3(eVertexFlag_TexCoord, i));
+		}
+		for(unsigned i : {0u,1u,2u,2u,3u,0u}) implicit->AddIndex(i);
+		Check(implicit->Compile(0), "caster with inherited vertex alpha");
+		object.vertices = implicit.get();
+		gfx.mState.SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, 1, 1, 1, 0);
+		Check(render(spot) == 2 && depth() == empty, "inherited zero vertex alpha removes caster depth");
+		gfx.mState.SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, 1, 1, 1, 1);
+		Check(render(spot) == 2 && depth() != empty && renderer.GetShadowMapStats().mlCachedMaps == 0,
+			"implicit vertex alpha changes bypass reuse");
+		object.vertices = vertices.get();
+		Check(render(spot) == 0, "explicit vertex attributes recover the retained map");
+		object.casts = false;
+		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "disabled caster clears its old shadow");
+		object.casts = true;
+		Check(render(spot) == 2, "reenabled caster refreshes depth");
+		gfx.mTargets.SetRenderScale(1.5f);
+		gfx.BeginScene();
+		scene = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+		Check(render(spot) == 0, "scene target resizing preserves independent cached shadow depth");
+		gfx.mTargets.SetRenderScale(1);
+		gfx.BeginScene();
+		scene = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+		cLight3DPoint point("cached point", &resources);
+		point.SetCastShadows(true);
+		point.SetFarAttenuation(10);
+		point.GetStaticCasters()->insert(&object);
+		frustum.mPlane[0] = cPlanef(0,0,1,-2);
+		render(point);
+		Check(renderer.GetShadowMapStats().mlMaps == 5, "camera initially omits one cube face");
+		frustum.mPlane[0] = cPlanef(0,0,1,100);
+		render(point);
+		Check(renderer.GetShadowMapStats().mlMaps == 1 && renderer.GetShadowMapStats().mlCachedMaps == 5,
+			"camera exposes only the missing cube face");
+		const auto cube = depth(true, 5);
+		Check(render(point) == 0 && renderer.GetShadowMapStats().mlCachedMaps == 6 && depth(true, 5) == cube,
+			"complete unchanged cube generates no geometry");
+		settings.mlCacheSizeMB = 0;
+		renderer.SetShadowMapSettings(settings);
+		render(point);
+		Check(depth(true, 5) == cube, "uncached and cached point-light depth match exactly");
+		renderer.GetRenderSettings()->Reset(&gfx);
+		glDeleteQueries(1, &query);
+		gfx.mTargets.FinishScene();
+	}
+	gfx.mShadows.Reset();
+	gfx.mStream.Reset();
+	gfx.mTargets.DeleteFramebuffers();
+	gfx.mState.Reset();
+	CheckNoGLErrors();
 }
 
 int hplMain(const hpl::tString &)
@@ -989,10 +1531,20 @@ int hplMain(const hpl::tString &)
 		cGLSLProgram::SetShaderDirectory(directory.string()+"/");
 		TestQuadInstances(gfx);
 		TestTextures(gfx);
+		TestProgramSubmission();
 		TestBackendComponents(gfx);
+		TestShadowStorage();
+		{
+			// This fixture tears down its owners; keep their lifetime separate
+			// from the shared texture and transparent-renderer fixture owners.
+			cLowLevelGraphicsSDL shadowGraphics;
+			cGLSLProgram::InitPrograms(&shadowGraphics);
+			TestShadowCaching(shadowGraphics);
+		}
+		cGLSLProgram::InitPrograms(&gfx);
 		TestTransparentExecution(gfx);
 		std::filesystem::remove_all(directory);
-		std::cout << "Renderer storage regressions passed on " << glGetString(GL_RENDERER) << " / GL " << glGetString(GL_VERSION) << '\n';
+		std::cout << "Renderer regressions passed on " << glGetString(GL_RENDERER) << " / GL " << glGetString(GL_VERSION) << '\n';
 	} catch(const std::exception& e) { std::cerr << e.what() << '\n';result=1; }
 	eglMakeCurrent(display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);
 	eglDestroyContext(display,context);eglTerminate(display);

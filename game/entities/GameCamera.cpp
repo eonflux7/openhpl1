@@ -320,9 +320,9 @@ bool cGameCamera::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 		bool bFoundSolid = false;
 		for(int i=0; i< pMeshEntity->GetSubMeshEntityNum(); ++i)
 		{
-			iMaterial *pMaterial = pMeshEntity->GetSubMeshEntity(i)->GetMaterial(); 
-			if(pMaterial && 
-				(pMaterial->IsTransperant()==false && pMaterial->HasAlpha()==false))
+			iMaterial *pMaterial = pMeshEntity->GetSubMeshEntity(i)->GetMaterial();
+			if(pMaterial &&
+				(pMaterial->IsTransparent() == false && pMaterial->HasAlpha() == false))
 			{
 				bFoundSolid = true;
 				break;

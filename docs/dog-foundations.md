@@ -1,15 +1,15 @@
 # Dog AI and animation foundations
 
-The `dog-foundations` branch improves the original Dog in code. It uses the
+OpenHPL1 improves the original Dog in code. It uses the
 installed game's mesh, textures, skeleton, animation clips, animation events,
-and entity definitions. No comparison lab, replacement assets, or animation
-packs are included.
+and entity definitions. The generated test arena uses those original assets;
+no replacement assets or animation packs are included.
 
 ## AI choice and test arena
 
 **Options → AI → Dog behaviour** offers mutually exclusive Original and
 Improved choices. The choice is saved as `AI/ImprovedDogAI` in settings;
-Improved is the default on this branch. Existing Dogs adopt the choice when
+Improved is the default. Existing Dogs adopt the choice when
 gameplay resumes. A running hunt/search restarts, while an attack or recovery
 finishes normally.
 

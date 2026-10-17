@@ -7,7 +7,7 @@
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "systems/GameMessageHandler.h"
@@ -343,7 +343,7 @@ void cRefShots::Update(float afTimeStep)
 	// playback ends, which is in real time: the flicker would differ from run
 	// to run. Keep them on. Scripts can start flickering at any time.
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-	mpInit->mpLampLooks->SetStill(true);
+	mpInit->mpLampAppearanceController->SetStill(true);
 	if(pWorld && mStep != eStep_Done)
 	{
 		cLight3DListIterator lightIt = pWorld->GetLightIterator();

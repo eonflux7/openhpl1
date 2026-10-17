@@ -18,7 +18,7 @@
  */
 #include "impl/GLRenderTargets.h"
 #include "impl/GLGraphicsHelpers.h"
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "impl/GpuProfiler.h"
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
@@ -341,7 +341,7 @@ namespace hpl
 		glBindFramebuffer(GL_FRAMEBUFFER, mlTargetFramebuffer);
 		cGpuProfiler::Label(GL_FRAMEBUFFER, mlTargetFramebuffer, "Render target");
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTargetToGL(pTex->GetTarget()),
-			static_cast<cSDLTexture *>(pTex)->GetTextureHandle(), 0);
+			static_cast<cGLTexture *>(pTex)->GetTextureHandle(), 0);
 		// What SetRenderTargets() left attached
 		if(mlTargetNum > 1)
 		{
@@ -374,7 +374,7 @@ namespace hpl
 		{
 			iTexture *pTex = apTextures[i];
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, TextureTargetToGL(pTex->GetTarget()),
-				static_cast<cSDLTexture *>(pTex)->GetTextureHandle(), 0);
+				static_cast<cGLTexture *>(pTex)->GetTextureHandle(), 0);
 			vBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
 		}
 		for(int i = alNum; i < mlTargetNum; ++i)

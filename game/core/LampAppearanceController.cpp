@@ -17,7 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/StdAfx.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "core/Init.h"
 #include "core/MapHandler.h"
 #include "entities/GameEntity.h"
@@ -148,7 +148,7 @@ static unsigned int NameSeed(const tString& asName)
 
 //-----------------------------------------------------------------------
 
-cLampLooks::cLampLooks(cInit *apInit)  : iUpdateable("LampLooks")
+cLampAppearanceController::cLampAppearanceController(cInit *apInit) : iUpdateable("LampLooks")
 {
 	mpInit = apInit;
 
@@ -159,7 +159,7 @@ cLampLooks::cLampLooks(cInit *apInit)  : iUpdateable("LampLooks")
 
 //-----------------------------------------------------------------------
 
-cLampLooks::~cLampLooks()
+cLampAppearanceController::~cLampAppearanceController()
 {
 }
 
@@ -171,7 +171,7 @@ cLampLooks::~cLampLooks()
 
 //-----------------------------------------------------------------------
 
-void cLampLooks::Reset()
+void cLampAppearanceController::Reset()
 {
 	// The lights go with the map
 	mlLampCount = 0;
@@ -179,7 +179,7 @@ void cLampLooks::Reset()
 
 //-----------------------------------------------------------------------
 
-void cLampLooks::Update(float afTimeStep)
+void cLampAppearanceController::Update(float afTimeStep)
 {
 	mfTime += afTimeStep;
 	mlLampCount = 0;
@@ -237,7 +237,7 @@ void cLampLooks::Update(float afTimeStep)
 // look different, unless they reach so far that they are the sky or a
 // whole cave, or have a falloff picture of their own. The furnace's
 // lights are flames. Sparks and lights that scripts flash are left alone.
-void cLampLooks::SetMapLightLook(iLight3D *apLight)
+void cLampAppearanceController::SetMapLightLook(iLight3D *apLight)
 {
 	const float kfLongestReach = 20.0f;
 
@@ -259,7 +259,7 @@ void cLampLooks::SetMapLightLook(iLight3D *apLight)
 
 //-----------------------------------------------------------------------
 
-void cLampLooks::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff)
+void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff)
 {
 	cLightLook look;
 	mlLampCount++;

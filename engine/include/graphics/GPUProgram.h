@@ -19,6 +19,8 @@
 #ifndef HPL_GPU_PROGRAM_H
 #define HPL_GPU_PROGRAM_H
 
+#include <cstdint>
+
 #include "system/SystemTypes.h"
 #include "graphics/ProgramParameters.h"
 #include "math/MathTypes.h"
@@ -40,13 +42,9 @@ namespace hpl {
 		// GLSL base name (or vertex:fragment) and space-separated defines.
 		virtual bool CreateFromFile(const tString& asFile, const tString& asDefines)=0;
 
-		/**
-		 * Bind the program to the GPU
-		 */
+		// Select the engine program; GL bindings and values are applied at draw time.
 		virtual void Bind()=0;
-		/**
-		 * Unbind the program to the GPU
-		 */
+		// Clear this program's engine selection without changing the current GL binding.
 		virtual void UnBind()=0;
 
 		// Values belong to this linked program and survive shader reloads.
@@ -76,22 +74,36 @@ namespace hpl {
 		}
 		bool SetVec4f(eProgramParam aParam, float afX,float afY,float afZ, float afW);
 
-		bool SetMatrixf(eProgramParam aParam, const cMatrixf& mMtx);
+		bool SetMatrixf(eProgramParam aParam, const cMatrixf &aMatrix);
 
 		virtual bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true)=0;
 		virtual bool SetTextureToUnit(int alUnit, iTexture* apTexture)=0;
 
 
-		static eProgramParam Element(eProgramParam aParam, unsigned index){
-			return static_cast<eProgramParam>(static_cast<unsigned>(aParam) + index);
+		static eProgramParam Element(eProgramParam aParam, unsigned alIndex)
+		{
+			return static_cast<eProgramParam>(static_cast<unsigned>(aParam) + alIndex);
 		}
 		const float* GetParameterData() const { return mvParameters; }
-		bool ParametersChanged() const { return mbParametersChanged; }
-		void ParametersUploaded(){ mbParametersChanged = false; }
+		uint64_t GetRevision() const { return mlRevision; }
+		bool ParametersChanged() const { return mlFirstChangedParameter < mlEndChangedParameter; }
+		// One enclosing interval keeps each draw to at most one buffer upload.
+		unsigned GetFirstChangedParameter() const { return mlFirstChangedParameter; }
+		unsigned GetChangedParameterCount() const
+		{
+			return ParametersChanged() ? mlEndChangedParameter - mlFirstChangedParameter : 0;
+		}
+		void ParametersUploaded()
+		{
+			mlFirstChangedParameter = static_cast<unsigned>(eProgramParam::Count);
+			mlEndChangedParameter = 0;
+		}
 
 	protected:
+		uint64_t mlRevision = 0;
 		float mvParameters[static_cast<unsigned>(eProgramParam::Count) * 4] = {};
-		bool mbParametersChanged = true;
+		unsigned mlFirstChangedParameter = 0;
+		unsigned mlEndChangedParameter = static_cast<unsigned>(eProgramParam::Count);
 
 		static bool mbDebugInfo;
 	};

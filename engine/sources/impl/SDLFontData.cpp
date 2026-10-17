@@ -20,7 +20,7 @@
 #include "graphics/GraphicsDrawer.h"
 #include "system/LowLevelSystem.h"
 #include "impl/SDLBitmap2D.h"
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 #include "graphics/GfxObject.h"
 #include "graphics/LowLevelGraphics.h"
 #include "graphics/Material.h"
@@ -141,8 +141,8 @@ namespace hpl {
 		std::vector<unsigned char> vPixels((size_t)alW*alH*4, 255);
 		for(int i=0; i<alW*alH; i++) vPixels[(size_t)i*4+3] = apCoverage[i];
 
-		cSDLTexture *pSDLTexture = static_cast<cSDLTexture*>(pPage->mpTexture);
-		glBindTexture(GL_TEXTURE_2D, pSDLTexture->GetTextureHandle());
+		cGLTexture *pGLTexture = static_cast<cGLTexture *>(pPage->mpTexture);
+		glBindTexture(GL_TEXTURE_2D, pGLTexture->GetTextureHandle());
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		glTexSubImage2D(GL_TEXTURE_2D,0,pPage->mlX,pPage->mlY,alW,alH,
 						GL_RGBA,GL_UNSIGNED_BYTE,vPixels.data());

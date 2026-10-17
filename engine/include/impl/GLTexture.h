@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef HPL_SDL_TEXTURE_H
-#define HPL_SDL_TEXTURE_H
+#ifndef HPL_GL_TEXTURE_H
+#define HPL_GL_TEXTURE_H
 
 #include "graphics/Texture.h"
 #include "impl/LowLevelGraphicsSDL.h"
@@ -29,15 +29,15 @@
 
 namespace hpl {
 
-	class cSDLTexture : public iTexture
+	class cGLTexture : public iTexture
 	{
 	public:
-		cSDLTexture(const tString &asName,iPixelFormat *apPxlFmt,iLowLevelGraphics* apLowLevelGraphics,
-					eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
-					bool abCompress=false);
-		~cSDLTexture() override;
+		cGLTexture(const tString &asName, iPixelFormat *apPxlFmt, iLowLevelGraphics *apLowLevelGraphics,
+			eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
+			bool abCompress = false);
+		~cGLTexture() override;
 
-		bool CreateFromBitmap(iBitmap2D* pBmp) override;
+		bool CreateFromBitmap(iBitmap2D *apBitmap) override;
 
 		bool CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps) override;
 
@@ -70,10 +70,10 @@ namespace hpl {
 		void SetTimeCount(float afX) override;
 		int GetCurrentLowlevelHandle() override;
 
-		/// SDL / OGL Specific ///////////
+		// OpenGL handles and storage format.
 
 		unsigned int GetTextureHandle();
-		int GetAnimationFrame() const;
+		int GetAnimationFrame() const override;
 
 		/// The sampler object the texture is read through, see
 		/// cLowLevelGraphicsSDL::GetSampler().
@@ -86,15 +86,15 @@ namespace hpl {
 		void SetFloatChannels(int alX){ mlFloatChannels = alX;}
 
 	private:
-		bool CreateFromBitmapToHandle(iBitmap2D* pBmp, int alHandleIdx);
+		bool UploadBitmap(iBitmap2D *apBitmap, int alLayer);
 
-		void PostCreation(GLenum aGLTarget);
+		void FinishUpload(GLenum aGLTarget);
 
-		GLenum GetGLWrap(eTextureWrap aMode);
+		GLenum ToGLWrapMode(eTextureWrap aMode);
 		bool HasMipMaps();
 		void SamplerChanged();
 
-		void GetSettings(cSDLBitmap2D* apSrc, int &alChannels, GLenum &aFormat);
+		void GetBitmapFormat(cSDLBitmap2D *apSrc, int &alChannels, GLenum &aFormat);
 
 		bool EnsureStorage(GLenum aTarget, GLenum aFormat, int alWidth, int alHeight, int alDepth=1);
 		GLuint mlTextureHandle = 0;
@@ -117,4 +117,4 @@ namespace hpl {
 	};
 
 };
-#endif // HPL_SDL_TEXTURE_H
+#endif // HPL_GL_TEXTURE_H

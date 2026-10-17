@@ -1535,8 +1535,8 @@ namespace hpl {
 			pBody->SetBlocksLight(true);
 			if(bDrawn)
 			{
-				if(	pEntity->IsShadowCaster()==false ||
-					(pSubMesh->GetMaterial() && pSubMesh->GetMaterial()->IsTransperant()))
+				if(pEntity->IsShadowCaster() == false ||
+					(pSubMesh->GetMaterial() && pSubMesh->GetMaterial()->IsTransparent()))
 				{
 					pBody->SetBlocksLight(false);
 				}

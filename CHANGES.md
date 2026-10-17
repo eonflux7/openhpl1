@@ -5,13 +5,73 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Code readability
+
+- Renamed renderer passes to `RenderAmbientAndDepth`, `RenderLights` and
+  `RenderTransparent`, and the accumulated frame-time accessor/member to
+  distinguish them from measured rendering duration. Shadow eligibility uses
+  `CanCastShadow`; material transparency names now spell `Transparent` correctly
+  throughout engine, game and regression code.
+- Renamed `cLampLooks` and `game/core/LampLooks.*` to
+  `cLampAppearanceController` and `game/core/LampAppearanceController.*`, updating
+  callers and includes. Script names, settings/save identifiers and the lamp
+  updater's registration name are unchanged.
+- Corrected deferred program-binding documentation, moved shadow-map rendering
+  documentation to its function, aligned GPU parameter helper argument names,
+  expanded their formatting and removed empty section scaffolding.
+- Validation: the default Linux build and both CTest suites passed. The EGL
+  renderer suite also passed on llvmpipe with GL 3.3 (storage extensions) and
+  GL 4.3 core. A token comparison against the pre-cleanup working tree confirmed
+  only identifier/include renames, comments and whitespace changes in C++.
+  Windows, sanitizer builds and full-game captures were not run for this pass.
+
+### Texture backend and diagnostic tool names
+
+- Renamed the OpenGL texture implementation from `cSDLTexture` / `SDLTexture.*`
+  to `cGLTexture` / `GLTexture.*`, updating backend factories, casts, font uploads
+  and renderer fixtures. SDL bitmap and window implementations retain their SDL
+  names. Private helpers now describe bitmap uploads, bitmap formats, upload
+  completion and wrap-mode conversion; array uploads use a layer argument.
+- Renamed the porting tools `dis.py` and `short.py` to `disassemble_game.py` and
+  `compact_disassembly.py`. Updated the script-function inspector's import and
+  current usage examples; the disassembler no longer shadows Python's `dis`.
+- Validation: the default Linux build and both CTest suites passed, including
+  software EGL runs under GL 3.3 (storage extensions) and GL 4.3 core. C++ token
+  comparison confirmed only renames, comments and whitespace changes. The
+  renamed Python tools compile/import, Python's `dis` resolves to the standard
+  library, and annotation, script-function inspection and compact disassembly
+  output match the previous tools on a synthetic fixture. Original-game binary
+  inspection, Windows, sanitizer builds and full-game captures were not run.
+
+### Renderer suite and shadow-cache naming
+
+- Renamed `tests/renderer_storage.cpp`, its build target and its CTest entry to
+  `renderer_regressions`, matching its coverage beyond texture storage. Updated
+  current build/validation instructions and suite diagnostics; historical
+  implementation reports retain the old name.
+- Aligned shadow-cache fields, locals and selection arguments with the engine
+  conventions. Names now identify byte budgets, map resolution, face masks and
+  use serials explicitly; declarations and definitions use matching arguments.
+- Renamed renderer fixture helpers to `CheckNoGLErrors`, `CheckImmutableStorage`
+  and `GetGLInteger`, and expanded the compact draw/readback and pixel comparison
+  statements without changing their operations or tolerances.
+- Validation: the default Linux build and both CTest suites passed. The renamed
+  renderer suite also passed on software EGL under GL 3.3 with storage extensions
+  and GL 4.3 core. CMake's compile database and CTest registration use the renamed
+  source/executable. Token comparison against this batch's starting working tree
+  confirmed unchanged operations, control flow, constants and tolerances; only
+  names, suite diagnostics, comments and whitespace changed in C++.
+  Windows, sanitizer builds and full-game captures were not run for this pass.
+
 ## OpenHPL1 consolidation
 
 - Renamed the project to **OpenHPL1**, with repository name `openhpl1`, to
   reflect the shared engine and the experimental Black Plague/Requiem ports.
   Updated CMake, the Windows dependency manifest and the default Windows sync
-  destination. The executable name `overture`, `OVERTURE_*` variables and
-  existing per-game settings/save directories remain compatible.
+  destination. The executable and CMake target are now `openhpl1`
+  (`openhpl1.exe` on Windows); launchers and capture/check tools use the new
+  name. Existing `OVERTURE_*` variables and per-game settings/save directories
+  remain compatible.
 - Integrated the remaining porting work into `main`: changing a hinge,
   slider or screw limit wakes its connected bodies, so scripted mechanisms
   respond after they have settled. Enlarging Newton's world bounds also
@@ -542,7 +602,7 @@ messages (NVIDIA 615). Fixed for that:
 - With `OVERTURE_GPU_LOG=<file>` the sections are always timed and every
   frame's times are written to that file, one line a frame; a frame that
   is saved as a picture carries the picture's name.
-  `docs/gpu-profiler-run1.md` is a first run of it over the reference
+  `docs/archive/gpu-profiler-run1.md` is a first run of it over the reference
   viewpoints.
 - Draw calls and triangles are counted at every `glDrawElements` and
   immediate-mode draw.
@@ -634,7 +694,7 @@ is left. RenderDoc needs a core profile; capturing with it is untested.
 
 ### Linear lighting (option, off by default)
 
-`docs/colour-space-audit.md` describes what the renderer and the game data
+`docs/archive/colour-space-audit.md` describes what the renderer and the game data
 do with colour, and what follows for this option.
 
 - **Linear Lighting** in Advanced Graphics (`LinearLighting` in
@@ -1298,8 +1358,8 @@ Step 3 of Milestone 5. Lamps: Original / Improved in the menu's Lighting
 page and the F2 panel's Shading window, kept in `settings.cfg` (`LampsImproved` and `Lamps*` under
 Graphics).
 
-- `cLampLooks` (`game/core/LampLooks.cpp`) gives the lights of lamp
-  entities, of the thrown flare and of the glow stick and flare in the hand
+- `cLampAppearanceController` (`game/core/LampAppearanceController.cpp`) gives
+  the lights of lamp entities, of the thrown flare and of the glow stick and flare in the hand
   a look (`cLightLook`) on every step. The kind of lamp is read from the
   name of the entity's file: paraffin lamps and the flare are flames; the
   iron mine, new storage and desk lamps are bulbs; `modern_mine_flour*`
@@ -2171,7 +2231,67 @@ callback timing and following-draw state, in addition to storage/lifetime and
 SMAA scissor regressions. Final sanitizer checks disable leak detection because
 LeakSanitizer cannot run under the review environment's ptrace restriction.
 Visual captures were not run in this environment (no game data or gamescope); they remain
-unvalidated. See `docs/renderer-cleanup-plan.md` for the worker handoff.
+unvalidated. See `docs/archive/renderer-cleanup-plan.md` for the worker handoff.
+
+### Step 12: program bindings and parameter uploads
+
+Repeated draws using the same linked shader variant now retain the GL program
+and material-buffer bindings. Changing an animated-texture variant rebinds the
+program while retaining its shared material buffer. Material edits upload one
+interval from the first changed parameter slot to the last, instead of the
+complete 2,160-byte block: a scalar update uploads 16 bytes. Initial buffer
+creation already supplies all values and no longer repeats that upload on the
+first draw. Reloading a previously used but inactive program also updates the
+handle used to restore it after a fullscreen pass.
+
+The EGL regression counts actual driver calls and reads back the complete
+material buffer. Its 128 unchanged submissions fall from 128 program binds and
+128 material-buffer binds to zero of each. It covers matrix and separated-slot
+updates, final-slot boundaries, program/variant switches, animation layers,
+external binding invalidation, deletion, and successful/failed reloads. This
+measures reduced calls and upload sizes, not a frame-time improvement.
+
+The normal build and both CTest suites pass. Both suites also pass with
+ASan/UBSan (leak detection disabled), and the EGL suite passes with Mesa
+restricted to GL 3.3 and GL 4.3. Full-game captures remain unavailable because
+game data and `gamescope` are absent; Windows was not validated. Logs are in
+`/tmp/openhpl1-submission-{before,tests-final,gl33,gl43,asan-tests}.log`.
+
+### Step 13: retained shadow maps
+
+Each light can retain its shadow depth instead of redrawing unchanged maps
+every frame. The default cache budget is 128 MiB, with at most 64 entries and
+least-recently-used eviction. Compatible evicted storage is reused to avoid
+allocating GPU textures repeatedly when the light working set exceeds the
+budget. Oversized maps and inputs without reliable revision tracking use the
+existing scratch targets. F4's Shadows window exposes the budget (zero disables
+reuse) and reports reused faces alongside maps/casters submitted this frame.
+
+Exact input signatures cover light projections, caster membership/visibility,
+transforms, uploaded geometry, alpha textures and animation, sampling changes,
+shadow-caster mode and shader revisions. Runtime identities distinguish new
+lights from reused addresses or loaded save IDs. Retained caster lists recheck
+visibility, shadow flags and materials, including submesh parents and forced
+shadows. Sampling-only shadow adjustments keep stored depth. Cube faces have
+independent validity, so camera turns render newly exposed faces while retaining
+the rest. Failed shader applications leave faces invalid for a later retry.
+Resource-target alpha textures and inherited alpha/UV attributes bypass reuse.
+
+The EGL fixture executes production spotlight/point rendering, reads back depth
+and counts GPU-generated primitives. Its unchanged spotlight produces zero
+primitives after the initial two-triangle caster draw; cached and uncached
+depth images match exactly. It exercises movement, deformation, element counts,
+membership/visibility, alpha edits/animation, sampler/projection changes,
+shader failure/reload, scene resizing, budgets, eviction and resource teardown.
+These checks establish draw reduction and synthetic depth preservation; they
+do not measure full-game CPU/GPU frame-time improvements. See
+`docs/shadow-cache.md` for the resource and invalidation contracts.
+
+The Linux build and both CTest suites pass normally and with ASan/UBSan (leak
+detection disabled). The EGL suite also passes on Mesa llvmpipe restricted to
+GL 3.3 and GL 4.3. Full-game captures remain unavailable because game data is
+absent; Windows validation and game frame-time profiling were not performed.
+Commands and log locations are recorded in `docs/shadow-cache.md`.
 
 ## Known issues
 

@@ -20,7 +20,7 @@
 #include "ui/GraphicsPresets.h"
 
 #include "core/Init.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "systems/EffectHandler.h"

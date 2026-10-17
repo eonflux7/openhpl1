@@ -19,6 +19,8 @@
 #ifndef HPL_VERTEXBUFFER_H
 #define HPL_VERTEXBUFFER_H
 
+#include <cstdint>
+
 #include "graphics/GraphicsTypes.h"
 #include "math/MathTypes.h"
 #include "system/SystemTypes.h"
@@ -91,6 +93,9 @@ namespace hpl {
 			mbTangents(false){}
 
 		virtual ~iVertexBuffer(){}
+		// Identifies uploaded geometry across updates and object lifetimes.
+		uint64_t GetContentRevision() const { return mlContentRevision; }
+		void MarkContentChanged() { mlContentRevision = ++mlNextContentRevision; }
 
 		// Select compact sheets before Compile instead of editable mesh arrays. No GL work here;
 		// uploads happen when bound/drawn. Empty submissions remain instance buffers.
@@ -99,6 +104,7 @@ namespace hpl {
 			mvQuadInstances.resize(alCount);
 			mbQuadInstances = true;
 			mbQuadInstancesDirty = true;
+			MarkContentChanged();
 			return mvQuadInstances;
 		}
 		void SetQuadInstances(const std::vector<cQuadInstance>& avInstances)
@@ -155,7 +161,10 @@ namespace hpl {
 		 * Set the number of of elements to draw.
 		 * \param alNum If < 0, draw all indices.
 		 */
-		void SetElementNum(int alNum){ mlElementNum = alNum;}
+		void SetElementNum(int alNum)
+		{
+			if(mlElementNum != alNum) { mlElementNum = alNum; MarkContentChanged(); }
+		}
 		int GetElementNum(){ return mlElementNum;}
 
 		tVertexFlag GetVertexFlags(){ return mVertexFlags;}
@@ -164,6 +173,8 @@ namespace hpl {
 		void SetTangents(bool abX){ mbTangents = abX;}
 
 	protected:
+		inline static uint64_t mlNextContentRevision = 0;
+		uint64_t mlContentRevision = ++mlNextContentRevision;
 		std::vector<cQuadInstance> mvQuadInstances;
 		bool mbQuadInstances = false;
 		bool mbQuadInstancesDirty = false;

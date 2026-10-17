@@ -7,29 +7,32 @@ natively on 64-bit Linux and Windows against the data from your own games.
 
 The goal is to keep the game playing exactly like the original while bringing
 the engine up to date: native widescreen, a modern renderer and a long list of
-quality-of-life fixes. See [ROADMAP.md](ROADMAP.md).
+quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
+[documentation index](docs/README.md).
 
 > You need your own copy of each game you want to play. This repository
 > contains no game assets.
 
 The project was previously called Overture Remade; its repository and checkout
-are now named `openhpl1`. The executable remains `overture` (`overture.exe` on
-Windows), and existing `OVERTURE_*` variables and per-game settings/save
-folders keep their names for compatibility.
+are now named `openhpl1`, as is the executable (`openhpl1.exe` on Windows).
+Existing `OVERTURE_*` variables and per-game settings/save folders keep their
+names for compatibility.
 
 ## Status
 
 Overture is the main supported game. Black Plague and Requiem load their maps
 and have substantial game code implemented, but still need playthrough testing
-and have missing features. See [PORTING-ROADMAP.md](PORTING-ROADMAP.md) and
+and have missing features. See the
+[shared roadmap](ROADMAP.md#black-plague-and-requiem) and
 [the porting notes](docs/black-plague-port.md) for their current limitations.
 
-**Milestone 0 done:** the game builds and runs as a native 64-bit Linux
-executable. It boots, plays the intro and menus and loads levels at full speed.
+**Milestone 0 done:** the game builds and runs as a native 64-bit executable
+on Linux and Windows. It boots, plays the intro and menus and loads levels at
+full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
-Renderer cleanup is through **Milestone 6, step 11**: mesh vertices upload
+Renderer cleanup is through **Milestone 6, step 13**: mesh vertices upload
 interleaved into one buffer, surface geometry uses triangle indices, and
 UVs and tangents have named attributes. Textures use immutable storage;
 animation frames occupy layers of one texture array. The shared triangle
@@ -46,10 +49,11 @@ are retained. Particle vertex uploads use 88 bytes per live particle instead
 of 176, without maximum-size emitter vertex/index arrays.
 
 Linux build and both regression suites pass, including EGL backend checks.
-The storage suite also passes on GL 3.3 with storage extensions and GL 4.3.
-The Windows MSVC build passes; step 9 comparisons match 95/95 default,
-95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames. All UI
-frames, effects pixel/live checks and GL debug validation pass. Details are in
+The renderer suite also passes on GL 3.3 with storage extensions and GL 4.3.
+For step 10, the Windows MSVC build passed; comparisons against step 9 matched
+95/95 default, 95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames.
+All UI frames, effects pixel/live checks and GL debug validation passed for
+that step. Details are in
 [CHANGES.md](CHANGES.md#step-10-billboards-beams-and-particles).
 
 Step 11 keeps see-through draws in explicit submission-ordered records, supports
@@ -59,7 +63,24 @@ fullscreen-pass state from the state and target owners. Both CTest suites pass
 in RelWithDebInfo and ASan/UBSan builds, including EGL on GL 3.3 and GL 4.3.
 Fresh visual captures and Windows validation were unavailable in the
 implementation environment; they remain unvalidated. See
-[docs/renderer-cleanup-plan.md](docs/renderer-cleanup-plan.md).
+the [archived renderer cleanup report](docs/archive/renderer-cleanup-plan.md).
+
+Step 12 skips redundant linked-program/material-buffer bindings and uploads
+only the interval of changed material parameters. EGL call-count checks reduce
+128 unchanged submissions from 128 binds of each kind to zero; a scalar edit
+uploads 16 bytes instead of the full 2,160-byte block. Frame-time effects have
+not been measured. Both regression suites pass normally and with ASan/UBSan
+(leak detection disabled); EGL also passes on GL 3.3 and GL 4.3.
+
+Step 13 retains shadow depth per light under a default 128 MiB cache budget.
+Unchanged maps are reused; moving casters, geometry/alpha updates and changed
+light projections invalidate them. Cube faces are tracked separately as the
+camera turns. F4's Shadows window shows reuse counts and lets the budget be
+set to zero for comparison. See [docs/shadow-cache.md](docs/shadow-cache.md)
+for the ownership and invalidation contracts. Full-game frame-time effects
+remain unmeasured. Current full-game captures and Windows validation for
+steps 11–13 remain outstanding; see the
+[validation checklist](ROADMAP.md#validation-to-close-first).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
 `GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing
@@ -101,13 +122,14 @@ cmake --preset default
 cmake --build --preset default
 ```
 
-This produces `build/overture`, with the shaders copied to `build/shaders/`.
+This produces `build/openhpl1`, with the shaders copied to `build/shaders/`.
 Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
 AddressSanitizer and UBSan; needs `libasan libubsan`).
 
 Run the engine checks with `ctest --test-dir build --output-on-failure`.
-With EGL headers/library installed, this also builds `renderer_storage`,
-which tests immutable textures, animation sampling, instanced effect geometry,
+With EGL headers/library installed, this also builds `renderer_regressions`,
+which tests program submission, transparent ordering, shadow caching,
+immutable textures, animation sampling, instanced effect geometry,
 soft-particle depth fades, shader reloads, framebuffer transitions, final-pass
 state restoration, render-scale/FSAA resizing and GL resource lifetime on a
 surfaceless software GL context. These checks need neither game data nor
@@ -128,7 +150,7 @@ dependencies listed in `vcpkg.json` on the first configure.
 platform\windows\build.cmd
 ```
 
-This produces `build-windows\overture.exe` with its DLLs, shaders, fonts and
+This produces `build-windows\openhpl1.exe` with its DLLs, shaders, fonts and
 test maps. `platform\windows\run.cmd` starts it against the Steam copy
 (`...\steamapps\common\Penumbra Overture\redist`; set `OVERTURE_GAME_DIR`
 for another), and `platform\windows\smoke.cmd` runs the smoke test with its
@@ -143,7 +165,7 @@ drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
 Before changing gameplay code, run the smoke test on the ASan build:
 
 ```
-cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/overture
+cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/openhpl1
 ```
 
 Original-asset Dog behaviour and playback checks run in a silent headless
@@ -292,7 +314,7 @@ listed as "unstable" and do not count.
 
 Step 10 passes the Linux build and both CTest suites, including real GL
 instance expansion, blend/animation and soft-particle depth checks on Mesa
-llvmpipe. The storage suite also passes on GL 3.3 with storage extensions
+llvmpipe. The renderer suite also passes on GL 3.3 with storage extensions
 and GL 4.3. The separate Windows kit passes its MSVC build (CTest targets
 are disabled there). The indexed stage matches all 95 default step 9 frames;
 final motion blur matches 95/95, Render Scale 1.5 with 4× FSAA matches 31/31,

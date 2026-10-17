@@ -809,7 +809,7 @@ public:
 	TestRenderMaterial(bool abTransparent, bool abDepthTest)
 		: iMaterial("test material", nullptr, nullptr, nullptr, nullptr, eMaterialPicture_Texture, nullptr)
 	{
-		mbIsTransperant = abTransparent;
+		mbIsTransparent = abTransparent;
 		mbDepthTest = abDepthTest;
 	}
 	void Compile() override {}

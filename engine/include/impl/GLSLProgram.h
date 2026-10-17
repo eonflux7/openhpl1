@@ -92,6 +92,8 @@ namespace hpl {
 
 		static bool InitPrograms(iLowLevelGraphics *apLowLevelGraphics);
 		static void ExitPrograms();
+		// Raw GL clients restore program/material bindings or invalidate them
+		// here before returning to engine draws. Apply then rebinds both.
 		static void ClearAppliedProgram(){ mpAppliedProgram = nullptr; }
 		static void SetShaderDirectory(const tString& asDir){ msShaderDir = asDir; }
 		static const tString& GetShaderDirectory(){ return msShaderDir; }
@@ -118,6 +120,7 @@ namespace hpl {
 		static GLuint CreateLinked(const tString& asName, const tString& asDefines="", bool abState=false,
 			const tString& asVertex="", std::vector<tString>* apFiles=nullptr);
 		bool CompileProgram();
+		void ApplyBindings(GLuint alHandle);
 		static GLuint CompileShader(GLenum aStage, const tString& asFile, const tString& asDefines,
 									bool abState, std::vector<tString> *apFiles=nullptr);
 		static GLuint CompileSource(GLenum aStage, tString asSource, const tString& asName,

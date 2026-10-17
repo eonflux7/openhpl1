@@ -735,11 +735,15 @@ namespace hpl {
 		/**
 		 * All further drawing goes to the depth of a shadow map, cleared:
 		 * the one of spotlights, or a face (0 to 5: +x -x +y -y +z -z) of
-		 * the cube map of point lights. There is one of each, alSize pixels
-		 * a side, and the light shaders read them. Nearer than the near
+		 * the cube map of point lights. SelectShadowMap chooses the retained
+		 * map or an uncached scratch target. Nearer than the near
 		 * plane counts as on it.
 		 */
 		virtual void BeginShadowMap(bool abCube, int alFace, int alSize)=0;
+		/// Select a light's map and return valid faces (bit 0 for a spotlight).
+		/// The signature describes depth-producing inputs, not sampling settings.
+		virtual unsigned SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
+			const std::vector<uint64_t> &avSignature, size_t alBudgetBytes) = 0;
 		/**
 		 * Back to the target before BeginShadowMap().
 		 */

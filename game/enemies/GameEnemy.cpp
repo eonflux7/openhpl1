@@ -98,7 +98,7 @@ bool cLineOfSightRayCallback::Intersected()
 
 //-----------------------------------------------------------------------
 
-static bool BodyIsTransperant(iPhysicsBody *apBody)
+static bool BodyIsTransparent(iPhysicsBody *apBody)
 {
 	iGameEntity* pEntity = (iGameEntity*)apBody->GetUserData();
 	if(pEntity && pEntity->GetMeshEntity())
@@ -108,9 +108,9 @@ static bool BodyIsTransperant(iPhysicsBody *apBody)
 		bool bFoundSolid = false;
 		for(int i=0; i< pMeshEntity->GetSubMeshEntityNum(); ++i)
 		{
-			iMaterial *pMaterial = pMeshEntity->GetSubMeshEntity(i)->GetMaterial(); 
-			if(pMaterial && 
-				(pMaterial->IsTransperant()==false && pMaterial->HasAlpha()==false))
+			iMaterial *pMaterial = pMeshEntity->GetSubMeshEntity(i)->GetMaterial();
+			if(pMaterial &&
+				(pMaterial->IsTransparent() == false && pMaterial->HasAlpha() == false))
 			{
 				bFoundSolid = true;
 				break;
@@ -128,9 +128,9 @@ bool cLineOfSightRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams 
 	if(pBody->IsCharacter()) return true;
 	if(mpGrabBody == pBody) return true;
 
-	if(BodyIsTransperant(pBody)) return true;
-	
-	
+	if(BodyIsTransparent(pBody)) return true;
+
+
 	mbIntersected = true;
 	return false;
 }

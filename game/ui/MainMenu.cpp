@@ -23,7 +23,7 @@
 #include "core/ButtonHandler.h"
 #include "core/MapHandler.h"
 #include "core/SaveHandler.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "ui/IntroStory.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"

@@ -151,6 +151,7 @@ namespace hpl {
 	bool cVertexBufferVBO::Compile(tVertexCompileFlag aFlags)
 	{
 		if(mbCompiled) return false;
+		MarkContentChanged();
 		if(mbQuadInstances)
 		{
 			glGenBuffers(1, &mlVertexHandle);
@@ -211,6 +212,7 @@ namespace hpl {
 
 	void cVertexBufferVBO::UpdateData(tVertexFlag aTypes, bool abIndices)
 	{
+		MarkContentChanged();
 		if(mbQuadInstances) { mbQuadInstancesDirty = true; return; }
 		GLenum usageType = GL_STATIC_DRAW;
 		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW;

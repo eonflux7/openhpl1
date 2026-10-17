@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef GAME_LAMP_LOOKS_H
-#define GAME_LAMP_LOOKS_H
+#ifndef GAME_LAMP_APPEARANCE_CONTROLLER_H
+#define GAME_LAMP_APPEARANCE_CONTROLLER_H
 
 #include "core/StdAfx.h"
 
@@ -27,11 +27,7 @@ class cInit;
 
 //----------------------------------------
 
-/**
- * How the glow stick, the flare and the lamps of the world look
- * (Milestone 5). The original's were a colour, a reach and the falloff
- * ramp, the same for a flame and a tube.
- */
+// Appearance settings for world lamps, the glow stick and flares.
 class cLampSettings
 {
 public:
@@ -55,18 +51,13 @@ public:
 
 //----------------------------------------
 
-/**
- * Gives the lights of lamp entities and of the hand-held glow stick and
- * flare their look (cLightLook), each step: by the kind of lamp, which is
- * read from the entity's file name. The lights that are part of a map get
- * the falloff by distance, and the furnace's the flame. The game data is
- * not changed, and lights of other entities are left alone.
- */
-class cLampLooks : public iUpdateable
+// Updates cLightLook from the lamp kind inferred from entity filenames.
+// Also handles held glow sticks/flares and map-light falloff; other entities are unchanged.
+class cLampAppearanceController : public iUpdateable
 {
 public:
-	cLampLooks(cInit *apInit);
-	~cLampLooks() override;
+	cLampAppearanceController(cInit *apInit);
+	~cLampAppearanceController() override;
 
 	void Update(float afTimeStep) override;
 	void Reset() override;
@@ -95,4 +86,4 @@ private:
 
 //----------------------------------------
 
-#endif // GAME_LAMP_LOOKS_H
+#endif // GAME_LAMP_APPEARANCE_CONTROLLER_H

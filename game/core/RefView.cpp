@@ -8,7 +8,7 @@
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "core/GraphicsHelper.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
@@ -606,7 +606,7 @@ void cRefView::ApplyOptions()
 	}
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-	mpInit->mpLampLooks->SetStill(mbNoFlicker);
+	mpInit->mpLampAppearanceController->SetStill(mbNoFlicker);
 	if(mbNoFlicker && pWorld)
 	{
 		cLight3DListIterator lightIt = pWorld->GetLightIterator();
@@ -1065,6 +1065,8 @@ void cRefView::DrawShadows()
 
 	if(ImGui::CollapsingHeader("Maps", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		bChanged |= ImGui::SliderInt("Shadow cache (MiB)", &settings.mlCacheSizeMB, 0, 512);
+		if(ImGui::IsItemHovered()) Tip("Keeps unchanged shadow maps between frames. Zero redraws every map.");
 		static const int vSizes[] = {256, 512, 1024, 2048, 4096};
 		const char *sSizes = "256\0" "512\0" "1024\0" "2048\0" "4096\0";
 		int lSpot = 0, lPoint = 0;
@@ -1127,6 +1129,7 @@ void cRefView::DrawShadows()
 	if(ImGui::IsItemHovered())
 		Tip("Lights that cast shadows, the maps drawn for them (one for a spotlight, up to six for "
 							"a point light) and the things drawn into those. F3 shows the time they take ('Shadow maps').");
+	ImGui::TextDisabled("Cached maps reused: %d", stats.mlCachedMaps);
 
 	ImGui::PopItemWidth();
 	if(bChanged) pRenderer->SetShadowMapSettings(settings);
@@ -1564,8 +1567,8 @@ void cRefView::DrawShading()
 	// Lamps
 	if(ImGui::CollapsingHeader("Lamps##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		cLampLooks *pLampLooks = mpInit->mpLampLooks;
-		cLampSettings lamps = pLampLooks->GetSettings();
+		cLampAppearanceController *pLampAppearanceController = mpInit->mpLampAppearanceController;
+		cLampSettings lamps = pLampAppearanceController->GetSettings();
 		bChanged = false;
 
 		if(ImGui::Button("Reset##lamps"))
@@ -1579,7 +1582,7 @@ void cRefView::DrawShading()
 				"with them, each kind of lamp has a colour of its own, lamps are brighter close by, and "
 				"tubes have long highlights.");
 		ImGui::SameLine();
-		ImGui::TextDisabled("%d lights with a look in this map", pLampLooks->GetLampCount());
+		ImGui::TextDisabled("%d lights with a look in this map", pLampAppearanceController->GetLampCount());
 
 		ImGui::PushItemWidth(fEm * 12);
 		bChanged |= ImGui::SliderFloat("Flicker", &lamps.mfFlicker, 0.0f, 3.0f, "%.2f");
@@ -1616,7 +1619,7 @@ void cRefView::DrawShading()
 				"and the furnace's lights waver. Their colours stay.");
 		ImGui::PopItemWidth();
 
-		if(bChanged) pLampLooks->SetSettings(lamps);
+		if(bChanged) pLampAppearanceController->SetSettings(lamps);
 	}
 
 	///////////////////////////////////////////

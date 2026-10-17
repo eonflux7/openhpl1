@@ -1,11 +1,16 @@
 # Porting roadmap: Black Plague and Requiem
 
+> Archived on 2026-10-18. This is a historical snapshot, not current
+> status or agent instructions. See the [current roadmap](../../ROADMAP.md)
+> and [archive index](README.md) for context. Paths under old build
+> directories and `/tmp` may no longer exist.
+
 The same executable plays Penumbra: Overture, Black Plague and Requiem
 (`./run.sh blackplague`, `./run.sh requiem`). The engine is the one the two
 later games shipped with; what Frictional never released is the game code
 Black Plague added to Overture's. It is written again here, after the games'
 binaries and data. How that is done, and the tools for it, are in
-[docs/black-plague-port.md](docs/black-plague-port.md).
+[docs/black-plague-port.md](../black-plague-port.md).
 
 Nothing below is play-tested unless it says so. "Checked" means the smoke
 test (`OVERTURE_SMOKE=all`): every map loaded and run for a few frames with

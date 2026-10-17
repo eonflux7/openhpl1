@@ -185,23 +185,23 @@ endif()
 overture_warnings(hpl)
 
 #--------------------------------------------------------------------
-# Penumbra: Overture
+# OpenHPL1 game executable (Overture, Black Plague and Requiem)
 
 file(GLOB_RECURSE game_sources CONFIGURE_DEPENDS game/*.cpp)
-add_executable(overture ${game_sources})
+add_executable(openhpl1 ${game_sources})
 if(WIN32)
 	# A GUI program (no console window) that still starts at main(). The
 	# manifest selects UTF-8 as the process code page, so the engine's 8-bit
 	# file names and the C runtime agree on UTF-8 like on Linux.
-	target_sources(overture PRIVATE platform/windows/overture.manifest)
-	set_target_properties(overture PROPERTIES WIN32_EXECUTABLE ON)
-	target_link_options(overture PRIVATE /ENTRY:mainCRTStartup)
+	target_sources(openhpl1 PRIVATE platform/windows/openhpl1.manifest)
+	set_target_properties(openhpl1 PROPERTIES WIN32_EXECUTABLE ON)
+	target_link_options(openhpl1 PRIVATE /ENTRY:mainCRTStartup)
 	# The vcpkg toolchain copies the dependency DLLs next to the executable
 endif()
-target_include_directories(overture PRIVATE game)
-target_precompile_headers(overture PRIVATE game/core/StdAfx.h)
-target_link_libraries(overture PRIVATE hpl)
-overture_warnings(overture)
+target_include_directories(openhpl1 PRIVATE game)
+target_precompile_headers(openhpl1 PRIVATE game/core/StdAfx.h)
+target_link_libraries(openhpl1 PRIVATE hpl)
+overture_warnings(openhpl1)
 
 include(CTest)
 # The tests reach private members with "#define private public", which MSVC
@@ -213,47 +213,47 @@ if(BUILD_TESTING AND MSVC)
 endif()
 if(BUILD_TESTING)
 	# Opt-in in-game checks use the original dog mesh, clips and physics.
-	target_sources(overture PRIVATE tests/dog_regressions.cpp)
-	target_compile_definitions(overture PRIVATE OVERTURE_DOG_REGRESSIONS)
+	target_sources(openhpl1 PRIVATE tests/dog_regressions.cpp)
+	target_compile_definitions(openhpl1 PRIVATE OVERTURE_DOG_REGRESSIONS)
 	add_executable(engine_regressions tests/engine_regressions.cpp)
 	target_link_libraries(engine_regressions PRIVATE hpl)
 	overture_warnings(engine_regressions)
 	add_test(NAME engine_regressions COMMAND engine_regressions)
 	set_tests_properties(engine_regressions PROPERTIES
 		ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
-	# Real GL storage/sampling checks without a window or game data.
+	# Renderer regressions under software EGL, without a window or game data.
 	if(UNIX AND NOT APPLE)
 		find_path(OVERTURE_EGL_INCLUDE_DIR EGL/egl.h)
 		find_library(OVERTURE_EGL_LIBRARY EGL)
 		if(OVERTURE_EGL_INCLUDE_DIR AND OVERTURE_EGL_LIBRARY)
-			add_executable(renderer_storage tests/renderer_storage.cpp)
-			target_link_libraries(renderer_storage PRIVATE hpl ${OVERTURE_EGL_LIBRARY})
-			target_include_directories(renderer_storage PRIVATE ${OVERTURE_EGL_INCLUDE_DIR})
-			target_compile_definitions(renderer_storage PRIVATE
+			add_executable(renderer_regressions tests/renderer_regressions.cpp)
+			target_link_libraries(renderer_regressions PRIVATE hpl ${OVERTURE_EGL_LIBRARY})
+			target_include_directories(renderer_regressions PRIVATE ${OVERTURE_EGL_INCLUDE_DIR})
+			target_compile_definitions(renderer_regressions PRIVATE
 				OVERTURE_TEST_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
-			overture_warnings(renderer_storage)
-			add_test(NAME renderer_storage COMMAND renderer_storage)
-			set_tests_properties(renderer_storage PROPERTIES SKIP_RETURN_CODE 77
+			overture_warnings(renderer_regressions)
+			add_test(NAME renderer_regressions COMMAND renderer_regressions)
+			set_tests_properties(renderer_regressions PROPERTIES SKIP_RETURN_CODE 77
 				ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;UBSAN_OPTIONS=halt_on_error=1")
 		endif()
 	endif()
 endif()
 # The reference image viewpoints are read from, and saved to, the source tree
-target_compile_definitions(overture PRIVATE
+target_compile_definitions(openhpl1 PRIVATE
 	OVERTURE_REFVIEWS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tools/refviews.txt")
 
 # Shaders are loaded from <executable dir>/shaders/. Copied on every build:
 # as a step after linking, an edited shader was not copied until some C++
 # changed too.
-add_custom_target(overture_shaders ALL
+add_custom_target(openhpl1_shaders ALL
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:overture>/shaders)
-add_dependencies(overture_shaders overture)
+		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:openhpl1>/shaders)
+add_dependencies(openhpl1_shaders openhpl1)
 
 # Fonts are loaded from <executable dir>/fonts/
-add_custom_command(TARGET overture POST_BUILD
+add_custom_command(TARGET openhpl1 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_CURRENT_SOURCE_DIR}/fonts $<TARGET_FILE_DIR:overture>/fonts)
+		${CMAKE_CURRENT_SOURCE_DIR}/fonts $<TARGET_FILE_DIR:openhpl1>/fonts)
 
 # The physics test map is generated into <executable dir>/testmap/
 find_package(Python3 COMPONENTS Interpreter)

@@ -21,7 +21,7 @@
 #include "math/Math.h"
 #include "impl/SDLBitmap2D.h"
 #include "impl/SDLFontData.h"
-#include "impl/SDLTexture.h"
+#include "impl/GLTexture.h"
 
 #include "impl/GLSLProgram.h"
 #include "system/LowLevelSystem.h"
@@ -218,18 +218,18 @@ namespace hpl
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		return hplNew(cSDLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		return hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
 	}
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(const tString &asName, bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		return hplNew(cSDLTexture, (asName, mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		return hplNew(cGLTexture, (asName, mpPixelFormat, this, aType, abUseMipMaps, aTarget));
 	}
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(iBitmap2D *apBmp, bool abUseMipMaps, eTextureType aType,
 		eTextureTarget aTarget)
 	{
-		cSDLTexture *pTex = hplNew(cSDLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		cGLTexture *pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
 		pTex->CreateFromBitmap(apBmp);
 
 		return pTex;
@@ -238,11 +238,11 @@ namespace hpl
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(const cVector2l &avSize, int alBpp, cColor aFillCol,
 		bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		cSDLTexture *pTex = nullptr;
+		cGLTexture *pTex = nullptr;
 
 		if(aType == eTextureType_RenderTarget)
 		{
-			pTex = hplNew(cSDLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+			pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
 			pTex->Create(avSize.x, avSize.y, aFillCol);
 		}
 		else
@@ -252,7 +252,7 @@ namespace hpl
 			iBitmap2D *pBmp = CreateBitmap2D(avSize, bFloat ? 32 : alBpp);
 			pBmp->FillRect(cRect2l(0, 0, 0, 0), aFillCol);
 
-			pTex = hplNew(cSDLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+			pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
 			pTex->SetFloat(bFloat);
 			bool bRet = pTex->CreateFromBitmap(pBmp);
 
@@ -272,7 +272,7 @@ namespace hpl
 		iBitmap2D *pBmp = CreateBitmap2D(avSize, 32);
 		pBmp->FillRect(cRect2l(0, 0, 0, 0), cColor(0, 0));
 
-		cSDLTexture *pTex = hplNew(cSDLTexture, ("", mpPixelFormat, this, eTextureType_Normal, false, aTarget));
+		cGLTexture *pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, eTextureType_Normal, false, aTarget));
 		pTex->SetFloat(true);
 		pTex->SetFloatChannels(alChannels);
 		bool bRet = pTex->CreateFromBitmap(pBmp);
@@ -528,6 +528,12 @@ namespace hpl
 		mShadows.BeginShadowMap(abCube, alFace, alSize);
 	}
 
+	unsigned cLowLevelGraphicsSDL::SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
+		const std::vector<uint64_t> &avSignature, size_t alBudgetBytes)
+	{
+		return mShadows.SelectShadowMap(alLightId, abCube, alResolution, avSignature, alBudgetBytes);
+	}
+
 	void cLowLevelGraphicsSDL::EndShadowMap()
 	{
 		mShadows.EndShadowMap();
@@ -607,7 +613,9 @@ namespace hpl
 
 	bool cLowLevelGraphicsSDL::PrepareDraw()
 	{
-		return mState.PrepareDraw(mTargets.GetDrawState(mShadows.IsActive()));
+		const bool ready = mState.PrepareDraw(mTargets.GetDrawState(mShadows.IsActive()));
+		if(!ready && mShadows.IsActive()) mShadows.NotifyDrawFailed();
+		return ready;
 	}
 
 	void cLowLevelGraphicsSDL::NotifyDrawComplete()

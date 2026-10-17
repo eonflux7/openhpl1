@@ -102,6 +102,8 @@ namespace hpl {
 		/// Pixels a side: of a spotlight's map, and of a face of a point light's cube map.
 		int mlSpotSize = 1024;
 		int mlPointSize = 1024;
+		/// Retained depth maps and signatures; zero disables reuse. Scratch maps are separate.
+		int mlCacheSizeMB = 128;
 
 		/// eShadowMapFilter_Soft: the blur.
 		float mfSoftness = 0.02f;
@@ -140,6 +142,8 @@ namespace hpl {
 		/// Maps drawn: one for a spotlight, up to six for a point light.
 		int mlMaps = 0;
 		int mlCasters = 0;
+		/// Valid faces reused instead of cleared and redrawn.
+		int mlCachedMaps = 0;
 	};
 
 	//---------------------------------------------
@@ -252,7 +256,7 @@ namespace hpl {
 
 		cRenderList* GetRenderList(){ return mpRenderList;}
 		/// Seconds of rendering: the frame times given to RenderWorld(), added up.
-		float GetRenderTime(){ return mfRenderTime;}
+		float GetAccumulatedFrameTime() { return mfAccumulatedFrameTime; }
 		cRenderSettings* GetRenderSettings(){return &mRenderSettings;}
 
 		eRendererShowShadows GetShowShadows();
@@ -273,20 +277,22 @@ namespace hpl {
 
 		void RenderSkyBox(cCamera3D *apCamera);
 
-		void RenderZ(cCamera3D *apCamera);
+		void RenderAmbientAndDepth(cCamera3D *apCamera);
 
 
-		void RenderLight(cCamera3D *apCamera);
+		void RenderLights(cCamera3D *apCamera);
 
 		bool RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams);
 		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, const cMatrixf &a_mtxProjection, int alFace);
 		void UpdateShadowCasterGraphics(cCamera3D *apCamera);
+		bool BuildShadowMapSignature(iLight3D *apLight, const cMatrixf &aView,
+			const cMatrixf &aProjection);
 
 		bool RenderAmbientOcclusion(cCamera3D *apCamera);
 
 		void RenderDiffuse(cCamera3D *apCamera);
 
-		void RenderTrans(cCamera3D *apCamera);
+		void RenderTransparent(cCamera3D *apCamera);
 		bool RenderTransparentRefraction(cCamera3D *apCamera, const cTransparentDraw &aDraw,
 			const iRenderState &aState);
 		void RenderRefractionMask(cCamera3D *apCamera, const iRenderState &aState,
@@ -305,7 +311,7 @@ namespace hpl {
 
 		bool mbLog;
 
-		float mfRenderTime;
+		float mfAccumulatedFrameTime;
 
 		iGpuProgram *mpDiffuseProgram;
 		iGpuProgram *mpSolidFogProgram;
@@ -324,6 +330,7 @@ namespace hpl {
 
 		cShadowMapSettings mShadowMapSettings;
 		cShadowMapStats mShadowMapStats;
+		std::vector<uint64_t> mvShadowSignature;
 
 		cBoundingVolume mFogBV;
 

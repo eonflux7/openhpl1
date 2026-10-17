@@ -77,7 +77,7 @@
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
 #include "core/RefView.h"
-#include "core/LampLooks.h"
+#include "core/LampAppearanceController.h"
 #include "systems/PhysicsLog.h"
 
 #include "ui/IntroStory.h"
@@ -331,7 +331,7 @@ void cInit::RunRequestedGame()
 	}
 	std::vector<char*> vArgPtrs;
 	for(std::string &sArg : vArgs) vArgPtrs.push_back(sArg.data());
-	if(vArgPtrs.empty()) vArgPtrs.push_back((char*)"overture");
+	if(vArgPtrs.empty()) vArgPtrs.push_back((char*)"openhpl1");
 	vArgPtrs.push_back(nullptr);
 
 	fflush(nullptr);
@@ -371,7 +371,7 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mpRefShots = nullptr;
 	mpRefView = nullptr;
 	mpDogTestMap = nullptr;
-	mpLampLooks = nullptr;
+	mpLampAppearanceController = nullptr;
 	mpPhysicsLog = nullptr;
 	mbWeaponAttacking = false;
 	mbResetCache = true;
@@ -975,7 +975,7 @@ bool cInit::Init(tString asCommandLine)
 		flashlight.mfBounce = mpConfig->GetFloat("Graphics","FlashlightBounce",flashlight.mfBounce);
 		mpPlayer->GetFlashLight()->SetSettings(flashlight);
 	}
-	mpLampLooks = hplNew( cLampLooks,(this) );
+	mpLampAppearanceController = hplNew(cLampAppearanceController, (this));
 	{
 		cLampSettings lamps;
 		lamps.mfFlicker = mpConfig->GetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
@@ -986,7 +986,7 @@ bool cInit::Init(tString asCommandLine)
 		lamps.mfNearBoost = mpConfig->GetFloat("Graphics","LampsNearBoost",lamps.mfNearBoost);
 		lamps.mfTube = mpConfig->GetFloat("Graphics","LampsTube",lamps.mfTube);
 		lamps.mbMapLights = mpConfig->GetBool("Graphics","LampsMapLights",lamps.mbMapLights);
-		mpLampLooks->SetSettings(lamps);
+		mpLampAppearanceController->SetSettings(lamps);
 	}
 	mpMapLoadText = hplNew( cMapLoadText,(this) );
 	mpPreMenu = hplNew( cPreMenu,(this) );
@@ -1024,7 +1024,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddUpdate("Default", mpPlayerHands);
 	mpGame->GetUpdater()->AddUpdate("Default", mpMusicHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpMapHandler);
-	mpGame->GetUpdater()->AddUpdate("Default", mpLampLooks);
+	mpGame->GetUpdater()->AddUpdate("Default", mpLampAppearanceController);
 	mpGame->GetUpdater()->AddUpdate("Default", mpGameMessageHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpRadioHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpGameGuiHandler);
@@ -1238,7 +1238,7 @@ void cInit::Exit()
 	}
 
 	{
-		const cLampSettings &lamps = mpLampLooks->GetSettings();
+		const cLampSettings &lamps = mpLampAppearanceController->GetSettings();
 		mpConfig->SetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
 		mpConfig->SetFloat("Graphics","LampsSway",lamps.mfSway);
 		mpConfig->SetFloat("Graphics","LampsColour",lamps.mfColour);
@@ -1260,8 +1260,8 @@ void cInit::Exit()
 	Log(" Exit Player\n");
 	// PLAYER EXIT /////////////////////
 	hplDelete( mpPlayer );
-	hplDelete( mpLampLooks );
-	
+	hplDelete(mpLampAppearanceController);
+
 	// BASE GAME EXIT //////////////////
 	Log(" Exit Button Handler\n");
 	hplDelete( mpButtonHandler );
