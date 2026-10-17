@@ -16,6 +16,7 @@
 #include "systems/FadeHandler.h"
 #include "ui/MainMenu.h"
 #include "ui/Inventory.h"
+#include "impl/ComparisonImage.h"
 
 #include <SDL3/SDL.h>
 #include <imgui.h>
@@ -37,11 +38,8 @@ static void Tip(const char *apText)
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
 
-// Comparison shots: steps for a changed look to settle (shadows, the
-// flashlight's bounce, effects that keep earlier frames), and for a frame
-// to have been drawn and saved
-static const int kCompareSettleSteps = 25;
-static const int kCompareSaveSteps = 4;
+// Count presented frames, so a slow renderer cannot skip either capture.
+static const int kCompareSettleFrames = 25;
 
 //-----------------------------------------------------------------------
 
@@ -109,6 +107,7 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 
 cRefView::~cRefView()
 {
+	EndCompareShots();
 	SetOpen(false);
 	for(cGfxObject *pGfx : mvLegacyPreviewGfx)
 		if(pGfx) mpInit->mpGame->GetGraphics()->GetDrawer()->DestroyGfxObject(pGfx);
@@ -235,45 +234,112 @@ void cRefView::RestoreLook()
 
 void cRefView::StartCompareShots()
 {
-	if(mlCompareStep != 0) return;
+	if(IsComparing() || mpInit->mpMapHandler->IsChangingMap() ||
+		mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default" ||
+		!mpInit->mpGame->GetScene()->GetWorld3D()) return;
 
-	const char *pHome = getenv("HOME");
+	// SDL uses the Windows shell folder lookup, including redirected and
+	// OneDrive desktops, and returns UTF-8 for the image writer.
+	const char *pDesktop = SDL_GetUserFolder(SDL_FOLDER_DESKTOP);
+	if(!pDesktop || !pDesktop[0])
+	{
+		Error("Couldn't find the desktop for a comparison image: %s\n", SDL_GetError());
+		return;
+	}
 	time_t lNow = time(nullptr);
 	char sTime[32];
 	strftime(sTime, sizeof(sTime), "%Y%m%d-%H%M%S", localtime(&lNow));
-	msCompareFile = tString(pHome && pHome[0] ? pHome : ".") + "/overture-compare-" + sTime;
+	const tString sBase = tString(pDesktop) + "overture-compare-" + sTime;
+	msCompareFile = sBase + "-stacked.png";
+	for(int i=2; FileExists(cString::To16Char(msCompareFile)); ++i)
+		msCompareFile = sBase + "-" + cString::ToString(i) + "-stacked.png";
+
+	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+	mvCompareCameraPos = pCamera->GetPosition();
+	mvCompareCameraAngles = cVector3f(pCamera->GetPitch(), pCamera->GetYaw(), pCamera->GetRoll());
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	mbCompareOverlay = pLowLevel->GetDebugOverlayActive();
+	pLowLevel->SetDebugOverlayActive(false);
 
 	SetOriginalLook();
 	mlCompareStep = 1;
-	mlCompareWait = kCompareSettleSteps;
+	mlCompareWait = kCompareSettleFrames;
+	Log("Saving Vanilla / Improved comparison to %s\n", msCompareFile.c_str());
 }
 
-// Steps of the game's logic, not frames: 1 the original look settles,
-// 2 its picture is taken, 3 the options are back and settle, 4 their
-// picture is taken. The panel is not drawn meanwhile.
+void cRefView::HoldCompareCamera()
+{
+	if(!IsComparing()) return;
+	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+	pCamera->SetPosition(mvCompareCameraPos);
+	pCamera->SetPitch(mvCompareCameraAngles.x);
+	pCamera->SetYaw(mvCompareCameraAngles.y);
+	pCamera->SetRoll(mvCompareCameraAngles.z);
+}
+
+void cRefView::EndCompareShots()
+{
+	if(!IsComparing()) return;
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	pLowLevel->CaptureNextFrame({});
+	if(mlCompareStep <= 2) RestoreLook();
+	pLowLevel->SetDebugOverlayActive(mbCompareOverlay);
+	mlCompareStep = 0;
+	std::vector<unsigned char>().swap(mvCompareVanilla);
+}
+
+void cRefView::OnPostBufferSwap()
+{
+	UpdateCompareShots();
+}
+
+// 1: vanilla settles, 2: await its readback, 3: current settings settle,
+// 4: await the combined PNG. The panel and overlay are hidden meanwhile.
 void cRefView::UpdateCompareShots()
 {
 	if(mlCompareStep == 0) return;
-	if(--mlCompareWait > 0) return;
+	if(mlCompareWait > 0 && --mlCompareWait > 0) return;
 
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	switch(mlCompareStep)
 	{
 	case 1:
-		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-original.png");
-		mlCompareWait = kCompareSaveSteps;
+		mbCompareCaptured = false;
+		pLowLevel->CaptureNextFrame([this](const std::vector<unsigned char>& aPixels, const cVector2l& avSize) {
+			mvCompareVanilla = aPixels;
+			mvCompareSize = avSize;
+			mbCompareCaptured = true;
+		});
 		break;
 	case 2:
+		if(!mbCompareCaptured) return;
+		if(mvCompareVanilla.empty())
+		{
+			Error("Couldn't read the vanilla comparison frame\n");
+			EndCompareShots();
+			return;
+		}
 		RestoreLook();
-		mlCompareWait = kCompareSettleSteps;
+		mlCompareWait = kCompareSettleFrames;
 		break;
 	case 3:
-		pLowLevel->SaveNextFrameToPNG(msCompareFile + "-improved.png");
-		mlCompareWait = kCompareSaveSteps;
+		mbCompareCaptured = false;
+		pLowLevel->CaptureNextFrame([this](const std::vector<unsigned char>& aPixels, const cVector2l& avSize) {
+			mbCompareSaved = avSize == mvCompareSize;
+			if(!mbCompareSaved) Error("Couldn't save comparison: the window size changed\n");
+			else
+			{
+				mbCompareSaved = SaveComparisonPNG(msCompareFile, mvCompareSize, mvCompareVanilla, aPixels);
+				if(!mbCompareSaved)
+					Error("Couldn't save comparison to '%s': %s\n", msCompareFile.c_str(), SDL_GetError());
+			}
+			mbCompareCaptured = true;
+		});
 		break;
 	default:
-		Log("Comparison shots saved: %s-original.png and -improved.png\n", msCompareFile.c_str());
-		mlCompareStep = 0;
+		if(!mbCompareCaptured) return;
+		if(mbCompareSaved) Log("Comparison image saved: %s\n", msCompareFile.c_str());
+		EndCompareShots();
 		return;
 	}
 	++mlCompareStep;
@@ -283,7 +349,17 @@ void cRefView::UpdateCompareShots()
 
 void cRefView::Update(float afTimeStep)
 {
-	UpdateCompareShots();
+	if(IsComparing())
+	{
+		if(mpInit->mpMapHandler->IsChangingMap() ||
+			mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default")
+		{
+			EndCompareShots();
+			return;
+		}
+		HoldCompareCamera();
+		return;
+	}
 	UpdatePlayerEffects(afTimeStep);
 
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
@@ -584,6 +660,7 @@ void cRefView::DeleteViewpoint()
 
 void cRefView::Reset()
 {
+	EndCompareShots();
 	// Changing map resets every updateable; the panel keeps its state.
 	mlEffectPreview = ePreview_None;
 	mbEffectTour = false;

@@ -14,6 +14,20 @@ option(OVERTURE_WARNINGS "Compiler warnings for the engine and game (not vendor/
 set(OVERTURE_SANITIZERS "" CACHE STRING
 	"Comma-separated -fsanitize= list for all targets, e.g. address,undefined")
 
+# Silences the vendored libraries' warnings
+if(MSVC)
+	set(OVERTURE_NO_WARNINGS $<$<COMPILE_LANGUAGE:C,CXX>:/w>)
+else()
+	set(OVERTURE_NO_WARNINGS -w)
+endif()
+
+if(MSVC)
+	# Sources are UTF-8. The Windows headers must not define min/max macros.
+	add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/utf-8> $<$<COMPILE_LANGUAGE:C,CXX>:/bigobj>)
+	add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS
+		_USE_MATH_DEFINES)
+endif()
+
 if(OVERTURE_SANITIZERS)
 	# Alignment is off: AngelScript packs pointers and std::string arguments
 	# at 4-byte offsets by design, which is fine on x86-64.
@@ -23,7 +37,12 @@ if(OVERTURE_SANITIZERS)
 endif()
 
 function(overture_warnings target)
-	if(OVERTURE_WARNINGS)
+	if(OVERTURE_WARNINGS AND MSVC)
+		# C4244/C4267/C4305: implicit narrowing, everywhere in the original
+		# code. C4996: the CRT's "unsafe" functions.
+		target_compile_options(${target} PRIVATE
+			/W3 /wd4244 /wd4267 /wd4305 /wd4996 /wd4018 /wd4101)
+	elseif(OVERTURE_WARNINGS)
 		# The -Wno- groups are high-volume noise in the original code
 		# (stdcall on script callbacks, member init order, unhandled enum
 		# values, unused locals). Re-enable one at a time to clean up.
@@ -43,8 +62,17 @@ find_package(SDL3 REQUIRED CONFIG)
 find_package(SDL3_image REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbisfile vorbis ogg)
+if(WIN32)
+	# Windows: vcpkg (vcpkg.json) provides every dependency
+	find_package(Vorbis CONFIG REQUIRED)
+	add_library(overture_vorbis INTERFACE)
+	target_link_libraries(overture_vorbis INTERFACE Vorbis::vorbisfile Vorbis::vorbis)
+else()
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbisfile vorbis ogg)
+	add_library(overture_vorbis INTERFACE)
+	target_link_libraries(overture_vorbis INTERFACE PkgConfig::VORBIS)
+endif()
 
 # FreeType renders the fonts. The system library is used if its headers are
 # installed; otherwise the source is downloaded and built into the engine.
@@ -65,7 +93,7 @@ if(NOT Freetype_FOUND)
 	set(BUILD_SHARED_LIBS OFF)
 	FetchContent_MakeAvailable(freetype)
 	set(BUILD_SHARED_LIBS ${overture_build_shared})
-	target_compile_options(freetype PRIVATE -w)
+	target_compile_options(freetype PRIVATE ${OVERTURE_NO_WARNINGS})
 	add_library(Freetype::Freetype ALIAS freetype)
 endif()
 
@@ -80,7 +108,7 @@ target_include_directories(glad SYSTEM PUBLIC vendor/glad/include)
 file(GLOB_RECURSE newton_sources CONFIGURE_DEPENDS vendor/newton/*.cpp)
 add_library(newton STATIC ${newton_sources})
 target_include_directories(newton SYSTEM PUBLIC vendor/newton)
-target_compile_options(newton PRIVATE -w)
+target_compile_options(newton PRIVATE ${OVERTURE_NO_WARNINGS})
 if(OVERTURE_SANITIZERS)
 	# Upstream Newton relies on shifts of negative values and the like;
 	# keep ASan on it but not UBSan.
@@ -92,24 +120,29 @@ file(GLOB angelscript_sources CONFIGURE_DEPENDS
 	vendor/angelscript/source/*.cpp
 	vendor/angelscript/add_on/scriptstdstring/*.cpp
 	vendor/angelscript/add_on/scriptarray/*.cpp)
+if(MSVC)
+	# Native calling conventions on x64 MSVC need the MASM helper
+	enable_language(ASM_MASM)
+	list(APPEND angelscript_sources vendor/angelscript/source/as_callfunc_x64_msvc_asm.asm)
+endif()
 add_library(angelscript STATIC ${angelscript_sources})
 target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include
 	vendor/angelscript/add_on)
-target_compile_options(angelscript PRIVATE -w)
+target_compile_options(angelscript PRIVATE ${OVERTURE_NO_WARNINGS})
 
 # OALWrapper (zlib), Frictional Games' OpenAL helper
 file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
 add_library(oalwrapper STATIC ${oalwrapper_sources})
 target_include_directories(oalwrapper SYSTEM PUBLIC vendor/oalwrapper/include)
-target_link_libraries(oalwrapper PUBLIC OpenAL::OpenAL PkgConfig::VORBIS SDL3::SDL3)
-target_compile_options(oalwrapper PRIVATE -w)
+target_link_libraries(oalwrapper PUBLIC OpenAL::OpenAL overture_vorbis SDL3::SDL3)
+target_compile_options(oalwrapper PRIVATE ${OVERTURE_NO_WARNINGS})
 
 # TinyXML 2.x (zlib), as shipped with HPL1
 file(GLOB tinyxml_sources CONFIGURE_DEPENDS vendor/tinyxml/*.cpp)
 add_library(tinyxml STATIC ${tinyxml_sources})
 target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
-target_compile_options(tinyxml PRIVATE -w)
+target_compile_options(tinyxml PRIVATE ${OVERTURE_NO_WARNINGS})
 
 # Dear ImGui 1.92.9b (MIT), the debug overlay; SDL3 platform backend and
 # the OpenGL 3 backend on glad (vendor/imgui_glad)
@@ -123,7 +156,7 @@ add_library(imgui STATIC
 	vendor/imgui_glad/imgui_impl_opengl3_glad.cpp)
 target_include_directories(imgui SYSTEM PUBLIC vendor/imgui vendor/imgui/backends)
 target_link_libraries(imgui PUBLIC glad SDL3::SDL3)
-target_compile_options(imgui PRIVATE -w)
+target_compile_options(imgui PRIVATE ${OVERTURE_NO_WARNINGS})
 
 #--------------------------------------------------------------------
 # HPL1 engine
@@ -131,7 +164,11 @@ target_compile_options(imgui PRIVATE -w)
 file(GLOB_RECURSE hpl_sources CONFIGURE_DEPENDS
 	engine/sources/*.cpp
 	engine/sources/*.c)
-list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
+if(WIN32)
+	list(FILTER hpl_sources EXCLUDE REGEX "/posix\\.cpp$")
+else()
+	list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
+endif()
 
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)
@@ -142,6 +179,9 @@ target_link_libraries(hpl PUBLIC
 	SDL3::SDL3 SDL3_image::SDL3_image
 	Freetype::Freetype
 	OpenGL::GL)
+if(WIN32)
+	target_link_libraries(hpl PUBLIC shell32 user32)
+endif()
 overture_warnings(hpl)
 
 #--------------------------------------------------------------------
@@ -149,12 +189,28 @@ overture_warnings(hpl)
 
 file(GLOB_RECURSE game_sources CONFIGURE_DEPENDS game/*.cpp)
 add_executable(overture ${game_sources})
+if(WIN32)
+	# A GUI program (no console window) that still starts at main(). The
+	# manifest selects UTF-8 as the process code page, so the engine's 8-bit
+	# file names and the C runtime agree on UTF-8 like on Linux.
+	target_sources(overture PRIVATE platform/windows/overture.manifest)
+	set_target_properties(overture PROPERTIES WIN32_EXECUTABLE ON)
+	target_link_options(overture PRIVATE /ENTRY:mainCRTStartup)
+	# The vcpkg toolchain copies the dependency DLLs next to the executable
+endif()
 target_include_directories(overture PRIVATE game)
 target_precompile_headers(overture PRIVATE game/core/StdAfx.h)
 target_link_libraries(overture PRIVATE hpl)
 overture_warnings(overture)
 
 include(CTest)
+# The tests reach private members with "#define private public", which MSVC
+# cannot link (access is part of its symbol names), and their harness
+# (gamescope, headless sessions) is Linux-only.
+if(BUILD_TESTING AND MSVC)
+	message(STATUS "Tests are not built with MSVC")
+	set(BUILD_TESTING OFF)
+endif()
 if(BUILD_TESTING)
 	# Opt-in in-game checks use the original dog mesh, clips and physics.
 	target_sources(overture PRIVATE tests/dog_regressions.cpp)

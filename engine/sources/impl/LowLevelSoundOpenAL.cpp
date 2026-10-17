@@ -200,37 +200,13 @@ namespace hpl {
 		if (mbLogSounds)
 			Log("  Sound logging enabled\n");
 
-		#ifdef WIN32
-
-		cInitParams.mbUseEFX = abUseEnvAudio;
-
-		if ( abUseHardware )
-		{
-			Log("  Trying to open hardware device...%s ",abForceGeneric ? "(Generic forced)" : "" );
-
-			OAL_SetupLogging(mbLogSounds, eOAL_LogOutput_File, eOAL_LogVerbose_High, "HPL_OpenAL_HWDevice");
-
-			if (abForceGeneric)
-				cInitParams.msDeviceName = "Generic Hardware";
-		}
-		else
-		{
-			Log("  Trying to open software device... ");
-
-			OAL_SetupLogging(mbLogSounds, eOAL_LogOutput_File, eOAL_LogVerbose_High, "HPL_OpenAL_SWDevice");
-
-			cInitParams.msDeviceName = "Generic Software";
-		}
-
-		#else
-
+		// OpenAL Soft on every platform. The original Windows build opened the
+		// "Generic Hardware/Software" devices and used EFX; neither applies now.
 		cInitParams.mbUseEFX = false;
 
 		Log("  Trying to open audio device... ");
 
 		OAL_SetupLogging(mbLogSounds, eOAL_LogOutput_File, eOAL_LogVerbose_High, "HPL_OpenAL");
-
-		#endif
 
 		mbInitialized = OAL_Init(cInitParams);
 
@@ -248,24 +224,7 @@ namespace hpl {
 			return;
 		}
 
-		#ifdef WIN32
-
-			mbHardwareAcc = (strcmp(OAL_Info_GetDeviceName(),"Generic Software") != 0);
-
-			if (abUseHardware)
-			{
-				if (mbHardwareAcc)
-					Log("Success!\n");
-				else
-					Log("Failed opening hardware device, using software\n");
-			}
-			else
-				Log("Success!\n");
-
-		#else
-
-				Log("Success!\n");
-		#endif
+		Log("Success!\n");
 
 		OAL_SetDistanceModel ( eOAL_DistanceModel_None );
 
@@ -286,25 +245,6 @@ namespace hpl {
 //		for ( int i = 0; i < OAL_ gpDevice->GetExtensions->size(); ++i )
 //			Log(" \t%s\n", (*pDeviceInfo->vsExtensions)[i].c_str());
 
-		#ifdef WIN32
-		if (abUseEnvAudio)
-		{
-			mbEnvAudioEnabled = OAL_Info_IsEFXActive();
-			mpEffect = OAL_Effect_Reverb_Create();
-			if (mbEnvAudioEnabled && (mpEffect != NULL))
-			{
-				//SetSoundEnvironment(NULL);
-				OAL_EffectSlot_AttachEffect(0, (cOAL_Effect*)mpEffect);
-				OAL_EffectSlot_SetAutoAdjust(0, false);
-
-				SetEnvVolume(1.0f);
-
-				Log("  Setting up Environmental Audio...Success.\n");
-			}
-			else
-				Log("  Setting up Environmental Audio...Failed.\n");
-		}
-		#endif
 
 
 		//Default listener settings.

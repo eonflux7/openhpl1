@@ -232,6 +232,7 @@ cPlayerEffectState cRefView::EffectPreviewState() const
 
 void cRefView::OnDraw()
 {
+	HoldCompareCamera();
 	if(mlEffectPreview == ePreview_None ||
 		mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default" ||
 		mpInit->mpGame->GetGraphics()->GetDrawer()->GetSkipDrawing()) return;

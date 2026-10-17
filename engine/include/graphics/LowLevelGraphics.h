@@ -724,6 +724,10 @@ namespace hpl {
 		 * everything has been drawn and just before the buffers are swapped.
 		 */
 		virtual void SaveNextFrameToPNG(const tString& asFile)=0;
+		// Reads the next presented frame as top-to-bottom RGB24 pixels. An
+		// empty buffer signals failure; an empty callback cancels a request.
+		using tFrameCapture = std::function<void(const std::vector<unsigned char>&, const cVector2l&)>;
+		virtual void CaptureNextFrame(tFrameCapture aCapture)=0;
 
 		/////////// MATRIX METHODS //////////////////////////
 

@@ -125,6 +125,7 @@ namespace hpl {
 
 		void SaveScreenToBMP(const tString& asFile) override;
 		void SaveNextFrameToPNG(const tString& asFile) override { msSaveNextFrame = asFile; }
+		void CaptureNextFrame(tFrameCapture aCapture) override { mFrameCapture = std::move(aCapture); }
 
 		/////////// MATRIX METHODS /////////////////////////
 
@@ -554,6 +555,8 @@ namespace hpl {
 		SDL_DisplayID GetDisplayID(int alDisplay);
 		void DebugDumpFrame();
 		bool SaveFrameToPNG(const tString& asFile);
+		std::vector<unsigned char> ReadFramePixels();
+		tFrameCapture mFrameCapture;
 		tString msSaveNextFrame;
 
 		bool CreateSceneFramebuffers();

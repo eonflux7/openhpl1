@@ -63,7 +63,9 @@ class cDogTestMap;
 	#define PERSONAL_RELATIVEPIECES
 	#define PERSONAL_RELATIVEPIECES_COUNT 0
 	#define PERSONAL_RELATIVEGAME_PARENT _W("Penumbra Overture/")
-	#define PERSONAL_RELATIVEGAME _W("Penumbra Overture/Episode1/")
+	// Documents\Penumbra Overture\OvertureRemade\, beside the original
+	// game's Episode1 folder so its settings and saves are untouched
+	#define PERSONAL_RELATIVEGAME _W("Penumbra Overture/OvertureRemade/")
 #elif defined(__linux__)
 	#define PERSONAL_RELATIVEROOT _W(".frictionalgames/")
 	#define PERSONAL_RELATIVEPIECES _W(".frictionalgames"),

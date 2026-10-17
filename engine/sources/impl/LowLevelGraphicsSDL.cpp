@@ -24,6 +24,7 @@
 #include "math/Math.h"
 #include "impl/SDLBitmap2D.h"
 #include "impl/SDLFontData.h"
+#include "impl/ComparisonImage.h"
 #include "impl/SDLTexture.h"
 
 // The look-up textures of the SMAA reference implementation
@@ -37,6 +38,7 @@
 #include "system/String.h"
 
 #include <SDL3_image/SDL_image.h>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <string>
@@ -336,8 +338,16 @@ namespace hpl {
 			alHeight = 600;
 		}
 
+		// OVERTURE_HIDDEN=1: automated runs (smoke test) where no headless
+		// compositor is available, e.g. on Windows. The window is never shown,
+		// rendering still happens in it.
+		const char *pHidden = SDL_getenv("OVERTURE_HIDDEN");
+		bool bHidden = pHidden && pHidden[0] && pHidden[0] != '0';
+		if(bHidden) abFullscreen = false;
+
 		SDL_WindowFlags lFlags = SDL_WINDOW_OPENGL;
 		if(abFullscreen) lFlags |= SDL_WINDOW_FULLSCREEN;
+		if(bHidden) lFlags |= SDL_WINDOW_HIDDEN;
 
 		Log(" Setting video mode: %d x %d - %d bpp\n",alWidth, alHeight, alBpp);
 		SDL_PropertiesID lProps = SDL_CreateProperties();
@@ -507,25 +517,55 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cLowLevelGraphicsSDL::SaveFrameToPNG(const tString& asFile)
+	std::vector<unsigned char> cLowLevelGraphicsSDL::ReadFramePixels()
 	{
-		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGB24);
-		if(pSurface==nullptr) return false;
-
+		if(mvScreenSize.x <= 0 || mvScreenSize.y <= 0) return {};
+		GLint lAlignment, lReadBuffer;
+		glGetIntegerv(GL_PACK_ALIGNMENT, &lAlignment);
+		glGetIntegerv(GL_READ_BUFFER, &lReadBuffer);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadBuffer(GL_BACK);
-		std::vector<unsigned char> vPixels(mvScreenSize.x * mvScreenSize.y * 3);
-		glReadPixels(0,0,mvScreenSize.x,mvScreenSize.y,GL_RGB,GL_UNSIGNED_BYTE,&vPixels[0]);
+		const size_t lStride = (size_t)mvScreenSize.x * 3;
+		std::vector<unsigned char> vPixels(lStride * mvScreenSize.y);
+		glReadPixels(0,0,mvScreenSize.x,mvScreenSize.y,GL_RGB,GL_UNSIGNED_BYTE,vPixels.data());
+		glPixelStorei(GL_PACK_ALIGNMENT, lAlignment);
+		glReadBuffer(lReadBuffer);
+		for(int y=0; y<mvScreenSize.y/2; ++y)
+			std::swap_ranges(vPixels.begin() + y*lStride, vPixels.begin() + (y+1)*lStride,
+				vPixels.begin() + (mvScreenSize.y-1-y)*lStride);
+		return vPixels;
+	}
+
+	bool cLowLevelGraphicsSDL::SaveFrameToPNG(const tString& asFile)
+	{
+		std::vector<unsigned char> vPixels = ReadFramePixels();
+		if(vPixels.empty()) return false;
+		SDL_Surface *pSurface = SDL_CreateSurface(mvScreenSize.x, mvScreenSize.y, SDL_PIXELFORMAT_RGB24);
+		if(pSurface==nullptr) return false;
 		for(int y=0; y<mvScreenSize.y; ++y)
 		{
 			memcpy((unsigned char*)pSurface->pixels + y*pSurface->pitch,
-					&vPixels[(mvScreenSize.y-1-y) * mvScreenSize.x * 3], mvScreenSize.x * 3);
+					&vPixels[(size_t)y * mvScreenSize.x * 3], mvScreenSize.x * 3);
 		}
 
 		bool bRet = IMG_SavePNG(pSurface, asFile.c_str());
 		SDL_DestroySurface(pSurface);
 		if(bRet==false) Error("Couldn't save frame to '%s': %s\n", asFile.c_str(), SDL_GetError());
 		return bRet;
+	}
+
+	bool SaveComparisonPNG(const tString& asFile, const cVector2l& avSize,
+		const std::vector<unsigned char>& avVanilla, const std::vector<unsigned char>& avImproved)
+	{
+		cComparisonImage image;
+		if(!ComposeComparisonImage(image, avSize, avVanilla, avImproved))
+			return SDL_SetError("Invalid or mismatched comparison frames");
+		SDL_Surface *pSurface = SDL_CreateSurfaceFrom(image.mvSize.x, image.mvSize.y,
+			SDL_PIXELFORMAT_RGB24, image.mvPixels.data(), image.mvSize.x*3);
+		if(!pSurface) return false;
+		const bool bSaved = IMG_SavePNG(pSurface, asFile.c_str());
+		SDL_DestroySurface(pSurface);
+		return bSaved;
 	}
 
 	//-----------------------------------------------------------------------
@@ -1234,6 +1274,12 @@ namespace hpl {
 		// The frame dumps read the window's back buffer, as shown.
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		DebugDumpFrame();
+		if(mFrameCapture)
+		{
+			auto capture = std::move(mFrameCapture);
+			mFrameCapture = {};
+			capture(ReadFramePixels(), mvScreenSize);
+		}
 		if(msSaveNextFrame != "")
 		{
 			mGpuProfiler.Mark(msSaveNextFrame);

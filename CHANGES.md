@@ -1415,20 +1415,17 @@ reference images are as before.
 
 ### Comparison shots
 
-- **F9** saves two pictures of what is on screen to the home directory:
-  `overture-compare-<date>-<time>-original.png`, taken with every option
-  that changes the look set to the original's, and `-improved.png`, with
-  the options as they are. It takes about a second (each look gets 25
-  steps of the game to settle), the F2 panel is left out, and the options
-  are put back. Switched for the first picture: linear lighting, bloom
-  (to Original), ambient occlusion, depth of field and motion blur (to
-  Original), shadows (to volumes), the noise filter (to Original), SMAA,
-  the improved shading, the improved flashlight, the improved lamps, and
-  the improved halos, light shafts and particles.
-  Resolution, multisampling, texture filter, render scale, field of view
-  and gamma stay: the original has those too. The game is not paused, so
-  what moves is a moment further in the second picture
-  (`cRefView::StartCompareShots`).
+- **F9** saves one `overture-compare-<date>-<time>-stacked.png` to the desktop,
+  with full-resolution Vanilla above Improved. Improved uses the current
+  graphics settings, and labels sit above the screenshots. The original look is captured in memory;
+  no separate screenshots are left behind. Windows uses the shell desktop
+  folder, including redirected/OneDrive locations. Each look settles for 25
+  rendered frames and readback completes before switching settings. The camera
+  is held and gameplay input is suppressed during the capture; the F2 panel
+  and F3 overlay are omitted. Settings and overlay visibility are restored on
+  completion, cancellation, map changes and exit. Moving objects can advance
+  between the two captures. No external image tools or Python are needed at
+  runtime (`cRefView::StartCompareShots`).
 
 ### Fog
 
@@ -1529,9 +1526,73 @@ reference images are as before.
 - `tools/refshots.py effects /tmp/effects` captures both treatments, opaque
   endpoints and the panel, checks pixels and exercises real effect owners.
 
+## Windows build
+
+- Builds with Visual Studio (MSVC, x64) and vcpkg: `vcpkg.json` lists the
+  dependencies, the `windows` CMake preset uses vcpkg's toolchain, and
+  `platform\windows\build.cmd` sets up the compiler and builds into
+  `build-windows\`. AngelScript's native calls on x64 need its MASM file,
+  now part of the build. The test programs need GCC/Clang and are not built.
+- One `main()` on all platforms: on Windows a GUI program (no console) that
+  starts there, with a manifest that makes UTF-8 the process code page and
+  asks for per-monitor DPI awareness. The C locale is UTF-8 too, so file names
+  and the multibyte/wide conversions behave as on Linux.
+- The original's Windows-only code was out of date: folder checks compared
+  attributes exactly (a folder with any other attribute did not exist),
+  renaming always failed, the directory search had a fixed 256-character
+  buffer and never closed its handle, and leftover `#pragma comment(lib)`
+  lines asked for SDL 1.2 and other libraries by their old names.
+- Sound uses OpenAL Soft's default device on Windows too, without EFX, as on
+  Linux. The original asked for the "Generic Hardware/Software" devices of
+  Creative's old OpenAL, which no longer exist.
+- Settings, saves and `hpl.log` are in
+  `Documents\Penumbra Overture\OvertureRemade\`, beside the original game's
+  `Episode1` folder, which is not touched.
+- `platform\windows\run.cmd` runs the game against the Steam copy (whose
+  data is in `Penumbra Overture\redist`), `smoke.cmd` runs the smoke test, and
+  `platform/windows/sync.sh` mirrors the source from WSL to a Windows drive.
+- `OVERTURE_HIDDEN=1` creates the window hidden and never fullscreen, for
+  automated runs where there is no headless compositor like gamescope. The
+  Windows smoke test uses it with `ALSOFT_DRIVERS=null`: nothing is shown or
+  heard.
+
+## Physics bodies that turn to NaN
+
+- Newton 2 can blow a body up to NaN. Entities placed with a scale give
+  Newton scaled matrices, which it does not support, and some that start out
+  overlapping do it at once: two of the rocks in the pile in
+  `level01_06_workshop` vanished as the map loaded.
+- A NaN bounding box also broke Newton's broadphase. Its cells keep bodies
+  sorted, and a ray stops at the first one past its end; NaN compares as
+  neither, so every ray stopped there. Footsteps (and anything else using a
+  ray down) found no floor on the bodies sorted after it: the wooden floors of
+  the workshop's corridors were silent. After loading a save the order was
+  different, which hid it.
+- A body whose pose or velocity is not finite after a step is now put back to
+  its last finite pose, at rest, before Newton or the game sees it
+  (`dgBody::RestoreIfNotFinite`).
+
+## Graphics presets
+
+- Options → Graphics starts with a Preset: Improved High, Improved Medium,
+  Improved Low or Original, applied at once. It shows Custom when the options
+  have been changed by hand (on any page, or in the F2 panel).
+  - Improved High: all the improved looks and linear lighting, soft bloom,
+    Bokeh depth of field, ambient occlusion High, SMAA High, soft shadows,
+    16x anisotropic filtering.
+  - Improved Medium: ambient occlusion Low, SMAA Medium, 8x.
+  - Improved Low: no ambient occlusion, the original shadows and depth of
+    field, SMAA Low, 4x.
+  - Original: as the 2007 game: original shading, lights and effects, no
+    linear lighting, original bloom, no SMAA, trilinear filtering.
+  - All: motion blur off and render scale 100%. Resolution, gamma, field of
+    view, the noise filter, VSync and the frame limit are not part of them.
+- First run (no settings file yet) uses Improved High at the desktop
+  resolution. Before, the game's own `default_settings.cfg` gave 800x600 and
+  the original looks.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
 - Physics may feel slightly different from the original (see above); not yet
   compared side by side.
-- Windows build not set up yet.

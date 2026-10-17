@@ -20,7 +20,6 @@
 //Use this to check for memory leaks!
 
 #ifdef WIN32
-#pragma comment(lib, "angelscript.lib")
 #define UNICODE
 #include <windows.h>
 #include <shlobj.h>
@@ -54,16 +53,18 @@
 
 extern int hplMain(const hpl::tString &asCommandLine);
 
-#ifdef WIN32
-#include <windows.h>
-int WINAPI WinMain(	HINSTANCE hInstance,  HINSTANCE hPrevInstance,LPSTR	lpCmdLine, int nCmdShow)
-{
-	return hplMain(lpCmdLine);
-}
-#else
+// Windows: a GUI program linked with /ENTRY:mainCRTStartup, so it starts
+// here too. Its manifest makes UTF-8 the process code page.
 int main(int argc, char *argv[])
 {
-	if(!std::setlocale(LC_CTYPE, "")) {
+#ifdef WIN32
+	// The multibyte <-> wide conversions (cString::To8Char/To16Char) use UTF-8
+	// like on Linux, whatever the system's language
+	const char *sLocale = ".UTF-8";
+#else
+	const char *sLocale = "";
+#endif
+	if(!std::setlocale(LC_CTYPE, sLocale)) {
 		fprintf(stderr, "Can't set the specified locale! Check LANG, LC_CTYPE, LC_ALL.\n");
 		return 1;
 	}
@@ -79,7 +80,6 @@ int main(int argc, char *argv[])
 	}
 	return hplMain(cmdline);
 }
-#endif
 
 
 namespace hpl {
@@ -622,7 +622,8 @@ namespace hpl {
 	bool FolderExists(const tWString& asPath)
 	{
 	#ifdef WIN32
-		return GetFileAttributes(asPath.c_str())==FILE_ATTRIBUTE_DIRECTORY;
+		DWORD lAttributes = GetFileAttributes(asPath.c_str());
+		return lAttributes != INVALID_FILE_ATTRIBUTES && (lAttributes & FILE_ATTRIBUTE_DIRECTORY);
 	#else
 		struct stat statbuf;
 		return (stat(cString::To8Char(asPath).c_str(), &statbuf) != -1);
@@ -657,7 +658,7 @@ namespace hpl {
 	bool RenameFile(const tWString& asFrom, const tWString& asTo)
 	{
 	#ifdef WIN32
-		return false;
+		return MoveFile(asFrom.c_str(), asTo.c_str())==TRUE;
 	#else
 		return (rename(cString::To8Char(asFrom).c_str(), cString::To8Char(asTo).c_str()) == 0);
 	#endif

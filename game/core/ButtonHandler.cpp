@@ -336,6 +336,7 @@ void cButtonHandler::Update(float afTimeStep)
 	{
 		mpInit->mpGame->Exit();
 	}
+	if(mpInit->mpRefView && mpInit->mpRefView->IsComparing()) return;
 	if(mpInput->BecameTriggerd("DebugOverlay"))
 	{
 		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
@@ -348,6 +349,7 @@ void cButtonHandler::Update(float afTimeStep)
 	if(mpInput->BecameTriggerd("CompareShots") && mpInit->mpRefView)
 	{
 		mpInit->mpRefView->StartCompareShots();
+		if(mpInit->mpRefView->IsComparing()) return;
 	}
 	if(mpInput->BecameTriggerd("Screenshot"))
 	{

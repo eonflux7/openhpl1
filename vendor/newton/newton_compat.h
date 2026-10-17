@@ -26,7 +26,11 @@ typedef unsigned int uint;
 typedef uint8_t byte;
 
 #ifndef FORCEINLINE
+#ifdef _MSC_VER
+#define FORCEINLINE __forceinline
+#else
 #define FORCEINLINE inline __attribute__((always_inline))
+#endif
 #endif
 
 #ifndef ARRAYSIZE

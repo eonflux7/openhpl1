@@ -28,6 +28,7 @@
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "systems/EffectHandler.h"
+#include "ui/GraphicsPresets.h"
 #include "player/HapticGameCamera.h"
 
 #include "OALWrapper/OAL_Init.h"
@@ -1586,16 +1587,6 @@ public:
 
 // The original shadows (On, Only Static), none, and the shadow maps (Soft)
 // in one option: 0-2 are eRendererShowShadows with eShadowType_Volumes.
-static const int glShadowOptionNum = 5;
-
-static int GetShadowOption(cInit *apInit)
-{
-	cRenderer3D *pRenderer = apInit->mpGame->GetGraphics()->GetRenderer3D();
-	eRendererShowShadows show = pRenderer->GetShowShadows();
-	if(show == eRendererShowShadows_None || pRenderer->GetShadowType() == eShadowType_Volumes) return (int)show;
-	return show == eRendererShowShadows_All ? 3 : 4;
-}
-
 static tWString GetShadowOptionText(cInit *mpInit, int alOption)
 {
 	switch(alOption)
@@ -1624,10 +1615,7 @@ public:
 		if(aButton == eMButton_Left)		lCurrent = (lCurrent + 1) % glShadowOptionNum;
 		else if(aButton == eMButton_Right)	lCurrent = (lCurrent + glShadowOptionNum - 1) % glShadowOptionNum;
 
-		cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
-		pRenderer->SetShadowType(lCurrent >= 3 ? eShadowType_Maps : eShadowType_Volumes);
-		if(lCurrent >= 3)	pRenderer->SetShowShadows(lCurrent == 3 ? eRendererShowShadows_All : eRendererShowShadows_Static);
-		else				pRenderer->SetShowShadows((eRendererShowShadows)lCurrent);
+		SetShadowOption(mpInit, lCurrent);
 
 		gpShadowsText->msText = GetShadowOptionText(mpInit, lCurrent);
 	}
@@ -1905,65 +1893,7 @@ public:
 };
 
 
-// The options of the Lighting page: each is the original's or the improved
-// one, with its settings in the F2 panel. The names are not in the game's
-// language files.
-enum eImprovedOption
-{
-	eImprovedOption_Shading,
-	eImprovedOption_Flashlight,
-	eImprovedOption_Lamps,
-	eImprovedOption_Halos,
-	eImprovedOption_Shafts,
-	eImprovedOption_Particles,
-	eImprovedOption_LastEnum
-};
-
-static bool GetImprovedOption(cInit *mpInit, eImprovedOption aOption)
-{
-	switch(aOption)
-	{
-	case eImprovedOption_Shading:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetShading().mbImproved;
-	case eImprovedOption_Flashlight:	return mpInit->mpPlayer->GetFlashLight()->GetSettings().mbImproved;
-	case eImprovedOption_Halos:			return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbHalos;
-	case eImprovedOption_Shafts:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbShafts;
-	case eImprovedOption_Particles:		return mpInit->mpGame->GetGraphics()->GetLowLevel()->GetEffects().mbParticles;
-	default:							return mpInit->mpLampLooks->GetSettings().mbImproved;
-	}
-}
-
-static void SetImprovedOption(cInit *mpInit, eImprovedOption aOption, bool abX)
-{
-	if(aOption == eImprovedOption_Shading)
-	{
-		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-		cShadingSettings shading = pLowLevel->GetShading();
-		shading.mbImproved = abX;
-		pLowLevel->SetShading(shading);
-	}
-	else if(aOption == eImprovedOption_Flashlight)
-	{
-		cFlashlightSettings flashlight = mpInit->mpPlayer->GetFlashLight()->GetSettings();
-		flashlight.mbImproved = abX;
-		mpInit->mpPlayer->GetFlashLight()->SetSettings(flashlight);
-	}
-	else if(aOption == eImprovedOption_Halos || aOption == eImprovedOption_Shafts || aOption == eImprovedOption_Particles)
-	{
-		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-		cEffectSettings effects = pLowLevel->GetEffects();
-		if(aOption == eImprovedOption_Halos)		effects.mbHalos = abX;
-		else if(aOption == eImprovedOption_Shafts)	effects.mbShafts = abX;
-		else										effects.mbParticles = abX;
-		pLowLevel->SetEffects(effects);
-	}
-	else
-	{
-		cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
-		lamps.mbImproved = abX;
-		mpInit->mpLampLooks->SetSettings(lamps);
-	}
-}
-
+// The Lighting page. The names are not in the game's language files.
 static tWString GetImprovedText(cInit *mpInit, eImprovedOption aOption)
 {
 	return GetImprovedOption(mpInit, aOption) ? _W("Improved") : _W("Original");
@@ -2323,6 +2253,70 @@ public:
 		if(lIdx > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lIdx - 1));
 
 		gpMotionBlurText->msText = GetMotionBlurText(mpInit);
+	}
+};
+
+//------------------------------------------------------------
+
+// Graphics presets. The names are not in the game's language files.
+
+// Shows the preset the options are now, Custom if none: they can be changed
+// on the other pages and in the F2 panel.
+class cMainMenuWidget_GraphicsPresetText : public cMainMenuWidget_Text
+{
+public:
+	cMainMenuWidget_GraphicsPresetText(cInit *apInit, const cVector3f &avPos, cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Text(apInit,avPos,GetGraphicsPresetName(GetGraphicsPreset(apInit)),avFontSize,aAlignment) {}
+
+	void OnDraw() override
+	{
+		msText = GetGraphicsPresetName(GetGraphicsPreset(mpInit));
+		cMainMenuWidget_Text::OnDraw();
+	}
+};
+
+// What the pages show after a preset changed their options
+static void UpdateGraphicsTexts(cInit *mpInit)
+{
+	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
+	const tWString sOn = kTranslate("MainMenu","On");
+	const tWString sOff = kTranslate("MainMenu","Off");
+
+	gpBloomText->msText = GetBloomText(mpInit);
+	gpPostEffectsText->msText = pGraphics->GetRendererPostEffects()->GetActive() ? sOn : sOff;
+	gpMotionBlurText->msText = GetMotionBlurText(mpInit);
+	gpShadowsText->msText = GetShadowOptionText(mpInit, GetShadowOption(mpInit));
+	gpTextureFilterText->msText = GetTextureFilterText(mpInit);
+	gpSmaaText->msText = GetSmaaText(mpInit);
+	gpRenderScaleText->msText = GetRenderScaleText(pGraphics->GetRenderScale());
+	gpLinearLightingText->msText = pGraphics->GetLinearLighting() ? sOn : sOff;
+	gpAmbientOcclusionText->msText = GetAmbientOcclusionText(mpInit);
+	gpDoFText->msText = GetDoFText(mpInit);
+	for(int i=0; i<eImprovedOption_LastEnum; ++i)
+		gvImprovedText[i]->msText = GetImprovedText(mpInit, (eImprovedOption)i);
+}
+
+class cMainMenuWidget_GraphicsPreset : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_GraphicsPreset(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("Sets the options of the Advanced and Lighting pages together. Improved High, Medium and Low use the new lighting and effects at falling cost; Original looks as the 2007 game did. Custom: options changed by hand.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		// The presets in turn, forwards with the left button, back with the
+		// right; from Custom the first or last
+		int lCurrent = (int)GetGraphicsPreset(mpInit);
+		const int lNum = eGraphicsPreset_Custom;
+		if(lCurrent == eGraphicsPreset_Custom)	lCurrent = aButton == eMButton_Right ? lNum - 1 : 0;
+		else if(aButton == eMButton_Right)		lCurrent = (lCurrent + lNum - 1) % lNum;
+		else									lCurrent = (lCurrent + 1) % lNum;
+
+		ApplyGraphicsPreset(mpInit, (eGraphicsPreset)lCurrent);
+		UpdateGraphicsTexts(mpInit);
 	}
 };
 
@@ -3937,6 +3931,9 @@ void cMainMenu::CreateWidgets()
 	
 	//Buttons
 	vPos.x -= 130;*/
+	cMainMenuWidget *pWidgetPreset = hplNew( cMainMenuWidget_GraphicsPreset,(mpInit,vPos,_W("Preset:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetPreset);
+	vPos.y += 29;
 	cMainMenuWidget *pWidgetResolution = hplNew( cMainMenuWidget_Resolution,(mpInit,vPos,kTranslate("MainMenu","Resolution:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetResolution); 
 	vPos.y += 29;
@@ -3973,6 +3970,11 @@ void cMainMenu::CreateWidgets()
 	//Text
 	vPos = cVector3f(vTextStart.x+12, vTextStart.y+37, vTextStart.z);
 
+	cMainMenuWidget_Text *pPresetText = hplNew( cMainMenuWidget_GraphicsPresetText,(mpInit,vPos,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphics,pPresetText);
+	pPresetText->SetExtraWidget(pWidgetPreset);
+
+	vPos.y += 29;
 	sText = GetResolutionText(mpInit);
 	gpResolutionText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpResolutionText); 

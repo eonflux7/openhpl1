@@ -195,6 +195,7 @@ private:
 	void UpdateMatrix(dgFloat32 timestep, dgInt32 threadIndex);
 	void UpdateCollisionMatrix(dgFloat32 timestep, dgInt32 threadIndex);
 	void UpdateCollisionMatrixSimd(dgFloat32 timestep, dgInt32 threadIndex);
+	void RestoreIfNotFinite();
 
 	void ApplyExtenalForces(dgFloat32 timestep, dgInt32 threadIndex);
 	void AddImpulse(const dgVector &pointVeloc, const dgVector &pointPosit);
@@ -208,6 +209,7 @@ private:
 	dgMatrix CalculateInvInertiaMatrix() const;
 
 	dgMatrix m_matrix;
+	dgMatrix m_lastFiniteMatrix;
 	dgMatrix m_collisionWorldMatrix;
 	dgMatrix m_invWorldInertiaMatrix;
 	dgQuaternion m_rotation;
@@ -303,6 +305,7 @@ private:
 
 inline void dgBody::reset() {
 	m_matrix = dgGetZeroMatrix();
+	m_lastFiniteMatrix = dgGetIdentityMatrix();
 	m_collisionWorldMatrix = dgGetZeroMatrix();
 	m_invWorldInertiaMatrix = dgGetZeroMatrix();
 	m_rotation = dgQuaternion(dgFloat32(0.0f), dgFloat32(0.0f), dgFloat32(0.0f), dgFloat32(0.0f));

@@ -12,7 +12,12 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#ifdef _WIN32
+#include <process.h>
+#define getpid _getpid
+#else
 #include <unistd.h>
+#endif
 
 #include "math/Math.h"
 #include "math/PidController.h"
@@ -283,7 +288,7 @@ static void TestAnimation(const std::filesystem::path &directory)
 	Check(restored.mfBaseSpeed == 0.75f, "serialized base speed");
 	state.LoadFromSaveData(&restored);
 	Check(state.GetBaseSpeed() == 0.75f, "restored base speed");
-	TiXmlDocument oldSave((directory / "animation.xml").c_str());
+	TiXmlDocument oldSave((directory / "animation.xml").string().c_str());
 	Check(oldSave.LoadFile(), "read animation save");
 	auto *savedClass = oldSave.RootElement()->FirstChildElement("class");
 	for(auto *member = savedClass->FirstChildElement(); member; member = member->NextSiblingElement())

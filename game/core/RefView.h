@@ -65,16 +65,18 @@ public:
 
 	void Update(float afTimeStep) override;
 	void OnDraw() override;
+	void OnPostBufferSwap() override;
 	void Reset() override;
 
 	/**
-	 * Saves two pictures of what is on screen to the home directory:
-	 * one with every option that changes the look set to the original's
-	 * (overture-compare-<time>-original.png), then one with the options
-	 * as they are (-improved.png). Takes about a second; the options are
-	 * put back afterwards.
+	 * Saves one labeled Vanilla / Improved PNG to the desktop, with the
+	 * full Vanilla frame above the Improved frame. Vanilla uses
+	 * the original look, Improved uses the current settings.
+	 * Holds the camera while capturing and restores the settings afterwards.
 	 */
 	void StartCompareShots();
+	void CancelCompareShots() { EndCompareShots(); }
+	bool IsComparing() const { return mlCompareStep != 0; }
 
 private:
 	void Draw();
@@ -111,14 +113,23 @@ private:
 	bool CanLoadMap();
 
 	void UpdateCompareShots();
+	void EndCompareShots();
+	void HoldCompareCamera();
 	void SetOriginalLook();
 	void RestoreLook();
 
-	//Comparison shots: the step it is at (0 = not running), steps left to
+	//Comparison shots: the step it is at (0 = not running), frames left to
 	//wait, and the options as they were
 	int mlCompareStep = 0;
 	int mlCompareWait = 0;
 	tString msCompareFile;
+	std::vector<unsigned char> mvCompareVanilla;
+	cVector2l mvCompareSize;
+	cVector3f mvCompareCameraPos;
+	cVector3f mvCompareCameraAngles;
+	bool mbCompareCaptured = false;
+	bool mbCompareSaved = false;
+	bool mbCompareOverlay = false;
 	struct cSavedLook
 	{
 		bool mbLinearLighting;

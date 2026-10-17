@@ -189,8 +189,45 @@ void dgBody::SetMatrixIgnoreSleep(const dgMatrix &matrix) {
 	SetMatrix(matrix);
 }
 
+// Overture Remade: a step can leave a body's pose NaN (e.g. bodies given a
+// scaled matrix that start out overlapping, like the rock piles in
+// level01_06_workshop). A NaN AABB breaks the broadphase: sorted cell lists
+// stop at it, so ray casts miss every body after it. Put the body back to its
+// last finite pose, at rest, before its AABB is calculated.
+void dgBody::RestoreIfNotFinite() {
+	bool finite = true;
+	for (dgInt32 i = 0; i < 4; i++) {
+		for (dgInt32 j = 0; j < 4; j++) {
+			if (!dgCheckFloat(m_matrix[i][j])) {
+				finite = false;
+			}
+		}
+	}
+	for (dgInt32 j = 0; j < 3; j++) {
+		if (!dgCheckFloat(m_veloc[j]) || !dgCheckFloat(m_omega[j])) {
+			finite = false;
+		}
+	}
+	if (finite) {
+		m_lastFiniteMatrix = m_matrix;
+		return;
+	}
+
+	const dgVector zero(dgFloat32(0.0f), dgFloat32(0.0f), dgFloat32(0.0f), dgFloat32(0.0f));
+	SetMatrixOriginAndRotation(m_lastFiniteMatrix);
+	m_veloc = zero;
+	m_omega = zero;
+	m_accel = zero;
+	m_alpha = zero;
+	m_netForce = zero;
+	m_netTorque = zero;
+	m_prevExternalForce = zero;
+	m_prevExternalTorque = zero;
+}
+
 void dgBody::UpdateCollisionMatrixSimd(dgFloat32 timestep, dgInt32 threadIndex) {
 #ifdef DG_BUILD_SIMD_CODE
+	RestoreIfNotFinite();
 
 	m_collisionWorldMatrix = m_collision->m_offset.MultiplySimd(m_matrix);
 
@@ -257,6 +294,7 @@ void dgBody::UpdateCollisionMatrixSimd(dgFloat32 timestep, dgInt32 threadIndex) 
 }
 
 void dgBody::UpdateCollisionMatrix(dgFloat32 timestep, dgInt32 threadIndex) {
+	RestoreIfNotFinite();
 	m_collisionWorldMatrix = m_collision->m_offset * m_matrix;
 
 	dgVector oldP0(m_minAABB);
@@ -536,6 +574,8 @@ void dgBody::CalcInvInertiaMatrixSimd() {
  */
 
 void dgBody::UpdateMatrix(dgFloat32 timestep, dgInt32 threadIndex) {
+	// Before the application sees the new pose
+	RestoreIfNotFinite();
 	if (m_matrixUpdate) {
 		//      m_world->dgGetUserLock_();
 		m_matrixUpdate(reinterpret_cast<const NewtonBody *>(this), &m_matrix.m_front.m_x, threadIndex);

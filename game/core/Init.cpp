@@ -17,6 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Init.h"
+#include "ui/GraphicsPresets.h"
 #include "core/DogTestMap.h"
 #include "impl/GLSLProgram.h"
 #include <SDL3/SDL.h>
@@ -282,6 +283,9 @@ bool cInit::Init(tString asCommandLine)
 
 	mvScreenSize.x = mpConfig->GetInt("Screen","Width",800);
 	mvScreenSize.y = mpConfig->GetInt("Screen","Height",600);
+	// First run: the game's default_settings.cfg asks for 800x600; use the
+	// desktop's size instead (stored as -1 x -1)
+	if(!gbUsingUserSettings) mvScreenSize = cVector2l(-1,-1);
 	mbFullScreen = mpConfig->GetBool("Screen", "FullScreen", true);
 	mbFullScreenSetting = mbFullScreen;
 	mlDisplay = mpConfig->GetInt("Screen","Display",-1);
@@ -729,6 +733,10 @@ bool cInit::Init(tString asCommandLine)
     
 	mpIntroStory = hplNew( cIntroStory,(this) );
 
+	// First run: the improved looks. The menu shows the options as they are
+	// when it is created.
+	if(!gbUsingUserSettings) ApplyGraphicsPreset(this, eGraphicsPreset_ImprovedHigh);
+
 	// Reference images: the menu's snow starts in the same places every run
 	if(cRefShots::IsRequested()) cMath::Randomize(1);
 	mpMainMenu = hplNew( cMainMenu,(this) );
@@ -929,6 +937,9 @@ void cInit::Reset()
 
 void cInit::Exit()
 {
+	// Restore temporary capture settings before saving the user's options
+	// and before the player/lighting objects used by the capture are deleted.
+	if(mpRefView) mpRefView->CancelCompareShots();
 	mpConfig->SetBool("Haptics","Active",mbHasHapticsOnRestart);
 	mpConfig->SetBool("Haptics","Available",mbHapticsAvailable);
 	mpConfig->SetFloat("Haptics","ForceMul",mfHapticForceMul);

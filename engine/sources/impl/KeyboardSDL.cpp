@@ -22,10 +22,6 @@
 
 #include "impl/LowLevelInputSDL.h"
 
-#ifdef WIN32
-#include <conio.h>
-#endif
-
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////

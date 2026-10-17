@@ -2,7 +2,7 @@
 
 A modernised source port of **Penumbra: Overture** (Frictional Games, 2007),
 built from the open-source HPL1 engine and game code. It runs natively on
-64-bit Linux against the game data from your own copy of the game.
+64-bit Linux and Windows against the game data from your own copy of the game.
 
 The goal is to keep the game playing exactly like the original while bringing
 the engine up to date: native widescreen, a modern renderer and a long list of
@@ -61,6 +61,28 @@ AddressSanitizer and UBSan; needs `libasan libubsan`).
 Static analysis uses `clang-tools-extra`. `cmake --build build --target tidy`
 runs the checks in `.clang-tidy` over the engine and game sources, and
 `git clang-format` formats changed lines.
+
+### Windows
+
+Needs Visual Studio 2022 or later with the C++ workload, CMake and
+[vcpkg](https://vcpkg.io) (`VCPKG_ROOT`, default `C:\vcpkg`). vcpkg builds the
+dependencies listed in `vcpkg.json` on the first configure.
+
+```
+platform\windows\build.cmd
+```
+
+This produces `build-windows\overture.exe` with its DLLs, shaders, fonts and
+test maps. `platform\windows\run.cmd` starts it against the Steam copy
+(`...\steamapps\common\Penumbra Overture\redist`; set `OVERTURE_GAME_DIR`
+for another), and `platform\windows\smoke.cmd` runs the smoke test with its
+own settings, in a hidden window and with OpenAL Soft's null backend, so
+nothing is shown or heard. Settings, saves and `hpl.log` are in
+`Documents\Penumbra Overture\OvertureRemade\`, apart from the original
+game's `Episode1`. The test programs are Linux-only and not built with MSVC.
+
+From WSL, `platform/windows/sync.sh` mirrors the source tree to a Windows
+drive (default `/mnt/e/dev/penumbra/overture-remade`) to build it there.
 
 Before changing gameplay code, run the smoke test on the ASan build:
 
@@ -236,6 +258,15 @@ camera stays at the light until "Release". The live view is not a capture:
 graphics settings are your own, and the scene keeps moving.
 
 ## Running
+
+Press **F9** during gameplay to save one comparison PNG to your desktop:
+`overture-compare-<date>-<time>-stacked.png` places full-size **Vanilla** above
+**Improved**. Labels sit above the screenshots. Improved uses
+your current graphics settings. The camera is held while each look settles
+for 25 rendered frames; moving objects can advance between captures. Your
+graphics settings and debug overlay are restored afterwards. On Windows,
+redirected desktops (including OneDrive) are supported. No Python, FFmpeg or
+ImageMagick installation is needed to use the hotkey.
 
 ```
 ./run.sh
