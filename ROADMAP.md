@@ -585,6 +585,22 @@ In this order: each step removes callers of what a later one deletes.
       checks and GL debug validation pass at unchanged tolerances. The final
       beam colour-setter preservation has its own regression coverage.
 
+- [x] **11. Renderer cleanup.** See-through submissions are retained as ordered
+      draw records; every visible light gets its own compiled queue and object
+      count instead of the first 30; dead per-texture blend and empty
+      transparent-queue interfaces are removed. Resolved scene depth is cached
+      until a real depth write, and fullscreen passes restore owner-tracked
+      state instead of querying GL for every pass. Transparent draws share the
+      opaque state setters, with separate refraction and alpha-mask helpers.
+      Skin/GPGPU work is not part
+      of this step.
+
+      Linux build and both CTest suites pass, including ASan/UBSan and EGL on
+      GL 3.3 and GL 4.3, including transparent execution pixel/callback checks.
+      Fresh visual captures and Windows validation were not
+      available in the implementation environment; see
+      `docs/renderer-cleanup-plan.md`.
+
 ## Later / ideas
 
 - Penumbra: Black Plague and Requiem on the same engine: under way, see

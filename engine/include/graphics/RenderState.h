@@ -36,15 +36,14 @@ namespace hpl {
 		eRenderStateType_Sector = 0,
 		eRenderStateType_Pass = 1,
 		eRenderStateType_DepthTest = 2,
-		eRenderStateType_Depth = 3,
-		eRenderStateType_AlphaMode = 4,
-		eRenderStateType_BlendMode = 5,
-		eRenderStateType_Program = 6,
-		eRenderStateType_Texture = 7,
-		eRenderStateType_VertexBuffer = 8,
-		eRenderStateType_Matrix = 9,
-		eRenderStateType_Render = 10,
-		eRenderStateType_LastEnum  = 11
+		eRenderStateType_AlphaMode = 3,
+		eRenderStateType_BlendMode = 4,
+		eRenderStateType_Program = 5,
+		eRenderStateType_Texture = 6,
+		eRenderStateType_VertexBuffer = 7,
+		eRenderStateType_Matrix = 8,
+		eRenderStateType_Render = 9,
+		eRenderStateType_LastEnum  = 10
 	};
 	///////////// INTERFACE ////////////////////
 
@@ -54,6 +53,8 @@ namespace hpl {
 		iRenderState() = default;
 
 		void SetMode(cRenderSettings* apSettings);
+		// Apply an ordered transparent draw without sorting by opaque state keys.
+		void ApplyTransparent(cRenderSettings* apSettings);
 
 		eRenderStateType mType;
 
@@ -66,9 +67,6 @@ namespace hpl {
 
 		//DepthTest
 		bool mbDepthTest;
-
-		//Depth:
-		float mfZ;
 
 		//Alpha
 		eMaterialAlphaMode mAlphaMode;
@@ -87,7 +85,6 @@ namespace hpl {
 
 		//Texture
 		iTexture* mpTexture[MAX_TEXTUREUNITS];
-		eMaterialBlendMode mTextureBlend[MAX_TEXTUREUNITS];
 
 		//Vertex buffer
 		iVertexBuffer *mpVtxBuffer;
@@ -108,7 +105,6 @@ namespace hpl {
 		void SetSectorMode(cRenderSettings* apSettings);
 		void SetPassMode(cRenderSettings* apSettings);
 		void SetDepthTestMode(cRenderSettings* apSettings);
-		void SetDepthMode(cRenderSettings* apSettings);
 		void SetBlendMode(cRenderSettings* apSettings);
 		void SetAlphaMode(cRenderSettings* apSettings);
 		void SetProgramMode(cRenderSettings* apSettings);

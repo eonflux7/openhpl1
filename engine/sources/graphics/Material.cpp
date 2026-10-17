@@ -55,7 +55,8 @@ namespace hpl {
 		mpImageManager = apImageManager;
 		mpTextureManager = apTextureManager;
 		mpRenderer3D = apRenderer3D;
-		mpRenderSettings = mpRenderer3D->GetRenderSettings();
+		// Resource fixtures may construct a material without a renderer.
+		mpRenderSettings = apRenderer3D ? apRenderer3D->GetRenderSettings() : nullptr;
 		mpProgramManager = apProgramManager;
 
 		mbUsesLights = false;

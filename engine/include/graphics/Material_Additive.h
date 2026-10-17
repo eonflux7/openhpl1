@@ -48,7 +48,6 @@ namespace hpl {
 		eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override{ return 1;}
 

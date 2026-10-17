@@ -249,7 +249,6 @@ namespace hpl {
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
 		{
 			mpTexture[i] = nullptr;
-			mTextureBlend[i] = eMaterialBlendMode_None;
 		}
 
 		mpVtxBuffer = nullptr;
@@ -676,8 +675,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderZ(cCamera3D *apCamera)
 	{
-		cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
-														eMaterialRenderType_Z, 0);
+		cRenderQueue* pNode = mpRenderList->GetQueue(eMaterialRenderType_Z, 0);
 
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
@@ -702,19 +700,15 @@ namespace hpl {
 
 		UpdateShadowCasterGraphics(apCamera);
 
-		cLight3DIterator lightIt = mpRenderList->GetLightIt();
+		const int lLightNum = mpRenderList->GetLightNum();
 
-		int lLightCount=0;
-		while(lightIt.HasNext())
+		for(int lLightCount = 0; lLightCount < lLightNum; ++lLightCount)
 		{
-			if(lLightCount >= MAX_NUM_OF_LIGHTS) break;
-
-			iLight3D* pLight = lightIt.Next();
+			iLight3D* pLight = mpRenderList->GetLight(lLightCount);
 
 			if(mpRenderList->GetLightObjects(lLightCount)==0 ||
 				(mShadowMapSettings.msOnlyLight != "" && pLight->GetName() != mShadowMapSettings.msOnlyLight))
 			{
-				lLightCount++;
 				continue;
 			}
 
@@ -727,16 +721,13 @@ namespace hpl {
 			mpLowLevelGraphics->SetShadowMapParams(shadowParams);
 			mpLowLevelGraphics->SetLightLook(pLight->GetLook());
 
-			cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
-															eMaterialRenderType_Light, lLightCount);
+			cRenderQueue* pNode = mpRenderList->GetQueue(eMaterialRenderType_Light, lLightCount);
 
 			if(pLight->BeginDraw(&mRenderSettings, mpLowLevelGraphics))
 			{
 				pNode->Render(&mRenderSettings);
 			}
 			pLight->EndDraw(&mRenderSettings, mpLowLevelGraphics);
-
-			lLightCount++;
 		}
 
 		mpLowLevelGraphics->SetShadowMapParams(cShadowMapParams());
@@ -1073,8 +1064,7 @@ namespace hpl {
 
 	void cRenderer3D::RenderDiffuse(cCamera3D *apCamera)
 	{
-		cRenderQueue* pNode = mpRenderList->GetQueue(eRenderListDrawType_Normal,
-														eMaterialRenderType_Diffuse, 0);
+		cRenderQueue* pNode = mpRenderList->GetQueue(eMaterialRenderType_Diffuse, 0);
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 	}
@@ -1087,487 +1077,270 @@ namespace hpl {
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
 		mpLowLevelGraphics->SetDepthWriteActive(false);
 
-		bool bLog = mRenderSettings.mbLog;
-
-		iTexture *vTextures[MAX_TEXTUREUNITS];
-
-
-		cVector3f vForward = apCamera->GetForward();
-
-		//////////////////////////////////
-		//Iterate the query objects
-		cTransperantObjectIterator it = mpRenderList->GetTransperantIterator();
-		while(it.HasNext())
+		for(int i = 0; i < mpRenderList->GetTransparentDrawNum(); ++i)
 		{
-			iRenderable *pObject = it.Next();
+			cTransparentDraw &draw = mpRenderList->GetTransparentDraw(i);
+			iRenderState state = draw.GetState();
+			if(mRenderSettings.mbLog) Log(" Rendering '%s'\n", draw.mpObject->GetName().c_str());
 
-			if(bLog) Log(" Rendering '%s'\n",pObject->GetName().c_str());
-
-
-			/////////////////////////////////////////
-			// Get all data needed
-			iMaterial *pMaterial = pObject->GetMaterial();
-
-			bool bDepthTest = pMaterial->GetDepthTest();
-
-			eMaterialAlphaMode alphaMode = pMaterial->GetAlphaMode(eMaterialRenderType_Diffuse,0,nullptr);
-
-			eMaterialBlendMode blendMode = pMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr);
-
-			iGpuProgram *pProgram = pMaterial->GetProgram(eMaterialRenderType_Diffuse,0,nullptr);
-			iMaterialProgramSetup* pProgramSetup = pMaterial->GetProgramSetup(eMaterialRenderType_Diffuse,0,nullptr);
-
-
-			for(int i=0; i<MAX_TEXTUREUNITS; ++i) vTextures[i] = pMaterial->GetTexture(i,eMaterialRenderType_Diffuse,0,nullptr);
-
-			iVertexBuffer *pVtxBuffer = pObject->GetVertexBuffer();
-
-			cMatrixf *pModelMatrix = pObject->GetModelMatrix(apCamera);
-			cMatrixf *pInvModelMatrix = pObject->GetInvModelMatrix();
-
-			iTexture *pRefraction = pMaterial->GetTexture(eMaterialTexture_Refraction);
-
-			/////////////////////////////////////////
-			// Halos, shafts and particles that draw themselves
+			// Keep stateful object callbacks at execution time and call them once.
 			cTransDraw ownDraw;
-			bool bOwnDraw = pObject->GetTransDraw(apCamera, ownDraw);
-			if(bOwnDraw)
+			const bool own = draw.mpObject->GetTransDraw(apCamera, ownDraw);
+			if(own)
 			{
-				pProgram = ownDraw.mpProgram;
-				pProgramSetup = nullptr;
-				if(ownDraw.mpVtxBuffer) pVtxBuffer = ownDraw.mpVtxBuffer;
-				if(ownDraw.mpModelMatrix) pModelMatrix = ownDraw.mpModelMatrix;
-				bDepthTest = ownDraw.mbDepthTest;
+				state.mpProgram = ownDraw.mpProgram;
+				state.mpProgramSetup = nullptr;
+				if(ownDraw.mpVtxBuffer) state.mpVtxBuffer = ownDraw.mpVtxBuffer;
+				if(ownDraw.mpModelMatrix) state.mpModelMatrix = ownDraw.mpModelMatrix;
+				state.mbDepthTest = ownDraw.mbDepthTest;
 			}
 
-			if(mRenderSettings.mbDepthTest != bDepthTest)
+			// Refraction's mask uses this object's effective depth-test state.
+			state.mType = eRenderStateType_DepthTest;
+			state.SetMode(&mRenderSettings);
+			if(RenderTransparentRefraction(apCamera, draw, state)) continue;
+
+			state.ApplyTransparent(&mRenderSettings);
+			if(own)
 			{
-				mpLowLevelGraphics->SetDepthTestActive(bDepthTest);
-				mRenderSettings.mbDepthTest = bDepthTest;
-
-				if(bLog) Log("  Set depth test %d\n",bDepthTest);
+				draw.mpObject->SetupTransDraw(apCamera, &mRenderSettings, ownDraw);
+				if(!ownDraw.mbCull) mpLowLevelGraphics->SetCullActive(false);
 			}
-
-			/////////////////////////////////////////
-			//Refraction Rendering
-			if(mbRefractionAvailable && pRefraction && mbRefractionUsed)
-			{
-				if(bLog) Log("  Start render refraction\n");
-
-				if(bLog) Log("   Unbind vtx buffer, program and program\n");
-				if(mRenderSettings.mpVtxBuffer)			mRenderSettings.mpVtxBuffer->UnBind();
-				if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
-
-				/////////////////////////////////////
-				//Alpha and blend mode
-				mRenderSettings.mAlphaMode = eMaterialAlphaMode_Solid;
-				mpLowLevelGraphics->SetAlphaCutoff(0);
-
-				mRenderSettings.mBlendMode = eMaterialBlendMode_None;
-				mpLowLevelGraphics->SetBlendActive(false);
-
-				//////////////////////////////
-				//Get Screen Clip space
-				cVector2f vScreenSizeFloat = mpLowLevelGraphics->GetRenderSize();
-				cVector2l vScreenSize(	(int)mpLowLevelGraphics->GetRenderSize().x,
-										(int)mpLowLevelGraphics->GetRenderSize().y);
-				iTexture *pScreen = mpPostEffects->GetFreeScreenTexture();
-
-				//Get the cliprect objects bounding volume
-				cRect2l clipRect;
-				int lScale = cMath::Abs((int)pMaterial->GetValue()) + 1;
-				bool bHasClipRect = cMath::GetClipRectFromBV(clipRect,*pObject->GetBoundingVolume(),
-										apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix(),
-										apCamera->GetNearClipPlane(),vScreenSize);
-				if(bHasClipRect)
-				{
-					clipRect.x -= lScale;
-					if(clipRect.x <0){
-						clipRect.w += clipRect.x;
-						clipRect.x =0;
-					}
-					clipRect.y -= lScale;
-					if(clipRect.y <0){
-						clipRect.h += clipRect.y;
-						clipRect.y =0;
-					}
-
-					clipRect.w += lScale*2;
-					if(clipRect.w + clipRect.x > vScreenSize.x)
-						clipRect.w = vScreenSize.x-clipRect.x;
-
-					clipRect.h += lScale*2;
-					if(clipRect.h + clipRect.y > vScreenSize.y)
-						clipRect.h = vScreenSize.y-clipRect.y;
-				}
-
-
-				//////////////////////////////
-				//Render to alpha if water, (shitty test this is...)
-				if(pMaterial->GetRefractionSkipsStandardTrans())
-				{
-					if(bLog) Log("   Render alpha to screen\n");
-
-					//NULL all textuer
-					for(int i=0;i<MAX_TEXTUREUNITS;i++)
-					{
-						if(mRenderSettings.mpTexture[i] != nullptr)
-						{
-							mpLowLevelGraphics->SetTexture(i, nullptr);
-							mRenderSettings.mpTexture[i] = nullptr;
-
-							if(bLog) Log("    Set texture[%d] NULL\n",i);
-						}
-					}
-
-					//Only write to alpha
-					mpLowLevelGraphics->SetColorWriteActive(false,false,false, true);
-
-					////////////////////////////////////////////////
-					//Clear alpha using 2D quad.
-					mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
-						mpLowLevelGraphics->CreateOrthoProjection(mpLowLevelGraphics->GetRenderSize(), -1000, 1000));
-
-					if(bHasClipRect)
-					{
-						cVector2f vOffset = cVector2f((float)clipRect.x,(float)clipRect.y);
-						cVector2f vSize = cVector2f((float)clipRect.w,(float)clipRect.h);
-
-						mvVtxRect[0].pos = cVector3f(vOffset.x,				vOffset.y,0);
-						mvVtxRect[1].pos = cVector3f(vOffset.x + vSize.x,	vOffset.y,0);
-						mvVtxRect[2].pos = cVector3f(vOffset.x + vSize.x,	vOffset.y + vSize.y,0);
-						mvVtxRect[3].pos = cVector3f(vOffset.x,				vOffset.y + vSize.y,0);
-					}
-					else
-					{
-						mvVtxRect[0].pos = cVector3f(0,0,0);
-						mvVtxRect[1].pos = cVector3f(vScreenSizeFloat.x,0,0);
-						mvVtxRect[2].pos = cVector3f(vScreenSizeFloat.x,vScreenSizeFloat.y,0);
-						mvVtxRect[3].pos = cVector3f(0,vScreenSizeFloat.y,0);
-					}
-
-					for(int i=0; i<4; ++i) mvVtxRect[i].col.a = 0;
-					mpLowLevelGraphics->DrawTriangles({mvVtxRect[0], mvVtxRect[1], mvVtxRect[2], mvVtxRect[0], mvVtxRect[2], mvVtxRect[3]});
-
-					//Set Model matrix
-					if(pModelMatrix) {
-						mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-						mRenderSettings.mbMatrixWasNULL = false;
-					}
-					else {
-						mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-						mRenderSettings.mbMatrixWasNULL = true;
-					}
-
-					pVtxBuffer->Bind();
-
-					if(bLog) Log("    Drawing vtx buffer %d\n",pVtxBuffer);
-					pVtxBuffer->Draw();
-
-					pVtxBuffer->UnBind();
-
-					//Reset stuff
-					mpLowLevelGraphics->SetColorWriteActive(true,true,true, true);
-				}
-
-				//////////////////////////////
-				//The scene, to read while it is drawn over
-				if(bHasClipRect)
-				{
-					cVector2l vOffset = cVector2l(clipRect.x,clipRect.y);
-					cVector2l vSize = cVector2l(clipRect.w,clipRect.h);
-
-					mpLowLevelGraphics->DrawSceneCopy(pScreen,vOffset,vSize);
-					if(bLog) Log("   Copy clipped screen texture\n");
-				}
-				else
-				{
-					mpLowLevelGraphics->DrawSceneCopy(pScreen,0,vScreenSize);
-					if(bLog) Log("   Copy full screen screen texture\n");
-				}
-
-				//////////////////////////////
-				//Set up programs
-				bool bSpecial = false;
-				if(	pMaterial->GetTexture(eMaterialTexture_Specular)!=nullptr &&
-					pMaterial->GetRefractionDiffuseTexture() == eMaterialTexture_Diffuse)
-				{
-					bSpecial = true;
-					if(bLog) Log("   Special = true\n");
-				}
-
-				iGpuProgram *pRefractProgram = pMaterial->GetRefractionProgram();
-				if(!pRefractProgram) pRefractProgram = bSpecial ? mpRefractSpecialProgram : mpRefractProgram;
-
-
-				/////////////////////////////////////
-				//Program
-				mRenderSettings.mpProgram = pRefractProgram;
-				pRefractProgram->Bind();
-				if(bLog) Log("   Binding program '%s' (%d)\n",pRefractProgram->GetName().c_str(), pRefractProgram);
-				mRenderSettings.mbMatrixWasNULL = false;
-
-
-				//Model matrix
-				if(pModelMatrix)
-				{
-					mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-					mRenderSettings.mbMatrixWasNULL = false;
-				}
-				else
-				{
-					mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-					mRenderSettings.mbMatrixWasNULL = true;
-				}
-
-				pRefractProgram->SetMatrixf(eProgramParam::worldViewProj,
-					mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
-
-				//Eye position
-				if(pMaterial->GetRefractionUsesEye())
-				{
-					if(pModelMatrix)
-					{
-						cVector3f vLocalEye =  cMath::MatrixMul(*pInvModelMatrix,apCamera->GetEyePosition());
-						pRefractProgram->SetVec3f(eProgramParam::EyePos,vLocalEye);
-					}
-					else
-					{
-						pRefractProgram->SetVec3f(eProgramParam::EyePos,apCamera->GetEyePosition());
-					}
-				}
-
-				if(bSpecial)
-				{
-					pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime * pRefraction->GetFrameTime());
-				}
-				else if(pMaterial->GetRefractionUsesTime())
-				{
-					pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime);
-				}
-
-				pRefractProgram->SetFloat(eProgramParam::scale, pMaterial->GetValue());
-
-				////////////////////////////////////
-				//Textures
-				for(int i=0;i<MAX_TEXTUREUNITS;i++)
-				{
-					iTexture *pTex = nullptr;
-					switch(i)
-					{
-						case 0: pTex = pScreen; break;
-						case 1: pTex = pRefraction; break;
-						case 2: if(bSpecial)
-								{
-									pTex = pMaterial->GetTexture(eMaterialTexture_Specular);
-								}
-								else if(pMaterial->GetRefractionUsesDiffuse())
-								{
-									pTex = pMaterial->GetTexture(pMaterial->GetRefractionDiffuseTexture());
-								}
-					}
-
-					if(mRenderSettings.mpTexture[i] != pTex)
-					{
-						mpLowLevelGraphics->SetTexture(i, pTex);
-						mRenderSettings.mpTexture[i] = pTex;
-						if(bLog) {
-							if(pTex)	Log("   Set texture[%d] %s (%d)\n",i,  pTex->GetName().c_str(), pTex);
-							else		Log("   Set texture[%d] NULL\n",i);
-						}
-
-					}
-				}
-
-				/////////////////////////////////////
-				//Draw
-				if(bLog) Log("   Drawing vtx buffer %d\n",pVtxBuffer);
-
-				pVtxBuffer->Bind();
-
-				pVtxBuffer->Draw();
-
-				pVtxBuffer->UnBind();
-
-				mRenderSettings.mpVtxBuffer = pVtxBuffer;
-
-				if(pMaterial->GetRefractionSkipsStandardTrans() || pMaterial->GetTexture(eMaterialTexture_Diffuse)==nullptr)
-				{
-					if(bLog) Log("   Skipping normal trans rendering!\n");
-					continue;
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Alpha mode
-			if(alphaMode != mRenderSettings.mAlphaMode)
-			{
-				mRenderSettings.mAlphaMode = alphaMode;
-
-				if(alphaMode == eMaterialAlphaMode_Solid)
-				{
-					mpLowLevelGraphics->SetAlphaCutoff(0);
-					if(bLog) Log("  Set alpha test off!\n");
-				}
-				else
-				{
-					mpLowLevelGraphics->SetAlphaCutoff(0.6f);
-					if(bLog) Log("  Set alpha test on!\n");
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Blend mode
-			if(blendMode != mRenderSettings.mBlendMode)
-			{
-				mRenderSettings.mBlendMode = blendMode;
-
-				if(blendMode == eMaterialBlendMode_None)
-				{
-					mpLowLevelGraphics->SetBlendActive(false);
-					if(bLog) Log("  Set blend mode off!\n");
-				}
-				else
-				{
-					mpLowLevelGraphics->SetBlendActive(true);
-
-					switch(blendMode)
-					{
-					case eMaterialBlendMode_Add:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
-						if(bLog) Log("  Set blend mode one-one!\n");
-						break;
-					case eMaterialBlendMode_Replace:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_Zero);
-						if(bLog) Log("  Set blend mode one-zero!\n");
-						break;
-					case eMaterialBlendMode_Mul:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_Zero,eBlendFunc_SrcColor);
-						if(bLog) Log("  Set blend mode zero-srccolor!\n");
-						break;
-					case eMaterialBlendMode_MulX2:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_DestColor,eBlendFunc_SrcColor);
-						if(bLog) Log("  Set blend mode destcolor-srccolor!\n");
-						break;
-					case eMaterialBlendMode_Alpha:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
-						if(bLog) Log("  Set blend mode srcalpha-oneminussrcalpha!\n");
-						break;
-					case eMaterialBlendMode_DestAlphaAdd:
-						mpLowLevelGraphics->SetBlendFunc(eBlendFunc_DestAlpha,eBlendFunc_One);
-						if(bLog) Log("  Set blend mode destalpha-one!\n");
-						break;
-					}
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Program
-			if(pProgram != mRenderSettings.mpProgram)
-			{
-				if(bLog){
-					if(pProgram)	Log("  Set program '%s' (%d)\n",pProgram->GetName().c_str(), pProgram);
-					else			Log("  Set program NULL\n");
-				}
-				if(mRenderSettings.mpProgram)// && pProgram==NULL) //Why null??
-				{
-					mRenderSettings.mpProgram->UnBind();
-				}
-				mRenderSettings.mpProgram = pProgram;
-
-				if(pProgram)
-				{
-					pProgram->Bind();
-
-					if(pProgramSetup)
-					{
-						pProgramSetup->Setup(pProgram, &mRenderSettings);
-					}
-					mRenderSettings.mpProgramSetup = pProgramSetup;
-
-					//reset this so all matrix setting are set to program.
-					mRenderSettings.mbMatrixWasNULL = false;
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Texture
-			for(int i=0;i<MAX_TEXTUREUNITS;i++)
-			{
-				if(mRenderSettings.mpTexture[i] != vTextures[i])
-				{
-					mpLowLevelGraphics->SetTexture(i,vTextures[i]);
-					mRenderSettings.mpTexture[i] = vTextures[i];
-
-					if(bLog) {
-						if(vTextures[i])	Log("   Set texture[%d] %s (%d)\n",i,  vTextures[i]->GetName().c_str(), vTextures[i]);
-						else				Log("   Set texture[%d] NULL\n",i);
-					}
-				}
-			}
-
-			/////////////////////////////////////////////////
-			// Vertex buffer
-			if(pVtxBuffer != mRenderSettings.mpVtxBuffer)
-			{
-				if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
-				mRenderSettings.mpVtxBuffer = pVtxBuffer;
-
-				if(pVtxBuffer)	pVtxBuffer->Bind();
-
-				if(bLog) Log("  Set vtx buffer %d\n",pVtxBuffer);
-			}
-
-			/////////////////////////////////////////////////
-			// Matrix
-			//It is a normal matrix
-			bool bSetProgramMatrix =false;
-			if(pModelMatrix)
-			{
-				mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-
-				mRenderSettings.mbMatrixWasNULL = false;
-				bSetProgramMatrix =true;
-			}
-			//NULL matrix
-			else if(mRenderSettings.mbMatrixWasNULL==false)
-			{
-				mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
-
-				mRenderSettings.mbMatrixWasNULL = true;
-				bSetProgramMatrix =true;
-			}
-
-			if(mRenderSettings.mpProgram && bSetProgramMatrix)
-			{
-				//Might be quicker if this is set directly
-				mRenderSettings.mpProgram->SetMatrixf(eProgramParam::worldViewProj,
-					mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
-				if(mRenderSettings.mpProgramSetup)
-				{
-					mRenderSettings.mpProgramSetup->SetupMatrix(pModelMatrix,&mRenderSettings);
-				}
-			}
-
-			///////////////////////////////////////////
-			/// Draw
-			if(bLog) Log("  Draw\n");
-			if(bOwnDraw)
-			{
-				pObject->SetupTransDraw(apCamera, &mRenderSettings, ownDraw);
-				if(ownDraw.mbCull==false) mpLowLevelGraphics->SetCullActive(false);
-				pVtxBuffer->Draw();
-				if(ownDraw.mbCull==false) mpLowLevelGraphics->SetCullActive(true);
-			}
-			else
-			{
-				pVtxBuffer->Draw();
-			}
-
+			state.mpVtxBuffer->Draw();
+			if(own && !ownDraw.mbCull) mpLowLevelGraphics->SetCullActive(true);
 		}
 
 		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cRenderer3D::RenderTransparentRefraction(cCamera3D *apCamera,
+		const cTransparentDraw &draw, const iRenderState &aState)
+	{
+		if(!mbRefractionAvailable || !mbRefractionUsed || !draw.mpRefraction) return false;
+		iRenderable *pObject = draw.mpObject;
+		iVertexBuffer *pVtxBuffer = aState.mpVtxBuffer;
+		cMatrixf *pModelMatrix = aState.mpModelMatrix;
+		cMatrixf *pInvModelMatrix = aState.mpInvModelMatrix;
+		iTexture *pRefraction = draw.mpRefraction;
+		const bool bLog = mRenderSettings.mbLog;
+
+		if(bLog) Log("  Start render refraction\n");
+
+		if(bLog) Log("   Unbind vertex buffer and program\n");
+		if(mRenderSettings.mpVtxBuffer)			mRenderSettings.mpVtxBuffer->UnBind();
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+
+		/////////////////////////////////////
+		//Alpha and blend mode
+		mRenderSettings.mAlphaMode = eMaterialAlphaMode_Solid;
+		mpLowLevelGraphics->SetAlphaCutoff(0);
+
+		mRenderSettings.mBlendMode = eMaterialBlendMode_None;
+		mpLowLevelGraphics->SetBlendActive(false);
+
+		//////////////////////////////
+		//Get Screen Clip space
+		cVector2l vScreenSize(	(int)mpLowLevelGraphics->GetRenderSize().x,
+								(int)mpLowLevelGraphics->GetRenderSize().y);
+		iTexture *pScreen = mpPostEffects->GetFreeScreenTexture();
+
+		//Get the cliprect objects bounding volume
+		cRect2l clipRect;
+		int lScale = cMath::Abs((int)draw.mfValue) + 1;
+		bool bHasClipRect = cMath::GetClipRectFromBV(clipRect,*pObject->GetBoundingVolume(),
+								apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix(),
+								apCamera->GetNearClipPlane(),vScreenSize);
+		if(bHasClipRect)
+		{
+			clipRect.x -= lScale;
+			if(clipRect.x <0){
+				clipRect.w += clipRect.x;
+				clipRect.x =0;
+			}
+			clipRect.y -= lScale;
+			if(clipRect.y <0){
+				clipRect.h += clipRect.y;
+				clipRect.y =0;
+			}
+
+			clipRect.w += lScale*2;
+			if(clipRect.w + clipRect.x > vScreenSize.x)
+				clipRect.w = vScreenSize.x-clipRect.x;
+
+			clipRect.h += lScale*2;
+			if(clipRect.h + clipRect.y > vScreenSize.y)
+				clipRect.h = vScreenSize.y-clipRect.y;
+		}
+
+
+		//////////////////////////////
+		// Water first marks its coverage in destination alpha.
+		if(draw.mbRefractionSkipsStandardTrans)
+			RenderRefractionMask(apCamera, aState, bHasClipRect ? clipRect :
+				cRect2l(0, 0, vScreenSize.x, vScreenSize.y));
+
+		//////////////////////////////
+		//The scene, to read while it is drawn over
+		if(bHasClipRect)
+		{
+			cVector2l vOffset = cVector2l(clipRect.x,clipRect.y);
+			cVector2l vSize = cVector2l(clipRect.w,clipRect.h);
+
+			mpLowLevelGraphics->DrawSceneCopy(pScreen,vOffset,vSize);
+			if(bLog) Log("   Copy clipped screen texture\n");
+		}
+		else
+		{
+			mpLowLevelGraphics->DrawSceneCopy(pScreen,0,vScreenSize);
+			if(bLog) Log("   Copy full screen screen texture\n");
+		}
+
+		//////////////////////////////
+		//Set up programs
+		bool bSpecial = false;
+		if(	draw.mpSpecular != nullptr &&
+			draw.mRefractionDiffuseTexture == eMaterialTexture_Diffuse)
+		{
+			bSpecial = true;
+			if(bLog) Log("   Special = true\n");
+		}
+
+		iGpuProgram *pRefractProgram = draw.mpRefractionProgram;
+		if(!pRefractProgram) pRefractProgram = bSpecial ? mpRefractSpecialProgram : mpRefractProgram;
+
+
+		/////////////////////////////////////
+		//Program
+		mRenderSettings.mpProgram = pRefractProgram;
+		pRefractProgram->Bind();
+		if(bLog) Log("   Binding program '%s' (%d)\n",pRefractProgram->GetName().c_str(), pRefractProgram);
+		mRenderSettings.mbMatrixWasNULL = false;
+
+
+		//Model matrix
+		if(pModelMatrix)
+		{
+			mpLowLevelGraphics->SetDrawMatrices(*pModelMatrix, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
+			mRenderSettings.mbMatrixWasNULL = false;
+		}
+		else
+		{
+			mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
+			mRenderSettings.mbMatrixWasNULL = true;
+		}
+
+		pRefractProgram->SetMatrixf(eProgramParam::worldViewProj,
+			mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
+
+		//Eye position
+		if(draw.mbRefractionUsesEye)
+		{
+			if(pModelMatrix)
+			{
+				cVector3f vLocalEye =  cMath::MatrixMul(*pInvModelMatrix,apCamera->GetEyePosition());
+				pRefractProgram->SetVec3f(eProgramParam::EyePos,vLocalEye);
+			}
+			else
+			{
+				pRefractProgram->SetVec3f(eProgramParam::EyePos,apCamera->GetEyePosition());
+			}
+		}
+
+		if(bSpecial)
+		{
+			pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime * pRefraction->GetFrameTime());
+		}
+		else if(draw.mbRefractionUsesTime)
+		{
+			pRefractProgram->SetFloat(eProgramParam::t, mfRenderTime);
+		}
+
+		pRefractProgram->SetFloat(eProgramParam::scale, draw.mfValue);
+
+		////////////////////////////////////
+		//Textures
+		for(int i=0;i<MAX_TEXTUREUNITS;i++)
+		{
+			iTexture *pTex = nullptr;
+			switch(i)
+			{
+				case 0: pTex = pScreen; break;
+				case 1: pTex = pRefraction; break;
+				case 2: if(bSpecial)
+						{
+							pTex = draw.mpSpecular;
+						}
+						else if(draw.mbRefractionUsesDiffuse)
+						{
+							pTex = draw.mpRefractionDiffuse;
+						}
+			}
+
+			if(mRenderSettings.mpTexture[i] != pTex)
+			{
+				mpLowLevelGraphics->SetTexture(i, pTex);
+				mRenderSettings.mpTexture[i] = pTex;
+				if(bLog) {
+					if(pTex)	Log("   Set texture[%d] %s (%d)\n",i,  pTex->GetName().c_str(), pTex);
+					else		Log("   Set texture[%d] NULL\n",i);
+				}
+
+			}
+		}
+
+		/////////////////////////////////////
+		//Draw
+		if(bLog) Log("   Drawing vtx buffer %d\n",pVtxBuffer);
+
+		pVtxBuffer->Bind();
+
+		pVtxBuffer->Draw();
+
+		pVtxBuffer->UnBind();
+
+		mRenderSettings.mpVtxBuffer = pVtxBuffer;
+
+		if(draw.mbRefractionSkipsStandardTrans || draw.mpDiffuse==nullptr)
+		{
+			if(bLog) Log("   Skipping normal trans rendering!\n");
+			return true;
+		}
+		return false;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cRenderer3D::RenderRefractionMask(cCamera3D *apCamera,
+		const iRenderState &aState, const cRect2l &rect)
+	{
+		// Clear only this object's copy region, then mark its visible coverage.
+		for(int i = 0; i < MAX_TEXTUREUNITS; ++i)
+		{
+			if(!mRenderSettings.mpTexture[i]) continue;
+			mpLowLevelGraphics->SetTexture(i, nullptr);
+			mRenderSettings.mpTexture[i] = nullptr;
+		}
+		mpLowLevelGraphics->SetColorWriteActive(false, false, false, true);
+		mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+			mpLowLevelGraphics->CreateOrthoProjection(mpLowLevelGraphics->GetRenderSize(), -1000, 1000));
+		mvVtxRect[0].pos = cVector3f(rect.x, rect.y, 0);
+		mvVtxRect[1].pos = cVector3f(rect.x + rect.w, rect.y, 0);
+		mvVtxRect[2].pos = cVector3f(rect.x + rect.w, rect.y + rect.h, 0);
+		mvVtxRect[3].pos = cVector3f(rect.x, rect.y + rect.h, 0);
+		for(cVertex &vertex : mvVtxRect) vertex.col.a = 0;
+		mpLowLevelGraphics->DrawTriangles({mvVtxRect[0], mvVtxRect[1], mvVtxRect[2],
+			mvVtxRect[0], mvVtxRect[2], mvVtxRect[3]});
+
+		mpLowLevelGraphics->SetDrawMatrices(aState.mpModelMatrix ? *aState.mpModelMatrix : cMatrixf::Identity,
+			apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
+		mRenderSettings.mbMatrixWasNULL = aState.mpModelMatrix == nullptr;
+		aState.mpVtxBuffer->Bind();
+		aState.mpVtxBuffer->Draw();
+		aState.mpVtxBuffer->UnBind();
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
 	}
 
 	//-----------------------------------------------------------------------

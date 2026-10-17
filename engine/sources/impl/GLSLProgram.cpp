@@ -40,6 +40,7 @@ namespace hpl{
 	bool cGLSLProgram::mbReloadEnabled = false;
 	std::set<cGLSLProgram*> cGLSLProgram::msetPrograms;
 	cGLSLProgram* cGLSLProgram::mpBoundProgram = nullptr;
+	cGLSLProgram* cGLSLProgram::mpAppliedProgram = nullptr;
 
 	// The vertex attributes, at the locations of cGLSLProgram::eVertexAttrib.
 	static const char* kVertexPreamble =
@@ -275,6 +276,7 @@ namespace hpl{
 	cGLSLProgram::~cGLSLProgram()
 	{
 		if(mpBoundProgram == this) mpBoundProgram = nullptr;
+		if(mpAppliedProgram == this) mpAppliedProgram = nullptr;
 		msetPrograms.erase(this);
 
 		GLint current = 0;
@@ -307,6 +309,7 @@ namespace hpl{
 	{
 		glUseProgram(0);
 		mpBoundProgram = nullptr;
+		mpAppliedProgram = nullptr;
 
 	}
 
@@ -323,6 +326,9 @@ namespace hpl{
 		}
 		if(!variant->second.handle) return false;
 		glUseProgram(variant->second.handle);
+		mpAppliedProgram = this;
+		mlCurrentHandle = variant->second.handle;
+		mlCurrentMask = alArrayMask;
 		if(apLayers) for(int i=0; i<8; ++i)
 			if(variant->second.layers[i] >= 0) glUniform1f(variant->second.layers[i], apLayers[i]);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
@@ -414,6 +420,10 @@ namespace hpl{
 		glGetIntegerv(GL_CURRENT_PROGRAM, &current);
 		for(const auto& entry : mTextureVariants) {
 			if(current == (GLint)entry.second.handle) glUseProgram(replacements[entry.first].handle);
+			// A program can be the current GL binding without being the
+			// logical engine program. Keep the restoration handle valid.
+			if(mpAppliedProgram == this && entry.first == mlCurrentMask)
+				mlCurrentHandle = replacements[entry.first].handle;
 			glDeleteProgram(entry.second.handle);
 		}
 		mTextureVariants.swap(replacements);
@@ -488,6 +498,13 @@ namespace hpl{
 
 	void cGLSLProgram::Bind(){ mpBoundProgram = this; }
 	void cGLSLProgram::UnBind(){ if(mpBoundProgram == this) mpBoundProgram = nullptr; }
+
+	void cGLSLProgram::RebindCurrent()
+	{
+		glUseProgram(mlCurrentHandle);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
+		mpAppliedProgram = this;
+	}
 
 	bool cGLSLProgram::SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable)
 	{

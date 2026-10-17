@@ -37,28 +37,20 @@ namespace hpl {
 	class iRenderable;
 	class cCamera3D;
 	class cGraphics;
+	class iGpuProgram;
+	class iMaterialProgramSetup;
+	class iTexture;
 
 	class iRenderState;
 	class cRenderSettings;
 
-
-	//-------------------------------------------------------------
-
-	enum eRenderListDrawType
-	{
-		eRenderListDrawType_Normal,
-		eRenderListDrawType_Trans,
-		eRenderListDrawType_LastEnum
-	};
-
-	//-------------------------------------------------------------
 
 	// One complete state and lexicographic key per draw. Queues retain their
 	// storage between frames; no state nodes or per-level allocations.
 	struct cRenderDraw
 	{
 		iRenderState mState{};
-		std::array<uintptr_t, 12 + MAX_TEXTUREUNITS> mKey{};
+		std::array<uintptr_t, 11 + MAX_TEXTUREUNITS> mKey{};
 		eRenderStateType FirstChangedState(const cRenderDraw* apPrevious) const;
 	};
 
@@ -70,6 +62,15 @@ namespace hpl {
 		void Clear(){ mvDraws.clear(); }
 		void Sort();
 		void Render(cRenderSettings* apSettings);
+	};
+
+	// One visible light, its compiled draws and how many objects it reached.
+	// The list grows to the frame's light count and keeps queue storage.
+	struct cRenderLight
+	{
+		iLight3D* mpLight = nullptr;
+		cRenderQueue mQueue;
+		int mlObjectCount = 0;
 	};
 
 	class cFogObject_Compare
@@ -86,18 +87,46 @@ namespace hpl {
 
 	//-------------------------------------------------------------
 
-
-	class cTransperantObject_Compare
+	// One see-through draw, in the order it is executed. The material state
+	// is captured when the object enters the list; object callbacks are
+	// still asked at execution time, as before. Matrices are copied so a
+	// retained record never points at a scratch matrix.
+	struct cTransparentDraw
 	{
-	public:
-		bool operator()(iRenderable* pObjectA,iRenderable* pObjectB) const;
+		// Matrix pointers refer to this retained record, or a custom draw's
+		// live overrides. Apply the returned state before the next callback.
+		iRenderState GetState();
+
+		iRenderable *mpObject = nullptr;
+		float mfZ = 0;
+		bool mbDepthTest = true;
+
+		eMaterialAlphaMode mAlphaMode = eMaterialAlphaMode_Solid;
+		eMaterialBlendMode mBlendMode = eMaterialBlendMode_None;
+		iGpuProgram *mpProgram = nullptr;
+		iMaterialProgramSetup *mpProgramSetup = nullptr;
+		iTexture *mpTexture[MAX_TEXTUREUNITS] = {};
+		iVertexBuffer *mpVtxBuffer = nullptr;
+
+		bool mbHasModelMatrix = false;
+		cMatrixf mtxModelMatrix;
+		bool mbHasInvModelMatrix = false;
+		cMatrixf mtxInvModelMatrix;
+
+		iTexture *mpRefraction = nullptr;
+		iGpuProgram *mpRefractionProgram = nullptr;
+		eMaterialTexture mRefractionDiffuseTexture = eMaterialTexture_Diffuse;
+		iTexture *mpSpecular = nullptr;
+		iTexture *mpDiffuse = nullptr;
+		iTexture *mpRefractionDiffuse = nullptr;
+		float mfValue = 1;
+		bool mbRefractionUsesEye = false;
+		bool mbRefractionUsesTime = false;
+		bool mbRefractionUsesDiffuse = false;
+		bool mbRefractionSkipsStandardTrans = false;
 	};
 
-	typedef std::multiset<iRenderable*,cTransperantObject_Compare> tTransperantObjectSet;
-	typedef tTransperantObjectSet::iterator tTransperantObjectSetIt;
-
-	typedef cSTLIterator<iRenderable*, tTransperantObjectSet, tTransperantObjectSetIt> cTransperantObjectIterator;
-
+	bool cTransparentDraw_Compare(const cTransparentDraw &aDrawA, const cTransparentDraw &aDrawB);
 
 	//-------------------------------------------------------------
 
@@ -127,12 +156,15 @@ namespace hpl {
 
 		cFogObjectIterator GetFogIterator();
 
-		cTransperantObjectIterator GetTransperantIterator();
+		int GetTransparentDrawNum(){ return (int)mvTransparentDraws.size(); }
+		cTransparentDraw& GetTransparentDraw(int alIdx){ return mvTransparentDraws[alIdx]; }
 
 		cLight3DIterator GetLightIt();
 		cRenderableIterator GetObjectIt();
 
-		int GetLightNum();
+		int GetLightNum(){ return mlLightNum; }
+		iLight3D* GetLight(int alLightIdx){ return mvLights[alLightIdx].mpLight; }
+		int GetLightObjects(int alLightIdx){ return mvLights[alLightIdx].mlObjectCount; }
 		int GetObjectNum();
 
 		void Compile();
@@ -140,34 +172,30 @@ namespace hpl {
 		int GetRenderCount(){ return mlRenderCount;}
 		int GetLastRenderCount(){ return mlLastRenderCount;}
 
-		int GetLightObjects(int alLightIdx){ return mvObjectsPerLight[alLightIdx];}
-
 		void SetFrameTime(float afTime){ mfFrameTime = afTime;}
 
-		cRenderQueue* GetQueue(eRenderListDrawType aObjectType ,eMaterialRenderType aPassType, int alLightNum);
+		cRenderQueue* GetQueue(eMaterialRenderType aPassType, int alLightNum);
 
 		static inline int GetGlobalRenderCount(){ return mlGlobalRenderCount;}
 
 	private:
 
-		void AddDraw(iRenderable* apObject,eRenderListDrawType aObjectType,
-						eMaterialRenderType mPassType,int alLightNum,iLight3D* apLight,
-						bool abUseDepth, int alPass);
+		void AddDraw(iRenderable* apObject,eMaterialRenderType mPassType,int alLightNum,
+						iLight3D* apLight, int alPass);
 
 		static int mlGlobalRenderCount;
 
 		tLight3DSet m_setLights;
-		int mvObjectsPerLight[MAX_NUM_OF_LIGHTS];
+		std::vector<cRenderLight> mvLights;
+		int mlLightNum = 0;
 
 		tRenderableSet m_setObjects;
 
 		tFogObjectSet m_setFogObjects;
-		tTransperantObjectSet m_setTransperantObjects;
+		std::vector<cTransparentDraw> mvTransparentDraws;
 
 		cRenderQueue mDepthQueue;
 		cRenderQueue mDiffuseQueue;
-		cRenderQueue mvLightQueues[MAX_NUM_OF_LIGHTS];
-		cRenderQueue mTransQueue;
 
 
 		int mlRenderCount;

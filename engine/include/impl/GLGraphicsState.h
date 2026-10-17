@@ -18,6 +18,16 @@ namespace hpl
 		bool mbHasRenderTarget;
 		int mlMultisampling;
 	};
+
+	// What a fullscreen pass must put back on a texture unit. A unit can
+	// have a 2D and an array binding at once; the pass only changes the 2D
+	// one, but both are restored so a shared unit stays as it was.
+	struct cGLTextureUnitBinding
+	{
+		GLuint mlTexture2D = 0;
+		GLuint mlTextureArray = 0;
+		GLuint mlSampler = 0;
+	};
 	// Owns shader-visible state, default programs, UBOs, texture/sampler and VAO caches.
 	// Construction needs no GL. Initialization/use and teardown of allocated resources
 	// require the caller's current context; Reset/cleanup is idempotent.
@@ -32,6 +42,21 @@ namespace hpl
 		void Invalidate() { mbStateChanged = true; }
 		unsigned int GetActiveTextureUnit() const { return mlActiveTextureUnit; }
 		GLuint GetUnitSampler(int unit) const { return mvUnitSampler[unit]; }
+		cGLTextureUnitBinding GetTextureUnitBinding(int unit) const
+		{
+			return {mvUnitTexture2D[unit], mvUnitTextureArray[unit], mvUnitSampler[unit]};
+		}
+		void RestoreTextureUnit(int unit, const cGLTextureUnitBinding &aBinding);
+		/// Re-read capabilities and write masks after raw GL calls. Clients
+		/// must restore bindings, depth/blend functions and the viewport.
+		void ResyncExternalState();
+		bool GetDepthTestActive() const { return mbDepthTest; }
+		bool GetDepthWriteActive() const { return mbDepthWrite; }
+		bool GetBlendActive() const { return mbBlend; }
+		bool GetScissorActive() const { return mbScissor; }
+		bool GetCullActive() const { return mbCull; }
+		bool GetAlphaToCoverageActive() const { return mbAlphaToCoverage; }
+		const bool *GetColorWriteMask() const { return mvColorWrite; }
 		void BindEmptyVertexArray() { BindVertexArray(mlEmptyVertexArray); }
 		const cDrawMatrices &GetDrawMatrices() const { return mDrawMatrices; }
 		const cLinearLightingTuning &GetLinearLightingTuning() const { return mLinearTuning; }
@@ -54,7 +79,7 @@ namespace hpl
 
 		void SetTexture(unsigned int alUnit, iTexture *apTex);
 
-		void TextureStorageChanged(iTexture *apTex);
+		void TextureStorageChanged(iTexture *apTex, GLuint alOldHandle);
 
 		void ForgetTexture(iTexture *apTex);
 
@@ -107,6 +132,9 @@ namespace hpl
 			float afTime, const cVector2l &avRenderSize);
 
 		bool PrepareDraw(const cGLDrawTargetState &aTarget);
+		/// True when a completed draw with the current masks can write depth.
+		bool WritesDepth() const { return mbDepthTest && mbDepthWrite; }
+		bool GetClearDepthActive() const { return mbClearDepth; }
 
 	private:
 		void SetSamplerFilter(GLuint alSampler, bool abMipMaps);
@@ -128,16 +156,23 @@ namespace hpl
 		iTexture *mpCurrentTexture[MAX_TEXTUREUNITS] = {};
 		std::map<std::tuple<bool, GLenum, GLenum, GLenum>, GLuint> m_mapSamplers;
 		GLuint mvUnitSampler[MAX_TEXTUREUNITS] = {};
+		GLuint mvUnitTexture2D[MAX_TEXTUREUNITS] = {};
+		GLuint mvUnitTextureArray[MAX_TEXTUREUNITS] = {};
 		eTextureFilter mTextureFilter = eTextureFilter_Trilinear;
 		float mfTextureAnisotropy = 1.0f;
 		float mfAlphaCutoff = 0;
 		bool mbAlphaToCoverage = false;
 		bool mbStateChanged = true;
 		bool mbBlend = false;
+		bool mbScissor = false;
+		bool mbCull = false;
+		bool mvColorWrite[4] = {true, true, true, true};
 		eBlendFunc mBlendSrc = eBlendFunc_One;
 		eBlendFunc mBlendDest = eBlendFunc_Zero;
 		bool mbClearColor = true;
 		bool mbClearDepth = true;
+		bool mbDepthTest = true;
+		bool mbDepthWrite = true;
 		cLinearLightingTuning mLinearTuning;
 		cShadingSettings mShading;
 		cEffectSettings mEffects;

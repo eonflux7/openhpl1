@@ -674,12 +674,13 @@ namespace hpl {
 				mpGfxSDL->RestoreSetTexture();
 				return false;
 			}
+			const GLuint oldHandle = mlTextureHandle;
 			if(mlTextureHandle) glDeleteTextures(1, &mlTextureHandle);
 			mlTextureHandle = replacement;
 			mlStorageTarget = target; mlStorageFormat = format;
 			mvStorageSize = size; mlStorageLevels = levels;
 			mbAlphaCoverageKept = false;
-			mpGfxSDL->TextureStorageChanged(this);
+			mpGfxSDL->TextureStorageChanged(this, oldHandle);
 		}
 		else glBindTexture(target, mlTextureHandle);
 		mlWidth = width; mlHeight = height; mlDepth = depth;

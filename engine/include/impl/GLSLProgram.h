@@ -92,11 +92,17 @@ namespace hpl {
 
 		static bool InitPrograms(iLowLevelGraphics *apLowLevelGraphics);
 		static void ExitPrograms();
+		static void ClearAppliedProgram(){ mpAppliedProgram = nullptr; }
 		static void SetShaderDirectory(const tString& asDir){ msShaderDir = asDir; }
 		static const tString& GetShaderDirectory(){ return msShaderDir; }
 
+		/// The program selected as engine state (Bind/UnBind), used by PrepareDraw.
 		static cGLSLProgram* GetBoundProgram(){ return mpBoundProgram; }
+		/// The program whose GL variant Apply() last made current.
+		static cGLSLProgram* GetAppliedProgram(){ return mpAppliedProgram; }
 		bool Apply(unsigned int alArrayMask=0, const float* apLayers=nullptr);
+		/// Re-bind the variant last used by Apply, without re-applying values.
+		void RebindCurrent();
 
 		// Recompile complete pairs after a source/include edit, at most twice
 		// a second. Failed edits retain the previous program and its values.
@@ -124,6 +130,8 @@ namespace hpl {
 		tString msVertex;
 		tString msDefines;
 		GLuint mlProgram;
+		GLuint mlCurrentHandle = 0;
+		unsigned int mlCurrentMask = 0;
 		struct cTextureVariant {
 			GLuint handle = 0;
 			std::array<GLint, 8> layers;
@@ -142,6 +150,7 @@ namespace hpl {
 		GLuint mlMaterialBuffer = 0;
 		bool mbState;
 		static cGLSLProgram* mpBoundProgram;
+		static cGLSLProgram* mpAppliedProgram;
 	};
 
 };

@@ -18,13 +18,23 @@
 #include "impl/GLRenderTargets.h"
 #include "impl/GLStreamDrawing.h"
 #include "impl/GLShadowTargets.h"
-#include "impl/GLFinalPasses.h"
 // Initialize the facade's resource owners under the external EGL context.
+// Final-pass internals are inspected for the SMAA scissor regression.
 #define private public
+#include "impl/GLFinalPasses.h"
 #include "impl/LowLevelGraphicsSDL.h"
+#include "graphics/Renderer3D.h"
+#include "resources/Resources.h"
 #undef private
 #include "impl/SDLTexture.h"
 #include "impl/GLSLProgram.h"
+#include "impl/LowLevelResourcesSDL.h"
+#include "graphics/Graphics.h"
+#include "graphics/RenderList.h"
+#include "graphics/Renderable.h"
+#include "graphics/MeshCreator.h"
+#include "graphics/RendererPostEffects.h"
+#include "resources/GpuProgramManager.h"
 #include "math/Math.h"
 #include "scene/Camera3D.h"
 using namespace hpl;
@@ -243,6 +253,21 @@ static void TestTextures(cLowLevelGraphicsSDL& gfx)
 	cSDLTexture anim("animation", &format, &gfx, eTextureType_Normal, true, eTextureTarget_2D);
 	tBitmap2DVec frames={&red,&green};
 	Check(anim.CreateAnimFromBitmapVec(&frames) && anim.HasAnimation(), "animation array upload");
+	// Replacing a lingering 2D binding with array storage must preserve a
+	// different array that has since become the unit's selected resource.
+	cSDLTexture promoted("promoted", &format, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+	Check(promoted.CreateFromBitmap(&red), "initial static texture before animation promotion");
+	gfx.SetTexture(2, &promoted);
+	gfx.SetTexture(2, &anim);
+	Check(promoted.CreateAnimFromBitmapVec(&frames), "promote an unselected static texture to an array");
+	const auto promotedBinding = gfx.mState.GetTextureUnitBinding(2);
+	GLint selectedArray = 0;
+	glActiveTexture(GL_TEXTURE2);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &selectedArray);
+	Check(promotedBinding.mlTexture2D == 0 && promotedBinding.mlTextureArray == (GLuint)anim.GetHandle() &&
+		selectedArray == anim.GetHandle(), "storage target changes preserve a different selected array");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, anim.GetHandle());
 	Immutable(anim, GL_TEXTURE_2D_ARRAY, 3);
 	std::array<unsigned char,128> layers{};
 	glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, layers.data());
@@ -396,6 +421,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	cGLRenderTargets targets(state);
 	cGpuProfiler profiler;
 	cGLStreamDrawing stream(state, profiler);
+	stream.SetRenderTargets(&targets);
 	cGLShadowTargets shadows(state, targets);
 	cGLFinalPasses passes(state, targets, profiler);
 	Check(state.Init(), "initialize draw state without SDL");
@@ -421,6 +447,39 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	Check(state.PrepareDraw(targets.GetDrawState(shadows.IsActive())) &&
 			glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE),
 		"alpha to coverage in unresolved scene");
+
+	// Scene depth is cached independently of the colour resolve.
+	unsigned int depthBlits = targets.GetSceneDepthResolveCount();
+	Check(!targets.IsSceneDepthResolved(), "new scene has unresolved depth");
+	targets.ResolveSceneDepth();
+	Check(targets.IsSceneDepthResolved() && targets.GetSceneDepthResolveCount() == depthBlits + 1,
+		"first depth read performs one blit");
+	targets.ResolveSceneDepth();
+	Check(targets.GetSceneDepthResolveCount() == depthBlits + 1, "repeated depth read is free");
+	state.SetDepthWriteActive(false);
+	Check(state.PrepareDraw(targets.GetDrawState(false)), "prepare with depth writes disabled");
+	Check(targets.GetSceneDepthResolveCount() == depthBlits + 1,
+		"preparing a draw is not a completed depth write");
+	state.SetDepthWriteActive(true);
+	state.SetColorWriteActive(false, false, false, false);
+	stream.DrawTriangles({cVertex(cVector3f(0.7f, 0.7f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1)),
+							 cVertex(cVector3f(0.95f, 0.7f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1)),
+							 cVertex(cVector3f(0.7f, 0.95f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1))},
+		targets.GetDrawState(false));
+	state.SetColorWriteActive(true, true, true, true);
+	Check(!targets.IsSceneDepthResolved(), "a completed depth-writing draw invalidates the copy");
+	targets.ResolveSceneDepth();
+	Check(targets.GetSceneDepthResolveCount() == depthBlits + 2,
+		"a genuine depth write becomes visible to the next reader");
+	// A draw with depth testing off cannot write depth and keeps the copy.
+	state.SetDepthTestActive(false);
+	stream.DrawTriangles({cVertex(cVector3f(-0.95f, 0.7f, 0), cVector3f(0), cColor(0, 1, 0, 1)),
+							 cVertex(cVector3f(-0.7f, 0.7f, 0), cVector3f(0), cColor(0, 1, 0, 1)),
+							 cVertex(cVector3f(-0.95f, 0.95f, 0), cVector3f(0), cColor(0, 1, 0, 1))},
+		targets.GetDrawState(false));
+	Check(targets.IsSceneDepthResolved() && targets.GetSceneDepthResolveCount() == depthBlits + 2,
+		"colour-only draws keep resolved depth");
+	state.SetDepthTestActive(true);
 	shadows.BeginShadowMap(false, 0, 64);
 	Check(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "spot shadow target");
 	Check(state.PrepareDraw(targets.GetDrawState(shadows.IsActive())) &&
@@ -430,6 +489,8 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	BoundTarget(scene, 32, 24);
 	Check(state.PrepareDraw(targets.GetDrawState(false)) && glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE),
 		"shadow exit invalidates shader state");
+	Check(targets.IsSceneDepthResolved() && targets.GetSceneDepthResolveCount() == depthBlits + 2,
+		"shadow work does not invalidate scene depth");
 	for(int face = 0; face < 6; ++face)
 	{
 		shadows.BeginShadowMap(true, face, 32);
@@ -476,6 +537,22 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	float depth = 0;
 	glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 	Check(std::fabs(depth - 0.375f) < 0.001f, "resolve retains scene depth");
+	// Once colour is resolved, depth writes go to the resolve attachment.
+	// Asking for depth again must not copy the older multisampled depth over.
+	const unsigned int afterResolve = targets.GetSceneDepthResolveCount();
+	state.SetDepthTestActive(true);
+	state.SetDepthWriteActive(true);
+	state.SetColorWriteActive(false, false, false, false);
+	stream.DrawTriangles({cVertex(cVector3f(0.7f, 0.7f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1)),
+							 cVertex(cVector3f(0.95f, 0.7f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1)),
+							 cVertex(cVector3f(0.7f, 0.95f, -0.5f), cVector3f(0), cColor(1, 0, 0, 1))},
+		targets.GetDrawState(false));
+	state.SetColorWriteActive(true, true, true, true);
+	targets.ResolveSceneDepth();
+	Check(targets.GetSceneDepthResolveCount() == afterResolve,
+		"post-resolve depth write is not overwritten by an older scene copy");
+	glReadPixels(28, 20, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+	Check(std::fabs(depth - 0.25f) < 0.01f, "newer resolved depth survives the depth request");
 	const GLuint resolved = Integer(GL_DRAW_FRAMEBUFFER_BINDING);
 	cSDLPixelFormat copyFormat;
 	cSDLTexture copy("scene copy", &copyFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
@@ -489,6 +566,9 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	shadows.BeginShadowMap(false, 0, 32);
 	shadows.EndShadowMap();
 	BoundTarget(resolved, 32, 24);
+	// Offscreen resource-target work is not the scene's depth.
+	const unsigned int beforeResource = targets.GetSceneDepthResolveCount();
+	const bool bDepthWasResolved = targets.IsSceneDepthResolved();
 
 	cSDLPixelFormat format;
 	cSDLTexture texture("component target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
@@ -514,6 +594,57 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	Check(attachment == 0 && Integer(GL_DRAW_BUFFER1) == GL_NONE, "single target detaches extra attachments");
 	targets.SetRenderTarget(nullptr);
 	BoundTarget(resolved, 32, 24);
+	Check(targets.GetSceneDepthResolveCount() == beforeResource && targets.IsSceneDepthResolved() == bDepthWasResolved,
+		"resource-target work does not touch scene depth");
+	// A 2D-array texture on unit 0 must come back as an array binding, not
+	// as the 2D target the fullscreen pass leaves there.
+	cSDLPixelFormat arrayFormat;
+	cSDLBitmap2D arrayRed(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32), &arrayFormat, "SDL");
+	cSDLBitmap2D arrayGreen(SDL_CreateSurface(2,2,SDL_PIXELFORMAT_RGBA32), &arrayFormat, "SDL");
+	arrayRed.FillRect(cRect2l(0,0,0,0), cColor(1,0,0,1));
+	arrayGreen.FillRect(cRect2l(0,0,0,0), cColor(0,1,0,1));
+	cSDLTexture array("restore array", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_2D);
+	tBitmap2DVec arrayFrames={&arrayRed,&arrayGreen};
+	Check(array.CreateAnimFromBitmapVec(&arrayFrames), "array texture for pass restoration");
+	// Default-program selection follows the current texture target; a cube
+	// default must not stay selected after the cube texture is replaced.
+	cSDLTexture cube("restore cube", &arrayFormat, &gfx, eTextureType_Normal, false, eTextureTarget_CubeMap);
+	tBitmap2DVec cubeFaces(6, &arrayRed);
+	Check(cube.CreateCubeFromBitmapVec(&cubeFaces), "cube texture for default selection");
+	state.SetTexture(0, &cube);
+	Check(state.PrepareDraw(targets.GetDrawState(false)) &&
+			cGLSLProgram::GetAppliedProgram() &&
+			cGLSLProgram::GetAppliedProgram()->GetProgramName() == "Default CUBE",
+		"cube texture selects the cube default");
+	state.SetTexture(0, &array);
+	Check(state.PrepareDraw(targets.GetDrawState(false)) &&
+			cGLSLProgram::GetAppliedProgram() &&
+			cGLSLProgram::GetAppliedProgram()->GetProgramName() == "Default TEXTURE",
+		"a later array texture leaves the cube default behind");
+	// Replacement while unbound must also update the cached handle.
+	cSDLTexture resized("resized", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	Check(resized.Create(2, 2, cColor(0)), "texture before unbound resize");
+	state.SetTexture(0, &resized);
+	state.SetTexture(0, nullptr);
+	const GLuint beforeResize = resized.GetTextureHandle();
+	Check(resized.Create(4, 4, cColor(0)), "texture resized while unbound");
+	// The fixture texture uses the facade's owners; notify the local state
+	// the way cLowLevelGraphicsSDL would.
+	state.TextureStorageChanged(&resized, beforeResize);
+	Check(state.GetTextureUnitBinding(0).mlTexture2D == resized.GetTextureHandle(),
+		"storage replacement updates a cached handle without the resource pointer");
+
+	// A deleted texture must not be restored by a fullscreen pass.
+	cSDLTexture *pDeleted = hplNew(cSDLTexture, ("deleted", &arrayFormat, &gfx,
+		eTextureType_RenderTarget, false, eTextureTarget_2D));
+	Check(pDeleted->Create(2, 2, cColor(0)), "texture deleted before a pass");
+	state.SetTexture(0, pDeleted);
+	// Unbinding keeps the GL texture bound; deletion still has to clear the
+	// cached handle that a later pass would otherwise restore.
+	state.SetTexture(0, nullptr);
+	state.ForgetTexture(pDeleted);
+	delete pDeleted;
+	state.SetTexture(0, &array);
 	// The pass temporarily replaces a linked program, UBO, texture, sampler,
 	// masks and capabilities. A following geometry draw must still use the caches.
 	const GLuint sampler = state.GetSampler(false, GL_REPEAT, GL_REPEAT, GL_REPEAT);
@@ -530,6 +661,9 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	glScissor(1, 2, 3, 4);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_FALSE, GL_TRUE, GL_FALSE, GL_TRUE);
+	// These changes are deliberately raw, outside the owner. Declare that
+	// boundary so the pass restores the state that is actually current.
+	state.ResyncExternalState();
 	cSmaaSettings smaa;
 	smaa.mbActive = true;
 	passes.SetSmaa(smaa);
@@ -541,12 +675,55 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	glGetBooleanv(GL_COLOR_WRITEMASK, mask);
 	Check(Integer(GL_CURRENT_PROGRAM) == program && restoredMaterial == material && restoredSampler == (GLint)sampler,
 		"fullscreen passes restore program, material and cached sampler");
+	glActiveTexture(GL_TEXTURE0);
+	GLint restoredArray = 0, restoredTexture2D = 0;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D_ARRAY, &restoredArray);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &restoredTexture2D);
+	Check(restoredArray == (GLint)array.GetHandle(),
+		"fullscreen passes restore an animation-array binding on a shared unit");
+	Check(restoredTexture2D == 0,
+		"fullscreen passes do not restore a deleted texture handle");
+	// RebindCurrent must not use a handle replaced by a reload.
+	cGLSLProgram rebindProbe("rebind probe", false);
+	Check(rebindProbe.CreateFromFile("Default"), "program for reload rebind");
+	Check(rebindProbe.Apply(), "apply before reload");
+	Check(rebindProbe.Reload(), "reload before rebind");
+	rebindProbe.RebindCurrent();
+	GLint currentHandle = 0;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currentHandle);
+	Check(currentHandle == (GLint)rebindProbe.GetHandle(),
+		"rebind restores the variant handle produced by the reload");
+	cGLSLProgram::ExitPrograms();
 	Check(glIsEnabled(GL_SCISSOR_TEST) && glIsEnabled(GL_DEPTH_TEST) && glIsEnabled(GL_BLEND) &&
 			glIsEnabled(GL_CULL_FACE) && !Integer(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
 		"fullscreen passes restore capabilities and write masks");
-	glDisable(GL_SCISSOR_TEST);
+	state.SetScissorActive(false);
 	glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, color);
 	Check(color[0] > 0 && color[2] > color[0], "output pass draws the resolved scene");
+
+	// EndScene must disable scissor through the state owner. A raw disable
+	// leaves the cache on, so the first fullscreen pass restores it and the
+	// SMAA clears stay scissored, leaving stale edge data outside the rect.
+	GLint previousRead = 0, previousDraw = 0;
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousRead);
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousDraw);
+	glBindFramebuffer(GL_FRAMEBUFFER, passes.mvSmaaFramebuffers[1]);
+	GLfloat vOldClear[4];
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, vOldClear);
+	glClearColor(1.0f, 0.2f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(vOldClear[0], vOldClear[1], vOldClear[2], vOldClear[3]);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, previousRead);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previousDraw);
+	state.SetScissorActive(true);
+	glScissor(1, 2, 3, 4);
+	passes.EndScene();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, passes.mvSmaaFramebuffers[1]);
+	glReadPixels(24, 4, 1, 1, GL_RGBA, GL_FLOAT, color);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, previousRead);
+	Check(color[0] < 0.05f && color[1] < 0.05f,
+		"SMAA clears are not scissored by restored fullscreen state");
+	state.SetScissorActive(false);
 	shadows.BeginShadowMap(false, 0, 32);
 	shadows.EndShadowMap();
 	BoundTarget(output, 32, 24);
@@ -557,8 +734,14 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		targets.SetMultisampling(samples);
 		targets.SetRenderScale(samples ? 1.5f : 0.5f);
 		targets.BeginScene();
+		Check(!targets.IsSceneDepthResolved(), "every new frame starts with unresolved depth");
+		const unsigned int beforeResolve = targets.GetSceneDepthResolveCount();
+		targets.ResolveSceneDepth();
+		Check(targets.GetSceneDepthResolveCount() == beforeResolve + (samples > 0 ? 1u : 0u),
+			"depth resolve follows the current multisample setting");
 		glClearColor(0.2f, 0.3f, 0.4f, 1);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		state.ResyncExternalState();
 		glClear(GL_COLOR_BUFFER_BIT);
 		passes.EndScene();
 		BoundTarget(output, 32, 24);
@@ -594,6 +777,175 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	for(int i = 0; i < 2; ++i) Check(!glIsTexture(shadowTextures[i]) && !glIsSampler(shadowSamplers[i]), "shadow owner teardown");
 	Check(!glIsSampler(sampler) && !glIsProgram(program) && !glIsBuffer(frameBuffer) && !glIsBuffer(stateBuffer), "draw-state owner teardown");
 	Check(!glIsVertexArray(streamVao) && !glIsBuffer(streamBuffer), "stream owner teardown");
+	NoErrors();
+}
+
+// Run the actual transparent executor with ordinary, custom and refractive
+// draws. The small shaders make the expected blend/copy order measurable.
+class TransparentResources : public cResources
+{
+public:
+	TransparentResources(iLowLevelResources *low, iLowLevelGraphics *gfx) : cResources(low, gfx)
+	{
+		mpLowLevelSystem = nullptr;
+		mpImageManager = nullptr; mpParticleManager = nullptr; mpSoundManager = nullptr;
+		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
+		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
+		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
+		mpGpuProgramManager = hplNew(cGpuProgramManager, (mpFileSearcher, gfx, low, nullptr));
+	}
+};
+class TransparentMaterial : public iMaterial
+{
+public:
+	TransparentMaterial(cLowLevelGraphicsSDL &gfx, cRenderer3D &renderer)
+		: iMaterial("transparent fixture", &gfx, nullptr, nullptr, nullptr, eMaterialPicture_Texture, &renderer)
+	{
+		mbIsTransperant = true;
+	}
+	~TransparentMaterial() override { for(auto &texture : mvTexture) texture = nullptr; }
+	void Compile() override {}
+	iGpuProgram *program = nullptr;
+	iMaterialProgramSetup *setup = nullptr;
+	iGpuProgram *refraction = nullptr;
+	iGpuProgram *GetProgram(eMaterialRenderType, int, iLight3D*) override { return program; }
+	iMaterialProgramSetup *GetProgramSetup(eMaterialRenderType, int, iLight3D*) override { return setup; }
+	eMaterialBlendMode GetBlendMode(eMaterialRenderType, int, iLight3D*) override { return eMaterialBlendMode_Alpha; }
+	iGpuProgram *GetRefractionProgram() override { return refraction; }
+	bool GetRefractionSkipsStandardTrans() override { return true; }
+};
+class TransparentObject : public iRenderable
+{
+public:
+	TransparentObject(TransparentMaterial &material, iVertexBuffer *vertices)
+		: iRenderable("transparent fixture"), material(material), vertices(vertices) {}
+	TransparentMaterial &material;
+	iVertexBuffer *vertices;
+	iGpuProgram *custom = nullptr;
+	int queries = 0, setups = 0;
+	iMaterial *GetMaterial() override { return &material; }
+	iVertexBuffer *GetVertexBuffer() override { return vertices; }
+	bool IsShadowCaster() override { return false; }
+	cMatrixf *GetModelMatrix(cCamera3D*) override { return nullptr; }
+	eRenderableType GetRenderType() override { return eRenderableType_Normal; }
+	int GetMatrixUpdateCount() override { return 0; }
+	tString GetEntityType() override { return "TransparentFixture"; }
+	bool GetTransDraw(cCamera3D*, cTransDraw &draw) override
+	{
+		++queries;
+		if(!custom) return false;
+		draw.mpProgram = custom;
+		draw.mbDepthTest = false;
+		draw.mbCull = false;
+		return true;
+	}
+	void SetupTransDraw(cCamera3D*, cRenderSettings *settings, cTransDraw&) override
+	{
+		++setups;
+		Check(settings->mpProgram == custom && cGLSLProgram::GetBoundProgram() == custom,
+			"custom setup runs after selecting its program");
+		Check(!glIsEnabled(GL_DEPTH_TEST), "custom draw overrides depth testing at execution");
+	}
+};
+class TransparentSetup : public iMaterialProgramSetup
+{
+public:
+	int calls = 0, matrices = 0;
+	void Setup(iGpuProgram*, cRenderSettings*) override { ++calls; }
+	void SetupMatrix(cMatrixf*, cRenderSettings*) override { ++matrices; }
+};
+static void TestTransparentExecution(cLowLevelGraphicsSDL &gfx)
+{
+	Check(gfx.mState.Init(), "initialize transparent draw state");
+	gfx.mStream.Init();
+	gfx.mStream.SetRenderTargets(&gfx.mTargets);
+	Check(gfx.mTargets.Init(cVector2l(32, 24), 0), "initialize transparent scene");
+	const auto directory = std::filesystem::path(cGLSLProgram::GetShaderDirectory());
+	const char *vertex = "out vec4 vColor; void main(){gl_Position=worldViewProj*hpl_Vertex;vColor=hpl_Color;}";
+	std::ofstream(directory/"hpl1_TransparentProbe.vertex") << vertex;
+	std::ofstream(directory/"hpl1_TransparentProbe.fragment") <<
+		"in vec4 vColor; OUTPUT void main(){outColor=vColor;}";
+	std::ofstream(directory/"hpl1_TransparentRead.vertex") << vertex;
+	std::ofstream(directory/"hpl1_TransparentRead.fragment") <<
+		"HPL_TEXTURE_2D(0) OUTPUT void main(){outColor=hpl_TexelFetch0(ivec2(gl_FragCoord.xy),0)*vec4(1,0.5,1,1);}";
+	cGLSLProgram flat("transparent flat", false), custom("transparent custom", false), read("transparent read", false);
+	Check(flat.CreateFromFile("TransparentProbe") && custom.CreateFromFile("TransparentProbe") &&
+		read.CreateFromFile("TransparentRead"), "compile transparent order probes");
+	cLowLevelResourcesSDL low(&gfx);
+	TransparentResources resources(&low, &gfx);
+	cGraphics graphics(&gfx, &low);
+	cRenderList list(&graphics);
+	cMeshCreator meshes(&gfx, &resources);
+	cRenderer3D renderer(&gfx, &resources, &meshes, &list);
+	cRendererPostEffects effects(&gfx, &resources, &list, &renderer);
+	renderer.SetPostEffects(&effects);
+	cCamera3D camera;
+	list.SetCamera(&camera);
+	renderer.GetRenderSettings()->mpCamera = &camera;
+	gfx.SetFrameUniforms(camera.GetViewMatrix(), camera.GetProjectionMatrix(), cVector3f(0), 0.1f, 100, 0);
+
+	auto geometry = [&](const cColor &color)
+	{
+		std::unique_ptr<iVertexBuffer> buffer(gfx.CreateVertexBuffer(eVertexFlag_Position | eVertexFlag_Color0,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Static));
+		for(const cVector3f &position : {cVector3f(-1.2f,-1.2f,-2), cVector3f(1.2f,-1.2f,-2), cVector3f(0,1.2f,-2)})
+		{
+			buffer->AddVertex(eVertexFlag_Position, position);
+			buffer->AddColor(eVertexFlag_Color0, color);
+		}
+		for(unsigned i = 0; i < 3; ++i) buffer->AddIndex(i);
+		Check(buffer->Compile(0), "compile transparent geometry");
+		return buffer;
+	};
+	auto red = geometry(cColor(1,0,0,0.5f)), green = geometry(cColor(0,1,0,0.5f));
+	auto white = geometry(cColor(1,1)), blue = geometry(cColor(0,0,1,0.5f));
+	TransparentMaterial ordinary(gfx, renderer), refractive(gfx, renderer);
+	ordinary.program = &flat;
+	refractive.refraction = &read;
+	cSDLPixelFormat format;
+	cSDLTexture distortion("distortion fixture", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
+	Check(distortion.Create(2,2,cColor(1)), "refraction marker texture");
+	refractive.SetTexture(&distortion, eMaterialTexture_Refraction);
+	TransparentObject first(ordinary, red.get()), own(ordinary, green.get());
+	TransparentObject refract(refractive, white.get()), last(ordinary, blue.get());
+	own.custom = &custom;
+	first.SetPosition(cVector3f(0,0,-8)); own.SetPosition(cVector3f(0,0,-6));
+	refract.SetPosition(cVector3f(0,0,-4)); last.SetPosition(cVector3f(0,0,-2));
+	// A large bound makes the refraction copy cover the entire test image.
+	refract.GetBoundingVolume()->SetLocalMinMax(cVector3f(-100), cVector3f(100));
+	list.Clear();
+	for(TransparentObject *object : {&last, &refract, &own, &first}) list.Add(object);
+	list.Compile();
+	Check(first.queries == 0 && own.queries == 0, "custom callbacks stay at execution time");
+	gfx.BeginScene();
+	gfx.SetDepthTestActive(true); gfx.SetDepthWriteActive(true);
+	gfx.SetClearColor(cColor(0,0)); gfx.SetClearDepth(1);
+	gfx.SetColorWriteActive(true,true,true,true); gfx.SetScissorActive(false); gfx.ClearScreen();
+	gfx.SetCullActive(true); gfx.SetCullMode(eCullMode_Clockwise);
+	renderer.GetRenderSettings()->Clear();
+	renderer.RenderTrans(&camera);
+	float pixel[4];
+	glReadPixels(16,12,1,1,GL_RGBA,GL_FLOAT,pixel);
+	Check(std::fabs(pixel[0]-0.125f)<0.005f && std::fabs(pixel[1]-0.125f)<0.005f &&
+		std::fabs(pixel[2]-0.5f)<0.005f, "ordinary/custom/refraction/ordinary order preserves earlier scene colours");
+	Check(first.queries == 1 && own.queries == 1 && refract.queries == 1 && last.queries == 1 && own.setups == 1,
+		"each object callback runs once at its draw");
+	Check(glIsEnabled(GL_DEPTH_TEST) && glIsEnabled(GL_CULL_FACE) && !Integer(GL_DEPTH_WRITEMASK),
+		"following ordinary draw restores depth and culling after custom/refraction draws");
+
+	// The same linked program can have different setup objects. Changing only
+	// setup must rerun both callbacks, including for an identity model matrix.
+	TransparentSetup setupA, setupB;
+	cTransparentDraw draw;
+	draw.mpProgram = &flat; draw.mpVtxBuffer = red.get(); draw.mBlendMode = eMaterialBlendMode_Alpha;
+	draw.mpProgramSetup = &setupA;
+	auto state = draw.GetState(); state.ApplyTransparent(renderer.GetRenderSettings());
+	draw.mpProgramSetup = &setupB;
+	state = draw.GetState(); state.ApplyTransparent(renderer.GetRenderSettings());
+	Check(setupA.calls == 1 && setupB.calls == 1 && setupA.matrices == 1 && setupB.matrices == 1,
+		"setup-only transitions reapply the program and identity matrix callbacks");
+	renderer.GetRenderSettings()->Reset(&gfx);
+	gfx.mTargets.FinishScene();
 	NoErrors();
 }
 
@@ -638,6 +990,7 @@ int hplMain(const hpl::tString &)
 		TestQuadInstances(gfx);
 		TestTextures(gfx);
 		TestBackendComponents(gfx);
+		TestTransparentExecution(gfx);
 		std::filesystem::remove_all(directory);
 		std::cout << "Renderer storage regressions passed on " << glGetString(GL_RENDERER) << " / GL " << glGetString(GL_VERSION) << '\n';
 	} catch(const std::exception& e) { std::cerr << e.what() << '\n';result=1; }

@@ -39,7 +39,6 @@ namespace hpl {
 		case eRenderStateType_Sector:				SetSectorMode(apSettings); break;
 		case eRenderStateType_Pass:					SetPassMode(apSettings); break;
 		case eRenderStateType_DepthTest:			SetDepthTestMode(apSettings); break;
-		case eRenderStateType_Depth:				SetDepthMode(apSettings); break;
 		case eRenderStateType_AlphaMode:			SetAlphaMode(apSettings); break;
 		case eRenderStateType_BlendMode:			SetBlendMode(apSettings); break;
 		case eRenderStateType_Program:		SetProgramMode(apSettings); break;
@@ -48,6 +47,25 @@ namespace hpl {
 		case eRenderStateType_Matrix:			SetMatrixMode(apSettings); break;
 		case eRenderStateType_Render:			SetRenderMode(apSettings); break;
 		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	void iRenderState::ApplyTransparent(cRenderSettings* apSettings)
+	{
+		// Transparent programs supply their own lighting/eye values through
+		// setup callbacks. Do not inherit the preceding opaque light pass.
+		apSettings->mbUsesLight = false;
+		apSettings->mbUsesEye = false;
+		apSettings->mpLight = nullptr;
+		SetDepthTestMode(apSettings);
+		SetAlphaMode(apSettings);
+		SetBlendMode(apSettings);
+		if(mpProgram != apSettings->mpProgram || mpProgramSetup != apSettings->mpProgramSetup)
+			SetProgramMode(apSettings);
+		SetTextureMode(apSettings);
+		SetVtxBuffMode(apSettings);
+		SetMatrixMode(apSettings);
 	}
 
 	//-----------------------------------------------------------------------
@@ -79,12 +97,6 @@ namespace hpl {
 			if(apSettings->mbLog) Log("Setting depth test: %d\n",mbDepthTest?1:0);
 		}
 	}
-	//-----------------------------------------------------------------------
-
-	void iRenderState::SetDepthMode(cRenderSettings* apSettings)
-	{
-	}
-
 	//-----------------------------------------------------------------------
 
 	void iRenderState::SetAlphaMode(cRenderSettings* apSettings)

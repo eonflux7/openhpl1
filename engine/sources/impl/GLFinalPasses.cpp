@@ -64,8 +64,11 @@ namespace hpl
 	{
 		mTargets.FinishScene();
 
-		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
-		if(bScissor) glDisable(GL_SCISSOR_TEST);
+		// Turn scissor off through its owner, not with raw GL. Fullscreen
+		// passes snapshot this cache; a raw disable would let the first pass
+		// restore the old value and scissor the SMAA clears.
+		const bool bScissor = mState.GetScissorActive();
+		mState.SetScissorActive(false);
 
 		const bool bMultisampled = mTargets.GetSamples() > 0;
 		GLuint lColor = bMultisampled ? mTargets.GetResolvedColor() : mTargets.GetSceneColor();
@@ -126,7 +129,7 @@ namespace hpl
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mTargets.GetOutputFramebuffer());
 		}
 
-		if(bScissor) glEnable(GL_SCISSOR_TEST);
+		mState.SetScissorActive(bScissor);
 	}
 
 	void cGLFinalPasses::DeleteSmaaTextures()
@@ -269,8 +272,8 @@ namespace hpl
 	{
 		mTargets.SetRenderTarget(nullptr);
 
-		GLboolean bScissor = glIsEnabled(GL_SCISSOR_TEST);
-		if(bScissor) glDisable(GL_SCISSOR_TEST);
+		const bool bScissor = mState.GetScissorActive();
+		mState.SetScissorActive(false);
 
 		mTargets.BindFramebuffer(0, mTargets.GetOutputSize());
 		if(DrawGammaPass() == false)
@@ -296,7 +299,7 @@ namespace hpl
 		glColorMask(vColorMask[0], vColorMask[1], vColorMask[2], vColorMask[3]);
 		glClearColor(vClearColor[0], vClearColor[1], vClearColor[2], vClearColor[3]);
 
-		if(bScissor) glEnable(GL_SCISSOR_TEST);
+		mState.SetScissorActive(bScissor);
 	}
 
 	bool cGLFinalPasses::CreateFullscreenPass(cFullscreenPass &aPass)
@@ -320,35 +323,49 @@ namespace hpl
 		const cVector2l &avPos)
 	{
 		const GLuint vTextures[3] = {alTexture, alTexture1, alTexture2};
-		GLint lLastUnit = 0, lLastProgram = 0, lLastMaterialBuffer = 0;
-		GLint vLastTextures[3] = {0, 0, 0};
-		glGetIntegerv(GL_ACTIVE_TEXTURE, &lLastUnit);
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lLastProgram);
-		glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &lLastMaterialBuffer);
+
+		// The owners below are the authoritative source for engine state. The
+		// few values they do not track (the stencil test and this pass's own
+		// viewport) are read or restored explicitly. External clients that
+		// change raw GL state call cGLGraphicsState::ResyncExternalState().
+		cGLTextureUnitBinding vLastTextures[3];
+		for(int i = 0; i < 3; ++i)
+			vLastTextures[i] = mState.GetTextureUnitBinding(i);
+		const unsigned int lLastUnit = mState.GetActiveTextureUnit();
+		cGLSLProgram *pLastProgram = cGLSLProgram::GetAppliedProgram();
+		const bool bLastStencil = glIsEnabled(GL_STENCIL_TEST) == GL_TRUE;
+		const bool bLastDepthTest = mState.GetDepthTestActive();
+		const bool bLastBlend = mState.GetBlendActive();
+		const bool bLastScissor = mState.GetScissorActive();
+		const bool bLastCull = mState.GetCullActive();
+		const bool bLastCoverage = mState.GetAlphaToCoverageActive();
+		const bool bLastDepthWrite = mState.GetDepthWriteActive();
+		const bool *pLastColorWrite = mState.GetColorWriteMask();
+		const bool vLastColorWrite[4] = {pLastColorWrite[0], pLastColorWrite[1],
+			pLastColorWrite[2], pLastColorWrite[3]};
+		const cVector2l vLastViewportPos = mTargets.GetViewportPos();
+		const cVector2l vLastViewportSize = mTargets.GetViewportSize();
+
 		for(int i = 2; i >= 0; --i)
 		{
 			if(vTextures[i] == 0) continue;
 			glActiveTexture(GL_TEXTURE0 + i);
-			glGetIntegerv(GL_TEXTURE_BINDING_2D, &vLastTextures[i]);
 			glBindTexture(GL_TEXTURE_2D, vTextures[i]);
 			glBindSampler(i, 0);
 		}
 
-		static const GLenum vCaps[] = {GL_DEPTH_TEST, GL_STENCIL_TEST, GL_BLEND, GL_SCISSOR_TEST, GL_CULL_FACE,
-			GL_SAMPLE_ALPHA_TO_COVERAGE,
-			GL_CLIP_DISTANCE0, GL_CLIP_DISTANCE1, GL_CLIP_DISTANCE2,
+		// The renderer never enables user clip planes; keep them off rather
+		// than querying six capabilities for every pass.
+		static const GLenum vClipPlanes[] = {GL_CLIP_DISTANCE0, GL_CLIP_DISTANCE1, GL_CLIP_DISTANCE2,
 			GL_CLIP_DISTANCE3, GL_CLIP_DISTANCE4, GL_CLIP_DISTANCE5};
-		const int lCaps = sizeof(vCaps) / sizeof(vCaps[0]);
-		GLboolean vLastCaps[lCaps];
-		GLboolean bLastDepthMask = GL_TRUE;
-		GLboolean vLastColorMask[4];
-		GLint vLastViewport[4];
-		for(int i = 0; i < lCaps; ++i) vLastCaps[i] = glIsEnabled(vCaps[i]);
-		glGetBooleanv(GL_DEPTH_WRITEMASK, &bLastDepthMask);
-		glGetBooleanv(GL_COLOR_WRITEMASK, vLastColorMask);
-		glGetIntegerv(GL_VIEWPORT, vLastViewport);
+		for(GLenum plane : vClipPlanes) glDisable(plane);
 
-		for(int i = 0; i < lCaps; ++i) glDisable(vCaps[i]);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		if(abStencil) glEnable(GL_STENCIL_TEST);
 		glDepthMask(GL_FALSE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -361,26 +378,33 @@ namespace hpl
 		mState.BindEmptyVertexArray();
 		if(ready) glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glUseProgram(lLastProgram);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 2, lLastMaterialBuffer);
-		for(int i = 0; i < lCaps; ++i)
+		if(pLastProgram)
+			pLastProgram->RebindCurrent();
+		else
 		{
-			if(vLastCaps[i])
-				glEnable(vCaps[i]);
-			else
-				glDisable(vCaps[i]);
+			glUseProgram(0);
+			cGLSLProgram::ClearAppliedProgram();
 		}
-		glDepthMask(bLastDepthMask);
-		glColorMask(vLastColorMask[0], vLastColorMask[1], vLastColorMask[2], vLastColorMask[3]);
-		glViewport(vLastViewport[0], vLastViewport[1], vLastViewport[2], vLastViewport[3]);
+
+		mState.SetDepthTestActive(bLastDepthTest);
+		mState.SetBlendActive(bLastBlend);
+		mState.SetScissorActive(bLastScissor);
+		mState.SetCullActive(bLastCull);
+		if(bLastCoverage)
+			glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+		else
+			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+		if(bLastStencil)
+			glEnable(GL_STENCIL_TEST);
+		else
+			glDisable(GL_STENCIL_TEST);
+		mState.SetDepthWriteActive(bLastDepthWrite);
+		mState.SetColorWriteActive(vLastColorWrite[0], vLastColorWrite[1],
+			vLastColorWrite[2], vLastColorWrite[3]);
+		glViewport(vLastViewportPos.x, vLastViewportPos.y, vLastViewportSize.x, vLastViewportSize.y);
 		for(int i = 0; i < 3; ++i)
-		{
-			if(vTextures[i] == 0) continue;
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D, vLastTextures[i]);
-			glBindSampler(i, mState.GetUnitSampler(i));
-		}
-		glActiveTexture(lLastUnit);
+			mState.RestoreTextureUnit(i, vLastTextures[i]);
+		glActiveTexture(GL_TEXTURE0 + lLastUnit);
 	}
 
 	bool cGLFinalPasses::DrawGammaPass()

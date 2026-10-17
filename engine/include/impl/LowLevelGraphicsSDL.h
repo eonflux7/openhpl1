@@ -139,6 +139,9 @@ namespace hpl
 		 * shader state before a draw. Returns false for an unusable layout.
 		 */
 		bool PrepareDraw();
+		/// Call after a successful draw so the target owner can invalidate
+		/// cached scene depth when this draw could have written it.
+		void NotifyDrawComplete();
 
 		/// Every draw binds its vertex array through this.
 		void BindVertexArray(GLuint alVertexArray);
@@ -214,7 +217,7 @@ namespace hpl
 		/// Called by a texture whose sampler is another one now.
 		void TextureSamplerChanged(iTexture *apTex);
 		/// Rebind an immutable texture whose storage object was replaced.
-		void TextureStorageChanged(iTexture *apTex);
+		void TextureStorageChanged(iTexture *apTex, GLuint alOldHandle);
 
 		// POLYGONS
 		iVertexBuffer *CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,

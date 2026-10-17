@@ -67,7 +67,10 @@
 #include "impl/MeshLoaderCollada.h"
 #include "impl/VertexBufferVBO.h"
 #include "impl/LowLevelSoundOpenAL.h"
+#include "impl/LowLevelResourcesSDL.h"
 #include "resources/Resources.h"
+#include "resources/TextureManager.h"
+#include "scene/Light3DPoint.h"
 #include "scene/AnimationState.h"
 #include "scene/MeshEntity.h"
 #include "scene/SubMeshEntity.h"
@@ -800,18 +803,264 @@ static void TestProgramParameters()
 	Check(!a.SetMatrixf(eProgramParam::t, matrix), "matrix cannot overrun block");
 }
 
+class TestRenderMaterial : public iMaterial
+{
+public:
+	TestRenderMaterial(bool abTransparent, bool abDepthTest)
+		: iMaterial("test material", nullptr, nullptr, nullptr, nullptr, eMaterialPicture_Texture, nullptr)
+	{
+		mbIsTransperant = abTransparent;
+		mbDepthTest = abDepthTest;
+	}
+	void Compile() override {}
+	bool UsesType(eMaterialRenderType aType) override { return aType == eMaterialRenderType_Light; }
+	int GetNumOfPasses(eMaterialRenderType aType, iLight3D*) override { return aType == eMaterialRenderType_Light ? 1 : 0; }
+	eMaterialAlphaMode GetAlphaMode(eMaterialRenderType, int, iLight3D*) override { return eMaterialAlphaMode_Solid; }
+	eMaterialBlendMode GetBlendMode(eMaterialRenderType, int, iLight3D*) override { return eMaterialBlendMode_Alpha; }
+	eMaterialChannelMode GetChannelMode(eMaterialRenderType, int, iLight3D*) override { return eMaterialChannelMode_RGBA; }
+};
+
+class TestRefractionMaterial : public TestRenderMaterial
+{
+public:
+	TestRefractionMaterial() : TestRenderMaterial(true, true) {}
+	~TestRefractionMaterial() override
+	{
+		// These pointers are test tokens, not owned textures.
+		SetTexture(nullptr, eMaterialTexture_Diffuse);
+		SetTexture(nullptr, eMaterialTexture_Specular);
+	}
+	bool GetRefractionUsesDiffuse() override { return true; }
+	eMaterialTexture GetRefractionDiffuseTexture() override { return eMaterialTexture_Specular; }
+};
+
+class TestRenderable : public iRenderable
+{
+public:
+	TestRenderable(const tString &asName, iMaterial *apMaterial, iVertexBuffer *apVtx)
+		: iRenderable(asName), mpMaterial(apMaterial), mpVtx(apVtx) {}
+	iMaterial *GetMaterial() override { return mpMaterial; }
+	iVertexBuffer *GetVertexBuffer() override { return mpVtx; }
+	bool IsShadowCaster() override { return false; }
+	cMatrixf *GetModelMatrix(cCamera3D*) override { return nullptr; }
+	eRenderableType GetRenderType() override { return eRenderableType_Normal; }
+	tString GetEntityType() override { return "TestRenderable"; }
+	int GetMatrixUpdateCount() override { return 0; }
+private:
+	iMaterial *mpMaterial;
+	iVertexBuffer *mpVtx;
+};
+
+class TestTexture : public iTexture
+{
+public:
+	TestTexture(const tString &asName, iLowLevelGraphics *apLow)
+		: iTexture(asName, "test", nullptr, apLow, eTextureType_Normal, false, eTextureTarget_1D) {}
+	bool CreateFromBitmap(iBitmap2D*) override { return true; }
+	bool CreateCubeFromBitmapVec(tBitmap2DVec*) override { return true; }
+	bool Create(unsigned int, unsigned int, cColor) override { return true; }
+	bool CreateAnimFromBitmapVec(tBitmap2DVec*) override { return true; }
+	bool CreateFromArray(unsigned char*, int, const cVector3l&) override { return true; }
+	void Update(float) override {}
+	void SetPixels2D(int, const cVector2l&, const cVector2l&, eColorDataFormat, void*) override {}
+	void KeepAlphaCoverage(float) override {}
+	float GetGamma() override { return 1; }
+	void SetGamma(float) override {}
+	int GetHandle() override { return 0; }
+	void SetWrapS(eTextureWrap aMode) override { mWrapS = aMode; }
+	void SetWrapT(eTextureWrap aMode) override { mWrapT = aMode; }
+	void SetWrapR(eTextureWrap aMode) override { mWrapR = aMode; }
+	bool HasAnimation() override { return false; }
+	void NextFrame() override {}
+	void PrevFrame() override {}
+	float GetT() override { return 0; }
+	float GetTimeCount() override { return 0; }
+	void SetTimeCount(float) override {}
+	int GetCurrentLowlevelHandle() override { return 0; }
+};
+
+// Just enough resource ownership for the light fixture's falloff texture.
+class TestTextureManager : public cTextureManager
+{
+public:
+	using cTextureManager::cTextureManager;
+	void Add(iResourceBase *apResource) { AddResource(apResource); }
+};
+
+class TestRenderResources : public cResources
+{
+public:
+	TestRenderResources(iLowLevelResources *apLowLevelResources, iLowLevelGraphics *apLowLevelGraphics,
+		cGraphics *apGraphics)
+		: cResources(apLowLevelResources, apLowLevelGraphics)
+	{
+		mpLowLevelSystem = nullptr;
+		mpImageManager = nullptr; mpGpuProgramManager = nullptr;
+		mpParticleManager = nullptr; mpSoundManager = nullptr;
+		mpFontManager = nullptr; mpScriptManager = nullptr;
+		mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
+		mpVideoManager = nullptr; mpMeshManager = nullptr;
+		mpMaterialManager = nullptr; mpMeshLoaderHandler = nullptr;
+		mpTextureManager = hplNew(TestTextureManager, (apGraphics, this));
+		TestTexture *pFalloff = hplNew(TestTexture, ("core_falloff_linear.BMP", apLowLevelGraphics));
+		// Keep the fixture texture alive between light bursts; the manager
+		// releases the remaining users at teardown.
+		for(int i = 0; i < 256; ++i) pFalloff->IncUserCount();
+		static_cast<TestTextureManager *>(mpTextureManager)->Add(pFalloff);
+	}
+};
+
+static void TestTransparentOrder()
+{
+	cLowLevelGraphicsSDL low;
+	cGraphics graphics(&low, nullptr);
+	cRenderList list(&graphics);
+	cCamera3D camera;
+	list.SetCamera(&camera);
+	TestVertexBuffer vertices(1);
+	TestRenderMaterial depthMaterial(true, true);
+	TestRenderMaterial noDepthMaterial(true, false);
+
+	TestRenderable back("back", &depthMaterial, &vertices);
+	TestRenderable front("front", &depthMaterial, &vertices);
+	TestRenderable middle("middle", &depthMaterial, &vertices);
+	TestRenderable disabled("disabled", &noDepthMaterial, &vertices);
+	TestRenderable equalA("equalA", &depthMaterial, &vertices);
+	TestRenderable equalB("equalB", &depthMaterial, &vertices);
+	back.SetPosition(cVector3f(0, 0, -9));
+	front.SetPosition(cVector3f(0, 0, -1));
+	middle.SetPosition(cVector3f(0, 0, -5));
+	disabled.SetPosition(cVector3f(0, 0, -20));
+	equalA.SetPosition(cVector3f(0, 0, -5));
+	equalB.SetPosition(cVector3f(0, 0, -5));
+
+	list.Clear();
+	Check(list.Add(&back) && list.Add(&equalA) && list.Add(&disabled) &&
+		list.Add(&front) && list.Add(&equalB) && list.Add(&middle), "transparent objects enter the list");
+	Check(!list.Add(&middle), "duplicate add is rejected by render count");
+	list.Compile();
+	Check(list.GetTransparentDrawNum() == 6, "duplicate add creates one draw");
+	const char *expectedOrder[] = {"disabled", "back", "equalA", "equalB", "middle", "front"};
+	for(int i = 0; i < 6; ++i)
+		Check(list.GetTransparentDraw(i).mpObject->GetName() == expectedOrder[i],
+			"transparent order is depth-test group, ascending Z, then submission order");
+	Check(list.GetTransparentDraw(2).mpObject->GetZ() < list.GetTransparentDraw(3).mpObject->GetZ() ||
+		list.GetTransparentDraw(2).mpObject->GetZ() == list.GetTransparentDraw(3).mpObject->GetZ(),
+		"equal-depth pairs are adjacent");
+
+	list.Clear();
+	Check(list.Add(&front) && list.Add(&back) && list.Add(&middle), "clear accepts a new frame");
+	list.Compile();
+	const char *rebuiltOrder[] = {"back", "middle", "front"};
+	for(int i = 0; i < 3; ++i)
+		Check(list.GetTransparentDraw(i).mpObject->GetName() == rebuiltOrder[i],
+			"clear/rebuild sorts the new submission order");
+
+	// Water names the specular texture as its refraction source. The record
+	// must keep that choice separate from the ordinary diffuse texture.
+	int diffuseId = 0, specularId = 0;
+	iTexture *pDiffuse = reinterpret_cast<iTexture *>(&diffuseId);
+	iTexture *pSpecular = reinterpret_cast<iTexture *>(&specularId);
+	TestRefractionMaterial water;
+	water.SetTexture(pDiffuse, eMaterialTexture_Diffuse);
+	water.SetTexture(pSpecular, eMaterialTexture_Specular);
+	TestRenderable waterObject("water", &water, &vertices);
+	waterObject.SetPosition(cVector3f(0, 0, -2));
+	list.Clear();
+	Check(list.Add(&waterObject), "refraction object enters the list");
+	list.Compile();
+	Check(list.GetTransparentDrawNum() == 1, "refraction object has one draw");
+	const cTransparentDraw &refraction = list.GetTransparentDraw(0);
+	Check(refraction.mpDiffuse == pDiffuse && refraction.mpRefractionDiffuse == pSpecular,
+		"refraction records the material-selected texture, not the diffuse texture");
+}
+
+static void TestLightList()
+{
+	cLowLevelGraphicsSDL low;
+	cLowLevelResourcesSDL lowResources(&low);
+	cGraphics graphics(&low, nullptr);
+	cRenderList list(&graphics);
+	cCamera3D camera;
+	list.SetCamera(&camera);
+	TestRenderResources resources(&lowResources, &low, &graphics);
+	TestVertexBuffer vertices(1);
+	TestRenderMaterial material(false, true);
+	TestRenderable nearObject("near", &material, &vertices);
+	TestRenderable farObject("far", &material, &vertices);
+	nearObject.SetPosition(cVector3f(0));
+	farObject.SetPosition(cVector3f(100, 0, 0));
+
+	auto run = [&](int alLights)
+	{
+		std::vector<std::unique_ptr<cLight3DPoint>> lights;
+		list.Clear();
+		for(int i = 0; i < alLights; ++i)
+		{
+			lights.emplace_back(new cLight3DPoint("light", &resources));
+			lights.back()->SetPosition(cVector3f(0));
+			lights.back()->SetFarAttenuation(10);
+			list.Add(lights.back().get());
+		}
+		list.Add(&nearObject);
+		list.Add(&farObject);
+		list.Compile();
+		Check(list.GetLightNum() == alLights, "compiled light count matches the visible lights");
+		for(int i = 0; i < list.GetLightNum(); ++i)
+		{
+			iLight3D *pLight = list.GetLight(i);
+			Check(pLight != nullptr && list.GetLightObjects(i) == 1, "only the intersecting object joins each light");
+			cRenderQueue *pQueue = list.GetQueue(eMaterialRenderType_Light, i);
+			Check(pQueue && pQueue->mvDraws.size() == 1, "each light owns its one-pass draw queue");
+			Check(pQueue->mvDraws[0].mState.mpLight == pLight, "queue draw stays associated with its light");
+		}
+	};
+
+	run(0);
+	run(1);
+	run(30);
+	run(31);
+	run(64);
+	run(1);
+	run(64);
+
+	// A sector-restricted light and an unrestricted one: the object's sector
+	// decides which queue receives it.
+	list.Clear();
+	cLight3DPoint restricted("restricted", &resources);
+	cLight3DPoint unrestricted("unrestricted", &resources);
+	restricted.SetPosition(cVector3f(0));
+	unrestricted.SetPosition(cVector3f(0));
+	restricted.SetFarAttenuation(10);
+	unrestricted.SetFarAttenuation(10);
+	restricted.SetOnlyAffectInSector(true);
+	restricted.SetCurrentSector(reinterpret_cast<cSector *>(1));
+	nearObject.SetCurrentSector(reinterpret_cast<cSector *>(2));
+	list.Add(&restricted);
+	list.Add(&unrestricted);
+	list.Add(&nearObject);
+	list.Compile();
+	Check(list.GetLightNum() == 2, "sector fixture keeps both lights");
+	for(int i = 0; i < 2; ++i)
+	{
+		const bool bRestricted = list.GetLight(i)->GetName() == "restricted";
+		Check(list.GetLightObjects(i) == (bRestricted ? 0 : 1),
+			"sector restriction excludes the object from only that light's queue");
+	}
+}
+
 static void TestDrawQueue()
 {
 	cRenderDraw first, next;
 	Check(first.FirstChangedState(nullptr) == eRenderStateType_Sector, "first draw applies all states");
 	Check(next.FirstChangedState(&first) == eRenderStateType_Render, "equal keys still draw");
-	next.mKey[6] = 1;
-	Check(next.FirstChangedState(&first) == eRenderStateType_BlendMode, "channel/blend key reapplies following state");
-	next = first; next.mKey[7] = 1;
+	next.mKey[5] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_BlendMode, "blend key reapplies following state");
+	next = first; next.mKey[6] = 1;
 	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "program change reapplies textures and matrices");
-	next = first; next.mKey[10 + MAX_TEXTUREUNITS] = 1;
+	next = first; next.mKey[9 + MAX_TEXTUREUNITS] = 1;
 	Check(next.FirstChangedState(&first) == eRenderStateType_Matrix, "matrix change preserves earlier material state");
-	next = first; next.mKey[8] = 1;
+	next = first; next.mKey[7] = 1;
 	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "custom setup change reapplies material and matrix values");
 	next = first; next.mKey[0] = 1;
 	Check(next.FirstChangedState(&first) == eRenderStateType_Sector, "sector change reapplies ambient setup");
@@ -898,6 +1147,7 @@ int hplMain(const hpl::tString&)
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
+		TestTransparentOrder(); TestLightList();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

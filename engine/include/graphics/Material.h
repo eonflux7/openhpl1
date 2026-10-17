@@ -157,7 +157,6 @@ namespace hpl {
 		virtual eMaterialChannelMode GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight){return eMaterialChannelMode_RGBA;}
 
 		virtual iTexture* GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight){ return nullptr;}
-		virtual eMaterialBlendMode GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight){ return eMaterialBlendMode_None;}
 
 		virtual int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight){ return 0;}
 

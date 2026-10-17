@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/GLStreamDrawing.h"
+#include "impl/GLRenderTargets.h"
 #include "impl/GpuProfiler.h"
 #include "math/Math.h"
 #include <cassert>
@@ -65,6 +66,13 @@ namespace hpl
 		if(mlStreamVertexBuffer) glDeleteBuffers(1, &mlStreamVertexBuffer);
 		if(mlStreamIndexBuffer) glDeleteBuffers(1, &mlStreamIndexBuffer);
 		mlStreamVertexArray = mlStreamVertexBuffer = mlStreamIndexBuffer = 0;
+	}
+
+	void cGLStreamDrawing::NoteDraw(const cGLDrawTargetState &aTarget)
+	{
+		if(mpTargets && mState.WritesDepth() && aTarget.mbInScene &&
+			!aTarget.mbHasRenderTarget && !aTarget.mbInShadowMap)
+			mpTargets->InvalidateSceneDepth();
 	}
 
 	void cGLStreamDrawing::DrawTriangles(const tVertexVec &avVertices, const cGLDrawTargetState &aTarget)
@@ -244,6 +252,7 @@ namespace hpl
 		StreamArray(arrays, cGLSLProgram::eVertexAttrib_TexCoord, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, tex));
 		SetStreamArrays(arrays);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)alCount);
+		NoteDraw(aTarget);
 	}
 
 	void cGLStreamDrawing::ImmediateDraw(GLenum aMode, const cGLDrawTargetState &aTarget)
@@ -269,6 +278,7 @@ namespace hpl
 		SetStreamArrays(lArrays);
 
 		glDrawArrays(aMode, 0, lVertices);
+		NoteDraw(aTarget);
 
 		// The last vertex's values stay as the current ones, as with glColor
 		// and glTexCoord: draws without those arrays get them.

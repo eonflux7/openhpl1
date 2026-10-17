@@ -180,6 +180,7 @@ namespace hpl
 		glDeleteTextures(4, vTextures);
 		mlSceneFramebuffer = mlSceneColorFramebuffer = mlResolveFramebuffer = mlResolveColorFramebuffer = 0;
 		mlSceneColor = mlSceneDepthStencil = mlResolveColor = mlResolveDepthStencil = 0;
+		mbSceneResolved = mbSceneDepthResolved = false;
 		++mlSceneGeneration;
 	}
 
@@ -218,6 +219,8 @@ namespace hpl
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, alFramebuffer);
 		glViewport(0, 0, avSize.x, avSize.y);
+		mvViewportPos = 0;
+		mvViewportSize = avSize;
 		mvTargetSize = avSize;
 	}
 
@@ -226,6 +229,7 @@ namespace hpl
 		SetRenderTarget(nullptr);
 		mbInScene = true;
 		mbSceneResolved = false;
+		mbSceneDepthResolved = false;
 		mbSceneColorOnly = false;
 		mState.Invalidate();
 		BindFramebuffer(mlSceneFramebuffer, mvRenderSize);
@@ -263,9 +267,21 @@ namespace hpl
 
 	void cGLRenderTargets::ResolveSceneDepth()
 	{
-		if(mlMultisampling <= 0 || mbInScene == false || mbSceneResolved) return;
+		// The resolved copy stays usable until something writes scene depth,
+		// not merely until the colour resolve.
+		if(mlMultisampling <= 0 || mbInScene == false || mpRenderTarget || mbSceneDepthResolved) return;
+		// After the colour resolve the destination is the resolve
+		// attachment itself; a blit from the old multisampled scene would
+		// overwrite newer depth that was written there.
+		if(mbSceneResolved)
+		{
+			mbSceneDepthResolved = true;
+			return;
+		}
 
 		BlitScene(GL_DEPTH_BUFFER_BIT, 0, 0, mvRenderSize.x, mvRenderSize.y);
+		mbSceneDepthResolved = true;
+		++mlSceneDepthResolveCount;
 		BindCurrentFramebuffer();
 	}
 
@@ -273,10 +289,27 @@ namespace hpl
 	{
 		if(mbInScene == false || mbSceneResolved) return;
 
-		if(mlMultisampling > 0) BlitScene(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0, 0, mvRenderSize.x, mvRenderSize.y);
+		if(mlMultisampling > 0)
+		{
+			// Only colour is outstanding when depth was already resolved.
+			GLbitfield mask = GL_COLOR_BUFFER_BIT;
+			if(!mbSceneDepthResolved) mask |= GL_DEPTH_BUFFER_BIT;
+			BlitScene(mask, 0, 0, mvRenderSize.x, mvRenderSize.y);
+			mbSceneDepthResolved = true;
+		}
 		mbSceneResolved = true;
 		mState.Invalidate();
 		if(mlMultisampling > 0) BindCurrentFramebuffer();
+	}
+
+	void cGLRenderTargets::InvalidateSceneDepth()
+	{
+		// Only the multisampled scene's own depth can go stale. Resource
+		// targets and shadow maps are not the scene. Once the colour resolve
+		// has switched the destination, draws write the resolve attachment
+		// itself, so the resolved depth is still current.
+		if(mbInScene == false || mpRenderTarget || mbSceneResolved || mbSceneColorOnly) return;
+		mbSceneDepthResolved = false;
 	}
 
 	bool cGLRenderTargets::BeginSceneColorRead()

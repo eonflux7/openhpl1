@@ -21,10 +21,16 @@ namespace hpl
 		const cVector2l &GetSize() const { return mvRenderSize; }
 		const cVector2l &GetOutputSize() const { return mvOutputSize; }
 		const cVector2l &GetTargetSize() const { return mvTargetSize; }
+		const cVector2l &GetViewportPos() const { return mvViewportPos; }
+		const cVector2l &GetViewportSize() const { return mvViewportSize; }
 		int GetSamples() const { return mlMultisampling; }
 		unsigned int GetSceneGeneration() const { return mlSceneGeneration; }
 		bool IsInScene() const { return mbInScene; }
 		bool IsSceneResolved() const { return mbSceneResolved; }
+		bool IsSceneDepthResolved() const { return mbSceneDepthResolved; }
+		unsigned int GetSceneDepthResolveCount() const { return mlSceneDepthResolveCount; }
+		/// A clear or completed draw may have written the scene's depth.
+		void InvalidateSceneDepth();
 		iTexture *GetRenderTarget() const { return mpRenderTarget; }
 		GLuint GetSceneColor() const { return mlSceneColor; }
 		GLuint GetResolvedColor() const { return mlResolveColor; }
@@ -79,12 +85,16 @@ namespace hpl
 		cVector2l mvOutputSize = 0;
 		cVector2l mvRenderSize = 0;
 		cVector2l mvTargetSize = 0;
+		cVector2l mvViewportPos = 0;
+		cVector2l mvViewportSize = 0;
 		float mfRenderScale = 1.0f;
 		int mlMultisampling = 0;
 		unsigned int mlSceneGeneration = 0;
 		bool mbInScene = false;
 		bool mbSceneResolved = false;
+		bool mbSceneDepthResolved = false;
 		bool mbSceneColorOnly = false;
+		unsigned int mlSceneDepthResolveCount = 0;
 		iTexture *mpRenderTarget = nullptr;
 		GLuint mlSceneFramebuffer = 0;
 		GLuint mlSceneColorFramebuffer = 0;

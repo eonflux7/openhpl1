@@ -7,6 +7,7 @@
 
 namespace hpl
 {
+	class cGLRenderTargets;
 	// Owns streamed triangle/sprite/debug geometry; callers supply the draw target state.
 	// Construction needs no GL. Initialization/use and teardown of allocated resources
 	// require the caller's current context; Reset/cleanup is idempotent.
@@ -17,6 +18,8 @@ namespace hpl
 		~cGLStreamDrawing() { Reset(); }
 		void Init();
 		void Reset();
+		/// The target owner to tell about completed depth writes.
+		void SetRenderTargets(cGLRenderTargets *apTargets) { mpTargets = apTargets; }
 		cGLStreamDrawing(const cGLStreamDrawing &) = delete;
 		cGLStreamDrawing &operator=(const cGLStreamDrawing &) = delete;
 		void DrawTriangles(const tVertexVec &avVertices, const cGLDrawTargetState &aTarget);
@@ -38,6 +41,7 @@ namespace hpl
 			iTexture *apTexture, const cSpriteBlend &aBlend, const cGLDrawTargetState &aTarget);
 
 	private:
+		void NoteDraw(const cGLDrawTargetState &aTarget);
 		void StreamArray(unsigned int &alArrays, int alAttrib, int alElements,
 			size_t alStride, size_t alOffset);
 
@@ -50,6 +54,7 @@ namespace hpl
 		void ImmediateDraw(GLenum aMode, const cGLDrawTargetState &aTarget);
 		cGLGraphicsState &mState;
 		cGpuProfiler &mGpuProfiler;
+		cGLRenderTargets *mpTargets = nullptr;
 		GLuint mlSheetIndexBuffer = 0;
 		GLuint mlStreamVertexArray = 0;
 		GLuint mlStreamVertexBuffer = 0;

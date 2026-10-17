@@ -69,6 +69,7 @@ namespace hpl {
 		mpMaterialHandler = nullptr;
 		mpRenderer3D = nullptr;
 		mpRendererPostEffects = nullptr;
+		mpRenderList = nullptr;
 	}
 
 	//-----------------------------------------------------------------------

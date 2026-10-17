@@ -2138,6 +2138,41 @@ Logs are `/tmp/step10-final-{linux-build,linux-ctest,windows-build}.log`,
 `/tmp/step10-gl33.log`, `/tmp/step10-gl43.log` and
 `/tmp/step10-{default,motion,scale,effects}-{capture,compare}.log`.
 
+### Step 11: renderer cleanup
+
+See-through objects enter the render list as ordered records in submission
+order, then stable-sort by depth-test group and camera-space Z; equal depths
+keep submission order. Materials no longer expose the unused per-texture blend
+interface, and the empty transparent queue and render-state depth field are
+gone. Lights are compiled into an explicit per-frame list with one queue and
+object count each, so there is no 30-light cap or silent truncation. Transparent
+records carry the material state and copied matrices needed at execution while
+`GetTransDraw()`/`SetupTransDraw()` keep their old call timing. Ordered draws
+share the opaque renderer's state setters; refraction copies and destination
+alpha masks have separate execution helpers. A setup-object change reapplies
+its callbacks even when the linked program is unchanged.
+
+The resolved scene depth has its own validity state: repeated AO, transparency
+and final-pass reads reuse one blit until a clear or completed depth-writing
+draw invalidates it. Scene depth stays current after the colour resolve, where
+draws write the resolve attachment. Fullscreen passes now restore programs,
+material UBOs, texture/sampler bindings (including separate 2D and array
+targets), viewport, scissor, capabilities and masks from the state and target
+owners, with an explicit
+`ResyncExternalState()` boundary for raw GL clients. Deleted or replaced
+texture names are cleared even when the unit no longer selects the resource,
+so a pass cannot restore a stale handle. Promoting an unselected static texture
+to an animation array preserves another array selected on the same unit.
+
+Both CTest suites pass in RelWithDebInfo and ASan/UBSan builds. The EGL storage
+suite also passes with Mesa restricted to GL 3.3 and GL 4.3. The EGL suite checks
+the actual ordinary/custom/refraction/ordinary draw sequence with pixel reads,
+callback timing and following-draw state, in addition to storage/lifetime and
+SMAA scissor regressions. Final sanitizer checks disable leak detection because
+LeakSanitizer cannot run under the review environment's ptrace restriction.
+Visual captures were not run in this environment (no game data or gamescope); they remain
+unvalidated. See `docs/renderer-cleanup-plan.md` for the worker handoff.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

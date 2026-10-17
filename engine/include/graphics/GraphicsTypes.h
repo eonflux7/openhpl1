@@ -27,7 +27,6 @@
 namespace hpl {
 
 	#define MAX_TEXTUREUNITS (8)
-	#define MAX_NUM_OF_LIGHTS (30)
 
 
 	enum eBlendFunc

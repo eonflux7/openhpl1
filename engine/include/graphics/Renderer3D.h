@@ -51,6 +51,8 @@ namespace hpl {
 	class iLight3D;
 	class cRendererPostEffects;
 	class cSector;
+	struct cTransparentDraw;
+	class iRenderState;
 
 	class cResources;
 
@@ -190,7 +192,6 @@ namespace hpl {
 
 
 		iTexture* mpTexture[MAX_TEXTUREUNITS];
-		eMaterialBlendMode mTextureBlend[MAX_TEXTUREUNITS];
 
 		iVertexBuffer* mpVtxBuffer;
 	};
@@ -286,6 +287,10 @@ namespace hpl {
 		void RenderDiffuse(cCamera3D *apCamera);
 
 		void RenderTrans(cCamera3D *apCamera);
+		bool RenderTransparentRefraction(cCamera3D *apCamera, const cTransparentDraw &aDraw,
+			const iRenderState &aState);
+		void RenderRefractionMask(cCamera3D *apCamera, const iRenderState &aState,
+			const cRect2l &aClipRect);
 
 		void RenderDebug(cCamera3D *apCamera);
 

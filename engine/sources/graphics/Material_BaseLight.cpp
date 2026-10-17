@@ -288,11 +288,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	eMaterialBlendMode iMaterial_BaseLight::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		return eMaterialBlendMode_None;
-	}
-
 	//-----------------------------------------------------------------------
 
 	int iMaterial_BaseLight::GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight)

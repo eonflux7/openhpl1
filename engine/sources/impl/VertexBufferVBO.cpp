@@ -292,6 +292,7 @@ namespace hpl {
 			const GLenum mode = aDrawType == eVertexBufferDrawType_Lines ? GL_LINE_STRIP : GL_TRIANGLES;
 			gfx->GetGpuProfiler()->CountDraw(mode, count * 6);
 			glDrawElementsInstanced(mode, 6, GL_UNSIGNED_INT, nullptr, count);
+			gfx->NotifyDrawComplete();
 			// Array draws leave generic attributes unspecified. Ordinary mesh,
 			// stream and fullscreen VAOs disable 3 and must see kind zero.
 			glVertexAttrib1f(3, 0);
@@ -320,6 +321,7 @@ namespace hpl {
 		BindVertexArray();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lElementHandle);
 		glDrawElements(mode,lSize,GL_UNSIGNED_INT, (char*) nullptr);
+		pLowLevel->NotifyDrawComplete();
 	}
 
 	//-----------------------------------------------------------------------
@@ -346,6 +348,7 @@ namespace hpl {
 		BindVertexArray();
 		const void *pOffset = pLowLevel->StreamIndices(apIndices, alCount);
 		glDrawElements(mode, alCount, GL_UNSIGNED_INT, pOffset);
+		pLowLevel->NotifyDrawComplete();
 	}
 
 

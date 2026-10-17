@@ -90,6 +90,7 @@ namespace hpl
 		mGpuProfiler.Init();
 		if(!mState.Init()) return false;
 		mStream.Init();
+		mStream.SetRenderTargets(&mTargets);
 		ShowCursor(false);
 		if(!mTargets.Init(mWindow.GetSize(), alMultisampling))
 		{
@@ -308,9 +309,9 @@ namespace hpl
 		mState.SetTexture(alUnit, apTex);
 	}
 
-	void cLowLevelGraphicsSDL::TextureStorageChanged(iTexture *apTex)
+	void cLowLevelGraphicsSDL::TextureStorageChanged(iTexture *apTex, GLuint alOldHandle)
 	{
-		mState.TextureStorageChanged(apTex);
+		mState.TextureStorageChanged(apTex, alOldHandle);
 	}
 
 	void cLowLevelGraphicsSDL::ForgetTexture(iTexture *apTex)
@@ -403,6 +404,8 @@ namespace hpl
 	void cLowLevelGraphicsSDL::ClearScreen()
 	{
 		mState.ClearScreen();
+		if(mState.GetClearDepthActive() && !mShadows.IsActive())
+			mTargets.InvalidateSceneDepth();
 	}
 
 	void cLowLevelGraphicsSDL::SetClearColor(const cColor &aCol)
@@ -605,5 +608,11 @@ namespace hpl
 	bool cLowLevelGraphicsSDL::PrepareDraw()
 	{
 		return mState.PrepareDraw(mTargets.GetDrawState(mShadows.IsActive()));
+	}
+
+	void cLowLevelGraphicsSDL::NotifyDrawComplete()
+	{
+		if(mState.WritesDepth() && !mShadows.IsActive())
+			mTargets.InvalidateSceneDepth();
 	}
 } // namespace hpl

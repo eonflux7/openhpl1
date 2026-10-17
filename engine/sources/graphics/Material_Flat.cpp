@@ -122,11 +122,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	eMaterialBlendMode cMaterial_Flat::GetTextureBlend(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		return eMaterialBlendMode_Mul;
-	}
-
 	//-----------------------------------------------------------------------
 
 	bool cMaterial_Flat::UsesType(eMaterialRenderType aType)

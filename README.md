@@ -29,7 +29,7 @@ executable. It boots, plays the intro and menus and loads levels at full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
-Renderer cleanup is through **Milestone 6, step 10**: mesh vertices upload
+Renderer cleanup is through **Milestone 6, step 11**: mesh vertices upload
 interleaved into one buffer, surface geometry uses triangle indices, and
 UVs and tangents have named attributes. Textures use immutable storage;
 animation frames occupy layers of one texture array. The shared triangle
@@ -51,6 +51,15 @@ The Windows MSVC build passes; step 9 comparisons match 95/95 default,
 95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames. All UI
 frames, effects pixel/live checks and GL debug validation pass. Details are in
 [CHANGES.md](CHANGES.md#step-10-billboards-beams-and-particles).
+
+Step 11 keeps see-through draws in explicit submission-ordered records, supports
+every visible light instead of stopping at 30, removes dead per-texture/queue
+interfaces, caches resolved scene depth until a real depth write, and restores
+fullscreen-pass state from the state and target owners. Both CTest suites pass
+in RelWithDebInfo and ASan/UBSan builds, including EGL on GL 3.3 and GL 4.3.
+Fresh visual captures and Windows validation were unavailable in the
+implementation environment; they remain unvalidated. See
+[docs/renderer-cleanup-plan.md](docs/renderer-cleanup-plan.md).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
 `GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing

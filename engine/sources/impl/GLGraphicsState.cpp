@@ -214,29 +214,95 @@ namespace hpl
 
 			glBindTexture(NewTarget, pSDLTex->GetTextureHandle());
 			BindSampler(alUnit, pSDLTex->GetSampler());
+			if(NewTarget == GL_TEXTURE_2D)
+				mvUnitTexture2D[alUnit] = pSDLTex->GetTextureHandle();
+			else if(NewTarget == GL_TEXTURE_2D_ARRAY)
+				mvUnitTextureArray[alUnit] = pSDLTex->GetTextureHandle();
 		}
 
 		mpCurrentTexture[alUnit] = apTex;
 		mlActiveTextureUnit = alUnit;
 	}
 
-	void cGLGraphicsState::TextureStorageChanged(iTexture *apTex)
+	void cGLGraphicsState::RestoreTextureUnit(int alUnit, const cGLTextureUnitBinding &aBinding)
 	{
+		glActiveTexture(GL_TEXTURE0 + alUnit);
+		glBindTexture(GL_TEXTURE_2D, aBinding.mlTexture2D);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, aBinding.mlTextureArray);
+		glBindSampler(alUnit, aBinding.mlSampler);
+		mvUnitSampler[alUnit] = aBinding.mlSampler;
+		mvUnitTexture2D[alUnit] = aBinding.mlTexture2D;
+		mvUnitTextureArray[alUnit] = aBinding.mlTextureArray;
+	}
+
+	void cGLGraphicsState::ResyncExternalState()
+	{
+		// Only for clients that change GL directly (the EGL fixtures, a
+		// third-party overlay). Engine code keeps these through the setters.
+		mbDepthTest = glIsEnabled(GL_DEPTH_TEST) == GL_TRUE;
+		mbBlend = glIsEnabled(GL_BLEND) == GL_TRUE;
+		mbScissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+		mbCull = glIsEnabled(GL_CULL_FACE) == GL_TRUE;
+		mbAlphaToCoverage = glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE) == GL_TRUE;
+		GLboolean bDepthWrite = GL_TRUE;
+		GLboolean vColorWrite[4] = {GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE};
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &bDepthWrite);
+		glGetBooleanv(GL_COLOR_WRITEMASK, vColorWrite);
+		mbDepthWrite = bDepthWrite == GL_TRUE;
+		for(int i = 0; i < 4; ++i) mvColorWrite[i] = vColorWrite[i] == GL_TRUE;
+	}
+
+	void cGLGraphicsState::TextureStorageChanged(iTexture *apTex, GLuint alOldHandle)
+	{
+		const GLuint lNewHandle = static_cast<cSDLTexture *>(apTex)->GetTextureHandle();
+		const GLenum newTarget = TextureTargetToGL(apTex->GetTarget());
+
 		GLint active = GL_TEXTURE0;
 		glGetIntegerv(GL_ACTIVE_TEXTURE, &active);
 		for(unsigned int unit = 0; unit < MAX_TEXTUREUNITS; ++unit)
 		{
-			if(mpCurrentTexture[unit] != apTex) continue;
+			// The selected resource and the cached handle can disagree after
+			// SetTexture(nullptr): the unit keeps its GL binding. Match both
+			// so a replaced handle is never left in the cache.
+			const bool bWas2D = alOldHandle != 0 && mvUnitTexture2D[unit] == alOldHandle;
+			const bool bWasArray = alOldHandle != 0 && mvUnitTextureArray[unit] == alOldHandle;
+			const bool bSelected = mpCurrentTexture[unit] == apTex;
+			if(!bWas2D && !bWasArray && !bSelected) continue;
+
+			if(bWas2D) mvUnitTexture2D[unit] = 0;
+			if(bWasArray) mvUnitTextureArray[unit] = 0;
+			// A 2D texture can become an animation array. Its old, lingering
+			// 2D binding must not replace another selected array on this unit.
+			if(!bSelected && !(bWas2D && newTarget == GL_TEXTURE_2D) &&
+				!(bWasArray && newTarget == GL_TEXTURE_2D_ARRAY)) continue;
+
+			// Replacing a texture deletes its old name, which clears the GL
+			// binding. Bind the new storage where the old one was visible.
 			glActiveTexture(GL_TEXTURE0 + unit);
-			glBindTexture(TextureTargetToGL(apTex->GetTarget()), static_cast<cSDLTexture *>(apTex)->GetTextureHandle());
+			glBindTexture(newTarget, lNewHandle);
+
+			if(apTex->GetTarget() == eTextureTarget_2D)
+				mvUnitTexture2D[unit] = lNewHandle;
+			else if(apTex->GetTarget() == eTextureTarget_2DArray)
+				mvUnitTextureArray[unit] = lNewHandle;
 		}
 		glActiveTexture(active);
 	}
 
 	void cGLGraphicsState::ForgetTexture(iTexture *apTex)
 	{
+		// Deleting a texture clears its GL binding even when the unit no
+		// longer selects it (SetTexture(nullptr) keeps the binding). Match
+		// the cached handle independently of mpCurrentTexture so a later
+		// fullscreen pass cannot restore a deleted name.
+		const GLuint lHandle = static_cast<cSDLTexture *>(apTex)->GetTextureHandle();
 		for(unsigned int lUnit = 0; lUnit < MAX_TEXTUREUNITS; lUnit++)
+		{
 			if(mpCurrentTexture[lUnit] == apTex) mpCurrentTexture[lUnit] = nullptr;
+			if(lHandle == 0) continue;
+			if(mvUnitTexture2D[lUnit] == lHandle) mvUnitTexture2D[lUnit] = 0;
+			if(mvUnitTextureArray[lUnit] == lHandle) mvUnitTextureArray[lUnit] = 0;
+		}
 	}
 
 	void cGLGraphicsState::RestoreSetTexture()
@@ -297,16 +363,22 @@ namespace hpl
 
 	void cGLGraphicsState::SetColorWriteActive(bool abR, bool abG, bool abB, bool abA)
 	{
+		mvColorWrite[0] = abR;
+		mvColorWrite[1] = abG;
+		mvColorWrite[2] = abB;
+		mvColorWrite[3] = abA;
 		glColorMask(abR, abG, abB, abA);
 	}
 
 	void cGLGraphicsState::SetDepthWriteActive(bool abX)
 	{
+		mbDepthWrite = abX;
 		glDepthMask(abX);
 	}
 
 	void cGLGraphicsState::SetDepthTestActive(bool abX)
 	{
+		mbDepthTest = abX;
 		if(abX)
 			glEnable(GL_DEPTH_TEST);
 		else
@@ -328,6 +400,7 @@ namespace hpl
 
 	void cGLGraphicsState::SetCullActive(bool abX)
 	{
+		mbCull = abX;
 		if(abX)
 			glEnable(GL_CULL_FACE);
 		else
@@ -346,6 +419,7 @@ namespace hpl
 
 	void cGLGraphicsState::SetScissorActive(bool abX)
 	{
+		mbScissor = abX;
 		if(abX)
 			glEnable(GL_SCISSOR_TEST);
 		else
