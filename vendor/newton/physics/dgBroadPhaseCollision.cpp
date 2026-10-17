@@ -377,6 +377,14 @@ void dgBroadPhaseCollision::SetWorldSize(const dgVector &min,
 		dgBody *body;
 		body = node->GetInfo().GetBody();
 		Add(body);
+		if (!body->m_isInWorld && body != me->GetSentinelBody()) {
+			// A body made outside the old box was left out of the world
+			// (asleep and never simulated) until its box changed: test it
+			// against the new box.
+			body->m_sleeping = false;
+			body->m_minAABB = dgVector(dgFloat32(1.0e10f), dgFloat32(1.0e10f), dgFloat32(1.0e10f), dgFloat32(0.0f));
+			body->m_maxAABB = dgVector(-dgFloat32(1.0e10f), -dgFloat32(1.0e10f), -dgFloat32(1.0e10f), dgFloat32(0.0f));
+		}
 		body->SetMatrix(body->GetMatrix());
 	}
 

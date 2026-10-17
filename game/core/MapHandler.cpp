@@ -1487,10 +1487,10 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 				if(pJoint->GetName() != sName) continue;
 				iPhysicsBody *pChild = pJoint->GetChildBody();
 				iPhysicsJointSlider *pSlider = pJoint->GetType() == ePhysicsJointType_Slider ? (iPhysicsJointSlider*)pJoint : nullptr;
-				Log(" %s: dist %.4f angle %.4f limits %.4f..%.4f speed %.3f child '%s' at %s frozen %d\n", sName.c_str(),
+				Log(" %s: dist %.4f angle %.4f limits %.4f..%.4f speed %.3f child '%s' at %s frozen %d sleeping %d\n", sName.c_str(),
 					pJoint->GetDistance(), pJoint->GetAngle(), pSlider ? pSlider->GetMinDistance() : 0.0f, pSlider ? pSlider->GetMaxDistance() : 0.0f,
 					pJoint->GetVelocity().Length(), pChild ? pChild->GetName().c_str() : "",
-					pChild ? pChild->GetWorldPosition().ToString().c_str() : "", pChild ? (int)pChild->IsFrozen() : -1);
+					pChild ? pChild->GetWorldPosition().ToString().c_str() : "", pChild ? (int)pChild->IsFrozen() : -1, pChild ? (int)pChild->IsSleeping() : -1);
 			}
 			continue;
 		}

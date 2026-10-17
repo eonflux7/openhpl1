@@ -70,10 +70,12 @@ namespace hpl {
 
 	void cPhysicsJointSliderNewton::SetMaxDistance(float afX)
 	{
+		if(mfMaxDistance != afX) WakeBodies();
 		mfMaxDistance = afX;
 	}
 	void cPhysicsJointSliderNewton::SetMinDistance(float afX)
 	{
+		if(mfMinDistance != afX) WakeBodies();
 		mfMinDistance = afX;
 	}
 	float cPhysicsJointSliderNewton::GetMaxDistance()

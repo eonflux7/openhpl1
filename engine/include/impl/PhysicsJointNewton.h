@@ -87,6 +87,16 @@ namespace hpl {
 		///////////////////////
 
 	protected:
+		// Newton 2 does not run the joints of a sleeping island, so a limit
+		// moved by a script (Black Plague's level 19 crane steers its arm that
+		// way) did nothing once the arm had come to rest. A zero impulse wakes.
+		void WakeBodies()
+		{
+			const dFloat vZero[3] = {0, 0, 0};
+			NewtonBodyAddImpulse(mpNewtonChildBody, vZero, vZero);
+			if(mpNewtonParentBody) NewtonBodyAddImpulse(mpNewtonParentBody, vZero, vZero);
+		}
+
 		NewtonJoint* mpNewtonJoint;
 		NewtonWorld* mpNewtonWorld;
 		NewtonBody* mpNewtonParentBody;

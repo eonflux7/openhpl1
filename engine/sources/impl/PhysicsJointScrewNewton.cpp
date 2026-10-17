@@ -67,10 +67,12 @@ namespace hpl {
 
 	void cPhysicsJointScrewNewton::SetMaxDistance(float afX)
 	{
+		if(mfMaxDistance != afX) WakeBodies();
 		mfMaxDistance = afX;
 	}
 	void cPhysicsJointScrewNewton::SetMinDistance(float afX)
 	{
+		if(mfMinDistance != afX) WakeBodies();
 		mfMinDistance = afX;
 	}
 	float cPhysicsJointScrewNewton::GetMaxDistance()

@@ -342,9 +342,9 @@ def build():
     m.ref('mine_smallhatch', 'hatch1', (-17, 0, -5))
 
     # East wall: valves at chest height, floor lever, a panel of sticks
-    m.ref('mine_valve', 'valve0', (23.85, 1.3, -12), 0)
-    m.ref('modern_mine_valve', 'valve1', (23.97, 1.3, -9.5))
-    m.ref('worm_nest_valve', 'valve2', (23.97, 1.3, -7))
+    m.ref('mine_valve', 'valve0', (23.97, 1.3, -12), 180)
+    m.ref('modern_mine_valve', 'valve1', (23.85, 1.3, -9.5))
+    m.ref('worm_nest_valve', 'valve2', (23.85, 1.3, -7))
     m.ref('modern_mine_lever', 'lever0', (21, 0, -12))
     m.box((20.5, 0, -5), (22, 0.9, -3.8))
     m.ref('new_storage_stick', 'stick0', (21, 0.92, -4.4))

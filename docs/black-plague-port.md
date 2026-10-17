@@ -128,7 +128,9 @@ writing `CHECK <kind> <map>: ...` lines to the log (leads, not failures):
   test does not find the player in, standing in their middle.
 - `joints`: doors, drawers, levers and wheels that move under 10° (5 cm)
   when pushed both ways with 15 m/s² times their mass. Locked doors are
-  left out (their limits are shut).
+  left out (their limits are shut). Doors the maps block with a prop show
+  up too (Requiem level 2's `armoury05` behind a soda machine, level 8's
+  `gdoor` behind a box).
 - `links`: start positions the player falls from, is pushed off or ends
   up in the air at. Unused links of the maps show up here too.
 

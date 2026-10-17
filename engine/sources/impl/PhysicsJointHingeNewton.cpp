@@ -71,10 +71,12 @@ namespace hpl {
 
 	void cPhysicsJointHingeNewton::SetMaxAngle(float afAngle)
 	{
+		if(mfMaxAngle != afAngle) WakeBodies();
 		mfMaxAngle = afAngle;
 	}
 	void cPhysicsJointHingeNewton::SetMinAngle(float afAngle)
 	{
+		if(mfMinAngle != afAngle) WakeBodies();
 		mfMinAngle = afAngle;
 	}
 	float cPhysicsJointHingeNewton::GetMaxAngle()

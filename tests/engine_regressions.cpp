@@ -46,6 +46,10 @@
 #include "impl/LowLevelPhysicsNewton.h"
 #include "impl/PhysicsWorldNewton.h"
 #include "physics/CollideData.h"
+#include "physics/PhysicsBody.h"
+#include "physics/PhysicsJointHinge.h"
+#include "physics/PhysicsJointSlider.h"
+#include "physics/PhysicsJointScrew.h"
 
 // Exercise search/cache internals without a physics world or graphics context.
 // These tests still call the actual engine methods, including CPU skinning.
@@ -693,6 +697,67 @@ static void TestCollideSameCentre()
 	}
 }
 
+// A scripted limit must move an island that Newton has already put to sleep.
+static void TestSleepingJointLimits()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	for(int kind = 0; kind < 3; ++kind)
+	for(bool minimum : {false, true})
+	{
+		cPhysicsWorldNewton world;
+		world.SetWorld3D(nullptr);
+		world.SetWorldSize(cVector3f(-10), cVector3f(10));
+		auto *body = world.CreateBody("joint child", world.CreateBoxShape(cVector3f(0.5f), nullptr));
+		body->SetMass(1);
+		body->SetGravity(false);
+		iPhysicsJoint *joint;
+		const cVector3f pivot(0), pin(0, 0, 1);
+		if(kind == 0) joint = world.CreateJointHinge("hinge", pivot, pin, nullptr, body);
+		else if(kind == 1) joint = world.CreateJointSlider("slider", pivot, pin, nullptr, body);
+		else joint = world.CreateJointScrew("screw", pivot, pin, nullptr, body);
+		auto setLimits = [&](float min, float max)
+		{
+			if(kind == 0) {
+				auto *hinge = static_cast<iPhysicsJointHinge*>(joint);
+				hinge->SetMinAngle(min); hinge->SetMaxAngle(max);
+			} else if(kind == 1) {
+				auto *slider = static_cast<iPhysicsJointSlider*>(joint);
+				slider->SetMinDistance(min); slider->SetMaxDistance(max);
+			} else {
+				auto *screw = static_cast<iPhysicsJointScrew*>(joint);
+				screw->SetMinDistance(min); screw->SetMaxDistance(max);
+			}
+		};
+		setLimits(-1, 1);
+		for(int i = 0; i < 600; ++i) world.Simulate(1.0f / 60);
+		Check(body->IsSleeping(), "joint fixture settles before its scripted limit changes");
+		setLimits(-1, 1);
+		Check(body->IsSleeping(), "unchanged joint limits preserve sleep");
+		setLimits(minimum ? 0.4f : -1, minimum ? 1 : -0.4f);
+		Check(!body->IsSleeping(), "changed joint limit wakes its sleeping child");
+		for(int i = 0; i < 120; ++i) world.Simulate(1.0f / 60);
+		const float position = kind == 0 ? joint->GetAngle() : joint->GetDistance();
+		Check(minimum ? position > 0.2f : position < -0.2f, "sleeping joint moves toward its new limit");
+	}
+}
+
+// Maps create some bodies outside the initial box, then resize the world.
+static void TestExpandedPhysicsWorld()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	world.SetWorld3D(nullptr);
+	world.SetWorldSize(cVector3f(20, -10, -10), cVector3f(40, 10, 10));
+	auto *body = world.CreateBody("outside initial world", world.CreateBoxShape(cVector3f(1), nullptr));
+	body->SetMass(1);
+	for(int i = 0; i < 10; ++i) world.Simulate(1.0f / 60);
+	Check(Near(body->GetWorldPosition().y, 0), "body outside the initial world is inactive");
+	const float height = body->GetWorldPosition().y;
+	world.SetWorldSize(cVector3f(-100), cVector3f(100));
+	for(int i = 0; i < 60; ++i) world.Simulate(1.0f / 60);
+	Check(body->GetWorldPosition().y < height - 1, "expanded world simulates its previously excluded body");
+}
+
 class TestProgram : public iGpuProgram
 {
 public:
@@ -831,6 +896,7 @@ int hplMain(const hpl::tString&)
 		{ cLowLevelGraphicsSDL graphics; Check(graphics.GetWindow()==nullptr, "backend lifetime without a GL context"); }
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
+		TestSleepingJointLimits(); TestExpandedPhysicsWorld();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
