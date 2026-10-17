@@ -34,7 +34,7 @@ public:
 	
 	float mfAttackLength;
 	float mfChargeLength;
-	float mfTimeOfAttack;
+	float mfDamageProgress;
 
 	float mfMaxImpulse;
 	float mfMinImpulse;
@@ -106,7 +106,7 @@ public:
 	cVector3f GetHapticRot(){ return mvHapticRot;}
 
 
-	cMeleeWeaponAttack* GetAttack(int alX){return  &mvAttacks[alX];}
+	cMeleeWeaponAttack* GetAttack(int alAttackIndex){return  &mvAttacks[alAttackIndex];}
 private:
 	void ResetExtraData() override;
 
@@ -115,14 +115,15 @@ private:
 
 	void PlaySound(const tString &asSound);
 	
-	void LoadExtraEntites() override;
+	void LoadExtraEntities() override;
 	void DestroyExtraEntities() override;
 
 	bool mbDrawDebug;
 
 	int mlCurrentAttack;
 	int mlAttackState;
-	float mfTime;
+	// Progress within the current attack pose transition, separate from equip progress.
+	float mfAttackProgress;
 
 	float mfHapticScale;
 	cVector3f mvHapticSize;
@@ -131,7 +132,7 @@ private:
 	cMatrixf m_mtxPrevPose;
 	cMatrixf m_mtxNextPose;
 	
-	float mfMoveSpeed;
+	float mfPoseProgressRate;
 
 	bool mbButtonDown;
 	bool mbAttacked;

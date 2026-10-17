@@ -274,8 +274,8 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 	mlPlayerInLOSCount = 0;
 	mlMaxPlayerInLOSCount = 3;
 
-	mfCheckForPlayerRate  = 0.55f;
-	mfCheckForPlayerCount = cMath::RandRectf(0, mfCheckForPlayerRate);
+	mfPlayerCheckIntervalSeconds  = 0.55f;
+	mfPlayerCheckElapsedSeconds = cMath::RandRectf(0, mfPlayerCheckIntervalSeconds);
 
 	mfDamageSoundTimer =0;
 
@@ -284,7 +284,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 	m_mtxStartPose = cMatrixf::Identity;
 	m_mtxGoalPose = cMatrixf::Identity;
-	mfPoseCount = 0;
+	mfGroundPoseProgress = 0;
 
 	//TODO: Should not be here
 	mpAStarAir = nullptr;
@@ -368,7 +368,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 	msHitPS = "";
 	
-	mbOverideMoveState = false;
+	mbOverrideMoveState = false;
 	mMoveState = eEnemyMoveState_LastEnum;
 
 	mbLoading = false;
@@ -977,7 +977,7 @@ cVector3f iGameEnemy::GetPosition()
 void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 							bool abDependsOnSpeed, float afSpeedMul,
 							bool abSyncWithPrevFrame,
-							bool abOverideMoveState)
+							bool abOverrideMoveState)
 {
 	//Check if the animation is already playing.
 	if(	mpCurrentAnimation != nullptr && 
@@ -989,7 +989,7 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 		mpCurrentAnimation->SetLoop(abLoop);
 		mbAnimationIsSpeedDependant = abDependsOnSpeed;
 		mfAnimationSpeedMul = afSpeedMul;
-		mbOverideMoveState = abOverideMoveState;
+		mbOverrideMoveState = abOverrideMoveState;
 		if(!abDependsOnSpeed) mpCurrentAnimation->SetSpeed(afSpeedMul);
 		return;
 	}
@@ -1035,16 +1035,16 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 	mbAnimationIsSpeedDependant = abDependsOnSpeed;
 	mfAnimationSpeedMul = afSpeedMul;
 
-	mbOverideMoveState = abOverideMoveState;
+	mbOverrideMoveState = abOverrideMoveState;
 }
 
 //-----------------------------------------------------------------------
 
 void iGameEnemy::UseMoveStateAnimations()
 {
-	if(mbOverideMoveState)
+	if(mbOverrideMoveState)
 	{
-		mbOverideMoveState = false;
+		mbOverrideMoveState = false;
 		mMoveState = eEnemyMoveState_LastEnum;
 	}
 }
@@ -1086,9 +1086,9 @@ void iGameEnemy::PlaySound(const tString &asName)
 
 //-----------------------------------------------------------------------
 
-void iGameEnemy::AddPatrolNode(const tString& asNode, float afTime, const tString& asAnimation)
+void iGameEnemy::AddPatrolNode(const tString& asNode, float afWaitSeconds, const tString& asAnimation)
 {
-	mvPatrolNodes.push_back(cEnemyPatrolNode(asNode,afTime,asAnimation));
+	mvPatrolNodes.push_back(cEnemyPatrolNode(asNode,afWaitSeconds,asAnimation));
 }
 
 //-----------------------------------------------------------------------
@@ -1126,7 +1126,7 @@ void iGameEnemy::ClearPatrolNodes()
 
 //-----------------------------------------------------------------------
 
-void iGameEnemy::OnDeath(float afX)
+void iGameEnemy::OnDeath(float afDamage)
 {
 	//PlaySound("temp_roach_death");
 
@@ -1138,12 +1138,12 @@ void iGameEnemy::OnDeath(float afX)
 		mpInit->RunScriptCommand(sCommand);
 	}
 
-	mvStates[mlCurrentState]->OnDeath(afX);
+	mvStates[mlCurrentState]->OnDeath(afDamage);
 }
 
 //-----------------------------------------------------------------------
 
-void iGameEnemy::OnDamage(float afX)
+void iGameEnemy::OnDamage(float afDamage)
 {
 	if(mfDamageSoundTimer<=0)
 	{
@@ -1152,7 +1152,7 @@ void iGameEnemy::OnDamage(float afX)
 		mfDamageSoundTimer =0.8f;
 	}
 
-	mvStates[mlCurrentState]->OnTakeHit(afX);
+	mvStates[mlCurrentState]->OnTakeHit(afDamage);
 }
 
 //-----------------------------------------------------------------------
@@ -1164,7 +1164,7 @@ void iGameEnemy::OnFlashlight(const cVector3f &avPos)
 
 //-----------------------------------------------------------------------
 
-void iGameEnemy::OnSetActive(bool abX)
+void iGameEnemy::OnSetActive(bool abActive)
 {
 	//This will do for now:
 	for(size_t i=0; i<mvBodies.size(); ++i)
@@ -1258,7 +1258,7 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 {
 	if(mbAlignToGroundNormal==false) return;
 
-	if(mfPoseCount ==0)
+	if(mfGroundPoseProgress ==0)
 	{
 		m_mtxStartPose = m_mtxGoalPose;
 
@@ -1320,13 +1320,13 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 	}
 	else
 	{
-		cMatrixf mtxPoseRotation =cMath::MatrixSlerp(mfPoseCount,m_mtxStartPose,m_mtxGoalPose,true);
+		cMatrixf mtxPoseRotation =cMath::MatrixSlerp(mfGroundPoseProgress,m_mtxStartPose,m_mtxGoalPose,true);
         
 		mpMover->GetCharBody()->SetEntityPostOffset(mtxPoseRotation);
 	}
 
-	mfPoseCount+= 6.5f *afTimeStep;
-	if(mfPoseCount >1.0f) mfPoseCount =0;
+	mfGroundPoseProgress+= 6.5f *afTimeStep;
+	if(mfGroundPoseProgress >1.0f) mfGroundPoseProgress =0;
 }
 
 //-----------------------------------------------------------------------
@@ -1356,13 +1356,13 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 
 
 	//Check if it is time to check for player.
-	if(mfCheckForPlayerCount < mfCheckForPlayerRate)
+	if(mfPlayerCheckElapsedSeconds < mfPlayerCheckIntervalSeconds)
 	{
-		mfCheckForPlayerCount += afTimeStep;
+		mfPlayerCheckElapsedSeconds += afTimeStep;
 		return;
 	}
 	
-	mfCheckForPlayerCount =0;
+	mfPlayerCheckElapsedSeconds =0;
 
 	iCharacterBody *pPlayerBody = mpInit->mpPlayer->GetCharacterBody();
 
@@ -1480,7 +1480,7 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 	
 	////////////////////////////////
 	// Override animation
-	if(mbOverideMoveState && mpCurrentAnimation!=nullptr)
+	if(mbOverrideMoveState && mpCurrentAnimation!=nullptr)
 	{
 		if(mpCurrentAnimation->IsOver() && !mbAnimationCompletionSent)
 		{

@@ -165,26 +165,26 @@ class cPlayerState_ClimbHaptX : public iPlayerState
 private:
 	int mlState;
 
-	float mfTimeCount;
+	float mfAttachRemainingSeconds;
 
 	cVector3f mvCharPosition;
 
 	cVector3f mvGoalPos;
 	cVector3f mvGoalRot;
 
-	cVector3f mvPosAdd;
-	cVector3f mvRotAdd;
+	cVector3f mvAttachVelocity;
+	cVector3f mvAttachAngularVelocity;
 
 	float mfUpSpeed;
 	float mfDownSpeed;
 
 	float mfStepLength;
-	float mfStepCount;
+	float mfStepTravelDistance;
 	bool mbPlayedSound;
 
 	cVector2f mvPrevPitchLimits;
 
-	float mfLeaveAtTopCount;
+	float mfTopExitRemainingSeconds;
 
     void PlaySound(const tString &asSound);
 public:

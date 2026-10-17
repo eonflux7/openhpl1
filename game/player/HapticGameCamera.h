@@ -55,8 +55,8 @@ public:
 
 	bool IsTurning(){ return mbIsTurning;}
 
-	void SetActive(bool abX);
-	void SetCamMoveActive(bool abX){ mbCamMove = abX; }
+	void SetActive(bool abActive);
+	void SetCamMoveActive(bool abActive){ mbCamMove = abActive; }
 
 	bool ShowCrosshair();
 
@@ -65,19 +65,19 @@ public:
 	cMeshEntity* GetHandEntity(){ return mpHandEntity;}
 	iCollideShape *GetHandShape() { return mpHandShape;}
 
-	void SetHandVisible(bool abX);
+	void SetHandVisible(bool abVisible);
 	bool GetHandVisible();
 
     float GetHandReachRadius();
 
-	void SetRenderActive(bool abX);
+	void SetRenderActive(bool abActive);
 
 	void SetInteractModeCameraSpeed(float afSpeed);
 	void SetActionModeCameraSpeed(float afSpeed);
 	float GetInteractModeCameraSpeed(){ return mfInteractModeCameraSpeed;}
 	float GetActionModeCameraSpeed(){ return mfActionModeCameraSpeed;}
 
-	void SetUseFrame(bool abX){mbUseFrame = abX;}
+	void SetUseFrame(bool abUseFrame){mbUseFrame = abUseFrame;}
 	
 
 private:
@@ -91,7 +91,7 @@ private:
 
 	bool mbRenderActive;
 
-	cVector3f mvPrevPrxoyPos;
+	cVector3f mvPrevProxyPos;
 
 	int mlContactCount;
 

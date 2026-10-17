@@ -164,7 +164,7 @@ cCharacterMove::cCharacterMove(cInit *apInit)
 	mlMaxDoorToughness = -1;
 
 	mlMaxNodeDistances = 150;
-	mfNodeDistAvg =0;
+	mfNodeDistanceChangeSum =0;
 }
 
 //-----------------------------------------------------------------------
@@ -262,24 +262,24 @@ void cCharacterMove::Update(float afTimeStep)
 		mBoundingVolume.UpdateSize();
 		
 		bool bStuckAtNode = false;
-		float fNodeDist = cMath::Vector3DistSqr(vGoal,mpCharBody->GetFeetPosition());
-		mlstNodeDistances.push_back(fNodeDist);
-		if((int)mlstNodeDistances.size() > mlMaxNodeDistances)
+		float fNodeDistanceSqr = cMath::Vector3DistSqr(vGoal,mpCharBody->GetFeetPosition());
+		mlstNodeSquaredDistances.push_back(fNodeDistanceSqr);
+		if((int)mlstNodeSquaredDistances.size() > mlMaxNodeDistances)
 		{
-			mlstNodeDistances.pop_front();
-			mfNodeDistAvg=0;
+			mlstNodeSquaredDistances.pop_front();
+			mfNodeDistanceChangeSum=0;
 			
-			std::list<float>::iterator it = mlstNodeDistances.begin();
+			std::list<float>::iterator it = mlstNodeSquaredDistances.begin();
 			float fPreviousDistance = *it;
 			++it;
-			for(; it != mlstNodeDistances.end();++it)
+			for(; it != mlstNodeSquaredDistances.end();++it)
 			{
 				float fChange = *it - fPreviousDistance;
-				mfNodeDistAvg += fChange;
+				mfNodeDistanceChangeSum += fChange;
 			}
 
-			if(	mfNodeDistAvg > 0 &&
-				fNodeDist < mpCharBody->GetSize().x * 1.5f)
+			if(	mfNodeDistanceChangeSum > 0 &&
+				fNodeDistanceSqr < mpCharBody->GetSize().x * 1.5f)
 			{
 				bStuckAtNode = true;
 			}
@@ -298,7 +298,7 @@ void cCharacterMove::Update(float afTimeStep)
 				mlstNodes.pop_back(); //Go to next node next update.
 			}
 			mbMoveToNewNode = true;
-			mlstNodeDistances.clear();
+			mlstNodeSquaredDistances.clear();
 		}
 	}
 
@@ -325,7 +325,7 @@ void cCharacterMove::Update(float afTimeStep)
 			else				mpCharBody->AddYaw(mfTurnSpeed * afTimeStep);
 
 			//////////////////////
-			//Break when making short turns
+			//Brake when the heading error exceeds the threshold
 			if(std::abs(fAngleDist) >= mfMinBreakAngle && mpCharBody->GetMoveSpeed(eCharDir_Forward)>0.15f)
 			{
 				float fBreakAcc = -mfBreakAngleMul * std::abs(fAngleDist);
@@ -402,7 +402,7 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 	mvGoalPos = vGoalPos;
 	
 	mbMoving = bRet || !mbSmoothNavigation;
-	mlstNodeDistances.clear();
+	mlstNodeSquaredDistances.clear();
 
 	return bRet;
 }
@@ -439,7 +439,7 @@ void cCharacterMove::Stop()
 {
 	mbMoving = false;
 	mlstNodes.clear();
-	mlstNodeDistances.clear();
+	mlstNodeSquaredDistances.clear();
 }
 
 //-----------------------------------------------------------------------
@@ -632,7 +632,7 @@ void cCharacterMove::OnDraw(cInit *apInit)
 
 	if(mbMoving)
 	apInit->mpDefaultFont->Draw(cVector3f(5,79,100),14,cColor(1,1,1,1),eFontAlign_Left,
-								_W("NodeDistAvg: %f"),mfNodeDistAvg);
+								_W("NodeDistAvg: %f"),mfNodeDistanceChangeSum);
 
 	/*apInit->mpDefaultFont->Draw(cVector3f(5,64,100),14,cColor(1,1,1,1),eFontAlign_Left,
 		"Yaw: %f Pitch %f",cMath::ToDeg(mpCharBody->GetYaw()), cMath::ToDeg(mpCharBody->GetPitch()));

@@ -89,7 +89,7 @@ public:
 	
 	bool FreeDirectPathToChar(iCharacterBody *apBody);
 	bool FreeDirectPathToPos(const cVector3f &avFeetPos);
-	void SetSmoothNavigation(bool abX){ mbSmoothNavigation = abX; }
+	void SetSmoothNavigation(bool abEnabled){ mbSmoothNavigation = abEnabled; }
 
 	float DistanceToChar(iCharacterBody *apBody);
 	float DistanceToChar2D(iCharacterBody *apBody);
@@ -114,13 +114,13 @@ public:
 	void SetAStar(cAStarHandler *apAStar);
 	cAStarHandler* GetAStar(){ return mpAStar;}
 
-	void SetMaxTurnSpeed(float afX){ mfMaxTurnSpeed = afX; }
-	void SetAngleDistTurnMul(float afX){ mfAngleDistTurnMul = afX;};
+	void SetMaxTurnSpeed(float afRadiansPerSecond){ mfMaxTurnSpeed = afRadiansPerSecond; }
+	void SetAngleDistTurnMul(float afTurnGain){ mfAngleDistTurnMul = afTurnGain;};
 
-	void SetMinBreakAngle(float afX){ mfMinBreakAngle = afX; }
-	void SetBreakAngleMul(float afX){ mfBreakAngleMul = afX; }
+	void SetMinBreakAngle(float afRadians){ mfMinBreakAngle = afRadians; }
+	void SetBreakAngleMul(float afBrakeGain){ mfBreakAngleMul = afBrakeGain; }
 
-	void SetMaxPushMass(float afX){mfMaxPushMass = afX;}
+	void SetMaxPushMass(float afMass){mfMaxPushMass = afMass;}
 
 	float GetTurnSpeed(){ return mfTurnSpeed;}
 
@@ -129,7 +129,7 @@ public:
 	float GetStuckCounter(){ return mfStuckCounter;}
 	void ResetStuckCounter(){ mfStuckCounter = 0;}
 
-	void SetMaxDoorToughness(int alX){mlMaxDoorToughness = alX;}
+	void SetMaxDoorToughness(int alToughness){mlMaxDoorToughness = alToughness;}
 	int GetMaxDoorToughness(){ return mlMaxDoorToughness;}
 
 private:
@@ -156,9 +156,10 @@ private:
 	float mfStuckCounter;
 	float mfStuckLimit;
 
-	std::list<float> mlstNodeDistances;
+	std::list<float> mlstNodeSquaredDistances;
 	int mlMaxNodeDistances;
-	float mfNodeDistAvg;
+	// Sum of squared-distance differences from the oldest sample.
+	float mfNodeDistanceChangeSum;
 
 	//Properties
 	float mfMaxTurnSpeed;

@@ -90,7 +90,7 @@ void cHapticGameCamera::OnWorldLoad()
 
 	mpHandShape = mpScene->GetWorld3D()->GetPhysicsWorld()->CreateSphereShape(GetHandReachRadius(),nullptr);
     	
-	mvPrevPrxoyPos = mpLowLevelHaptic->GetProxyPosition();
+	mvPrevProxyPos = mpLowLevelHaptic->GetProxyPosition();
 
 	//Disable all shapes
 	cHapticShapeIterator it = mpLowLevelHaptic->GetShapeIterator();
@@ -132,11 +132,11 @@ void cHapticGameCamera::Reset()
 
 //-----------------------------------------------------------------------
 
-void cHapticGameCamera::SetActive(bool abX)
+void cHapticGameCamera::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -252,11 +252,11 @@ bool cHapticGameCamera::ShowCrosshair()
 
 //-----------------------------------------------------------------------
 
-void cHapticGameCamera::SetHandVisible(bool abX)
+void cHapticGameCamera::SetHandVisible(bool abVisible)
 {
-	if(mbHandVisible == abX) return;
+	if(mbHandVisible == abVisible) return;
 
-	mbHandVisible = abX;
+	mbHandVisible = abVisible;
 	
 	if(mpHandEntity)
 	{
@@ -280,11 +280,11 @@ float cHapticGameCamera::GetHandReachRadius()
 
 //-----------------------------------------------------------------------
 
-void cHapticGameCamera::SetRenderActive(bool abX)
+void cHapticGameCamera::SetRenderActive(bool abActive)
 {
-	if(mbRenderActive == abX) return;
+	if(mbRenderActive == abActive) return;
 
-	mbRenderActive = abX;
+	mbRenderActive = abActive;
 
     if(mbActive) mpLowLevelHaptic->SetRenderingActive(mbRenderActive);
 }
@@ -510,7 +510,7 @@ void cHapticGameCamera::UpdateProxyCovered(float afTimeStep)
 void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 {
 	cVector3f vProxyPos = mpLowLevelHaptic->GetProxyPosition();
-	cVector3f vProxyVel = (vProxyPos - mvPrevPrxoyPos) / afTimeStep;
+	cVector3f vProxyVel = (vProxyPos - mvPrevProxyPos) / afTimeStep;
 	float fProxySpeed = vProxyVel.Length();
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
@@ -638,7 +638,7 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		if(mlContactCount<=0) mlContactCount=0;
 	}
 
-	mvPrevPrxoyPos = vProxyPos;
+	mvPrevProxyPos = vProxyPos;
 }
 
 //-----------------------------------------------------------------------

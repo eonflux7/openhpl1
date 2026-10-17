@@ -63,6 +63,31 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Player and enemy naming and comment cleanup
+
+- Completed A3's remaining audit: all 26 player and 12 enemy headers/sources,
+  including HaptX states. The full A3 inventory is 74 files with the 36 entities
+  reviewed previously; findings and retained names are in `naming_cleanup.md`.
+- Distinguished HUD equip/attack/charge progress, ladder attachment timing and
+  signed step travel, player feedback delays, enemy perception/path intervals
+  and lost-player/attack/sound countdowns. Clarified squared-distance history,
+  previous-state and helper names, setter arguments and collision callback
+  removal. Updated two entity callers and existing Dog regression references.
+- Corrected misleading running, gravity-restoration and braking comments.
+  Preserved script signatures, saved class/field names, persistence macros,
+  settings/asset/updater strings, constants, state ordering and both Dog AI modes.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions without skips. HaptX sources and Dog fixtures
+  compile. The complete diff against `7083979` has 577 permitted identifier
+  substitutions across 40 C++ files; other tokens, literals and persistence
+  macro lines are unchanged. Parameter scopes and separate HUD base/derived
+  progress members were reviewed. Documentation links and diff whitespace passed.
+  Existing ButtonHandler/Worm warnings and the GameScripts compiler note remain.
+  In-game smoke/save/reload, Dog runtime tests, manual gameplay/HaptX/audio,
+  visual captures, sanitizers and Windows checks were not run for this naming
+  and comment pass. A4 core/persistence is next; existing gameplay and renderer
+  validation work remains in ROADMAP.
+
 ### UI naming and comment cleanup
 
 - Audited all 26 `game/ui/` headers/sources, completing A2 in

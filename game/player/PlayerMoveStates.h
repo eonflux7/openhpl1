@@ -278,13 +278,13 @@ public:
 	float mfMaxForward;
 	float mfMaxSide;
 
-	float mfDefaultFowardSpeed;
+	float mfDefaultForwardSpeed;
 	float mfDefaultSidewaySpeed;
 
 	cPlayerMoveState_Jump(cPlayer *apPlayer, cInit *apInit) : iPlayerMoveState(apPlayer, apInit)
 	{
 		mfForwardSpeed = mpGameConfig->GetFloat("Movement_Jump","ForwardSpeed",0);
-		mfDefaultFowardSpeed = mfForwardSpeed;
+		mfDefaultForwardSpeed = mfForwardSpeed;
 		mfBackwardSpeed= mpGameConfig->GetFloat("Movement_Jump","BackwardSpeed",0);
 		mfSidewaySpeed = mpGameConfig->GetFloat("Movement_Jump","SidewaySpeed",0);
         mfDefaultSidewaySpeed = mfSidewaySpeed;		
@@ -326,12 +326,12 @@ public:
 		if(mPrevMoveState==ePlayerMoveState_Crouch)
 		{
 			fForce *= 0.5f;
-			mfForwardSpeed = mfDefaultFowardSpeed * 0.6f;
+			mfForwardSpeed = mfDefaultForwardSpeed * 0.6f;
 			mfSidewaySpeed = mfDefaultSidewaySpeed *0.6f;
 		}
 		else
 		{
-			mfForwardSpeed = mfDefaultFowardSpeed;
+			mfForwardSpeed = mfDefaultForwardSpeed;
 			mfSidewaySpeed = mfDefaultSidewaySpeed;
 		}
 		
@@ -536,7 +536,7 @@ class cPlayerMoveState_Swim : public iPlayerMoveState
 public:
 	bool mbMovingForwards;
 	bool mbMovingSideways;
-	float mfSwimSoundCount;
+	float mfSwimSoundDelaySeconds;
 
 	cPlayerMoveState_Swim(cPlayer *apPlayer, cInit *apInit) : iPlayerMoveState(apPlayer,apInit)
 	{
@@ -560,7 +560,7 @@ public:
 
 		mbMovingForwards = false;
 		mbMovingSideways = false;
-		mfSwimSoundCount = 0;
+		mfSwimSoundDelaySeconds = 0;
 
 		mType = ePlayerMoveState_Swim;
 	}
@@ -627,10 +627,10 @@ public:
 		//Strokes heard at the surface
 		if(bMoving && mpInit->mpEffectHandler->GetUnderwater()->IsActive()==false)
 		{
-			mfSwimSoundCount -= afTimeStep;
-			if(mfSwimSoundCount <= 0)
+			mfSwimSoundDelaySeconds -= afTimeStep;
+			if(mfSwimSoundDelaySeconds <= 0)
 			{
-				mfSwimSoundCount = 1;
+				mfSwimSoundDelaySeconds = 1;
 				mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("water_swim",false,1,
 																		cVector3f(0,0,1),eSoundDest_Gui);
 			}

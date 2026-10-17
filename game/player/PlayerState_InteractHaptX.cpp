@@ -636,7 +636,7 @@ cPlayerState_MoveHaptX_BodyCallback::cPlayerState_MoveHaptX_BodyCallback(cPlayer
 {
 	mpPlayer = apPlayer;
 	mfTimeStep = afTimeStep;
-	mlBackCount =0;
+	mlBackoffUpdatesRemaining =0;
 }
 
 bool cPlayerState_MoveHaptX_BodyCallback::OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody)
@@ -649,7 +649,7 @@ void cPlayerState_MoveHaptX_BodyCallback::OnCollide(iPhysicsBody *apBody, iPhysi
 {
 	if(mpPlayer->GetCharacterBody()->GetBody() == apCollideBody)
 	{
-		mlBackCount = 5;
+		mlBackoffUpdatesRemaining = 5;
 	}
 }
 
@@ -673,9 +673,9 @@ void cPlayerState_MoveHaptX::OnUpdate(float afTimeStep)
 {
 	//////////////////////////////////////
 	//Check if the player is supposed to back
-	if(mpCallback->mlBackCount > 0)
+	if(mpCallback->mlBackoffUpdatesRemaining > 0)
 	{
-		mpCallback->mlBackCount--;
+		mpCallback->mlBackoffUpdatesRemaining--;
 		mpPlayer->GetCharacterBody()->Move(eCharDir_Forward,-1,afTimeStep);
 	}
 
@@ -699,7 +699,7 @@ void cPlayerState_MoveHaptX::OnUpdate(float afTimeStep)
 
 	/////////////////////////////////////////	
 	//Check if the body should be stopped
-	if(mlMoveCount <= 0)
+	if(mlMoveInputGraceCount <= 0)
 	{
 		mpPushBody->SetAngularVelocity(0);
 		mpPushBody->SetLinearVelocity(0);
@@ -771,7 +771,7 @@ bool cPlayerState_MoveHaptX::OnMoveForwards(float afMul, float afTimeStep)
 {
 	cVector3f vForce = (mvForward * (afMul * 4.0f));
 	mpPushBody->AddForceAtPosition(vForce,mvPickPoint);
-	mlMoveCount = 20;
+	mlMoveInputGraceCount = 20;
 
 	return true;
 }
@@ -782,7 +782,7 @@ bool cPlayerState_MoveHaptX::OnMoveSideways(float afMul, float afTimeStep)
 {
 	cVector3f vForce = (mvRight * (afMul * 4.0f));
 	mpPushBody->AddForceAtPosition(vForce,mvPickPoint);
-	mlMoveCount = 20;
+	mlMoveInputGraceCount = 20;
 
 	return true;
 }
@@ -795,11 +795,11 @@ bool cPlayerState_MoveHaptX::OnAddYaw(float afVal)
 	{
 		cVector3f vForce = (mvRight * (afVal * 100.0f * mpPlayer->mfRightMul));
 		mpPushBody->AddForceAtPosition(vForce,mvPickPoint);
-		mlMoveCount = 20;
+		mlMoveInputGraceCount = 20;
 	}
 	else
 	{
-		if(mlMoveCount>0) mlMoveCount--;
+		if(mlMoveInputGraceCount>0) mlMoveInputGraceCount--;
 	}
 
 	return false;
@@ -814,11 +814,11 @@ bool cPlayerState_MoveHaptX::OnAddPitch(float afVal)
 		cVector3f vForce = (mvUp * (-afVal * 100.0f  * mpPlayer->mfUpMul)) + 
 			(mvForward * (afVal * -80.0f *mpPlayer->mfForwardUpMul));
 		mpPushBody->AddForceAtPosition(vForce,mvPickPoint);
-		mlMoveCount = 20;
+		mlMoveInputGraceCount = 20;
 	}
 	else
 	{
-		if(mlMoveCount>0) mlMoveCount--;
+		if(mlMoveInputGraceCount>0) mlMoveInputGraceCount--;
 	}
 
 	return false;
@@ -884,11 +884,11 @@ void cPlayerState_MoveHaptX::EnterState(iPlayerState* apPrevState)
 	if(mpPushBody->GetGravity() && pEntity->GetPauseGravity())
 	{
 		mpPushBody->SetGravity(false);
-		bPausedGravity = true;
+		mbPausedGravity = true;
 	}
 	else
 	{
-		bPausedGravity = false;
+		mbPausedGravity = false;
 	}
 
 	cMatrixf mtxInvModel = cMath::MatrixInverse(mpPushBody->GetLocalMatrix());
@@ -902,10 +902,10 @@ void cPlayerState_MoveHaptX::EnterState(iPlayerState* apPrevState)
 	{
 	mpPushBody->AddBodyCallback(mpCallback);
 	}*/
-	mpCallback->mlBackCount =0;
+	mpCallback->mlBackoffUpdatesRemaining =0;
 
 
-	mlMoveCount = 0;
+	mlMoveInputGraceCount = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -929,8 +929,8 @@ void cPlayerState_MoveHaptX::LeaveState(iPlayerState* apNextState)
 		}
 	}
 	////////////////////////////
-	//Pause gravity
-	if(bPausedGravity)
+	//Restore gravity if this state paused it.
+	if(mbPausedGravity)
 	{
 		mpPushBody->SetGravity(true);
 	}

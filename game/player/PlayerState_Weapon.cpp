@@ -215,7 +215,6 @@ void cPlayerState_Throw::LeaveState(iPlayerState* apNextState)
 
 //-----------------------------------------------------------------------
 
-// No running when you have a weapon:
 void cPlayerState_Throw::OnStartRun()
 {
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
@@ -530,7 +529,6 @@ void cPlayerState_WeaponMelee::LeaveState(iPlayerState* apNextState)
 
 //-----------------------------------------------------------------------
 
-// No running when you have a weapon:
 void cPlayerState_WeaponMelee::OnStartRun()
 {
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
@@ -758,7 +756,6 @@ pWorld->DestroyMeshEntity(mpMeshEntity);
 
 //-----------------------------------------------------------------------
 
-// No running when you have a weapon:
 void OnStartRun()
 {
 //if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)

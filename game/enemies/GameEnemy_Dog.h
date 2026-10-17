@@ -110,12 +110,12 @@ public:
 
 	void OnDraw() override;
 private:
-	float mfUpdatePathCount;
-	float mfUpdateFreq;
+	float mfPathUpdateDelaySeconds;
+	float mfPathUpdateIntervalSeconds;
 	bool mbFreePlayerPath;
 	bool mbLostPlayer;
-	float mfLostPlayerCount;
-	float mfMaxLostPlayerCount;
+	float mfLostPlayerRemainingSeconds;
+	float mfLostPlayerDurationSeconds;
 	bool mbFoundNoPath;
 	float mfSearchAngle;
 	int mlSearchPhase;
@@ -331,7 +331,7 @@ public:
 	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
 
 	  float mfIdleSoundTime;
-	  float mfHearSoundCount;
+	  float mfNoiseRetargetDelaySeconds;
 	  float mfHighestVolume;
 
 	  int mlKnockCount;

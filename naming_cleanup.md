@@ -4,8 +4,9 @@ Status: audit started on 2026-10-18. The FadeHandler pilot, RadioHandler
 positional-distance batch, systems pass and UI pass are verified by the default
 Linux build and both CTest suites. All 20 `game/systems/` and 26 `game/ui/`
 headers/sources have been reviewed for naming/comments; A2 is complete.
-All 36 `game/entities/` headers/sources are now reviewed. A3 remains open for
-player/enemy audits; the wider inventory and later phases also remain open.
+All 36 `game/entities/`, 26 `game/player/` and 12 `game/enemies/`
+headers/sources are reviewed; A3 is verified by the default build and both
+CTest suites. The wider inventory and A4–A7 remain open.
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -180,8 +181,9 @@ callers. Isolate and record findings with unresolved compatibility risks so
 independent work can continue; ask only when a material ambiguity or risk
 requires user input. Report any remaining scope explicitly.
 
-The systems and UI passes under A2 are recorded below. The next planned
-phase is A3: bounded mechanism/state reviews in entities, player and enemies.
+The systems and UI passes under A2 and the completed A3 mechanism/state
+reviews in entities, player and enemies are recorded below. Next is A4: core
+and persistence, retaining compatibility-sensitive identifiers.
 Keep findings grouped by responsibility and risk without turning each group
 into a separate user turn.
 
@@ -219,10 +221,10 @@ below are inspection candidates, not claims that those files are faulty.
 
 | Phase | Scope and deliverable | Exit criteria | Status |
 | --- | --- | --- | --- |
-| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Started: systems/UI/entities inventoried; wider scope open |
+| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Started: systems/UI/entities/player/enemies inventoried; wider scope open |
 | A1: pilot | Audit `game/systems/FadeHandler.h` / `.cpp`, direct callers and compatibility sites; resolve R01–R03 or record reasons to retain them; inspect comments separately | First naming batch validated; comment decisions recorded; actual results establish the pattern for later batches | Verified |
 | A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Verified: all 20 systems and 26 UI files reviewed |
-| A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Entities verified: 36/36 files reviewed; player/enemies open |
+| A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Verified: 36 entity, 26 player and 12 enemy files reviewed |
 | A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Open |
 | A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Open |
 | A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Open |
@@ -253,9 +255,9 @@ For every phase, maintain a short record with these entries:
 
 Coverage includes all 20 headers/sources in `game/systems/` and all 26 in
 `game/ui/`, with reviewed concepts, callers and retained names recorded below.
-A3 covers all 36 entity files through the three passes below. Player/enemy
-files remain unaudited except for supporting caller reads and detach-call edits. A4–A6 remain
-unreviewed except for supporting callers inspected in earlier passes.
+A3 covers all 36 entity, 26 player and 12 enemy files through the records
+below, including the ordinary and HaptX player state paths. A4–A6 remain
+unreviewed except for supporting callers inspected in these passes.
 
 ### A1: FadeHandler pilot record (2026-10-18)
 
@@ -660,6 +662,73 @@ Validation and accumulated diff review:
   supporting reads/edits above. A0's wider inventory and A4–A7 remain open. Next
   A3 scope is bounded player interaction/state reviews, followed by enemy states;
   ROADMAP's existing gameplay/renderer validation remains unchanged.
+
+### A3: player and enemy completion record (2026-10-18)
+
+Objective: finish the remaining player interaction/movement/equipment and enemy
+state/perception naming audit after `7083979`, retaining executable behaviour
+and every script/save/settings identifier. The earlier 36-file entity audit
+remains complete; two entity callers follow the player state member rename.
+
+Reviewed scope (all 26 player and 12 enemy headers/sources):
+
+| Files under `game/` | Reviewed responsibility / retained contracts |
+| --- | --- |
+| `player/Player.h`, `.cpp`, `PlayerState.h`, `PlayerMoveStates.h` | Input dispatch, action/movement transitions, jump/crouch/swim, camera offsets, collision callbacks, global/world saves and statistics |
+| `player/PlayerHelper.h`, `.cpp` | Ground/pick/lean rays, head motion, health/oxygen, ringing/deafness, damage/death, flashlight/glowstick/flare, noise/fear/look-at and hiding/proximity feedback |
+| `player/PlayerState_Interact.h`, `.cpp`, `PlayerState_InteractHaptX.h`, `.cpp` | Grab/move/push, message return state, body/callback ownership, gravity restoration, throw and rotation paths |
+| `player/PlayerState_Misc.h`, `.cpp`, `PlayerState_MiscHaptX.h`, `.cpp` | Normal/interact/item/message states, ladder attachment, signed step travel and top exit |
+| `player/PlayerState_Weapon.h`, `.cpp`, `PlayerState_WeaponHaptX.h`, `.cpp` | Throw/melee input, equipment preservation across messages, holstering, movement and haptic attack cooldown/collider lifetime; ordinary weapon header retained unchanged |
+| `player/PlayerHands.h`, `.cpp`, `HudModel_Throw.h`, `.cpp`, `HudModel_Weapon.h`, `.cpp` | Equipment entities/effects, camera samples/interpolation, normalized equip/charge/attack progress, hit dispatch and asset properties |
+| `player/HapticGameCamera.h`, `.cpp` | Proxy/camera coordinates, frame/hand/render activation, contact effects and world lifecycle |
+| `enemies/CharacterMove.h`, `.cpp`, `GameEnemy.h`, `.cpp` | Path clearance/steering, squared-distance history, stuck/turn/brake logic, perception, animation completion, state transitions, patrols, triggers/callbacks and persistence |
+| `enemies/GameEnemy_Dog.h`, `.cpp`, `GameEnemy_Infected.h`, `.cpp` | Idle/patrol/attention/investigate/move-to/hunt/attack/break-door/flee/backup/knockdown/dead/eat states; both Dog AI modes, remembered observations, Infected weapon/flashlight/throat grab/healing and saves |
+| `enemies/GameEnemy_Spider.h`, `.cpp`, `GameEnemy_Worm.h`, `.cpp` | Idle/hunt/attack/flee/knockdown/death as applicable, flashlight response, attack/sound delays, Worm tail smoothing/mesh callbacks and movement sound |
+
+Findings and resolution (source changes are in this working tree):
+
+| ID / status | Evidence | Exact mapping / resolution | Dependencies and risk |
+| --- | --- | --- | --- |
+| R49 / verified | [Player.h](game/player/Player.h), resource setters use `afX`; `RemoveCollideScript` takes an entity name, not a function | `afX -> afHealth/afPower/afOxygen/afMass` in the corresponding setters, `afX -> afAmount` in adders; height/head setters use `afHeightOffset/afSizeMul/afSpeedMul`; `asFunc -> asEntity` in removal declaration | Low; declaration/definition arguments only; script wrappers and saved fields unchanged |
+| R50 / verified | [PlayerState.h](game/player/PlayerState.h), previous-state spelling; [PlayerHelper.h](game/player/PlayerHelper.h), death height getter typo | `mPreviuosState -> mPreviousState`, `GetHeighAdd -> GetHeightAdd`; update `GameEntity.cpp`, `GameStickArea.cpp` and player camera caller | Medium; cross-file C++ symbols; no registration or serialization use; enter/leave and detach ordering unchanged |
+| R51 / verified | Both interaction-state pairs obscure member ownership and collision backoff versus input grace | `bPausedGravity -> mbPausedGravity`, `mlBackCount -> mlBackoffUpdatesRemaining`, `mlMoveCount -> mlMoveInputGraceCount`; correct restore-gravity comment | Low; transient state/callback members; grace still decrements in yaw/pitch handlers, backoff in update; no cadence change |
+| R52 / verified | Both misc-state pairs call ladder travel a count and velocities additions | `mfTimeCount -> mfAttachRemainingSeconds`, `mfStepCount -> mfStepTravelDistance`, `mfLeaveAtTopCount -> mfTopExitRemainingSeconds`, `mvPosAdd -> mvAttachVelocity`, `mvRotAdd -> mvAttachAngularVelocity` | Low; transient ladder state; signed distance, attachment collision policy and double top-exit decrement while grounded preserved |
+| R53 / verified | [PlayerHands.h](game/player/PlayerHands.h), [HudModel_Weapon.h](game/player/HudModel_Weapon.h): base and derived `mfTime` are distinct normalized values | Base `mfTime -> mfEquipProgress`; melee `mfTime -> mfAttackProgress`, `mfMoveSpeed -> mfPoseProgressRate`, `mfTimeOfAttack -> mfDamageProgress`; throw `mfChargeCount -> mfChargeProgress`, `mfChargeTime -> mfChargeDurationSeconds`; `LoadExtraEntites -> LoadExtraEntities`, `UpdatePrevPostions -> UpdatePreviousCameraSamples`, attack argument `alX -> alAttackIndex` | Medium; base/override/caller names and hidden members reviewed; document negative equip reload offset without interpreting it as seconds; asset keys and both original member bindings preserved |
+| R54 / verified | [PlayerHelper.cpp](game/player/PlayerHelper.cpp), unrelated timers share `mfTimeCount`; hiding and flashlight counters lack direction/units | Health `mfTimeCount -> mfHeartbeatDelaySeconds`, ear ringing `mfTimeCount -> mfRemainingSeconds`, noise `mfTimeCount -> mfNoiseRefreshDelaySeconds`; `mfRayCastTime -> mfEnemyRayElapsedSeconds`, `mfHiddenCount -> mfHideElapsedSeconds`, `mfHiddenOnCount -> mfHiddenElapsedSeconds`, `mfCheckEnemyCloseCount -> mfEnemyProximityCheckDelaySeconds` | Low; helper-local transient members; original pulse/ray/hiding/audio timing and shader feedback preserved |
+| R55 / verified | [HapticGameCamera.h](game/player/HapticGameCamera.h), proxy typo; opaque booleans in player/helper/camera declarations | `mvPrevPrxoyPos -> mvPrevProxyPos`; `abX -> abActive/abDisabled/abVisible/abUseFrame` in matching helper/camera methods; player flags use `abEnabled/abNoFallDamage/abUnderWater/abFlash/abLanded/abDown`; HaptX `CheckAttack` declaration `mtxTransform -> a_mtxTransform` | Low; private member and arguments only; all activation side effects and haptic resource lifetimes unchanged |
+| R56 / verified | All four enemy hunt pairs label an interval frequency and delays counts | `mfUpdatePathCount -> mfPathUpdateDelaySeconds`, `mfUpdateFreq -> mfPathUpdateIntervalSeconds`, `mfLostPlayerCount -> mfLostPlayerRemainingSeconds`, `mfMaxLostPlayerCount -> mfLostPlayerDurationSeconds`; Dog/Infected `mfHearSoundCount -> mfNoiseRetargetDelaySeconds`; Infected `mfAttackPauseCount -> mfAttackPauseRemainingSeconds`, `mfHuntSoundCount -> mfHuntSoundDelaySeconds`; Worm `mfAttackCount -> mfAttackCooldownSeconds`, `mfAttackSoundCount -> mfAttackSoundCooldownSeconds`, `mfSoundCount -> mfHuntSoundDelaySeconds` | Low; state members, plus existing Dog fixture references; original/improved branches, lost-target policies, random calls and attack/sound thresholds unchanged |
+| R57 / verified | [GameEnemy.h](game/enemies/GameEnemy.h), player-check rate is an interval; pose counter interpolates rotations | `mfCheckForPlayerRate -> mfPlayerCheckIntervalSeconds`, `mfCheckForPlayerCount -> mfPlayerCheckElapsedSeconds`, `mfPoseCount -> mfGroundPoseProgress`, `mbOverideMoveState/abOverideMoveState -> mbOverrideMoveState/abOverrideMoveState`, `mfMoveToLideLimit -> mfMoveToIdleLimit`; damage args `afX -> afDamage`, activation `abX -> abActive`, previous state `alX -> alStateId`, patrol index `alX -> alNodeIndex`, patrol time `afTime -> afWaitSeconds`, wait setters/adders `afX -> afDurationSeconds/afElapsedSeconds/afSeconds`, flags `abX -> abStop/abAttracted/abUsesTriggers` | Low; base members/arguments and Dog fixture references; saved patrol `mfWaitTime`, callbacks, state IDs and animation completion ordering retained |
+| R58 / verified | [CharacterMove.cpp](game/enemies/CharacterMove.cpp), distance history is squared and `mfNodeDistAvg` is a sum | `mlstNodeDistances -> mlstNodeSquaredDistances`, `fNodeDist -> fNodeDistanceSqr`, `mfNodeDistAvg -> mfNodeDistanceChangeSum`; document differences from oldest sample; clarify braking threshold comment; setter args `abX -> abEnabled`, `afX -> afRadiansPerSecond/afTurnGain/afRadians/afBrakeGain/afMass`, `alX -> alToughness` | Low; local/private names and inline arguments; no arithmetic correction, threshold/unit conversion or path policy change |
+| R59 / verified | Movement/weapon paths contain timer/forward typos and stale running prohibitions | Swim `mfSwimSoundCount -> mfSwimSoundDelaySeconds`, jump `mfDefaultFowardSpeed -> mfDefaultForwardSpeed`; HaptX melee `mfAttackCount -> mfAttackCooldownSeconds`; remove weapon-running comments contradicted by run handlers | Low; transient names/comments; movement state restore, collider lifetime and attack cadence preserved |
+| R60 / retained | Player/global/world saves, enemy/patrol/Infected DTOs, script/callback registrations and asset/config properties | Retain all serialized class/field names and macros, script signatures, updater/asset/settings/diagnostic strings, lifecycle/state names and clear class/file names; retain scoped math/loop names and unrelated same-spelled members | Compatibility-sensitive identifiers checked and intentionally retained; helper groupings need no file/class split for this naming pass; no deferred naming finding |
+
+Caller/compatibility evidence and validation:
+
+- Checked script wrappers/registrations for player resources, collision callback
+  removal, patrols, enemy callbacks and Infected equipment; global player saves
+  and enemy/patrol/Infected serialization/load/save paths retain identifiers.
+  Read the entity detach callers and existing Dog fixtures before propagating
+  names. `docs/dog-foundations.md` describes unchanged behaviour and needs no
+  API documentation changes. No files/build lists or normal profiles change.
+- Compared the complete source diff against `7083979`: 40 changed C++ files,
+  577 permitted identifier substitutions, other tokens/literals unchanged;
+  serialization/copy macro lines match exactly. Reviewed the three preexisting
+  destination names (`afSpeedMul`, `asEntity`, `afDamage`) in their parameter
+  scopes. Checked the separate base equip and derived attack members explicitly.
+  Old-name matches are disabled examples or unrelated members; disabled examples
+  touched by this pass use the new names. No tests added to mirror renames.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL renderer regressions with no skips. HaptX sources and the updated
+  Dog fixtures compile. Documentation links and diff whitespace passed. Existing
+  ButtonHandler missing-initializer warnings, Worm nested-comment warnings and
+  the GameScripts variable-tracking note remain. In-game smoke/save/reload, Dog runtime checks,
+  sanitizers, manual HaptX/gameplay/audio, visual captures and Windows checks
+  are not run for this identifier/comment-only pass. Existing automated suites
+  do not establish these interaction/encounter behaviours in game.
+- Exit decision: A3 naming/comment audit verified; all 74 headers/sources (36 entities,
+  26 player, 12 enemies) reviewed; no remaining A3 naming scope. A0's wider
+  inventory and A4–A7 remain open; next scope is A4 core and persistence.
+  ROADMAP's outstanding gameplay/renderer validation remains unchanged.
 
 ## Structural refactoring
 

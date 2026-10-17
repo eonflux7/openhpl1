@@ -111,7 +111,7 @@ protected:
 
 	virtual bool UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep){return false;}
 
-	virtual void LoadExtraEntites(){}
+	virtual void LoadExtraEntities(){}
 	virtual void DestroyExtraEntities(){}
 
 	virtual void PostSceneDraw(){}
@@ -125,7 +125,8 @@ protected:
 	
 	eHudModelState mState;
 
-	float mfTime;
+	// Normalized equip/unequip progress; throwing can seed a negative reload offset.
+	float mfEquipProgress;
 
 	tString msNextModel;
 };
@@ -175,7 +176,7 @@ public:
 	iHudModel* GetCurrentModel(int alNum){ return mvCurrentHudModels[alNum];}
 
 private:
-	void UpdatePrevPostions();
+	void UpdatePreviousCameraSamples();
 		
 	cInit *mpInit;
 	// The hud model matrices as the logic set them, while they are moved

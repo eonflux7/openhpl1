@@ -122,7 +122,7 @@ void iHudModel::LoadEntities()
 		if(pSound) mvSoundEntities.push_back(pSound);
 	}
 
-	LoadExtraEntites();
+	LoadExtraEntities();
 }
 
 //-----------------------------------------------------------------------
@@ -171,7 +171,7 @@ void iHudModel::DestroyEntities()
 
 void iHudModel::Reset()
 {
-	mfTime =0;
+	mfEquipProgress =0;
 	ResetExtraData();
 }
 
@@ -263,7 +263,7 @@ void cPlayerHands::OnStart()
 
 void cPlayerHands::Update(float afTimeStep)
 {
-	UpdatePrevPostions();
+	UpdatePreviousCameraSamples();
 	
 	///////////////////////////////////
 	//Get the camera properties
@@ -301,30 +301,30 @@ void cPlayerHands::Update(float afTimeStep)
 			//Equip
 			case eHudModelState_Equip:
 			{
-				float fT = cMath::Clamp(pHudModel->mfTime,0,1);
+				float fT = cMath::Clamp(pHudModel->mfEquipProgress,0,1);
 				mtxPose = InterpolatePosesToMatrix(fT,pHudModel->mUnequipPose,pHudModel->mEquipPose);
 				
-				pHudModel->mfTime += afTimeStep/pHudModel->mfEquipTime;
-				if(pHudModel->mfTime >= 1)
+				pHudModel->mfEquipProgress += afTimeStep/pHudModel->mfEquipTime;
+				if(pHudModel->mfEquipProgress >= 1)
 				{
 					pHudModel->mState = eHudModelState_Idle;
-					pHudModel->mfTime = 1;
+					pHudModel->mfEquipProgress = 1;
 				}
 				break;
 			}
 			//Unequip
 			case eHudModelState_Unequip:
 				{
-					float fT = cMath::Clamp(pHudModel->mfTime,0,1);
+					float fT = cMath::Clamp(pHudModel->mfEquipProgress,0,1);
 					mtxPose = InterpolatePosesToMatrix(fT,pHudModel->mEquipPose,pHudModel->mUnequipPose);
 
-					pHudModel->mfTime += afTimeStep/pHudModel->mfUnequipTime;
-					if(pHudModel->mfTime >= 1)
+					pHudModel->mfEquipProgress += afTimeStep/pHudModel->mfUnequipTime;
+					if(pHudModel->mfEquipProgress >= 1)
 					{
 						//Log("Creating next model and destroying current!\n");
 
                         pHudModel->mState = eHudModelState_Idle;
-						pHudModel->mfTime =0;
+						pHudModel->mfEquipProgress =0;
 						
 						pHudModel->DestroyEntities();
 
@@ -570,7 +570,7 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 					mvCurrentHudModels[alNum]->UnequipEffect();
 
 					mvCurrentHudModels[alNum]->mState = eHudModelState_Unequip;
-					mvCurrentHudModels[alNum]->mfTime = 1.0f - mvCurrentHudModels[alNum]->mfTime;
+					mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 				}
 				mvCurrentHudModels[alNum]->msNextModel = asName;
 				//Log(" Unequipping %s, time: %f\n",mvCurrentHudModels[alNum]->msName.c_str(),
@@ -581,7 +581,7 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 				pHandModel->EquipEffect(false);
 
 				mvCurrentHudModels[alNum]->mState = eHudModelState_Equip;
-				mvCurrentHudModels[alNum]->mfTime = 1.0f - mvCurrentHudModels[alNum]->mfTime;
+				mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 				mvCurrentHudModels[alNum]->msNextModel = asName;
 			}
 		}
@@ -591,10 +591,10 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 			pHandModel->EquipEffect(true);
 
 			if(mvCurrentHudModels[alNum] == pHandModel)	{
-				pHandModel->mfTime = 1.0f - pHandModel->mfTime;
+				pHandModel->mfEquipProgress = 1.0f - pHandModel->mfEquipProgress;
 			}
 			else{
-				pHandModel->mfTime =0;
+				pHandModel->mfEquipProgress =0;
 			}
 
 			pHandModel->mState = eHudModelState_Equip;
@@ -611,7 +611,7 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 			mvCurrentHudModels[alNum]->UnequipEffect();
 
 			mvCurrentHudModels[alNum]->mState = eHudModelState_Unequip;
-			mvCurrentHudModels[alNum]->mfTime = 1.0f - mvCurrentHudModels[alNum]->mfTime;
+			mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 			mvCurrentHudModels[alNum]->msNextModel = asName;
 			//Log(" Destroying old\n");
 		}
@@ -673,7 +673,7 @@ void cPlayerHands::OnWorldLoad()
 //////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
-void cPlayerHands::UpdatePrevPostions()
+void cPlayerHands::UpdatePreviousCameraSamples()
 {
 	///////////////////////////////////
 	//Get current position

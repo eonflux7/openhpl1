@@ -148,7 +148,7 @@ iGameEntity::~iGameEntity()
 					state == ePlayerState_Grab ||
 					state == ePlayerState_Push)
 				{
-					ePlayerState prevState = mpInit->mpPlayer->GetStateData(state)->mPreviuosState;
+					ePlayerState prevState = mpInit->mpPlayer->GetStateData(state)->mPreviousState;
 					if(prevState == ePlayerState_InteractMode)
 						mpInit->mpPlayer->ChangeState(ePlayerState_InteractMode);
 					else

@@ -91,17 +91,17 @@ public:
 	void OnDraw() override;
 	void OnPostSceneDraw() override;
 private:
-	float mfUpdatePathCount;
-	float mfUpdateFreq;
+	float mfPathUpdateDelaySeconds;
+	float mfPathUpdateIntervalSeconds;
 	bool mbFreePlayerPath;
 	bool mbLostPlayer;
-	float mfLostPlayerCount;
-	float mfMaxLostPlayerCount;
-	float mfAttackSoundCount;
+	float mfLostPlayerRemainingSeconds;
+	float mfLostPlayerDurationSeconds;
+	float mfAttackSoundCooldownSeconds;
 
-	float mfAttackCount;
+	float mfAttackCooldownSeconds;
 
-	float mfSoundCount;
+	float mfHuntSoundDelaySeconds;
 };
 
 //-----------------------------------------

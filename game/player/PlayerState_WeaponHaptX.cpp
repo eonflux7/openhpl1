@@ -234,7 +234,6 @@ void cPlayerState_ThrowHaptX::LeaveState(iPlayerState* apNextState)
 
 //-----------------------------------------------------------------------
 
-// No running when you have a weapon:
 void cPlayerState_ThrowHaptX::OnStartRun()
 {
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
@@ -480,14 +479,14 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 	float fSpeed = vAvg.Length();				//This speed is used to 
 	if(	mbInteractDown &&						//Interaction must be down
 		(fSpeed > 0.5 || vAvg.z >0.3f) &&		//The minimum speed required for attack (z needs to be a bit lower)
-		mfAttackCount <=0 &&					//Do not allow a newer attack too soon after
+		mfAttackCooldownSeconds <=0 &&					//Do not allow a newer attack too soon after
 		mbCollided == false						//Makes sure that something that just collided can not make an attack, this removes double hits, but
 												//may skips some hits too.
 		)
 	{
 		if(CheckAttack(mtxCollider, cMath::Min(fSpeed * 0.3f, 1.0f)))
 		{
-			mfAttackCount = 0.5f;
+			mfAttackCooldownSeconds = 0.5f;
 
 			//Force at hit, removed for now.
 			//if(mpFeedbackForce->IsActive())	mpFeedbackForce->SetActive(false);
@@ -498,7 +497,7 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 		}
 	}
 
-	if(mfAttackCount >0) mfAttackCount -= afTimeStep;
+	if(mfAttackCooldownSeconds >0) mfAttackCooldownSeconds -= afTimeStep;
 
 
 	///////////////////////////////////////////////
@@ -747,7 +746,7 @@ void cPlayerState_WeaponMeleeHaptX::EnterState(iPlayerState* apPrevState)
 	//mpBody->SetActive(false);
 
 	mvRotation =0;
-	mfAttackCount =0;
+	mfAttackCooldownSeconds =0;
 }
 
 //-----------------------------------------------------------------------
@@ -772,7 +771,6 @@ void cPlayerState_WeaponMeleeHaptX::LeaveState(iPlayerState* apNextState)
 
 //-----------------------------------------------------------------------
 
-// No running when you have a weapon:
 void cPlayerState_WeaponMeleeHaptX::OnStartRun()
 {
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)

@@ -90,12 +90,12 @@ public:
 
 	void OnDraw() override;
 private:
-	float mfUpdatePathCount;
-	float mfUpdateFreq;
+	float mfPathUpdateDelaySeconds;
+	float mfPathUpdateIntervalSeconds;
 	bool mbFreePlayerPath;
 	bool mbLostPlayer;
-	float mfLostPlayerCount;
-	float mfMaxLostPlayerCount;
+	float mfLostPlayerRemainingSeconds;
+	float mfLostPlayerDurationSeconds;
 };
 
 //-----------------------------------------

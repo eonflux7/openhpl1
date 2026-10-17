@@ -147,7 +147,7 @@ public:
 	void OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,cPhysicsContactData* apContactData) override;
 	
 	float mfTimeStep;
-	int mlBackCount;
+	int mlBackoffUpdatesRemaining;
 	cPlayer *mpPlayer;
 private:
 };
@@ -191,11 +191,11 @@ private:
 	cVector3f mvRelPickPoint;
 	cVector3f mvPickPoint;
 
-	bool bPausedGravity;
+	bool mbPausedGravity;
 
 	iPhysicsBody *mpPushBody;
 
-	int mlMoveCount;
+	int mlMoveInputGraceCount;
 
 	ePlayerMoveState mPrevMoveState;
 	ePlayerState mPrevState;

@@ -578,7 +578,7 @@ void cGameEnemyState_Dog_Investigate::OnEnterState(iGameEnemyState *apPrevState)
 		mfHighestVolume = 0.0f;
 	}
 
-	mfHearSoundCount = 5.0f;
+	mfNoiseRetargetDelaySeconds = 5.0f;
 }
 
 //-----------------------------------------------------------------------
@@ -591,9 +591,9 @@ void cGameEnemyState_Dog_Investigate::OnLeaveState(iGameEnemyState *apNextState)
 
 void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 {	
-	if(mfHearSoundCount >0){
-		mfHearSoundCount-=afTimeStep;
-		if(mfHearSoundCount<=0)mfHearSoundCount=0;
+	if(mfNoiseRetargetDelaySeconds >0){
+		mfNoiseRetargetDelaySeconds-=afTimeStep;
+		if(mfNoiseRetargetDelaySeconds<=0)mfNoiseRetargetDelaySeconds=0;
 	}
 
 	////////////////////////////////
@@ -644,7 +644,7 @@ void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 
 bool cGameEnemyState_Dog_Investigate::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	if(	mfHearSoundCount<=0 && mfHighestVolume < afVolume &&
+	if(	mfNoiseRetargetDelaySeconds<=0 && mfHighestVolume < afVolume &&
 		afVolume >= mpEnemyDog->mfIdleMinHearVolume)
 	{
 		mfHighestVolume = afVolume;
@@ -787,8 +787,8 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup enemy
 	mpEnemy->SetFOV(mpEnemyDog->mfHuntFOV);
 
-	mfUpdatePathCount =0;
-	mfUpdateFreq = 1.0f;
+	mfPathUpdateDelaySeconds =0;
+	mfPathUpdateIntervalSeconds = 1.0f;
 	mbFreePlayerPath = false;
 	
 	if(mbBreakingDoor && mpEnemy->CanSeePlayer()==false)
@@ -810,8 +810,8 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	mbLostPlayer = false;
 	mbCheckDynamicPath = false;
 	mlSearchPhase = -1;
-	mfLostPlayerCount =0;	
-	mfMaxLostPlayerCount = mpEnemyDog->mfHuntForLostPlayerTime;
+	mfLostPlayerRemainingSeconds =0;
+	mfLostPlayerDurationSeconds = mpEnemyDog->mfHuntForLostPlayerTime;
 
 	mlStuckAtMaxCount =0;
 
@@ -856,10 +856,10 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 		mpMover->ResetStuckCounter();
 	}
 
-	if(mfUpdatePathCount <=0)
+	if(mfPathUpdateDelaySeconds <=0)
 	{
 		mbFoundNoPath = false;
-		mfUpdatePathCount = mfUpdateFreq;
+		mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 
 		if(mbLostPlayer == false && mpMover->FreeDirectPathToChar(mpPlayer->GetCharacterBody()))
 		{
@@ -880,7 +880,7 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 
 			if(mpMover->MoveToPos(mpEnemy->GetLastPlayerPos())==false)
 			{
-				mfUpdatePathCount = mfUpdateFreq*5.0f;
+				mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds*5.0f;
 				mpMover->Stop();
 				mbFoundNoPath = true;
 			}
@@ -888,7 +888,7 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 	}
 	else
 	{
-		mfUpdatePathCount -= afTimeStep;
+		mfPathUpdateDelaySeconds -= afTimeStep;
 	}
 	if(mbFreePlayerPath || (mbFoundNoPath && mpMover->IsMoving()==false))
 	{
@@ -928,15 +928,15 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 		if( mbLostPlayer==false && mpMover->IsMoving()==false && mpEnemy->CanSeePlayer()==false)
 		{
 			mbLostPlayer = true;
-			mfLostPlayerCount = mfMaxLostPlayerCount;
+			mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds;
 		}
 
 		if(mbLostPlayer)
 		{
 			mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 
-			mfLostPlayerCount -= afTimeStep;
-			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			mfLostPlayerRemainingSeconds -= afTimeStep;
+			if(mfLostPlayerRemainingSeconds <= 0 || mpMover->GetStuckCounter()>0.5f)
 			{
 				mpEnemy->ChangeState(STATE_IDLE);
 				return;
@@ -949,7 +949,7 @@ void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
 void cGameEnemyState_Dog_Hunt::BeginSearch()
 {
 	mbLostPlayer = true;
-	mfLostPlayerCount = mfMaxLostPlayerCount;
+	mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds;
 	mfSearchAngle = mpMover->GetCharBody()->GetYaw();
 	mlSearchPhase = -1;
 	mbFreePlayerPath = false;
@@ -959,8 +959,8 @@ void cGameEnemyState_Dog_Hunt::BeginSearch()
 
 void cGameEnemyState_Dog_Hunt::UpdateSearch(float afTimeStep)
 {
-	mfLostPlayerCount -= afTimeStep;
-	if(mfLostPlayerCount <= 0)
+	mfLostPlayerRemainingSeconds -= afTimeStep;
+	if(mfLostPlayerRemainingSeconds <= 0)
 	{
 		mpEnemy->ChangeState(STATE_IDLE);
 		return;
@@ -969,8 +969,8 @@ void cGameEnemyState_Dog_Hunt::UpdateSearch(float afTimeStep)
 	// Spend the existing lost-player budget listening, turning left,
 	// listening again, then turning right. All poses come from the original
 	// Idle/Walk clips; there is no new awareness or omniscient target.
-	const float fElapsed = mfMaxLostPlayerCount - mfLostPlayerCount;
-	const int lPhase = (int)(4 * fElapsed / mfMaxLostPlayerCount);
+	const float fElapsed = mfLostPlayerDurationSeconds - mfLostPlayerRemainingSeconds;
+	const int lPhase = (int)(4 * fElapsed / mfLostPlayerDurationSeconds);
 	if(lPhase != mlSearchPhase)
 	{
 		mlSearchPhase = lPhase;
@@ -1023,13 +1023,13 @@ void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 		// Retry with current heavy obstacles considered by A*, rather than
 		// repeatedly pushing along the same blocked route.
 		mbCheckDynamicPath = true;
-		mfUpdatePathCount = 0;
+		mfPathUpdateDelaySeconds = 0;
 	}
 
 	const cVector3f vTarget = mpEnemyDog->GetPursuitPosition();
-	if(mfUpdatePathCount <= 0)
+	if(mfPathUpdateDelaySeconds <= 0)
 	{
-		mfUpdatePathCount = mfUpdateFreq;
+		mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 		mbFoundNoPath = false;
 		mbFreePlayerPath = mpMover->FreeDirectPathToPos(vTarget);
 		if(mbFreePlayerPath)
@@ -1043,13 +1043,13 @@ void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 			if(mpEnemy->GetDoorBreakCount() > 6.0f) mpMover->SetMaxDoorToughness(0);
 			if(!mpMover->MoveToPos(vTarget,mbCheckDynamicPath))
 			{
-				mfUpdatePathCount = mfUpdateFreq * 5.0f;
+				mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds * 5.0f;
 				mpMover->Stop();
 				mbFoundNoPath = true;
 			}
 		}
 	}
-	else mfUpdatePathCount -= afTimeStep;
+	else mfPathUpdateDelaySeconds -= afTimeStep;
 
 	if(mbFreePlayerPath)
 	{
@@ -1101,7 +1101,7 @@ void cGameEnemyState_Dog_Hunt::OnSeePlayer(const cVector3f &avPosition, float af
 	if(mbLostPlayer && afChance >= mpEnemyDog->GetHuntMinSeeChance())
 	{
 		mbLostPlayer = false;
-		mfUpdatePathCount =0;
+		mfPathUpdateDelaySeconds =0;
 		mpEnemy->UseMoveStateAnimations();
 	}
 }
@@ -1118,7 +1118,7 @@ bool cGameEnemyState_Dog_Hunt::OnHearNoise(const cVector3f &avPosition, float af
 			if(pNode)
 			{
 				mbLostPlayer = false;
-				mfUpdatePathCount = 0;
+				mfPathUpdateDelaySeconds = 0;
 				mpEnemy->SetLastPlayerPos(pNode->GetPosition());
 				return true;
 			}
@@ -1132,7 +1132,7 @@ bool cGameEnemyState_Dog_Hunt::OnHearNoise(const cVector3f &avPosition, float af
 		mpEnemy->SetLastPlayerPos(avPosition);
 		mbLostPlayer = false;
 		mbCheckDynamicPath = false;
-		mfUpdatePathCount = 0;
+		mfPathUpdateDelaySeconds = 0;
 		mpEnemy->UseMoveStateAnimations();
 		return true;
 	}
@@ -1152,7 +1152,7 @@ void cGameEnemyState_Dog_Hunt::OnDraw()
 
 	mpInit->mpDefaultFont->Draw(cVector3f(0,110,100),14,cColor(1,1,1,1),eFontAlign_Left,
 		_W("LostPlayerCount: %f FreePath: %d NoPath: %d MaxStuck: %d Dist: %f / %f"),
-															mfLostPlayerCount,mbFreePlayerPath,
+															mfLostPlayerRemainingSeconds,mbFreePlayerPath,
 															mbFoundNoPath,
 															mlStuckAtMaxCount,
 															fDist,

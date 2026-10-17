@@ -90,7 +90,7 @@ int RunDogRegressions(cInit *init)
 	dog->mfIdleMinSeeChance = 0;
 	dog->mfAttentionMinDist = 100;
 	dog->mlPlayerInLOSCount = dog->mlMaxPlayerInLOSCount - 1;
-	dog->mfCheckForPlayerCount = dog->mfCheckForPlayerRate;
+	dog->mfPlayerCheckElapsedSeconds = dog->mfPlayerCheckIntervalSeconds;
 	dog->UpdateCheckForPlayer(dt);
 	check(dog->GetCurrentStateId() == STATE_HUNT, "perception enters hunt");
 	check(Near(dog->mfFOV, dog->mfHuntFOV), "perception keeps the new state's FOV");
@@ -109,7 +109,7 @@ int RunDogRegressions(cInit *init)
 	player->SetFeetPosition(origin + cVector3f(10, 0, 0));
 	dog->mfMaxSeeDist = 0.01f;
 	dog->mfCalcPlayerHiddenPosCount = 1.5f;
-	dog->mfCheckForPlayerCount = dog->mfCheckForPlayerRate;
+	dog->mfPlayerCheckElapsedSeconds = dog->mfPlayerCheckIntervalSeconds;
 	dog->UpdateCheckForPlayer(dt);
 	check(!dog->CanSeePlayer() && Near(dog->GetLastPlayerPos(), remembered),
 		"lost sight preserves the last observation");
@@ -142,7 +142,7 @@ int RunDogRegressions(cInit *init)
 	const float time = walk->GetTimePosition();
 	dog->PlayAnim("Walk", false, 0.2f, false, 1.25f, false, true);
 	check(Near(walk->GetTimePosition(), time), "same clip preserves phase");
-	check(!walk->IsLooping() && dog->mbOverideMoveState && !dog->mbAnimationIsSpeedDependant &&
+	check(!walk->IsLooping() && dog->mbOverrideMoveState && !dog->mbAnimationIsSpeedDependant &&
 		Near(walk->GetSpeed(), 1.25f), "same clip applies playback options and unfreezes");
 	dog->UseMoveStateAnimations();
 	dog->PlayAnim("Walk", true, 0.2f, true, 2, false, false);
@@ -171,7 +171,7 @@ int RunDogRegressions(cInit *init)
 	dog->ChangeState(STATE_HUNT);
 	auto *hunt = static_cast<cGameEnemyState_Dog_Hunt*>(dog->mvStates[STATE_HUNT]);
 	hunt->mlStuckAtMaxCount = 5;
-	hunt->mfUpdatePathCount = 1;
+	hunt->mfPathUpdateDelaySeconds = 1;
 	hunt->mbFreePlayerPath = true;
 	dog->mpMover->mfStuckCounter = 1.2f;
 	hunt->OnUpdate(dt);
@@ -189,9 +189,9 @@ int RunDogRegressions(cInit *init)
 	hunt->OnUpdate(dt);
 	check(tString(dog->GetCurrentAnimation()->GetName()) == "Idle", "search begins with the original idle pose");
 	hunt->OnUpdate(dog->mfHuntForLostPlayerTime * 0.25f);
-	check(hunt->mlSearchPhase == 1 && !dog->mbOverideMoveState &&
+	check(hunt->mlSearchPhase == 1 && !dog->mbOverrideMoveState &&
 		Near(body->GetMoveSpeed(eCharDir_Forward), 0), "search turns without advancing");
-	hunt->OnUpdate(hunt->mfLostPlayerCount);
+	hunt->OnUpdate(hunt->mfLostPlayerRemainingSeconds);
 	check(dog->GetCurrentStateId() == STATE_IDLE, "search expires within the original duration");
 
 	dog->ChangeState(STATE_HUNT);
@@ -203,7 +203,7 @@ int RunDogRegressions(cInit *init)
 		Near(dog->GetLastPlayerPos(), sound), "fresh sound remembers its actual source");
 	hunt->BeginSearch();
 	hunt->OnSeePlayer(player->GetPosition(), dog->mfHuntMinSeeChance);
-	check(!hunt->mbLostPlayer && !dog->mbOverideMoveState, "fresh sight resumes pursuit");
+	check(!hunt->mbLostPlayer && !dog->mbOverrideMoveState, "fresh sight resumes pursuit");
 
 	// Exercise real physics clearance and graph edges with a movable heavy
 	// obstacle. A* recovery must reconsider an edge compiled before it moved.
@@ -236,7 +236,7 @@ int RunDogRegressions(cInit *init)
 	// Visible but unreachable must hold and retry, without blind movement.
 	hunt->mbFoundNoPath = true;
 	hunt->mbFreePlayerPath = false;
-	hunt->mfUpdatePathCount = 1;
+	hunt->mfPathUpdateDelaySeconds = 1;
 	dog->mbCanSeePlayer = true;
 	hunt->OnUpdate(dt);
 	check(!hunt->mbLostPlayer && !mover->IsMoving() && Near(body->GetMoveSpeed(eCharDir_Forward), 0),

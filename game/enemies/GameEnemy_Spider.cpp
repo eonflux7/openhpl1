@@ -206,13 +206,13 @@ void cGameEnemyState_Spider_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup enemy
 	mpEnemy->SetFOV(mpEnemySpider->mfHuntFOV);
 
-	mfUpdatePathCount =0;
-	mfUpdateFreq = 1.0f;
+	mfPathUpdateDelaySeconds =0;
+	mfPathUpdateIntervalSeconds = 1.0f;
 	mbFreePlayerPath = false;
 	
 	mbLostPlayer = false;
-	mfLostPlayerCount =0;
-	mfMaxLostPlayerCount = mpEnemySpider->mfHuntForLostPlayerTime;
+	mfLostPlayerRemainingSeconds =0;
+	mfLostPlayerDurationSeconds = mpEnemySpider->mfHuntForLostPlayerTime;
 
     mpInit->mpMusicHandler->AddAttacker(mpEnemy);
 
@@ -250,9 +250,9 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 	
 	if(mpEnemySpider->mbPathFind)
 	{
-		if(mfUpdatePathCount <=0)
+		if(mfPathUpdateDelaySeconds <=0)
 		{
-			mfUpdatePathCount = mfUpdateFreq;
+			mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 			
 			cAINodeContainer *pNodeCont = mpEnemy->GetMover()->GetNodeContainer();
 			
@@ -272,13 +272,13 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 			{
 				if(mpMover->MoveToPos(mpEnemy->GetLastPlayerPos())==false)
 				{
-					mfUpdatePathCount *= 5.0f;
+					mfPathUpdateDelaySeconds *= 5.0f;
 				}
 			}
 		}
 		else
 		{
-			mfUpdatePathCount -= afTimeStep;
+			mfPathUpdateDelaySeconds -= afTimeStep;
 		}
 	}
 	else
@@ -287,16 +287,16 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 
 		if(mpEnemy->CanSeePlayer()==false)
 		{
-			mfLostPlayerCount-= afTimeStep;
+			mfLostPlayerRemainingSeconds-= afTimeStep;
 
-			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			if(mfLostPlayerRemainingSeconds <= 0 || mpMover->GetStuckCounter()>0.5f)
 			{
 				mpEnemy->ChangeState(STATE_IDLE);
 			}
 		}
 		else
 		{
-			mfLostPlayerCount = mfMaxLostPlayerCount*2;
+			mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds*2;
 		}
 	}
 	
@@ -314,15 +314,15 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 		if(mbLostPlayer==false && mpMover->IsMoving()==false)
 		{
 			mbLostPlayer = true;
-			mfLostPlayerCount = mfMaxLostPlayerCount;
+			mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds;
 		}
 		
 		if(mbLostPlayer)
 		{
 			mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 			
-			mfLostPlayerCount -= afTimeStep;
-			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			mfLostPlayerRemainingSeconds -= afTimeStep;
+			if(mfLostPlayerRemainingSeconds <= 0 || mpMover->GetStuckCounter()>0.5f)
 			{
 				mpEnemy->ChangeState(STATE_IDLE);
 			}
@@ -337,7 +337,7 @@ void cGameEnemyState_Spider_Hunt::OnSeePlayer(const cVector3f &avPosition, float
 	if(mbLostPlayer && afChance >= mpEnemySpider->mfHuntMinSeeChance)
 	{
 		mbLostPlayer = false;
-		mfUpdatePathCount =0;
+		mfPathUpdateDelaySeconds =0;
 	}
 }
 
@@ -358,7 +358,7 @@ bool cGameEnemyState_Spider_Hunt::OnHearNoise(const cVector3f &avPosition, float
 			{
 				//Update last player postion.
 				mbLostPlayer = false;
-				mfUpdatePathCount =0;
+				mfPathUpdateDelaySeconds =0;
 				mpEnemy->SetLastPlayerPos(pNode->GetPosition());
 
 				return true;

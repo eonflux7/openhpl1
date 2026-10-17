@@ -118,7 +118,7 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 		meleeAttack.mEnd = GetPoseFromElem("EndPose",pAttackElem);
 		meleeAttack.mfAttackLength = cString::ToFloat(pAttackElem->Attribute("AttackLength"),0);
 		meleeAttack.mfChargeLength = cString::ToFloat(pAttackElem->Attribute("ChargeLength"),0);
-		meleeAttack.mfTimeOfAttack = cString::ToFloat(pAttackElem->Attribute("TimeOfAttack"),0);
+		meleeAttack.mfDamageProgress = cString::ToFloat(pAttackElem->Attribute("TimeOfAttack"),0);
 
 		meleeAttack.mfMaxImpulse = cString::ToFloat(pAttackElem->Attribute("MaxImpulse"),0);
 		meleeAttack.mfMinImpulse = cString::ToFloat(pAttackElem->Attribute("MinImpulse"),0);
@@ -169,24 +169,24 @@ bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeSte
 	//Movement
 	else
 	{
-		aPoseMtx = cMath::MatrixSlerp(mfTime,m_mtxPrevPose,m_mtxNextPose,true);
+		aPoseMtx = cMath::MatrixSlerp(mfAttackProgress,m_mtxPrevPose,m_mtxNextPose,true);
 		
 		float fMul = 1.0f;
 		//if(mlAttackState == 2 && mpInit->mDifficulty== eGameDifficulty_Easy) fMul = 1.6f;
 
-		mfTime += mfMoveSpeed * afTimeStep * fMul;
+		mfAttackProgress += mfPoseProgressRate * afTimeStep * fMul;
 		
 		//Attack
-		if(mlAttackState == 4 &&mfTime >= mvAttacks[mlCurrentAttack].mfTimeOfAttack && mbAttacked==false)
+		if(mlAttackState == 4 &&mfAttackProgress >= mvAttacks[mlCurrentAttack].mfDamageProgress && mbAttacked==false)
 		{
 			Attack();
 			mbAttacked = true;
 		}
 
 		//Time is up
-		if(mfTime >= 1.0f)
+		if(mfAttackProgress >= 1.0f)
 		{
-			mfTime =1.0f;
+			mfAttackProgress =1.0f;
 			
 
 			switch(mlAttackState)
@@ -201,8 +201,8 @@ bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeSte
 				m_mtxPrevPose = m_mtxNextPose;
 				m_mtxNextPose = mEquipPose.ToMatrix();
 
-				mfMoveSpeed = 2;
-				mfTime =0;
+				mfPoseProgressRate = 2;
+				mfAttackProgress =0;
 
 				break;
 			case 5:
@@ -227,7 +227,7 @@ void cHudModel_WeaponMelee::OnAttackDown()
 	if(mState == eHudModelState_Idle && mlAttackState ==0)
 	{
 		mlAttackState = 1;
-		mfTime =0;
+		mfAttackProgress =0;
 
 		mbButtonDown = true;
 	}
@@ -247,8 +247,8 @@ void cHudModel_WeaponMelee::OnAttackUp()
 		{
 			mlAttackState = 5;
 
-			mfMoveSpeed = 2;
-			mfTime =0;
+			mfPoseProgressRate = 2;
+			mfAttackProgress =0;
 
 			m_mtxPrevPose = m_mtxNextPose;
 			m_mtxNextPose = mEquipPose.ToMatrix();
@@ -305,11 +305,11 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 			//Go to charge
 			if(mlAttackState==2)
 			{
-				mfTime = 0.0f;
-				mfMoveSpeed = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
+				mfAttackProgress = 0.0f;
+				mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
 
 				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfMoveSpeed *= 0.8f;
+				//	mfPoseProgressRate *= 0.8f;
 
 				PlaySound(mvAttacks[mlCurrentAttack].msChargeSound);
 				
@@ -328,9 +328,9 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 			{
 				if(mlCurrentAttack != 2 && pInput->IsTriggerd("Interact")==false)
 				{
-					mfTime = 0.0f;
-					mfMoveSpeed = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
-					//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) 	mfMoveSpeed *= 0.8f;
+					mfAttackProgress = 0.0f;
+					mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
+					//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) 	mfPoseProgressRate *= 0.8f;
 					
 					m_mtxPrevPose = mvAttacks[mlCurrentAttack].mStart.ToMatrix();
 					m_mtxNextPose = mvAttacks[2].mStart.ToMatrix();
@@ -367,11 +367,11 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 
 			if(mlAttackState == 4)
 			{
-				mfTime = 0.0f;
-				mfMoveSpeed = 1.0f/mvAttacks[mlCurrentAttack].mfAttackLength;
+				mfAttackProgress = 0.0f;
+				mfPoseProgressRate = 1.0f/mvAttacks[mlCurrentAttack].mfAttackLength;
 
 				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfMoveSpeed *= 0.55f;
+				//	mfPoseProgressRate *= 0.55f;
 				
 				PlaySound(mvAttacks[mlCurrentAttack].msSwingSound);
 
@@ -397,7 +397,7 @@ void cHudModel_WeaponMelee::PlaySound(const tString &asSound)
 
 //-----------------------------------------------------------------------
 
-void cHudModel_WeaponMelee::LoadExtraEntites()
+void cHudModel_WeaponMelee::LoadExtraEntities()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
@@ -488,7 +488,7 @@ bool cHudModel_WeaponMelee::IsAttacking()
 void cHudModel_WeaponMelee::ResetExtraData()
 {
 	mlAttackState = 0;
-	mfTime =0;
+	mfAttackProgress =0;
 
 	mlCurrentAttack =0;
 
@@ -498,7 +498,7 @@ void cHudModel_WeaponMelee::ResetExtraData()
 	m_mtxPrevPose = cMatrixf::Identity;
 	m_mtxNextPose = cMatrixf::Identity;
 
-	mfMoveSpeed = 1.0f;
+	mfPoseProgressRate = 1.0f;
 }
 
 //-----------------------------------------------------------------------

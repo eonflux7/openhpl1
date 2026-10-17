@@ -197,17 +197,17 @@ public:
 	void ChangeMoveState(ePlayerMoveState aState, bool abSetHeadHeightDirectly=false);
 
 	void AddCollideScript(eGameCollideScriptType aType,const tString &asFunc, const tString &asEntity);
-	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asFunc);
+	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asEntity);
 	void RemoveCollideScriptWithChildEntity(iGameEntity *apEntity);
 	void ClearCollideScripts();
 	tGameCollideScriptMap& GetCollideScripts(){ return m_mapCollideCallbacks;}
 	
-	void SetHealth(float afX);
-	void AddHealth(float afX);
+	void SetHealth(float afHealth);
+	void AddHealth(float afAmount);
 	float GetHealth(){ return mfHealth;}
 	void Damage(float afDamage, ePlayerDamageType aType);
 	// Damage() does nothing. Not saved.
-	void SetGodMode(bool abX){ mbGodMode = abX;}
+	void SetGodMode(bool abEnabled){ mbGodMode = abEnabled;}
 	bool GetGodMode() const { return mbGodMode; }
 
 	void DestroyWorldObjects();
@@ -246,28 +246,28 @@ public:
 	float GetDefaultMass(){ return mfDefaultMass;}
 
 	float GetMass(){ return mfMass;}
-	void SetMass(float afX);
+	void SetMass(float afMass);
 
-	void SetPower(float afX);
-	void AddPower(float afX);
+	void SetPower(float afPower);
+	void AddPower(float afAmount);
 	float GetPower(){ return mfPower;}
 
 	// Black Plague
 	void SetLowPowerCallback(const tString& asFunc, float afVal){ msLowPowerCallback = asFunc; mfLowPowerVal = afVal;}
-	void SetNoFallDamage(bool abX){ mbNoFallDamage = abX;}
+	void SetNoFallDamage(bool abNoFallDamage){ mbNoFallDamage = abNoFallDamage;}
 	bool GetNoFallDamage(){ return mbNoFallDamage;}
 
 	/**
 	 * Black Plague: the air left under water, 0 - 100
 	 */
-	void SetOxygen(float afX);
-	void AddOxygen(float afX);
+	void SetOxygen(float afOxygen);
+	void AddOxygen(float afAmount);
 	float GetOxygen(){ return mfOxygen;}
 
 	/**
 	 * Black Plague: the body is in deep water and swims
 	 */
-	void SetIsUnderWater(bool abX);
+	void SetIsUnderWater(bool abUnderWater);
 	bool IsUnderWater(){ return mbUnderWater;}
 	void SetWaterSurfaceY(float afY){ mfWaterSurfaceY = afY;}
 	float GetWaterSurfaceY(){ return mfWaterSurfaceY;}
@@ -309,8 +309,8 @@ public:
 	float GetHealthSpeedMul(){ return mfHealthSpeedMul;}
 	void SetHealthSpeedMul(float afHealthSpeedMul);
 
-	void SetHeadMoveSizeMul(float afX){ mfHeadMoveSizeMul = afX;}
-	void SetHeadMoveSpeedMul(float afX){ mfHeadMoveSpeedMul = afX;}
+	void SetHeadMoveSizeMul(float afSizeMul){ mfHeadMoveSizeMul = afSizeMul;}
+	void SetHeadMoveSpeedMul(float afSpeedMul){ mfHeadMoveSpeedMul = afSpeedMul;}
 	float GetHeadMoveSizeMul(){ return mfHeadMoveSizeMul;}
 	float GetHeadMoveSpeedMul(){ return mfHeadMoveSpeedMul;}
 
@@ -350,7 +350,7 @@ public:
 	cHapticGameCamera* GetHapticCamera(){ return mpHapticCamera;}
 
 	float GetHeightAdd(){ return mfHeightAdd;}
-	void SetHeightAdd(float afX){ mfHeightAdd = afX;}
+	void SetHeightAdd(float afHeightOffset){ mfHeightAdd = afHeightOffset;}
 	
 	cInit * GetInit(){return mpInit;}
 	
@@ -363,15 +363,15 @@ public:
 
 	void SetCurrentItem(cInventoryItem *apItem){ mpCurrentItem = apItem;}
 	cInventoryItem* GetCurrentItem(){ return mpCurrentItem;}
-	void SetItemFlash(bool abX){ mbItemFlash = abX;}
+	void SetItemFlash(bool abFlash){ mbItemFlash = abFlash;}
 
 	void SetWeaponCallback(iPlayerWeaponCallback *apCallback){ mpWeaponCallback = apCallback;}
 	iPlayerWeaponCallback* GetWeaponCallback(){ return mpWeaponCallback;}
 
 	bool GetLandedFromJump(){ return mbLandedFromJump;}
-	void SetLandedFromJump(bool abX){ mbLandedFromJump = abX;}
+	void SetLandedFromJump(bool abLanded){ mbLandedFromJump = abLanded;}
 
-	void SetJumpButtonDown(bool abX);
+	void SetJumpButtonDown(bool abDown);
 	bool GetJumpButtonDown(){ return mbJumpButtonDown;}
 	float GetJumpCount(){ return mfJumpCount;}
 	void JumpOffLadder();

@@ -297,7 +297,7 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 		//Log(" Setting a prev state\n");
 
 		ePlayerState state =  mpInit->mpPlayer->GetState();
-		ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviuosState;
+		ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviousState;
 		if(prev == ePlayerState_InteractMode)
 			mpInit->mpPlayer->ChangeState(ePlayerState_InteractMode);
 		else

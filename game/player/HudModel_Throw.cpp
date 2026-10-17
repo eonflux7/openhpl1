@@ -38,7 +38,7 @@ cHudModel_Throw::cHudModel_Throw() : iHudModel(ePlayerHandType_Throw)
 {
 	mbButtonDown = false;
 
-	mfChargeCount = 0;
+	mfChargeProgress = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -56,7 +56,7 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 	//mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 	mChargePose = GetPoseFromElem("ChargePose",pMeleeElem);
 
-	mfChargeTime = cString::ToFloat(pMeleeElem->Attribute("ChargeTime"),0);
+	mfChargeDurationSeconds = cString::ToFloat(pMeleeElem->Attribute("ChargeTime"),0);
 	mfMinImpulse = cString::ToFloat(pMeleeElem->Attribute("MinImpulse"),0);
 	mfMaxImpulse = cString::ToFloat(pMeleeElem->Attribute("MaxImpulse"),0);
 
@@ -75,7 +75,7 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 void cHudModel_Throw::OnStart()
 {
 	mbButtonDown = false;
-	mfChargeCount = 0;
+	mfChargeProgress = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -83,7 +83,7 @@ void cHudModel_Throw::OnStart()
 void cHudModel_Throw::ResetExtraData()
 {
 	mbButtonDown = false;
-	mfChargeCount = 0;
+	mfChargeProgress = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -92,18 +92,18 @@ bool cHudModel_Throw::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 {
 	if(mbButtonDown)
 	{
-		mfChargeCount += afTimeStep / mfChargeTime; 
-		if(mfChargeCount > 1) mfChargeCount = 1;
+		mfChargeProgress += afTimeStep / mfChargeDurationSeconds;
+		if(mfChargeProgress > 1) mfChargeProgress = 1;
 	}
 	else
 	{
-		mfChargeCount -= afTimeStep*4;
-		if(mfChargeCount < 0) mfChargeCount = 0;
+		mfChargeProgress -= afTimeStep*4;
+		if(mfChargeProgress < 0) mfChargeProgress = 0;
 	}
 	
 	cMatrixf mtxA = mEquipPose.ToMatrix();
 	cMatrixf mtxB = mChargePose.ToMatrix();
-	aPoseMtx = cMath::MatrixSlerp(mfChargeCount,mtxA,mtxB,true);
+	aPoseMtx = cMath::MatrixSlerp(mfChargeProgress,mtxA,mtxB,true);
 
 	return true;
 }
@@ -153,7 +153,7 @@ void cHudModel_Throw::OnAttackUp()
 	{
 		iGameEntity *pEntity = mpInit->mpMapHandler->GetLatestEntity();
 		
-		float fImpulse = mfMinImpulse * (1 - mfChargeCount) + mfMaxImpulse * mfChargeCount;
+		float fImpulse = mfMinImpulse * (1 - mfChargeProgress) + mfMaxImpulse * mfChargeProgress;
 		
 		cVector3f vRot =cMath::MatrixMul(mtxStart.GetRotation(),mvTorque);
 
@@ -170,9 +170,9 @@ void cHudModel_Throw::OnAttackUp()
 	//////////////////////
 	//Reset animations
 
-	mfChargeCount = 0; 
+	mfChargeProgress = 0;
 
-	mfTime = -mfReloadTime;
+	mfEquipProgress = -mfReloadTime;
 	mState = eHudModelState_Equip;
 
 	//////////////////////
@@ -180,7 +180,7 @@ void cHudModel_Throw::OnAttackUp()
 	mpItem->AddCount(-1);
 	if(mpItem->GetCount()<=0)
 	{
-		mfTime = 0.0f;
+		mfEquipProgress = 0.0f;
 		mpInit->mpInventory->RemoveItem(mpItem);
 		mpInit->mpPlayerHands->SetCurrentModel(1,"");
 		mpInit->mpPlayer->ChangeState(ePlayerState_Normal);

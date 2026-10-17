@@ -52,11 +52,11 @@ private:
 	void ResetExtraData() override;
 
 	bool mbButtonDown;
-	float mfChargeCount;
+	float mfChargeProgress;
 
 	cHudModelPose mChargePose;
 
-	float mfChargeTime;
+	float mfChargeDurationSeconds;
 	float mfMinImpulse;
 	float mfMaxImpulse;
 

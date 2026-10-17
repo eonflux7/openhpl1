@@ -114,17 +114,17 @@ public:
 
 	void OnDraw() override;
 private:
-	float mfUpdatePathCount;
-	float mfUpdateFreq;
+	float mfPathUpdateDelaySeconds;
+	float mfPathUpdateIntervalSeconds;
 	bool mbFreePlayerPath;
 	bool mbLostPlayer;
-	float mfLostPlayerCount;
-	float mfMaxLostPlayerCount;
+	float mfLostPlayerRemainingSeconds;
+	float mfLostPlayerDurationSeconds;
 	bool mbFoundNoPath;
 
 	//The wait after a swing made while moving in, and the time to the next hunt sound
-	float mfAttackPauseCount = 0;
-	float mfHuntSoundCount = 0;
+	float mfAttackPauseRemainingSeconds = 0;
+	float mfHuntSoundDelaySeconds = 0;
 
 	int mlStuckAtMaxCount;
 
@@ -342,7 +342,7 @@ public:
 	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
 
 	  float mfIdleSoundTime;
-	  float mfHearSoundCount;
+	  float mfNoiseRetargetDelaySeconds;
 	  float mfHighestVolume;
 
 	  int mlKnockCount;

@@ -312,10 +312,10 @@ cPlayer::~cPlayer(void)
 
 //-----------------------------------------------------------------------
 
-void cPlayer::SetMass(float afX)
+void cPlayer::SetMass(float afMass)
 {
-	mfMass = afX;
-	if(mpCharBody)mpCharBody->SetMass(afX);
+	mfMass = afMass;
+	if(mpCharBody)mpCharBody->SetMass(afMass);
 }
 
 //-----------------------------------------------------------------------
@@ -338,14 +338,14 @@ void cPlayer::SetActive(bool abActive)
 
 //-----------------------------------------------------------------------
 
-void cPlayer::SetPower(float afX)
+void cPlayer::SetPower(float afPower)
 {
-	mfPower = afX;
+	mfPower = afPower;
 }
 
-void cPlayer::AddPower(float afX)
+void cPlayer::AddPower(float afAmount)
 {
-	mfPower += afX;
+	mfPower += afAmount;
 	if(mfPower > 100) mfPower =100;
 	if(mfPower < 0) mfPower =0;
 
@@ -634,9 +634,9 @@ void cPlayer::SetHealthSpeedMul(float afHealthSpeedMul)
 
 //-----------------------------------------------------------------------
 
-void cPlayer::SetHealth(float afX)
+void cPlayer::SetHealth(float afHealth)
 {
-	mfHealth = afX;
+	mfHealth = afHealth;
 	
 	if(mfHealth>100)
 	{
@@ -648,9 +648,9 @@ void cPlayer::SetHealth(float afX)
 	}
 }
 
-void cPlayer::AddHealth(float afX)
+void cPlayer::AddHealth(float afAmount)
 {
-	SetHealth(mfHealth + afX);
+	SetHealth(mfHealth + afAmount);
 }
 
 void cPlayer::Damage(float afDamage, ePlayerDamageType aType)
@@ -895,9 +895,9 @@ void cPlayer::JumpOffLadder()
 	mfJumpCount = 0;
 }
 
-void cPlayer::SetJumpButtonDown(bool abX)
+void cPlayer::SetJumpButtonDown(bool abDown)
 {
-	mbJumpButtonDown = abX;
+	mbJumpButtonDown = abDown;
 
 	if(mbJumpButtonDown)
 	{
@@ -1378,7 +1378,7 @@ void cPlayer::Update(float afTimeStep)
 	//LogUpdate("  Camera pos\n");
 	if(mpCharBody)
 	{
-		float fYAdd = mfCameraHeightAdd + mpHeadMove->GetPos() + mfHeightAdd + mpDeath->GetHeighAdd() +
+		float fYAdd = mfCameraHeightAdd + mpHeadMove->GetPos() + mfHeightAdd + mpDeath->GetHeightAdd() +
 										mpInit->mpEffectHandler->GetShakeScreen()->GetScreenAdd().y;
 		
 		cVector3f vRight = mpCharBody->GetRight();
@@ -1388,7 +1388,7 @@ void cPlayer::Update(float afTimeStep)
 		float fZAdd =	mpLean->mfMovement * vRight.z+
 						mpInit->mpEffectHandler->GetShakeScreen()->GetScreenAdd().x;
 
-		//Log("HEadMove: %f HeightAdd %f Death: %f\n",mpHeadMove->GetPos(),mfHeightAdd,mpDeath->GetHeighAdd());
+		//Log("HEadMove: %f HeightAdd %f Death: %f\n",mpHeadMove->GetPos(),mfHeightAdd,mpDeath->GetHeightAdd());
 		
 		mpCharBody->SetCameraPosAdd(cVector3f(fXAdd,fYAdd,fZAdd));
 	}
@@ -1899,11 +1899,11 @@ void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 
 //-------------------------------------------------------------------
 
-void cPlayer::SetIsUnderWater(bool abX)
+void cPlayer::SetIsUnderWater(bool abUnderWater)
 {
-	if(mbUnderWater == abX) return;
+	if(mbUnderWater == abUnderWater) return;
 
-	if(abX)
+	if(abUnderWater)
 	{
 		// Through walking, as in the original
 		if(mMoveState != ePlayerMoveState_Walk) ChangeMoveState(ePlayerMoveState_Walk);
@@ -1914,21 +1914,21 @@ void cPlayer::SetIsUnderWater(bool abX)
 		ChangeMoveState(ePlayerMoveState_Walk);
 	}
 
-	mbUnderWater = abX;
+	mbUnderWater = abUnderWater;
 }
 
 //-------------------------------------------------------------------
 
-void cPlayer::SetOxygen(float afX)
+void cPlayer::SetOxygen(float afOxygen)
 {
-	mfOxygen = afX;
+	mfOxygen = afOxygen;
 	if(mfOxygen > 100) mfOxygen = 100;
 	if(mfOxygen < 0) mfOxygen = 0;
 }
 
-void cPlayer::AddOxygen(float afX)
+void cPlayer::AddOxygen(float afAmount)
 {
-	SetOxygen(mfOxygen + afX);
+	SetOxygen(mfOxygen + afAmount);
 }
 
 //-------------------------------------------------------------------

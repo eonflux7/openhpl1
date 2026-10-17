@@ -67,8 +67,8 @@ class cEnemyPatrolNode : public iSerializable
 	kSerializableClassInit(cEnemyPatrolNode)
 public:
 	cEnemyPatrolNode(){}
-	cEnemyPatrolNode(const tString &asNode, float afTime, const tString& asAnim) :
-					msNodeName(asNode), mfWaitTime(afTime), msAnimation(asAnim){}
+	cEnemyPatrolNode(const tString &asNode, float afWaitSeconds, const tString& asAnim) :
+					msNodeName(asNode), mfWaitTime(afWaitSeconds), msAnimation(asAnim){}
 
 	tString msNodeName;
 	float mfWaitTime;
@@ -178,7 +178,7 @@ public:
 	virtual void OnAnimationOver(const tString& asAnimName)=0;
 	virtual void OnFlashlight(const cVector3f &avPosition)=0;
 
-	void SetPreviousState(int alX){ mlPreviousState = alX;}
+	void SetPreviousState(int alStateId){ mlPreviousState = alStateId;}
 	int GetPreviousState(){ return mlPreviousState;}
 
 	int GetId(){ return mlId;}
@@ -226,12 +226,12 @@ public:
 
 	bool IsLoading(){ return mbLoading;}
 
-	void OnDamage(float afX) override;
-	void OnDeath(float afX) override;
+	void OnDamage(float afDamage) override;
+	void OnDeath(float afDamage) override;
 
 	void OnFlashlight(const cVector3f &avPos);
 
-	void OnSetActive(bool abX) override;
+	void OnSetActive(bool abActive) override;
 
 	virtual bool MoveToPos(const cVector3f& avFeetPos)=0;
 
@@ -279,14 +279,14 @@ public:
 	void PlayAnim(	const tString &asName, bool abLoop, float afFadeTime, 
 					bool abDependsOnSpeed=false, float afSpeedMul=1.0f,
 					bool abSyncWithPrevFrame=false,
-					bool abOverideMoveState=true);
+					bool abOverrideMoveState=true);
 	void UseMoveStateAnimations();
 
 	cAnimationState* GetCurrentAnimation(){ return mpCurrentAnimation;}
 
 	void PlaySound(const tString &asName);
 
-	//Callabcks
+	//Callbacks
 	void SetOnDeathCallback(const tString &asFunc){ msOnDeathCallback = asFunc;}
 	void SetOnAttackCallback(const tString &asFunc){ msOnAttackCallback = asFunc;}
 	tString GetOnAttackCallback(){ return msOnAttackCallback;}
@@ -298,7 +298,7 @@ public:
 	tString GetOnHuntCallback(){ return msOnHuntCallback;}
 	void SetOnAnimOverCallback(const tString &asFunc){ msOnAnimOverCallback = asFunc;}
 	void SetOnPatrolOverCallback(const tString &asFunc){ msOnPatrolOverCallback = asFunc;}
-	void SetStopAtLastPatrolNode(bool abX){ mbStopAtLastPatrolNode = abX;}
+	void SetStopAtLastPatrolNode(bool abStop){ mbStopAtLastPatrolNode = abStop;}
 
 	float GetMaxHealth(){ return mfMaxHealth;}
 	
@@ -322,13 +322,13 @@ public:
 	bool CheckForTeamMate(float afMaxDist, bool abCheckIfFighting);
 
 	bool IsAttracted(){ return mbIsAttracted;}
-	void SetAttracted(bool abX){ mbIsAttracted = abX;}
+	void SetAttracted(bool abAttracted){ mbIsAttracted = abAttracted;}
 
 	bool GetUsesTriggers(){ return mbUsesTriggers;}
-	void SetUsesTriggers(bool abX){ mbUsesTriggers = abX;}
+	void SetUsesTriggers(bool abUsesTriggers){ mbUsesTriggers = abUsesTriggers;}
 	
 	//Patrolling
-	void AddPatrolNode(const tString& asNode, float afTime, const tString& asAnimation);
+	void AddPatrolNode(const tString& asNode, float afWaitSeconds, const tString& asAnimation);
 	cEnemyPatrolNode* GetPatrolNode(int alIdx){return &mvPatrolNodes[alIdx];}
 	int GetPatrolNodeNum(){ return (int)mvPatrolNodes.size();}
 	cEnemyPatrolNode* CurrentPatrolNode(){return &mvPatrolNodes[mlCurrentPatrolNode];}
@@ -340,11 +340,11 @@ public:
 	float GetWaitTime(){ return mfWaitTime;}
 	float GetWaitTimeCount(){ return mfWaitTimeCount;}
 
-	void SetCurrentPatrolNode(int alX){ mlCurrentPatrolNode = alX;}
+	void SetCurrentPatrolNode(int alNodeIndex){ mlCurrentPatrolNode = alNodeIndex;}
 	void IncCurrentPatrolNode();
-	void SetWaitTime(float afX){ mfWaitTime = afX;}
-	void SetWaitTimeCount(float afX){ mfWaitTimeCount = afX;}
-	void AddWaitTimeCount(float afX){ mfWaitTimeCount += afX;}
+	void SetWaitTime(float afDurationSeconds){ mfWaitTime = afDurationSeconds;}
+	void SetWaitTimeCount(float afElapsedSeconds){ mfWaitTimeCount = afElapsedSeconds;}
+	void AddWaitTimeCount(float afSeconds){ mfWaitTimeCount += afSeconds;}
 
 	float GetDoorBreakCount(){ return mfDoorBreakCount;}
 	void SetDoorBreakCount(float afX){ mfDoorBreakCount =afX;}
@@ -418,7 +418,7 @@ protected:
 	bool mbAnimationIsSpeedDependant;
 	float mfAnimationSpeedMul;
 
-	bool mbOverideMoveState;
+	bool mbOverrideMoveState;
 	eEnemyMoveState mMoveState;
 
 	cVector3f mvTempPosition;
@@ -432,7 +432,7 @@ protected:
 	bool mbAlignToGroundSkipNormal;
 	cMatrixf m_mtxStartPose;
 	cMatrixf m_mtxGoalPose;
-	float mfPoseCount;
+	float mfGroundPoseProgress;
 
 	bool mbHasBeenActivated;
 
@@ -442,8 +442,8 @@ protected:
 	//Variable Properties
 	cVector3f mvLastPlayerPos;
 	float mfCanSeePlayerCount;
-	float mfCheckForPlayerCount;
-	float mfCheckForPlayerRate;
+	float mfPlayerCheckElapsedSeconds;
+	float mfPlayerCheckIntervalSeconds;
 	bool mbCanSeePlayer;
 	int mlPlayerInLOSCount;
 	int mlMaxPlayerInLOSCount;
@@ -517,7 +517,7 @@ protected:
 	cVector3f mvModelOffsetAngles;
 	
 	float mfIdleToMoveLimit;
-	float mfMoveToLideLimit;
+	float mfMoveToIdleLimit;
 
 	float mfMaxPushMass;
 	float mfPushForce;

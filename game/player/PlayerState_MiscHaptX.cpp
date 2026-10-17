@@ -857,7 +857,7 @@ cPlayerState_ClimbHaptX::cPlayerState_ClimbHaptX(cInit *apInit,cPlayer *apPlayer
 
 	mfStepLength = mpInit->mpGameConfig->GetFloat("Movement_Climb","StepLength",0);
 
-	mfStepCount =0;
+	mfStepTravelDistance =0;
 
 	mlState =0;
 }
@@ -899,16 +899,16 @@ void cPlayerState_ClimbHaptX::EnterState(iPlayerState* apPrevState)
 	vStartRot.x = mpPlayer->GetCamera()->GetPitch();
 	vStartRot.y = mpPlayer->GetCamera()->GetYaw();
 
-	mvPosAdd = (mvGoalPos - mpPlayer->GetCharacterBody()->GetPosition()) / fTime;
+	mvAttachVelocity = (mvGoalPos - mpPlayer->GetCharacterBody()->GetPosition()) / fTime;
 
-	mvRotAdd.x = cMath::GetAngleDistance(vStartRot.x, mvGoalRot.x,k2Pif) / fTime;
-	mvRotAdd.y = cMath::GetAngleDistance(vStartRot.y, mvGoalRot.y,k2Pif) / fTime;
+	mvAttachAngularVelocity.x = cMath::GetAngleDistance(vStartRot.x, mvGoalRot.x,k2Pif) / fTime;
+	mvAttachAngularVelocity.y = cMath::GetAngleDistance(vStartRot.y, mvGoalRot.y,k2Pif) / fTime;
 
 	mvCharPosition = mpPlayer->GetCharacterBody()->GetPosition();
 
-	mfTimeCount = fTime;
+	mfAttachRemainingSeconds = fTime;
 
-	mfStepCount =0;
+	mfStepTravelDistance =0;
 
 	mbPlayedSound = false;
 
@@ -950,17 +950,17 @@ void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 	// Attach To Ladder
 	if(mlState ==0)
 	{
-		mfTimeCount -= afTimeStep;
+		mfAttachRemainingSeconds -= afTimeStep;
 		
-		mvCharPosition += mvPosAdd*afTimeStep;
+		mvCharPosition += mvAttachVelocity*afTimeStep;
 		pCharBody->SetPosition(mvCharPosition);
 		mvCharPosition = pCharBody->GetPosition();
 
-		pCam->AddPitch(mvRotAdd.x *afTimeStep);
-		pCam->AddYaw(mvRotAdd.y *afTimeStep);
+		pCam->AddPitch(mvAttachAngularVelocity.x *afTimeStep);
+		pCam->AddYaw(mvAttachAngularVelocity.y *afTimeStep);
 		pCharBody->SetYaw(pCam->GetYaw());
 		
-		if(mfTimeCount<=0)
+		if(mfAttachRemainingSeconds<=0)
 		{
 			mpPlayer->GetCharacterBody()->SetTestCollision(true);
 			
@@ -990,15 +990,15 @@ void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 	// On the top of the ladder
 	else if(mlState == 2)
 	{
-		mfLeaveAtTopCount -= afTimeStep;
+		mfTopExitRemainingSeconds -= afTimeStep;
 		pCharBody->Move(eCharDir_Forward,1,afTimeStep);
 
 		if(pCharBody->IsOnGround())
 		{
-			mfLeaveAtTopCount -= afTimeStep;
+			mfTopExitRemainingSeconds -= afTimeStep;
 		}
 		
-		if(mfLeaveAtTopCount <=0)
+		if(mfTopExitRemainingSeconds <=0)
 		{
 			mpPlayer->ChangeState(ePlayerState_Normal);
 		}
@@ -1056,23 +1056,23 @@ bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 	{
 		mvCharPosition.y += afMul*mfUpSpeed*afTimeStep;
 		
-		if(mfStepCount<0)mfStepCount=0;
+		if(mfStepTravelDistance<0)mfStepTravelDistance=0;
 	}
 	else if(afMul < 0)
 	{
 		mvCharPosition.y += afMul*mfDownSpeed*afTimeStep;
 
-		if(mfStepCount>0)mfStepCount=0;
+		if(mfStepTravelDistance>0)mfStepTravelDistance=0;
 	}
 	else
 	{
 		if(!mbPlayedSound)
 		{
-			if(mfStepCount>0) PlaySound(mpLadder->GetClimbUpSound());
-			if(mfStepCount<0) PlaySound(mpLadder->GetClimbDownSound());
+			if(mfStepTravelDistance>0) PlaySound(mpLadder->GetClimbUpSound());
+			if(mfStepTravelDistance<0) PlaySound(mpLadder->GetClimbDownSound());
 		}
 
-		mfStepCount =0;
+		mfStepTravelDistance =0;
 		mbPlayedSound = false;
 	}
 
@@ -1088,20 +1088,20 @@ bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 	
 	if(afMul > 0)
 	{
-		mfStepCount += afMul*mfUpSpeed*afTimeStep;
-		if(mfStepCount >= mfStepLength)
+		mfStepTravelDistance += afMul*mfUpSpeed*afTimeStep;
+		if(mfStepTravelDistance >= mfStepLength)
 		{
-			mfStepCount =0;
+			mfStepTravelDistance =0;
 			PlaySound(mpLadder->GetClimbUpSound());
 			mbPlayedSound = true;
 		}
 	}
 	else if(afMul < 0)
 	{
-		mfStepCount += afMul*mfDownSpeed*afTimeStep;
-		if(mfStepCount <= -mfStepLength)
+		mfStepTravelDistance += afMul*mfDownSpeed*afTimeStep;
+		if(mfStepTravelDistance <= -mfStepLength)
 		{
-			mfStepCount =0;
+			mfStepTravelDistance =0;
 			PlaySound(mpLadder->GetClimbDownSound());
 			mbPlayedSound = true;
 		}
@@ -1117,7 +1117,7 @@ bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 	{
 		//mpPlayer->ChangeState(ePlayerState_Normal);
 		mlState = 2;
-		mfLeaveAtTopCount = 2;
+		mfTopExitRemainingSeconds = 2;
 		mpPlayer->GetCharacterBody()->SetGravityActive(true);
 	}
 	else if((mvCharPosition.y - pCharBody->GetSize().y/2) < mpLadder->GetMinY())

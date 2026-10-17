@@ -37,7 +37,7 @@ class iPlayerState
 {
 public:
 	ePlayerState mType;
-	ePlayerState mPreviuosState;
+	ePlayerState mPreviousState;
 
 	iPlayerState(cInit *apInit,cPlayer *apPlayer,ePlayerState aType)
 	{
@@ -46,7 +46,7 @@ public:
         mpPlayer = apPlayer;
 		mType = aType;
 
-		mPreviuosState = ePlayerState_LastEnum;
+		mPreviousState = ePlayerState_LastEnum;
 	}
 
 	virtual ~iPlayerState(){}
@@ -60,7 +60,7 @@ public:
 		}
 
 		EnterState(apPrevState);
-		mPreviuosState = apPrevState->mType;
+		mPreviousState = apPrevState->mType;
 	}
 
 	//-------------------------------------

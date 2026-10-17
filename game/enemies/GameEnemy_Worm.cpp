@@ -199,21 +199,21 @@ void cGameEnemyState_Worm_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup enemy
 	mpEnemy->SetFOV(mpEnemyWorm->mfHuntFOV);
 
-	mfUpdatePathCount =0;
-	mfUpdateFreq = 1.0f;
+	mfPathUpdateDelaySeconds =0;
+	mfPathUpdateIntervalSeconds = 1.0f;
 	mbFreePlayerPath = false;
 	
 	mbLostPlayer = false;
-	mfLostPlayerCount =0;
-	mfMaxLostPlayerCount = mpEnemyWorm->mfHuntForLostPlayerTime;
+	mfLostPlayerRemainingSeconds =0;
+	mfLostPlayerDurationSeconds = mpEnemyWorm->mfHuntForLostPlayerTime;
 
     mpInit->mpMusicHandler->AddAttacker(mpEnemy);
 
-	mfAttackCount = mpEnemyWorm->mfAttackInterval;
+	mfAttackCooldownSeconds = mpEnemyWorm->mfAttackInterval;
 
-	mfAttackSoundCount =0;
+	mfAttackSoundCooldownSeconds =0;
 
-	mfSoundCount = cMath::RandRectf(mpEnemyWorm->mfHuntSoundMinInteraval,
+	mfHuntSoundDelaySeconds = cMath::RandRectf(mpEnemyWorm->mfHuntSoundMinInteraval,
 									mpEnemyWorm->mfHuntSoundMaxInteraval);
 }
 
@@ -248,16 +248,16 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 
 	//////////////////////////////
 	//Hunt sound count
-	if(mfSoundCount <=0)
+	if(mfHuntSoundDelaySeconds <=0)
 	{
-		mfSoundCount = cMath::RandRectf(mpEnemyWorm->mfHuntSoundMinInteraval,
+		mfHuntSoundDelaySeconds = cMath::RandRectf(mpEnemyWorm->mfHuntSoundMinInteraval,
 										mpEnemyWorm->mfHuntSoundMaxInteraval);
 
 		mpEnemy->PlaySound(mpEnemyWorm->msHuntSound);
 	}
 	else
 	{
-		mfSoundCount -= afTimeStep;
+		mfHuntSoundDelaySeconds -= afTimeStep;
 	}
 
 	//////////////////////////////
@@ -272,16 +272,16 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 
 	//////////////////////////////
 	//Attack sound count
-	if(mfAttackSoundCount >0)
+	if(mfAttackSoundCooldownSeconds >0)
 	{
-		mfAttackSoundCount -= afTimeStep;
+		mfAttackSoundCooldownSeconds -= afTimeStep;
 	}
 
 	////////////////////////////////
 	//Check if attack should begin
-	if(mfAttackCount <=0)
+	if(mfAttackCooldownSeconds <=0)
 	{
-		mfAttackCount = mpEnemyWorm->mfAttackInterval;
+		mfAttackCooldownSeconds = mpEnemyWorm->mfAttackInterval;
 
 		cVector3f vPos =	mpMover->GetCharBody()->GetPosition() +
 							mpMover->GetCharBody()->GetForward() * 
@@ -306,25 +306,25 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 
 			target,nullptr))
 		{
-			if(mfAttackSoundCount<=0)
+			if(mfAttackSoundCooldownSeconds<=0)
 			{
 				mpEnemy->PlaySound(mpEnemyWorm->msAttackHitSound);
 				
-				mfAttackSoundCount = mpEnemyWorm->mfAttackHitSoundInterval;
+				mfAttackSoundCooldownSeconds = mpEnemyWorm->mfAttackHitSoundInterval;
 			}
 		}
 	}
 	else
 	{
-		mfAttackCount -= afTimeStep;
+		mfAttackCooldownSeconds -= afTimeStep;
 	}
 
 	
 	////////////////////////////////
 	//Update the path
-	if(mfUpdatePathCount <=0)
+	if(mfPathUpdateDelaySeconds <=0)
 	{
-		mfUpdatePathCount = mfUpdateFreq;
+		mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 		
 		cAINodeContainer *pNodeCont = mpEnemy->GetMover()->GetNodeContainer();
 		
@@ -344,13 +344,13 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		{
 			if(mpMover->MoveToPos(mpEnemy->GetLastPlayerPos())==false)
 			{
-				mfUpdatePathCount *= 2.0f;
+				mfPathUpdateDelaySeconds *= 2.0f;
 			}
 		}
 	}
 	else
 	{
-		mfUpdatePathCount -= afTimeStep;
+		mfPathUpdateDelaySeconds -= afTimeStep;
 	}
 	
 	
@@ -368,15 +368,15 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		if(mbLostPlayer==false && mpMover->IsMoving()==false)
 		{
 			mbLostPlayer = true;
-			mfLostPlayerCount = mfMaxLostPlayerCount;
+			mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds;
 		}
 		
 		if(mbLostPlayer)
 		{
 			mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 			
-			mfLostPlayerCount -= afTimeStep;
-			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			mfLostPlayerRemainingSeconds -= afTimeStep;
+			if(mfLostPlayerRemainingSeconds <= 0 || mpMover->GetStuckCounter()>0.5f)
 			{
 			}
 		}
@@ -390,7 +390,7 @@ void cGameEnemyState_Worm_Hunt::OnSeePlayer(const cVector3f &avPosition, float a
 	if(mbLostPlayer && afChance >= mpEnemyWorm->mfHuntMinSeeChance)
 	{
 		mbLostPlayer = false;
-		mfUpdatePathCount =0;
+		mfPathUpdateDelaySeconds =0;
 	}
 }
 
@@ -411,7 +411,7 @@ bool cGameEnemyState_Worm_Hunt::OnHearNoise(const cVector3f &avPosition, float a
 			{
 				//Update last player postion.
 				mbLostPlayer = false;
-				mfUpdatePathCount =0;
+				mfPathUpdateDelaySeconds =0;
 				mpEnemy->SetLastPlayerPos(pNode->GetPosition());
 
 				return true;

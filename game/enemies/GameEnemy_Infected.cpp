@@ -566,7 +566,7 @@ void cGameEnemyState_Infected_Investigate::OnEnterState(iGameEnemyState *apPrevS
 		mpEnemy->PlaySound(mpEnemyInfected->msInvestigateSound);
 	}
 
-	mfHearSoundCount = 5.0f;
+	mfNoiseRetargetDelaySeconds = 5.0f;
 }
 
 //-----------------------------------------------------------------------
@@ -579,9 +579,9 @@ void cGameEnemyState_Infected_Investigate::OnLeaveState(iGameEnemyState *apNextS
 
 void cGameEnemyState_Infected_Investigate::OnUpdate(float afTimeStep)
 {	
-	if(mfHearSoundCount >0){
-		mfHearSoundCount-=afTimeStep;
-		if(mfHearSoundCount<=0)mfHearSoundCount=0;
+	if(mfNoiseRetargetDelaySeconds >0){
+		mfNoiseRetargetDelaySeconds-=afTimeStep;
+		if(mfNoiseRetargetDelaySeconds<=0)mfNoiseRetargetDelaySeconds=0;
 	}
 
 	////////////////////////////////
@@ -630,7 +630,7 @@ void cGameEnemyState_Infected_Investigate::OnUpdate(float afTimeStep)
 
 bool cGameEnemyState_Infected_Investigate::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	if(	mfHearSoundCount<=0 && mfHighestVolume < afVolume &&
+	if(	mfNoiseRetargetDelaySeconds<=0 && mfHighestVolume < afVolume &&
 		afVolume >= mpEnemyInfected->mfIdleMinHearVolume)
 	{
 		mfHighestVolume = afVolume;
@@ -758,24 +758,24 @@ void cGameEnemyState_Infected_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	else 
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyInfected->mfHuntSpeed*1.25f);
 
-	if(mfHuntSoundCount <= 0)
+	if(mfHuntSoundDelaySeconds <= 0)
 	{
-		mfHuntSoundCount = cMath::RandRectf(mpEnemyInfected->mfHuntSoundMinInteraval,
+		mfHuntSoundDelaySeconds = cMath::RandRectf(mpEnemyInfected->mfHuntSoundMinInteraval,
 											mpEnemyInfected->mfHuntSoundMaxInteraval);
 	}
 
 	//Setup enemy
 	mpEnemy->SetFOV(mpEnemyInfected->mfHuntFOV);
 
-	mfUpdatePathCount =0;
-	mfUpdateFreq = 1.0f;
+	mfPathUpdateDelaySeconds =0;
+	mfPathUpdateIntervalSeconds = 1.0f;
 	mbFreePlayerPath = false;
 	
 	mbBreakingDoor = false;
 	mbFoundNoPath = false;
 	mbLostPlayer = false;
-	mfLostPlayerCount =0;	
-	mfMaxLostPlayerCount = mpEnemyInfected->mfHuntForLostPlayerTime;
+	mfLostPlayerRemainingSeconds =0;
+	mfLostPlayerDurationSeconds = mpEnemyInfected->mfHuntForLostPlayerTime;
 
 	mlStuckAtMaxCount =0;
 
@@ -805,15 +805,15 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 	}
 
 	//The sound made now and then while hunting
-	if(mfHuntSoundCount <= 0)
+	if(mfHuntSoundDelaySeconds <= 0)
 	{
-		mfHuntSoundCount = cMath::RandRectf(mpEnemyInfected->mfHuntSoundMinInteraval,
+		mfHuntSoundDelaySeconds = cMath::RandRectf(mpEnemyInfected->mfHuntSoundMinInteraval,
 											mpEnemyInfected->mfHuntSoundMaxInteraval);
 		mpEnemy->PlaySound(mpEnemyInfected->msHuntSound);
 	}
 	else
 	{
-		mfHuntSoundCount -= afTimeStep;
+		mfHuntSoundDelaySeconds -= afTimeStep;
 	}
 
 	if(mpMover->GetStuckCounter() > 0.6f)
@@ -838,13 +838,13 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 	}
 
 	//The wait after an attack made from afar
-	if(mfAttackPauseCount > 0) mfAttackPauseCount -= afTimeStep;
+	if(mfAttackPauseRemainingSeconds > 0) mfAttackPauseRemainingSeconds -= afTimeStep;
 
-	if(mfUpdatePathCount <=0)
+	if(mfPathUpdateDelaySeconds <=0)
 	{
 		mbFoundNoPath = false;
 		//mpInit->mpEffectHandler->GetSubTitle()->Add("Update Path!",1.0f,true);
-		mfUpdatePathCount = mfUpdateFreq;
+		mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 		
 		cAINodeContainer *pNodeCont = mpEnemy->GetMover()->GetNodeContainer();
 
@@ -890,7 +890,7 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 				
 				if(bFoundAnotherWay == false)
 				{
-					mfUpdatePathCount = mfUpdateFreq*5.0f;
+					mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds*5.0f;
 					mpMover->Stop();
 					//Set this so the enemey at least runs toward the player.
 					mbFoundNoPath = true;
@@ -902,7 +902,7 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 	}
 	else
 	{
-		mfUpdatePathCount -= afTimeStep;
+		mfPathUpdateDelaySeconds -= afTimeStep;
 	}
 	
 	////////////////////////////////
@@ -916,7 +916,7 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 		float fDist = mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody());
 
 		//Just after a swing made while moving in, only a player who is near is attacked
-		if(mfAttackPauseCount > 0 && fDist > mpEnemyInfected->mfAttackStillDistance) return;
+		if(mfAttackPauseRemainingSeconds > 0 && fDist > mpEnemyInfected->mfAttackStillDistance) return;
 
 		if(fDist < mpEnemyInfected->mfAttackDistance)
 		{
@@ -937,7 +937,7 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 			}
 
 			mpEnemy->ChangeState(STATE_ATTACK);
-			if(fDist > mpEnemyInfected->mfAttackStillDistance) mfAttackPauseCount = 1.0f;
+			if(fDist > mpEnemyInfected->mfAttackStillDistance) mfAttackPauseRemainingSeconds = 1.0f;
 		}
 	}
 	////////////////////////////////
@@ -947,15 +947,15 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 		if( mbLostPlayer==false && mpMover->IsMoving()==false && mpEnemy->CanSeePlayer()==false)
 		{
 			mbLostPlayer = true;
-			mfLostPlayerCount = mfMaxLostPlayerCount;
+			mfLostPlayerRemainingSeconds = mfLostPlayerDurationSeconds;
 		}
 		
 		if(mbLostPlayer)
 		{
 			mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 			
-			mfLostPlayerCount -= afTimeStep;
-			if(mfLostPlayerCount <= 0 || mpMover->GetStuckCounter()>0.5f)
+			mfLostPlayerRemainingSeconds -= afTimeStep;
+			if(mfLostPlayerRemainingSeconds <= 0 || mpMover->GetStuckCounter()>0.5f)
 			{
 				mpEnemy->ChangeState(STATE_IDLE);
 			}
@@ -970,7 +970,7 @@ void cGameEnemyState_Infected_Hunt::OnSeePlayer(const cVector3f &avPosition, flo
 	if(mbLostPlayer && afChance >= mpEnemyInfected->mfHuntMinSeeChance)
 	{
 		mbLostPlayer = false;
-		mfUpdatePathCount =0;
+		mfPathUpdateDelaySeconds =0;
 	}
 }
 
@@ -991,7 +991,7 @@ bool cGameEnemyState_Infected_Hunt::OnHearNoise(const cVector3f &avPosition, flo
 			{
 				//Update last player postion.
 				mbLostPlayer = false;
-				mfUpdatePathCount =0;
+				mfPathUpdateDelaySeconds =0;
 				mpEnemy->SetLastPlayerPos(pNode->GetPosition());
 
 				return true;
@@ -1015,7 +1015,7 @@ void cGameEnemyState_Infected_Hunt::OnDraw()
 
 	mpInit->mpDefaultFont->Draw(cVector3f(0,110,100),14,cColor(1,1,1,1),eFontAlign_Left,
 		_W("LostPlayerCount: %f FreePath: %d NoPath: %d MaxStuck: %d Dist: %f / %f"),
-															mfLostPlayerCount,mbFreePlayerPath,
+															mfLostPlayerRemainingSeconds,mbFreePlayerPath,
 															mbFoundNoPath,
 															mlStuckAtMaxCount,
 															fDist,

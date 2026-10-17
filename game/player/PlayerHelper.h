@@ -148,7 +148,7 @@ private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 
-	float mfTimeCount;
+	float mfHeartbeatDelaySeconds;
 	float mfGfxAlpha;
 	float mfGfxAlphaAdd;
 	float mfGfxGlobalAlpha;
@@ -189,7 +189,7 @@ private:
 
 	cSoundEntry *mpSoundEntry;
 
-	float mfTimeCount;
+	float mfRemainingSeconds;
 	float mfDeafTime;
 	bool mbDeaf;
 };
@@ -291,7 +291,7 @@ public:
 	float GetVisualAmount() const { return mbActive ? mfFadeAlpha : 0.0f; }
 	float GetBlackAmount() const { return mbActive ? mfBlackAlpha : 0.0f; }
 
-	float GetHeighAdd(){ return mfHeightAdd;}
+	float GetHeightAdd(){ return mfHeightAdd;}
 
 private:
 	bool mbActive;
@@ -354,10 +354,10 @@ public:
 	
 	void Update(float afTimeStep);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
-	void SetDisabled(bool abX);
+	void SetDisabled(bool abDisabled);
 	bool IsDisabled(){ return mbDisabled;}
 
 	void OnPostSceneDraw();
@@ -384,7 +384,7 @@ private:
 	
 	float mfFlickerTime;
 
-	float mfRayCastTime;
+	float mfEnemyRayElapsedSeconds;
 	float mfClosestDist;
 	iPhysicsBody *mpClosestBody;
 
@@ -411,7 +411,7 @@ public:
 
 	void Update(float afTimeStep);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 private:
@@ -435,7 +435,7 @@ public:
 
 	void Update(float afTimeStep);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	float GetTime(){ return mfTime;}
@@ -481,7 +481,7 @@ public:
 	
 	void Update(float afTimeStep);
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void SetType(eNoiseFilterType aType);
@@ -494,7 +494,7 @@ private:
 	eNoiseFilterType mType;
 
 	float mfAlpha;
-	float mfTimeCount;
+	float mfNoiseRefreshDelaySeconds;
 
 	int mlAmount;
 
@@ -522,7 +522,7 @@ public:
 
 	void Reset();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 	float GetVisualAmount() const { return mfAlpha / mfMaxAlpha; }
 
@@ -550,7 +550,7 @@ public:
 	void SetTarget(const cVector3f &avTargetPos, float afSpeedMul, float afMaxSpeed);
 	void SetZoomTarget(float afFovMul, float afSpeedMul, float afMaxSpeed);
 	
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 private:
@@ -634,7 +634,7 @@ private:
 	float mfHiddenOnTime;
 	float mfHiddenOffTime;
 
-	float mfCheckEnemyCloseCount;
+	float mfEnemyProximityCheckDelaySeconds;
 	float mfEnemyTooCloseCount;
 	float mfEnemyTooCloseMax;
 	bool mbEnemyTooClose;
@@ -651,10 +651,10 @@ private:
 	float mfLight;
 	float mfMaxLight;
 
-	float mfHiddenCount;
+	float mfHideElapsedSeconds;
 	float mfHiddenTime;
 	bool mbHidden;
-	float mfHiddenOnCount;
+	float mfHiddenElapsedSeconds;
 
 	bool mbIntersected;
 

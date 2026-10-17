@@ -127,7 +127,7 @@ public:
 
 private:
 	void PlaySound(const tString &asSound);
-	bool CheckAttack(const cMatrixf& mtxTransform, float afSpeed);
+	bool CheckAttack(const cMatrixf& a_mtxTransform, float afSpeed);
 	void HitBody(iPhysicsBody *apBody, float afMinImpulse, float afMaxImpulse,
 				float afMinMass, float afMaxMass, 
 				float afMinDamage, float afMaxDamage,
@@ -151,7 +151,7 @@ private:
 	cVector3f mvPushBackVec;
 	cVector3f mvPushBackPos;
 
-	float mfAttackCount;
+	float mfAttackCooldownSeconds;
 
 	bool mbInteractDown;
 	int mlInteractCount;

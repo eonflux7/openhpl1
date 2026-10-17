@@ -560,7 +560,7 @@ float cPlayerHeadMove::GetPos()
 cPlayerHealth::cPlayerHealth(cInit *apInit)
 {
 	mpInit = apInit;
-	mfTimeCount = 0;
+	mfHeartbeatDelaySeconds = 0;
 
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 	
@@ -582,7 +582,7 @@ cPlayerHealth::cPlayerHealth(cInit *apInit)
 
 void cPlayerHealth::Reset()
 {
-	mfTimeCount = 0;
+	mfHeartbeatDelaySeconds = 0;
 	mfGfxAlpha = 0;
 	mfGfxAlphaAdd = 0;
 	mfGfxGlobalAlpha = 0;
@@ -683,7 +683,7 @@ void cPlayerHealth::Update(float afTimeStep)
 	
 	////////////////////////////
 	//Heart timer
-	if(mfTimeCount<=0)
+	if(mfHeartbeatDelaySeconds<=0)
 	{
 		if(pPlayer->GetHealth() >50)
 		{
@@ -695,20 +695,20 @@ void cPlayerHealth::Update(float afTimeStep)
 			float fVolume = 0.5;
 			if(pPlayer->GetHealth() >25)
 			{
-				mfTimeCount = 1.7f;
+				mfHeartbeatDelaySeconds = 1.7f;
 				pPlayer->SetHealthSpeedMul(0.8f);
 				mfGfxGlobalAlpha = 0.5f;
 			}
 			else if(pPlayer->GetHealth()>10)
 			{
-				mfTimeCount = 1.0;
+				mfHeartbeatDelaySeconds = 1.0;
 				fVolume = 0.75f;
 				pPlayer->SetHealthSpeedMul(0.6f);
 				mfGfxGlobalAlpha = 0.75f;
 			}
 			else
 			{
-				mfTimeCount = 0.7f;
+				mfHeartbeatDelaySeconds = 0.7f;
 				fVolume = 1.0f;
 				pPlayer->SetHealthSpeedMul(0.4f);
 				mfGfxGlobalAlpha = 1.0f;
@@ -720,7 +720,7 @@ void cPlayerHealth::Update(float afTimeStep)
 	}
 	else
 	{
-		mfTimeCount -= afTimeStep;
+		mfHeartbeatDelaySeconds -= afTimeStep;
 	}
 	
 	////////////////////////////
@@ -846,7 +846,7 @@ cPlayerEarRing::cPlayerEarRing(cInit *apInit,cPlayer *apPlayer)
 	mpPlayer = apPlayer;
 
 	mpSoundEntry = nullptr;
-	mfTimeCount =0;
+	mfRemainingSeconds =0;
 
 	mbDeaf = false;
 }
@@ -861,7 +861,7 @@ void cPlayerEarRing::Reset()
 	pSoundHandler->SetVolume(1.0f,0.1f,eSoundDest_World);
 
 	mpSoundEntry = nullptr;
-	mfTimeCount =0;
+	mfRemainingSeconds =0;
 
 	mbDeaf = false;
 }
@@ -870,11 +870,11 @@ void cPlayerEarRing::Reset()
 
 void cPlayerEarRing::Update(float afTimeStep)
 {
-	if(mfTimeCount >0)
+	if(mfRemainingSeconds >0)
 	{
 		cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
 
-		mfTimeCount -= afTimeStep;
+		mfRemainingSeconds -= afTimeStep;
 		mfDeafTime -= afTimeStep;
 
 		if(mbDeaf && mfDeafTime <= 0)
@@ -883,9 +883,9 @@ void cPlayerEarRing::Update(float afTimeStep)
 			pSoundHandler->SetVolume(0.2f,1.5f,eSoundDest_World);
 		}
 
-		if(mfTimeCount <= 0)
+		if(mfRemainingSeconds <= 0)
 		{
-			mfTimeCount =0;
+			mfRemainingSeconds =0;
 			pSoundHandler->SetVolume(1.0f,3.5f,eSoundDest_World);
 			
 			if(mpSoundEntry)
@@ -904,7 +904,7 @@ void cPlayerEarRing::Start(float afTime)
 {
 	if(mpInit->mpPlayer->GetHealth() <=0) return;
 
-	if(mfTimeCount >0)
+	if(mfRemainingSeconds >0)
 	{
 	}
 	else
@@ -922,7 +922,7 @@ void cPlayerEarRing::Start(float afTime)
 		pSoundHandler->SetVolume(0.0f,1.2f,eSoundDest_World);
 	}
 	
-	mfTimeCount = afTime;
+	mfRemainingSeconds = afTime;
 
 	mbDeaf = true;
 	mfDeafTime = afTime *0.3f;
@@ -943,7 +943,7 @@ void cPlayerEarRing::Stop(bool abStopDirectly)
 	}
 	else
 	{
-		mfTimeCount =0;
+		mfRemainingSeconds =0;
 		pSoundHandler->SetVolume(1.0f,3.5f,eSoundDest_World);
 
 		if(mpSoundEntry)
@@ -1382,7 +1382,7 @@ void cPlayerFlashLight::Reset()
 	mfAlpha =0;
 	mfFlickerTime =0;
 
-	mfRayCastTime = 0;
+	mfEnemyRayElapsedSeconds = 0;
 	mpClosestBody = nullptr;
 	mfClosestDist = 10000.0f;
 
@@ -1549,9 +1549,9 @@ void cPlayerFlashLight::Update(float afTimeStep)
 	{
 		//////////////////////////
 		//Hits enemy
-		if(mfRayCastTime >= 1)//1.0f/20.0f)
+		if(mfEnemyRayElapsedSeconds >= 1)//1.0f/20.0f)
 		{
-			mfRayCastTime =0;
+			mfEnemyRayElapsedSeconds =0;
 			
 			cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 			iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -1653,7 +1653,7 @@ void cPlayerFlashLight::Update(float afTimeStep)
 		}
 		else
 		{
-			mfRayCastTime += afTimeStep;
+			mfEnemyRayElapsedSeconds += afTimeStep;
 		}
 	}
 	
@@ -1712,17 +1712,17 @@ void cPlayerFlashLight::Update(float afTimeStep)
 //-----------------------------------------------------------------------
 
 
-void cPlayerFlashLight::SetActive(bool abX)
+void cPlayerFlashLight::SetActive(bool abActive)
 {
 	cSoundHandler *pSoundHanlder = mpInit->mpGame->GetSound()->GetSoundHandler();
 
-	if(abX && (mpInit->mpPlayer->GetPower()==0 || mbDisabled)) {
+	if(abActive && (mpInit->mpPlayer->GetPower()==0 || mbDisabled)) {
 		pSoundHanlder->PlayGui("item_flashlight_nopower",false,1);
 		return;
 	}
 	
-	if(mbActive == abX) return;
-	mbActive = abX;
+	if(mbActive == abActive) return;
+	mbActive = abActive;
 	
 	/////////////////////////////
 	//Active
@@ -1749,11 +1749,11 @@ void cPlayerFlashLight::SetActive(bool abX)
 
 //-----------------------------------------------------------------------
 
-void cPlayerFlashLight::SetDisabled(bool abX)
+void cPlayerFlashLight::SetDisabled(bool abDisabled)
 {
-	if(abX==true) SetActive(false);
+	if(abDisabled==true) SetActive(false);
 	
-	mbDisabled = abX;
+	mbDisabled = abDisabled;
 }
 
 //-----------------------------------------------------------------------
@@ -1821,10 +1821,10 @@ void cPlayerGlowStick::Update(float afTimeStep)
 //-----------------------------------------------------------------------
 
 
-void cPlayerGlowStick::SetActive(bool abX)
+void cPlayerGlowStick::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
-	mbActive = abX;
+	if(mbActive == abActive) return;
+	mbActive = abActive;
 
 	cSoundHandler *pSoundHanlder = mpInit->mpGame->GetSound()->GetSoundHandler();
 
@@ -1966,10 +1966,10 @@ void cPlayerFlare::Update(float afTimeStep)
 //-----------------------------------------------------------------------
 
 
-void cPlayerFlare::SetActive(bool abX)
+void cPlayerFlare::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
-	mbActive = abX;
+	if(mbActive == abActive) return;
+	mbActive = abActive;
 
 	cSoundHandler *pSoundHanlder = mpInit->mpGame->GetSound()->GetSoundHandler();
 
@@ -2068,7 +2068,7 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 	mvCurrentGfx.resize(20 * 15,cMath::RandRectl(0,mlAmount-1));
 
 	mfAlpha = 0.3f;
-	mfTimeCount =0;
+	mfNoiseRefreshDelaySeconds =0;
 
 	mbActive = mpInit->mpConfig->GetBool("Graphics", "NoiseFilter",true);
 	int lType = mpInit->mpConfig->GetInt("Graphics", "NoiseFilterType",eNoiseFilterType_Original);
@@ -2119,7 +2119,7 @@ void cPlayerNoiseFilter::Draw()
 void cPlayerNoiseFilter::Update(float afTimeStep)
 {
 	if(mbActive == false || mType != eNoiseFilterType_Original) return;
-	if(mfTimeCount <=0)
+	if(mfNoiseRefreshDelaySeconds <=0)
 	{
 		for(int x=0;x <20;++x)
 		for(int y=0; y< 15; ++y)
@@ -2134,19 +2134,19 @@ void cPlayerNoiseFilter::Update(float afTimeStep)
 			mvCurrentGfx[x*y] = lRand;
 		}
 
-		mfTimeCount = 1 / 15.0f;
+		mfNoiseRefreshDelaySeconds = 1 / 15.0f;
 	}
 	else
 	{
-		mfTimeCount -= afTimeStep;
+		mfNoiseRefreshDelaySeconds -= afTimeStep;
 	}
 }
 
 //-----------------------------------------------------------------------
 
-void cPlayerNoiseFilter::SetActive(bool abX)
+void cPlayerNoiseFilter::SetActive(bool abActive)
 {
-	mbActive = abX;
+	mbActive = abActive;
 	UpdateGrain();
 }
 
@@ -2230,12 +2230,12 @@ void cPlayerFearFilter::Reset()
 
 //-----------------------------------------------------------------------
 
-void cPlayerFearFilter::SetActive(bool abX)
+void cPlayerFearFilter::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
-	if(!abX) return; // Keep its amount so it can fade out.
+	mbActive = abActive;
+	if(!abActive) return; // Keep its amount so it can fade out.
 	mfAlpha =0;
 }
 
@@ -2340,9 +2340,9 @@ void cPlayerLookAt::SetZoomTarget(float afFovMul, float afSpeedMul, float afMaxS
 	mfMaxSpeed = afMaxSpeed;
 }
 
-void cPlayerLookAt::SetActive(bool abX)
+void cPlayerLookAt::SetActive(bool abActive)
 {
-	mbActive = abX;
+	mbActive = abActive;
 	if(mbActive==false) mfDestFovMul = 1.0f;
 }
 
@@ -2432,12 +2432,12 @@ void cPlayerHidden::UnHide()
 	if(mbHidden){
 		mpLight->FadeTo(cColor(0,0,0,0),mpLight->GetFarAttenuation(),mfHiddenOffTime);
 		
-		if(mfHiddenOnCount >2)
+		if(mfHiddenElapsedSeconds >2)
 			mpSoundHandler->PlayGui("player_hidden_off",false,1);
 	}
 	mbHidden = false;
-	mfHiddenCount =0;
-	mfHiddenOnCount =0;
+	mfHideElapsedSeconds =0;
+	mfHiddenElapsedSeconds =0;
 
 	mfEnemyTooCloseCount =0;
 	mbEnemyTooClose = false;
@@ -2574,7 +2574,7 @@ void cPlayerHidden::Update(float afTimeStep)
 		{
 			if(!mbHidden)
 			{
-				if(mfHiddenCount >= mfHiddenTime)
+				if(mfHideElapsedSeconds >= mfHiddenTime)
 				{
 					mbInShadows = false;
 					mbHidden = true;
@@ -2586,12 +2586,12 @@ void cPlayerHidden::Update(float afTimeStep)
 				}
 				else
 				{
-					mfHiddenCount += afTimeStep;
+					mfHideElapsedSeconds += afTimeStep;
 				}
 			}
 			else
 			{
-				mfHiddenOnCount += afTimeStep;
+				mfHiddenElapsedSeconds += afTimeStep;
 			}
 		}
 		else
@@ -2836,14 +2836,14 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 	//Update the count
 	if(InShadows())//mbHidden)
 	{
-		if(mfCheckEnemyCloseCount <=0)
+		if(mfEnemyProximityCheckDelaySeconds <=0)
 		{
 			float fMaxDist = mbHidden ? 11.0f : 11.0f;
 			float fMaxDistSqr = fMaxDist*fMaxDist;
 
 			//Reset variables
 			mbEnemyTooClose = false;
-			mfCheckEnemyCloseCount = 0.3f;
+			mfEnemyProximityCheckDelaySeconds = 0.3f;
 			
 			///Get needed data
 			iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
@@ -2887,7 +2887,7 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 		}
 		else
 		{
-			mfCheckEnemyCloseCount -= afTimeStep;
+			mfEnemyProximityCheckDelaySeconds -= afTimeStep;
 		}
 
 		////////////////////////////////
@@ -2953,7 +2953,7 @@ void cPlayerHidden::Reset()
 	mfHiddenOnTime = 1;
 	mfHiddenOffTime = 0.5f;
 
-	mfHiddenOnCount = 0;
+	mfHiddenElapsedSeconds = 0;
 	
 	mfEffectOffset = mfStartEffectOffset;
 	mfAspect = mfStartAspect;
@@ -2964,7 +2964,7 @@ void cPlayerHidden::Reset()
 	mfLight = 1.0f;
 	mfMaxLight = 0.25f;
 
-	mfHiddenCount = 0;
+	mfHideElapsedSeconds = 0;
 	mfHiddenTime = 1.4f;
 	mbHidden = false;
 
@@ -2974,7 +2974,7 @@ void cPlayerHidden::Reset()
 	mfInShadowPulse = 0;
 	mfInShadowPulseAdd = 1;
 
-	mfCheckEnemyCloseCount =0;
+	mfEnemyProximityCheckDelaySeconds =0;
 	mfEnemyTooCloseCount =0;
 	mbEnemyTooClose = false;
 
