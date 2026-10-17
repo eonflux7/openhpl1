@@ -89,12 +89,12 @@ private:
 	tAttackerSet m_setAttackers;
 
 	bool mbAttackPlaying;
-	float mfAttackPlayCount;
-	float mfAttackStopCount;
+	float mfAttackStartElapsedSeconds;
+	float mfAttackStopElapsedSeconds;
 
 	bool mbEnemyClosePlaying;
-	float mfEnemyCloseCount;
-	float mfEnemyGoneCount;
+	float mfEnemyCloseElapsedSeconds;
+	float mfEnemyGoneElapsedSeconds;
 };
 
 

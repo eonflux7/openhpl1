@@ -31,11 +31,11 @@ public:
 	cFadeHandler(cInit *apInit);
 	~cFadeHandler() override;
 
-	void FadeOut(float afTime);
-	void FadeIn(float afTime);
+	void FadeOut(float afDurationSeconds);
+	void FadeIn(float afDurationSeconds);
 	bool IsActive();
 
-	void SetWideScreenActive(bool abX);
+	void SetWideScreenActive(bool abActive);
 
 	void OnStart() override;
 	void Update(float afTimeStep) override;
@@ -50,7 +50,7 @@ private:
 
 	bool mbActive;
 	float mfAlpha;
-	float mfAlphaAdd;
+	float mfAlphaRatePerSecond;
 
 	bool mbWideScreenActive;
 	float mfWideScreenAlpha;

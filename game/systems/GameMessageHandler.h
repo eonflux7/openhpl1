@@ -31,7 +31,7 @@ class cGameMessageHandler;
 class cGameMessage
 {
 public:
-	cGameMessage(const tWString &asText, cGameMessageHandler *apMessHandler);
+	cGameMessage(const tWString &asText, cGameMessageHandler *apMessageHandler);
 
 	void Update(float afTimeStep);
 	void Draw(iFontData *apFont);
@@ -39,10 +39,10 @@ public:
 	bool mbActive;
 
 	tWString msText;
-	float mfFade;
-	float mfFadeAdd;
+	float mfTextAlpha;
+	float mfTextAlphaRatePerSecond;
 
-	cGameMessageHandler *mpMessHandler;
+	cGameMessageHandler *mpMessageHandler;
 };
 
 typedef std::list<cGameMessage*> tGameMessageList;
@@ -71,9 +71,9 @@ public:
 
 	void SetOnMessagesOverCallback(const tString& asFunction);
 
-	void SetFocusIsedUsed(bool abX){mbFocusIsedUsed = abX;}
+	void SetDepthOfFieldUsed(bool abUsed){mbDepthOfFieldUsed = abUsed;}
 
-	void SetBlackText(bool abX){ mbBlackText = abX;}
+	void SetBlackText(bool abBlackText){ mbBlackText = abBlackText;}
 	
 private:
 	cInit* mpInit;
@@ -82,7 +82,7 @@ private:
 	ePlayerState mLastState;
 	tString msOverCallback;
 
-	bool mbFocusIsedUsed;
+	bool mbDepthOfFieldUsed;
 
 	bool mbBlackText;
 

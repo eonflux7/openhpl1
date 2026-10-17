@@ -38,7 +38,7 @@ public:
 	void OnDraw();
 	void Reset();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void SetColor(const cColor &aColor){mColor = aColor;}
@@ -55,7 +55,7 @@ private:
 	// Black Plague: the sounds of diving and of being under water
 	cSoundHandler *mpSoundHandler;
 	iSoundChannel *mpLoopChannel;
-	float mfSoundCount;
+	float mfDiveSoundCooldownSeconds;
 };
 
 
@@ -152,10 +152,10 @@ public:
 	cEffect_DepthOfField(cInit *apInit);
 	~cEffect_DepthOfField();
 
-	void SetDisabled(bool abX);
+	void SetDisabled(bool abDisabled);
 	bool IsDisabled(){ return mbDisabled;}
 	
-	void SetActive(bool abX, float afFadeTime);
+	void SetActive(bool abActive, float afFadeTime);
 	bool IsActive(){ return mbActive;}
 
 	void SetUp(float afNearPlane, float afFocalPlane, float afFarPlane);
@@ -187,7 +187,7 @@ public:
 	cEffect_Flash(cInit *apInit, cGraphicsDrawer *apDrawer);
 	~cEffect_Flash();
 
-	void Start(float afFadeIn, float afWhite, float afFadeOut);
+	void Start(float afFadeInSeconds, float afWhiteSeconds, float afFadeOutSeconds);
 
 	void Update(float afTimeStep);
 	void OnDraw();
@@ -224,7 +224,7 @@ public:
 	/**
 	 * abStartFlash, abEndFlash: with a white flash as the picture comes and before it goes
 	 */
-	void Start(float afFadeIn, float afStay, float afFadeOut, const tString &asFile,
+	void Start(float afFadeInSeconds, float afStaySeconds, float afFadeOutSeconds, const tString &asFile,
 				bool abStartFlash, bool abEndFlash);
 
 	void Update(float afTimeStep);
@@ -271,8 +271,8 @@ private:
 	cInit *mpInit;
 
 	float mfAlpha;
-	float mfMaxAlpha;
-	float mfAlphaAdd;
+	float mfTargetAlpha;
+	float mfAlphaRatePerSecond;
 
 	float mfTime;
 
@@ -288,7 +288,7 @@ public:
 	cEffect_GasMask(cInit *apInit);
 	~cEffect_GasMask();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive(){ return mbActive;}
 
 	void Update(float afTimeStep);
@@ -304,7 +304,7 @@ private:
 
 	float mfAlpha;
 	bool mbActive;
-	float mfBreathCount;
+	float mfBreathElapsedSeconds;
 };
 
 //-----------------------------------------
@@ -336,7 +336,7 @@ public:
 	/**
 	 * Black Plague: the text is put on a black strip
 	 */
-	void SetBlackText(bool abX){ mbBlackText = abX;}
+	void SetBlackText(bool abBlackText){ mbBlackText = abBlackText;}
 	bool GetBlackText(){ return mbBlackText;}
 private:
 	cInit *mpInit;
@@ -359,7 +359,7 @@ public:
 	cEffect_WaveGravity(cInit *apInit);
 	~cEffect_WaveGravity();
 
-	void SetActive(bool abX);
+	void SetActive(bool abActive);
 	bool IsActive() const { return mbActive; }
 	//alDir: 0=Xaxis 1=Zaxis
 	void Setup(float afMaxAngle, float afSwingLength, float afGravitySize, int alDir);

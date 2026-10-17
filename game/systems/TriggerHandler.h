@@ -38,11 +38,11 @@ public:
 	~cGameTrigger() override{}
 	
 	int GetPrio(){ return mlPrio;}
-	float GetTimeCount(){ return mfTimeCount;}
+	float GetRemainingSeconds(){ return mfRemainingSeconds;}
 	eGameTriggerType GetType(){ return mType;}
 	
 	float GetRadius(){ return mfRadius;}
-	void SetRadius(float afX);
+	void SetRadius(float afRadius);
 
 	cBoundingVolume* GetBoundingVolume() override{ return &mBoundingVolume;}
 	
@@ -50,7 +50,7 @@ public:
 
 protected:
 	int mlPrio;
-	float mfTimeCount;
+	float mfRemainingSeconds;
 	eGameTriggerType mType;
 private:
 	float mfRadius;
@@ -68,7 +68,7 @@ public:
 	~cTriggerHandler() override;
 
 	cGameTrigger* Add(cGameTrigger *apTrigger,eGameTriggerType aType , const cVector3f &avLocalPos,
-												int alPrio, float afTime, float afRadius);
+												int alPrio, float afLifetimeSeconds, float afRadius);
 
 	void OnStart() override;
 	void Update(float afTimeStep) override;

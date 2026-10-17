@@ -58,12 +58,12 @@ cFadeHandler::~cFadeHandler(void)
 
 //-----------------------------------------------------------------------
 
-void cFadeHandler::FadeOut(float afTime)
+void cFadeHandler::FadeOut(float afDurationSeconds)
 {
-	if(afTime <= 0)
-		mfAlphaAdd = 1000000.0f;
+	if(afDurationSeconds <= 0)
+		mfAlphaRatePerSecond = 1000000.0f;
 	else
-		mfAlphaAdd = (1.0f / afTime);
+		mfAlphaRatePerSecond = (1.0f / afDurationSeconds);
 
 	mbActive = true;
 
@@ -72,12 +72,12 @@ void cFadeHandler::FadeOut(float afTime)
 
 //-----------------------------------------------------------------------
 
-void cFadeHandler::FadeIn(float afTime)
+void cFadeHandler::FadeIn(float afDurationSeconds)
 {
-	if(afTime <= 0)
-		mfAlphaAdd = -100000.0f;
+	if(afDurationSeconds <= 0)
+		mfAlphaRatePerSecond = -100000.0f;
 	else
-		mfAlphaAdd = -(1.0f / afTime);
+		mfAlphaRatePerSecond = -(1.0f / afDurationSeconds);
 	
 	mbActive = true;
 
@@ -101,9 +101,9 @@ void cFadeHandler::OnStart()
 
 //-----------------------------------------------------------------------
 
-void cFadeHandler::SetWideScreenActive(bool abX)
+void cFadeHandler::SetWideScreenActive(bool abActive)
 {
-	mbWideScreenActive = abX;
+	mbWideScreenActive = abActive;
 }
 
 //-----------------------------------------------------------------------
@@ -112,9 +112,9 @@ void cFadeHandler::Update(float afTimeStep)
 {
 	if(mbActive)
 	{
-		mfAlpha += mfAlphaAdd * afTimeStep;
+		mfAlpha += mfAlphaRatePerSecond * afTimeStep;
 
-		if(mfAlphaAdd<0)
+		if(mfAlphaRatePerSecond<0)
 		{
 			if(mfAlpha<0)
 			{
@@ -154,7 +154,7 @@ void cFadeHandler::Reset()
 	mbWideScreenActive = false;
 
 	mfAlpha = 0;
-	mfAlphaAdd = 0;
+	mfAlphaRatePerSecond = 0;
 	mbActive = false;
 }
 

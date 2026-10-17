@@ -442,7 +442,7 @@ void iGameEntity::OnPlayerExamine()
 		mpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
 		mpInit->mpEffectHandler->GetDepthOfField()->SetActive(true,1.2f);
 
-		mpInit->mpGameMessageHandler->SetFocusIsedUsed(true);
+		mpInit->mpGameMessageHandler->SetDepthOfFieldUsed(true);
 	}
 }
 

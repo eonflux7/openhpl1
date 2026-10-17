@@ -53,12 +53,12 @@ private:
 	void StartWorld(cWorld3D *apWorld);
 	void UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack);
 	void UpdatePlayer(float afTimeStep);
-	tString JointInfo(iPhysicsBody *apBody);
+	tString GetJointDescription(iPhysicsBody *apBody);
 
 	cInit *mpInit;
 
 	iPhysicsWorld *mpWorld;
-	float mfTime;
+	float mfMapTimeSeconds;
 	std::map<iPhysicsBody*, cBodyTrack> m_mapBodies;
 	std::map<iPhysicsBody*, iPhysicsJoint*> m_mapJoints; // child body -> joint
 

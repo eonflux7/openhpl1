@@ -86,7 +86,7 @@ public:
 						eAttackTargetFlag aTarget, iPhysicsBody *apSkipBody,
 						iPhysicsBody **apPickedBody=nullptr);
 
-	bool CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxOffset,
+	bool CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxShapeOffset,
 							const cVector3f &avOrigin,float afDamage, 
 							float afMinMass, float afMaxMass, float afMinImpulse, float afMaxImpulse,
 							int alStrength,
@@ -98,7 +98,7 @@ public:
 								float afForce,iPhysicsBody *apSkipBody, iPhysicsBody **apPickedBody=nullptr);
 
 	void CreateSplashDamage(const cVector3f& avCenter, float afRadius, float afMinDamage, 
-											float afMaxDamge,float afMinForce, float afMaxForce,
+											float afMaxDamage,float afMinForce, float afMaxForce,
 											float afMaxImpulse, 
 											unsigned int aTarget, float afMinMass,
 											int alStrength);

@@ -45,7 +45,7 @@ cRadioHandler::cRadioHandler(cInit *apInit)  : iUpdateable("RadioHandler")
 
 cRadioHandler::~cRadioHandler(void)
 {
-	STLDeleteAll(mlstMessages);
+	STLDeleteAll(mlstQueuedMessages);
 }
 
 //-----------------------------------------------------------------------
@@ -63,8 +63,8 @@ cRadioMessage::cRadioMessage(const tWString &asText, const tString &asSound)
 
 	mpChannel = nullptr;
 	mpEntity = nullptr;
-	mfMinDist = 0;
-	mfMaxDist = 0;
+	mfFullVolumeDistance = 0;
+	mfSilentDistance = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -78,38 +78,38 @@ cRadioMessage::cRadioMessage(const tWString &asText, const tString &asSound)
 
 void cRadioHandler::Add(const tWString& asText, const tString& asSound)
 {
-	if(mlstMessages.empty())msPrevText = _W("");
+	if(mlstQueuedMessages.empty())msPrevText = _W("");
 
-	cRadioMessage *pMess = hplNew( cRadioMessage, (asText, asSound) );
-	mlstMessages.push_back(pMess);
+	cRadioMessage *pMessage = hplNew( cRadioMessage, (asText, asSound) );
+	mlstQueuedMessages.push_back(pMessage);
 }
 
 //-----------------------------------------------------------------------
 
 void cRadioHandler::Add(const tWString& asText, const tString& asSound, iGameEntity *apEntity,
-						float afMinDist, float afMaxDist)
+						float afFullVolumeDistance, float afSilentDistance)
 {
-	if(mlstMessages.empty())msPrevText = _W("");
+	if(mlstQueuedMessages.empty())msPrevText = _W("");
 
-	cRadioMessage *pMess = hplNew( cRadioMessage, (asText, asSound) );
-	pMess->mpEntity = apEntity;
-	pMess->mfMinDist = afMinDist;
-	pMess->mfMaxDist = afMaxDist;
-	mlstMessages.push_back(pMess);
+	cRadioMessage *pMessage = hplNew( cRadioMessage, (asText, asSound) );
+	pMessage->mpEntity = apEntity;
+	pMessage->mfFullVolumeDistance = afFullVolumeDistance;
+	pMessage->mfSilentDistance = afSilentDistance;
+	mlstQueuedMessages.push_back(pMessage);
 }
 
 //-----------------------------------------------------------------------
 
 void cRadioHandler::StopAll(float afFadeSpeed)
 {
-	STLDeleteAll(mlstMessages);
-	mlstMessages.clear();
+	STLDeleteAll(mlstQueuedMessages);
+	mlstQueuedMessages.clear();
 
 	msCurrentText = _W("");
 	msPrevText = _W("");
-	mfAlpha = 0;
+	mfTextCrossfadeAlpha = 0;
 	msOnEndCallback = "";
-	mbGuiCallback = false;
+	mbOnEndCallbackInGui = false;
 
 	if(mpCurrentMessage)
 	{
@@ -145,16 +145,16 @@ void cRadioHandler::OnWorldExit()
 
 		msCurrentText = _W("");
 		msPrevText = _W("");
-		mfAlpha = 0;
+		mfTextCrossfadeAlpha = 0;
 	}
 
-	for(tRadioMessageListIt it = mlstMessages.begin(); it != mlstMessages.end(); )
+	for(tRadioMessageListIt it = mlstQueuedMessages.begin(); it != mlstQueuedMessages.end(); )
 	{
-		cRadioMessage *pMess = *it;
-		if(pMess->mpEntity)
+		cRadioMessage *pMessage = *it;
+		if(pMessage->mpEntity)
 		{
-			hplDelete( pMess );
-			it = mlstMessages.erase(it);
+			hplDelete( pMessage );
+			it = mlstQueuedMessages.erase(it);
 		}
 		else
 		{
@@ -167,15 +167,13 @@ void cRadioHandler::OnWorldExit()
 
 void cRadioHandler::StartNextMessage()
 {
-	//Get newer message
-	mpCurrentMessage = mlstMessages.front();
-	mlstMessages.pop_front();
+	mpCurrentMessage = mlstQueuedMessages.front();
+	mlstQueuedMessages.pop_front();
 
 	msCurrentText = mpCurrentMessage->msText;
 
-	mfAlpha =0;
+	mfTextCrossfadeAlpha =0;
 
-	//Start newer message
 	mpCurrentMessage->mpChannel = mpSoundHandler->PlayStream(mpCurrentMessage->msSound,false,1);
 
 	if(mpCurrentMessage->mpEntity)
@@ -195,7 +193,7 @@ void cRadioHandler::RunOnEndCallback()
 	tString sCommand = msOnEndCallback + "()";
 	msOnEndCallback = "";
 
-	if(mbGuiCallback)
+	if(mbOnEndCallbackInGui)
 	{
 		cGameGui *pGui = mpInit->mpGameGuiHandler->GetScreenGui();
 		if(pGui) pGui->RunScriptCommand(sCommand);
@@ -220,7 +218,7 @@ void cRadioHandler::NextMessage()
 		msCurrentText = _W("");
 	}
 
-	if(mlstMessages.empty()==false)
+	if(mlstQueuedMessages.empty()==false)
 		StartNextMessage();
 	else
 		RunOnEndCallback();
@@ -237,13 +235,13 @@ bool cRadioHandler::IsShowingText()
 
 float cRadioHandler::GetVolumeAtPlayer(cRadioMessage *apMessage)
 {
-	cVector3f vPos = apMessage->mpEntity->GetBody(0)->GetLocalPosition();
-	float fDist = cMath::Vector3Dist(mpInit->mpPlayer->GetCamera()->GetPosition(), vPos);
+	cVector3f vSourcePosition = apMessage->mpEntity->GetBody(0)->GetLocalPosition();
+	float fDistanceToPlayer = cMath::Vector3Dist(mpInit->mpPlayer->GetCamera()->GetPosition(), vSourcePosition);
 
-	if(fDist > apMessage->mfMaxDist) return 0;
-	if(fDist <= apMessage->mfMinDist) return 1;
+	if(fDistanceToPlayer > apMessage->mfSilentDistance) return 0;
+	if(fDistanceToPlayer <= apMessage->mfFullVolumeDistance) return 1;
 
-	return 1 - (fDist - apMessage->mfMinDist) / (apMessage->mfMaxDist - apMessage->mfMinDist);
+	return 1 - (fDistanceToPlayer - apMessage->mfFullVolumeDistance) / (apMessage->mfSilentDistance - apMessage->mfFullVolumeDistance);
 }
 
 //-----------------------------------------------------------------------
@@ -251,8 +249,8 @@ float cRadioHandler::GetVolumeAtPlayer(cRadioMessage *apMessage)
 void cRadioHandler::Update(float afTimeStep)
 {
 	if(mpInit->mpPlayer->IsDead()) {
-		STLDeleteAll(mlstMessages);
-		mlstMessages.clear();
+		STLDeleteAll(mlstQueuedMessages);
+		mlstQueuedMessages.clear();
 		return;
 	}
 	
@@ -276,24 +274,24 @@ void cRadioHandler::Update(float afTimeStep)
 			hplDelete( mpCurrentMessage );
 			mpCurrentMessage = nullptr;
 
-			if(mlstMessages.empty()) RunOnEndCallback();
+			if(mlstQueuedMessages.empty()) RunOnEndCallback();
 		}
 	}
 
 	////////////////////////////
 	// Get next message
-    if(mpCurrentMessage==nullptr && mlstMessages.empty()==false)
+    if(mpCurrentMessage==nullptr && mlstQueuedMessages.empty()==false)
 	{
 		StartNextMessage();
 	}
 	
 	////////////////////////
 	//Alpha
-	if(mfAlpha <1)
+	if(mfTextCrossfadeAlpha <1)
 	{
-		mfAlpha += afTimeStep*2;
-		if(mfAlpha >1){
-			mfAlpha =1;
+		mfTextCrossfadeAlpha += afTimeStep*2;
+		if(mfTextCrossfadeAlpha >1){
+			mfTextCrossfadeAlpha =1;
 			msPrevText = msCurrentText;
 		}
 	}
@@ -306,14 +304,14 @@ bool cRadioHandler::IsActive()
 	if(mpCurrentMessage) return true;
 
 	//Black Plague: also while messages wait
-	return cInit::IsOverture()==false && mlstMessages.empty()==false;
+	return cInit::IsOverture()==false && mlstQueuedMessages.empty()==false;
 }
 
 //-----------------------------------------------------------------------
 
 void cRadioHandler::OnDraw()
 {
-	float fAlpha = mfAlpha;
+	float fAlpha = mfTextCrossfadeAlpha;
 
 	if(mpInit->mbSubtitles==false || mbShowText==false) return;
 
@@ -322,7 +320,7 @@ void cRadioHandler::OnDraw()
 	{
 		mpInit->mpGameGuiHandler->DrawText(mpFont, msCurrentText, fAlpha);
 
-		if(msPrevText != msCurrentText && mfAlpha <1)
+		if(msPrevText != msCurrentText && mfTextCrossfadeAlpha <1)
 			mpInit->mpGameGuiHandler->DrawText(mpFont, msPrevText, 1-fAlpha);
 
 		return;
@@ -336,7 +334,7 @@ void cRadioHandler::OnDraw()
 							eFontAlign_Left,msCurrentText);
 	}
 
-	if(msPrevText !=_W("") && msPrevText != msCurrentText && mfAlpha <1)
+	if(msPrevText !=_W("") && msPrevText != msCurrentText && mfTextCrossfadeAlpha <1)
 	{
 		mpFont->DrawWordWrap(cVector3f(25, 500,47),750,16,15,cColor(1,1-fAlpha),
 			eFontAlign_Left,msPrevText);
@@ -350,19 +348,19 @@ void cRadioHandler::OnDraw()
 
 void cRadioHandler::Reset()
 {
-	STLDeleteAll(mlstMessages);
-	mlstMessages.clear();
+	STLDeleteAll(mlstQueuedMessages);
+	mlstQueuedMessages.clear();
 
 	msCurrentText = _W("");
 	msPrevText = _W("");
 	
-	mfAlpha =0;
+	mfTextCrossfadeAlpha =0;
 	mbShowText = true;
 
 	mpCurrentMessage = nullptr;
 
 	msOnEndCallback = "";
-	mbGuiCallback = false;
+	mbOnEndCallbackInGui = false;
 }
 
 //-----------------------------------------------------------------------

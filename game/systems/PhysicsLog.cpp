@@ -19,7 +19,7 @@ static const char *gvPlayerStateNames[] = {
 	"Grab", "WeaponMelee", "Throw", "Climb",
 };
 
-static tString VecStr(const cVector3f &avVec)
+static tString FormatVector(const cVector3f &avVec)
 {
 	char sBuff[64];
 	snprintf(sBuff, sizeof(sBuff), "(%.2f %.2f %.2f)", avVec.x, avVec.y, avVec.z);
@@ -53,7 +53,7 @@ void cPhysicsLog::Reset()
 {
 	// Loading a save or a map rebuilds the world, so start over.
 	mpWorld = nullptr;
-	mfTime = 0;
+	mfMapTimeSeconds = 0;
 	m_mapBodies.clear();
 	m_mapJoints.clear();
 	mPlayerState = ePlayerState_LastEnum;
@@ -73,7 +73,7 @@ void cPhysicsLog::Update(float afTimeStep)
 	if(pWorld == nullptr || pWorld->GetPhysicsWorld() == nullptr) return;
 
 	if(pWorld->GetPhysicsWorld() != mpWorld) StartWorld(pWorld);
-	mfTime += afTimeStep;
+	mfMapTimeSeconds += afTimeStep;
 
 	// Joints can break and bodies can be destroyed, so rebuild every frame.
 	m_mapJoints.clear();
@@ -152,8 +152,8 @@ void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 	bool bFrozen = apBody->IsFrozen();
 	if(bFrozen != aTrack.mbFrozen)
 	{
-		Log("PHYS: %7.2f %s %s at %s\n", mfTime, bFrozen ? "frozen" : "unfrozen",
-			sName.c_str(), VecStr(vPos).c_str());
+		Log("PHYS: %7.2f %s %s at %s\n", mfMapTimeSeconds, bFrozen ? "frozen" : "unfrozen",
+			sName.c_str(), FormatVector(vPos).c_str());
 		aTrack.mbFrozen = bFrozen;
 	}
 
@@ -161,24 +161,24 @@ void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 	if(bAwake && !aTrack.mbAwake)
 	{
 		aTrack.mbAwake = true;
-		aTrack.mfWakeTime = mfTime;
-		aTrack.mfNextAwakeLog = mfTime + kfAwakeLogInterval;
+		aTrack.mfWakeTime = mfMapTimeSeconds;
+		aTrack.mfNextAwakeLog = mfMapTimeSeconds + kfAwakeLogInterval;
 		aTrack.mvWakePos = vPos;
 		aTrack.mvLastPos = vPos;
 		aTrack.mfPath = 0;
 		aTrack.mfMaxSpeed = 0;
 		aTrack.mfMaxAngSpeed = 0;
-		Log("PHYS: %7.2f wake %s at %s%s\n", mfTime, sName.c_str(), VecStr(vPos).c_str(),
-			JointInfo(apBody).c_str());
+		Log("PHYS: %7.2f wake %s at %s%s\n", mfMapTimeSeconds, sName.c_str(), FormatVector(vPos).c_str(),
+			GetJointDescription(apBody).c_str());
 	}
 	else if(!bAwake && aTrack.mbAwake)
 	{
 		aTrack.mbAwake = false;
 		Log("PHYS: %7.2f rest %s after %.2fs, moved %.2fm (path %.2fm), peak %.2fm/s %.2frad/s, at %s%s\n",
-			mfTime, sName.c_str(), mfTime - aTrack.mfWakeTime,
+			mfMapTimeSeconds, sName.c_str(), mfMapTimeSeconds - aTrack.mfWakeTime,
 			cMath::Vector3Dist(aTrack.mvWakePos, vPos), aTrack.mfPath,
-			aTrack.mfMaxSpeed, aTrack.mfMaxAngSpeed, VecStr(vPos).c_str(),
-			JointInfo(apBody).c_str());
+			aTrack.mfMaxSpeed, aTrack.mfMaxAngSpeed, FormatVector(vPos).c_str(),
+			GetJointDescription(apBody).c_str());
 	}
 
 	if(!aTrack.mbAwake) return;
@@ -191,14 +191,14 @@ void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 	if(fAngSpeed > aTrack.mfMaxAngSpeed) aTrack.mfMaxAngSpeed = fAngSpeed;
 
 	// Bodies that jitter instead of settling never send a rest line.
-	if(mfTime >= aTrack.mfNextAwakeLog)
+	if(mfMapTimeSeconds >= aTrack.mfNextAwakeLog)
 	{
-		aTrack.mfNextAwakeLog = mfTime + kfAwakeLogInterval;
+		aTrack.mfNextAwakeLog = mfMapTimeSeconds + kfAwakeLogInterval;
 		Log("PHYS: %7.2f awake %s for %.0fs, now %.3fm/s %.3frad/s at %s (sleep thresholds %.3f %.3f, %d steps)%s\n",
-			mfTime, sName.c_str(), mfTime - aTrack.mfWakeTime, fSpeed, fAngSpeed,
-			VecStr(vPos).c_str(), apBody->GetAutoDisableLinearThreshold(),
+			mfMapTimeSeconds, sName.c_str(), mfMapTimeSeconds - aTrack.mfWakeTime, fSpeed, fAngSpeed,
+			FormatVector(vPos).c_str(), apBody->GetAutoDisableLinearThreshold(),
 			apBody->GetAutoDisableAngularThreshold(), apBody->GetAutoDisableNumSteps(),
-			JointInfo(apBody).c_str());
+			GetJointDescription(apBody).c_str());
 	}
 }
 
@@ -222,7 +222,7 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 		if(mfPlayerFallSpeed > 3.0f || mfPlayerAirTime > 0.25f)
 		{
 			Log("PHYS: %7.2f player landed at %s after %.2fs in the air, fall speed %.2fm/s\n",
-				mfTime, VecStr(pCharBody->GetPosition()).c_str(), mfPlayerAirTime, mfPlayerFallSpeed);
+				mfMapTimeSeconds, FormatVector(pCharBody->GetPosition()).c_str(), mfPlayerAirTime, mfPlayerFallSpeed);
 		}
 		mfPlayerAirTime = 0;
 		mfPlayerFallSpeed = 0;
@@ -232,9 +232,9 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 	float fHealth = pPlayer->GetHealth();
 	if(mfPlayerHealth >= 0 && fHealth < mfPlayerHealth)
 	{
-		Log("PHYS: %7.2f player health %.0f -> %.0f at %s, velocity %s, %s\n", mfTime,
-			mfPlayerHealth, fHealth, VecStr(pCharBody->GetPosition()).c_str(),
-			VecStr(vVel).c_str(), bOnGround ? "on ground" : "in the air");
+		Log("PHYS: %7.2f player health %.0f -> %.0f at %s, velocity %s, %s\n", mfMapTimeSeconds,
+			mfPlayerHealth, fHealth, FormatVector(pCharBody->GetPosition()).c_str(),
+			FormatVector(vVel).c_str(), bOnGround ? "on ground" : "in the air");
 	}
 	mfPlayerHealth = fHealth;
 
@@ -243,7 +243,7 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 	{
 		if(m_mapBodies.find(mpReleasedBody) != m_mapBodies.end())
 		{
-			Log("PHYS: %7.2f released %s at %.2fm/s %.2frad/s\n", mfTime,
+			Log("PHYS: %7.2f released %s at %.2fm/s %.2frad/s\n", mfMapTimeSeconds,
 				mpReleasedBody->GetName().c_str(),
 				mpReleasedBody->GetLinearVelocity().Length(),
 				mpReleasedBody->GetAngularVelocity().Length());
@@ -256,9 +256,9 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 
 	if(mPlayerState != ePlayerState_LastEnum)
 	{
-		Log("PHYS: %7.2f player %s -> %s at %s\n", mfTime,
+		Log("PHYS: %7.2f player %s -> %s at %s\n", mfMapTimeSeconds,
 			gvPlayerStateNames[mPlayerState], gvPlayerStateNames[State],
-			VecStr(pCharBody->GetPosition()).c_str());
+			FormatVector(pCharBody->GetPosition()).c_str());
 	}
 	mPlayerState = State;
 
@@ -274,16 +274,16 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 		if(pBody && m_mapBodies.find(pBody) != m_mapBodies.end())
 		{
 			mpHeldBody = pBody;
-			Log("PHYS: %7.2f holding %s (%.1fkg) at %s%s\n", mfTime, pBody->GetName().c_str(),
-				pBody->GetMass(), VecStr(pBody->GetWorldPosition()).c_str(),
-				JointInfo(pBody).c_str());
+			Log("PHYS: %7.2f holding %s (%.1fkg) at %s%s\n", mfMapTimeSeconds, pBody->GetName().c_str(),
+				pBody->GetMass(), FormatVector(pBody->GetWorldPosition()).c_str(),
+				GetJointDescription(pBody).c_str());
 		}
 	}
 }
 
 //-----------------------------------------------------------------------
 
-tString cPhysicsLog::JointInfo(iPhysicsBody *apBody)
+tString cPhysicsLog::GetJointDescription(iPhysicsBody *apBody)
 {
 	std::map<iPhysicsBody*, iPhysicsJoint*>::iterator it = m_mapJoints.find(apBody);
 	if(it == m_mapJoints.end()) return "";

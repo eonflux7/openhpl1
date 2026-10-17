@@ -78,7 +78,7 @@ private:
 	cInit *mpInit;
 	iLowLevelSound *mpLowLevelSound;
 
-	float mfFadeCount;
+	float mfFadeElapsedSeconds;
 	float mfFadeTime;
 	float mfDefaultFadeTime;
 	int mlCurrentPrio;

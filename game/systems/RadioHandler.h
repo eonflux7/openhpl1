@@ -43,8 +43,8 @@ public:
 	// Black Plague: a message heard from a place. Full volume inside the least
 	// distance, none beyond the greatest.
 	iGameEntity *mpEntity;
-	float mfMinDist;
-	float mfMaxDist;
+	float mfFullVolumeDistance;
+	float mfSilentDistance;
 };
 
 typedef std::list<cRadioMessage*> tRadioMessageList;
@@ -60,7 +60,7 @@ public:
 
 	void Add(const tWString& asText,const tString& asSound);
 	void Add(const tWString& asText,const tString& asSound, iGameEntity *apEntity,
-			float afMinDist, float afMaxDist);
+			float afFullVolumeDistance, float afSilentDistance);
 
 	/**
 	 * Black Plague: drops the waiting messages and fades out the one playing.
@@ -74,8 +74,8 @@ public:
 	void OnDraw() override;
 	void Reset() override;
 
-	// abGui: the function is in the script of the open computer terminal
-	void SetOnEndCallback(const tString &asFunc, bool abGui=false){ msOnEndCallback = asFunc; mbGuiCallback = abGui;}
+	// abCallbackInGui: the function is in the script of the open computer terminal
+	void SetOnEndCallback(const tString &asFunction, bool abCallbackInGui=false){ msOnEndCallback = asFunction; mbOnEndCallbackInGui = abCallbackInGui;}
 	tString GetOnEndCallback(){ return msOnEndCallback;}
 
 	bool IsActive();
@@ -102,12 +102,12 @@ private:
 	tWString msPrevText;
 
 	tString msOnEndCallback;
-	bool mbGuiCallback;
+	bool mbOnEndCallbackInGui;
 
-	float mfAlpha;
+	float mfTextCrossfadeAlpha;
 	bool mbShowText;
 	
-	tRadioMessageList mlstMessages;
+	tRadioMessageList mlstQueuedMessages;
 };
 
 #endif // GAME_RADIO_HANDLER_H

@@ -35,9 +35,9 @@ cGameTrigger::cGameTrigger() : iEntity3D("")
 
 //-----------------------------------------------------------------------
 
-void cGameTrigger::SetRadius(float afX)
+void cGameTrigger::SetRadius(float afRadius)
 {
-	mfRadius = afX;
+	mfRadius = afRadius;
 	mBoundingVolume.SetSize(mfRadius*2);
 }
 
@@ -71,10 +71,10 @@ cTriggerHandler::~cTriggerHandler(void)
 
 cGameTrigger* cTriggerHandler::Add(cGameTrigger *apTrigger,eGameTriggerType aType ,
 								   const cVector3f &avLocalPos,
-								   int alPrio, float afTime, float afRadius)
+								   int alPrio, float afLifetimeSeconds, float afRadius)
 {
 	apTrigger->SetRadius(afRadius);
-	apTrigger->mfTimeCount = afTime;
+	apTrigger->mfRemainingSeconds = afLifetimeSeconds;
 	apTrigger->mlPrio = alPrio;
 	apTrigger->mType = aType;
 	apTrigger->SetPosition(avLocalPos);
@@ -149,9 +149,9 @@ void cTriggerHandler::Update(float afTimeStep)
 	{
 		cGameTrigger *pTrigger = TriggerIt->second;
 		
-		pTrigger->mfTimeCount -= afTimeStep;
+		pTrigger->mfRemainingSeconds -= afTimeStep;
 
-		if(pTrigger->mfTimeCount <= 0)
+		if(pTrigger->mfRemainingSeconds <= 0)
 		{
 			hplDelete( pTrigger );
 			m_mapTriggers.erase(TriggerIt++);

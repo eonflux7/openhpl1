@@ -40,7 +40,7 @@ cGameMessageHandler::cGameMessageHandler(cInit *apInit)  : iUpdateable("GameMess
 
 	msOverCallback = "";
 	
-	mbFocusIsedUsed = false;
+	mbDepthOfFieldUsed = false;
 
 	mbBlackText = false;
 }
@@ -58,14 +58,14 @@ cGameMessageHandler::~cGameMessageHandler(void)
 // GAME MESSAGE
 //////////////////////////////////////////////////////////////////////////
 
-cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessHandler)
+cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessageHandler)
 {
-	mpMessHandler = apMessHandler;
+	mpMessageHandler = apMessageHandler;
 
 	msText = asText;
-	mfFade =0;
+	mfTextAlpha =0;
 	mbActive =false;
-	mfFadeAdd =1.3f;
+	mfTextAlphaRatePerSecond =1.3f;
 }
 
 //-----------------------------------------------------------------------
@@ -74,21 +74,21 @@ void cGameMessage::Update(float afTimeStep)
 {
 	if(mbActive)
 	{
-		mfFade += mfFadeAdd*afTimeStep;
+		mfTextAlpha += mfTextAlphaRatePerSecond*afTimeStep;
 
-		if(mfFadeAdd<0)
+		if(mfTextAlphaRatePerSecond<0)
 		{
-			if(mfFade<=0)
+			if(mfTextAlpha<=0)
 			{
-				mfFade =0;
+				mfTextAlpha =0;
 				mbActive =0;
 			}
 		}
 		else
 		{
-			if(mfFade>1)
+			if(mfTextAlpha>1)
 			{
-				mfFade = 1;
+				mfTextAlpha = 1;
 			}
 		}
 	}
@@ -101,16 +101,16 @@ void cGameMessage::Draw(iFontData *apFont)
 	if(mbActive == false) return;
 	
 	float fSide=30;
-	if(mpMessHandler->mbBlackText)
+	if(mpMessageHandler->mbBlackText)
 	{
-		apFont->DrawWordWrap(cVector3f(fSide, 300,152),800 - fSide*2,16,14,cColor(0,mfFade),
+		apFont->DrawWordWrap(cVector3f(fSide, 300,152),800 - fSide*2,16,14,cColor(0,mfTextAlpha),
 			eFontAlign_Left,msText);
 	}
 	else
 	{
-		apFont->DrawWordWrap(cVector3f(fSide, 300,152),800 - fSide*2,16,14,cColor(1,1,1,mfFade),
+		apFont->DrawWordWrap(cVector3f(fSide, 300,152),800 - fSide*2,16,14,cColor(1,1,1,mfTextAlpha),
 							eFontAlign_Left,msText);
-		apFont->DrawWordWrap(cVector3f(fSide, 300,150),800 - fSide*2,16,14,cColor(0,0,0,mfFade),
+		apFont->DrawWordWrap(cVector3f(fSide, 300,150),800 - fSide*2,16,14,cColor(0,0,0,mfTextAlpha),
 							eFontAlign_Left,msText,eFontEffect_Outline,1);
 	}
 }
@@ -128,8 +128,8 @@ void cGameMessageHandler::Add(const tWString& asText)
 {
 	if(mpInit->mpPlayer->GetHealth() <=0) return;
 
-	cGameMessage *pMess = hplNew( cGameMessage, (asText,this) );
-	mlstMessages.push_back(pMess);
+	cGameMessage *pMessage = hplNew( cGameMessage, (asText,this) );
+	mlstMessages.push_back(pMessage);
 
 	if(mpInit->mpPlayer->GetState() != ePlayerState_Message)
 	{
@@ -140,7 +140,7 @@ void cGameMessageHandler::Add(const tWString& asText)
 		mLastState = mpInit->mpPlayer->GetState();
 		mpInit->mpPlayer->ChangeState(ePlayerState_Message);
 
-		pMess->mbActive = true;
+		pMessage->mbActive = true;
 	}
 }
 
@@ -148,34 +148,34 @@ void cGameMessageHandler::Add(const tWString& asText)
 
 void cGameMessageHandler::ShowNext()
 {
-	bool bFoundMess = false;
-	cGameMessage *pPrevMess = nullptr;
+	bool bFoundNextMessage = false;
+	cGameMessage *pPreviousMessage = nullptr;
 	
-	//wait till the message is fully visible.
+	// Allow advancing once the current message reaches 20% opacity.
 	if(mlstMessages.empty() == false)
 	{
-		cGameMessage *pMess = mlstMessages.front();
-		if(pMess->mfFade <0.2f && pMess->mfFadeAdd>0) return;
+		cGameMessage *pMessage = mlstMessages.front();
+		if(pMessage->mfTextAlpha <0.2f && pMessage->mfTextAlphaRatePerSecond>0) return;
 	}
 
 	tGameMessageListIt it = mlstMessages.begin();
 	for(;it != mlstMessages.end(); ++it)
 	{
-		cGameMessage *pMess = *it;
-		if(pMess->mbActive==false)
+		cGameMessage *pMessage = *it;
+		if(pMessage->mbActive==false)
 		{
-			pMess->mbActive=true;
-			bFoundMess = true;
-			if(pPrevMess) pPrevMess->mfFadeAdd = -pPrevMess->mfFadeAdd;
+			pMessage->mbActive=true;
+			bFoundNextMessage = true;
+			if(pPreviousMessage) pPreviousMessage->mfTextAlphaRatePerSecond = -pPreviousMessage->mfTextAlphaRatePerSecond;
 			break;
 		}
-		pPrevMess = pMess;
+		pPreviousMessage = pMessage;
 	}
 
 	//Check if this is the last message.
-	if(bFoundMess==false)
+	if(bFoundNextMessage==false)
 	{
-		if(pPrevMess) pPrevMess->mfFadeAdd = -pPrevMess->mfFadeAdd;
+		if(pPreviousMessage) pPreviousMessage->mfTextAlphaRatePerSecond = -pPreviousMessage->mfTextAlphaRatePerSecond;
 		
 		if(mLastState != ePlayerState_Grab &&
 			mLastState != ePlayerState_Push &&
@@ -189,9 +189,9 @@ void cGameMessageHandler::ShowNext()
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		}
 
-		if(mbFocusIsedUsed)
+		if(mbDepthOfFieldUsed)
 		{
-			mbFocusIsedUsed = false;
+			mbDepthOfFieldUsed = false;
 			mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,2.0f);
 		}
 		
@@ -226,13 +226,13 @@ void cGameMessageHandler::Update(float afTimeStep)
 	tGameMessageListIt it = mlstMessages.begin();
 	for(;it != mlstMessages.end(); ++lCount)
 	{
-		cGameMessage *pMess = *it;
+		cGameMessage *pMessage = *it;
 		
-		pMess->Update(afTimeStep);
+		pMessage->Update(afTimeStep);
 		
-		if(lCount==0 && pMess->mbActive==false)
+		if(lCount==0 && pMessage->mbActive==false)
 		{
-			hplDelete( pMess );
+			hplDelete( pMessage );
 			it = mlstMessages.erase(it);
 		}
 		else
@@ -264,8 +264,8 @@ void cGameMessageHandler::OnDraw()
 	tGameMessageListIt it = mlstMessages.begin();
 	for(;it != mlstMessages.end(); ++it)
 	{
-		cGameMessage *pMess = *it;
-		pMess->Draw(mpFont);
+		cGameMessage *pMessage = *it;
+		pMessage->Draw(mpFont);
 	}
 }
 
@@ -283,7 +283,7 @@ void cGameMessageHandler::Reset()
 	STLDeleteAll(mlstMessages);
 	mlstMessages.clear();
 
-	mbFocusIsedUsed = false;
+	mbDepthOfFieldUsed = false;
 }
 
 //-----------------------------------------------------------------------

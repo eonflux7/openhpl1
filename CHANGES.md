@@ -63,6 +63,74 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Readability audit plan
+
+- Expanded `naming_cleanup.md` into a phased audit of function, class, file and
+  variable names, concise comments and discoverability for human and agent
+  readers. Added finding records, risk/compatibility checks, seed FadeHandler
+  observations and milestone exit criteria. Updated the documentation index.
+- Documentation only; no source cleanup or gameplay changes in this update.
+  Local links/paths and diff whitespace were checked; source builds, game
+  checks and renderer validation were not run for this documentation change.
+
+### Readability cleanup work scope
+
+- Made subsystem-sized passes the default per turn, with small batches used
+  to organize reviewable changes and shared validation where appropriate.
+  Removed the commit prerequisite for continuing to another responsibility;
+  commits are created only when requested. Recorded remaining systems work
+  as the next pass, with material ambiguities and compatibility risks handled
+  individually while independent work continues. Clarified validation selection
+  for identifier/comment-only changes and concise reporting of relevant gaps.
+- Documentation only; local links and diff whitespace checked. No source or
+  test changes in this workflow update.
+
+### FadeHandler pilot naming cleanup
+
+- Renamed the widescreen flag argument to `abActive`, fade duration arguments
+  to `afDurationSeconds` and the signed alpha rate to `mfAlphaRatePerSecond`
+  in the header and implementation. Updated the readability audit record.
+- Default Linux build and both CTest suites passed, including software EGL
+  renderer regressions with no skips. Exact source comparison confirmed only
+  the three identifier substitutions; timing, arithmetic, script/save and
+  updater registration identifiers are unchanged. Sanitizer builds, game
+  smoke/manual play, visual captures and Windows checks were not run.
+
+### RadioHandler positional-distance naming
+
+- Renamed positional radio range fields/arguments to identify the full-volume
+  and silent distances. The volume calculation's locals now identify the source
+  position and distance to the player. Updated the readability audit record.
+- Default Linux build and both CTest suites passed, including software EGL
+  renderer regressions with no skips. The build reported missing-initializer
+  warnings in unchanged `ButtonHandler.cpp`. Exact source comparison confirmed
+  only six identifier substitutions; attenuation, subtitle visibility, ownership,
+  callbacks, script signatures and save identifiers are unchanged. Documentation
+  links and diff whitespace checks passed. Sanitizer builds, game smoke/manual
+  play, audio checks, visual captures and Windows checks were not run.
+
+### Systems naming and comment pass
+
+- Reviewed all 20 systems headers/sources. Clarified radio queue, subtitle
+  crossfade and callback destination names; corrected the message focus API
+  to `SetDepthOfFieldUsed` and updated its GameEntity caller. Message text
+  alpha and its signed rate now have distinct names.
+- Named music/reverb timers, trigger lifetimes, underwater sound cooldowns,
+  gas-mask breathing time and flash duration arguments explicitly. Dream-filter
+  alpha names distinguish target from rate; physics logging names identify map
+  time and formatting helpers. Renamed the attack falloff helper, corrected its
+  maximum-damage argument spelling and identified the shape-offset matrix.
+- Corrected comments for the message's 20% advance threshold, dynamic-body
+  waking and attack body snapshots; removed two redundant radio comments.
+  Existing class/file names, registration strings and save DTO names remain.
+- Default Linux build and both CTest suites passed (2/2), including software
+  EGL with no skips. Token comparison with the starting working tree confirmed
+  only identifier, comment and whitespace edits across the systems and their
+  changed caller; all literals, constants and operations match. Documentation
+  links and diff whitespace checks passed. Sanitizer builds, game smoke, Dog
+  checks, audio/manual play, visual captures and Windows checks were not run;
+  these CTest suites do not directly establish game-system behaviour.
+
 ## OpenHPL1 consolidation
 
 - Renamed the project to **OpenHPL1**, with repository name `openhpl1`, to

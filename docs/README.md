@@ -6,6 +6,8 @@ and [ROADMAP](../ROADMAP.md) for current work across all three games.
 
 Current technical guides:
 
+- [Code readability audit and cleanup](../naming_cleanup.md): naming and concise
+  comment standards, phased milestones, findings and compatibility checks.
 - [Black Plague and Requiem](black-plague-port.md): game selection, porting
   tools, binary inspection and map/script diagnostics.
 - [Dog foundations](dog-foundations.md): Original/Improved AI, animation,

@@ -42,7 +42,7 @@ cEffect_Underwater::cEffect_Underwater(cInit *apInit, cGraphicsDrawer *apDrawer)
 
 	mpSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
 	mpLoopChannel = nullptr;
-	mfSoundCount = 0;
+	mfDiveSoundCooldownSeconds = 0;
 
 	Reset();
 }
@@ -55,16 +55,16 @@ cEffect_Underwater::~cEffect_Underwater()
 
 //-----------------------------------------------------------------------
 
-void cEffect_Underwater::SetActive(bool abX)
+void cEffect_Underwater::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(cInit::IsOverture()) return;
 
 	// Black Plague: a sound as the head goes under and comes up, at most once a second
-	if(mfSoundCount <= 0)
+	if(mfDiveSoundCooldownSeconds <= 0)
 	{
 		if(mbActive)
 		{
@@ -82,7 +82,7 @@ void cEffect_Underwater::SetActive(bool abX)
 			}
 		}
 	}
-	mfSoundCount = 1;
+	mfDiveSoundCooldownSeconds = 1;
 }
 
 //-----------------------------------------------------------------------
@@ -91,8 +91,8 @@ void cEffect_Underwater::Update(float afTimeStep)
 {
 	if(cInit::IsOverture()) return;
 
-	mfSoundCount -= afTimeStep;
-	if(mfSoundCount < 0) mfSoundCount = 0;
+	mfDiveSoundCooldownSeconds -= afTimeStep;
+	if(mfDiveSoundCooldownSeconds < 0) mfDiveSoundCooldownSeconds = 0;
 
 	// Black Plague: the sound of being under water, faded in and out
 	if(mbActive)
@@ -140,7 +140,7 @@ void cEffect_Underwater::Reset()
 {
 	mbActive = false;
 	mpLoopChannel = nullptr;
-	mfSoundCount = 0;
+	mfDiveSoundCooldownSeconds = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -541,9 +541,9 @@ void cEffect_DepthOfField::Reset()
 	mpFocusBody = nullptr;
 }
 
-void cEffect_DepthOfField::SetDisabled(bool abX)
+void cEffect_DepthOfField::SetDisabled(bool abDisabled)
 {
-	mbDisabled = abX;
+	mbDisabled = abDisabled;
 
 	if(mbDisabled)
 	{
@@ -556,9 +556,9 @@ void cEffect_DepthOfField::SetDisabled(bool abX)
 
 }
 
-void cEffect_DepthOfField::SetActive(bool abX, float afFadeTime)
+void cEffect_DepthOfField::SetActive(bool abActive, float afFadeTime)
 {
-	mbActive = abX;
+	mbActive = abActive;
 	if(mbDisabled) return;
 	
 	if(mbActive)
@@ -657,16 +657,16 @@ cEffect_Flash::~cEffect_Flash()
 
 //-----------------------------------------------------------------------
 
-void cEffect_Flash::Start(float afFadeIn, float afWhite, float afFadeOut)
+void cEffect_Flash::Start(float afFadeInSeconds, float afWhiteSeconds, float afFadeOutSeconds)
 {
 	mbActive = true;
 	mfAlpha = 0;
 
 	mlStep = 0;
 
-	mfFadeInSpeed = afFadeIn > 0 ? 1 / afFadeIn : 1000000.0f;
-	mfWhiteSpeed = afWhite > 0 ? 1 / afWhite : 1000000.0f;
-	mfFadeOutSpeed = afFadeOut > 0 ? 1 / afFadeOut : 1000000.0f;
+	mfFadeInSpeed = afFadeInSeconds > 0 ? 1 / afFadeInSeconds : 1000000.0f;
+	mfWhiteSpeed = afWhiteSeconds > 0 ? 1 / afWhiteSeconds : 1000000.0f;
+	mfFadeOutSpeed = afFadeOutSeconds > 0 ? 1 / afFadeOutSeconds : 1000000.0f;
 }
 
 //-----------------------------------------------------------------------
@@ -749,7 +749,7 @@ cEffect_ImageFlash::~cEffect_ImageFlash()
 
 //-----------------------------------------------------------------------
 
-void cEffect_ImageFlash::Start(float afFadeIn, float afStay, float afFadeOut, const tString &asFile,
+void cEffect_ImageFlash::Start(float afFadeInSeconds, float afStaySeconds, float afFadeOutSeconds, const tString &asFile,
 								bool abStartFlash, bool abEndFlash)
 {
 	if(mpImageGfx)
@@ -761,13 +761,13 @@ void cEffect_ImageFlash::Start(float afFadeIn, float afStay, float afFadeOut, co
 	mbActive = true;
 	mlStep = 0;
 
-	if(afFadeIn == 0) afFadeIn = 0.000001f;
-	if(afStay == 0) afStay = 0.000001f;
-	if(afFadeOut == 0) afFadeOut = 0.000001f;
+	if(afFadeInSeconds == 0) afFadeInSeconds = 0.000001f;
+	if(afStaySeconds == 0) afStaySeconds = 0.000001f;
+	if(afFadeOutSeconds == 0) afFadeOutSeconds = 0.000001f;
 
-	mfFadeInSpeed = 1 / afFadeIn;
-	mfStaySpeed = 1 / afStay;
-	mfFadeOutSpeed = 1 / afFadeOut;
+	mfFadeInSpeed = 1 / afFadeInSeconds;
+	mfStaySpeed = 1 / afStaySeconds;
+	mfFadeOutSpeed = 1 / afFadeOutSeconds;
 
 	mpImageGfx = mpDrawer->CreateGfxObjectFromTexture(asFile, "diffalpha2d");
 	if(mpImageGfx == nullptr)
@@ -781,7 +781,7 @@ void cEffect_ImageFlash::Start(float afFadeIn, float afStay, float afFadeOut, co
 
 	if(abStartFlash)
 	{
-		mpInit->mpEffectHandler->GetFlash()->Start(afFadeIn*0.5f, 0, afFadeIn*0.5f);
+		mpInit->mpEffectHandler->GetFlash()->Start(afFadeInSeconds*0.5f, 0, afFadeInSeconds*0.5f);
 	}
 }
 
@@ -872,7 +872,7 @@ cEffect_GasMask::cEffect_GasMask(cInit *apInit)
 	mpBreathChannel = nullptr;
 	mbActive = false;
 	mfAlpha = 0;
-	mfBreathCount = 0;
+	mfBreathElapsedSeconds = 0;
 }
 
 cEffect_GasMask::~cEffect_GasMask()
@@ -882,11 +882,11 @@ cEffect_GasMask::~cEffect_GasMask()
 
 //-----------------------------------------------------------------------
 
-void cEffect_GasMask::SetActive(bool abX)
+void cEffect_GasMask::SetActive(bool abActive)
 {
-	if(mbActive == abX) return;
+	if(mbActive == abActive) return;
 
-	mbActive = abX;
+	mbActive = abActive;
 
 	if(mbActive)
 	{
@@ -928,12 +928,12 @@ void cEffect_GasMask::Update(float afTimeStep)
 	if(mbActive)
 	{
 		// A breath now and then, faster when hurt
-		mfBreathCount += afTimeStep;
+		mfBreathElapsedSeconds += afTimeStep;
 
 		float fInterval = mpInit->mpPlayer->GetHealth() < 50 ? 1.6f : 2.2f;
-		if(mfBreathCount > fInterval)
+		if(mfBreathElapsedSeconds > fInterval)
 		{
-			mfBreathCount = 0;
+			mfBreathElapsedSeconds = 0;
 			mpBreathChannel = mpSoundHandler->PlayGui("player_gasmask_breath", false, 1, cVector3f(0,0,1), eSoundDest_Gui);
 		}
 
@@ -973,7 +973,7 @@ void cEffect_GasMask::OnDraw()
 
 void cEffect_GasMask::Reset()
 {
-	mfBreathCount = 0;
+	mfBreathElapsedSeconds = 0;
 	mpBreathChannel = nullptr;
 	mfAlpha = 0;
 
@@ -1016,17 +1016,17 @@ cEffect_DreamFilter::~cEffect_DreamFilter()
 
 void cEffect_DreamFilter::Start(float afAlpha, float afSpeed)
 {
-	mfMaxAlpha = afAlpha;
-	mfAlphaAdd = afSpeed;
-	if(mfAlpha > afAlpha) mfAlphaAdd = -afSpeed;
+	mfTargetAlpha = afAlpha;
+	mfAlphaRatePerSecond = afSpeed;
+	if(mfAlpha > afAlpha) mfAlphaRatePerSecond = -afSpeed;
 
 	if(afSpeed == 0) mfAlpha = afAlpha;
 }
 
 void cEffect_DreamFilter::Stop(float afSpeed)
 {
-	mfMaxAlpha = 0;
-	mfAlphaAdd = -afSpeed;
+	mfTargetAlpha = 0;
+	mfAlphaRatePerSecond = -afSpeed;
 
 	if(afSpeed == 0) mfAlpha = 0;
 }
@@ -1037,17 +1037,17 @@ void cEffect_DreamFilter::Update(float afTimeStep)
 {
 	mfTime += afTimeStep;
 
-	if(mfAlpha == mfMaxAlpha) return;
+	if(mfAlpha == mfTargetAlpha) return;
 
-	mfAlpha += mfAlphaAdd * afTimeStep;
+	mfAlpha += mfAlphaRatePerSecond * afTimeStep;
 
-	if(mfAlphaAdd < 0)
+	if(mfAlphaRatePerSecond < 0)
 	{
-		if(mfAlpha < mfMaxAlpha) mfAlpha = mfMaxAlpha;
+		if(mfAlpha < mfTargetAlpha) mfAlpha = mfTargetAlpha;
 	}
 	else
 	{
-		if(mfAlpha > mfMaxAlpha) mfAlpha = mfMaxAlpha;
+		if(mfAlpha > mfTargetAlpha) mfAlpha = mfTargetAlpha;
 	}
 }
 
@@ -1114,8 +1114,8 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 void cEffect_DreamFilter::Reset()
 {
 	mfAlpha = 0;
-	mfMaxAlpha = 0;
-	mfAlphaAdd = 0;
+	mfTargetAlpha = 0;
+	mfAlphaRatePerSecond = 0;
 	mfTime = 0;
 }
 
@@ -1288,9 +1288,9 @@ cEffect_WaveGravity::~cEffect_WaveGravity()
 
 //-----------------------------------------------------------------------
 
-void cEffect_WaveGravity::SetActive(bool abX)
+void cEffect_WaveGravity::SetActive(bool abActive)
 {
-	mbActive = abX;
+	mbActive = abActive;
 }
 
 void cEffect_WaveGravity::Setup(float afMaxAngle, float afSwingLength, float afGravitySize, int alDir)
@@ -1308,7 +1308,7 @@ void cEffect_WaveGravity::Update(float afTimeStep)
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
 	//////////////////////////////////
-	//Set all bodies to not active
+	// Wake dynamic bodies for the changing gravity.
 	
 	cPhysicsBodyIterator it = pWorld->GetBodyIterator();
 	while(it.HasNext())

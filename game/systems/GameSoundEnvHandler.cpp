@@ -34,7 +34,7 @@ cGameSoundEnvHandler::cGameSoundEnvHandler(cInit *apInit) : iUpdateable("GameSou
 	mpInit = apInit;
 	mpLowLevelSound = mpInit->mpGame->GetSound()->GetLowLevel();
 
-	mfFadeCount = 0;
+	mfFadeElapsedSeconds = 0;
 	mfFadeTime = 0;
 	mfDefaultFadeTime = 0;
 	mlCurrentPrio = -1;
@@ -79,14 +79,14 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 			return;
 		}
 
-		if(mfFadeCount < mfFadeTime)
+		if(mfFadeElapsedSeconds < mfFadeTime)
 		{
-			mfFadeCount += afTimeStep;
-			mpLowLevelSound->FadeSoundEnvironment(mpCurrentEnv, mpNewEnv, mfFadeCount / mfFadeTime);
+			mfFadeElapsedSeconds += afTimeStep;
+			mpLowLevelSound->FadeSoundEnvironment(mpCurrentEnv, mpNewEnv, mfFadeElapsedSeconds / mfFadeTime);
 		}
 		else
 		{
-			mfFadeCount = mfFadeTime;
+			mfFadeElapsedSeconds = mfFadeTime;
 			mpCurrentEnv = mpNewEnv;
 			mpLowLevelSound->SetSoundEnvironment(mpNewEnv);
 			mbFading = false;
@@ -120,7 +120,7 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 
 		mbFading = true;
 		mpCurrentSector = pBest->mpSector;
-		mfFadeCount = 0;
+		mfFadeElapsedSeconds = 0;
 		mpNewEnv = pBest->mpSoundEnv;
 		mfFadeTime = pBest->mfFadeTime;
 		mlCurrentPrio = pBest->mlPrio;
@@ -131,7 +131,7 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 	{
 		mbFading = true;
 		mpCurrentSector = nullptr;
-		mfFadeCount = 0;
+		mfFadeElapsedSeconds = 0;
 		mpNewEnv = mpDefaultEnv;
 		mfFadeTime = mfDefaultFadeTime;
 		mlCurrentPrio = -1;
@@ -144,7 +144,7 @@ void cGameSoundEnvHandler::Reset()
 {
 	mpLowLevelSound->SetSoundEnvironment(nullptr);
 
-	mfFadeCount = 0;
+	mfFadeElapsedSeconds = 0;
 	mfFadeTime = 0;
 	mfDefaultFadeTime = 0;
 	mlCurrentPrio = -1;
@@ -177,7 +177,7 @@ void cGameSoundEnvHandler::OnWorldExit()
 
 	if(mbFading)
 	{
-		mfFadeCount = mfFadeTime;
+		mfFadeElapsedSeconds = mfFadeTime;
 		mpCurrentEnv = mpNewEnv;
 		mpLowLevelSound->SetSoundEnvironment(mpNewEnv);
 		mbFading = false;

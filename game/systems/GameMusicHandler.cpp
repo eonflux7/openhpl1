@@ -120,9 +120,9 @@ void cGameMusicHandler::Update(float afTimeStep)
 			
 			if(sMusic != "")
 			{
-				mfEnemyGoneCount =0;
-				mfEnemyCloseCount += afTimeStep;
-				if(mfEnemyCloseCount > 2.0f)
+				mfEnemyGoneElapsedSeconds =0;
+				mfEnemyCloseElapsedSeconds += afTimeStep;
+				if(mfEnemyCloseElapsedSeconds > 2.0f)
 				{
 					Play(sMusic,true,1,0.25f,5);
 					mbEnemyClosePlaying = true;
@@ -151,9 +151,9 @@ void cGameMusicHandler::Update(float afTimeStep)
 
 			if(bFound == false)
 			{
-				mfEnemyCloseCount =0;
-				mfEnemyGoneCount += afTimeStep;
-				if(mfEnemyGoneCount > 6.0f)
+				mfEnemyCloseElapsedSeconds =0;
+				mfEnemyGoneElapsedSeconds += afTimeStep;
+				if(mfEnemyGoneElapsedSeconds > 6.0f)
 				{
 					Stop(0.2f,5);
 					mbEnemyClosePlaying = false;
@@ -168,10 +168,10 @@ void cGameMusicHandler::Update(float afTimeStep)
 	//Check if attack music should be played.
 	if(mbAttackPlaying==false && m_setAttackers.empty()==false)
 	{
-		mfAttackStopCount =0;
-		mfAttackPlayCount += afTimeStep;
+		mfAttackStopElapsedSeconds =0;
+		mfAttackStartElapsedSeconds += afTimeStep;
         
-		if(mfAttackPlayCount > 1.5f)
+		if(mfAttackStartElapsedSeconds > 1.5f)
 		{
 			//////////////////////
 			// Go through attackers and get music with highest priority
@@ -202,21 +202,21 @@ void cGameMusicHandler::Update(float afTimeStep)
 				Play(sMusic,true,1,1.3f,9);
 				mbAttackPlaying = true;
 				//Log("Play!");
-				mfAttackPlayCount =0;
+				mfAttackStartElapsedSeconds =0;
 			}
 		}
 	}
 	else if(mbAttackPlaying && m_setAttackers.empty())
 	{
-		mfAttackPlayCount =0;
-		mfAttackStopCount += afTimeStep;
+		mfAttackStartElapsedSeconds =0;
+		mfAttackStopElapsedSeconds += afTimeStep;
 
-		if(mfAttackStopCount > 1.2f)
+		if(mfAttackStopElapsedSeconds > 1.2f)
 		{
 			mbAttackPlaying = false;
 			Stop(0.2f,9);
 			//Log("Stop!");
-			mfAttackStopCount =0;
+			mfAttackStopElapsedSeconds =0;
 		}
 	}
 
@@ -248,12 +248,12 @@ void cGameMusicHandler::Reset()
     mbAttackPlaying = false;
 	m_setAttackers.clear();
 
-	mfAttackPlayCount =0;
-	mfAttackStopCount =0;
+	mfAttackStartElapsedSeconds =0;
+	mfAttackStopElapsedSeconds =0;
 
 	mbEnemyClosePlaying = false;
-	mfEnemyCloseCount =0;
-	mfEnemyGoneCount =0;
+	mfEnemyCloseElapsedSeconds =0;
+	mfEnemyGoneElapsedSeconds =0;
 }
 
 //-----------------------------------------------------------------------

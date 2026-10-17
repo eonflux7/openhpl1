@@ -191,7 +191,7 @@ bool cAttackHandler::HasFreePathToPlayer(const cVector3f &avOrigin, iPhysicsBody
 	return mRayCallback.mpClosestBody == nullptr;
 }
 
-bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxOffset,
+bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& a_mtxShapeOffset,
 					   const cVector3f &avOrigin, float afDamage,
 					   float afMinMass, float afMaxMass, float afMinImpulse, float afMaxImpulse,
 					   int alStrength,
@@ -204,11 +204,11 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 	mpLastSwingDoor = nullptr;
 
 	///////////////////////////////
-	//Set up boudning box
+	//Set up bounding box
     cBoundingVolume tempBV = apShape->GetBoundingVolume();
 	//Black Plague: a shape set off in its own volume keeps that offset
-	if(cInit::IsOverture())	tempBV.SetTransform(a_mtxOffset);
-	else					tempBV.SetTransform(cMath::MatrixMul(a_mtxOffset, tempBV.GetTransform()));
+	if(cInit::IsOverture())	tempBV.SetTransform(a_mtxShapeOffset);
+	else					tempBV.SetTransform(cMath::MatrixMul(a_mtxShapeOffset, tempBV.GetTransform()));
 		
 	///////////////////////////////
 	//Iterate bodies
@@ -222,7 +222,7 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 	const bool bPlayerBlocked = (aTarget & eAttackTargetFlag_Player) &&
 		!HasFreePathToPlayer(avOrigin,apSkipBody);
 	
-	//Get bodies and add to list, this incase the portal contaniner gets changed.
+	// Snapshot bodies before damage can change the physics world.
 	std::list<iPhysicsBody*> lstTempBodies;
 	cPhysicsBodyIterator bodyIt = pPhysicsWorld->GetBodyIterator();
 	while(bodyIt.HasNext())
@@ -247,7 +247,7 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 			///////////////////////////////
 			//Check for collision
 			if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
-				apShape, a_mtxOffset,collideData,1)==false)
+				apShape, a_mtxShapeOffset,collideData,1)==false)
 			{
 				continue;
 			}
@@ -408,7 +408,7 @@ bool cAttackHandler::CreateLineDestroyBody(const cVector3f& avStart, const cVect
 
 //----------------------------------------------------------------------
 
-static float CalcSize(float afDist, float afMaxDist, float afMinVal,float afMaxVal)
+static float CalculateRadialFalloff(float afDist, float afMaxDist, float afMinVal,float afMaxVal)
 {
 	float fMul = 1  - (afDist / afMaxDist);
 	if(fMul<0) return 0;
@@ -419,7 +419,7 @@ static float CalcSize(float afDist, float afMaxDist, float afMinVal,float afMaxV
 //----------------------------------------------------------------------
 
 void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadius, float afMinDamage, 
-										float afMaxDamge,float afMinForce, float afMaxForce,
+										float afMaxDamage,float afMinForce, float afMaxForce,
 										float afMaxImpulse,
 										unsigned int aTarget, float afMinMass,
 										int alStrength)
@@ -435,9 +435,9 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 			mpSplashBlockCheck->CheckBlock(pCharBV->GetWorldCenter(), avCenter)==false)
 		{
 			float fDist = cMath::Vector3Dist(pCharBV->GetPosition(),avCenter);
-			mpInit->mpPlayer->Damage(CalcSize(fDist,afRadius,afMinDamage,afMaxDamge),ePlayerDamageType_BloodSplash);
+			mpInit->mpPlayer->Damage(CalculateRadialFalloff(fDist,afRadius,afMinDamage,afMaxDamage),ePlayerDamageType_BloodSplash);
 
-			float fForceSize = CalcSize(fDist,afRadius,afMinForce,afMaxForce);
+			float fForceSize = CalculateRadialFalloff(fDist,afRadius,afMinForce,afMaxForce);
 			cVector3f vForceDir = mpInit->mpPlayer->GetCharacterBody()->GetPosition() - avCenter;
 			vForceDir.Normalise();
 
@@ -457,7 +457,7 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 			{
 				float fDist = cMath::Vector3Dist(pCharBV->GetPosition(),avCenter);
 				
-				pEnemy->Damage(CalcSize(fDist,afRadius,afMinDamage,afMaxDamge),-1);
+				pEnemy->Damage(CalculateRadialFalloff(fDist,afRadius,afMinDamage,afMaxDamage),-1);
 			}
 		}
 	}*/
@@ -497,7 +497,7 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 				
 				
 				float fDist = cMath::Vector3Dist(avCenter,pBody->GetLocalPosition());
-				/*float fForceSize = CalcSize(fDist,afRadius,afMinForce,afMaxForce);
+				/*float fForceSize = CalculateRadialFalloff(fDist,afRadius,afMinForce,afMaxForce);
 				cVector3f vForceDir = pBody->GetLocalPosition() - avCenter;
 				vForceDir.Normalise();
 
@@ -510,7 +510,7 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 
 				if(pEntity)
 				{
-					float fDamage = CalcSize(fDist,afRadius,afMinDamage,afMaxDamge);
+					float fDamage = CalculateRadialFalloff(fDist,afRadius,afMinDamage,afMaxDamage);
 					pEntity->Damage(fDamage,alStrength);
 				}
 			}
@@ -539,7 +539,7 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 														pBody->GetMassCentre());
 
 				float fDist = cMath::Vector3Dist(avCenter,vBodyPos);
-				float fForceSize = CalcSize(fDist,afRadius,afMinForce,afMaxForce);
+				float fForceSize = CalculateRadialFalloff(fDist,afRadius,afMinForce,afMaxForce);
 				cVector3f vForceDir = vBodyPos - avCenter;
 				vForceDir.Normalise();
 
