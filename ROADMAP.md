@@ -546,12 +546,42 @@ In this order: each step removes callers of what a later one deletes.
     Effects pixel/live checks and GL debug runs for motion/effects pass
     without GL errors.
 
-- [ ] **9. `cLowLevelGraphicsSDL` split up.** 3300 lines doing the window,
-      GL state, scene and output framebuffers, the final passes (gamma,
-      SMAA, output, player effects), shadow map targets and debug drawing:
-      a class for each
-- [ ] **10. Billboards, beams and particles** written the way the rest
-      now is, instead of geometry built on the CPU every frame
+- [x] **9. `cLowLevelGraphicsSDL` split up.** Separate resource owners for
+      the SDL window/context and capture (`cSDLGraphicsWindow`), GL state
+      and samplers (`cGLGraphicsState`), scene/resolve/output/resource
+      framebuffers (`cGLRenderTargets`), final passes (`cGLFinalPasses`),
+      shadow targets (`cGLShadowTargets`), and streamed triangles/sprites/
+      debug drawing (`cGLStreamDrawing`). `iLowLevelGraphics` and the frame
+      order are unchanged. Components take explicit dependencies and draw
+      target facts; GL resources are released before the context. Scene
+      resizing invalidates SMAA targets without rebuilding lookup textures.
+
+      Linux build and both CTest suites pass, including EGL checks for
+      target/viewport restoration, resolves, fullscreen state, resizing,
+      streamed draws and ownership/lifetime. The Windows MSVC build passes
+      (its kit disables CTest). Step 8 comparisons: 93/95 default (only the
+      known ice-cave variation), 95/95 motion blur, 31/31 at Render Scale 1.5
+      with 4× FSAA, 29/29 effects-lab frames. All 2D frames, effects pixel/live
+      checks and motion/effects GL debug validation pass at unchanged
+      tolerances.
+- [x] **10. Billboards, beams and particles.** Compact centre/basis/UV/colour
+      instances replace CPU corner arrays. One shared static triangle index
+      buffer and four shader corners expand them with GL 3.3 instancing.
+      Particle simulation, facing/alignment, subdivisions, bounds, ordering,
+      material blending and soft depth remain as before. Every linked draw
+      program shares the expansion; shafts retain their cached volume box.
+      The existing non-drawing particle `PEType=Beam` branch remains so;
+      standalone beams are converted.
+
+      Linux build and both CTest suites pass, including builder mode checks,
+      EGL pixel comparisons, soft depth, animation layers, shader reloads and
+      resource lifetime. The storage suite also passes on GL 3.3 with the
+      existing storage extensions and on GL 4.3. Windows MSVC builds pass
+      (its kit disables CTest). Step 9 comparisons: 95/95 indexed-stage
+      defaults, then 95/95 final motion blur, 31/31 Render Scale 1.5 with
+      4× FSAA, and 29/29 effects-lab frames. All UI frames, effects pixel/live
+      checks and GL debug validation pass at unchanged tolerances. The final
+      beam colour-setter preservation has its own regression coverage.
 
 ## Later / ideas
 

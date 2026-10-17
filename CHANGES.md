@@ -1904,6 +1904,163 @@ All 2D frames match step 7, including inventory borders remaining beneath
 the keypad. The ice-cave variation was reproduced before this milestone
 step (see step 7 above).
 
+### Step 9: SDL graphics backend ownership
+
+`cLowLevelGraphicsSDL` keeps the `iLowLevelGraphics` contract and coordinates
+initialization, frame presentation and resource factories. Its former private
+GL/SDL resources now belong to six components:
+
+- `cSDLGraphicsWindow`: SDL window/context lifetime, display selection,
+  cursor/V-Sync controls and frame capture.
+- `cGLGraphicsState`: default linked programs, frame/state UBOs, matrices,
+  shader-visible state, current attributes and texture/sampler/VAO caches.
+- `cGLRenderTargets`: scene, resolve, output and resource-target framebuffers,
+  render dimensions, multisample/depth resolves and target transitions.
+- `cGLFinalPasses`: scene-copy, output, gamma and SMAA programs/resources,
+  grain/player feedback and temporary fullscreen GL state restoration.
+- `cGLShadowTargets`: spotlight/cube depth targets, comparison/raw samplers
+  on units 8/9, shadow rendering and restoration of the prior draw target.
+- `cGLStreamDrawing`: streamed triangles/sprites, debug lines/boxes/spheres,
+  and streamed indices used by mesh draws.
+
+Components use explicit dependencies and destination facts, without a pointer
+back into the facade's private state. Constructors allocate no GL resources;
+GL components also initialize independently under an external EGL context.
+Cleanup releases programs, framebuffer attachments, buffers, textures and
+samplers while the context is still current, before SDL destroys it. Reset is
+idempotent, including partial or uninitialized teardown. A scene generation
+counter invalidates render-sized SMAA textures after scale/FSAA changes;
+lookup textures remain shared across sizes.
+
+The frame order remains scene → resolve/effects → SMAA/output → HUD → gamma
+→ debug overlay/capture → window swap. Texture units 0–7, shadow units 8/9,
+scene depth/colour units 10/11, immutable storage, animation sampler layouts,
+equal-depth sprite order and CPU billboard/beam/particle updates are retained.
+The latter geometry rewrite remains step 10.
+
+Linux engine regressions now construct and destroy the backend without loading
+GL. The EGL suite additionally exercises scene colour/depth resolve, colour-only
+scene targets, scene copies, resource-target resizing, multiple-to-single
+attachments, spotlight/cube targets and viewport/framebuffer restoration,
+alpha-to-coverage transitions, fullscreen program/material/sampler/capability
+restoration, repeated scale/FSAA/SMAA rebuilding, streamed draws after fullscreen
+passes and deletion of the owned GL objects.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass: 2/2 Linux suites, including
+actual EGL execution on Mesa llvmpipe (LLVM 21.1.8). Linux game captures still
+need the unavailable gamescope. The Windows test copy passes
+`cmd.exe /c platform\windows\build.cmd -j 6`; its MSVC kit disables CTest.
+Focused backend patches retain its hidden-window, comparison-image and frame
+capture additions.
+
+Windows comparisons against step 8 on the RTX 2060 / GL 4.6, with the existing
+tolerance 2 / maximum 64 changed pixels:
+
+- defaults (`/tmp/step9-after`): 93/95 match; only the known icecave-view01/04
+  variation differs (106/837 pixels). All 2D frames match.
+- motion blur (`/tmp/step9-after-motion`): 95/95 match.
+- Render Scale 1.5 with 4× FSAA (`/tmp/step9-after-scale`), filtered to
+  office/water_cave/icecave/outside: 31/31 match.
+- effects lab (`/tmp/step9-after-effects`): 29/29 match; neutral/visible/opaque
+  pixel checks and live effect transitions pass.
+
+Motion/effects runs have GL debug enabled, without GL or shader/material-layout
+errors; only the existing synchronized pixel-readback performance warnings
+appear. Logs are `/tmp/step9-final-{linux-build,linux-ctest,windows-build}.log`
+and `/tmp/step9-{default,motion,scale,effects}-{capture,compare}.log`.
+
+### Step 10: billboards, beams and particles
+
+Effect sheets use `cQuadInstance` records through `iVertexBuffer`, retaining
+`iLowLevelGraphics` and the existing render queues. Each 88-byte record holds
+a centre, two half-extent vectors, UV bounds and endpoint colours. Builders
+fill retained instance storage directly; they no longer allocate or update
+four position/colour/UV vertices per particle. The particle vertex payload
+falls from 176 to 88 bytes per live particle, and the per-emitter maximum-size
+index/vertex arrays are gone. CPU simulation, spawning, warm-up, lifetime,
+random calls, texture-frame selection and save/gameplay code are unchanged.
+
+`cGLStreamDrawing` owns one static six-index triangle buffer shared by all
+effect buffers. Four constant shader corners plus `glDrawElementsInstanced`
+expand the sheets, retaining indexed vertex reuse for the halo visibility
+and particle-light calculations. Each object/emitter stays at its existing
+place in the transparent queue; particles retain their array order. The
+vertex-buffer adapter owns its instance VBO/VAO, uploads changed records on
+bind, skips empty draws and counts triangles for the profiler. Debug line
+drawing and on-demand vertex inspection remain available. No expanded CPU
+arrays are retained for effect rendering.
+
+The shared vertex input include (`hpl1_quad.glsl`) supplies the expanded
+position, colour, UV, normal and tangent to every linked program, including
+default, material, depth, fog, refraction, halo and soft-particle programs.
+Ordinary meshes, 2D streams and fullscreen draws retain their named input
+locations. Instancing uses divisor attributes available in GL 3.3; no new
+version or extension requirement is introduced. The instance-kind attribute
+returns to zero after drawing so subsequent ordinary VAOs keep their input
+contract. Programs still use material binding 2 and frame/state bindings 0/1;
+all sampler units, array layers and atomic reload behavior are retained.
+Failed `PrepareDraw()` calls skip instance rendering as they do mesh draws.
+
+Billboard point/axis facing, forward offsets and UV orientation are unchanged.
+Beams retain endpoint alignment, endpoint colours/alpha multiplication and
+tiled/non-tiled height (including the original negative terminal UV). The
+alpha-multiplication flag still takes effect separately when each endpoint
+colour setter runs; geometry updates do not recolour the other endpoint.
+Particles retain fixed/dynamic point, spin, line and axis drawing, both
+coordinate systems, subdivision order and stationary-line fallback. CPU work
+now prepares a centre and basis rather than corners. Bounds/culling remain
+with their existing owners. These effects still do not cast shadows; opaque
+material depth/fog draws use the same expansion. Halos keep their visibility
+shader and shafts keep their cached volume box. Post effects continue to read
+the scene depth/colour with the existing pass order and soft-particle depth
+behavior.
+
+The parsed `PEType=Beam` particle mode had no beam-specific geometry/render
+implementation before this step and remains non-drawing. Its existing
+particle simulation is unchanged; standalone `cBeam` is fully converted.
+Particle interpolation, simulation on the GPU and combining transparent
+objects into reordered batches are outside this step.
+
+Regression coverage compares production builders with the previous corner
+formulas for every particle orientation, spin and coordinate system, UV
+subdivisions, billboard alignment/offsets and beam endpoints/tiling/colour.
+The EGL suite compares instanced and expanded reference output across blend
+modes and animation layers, checks actual soft-particle alpha/additive depth
+fades, element limits, empty submissions, copies, shared topology ownership,
+resource teardown, ordinary draws after instances, failed sampler layouts and
+valid/invalid geometry-include reloads. It also links fog/halo/shaft programs.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass (2/2 suites), including real
+EGL execution on Mesa llvmpipe (LLVM 21.1.8). The storage suite also passes
+with Mesa restricted to GL 3.3 plus the existing storage extensions, and to
+GL 4.3. Its EGL setup now loads the ARB storage entry points just as the SDL
+window owner does. No context is needed for backend construction; allocated
+instance and shared topology resources are released before context teardown.
+The Windows MSVC build passes; its kit disables CTest targets, so Linux
+regressions are reported separately. Focused patches retain the Windows
+copy's platform and capture additions.
+
+Windows comparisons against the corresponding step 9 captures, on the RTX
+2060 / GL 4.6, retain refshots tolerance 2 / maximum 64 changed pixels:
+
+- indexed stage defaults (`/tmp/step10-after`): 95/95 match; all UI frames
+  match. The subsequent beam setter preservation is covered by regressions
+  and the final captures below.
+- final motion blur (`/tmp/step10-after-motion`): 95/95 match.
+- final Render Scale 1.5 with 4× FSAA (`/tmp/step10-after-scale`), filtered
+  to office/water_cave/icecave/outside: 31/31 match.
+- final effects lab (`/tmp/step10-after-effects`): 29/29 match; neutral,
+  visible and opaque pixel checks and live effect transitions pass.
+
+All four captures have GL debug enabled, without GL or shader/material-layout
+errors; only the existing synchronized pixel-readback performance warnings
+appear. Linux headless game captures remain unavailable without gamescope.
+Logs are `/tmp/step10-final-{linux-build,linux-ctest,windows-build}.log`,
+`/tmp/step10-gl33.log`, `/tmp/step10-gl43.log` and
+`/tmp/step10-{default,motion,scale,effects}-{capture,compare}.log`.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

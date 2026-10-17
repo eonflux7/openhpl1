@@ -45,11 +45,11 @@ namespace hpl{
 	static const char* kVertexPreamble =
 		"#version 330 core\n"
 		"#define VARYING out\n"
-		"layout(location = 0) in vec4 hpl_Vertex;\n"
-		"layout(location = 1) in vec3 hpl_Normal;\n"
-		"layout(location = 2) in vec4 hpl_Color;\n"
-		"layout(location = 4) in vec4 hpl_TexCoord;\n"
-		"layout(location = 5) in vec4 hpl_Tangent;\n";
+		"layout(location = 0) in vec4 hpl_RawVertex;\n"
+		"layout(location = 1) in vec3 hpl_RawNormal;\n"
+		"layout(location = 2) in vec4 hpl_RawColor;\n"
+		"layout(location = 4) in vec4 hpl_RawUV;\n"
+		"layout(location = 5) in vec4 hpl_RawTangent;\n";
 
 	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =
@@ -531,7 +531,8 @@ namespace hpl{
 
 		// Source number 0 is the preamble above.
 		std::vector<tString> vFiles(1, "(preamble)");
-		bool bRead = (aStage != GL_FRAGMENT_SHADER || ExpandIncludes(msShaderDir, "hpl1_texture.glsl", vFiles, sSource, 0)) &&
+		bool bRead = (aStage != GL_VERTEX_SHADER || ExpandIncludes(msShaderDir, "hpl1_quad.glsl", vFiles, sSource, 0)) &&
+			(aStage != GL_FRAGMENT_SHADER || ExpandIncludes(msShaderDir, "hpl1_texture.glsl", vFiles, sSource, 0)) &&
 			ExpandIncludes(msShaderDir, "hpl1_material.glsl", vFiles, sSource, 0) &&
 			ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0);
 		if(apFiles) apFiles->insert(apFiles->end(), vFiles.begin() + 1, vFiles.end());

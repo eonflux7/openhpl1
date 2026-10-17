@@ -75,33 +75,10 @@ namespace hpl {
 
 		mpMaterial = nullptr;
 
-		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
-								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord |
-								eVertexFlag_Normal,
-								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
-
-
-		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
-								cVector3f((mvSize.x/2),(mvSize.y/2),0)};
-
-		cVector3f vTexCoords[4] = {cVector3f(1,-1,0),
-								cVector3f(-1,-1,0),
-								cVector3f(-1,1,0),
-								cVector3f(1,1,0)};
-		for(int i=0;i<4;i++)
-		{
-			mpVtxBuffer->AddVertex(eVertexFlag_Position, vCoords[i]);
-			mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
-			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, (vTexCoords[i] + cVector2f(1,1))/2 );
-			mpVtxBuffer->AddVertex(eVertexFlag_Normal,cVector3f(0,0,1));
-		}
-
-		for(int i=0;i<3;i++) mpVtxBuffer->AddIndex(i);
-		for(int i=2;i<5;i++) mpVtxBuffer->AddIndex(i==4?0:i);
-
-		mpVtxBuffer->Compile(eVertexCompileFlag_CreateTangents);
+		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(0,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic);
+		UpdateInstance();
+		mpVtxBuffer->Compile(0);
 
 		mbIsHalo = false;
 		mbHaloSourceIsParent = false;
@@ -131,27 +108,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cBillboard::UpdateInstance()
+	{
+		cQuadInstance &sheet = mpVtxBuffer->UpdateQuadInstances(1)[0];
+		sheet = cQuadInstance();
+		sheet.mvRight = cVector3f(mvSize.x * 0.5f,0,0);
+		sheet.mvUp = cVector3f(0,mvSize.y * 0.5f,0);
+		sheet.mColor = sheet.mEndColor = mColor;
+	}
+
 	void cBillboard::SetSize(const cVector2f& avSize)
 	{
 		mvSize = avSize;
 		mBoundingVolume.SetSize(cVector3f(mvSize.x, mvSize.y, mvSize.x));
 
-		float *pPos = mpVtxBuffer->GetArray(eVertexFlag_Position);
-
-		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
-								cVector3f((mvSize.x/2),(mvSize.y/2),0)};
-
-		for(int i=0; i<4;++i)
-		{
-			pPos[0] = vCoords[i].x;
-			pPos[1] = vCoords[i].y;
-			pPos[2] = vCoords[i].z;
-			pPos+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Position,false);
+		UpdateInstance();
 
 		if(mType == eBillboardType_Axis) SetAxis(mvAxis);
 
@@ -196,18 +167,7 @@ namespace hpl {
 
 		mColor = aColor;
 
-		float *pColors = mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		for(int i=0; i<4;++i)
-		{
-			pColors[0] = mColor.r;
-			pColors[1] = mColor.g;
-			pColors[2] = mColor.b;
-			pColors[3] = mColor.a;
-			pColors+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
+		UpdateInstance();
 	}
 
 	//-----------------------------------------------------------------------

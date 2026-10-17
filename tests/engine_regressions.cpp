@@ -19,6 +19,7 @@
 #define private public
 #include "graphics/SpriteBatch.h"
 #undef private
+#include "impl/LowLevelGraphicsSDL.h"
 #include "graphics/GraphicsDrawer.h"
 #include "gui/GuiSet.h"
 #include "gui/GuiMaterialBasicTypes.h"
@@ -48,6 +49,12 @@
 #include "ai/AStar.h"
 #include "ai/AINodeContainer.h"
 #include "graphics/SubMesh.h"
+#include "graphics/Graphics.h"
+#include "graphics/ParticleEmitter3D.h"
+#include "graphics/ParticleSystem3D.h"
+#include "graphics/BillBoard.h"
+#include "graphics/Beam.h"
+#include "scene/Camera3D.h"
 #include "impl/MeshLoaderCollada.h"
 #include "impl/VertexBufferVBO.h"
 #include "impl/LowLevelSoundOpenAL.h"
@@ -122,6 +129,149 @@ public:
 		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
 	}
 };
+
+// Exercise the actual effect builders without a context. Only GPU allocation
+// is stubbed; facing matrices, line fallback, local transforms and UV selection
+// run through their production methods.
+class TestEmitter : public iParticleEmitter3D
+{
+public:
+	TestEmitter(cGraphics *graphics, cResources *resources, tMaterialVec *materials)
+		: iParticleEmitter3D("fixture",materials,2,cVector3f(1),graphics,resources)
+	{
+		mPEType = ePEType_Normal; mbUsePartSpin = true; mpWorld = nullptr;
+		mvDrawSize = cVector2f(0.2f,0.4f); mvMaxDrawSize = 1;
+		mlNumOfParticles = 2;
+		for(unsigned i=0; i<2; ++i)
+		{
+			*mvParticles[i] = cParticle{};
+			mvParticles[i]->mvPos = cVector3f(1+i,2,-4);
+			mvParticles[i]->mvLastPos = cVector3f(0,1,-5);
+			mvParticles[i]->mvSize = cVector2f(2,3);
+			mvParticles[i]->mfSpin = 0.7f;
+			mvParticles[i]->mColor = cColor(0.2f,0.4f,0.6f,0.3f);
+			mvParticles[i]->mlSubDivNum = i+1;
+		}
+		SetSubDivUV(cVector2l(2,2));
+	}
+	void UpdateMotion(float) override {}
+	void SetParticleDefaults(cParticle*) override {}
+};
+static void CheckVector(cVector3f actual, cVector3f expected, const char *message)
+{
+	Check(Near(actual.x,expected.x) && Near(actual.y,expected.y) && Near(actual.z,expected.z), message);
+}
+static void TestEffectInstances()
+{
+	auto gen=glad_glGenBuffers; auto del=glad_glDeleteBuffers;
+	glad_glGenBuffers=[](GLsizei n,GLuint* out){static GLuint next=1; while(n--) *out++=next++;};
+	glad_glDeleteBuffers=[](GLsizei,const GLuint*){};
+	{
+		cLowLevelGraphicsSDL low;
+		cGraphics graphics(&low,nullptr); graphics.mpRenderList=nullptr;
+		TestResources resources;
+		cCamera3D camera; camera.SetPosition(cVector3f(0,0,3));
+		cParticleSystem3D parent("parent",nullptr,&resources,&graphics);
+		parent.SetMatrix(cMath::MatrixMul(cMath::MatrixTranslate(cVector3f(2,3,4)), cMath::MatrixRotateY(0.4f)));
+		tMaterialVec materials;
+		TestEmitter emitter(&graphics,&resources,&materials); emitter.SetSystem(&parent);
+		emitter.SetMatrix(cMath::MatrixRotateZ(0.3f));
+		for(int local=0; local<2; ++local)
+		for(int mode=0; mode<eParticleEmitter3DType_LastEnum; ++mode)
+		for(int spin=0; spin<2; ++spin)
+		{
+			emitter.mCoordSystem=(eParticleEmitter3DCoordSystem)local;
+			emitter.mDrawType=(eParticleEmitter3DType)mode;
+			emitter.mbUsePartSpin=spin;
+			emitter.mbUpdateGfx=true;
+			emitter.UpdateGraphics(&camera,0,nullptr);
+			const auto &instances=emitter.GetVertexBuffer()->GetQuadInstances();
+			Check(instances.size()==2 && emitter.GetVertexBuffer()->GetIndexNum()==12,"one compact record per live particle");
+			for(unsigned i=0;i<2;++i)
+			{
+				const cParticle &particle=*emitter.mvParticles[i];
+				cVector3f position=particle.mvPos, last=particle.mvLastPos;
+				if(local){position=cMath::MatrixMul(parent.GetWorldMatrix(),position); last=cMath::MatrixMul(parent.GetWorldMatrix(),last);}
+				if(mode!=eParticleEmitter3DType_Axis){position=cMath::MatrixMul(camera.GetViewMatrix(),position);last=cMath::MatrixMul(camera.GetViewMatrix(),last);}
+				const cMatrixf axis=cMath::MatrixInverse(emitter.GetWorldMatrix());
+				for(int corner=0;corner<4;++corner)
+				{
+					const float x=corner==0||corner==3?1:-1, y=corner<2?-1:1;
+					cVector3f expected;
+					if(mode==eParticleEmitter3DType_Axis)
+						expected=position+(axis.GetRight()*(x*particle.mvSize.x)+axis.GetForward()*(-y*particle.mvSize.y));
+					else if(mode==eParticleEmitter3DType_Line)
+					{
+						cVector3f along=position-last; along.Normalise();
+						cVector2f across(along.y,-along.x); across.Normalise();
+						expected=(corner<2?last:position)+along*(y*emitter.mvDrawSize.y*particle.mvSize.y)+
+							cVector3f(across.x,across.y,0)*(x*emitter.mvDrawSize.x*particle.mvSize.x);
+					}
+					else
+					{
+						cVector3f add(x*emitter.mvDrawSize.x,y*emitter.mvDrawSize.y,0);
+						if(mode==eParticleEmitter3DType_DynamicPoint){add=add*cVector3f(particle.mvSize);if(spin)add=cMath::MatrixMul(cMath::MatrixRotateZ(particle.mfSpin),add);}
+						expected=position+add;
+					}
+					CheckVector(emitter.GetVertexBuffer()->GetVector3(eVertexFlag_Position,i*4+corner),expected,"compact particle matches previous corner formula in all modes");
+				}
+				Check(instances[i].mColor==particle.mColor && instances[i].mEndColor==particle.mColor,"particle colour retained");
+				Check(Near(instances[i].mvUV[0],i==0?0.5f:0) && Near(instances[i].mvUV[1],i==0?0.5f:1),"subdivision row/column order");
+				Check(particle.mvPos==cVector3f(1+i,2,-4) && Near(particle.mfSpin,0.7f),"render preparation does not mutate simulation");
+			}
+		}
+		emitter.mCoordSystem=eParticleEmitter3DCoordSystem_World;
+		emitter.mDrawType=eParticleEmitter3DType_Line;
+		emitter.mvParticles[0]->mvLastPos=emitter.mvParticles[0]->mvPos;
+		emitter.mbUpdateGfx=true;emitter.UpdateGraphics(&camera,0,nullptr);
+		CheckVector(emitter.GetVertexBuffer()->GetQuadInstances()[0].mvRight,cVector3f(0.4f,0,0),"stationary line width fallback");
+		CheckVector(emitter.GetVertexBuffer()->GetQuadInstances()[0].mvUp,cVector3f(0,1.2f,0),"stationary line length fallback");
+		emitter.KillInstantly();emitter.mbUpdateGfx=true;emitter.UpdateGraphics(&camera,0,nullptr);
+		Check(emitter.GetVertexBuffer()->GetQuadInstances().empty(),"dead emitter submits no stale particles");
+
+		cBillboard billboard("billboard",cVector2f(2,4),&resources,&graphics);
+		billboard.SetSize(cVector2f(4,6)); billboard.SetColor(cColor(0.2f,0.3f,0.4f,0.5f));
+		const auto &sheet=billboard.GetVertexBuffer()->GetQuadInstances()[0];
+		CheckVector(sheet.mvRight,cVector3f(2,0,0),"billboard half width");
+		CheckVector(sheet.mvUp,cVector3f(0,3,0),"billboard half height");
+		Check(sheet.mvUV[1]==0 && sheet.mvUV[3]==1 && sheet.mColor==billboard.GetColor(),"billboard UV orientation and colour");
+		billboard.SetPosition(cVector3f(1,2,-4)); billboard.SetForwardOffset(0.3f);
+		for(auto type:{eBillboardType_Point,eBillboardType_Axis})
+		{
+			billboard.SetType(type);billboard.SetAxis(cVector3f(0.2f,1,0));
+			const cMatrixf matrix=*billboard.GetModelMatrix(&camera);
+			cVector3f toward=camera.GetPosition()-billboard.GetWorldPosition();toward.Normalise();
+			CheckVector(matrix.GetTranslation(),billboard.GetWorldPosition()+toward*0.3f,"billboard forward offset retained");
+			cVector3f expectedRight=cMath::Vector3Cross(type==eBillboardType_Point?camera.GetViewMatrix().GetUp():billboard.GetAxis(),toward);
+			if(type==eBillboardType_Axis) expectedRight.Normalise();
+			CheckVector(cVector3f(matrix.m[0][0],matrix.m[1][0],matrix.m[2][0]),expectedRight,"billboard facing retains original point/axis alignment");
+		}
+		Check(!billboard.IsShadowCaster(),"billboard remains excluded from shadows");
+
+		cBeam beam("beam",&resources,&graphics);
+		beam.SetPosition(cVector3f(1,2,-4)); beam.GetEnd()->SetPosition(cVector3f(1,7,-4));
+		beam.SetSize(cVector2f(2,0.5f));beam.SetMultiplyAlphaWithColor(true);
+		beam.SetColor(cColor(0.8f,0.4f,0.2f,0.5f));beam.GetEnd()->SetColor(cColor(0.4f,0.8f,0.2f,0.25f));
+		beam.UpdateGraphics(&camera,0,nullptr);
+		const auto tiled=beam.GetVertexBuffer()->GetQuadInstances()[0];
+		CheckVector(tiled.mvUp,cVector3f(0,2.5f,0),"beam endpoint distance");
+		Check(tiled.mvUV[1]==1 && tiled.mvUV[3]==-10,"beam tiling retains negative terminal coordinate");
+		Check(Near(tiled.mColor.r,0.4f) && Near(tiled.mEndColor.g,0.2f),"beam endpoint alpha multiplication");
+		CheckVector(beam.GetModelMatrix(&camera)->GetTranslation(),cVector3f(1,4.5f,-4),"beam midpoint facing");
+		beam.SetMultiplyAlphaWithColor(false);beam.UpdateGraphics(&camera,0,nullptr);
+		Check(beam.GetVertexBuffer()->GetQuadInstances()[0].mColor==tiled.mColor &&
+			beam.GetVertexBuffer()->GetQuadInstances()[0].mEndColor==tiled.mEndColor,"beam flag retains colours until their setters run");
+		beam.SetColor(cColor(0.7f,0.4f,0.2f,0.5f));
+		Check(Near(beam.GetVertexBuffer()->GetQuadInstances()[0].mColor.r,0.7f) &&
+			beam.GetVertexBuffer()->GetQuadInstances()[0].mEndColor==tiled.mEndColor,"beam setters update each endpoint independently");
+		beam.SetTileHeight(false);beam.UpdateGraphics(&camera,0,nullptr);
+		Check(beam.GetVertexBuffer()->GetQuadInstances()[0].mvUV[3]==0,"untiled beam UVs");
+		beam.GetEnd()->SetPosition(cVector3f(4,3,-2));beam.UpdateGraphics(&camera,0,nullptr);
+		CheckVector(beam.GetMidPosition(),cVector3f(2.5f,2.5f,-3),"moving beam endpoint updates instance");
+		Check(!beam.IsShadowCaster(),"beam remains excluded from shadows");
+	}
+	glad_glGenBuffers=gen;glad_glDeleteBuffers=del;
+}
 
 static void TestSkinning()
 {
@@ -673,9 +823,10 @@ int hplMain(const hpl::tString&)
 	std::filesystem::create_directories(directory);
 	try
 	{
+		{ cLowLevelGraphicsSDL graphics; Check(graphics.GetWindow()==nullptr, "backend lifetime without a GL context"); }
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
-		TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
+		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

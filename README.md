@@ -18,13 +18,28 @@ executable. It boots, plays the intro and menus and loads levels at full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
-Renderer cleanup is through **Milestone 6, step 8**: mesh vertices upload
+Renderer cleanup is through **Milestone 6, step 10**: mesh vertices upload
 interleaved into one buffer, surface geometry uses triangle indices, and
 UVs and tangents have named attributes. Textures use immutable storage;
 animation frames occupy layers of one texture array. The shared triangle
 sprite batcher retains submission order at equal depth, including keypad
 panels over inventory borders. Linked programs keep material values in
-uniform blocks and draw matrices travel together.
+uniform blocks and draw matrices travel together. The SDL graphics backend
+now delegates to separate owners for the window/context and capture, GL state
+and samplers, scene/output targets, final passes, shadow targets, and streamed
+sprite/triangle/debug drawing. The renderer-facing interface and frame order
+stay the same. Billboards, beams and particles now use compact instance
+records and shared static triangle indices; their corners expand in vertex
+shaders. CPU particle simulation, facing, UVs, colours and transparent order
+are retained. Particle vertex uploads use 88 bytes per live particle instead
+of 176, without maximum-size emitter vertex/index arrays.
+
+Linux build and both regression suites pass, including EGL backend checks.
+The storage suite also passes on GL 3.3 with storage extensions and GL 4.3.
+The Windows MSVC build passes; step 9 comparisons match 95/95 default,
+95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames. All UI
+frames, effects pixel/live checks and GL debug validation pass. Details are in
+[CHANGES.md](CHANGES.md#step-10-billboards-beams-and-particles).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
 `GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing
@@ -72,7 +87,9 @@ AddressSanitizer and UBSan; needs `libasan libubsan`).
 
 Run the engine checks with `ctest --test-dir build --output-on-failure`.
 With EGL headers/library installed, this also builds `renderer_storage`,
-which tests immutable textures, animation sampling and shader reloads on a
+which tests immutable textures, animation sampling, instanced effect geometry,
+soft-particle depth fades, shader reloads, framebuffer transitions, final-pass
+state restoration, render-scale/FSAA resizing and GL resource lifetime on a
 surfaceless software GL context. These checks need neither game data nor
 gamescope; CTest reports a skip if that GL context is unavailable.
 
@@ -231,15 +248,14 @@ possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
 scripted light sequences are timed partly by sounds. Their differences are
 listed as "unstable" and do not count.
 
-Step 8 passes the Linux build and both CTest suites, including real GL
-storage/sampling and shader-reload checks on Mesa llvmpipe. The separate
-Windows kit passes its MSVC build (CTest targets are disabled there).
-The vertex-only stage matches all 95 step 7 frames. Final Windows
-comparisons match 93/95 default, 95/95 motion-blur and 29/31 Render Scale
-1.5 with 4× FSAA frames at unchanged tolerances. Only the known ice-cave
-variation differs; all 2D frames preserve the step 7 keypad correction.
-All 29 effects-lab frames, pixel checks and live transitions pass. Motion
-blur and effects captures also pass with GL debug output enabled.
+Step 10 passes the Linux build and both CTest suites, including real GL
+instance expansion, blend/animation and soft-particle depth checks on Mesa
+llvmpipe. The storage suite also passes on GL 3.3 with storage extensions
+and GL 4.3. The separate Windows kit passes its MSVC build (CTest targets
+are disabled there). The indexed stage matches all 95 default step 9 frames;
+final motion blur matches 95/95, Render Scale 1.5 with 4× FSAA matches 31/31,
+and the effects lab matches 29/29, at unchanged tolerances. All UI frames,
+effects pixel checks/live transitions and GL debug validation pass.
 See [CHANGES.md](CHANGES.md) for the implementation and results.
 
 To look at those places yourself, press F2 in the game (or start it with

@@ -63,6 +63,21 @@ namespace hpl {
 	#define eVertexCompileFlag_CreateTangents	(0x00000001)
 
 
+	// One sheet, expanded from shared triangle corners in the vertex shader.
+	// Extents are half-width/half-height vectors in the object's draw space.
+	// UV bounds are left, bottom, right, top; endpoint colours run bottom to top.
+	struct cQuadInstance
+	{
+		cVector3f mvCentre = cVector3f(0);
+		float mfKind = 1; // 1: billboard, 2: beam, 3: particle
+		cVector3f mvRight = cVector3f(0.5f,0,0);
+		cVector3f mvUp = cVector3f(0,0.5f,0);
+		cColor mColor = cColor(1,1);
+		cColor mEndColor = cColor(1,1);
+		float mvUV[4] = {0,0,1,1};
+	};
+	static_assert(sizeof(cQuadInstance) == 22 * sizeof(float), "Instance GPU layout");
+
 	class iLowLevelGraphics;
 
 	class iVertexBuffer
@@ -76,6 +91,21 @@ namespace hpl {
 			mbTangents(false){}
 
 		virtual ~iVertexBuffer(){}
+
+		// Select compact sheets before Compile instead of editable mesh arrays. No GL work here;
+		// uploads happen when bound/drawn. Empty submissions remain instance buffers.
+		std::vector<cQuadInstance>& UpdateQuadInstances(size_t alCount)
+		{
+			mvQuadInstances.resize(alCount);
+			mbQuadInstances = true;
+			mbQuadInstancesDirty = true;
+			return mvQuadInstances;
+		}
+		void SetQuadInstances(const std::vector<cQuadInstance>& avInstances)
+		{
+			UpdateQuadInstances(avInstances.size()) = avInstances;
+		}
+		const std::vector<cQuadInstance>& GetQuadInstances() const { return mvQuadInstances; }
 
 		tVertexFlag GetFlags(){ return mVertexFlags;}
 
@@ -134,6 +164,9 @@ namespace hpl {
 		void SetTangents(bool abX){ mbTangents = abX;}
 
 	protected:
+		std::vector<cQuadInstance> mvQuadInstances;
+		bool mbQuadInstances = false;
+		bool mbQuadInstancesDirty = false;
 		tVertexFlag mVertexFlags;
 		eVertexBufferDrawType mDrawType;
 		eVertexBufferUsageType mUsageType;

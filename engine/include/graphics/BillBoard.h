@@ -147,6 +147,8 @@ namespace hpl {
 		static const int kHaloKnots = 32;
 
 	private:
+		void UpdateInstance();
+
 		eBillboardType ToType(const char* apString);
 
 		bool DrawnAsHalo();
