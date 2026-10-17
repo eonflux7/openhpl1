@@ -1819,6 +1819,91 @@ The fresh unchanged step 6 run itself reproduces the ice-cave variation:
 icecave-view01/04 differ from `/tmp/step6-after` by 101/837 pixels before
 any step 7 code is applied.
 
+### Step 8: vertex buffers and textures
+
+- Every mesh buffer uploads enabled fields into one interleaved VBO, with
+  one element buffer for indices and explicit offsets/stride in its VAO.
+  Dynamic updates gather all enabled fields, retaining UVs, colours and
+  four-component tangents when only positions/normals change. Packed CPU
+  attribute arrays remain the editing contract: skinning, tangent creation,
+  bounds, Newton collision geometry and mesh caches never read GPU strides.
+  Copies own their editing data and preserve tangent handedness.
+- UVs and tangents are `eVertexFlag_TexCoord`/`eVertexFlag_Tangent` and
+  `hpl_TexCoord`/`hpl_Tangent`. The unused colour and coordinate slots are
+  removed. MSH import expands xyz positions to xyzw; export writes xyz and
+  uses each attribute's own element count, correcting its submesh-index
+  stride bug. Collada caches retain their packed positions and tangents.
+- The skybox creates triangle indices with the same diagonal and winding
+  as before. The quad draw type, second quad element buffer and draw-time
+  conversion are removed. Collada polylist/polygon corners are triangulated
+  before vertex splitting, preserving their position/normal/UV tuples;
+  geometry cache version 2 rebuilds older caches through that loader.
+  Debug lines keep their line primitive. Billboards, beams and particles
+  retain their existing CPU update paths and triangle topology for step 10.
+- Resource textures, float targets, scene/resolve/output textures,
+  multisampled colour/depth and shadow maps allocate immutable storage.
+  Texels arrive through subimage uploads, framebuffer rendering or copies.
+  Repeated atlas uploads reuse storage; changed dimensions/formats replace
+  the GL object and refresh every cached texture-unit binding. Failed
+  allocation retains the previous storage. Render-target binding reattaches a resized resource even
+  when its pointer is unchanged. Mip counts, quality averaging,
+  luminance/alpha swizzles and sampler filtering/wrapping are retained.
+- Animated textures allocate one 2D array, with one layer per frame. The
+  existing fractional time, loop/oscillate and manual stepping controls
+  select a layer at draw time. Alpha coverage is retained independently
+  per layer. Frame dimensions/formats and the driver layer limit are
+  checked before upload.
+- Linked programs cache only the sampler layouts they use: an animated
+  diffuse, normal, specular or spotlight map reads a sampler2DArray on the
+  same unit that a static sampler2D uses. `hpl1_texture.glsl` supplies the
+  sampling/LOD/fetch/size helpers. Layer uniforms resolve at link time;
+  material values share the program's existing UBO. Reload rebuilds every
+  used layout as one transaction and retains the full working set if any
+  stage, include or layout fails.
+- The context chooser still accepts GL 3.3 with both immutable-storage ARB
+  extensions, loading their entry points explicitly on older contexts.
+  GL 4.3 supplies both in core. Drivers lacking either receive a startup
+  error. Backend splitting remains step 9.
+- Engine regressions cover interleaved fields after partial updates,
+  pointer stability, independent mesh copies, tangent handedness, polygon
+  winding/UVs and cache invalidation. An optional Linux EGL regression
+  runs actual GL storage and sampling without a window or game data:
+  mip counts, atlas updates, array layer contents/timing, quality averaging,
+  per-layer alpha coverage, filtering/wrapping, resized FBO attachments,
+  mixed material sampler layouts and successful/failed include reloads.
+  CMake enables it when EGL headers/library are available; CTest reports a
+  skip if a surfaceless GL 4.3 context cannot be created.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass on Linux: 2/2 suites,
+including `renderer_storage` on llvmpipe (LLVM 21.1.8). Linux headless game
+captures still require the unavailable gamescope; the EGL suite does not.
+The separate Windows test copy passes
+`cmd.exe /c platform\windows\build.cmd -j 6`. Its MSVC configuration disables
+CTest targets, so Windows validation is the build and game captures.
+Focused patches preserve its platform and capture additions.
+
+Windows reference comparisons against the step 7 captures, using the
+existing tolerance 2 / maximum 64 changed pixels, on an RTX 2060 / GL 4.6:
+
+- the vertex-only stage (`/tmp/step8-vertices`) matches all 95 frames
+- final defaults (`/tmp/step8-after`) match 93/95; only icecave-view01/04
+  vary (106/837 pixels)
+- motion blur (`/tmp/step8-after-motion`) matches all 95 frames. GL debug
+  output is enabled across every map and UI screen, with no GL errors or
+  shader/material-layout errors; only synchronized pixel-readback
+  performance warnings appear
+- Render Scale 1.5 with 4× FSAA (`/tmp/step8-after-scale`), filtered to
+  office/water_cave/icecave/outside as before, matches 29/31 frames; only
+  icecave-view01/04 vary (114/727 pixels)
+- the effects lab (`/tmp/step8-after-effects`) matches all 29 frames;
+  neutral/visible/opaque pixel checks and live transitions pass, with GL
+  debug output enabled and no GL errors (only the same readback warnings)
+
+All 2D frames match step 7, including inventory borders remaining beneath
+the keypad. The ice-cave variation was reproduced before this milestone
+step (see step 7 above).
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

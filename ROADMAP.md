@@ -516,12 +516,36 @@ In this order: each step removes callers of what a later one deletes.
     effects-lab frames, pixel/live checks and the GL debug run pass at
     unchanged tolerances.
 
-- [ ] **8. Vertex buffers and textures:**
-  - [ ] vertices interleaved in one buffer, indices in an element buffer,
+- [x] **8. Vertex buffers and textures:**
+  - [x] vertices interleaved in one buffer, indices in an element buffer,
         triangles only (quads are turned into triangles when loaded)
-  - [ ] named attributes instead of the `hpl_MultiTexCoord0-4` slots
-  - [ ] textures with immutable storage; animated textures as one texture
+  - [x] named attributes instead of the `hpl_MultiTexCoord0-4` slots
+  - [x] textures with immutable storage; animated textures as one texture
         array instead of one texture per frame
+
+    Packed CPU editing arrays retain the skinning, physics and cache
+    contract; uploads gather them into one interleaved VBO. Surfaces use
+    triangle indices from creation/import, including skyboxes and Collada
+    polygons; debug lines retain their line primitive. UVs and tangents
+    have named fields/attributes, with tangent handedness retained.
+
+    Resource and framebuffer textures use immutable storage, with new
+    objects on resize and cached bindings/attachments refreshed. Animation
+    arrays retain timing, sampler state, mipmaps and per-frame alpha
+    coverage. Linked sampler layouts reload together and preserve the
+    working set and material values on failure. GL 3.3 needs the two ARB
+    storage extensions; GL 4.3 supplies them in core.
+
+    Linux build and both CTest suites pass, including real GL storage,
+    sampling and successful/failed reload checks on Mesa llvmpipe. Windows
+    MSVC build passes (its kit disables CTest targets). The vertex-only
+    stage matches all 95 step 7 frames. Final comparisons: 93/95 default,
+    95/95 motion blur, 29/31 at Render Scale 1.5 with 4× FSAA, and 29/29
+    effects-lab frames, at unchanged tolerances. Only known ice-cave
+    variation differs; all 2D frames retain the keypad ordering correction.
+    Effects pixel/live checks and GL debug runs for motion/effects pass
+    without GL errors.
+
 - [ ] **9. `cLowLevelGraphicsSDL` split up.** 3300 lines doing the window,
       GL state, scene and output framebuffers, the final passes (gamma,
       SMAA, output, player effects), shadow map targets and debug drawing:

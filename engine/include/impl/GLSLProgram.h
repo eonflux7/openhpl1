@@ -20,6 +20,8 @@
 #define HPL_GLSLPROGRAM_H
 
 #include <filesystem>
+#include <array>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -56,14 +58,15 @@ namespace hpl {
 		/// GLSL SPECIFIC //////////////////////
 
 		/// Vertex attribute locations: hpl_Vertex, hpl_Normal, hpl_Color and
-		/// hpl_MultiTexCoord0..4 in vertex shaders.
+		/// hpl_TexCoord and hpl_Tangent in vertex shaders.
 		enum eVertexAttrib
 		{
 			eVertexAttrib_Position = 0,
 			eVertexAttrib_Normal = 1,
 			eVertexAttrib_Color = 2,
-			eVertexAttrib_TexCoord0 = 4,
-			eVertexAttrib_LastEnum = 9
+			eVertexAttrib_TexCoord = 4,
+			eVertexAttrib_Tangent = 5,
+			eVertexAttrib_LastEnum = 6
 		};
 
 		/// Uniform buffer binding of the hpl_Frame block (hpl1_frame.glsl).
@@ -93,7 +96,7 @@ namespace hpl {
 		static const tString& GetShaderDirectory(){ return msShaderDir; }
 
 		static cGLSLProgram* GetBoundProgram(){ return mpBoundProgram; }
-		void Apply();
+		bool Apply(unsigned int alArrayMask=0, const float* apLayers=nullptr);
 
 		// Recompile complete pairs after a source/include edit, at most twice
 		// a second. Failed edits retain the previous program and its values.
@@ -121,6 +124,14 @@ namespace hpl {
 		tString msVertex;
 		tString msDefines;
 		GLuint mlProgram;
+		struct cTextureVariant {
+			GLuint handle = 0;
+			std::array<GLint, 8> layers;
+		};
+		std::map<unsigned int, cTextureVariant> mTextureVariants;
+		unsigned int mlSampler2DMask = 0;
+		cTextureVariant LinkTextureVariant(unsigned int alMask, std::vector<tString>& avFiles);
+
 		// The files the program was compiled from, for reloading.
 		std::vector<cSourceFile> mvSources;
 

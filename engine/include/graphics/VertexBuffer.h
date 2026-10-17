@@ -31,7 +31,6 @@ namespace hpl {
 	enum eVertexBufferDrawType
 	{
 		eVertexBufferDrawType_Tri,
-		eVertexBufferDrawType_Quad,
 		eVertexBufferDrawType_Lines,
 		eVertexBufferDrawType_LastEnum
 	};
@@ -46,32 +45,18 @@ namespace hpl {
 
 	typedef tFlag tVertexFlag;
 
-	#define eVertexFlag_Normal		(0x00000001)
-	#define eVertexFlag_Position	(0x00000002)
-	#define eVertexFlag_Color0		(0x00000004)
-	#define eVertexFlag_Color1		(0x00000008)
-	#define eVertexFlag_Texture0	(0x00000010)
-	#define eVertexFlag_Texture1	(0x00000020)
-	#define eVertexFlag_Texture2	(0x00000040)
-	#define eVertexFlag_Texture3	(0x00000080)
-	#define eVertexFlag_Texture4	(0x00000100)
+	#define eVertexFlag_Normal   (0x01)
+	#define eVertexFlag_Position (0x02)
+	#define eVertexFlag_Color0   (0x04)
+	#define eVertexFlag_TexCoord (0x08)
+	#define eVertexFlag_Tangent  (0x10)
 
-	#define klNumOfVertexFlags (9)
-
-	const tVertexFlag kvVertexFlags[] = {eVertexFlag_Normal,eVertexFlag_Position,eVertexFlag_Color0,
-				eVertexFlag_Color1,eVertexFlag_Texture0,eVertexFlag_Texture1,eVertexFlag_Texture2,
-				eVertexFlag_Texture3,eVertexFlag_Texture4};
-
-	const int kvVertexElements[] = {3, //Normal
-									4, //Position
-									4, //Color0
-									4, //Color1
-									3, //Texture0
-									3, //Texture1
-									3, //Texture2
-									3, //Texture3
-									3 //Texture4
-								};
+	#define klNumOfVertexFlags (5)
+	const tVertexFlag kvVertexFlags[] = {eVertexFlag_Normal, eVertexFlag_Position,
+		eVertexFlag_Color0, eVertexFlag_TexCoord, eVertexFlag_Tangent};
+	// CPU editing arrays are tightly packed per attribute. GPU uploads interleave
+	// them; callers (skinning, physics, caches) never use the GPU stride.
+	const int kvVertexElements[] = {3, 4, 4, 3, 4};
 
 	typedef tFlag tVertexCompileFlag;
 
@@ -117,6 +102,7 @@ namespace hpl {
 
 		virtual cBoundingVolume CreateBoundingVolume()=0;
 
+		// Mutable packed CPU data. Call UpdateData after editing a compiled buffer.
 		virtual float* GetArray(tVertexFlag aType)=0;
 		virtual unsigned int* GetIndices()=0;
 

@@ -64,7 +64,7 @@ namespace hpl {
 
 
 		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
-								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0 |
+								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord |
 								eVertexFlag_Normal,
 								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
 
@@ -83,7 +83,7 @@ namespace hpl {
 		{
 			mpVtxBuffer->AddVertex(eVertexFlag_Position, vCoords[i]);
 			mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, (vTexCoords[i] + cVector2f(1,1))/2);
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, (vTexCoords[i] + cVector2f(1,1))/2);
 			mpVtxBuffer->AddVertex(eVertexFlag_Normal,cVector3f(0,0,1));
 		}
 
@@ -242,7 +242,7 @@ namespace hpl {
 		cVector2f vBeamSize = cVector2f(mvSize.x, fDist);
 
 		float *pPos = mpVtxBuffer->GetArray(eVertexFlag_Position);
-		float *pTex = mpVtxBuffer->GetArray(eVertexFlag_Texture0);
+		float *pTex = mpVtxBuffer->GetArray(eVertexFlag_TexCoord);
 
 		cVector3f vCoords[4] = {cVector3f((vBeamSize.x/2),-(vBeamSize.y/2),0),
 								cVector3f(-(vBeamSize.x/2),-(vBeamSize.y/2),0),
@@ -279,11 +279,11 @@ namespace hpl {
 
 		if(mpMaterial->IsTransperant())
 		{
-			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Texture0,false);
+			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_TexCoord,false);
 		}
 		else
 		{
-			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Texture0,false);
+			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_TexCoord,false);
 		}
 
 

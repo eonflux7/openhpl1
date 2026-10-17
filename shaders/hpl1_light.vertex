@@ -13,8 +13,8 @@
 
 #define position (hpl_Vertex)
 #define normal (hpl_Normal)
-#define uv (hpl_MultiTexCoord0.xy)
-#define tangent (hpl_MultiTexCoord1)
+#define uv (hpl_TexCoord.xy)
+#define tangent (hpl_Tangent)
 
 #include "hpl1_light.glsl"
 

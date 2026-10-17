@@ -11,7 +11,7 @@
 
 #define position (hpl_Vertex)
 #define color (hpl_Color.xyz)
-#define uv (hpl_MultiTexCoord0.xy)
+#define uv (hpl_TexCoord.xy)
 
 out vec3 vColor;
 out vec2 vUv;

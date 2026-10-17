@@ -196,11 +196,11 @@ namespace hpl {
 
 			const float *pBindPos = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Position);
 			const float *pBindNormal = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Normal);
-			const float *pBindTangent = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Texture1);
+			const float *pBindTangent = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Tangent);
 
 			float *pSkinPos = mpDynVtxBuffer->GetArray(eVertexFlag_Position);
 			float *pSkinNormal = mpDynVtxBuffer->GetArray(eVertexFlag_Normal);
-			float *pSkinTangent = mpDynVtxBuffer->GetArray(eVertexFlag_Texture1);
+			float *pSkinTangent = mpDynVtxBuffer->GetArray(eVertexFlag_Tangent);
 
 			const int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
 			const int lVtxNum = mpDynVtxBuffer->GetVertexNum();
@@ -273,7 +273,7 @@ namespace hpl {
 			}
 
 			//Update buffer
-			mpDynVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Texture1,false);
+			mpDynVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Tangent,false);
 		}
 
 

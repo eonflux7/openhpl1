@@ -71,19 +71,19 @@ namespace hpl {
 	private:
 		int GetElementNum(tVertexFlag aFlag);
 
-		static void QuadsToTriangles(const unsigned int *apIndices, int alCount, tUIntVec &avTriangles);
+		bool PackVertices();
+		void UploadVertices();
 		void BindVertexArray();
 		void DeleteVertexArray();
 
 		unsigned int mlVertexArray;
 		unsigned int mlElementHandle;
-		//The indices as triangles, for buffers drawn as quads
-		unsigned int mlQuadElementHandle;
-		bool mbQuadIndicesChanged;
-
+		unsigned int mlVertexHandle;
+		// Packed CPU editing arrays, gathered into one interleaved GPU upload.
 		tFloatVec mvVertexArray[klNumOfVertexFlags];
-
-		unsigned int mvArrayHandle[klNumOfVertexFlags];
+		tFloatVec mvInterleaved;
+		int mvOffsets[klNumOfVertexFlags] = {};
+		int mlStride = 0; // floats
 
 		tUIntVec mvIndexArray;
 

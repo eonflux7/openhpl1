@@ -165,6 +165,22 @@ if(BUILD_TESTING)
 	add_test(NAME engine_regressions COMMAND engine_regressions)
 	set_tests_properties(engine_regressions PROPERTIES
 		ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
+	# Real GL storage/sampling checks without a window or game data.
+	if(UNIX AND NOT APPLE)
+		find_path(OVERTURE_EGL_INCLUDE_DIR EGL/egl.h)
+		find_library(OVERTURE_EGL_LIBRARY EGL)
+		if(OVERTURE_EGL_INCLUDE_DIR AND OVERTURE_EGL_LIBRARY)
+			add_executable(renderer_storage tests/renderer_storage.cpp)
+			target_link_libraries(renderer_storage PRIVATE hpl ${OVERTURE_EGL_LIBRARY})
+			target_include_directories(renderer_storage PRIVATE ${OVERTURE_EGL_INCLUDE_DIR})
+			target_compile_definitions(renderer_storage PRIVATE
+				OVERTURE_TEST_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+			overture_warnings(renderer_storage)
+			add_test(NAME renderer_storage COMMAND renderer_storage)
+			set_tests_properties(renderer_storage PROPERTIES SKIP_RETURN_CODE 77
+				ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;UBSAN_OPTIONS=halt_on_error=1")
+		endif()
+	endif()
 endif()
 # The reference image viewpoints are read from, and saved to, the source tree
 target_compile_definitions(overture PRIVATE

@@ -18,11 +18,17 @@ executable. It boots, plays the intro and menus and loads levels at full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
-Renderer cleanup is through **Milestone 6, step 7**: a shared triangle
-sprite batcher draws the HUD, GUI, bitmap fonts, fades and loading/story
-overlays. Batches carry their texture and blend state; equal-depth sprites retain submission order.
-Linked programs use GLSL names and defines, material values live in uniform
-blocks, and draws supply model, view and projection together.
+Renderer cleanup is through **Milestone 6, step 8**: mesh vertices upload
+interleaved into one buffer, surface geometry uses triangle indices, and
+UVs and tangents have named attributes. Textures use immutable storage;
+animation frames occupy layers of one texture array. The shared triangle
+sprite batcher retains submission order at equal depth, including keypad
+panels over inventory borders. Linked programs keep material values in
+uniform blocks and draw matrices travel together.
+
+OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
+`GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing
+storage support is reported at startup.
 
 ## What's different from the original
 
@@ -63,6 +69,13 @@ cmake --build --preset default
 This produces `build/overture`, with the shaders copied to `build/shaders/`.
 Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
 AddressSanitizer and UBSan; needs `libasan libubsan`).
+
+Run the engine checks with `ctest --test-dir build --output-on-failure`.
+With EGL headers/library installed, this also builds `renderer_storage`,
+which tests immutable textures, animation sampling and shader reloads on a
+surfaceless software GL context. These checks need neither game data nor
+gamescope; CTest reports a skip if that GL context is unavailable.
+
 
 Static analysis uses `clang-tools-extra`. `cmake --build build --target tidy`
 runs the checks in `.clang-tidy` over the engine and game sources, and
@@ -218,15 +231,16 @@ possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
 scripted light sequences are timed partly by sounds. Their differences are
 listed as "unstable" and do not count.
 
-Step 7 passes the Linux build and engine regressions and the Windows build
-(the Windows kit disables CTest targets under MSVC). The batcher-only stage
-matches all 95 fresh baseline frames. Final Windows comparisons match
-94/95 default, 92/95 motion-blur and 29/31 Render Scale 1.5 with 4× FSAA
-frames at unchanged tolerances. The differences are the intentional keypad
-ordering correction and the known ice-cave variation: equal-Z inventory
-borders now stay beneath the keypad. All 29 effects-lab frames, pixel
-checks and live transitions pass, including a run with OpenGL debug output.
-See `CHANGES.md` for the implementation and results.
+Step 8 passes the Linux build and both CTest suites, including real GL
+storage/sampling and shader-reload checks on Mesa llvmpipe. The separate
+Windows kit passes its MSVC build (CTest targets are disabled there).
+The vertex-only stage matches all 95 step 7 frames. Final Windows
+comparisons match 93/95 default, 95/95 motion-blur and 29/31 Render Scale
+1.5 with 4× FSAA frames at unchanged tolerances. Only the known ice-cave
+variation differs; all 2D frames preserve the step 7 keypad correction.
+All 29 effects-lab frames, pixel checks and live transitions pass. Motion
+blur and effects captures also pass with GL debug output enabled.
+See [CHANGES.md](CHANGES.md) for the implementation and results.
 
 To look at those places yourself, press F2 in the game (or start it with
 `OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
@@ -298,7 +312,8 @@ saves.
 
 ## Requirements
 
-- OpenGL 3.3 core profile; any GPU from the last decade
+- OpenGL 4.3 core, or 3.3 core with `GL_ARB_texture_storage` and
+  `GL_ARB_texture_storage_multisample`
 - Linux on x86-64 (Windows support is planned)
 
 ## Repository layout

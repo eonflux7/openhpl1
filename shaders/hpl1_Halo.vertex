@@ -62,7 +62,7 @@ void main()
 {
 	gl_Position = worldViewProj * hpl_Vertex;
 
-	vUv = hpl_MultiTexCoord0.xy;
+	vUv = hpl_TexCoord.xy;
 	vFogUv = (fogRange.y - gl_Position.z) / (fogRange.y - fogRange.x);
 
 	float fVisible = haloParams.y > 0.5 ? Visible() : 1.0;

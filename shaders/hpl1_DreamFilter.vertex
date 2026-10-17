@@ -12,5 +12,5 @@ void main()
 {
 	gl_Position = worldViewProj * hpl_Vertex;
 	vColor = clamp(hpl_Color, 0.0, 1.0);
-	vUv = hpl_MultiTexCoord0.xy;
+	vUv = hpl_TexCoord.xy;
 }

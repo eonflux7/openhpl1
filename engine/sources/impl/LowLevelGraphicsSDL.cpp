@@ -124,6 +124,7 @@ namespace hpl {
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
 		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
+		case eTextureTarget_2DArray: return GL_TEXTURE_2D_ARRAY;
 		}
 		return 0;
 	}
@@ -349,9 +350,8 @@ namespace hpl {
 		}
 
 		// The newest version there is: some drivers give exactly the one
-		// asked for. 3.3 is what the renderer needs (with separate shader
-		// objects as an extension before 4.1).
-		static const int vVersions[][2] = {{4,6}, {4,5}, {4,3}, {4,1}, {3,3}};
+		// asked for. GL 3.3 needs the ARB immutable-storage extensions.
+		static const int vVersions[][2] = {{4,6}, {4,5}, {4,3}, {4,2}, {4,1}, {3,3}};
 		for(const int *pVersion : vVersions)
 		{
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, pVersion[0]);
@@ -383,6 +383,20 @@ namespace hpl {
 		Log("  OpenGL %d.%d core: %s / %s\n", GLAD_VERSION_MAJOR(lGLVersion), GLAD_VERSION_MINOR(lGLVersion),
 			(const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER));
 
+		// The generated loader loads these with core 4.2/4.3 only. The ARB
+		// extensions use the same names and also work on a 3.3 core context.
+		if(!GLAD_GL_VERSION_4_2 && SDL_GL_ExtensionSupported("GL_ARB_texture_storage")) {
+			glad_glTexStorage1D = (PFNGLTEXSTORAGE1DPROC)SDL_GL_GetProcAddress("glTexStorage1D");
+			glad_glTexStorage2D = (PFNGLTEXSTORAGE2DPROC)SDL_GL_GetProcAddress("glTexStorage2D");
+			glad_glTexStorage3D = (PFNGLTEXSTORAGE3DPROC)SDL_GL_GetProcAddress("glTexStorage3D");
+		}
+		if(!GLAD_GL_VERSION_4_3 && SDL_GL_ExtensionSupported("GL_ARB_texture_storage_multisample"))
+			glad_glTexStorage2DMultisample = (PFNGLTEXSTORAGE2DMULTISAMPLEPROC)SDL_GL_GetProcAddress("glTexStorage2DMultisample");
+		if(!glTexStorage1D || !glTexStorage2D || !glTexStorage3D || !glTexStorage2DMultisample) {
+			FatalError("Immutable textures require OpenGL 4.3 or OpenGL 3.3 with ARB_texture_storage and ARB_texture_storage_multisample.\n");
+			return false;
+		}
+
 		if(bGLDebug && GLAD_GL_KHR_debug)
 		{
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -394,7 +408,7 @@ namespace hpl {
 
 		if(!cGLSLProgram::InitPrograms(this))
 		{
-			FatalError("OpenGL 4.1 or GL_ARB_separate_shader_objects is required!\n");
+			FatalError("Could not initialize linked shader programs.\n");
 			return false;
 		}
 
@@ -1015,6 +1029,18 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cLowLevelGraphicsSDL::TextureStorageChanged(iTexture* apTex)
+	{
+		GLint active = GL_TEXTURE0;
+		glGetIntegerv(GL_ACTIVE_TEXTURE, &active);
+		for(unsigned int unit=0; unit<MAX_TEXTUREUNITS; ++unit) {
+			if(mpCurrentTexture[unit] != apTex) continue;
+			glActiveTexture(GL_TEXTURE0 + unit);
+			glBindTexture(TextureTargetToGL(apTex->GetTarget()), static_cast<cSDLTexture*>(apTex)->GetTextureHandle());
+		}
+		glActiveTexture(active);
+	}
+
 	void cLowLevelGraphicsSDL::ForgetTexture(iTexture* apTex)
 	{
 		for(unsigned int lUnit=0; lUnit<MAX_TEXTUREUNITS; lUnit++)
@@ -1093,8 +1119,7 @@ namespace hpl {
 		GLuint lTex = 0;
 		glGenTextures(1, &lTex);
 		glBindTexture(GL_TEXTURE_2D, lTex);
-		glTexImage2D(GL_TEXTURE_2D, 0, aFormat, alW, alH, 0, GL_RGBA,
-						aFormat == GL_RGBA8 ? GL_UNSIGNED_BYTE : GL_FLOAT, nullptr);
+		glTexStorage2D(GL_TEXTURE_2D, 1, aFormat, alW, alH);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, aFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, aFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1116,8 +1141,7 @@ namespace hpl {
 		GLuint lTex = 0;
 		glGenTextures(1, &lTex);
 		glBindTexture(GL_TEXTURE_2D, lTex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, alW, alH, 0,
-						GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, alW, alH);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -1150,9 +1174,9 @@ namespace hpl {
 			glGenTextures(1, &mlSceneColor);
 			glGenTextures(1, &mlSceneDepthStencil);
 			glBindTexture(lTarget, mlSceneColor);
-			glTexImage2DMultisample(lTarget, mlMultisampling, kSceneColorFormat, lW, lH, GL_TRUE);
+			glTexStorage2DMultisample(lTarget, mlMultisampling, kSceneColorFormat, lW, lH, GL_TRUE);
 			glBindTexture(lTarget, mlSceneDepthStencil);
-			glTexImage2DMultisample(lTarget, mlMultisampling, GL_DEPTH24_STENCIL8, lW, lH, GL_TRUE);
+			glTexStorage2DMultisample(lTarget, mlMultisampling, GL_DEPTH24_STENCIL8, lW, lH, GL_TRUE);
 			glBindTexture(lTarget, 0);
 		}
 		else
@@ -1724,12 +1748,12 @@ namespace hpl {
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glViewport(avPos.x, avPos.y, avSize.x, avSize.y);
 
-		aPass.mpProgram->Apply();
+		bool ready = aPass.mpProgram->Apply();
 
 		// The vertex shader makes the triangle from the vertex numbers
 		mGpuProfiler.CountDraw(GL_TRIANGLES, 3);
 		BindVertexArray(mlEmptyVertexArray);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		if(ready) glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glUseProgram(lLastProgram);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, lLastMaterialBuffer);
@@ -2028,7 +2052,9 @@ namespace hpl {
 
 	void cLowLevelGraphicsSDL::SetRenderTarget(iTexture* pTex)
 	{
-		if(pTex == mpRenderTarget && (pTex == nullptr || mlTargetNum == 1)) return;
+		// A resized texture can have a new immutable storage handle even when
+		// the resource pointer is unchanged. Reattach it and update the viewport.
+		if(pTex == nullptr && mpRenderTarget == nullptr) return;
 		mpRenderTarget = pTex;
 		mbStateChanged = true;
 
@@ -2142,17 +2168,7 @@ namespace hpl {
 			glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit + i);
 			glBindTexture(lTarget, mvShadowMaps[lIdx]);
 		}
-		if(abCube)
-		{
-			for(int i=0; i<6; ++i)
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT24, alSize, alSize, 0,
-								GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, alSize, alSize, 0,
-							GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-		}
+		glTexStorage2D(lTarget, 1, GL_DEPTH_COMPONENT24, alSize, alSize);
 		glTexParameteri(lTarget, GL_TEXTURE_MAX_LEVEL, 0);
 		glActiveTexture(GL_TEXTURE0 + mlActiveTextureUnit);
 
@@ -2365,7 +2381,7 @@ namespace hpl {
 		SetTexture(0, apTexture);
 		SetBlendActive(aBlend.mbActive);
 		SetBlendFunc(aBlend.mSrc, aBlend.mDest);
-		PrepareDraw();
+		if(!PrepareDraw()) return;
 		mGpuProfiler.CountDraw(GL_TRIANGLES, (int)alCount);
 		BindVertexArray(mlStreamVertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, mlStreamVertexBuffer);
@@ -2374,7 +2390,7 @@ namespace hpl {
 		unsigned int arrays = 0;
 		StreamArray(arrays, cGLSLProgram::eVertexAttrib_Position, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, pos));
 		StreamArray(arrays, cGLSLProgram::eVertexAttrib_Color, 4, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, col));
-		StreamArray(arrays, cGLSLProgram::eVertexAttrib_TexCoord0, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, tex));
+		StreamArray(arrays, cGLSLProgram::eVertexAttrib_TexCoord, 3, sizeof(cSpriteVertex), offset + offsetof(cSpriteVertex, tex));
 		SetStreamArrays(arrays);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)alCount);
 	}
@@ -2386,7 +2402,7 @@ namespace hpl {
 		const int lVertices = (int)(mvImmediate.size() / lFloats);
 		if(lVertices == 0) return;
 
-		PrepareDraw();
+		if(!PrepareDraw()) return;
 		mGpuProfiler.CountDraw(aMode, lVertices);
 
 		BindVertexArray(mlStreamVertexArray);
@@ -2397,9 +2413,8 @@ namespace hpl {
 		unsigned int lArrays = 0;
 		StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Position, 3, lStride, lOffset);
 		StreamArray(lArrays, cGLSLProgram::eVertexAttrib_Color, 4, lStride, lOffset + 3*sizeof(float));
-		for(int i=0; i<mlImmediateTexUnits; ++i)
-			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord0 + i, 3, lStride,
-						lOffset + (7 + 3*i)*sizeof(float));
+		if(mlImmediateTexUnits)
+			StreamArray(lArrays, cGLSLProgram::eVertexAttrib_TexCoord, 3, lStride, lOffset + 7*sizeof(float));
 		SetStreamArrays(lArrays);
 
 		glDrawArrays(aMode, 0, lVertices);
@@ -2408,9 +2423,8 @@ namespace hpl {
 		// and glTexCoord: draws without those arrays get them.
 		const float *pLast = &mvImmediate[mvImmediate.size() - lFloats];
 		SetCurrentAttrib(cGLSLProgram::eVertexAttrib_Color, pLast[3], pLast[4], pLast[5], pLast[6]);
-		for(int i=0; i<mlImmediateTexUnits; ++i)
-			SetCurrentAttrib(cGLSLProgram::eVertexAttrib_TexCoord0 + i, pLast[7 + 3*i], pLast[8 + 3*i],
-							pLast[9 + 3*i], 1);
+		if(mlImmediateTexUnits)
+			SetCurrentAttrib(cGLSLProgram::eVertexAttrib_TexCoord, pLast[7], pLast[8], pLast[9], 1);
 	}
 
 	//-----------------------------------------------------------------------
@@ -2444,6 +2458,7 @@ namespace hpl {
 		case eTextureTarget_2D:		return GL_TEXTURE_2D;
 		case eTextureTarget_CubeMap:	return GL_TEXTURE_CUBE_MAP;
 		case eTextureTarget_3D:		return GL_TEXTURE_3D;
+		case eTextureTarget_2DArray: return GL_TEXTURE_2D_ARRAY;
 		}
 		return 0;
 	}
@@ -2503,16 +2518,22 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelGraphicsSDL::PrepareDraw()
+	bool cLowLevelGraphicsSDL::PrepareDraw()
 	{
 		cGLSLProgram* program = cGLSLProgram::GetBoundProgram();
 		if(!program){
 			eTextureTarget target = mpCurrentTexture[0] ? mpCurrentTexture[0]->GetTarget() : eTextureTarget_LastEnum;
-			program = target == eTextureTarget_2D ? mpDefaultTextureProgram :
+			program = (target == eTextureTarget_2D || target == eTextureTarget_2DArray) ? mpDefaultTextureProgram :
 				(target == eTextureTarget_CubeMap ? mpDefaultCubeProgram : mpDefaultProgram);
 		}
 		program->SetMatrixf(eProgramParam::worldViewProj, mDrawMatrices.GetModelViewProjection());
-		program->Apply();
+		unsigned int arrayMask = 0;
+		float layers[8] = {};
+		for(int i=0; i<8; ++i) if(mpCurrentTexture[i] && mpCurrentTexture[i]->GetTarget() == eTextureTarget_2DArray) {
+			arrayMask |= 1u << i;
+			layers[i] = static_cast<cSDLTexture*>(mpCurrentTexture[i])->GetAnimationFrame();
+		}
+		if(!program->Apply(arrayMask, layers)) return false;
 
 		if(mlCurrentAttribChanged)
 		{
@@ -2571,6 +2592,7 @@ namespace hpl {
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			mbStateChanged = false;
 		}
+		return true;
 	}
 
 	//-----------------------------------------------------------------------

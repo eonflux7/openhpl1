@@ -6,11 +6,11 @@
 // Values past white are kept for a floating point target
 #define HPL_NO_CLAMP
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 OUTPUT
 
 void main()
 {
-    outColor = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
+    outColor = hpl_TexelFetch0(ivec2(gl_FragCoord.xy), 0);
 }

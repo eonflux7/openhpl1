@@ -15,7 +15,7 @@ OUTPUT
 #if defined(CUBE)
 uniform samplerCube tex0;
 #elif defined(TEXTURE)
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 #endif
 
 void main()
@@ -23,7 +23,7 @@ void main()
 #if defined(CUBE)
 	outColor = clamp(vColor * texture(tex0, vUv), 0.0, 1.0);
 #elif defined(TEXTURE)
-	outColor = clamp(vColor * texture(tex0, vUv.xy), 0.0, 1.0);
+	outColor = clamp(vColor * hpl_Texture0(vUv.xy), 0.0, 1.0);
 #else
 	outColor = vColor;
 #endif

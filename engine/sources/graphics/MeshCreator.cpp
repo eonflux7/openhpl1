@@ -75,8 +75,8 @@ namespace hpl {
 	iVertexBuffer* cMeshCreator::CreateSkyBoxVertexBuffer(float afSize)
 	{
 		iVertexBuffer* pSkyBox = mpLowLevelGraphics->CreateVertexBuffer(
-										eVertexFlag_Color0 | eVertexFlag_Position | eVertexFlag_Texture0,
-										eVertexBufferDrawType_Quad,eVertexBufferUsageType_Static);
+										eVertexFlag_Color0 | eVertexFlag_Position | eVertexFlag_TexCoord,
+										eVertexBufferDrawType_Tri,eVertexBufferUsageType_Static);
 
 		float fSize = afSize;
 
@@ -125,13 +125,14 @@ namespace hpl {
 
 						pSkyBox->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
 						pSkyBox->AddVertex(eVertexFlag_Position, (vDir+vAdd[idx])*fSize);
-						pSkyBox->AddVertex(eVertexFlag_Texture0, vDir+vAdd[idx]);
+						pSkyBox->AddVertex(eVertexFlag_TexCoord, vDir+vAdd[idx]);
 
 						vSide = vDir+vAdd[idx];
 					}
 				}
 
-		for(int i=0;i<24;i++) pSkyBox->AddIndex(i);
+		for(int face=0; face<6; ++face)
+			for(int corner : {0,1,2,0,2,3}) pSkyBox->AddIndex(face*4 + corner);
 
 		if(!pSkyBox->Compile(0))
 		{
@@ -146,8 +147,8 @@ namespace hpl {
 	iVertexBuffer* cMeshCreator::CreateBoxVertexBuffer(cVector3f avSize)
 	{
 		iVertexBuffer* pBox = mpLowLevelGraphics->CreateVertexBuffer(
-			eVertexFlag_Color0 | eVertexFlag_Position | eVertexFlag_Texture0 |
-			eVertexFlag_Texture1 | eVertexFlag_Normal,
+			eVertexFlag_Color0 | eVertexFlag_Position | eVertexFlag_TexCoord |
+			eVertexFlag_Tangent | eVertexFlag_Normal,
 			eVertexBufferDrawType_Tri,eVertexBufferUsageType_Static);
 
 		avSize = avSize*0.5;
@@ -203,7 +204,7 @@ namespace hpl {
 
 						//texture coord
 						cVector3f vCoord = cVector3f((vTex.x+1)*0.5f,(vTex.y+1)*0.5f,0);
-						pBox->AddVertex(eVertexFlag_Texture0,vCoord);
+						pBox->AddVertex(eVertexFlag_TexCoord,vCoord);
 
 						vSide = vDir+vAdd[idx];
 					}

@@ -32,7 +32,7 @@ vec3 PlayerSample(vec2 uv)
 {
     // Clamp to pixel centres so a wide blur cannot wrap at an edge.
     uv = clamp(uv, sceneSize.zw * 0.5, 1.0 - sceneSize.zw * 0.5);
-    vec3 color = max(textureLod(tex0, uv, 0.0).rgb, 0.0);
+    vec3 color = max(hpl_TextureLod0(uv, 0.0).rgb, 0.0);
     if(tonemap.x > 0.5)
         color = pow(Tonemap(color * tonemap.y), vec3(1.0 / 2.2));
     return color;

@@ -345,6 +345,7 @@ namespace hpl {
 		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
 
 		TiXmlElement *pRootElem = CreateXMLChild(pXmlDoc,"ColladaCache");
+		pRootElem->SetAttribute("GeometryVersion", 2);
 
 		if(apColladaImageVec)		SaveImageVec(pRootElem,apColladaImageVec);
 		if(apColladaTextureVec)		SaveTextureVec(pRootElem,apColladaTextureVec);
@@ -947,6 +948,8 @@ namespace hpl {
 		{
 			TiXmlElement *pRootElem = pXmlDoc->RootElement();
 			if(!pRootElem || tString(pRootElem->Value()) != "ColladaCache") throw cInvalidColladaCache("invalid root");
+			if(apColladaGeometryVec && cString::ToInt(pRootElem->Attribute("GeometryVersion"), 0) != 2)
+				throw cInvalidColladaCache("geometry topology version");
 
 			if(apColladaImageVec)		LoadImageVec(pRootElem,apColladaImageVec);
 			if(apColladaTextureVec)		LoadTextureVec(pRootElem,apColladaTextureVec);

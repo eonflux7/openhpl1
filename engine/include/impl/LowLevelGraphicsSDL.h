@@ -142,7 +142,7 @@ namespace hpl {
 		 * default ones (hpl1_Default) for the stages without one, in the
 		 * program pipeline, and brings the shaders' state up to date.
 		 */
-		void PrepareDraw();
+		bool PrepareDraw();
 
 		/// Every draw binds its vertex array through this.
 		void BindVertexArray(GLuint alVertexArray);
@@ -216,6 +216,8 @@ namespace hpl {
 		void BindSampler(unsigned int alUnit, GLuint alSampler);
 		/// Called by a texture whose sampler is another one now.
 		void TextureSamplerChanged(iTexture* apTex);
+		/// Rebind an immutable texture whose storage object was replaced.
+		void TextureStorageChanged(iTexture* apTex);
 
 		// POLYGONS
 		iVertexBuffer* CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,

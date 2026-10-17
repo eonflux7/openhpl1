@@ -12,7 +12,7 @@
 // With ENCODE_ONLY the scene is only converted to screen values, pixel for
 // pixel: the picture that SMAA works on (hpl1_SMAA.fragment), which then
 // comes here as screen values to be scaled and to get its grain.
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 // x: 1 if the scene holds linear values, y: the exposure, z: where the
 // shoulder starts, w: the light that becomes white
 // x: 0 none, 1 noise, 2 film; y: strength; z: size of a grain in pixels;
@@ -178,7 +178,7 @@ vec3 SceneAverage(vec2 avPos, vec2 avScale)
         {
             edge = float(first.x + x);
             float shareX = max(min(high.x, edge + 1.0) - max(low.x, edge), 0.0);
-            sum += texelFetch(tex0, min(first + ivec2(x, y), last), 0).rgb * (shareX * shareY);
+            sum += hpl_TexelFetch0(min(first + ivec2(x, y), last), 0).rgb * (shareX * shareY);
         }
     }
     return sum / (avScale.x * avScale.y);
@@ -203,15 +203,15 @@ vec3 SceneCurve(vec2 avPos)
     vec2 uv3 = (middle + 2.0) * sceneSize.zw;
 
     vec3 sum =
-        (textureLod(tex0, vec2(uv0.x, uv0.y), 0.0).rgb * w0.x +
-         textureLod(tex0, vec2(uv12.x, uv0.y), 0.0).rgb * w12.x +
-         textureLod(tex0, vec2(uv3.x, uv0.y), 0.0).rgb * w3.x) * w0.y +
-        (textureLod(tex0, vec2(uv0.x, uv12.y), 0.0).rgb * w0.x +
-         textureLod(tex0, vec2(uv12.x, uv12.y), 0.0).rgb * w12.x +
-         textureLod(tex0, vec2(uv3.x, uv12.y), 0.0).rgb * w3.x) * w12.y +
-        (textureLod(tex0, vec2(uv0.x, uv3.y), 0.0).rgb * w0.x +
-         textureLod(tex0, vec2(uv12.x, uv3.y), 0.0).rgb * w12.x +
-         textureLod(tex0, vec2(uv3.x, uv3.y), 0.0).rgb * w3.x) * w3.y;
+        (hpl_TextureLod0(vec2(uv0.x, uv0.y), 0.0).rgb * w0.x +
+         hpl_TextureLod0(vec2(uv12.x, uv0.y), 0.0).rgb * w12.x +
+         hpl_TextureLod0(vec2(uv3.x, uv0.y), 0.0).rgb * w3.x) * w0.y +
+        (hpl_TextureLod0(vec2(uv0.x, uv12.y), 0.0).rgb * w0.x +
+         hpl_TextureLod0(vec2(uv12.x, uv12.y), 0.0).rgb * w12.x +
+         hpl_TextureLod0(vec2(uv3.x, uv12.y), 0.0).rgb * w3.x) * w12.y +
+        (hpl_TextureLod0(vec2(uv0.x, uv3.y), 0.0).rgb * w0.x +
+         hpl_TextureLod0(vec2(uv12.x, uv3.y), 0.0).rgb * w12.x +
+         hpl_TextureLod0(vec2(uv3.x, uv3.y), 0.0).rgb * w3.x) * w3.y;
     // The curve can dip under black next to something bright
     return max(sum, 0.0);
 }
@@ -221,7 +221,7 @@ vec3 SceneColor()
 {
     vec2 scale = sceneSize.xy * invOutputSize.xy;
     if(abs(scale.x - 1.0) < 0.001 && abs(scale.y - 1.0) < 0.001)
-        return texelFetch(tex0, ivec2(gl_FragCoord.xy), 0).rgb;
+        return hpl_TexelFetch0(ivec2(gl_FragCoord.xy), 0).rgb;
 
     vec2 pos = gl_FragCoord.xy * scale;
     return scale.x > 1.0 ? SceneAverage(pos, min(scale, 2.0)) : SceneCurve(pos);
@@ -235,7 +235,7 @@ vec3 SceneColor()
 
 void main()
 {
-    vec3 color = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0).rgb;
+    vec3 color = hpl_TexelFetch0(ivec2(gl_FragCoord.xy), 0).rgb;
     if(tonemap.x > 0.5) color = pow(Tonemap(max(color, 0.0) * tonemap.y), vec3(1.0 / 2.2));
     outColor = vec4(color, 1.0);
 }

@@ -18,13 +18,13 @@ in float vFogUv;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 uniform sampler1D tex1; //fogMap
 
 void main()
 {
 #if defined(MOD) || defined(MODX2)
-	vec4 diffuse = texture(tex0, vUv);
+	vec4 diffuse = hpl_Texture0(vUv);
 	float alpha = texture(tex1, vFogUv).a;
 	#ifdef MOD
 	outColor.xyz = diffuse.xyz * alpha + vec3(1.0 - alpha);
@@ -33,6 +33,6 @@ void main()
 	#endif
 	outColor.w = diffuse.w;
 #else
-	outColor = texture(tex0, vUv) * texture(tex1, vFogUv).r * vColor;
+	outColor = hpl_Texture0(vUv) * texture(tex1, vFogUv).r * vColor;
 #endif
 }

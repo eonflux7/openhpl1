@@ -68,7 +68,7 @@ float PixelBlur(ivec2 avPixel)
 //////////////////////////////////////////////////////////////////////////
 #if defined(PREFILTER)
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 void main()
 {
@@ -85,7 +85,7 @@ void main()
 	for(int i = 0; i < 4; ++i)
 	{
 		ivec2 pixel = min(start + ivec2(i & 1, i >> 1), last);
-		vec3 color = min(texelFetch(tex0, pixel, 0).rgb, 16.0);
+		vec3 color = min(hpl_TexelFetch0(pixel, 0).rgb, 16.0);
 		float weight = 1.0 / (1.0 + max(color.r, max(color.g, color.b)));
 		sum += color * weight;
 		weights += weight;
@@ -101,7 +101,7 @@ void main()
 //////////////////////////////////////////////////////////////////////////
 #elif defined(GATHER)
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 // In pixels of tex0: x: the radius of full blur; z: the radius of the most
 // blur there is now, which is as far as the samples go. y: rings of samples
@@ -152,10 +152,10 @@ void Gather(vec4 avSample, float afDist)
 
 void main()
 {
-	vec2 texel = 1.0 / vec2(textureSize(tex0, 0));
+	vec2 texel = 1.0 / vec2(hpl_TextureSize0(0));
 	vec2 uv = gl_FragCoord.xy * texel;
 
-	vec4 own = texture(tex0, uv);
+	vec4 own = hpl_Texture0(uv);
 	gOwnRadius = (own.a * 2.0 - 1.0) * disc.x;
 	Gather(own, 0.0);
 
@@ -173,7 +173,7 @@ void main()
 
 		for(int i = 0; i < samples; ++i)
 		{
-			Gather(texture(tex0, uv + dir * radius * texel), radius);
+			Gather(hpl_Texture0(uv + dir * radius * texel), radius);
 			dir = turn * dir;
 		}
 		count += float(samples);
@@ -200,29 +200,29 @@ void main()
 //////////////////////////////////////////////////////////////////////////
 #elif defined(FILL)
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 // Four samples between the pixels: a small tent over 3x3 of them.
 void main()
 {
-	vec2 texel = 1.0 / vec2(textureSize(tex0, 0));
+	vec2 texel = 1.0 / vec2(hpl_TextureSize0(0));
 	vec2 uv = gl_FragCoord.xy * texel;
 	vec2 h = texel * 0.5;
 
-	outColor = (texture(tex0, uv + vec2(-h.x, -h.y)) + texture(tex0, uv + vec2(h.x, -h.y)) +
-				texture(tex0, uv + vec2(-h.x, h.y)) + texture(tex0, uv + vec2(h.x, h.y))) * 0.25;
+	outColor = (hpl_Texture0(uv + vec2(-h.x, -h.y)) + hpl_Texture0(uv + vec2(h.x, -h.y)) +
+				hpl_Texture0(uv + vec2(-h.x, h.y)) + hpl_Texture0(uv + vec2(h.x, h.y))) * 0.25;
 }
 
 //////////////////////////////////////////////////////////////////////////
 #else
 
-uniform sampler2D tex0;
-uniform sampler2D tex1;
+HPL_TEXTURE_2D(0)
+HPL_TEXTURE_2D(1)
 
 void main()
 {
 	ivec2 pixel = ivec2(gl_FragCoord.xy);
-	vec4 blurred = texture(tex0, gl_FragCoord.xy * 0.5 / vec2(textureSize(tex0, 0)));
+	vec4 blurred = hpl_Texture0(gl_FragCoord.xy * 0.5 / vec2(hpl_TextureSize0(0)));
 
 	// The pixel's own blur decides, so that what is sharp keeps its edge
 	// against a blurred background: the blurred picture comes in
@@ -236,7 +236,7 @@ void main()
 	// In focus: the scene as it is
 	if(share <= 0.0) discard;
 
-	vec3 sharp = texelFetch(tex1, pixel, 0).rgb;
+	vec3 sharp = hpl_TexelFetch1(pixel, 0).rgb;
 	outColor = vec4(mix(sharp, blurred.rgb, share), 1.0);
 }
 

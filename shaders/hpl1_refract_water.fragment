@@ -16,9 +16,9 @@ in vec4 vColor;
 
 OUTPUT
 
-uniform sampler2D tex0; //screenMap, of the render size
-uniform sampler2D tex1; //refractMap
-uniform sampler2D tex2; //diffuseMap
+HPL_TEXTURE_2D(0) //screenMap, of the render size
+HPL_TEXTURE_2D(1) //refractMap
+HPL_TEXTURE_2D(2) //diffuseMap
 
 
 void main()
@@ -28,13 +28,13 @@ void main()
 	uv_offset1.x += sin(t*0.8 + vUv.y*10.0)*0.04;
 	uv_offset1.y += sin(t*0.8 + uv_offset1.x*10.0)*0.04;
 
-	vec3 offset1 = ((texture(tex1, uv_offset1)*2.0) - vec4(1.0)).xyz;
+	vec3 offset1 = ((hpl_Texture1(uv_offset1)*2.0) - vec4(1.0)).xyz;
 
 	vec2 uv_offset2 = vUv;
 	uv_offset2.x += sin(t*-2.6 + vUv.y*12.0)*0.03;
 	uv_offset2.y += sin(t*-2.6 + uv_offset2.x*12.0)*0.03;
 
-	vec3 offset2 = ((texture(tex1, uv_offset2)*2.0) - vec4(1.0)).xyz;
+	vec3 offset2 = ((hpl_Texture1(uv_offset2)*2.0) - vec4(1.0)).xyz;
 	offset2.xy = -offset2.xy;
 
 	vec3 offset = normalize(offset1*0.7 + offset2*0.3);
@@ -42,11 +42,11 @@ void main()
 	//float fresnel = saturate(dot(normalize(vEyePos), normalize(vNormal)));
 	//fresnel = (fresnel + 0.2)*0.8;
 
-	vec3 waterColor = texture(tex2, uv_offset1).xyz;
+	vec3 waterColor = hpl_Texture2(uv_offset1).xyz;
 
-	vec2 texel = 1.0 / vec2(textureSize(tex0, 0));
-	vec4 screenColor = texture(tex0, (gl_FragCoord.xy + offset.xy * -scale) * texel);
-	if(screenColor.w < 0.5) screenColor = texelFetch(tex0, ivec2(gl_FragCoord.xy), 0);
+	vec2 texel = 1.0 / vec2(hpl_TextureSize0(0));
+	vec4 screenColor = hpl_Texture0((gl_FragCoord.xy + offset.xy * -scale) * texel);
+	if(screenColor.w < 0.5) screenColor = hpl_TexelFetch0(ivec2(gl_FragCoord.xy), 0);
 
 	// The colouring below was made for screen values.
 	screenColor.xyz = hpl_ToEncoded(screenColor.xyz);

@@ -181,8 +181,8 @@ void main()
 //////////////////////////////////////////////////////////////////////////
 #elif defined(OCCLUSION)
 
-uniform sampler2D tex0;
-uniform sampler2D tex1;
+HPL_TEXTURE_2D(0)
+HPL_TEXTURE_2D(1)
 
 // x: how far occluders are looked for, in metres; y: the same as a share of
 // the picture's height, used instead when not 0; z: the distance at which
@@ -234,7 +234,7 @@ void main()
 	outColor = vec4(1.0, FAR_AWAY, 0.0, 1.0);
 	if(pixel.x >= size.x || pixel.y >= size.y) return;
 
-	float dist = texelFetch(tex0, inTile, 0).r;
+	float dist = hpl_TexelFetch0(inTile, 0).r;
 	outColor.g = dist;
 	if(dist >= FAR_AWAY) return;
 
@@ -259,7 +259,7 @@ void main()
 	fade = exp2(-fade * fade) * clamp((radiusPixels - float(TILES)) / float(TILES), 0.0, 1.0);
 	if(fade < 0.004) return;
 
-	vec3 normal = UnpackNormal(texelFetch(tex1, inTile, 0).rg);
+	vec3 normal = UnpackNormal(hpl_TexelFetch1(inTile, 0).rg);
 
 	// The direction a pixel of this tile is seen in, as x and y at a
 	// distance of 1, is its place in the tile x rayScale + rayBias (what
@@ -319,7 +319,7 @@ void main()
 				// Past the picture's edge, the pixel at the edge
 				vec2 tap = clamp(place + round(wayDir * far), vec2(0.0), tileLast);
 
-				vec3 delta = vec3(tap * rayScale + rayBias, 1.0) * texelFetch(tex0, ivec2(tap), 0).r - point;
+				vec3 delta = vec3(tap * rayScale + rayBias, 1.0) * hpl_TexelFetch0(ivec2(tap), 0).r - point;
 				float length2 = dot(delta, delta);
 				float tapCos = dot(delta, toEye) * inversesqrt(length2);
 
@@ -352,7 +352,7 @@ void main()
 //////////////////////////////////////////////////////////////////////////
 #else
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 // x: 1 when tex0 is in tiles; y: where the 4x4 window starts, relative to
 // the pixel (-2 or -1: two passes, one of each, are centred together);
@@ -360,7 +360,7 @@ uniform sampler2D tex0;
 
 vec2 Read(ivec2 avPixel)
 {
-	return texelFetch(tex0, window.x > 0.5 ? ToTiles(avPixel) : avPixel, 0).rg;
+	return hpl_TexelFetch0(window.x > 0.5 ? ToTiles(avPixel) : avPixel, 0).rg;
 }
 
 // The occlusion and the distance of a pixel, filtered.
@@ -413,7 +413,7 @@ uniform sampler2DMS hpl_SceneColor;
 #elif defined(SCENE)
 uniform sampler2D hpl_SceneColor;
 #else
-uniform sampler2D tex1;
+HPL_TEXTURE_2D(1)
 #endif
 
 // How much less brightly lit parts are darkened, 0 to 1 (0: the scene is
@@ -429,7 +429,7 @@ void main()
 #if defined(SCENE_MULTISAMPLE) || defined(SCENE)
 		vec3 scene = texelFetch(hpl_SceneColor, pixel, 0).rgb;
 #else
-		vec3 scene = texelFetch(tex1, pixel, 0).rgb;
+		vec3 scene = hpl_TexelFetch1(pixel, 0).rgb;
 #endif
 		float luma = dot(scene, vec3(0.3, 0.58, 0.12));
 		luma = pow(max(luma, 0.0), 1.0 / 2.2);

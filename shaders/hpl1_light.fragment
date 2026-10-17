@@ -28,28 +28,28 @@
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 #ifdef NORMAL_MAP
-uniform sampler2D tex1; //normalMap
+HPL_TEXTURE_2D(1) //normalMap
 #endif
 uniform sampler1D tex3; //falloffMap
 #ifdef SPOT
-uniform sampler2D tex4; //spotlightMap
+HPL_TEXTURE_2D(4) //spotlightMap
 #endif
 #ifdef SPECULAR_MAP
-uniform sampler2D tex6; //specularMap
+HPL_TEXTURE_2D(6) //specularMap
 #endif
 
 void main()
 {
 	vec3 shadowPlane = hpl_ShadowPlane(vShadowPos);
 
-	vec3 diffuse = texture(tex0, vUv).xyz;
+	vec3 diffuse = hpl_Texture0(vUv).xyz;
 	float attenuation = texture(tex3, dot(vLightDir,vLightDir)).x;
 	if(hpl_Light0.x > 0.5) attenuation = hpl_DistanceFalloff(dot(vLightDir,vLightDir));
 
 #ifdef NORMAL_MAP
-	vec4 bumpVec = texture(tex1, vUv);
+	vec4 bumpVec = hpl_Texture1(vUv);
 	vec3 surfaceNormal = 2.0*bumpVec.xyz - vec3(1.0);
 #else
 	vec3 surfaceNormal = vec3(0.0, 0.0, 1.0);
@@ -63,7 +63,7 @@ void main()
 	vec3 lit = diffuse * lightColor;
 
 #ifdef SPOT
-	vec4 spotColor = texture(tex4, vSpotlightUv.xy / vSpotlightUv.w);
+	vec4 spotColor = hpl_Texture4(vSpotlightUv.xy / vSpotlightUv.w);
 	if(hpl_Light1.x > 0.5) spotColor = hpl_Beam(vSpotlightUv.xy / vSpotlightUv.w);
 	// Nothing behind the light, over a short ramp as the two texels of
 	// the original's look-up texture gave
@@ -79,7 +79,7 @@ void main()
 
 #ifdef SPECULAR
 	#if defined(SPECULAR_MAP)
-	vec3 specularMap = texture(tex6, vUv).xyz;
+	vec3 specularMap = hpl_Texture6(vUv).xyz;
 	#elif defined(NORMAL_MAP)
 	vec3 specularMap = vec3(clamp(bumpVec.w, 0.0, 1.0));
 	#else

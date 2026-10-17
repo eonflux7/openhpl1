@@ -52,7 +52,7 @@ namespace hpl {
 	:iRenderable(asName),iParticleEmitter(avMaterials, alMaxParticles,avSize,apGraphics,apResources)
 	{
 		mpVtxBuffer = apGraphics->GetLowLevel()->CreateVertexBuffer(
-							eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0,
+							eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord,
 							eVertexBufferDrawType_Tri, eVertexBufferUsageType_Stream,
 							alMaxParticles*4, alMaxParticles*6);
 
@@ -67,10 +67,10 @@ namespace hpl {
 		//Fill with tetxure coords (will do for most particle systems)
 		for(int i=0;i<(int)alMaxParticles;i++)
 		{
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector3f(1,1,0));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector3f(0,1,0));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector3f(0,0,0));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, cVector3f(1,0,0));
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, cVector3f(1,1,0));
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, cVector3f(0,1,0));
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, cVector3f(0,0,0));
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, cVector3f(1,0,0));
 		}
 
 		//Set default values for pos and col
@@ -217,7 +217,7 @@ namespace hpl {
 			// SUB DIVISION SET UP
 				if(mvSubDivUV.size() > 1)
 				{
-					float *pTexArray = mpVtxBuffer->GetArray(eVertexFlag_Texture0);
+					float *pTexArray = mpVtxBuffer->GetArray(eVertexFlag_TexCoord);
 
 					for(int i=0;i<(int)mlNumOfParticles;i++)
 					{
@@ -473,7 +473,7 @@ namespace hpl {
 				//Update the vertex buffer data
 
 				if(mvSubDivUV.size() > 1)
-					mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0, false);
+					mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord, false);
 				else
 					mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Color0, false);
 

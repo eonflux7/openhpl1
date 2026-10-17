@@ -34,9 +34,9 @@
 // "Left" and "above" are the pixels at x - 1 and y - 1: the picture is
 // worked on upside down, which is all the same to it.
 
-uniform sampler2D tex0;
-uniform sampler2D tex1;
-uniform sampler2D tex2;
+HPL_TEXTURE_2D(0)
+HPL_TEXTURE_2D(1)
+HPL_TEXTURE_2D(2)
 							// w: 1 shows the edges, 2 the weights
 							// z: corner rounding in percent
 
@@ -64,7 +64,7 @@ ivec2 Pixel(ivec2 avPixel)
 
 vec3 Color(ivec2 avPixel)
 {
-	return texelFetch(tex0, Pixel(avPixel), 0).rgb;
+	return hpl_TexelFetch0(Pixel(avPixel), 0).rgb;
 }
 
 float Distance(ivec2 avPixel)
@@ -145,13 +145,13 @@ void main()
 	vec2 texcoord = gl_FragCoord.xy * smaaMetrics.xy;
 	if(smaaEdge.w > 1.5)
 	{
-		vec4 weights = textureLod(tex1, texcoord, 0.0);
+		vec4 weights = hpl_TextureLod1(texcoord, 0.0);
 		outColor = vec4(weights.rgb + weights.a, 1.0);
 		return;
 	}
 	if(smaaEdge.w > 0.5)
 	{
-		outColor = vec4(textureLod(tex2, texcoord, 0.0).rg, 0.0, 1.0);
+		outColor = vec4(hpl_TextureLod2(texcoord, 0.0).rg, 0.0, 1.0);
 		return;
 	}
 

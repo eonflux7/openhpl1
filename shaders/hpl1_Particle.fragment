@@ -15,7 +15,7 @@ in float vDistance;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 uniform sampler1D tex1; //fogMap
 
 						// y: 1 with fog; z: 1 when added to the scene,
@@ -23,7 +23,7 @@ uniform sampler1D tex1; //fogMap
 
 void main()
 {
-	vec4 vParticle = texture(tex0, vUv) * vColor;
+	vec4 vParticle = hpl_Texture0(vUv) * vColor;
 	if(partLook.y > 0.5) vParticle *= texture(tex1, vFogUv).r;
 
 	float fFade = 1.0;

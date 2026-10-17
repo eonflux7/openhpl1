@@ -43,6 +43,7 @@ namespace hpl {
 		eTextureTarget_2D,
 		eTextureTarget_CubeMap,
 		eTextureTarget_3D,
+		eTextureTarget_2DArray,
 		eTextureTarget_LastEnum
 	};
 

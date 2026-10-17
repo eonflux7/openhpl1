@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <glad/gl.h>
 
 // Inspect batch contents without a graphics context, as with the cache fixtures below.
 #define private public
@@ -48,6 +49,7 @@
 #include "ai/AINodeContainer.h"
 #include "graphics/SubMesh.h"
 #include "impl/MeshLoaderCollada.h"
+#include "impl/VertexBufferVBO.h"
 #include "impl/LowLevelSoundOpenAL.h"
 #include "resources/Resources.h"
 #include "scene/AnimationState.h"
@@ -91,7 +93,7 @@ public:
 	{
 		if(flag == eVertexFlag_Position) return positions.data();
 		if(flag == eVertexFlag_Normal) return normals.data();
-		if(flag == eVertexFlag_Texture1) return tangents.data();
+		if(flag == eVertexFlag_Tangent) return tangents.data();
 		throw std::runtime_error("unexpected vertex array");
 	}
 	unsigned* GetIndices() override { return nullptr; }
@@ -164,7 +166,7 @@ static void TestSkinning()
 	Check(Near(skinned[8], 39), "vertex after an unweighted vertex, with four influences");
 	Check(std::equal(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Normal) + 3,
 		subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Normal) + 6, buffer->normals.begin() + 3), "unweighted normal");
-	Check(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Texture1)[7] == -1, "unweighted tangent handedness");
+	Check(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Tangent)[7] == -1, "unweighted tangent handedness");
 }
 
 static void TestStrings()
@@ -323,6 +325,35 @@ static void TestDirectoryScan(const std::filesystem::path &directory)
 	Check(files.size() == 1, "empty directory name");
 }
 
+static void TestColladaPolygons()
+{
+	cMeshLoaderCollada loader(nullptr);
+	loader.mbZToY=false;
+	const std::string sources = R"(<root><geometry id="quad"><mesh>
+<source id="positions"><float_array>0 0 0 1 0 0 1 1 0 0 1 0</float_array><technique_common><accessor stride="3" count="4"/></technique_common></source>
+<source id="normals"><float_array>0 0 1</float_array><technique_common><accessor stride="3" count="1"/></technique_common></source>
+<source id="uv"><float_array>0 0 1 0 1 1 0 1</float_array><technique_common><accessor stride="2" count="4"/></technique_common></source>
+<vertices id="vertices"><input semantic="POSITION" source="#positions"/></vertices>)";
+	const std::string inputs = R"(<input semantic="VERTEX" source="#vertices" offset="0"/><input semantic="NORMAL" source="#normals" offset="1"/><input semantic="TEXCOORD" source="#uv" offset="2"/>)";
+	for(const char* type : {"polylist", "polygons"}) {
+		std::string xml = sources + "<" + type + " count=\"1\">" + inputs;
+		if(std::string(type)=="polylist") xml += "<vcount>4</vcount>";
+		xml += "<p>0 0 0 1 0 1 2 0 2 3 0 3</p></" + std::string(type) + "></mesh></geometry></root>";
+		TiXmlDocument document;document.Parse(xml.c_str());
+		tColladaGeometryVec geometry;cColladaScene scene;
+		loader.LoadGeometry(document.RootElement(),geometry,&scene);
+		Check(geometry.size()==1 && geometry[0].mvIndexVec.size()==6, "Collada quad becomes two triangles before caching");
+		const int corners[]={0,1,2,0,2,3};
+		const cVector3f positions[]={cVector3f(0,0,0),cVector3f(1,0,0),cVector3f(1,1,0),cVector3f(0,1,0)};
+		for(int i=0; i<6; ++i) {
+			const cVertex& vertex=geometry[0].mvVertexVec[geometry[0].mvIndexVec[i]];
+			Check(vertex.pos==positions[corners[i]], "Collada triangle winding and shared corners");
+			Check(vertex.tex.x==vertex.pos.x && vertex.tex.y==1-vertex.pos.y, "Collada corner UV indices retained");
+		}
+		Check(geometry[0].mvTangents.size()==geometry[0].mvVertexVec.size()*4, "triangulated geometry tangent layout");
+	}
+}
+
 static void TestColladaCache(const std::filesystem::path &directory)
 {
 	cMeshLoaderCollada loader(nullptr);
@@ -348,6 +379,12 @@ static void TestColladaCache(const std::filesystem::path &directory)
 	for(auto &pairs : controllers[0].mvPairs) pairs.push_back(cColladaJointPair(0,0));
 	Check(save() && load() && geometry[0].mvIndexVec.size() == 3 && controllers[0].mvPairs.size() == 3, "skinned geometry cache round trip");
 	TiXmlDocument document(file.c_str()); Check(document.LoadFile(), "read cache fixture");
+	auto savedGeometry=geometry; auto savedControllers=controllers;
+	document.RootElement()->RemoveAttribute("GeometryVersion");
+	Check(document.SaveFile() && !load(), "old polygon topology cache rejected");
+	geometry=savedGeometry; controllers=savedControllers;
+	Check(save() && load(), "rebuild topology cache");
+	Check(document.LoadFile(), "reread topology cache");
 	auto *pairs = document.RootElement()->FirstChildElement("ControllerRoot")->FirstChildElement()->FirstChildElement("PairVec");
 	pairs->FirstChildElement("PairNum")->FirstChild()->SetValue("4 1 1");
 	Check(document.SaveFile() && !load() && controllers.empty(), "Collada pair count overrun");
@@ -374,6 +411,51 @@ static void TestColladaCache(const std::filesystem::path &directory)
 	loader.SetCacheDir(directory.string() + "/");
 	Check(loader.FillStructures(source.string(), &images, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true), "invalid cache falls back to source DAE");
 	Check(loader.LoadStructures(cache.string(), &images, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr), "source import replaces invalid cache");
+}
+
+// Exercise the real upload path without a window. The CPU editing contract is
+// deliberately separate from the interleaved GPU layout.
+static void TestVertexUploads()
+{
+	auto gen = glad_glGenBuffers; auto del = glad_glDeleteBuffers;
+	auto bind = glad_glBindBuffer; auto data = glad_glBufferData;
+	glad_glGenBuffers = [](GLsizei n, GLuint* out) { static GLuint next=1; while(n--) *out++ = next++; };
+	glad_glDeleteBuffers = [](GLsizei, const GLuint*) {};
+	glad_glBindBuffer = [](GLenum, GLuint) {};
+	glad_glBufferData = [](GLenum, GLsizeiptr, const void*, GLenum) {};
+	{
+		const auto flags = eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_TexCoord | eVertexFlag_Color0;
+		cVertexBufferVBO buffer(nullptr, flags, eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic, 0, 0);
+		for(int v=0; v<3; ++v) {
+			buffer.AddVertex(eVertexFlag_Position, cVector3f(v==1, v==2, 0));
+			buffer.AddVertex(eVertexFlag_Normal, cVector3f(0,0,1));
+			buffer.AddVertex(eVertexFlag_TexCoord, cVector3f(v==1, v==2, 0));
+			buffer.AddColor(eVertexFlag_Color0, cColor(0.2f,0.3f,0.4f,0.5f));
+			buffer.AddIndex(v);
+		}
+		Check(buffer.Compile(eVertexCompileFlag_CreateTangents), "compile interleaved vertices with generated tangents");
+		Check(buffer.mlStride == 18 && buffer.mvInterleaved.size() == 54, "interleaved vertex stride");
+		auto verify = [&] {
+			for(int v=0; v<3; ++v) for(int i=0; i<klNumOfVertexFlags; ++i)
+				for(int c=0; c<kvVertexElements[i]; ++c)
+					Check(buffer.mvInterleaved[v*buffer.mlStride+buffer.mvOffsets[i]+c] ==
+						buffer.GetArray(kvVertexFlags[i])[v*kvVertexElements[i]+c], "all uploaded fields match packed editing arrays");
+		};
+		verify();
+		float* positions = buffer.GetArray(eVertexFlag_Position);
+		positions[4] = 7;
+		buffer.GetArray(eVertexFlag_Tangent)[7] = -1;
+		buffer.UpdateData(eVertexFlag_Position | eVertexFlag_Tangent, false);
+		Check(positions == buffer.GetArray(eVertexFlag_Position), "dynamic upload preserves editing pointers");
+		verify();
+		std::unique_ptr<iVertexBuffer> copy(buffer.CreateCopy(eVertexBufferUsageType_Stream));
+		Check(copy->GetArray(eVertexFlag_Tangent)[7] == -1 && copy->GetArray(eVertexFlag_Position)[4] == 7,
+			"mesh copy preserves positions and tangent handedness");
+		buffer.GetArray(eVertexFlag_Color0)[3] = 0.8f;
+		buffer.UpdateData(eVertexFlag_Color0, false); verify();
+		Check(copy->GetArray(eVertexFlag_Color0)[3] == 0.5f, "mesh copy owns independent editing data");
+	}
+	glad_glGenBuffers=gen; glad_glDeleteBuffers=del; glad_glBindBuffer=bind; glad_glBufferData=data;
 }
 
 class TestChannel : public iSoundChannel
@@ -593,7 +675,7 @@ int hplMain(const hpl::tString&)
 	{
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
-		TestProgramParameters(); TestDrawQueue(); TestSprites();
+		TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

@@ -1657,7 +1657,7 @@ namespace hpl {
 			}
 			if(mDebugFlags & eRendererDebugFlag_DrawTangents)
 			{
-				cVector3f vTan = pVtxBuffer->GetVector4(eVertexFlag_Texture1,i);
+				cVector3f vTan = pVtxBuffer->GetVector4(eVertexFlag_Tangent,i);
 
 				mpLowLevelGraphics->DrawLine(vPos,vPos+(vTan*0.2f),cColor(1,0.0f,0.0f,1));
 			}

@@ -48,11 +48,8 @@ namespace hpl{
 		"layout(location = 0) in vec4 hpl_Vertex;\n"
 		"layout(location = 1) in vec3 hpl_Normal;\n"
 		"layout(location = 2) in vec4 hpl_Color;\n"
-		"layout(location = 4) in vec4 hpl_MultiTexCoord0;\n"
-		"layout(location = 5) in vec4 hpl_MultiTexCoord1;\n"
-		"layout(location = 6) in vec4 hpl_MultiTexCoord2;\n"
-		"layout(location = 7) in vec4 hpl_MultiTexCoord3;\n"
-		"layout(location = 8) in vec4 hpl_MultiTexCoord4;\n";
+		"layout(location = 4) in vec4 hpl_TexCoord;\n"
+		"layout(location = 5) in vec4 hpl_Tangent;\n";
 
 	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =
@@ -280,14 +277,13 @@ namespace hpl{
 		if(mpBoundProgram == this) mpBoundProgram = nullptr;
 		msetPrograms.erase(this);
 
-		if(mlProgram){
-			// A deleted current program lives until the next glUseProgram.
-			// Unbind it now so a later link cannot try to restore that handle.
-			GLint current = 0;
-			glGetIntegerv(GL_CURRENT_PROGRAM, &current);
-			if(current == static_cast<GLint>(mlProgram)) glUseProgram(0);
-			glDeleteProgram(mlProgram);
+		GLint current = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+		for(auto& entry : mTextureVariants) {
+			if(current == (GLint)entry.second.handle) glUseProgram(0);
+			glDeleteProgram(entry.second.handle);
 		}
+
 		if(mlMaterialBuffer) glDeleteBuffers(1, &mlMaterialBuffer);
 	}
 
@@ -314,15 +310,29 @@ namespace hpl{
 
 	}
 
-	void cGLSLProgram::Apply()
+	bool cGLSLProgram::Apply(unsigned int alArrayMask, const float* apLayers)
 	{
-		glUseProgram(mlProgram);
+		alArrayMask &= mlSampler2DMask;
+		auto variant = mTextureVariants.find(alArrayMask);
+		if(variant == mTextureVariants.end()) {
+			std::vector<tString> files;
+			auto linked = LinkTextureVariant(alArrayMask, files);
+			WatchFiles(mvSources, files);
+			if(!linked.handle) return false;
+			variant = mTextureVariants.emplace(alArrayMask, linked).first;
+		}
+		if(!variant->second.handle) return false;
+		glUseProgram(variant->second.handle);
+		if(apLayers) for(int i=0; i<8; ++i)
+			if(variant->second.layers[i] >= 0) glUniform1f(variant->second.layers[i], apLayers[i]);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
-		if(!ParametersChanged()) return;
-		glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<unsigned>(eProgramParam::Count) * 16, GetParameterData());
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		ParametersUploaded();
+		if(ParametersChanged()) {
+			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<unsigned>(eProgramParam::Count) * 16, GetParameterData());
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			ParametersUploaded();
+		}
+		return true;
 	}
 
 	bool cGLSLProgram::ReloadChangedFiles()
@@ -386,15 +396,38 @@ namespace hpl{
 	// any, is kept.
 	bool cGLSLProgram::CompileProgram()
 	{
+		// Reload every used sampler layout as one transaction. A failed
+		// stage/include keeps the complete working set and material values.
+		std::map<unsigned int, cTextureVariant> replacements;
 		std::vector<tString> files;
-		GLuint program = CreateLinked(msBase, msDefines, mbState, msVertex, &files);
+		replacements[0] = LinkTextureVariant(0, files);
+		for(const auto& entry : mTextureVariants)
+			if(entry.first) replacements[entry.first] = LinkTextureVariant(entry.first, files);
 		WatchFiles(mvSources, files);
-		if(!program) return false;
+		bool valid = true;
+		for(const auto& entry : replacements) valid &= entry.second.handle != 0;
+		if(!valid) {
+			for(const auto& entry : replacements) if(entry.second.handle) glDeleteProgram(entry.second.handle);
+			return false;
+		}
 		GLint current = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &current);
-		if(mlProgram && current == static_cast<GLint>(mlProgram)) glUseProgram(program);
-		if(mlProgram) glDeleteProgram(mlProgram);
-		mlProgram = program;
+		for(const auto& entry : mTextureVariants) {
+			if(current == (GLint)entry.second.handle) glUseProgram(replacements[entry.first].handle);
+			glDeleteProgram(entry.second.handle);
+		}
+		mTextureVariants.swap(replacements);
+		mlProgram = mTextureVariants[0].handle;
+		mlSampler2DMask = 0;
+		GLint count = 0;
+		glGetProgramiv(mlProgram, GL_ACTIVE_UNIFORMS, &count);
+		for(GLint i=0; i<count; ++i) {
+			char name[128]; GLsizei length; GLint size; GLenum type;
+			glGetActiveUniform(mlProgram, i, sizeof(name), &length, &size, &type, name);
+			if(type == GL_SAMPLER_2D && length == 4 && tString(name, 3) == "tex" && name[3] >= '0' && name[3] <= '7')
+				mlSampler2DMask |= 1u << (name[3]-'0');
+		}
+
 		if(!mlMaterialBuffer){
 			glGenBuffers(1, &mlMaterialBuffer);
 			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
@@ -402,6 +435,20 @@ namespace hpl{
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
 		return true;
+	}
+
+	cGLSLProgram::cTextureVariant cGLSLProgram::LinkTextureVariant(unsigned int mask, std::vector<tString>& files)
+	{
+		tString defines = msDefines;
+		for(int i=0; i<8; ++i) if(mask & (1u << i)) defines += " HPL_ARRAY_" + std::to_string(i);
+		cTextureVariant variant;
+		std::vector<tString> sources;
+		variant.handle = CreateLinked(msBase, defines, mbState, msVertex, &sources);
+		files.insert(files.end(), sources.begin(), sources.end());
+		variant.layers.fill(-1);
+		if(variant.handle) for(int i=0; i<8; ++i)
+			variant.layers[i] = glGetUniformLocation(variant.handle, ("hpl_TextureLayer" + std::to_string(i)).c_str());
+		return variant;
 	}
 
 	// Adds avFiles (relative to the shader directory) to avWatched with
@@ -459,24 +506,7 @@ namespace hpl{
 		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
 		if(apTexture==nullptr) return true;
 
-		GLenum Target = GL_TEXTURE_2D;
-		switch(apTexture->GetTarget())
-		{
-		case eTextureTarget_1D:			Target = GL_TEXTURE_1D; break;
-		case eTextureTarget_2D:			Target = GL_TEXTURE_2D; break;
-		case eTextureTarget_CubeMap:	Target = GL_TEXTURE_CUBE_MAP; break;
-		case eTextureTarget_3D:			Target = GL_TEXTURE_3D; break;
-		default: break;
-		}
-
-		GLint lPrevUnit;
-		glGetIntegerv(GL_ACTIVE_TEXTURE, &lPrevUnit);
-		glActiveTexture(GL_TEXTURE0 + alUnit);
-		glBindTexture(Target, static_cast<cSDLTexture*>(apTexture)->GetTextureHandle());
-		glActiveTexture(lPrevUnit);
-		if(mpLowLevelGraphics)
-			static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->BindSampler(alUnit,
-												static_cast<cSDLTexture*>(apTexture)->GetSampler());
+		if(mpLowLevelGraphics) mpLowLevelGraphics->SetTexture(alUnit, apTexture);
 
 		return true;
 	}
@@ -501,7 +531,8 @@ namespace hpl{
 
 		// Source number 0 is the preamble above.
 		std::vector<tString> vFiles(1, "(preamble)");
-		bool bRead = ExpandIncludes(msShaderDir, "hpl1_material.glsl", vFiles, sSource, 0) &&
+		bool bRead = (aStage != GL_FRAGMENT_SHADER || ExpandIncludes(msShaderDir, "hpl1_texture.glsl", vFiles, sSource, 0)) &&
+			ExpandIncludes(msShaderDir, "hpl1_material.glsl", vFiles, sSource, 0) &&
 			ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0);
 		if(apFiles) apFiles->insert(apFiles->end(), vFiles.begin() + 1, vFiles.end());
 		if(!bRead) return 0;

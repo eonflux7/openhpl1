@@ -13,9 +13,9 @@ in vec2 vUv;
 
 OUTPUT
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 
 void main()
 {
-	outColor = clamp(vColor * texture(tex0, vUv), 0.0, 1.0);
+	outColor = clamp(vColor * hpl_Texture0(vUv), 0.0, 1.0);
 }

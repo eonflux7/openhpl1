@@ -14,9 +14,9 @@ in vec2 vUv;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap;
+HPL_TEXTURE_2D(0) //diffuseMap;
 
 void main()
 {
-	outColor = texture(tex0, vUv) * vColor;
+	outColor = hpl_Texture0(vUv) * vColor;
 }

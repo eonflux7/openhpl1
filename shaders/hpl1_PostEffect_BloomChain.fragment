@@ -17,12 +17,12 @@
 
 OUTPUT
 
-uniform sampler2D tex0;
+HPL_TEXTURE_2D(0)
 #ifdef PREFILTER
 // x: the light the bloom starts at, y: half the width of the soft start
 #endif
 #ifdef UP
-uniform sampler2D tex1;
+HPL_TEXTURE_2D(1)
 #endif
 // The vertex shader's companion is compiled without a variant, as this one.
 #if !defined(PREFILTER) && !defined(DOWN) && !defined(UP)
@@ -35,7 +35,7 @@ uniform sampler2D tex1;
 #if defined(PREFILTER) || defined(DOWN)
 vec3 Sample(vec2 avUv)
 {
-	vec3 c = texture(tex0, avUv).rgb;
+	vec3 c = hpl_Texture0(avUv).rgb;
 	#ifdef PREFILTER
 	// A few very bright pixels would flicker as they move
 	c = min(c, 16.0);
@@ -69,11 +69,11 @@ vec3 Downsample(vec2 avUv)
 vec3 Upsample(vec2 avUv)
 {
 	vec2 t = sourceTexel;
-	vec3 c = texture(tex0, avUv).rgb * 4.0;
-	c += (texture(tex0, avUv + t * vec2(-1, 0)).rgb + texture(tex0, avUv + t * vec2(1, 0)).rgb +
-		  texture(tex0, avUv + t * vec2(0, -1)).rgb + texture(tex0, avUv + t * vec2(0, 1)).rgb) * 2.0;
-	c += texture(tex0, avUv + t * vec2(-1, -1)).rgb + texture(tex0, avUv + t * vec2(1, -1)).rgb +
-		 texture(tex0, avUv + t * vec2(-1, 1)).rgb + texture(tex0, avUv + t * vec2(1, 1)).rgb;
+	vec3 c = hpl_Texture0(avUv).rgb * 4.0;
+	c += (hpl_Texture0(avUv + t * vec2(-1, 0)).rgb + hpl_Texture0(avUv + t * vec2(1, 0)).rgb +
+		  hpl_Texture0(avUv + t * vec2(0, -1)).rgb + hpl_Texture0(avUv + t * vec2(0, 1)).rgb) * 2.0;
+	c += hpl_Texture0(avUv + t * vec2(-1, -1)).rgb + hpl_Texture0(avUv + t * vec2(1, -1)).rgb +
+		 hpl_Texture0(avUv + t * vec2(-1, 1)).rgb + hpl_Texture0(avUv + t * vec2(1, 1)).rgb;
 	return c / 16.0;
 }
 #endif
@@ -96,7 +96,7 @@ void main()
 #elif defined(DOWN)
 	outColor = vec4(Downsample(uv), 0.0);
 #elif defined(UP)
-	outColor = vec4(mix(texture(tex1, uv).rgb, Upsample(uv), scatter), 0.0);
+	outColor = vec4(mix(hpl_Texture1(uv).rgb, Upsample(uv), scatter), 0.0);
 #else
 	outColor = vec4(Upsample(uv) * intensity, 0.0);
 #endif

@@ -25,7 +25,7 @@ void main()
 	// How far in front of the viewer
 	vDistance = gl_Position.w;
 
-	vUv = hpl_MultiTexCoord0.xy;
+	vUv = hpl_TexCoord.xy;
 	vFogUv = (fogRange.y - gl_Position.z) / (fogRange.y - fogRange.x);
 	vColor = clamp(hpl_Color, vec4(0.0), vec4(1.0));
 

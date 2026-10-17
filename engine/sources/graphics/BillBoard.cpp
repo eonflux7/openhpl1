@@ -76,7 +76,7 @@ namespace hpl {
 		mpMaterial = nullptr;
 
 		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
-								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0 |
+								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_TexCoord |
 								eVertexFlag_Normal,
 								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
 
@@ -94,7 +94,7 @@ namespace hpl {
 		{
 			mpVtxBuffer->AddVertex(eVertexFlag_Position, vCoords[i]);
 			mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, (vTexCoords[i] + cVector2f(1,1))/2 );
+			mpVtxBuffer->AddVertex(eVertexFlag_TexCoord, (vTexCoords[i] + cVector2f(1,1))/2 );
 			mpVtxBuffer->AddVertex(eVertexFlag_Normal,cVector3f(0,0,1));
 		}
 
