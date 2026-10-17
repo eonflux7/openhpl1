@@ -213,6 +213,10 @@
 	// platform and does not depend on AngelScript's native call support.
 	#define SCRIPT_REGISTER_FUNC(funcname) \
 		GenericScript::funcname##_return+" "#funcname" ("+GenericScript::funcname##_arg+")", (void *)GenericScript::funcname##_Generic, asCALL_GENERIC
+	// The same under another name in the scripts, for overloads: a function
+	// that takes more arguments in a later game.
+	#define SCRIPT_REGISTER_FUNC_AS(funcname, scriptname) \
+		GenericScript::funcname##_return+" " scriptname " ("+GenericScript::funcname##_arg+")", (void *)GenericScript::funcname##_Generic, asCALL_GENERIC
 
 namespace hpl {
 
@@ -240,6 +244,12 @@ namespace hpl {
 		virtual bool Run(const tString& asFuncLine)=0;
 
 		virtual bool Run(int alHandle)=0;
+
+		/**
+		 * For tests: a call of each of the script's functions whose arguments
+		 * are all strings or numbers, with empty strings and zeros.
+		 */
+		virtual void GetTestCalls(tStringVec &avCalls){}
 	};
 };
 #endif // HPL_SCRIPT_H

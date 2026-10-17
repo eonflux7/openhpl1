@@ -200,9 +200,8 @@ namespace hpl {
 		if (mbLogSounds)
 			Log("  Sound logging enabled\n");
 
-		// OpenAL Soft on every platform. The original Windows build opened the
-		// "Generic Hardware/Software" devices and used EFX; neither applies now.
-		cInitParams.mbUseEFX = false;
+		// OpenAL Soft uses the selected/default device and EFX on every platform.
+		cInitParams.mbUseEFX = abUseEnvAudio;
 
 		Log("  Trying to open audio device... ");
 
@@ -245,6 +244,23 @@ namespace hpl {
 //		for ( int i = 0; i < OAL_ gpDevice->GetExtensions->size(); ++i )
 //			Log(" \t%s\n", (*pDeviceInfo->vsExtensions)[i].c_str());
 
+		if (abUseEnvAudio)
+		{
+			mbEnvAudioEnabled = OAL_Info_IsEFXActive();
+			mpEffect = OAL_Effect_Reverb_Create();
+			if (mbEnvAudioEnabled && (mpEffect != NULL))
+			{
+				//SetSoundEnvironment(NULL);
+				OAL_EffectSlot_AttachEffect(0, (cOAL_Effect*)mpEffect);
+				OAL_EffectSlot_SetAutoAdjust(0, false);
+
+				SetEnvVolume(1.0f);
+
+				Log("  Setting up Environmental Audio...Success.\n");
+			}
+			else
+				Log("  Setting up Environmental Audio...Failed.\n");
+		}
 
 
 		//Default listener settings.

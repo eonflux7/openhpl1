@@ -27,7 +27,6 @@
 #include "system/SystemTypes.h"
 #include "scene/Entity3D.h"
 #include "graphics/Renderable.h"
-#include "math/MeshTypes.h"
 
 #include "scene/SubMeshEntity.h"
 

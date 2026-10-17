@@ -6,8 +6,8 @@
 
 #define position (hpl_Vertex)
 #define normal (hpl_Normal)
-#define uv (hpl_MultiTexCoord0.xy)
-#define tangent (hpl_MultiTexCoord1)
+#define uv (hpl_TexCoord.xy)
+#define tangent (hpl_Tangent)
 
 out vec2 vUv;
 out vec3 vWorldPos;
@@ -16,8 +16,6 @@ out vec3 vTangent;
 out vec3 vBinormal;
 out vec3 vNormal;
 
-uniform mat4 worldViewProj;
-uniform mat4 objectWorldMatrix;
 
 void main()
 {

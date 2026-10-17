@@ -11,12 +11,11 @@
 
 #define position (hpl_Vertex)
 #define color (hpl_Color)
-#define uv (hpl_MultiTexCoord0.xy)
+#define uv (hpl_TexCoord.xy)
 
 out vec4 vColor;
 out vec2 vUv;
 
-uniform mat4 worldViewProj;
 
 void main()
 {

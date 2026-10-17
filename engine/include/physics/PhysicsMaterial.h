@@ -79,6 +79,12 @@ namespace hpl {
 					mbPreloaded(false){}
 		virtual ~iPhysicsMaterial(){}
 
+		// Distance kept between bodies in contact, for materials made from now on.
+		// 0 (the default) lets resting bodies sink a little into what they rest
+		// on, which is how Overture is played; see cInit for the later games.
+		static void SetContactSkin(float afX){ mfContactSkin = afX; }
+		static float GetContactSkin(){ return mfContactSkin; }
+
 		const tString& GetName() const{ return msName;}
 
 		virtual void SetElasticity(float afElasticity)=0;
@@ -103,6 +109,7 @@ namespace hpl {
 		iPhysicsWorld *mpWorld;
 		tString msName;
 
+		static float mfContactSkin;
 		bool mbPreloaded;
 
 		cSurfaceData *mpSurfaceData;

@@ -51,7 +51,6 @@ namespace hpl {
 		mpVtxBuffer = nullptr;
 		mpParent = nullptr;
 
-		mbDoubleSided = false;
 
 		mpVertexWeights = nullptr;
 		mpVertexBones = nullptr;
@@ -239,7 +238,6 @@ namespace hpl {
 
 	void cSubMesh::CheckOneSided()
 	{
-		//Log("--- %s\n",GetName().c_str());
 
 		if(mpVtxBuffer==nullptr) return;
 
@@ -259,7 +257,6 @@ namespace hpl {
 
 		for(int i=0; i< lIdxNum; i+=3)
 		{
-			//Log("%d \n",i);
 
 			vTri[0] = pIndices[i+0];
 			vTri[1] = pIndices[i+1];
@@ -274,7 +271,6 @@ namespace hpl {
 
 			cVector3f vNormal = cMath::Vector3Normalize(cMath::Vector3Cross(vEdge2, vEdge1));
 
-			//Log(" normal: %s\n",vNormal.ToString().c_str());
 
 			if(bFirst)
 			{

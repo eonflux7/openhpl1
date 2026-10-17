@@ -11,16 +11,12 @@
 
 #define position (hpl_Vertex)
 #define color (hpl_Color)
-#define uv (hpl_MultiTexCoord0.xy)
+#define uv (hpl_TexCoord.xy)
 
 out vec4 vColor;
 out vec2 vUv;
 out float vFogUv;
 
-uniform mat4 worldViewProj;
-uniform float fogStart;
-uniform float fogEnd;
-uniform float timeCount;
 
 void main()
 {

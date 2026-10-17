@@ -8,16 +8,9 @@
 // as bright as that only where lamps or the flashlight reach them.
 // Shadows are not looked at: light goes through walls to them.
 
-uniform mat4 worldViewProj;
-uniform mat4 partToWorld;
-uniform vec2 fogRange;		// start and end
 
 const int kLights = 6;
-uniform vec4 partLightPos[kLights];		// xyz: place in the world, w: reach
-uniform vec4 partLightColor[kLights];	// rgb, times its brightness; w: the cosine
 										// of half a spotlight's cone, -2 for a point
-uniform vec4 partLightDir[kLights];		// xyz: where a spotlight points
-uniform vec4 partLight;		// x: number of lights, y: how much the light counts
 							// (0: the original's brightness), z: brightness
 							// with no light on them
 
@@ -32,7 +25,7 @@ void main()
 	// How far in front of the viewer
 	vDistance = gl_Position.w;
 
-	vUv = hpl_MultiTexCoord0.xy;
+	vUv = hpl_TexCoord.xy;
 	vFogUv = (fogRange.y - gl_Position.z) / (fogRange.y - fogRange.x);
 	vColor = clamp(hpl_Color, vec4(0.0), vec4(1.0));
 

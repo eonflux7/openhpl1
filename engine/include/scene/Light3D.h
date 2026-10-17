@@ -37,14 +37,6 @@ namespace hpl {
 		eLight3DType_LastEnum
 	};
 
-	enum eShadowVolumeType
-	{
-		eShadowVolumeType_None,
-		eShadowVolumeType_ZPass,
-		eShadowVolumeType_ZFail,
-		eShadowVolumeType_LastEnum,
-	};
-
 	class iLowLevelGraphics;
 	class cRenderSettings;
 	class cCamera3D;
@@ -169,8 +161,6 @@ namespace hpl {
 
 		cMatrixf* GetModelMatrix(cCamera3D* apCamera) override;
 
-		inline void RenderShadow(iRenderable *apObject,cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics);
-
 		void LoadXMLProperties(const tString asFile);
 
 		void AttachBillboard(cBillboard *apBillboard);
@@ -223,8 +213,6 @@ namespace hpl {
 
 		int mlSectorVisibilityCount;
 		cSectorVisibilityContainer *mpVisSectorCont;
-
-		unsigned int *mpIndexArray;
 	};
 
 	typedef std::list<iLight3D*> tLight3DList;

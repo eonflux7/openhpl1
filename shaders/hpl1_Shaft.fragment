@@ -18,17 +18,11 @@ in vec3 vLocalPos;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 uniform sampler1D tex1; //fogMap
 
 // All in the shaft's space
-uniform vec3 shaftEye;
-uniform vec4 shaftViewZ;	// distance in front of the viewer = dot(xyz, place) + w
-uniform vec4 shaftSize;		// x: radius, y: half the length
-uniform vec4 shaftColor;
-uniform vec4 shaftLook;		// x: brightness, y: how uneven the air is,
 							// z: 1 with fog
-uniform vec2 fogRange;		// start and end
 
 const int kSteps = 10;
 const float kMatch = 1.2;
@@ -108,7 +102,7 @@ void main()
 		float fAcross = min(length(vPos.xz) / fRadius, 1.0);
 		// One half of the picture and the other in turn
 		float fU = 0.5 + ((i & 1) == 0 ? 0.5 : -0.5) * fAcross;
-		vec3 vAir = textureLod(tex0, vec2(fU, vPos.y / (2.0 * fHalf) + 0.5), 0.0).rgb;
+		vec3 vAir = hpl_TextureLod0(vec2(fU, vPos.y / (2.0 * fHalf) + 0.5), 0.0).rgb;
 
 		// Streaks along the shaft that drift
 		float fDust = Noise(vec3(vPos.x * 7.0, vPos.y * 1.3 + fDrift, vPos.z * 7.0));

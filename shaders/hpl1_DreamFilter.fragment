@@ -1,0 +1,21 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The dream filter (see hpl1_DreamFilter.vertex): tex0, the copy of the
+// scene, times the vertex colour. Clamped to 0..1 as the default shader
+// that drew it before.
+
+// The copy holds linear values, as the scene does
+#define HPL_LINEAR_COLOR
+
+in vec4 vColor;
+in vec2 vUv;
+
+OUTPUT
+
+HPL_TEXTURE_2D(0)
+
+void main()
+{
+	outColor = clamp(vColor * hpl_Texture0(vUv), 0.0, 1.0);
+}

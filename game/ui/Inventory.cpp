@@ -126,6 +126,8 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	else
 		mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMelee,(mpInit) );
 	mvItemTypes[eGameItemType_Throw] = hplNew( cGameItemType_Throw,(mpInit) );
+	mvItemTypes[eGameItemType_GasMask] = hplNew( cGameItemType_GasMask,(mpInit) );
+	mvItemTypes[eGameItemType_Collectable] = hplNew( cGameItemType_Collectable,(mpInit) );
 
 	Reset();
 }
@@ -356,8 +358,33 @@ void cInventorySlot::OnMouseUp(eMButton aButton)
 			}
 			else
 			{
-				tString sCurrentItemName = mpInit->mpInventory->GetCurrentItem()->GetName();
-				if(mpInit->mpInventory->CheckCombineCallback(mpItem->GetName(),sCurrentItemName, mlIndex))
+				cInventoryItem *pCurrentItem = mpInit->mpInventory->GetCurrentItem();
+				tString sCurrentItemName = pCurrentItem->GetName();
+				tString sItemName = mpItem->GetName();
+
+				//Black Plague: the items' types may combine them themselves
+				//(a battery put in the flashlight), the script is asked too.
+				bool bShowMessage = true;
+				if(cInit::IsOverture()==false)
+				{
+					cGameItemType *pSlotType = mpInit->mpInventory->GetItemType(mpItem->GetItemType());
+					cGameItemType *pCurrentType = mpInit->mpInventory->GetItemType(pCurrentItem->GetItemType());
+					bool bCombined = pSlotType && pSlotType->OnCombine(mpItem, pCurrentItem, mlIndex);
+					if(	mpItem && mpInit->mpInventory->GetCurrentItem() && pCurrentType &&
+						pCurrentType->OnCombine(pCurrentItem, mpItem, mlIndex))
+					{
+						bCombined = true;
+					}
+					bShowMessage = bCombined==false;
+				}
+
+				if(mpItem==nullptr || mpInit->mpInventory->GetCurrentItem()==nullptr)
+				{
+					//One was used up by the combining; the other goes back
+					if(mpInit->mpInventory->GetCurrentItem())
+						mpInit->mpInventory->GetCurrentSlot()->SetItem(mpInit->mpInventory->GetCurrentItem());
+				}
+				else if(mpInit->mpInventory->CheckCombineCallback(sItemName,sCurrentItemName, mlIndex, bShowMessage))
 				{
 					//mpInit->mpInventory->RemoveItem(mpInit->mpInventory->GetCurrentItem());
 					if(mpInit->mpInventory->GetItem(sCurrentItemName))
@@ -608,8 +635,16 @@ cInventoryBattery::~cInventoryBattery()
 	mpDrawer->DestroyGfxObject(mpGfxBatteryMeterBar);
 }
 
+// Black Plague shows the meter only once the flashlight has been found
+bool cInventoryBattery::IsShown()
+{
+	return cInit::IsOverture() || mpInit->mpPlayer->mbHasFlashlight;
+}
+
 void cInventoryBattery::OnDraw()
 {
+	if(IsShown()==false) return;
+
 	cVector3f vPos = cVector3f(mRect.x, mRect.y, mfZ+1);
 	cVector2f vSize(mRect.w, mRect.h);
 	float fAlpha = mpInit->mpInventory->GetAlpha();
@@ -633,10 +668,42 @@ void cInventoryBattery::OnMouseOver()
 {
 	char sPercent[256];
 	sprintf(sPercent," %.0f%% ",mpInit->mpPlayer->GetPower());
-	mpInit->mpInventory->SetItemName(kTranslate("Inventory", "BatteryLevel"));
-	mpInit->mpInventory->SetItemDesc(	kTranslate("Inventory", "BatteryLevelDesc1") +
+
+	if(cInit::IsOverture())
+	{
+		mpInit->mpInventory->SetItemName(kTranslate("Inventory", "BatteryLevel"));
+		mpInit->mpInventory->SetItemDesc(	kTranslate("Inventory", "BatteryLevelDesc1") +
+											cString::To16Char(sPercent) +
+											kTranslate("Inventory", "BatteryLevelDesc2"));
+		return;
+	}
+
+	//Black Plague: the meter is the flashlight, and a battery can be put in it
+	if(IsShown()==false) return;
+
+	cInventoryItem *pCurrentItem = mpInit->mpInventory->GetCurrentItem();
+	if(pCurrentItem && pCurrentItem->GetItemType() == eGameItemType_Battery)
+	{
+		mpInit->mpInventory->SetItemName(kTranslate("Inventory", "BatteryOnFlashlight"));
+		mpInit->mpInventory->SetItemDesc(_W(""));
+		return;
+	}
+
+	mpInit->mpInventory->SetItemName(kTranslate("Inventory", "Flashlight"));
+	mpInit->mpInventory->SetItemDesc(	kTranslate("Inventory", "FlashlightDesc1") +
 										cString::To16Char(sPercent) +
-										kTranslate("Inventory", "BatteryLevelDesc2"));
+										kTranslate("Inventory", "FlashlightDesc2"));
+}
+
+void cInventoryBattery::OnMouseUp(eMButton aButton)
+{
+	//Black Plague: a battery dropped on the meter goes in the flashlight
+	if(cInit::IsOverture() || IsShown()==false || aButton != eMButton_Left) return;
+
+	cInventoryItem *pCurrentItem = mpInit->mpInventory->GetCurrentItem();
+	if(pCurrentItem==nullptr || pCurrentItem->GetItemType() != eGameItemType_Battery) return;
+
+	mpInit->mpInventory->GetItemType(eGameItemType_Battery)->OnAction(pCurrentItem, 0);
 }
 
 void cInventoryBattery::OnUpdate(float afTimeStep)
@@ -690,6 +757,17 @@ void cInventoryHealth::OnDraw()
 
 void cInventoryHealth::OnMouseOver()
 {
+	//Black Plague: with an item in hand it says what using it here does
+	cInventoryItem *pCurrentItem = mpInit->mpInventory->GetCurrentItem();
+	if(pCurrentItem && cInit::IsOverture()==false)
+	{
+		mpInit->mpInventory->SetItemName(_W(""));
+		mpInit->mpInventory->SetItemDesc(kTranslate("Inventory","Use") + _W(" ") +
+										pCurrentItem->GetGameName() + _W(" ") +
+										kTranslate("Inventory","on myself"));
+		return;
+	}
+
 	float fPercent = mpInit->mpPlayer->GetHealth()/100.0f;
 	tWString wsText;
 
@@ -1134,7 +1212,10 @@ void cInventory::OnDraw()
 	
 	//////////////////////////
 	//Draw text
-	if(mpInit->mpRadioHandler->IsActive()==false || mpInit->mbSubtitles==false)
+	//Black Plague: hidden only while radio text is shown (a far message has none)
+	bool bRadioText = cInit::IsOverture() ?	mpInit->mpRadioHandler->IsActive() && mpInit->mbSubtitles :
+											mpInit->mpRadioHandler->IsShowingText();
+	if(bRadioText==false)
 	{
 		float fTextAlpha = mfAlpha*mfTextAlpha * (1- mfMessageAlpha);
 		mpFont->Draw(cVector3f(400, 460,10),19,cColor(1,1,1,fTextAlpha),eFontAlign_Center,
@@ -1232,7 +1313,9 @@ void cInventory::AddItem(cGameItem *apGameItem)
 			}
 		}
 
-		if(pFoundItem)
+		//Black Plague: the item's type has a say first, else it is added as a new item
+		if(pFoundItem && (cInit::IsOverture() ||
+			GetItemType(pFoundItem->GetItemType())->OnPickUp(pFoundItem,true)))
 		{
 			pFoundItem->AddCount(apGameItem->GetCount());
 			CheckPickupCallback(apGameItem->GetName());
@@ -1281,7 +1364,15 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 	pItem->SetName(asName);
 	pItem->InitFromFile(asFile);
 
-	cGameItemType *pType = GetItemType(pItem->GetItemType());
+	//As Black Plague: an unknown type is an error, not a crash
+	int lType = pItem->GetItemType();
+	cGameItemType *pType = lType >= 0 && lType < (int)mvItemTypes.size() ? mvItemTypes[lType] : nullptr;
+	if(pType == nullptr)
+	{
+		Error("Item type %d does not exist!\n", lType);
+		hplDelete( pItem );
+		return;
+	}
 	if(pType->OnPickUp(pItem,false)==false)
 	{
 		CheckPickupCallback(pItem->GetName());
@@ -1717,7 +1808,8 @@ bool cInventory::CheckUseCallback(const tString &asItem, const tString &asObject
 
 //-----------------------------------------------------------------------
 
-bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asItem2, int alSlotIndex)
+bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asItem2, int alSlotIndex,
+										bool abShowMessage)
 {
 	cInventoryCombineCallback *pFinalCallback=nullptr;
 
@@ -1747,7 +1839,7 @@ bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asIt
 		mpInit->RunScriptCommand(sCommand);
 		return true;
 	}
-	else
+	else if(abShowMessage)
 	{
 		//SetActive(false);
 		tString sEntry = "CannotCombineItems" + cString::ToString(cMath::RandRectl(1,5));

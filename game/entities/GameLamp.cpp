@@ -108,6 +108,7 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 		pObject->mfFlickerOnMaxLength = cString::ToFloat(pGameElem->Attribute("FlickerOnMaxLength"),0);
 		pObject->mfFlickerOffMaxLength = cString::ToFloat(pGameElem->Attribute("FlickerOffMaxLength"),0);
 		pObject->mFlickerOffColor = cString::ToColor(pGameElem->Attribute("FlickerOffColor"),cColor(0,0));
+		pObject->mOffColor = cString::ToColor(pGameElem->Attribute("OffColor"),cColor(0,0));
 		pObject->mfFlickerOffRadius = cString::ToFloat(pGameElem->Attribute("FlickerOffRadius"),0);
 		pObject->mbFlickerFade = cString::ToBool(pGameElem->Attribute("FlickerFade"),0);
 		pObject->mfFlickerOnFadeLength = cString::ToFloat(pGameElem->Attribute("FlickerOnFadeLength"),0);
@@ -328,7 +329,12 @@ void cGameLamp::Update(float afTimeStep)
 	else if(mbLit==false && mfAlpha>0)
 	{
 		mfAlpha -= (1/mfTurnOffTime)*afTimeStep;
-		if(mfAlpha < 0) mfAlpha = 0;
+		if(mfAlpha < 0)
+		{
+			mfAlpha = 0;
+			if(mpSubMesh && mpOffMaterial && cInit::IsOverture()==false)
+				mpSubMesh->SetCustomMaterial(mpOffMaterial,false);
+		}
 		bChanged = true;
 	}
 	
@@ -350,7 +356,7 @@ void cGameLamp::Update(float afTimeStep)
 
 //-----------------------------------------------------------------------
 
-void cGameLamp::SetLit(bool abX, bool abFade)
+void cGameLamp::SetLit(bool abX, bool abFade, bool abRunCallback)
 {
 	if(mbLit == abX) return;
 
@@ -429,13 +435,15 @@ void cGameLamp::SetLit(bool abX, bool abFade)
 	{
 		for(size_t i=0; i<mvLights.size(); ++i) 
 		{
+			//Black Plague: an off colour (an indicator light) instead of dark
 			mvLights[i]->SetFlickerActive(false);
 			if(abFade)
-				mvLights[i]->FadeTo(cColor(0,0),mvLights[i]->GetFarAttenuation(),mfTurnOffTime);
+				mvLights[i]->FadeTo(mOffColor,mvLights[i]->GetFarAttenuation(),mfTurnOffTime);
 			else
 			{
-				mvLights[i]->SetVisible(false);
-				mvLights[i]->SetDiffuseColor(cColor(0,0));
+				if(mOffColor.r==0 && mOffColor.g==0 && mOffColor.b==0)
+					mvLights[i]->SetVisible(false);
+				mvLights[i]->SetDiffuseColor(mOffColor);
 			}
 		}
 		for(size_t i=0; i<mvParticleSystems.size(); ++i) 
@@ -458,7 +466,9 @@ void cGameLamp::SetLit(bool abX, bool abFade)
 			else
 				mvSoundEntities[i]->Stop(false);
 		}
-		if(mpSubMesh && mpOffMaterial) mpSubMesh->SetCustomMaterial(mpOffMaterial,false);
+		//Black Plague: when fading, the off material comes when the fade is over (Update)
+		if(mpSubMesh && mpOffMaterial && (abFade==false || cInit::IsOverture()))
+			mpSubMesh->SetCustomMaterial(mpOffMaterial,false);
 
         if(!abFade)mfAlpha = 0;
 
@@ -469,7 +479,7 @@ void cGameLamp::SetLit(bool abX, bool abFade)
 		}
 	}
 
-	if(msLitChangeCallback != "")
+	if(msLitChangeCallback != "" && abRunCallback)
 	{
 		tString sBool = mbLit ? "true" : "false";
 		tString sCommand = msLitChangeCallback + "("+sBool+")";
@@ -619,7 +629,8 @@ void cGameLamp::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	
 	kCopyFromVar(pData,msLitChangeCallback);
 
-	SetLit(pData->mbLit,false);
+	//Black Plague: loading a save does not run the script's callback
+	SetLit(pData->mbLit,false,cInit::IsOverture());
 	SetFlicker(pData->mbFlickering);
 }
 //-----------------------------------------------------------------------

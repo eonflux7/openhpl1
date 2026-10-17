@@ -260,6 +260,15 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mfSoundCount -= afTimeStep;
 	}
 
+	//////////////////////////////
+	//Black Plague: the script hears of the player being in reach
+	if(	mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < 1.5f &&
+		mpEnemy->GetOnAttackCallback() != "")
+	{
+		tString sCommand = mpEnemy->GetOnAttackCallback() + "(\""+mpEnemy->GetName()+"\")";
+		mpInit->RunScriptCommand(sCommand);
+	}
+
 
 	//////////////////////////////
 	//Attack sound count
@@ -433,12 +442,9 @@ void cGameEnemyState_Worm_Hunt::OnPostSceneDraw()
 
 	cVector3f vRot = cVector3f(0,mpMover->GetCharBody()->GetYaw(),0);
 	cMatrixf mtxOffset = cMath::MatrixRotate(vRot,eEulerRotationOrder_XYZ);
-	mtxOffset.SetTranslation(vPos);	
+	mtxOffset.SetTranslation(vPos);
 
-
-	cMatrixf mtxCollider = cMath::MatrixMul(pCamera->GetViewMatrix(),mtxOffset);
-
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,mtxCollider);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxOffset, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 	cVector3f vSize = mpEnemyWorm->GetAttackShape()->GetSize();
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vSize*0.5f,vSize*-0.5f,

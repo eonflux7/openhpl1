@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_Additive.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
@@ -40,9 +39,8 @@ namespace hpl {
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override
 		{
-			//apProgram->SetColor3f("fogColor",apRenderSettings->mFogColor);
-			apProgram->SetFloat("fogStart",apRenderSettings->mfFogStart);
-			apProgram->SetFloat("fogEnd",apRenderSettings->mfFogEnd);
+			apProgram->SetFloat(eProgramParam::fogStart,apRenderSettings->mfFogStart);
+			apProgram->SetFloat(eProgramParam::fogEnd,apRenderSettings->mfFogEnd);
 		}
 	};
 
@@ -58,26 +56,24 @@ namespace hpl {
 
 	cMaterial_Additive::cMaterial_Additive(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 					aPicture,apRenderer3D)
 	{
 		mbIsTransperant = true;
 		mbIsGlowing= false;
 		mbUsesLights = false;
 
-		mpFogVtxProg = mpProgramManager->CreateProgram("Fog_Trans_vp.cg","main",eGpuProgramType_Vertex);
 
-		mpFogFragProg = mpProgramManager->CreateProgram("Fog_Trans_Alpha_fp.cg","main",eGpuProgramType_Fragment);
+		mpFogProgram = mpProgramManager->CreateProgram("Fog_Trans");
 	}
 
 	//-----------------------------------------------------------------------
 
 	cMaterial_Additive::~cMaterial_Additive()
 	{
-		if(mpFogVtxProg) mpProgramManager->Destroy(mpFogVtxProg);
-		if(mpFogFragProg) mpProgramManager->Destroy(mpFogFragProg);
+		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -88,15 +84,15 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cMaterial_Additive::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iGpuProgram* cMaterial_Additive::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
-			return mpFogVtxProg;
+			return mpFogProgram;
 		else
 			return nullptr;
 	}
 
-	iMaterialProgramSetup* cMaterial_Additive::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iMaterialProgramSetup* cMaterial_Additive::GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
 			return &gFogProgramSetup;
@@ -105,23 +101,17 @@ namespace hpl {
 	}
 
 
-	bool cMaterial_Additive::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Additive::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	bool cMaterial_Additive::VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Additive::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	iGpuProgram* cMaterial_Additive::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		if(mpRenderSettings->mbFogActive)
-			return mpFogFragProg;
-		else
-			return nullptr;
-	}
+
 
 	eMaterialAlphaMode cMaterial_Additive::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{

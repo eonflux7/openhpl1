@@ -70,26 +70,17 @@ void cRefView::DrawPlayerEffects()
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	cPlayerEffectSettings settings = pLowLevel->GetPlayerEffectSettings();
 	bool bChanged = false;
-	int lMode = settings.mbImproved ? 1 : 0;
-	if(ImGui::Combo("Treatment", &lMode, "Original\0Improved\0"))
-	{
-		settings.mbImproved = lMode == 1;
-		bChanged = true;
-	}
-	ImGui::SameLine();
 	if(ImGui::Button("Reset##player-effects"))
 	{
 		settings = cPlayerEffectSettings();
 		bChanged = true;
 	}
 	ImGui::PushItemWidth(ImGui::GetFontSize() * 10);
-	ImGui::BeginDisabled(!settings.mbImproved);
 	bChanged |= ImGui::SliderFloat("Adaptation", &settings.mfAdaptationStrength, 0, 1, "%.2f");
 	bChanged |= ImGui::SliderFloat("Adaptation time", &settings.mfAdaptationTime, 0.3f, 5.0f, "%.1f s");
 	bChanged |= ImGui::SliderFloat("Injury", &settings.mfInjuryStrength, 0, 1, "%.2f");
 	bChanged |= ImGui::SliderFloat("Panic", &settings.mfPanicStrength, 0, 1, "%.2f");
 	bChanged |= ImGui::SliderFloat("Whiteout glow", &settings.mfWhiteoutGlow, 0, 1, "%.2f");
-	ImGui::EndDisabled();
 	if(bChanged) pLowLevel->SetPlayerEffectSettings(settings);
 
 	ImGui::Separator();
@@ -232,42 +223,12 @@ cPlayerEffectState cRefView::EffectPreviewState() const
 
 void cRefView::OnDraw()
 {
-	HoldCompareCamera();
 	if(mlEffectPreview == ePreview_None ||
 		mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default" ||
 		mpInit->mpGame->GetGraphics()->GetDrawer()->GetSkipDrawing()) return;
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	cPlayerEffectState state = EffectPreviewState();
 	pLowLevel->SetPlayerEffectState(state);
-	if(!pLowLevel->GetPlayerEffectSettings().mbImproved)
-		DrawLegacyEffectPreview(state);
-}
-
-void cRefView::DrawLegacyEffectPreview(const cPlayerEffectState &state)
-{
-	static const char *vFiles[] = {"player_in_shadow.jpg", "player_hurt.bmp", "player_hit_blood_splash.bmp",
-		"player_hit_ice.bmp", "player_death_fade.bmp", "player_death_black.bmp",
-		"effect_white.jpg", "effect_white.jpg", "effect_white.jpg"};
-	static const char *vMaterials[] = {"diffadditive2d", "diffalpha2d", "diffalpha2d", "diffalpha2d",
-		"smoke2d", "smoke2d", "diffalpha2d", "diffadditive2d", "smoke2d"};
-	cGraphicsDrawer *pDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
-	const cVector3f vPos = mpInit->mpGraphicsHelper->GetScreenPos();
-	const cVector2f vSize = mpInit->mpGraphicsHelper->GetScreenSize();
-	auto Draw = [&](int i, const cColor &color)
-	{
-		if(!mvLegacyPreviewGfx[i]) mvLegacyPreviewGfx[i] = pDrawer->CreateGfxObject(vFiles[i], vMaterials[i]);
-		if(mvLegacyPreviewGfx[i]) pDrawer->DrawGfxObject(mvLegacyPreviewGfx[i], vPos, vSize, color);
-	};
-	if(state.mfAdaptation > 0) Draw(0, cColor(state.mfAdaptation * 0.85f, state.mfAdaptation * 0.85f));
-	if(state.mfLowHealth > 0) Draw(1, cColor(1, state.mfLowHealth));
-	if(state.mfBloodHit > 0) Draw(2, cColor(1, state.mfBloodHit * 0.6f));
-	if(state.mfIceHit > 0) Draw(3, cColor(1, state.mfIceHit * 0.6f));
-	if(state.mfDeath > 0) Draw(4, cColor(state.mfDeath, 0));
-	if(state.mfDeathBlack > 0) Draw(5, cColor(state.mfDeathBlack, 0));
-	if(state.mfSave > 0) Draw(6, cColor(1, 1) * state.mfSave + cColor(0.847f, 0.333f, 0.02f, 0) * (1 - state.mfSave));
-	if(state.mfFlash > 0) Draw(7, cColor(1, state.mfFlash));
-	if(state.mfUnderwater > 0)
-		Draw(8, cColor(1 - state.mWaterColor.r, 1 - state.mWaterColor.g, 1 - state.mWaterColor.b, 0) * state.mfUnderwater);
 }
 
 void cRefView::UpdatePlayerEffects(float afTimeStep)
@@ -278,10 +239,10 @@ void cRefView::UpdatePlayerEffects(float afTimeStep)
 	cPlayer *pPlayer = mpInit->mpPlayer;
 	cEffectHandler *pEffects = mpInit->mpEffectHandler;
 	mfEffectPreviewClock += afTimeStep;
-	if(!msEffectsCapture.empty() && mlEffectsCaptureIndex >= ePreview_Last * 2 + 4 && mlEffectsCaptureIndex < ePreview_Last * 2 + 6)
-		mfEffectPreviewClock = mlEffectsCaptureIndex == ePreview_Last * 2 + 4 ? 0.0f : kPif / 4.6f;
-	if(!msEffectsCapture.empty() && mlEffectsCaptureIndex >= ePreview_Last * 2 + 9 && mlEffectsCaptureIndex < ePreview_Last * 2 + 11)
-		mfEffectPreviewClock = mlEffectsCaptureIndex == ePreview_Last * 2 + 9 ? 0.0f : kPif / 4.6f;
+	if(!msEffectsCapture.empty() && mlEffectsCaptureIndex >= ePreview_Last + 4 && mlEffectsCaptureIndex < ePreview_Last + 6)
+		mfEffectPreviewClock = mlEffectsCaptureIndex == ePreview_Last + 4 ? 0.0f : kPif / 4.6f;
+	if(!msEffectsCapture.empty() && mlEffectsCaptureIndex >= ePreview_Last + 9 && mlEffectsCaptureIndex < ePreview_Last + 11)
+		mfEffectPreviewClock = mlEffectsCaptureIndex == ePreview_Last + 9 ? 0.0f : kPif / 4.6f;
 	if(mlEffectAction != 0)
 	{
 		mlEffectPreview = ePreview_None;
@@ -342,47 +303,31 @@ void cRefView::UpdatePlayerEffects(float afTimeStep)
 		if(mfEffectBlackFade <= 0) mpInit->mpFadeHandler->FadeIn(0.6f);
 	}
 
-	// The original previews use the same projection changes and history
-	// pass as the game. Leaving a preview releases that history immediately.
+	// The previews change the view as the game does
 	cPlayerEffectState preview = EffectPreviewState();
-	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-	float fTrail = cMath::Max(preview.mfPanic * 0.8f, preview.mfDeath * 0.7f);
-	fTrail = cMath::Max(fTrail, cMath::Max(preview.mfBloodHit, preview.mfIceHit) * 0.92f);
-	fTrail = cMath::Max(fTrail, preview.mfSave * 0.8f);
-	bool bTrail = !pLowLevel->GetPlayerEffectSettings().mbImproved && mlEffectPreview != ePreview_None && fTrail > 0;
-	if(bTrail)
-	{
-		pPostEffects->SetPlayerImageTrailActive(true);
-		pPostEffects->SetPlayerImageTrailAmount(fTrail);
-	}
-	else if(mbLegacyPreviewTrail)
-		pPostEffects->SetPlayerImageTrailActive(false);
-	mbLegacyPreviewTrail = bTrail;
 	if(mlEffectPreview != ePreview_None)
 	{
 		cVector2f vScreen = pLowLevel->GetScreenSize();
-		bool bImproved = pLowLevel->GetPlayerEffectSettings().mbImproved;
-		pPlayer->GetCamera()->SetAspect(vScreen.x / vScreen.y * (bImproved ? 1.0f : 1.0f - preview.mfAdaptation * 0.18f));
-		pPlayer->GetCamera()->SetFOV(bImproved ? pPlayer->GetHidden()->GetFeedbackFOV(preview.mfAdaptation, preview.mfPanic, preview.mfPanicPulse) : cMath::ToRad(70 + preview.mfAdaptation * 8 - preview.mfPanic * 8));
+		pPlayer->GetCamera()->SetAspect(vScreen.x / vScreen.y);
+		pPlayer->GetCamera()->SetFOV(pPlayer->GetHidden()->GetFeedbackFOV(preview.mfAdaptation, preview.mfPanic, preview.mfPanicPulse));
 	}
 
 	if(msEffectsCapture.empty()) return;
 	if(mfEffectsCaptureHealth < 0) mfEffectsCaptureHealth = pPlayer->GetHealth();
-	// Fixed snapshots of every preview in each treatment, plus opaque
-	// endpoints and zero strength. No gameplay actions or save files.
-	const int lCases = ePreview_Last * 2 + 11;
+	// Fixed snapshots of every preview, plus opaque endpoints and zero
+	// strength. No gameplay actions or save files.
+	const int lCases = ePreview_Last + 11;
 	if(mlEffectsCaptureIndex >= lCases)
 	{
 		UpdateEffectsChecks();
 		return;
 	}
 	cPlayerEffectSettings settings = pLowLevel->GetPlayerEffectSettings();
-	settings.mbImproved = mlEffectsCaptureIndex >= ePreview_Last;
 	mlEffectPreview = mlEffectsCaptureIndex % ePreview_Last;
 	mfEffectPreviewAmount = 0.75f;
-	if(mlEffectsCaptureIndex >= ePreview_Last * 2)
+	if(mlEffectsCaptureIndex >= ePreview_Last)
 	{
-		int lEndpoint = mlEffectsCaptureIndex - ePreview_Last * 2;
+		int lEndpoint = mlEffectsCaptureIndex - ePreview_Last;
 		const int vEndpoints[] = {ePreview_Flash, ePreview_Save, ePreview_Death, ePreview_Combined, ePreview_Panic, ePreview_Panic,
 			ePreview_Blood, ePreview_Blood, ePreview_Blood, ePreview_DoubleVision, ePreview_DoubleVision};
 		mlEffectPreview = vEndpoints[lEndpoint];
@@ -392,28 +337,24 @@ void cRefView::UpdatePlayerEffects(float afTimeStep)
 		else if(lEndpoint == 3)
 			mfEffectPreviewAmount = 0.0f;
 	}
-	pLowLevel->SetPlayerEffectSettings(settings);
 	if(++mlEffectsCaptureFrame < 30) return;
 	if(mlEffectsCaptureFrame == 30)
 	{
-		if(settings.mbImproved)
-		{
-			cVector2f vSize = pLowLevel->GetScreenSize();
-			float fFov = pPlayer->GetCamera()->GetFOV();
-			CheckEffectsCapture(fabsf(pPlayer->GetCamera()->GetAspect() - vSize.x / vSize.y) < 0.0001f, "preview keeps aspect");
-			CheckEffectsCapture(fFov >= cMath::ToRad(63) && fFov <= cMath::ToRad(70.001f), "preview zoom remains subtle");
-			if(preview.mfAdaptation > 0 && settings.mfAdaptationStrength > 0)
-				CheckEffectsCapture(fFov < cMath::ToRad(70), "adaptation preview zooms in");
-			if(mlEffectsCaptureIndex == ePreview_Last * 2 + 4) mfEffectsCapturePanicFov = fFov;
-			if(mlEffectsCaptureIndex == ePreview_Last * 2 + 5)
-				CheckEffectsCapture(mfEffectsCapturePanicFov - fFov > cMath::ToRad(0.5f), "panic preview pulses FOV");
-		}
+		cVector2f vSize = pLowLevel->GetScreenSize();
+		float fFov = pPlayer->GetCamera()->GetFOV();
+		CheckEffectsCapture(fabsf(pPlayer->GetCamera()->GetAspect() - vSize.x / vSize.y) < 0.0001f, "preview keeps aspect");
+		CheckEffectsCapture(fFov >= cMath::ToRad(63) && fFov <= cMath::ToRad(70.001f), "preview zoom remains subtle");
+		if(preview.mfAdaptation > 0 && settings.mfAdaptationStrength > 0)
+			CheckEffectsCapture(fFov < cMath::ToRad(70), "adaptation preview zooms in");
+		if(mlEffectsCaptureIndex == ePreview_Last + 4) mfEffectsCapturePanicFov = fFov;
+		if(mlEffectsCaptureIndex == ePreview_Last + 5)
+			CheckEffectsCapture(mfEffectsCapturePanicFov - fFov > cMath::ToRad(0.5f), "panic preview pulses FOV");
 		CheckEffectsCapture(pPlayer->GetHealth() == mfEffectsCaptureHealth, "preview leaves health alone");
-		tString sName = settings.mbImproved ? "improved-" : "original-";
+		tString sName = "improved-";
 		sName += gvEffectFiles[mlEffectPreview];
-		if(mlEffectsCaptureIndex >= ePreview_Last * 2)
+		if(mlEffectsCaptureIndex >= ePreview_Last)
 		{
-			int lEndpoint = mlEffectsCaptureIndex - ePreview_Last * 2;
+			int lEndpoint = mlEffectsCaptureIndex - ePreview_Last;
 			if(lEndpoint == 4)
 				sName += "-trough";
 			else if(lEndpoint == 5)
@@ -443,13 +384,12 @@ void cRefView::CheckEffectsCapture(bool abCondition, const char *asMessage)
 }
 
 // Exercise real owners after the visual gallery: crouch in darkness,
-// switch treatments, take a harmless hit, and fade scripted fear in/out.
+// take a harmless hit, and fade scripted fear in/out.
 void cRefView::UpdateEffectsChecks()
 {
 	mlEffectPreview = ePreview_None;
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	cPlayer *pPlayer = mpInit->mpPlayer;
-	cPlayerEffectSettings settings = pLowLevel->GetPlayerEffectSettings();
 	float fAspect = pLowLevel->GetScreenSize().x / pLowLevel->GetScreenSize().y;
 	int lFrame = ++mlEffectsCheckFrame;
 	const cPlayerEffectState &state = pLowLevel->GetPlayerEffectState();
@@ -462,8 +402,6 @@ void cRefView::UpdateEffectsChecks()
 	switch(lFrame)
 	{
 		case 1:
-			settings.mbImproved = true;
-			pLowLevel->SetPlayerEffectSettings(settings);
 			pPlayer->GetCharacterBody()->SetFeetPosition(cVector3f(-4.5f, 0, -4.5f));
 			pPlayer->ChangeMoveState(ePlayerMoveState_Crouch);
 			break;
@@ -476,19 +414,10 @@ void cRefView::UpdateEffectsChecks()
 				"real adaptation uses subtle zoom");
 			pLowLevel->SaveNextFrameToPNG(msEffectsCapture + "/actual-adaptation.png");
 			break;
-		case 215:
-			settings.mbImproved = false;
-			pLowLevel->SetPlayerEffectSettings(settings);
-			break;
-		case 245:
-			CheckEffectsCapture(pPlayer->GetCamera()->GetAspect() < fAspect * 0.9f, "original adaptation retained");
-			settings.mbImproved = true;
-			pLowLevel->SetPlayerEffectSettings(settings);
-			break;
 		case 247:
 			CheckEffectsCapture(fabsf(pPlayer->GetCamera()->GetAspect() - fAspect) < 0.0001f &&
 					pPlayer->GetCamera()->GetFOV() < cMath::ToRad(70),
-				"treatment switch keeps aspect and adapted zoom");
+				"adaptation keeps aspect and zoom");
 			pPlayer->GetDamage()->Start(1.0f, ePlayerDamageType_BloodSplash);
 			mfEffectsCaptureBloodSeed = pPlayer->GetDamage()->GetBloodSeed();
 			break;
@@ -569,25 +498,9 @@ void cRefView::UpdateEffectsChecks()
 			break;
 		}
 		case 805:
-			CheckEffectsCapture(pPlayer->GetCamera()->GetFOV() > cMath::ToRad(65), "improved save keeps a comfortable FOV");
-			CheckEffectsCapture(!mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive(), "improved save replaces image trail with scene glow");
+			CheckEffectsCapture(pPlayer->GetCamera()->GetFOV() > cMath::ToRad(65), "save keeps a comfortable FOV");
 			CheckEffectsCapture(pLowLevel->GetPlayerEffectState().mfSave > 0, "save haze reaches shader");
 			pLowLevel->SaveNextFrameToPNG(msEffectsCapture + "/actual-save.png");
-			break;
-		case 806:
-			settings.mbImproved = false;
-			pLowLevel->SetPlayerEffectSettings(settings);
-			break;
-		case 807:
-			CheckEffectsCapture(pPlayer->GetCamera()->GetFOV() < cMath::ToRad(60), "original save zoom retained");
-			CheckEffectsCapture(mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive(), "original save trail retained");
-			settings.mbImproved = true;
-			pLowLevel->SetPlayerEffectSettings(settings);
-			break;
-		case 809:
-			CheckEffectsCapture(pPlayer->GetCamera()->GetFOV() > cMath::ToRad(65) &&
-					!mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive(),
-				"switching back during a save restores improved treatment");
 			break;
 		case 1070:
 		{
@@ -595,9 +508,8 @@ void cRefView::UpdateEffectsChecks()
 			CheckEffectsCapture(pSave && pSave->GetType() == eGameEntityType_SaveArea &&
 					static_cast<cGameSaveArea *>(pSave)->GetHasBeenUsed() && pPlayer->mlStat_NumOfSaves > 0,
 				"normal save completes and records the used save point");
-			CheckEffectsCapture(mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() == 0 &&
-					!mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive(),
-				"normal save clears its haze and trail");
+			CheckEffectsCapture(mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() == 0,
+				"normal save clears its haze");
 			mpInit->mpEffectHandler->GetSaveEffect()->AutoSave();
 			break;
 		}
@@ -607,28 +519,22 @@ void cRefView::UpdateEffectsChecks()
 		case 1210:
 			CheckEffectsCapture(mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() == 0, "automatic save haze clears");
 			{
-				settings.mbImproved = false;
-				pLowLevel->SetPlayerEffectSettings(settings);
 				iGameEntity *pSave = mpInit->mpMapHandler->GetGameEntity("savepoint");
 				if(pSave && pSave->GetType() == eGameEntityType_SaveArea)
 					mpInit->mpEffectHandler->GetSaveEffect()->NormalSave(cVector3f(-1.3f, 1.05f, -4.9f), static_cast<cGameSaveArea *>(pSave));
 				break;
 			}
 		case 1220:
-			CheckEffectsCapture(mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive() &&
-					mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() > 0,
-				"interrupted original save starts its trail and overlay");
+			CheckEffectsCapture(mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() > 0,
+				"interrupted save starts its haze");
 			mpInit->mpEffectHandler->GetSaveEffect()->Reset();
-			CheckEffectsCapture(!mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetImageTrailActive() &&
-					mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() == 0,
-				"save reset clears its trail and overlay");
+			CheckEffectsCapture(mpInit->mpEffectHandler->GetSaveEffect()->GetVisualAmount() == 0,
+				"save reset clears its haze");
 			pPlayer->SetActive(true);
 			pPlayer->GetLookAt()->SetActive(false);
-			settings.mbImproved = true;
-			pLowLevel->SetPlayerEffectSettings(settings);
 			break;
 		case 1225:
-			Log("EFFECTSHOTS: done, 41 frames and live effect checks, %d failure(s)\n", mbEffectsCaptureFailed ? 1 : 0);
+			Log("EFFECTSHOTS: done, 29 frames and live effect checks, %d failure(s)\n", mbEffectsCaptureFailed ? 1 : 0);
 			mpInit->mpGame->Exit();
 			break;
 		default:

@@ -57,9 +57,7 @@ cHapticGameCamera::cHapticGameCamera(cInit *apInit, cPlayer *apPlayer)
 	mpForce = apInit->mpGame->GetHaptic()->GetLowLevel()->CreateImpulseForce(0);
 	mpForce->SetForce(0);
 
-	mpVtxProgram = mpInit->mpGame->GetResources()->GetGpuProgramManager()->CreateProgram(
-												"Diffuse_Color_vp.cg","main",
-												eGpuProgramType_Vertex);
+	mpVtxProgram = mpInit->mpGame->GetResources()->GetGpuProgramManager()->CreateProgram("Diffuse_Color");
 
 	mpPlayer = apPlayer;
 
@@ -215,8 +213,7 @@ void cHapticGameCamera::OnPostSceneDraw()
 	if(	crossHairState != eCrossHairState_Inactive &&
 		crossHairState != eCrossHairState_None)
 	{
-		pLowGfx->SetMatrix(eMatrix_ModelView,cMath::MatrixMul(	pCam->GetViewMatrix(),
-																mpHandEntity->GetWorldMatrix()));
+		pLowGfx->SetDrawMatrices(mpHandEntity->GetWorldMatrix(), pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 		cSubMesh *pSubMesh = mpHandEntity->GetMesh()->GetSubMesh(0);
 		iVertexBuffer *pVtxBuff = pSubMesh->GetVertexBuffer();
 
@@ -227,8 +224,7 @@ void cHapticGameCamera::OnPostSceneDraw()
 		pLowGfx->SetTexture(0, pSubMesh->GetMaterial()->GetTexture(eMaterialTexture_Diffuse));
 
 		mpVtxProgram->Bind();
-		mpVtxProgram->SetMatrixf(	"worldViewProj",eGpuProgramMatrix_ViewProjection,
-									eGpuProgramMatrixOp_Identity);
+		mpVtxProgram->SetMatrixf(eProgramParam::worldViewProj, pLowGfx->GetDrawMatrices().GetModelViewProjection());
 
 		pVtxBuff->Bind();
 		pVtxBuff->Draw();

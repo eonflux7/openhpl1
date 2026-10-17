@@ -76,6 +76,9 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	mbShowHealth = mpInit->mpConfig->GetBool("Debug","ShowHealth",false);
 	mbShowSoundsPlaying = mpInit->mpConfig->GetBool("Debug","ShowSoundsPlaying",false);
 
+	mlStat_MaxNotes = mpInit->mpGameConfig->GetInt("Player","Not_M",10000);
+	mlStat_MaxCollectables = mpInit->mpGameConfig->GetInt("Player","Coll_M",10000);
+
 	mvSize.x = mpInit->mpGameConfig->GetFloat("Player","Width",1);
 	mvSize.y = mpInit->mpGameConfig->GetFloat("Player","Height",1);
 	mvSize.z = mvSize.x;
@@ -213,6 +216,7 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	mvMoveStates[ePlayerMoveState_Still] = hplNew( cPlayerMoveState_Still,(this,mpInit) );
 	mvMoveStates[ePlayerMoveState_Jump] = hplNew( cPlayerMoveState_Jump,(this,mpInit) );
 	mvMoveStates[ePlayerMoveState_Crouch] = hplNew( cPlayerMoveState_Crouch,(this,mpInit) );
+	mvMoveStates[ePlayerMoveState_Swim] = hplNew( cPlayerMoveState_Swim,(this,mpInit) );
 
 
 	/////////////////////////
@@ -344,6 +348,14 @@ void cPlayer::AddPower(float afX)
 	mfPower += afX;
 	if(mfPower > 100) mfPower =100;
 	if(mfPower < 0) mfPower =0;
+
+	//Black Plague: the script is told once when the power gets low
+	if(msLowPowerCallback != "" && mfPower < mfLowPowerVal)
+	{
+		tString sCommand = msLowPowerCallback + "()";
+		mpInit->RunScriptCommand(sCommand);
+		msLowPowerCallback = "";
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -751,8 +763,11 @@ void cPlayer::MoveForwards(float afMul,float afTimeStep)
 {
 	if(mvStates[mState]->OnMoveForwards(afMul,afTimeStep))
 	{
+		// Black Plague: the move state has a say, and a swimmer moves too
+		if(mvMoveStates[mMoveState]->OnMoveForwards(afMul,afTimeStep)==false) return;
+
 		//Only move if on ground
-		if(mlGroundCount<=0 || afMul==0) return;
+		if((mlGroundCount<=0 && mbUnderWater==false) || afMul==0) return;
 
 		mpCharBody->Move(eCharDir_Forward,afMul,afTimeStep);
 		mbMoving = true;
@@ -767,8 +782,10 @@ void cPlayer::MoveSideways(float afMul,float afTimeStep)
 {
 	if(mvStates[mState]->OnMoveSideways(afMul,afTimeStep))
 	{
+		if(mvMoveStates[mMoveState]->OnMoveSideways(afMul,afTimeStep)==false) return;
+
 		//Only move if on ground
-		if(mlGroundCount<=0 || afMul==0) return;
+		if((mlGroundCount<=0 && mbUnderWater==false) || afMul==0) return;
 
 		mpCharBody->Move(eCharDir_Right,afMul,afTimeStep);
 		mbMoving = true;
@@ -841,16 +858,39 @@ void cPlayer::StartHolster()
 	mvStates[mState]->OnStartHolster();
 }
 
+void cPlayer::StartRotate()
+{
+	mvStates[mState]->OnStartRotate();
+}
+
+void cPlayer::StopRotate()
+{
+	mvStates[mState]->OnStopRotate();
+}
+
 //-----------------------------------------------------------------------
 
 void cPlayer::Jump()
 {
-	if(mvStates[mState]->OnJump() && mlGroundCount >0)
+	if(mvStates[mState]->OnJump() && (mlGroundCount >0 || mbUnderWater) &&
+		mvMoveStates[mMoveState]->OnJump())
 	{
 		if(mvMoveStates[mMoveState]->mType != ePlayerMoveState_Jump)
 		{
 			ChangeMoveState(ePlayerMoveState_Jump);
 		}
+	}
+	mfJumpCount = 0;
+}
+
+// Black Plague: a jump from a ladder is a jump, as if from the ground
+void cPlayer::JumpOffLadder()
+{
+	mlGroundCount = 25;
+	if(	mvMoveStates[mMoveState]->OnJump() &&
+		mvMoveStates[mMoveState]->mType != ePlayerMoveState_Jump && mMoveState != ePlayerMoveState_Jump)
+	{
+		ChangeMoveState(ePlayerMoveState_Jump,false);
 	}
 	mfJumpCount = 0;
 }
@@ -874,6 +914,7 @@ void cPlayer::SetJumpButtonDown(bool abX)
 
 void cPlayer::StartRun()
 {
+	if(mbUnderWater) return;
 	mvStates[mState]->OnStartRun();
 }
 
@@ -881,6 +922,7 @@ void cPlayer::StartRun()
 
 void cPlayer::StopRun()
 {
+	if(mbUnderWater) return;
 	mvStates[mState]->OnStopRun();
 }
 
@@ -888,6 +930,7 @@ void cPlayer::StopRun()
 
 void cPlayer::StartCrouch()
 {
+	if(mbUnderWater) return;
 	mvStates[mState]->OnStartCrouch();
 }
 
@@ -895,6 +938,7 @@ void cPlayer::StartCrouch()
 
 void cPlayer::StopCrouch()
 {
+	if(mbUnderWater) return;
 	mvStates[mState]->OnStopCrouch();
 }
 
@@ -1018,6 +1062,13 @@ void cPlayer::OnWorldLoad()
 
 void cPlayer::OnWorldExit()
 {
+	if(mbUnderWater)
+	{
+		ChangeMoveState(ePlayerMoveState_Walk);
+		mbUnderWater = false;
+	}
+	mpInit->mpEffectHandler->GetUnderwater()->SetActive(false);
+
 	DestroyWorldObjects();
 	
 	mpGroundRayCallback->OnWorldExit();
@@ -1060,6 +1111,8 @@ cTempCheckProxy gTempCheckProxy;
 
 void cPlayer::Update(float afTimeStep)
 {
+	++mlStat_PlayTime;
+
 	cSystem *pSystem = mpInit->mpGame->GetSystem();
 	unsigned int lTime = pSystem->GetLowLevel()->GetTime();	
 	iPhysicsWorld *pPhysicsWorld = mpScene->GetWorld3D()->GetPhysicsWorld();
@@ -1373,6 +1426,9 @@ void cPlayer::SetViewFOV(float afDegrees)
 
 void cPlayer::Reset()
 {
+	//Black Plague: out of the water
+	if(mbUnderWater) ChangeMoveState(ePlayerMoveState_Walk,false);
+
 	//Camera
 	mpCamera->SetPitchLimits(cVector2f(cMath::ToRad(70),cMath::ToRad(-70) ));
 	mpCamera->SetYawLimits(0);
@@ -1392,6 +1448,16 @@ void cPlayer::Reset()
 	mfHealthSpeedMul = 1.0f;
 	mbActive = true;
 	mfPower =0;
+	msLowPowerCallback = "";
+	mfLowPowerVal = 0;
+	mbNoFallDamage = false;
+	mfOxygen = 100;
+	mlStat_Collectables = 0;
+	mbHasFlashlight = false;
+	mlStat_Notes = 0;
+	mlStat_PlayTime = 0;
+	mbUnderWater = false;
+	mfWaterSurfaceY = 0;
 
 	mfHeightAdd =0;
 
@@ -1764,7 +1830,7 @@ void cPlayer::OnPostSceneDraw()
 {
 	cCamera3D *pCam = static_cast<cCamera3D*>(mpScene->GetCamera());
 	iLowLevelGraphics *pLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	pLowGfx->SetMatrix(eMatrix_ModelView, pCam->GetViewMatrix());
+	pLowGfx->SetDrawMatrices(cMatrixf::Identity, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
 	pLowGfx->SetTexture(0,nullptr);
 	pLowGfx->SetBlendActive(false);
@@ -1833,6 +1899,40 @@ void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 
 //-------------------------------------------------------------------
 
+void cPlayer::SetIsUnderWater(bool abX)
+{
+	if(mbUnderWater == abX) return;
+
+	if(abX)
+	{
+		// Through walking, as in the original
+		if(mMoveState != ePlayerMoveState_Walk) ChangeMoveState(ePlayerMoveState_Walk);
+		ChangeMoveState(ePlayerMoveState_Swim);
+	}
+	else if(mMoveState != ePlayerMoveState_Walk)
+	{
+		ChangeMoveState(ePlayerMoveState_Walk);
+	}
+
+	mbUnderWater = abX;
+}
+
+//-------------------------------------------------------------------
+
+void cPlayer::SetOxygen(float afX)
+{
+	mfOxygen = afX;
+	if(mfOxygen > 100) mfOxygen = 100;
+	if(mfOxygen < 0) mfOxygen = 0;
+}
+
+void cPlayer::AddOxygen(float afX)
+{
+	SetOxygen(mfOxygen + afX);
+}
+
+//-------------------------------------------------------------------
+
 void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 {
 	cPlayer_GlobalSave *pData = apSave;
@@ -1873,6 +1973,14 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_SaveTo(mbItemFlash);
 	kSaveData_SaveTo(mfHealth);
 	kSaveData_SaveTo(mfPower);
+	kSaveData_SaveTo(msLowPowerCallback);
+	kSaveData_SaveTo(mfLowPowerVal);
+	kSaveData_SaveTo(mbNoFallDamage);
+	kSaveData_SaveTo(mlStat_Collectables);
+	kSaveData_SaveTo(mbHasFlashlight);
+	kSaveData_SaveTo(mlStat_Notes);
+	kSaveData_SaveTo(mlStat_PlayTime);
+	kSaveData_SaveTo(mfOxygen);
 	kSaveData_SaveTo(mfMass);
 
 	///////////////////////////////////////
@@ -1955,6 +2063,14 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_LoadFrom(mbItemFlash);
 	kSaveData_LoadFrom(mfHealth);
 	kSaveData_LoadFrom(mfPower);
+	kSaveData_LoadFrom(msLowPowerCallback);
+	kSaveData_LoadFrom(mfLowPowerVal);
+	kSaveData_LoadFrom(mbNoFallDamage);
+	kSaveData_LoadFrom(mlStat_Collectables);
+	kSaveData_LoadFrom(mbHasFlashlight);
+	kSaveData_LoadFrom(mlStat_Notes);
+	kSaveData_LoadFrom(mlStat_PlayTime);
+	kSaveData_LoadFrom(mfOxygen);
 	//kSaveData_LoadFrom(mfMass); //Skip this
 
 	///////////////////////////////////////

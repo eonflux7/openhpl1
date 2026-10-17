@@ -401,6 +401,13 @@ void cGameEnemyState_Spider_Attack::OnEnterState(iGameEnemyState *apPrevState)
 
 	mfDamageTimer = mpEnemySpider->mfAttackDamageTime;
 	mbAttacked = false;
+
+	//Black Plague: the script hears of the attack
+	if(mpEnemy->GetOnAttackCallback() != "")
+	{
+		tString sCommand = mpEnemy->GetOnAttackCallback() + "(\""+mpEnemy->GetName()+"\")";
+		mpInit->RunScriptCommand(sCommand);
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -506,12 +513,9 @@ void cGameEnemyState_Spider_Attack::OnPostSceneDraw()
 
 	cVector3f vRot = cVector3f(0,mpMover->GetCharBody()->GetYaw(),0);
 	cMatrixf mtxOffset = cMath::MatrixRotate(vRot,eEulerRotationOrder_XYZ);
-	mtxOffset.SetTranslation(vPos);	
-	
-	
-	cMatrixf mtxCollider = cMath::MatrixMul(pCamera->GetViewMatrix(),mtxOffset);
+	mtxOffset.SetTranslation(vPos);
 
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,mtxCollider);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxOffset, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 	cVector3f vSize = mpEnemySpider->GetAttackShape()->GetSize();
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vSize*0.5f,vSize*-0.5f,

@@ -505,27 +505,27 @@ namespace hpl {
 
 		//Create vertex buffer and fill it
 		iVertexBuffer *pVtxBuff = mpLowLevelGraphics->CreateVertexBuffer(
-			eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Texture0 | eVertexFlag_Color0 |
-			eVertexFlag_Texture1,
+			eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_TexCoord | eVertexFlag_Color0 |
+			eVertexFlag_Tangent,
 			eVertexBufferDrawType_Tri, aUsageType,
 			(int)aGeometry.mvVertexVec.size(), (int)aGeometry.mvIndexVec.size());
 
 		pVtxBuff->SetTangents(true);
-		pVtxBuff->ResizeArray(eVertexFlag_Texture1,(int)aGeometry.mvTangents.size());
+		pVtxBuff->ResizeArray(eVertexFlag_Tangent,(int)aGeometry.mvTangents.size());
 
 		//Add vertices
 		for(size_t j=0; j<aGeometry.mvVertexVec.size();j++)
 		{
 			pVtxBuff->AddVertex(eVertexFlag_Position,aGeometry.mvVertexVec[j].pos);
 			pVtxBuff->AddVertex(eVertexFlag_Normal,aGeometry.mvVertexVec[j].norm);
-			pVtxBuff->AddVertex(eVertexFlag_Texture0,aGeometry.mvVertexVec[j].tex);
+			pVtxBuff->AddVertex(eVertexFlag_TexCoord,aGeometry.mvVertexVec[j].tex);
 
 			pVtxBuff->AddColor(eVertexFlag_Color0,cColor(1,1));
 		}
 
 		//Add tangents
 		if(!aGeometry.mvTangents.empty())
-			memcpy(pVtxBuff->GetArray(eVertexFlag_Texture1),aGeometry.mvTangents.data(),
+			memcpy(pVtxBuff->GetArray(eVertexFlag_Tangent),aGeometry.mvTangents.data(),
 					aGeometry.mvTangents.size()*sizeof(float));
 
 		//Add indices
@@ -1465,6 +1465,34 @@ namespace hpl {
 				//Get the indices for the triangle
 				tIntVec vIndexArray;
 				cString::GetIntVec(pText->Value(),vIndexArray);
+
+				if(lTriElements <= 0 || vIndexArray.size() % lTriElements != 0) {
+					Error("Invalid Collada corner data\n"); return;
+				}
+				if(tString(pTriElem->Value()) != "triangles")
+				{
+					tIntVec counts, triangles;
+					if(tString(pTriElem->Value()) == "polylist") {
+						TiXmlElement* count = pTriElem->FirstChildElement("vcount");
+						if(!count || !count->GetText()) { Error("Missing Collada vcount\n"); return; }
+						cString::GetIntVec(count->GetText(), counts);
+					} else counts.push_back((int)vIndexArray.size()/lTriElements);
+					size_t start = 0;
+					for(int count : counts) {
+						if(count < 3 || (size_t)count > (vIndexArray.size()-start)/lTriElements) {
+							Error("Invalid Collada polygon count\n"); return;
+						}
+						for(int corner=1; corner+1<count; ++corner)
+							for(int v : {0, corner, corner+1}) {
+								auto first = vIndexArray.begin() + start + v*lTriElements;
+								triangles.insert(triangles.end(), first, first+lTriElements);
+							}
+						start += count*lTriElements;
+					}
+					if(start != vIndexArray.size()) { Error("Excess Collada polygon corners\n"); return; }
+					vIndexArray.swap(triangles);
+				}
+				if(vIndexArray.size() % (3*lTriElements) != 0) { Error("Invalid Collada triangles\n"); return; }
 
 				int lTriangleNum = (int)vIndexArray.size()/ (3*lTriElements);
 				for(int triangle=0; triangle< lTriangleNum; triangle++)

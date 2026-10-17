@@ -18,6 +18,33 @@ executable. It boots, plays the intro and menus and loads levels at full speed.
 Full playthroughs are not tested yet, and physics behaviour still has to be
 compared against the original.
 
+Renderer cleanup is through **Milestone 6, step 10**: mesh vertices upload
+interleaved into one buffer, surface geometry uses triangle indices, and
+UVs and tangents have named attributes. Textures use immutable storage;
+animation frames occupy layers of one texture array. The shared triangle
+sprite batcher retains submission order at equal depth, including keypad
+panels over inventory borders. Linked programs keep material values in
+uniform blocks and draw matrices travel together. The SDL graphics backend
+now delegates to separate owners for the window/context and capture, GL state
+and samplers, scene/output targets, final passes, shadow targets, and streamed
+sprite/triangle/debug drawing. The renderer-facing interface and frame order
+stay the same. Billboards, beams and particles now use compact instance
+records and shared static triangle indices; their corners expand in vertex
+shaders. CPU particle simulation, facing, UVs, colours and transparent order
+are retained. Particle vertex uploads use 88 bytes per live particle instead
+of 176, without maximum-size emitter vertex/index arrays.
+
+Linux build and both regression suites pass, including EGL backend checks.
+The storage suite also passes on GL 3.3 with storage extensions and GL 4.3.
+The Windows MSVC build passes; step 9 comparisons match 95/95 default,
+95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames. All UI
+frames, effects pixel/live checks and GL debug validation pass. Details are in
+[CHANGES.md](CHANGES.md#step-10-billboards-beams-and-particles).
+
+OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
+`GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing
+storage support is reported at startup.
+
 ## What's different from the original
 
 The short list. The full list is in [CHANGES.md](CHANGES.md).
@@ -57,6 +84,15 @@ cmake --build --preset default
 This produces `build/overture`, with the shaders copied to `build/shaders/`.
 Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
 AddressSanitizer and UBSan; needs `libasan libubsan`).
+
+Run the engine checks with `ctest --test-dir build --output-on-failure`.
+With EGL headers/library installed, this also builds `renderer_storage`,
+which tests immutable textures, animation sampling, instanced effect geometry,
+soft-particle depth fades, shader reloads, framebuffer transitions, final-pass
+state restoration, render-scale/FSAA resizing and GL resource lifetime on a
+surfaceless software GL context. These checks need neither game data nor
+gamescope; CTest reports a skip if that GL context is unavailable.
+
 
 Static analysis uses `clang-tools-extra`. `cmake --build build --target tidy`
 runs the checks in `.clang-tidy` over the engine and game sources, and
@@ -145,8 +181,7 @@ The build also generates a small room for player feedback:
 OVERTURE_MAP=effectslab:link01 ./run.sh
 ```
 
-Its effects panel opens automatically; F2 toggles it. Switch **Original / Improved**, pick
-a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
+Its effects panel opens automatically; F2 toggles it. Pick a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
 while the preview runs. Previews cover night adaptation, low health, blood and
 ice hits, panic, white flashes, save-point haze, death, underwater and combined
 feedback. **Double vision only** shows the displaced outline without the red
@@ -162,7 +197,7 @@ and boat rocking can also be tested. **Full debug panels** reveals the existing
 renderer controls. From other maps, use **Player > Player effects > Load effects
 lab** in F2.
 
-Improved player feedback combines a shader below the HUD with subtle FOV zoom:
+Player feedback is a shader below the HUD with subtle FOV zoom:
 night adaptation lifts dark detail, adds a blue cast and a faint vignette;
 panic pulses the zoom and blur. Blood hits add soft splashes and droplets with
 a new pattern on each hit, alongside the red vignette. Low health has a stronger
@@ -170,11 +205,10 @@ heartbeat vignette and gently pulsing vision doubling that remains visible
 between heartbeats and eases away after healing; ice hits use noisy frost.
 White flashes spread highlights into whiteout; save points add warm haze and
 glow without the strong zoom or image trail. Underwater adds a water-colored
-tint and light blur; death fades smoothly to black. Original retains the game's
-sprites, projection changes and image trails, including the original save and
-underwater effects. The flashlight beam and shader are unchanged. The treatment
-and five sliders are kept in `settings.cfg` under `Graphics` as
-`PlayerEffectsImproved`, `PlayerAdaptationStrength`, `PlayerAdaptationTime`,
+tint and light blur; death fades smoothly to black. The game's original
+sprites, projection changes and image trails are gone (Milestone 6). The five
+sliders are kept in `settings.cfg` under `Graphics` as
+`PlayerAdaptationStrength`, `PlayerAdaptationTime`,
 `PlayerInjuryStrength`, `PlayerPanicStrength` and `PlayerWhiteoutGlow`.
 
 To capture and check every preview plus live adaptation, injury, fear and
@@ -184,11 +218,11 @@ underwater transitions in an isolated headless session:
 tools/refshots.py effects /tmp/effects
 ```
 
-It writes 41 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
+It writes 29 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
 neutral output, varied but stable blood patterns and full white/black endpoints,
 and exits with 1 if a check fails. Live checks also exercise real save points,
-underwater triggers, double vision between heartbeats, healing and switching
-treatments during a save. It accepts
+underwater triggers, double vision between heartbeats, healing and an
+interrupted save. It accepts
 the same `--size`, `--set` and `--build` options as reference captures.
 
 ### Reference images
@@ -215,17 +249,36 @@ position, and up to six of the map's lights, looking in four directions
 from each. All with the flashlight on. These frames show the 3D view only, without the HUD, fades
 or menus. Then it loads the first map again and saves the 2D screens over
 it (`2d-*.png`): HUD, inventory, notebook, keypad, a message and the main
-menu pages. All at 1280x720 with fixed graphics settings. `--maps office,worm` limits it to
+menu pages. All at 1280x720 with fixed graphics settings: shadows,
+ambient occlusion, SMAA and 4x multisampling on, the noise filter off.
+`--maps office,worm` limits it to
 some maps (compare such a capture only with one of the same maps: frames
 depend on the maps visited before), `--size` changes the resolution and
-`--set Graphics.Shadows=2` any setting. `compare` lists the frames that differ and exits with 1 if any
-do.
+`--set Graphics.Shadows=2` any setting (2 is shadows off).
+
+The game has one look since Milestone 6: the improved one, which the
+original 2007 look was the reference for. The tag `original-look` marks the
+last commit that has the original look as well, and the reference images
+of it are kept in the Windows kit (`captures/original-look`). `compare` lists the frames that differ and exits with 1 if any
+do. From WSL, `--windows --build <build-windows>` runs a Windows build instead
+(`--build` may be a path on a Windows drive), with its window hidden; pass
+the Windows game data with `--game-dir`.
 
 Two captures of the same build are identical except for a few pixels in a
 few frames, which `compare` ignores (`--tolerance`, `--max-pixels`), and
 possibly for `level01_19_door_shaft` and `level01_20_base_entrance`, whose
 scripted light sequences are timed partly by sounds. Their differences are
 listed as "unstable" and do not count.
+
+Step 10 passes the Linux build and both CTest suites, including real GL
+instance expansion, blend/animation and soft-particle depth checks on Mesa
+llvmpipe. The storage suite also passes on GL 3.3 with storage extensions
+and GL 4.3. The separate Windows kit passes its MSVC build (CTest targets
+are disabled there). The indexed stage matches all 95 default step 9 frames;
+final motion blur matches 95/95, Render Scale 1.5 with 4× FSAA matches 31/31,
+and the effects lab matches 29/29, at unchanged tolerances. All UI frames,
+effects pixel checks/live transitions and GL debug validation pass.
+See [CHANGES.md](CHANGES.md) for the implementation and results.
 
 To look at those places yourself, press F2 in the game (or start it with
 `OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
@@ -234,21 +287,20 @@ with. Picking one loads the map or puts you there; PgUp and PgDn step through
 the map's frames. The view can be set up as in the frames (no flicker and a
 player that cannot be hurt, which are on; flashlight on and no HUD, which
 are off until switched), and
-Linear Lighting can be switched from the panel, and tuned with it on: Light
-power, Exposure, Glow and the tonemapping's Shoulder and White. The bloom
-can be switched between off, the original and the soft one, which has its
-own sliders (see CHANGES; Ctrl+click a slider to type a value). A second
-window, Shadows, switches between the original shadows and shadow maps and
-has the maps' settings, a view of the shadows alone, the lights in view (to
+the lighting can be tuned from the panel: Light power, Exposure, Glow, Blend
+match and the tonemapping's Shoulder and White. The bloom can be switched
+off and has its own sliders (see CHANGES; Ctrl+click a slider to type a
+value). A second window, Shadows, switches shadows and has the maps'
+settings, a view of the shadows alone, the lights in view (to
 draw one alone, or switch its shadows) and a test light to put anywhere or
 carry around. A third, Player, has Fly (a free camera; switching it off puts
 the player where the camera is), the switches for flashlight, flicker,
 HUD and damage, and buttons that put the flashlight, the glow stick or a
 flare in the inventory. A fourth, Ambient occlusion, switches it and has its
 quality, radius, strength and filter, and a view of the occlusion alone.
-A fifth, Lens and film, has the kinds of depth of field (with a switch to
-try it at a distance of your choosing), motion blur and noise filter, and
-their settings. A sixth, Anti-aliasing, is folded at the bottom right:
+A fifth, Lens and film, has the depth of field (with a switch to try it at
+a distance of your choosing), motion blur and noise filter, and their
+settings. A sixth, Anti-aliasing, is folded at the bottom right:
 multisampling, the texture filter, and SMAA with its settings and a view of
 the edges it finds.
 While the panel is open it
@@ -259,14 +311,9 @@ graphics settings are your own, and the scene keeps moving.
 
 ## Running
 
-Press **F9** during gameplay to save one comparison PNG to your desktop:
-`overture-compare-<date>-<time>-stacked.png` places full-size **Vanilla** above
-**Improved**. Labels sit above the screenshots. Improved uses
-your current graphics settings. The camera is held while each look settles
-for 25 rendered frames; moving objects can advance between captures. Your
-graphics settings and debug overlay are restored afterwards. On Windows,
-redirected desktops (including OneDrive) are supported. No Python, FFmpeg or
-ImageMagick installation is needed to use the hotkey.
+Options → Graphics offers **High**, **Medium** and **Low** quality presets,
+plus **Custom** when settings are changed by hand. First run uses High at the
+desktop resolution. The renderer uses the improved look throughout.
 
 ```
 ./run.sh
@@ -292,7 +339,7 @@ saves.
 | `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
 | `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
-| `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a shader that does not compile keeps its old version and the error goes to `hpl.log` |
+| `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OVERTURE_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OVERTURE_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
@@ -307,9 +354,9 @@ saves.
 
 ## Requirements
 
-- OpenGL 3.3 core profile with GL_ARB_separate_shader_objects (part of
-  OpenGL 4.1); any GPU from the last decade
-- Linux on x86-64 (Windows support is planned)
+- OpenGL 4.3 core, or 3.3 core with `GL_ARB_texture_storage` and
+  `GL_ARB_texture_storage_multisample`
+- 64-bit Linux or Windows
 
 ## Repository layout
 

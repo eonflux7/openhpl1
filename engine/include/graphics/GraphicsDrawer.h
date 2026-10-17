@@ -19,9 +19,9 @@
 #ifndef HPL_GRAPHICSDRAWER_H
 #define HPL_GRAPHICSDRAWER_H
 
+#include <set>
 #include <vector>
 #include "graphics/GraphicsTypes.h"
-#include "graphics/BackgroundImage.h"
 
 namespace hpl {
 
@@ -31,6 +31,7 @@ namespace hpl {
 	class cMaterialHandler;
 	class iMaterial;
 	class iTexture;
+	class iBitmap2D;
 
 	class cGfxBufferObject
 	{
@@ -144,14 +145,6 @@ namespace hpl {
 		 */
 		void DestroyGfxObject(cGfxObject* apObject);
 
-		cBackgroundImage* AddBackgroundImage(const tString &asFileName,const tString &asMaterialName,
-							const cVector3f& avPos, bool abTile,
-							const cVector2f& avSize,const cVector2f& avPosPercent, const cVector2f& avVel);
-
-		void UpdateBackgrounds();
-		void DrawBackgrounds(const cRect2f& aCollideRect);
-		void ClearBackgrounds();
-
 	private:
 		bool mbSkipDrawing = false;
 		iLowLevelGraphics *mpLowLevelGraphics;
@@ -161,8 +154,6 @@ namespace hpl {
 		tGfxBufferSet m_setGfxBuffer;
 
 		tGfxObjectList mlstGfxObjects;
-
-		tBackgroundImageMap m_mapBackgroundImages;
 	};
 
 };

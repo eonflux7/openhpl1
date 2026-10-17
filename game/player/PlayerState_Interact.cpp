@@ -173,9 +173,15 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 	////////////////////////////
 	//The rotation
 	cVector3f vOmega = mpPushBody->GetAngularVelocity();
+
+	if(!cInit::IsOverture())
+	{
+		UpdateRotation(afTimeStep, vOmega);
+		return;
+	}
 	
 	//Set speed to 0
-	if(std::abs(mfYRotation) < 0.001f || mbRotateWithPlayer==false)
+	if(std::abs(mvRotation.y) < 0.001f || mbRotateWithPlayer==false)
 	{
 		mRotatePid.p = 0.8f;
 		mRotatePid.i = 0.0f;
@@ -194,7 +200,7 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		mRotatePid.i = 0.0f;
 		mRotatePid.d = 0.0f;
 
-		float fWantedSpeed = mfYRotation*6;
+		float fWantedSpeed = mvRotation.y*6;
 
 		cVector3f vTorque = mRotatePid.Output(cVector3f(0,fWantedSpeed,0) - vOmega, afTimeStep);
 
@@ -202,7 +208,67 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		//vTorque = cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque);
 		//mpPushBody->AddTorque(vTorque);
 
-		mfYRotation -= vOmega.y * afTimeStep;
+		mvRotation.y -= vOmega.y * afTimeStep;
+	}
+}
+
+//-----------------------------------------------------------------------
+
+// Black Plague: the object turns about all three axes, by what the player
+// turned and what the mouse moved with Rotate held, at most half a turn
+// either way. Objects not held at a point are turned harder and through
+// their inertia.
+void cPlayerState_Grab::UpdateRotation(float afTimeStep, const cVector3f &avOmega)
+{
+	for(int i=0; i<3; ++i)
+	{
+		mvRotation.v[i] = cMath::Clamp(mvRotation.v[i], -kPif, kPif);
+		if(std::abs(mvRotation.v[i]) < 0.0001f) mvRotation.v[i] = 0;
+	}
+
+	if((mbRotateWithPlayer || mbRotating) && mvRotation != cVector3f(0,0,0))
+	{
+		if(mbPickAtPoint)
+		{
+			mRotatePid.p = 0.8f;
+			mRotatePid.i = 0.0f;
+			mRotatePid.d = 0.0f;
+		}
+		else
+		{
+			mRotatePid.p = 1.8f;
+			mRotatePid.i = 0.0f;
+			mRotatePid.d = 0.9f;
+		}
+
+		cVector3f vTorque = mRotatePid.Output(mvRotation*6 - avOmega, afTimeStep);
+
+		if(mbPickAtPoint)
+		{
+			vTorque = vTorque - avOmega * 0.1f;
+			mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
+		}
+		else
+		{
+			mpPushBody->AddTorque(cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque));
+		}
+
+		for(int i=0; i<3; ++i)
+		{
+			if(mvRotation.v[i] != 0) mvRotation.v[i] -= afTimeStep * avOmega.v[i];
+		}
+	}
+	else
+	{
+		//Set speed to 0
+		mRotatePid.p = 0.8f;
+		mRotatePid.i = 0.0f;
+		mRotatePid.d = 0.0f;
+
+		cVector3f vTorque = mRotatePid.Output(cVector3f(0,0,0) - avOmega, afTimeStep);
+		vTorque = vTorque - avOmega * 0.1f;
+
+		mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
 	}
 }
 
@@ -307,6 +373,14 @@ void cPlayerState_Grab::OnStartExamine()
 
 bool cPlayerState_Grab::OnAddYaw(float afVal)
 { 
+	// Black Plague: with Rotate held the mouse turns the object about the
+	// camera's up axis and the view stays
+	if(mbRotating)
+	{
+		mvRotation += mpPlayer->GetCamera()->GetUp() * (afVal * 1.2f);
+		return false;
+	}
+
 	afVal *= mfSpeedMul*0.75f;
 	if(mbMoveHand)
 	{
@@ -315,7 +389,7 @@ bool cPlayerState_Grab::OnAddYaw(float afVal)
 			mpPlayer->GetCamera()->AddYaw( -afVal * mpPlayer->GetLookSpeed());
 			mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
 
-			mfYRotation += -afVal * mpPlayer->GetLookSpeed();
+			mvRotation.y += -afVal * mpPlayer->GetLookSpeed();
 		}
 
 		return false;
@@ -325,7 +399,7 @@ bool cPlayerState_Grab::OnAddYaw(float afVal)
 		mpPlayer->GetCamera()->AddYaw( -afVal * mpPlayer->GetLookSpeed());
 		mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
 
-		mfYRotation += -afVal * mpPlayer->GetLookSpeed();
+		mvRotation.y += -afVal * mpPlayer->GetLookSpeed();
 
 		return false;
 	}
@@ -335,6 +409,15 @@ bool cPlayerState_Grab::OnAddPitch(float afVal)
 {
 	float fInvert = 1;
 	if(mpInit->mpButtonHandler->GetInvertMouseY()) fInvert = -1;
+
+	// Black Plague: about the camera's right axis, in the horizontal plane
+	if(mbRotating)
+	{
+		cVector3f vRight = mpPlayer->GetCamera()->GetRight();
+		mvRotation.x += vRight.x * afVal * 1.2f;
+		mvRotation.z += vRight.z * afVal * 1.2f;
+		return false;
+	}
 
 	afVal *= mfSpeedMul*0.75f;
 	if(mbMoveHand)
@@ -385,8 +468,8 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 	
 	cCamera3D *pCamera = mpPlayer->GetCamera();
 
-	//Make sure the player is not running
-	if(mpPlayer->GetMoveState() == ePlayerMoveState_Run || mPrevMoveState == ePlayerMoveState_Jump)
+	//Make sure the player is not running (Black Plague lets him run)
+	if((cInit::IsOverture() && mpPlayer->GetMoveState() == ePlayerMoveState_Run) || mPrevMoveState == ePlayerMoveState_Jump)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 
 	//Get last state, if this is a message use the last previous state instead.
@@ -394,6 +477,7 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 
 	mbPickAtPoint = mpPlayer->mbPickAtPoint;
 	mbRotateWithPlayer = mpPlayer->mbRotateWithPlayer;
+	mbRotating = !cInit::IsOverture() && mpInit->mpGame->GetInput()->IsTriggerd("Rotate");
 
 	if(mPrevState == ePlayerState_InteractMode) 
 		mbMoveHand = true;
@@ -457,7 +541,7 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 
 	//The amount of rotation we wanna apply to the object, increases/decrease 
 	//when the player turn left/right
-	mfYRotation =0;
+	mvRotation = cVector3f(0,0,0);
 
 	//Reset pid controllers
 	mRotatePid.Reset();
@@ -526,6 +610,56 @@ bool cPlayerState_Grab::OnStartInventory()
 bool cPlayerState_Grab::OnStartInventoryShortCut(int alNum)
 { 
 	return false;
+}
+
+//-----------------------------------------------------------------------
+
+void cPlayerState_Grab::OnStartRotate()
+{
+	mbRotating = true;
+}
+
+void cPlayerState_Grab::OnStopRotate()
+{
+	mbRotating = false;
+}
+
+//-----------------------------------------------------------------------
+
+// Black Plague: running with the object held, or going back to it after a
+// jump or crouch
+void cPlayerState_Grab::OnStartRun()
+{
+	if(cInit::IsOverture()) return;
+
+	ePlayerMoveState moveState = mpPlayer->GetMoveState();
+	if(moveState == ePlayerMoveState_Walk || moveState == ePlayerMoveState_Crouch)
+	{
+		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
+		moveState = mpPlayer->GetMoveState();
+	}
+	if(moveState == ePlayerMoveState_Jump)
+		mpPlayer->SetPrevMoveState(ePlayerMoveState_Run);
+}
+
+void cPlayerState_Grab::OnStopRun()
+{
+	if(cInit::IsOverture()) return;
+
+	ePlayerMoveState moveState = mpPlayer->GetMoveState();
+	if(moveState == ePlayerMoveState_Run)
+		mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
+	else if(moveState == ePlayerMoveState_Jump)
+		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
+}
+
+//-----------------------------------------------------------------------
+
+void cPlayerState_Grab::OnStartHolster()
+{
+	if(cInit::IsOverture()) return;
+
+	if(mpPlayer->GetFlare()->IsActive()) mpPlayer->GetFlare()->SetActive(false);
 }
 
 //-----------------------------------------------------------------------
@@ -902,9 +1036,35 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 	cVector3f vStart = mpPlayer->GetCamera()->GetPosition();
 
 	float fDistance = cMath::Vector3Dist(vStart,vEnd);
-	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*1.2f)
+	float fMaxMul = cInit::IsOverture() ? 1.2f : 1.4f;
+	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*fMaxMul)
 	{
 		mpPlayer->ChangeState(mPrevState);
+		return;
+	}
+
+	//////////////////////////////////////
+	// Black Plague: the player is kept where he was beside the body, at his
+	// own height; where something is in the way, from where he ends up.
+	if(cInit::IsOverture()==false)
+	{
+		iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+		iCharacterBody *pCharBody = mpPlayer->GetCharacterBody();
+
+		cVector3f vBodyPos = mpPushBody->GetWorldPosition();
+		cVector3f vPlayerPos(vBodyPos.x + mvRelPlayerPos.x, pCharBody->GetPosition().y, vBodyPos.z + mvRelPlayerPos.z);
+
+		cVector3f vNewPos = vPlayerPos;
+		iPhysicsBody *pBody = pCharBody->GetBody();
+		pPhysicsWorld->CheckShapeWorldCollision(&vNewPos,pBody->GetShape(),
+											cMath::MatrixTranslate(vPlayerPos),
+											pBody,false, true, nullptr,true);
+		pCharBody->SetPosition(vNewPos,true);
+
+		if(vNewPos.x != vPlayerPos.x || vNewPos.z != vPlayerPos.z)
+			mvRelPlayerPos = pCharBody->GetPosition() - mpPushBody->GetWorldPosition();
+
+		mvLastBodyPos = mpPushBody->GetLocalPosition();
 		return;
 	}
 
@@ -1007,7 +1167,11 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 				cVector3f vOldPos = vPos;
 				cVector3f vNewPos;
 				vPos += mvForward * -1 * (fPosAdd+0.1f);
-				mpPlayer->GetCharacterBody()->SetPosition(vPos);
+				//Black Plague: moved back by the place kept beside the body (OnUpdate)
+				if(cInit::IsOverture())
+					mpPlayer->GetCharacterBody()->SetPosition(vPos);
+				else
+					mvRelPlayerPos -= mvForward * (fPosAdd+0.1f);
 
 				//Not good since slopes does not work:
 				/*pPhysicsWorld->CheckShapeWorldCollision(&vNewPos, pPlayerBody->GetShape(),
@@ -1131,6 +1295,7 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 	
 	//The pick point relative to the body
 	mvRelPickPoint = mpPlayer->GetPickedPos() - mpPushBody->GetLocalPosition();
+	mvRelPlayerPos = mpPlayer->GetCharacterBody()->GetPosition() - mpPushBody->GetWorldPosition();
 
 	//Set the last position.
 	mvLastBodyPos = mpPushBody->GetLocalPosition();

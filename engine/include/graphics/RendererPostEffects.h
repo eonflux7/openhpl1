@@ -51,17 +51,9 @@ namespace hpl {
 		ePostEffectProgram_LastEnum
 	};
 
-	enum eBloomType
-	{
-		/// The blurred scene, squared and added: the original.
-		eBloomType_Original,
-		/// What is brighter than a threshold, blurred widely through a chain of halvings.
-		eBloomType_Soft,
-		eBloomType_LastEnum
-	};
-
 	/**
-	 * The values the soft bloom is tuned with.
+	 * The values the bloom is tuned with: what is brighter than a
+	 * threshold, blurred widely through a chain of halvings.
 	 */
 	class cBloomTuning
 	{
@@ -136,27 +128,19 @@ namespace hpl {
 		}
 	};
 
-	enum eDepthOfFieldType
-	{
-		/// The scene blended with a small blurred copy of it, object by object: the original.
-		eDepthOfFieldType_Original,
-		/// Every pixel spread over a disc as wide as it is out of focus, from the depth buffer.
-		eDepthOfFieldType_Bokeh,
-		eDepthOfFieldType_LastEnum
-	};
-
 	/**
-	 * How the depth of field is drawn. What is in focus is the game's to
-	 * say (SetDepthOfFieldFocalPlane() and the others).
+	 * How the depth of field is drawn: every pixel spread over a disc as
+	 * wide as it is out of focus, from the depth buffer. What is in focus
+	 * is the game's to say (SetDepthOfFieldFocalPlane() and the others).
 	 */
 	class cDepthOfFieldSettings
 	{
 	public:
-		/// Bokeh: the radius of the blur of what is fully out of focus, as
-		/// a share of the picture's height.
+		/// The radius of the blur of what is fully out of focus, as a share
+		/// of the picture's height.
 		float mfRadius = 0.012f;
-		/// Bokeh: rings of samples around a pixel, 1 to 5. More: smoother
-		/// discs, and the cost grows with their square.
+		/// Rings of samples around a pixel, 1 to 5. More: smoother discs,
+		/// and the cost grows with their square.
 		int mlRings = 3;
 
 		//Debug
@@ -168,17 +152,9 @@ namespace hpl {
 		float mfTestRange = 1.5f;
 	};
 
-	enum eMotionBlurType
-	{
-		/// Every object drawn again, smeared from where it was the frame before: the original.
-		eMotionBlurType_Original,
-		/// The camera's own movement, from the depth buffer, in one pass.
-		eMotionBlurType_Camera,
-		eMotionBlurType_LastEnum
-	};
-
 	/**
-	 * How the camera motion blur (eMotionBlurType_Camera) is drawn.
+	 * How the motion blur is drawn: the camera's own movement, from the
+	 * depth buffer, in one pass.
 	 */
 	class cMotionBlurSettings
 	{
@@ -195,17 +171,6 @@ namespace hpl {
 		float mfNearLimit = 0.6f;
 	};
 
-	class cImageTrailEffect
-	{
-	public:
-		cImageTrailEffect() : mbActive(false), mbFirstPass(false), mlCurrentBuffer(0) {}
-
-		bool mbActive;
-		bool mbFirstPass;
-		int mlCurrentBuffer;
-		float mfAmount;
-	};
-
 	class cResources;
 
 	class cRendererPostEffects
@@ -220,42 +185,17 @@ namespace hpl {
 		 */
 		void Render();
 
-		void SetImageTrailActive(bool abX){
-			if(!mImageTrailData.mbActive && abX) mImageTrailData.mbFirstPass = true;
-			mImageTrailData.mbActive = abX;}
-		bool GetImageTrailActive(){return mImageTrailData.mbActive;}
-		/**
-		 * Set the amount of blur
-		 * \param afAmount 0.0 - 1.0 are valid
-		 */
-		void SetImageTrailAmount(float afAmount){mImageTrailData.mfAmount = afAmount;}
-		/// Player trails share the pass, but cannot switch off a scripted save trail.
-		void SetPlayerImageTrailActive(bool abX)
-		{
-			if(!mbPlayerImageTrailActive && abX) mImageTrailData.mbFirstPass = true;
-			mbPlayerImageTrailActive = abX;
-		}
-		void SetPlayerImageTrailAmount(float afAmount) { mfPlayerImageTrailAmount = afAmount; }
-
-		iTexture* GetScreenBuffer(int alNum){ return mpScreenBuffer[alNum];}
-
 		void SetActive(bool abX){ mbActive = abX;}
 		bool GetActive(){ return mbActive;}
 
 		/**
-		 * (Re)creates the screen copies at the current render size, and
-		 * the blur textures, in the format the lighting needs.
+		 * (Re)creates the screen copies and the bloom's levels at the
+		 * current render size.
 		 */
 		void CreateScreenBuffers();
 
 		void SetBloomActive(bool abX);
 		bool GetBloomActive(){ return mbBloomActive;}
-
-		void SetBloomSpread(float afX){mfBloomSpread = afX;}
-		float GetBloomSpread(){ return mfBloomSpread;}
-
-		void SetBloomType(eBloomType aType){ mBloomType = aType;}
-		eBloomType GetBloomType(){ return mBloomType;}
 
 		void SetBloomTuning(const cBloomTuning& aTuning){ mBloomTuning = aTuning;}
 		const cBloomTuning& GetBloomTuning(){ return mBloomTuning;}
@@ -263,11 +203,6 @@ namespace hpl {
 		void SetMotionBlurActive(bool abX);
 		bool GetMotionBlurActive(){ return mbMotionBlurActive;}
 
-		void SetMotionBlurAmount(float afX){ mfMotionBlurAmount = afX;}
-		float GetMotionBlurAmount(){ return mfMotionBlurAmount;}
-
-		void SetMotionBlurType(eMotionBlurType aType);
-		eMotionBlurType GetMotionBlurType(){ return mMotionBlurType;}
 		void SetMotionBlurSettings(const cMotionBlurSettings& aSettings){ mMotionBlurSettings = aSettings;}
 		const cMotionBlurSettings& GetMotionBlurSettings(){ return mMotionBlurSettings;}
 
@@ -283,23 +218,11 @@ namespace hpl {
 		float GetDepthOfFieldNearPlane(){ return mfDofNearPlane;}
 		float GetDepthOfFieldFarPlane(){ return mfDofFarPlane;}
 
-		void SetDepthOfFieldType(eDepthOfFieldType aType){ mDofType = aType;}
-		eDepthOfFieldType GetDepthOfFieldType(){ return mDofType;}
 		void SetDepthOfFieldSettings(const cDepthOfFieldSettings& aSettings){ mDofSettings = aSettings;}
 		const cDepthOfFieldSettings& GetDepthOfFieldSettings(){ return mDofSettings;}
 
-		/**
-		 * If an effect draws the scene's objects again, as the original
-		 * motion blur and depth of field do: the render list keeps them
-		 * for it then.
-		 */
-		bool GetObjectsNeeded()
-		{
-			return	(mbMotionBlurActive && mMotionBlurType == eMotionBlurType_Original) ||
-					((mbDofActive || mDofSettings.mbTest) && mDofType == eDepthOfFieldType_Original);
-		}
-
-		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer[mImageTrailData.mlCurrentBuffer==0?1:0];}
+		/// A screen copy for an effect to draw the scene into and read
+		iTexture* GetFreeScreenTexture(){ return mpScreenBuffer;}
 
 		//Switched on, or to half rate, there is no frame to keep pixels of
 		void SetAmbientOcclusionActive(bool abX){ if(abX && mbAoActive==false) mbAoFilled = false; mbAoActive = abX;}
@@ -321,20 +244,15 @@ eturn false if nothing was drawn
 		 */
 		bool RenderAmbientOcclusion();
 
-		void RenderBlurTexture(iTexture *apDestination, iTexture *apSource,float afBlurAmount);
-
 	private:
-		void RenderImageTrail();
+		bool DrawSceneCopy(iTexture *apTarget);
 
 		void RenderBloom();
-		void RenderBloomChain();
-		void DrawBloomPass(iGpuProgram *apFP, iTexture *apTarget, iTexture *apSource, bool abRectSource);
+		void DrawBloomPass(iGpuProgram *apProgram, iTexture *apTarget, iTexture *apSource);
 
 		void RenderMotionBlur();
-		void RenderMotionBlurCamera();
 
 		void RenderDepthOfField();
-		void RenderDepthOfFieldBokeh();
 		bool CreateDepthOfFieldTextures();
 		void DrawScreenPass(iTexture *apTarget, iTexture *apSource);
 
@@ -353,71 +271,44 @@ eturn false if nothing was drawn
 
 		cVector2f mvScreenSize;
 
-		iTexture* mpScreenBuffer[2];
+		iTexture* mpScreenBuffer;
 
-		cImageTrailEffect mImageTrailData;
-		bool mbPlayerImageTrailActive = false;
-		float mfPlayerImageTrailAmount = 0;
-
-		iGpuProgram *mpBlurVP;
-		iGpuProgram *mpBlur2dFP;
-		iGpuProgram *mpBlurRectFP;
-		//Holds the horizontal pass of RenderBlurTexture(), same size as the
-		//blur textures.
-		iTexture *mpBlurTempTexture;
-
-		iGpuProgram *mpBloomVP;
-		iGpuProgram *mpBloomFP;
-
-		iTexture *mpBloomBlurTexture;
-
-		//The soft bloom: each level is half the size of the one before.
+		//The bloom: each level is half the size of the one before.
 		//mvBloomUp[i] is level i blended with all the levels below it; the
 		//last level has none below and is used as it is.
-		iGpuProgram *mpBloomChainVP;
-		iGpuProgram *mpBloomPrefilterFP;
-		iGpuProgram *mpBloomDownFP;
-		iGpuProgram *mpBloomUpFP;
-		iGpuProgram *mpBloomCompositeFP;
+		iGpuProgram *mpBloomPrefilterProgram;
+		iGpuProgram *mpBloomDownProgram;
+		iGpuProgram *mpBloomUpProgram;
+		iGpuProgram *mpBloomCompositeProgram;
 		std::vector<iTexture*> mvBloomDown;
 		std::vector<iTexture*> mvBloomUp;
 
-		iGpuProgram *mpMotionBlurVP;
-		iGpuProgram *mpMotionBlurFP;
+		//The motion blur
+		iGpuProgram *mpMotionCameraProgram;
 
-		iGpuProgram *mpDepthOfFieldVP;
-		iGpuProgram *mpDepthOfFieldFP;
-		iTexture *mpDofBlurTexture;
-
-		//The camera motion blur
-		iGpuProgram *mpMotionCameraVP;
-		iGpuProgram *mpMotionCameraFP;
-
-		//The bokeh depth of field: its textures are half the render size
+		//The depth of field: its textures are half the render size
 		//and made when first needed.
-		iGpuProgram *mpBokehVP;
-		iGpuProgram *mpBokehPrefilterFP;
-		iGpuProgram *mpBokehGatherFP;
-		iGpuProgram *mpBokehFillFP;
-		iGpuProgram *mpBokehCompositeFP;
+		iGpuProgram *mpBokehPrefilterProgram;
+		iGpuProgram *mpBokehGatherProgram;
+		iGpuProgram *mpBokehFillProgram;
+		iGpuProgram *mpBokehCompositeProgram;
 		iTexture *mpBokehTexture[2];
 
 		//Ambient occlusion. The distance and normal textures are a tile
 		//each (see the shader), the tiled texture is as large as the tiles
 		//together and the others are of the render size. Made when first
 		//needed.
-		iGpuProgram *mpAoVP;
-		iGpuProgram *mpAoDeinterleaveFP;
-		iGpuProgram *mpAoOcclusionFP;
+		iGpuProgram *mpAoDeinterleaveProgram;
+		iGpuProgram *mpAoOcclusionProgram;
 		//The same with the samples of a quality as constants, loaded when
 		//first used
-		iGpuProgram *mvAoQualityFP[cAmbientOcclusionSettings::klQualityNum];
+		iGpuProgram *mvAoQualityProgram[cAmbientOcclusionSettings::klQualityNum];
 		bool mvAoQualityTried[cAmbientOcclusionSettings::klQualityNum];
-		iGpuProgram *mpAoFilterFP;
-		iGpuProgram *mpAoCompositeFP;
+		iGpuProgram *mpAoFilterProgram;
+		iGpuProgram *mpAoCompositeProgram;
 		//The same reading the scene itself, with one sample a pixel and
 		//multisampled: no copy of the scene is needed
-		iGpuProgram *mpAoCompositeSceneFP[2];
+		iGpuProgram *mpAoCompositeSceneProgram[2];
 		iTexture *mvAoDistanceTexture[16];
 		iTexture *mvAoNormalTexture[16];
 		iTexture *mpAoTiledTexture;
@@ -432,16 +323,12 @@ eturn false if nothing was drawn
 		tVertexVec mvTexRectVtx;
 
 		bool mbBloomActive;
-		float mfBloomSpread;
-		eBloomType mBloomType;
 		cBloomTuning mBloomTuning;
 
 		bool mbMotionBlurActive;
-		float mfMotionBlurAmount;
 		bool mbMotionBlurFirstTime;
-		eMotionBlurType mMotionBlurType;
 		cMotionBlurSettings mMotionBlurSettings;
-		//The camera motion blur's frame before: what the camera saw, and when
+		//The motion blur's frame before: what the camera saw, and when
 		cMatrixf m_mtxMotionBlurPrevViewProj;
 		float mfMotionBlurPrevTime;
 
@@ -450,7 +337,6 @@ eturn false if nothing was drawn
 		float mfDofFocalPlane;
 		float mfDofNearPlane;
 		float mfDofFarPlane;
-		eDepthOfFieldType mDofType;
 		cDepthOfFieldSettings mDofSettings;
 
 		bool mbActive;

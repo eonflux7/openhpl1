@@ -3,7 +3,7 @@
 
 // Motion blur of the camera's own movement
 // (cRendererPostEffects::RenderMotionBlurCamera), in one pass over the
-// scene. tex0: the scene copy (rectangle) -> the scene.
+// scene. tex0: the scene copy -> the scene.
 //
 // Where a pixel was on screen the frame before follows from its depth and
 // from how the camera has moved since: turning moves everything alike,
@@ -16,22 +16,20 @@
 // not smeared over the background that streams past behind it. What is
 // nearer than a limit is taken as held by the player and left alone.
 
-// Reads and writes the scene as it is, linear or not.
+// Reads and writes linear values.
 #define HPL_LINEAR_COLOR
 
 OUTPUT
 
 #include "hpl1_scene_depth.glsl"
 
-uniform sampler2DRect tex0;
+HPL_TEXTURE_2D(0)
 
 // From a position in the camera's view to its place on the screen of the
 // frame before
-uniform mat4 reproject;
 // x: the share of the way since the frame before that is blurred over;
 // y: the longest blur in pixels; z: samples; w: nearer than this distance
 // nothing is blurred
-uniform vec4 shutter;
 
 // The distance used for the sky
 const float FAR_AWAY = 1000.0;
@@ -64,18 +62,6 @@ float Noise(vec2 avPos)
 	return fract(52.9829189 * fract(dot(avPos, vec2(0.06711056, 0.00583715))));
 }
 
-// The average is of light. Screen values are squared for it, which is
-// close to what they stand for and cheap.
-vec3 ToLight(vec3 c)
-{
-	return hpl_ColorSpace.x > 0.5 ? c : c * c;
-}
-
-vec3 FromLight(vec3 c)
-{
-	return hpl_ColorSpace.x > 0.5 ? c : sqrt(c);
-}
-
 void main()
 {
 	vec2 pos = gl_FragCoord.xy;
@@ -92,7 +78,7 @@ void main()
 	// instead of the steps showing as copies of the picture
 	float shift = Noise(pos);
 
-	vec3 sum = ToLight(max(texelFetch(tex0, ivec2(pos)).rgb, 0.0));
+	vec3 sum = max(hpl_TexelFetch0(ivec2(pos), 0).rgb, 0.0);
 	float weights = 1.0;
 	for(int i = 0; i < count; ++i)
 	{
@@ -107,9 +93,9 @@ void main()
 			weight = clamp(reach - abs(along) * len + 1.0, 0.0, 1.0);
 		}
 
-		sum += ToLight(max(texture(tex0, at).rgb, 0.0)) * weight;
+		sum += max(hpl_Texture0(at * hpl_RenderSize.zw).rgb, 0.0) * weight;
 		weights += weight;
 	}
 
-	outColor = vec4(FromLight(sum / weights), 1.0);
+	outColor = vec4(sum / weights, 1.0);
 }

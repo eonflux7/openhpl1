@@ -65,6 +65,8 @@ public:
 	float mfFadeInTime;
 	tString msLoadTextCat;
 	tString msLoadTextEntry;
+	// Black Plague: the picture shown while loading
+	tString msLoadImage;
 };
 
 //-----------------------------------------
@@ -160,12 +162,14 @@ public:
 
 	void ChangeMap(const tString &asMap, const tString &asPos, const tString &asStartSound,
 					const tString &asStopSound, float afFadeOutTime, float afFadeInTime,
-					tString asLoadTextCat, tString asLoadTextEntry);
+					tString asLoadTextCat, tString asLoadTextEntry,
+					tString asLoadImage = "");
 
 	void AddSaveData(cSavedWorld* apSavedWorld);
 	void LoadSaveData(cSavedWorld* apSavedWorld);
 
 	void DestroyAll();
+	void LiftBodiesOutOfFloors(cWorld3D *apWorld);
 
 	void OnWorldLoad();
 	void OnStart() override;
@@ -193,6 +197,7 @@ public:
 
 	void AddGameEntity(iGameEntity *apEntity);
 	void RemoveGameEntity(iGameEntity *apEntity);
+	void DestroyGameEntityNow(iGameEntity *apEntity);
 	iGameEntity* GetGameEntity(const tString &asName, bool abErrorMessage=true);
 	tGameEntityIterator GetGameEntityIterator();
 
@@ -234,6 +239,9 @@ private:
 	cResources *mpResources;
 
 	iTexture *mpMapChangeTexture;
+
+	//The flash on items of materials without programs of their own
+	iGpuProgram *mpFlashProgram;
 
 	cMapChanger mMapChanger;
 	cWorldCache *mpWorldCache;

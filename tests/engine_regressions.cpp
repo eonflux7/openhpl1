@@ -18,10 +18,22 @@
 #else
 #include <unistd.h>
 #endif
+#include <glad/gl.h>
+
+// Inspect batch contents without a graphics context, as with the cache fixtures below.
+#define private public
+#include "graphics/SpriteBatch.h"
+#undef private
+#include "impl/LowLevelGraphicsSDL.h"
+#include "graphics/GraphicsDrawer.h"
+#include "gui/GuiSet.h"
+#include "gui/GuiMaterialBasicTypes.h"
 
 #include "math/Math.h"
 #include "math/PidController.h"
 #include "graphics/VertexBuffer.h"
+#include "graphics/RenderList.h"
+#include "graphics/GPUProgram.h"
 #include "graphics/Animation.h"
 #include "graphics/AnimationTrack.h"
 #include "graphics/Mesh.h"
@@ -31,6 +43,9 @@
 #include "resources/MeshManager.h"
 #include "system/String.h"
 #include "tinyxml.h"
+#include "impl/LowLevelPhysicsNewton.h"
+#include "impl/PhysicsWorldNewton.h"
+#include "physics/CollideData.h"
 
 // Exercise search/cache internals without a physics world or graphics context.
 // These tests still call the actual engine methods, including CPU skinning.
@@ -39,7 +54,14 @@
 #include "ai/AStar.h"
 #include "ai/AINodeContainer.h"
 #include "graphics/SubMesh.h"
+#include "graphics/Graphics.h"
+#include "graphics/ParticleEmitter3D.h"
+#include "graphics/ParticleSystem3D.h"
+#include "graphics/BillBoard.h"
+#include "graphics/Beam.h"
+#include "scene/Camera3D.h"
 #include "impl/MeshLoaderCollada.h"
+#include "impl/VertexBufferVBO.h"
 #include "impl/LowLevelSoundOpenAL.h"
 #include "resources/Resources.h"
 #include "scene/AnimationState.h"
@@ -72,7 +94,6 @@ public:
 	void AddIndex(unsigned) override {}
 	bool Compile(tVertexCompileFlag) override { return true; }
 	void UpdateData(tVertexFlag, bool) override {}
-	void CreateShadowDouble(bool) override {}
 	void Transform(const cMatrixf&) override {}
 	void Draw(eVertexBufferDrawType) override {}
 	void DrawIndices(unsigned*, int, eVertexBufferDrawType) override {}
@@ -84,7 +105,7 @@ public:
 	{
 		if(flag == eVertexFlag_Position) return positions.data();
 		if(flag == eVertexFlag_Normal) return normals.data();
-		if(flag == eVertexFlag_Texture1) return tangents.data();
+		if(flag == eVertexFlag_Tangent) return tangents.data();
 		throw std::runtime_error("unexpected vertex array");
 	}
 	unsigned* GetIndices() override { return nullptr; }
@@ -106,13 +127,156 @@ public:
 	TestResources() : cResources(nullptr, nullptr)
 	{
 		mpLowLevelSystem = nullptr;
-		mpImageManager = nullptr; mpGpuProgramManager = nullptr; mpTileSetManager = nullptr;
-		mpImageEntityManager = nullptr; mpParticleManager = nullptr; mpSoundManager = nullptr;
+		mpImageManager = nullptr; mpGpuProgramManager = nullptr;
+		mpParticleManager = nullptr; mpSoundManager = nullptr;
 		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
 		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
 		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
 	}
 };
+
+// Exercise the actual effect builders without a context. Only GPU allocation
+// is stubbed; facing matrices, line fallback, local transforms and UV selection
+// run through their production methods.
+class TestEmitter : public iParticleEmitter3D
+{
+public:
+	TestEmitter(cGraphics *graphics, cResources *resources, tMaterialVec *materials)
+		: iParticleEmitter3D("fixture",materials,2,cVector3f(1),graphics,resources)
+	{
+		mPEType = ePEType_Normal; mbUsePartSpin = true; mpWorld = nullptr;
+		mvDrawSize = cVector2f(0.2f,0.4f); mvMaxDrawSize = 1;
+		mlNumOfParticles = 2;
+		for(unsigned i=0; i<2; ++i)
+		{
+			*mvParticles[i] = cParticle{};
+			mvParticles[i]->mvPos = cVector3f(1+i,2,-4);
+			mvParticles[i]->mvLastPos = cVector3f(0,1,-5);
+			mvParticles[i]->mvSize = cVector2f(2,3);
+			mvParticles[i]->mfSpin = 0.7f;
+			mvParticles[i]->mColor = cColor(0.2f,0.4f,0.6f,0.3f);
+			mvParticles[i]->mlSubDivNum = i+1;
+		}
+		SetSubDivUV(cVector2l(2,2));
+	}
+	void UpdateMotion(float) override {}
+	void SetParticleDefaults(cParticle*) override {}
+};
+static void CheckVector(cVector3f actual, cVector3f expected, const char *message)
+{
+	Check(Near(actual.x,expected.x) && Near(actual.y,expected.y) && Near(actual.z,expected.z), message);
+}
+static void TestEffectInstances()
+{
+	auto gen=glad_glGenBuffers; auto del=glad_glDeleteBuffers;
+	glad_glGenBuffers=[](GLsizei n,GLuint* out){static GLuint next=1; while(n--) *out++=next++;};
+	glad_glDeleteBuffers=[](GLsizei,const GLuint*){};
+	{
+		cLowLevelGraphicsSDL low;
+		cGraphics graphics(&low,nullptr); graphics.mpRenderList=nullptr;
+		TestResources resources;
+		cCamera3D camera; camera.SetPosition(cVector3f(0,0,3));
+		cParticleSystem3D parent("parent",nullptr,&resources,&graphics);
+		parent.SetMatrix(cMath::MatrixMul(cMath::MatrixTranslate(cVector3f(2,3,4)), cMath::MatrixRotateY(0.4f)));
+		tMaterialVec materials;
+		TestEmitter emitter(&graphics,&resources,&materials); emitter.SetSystem(&parent);
+		emitter.SetMatrix(cMath::MatrixRotateZ(0.3f));
+		for(int local=0; local<2; ++local)
+		for(int mode=0; mode<eParticleEmitter3DType_LastEnum; ++mode)
+		for(int spin=0; spin<2; ++spin)
+		{
+			emitter.mCoordSystem=(eParticleEmitter3DCoordSystem)local;
+			emitter.mDrawType=(eParticleEmitter3DType)mode;
+			emitter.mbUsePartSpin=spin;
+			emitter.mbUpdateGfx=true;
+			emitter.UpdateGraphics(&camera,0,nullptr);
+			const auto &instances=emitter.GetVertexBuffer()->GetQuadInstances();
+			Check(instances.size()==2 && emitter.GetVertexBuffer()->GetIndexNum()==12,"one compact record per live particle");
+			for(unsigned i=0;i<2;++i)
+			{
+				const cParticle &particle=*emitter.mvParticles[i];
+				cVector3f position=particle.mvPos, last=particle.mvLastPos;
+				if(local){position=cMath::MatrixMul(parent.GetWorldMatrix(),position); last=cMath::MatrixMul(parent.GetWorldMatrix(),last);}
+				if(mode!=eParticleEmitter3DType_Axis){position=cMath::MatrixMul(camera.GetViewMatrix(),position);last=cMath::MatrixMul(camera.GetViewMatrix(),last);}
+				const cMatrixf axis=cMath::MatrixInverse(emitter.GetWorldMatrix());
+				for(int corner=0;corner<4;++corner)
+				{
+					const float x=corner==0||corner==3?1:-1, y=corner<2?-1:1;
+					cVector3f expected;
+					if(mode==eParticleEmitter3DType_Axis)
+						expected=position+(axis.GetRight()*(x*particle.mvSize.x)+axis.GetForward()*(-y*particle.mvSize.y));
+					else if(mode==eParticleEmitter3DType_Line)
+					{
+						cVector3f along=position-last; along.Normalise();
+						cVector2f across(along.y,-along.x); across.Normalise();
+						expected=(corner<2?last:position)+along*(y*emitter.mvDrawSize.y*particle.mvSize.y)+
+							cVector3f(across.x,across.y,0)*(x*emitter.mvDrawSize.x*particle.mvSize.x);
+					}
+					else
+					{
+						cVector3f add(x*emitter.mvDrawSize.x,y*emitter.mvDrawSize.y,0);
+						if(mode==eParticleEmitter3DType_DynamicPoint){add=add*cVector3f(particle.mvSize);if(spin)add=cMath::MatrixMul(cMath::MatrixRotateZ(particle.mfSpin),add);}
+						expected=position+add;
+					}
+					CheckVector(emitter.GetVertexBuffer()->GetVector3(eVertexFlag_Position,i*4+corner),expected,"compact particle matches previous corner formula in all modes");
+				}
+				Check(instances[i].mColor==particle.mColor && instances[i].mEndColor==particle.mColor,"particle colour retained");
+				Check(Near(instances[i].mvUV[0],i==0?0.5f:0) && Near(instances[i].mvUV[1],i==0?0.5f:1),"subdivision row/column order");
+				Check(particle.mvPos==cVector3f(1+i,2,-4) && Near(particle.mfSpin,0.7f),"render preparation does not mutate simulation");
+			}
+		}
+		emitter.mCoordSystem=eParticleEmitter3DCoordSystem_World;
+		emitter.mDrawType=eParticleEmitter3DType_Line;
+		emitter.mvParticles[0]->mvLastPos=emitter.mvParticles[0]->mvPos;
+		emitter.mbUpdateGfx=true;emitter.UpdateGraphics(&camera,0,nullptr);
+		CheckVector(emitter.GetVertexBuffer()->GetQuadInstances()[0].mvRight,cVector3f(0.4f,0,0),"stationary line width fallback");
+		CheckVector(emitter.GetVertexBuffer()->GetQuadInstances()[0].mvUp,cVector3f(0,1.2f,0),"stationary line length fallback");
+		emitter.KillInstantly();emitter.mbUpdateGfx=true;emitter.UpdateGraphics(&camera,0,nullptr);
+		Check(emitter.GetVertexBuffer()->GetQuadInstances().empty(),"dead emitter submits no stale particles");
+
+		cBillboard billboard("billboard",cVector2f(2,4),&resources,&graphics);
+		billboard.SetSize(cVector2f(4,6)); billboard.SetColor(cColor(0.2f,0.3f,0.4f,0.5f));
+		const auto &sheet=billboard.GetVertexBuffer()->GetQuadInstances()[0];
+		CheckVector(sheet.mvRight,cVector3f(2,0,0),"billboard half width");
+		CheckVector(sheet.mvUp,cVector3f(0,3,0),"billboard half height");
+		Check(sheet.mvUV[1]==0 && sheet.mvUV[3]==1 && sheet.mColor==billboard.GetColor(),"billboard UV orientation and colour");
+		billboard.SetPosition(cVector3f(1,2,-4)); billboard.SetForwardOffset(0.3f);
+		for(auto type:{eBillboardType_Point,eBillboardType_Axis})
+		{
+			billboard.SetType(type);billboard.SetAxis(cVector3f(0.2f,1,0));
+			const cMatrixf matrix=*billboard.GetModelMatrix(&camera);
+			cVector3f toward=camera.GetPosition()-billboard.GetWorldPosition();toward.Normalise();
+			CheckVector(matrix.GetTranslation(),billboard.GetWorldPosition()+toward*0.3f,"billboard forward offset retained");
+			cVector3f expectedRight=cMath::Vector3Cross(type==eBillboardType_Point?camera.GetViewMatrix().GetUp():billboard.GetAxis(),toward);
+			if(type==eBillboardType_Axis) expectedRight.Normalise();
+			CheckVector(cVector3f(matrix.m[0][0],matrix.m[1][0],matrix.m[2][0]),expectedRight,"billboard facing retains original point/axis alignment");
+		}
+		Check(!billboard.IsShadowCaster(),"billboard remains excluded from shadows");
+
+		cBeam beam("beam",&resources,&graphics);
+		beam.SetPosition(cVector3f(1,2,-4)); beam.GetEnd()->SetPosition(cVector3f(1,7,-4));
+		beam.SetSize(cVector2f(2,0.5f));beam.SetMultiplyAlphaWithColor(true);
+		beam.SetColor(cColor(0.8f,0.4f,0.2f,0.5f));beam.GetEnd()->SetColor(cColor(0.4f,0.8f,0.2f,0.25f));
+		beam.UpdateGraphics(&camera,0,nullptr);
+		const auto tiled=beam.GetVertexBuffer()->GetQuadInstances()[0];
+		CheckVector(tiled.mvUp,cVector3f(0,2.5f,0),"beam endpoint distance");
+		Check(tiled.mvUV[1]==1 && tiled.mvUV[3]==-10,"beam tiling retains negative terminal coordinate");
+		Check(Near(tiled.mColor.r,0.4f) && Near(tiled.mEndColor.g,0.2f),"beam endpoint alpha multiplication");
+		CheckVector(beam.GetModelMatrix(&camera)->GetTranslation(),cVector3f(1,4.5f,-4),"beam midpoint facing");
+		beam.SetMultiplyAlphaWithColor(false);beam.UpdateGraphics(&camera,0,nullptr);
+		Check(beam.GetVertexBuffer()->GetQuadInstances()[0].mColor==tiled.mColor &&
+			beam.GetVertexBuffer()->GetQuadInstances()[0].mEndColor==tiled.mEndColor,"beam flag retains colours until their setters run");
+		beam.SetColor(cColor(0.7f,0.4f,0.2f,0.5f));
+		Check(Near(beam.GetVertexBuffer()->GetQuadInstances()[0].mColor.r,0.7f) &&
+			beam.GetVertexBuffer()->GetQuadInstances()[0].mEndColor==tiled.mEndColor,"beam setters update each endpoint independently");
+		beam.SetTileHeight(false);beam.UpdateGraphics(&camera,0,nullptr);
+		Check(beam.GetVertexBuffer()->GetQuadInstances()[0].mvUV[3]==0,"untiled beam UVs");
+		beam.GetEnd()->SetPosition(cVector3f(4,3,-2));beam.UpdateGraphics(&camera,0,nullptr);
+		CheckVector(beam.GetMidPosition(),cVector3f(2.5f,2.5f,-3),"moving beam endpoint updates instance");
+		Check(!beam.IsShadowCaster(),"beam remains excluded from shadows");
+	}
+	glad_glGenBuffers=gen;glad_glDeleteBuffers=del;
+}
 
 static void TestSkinning()
 {
@@ -157,7 +321,7 @@ static void TestSkinning()
 	Check(Near(skinned[8], 39), "vertex after an unweighted vertex, with four influences");
 	Check(std::equal(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Normal) + 3,
 		subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Normal) + 6, buffer->normals.begin() + 3), "unweighted normal");
-	Check(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Texture1)[7] == -1, "unweighted tangent handedness");
+	Check(subEntity->mpDynVtxBuffer->GetArray(eVertexFlag_Tangent)[7] == -1, "unweighted tangent handedness");
 }
 
 static void TestStrings()
@@ -316,6 +480,35 @@ static void TestDirectoryScan(const std::filesystem::path &directory)
 	Check(files.size() == 1, "empty directory name");
 }
 
+static void TestColladaPolygons()
+{
+	cMeshLoaderCollada loader(nullptr);
+	loader.mbZToY=false;
+	const std::string sources = R"(<root><geometry id="quad"><mesh>
+<source id="positions"><float_array>0 0 0 1 0 0 1 1 0 0 1 0</float_array><technique_common><accessor stride="3" count="4"/></technique_common></source>
+<source id="normals"><float_array>0 0 1</float_array><technique_common><accessor stride="3" count="1"/></technique_common></source>
+<source id="uv"><float_array>0 0 1 0 1 1 0 1</float_array><technique_common><accessor stride="2" count="4"/></technique_common></source>
+<vertices id="vertices"><input semantic="POSITION" source="#positions"/></vertices>)";
+	const std::string inputs = R"(<input semantic="VERTEX" source="#vertices" offset="0"/><input semantic="NORMAL" source="#normals" offset="1"/><input semantic="TEXCOORD" source="#uv" offset="2"/>)";
+	for(const char* type : {"polylist", "polygons"}) {
+		std::string xml = sources + "<" + type + " count=\"1\">" + inputs;
+		if(std::string(type)=="polylist") xml += "<vcount>4</vcount>";
+		xml += "<p>0 0 0 1 0 1 2 0 2 3 0 3</p></" + std::string(type) + "></mesh></geometry></root>";
+		TiXmlDocument document;document.Parse(xml.c_str());
+		tColladaGeometryVec geometry;cColladaScene scene;
+		loader.LoadGeometry(document.RootElement(),geometry,&scene);
+		Check(geometry.size()==1 && geometry[0].mvIndexVec.size()==6, "Collada quad becomes two triangles before caching");
+		const int corners[]={0,1,2,0,2,3};
+		const cVector3f positions[]={cVector3f(0,0,0),cVector3f(1,0,0),cVector3f(1,1,0),cVector3f(0,1,0)};
+		for(int i=0; i<6; ++i) {
+			const cVertex& vertex=geometry[0].mvVertexVec[geometry[0].mvIndexVec[i]];
+			Check(vertex.pos==positions[corners[i]], "Collada triangle winding and shared corners");
+			Check(vertex.tex.x==vertex.pos.x && vertex.tex.y==1-vertex.pos.y, "Collada corner UV indices retained");
+		}
+		Check(geometry[0].mvTangents.size()==geometry[0].mvVertexVec.size()*4, "triangulated geometry tangent layout");
+	}
+}
+
 static void TestColladaCache(const std::filesystem::path &directory)
 {
 	cMeshLoaderCollada loader(nullptr);
@@ -341,6 +534,12 @@ static void TestColladaCache(const std::filesystem::path &directory)
 	for(auto &pairs : controllers[0].mvPairs) pairs.push_back(cColladaJointPair(0,0));
 	Check(save() && load() && geometry[0].mvIndexVec.size() == 3 && controllers[0].mvPairs.size() == 3, "skinned geometry cache round trip");
 	TiXmlDocument document(file.c_str()); Check(document.LoadFile(), "read cache fixture");
+	auto savedGeometry=geometry; auto savedControllers=controllers;
+	document.RootElement()->RemoveAttribute("GeometryVersion");
+	Check(document.SaveFile() && !load(), "old polygon topology cache rejected");
+	geometry=savedGeometry; controllers=savedControllers;
+	Check(save() && load(), "rebuild topology cache");
+	Check(document.LoadFile(), "reread topology cache");
 	auto *pairs = document.RootElement()->FirstChildElement("ControllerRoot")->FirstChildElement()->FirstChildElement("PairVec");
 	pairs->FirstChildElement("PairNum")->FirstChild()->SetValue("4 1 1");
 	Check(document.SaveFile() && !load() && controllers.empty(), "Collada pair count overrun");
@@ -367,6 +566,51 @@ static void TestColladaCache(const std::filesystem::path &directory)
 	loader.SetCacheDir(directory.string() + "/");
 	Check(loader.FillStructures(source.string(), &images, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true), "invalid cache falls back to source DAE");
 	Check(loader.LoadStructures(cache.string(), &images, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr), "source import replaces invalid cache");
+}
+
+// Exercise the real upload path without a window. The CPU editing contract is
+// deliberately separate from the interleaved GPU layout.
+static void TestVertexUploads()
+{
+	auto gen = glad_glGenBuffers; auto del = glad_glDeleteBuffers;
+	auto bind = glad_glBindBuffer; auto data = glad_glBufferData;
+	glad_glGenBuffers = [](GLsizei n, GLuint* out) { static GLuint next=1; while(n--) *out++ = next++; };
+	glad_glDeleteBuffers = [](GLsizei, const GLuint*) {};
+	glad_glBindBuffer = [](GLenum, GLuint) {};
+	glad_glBufferData = [](GLenum, GLsizeiptr, const void*, GLenum) {};
+	{
+		const auto flags = eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_TexCoord | eVertexFlag_Color0;
+		cVertexBufferVBO buffer(nullptr, flags, eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic, 0, 0);
+		for(int v=0; v<3; ++v) {
+			buffer.AddVertex(eVertexFlag_Position, cVector3f(v==1, v==2, 0));
+			buffer.AddVertex(eVertexFlag_Normal, cVector3f(0,0,1));
+			buffer.AddVertex(eVertexFlag_TexCoord, cVector3f(v==1, v==2, 0));
+			buffer.AddColor(eVertexFlag_Color0, cColor(0.2f,0.3f,0.4f,0.5f));
+			buffer.AddIndex(v);
+		}
+		Check(buffer.Compile(eVertexCompileFlag_CreateTangents), "compile interleaved vertices with generated tangents");
+		Check(buffer.mlStride == 18 && buffer.mvInterleaved.size() == 54, "interleaved vertex stride");
+		auto verify = [&] {
+			for(int v=0; v<3; ++v) for(int i=0; i<klNumOfVertexFlags; ++i)
+				for(int c=0; c<kvVertexElements[i]; ++c)
+					Check(buffer.mvInterleaved[v*buffer.mlStride+buffer.mvOffsets[i]+c] ==
+						buffer.GetArray(kvVertexFlags[i])[v*kvVertexElements[i]+c], "all uploaded fields match packed editing arrays");
+		};
+		verify();
+		float* positions = buffer.GetArray(eVertexFlag_Position);
+		positions[4] = 7;
+		buffer.GetArray(eVertexFlag_Tangent)[7] = -1;
+		buffer.UpdateData(eVertexFlag_Position | eVertexFlag_Tangent, false);
+		Check(positions == buffer.GetArray(eVertexFlag_Position), "dynamic upload preserves editing pointers");
+		verify();
+		std::unique_ptr<iVertexBuffer> copy(buffer.CreateCopy(eVertexBufferUsageType_Stream));
+		Check(copy->GetArray(eVertexFlag_Tangent)[7] == -1 && copy->GetArray(eVertexFlag_Position)[4] == 7,
+			"mesh copy preserves positions and tangent handedness");
+		buffer.GetArray(eVertexFlag_Color0)[3] = 0.8f;
+		buffer.UpdateData(eVertexFlag_Color0, false); verify();
+		Check(copy->GetArray(eVertexFlag_Color0)[3] == 0.5f, "mesh copy owns independent editing data");
+	}
+	glad_glGenBuffers=gen; glad_glDeleteBuffers=del; glad_glBindBuffer=bind; glad_glBufferData=data;
 }
 
 class TestChannel : public iSoundChannel
@@ -428,14 +672,166 @@ static void TestSound()
 	Check(music.Play("test", 0.5f, 0.1f, false) && !music.mpMainSong->mpStream->GetLooping(), "loop change with volume change");
 }
 
+// Newton 2 finds no contact between convex shapes with the same centre
+// (a script asking if an entity it put in the middle of an area is in it)
+static void TestCollideSameCentre()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	cMatrixf mtxOffset = cMath::MatrixRotateZ(kPi2f);
+	iCollideShape *pCylinder = world.CreateCylinderShape(0.3f, 1.75f, &mtxOffset);
+	iCollideShape *pBox = world.CreateBoxShape(cVector3f(0.36f, 3.66f, 4.7f), nullptr);
+	for(int lAngle = 0; lAngle < 360; lAngle += 10)
+	{
+		cMatrixf mtxBox = cMath::MatrixRotateY(cMath::ToRad((float)lAngle));
+		mtxBox.SetTranslation(cVector3f(1, -0.94f, -5));
+		cMatrixf mtxCylinder = cMatrixf::Identity;
+		mtxCylinder.SetTranslation(cVector3f(1, -0.94f, -5));
+		cCollideData collideData;
+		collideData.SetMaxSize(1);
+		Check(world.CheckShapeCollision(pCylinder, mtxCylinder, pBox, mtxBox, collideData, 1), "collision of shapes with the same centre");
+	}
+}
+
+class TestProgram : public iGpuProgram
+{
+public:
+	TestProgram() : iGpuProgram("test") {}
+	bool Reload() override { return false; }
+	void Unload() override {}
+	void Destroy() override {}
+	bool CreateFromFile(const tString&, const tString&) override { return false; }
+	void Bind() override {}
+	void UnBind() override {}
+	bool SetTexture(const tString&, iTexture*, bool) override { return false; }
+	bool SetTextureToUnit(int, iTexture*) override { return false; }
+};
+
+static void TestProgramParameters()
+{
+	TestProgram a, b;
+	a.ParametersUploaded();
+	a.SetFloat(eProgramParam::fogStart, 0);
+	Check(!a.ParametersChanged(), "unchanged material data does not upload again");
+	a.SetFloat(eProgramParam::fogStart, 3);
+	Check(a.ParametersChanged(), "changed material data needs upload");
+	const unsigned fog = static_cast<unsigned>(eProgramParam::fogStart) * 4;
+	Check(a.GetParameterData()[fog] == 3 && b.GetParameterData()[fog] == 0, "program parameter blocks are isolated");
+	a.ParametersUploaded();
+	a.SetFloat(eProgramParam::fogStart, 3);
+	Check(!a.ParametersChanged(), "identical material update remains clean");
+	a.SetVec4f(eProgramParam::haloLook, 7, 8, 9, 10);
+	a.SetVec4f(iGpuProgram::Element(eProgramParam::haloProfile, 31), 1, 2, 3, 4);
+	Check(a.GetParameterData()[static_cast<unsigned>(eProgramParam::haloLook) * 4] == 7, "last array element preserves following member");
+	cMatrixf matrix = cMatrixf::Identity;
+	for(unsigned row=0; row<4; ++row)
+		for(unsigned col=0; col<4; ++col) matrix.m[row][col] = float(row * 4 + col);
+	a.SetMatrixf(eProgramParam::worldViewProj, matrix);
+	const float* data = a.GetParameterData() + static_cast<unsigned>(eProgramParam::worldViewProj) * 4;
+	for(unsigned row=0; row<4; ++row)
+		for(unsigned col=0; col<4; ++col)
+			Check(data[col * 4 + row] == matrix.m[row][col], "std140 matrix keeps column-major order");
+	Check(!a.SetFloat(eProgramParam::Count, 1), "invalid parameter cannot overwrite block");
+	Check(!a.SetMatrixf(eProgramParam::t, matrix), "matrix cannot overrun block");
+}
+
+static void TestDrawQueue()
+{
+	cRenderDraw first, next;
+	Check(first.FirstChangedState(nullptr) == eRenderStateType_Sector, "first draw applies all states");
+	Check(next.FirstChangedState(&first) == eRenderStateType_Render, "equal keys still draw");
+	next.mKey[6] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_BlendMode, "channel/blend key reapplies following state");
+	next = first; next.mKey[7] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "program change reapplies textures and matrices");
+	next = first; next.mKey[10 + MAX_TEXTUREUNITS] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Matrix, "matrix change preserves earlier material state");
+	next = first; next.mKey[8] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Program, "custom setup change reapplies material and matrix values");
+	next = first; next.mKey[0] = 1;
+	Check(next.FirstChangedState(&first) == eRenderStateType_Sector, "sector change reapplies ambient setup");
+	cRenderQueue queue;
+	for(int i=0; i<4; ++i){
+		queue.mvDraws.emplace_back();
+		queue.mvDraws.back().mKey[1] = i % 2;
+		queue.mvDraws.back().mState.mlPass = i;
+	}
+	queue.Sort();
+	const int expected[] = {0, 2, 1, 3};
+	for(int i=0; i<4; ++i) Check(queue.mvDraws[i].mState.mlPass == expected[i], "pass ordering retains equal-key draws in submission order");
+	queue.Clear();
+	Check(queue.mvDraws.empty(), "cleared queue keeps no previous draws");
+}
+
+static void TestSprites()
+{
+	cSpriteBatch batch;
+	std::array<cSpriteVertex,4> corners;
+	for(int i=0; i<4; ++i)
+		corners[i] = cSpriteVertex(cVector3f(i, i+10, i+20), cColor(i*0.1f, 0.2f, 0.3f, 0.4f), cVector3f(i*0.25f,0.5f,0));
+	const cSpriteBlend alpha(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha);
+	const cSpriteBlend additive(eBlendFunc_One,eBlendFunc_One);
+	// These distinct opaque handles are compared, never dereferenced.
+	int textureIds[2];
+	iTexture* textureA = reinterpret_cast<iTexture*>(&textureIds[0]);
+	iTexture* textureB = reinterpret_cast<iTexture*>(&textureIds[1]);
+	batch.Add(textureA, alpha, corners);
+	const int topology[] = {0,1,2,0,2,3};
+	for(int i=0; i<6; ++i)
+	{
+		const auto& vertex = batch.mvVertices[i];
+		const auto& original = corners[topology[i]];
+		Check(vertex.pos == original.pos && vertex.tex == original.tex && vertex.col == original.col,
+			"sprite triangles retain winding, depth, colour and UV coordinates");
+	}
+	batch.Add(textureA, alpha, corners);
+	Check(batch.mvBatches.size() == 1 && batch.mvBatches[0].mlCount == 12, "adjacent sprites share one batch");
+	batch.Add(textureB, alpha, corners);
+	batch.Add(textureA, alpha, corners);
+	batch.Add(textureA, additive, corners);
+	batch.Add(textureA, cSpriteBlend(eBlendFunc_One,eBlendFunc_One,false), corners);
+	Check(batch.mvBatches.size() == 5, "texture, blend factors and blend enable delimit batches without reordering");
+	for(size_t i=1; i<batch.mvBatches.size(); ++i)
+		Check(batch.mvBatches[i].mlFirst == batch.mvBatches[i-1].mlFirst + batch.mvBatches[i-1].mlCount,
+			"batch ranges cover triangles in submission order");
+	for(int i=0; i<20000; ++i) batch.Add(textureA, alpha, corners);
+	Check(batch.mvVertices.size() == 20006*6 && batch.mvBatches.back().mlCount == 20000*6,
+		"sprites grow beyond the old fixed array capacity without dropping triangles");
+	cSpriteBatch empty;
+	empty.Flush(nullptr);
+
+	tGfxBufferSet hud;
+	tGuiRenderObjectSet gui;
+	for(int i=0; i<5; ++i)
+	{
+		cGfxBufferObject object{};
+		object.mvTransform = cVector3f(i,0,i == 3 ? -1 : 2);
+		hud.insert(object);
+		cGuiRenderObject guiObject{};
+		guiObject.mvPos = object.mvTransform;
+		gui.insert(guiObject);
+	}
+	const int order[] = {3,0,1,2,4};
+	int i = 0;
+	for(const auto& object : hud) Check(object.mvTransform.x == order[i++], "HUD sorts depth and retains submission order at equal Z");
+	i = 0;
+	for(const auto& object : gui) Check(object.mvPos.x == order[i++], "GUI sorts depth and retains submission order at equal Z");
+	Check(cGuiMaterial_Diffuse(nullptr).GetBlend() == cSpriteBlend(eBlendFunc_One,eBlendFunc_Zero), "GUI replace blend");
+	Check(cGuiMaterial_Alpha(nullptr).GetBlend() == alpha && cGuiMaterial_FontNormal(nullptr).GetBlend() == alpha, "GUI alpha and glyph blend");
+	Check(cGuiMaterial_Additive(nullptr).GetBlend() == additive, "GUI additive blend");
+	Check(cGuiMaterial_Modulative(nullptr).GetBlend() == cSpriteBlend(eBlendFunc_DestColor,eBlendFunc_Zero), "GUI modulative blend");
+}
+
 int hplMain(const hpl::tString&)
 {
 	auto directory = std::filesystem::temp_directory_path() / ("overture-regressions-" + std::to_string(getpid()));
 	std::filesystem::create_directories(directory);
 	try
 	{
+		{ cLowLevelGraphicsSDL graphics; Check(graphics.GetWindow()==nullptr, "backend lifetime without a GL context"); }
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
-		TestAnimation(directory); TestColladaCache(directory); TestSound();
+		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
+		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

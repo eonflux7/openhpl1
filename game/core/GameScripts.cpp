@@ -30,8 +30,12 @@
 #include "entities/GameArea.h"
 #include "entities/GameStickArea.h"
 #include "enemies/GameEnemy.h"
+#include "enemies/GameEnemy_Infected.h"
 #include "entities/GameLink.h"
 #include "entities/GameLamp.h"
+#include "entities/GameLever.h"
+#include "entities/GameCamera.h"
+#include "entities/GameWheel.h"
 #include "entities/GameLadder.h"
 #include "entities/GameDamageArea.h"
 #include "entities/GameForceArea.h"
@@ -41,6 +45,9 @@
 #include "systems/RadioHandler.h"
 #include "ui/Inventory.h"
 #include "ui/Notebook.h"
+#include "ui/GameGui.h"
+#include "ui/Ending.h"
+#include "systems/GameSoundEnvHandler.h"
 #include "ui/NumericalPanel.h"
 #include "systems/FadeHandler.h"
 #include "systems/EffectHandler.h"
@@ -270,6 +277,18 @@ static void __stdcall ChangeMap(std::string asMapFile, std::string asMapPos,
 									asLoadTextCat,asLoadTextEntry);
 }
 SCRIPT_DEFINE_FUNC_8(void, ChangeMap, string, string, string, string, float, float, string, string)
+
+// Black Plague: with the picture of the loading screen
+static void __stdcall ChangeMapLoadImage(std::string asMapFile, std::string asMapPos,
+								std::string asStartSound, std::string asStopSound,
+								float afFadeOutTime, float afFadeInTime,
+								std::string asLoadTextCat, std::string asLoadTextEntry,
+								std::string asLoadImage)
+{
+	gpInit->mpMapHandler->ChangeMap(asMapFile, asMapPos,asStartSound, asStopSound,
+									afFadeOutTime, afFadeInTime, asLoadTextCat, asLoadTextEntry, asLoadImage);
+}
+SCRIPT_DEFINE_FUNC_9(void, ChangeMapLoadImage, string, string, string, string, float, float, string, string, string)
 
 //-----------------------------------------------------------------------
 
@@ -839,7 +858,8 @@ static void __stdcall ReplaceEntity(std::string asName, std::string asBodyName,
 	}
 	else
 	{
-		iPhysicsBody *pBody = pEntity->GetBody(0);
+		//Overture's code declared a second pBody here and crashed; fixed in Black Plague
+		pBody = pEntity->GetBody(0);
 	}
 
 	cMatrixf mtxTransform = pBody->GetWorldMatrix();
@@ -1083,6 +1103,21 @@ static void __stdcall SetupLink(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_7(void, SetupLink, string, string, string, string, string, float, float)
 
+// Black Plague: with the picture of the loading screen
+static void __stdcall SetupLinkLoadImage(std::string asName,
+								std::string asMapFile, std::string asMapPos,
+								std::string asStartSound, std::string asStopSound,
+								float afFadeOutTime, float afFadeInTime,
+								std::string asLoadImage)
+{
+	SetupLink(asName, asMapFile, asMapPos, asStartSound, asStopSound, afFadeOutTime, afFadeInTime);
+
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName, false);
+	if(pEntity && pEntity->GetType() == eGameEntityType_Link)
+		static_cast<cGameLink*>(pEntity)->msLoadImage = asLoadImage;
+}
+SCRIPT_DEFINE_FUNC_8(void, SetupLinkLoadImage, string, string, string, string, string, float, float, string)
+
 //-----------------------------------------------------------------------
 
 static void __stdcall SetupLinkLoadText(std::string asName,
@@ -1110,6 +1145,61 @@ static void __stdcall SetupLinkLoadText(std::string asName,
 	pLink->msLoadTextEntry = asTextEntry;
 }
 SCRIPT_DEFINE_FUNC_9(void, SetupLinkLoadText, string, string, string, string, string, float, float, string, string)
+
+static void __stdcall SetupLinkLoadTextLoadImage(std::string asName,
+										std::string asMapFile, std::string asMapPos,
+										std::string asStartSound, std::string asStopSound,
+										float afFadeOutTime, float afFadeInTime,
+										std::string asTextCat, std::string asTextEntry,
+										std::string asLoadImage)
+{
+	SetupLinkLoadText(asName, asMapFile, asMapPos, asStartSound, asStopSound, afFadeOutTime, afFadeInTime,
+						asTextCat, asTextEntry);
+
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName, false);
+	if(pEntity && pEntity->GetType() == eGameEntityType_Link)
+		static_cast<cGameLink*>(pEntity)->msLoadImage = asLoadImage;
+}
+
+//-----------------------------------------------------------------------
+
+/**
+ * Black Plague: a locked link does not change the map
+ */
+static void __stdcall SetLinkLocked(std::string asName, bool abLocked)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
+	{
+		Warning("Couldn't find object entity '%s'\n",asName.c_str());
+		return;
+	}
+
+	static_cast<cGameLink*>(pEntity)->mbLocked = abLocked;
+}
+SCRIPT_DEFINE_FUNC_2(void, SetLinkLocked, string, bool)
+
+/**
+ * Black Plague: the sound and the message of a locked link
+ */
+static void __stdcall SetupLinkLockedProp(std::string asName, std::string asLockedSound,
+											std::string asLockedDescCat, std::string asLockedDescEntry)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
+	{
+		Warning("Couldn't find object entity '%s'\n",asName.c_str());
+		return;
+	}
+
+	cGameLink *pLink = static_cast<cGameLink*>(pEntity);
+
+	pLink->msLockedSound = asLockedSound;
+	if(asLockedDescCat != "")
+		pLink->msLockedDesc = gpInit->mpGame->GetResources()->Translate(asLockedDescCat, asLockedDescEntry);
+}
+SCRIPT_DEFINE_FUNC_4(void, SetupLinkLockedProp, string, string, string, string)
+SCRIPT_DEFINE_FUNC_10(void, SetupLinkLoadTextLoadImage, string, string, string, string, string, float, float, string, string, string)
 
 //-----------------------------------------------------------------------
 
@@ -1242,6 +1332,162 @@ static void __stdcall SetEnemyUseTriggers(std::string asEnemy, bool abUseTrigger
 	pEnemy->SetUsesTriggers(abUseTriggers);
 }
 SCRIPT_DEFINE_FUNC_2(void,SetEnemyUseTriggers,string, bool)
+
+//-----------------------------------------------------------------------
+
+// Black Plague's enemy functions
+
+static iGameEnemy* GetScriptEnemy(const std::string &asEnemy)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
+	{
+		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
+		return nullptr;
+	}
+	return static_cast<iGameEnemy*>(pEntity);
+}
+
+static cGameEnemy_Infected* GetScriptInfected(const std::string &asEnemy)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return nullptr;
+
+	cGameEnemy_Infected *pInfected = dynamic_cast<cGameEnemy_Infected*>(pEnemy);
+	if(pInfected==nullptr) Warning("Enemy '%s' is not an Infected\n",asEnemy.c_str());
+	return pInfected;
+}
+
+/**
+ * Plays an animation in place of the enemy's moving ones.
+ **/
+static void __stdcall PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return;
+
+	pEnemy->PlayAnim(asAnim,abLoop,0.5f);
+}
+SCRIPT_DEFINE_FUNC_3(void, PlayEnemyAnim, string, string, bool)
+
+/**
+ * Called once, as asFunc(string asEnemy), when the animation being played is over.
+ **/
+static void __stdcall SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return;
+
+	pEnemy->SetOnAnimOverCallback(asFunc);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetEnemyAnimOverCallback, string, string)
+
+/**
+ * Called, as asFunc(string asEnemy), each time the enemy starts to hunt the player.
+ **/
+static void __stdcall SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return;
+
+	pEnemy->SetOnHuntCallback(asFunc);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetEnemyHuntCallback, string, string)
+
+/**
+ * Called once, as asFunc(string asEnemy), when the enemy has been at its last patrol node.
+ **/
+static void __stdcall SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return;
+
+	pEnemy->SetOnPatrolOverCallback(asFunc);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetEnemyPatrolOverCallback, string, string)
+
+/**
+ * The patrol is over at its last node instead of starting again.
+ **/
+static void __stdcall SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abX)
+{
+	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	if(pEnemy==nullptr) return;
+
+	pEnemy->SetStopAtLastPatrolNode(abX);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetEnemyStopAtLastPatrolNode, string, bool)
+
+/**
+ * Puts a weapon in an Infected's hand. The rotation is in degrees.
+ **/
+static void __stdcall SetInfectedWeapon(std::string asEnemy, std::string asFile, float afDamage,
+										float afRotX, float afRotY, float afRotZ,
+										float afPosX, float afPosY, float afPosZ)
+{
+	cGameEnemy_Infected *pInfected = GetScriptInfected(asEnemy);
+	if(pInfected==nullptr) return;
+
+	cMatrixf mtxOffset = cMath::MatrixRotate(cVector3f(cMath::ToRad(afRotX),cMath::ToRad(afRotY),cMath::ToRad(afRotZ)),
+											eEulerRotationOrder_XYZ);
+	mtxOffset.SetTranslation(cVector3f(afPosX,afPosY,afPosZ));
+
+	pInfected->SetWeapon(asFile,mtxOffset,afDamage,true);
+}
+SCRIPT_DEFINE_FUNC_9(void, SetInfectedWeapon, string, string, float, float, float, float, float, float, float)
+
+/**
+ * Gives an Infected a lit flashlight to carry.
+ **/
+static void __stdcall AddInfectedFlashlight(std::string asEnemy)
+{
+	cGameEnemy_Infected *pInfected = GetScriptInfected(asEnemy);
+	if(pInfected==nullptr) return;
+
+	pInfected->AddFlashLight(true);
+}
+SCRIPT_DEFINE_FUNC_1(void, AddInfectedFlashlight, string)
+
+//-----------------------------------------------------------------------
+
+// Black Plague's security cameras
+
+static cGameCamera* GetScriptCamera(const std::string &asName)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Camera)
+	{
+		Warning("Couldn't find camera entity '%s'\n",asName.c_str());
+		return nullptr;
+	}
+	return static_cast<cGameCamera*>(pEntity);
+}
+
+/**
+ * How a security camera turns: the angles to each side in degrees, the pause
+ * at each end in seconds and the speed. asSpottedCallback(string asCamera) is
+ * called when the player is seen, asAlertOverCallback when the alert is over.
+ **/
+static void __stdcall SetupSecurityCamera(std::string asName, float afMinAngle, float afMaxAngle,
+											float afMinPause, float afMaxPause, float afSpeed,
+											std::string asSpottedCallback, std::string asAlertOverCallback)
+{
+	cGameCamera *pCamera = GetScriptCamera(asName);
+	if(pCamera==nullptr) return;
+
+	pCamera->Setup(cMath::ToRad(afMinAngle),cMath::ToRad(afMaxAngle),afMinPause,afMaxPause,afSpeed,
+					asSpottedCallback,asAlertOverCallback);
+}
+SCRIPT_DEFINE_FUNC_8(void, SetupSecurityCamera, string, float, float, float, float, float, string, string)
+
+static void __stdcall SetSecurityCameraAlerted(std::string asName, bool abX)
+{
+	cGameCamera *pCamera = GetScriptCamera(asName);
+	if(pCamera==nullptr) return;
+
+	pCamera->SetAlerted(abX);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetSecurityCameraAlerted, string, bool)
 
 //-----------------------------------------------------------------------
 
@@ -1416,6 +1662,38 @@ static void __stdcall SetupDamageArea(std::string asName, float afDamage,
 	
 }
 SCRIPT_DEFINE_FUNC_6(void, SetupDamageArea, string, float, float, int, bool, bool)
+
+/**
+ * Black Plague: with how the player is shown to be hurt and what is heard then.
+ * \param asDamageType "BloodSplash", "Ice" or "Poison"
+ * \param asDamageSound played each time the player is hurt, "" = none
+ */
+static void __stdcall SetupDamageAreaType(std::string asName, float afDamage,
+													 float afUpdatesPerSec, int alStrength,
+													 bool abDisableObjects, bool abDisableEnemies,
+													 std::string asDamageType, std::string asDamageSound)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_DamageArea)
+	{
+		Warning("Couldn't find damage area '%s'\n",asName.c_str());
+		return;
+	}
+
+	SetupDamageArea(asName, afDamage, afUpdatesPerSec, alStrength, abDisableObjects, abDisableEnemies);
+
+	tString sType = cString::ToLowerCase(asDamageType);
+	ePlayerDamageType type = ePlayerDamageType_BloodSplash;
+	if(sType == "bloodsplash")	type = ePlayerDamageType_BloodSplash;
+	else if(sType == "ice")		type = ePlayerDamageType_Ice;
+	else if(sType == "poison")	type = ePlayerDamageType_Poison;
+	else Warning("Damage type %s does not exist!\n",asDamageType.c_str());
+
+	cGameDamageArea *pDamage = static_cast<cGameDamageArea*>(pEntity);
+	pDamage->SetDamageType(type);
+	pDamage->SetDamageSound(asDamageSound);
+}
+SCRIPT_DEFINE_FUNC_8(void, SetupDamageAreaType, string, float, float, int, bool, bool, string, string)
 
 //-----------------------------------------------------------------------
 
@@ -1722,6 +2000,1158 @@ SCRIPT_DEFINE_FUNC_4(void, CreateSoundEntityAt, string, string, string, string)
 
 //-----------------------------------------------------------------------
 
+/////////////////////////////////////////////////////////////////////////
+/////// LEVERS AND WHEELS (BLACK PLAGUE) ///////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+static cGameLever* GetLever(const std::string &asName)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lever)
+	{
+		Warning("Couldn't find lever '%s'\n",asName.c_str());
+		return nullptr;
+	}
+	return static_cast<cGameLever*>(pEntity);
+}
+
+static cGameWheel* GetWheel(const std::string &asName)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Wheel)
+	{
+		Warning("Couldn't find wheel '%s'\n",asName.c_str());
+		return nullptr;
+	}
+	return static_cast<cGameWheel*>(pEntity);
+}
+
+//-----------------------------------------------------------------------
+
+/**
+ * The function is called as Func(string asName, int alAction, int alState):
+ * the action 0 = enter, 1 = leave, 2 = during; the state -1 = min, 0 = middle, 1 = max.
+ * \param asType "Enter", "Leave" or "During"
+ */
+static void __stdcall SetLeverCallback(std::string asName, std::string asType, std::string asFunc)
+{
+	cGameLever *pLever = GetLever(asName);
+	if(pLever==nullptr) return;
+
+	tString sType = cString::ToLowerCase(asType);
+
+	if(sType == "enter")		pLever->SetCallback(eGameLeverAction_Enter, asFunc);
+	else if(sType == "leave")	pLever->SetCallback(eGameLeverAction_Leave, asFunc);
+	else if(sType == "during")	pLever->SetCallback(eGameLeverAction_During, asFunc);
+}
+SCRIPT_DEFINE_FUNC_3(void, SetLeverCallback, string, string, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * \param alState -1 = stuck at min, 1 = stuck at max, 0 = not stuck
+ */
+static void __stdcall SetLeverStuck(std::string asName, int alState)
+{
+	cGameLever *pLever = GetLever(asName);
+	if(pLever==nullptr) return;
+
+	if(alState == 0)		pLever->SetIsStuck(false);
+	else if(alState == 1)	pLever->SetStuck(eGameLeverState_Max);
+	else if(alState == -1)	pLever->SetStuck(eGameLeverState_Min);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetLeverStuck, string, int)
+
+//-----------------------------------------------------------------------
+
+/**
+ * \return -1 = min, 0 = middle, 1 = max
+ */
+static int __stdcall GetLeverState(std::string asName)
+{
+	cGameLever *pLever = GetLever(asName);
+	if(pLever==nullptr) return 0;
+
+	switch(pLever->GetState())
+	{
+	case eGameLeverState_Min: return -1;
+	case eGameLeverState_Max: return 1;
+	default: return 0;
+	}
+}
+SCRIPT_DEFINE_FUNC_1(int, GetLeverState, string)
+
+//-----------------------------------------------------------------------
+
+static void __stdcall SetWheelCallback(std::string asName, std::string asType, std::string asFunc)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return;
+
+	tString sType = cString::ToLowerCase(asType);
+
+	if(sType == "enter")		pWheel->SetCallback(eGameWheelAction_Enter, asFunc);
+	else if(sType == "leave")	pWheel->SetCallback(eGameWheelAction_Leave, asFunc);
+	else if(sType == "during")	pWheel->SetCallback(eGameWheelAction_During, asFunc);
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWheelCallback, string, string, string)
+
+//-----------------------------------------------------------------------
+
+static void __stdcall SetWheelStuck(std::string asName, int alState)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return;
+
+	if(alState == 0)		pWheel->SetIsStuck(false);
+	else if(alState == 1)	pWheel->SetStuck(eGameWheelState_Max);
+	else if(alState == -1)	pWheel->SetStuck(eGameWheelState_Min);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetWheelStuck, string, int)
+
+//-----------------------------------------------------------------------
+
+static int __stdcall GetWheelState(std::string asName)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return 0;
+
+	switch(pWheel->GetState())
+	{
+	case eGameWheelState_Min: return -1;
+	case eGameWheelState_Max: return 1;
+	default: return 0;
+	}
+}
+SCRIPT_DEFINE_FUNC_1(int, GetWheelState, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * The angle the wheel has been turned in all, in degrees
+ */
+static float __stdcall GetWheelAngle(std::string asName)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return 0;
+
+	return cMath::ToDeg(pWheel->GetAngle());
+}
+SCRIPT_DEFINE_FUNC_1(float, GetWheelAngle, string)
+
+static float __stdcall GetWheelSpeed(std::string asName)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return 0;
+
+	return pWheel->GetSpeed();
+}
+SCRIPT_DEFINE_FUNC_1(float, GetWheelSpeed, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * The limits of a joint follow the wheel: afMin at the wheel's least angle,
+ * afMax at its greatest, afRange between the two limits.
+ */
+static void __stdcall ConnectWheelToJoint(std::string asName, std::string asJoint,
+											float afMin, float afMax, float afRange)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return;
+
+	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	iPhysicsJoint *pJoint = pPhysicsWorld->GetJoint(asJoint);
+	if(pJoint==nullptr)
+	{
+		Warning("Couldn't find joint '%s'\n",asJoint.c_str());
+		return;
+	}
+
+	pWheel->ConnectToJointLimit(pJoint, afMin, afMax, afRange);
+}
+SCRIPT_DEFINE_FUNC_5(void, ConnectWheelToJoint, string, string, float, float, float)
+
+/**
+ * The same for the value a controller on one of the entity's joints aims at
+ */
+static void __stdcall ConnectWheelToController(std::string asName, std::string asEntity, std::string asController,
+											float afMin, float afMax)
+{
+	cGameWheel *pWheel = GetWheel(asName);
+	if(pWheel==nullptr) return;
+
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntity);
+	if(pEntity==nullptr)
+	{
+		Warning("Couldn't find controller entity '%s'\n",asEntity.c_str());
+		return;
+	}
+
+	pWheel->ConnectToController(pEntity, asController, afMin, afMax);
+}
+SCRIPT_DEFINE_FUNC_5(void, ConnectWheelToController, string, string, string, float, float)
+
+//-----------------------------------------------------------------------
+
+/////////////////////////////////////////////////////////////////////////
+/////// MOVING THINGS TO AREAS (BLACK PLAGUE) //////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+static cGameArea* GetArea(const std::string &asName)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Area)
+	{
+		Warning("Couldn't find area entity '%s'\n",asName.c_str());
+		return nullptr;
+	}
+	return static_cast<cGameArea*>(pEntity);
+}
+
+static iPhysicsBody* GetBody(const std::string &asName)
+{
+	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	iPhysicsBody *pBody = pPhysicsWorld->GetBody(asName);
+	if(pBody==nullptr) Warning("Couldn't find body '%s'\n",asName.c_str());
+	return pBody;
+}
+
+static void TeleportBody(iPhysicsBody *apBody, cGameArea *apArea, bool abResetVelocity, bool abSetRotation,
+						const cVector3f &avRotation)
+{
+	apBody->SetPosition(apArea->GetBody(0)->GetWorldPosition());
+
+	if(abResetVelocity)
+	{
+		apBody->SetLinearVelocity(0);
+		apBody->SetAngularVelocity(0);
+	}
+
+	if(abSetRotation)
+	{
+		cMatrixf mtxTransform = cMath::MatrixRotate(avRotation, eEulerRotationOrder_XYZ);
+		mtxTransform.SetTranslation(apBody->GetWorldPosition());
+		apBody->SetMatrix(mtxTransform);
+	}
+
+	apBody->SetEnabled(true);
+}
+
+//-----------------------------------------------------------------------
+
+/**
+ * Moves an entity in a straight line to the centre of an area.
+ * \param afMaxSpeed in m/s
+ * \param afAcceleration in m/s^2
+ * \param afSlowDownDist the distance from the area inside which it slows down
+ * \param asCallback called on arrival: Func(string asEntity). "" = none.
+ */
+static void __stdcall MoveEntityToArea(std::string asName, std::string asArea, float afMaxSpeed,
+										float afAcceleration, float afSlowDownDist, std::string asCallback)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr)
+	{
+		Warning("Couldn't find game entity '%s'\n",asName.c_str());
+		return;
+	}
+
+	cGameArea *pArea = GetArea(asArea);
+	if(pArea==nullptr) return;
+
+	pEntity->MoveToPosition(pArea->GetBody(0)->GetWorldPosition(), afMaxSpeed, afAcceleration,
+							afSlowDownDist, asCallback);
+}
+SCRIPT_DEFINE_FUNC_6(void, MoveEntityToArea, string, string, float, float, float, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Puts a body at the centre of an area.
+ * \param abResetVelocity the body is left without speed
+ * \param abSetRotation the body gets the rotation given (radians), else it keeps its own
+ */
+static void __stdcall TeleportBodyToArea(std::string asBody, std::string asArea, bool abResetVelocity,
+										bool abSetRotation, float afRotX, float afRotY, float afRotZ)
+{
+	iPhysicsBody *pBody = GetBody(asBody);
+	if(pBody==nullptr) return;
+
+	cGameArea *pArea = GetArea(asArea);
+	if(pArea==nullptr) return;
+
+	TeleportBody(pBody, pArea, abResetVelocity, abSetRotation, cVector3f(afRotX, afRotY, afRotZ));
+}
+SCRIPT_DEFINE_FUNC_7(void, TeleportBodyToArea, string, string, bool, bool, float, float, float)
+
+/**
+ * The same for the first body of an entity
+ */
+static void __stdcall TeleportEntityToArea(std::string asName, std::string asArea, bool abResetVelocity,
+										bool abSetRotation, float afRotX, float afRotY, float afRotZ)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr)
+	{
+		Warning("Couldn't find game entity '%s'\n",asName.c_str());
+		return;
+	}
+
+	cGameArea *pArea = GetArea(asArea);
+	if(pArea==nullptr) return;
+
+	if(pEntity->GetBodyNum()==0)
+	{
+		Warning("Entity %s has no bodies! Could not be teleported!\n",asName.c_str());
+		return;
+	}
+
+	TeleportBody(pEntity->GetBody(0), pArea, abResetVelocity, abSetRotation, cVector3f(afRotX, afRotY, afRotZ));
+}
+SCRIPT_DEFINE_FUNC_7(void, TeleportEntityToArea, string, string, bool, bool, float, float, float)
+
+//-----------------------------------------------------------------------
+
+/**
+ * The player stands at the centre of an area
+ */
+static void __stdcall TeleportPlayerToArea(std::string asArea)
+{
+	cGameArea *pArea = GetArea(asArea);
+	if(pArea==nullptr) return;
+
+	gpInit->mpPlayer->GetCharacterBody()->SetFeetPosition(pArea->GetBody(0)->GetWorldPosition(), false);
+}
+SCRIPT_DEFINE_FUNC_1(void, TeleportPlayerToArea, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Requiem: an entity is made from a file, placed and turned as the area is
+ */
+static void __stdcall CreateEntityAtArea(std::string asName, std::string asFile, std::string asArea)
+{
+	cWorld3D *pWorld = gpInit->mpGame->GetScene()->GetWorld3D();
+
+	cGameArea *pArea = GetArea(asArea);
+	if(pArea==nullptr) return;
+
+	pWorld->CreateEntity(asName, pArea->GetBody(0)->GetWorldMatrix(), asFile, true);
+}
+SCRIPT_DEFINE_FUNC_3(void, CreateEntityAtArea, string, string, string)
+
+//-----------------------------------------------------------------------
+
+static bool BodiesCollide(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB)
+{
+	if(cMath::CheckCollisionBV(*apBodyA->GetBV(), *apBodyB->GetBV())==false) return false;
+
+	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+
+	cCollideData collideData;
+	collideData.SetMaxSize(1);
+
+	return pPhysicsWorld->CheckShapeCollision(apBodyA->GetShape(), apBodyA->GetLocalMatrix(),
+											apBodyB->GetShape(), apBodyB->GetLocalMatrix(),
+											collideData, 1);
+}
+
+/**
+ * \return true if two bodies touch
+ */
+static bool __stdcall CheckBodyCollision(std::string asBodyA, std::string asBodyB)
+{
+	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+
+	iPhysicsBody *pBodyA = pPhysicsWorld->GetBody(asBodyA);
+	iPhysicsBody *pBodyB = pPhysicsWorld->GetBody(asBodyB);
+	if(pBodyA==nullptr || pBodyB==nullptr) return false;
+
+	return BodiesCollide(pBodyA, pBodyB);
+}
+SCRIPT_DEFINE_FUNC_2(bool, CheckBodyCollision, string, string)
+
+/**
+ * \return true if any body of an entity touches a body
+ */
+static bool __stdcall CheckEntityBodyCollision(std::string asName, std::string asBody)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr) return false;
+
+	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	iPhysicsBody *pBody = pPhysicsWorld->GetBody(asBody);
+	if(pBody==nullptr) return false;
+
+	for(int i=0; i<pEntity->GetBodyNum(); ++i)
+	{
+		if(BodiesCollide(pEntity->GetBody(i), pBody)) return true;
+	}
+	return false;
+}
+SCRIPT_DEFINE_FUNC_2(bool, CheckEntityBodyCollision, string, string)
+
+/**
+ * \return true if any body of one entity touches a body of the other.
+ * (The game's own binary pairs the bodies by their number only, which is the
+ * same thing for the entities of one body that its scripts ask about.)
+ */
+static bool __stdcall CheckGameEntityCollision(std::string asNameA, std::string asNameB)
+{
+	iGameEntity *pEntityA = gpInit->mpMapHandler->GetGameEntity(asNameA);
+	iGameEntity *pEntityB = gpInit->mpMapHandler->GetGameEntity(asNameB);
+	if(pEntityA==nullptr || pEntityB==nullptr) return false;
+
+	for(int i=0; i<pEntityA->GetBodyNum(); ++i)
+	for(int j=0; j<pEntityB->GetBodyNum(); ++j)
+	{
+		if(BodiesCollide(pEntityA->GetBody(i), pEntityB->GetBody(j))) return true;
+	}
+	return false;
+}
+SCRIPT_DEFINE_FUNC_2(bool, CheckGameEntityCollision, string, string)
+
+//-----------------------------------------------------------------------
+
+static cGameStickArea* GetStickArea(const std::string &asName)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_StickArea)
+	{
+		Warning("Couldn't find stick area '%s'\n",asName.c_str());
+		return nullptr;
+	}
+	return static_cast<cGameStickArea*>(pEntity);
+}
+
+/**
+ * A stick area takes hold of a body, wherever the body is
+ */
+static void __stdcall AttachBodyToStickArea(std::string asBody, std::string asArea)
+{
+	cGameStickArea *pStickArea = GetStickArea(asArea);
+	if(pStickArea==nullptr) return;
+
+	iPhysicsBody *pBody = GetBody(asBody);
+	if(pBody==nullptr) return;
+
+	pStickArea->AttachBody(pBody);
+}
+SCRIPT_DEFINE_FUNC_2(void, AttachBodyToStickArea, string, string)
+
+static void __stdcall DetachBodyFromStickArea(std::string asArea)
+{
+	cGameStickArea *pStickArea = GetStickArea(asArea);
+	if(pStickArea==nullptr) return;
+
+	pStickArea->DetachBody();
+}
+SCRIPT_DEFINE_FUNC_1(void, DetachBodyFromStickArea, string)
+
+//-----------------------------------------------------------------------
+
+/////////////////////////////////////////////////////////////////////////
+/////// DOORS, PLAYER AND NOTEBOOK (BLACK PLAGUE) //////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+/**
+ * What is said and heard when the player tries a locked swing door.
+ * \param abX not used by the game
+ */
+static void __stdcall SetDoorLockedProperties(std::string asDoor, std::string asDescCat, std::string asDescEntry,
+												std::string asSound, bool abX)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDoor);
+	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_SwingDoor)
+	{
+		Warning("Couldn't find swing door entity '%s'\n",asDoor.c_str());
+		return;
+	}
+	cGameSwingDoor *pDoor = static_cast<cGameSwingDoor*>(pEntity);
+
+	pDoor->SetLockedDesc(gpInit->mpGame->GetResources()->Translate(asDescCat, asDescEntry));
+	pDoor->SetLockedSound(asSound);
+}
+SCRIPT_DEFINE_FUNC_5(void, SetDoorLockedProperties, string, string, string, string, bool)
+
+//-----------------------------------------------------------------------
+
+static void __stdcall SetNoFallDamage(bool abX)
+{
+	gpInit->mpPlayer->SetNoFallDamage(abX);
+}
+SCRIPT_DEFINE_FUNC_1(void, SetNoFallDamage, bool)
+
+static void __stdcall TurnOffGlowStick()
+{
+	if(gpInit->mpPlayer->GetGlowStick()->IsActive())
+		gpInit->mpPlayer->GetGlowStick()->SetActive(false);
+}
+SCRIPT_DEFINE_FUNC(void, TurnOffGlowStick)
+
+/**
+ * Requiem: a lit flare is put out
+ */
+static void __stdcall DropFlare()
+{
+	if(gpInit->mpPlayer->GetFlare()->IsActive())
+		gpInit->mpPlayer->GetFlare()->SetActive(false);
+}
+SCRIPT_DEFINE_FUNC(void, DropFlare)
+
+/**
+ * The function is called, once, when the flashlight's power falls below the value: Func()
+ */
+static void __stdcall SetLowPowerCallback(std::string asFunc, float afVal)
+{
+	gpInit->mpPlayer->SetLowPowerCallback(asFunc, afVal);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetLowPowerCallback, string, float)
+
+/**
+ * A radio message heard from an entity (an area as a rule): at full volume inside
+ * afMinDist, fading to nothing at afMaxDist, where its text is not shown either.
+ */
+static void __stdcall AddRadioMessageAtPos(std::string asTransCat, std::string asTransName, std::string asSound,
+											std::string asEntity, float afMinDist, float afMaxDist)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntity);
+	if(pEntity==nullptr || pEntity->GetBodyNum()==0) return;
+
+	gpInit->mpRadioHandler->Add(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName),
+								asSound, pEntity, afMinDist, afMaxDist);
+}
+SCRIPT_DEFINE_FUNC_6(void, AddRadioMessageAtPos, string, string, string, string, float, float)
+
+/**
+ * The waiting radio messages are dropped and the one playing fades out.
+ * \param afFadeSpeed volume lost per second
+ */
+static void __stdcall StopAllRadioMessages(float afFadeSpeed)
+{
+	gpInit->mpRadioHandler->StopAll(afFadeSpeed);
+}
+SCRIPT_DEFINE_FUNC_1(void, StopAllRadioMessages, float)
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// COMPUTER TERMINALS (Black Plague)
+//
+// A screen from interfaces/*.gui, see ui/GameGui. The widget functions act
+// on the screen that is open and are called from its own script.
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+static cGameGui* GetScreenGui(const char *apFunc)
+{
+	cGameGui *pGui = gpInit->mpGameGuiHandler->GetScreenGui();
+	if(pGui == nullptr) Warning("%s: no computer screen is open\n", apFunc);
+	return pGui;
+}
+
+static iWidget* GetScreenWidget(const char *apFunc, const tString &asName)
+{
+	cGameGui *pGui = GetScreenGui(apFunc);
+	if(pGui == nullptr) return nullptr;
+
+	return pGui->GetSet()->GetWidgetFromName(asName);
+}
+
+//-----------------------------------------------------------------------
+
+static void __stdcall OpenScreenGui(std::string asFile)
+{
+	gpInit->mpGameGuiHandler->OpenScreenGui(asFile);
+}
+SCRIPT_DEFINE_FUNC_1(void, OpenScreenGui, string)
+
+/**
+ * The screen is taken down at the next update, so its own script may call this.
+ */
+static void __stdcall CloseScreenGui()
+{
+	gpInit->mpGameGuiHandler->CloseScreenGui(true);
+}
+SCRIPT_DEFINE_FUNC(void, CloseScreenGui)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Properties: Enabled, Visible
+ */
+static void __stdcall SetWidgetBool(std::string asName, std::string asProp, bool abVal)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetBool", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "enabled")		pWidget->SetEnabled(abVal);
+	else if(sProp == "visible")	pWidget->SetVisible(abVal);
+	else Warning("Bool property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWidgetBool, string, string, bool)
+
+static bool __stdcall GetWidgetBool(std::string asName, std::string asProp)
+{
+	iWidget *pWidget = GetScreenWidget("GetWidgetBool", asName);
+	if(pWidget == nullptr) return false;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "enabled") return pWidget->IsEnabled();
+	if(sProp == "visible") return pWidget->IsVisible();
+
+	Warning("Bool property '%s' does not exist", asProp.c_str());
+	return false;
+}
+SCRIPT_DEFINE_FUNC_2(bool, GetWidgetBool, string, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Properties: SelectedItem (list and combo box), MaxTextLength (text box, label),
+ * MaxShownItems (combo box), MaxValue, Value, BarValueSize, ButtonValueAdd (slider)
+ */
+static void __stdcall SetWidgetInt(std::string asName, std::string asProp, int alVal)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetInt", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+	eWidgetType type = pWidget->GetType();
+
+	if(sProp == "selecteditem")
+	{
+		if(type == eWidgetType_ComboBox)		static_cast<cWidgetComboBox*>(pWidget)->SetSelectedItem(alVal, false);
+		else if(type == eWidgetType_ListBox)	static_cast<cWidgetListBox*>(pWidget)->SetSelectedItem(alVal, false);
+		return;
+	}
+	if(sProp == "maxtextlength")
+	{
+		if(type == eWidgetType_TextBox)		static_cast<cWidgetTextBox*>(pWidget)->SetMaxTextLength(alVal);
+		else if(type == eWidgetType_Label)	static_cast<cWidgetLabel*>(pWidget)->SetMaxTextLength(alVal);
+		return;
+	}
+	if(type == eWidgetType_ComboBox && sProp == "maxshownitems")
+	{
+		static_cast<cWidgetComboBox*>(pWidget)->SetMaxShownItems(alVal);
+		return;
+	}
+	if(type == eWidgetType_Slider)
+	{
+		cWidgetSlider *pSlider = static_cast<cWidgetSlider*>(pWidget);
+
+		if(sProp == "maxvalue")			{ pSlider->SetMaxValue(alVal); return; }
+		if(sProp == "value")			{ pSlider->SetValue(alVal); return; }
+		if(sProp == "barvaluesize")		{ pSlider->SetBarValueSize(alVal); return; }
+		if(sProp == "buttonvalueadd")	{ pSlider->SetButtonValueAdd(alVal); return; }
+	}
+
+	Warning("Int property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWidgetInt, string, string, int)
+
+static int __stdcall GetWidgetInt(std::string asName, std::string asProp)
+{
+	iWidget *pWidget = GetScreenWidget("GetWidgetInt", asName);
+	if(pWidget == nullptr) return 0;
+
+	tString sProp = cString::ToLowerCase(asProp);
+	eWidgetType type = pWidget->GetType();
+
+	if(sProp == "selecteditem")
+	{
+		if(type == eWidgetType_ComboBox)	return static_cast<cWidgetComboBox*>(pWidget)->GetSelectedItem();
+		if(type == eWidgetType_ListBox)		return static_cast<cWidgetListBox*>(pWidget)->GetSelectedItem();
+		return 0;
+	}
+	if(type == eWidgetType_ComboBox && sProp == "maxshownitems")
+	{
+		return static_cast<cWidgetComboBox*>(pWidget)->GetMaxShownItems();
+	}
+	if(type == eWidgetType_Slider)
+	{
+		cWidgetSlider *pSlider = static_cast<cWidgetSlider*>(pWidget);
+
+		if(sProp == "maxvalue")			return pSlider->GetMaxValue();
+		if(sProp == "value")			return pSlider->GetValue();
+		if(sProp == "barvaluesize")		return pSlider->GetBarValueSize();
+		if(sProp == "buttonvalueadd")	return pSlider->GetButtonValueAdd();
+	}
+
+	Warning("Int property '%s' does not exist", asProp.c_str());
+	return 0;
+}
+SCRIPT_DEFINE_FUNC_2(int, GetWidgetInt, string, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Properties: BackgroundZ (frame, list box)
+ */
+static void __stdcall SetWidgetFloat(std::string asName, std::string asProp, float afVal)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetFloat", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "backgroundz")
+	{
+		if(pWidget->GetType() == eWidgetType_ListBox)		static_cast<cWidgetListBox*>(pWidget)->SetBackgroundZ(afVal);
+		else if(pWidget->GetType() == eWidgetType_Frame)	static_cast<cWidgetFrame*>(pWidget)->SetBackgroundZ(afVal);
+		return;
+	}
+
+	Warning("Float property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWidgetFloat, string, string, float)
+
+/**
+ * Properties: BackgroundColor (frame)
+ */
+static void __stdcall SetWidgetColor(std::string asName, std::string asProp, float afR, float afG, float afB, float afA)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetColor", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "backgroundcolor")
+	{
+		if(pWidget->GetType() == eWidgetType_Frame)
+			static_cast<cWidgetFrame*>(pWidget)->SetBackGroundColor(cColor(afR, afG, afB, afA));
+		return;
+	}
+
+	Warning("Color property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_6(void, SetWidgetColor, string, string, float, float, float, float)
+
+/**
+ * Properties: Size
+ */
+static void __stdcall SetWidgetVec2(std::string asName, std::string asProp, float afX, float afY)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetVec2", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "size")	pWidget->SetSize(cVector2f(afX, afY));
+	else Warning("Vec2 property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_4(void, SetWidgetVec2, string, string, float, float)
+
+/**
+ * Properties: Position
+ */
+static void __stdcall SetWidgetVec3(std::string asName, std::string asProp, float afX, float afY, float afZ)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetVec3", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "position")	pWidget->SetPosition(cVector3f(afX, afY, afZ));
+	else Warning("Vec3 property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_5(void, SetWidgetVec3, string, string, float, float, float)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Properties: Text, Font (a font of the screen's file), Image (image and button; an image of the screen's file)
+ */
+static void __stdcall SetWidgetString(std::string asName, std::string asProp, std::string asVal)
+{
+	cGameGui *pGui = GetScreenGui("SetWidgetString");
+	if(pGui == nullptr) return;
+	iWidget *pWidget = pGui->GetSet()->GetWidgetFromName(asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "text")
+	{
+		pWidget->SetText(cString::To16Char(asVal));
+	}
+	else if(sProp == "font")
+	{
+		if(pGui->SetWidgetFont(pWidget, asVal)==false)
+			Error("Could not find gui font %s!\n", asVal.c_str());
+	}
+	else if(sProp == "image")
+	{
+		// The screen keeps its images: the button must not destroy the one it gets
+		cGuiGfxElement *pImage = pGui->GetImage(asVal);
+
+		if(pWidget->GetType() == eWidgetType_Image)			static_cast<cWidgetImage*>(pWidget)->SetImage(pImage);
+		else if(pWidget->GetType() == eWidgetType_Button)	static_cast<cWidgetButton*>(pWidget)->SetImage(pImage, false);
+	}
+	else
+	{
+		Warning("String property '%s' does not exist", asProp.c_str());
+	}
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWidgetString, string, string, string)
+
+/**
+ * Properties: Text
+ */
+static void __stdcall SetWidgetStringTrans(std::string asName, std::string asProp, std::string asTransCat, std::string asTransName)
+{
+	iWidget *pWidget = GetScreenWidget("SetWidgetStringTrans", asName);
+	if(pWidget == nullptr) return;
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "text")
+		pWidget->SetText(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName));
+	else
+		Warning("StringTrans property '%s' does not exist", asProp.c_str());
+}
+SCRIPT_DEFINE_FUNC_4(void, SetWidgetStringTrans, string, string, string, string)
+
+/**
+ * Properties: Text
+ */
+static std::string __stdcall GetWidgetString(std::string asName, std::string asProp)
+{
+	iWidget *pWidget = GetScreenWidget("GetWidgetString", asName);
+	if(pWidget == nullptr) return "";
+
+	tString sProp = cString::ToLowerCase(asProp);
+
+	if(sProp == "text") return cString::To8Char(pWidget->GetText());
+
+	Warning("String property '%s' does not exist", asProp.c_str());
+	return "";
+}
+SCRIPT_DEFINE_FUNC_2(string, GetWidgetString, string, string)
+
+//-----------------------------------------------------------------------
+
+static iWidgetItemContainer* GetScreenItemContainer(const char *apFunc, const tString &asName)
+{
+	iWidget *pWidget = GetScreenWidget(apFunc, asName);
+	if(pWidget == nullptr) return nullptr;
+
+	if(pWidget->GetType() == eWidgetType_ComboBox)	return static_cast<cWidgetComboBox*>(pWidget);
+	if(pWidget->GetType() == eWidgetType_ListBox)	return static_cast<cWidgetListBox*>(pWidget);
+
+	Warning("Item '%s' does not have any items!\n", asName.c_str());
+	return nullptr;
+}
+
+/**
+ * A line more in a list box or combo box
+ */
+static void __stdcall AddWidgetItem(std::string asName, std::string asItem)
+{
+	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItem", asName);
+	if(pContainer) pContainer->AddItem(cString::To16Char(asItem));
+}
+SCRIPT_DEFINE_FUNC_2(void, AddWidgetItem, string, string)
+
+static void __stdcall AddWidgetItemTrans(std::string asName, std::string asTransCat, std::string asTransName)
+{
+	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItemTrans", asName);
+	if(pContainer) pContainer->AddItem(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName));
+}
+SCRIPT_DEFINE_FUNC_3(void, AddWidgetItemTrans, string, string, string)
+
+static void __stdcall RemoveWidgetItem(std::string asName, int alIdx)
+{
+	iWidgetItemContainer *pContainer = GetScreenItemContainer("RemoveWidgetItem", asName);
+	if(pContainer == nullptr) return;
+
+	// The engine's container does not check the number
+	if(alIdx < 0 || alIdx >= pContainer->GetItemNum()) return;
+
+	pContainer->RemoveItem(alIdx);
+}
+SCRIPT_DEFINE_FUNC_2(void, RemoveWidgetItem, string, int)
+
+//-----------------------------------------------------------------------
+
+/**
+ * Only this widget and those in it take the mouse; "" gives it back to all.
+ */
+static void __stdcall SetAttentionWidget(std::string asName)
+{
+	cGameGui *pGui = GetScreenGui("SetAttentionWidget");
+	if(pGui == nullptr) return;
+
+	if(asName == "")
+		pGui->GetSet()->SetAttentionWidget(nullptr);
+	else
+		pGui->GetSet()->SetAttentionWidget(pGui->GetSet()->GetWidgetFromName(asName));
+}
+SCRIPT_DEFINE_FUNC_1(void, SetAttentionWidget, string)
+
+/**
+ * The function is called when the widget gets the message: Func(string asName, string asMessage, int alVal)
+ * Messages: MouseDown, MouseUp, MouseDoubleClick, MouseEnter, MouseLeave, ButtonPressed,
+ * TextChange, CheckChange, KeyPress, SliderMove, SelectionChange
+ */
+static void __stdcall SetWidgetCallback(std::string asName, std::string asMessage, std::string asFunc)
+{
+	cGameGui *pGui = GetScreenGui("SetWidgetCallback");
+	if(pGui == nullptr) return;
+
+	pGui->AddCallback(asName, cGameGui::StringToGuiMessage(asMessage), asFunc);
+}
+SCRIPT_DEFINE_FUNC_3(void, SetWidgetCallback, string, string, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * A message box with one or two buttons ("" for none). The function is called with the button pressed: Func(int alButton)
+ */
+static void __stdcall CreateGuiPopUp(std::string asLabel, std::string asText, std::string asButton1,
+									std::string asButton2, std::string asCallback)
+{
+	cGameGui *pGui = GetScreenGui("CreateGuiPopUp");
+	if(pGui == nullptr) return;
+
+	pGui->CreatePopUp(cString::To16Char(asLabel), cString::To16Char(asText),
+					cString::To16Char(asButton1), cString::To16Char(asButton2), asCallback);
+}
+SCRIPT_DEFINE_FUNC_5(void, CreateGuiPopUp, string, string, string, string, string)
+
+static void __stdcall CreateGuiPopUpTrans(std::string asLabelCat, std::string asLabelName,
+										std::string asTextCat, std::string asTextName,
+										std::string asButton1Cat, std::string asButton1Name,
+										std::string asButton2Cat, std::string asButton2Name,
+										std::string asCallback)
+{
+	cGameGui *pGui = GetScreenGui("CreateGuiPopUpTrans");
+	if(pGui == nullptr) return;
+
+	cResources *pResources = gpInit->mpGame->GetResources();
+
+	pGui->CreatePopUp(pResources->Translate(asLabelCat, asLabelName),
+					pResources->Translate(asTextCat, asTextName),
+					pResources->Translate(asButton1Cat, asButton1Name),
+					pResources->Translate(asButton2Cat, asButton2Name), asCallback);
+}
+SCRIPT_DEFINE_FUNC_9(void, CreateGuiPopUpTrans, string, string, string, string, string, string, string, string, string)
+
+/**
+ * A text to read on the screen. It is put in the notebook, the first time it is opened.
+ * The function is called when the text is closed: Func()
+ */
+static void __stdcall CreateGuiTextView(std::string asLabelCat, std::string asLabelName,
+										std::string asTextCat, std::string asTextName,
+										std::string asCallback)
+{
+	cGameGui *pGui = GetScreenGui("CreateGuiTextView");
+	if(pGui == nullptr) return;
+
+	tWString sLabel = gpInit->mpGame->GetResources()->Translate(asLabelCat, asLabelName);
+
+	bool bNewNote = false;
+	if(gpInit->mpNotebook->NoteExists(asTextCat, asTextName)==false)
+	{
+		gpInit->mpNotebook->AddNote(sLabel, asTextCat, asTextName);
+		bNewNote = true;
+	}
+
+	pGui->CreateTextViewer(sLabel, asTextCat, asTextName, asCallback, bNewNote);
+}
+SCRIPT_DEFINE_FUNC_5(void, CreateGuiTextView, string, string, string, string, string)
+
+//-----------------------------------------------------------------------
+
+/**
+ * As SetRadioOnEndCallback, for a function in the script of the open computer screen.
+ */
+static void __stdcall SetRadioOnEndCallbackGui(std::string asFunc)
+{
+	gpInit->mpRadioHandler->SetOnEndCallback(asFunc, true);
+}
+SCRIPT_DEFINE_FUNC_1(void, SetRadioOnEndCallbackGui, string)
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// EFFECTS OF BLACK PLAGUE
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+/**
+ * The view is laid over itself, a little larger, swelling and shrinking
+ * afAlpha: how strong; afSpeed: how fast it comes, per second (0 = at once)
+ */
+static void __stdcall StartDreamFilter(float afAlpha, float afSpeed)
+{
+	gpInit->mpEffectHandler->GetDreamFilter()->Start(afAlpha, afSpeed);
+}
+SCRIPT_DEFINE_FUNC_2(void, StartDreamFilter, float, float)
+
+static void __stdcall StopDreamFilter(float afSpeed)
+{
+	gpInit->mpEffectHandler->GetDreamFilter()->Stop(afSpeed);
+}
+SCRIPT_DEFINE_FUNC_1(void, StopDreamFilter, float)
+
+/**
+ * A picture fades in over the view, stays and fades out
+ * abStartFlash, abEndFlash: with a white flash as it comes and before it goes
+ */
+static void __stdcall StartImageFlash(float afFadeIn, float afStay, float afFadeOut, std::string asFile,
+									bool abStartFlash, bool abEndFlash)
+{
+	gpInit->mpEffectHandler->GetImageFlash()->Start(afFadeIn, afStay, afFadeOut, asFile, abStartFlash, abEndFlash);
+}
+SCRIPT_DEFINE_FUNC_6(void, StartImageFlash, float, float, float, string, bool, bool)
+
+/**
+ * Messages in black, for a bright view
+ */
+static void __stdcall SetMessageBlackText(bool abX)
+{
+	gpInit->mpGameMessageHandler->SetBlackText(abX);
+}
+SCRIPT_DEFINE_FUNC_1(void, SetMessageBlackText, bool)
+
+/**
+ * Subtitles on black strips, for a bright view
+ */
+static void __stdcall SetSubTitleBlackText(bool abX)
+{
+	gpInit->mpEffectHandler->GetSubTitle()->SetBlackText(abX);
+}
+SCRIPT_DEFINE_FUNC_1(void, SetSubTitleBlackText, bool)
+
+/**
+ * True while the gas mask is on the player's face
+ */
+static bool __stdcall GetPlayerHasGasMask()
+{
+	return gpInit->mpEffectHandler->GetGasMask()->IsActive();
+}
+SCRIPT_DEFINE_FUNC(bool, GetPlayerHasGasMask)
+
+/**
+ * Requiem: the effect of a save at the area (the look, the flash), without saving
+ */
+static void __stdcall SaveEffectOnArea(std::string asArea)
+{
+	cAreaEntity *pArea = gpInit->mpGame->GetScene()->GetWorld3D()->GetAreaEntity(asArea);
+	if(pArea == nullptr)
+	{
+		Error("Could not find area '%s'\n", asArea.c_str());
+		return;
+	}
+
+	gpInit->mpEffectHandler->GetSaveEffect()->NormalSave(pArea->m_mtxTransform.GetTranslation(), nullptr, false);
+}
+SCRIPT_DEFINE_FUNC_1(void, SaveEffectOnArea, string)
+
+/**
+ * Black Plague's endings: mails typed on a black screen. 1 goes back to the
+ * map afterwards, 2 goes on to the credits.
+ */
+static void __stdcall StartEnding1()
+{
+	gpInit->mpEnding->SetActive(true, 0);
+}
+SCRIPT_DEFINE_FUNC(void, StartEnding1)
+
+static void __stdcall StartEnding2()
+{
+	gpInit->mpEnding->SetActive(true, 3);
+}
+SCRIPT_DEFINE_FUNC(void, StartEnding2)
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// SOUND ENVIRONMENTS (Black Plague)
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+static iSoundEnvironment* GetScriptSoundEnv(const tString &asFile)
+{
+	if(gpInit->mpGame->GetSound()->GetLowLevel()->IsEnvAudioAvailable()==false) return nullptr;
+
+	iSoundEnvironment *pEnv = gpInit->mpSoundEnvHandler->GetSoundEnv(asFile);
+	if(pEnv == nullptr) Error("SoundEnv '%s' does not exist!\n", asFile.c_str());
+	return pEnv;
+}
+
+/**
+ * The reverb heard in a sector: "soundenvs/x.snv"
+ * afFadeTime: seconds to fade into it; alPrio: where sectors overlap the highest wins
+ */
+static void __stdcall LinkSoundEnvToSector(std::string asSector, std::string asSoundEnv, float afFadeTime, int alPrio)
+{
+	cSector *pSector = gpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer()->GetSector(asSector);
+	if(pSector == nullptr)
+	{
+		Error("Sector '%s' does not exist!\n", asSector.c_str());
+		return;
+	}
+
+	iSoundEnvironment *pEnv = GetScriptSoundEnv(asSoundEnv);
+	if(pEnv == nullptr) return;
+
+	gpInit->mpSoundEnvHandler->AddSectorSoundEnv(pSector, pEnv, afFadeTime, alPrio);
+}
+SCRIPT_DEFINE_FUNC_4(void, LinkSoundEnvToSector, string, string, float, int)
+
+static void __stdcall LinkSoundEnvToAllSectors(std::string asSoundEnv, float afFadeTime)
+{
+	iSoundEnvironment *pEnv = GetScriptSoundEnv(asSoundEnv);
+	if(pEnv == nullptr) return;
+
+	tSectorMap *pSectors = gpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer()->GetSectorMap();
+	for(tSectorMapIt it = pSectors->begin(); it != pSectors->end(); ++it)
+	{
+		gpInit->mpSoundEnvHandler->AddSectorSoundEnv(it->second, pEnv, afFadeTime, 0);
+	}
+}
+SCRIPT_DEFINE_FUNC_2(void, LinkSoundEnvToAllSectors, string, float)
+
+/**
+ * The reverb heard outside the sectors that have one
+ */
+static void __stdcall SetDefaultSoundEnv(std::string asSoundEnv, float afFadeTime)
+{
+	iSoundEnvironment *pEnv = GetScriptSoundEnv(asSoundEnv);
+	if(pEnv == nullptr) return;
+
+	gpInit->mpSoundEnvHandler->SetDefaultSoundEnv(pEnv, afFadeTime);
+}
+SCRIPT_DEFINE_FUNC_2(void, SetDefaultSoundEnv, string, float)
+
+//-----------------------------------------------------------------------
+
+/**
+ * The function is called, once, when the notebook is closed: Func()
+ */
+static void __stdcall SetNotebookCloseCallback(std::string asFunc)
+{
+	gpInit->mpNotebook->SetCloseCallback(asFunc);
+}
+SCRIPT_DEFINE_FUNC_1(void, SetNotebookCloseCallback, string)
+
+//-----------------------------------------------------------------------
+
 void cGameScripts::Init()
 {
 	iLowLevelSystem *pLowLevelSystem = gpInit->mpGame->GetSystem()->GetLowLevel();
@@ -1868,6 +3298,15 @@ void cGameScripts::Init()
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyAttackCallback));
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetEnemyHealth));
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyUseTriggers));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(PlayEnemyAnim));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyAnimOverCallback));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyHuntCallback));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyPatrolOverCallback));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetEnemyStopAtLastPatrolNode));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetInfectedWeapon));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddInfectedFlashlight));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetupSecurityCamera));
+	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetSecurityCameraAlerted));
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(ShowEnemyPlayer));
 
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetDoorLocked));
@@ -1897,6 +3336,96 @@ void cGameScripts::Init()
 	
 	//Game sound
 	pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateSoundEntityAt));
+
+	//Black Plague and Requiem: more arguments to functions above, and
+	//the functions that are not ported
+	if(cInit::IsOverture()==false)
+	{
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(ChangeMapLoadImage, "ChangeMap"));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetupLinkLoadImage, "SetupLink"));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetupLinkLoadTextLoadImage, "SetupLinkLoadText"));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC_AS(SetupDamageAreaType, "SetupDamageArea"));
+
+		//Links
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetLinkLocked));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetupLinkLockedProp));
+
+		//Levers and wheels
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetLeverCallback));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetLeverStuck));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetLeverState));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWheelCallback));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWheelStuck));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWheelState));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWheelAngle));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWheelSpeed));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(ConnectWheelToJoint));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(ConnectWheelToController));
+
+		//Moving things to areas, collision checks, stick areas
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(MoveEntityToArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(TeleportBodyToArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(TeleportEntityToArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(TeleportPlayerToArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateEntityAtArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CheckBodyCollision));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CheckEntityBodyCollision));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CheckGameEntityCollision));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(AttachBodyToStickArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(DetachBodyFromStickArea));
+
+		//Doors, player and notebook
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetDoorLockedProperties));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetNoFallDamage));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(TurnOffGlowStick));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(DropFlare));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetLowPowerCallback));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetNotebookCloseCallback));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddRadioMessageAtPos));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StopAllRadioMessages));
+
+		// Computer terminals
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(OpenScreenGui));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CloseScreenGui));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetBool));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWidgetBool));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetInt));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWidgetInt));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetFloat));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetColor));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetVec2));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetVec3));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetString));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetStringTrans));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetWidgetString));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddWidgetItem));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddWidgetItemTrans));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(RemoveWidgetItem));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetAttentionWidget));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetWidgetCallback));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateGuiPopUp));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateGuiPopUpTrans));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(CreateGuiTextView));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetRadioOnEndCallbackGui));
+
+		// Effects
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StartDreamFilter));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StopDreamFilter));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StartImageFlash));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetMessageBlackText));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetSubTitleBlackText));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetPlayerHasGasMask));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SaveEffectOnArea));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StartEnding1));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StartEnding2));
+
+		// Sound environments
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(LinkSoundEnvToSector));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(LinkSoundEnvToAllSectors));
+		pLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(SetDefaultSoundEnv));
+
+		InitNotPorted(pLowLevelSystem);
+	}
 
 }
 

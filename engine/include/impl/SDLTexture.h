@@ -52,7 +52,7 @@ namespace hpl {
 
 		float GetGamma() override{return 0;}
 		void SetGamma(float afGamma) override{}
-		int GetHandle() override{return (int) mvTextureHandles[0];}
+		int GetHandle() override{return (int) mlTextureHandle;}
 
 		void KeepAlphaCoverage(float afAlphaRef) override;
 
@@ -73,6 +73,7 @@ namespace hpl {
 		/// SDL / OGL Specific ///////////
 
 		unsigned int GetTextureHandle();
+		int GetAnimationFrame() const;
 
 		/// The sampler object the texture is read through, see
 		/// cLowLevelGraphicsSDL::GetSampler().
@@ -87,7 +88,6 @@ namespace hpl {
 	private:
 		bool CreateFromBitmapToHandle(iBitmap2D* pBmp, int alHandleIdx);
 
-		GLenum InitCreation(int alHandleIdx);
 		void PostCreation(GLenum aGLTarget);
 
 		GLenum GetGLWrap(eTextureWrap aMode);
@@ -96,7 +96,13 @@ namespace hpl {
 
 		void GetSettings(cSDLBitmap2D* apSrc, int &alChannels, GLenum &aFormat);
 
-		tUIntVec mvTextureHandles;
+		bool EnsureStorage(GLenum aTarget, GLenum aFormat, int alWidth, int alHeight, int alDepth=1);
+		GLuint mlTextureHandle = 0;
+		int mlFrameCount = 1;
+		GLenum mlStorageTarget = 0, mlStorageFormat = 0;
+		int mlStorageLevels = 0;
+		cVector3l mvStorageSize = cVector3l(0);
+
 		bool mbContainsData;
 		GLuint mlSampler;
 		bool mbSamplerMipMaps;
@@ -106,7 +112,6 @@ namespace hpl {
 		cLowLevelGraphicsSDL* mpGfxSDL;
 
 		float mfTimeCount;
-		int mlTextureIndex;
 		float mfTimeDir;
 
 	};

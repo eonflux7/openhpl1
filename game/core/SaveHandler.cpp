@@ -17,6 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/SaveHandler.h"
+#include "systems/GameSoundEnvHandler.h"
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
@@ -69,6 +70,9 @@ void cSavedWorld::Reset()
 	mlstBeams.Clear();
 
 	mlstTimers.Clear();
+
+	mlstSectors.Clear();
+	mlstSoundEnvs.Clear();
 }
 
 //-----------------------------------------------------------------------
@@ -248,16 +252,16 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 	}
 
 	//Set to the name of directory
-	msSaveDir = sPeronalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME;
+	msSaveDir = sPeronalDir + PERSONAL_RELATIVEGAME;
 
 	//The directories that should be created
 	tWString vDirs[] = { PERSONAL_RELATIVEPIECES
 						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT,
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME,
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/auto"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/spot"),
-						PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("save/favorite")};
+						PERSONAL_RELATIVEGAME,
+						PERSONAL_RELATIVEGAME + _W("save"),
+						PERSONAL_RELATIVEGAME + _W("save/auto"),
+						PERSONAL_RELATIVEGAME + _W("save/spot"),
+						PERSONAL_RELATIVEGAME + _W("save/favorite")};
 	int lDirNum = PERSONAL_RELATIVEPIECES_COUNT + 6;
         
 	//Check if directories exist and if not create
@@ -319,6 +323,30 @@ void cSaveHandler::SaveData(const tString &asName)
 		pSavedWorld->msSkyboxFile = "";
 
 	///////////////////////
+	//Sectors: ambient colour and the portals' state (Black Plague)
+	{
+		tSectorMap *pSectors = mpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer()->GetSectorMap();
+		for(tSectorMapIt it = pSectors->begin(); it != pSectors->end(); ++it)
+		{
+			cSector *pSector = it->second;
+			cSaveWorldSector savedSector;
+			savedSector.msId = pSector->GetId();
+			savedSector.mAmbient = pSector->GetAmbientColor();
+
+			tPortalList *pPortals = pSector->GetPortalList();
+			for(tPortalListIt portalIt = pPortals->begin(); portalIt != pPortals->end(); ++portalIt)
+			{
+				cSaveWorldPortal savedPortal;
+				savedPortal.mlId = (*portalIt)->GetId();
+				savedPortal.mbActive = (*portalIt)->GetActive();
+				savedSector.mlstPortals.Add(savedPortal);
+			}
+
+			pSavedWorld->mlstSectors.Add(savedSector);
+		}
+	}
+
+	///////////////////////
 	//Inventory callbacks
 	cInventory *pInventory = mpInit->mpInventory;
 
@@ -363,6 +391,8 @@ void cSaveHandler::SaveData(const tString &asName)
 	//Entities on map
 	mpInit->mpMapHandler->AddSaveData(pSavedWorld);
 
+	mpInit->mpSoundEnvHandler->AddSaveData(pSavedWorld);
+
 
 	//cSerializeClass::SetLog(true);
 	//cSerializeClass::SaveToFile(pSavedWorld,"TestSave.txt","SaveGame");
@@ -397,6 +427,29 @@ void cSaveHandler::LoadData(const tString &asName)
 	}
 	else {
 		pRenderer->SetSkyBox(nullptr,false);
+	}
+
+	///////////////////////
+	//Sectors (Black Plague)
+	{
+		cPortalContainer *pContainer = pWorld->GetPortalContainer();
+		cContainerListIterator<cSaveWorldSector> it = pSavedWorld->mlstSectors.GetIterator();
+		while(it.HasNext())
+		{
+			cSaveWorldSector &savedSector = it.Next();
+			cSector *pSector = pContainer->GetSector(savedSector.msId);
+			if(pSector==nullptr) continue;
+
+			pSector->SetAmbientColor(savedSector.mAmbient);
+
+			cContainerListIterator<cSaveWorldPortal> portalIt = savedSector.mlstPortals.GetIterator();
+			while(portalIt.HasNext())
+			{
+				cSaveWorldPortal &savedPortal = portalIt.Next();
+				cPortal *pPortal = pSector->GetPortal(savedPortal.mlId);
+				if(pPortal) pPortal->SetActive(savedPortal.mbActive);
+			}
+		}
 	}
 
 	///////////////////////
@@ -443,6 +496,8 @@ void cSaveHandler::LoadData(const tString &asName)
 	//////////////////////
 	//Player world data (do after entities are created)
 	mpInit->mpPlayer->LoadSaveData(pSavedWorld);
+
+	mpInit->mpSoundEnvHandler->LoadSaveData(pSavedWorld);
 }
 
 
@@ -661,6 +716,39 @@ void cSaveHandler::AutoSave(const tWString &asDir, int alMaxSaves)
 	SaveGameToFile(sFile);
 
 	mpInit->mpGame->ResetLogicTimer();
+}
+
+//-----------------------------------------------------------------------
+
+void cSaveHandler::AutoLoadLatestAutoOrSpot()
+{
+	tWString sAuto = _W("save/auto/") + GetLatest(_W("save/auto/"),_W("*.sav"));
+	tWString sSpot = _W("save/spot/") + GetLatest(_W("save/spot/"),_W("*.sav"));
+
+	tWString sFile = _W("");
+
+	if(sAuto == _W("save/auto/"))
+	{
+		sFile = sSpot;
+	}
+	else if(sSpot == _W("save/spot/"))
+	{
+		sFile = sAuto;
+	}
+	else
+	{
+		tWString sSaveDir = GetSaveDir();
+		cDate dateAuto = FileModifiedDate(sSaveDir + sAuto);
+		cDate dateSpot = FileModifiedDate(sSaveDir + sSpot);
+
+		if(dateAuto > dateSpot) 
+			sFile = sAuto;
+		else
+			sFile = sSpot;
+	}
+
+	if(sFile != _W(""))
+		LoadGameFromFile(sFile);
 }
 
 //-----------------------------------------------------------------------
@@ -944,6 +1032,14 @@ kSerializeVar(mbItemFlash, eSerializeType_Bool)
 
 kSerializeVar(mfHealth, eSerializeType_Float32)
 kSerializeVar(mfPower, eSerializeType_Float32)
+kSerializeVar(msLowPowerCallback, eSerializeType_String)
+kSerializeVar(mfLowPowerVal, eSerializeType_Float32)
+kSerializeVar(mbNoFallDamage, eSerializeType_Bool)
+kSerializeVar(mlStat_Collectables, eSerializeType_Int32)
+kSerializeVar(mbHasFlashlight, eSerializeType_Bool)
+kSerializeVar(mlStat_Notes, eSerializeType_Int32)
+kSerializeVar(mlStat_PlayTime, eSerializeType_Int32)
+kSerializeVar(mfOxygen, eSerializeType_Float32)
 kSerializeVar(mfMass, eSerializeType_Float32)
 
 kSerializeClassContainer(mvOnCameraPS,cPlayer_GlobalSave_CameraPS, eSerializeType_Class)
@@ -998,6 +1094,31 @@ kSerializeClassContainer(mlstPS,cEnginePS_SaveData,eSerializeType_Class)
 kSerializeClassContainer(mlstBeams,cEngineBeam_SaveData,eSerializeType_Class)
 kSerializeClassContainer(mlstSounds,cEngineSound_SaveData,eSerializeType_Class)
 kSerializeClassContainer(mlstJoints,cEngineJoint_SaveData,eSerializeType_Class)
+
+kSerializeClassContainer(mlstSectors,cSaveWorldSector,eSerializeType_Class)
+kSerializeVar(msDefaultSoundEnv,eSerializeType_String)
+kSerializeVar(mfDefaultSoundEnvFadeTime,eSerializeType_Float32)
+kSerializeClassContainer(mlstSoundEnvs,cSaveWorldSoundEnv,eSerializeType_Class)
+kEndSerialize()
+
+//-----------------------------------------------------------------------
+
+kBeginSerializeBase(cSaveWorldPortal)
+kSerializeVar(mlId,eSerializeType_Int32)
+kSerializeVar(mbActive,eSerializeType_Bool)
+kEndSerialize()
+
+kBeginSerializeBase(cSaveWorldSector)
+kSerializeVar(msId,eSerializeType_String)
+kSerializeVar(mAmbient,eSerializeType_Color)
+kSerializeClassContainer(mlstPortals,cSaveWorldPortal,eSerializeType_Class)
+kEndSerialize()
+
+kBeginSerializeBase(cSaveWorldSoundEnv)
+kSerializeVar(msSector,eSerializeType_String)
+kSerializeVar(msSoundEnv,eSerializeType_String)
+kSerializeVar(mfFadeTime,eSerializeType_Float32)
+kSerializeVar(mlPrio,eSerializeType_Int32)
 kEndSerialize()
 
 

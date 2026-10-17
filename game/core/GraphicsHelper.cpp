@@ -66,32 +66,41 @@ void cGraphicsHelper::ClearScreen(const cColor &aColor)
 void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
 								  const cColor &aColor)
 {
+	DrawTexture(apTex, avPos, avSize, aColor, eBlendFunc_One, eBlendFunc_Zero);
+}
+
+void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
+								  const cColor &aColor, eBlendFunc aSrcBlend, eBlendFunc aDestBlend)
+{
+	bool bBlend = aSrcBlend != eBlendFunc_One || aDestBlend != eBlendFunc_Zero;
+
 	mpLowLevelGfx->SetDepthTestActive(false);
-	mpLowLevelGfx->PushMatrix(eMatrix_ModelView);
-	mpLowLevelGfx->SetIdentityMatrix(eMatrix_ModelView);
-	mpLowLevelGfx->SetVirtualOrthoProjection(-1000,1000);
-	
+	const cDrawMatrices previousMatrices = mpLowLevelGfx->GetDrawMatrices();
+	mpLowLevelGfx->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+		mpLowLevelGfx->CreateVirtualOrthoProjection(-1000, 1000));
+
 	mvVtx[0] = cVertex(avPos + cVector3f(0,0,0),	cVector2f(0.01f,0.01f),aColor );
 	mvVtx[1] = cVertex(avPos + cVector3f(avSize.x,0,0),	cVector2f(0.99f,0.01f),aColor);
 	mvVtx[2] = cVertex(avPos + cVector3f(avSize.x,avSize.y,0),cVector2f(0.99f,0.99f),aColor);
 	mvVtx[3] = cVertex(avPos +  cVector3f(0,avSize.y,0),	cVector2f(0.01f,0.99f),aColor);
 
-	mpLowLevelGfx->SetBlendActive(false);
 	
 	for(int i=0;i<6;++i) mpLowLevelGfx->SetTexture(i,nullptr);
 
-	mpLowLevelGfx->SetTexture(0,apTex);
-
-	mpLowLevelGfx->DrawQuad(mvVtx);
+	cSpriteBatch batch;
+	batch.Add(apTex, cSpriteBlend(aSrcBlend,aDestBlend,bBlend), mvVtx);
+	batch.Flush(mpLowLevelGfx);
 
 	mpLowLevelGfx->SetTexture(0,nullptr);
 
-	mpLowLevelGfx->PopMatrix(eMatrix_ModelView);
+	if(bBlend) mpLowLevelGfx->SetBlendActive(false);
+
+	mpLowLevelGfx->SetDrawMatrices(previousMatrices);
 }
 
 //-----------------------------------------------------------------------
 
-void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
+void cGraphicsHelper::DrawLoadingScreen(const tString &asFile, bool abDrawLoadingText)
 {
 	iTexture *pTex= nullptr;
 	
@@ -104,8 +113,9 @@ void cGraphicsHelper::DrawLoadingScreen(const tString &asFile)
 		
 		if(pTex) DrawTexture(pTex,GetScreenPos(),GetScreenSize(),cColor(1,1));
 		
-		mpFont->Draw(cVector3f(400,300,50),22,cColor(1,1),eFontAlign_Center,
-					_W("%ls"),kTranslate("LoadTexts", "Loading").c_str());
+		if(abDrawLoadingText)
+			mpFont->Draw(cVector3f(400,300,50),22,cColor(1,1),eFontAlign_Center,
+						_W("%ls"),kTranslate("LoadTexts", "Loading").c_str());
 
 		mpDrawer->DrawAll();
 		

@@ -51,6 +51,9 @@ public:
 		msTextEntry =asEntry;
 	}
 
+	// Black Plague: the picture behind the text (Overture's is fixed)
+	void SetBackground(const tString &asFile){ msBackground = asFile; }
+
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
@@ -70,6 +73,7 @@ private:
 
 	tString msTextCat;
 	tString msTextEntry;
+	tString msBackground;
 
 	float mfAlpha;
 	float mfAlphaAdd;

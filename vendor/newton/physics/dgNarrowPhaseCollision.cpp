@@ -1781,6 +1781,31 @@ void dgWorld::SceneContactsSimd(dgCollidingPairCollector::dgPair *const pair,
 	}
 }
 
+// A body held by a joint to something that cannot move (a door on its frame,
+// a lever, a wheel) gets no contact padding: the joint keeps it from being
+// pushed apart, so the padding would only press it against what it touches
+// (a sliding door sunk into the floor stuck there, door halves shut against
+// each other shook).
+static bool IsHeldByStaticJoint(const dgBody *const body) {
+	if (body->GetInvMass().m_w == dgFloat32(0.0f) || !body->GetMasterList()) {
+		return false;
+	}
+	for (dgBodyMasterListRow::dgListNode *node = body->GetMasterList()->GetInfo().GetFirst(); node; node = node->GetNext()) {
+		const dgBodyMasterListCell &cell = node->GetInfo();
+		if (cell.m_joint->GetId() != dgContactConstraintId && cell.m_bodyNode->GetInvMass().m_w == dgFloat32(0.0f)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static dgFloat32 PairPenetrationPadding(const dgBody *const body0, const dgBody *const body1, const dgContactMaterial *const material) {
+	if (material->m_penetrationPadding == dgFloat32(0.0f) || IsHeldByStaticJoint(body0) || IsHeldByStaticJoint(body1)) {
+		return dgFloat32(0.0f);
+	}
+	return material->m_penetrationPadding;
+}
+
 void dgWorld::CalculateContactsSimd(
     dgCollidingPairCollector::dgPair *const pair, dgFloat32 timestep,
     dgInt32 threadIndex) {
@@ -1797,7 +1822,7 @@ void dgWorld::CalculateContactsSimd(
 	proxy.m_timestep = timestep;
 	proxy.m_unconditionalCast = 0;
 	proxy.m_maxContacts = DG_MAX_CONTATCS;
-	proxy.m_penetrationPadding = material->m_penetrationPadding;
+	proxy.m_penetrationPadding = PairPenetrationPadding(body0, body1, material);
 	//  proxy.m_continueCollision = material->m_collisionContinueCollisionEnable & (body0->m_continueCollisionMode | body1->m_continueCollisionMode);
 	proxy.m_continueCollision = dgInt32(
 	                                ((material->m_flags & dgContactMaterial::m_collisionContinueCollisionEnable__) ? 1 : 0) & (body0->m_continueCollisionMode | body1->m_continueCollisionMode));
@@ -1832,7 +1857,7 @@ void dgWorld::CalculateContacts(dgCollidingPairCollector::dgPair *const pair,
 	proxy.m_timestep = timestep;
 	proxy.m_unconditionalCast = 0;
 	proxy.m_maxContacts = DG_MAX_CONTATCS;
-	proxy.m_penetrationPadding = material->m_penetrationPadding;
+	proxy.m_penetrationPadding = PairPenetrationPadding(body0, body1, material);
 	proxy.m_isTriggerVolume = body0->m_collision->IsTriggerVolume() || body1->m_collision->IsTriggerVolume();
 	//  proxy.m_continueCollision = material->m_collisionContinueCollisionEnable & (body0->m_continueCollisionMode | body1->m_continueCollisionMode);
 	proxy.m_continueCollision = dgInt32(

@@ -242,6 +242,16 @@ public:
 	float mfHealth;
 
 	float mfPower;
+	tString msLowPowerCallback;
+	float mfLowPowerVal = 0;
+	bool mbNoFallDamage = false;
+
+	// Black Plague
+	int mlStat_Collectables = 0;
+	bool mbHasFlashlight = false;
+	int mlStat_Notes = 0;
+	int mlStat_PlayTime = 0;
+	float mfOxygen = 100;
 
 	float mfMass;
 
@@ -265,6 +275,37 @@ public:
 
 //---------------------------------------------
 
+
+//Black Plague: what the scripts change in sectors and portals
+class cSaveWorldPortal : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldPortal)
+public:
+	int mlId;
+	bool mbActive;
+};
+
+class cSaveWorldSector : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldSector)
+public:
+	tString msId;
+	cColor mAmbient;
+	cContainerList<cSaveWorldPortal> mlstPortals;
+};
+
+//Black Plague: a sound environment linked to a sector
+class cSaveWorldSoundEnv : public iSerializable
+{
+	kSerializableClassInit(cSaveWorldSoundEnv)
+public:
+	tString msSector;
+	tString msSoundEnv;
+	float mfFadeTime;
+	int mlPrio;
+};
+
+//---------------------------------------------
 
 class cSavedWorld  : public iSerializable
 {
@@ -316,6 +357,13 @@ public:
 	cContainerList<cEngineSound_SaveData> mlstSounds;
 
 	cContainerList<cEngineJoint_SaveData> mlstJoints;
+
+	//Black Plague
+	cContainerList<cSaveWorldSector> mlstSectors;
+
+	tString msDefaultSoundEnv;
+	float mfDefaultSoundEnvFadeTime = 0;
+	cContainerList<cSaveWorldSoundEnv> mlstSoundEnvs;
 
 	bool PSExists(cParticleSystem3D *apPS);
 	bool BeamExists(cBeam *apPS);
@@ -370,6 +418,9 @@ public:
 
 	void AutoSave(const tWString &asDir, int alMaxSaves);
 	void AutoLoad(const tWString &asDir);
+	// The newest of the latest auto and spot saves (Continue, death menu,
+	// Requiem's quickload)
+	void AutoLoadLatestAutoOrSpot();
 
 	void ClearSavedMaps();
 

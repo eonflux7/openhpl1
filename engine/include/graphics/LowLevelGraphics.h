@@ -21,103 +21,16 @@
 
 #include <functional>
 
-#include "math/MathTypes.h"
+#include "math/Math.h"
 #include "system/SystemTypes.h"
 #include "graphics/GraphicsTypes.h"
+#include "graphics/SpriteBatch.h"
 #include "graphics/Bitmap2D.h"
 #include "graphics/Texture.h"
 #include "graphics/GPUProgram.h"
 #include "graphics/VertexBuffer.h"
 
 namespace hpl {
-
-	enum eBlendFunc
-	{
-		eBlendFunc_Zero,
-		eBlendFunc_One,
-		eBlendFunc_SrcColor,
-		eBlendFunc_OneMinusSrcColor,
-		eBlendFunc_DestColor,
-		eBlendFunc_OneMinusDestColor,
-		eBlendFunc_SrcAlpha,
-		eBlendFunc_OneMinusSrcAlpha,
-		eBlendFunc_DestAlpha,
-		eBlendFunc_OneMinusDestAlpha,
-		eBlendFunc_SrcAlphaSaturate,
-		eBlendFunc_LastEnum
-	};
-
-	enum eTextureParam
-	{
-		eTextureParam_ColorFunc,
-		eTextureParam_AlphaFunc,
-		eTextureParam_ColorSource0,
-		eTextureParam_ColorSource1,
-		eTextureParam_ColorSource2,
-		eTextureParam_AlphaSource0,
-		eTextureParam_AlphaSource1,
-		eTextureParam_AlphaSource2,
-		eTextureParam_ColorOp0,
-		eTextureParam_ColorOp1,
-		eTextureParam_ColorOp2,
-		eTextureParam_AlphaOp0,
-		eTextureParam_AlphaOp1,
-		eTextureParam_AlphaOp2,
-		eTextureParam_ColorScale,
-		eTextureParam_AlphaScale,
-		eTextureParam_LastEnum
-	};
-
-	enum eTextureOp
-	{
-		eTextureOp_Color,
-		eTextureOp_OneMinusColor,
-		eTextureOp_Alpha,
-		eTextureOp_OneMinusAlpha,
-		eTextureOp_LasEnum
-	};
-
-	enum eTextureSource
-	{
-		eTextureSource_Texture,
-		eTextureSource_Constant,
-		eTextureSource_Primary,
-		eTextureSource_Previous,
-		eTextureSource_LastEnum
-	};
-
-	enum eTextureFunc
-	{
-		eTextureFunc_Modulate,
-		eTextureFunc_Replace,
-		eTextureFunc_Add,
-		eTextureFunc_Substract,
-		eTextureFunc_AddSigned,
-		eTextureFunc_Interpolate,
-		eTextureFunc_Dot3RGB,
-		eTextureFunc_Dot3RGBA,
-		eTextureFunc_LastEnum
-	};
-
-	enum eStencilFunc
-	{
-		eStencilFunc_Never,
-		eStencilFunc_Less,
-		eStencilFunc_LessOrEqual,
-		eStencilFunc_Greater,
-		eStencilFunc_GreaterOrEqual,
-		eStencilFunc_Equal,
-		eStencilFunc_NotEqual,
-		eStencilFunc_Always,
-		eStencilFunc_LastEnum
-	};
-
-	enum eStencilFace
-	{
-		eStencilFace_Front,
-		eStencilFace_Back,
-		eStencilFace_LastEnum,
-	};
 
 	enum eDepthTestFunc
 	{
@@ -130,32 +43,6 @@ namespace hpl {
 		eDepthTestFunc_NotEqual,
 		eDepthTestFunc_Always,
 		eDepthTestFunc_LastEnum
-	};
-
-	enum eAlphaTestFunc
-	{
-		eAlphaTestFunc_Never,
-		eAlphaTestFunc_Less,
-		eAlphaTestFunc_LessOrEqual,
-		eAlphaTestFunc_Greater,
-		eAlphaTestFunc_GreaterOrEqual,
-		eAlphaTestFunc_Equal,
-		eAlphaTestFunc_NotEqual,
-		eAlphaTestFunc_Always,
-		eAlphaTestFunc_LastEnum
-	};
-
-	enum eStencilOp
-	{
-		eStencilOp_Keep,
-		eStencilOp_Zero,
-		eStencilOp_Replace,
-		eStencilOp_Increment,
-		eStencilOp_Decrement,
-		eStencilOp_Invert,
-		eStencilOp_IncrementWrap,
-		eStencilOp_DecrementWrap,
-		eStencilOp_LastEnum
 	};
 
 	enum eCullMode
@@ -177,24 +64,14 @@ namespace hpl {
 		eGraphicCaps_LastEnum
 	};
 
-	typedef tFlag tVtxBatchFlag;
-
-	#define eVtxBatchFlag_Normal		(0x00000001)
-	#define eVtxBatchFlag_Position		(0x00000002)
-	#define eVtxBatchFlag_Color0		(0x00000004)
-	#define eVtxBatchFlag_Texture0		(0x00000008)
-	#define eVtxBatchFlag_Texture1		(0x00000010)
-	#define eVtxBatchFlag_Texture2		(0x00000020)
-
-	#define kMaxClipPlanes (6)
-
 	class iFontData;
-	class iOcclusionQuery;
 
 	/**
-	 * The values linear lighting is tuned with. The defaults were chosen by
-	 * playing; 2.2, 1, 1, a blend match of 0 and a shoulder of 1 leave
-	 * everything as the conversion gives it.
+	 * The values linear lighting is tuned with. The 3D scene is added up
+	 * and blended on values proportional to light, and converted for the
+	 * screen when it is finished. The defaults were chosen by playing; 2.2,
+	 * 1, 1, a blend match of 0 and a shoulder of 1 leave everything as the
+	 * conversion gives it.
 	 */
 	class cLinearLightingTuning
 	{
@@ -202,8 +79,8 @@ namespace hpl {
 		/**
 		 * The power the amount of light (N.L and the falloff ramp, which
 		 * were made to look right on screen values) is raised to. 2.2 gives
-		 * one light the look it has without linear lighting; 1.0 takes them
-		 * as amounts of light, which is wider and flatter.
+		 * one light the look it had on screen values (the original); 1.0
+		 * takes them as amounts of light, which is wider and flatter.
 		 */
 		float mfLightExp = 1.8f;
 		/// Scales the light of the finished scene before it is converted for the screen.
@@ -217,8 +94,8 @@ namespace hpl {
 		float mfGlow = 1.45f;
 		/**
 		 * How far the alpha of what is blended over the scene (particles,
-		 * alpha materials, fog) is changed to cover as much as it does
-		 * without linear lighting: 0 leaves it, 1 matches it.
+		 * alpha materials, fog) is changed to cover as much as it did on
+		 * screen values (the original): 0 leaves it, 1 matches it.
 		 */
 		float mfBlendMatch = 1.0f;
 		/**
@@ -232,8 +109,9 @@ namespace hpl {
 	};
 
 	/**
-	 * How surfaces answer light (Milestone 5). With mbImproved off the
-	 * shaders do what the original ones did and the rest is not used.
+	 * How surfaces answer light (Milestone 5): highlights as wide and
+	 * strong as each surface is glossy, and ambient light that shows its
+	 * relief.
 	 *
 	 * The game has no gloss maps: how much a surface reflects and how wide
 	 * its highlight is are both read from what it has for specular (the
@@ -242,7 +120,6 @@ namespace hpl {
 	class cShadingSettings
 	{
 	public:
-		bool mbImproved = false;
 		/// Scales the highlights of lights.
 		float mfSpecular = 1.0f;
 		/// The share of light a surface with a white specular map mirrors when faced straight on.
@@ -266,9 +143,8 @@ namespace hpl {
 
 	/**
 	 * What glows in the air (Milestone 5, step 4): the halos of lamps, the
-	 * shafts of light and the particles. Each is a picture on a flat sheet
-	 * in the original; improved, a shader of its own draws it. With all
-	 * three off nothing changes.
+	 * shafts of light and the particles, each drawn by a shader of its own
+	 * (a picture on a flat sheet in the original).
 	 */
 	class cEffectSettings
 	{
@@ -279,7 +155,6 @@ namespace hpl {
 		 * no steps or blocks, and it is hidden by what stands in front
 		 * of the lamp as read from the depth buffer, in the same frame.
 		 */
-		bool mbHalos = false;
 		float mfHaloBrightness = 1.0f;
 		/// How much of what the picture has besides the round glow (rays of a star) is kept, 0 to 1.
 		float mfHaloStreaks = 1.0f;
@@ -288,7 +163,6 @@ namespace hpl {
 		 * round the axis into a body of lit air that the view goes through.
 		 * It ends softly at what it meets and can be walked into.
 		 */
-		bool mbShafts = false;
 		float mfShaftBrightness = 1.0f;
 		/// How uneven the air is: streaks that drift along the shaft, 0 to 1.
 		float mfShaftDust = 0.35f;
@@ -298,7 +172,6 @@ namespace hpl {
 		 * dust, mist, snow, water) are lit by the lights around them.
 		 * Those added to the scene (fire, sparks) glow as they did.
 		 */
-		bool mbParticles = false;
 		/// The distance the fade takes, in times the particle's size. 0: no fade.
 		float mfParticleSoft = 1.0f;
 		/// How much the light counts: 0 is the brightness the original gives them everywhere.
@@ -367,7 +240,6 @@ namespace hpl {
 	class cPlayerEffectSettings
 	{
 	public:
-		bool mbImproved = true;
 		float mfAdaptationStrength = 0.65f;
 		/// Seconds to reveal shadow detail; leaving darkness is faster.
 		float mfAdaptationTime = 2.0f;
@@ -510,6 +382,20 @@ namespace hpl {
 		bool mbShowOnly = false;
 	};
 
+	/// Complete transform for a draw. Screen-space passes use identity model/view.
+	struct cDrawMatrices
+	{
+		cMatrixf mModel = cMatrixf::Identity;
+		cMatrixf mView = cMatrixf::Identity;
+		cMatrixf mProjection = cMatrixf::Identity;
+
+		cMatrixf GetModelViewProjection() const
+		{
+			// Keep the multiplication order used by the original renderer.
+			return cMath::MatrixMul(mProjection, cMath::MatrixMul(mView, mModel));
+		}
+	};
+
 	class iLowLevelGraphics
 	{
 	public:
@@ -592,20 +478,7 @@ namespace hpl {
 		virtual void SetRenderScale(float afScale)=0;
 		virtual float GetRenderScale()=0;
 		/**
-		 * Linear lighting: the 3D scene is added up and blended on values
-		 * proportional to light, and converted for the screen when it is
-		 * finished. Off, it is done on the screen values, as originally.
-		 */
-		virtual void SetLinearLighting(bool abX)=0;
-		virtual bool GetLinearLighting()=0;
-		/**
-		 * Set while drawing something into the scene that holds linear
-		 * values already (a copy of the scene), so that it is not converted
-		 * again. Only matters with linear lighting.
-		 */
-		virtual void SetLinearSource(bool abX)=0;
-		/**
-		 * How linear lighting looks; see cLinearLightingTuning.
+		 * How the lighting looks; see cLinearLightingTuning.
 		 */
 		virtual void SetLinearLightingTuning(const cLinearLightingTuning& aTuning)=0;
 		virtual const cLinearLightingTuning& GetLinearLightingTuning()=0;
@@ -692,10 +565,6 @@ namespace hpl {
 		virtual void SetGammaCorrection(float afX)=0;
 		virtual float GetGammaCorrection()=0;
 
-		virtual void SetClipPlane(int alIdx, const cPlanef& aPlane)=0;
-		virtual cPlanef GetClipPlane(int alIdx, const cPlanef& aPlane)=0;
-		virtual void SetClipPlaneActive(int alIdx, bool abX)=0;
-
 		virtual iBitmap2D* CreateBitmap2D(const cVector2l &avSize, unsigned int alBpp)=0;
 		virtual iFontData* CreateFontData(const tString &asName)=0;
 
@@ -712,9 +581,8 @@ namespace hpl {
 		virtual iTexture* CreateFloatTexture(const cVector2l& avSize, int alChannels, eTextureTarget aTarget)=0;
 
 
-		virtual iPixelFormat* GetPixelFormat()=0;
 
-		virtual iGpuProgram* CreateGpuProgram(const tString& asName, eGpuProgramType aType)=0;
+		virtual iGpuProgram* CreateGpuProgram(const tString& asName)=0;
 
 		//TODO: Kinda quick and diry, better to have a screen to Bitmap.
 		// and then a save as in the Bitmap.
@@ -731,17 +599,13 @@ namespace hpl {
 
 		/////////// MATRIX METHODS //////////////////////////
 
-		virtual void PushMatrix(eMatrix aMtxType)=0;
-		virtual void PopMatrix(eMatrix aMtxType)=0;
-		virtual void SetIdentityMatrix(eMatrix aMtxType)=0;
-
-		virtual void SetMatrix(eMatrix aMtxType, const cMatrixf& a_mtxA)=0;
-
-		virtual void TranslateMatrix(eMatrix aMtxType, const cVector3f &avPos)=0;
-		virtual void ScaleMatrix(eMatrix aMtxType, const cVector3f &avScale)=0;
-
-		/// The current matrix, kept on the CPU (no GL read back).
-		virtual const cMatrixf& GetMatrix(eMatrix aMtxType)=0;
+		/// Supply model, view and projection together before drawing.
+		virtual void SetDrawMatrices(const cDrawMatrices &aMatrices) = 0;
+		void SetDrawMatrices(const cMatrixf &aModel, const cMatrixf &aView, const cMatrixf &aProjection)
+		{
+			SetDrawMatrices(cDrawMatrices{aModel, aView, aProjection});
+		}
+		virtual const cDrawMatrices &GetDrawMatrices() const = 0;
 
 		/**
 		 * Per-frame values for shaders, the hpl_Frame block in
@@ -776,29 +640,23 @@ namespace hpl {
 		/// Gives ImGui the mouse and the keyboard, and frees the pointer.
 		virtual void SetDebugPanelInput(bool abX)=0;
 
-		virtual void SetOrthoProjection(const cVector2f& avSize, float afMin, float afMax)=0;
+		virtual cMatrixf CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax) = 0;
 		/**
 		 * Ortho projection of the whole screen in virtual coordinates,
 		 * -GetVirtualOffset() to GetVirtualSize()+GetVirtualOffset().
 		 */
-		virtual void SetVirtualOrthoProjection(float afMin, float afMax)=0;
+		virtual cMatrixf CreateVirtualOrthoProjection(float afMin, float afMax) = 0;
 
 		/////////// DRAWING METHODS /////////////////////////
-
-		//OCCLUSION
-		virtual iOcclusionQuery* CreateOcclusionQuery()=0;
-		virtual void DestroyOcclusionQuery(iOcclusionQuery *apQuery)=0;
 
 		// CLEARING THE FRAMEBUFFER
 		virtual void ClearScreen()=0;
 
 		virtual void SetClearColor(const cColor& aCol)=0;
 		virtual void SetClearDepth(float afDepth)=0;
-		virtual void SetClearStencil(int alVal)=0;
 
 		virtual void SetClearColorActive(bool abX)=0;
 		virtual void SetClearDepthActive(bool abX)=0;
-		virtual void SetClearStencilActive(bool abX)=0;
 
 		virtual void SetColorWriteActive(bool abR,bool abG,bool abB,bool abA)=0;
 		virtual void SetDepthWriteActive(bool abX)=0;
@@ -811,23 +669,11 @@ namespace hpl {
 		virtual void SetDepthTestFunc(eDepthTestFunc aFunc)=0;
 
 		//ALPHA
-		virtual void SetAlphaTestActive(bool abX)=0;
-		virtual void SetAlphaTestFunc(eAlphaTestFunc aFunc,float afRef)=0;
-
-		//STENCIL
-		virtual void SetStencilActive(bool abX)=0;
-		/*virtual void SetStencilTwoSideActive(bool abX)=0;
-		virtual void SetStencilFace(eStencilFace aFace)=0;
-		virtual void SetStencilFunc(eStencilFunc aFunc,int alRef, unsigned int aMask)=0;
-		virtual void SetStencilOp(eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)=0;*/
-		virtual void SetStencil(eStencilFunc aFunc,int alRef, unsigned int aMask,
-						eStencilOp aFailOp,eStencilOp aZFailOp,eStencilOp aZPassOp)=0;
-		virtual void SetStencilTwoSide(eStencilFunc aFrontFunc,eStencilFunc aBackFunc,
-						int alRef, unsigned int aMask,
-						eStencilOp aFrontFailOp,eStencilOp aFrontZFailOp,eStencilOp aFrontZPassOp,
-						eStencilOp aBackFailOp,eStencilOp aBackZFailOp,eStencilOp aBackZPassOp)=0;
-		virtual void SetStencilTwoSide(bool abX)=0;
-
+		/**
+		 * Fragments with an alpha under afMin are not drawn: what materials
+		 * of eMaterialAlphaMode_Trans cut out. 0 draws them all.
+		 */
+		virtual void SetAlphaCutoff(float afMin)=0;
 
 		//SCISSOR
 		virtual void SetScissorActive(bool abX)=0;
@@ -835,58 +681,23 @@ namespace hpl {
 
 		//TEXTURE
 		virtual void SetTexture(unsigned int alUnit,iTexture* apTex)=0;
-		virtual void SetActiveTextureUnit(unsigned int alUnit)=0;
-		virtual void SetTextureEnv(eTextureParam aParam, int alVal)=0;
-		virtual void SetTextureConstantColor(const cColor &aColor)=0;
-
-		//COLOR
-		virtual void SetColor(const cColor &aColor)=0;
 
 		//BLENDING
 		virtual void SetBlendActive(bool abX)=0;
 		virtual void SetBlendFunc(eBlendFunc aSrcFactor, eBlendFunc aDestFactor)=0;
-		virtual void SetBlendFuncSeparate(eBlendFunc aSrcFactorColor, eBlendFunc aDestFactorColor,
-										eBlendFunc aSrcFactorAlpha, eBlendFunc aDestFactorAlpha)=0;
+
+		// Sprite triangles use the current matrices, clip region and depth state.
+		virtual void DrawSpriteBatch(const cSpriteVertex* apVertices, size_t alCount,
+			iTexture* apTexture, const cSpriteBlend& aBlend)=0;
 
 		// POLYGONS
 		virtual iVertexBuffer* CreateVertexBuffer(tVertexFlag aFlags, eVertexBufferDrawType aDrawType,
 								eVertexBufferUsageType aUsageType,
 								int alReserveVtxSize=0,int alReserveIdxSize=0)=0;
 
-		virtual void DrawRect(const cVector2f &avPos,const cVector2f &avSize,float afZ)=0;
 
-		virtual void DrawTri(const tVertexVec &avVtx)=0;
-		virtual void DrawTri(const cVertex* avVtx)=0;
-
-		virtual void DrawQuad(const tVertexVec &avVtx)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx, const cColor aCol)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ)=0;
-		virtual void DrawQuad(const tVertexVec &avVtx,const float afZ,const cColor &aCol)=0;
-		virtual void DrawQuadMultiTex(const tVertexVec &avVtx,const tVector3fVec &avExtraUvs)=0;
-
-		//VERTEX BATCHER
-		virtual void AddVertexToBatch(const cVertex *apVtx)=0;
-		virtual void AddVertexToBatch(const cVertex *apVtx, const cVector3f* avTransform)=0;
-		virtual void AddVertexToBatch(const cVertex *apVtx, const cMatrixf* aMtx)=0;
-
-		virtual void AddVertexToBatch_Size2D(const cVertex *apVtx, const cVector3f* avTransform,
-									const cColor* apCol,const float& mfW, const float& mfH)=0;
-
-		virtual void AddVertexToBatch_Raw(	const cVector3f& avPos, const cColor &aColor,
-											const cVector3f& avTex)=0;
-
-
-		virtual void AddIndexToBatch(int alIndex)=0;
-
-		virtual void AddTexCoordToBatch(unsigned int alUnit,const cVector3f *apCoord)=0;
-		virtual void SetBatchTextureUnitActive(unsigned int alUnit,bool abActive)=0;
-
-		//Add more ways to add Vertex to the batch?
-		//Index array, vtxArray, etc perhaps?
-
-		virtual void FlushTriBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true)=0;
-		virtual void FlushQuadBatch(tVtxBatchFlag aTypeFlags, bool abAutoClear=true)=0;
-		virtual void ClearBatch()=0;
+		// World/debug and post-effect geometry; caller supplies triangles and render state.
+		virtual void DrawTriangles(const tVertexVec& avVertices)=0;
 
 		//some primitive:
 		virtual void DrawLine(const cVector3f& avBegin, const cVector3f& avEnd, cColor aCol)=0;
@@ -895,10 +706,7 @@ namespace hpl {
 
 
 		virtual void DrawLine2D(const cVector2f& avBegin, const cVector2f& avEnd, float afZ, cColor aCol)=0;
-		virtual void DrawLineRect2D(const cRect2f& aRect, float afZ, cColor aCol)=0;
-		virtual void DrawLineCircle2D(const cVector2f& avCenter, float afRadius, float afZ, cColor aCol)=0;
 
-		virtual void DrawFilledRect2D(const cRect2f& aRect, float afZ, cColor aCol)=0;
 		// GENERAL
 		/**
 		 * All further drawing operations are rendered to this texture, which
@@ -947,14 +755,15 @@ namespace hpl {
 		virtual void SetLightLook(const cLightLook& aLook)=0;
 
 		/**
-		 * Copies the current frame buffer to a texture.
-		 * \param apTex The texture the framebuffer is copied to.
-		 * \param &avPos The Screenpositon
-		 * \param &avSize The size of the screen.
-		 * \param &avTexOffset The position on the texture.
+		 * Draws a part of the 3D scene as it is drawn so far into the same
+		 * part of apTarget, a 2D texture of the render size: for what reads
+		 * the scene while it draws over it. The target's format decides
+		 * the precision: 8 bits clamp to 0..1 and round, as the copies of
+		 * the screen in the original did.
+		 * \param avPos The part's top left corner, in pixels from the top.
+		 * \return false if nothing was drawn (no scene, or a render target is set)
 		 */
-		virtual void CopyContextToTexure(iTexture* apTex, const cVector2l &avPos,
-										const cVector2l &avSize, const cVector2l &avTexOffset=0)=0;
+		virtual bool DrawSceneCopy(iTexture* apTarget, const cVector2l &avPos, const cVector2l &avSize)=0;
 		virtual void FlushRendering()=0;
 		virtual void SwapBuffers()=0;
 	};

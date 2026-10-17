@@ -36,6 +36,12 @@
 
 namespace hpl {
 
+	static cColor BeamVertexColor(const cColor &color, bool multiplyAlpha)
+	{
+		return multiplyAlpha ? cColor(color.r * color.a, color.g * color.a, color.b * color.a, color.a) : color;
+	}
+
+
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
@@ -63,35 +69,10 @@ namespace hpl {
 		mlLastRenderCount = -1;
 
 
-		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
-								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0 |
-								eVertexFlag_Normal,
-								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
-
-
-
-		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
-								cVector3f((mvSize.x/2),(mvSize.y/2),0)};
-
-		cVector3f vTexCoords[4] = {cVector3f(1,1,0),	//Bottom left
-									cVector3f(-1,1,0),	//Bottom right
-									cVector3f(-1,-1,0),	//Top left
-									cVector3f(1,-1,0)};	//Top right
-
-		for(int i=0;i<4;i++)
-		{
-			mpVtxBuffer->AddVertex(eVertexFlag_Position, vCoords[i]);
-			mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, (vTexCoords[i] + cVector2f(1,1))/2);
-			mpVtxBuffer->AddVertex(eVertexFlag_Normal,cVector3f(0,0,1));
-		}
-
-		for(int i=0;i<3;i++) mpVtxBuffer->AddIndex(i);
-		for(int i=2;i<5;i++) mpVtxBuffer->AddIndex(i==4?0:i);
-
-		mpVtxBuffer->Compile(eVertexCompileFlag_CreateTangents);
+		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(0,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic);
+		mpVtxBuffer->UpdateQuadInstances(1)[0].mfKind = 2;
+		mpVtxBuffer->Compile(0);
 
 		mpEnd = hplNew( cBeamEnd, (asName + "_end",this));
 		mpEnd->AddCallback(&mEndCallback);
@@ -154,33 +135,7 @@ namespace hpl {
 		if(mColor == aColor) return;
 
 		mColor = aColor;
-
-		float *pColors = mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		//Change "lower colors"
-		if(mbMultiplyAlphaWithColor)
-		{
-			for(int i=0; i<2;++i)
-			{
-				pColors[0] = mColor.r * mColor.a;
-				pColors[1] = mColor.g * mColor.a;
-				pColors[2] = mColor.b * mColor.a;
-				pColors[3] = mColor.a;
-				pColors+=4;
-			}
-		}
-		else
-		{
-			for(int i=0; i<2;++i)
-			{
-				pColors[0] = mColor.r;
-				pColors[1] = mColor.g;
-				pColors[2] = mColor.b;
-				pColors[3] = mColor.a;
-				pColors+=4;
-			}
-		}
-		mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
+		mpVtxBuffer->UpdateQuadInstances(1)[0].mColor = BeamVertexColor(mColor, mbMultiplyAlphaWithColor);
 	}
 
 	//-----------------------------------------------------------------------
@@ -223,72 +178,22 @@ namespace hpl {
 
 	void cBeam::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
-		if(	mlStartTransformCount == GetTransformUpdateCount() &&
-			mlEndTransformCount == GetTransformUpdateCount())
-		{
-			return;
-		}
+		UpdateInstance();
+	}
 
-		////////////////////////////////
-		//Get Axis
+	void cBeam::UpdateInstance()
+	{
 		mvAxis = mpEnd->GetWorldPosition() - GetWorldPosition();
-
-		mvMidPosition =GetWorldPosition() + mvAxis*0.5f;
-		float fDist = mvAxis.Length();
-
+		mvMidPosition = GetWorldPosition() + mvAxis * 0.5f;
+		const float distance = mvAxis.Length();
 		mvAxis.Normalise();
 
-		////////////////////////////////
-		//Update vertex buffer
-		cVector2f vBeamSize = cVector2f(mvSize.x, fDist);
-
-		float *pPos = mpVtxBuffer->GetArray(eVertexFlag_Position);
-		float *pTex = mpVtxBuffer->GetArray(eVertexFlag_Texture0);
-
-		cVector3f vCoords[4] = {cVector3f((vBeamSize.x/2),-(vBeamSize.y/2),0),
-								cVector3f(-(vBeamSize.x/2),-(vBeamSize.y/2),0),
-								cVector3f(-(vBeamSize.x/2),(vBeamSize.y/2),0),
-								cVector3f((vBeamSize.x/2),(vBeamSize.y/2),0)};
-
-		cVector3f vTexCoords[4];
-		if(mbTileHeight)
-		{
-			vTexCoords[0] = cVector3f(1,1,0);	//Bottom left
-			vTexCoords[1] = cVector3f(0,1,0);	//Bottom right
-			vTexCoords[2] = cVector3f(0,-fDist/mvSize.y,0);	//Top left
-			vTexCoords[3] = cVector3f(1,-fDist/mvSize.y,0);	//Top right
-		}
-		else
-		{
-			vTexCoords[0] = cVector3f(1,1,0);	//Bottom left
-			vTexCoords[1] = cVector3f(0,1,0);	//Bottom right
-			vTexCoords[2] = cVector3f(0,0,0);	//Top left
-			vTexCoords[3] = cVector3f(1,0,0);	//Top right
-		}
-
-		for(int i=0; i<4;++i)
-		{
-			pPos[0] = vCoords[i].x;
-			pPos[1] = vCoords[i].y;
-			pPos[2] = vCoords[i].z;
-			pPos+=4;
-
-			pTex[0] = vTexCoords[i].x;
-			pTex[1] = vTexCoords[i].y;
-			pTex+=3;
-		}
-
-		if(mpMaterial->IsTransperant())
-		{
-			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Texture0,false);
-		}
-		else
-		{
-			mpVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Texture0,false);
-		}
-
-
-
+		cQuadInstance &sheet = mpVtxBuffer->UpdateQuadInstances(1)[0];
+		sheet.mfKind = 2;
+		sheet.mvRight = cVector3f(mvSize.x * 0.5f,0,0);
+		sheet.mvUp = cVector3f(0,distance * 0.5f,0);
+		sheet.mvUV[1] = 1;
+		sheet.mvUV[3] = mbTileHeight ? -distance / mvSize.y : 0;
 	}
 
 	//-----------------------------------------------------------------------
@@ -304,7 +209,6 @@ namespace hpl {
 		vCameraForward.Normalise();
 
 		vUp = mvAxis;//cMath::MatrixMul(GetWorldMatrix().GetRotation(),mvAxis);
-		//vUp.Normalise();
 
 		if(vUp == vForward)
 		{
@@ -451,34 +355,7 @@ namespace hpl {
 
 		mColor = aColor;
 
-		float *pColors = mpBeam->mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		//Change "upper colors"
-		pColors+= 4*2;
-		if(mpBeam->mbMultiplyAlphaWithColor)
-		{
-			for(int i=0; i<2;++i)
-			{
-				pColors[0] = mColor.r * mColor.a;
-				pColors[1] = mColor.g * mColor.a;
-				pColors[2] = mColor.b * mColor.a;
-				pColors[3] = mColor.a;
-				pColors+=4;
-			}
-		}
-		else
-		{
-			for(int i=0; i<2;++i)
-			{
-				pColors[0] = mColor.r;
-				pColors[1] = mColor.g;
-				pColors[2] = mColor.b;
-				pColors[3] = mColor.a;
-				pColors+=4;
-			}
-		}
-
-		mpBeam->mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
+		mpBeam->mpVtxBuffer->UpdateQuadInstances(1)[0].mEndColor = BeamVertexColor(mColor, mpBeam->mbMultiplyAlphaWithColor);
 	}
 
 	//-----------------------------------------------------------------------

@@ -31,6 +31,8 @@ class cGameSwingDoor_SaveData : public iGameEntity_SaveData
 	kSerializableClassInit(cGameSwingDoor_SaveData);
 public:
 	bool mbLocked;
+	tWString msLockedDesc;
+	tString msLockedSound;
 
 	tString msBreakSound;
 	tString msBreakEntity;
@@ -75,6 +77,8 @@ public:
 	void SetupPhysics(cWorld3D *apWorld);
 
 	void SetLocked(bool abX);
+	void SetLockedDesc(const tWString& asX){ msLockedDesc = asX;}
+	void SetLockedSound(const tString& asX){ msLockedSound = asX;}
 
 	//SaveObject implementation
 	iGameEntity_SaveData* CreateSaveData() override;
@@ -86,6 +90,10 @@ private:
 	std::vector<cGameSwingJointDefault> mvJointDefaults;
 
 	bool mbLocked;
+
+	// Black Plague: what is said and heard when a locked door is tried
+	tWString msLockedDesc;
+	tString msLockedSound;
 
 	tString msBreakSound;
 	tString msBreakEntity;

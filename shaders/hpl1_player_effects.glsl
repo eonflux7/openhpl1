@@ -2,11 +2,6 @@
 // the HUD. The neutral path is exactly the existing scene output. Sampling
 // neighbours converts them the same way as the centre; SMAA already has
 // screen values and sets tonemap.x to zero.
-uniform vec4 playerEffects0; // adaptation, low health, blood hit, ice hit
-uniform vec4 playerEffects1; // panic, flash, save haze, death vignette
-uniform vec4 playerEffects2; // death black, panic pulse, underwater, whiteout glow
-uniform vec4 playerDetails; // impact seed, continuous low-health vision, unused, unused
-uniform vec4 playerWaterColor;
 
 float PlayerLuma(vec3 color)
 {
@@ -37,7 +32,7 @@ vec3 PlayerSample(vec2 uv)
 {
     // Clamp to pixel centres so a wide blur cannot wrap at an edge.
     uv = clamp(uv, sceneSize.zw * 0.5, 1.0 - sceneSize.zw * 0.5);
-    vec3 color = max(textureLod(tex0, uv, 0.0).rgb, 0.0);
+    vec3 color = max(hpl_TextureLod0(uv, 0.0).rgb, 0.0);
     if(tonemap.x > 0.5)
         color = pow(Tonemap(color * tonemap.y), vec3(1.0 / 2.2));
     return color;

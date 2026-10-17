@@ -74,6 +74,14 @@ iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 	mbPauseControllers = false;
 	mbPauseGravity = false;
 
+	mbMoving = false;
+	mvMoveGoal = 0;
+	mfMoveAcceleration = 0;
+	mfMoveSpeed = 0;
+	mfMoveMaxSpeed = 0;
+	mfMoveSlowDownDist = 0;
+	msMoveCallback = "";
+
 	for(int i=0; i< eGameEntityScriptType_LastEnum; ++i)
 	{
 		mvCallbackScripts[i] = nullptr;
@@ -153,12 +161,16 @@ iGameEntity::~iGameEntity()
 			
 			pWorld->GetPhysicsWorld()->DestroyBody(mvBodies[i]);
 		}
+		for(cMeshEntity *pAttached : mlstAttachedMeshEntities)
+			pWorld->DestroyMeshEntity(pAttached);
+
 		if(mpMeshEntity) pWorld->DestroyMeshEntity(mpMeshEntity);
 	
 		for(size_t i=0; i<mvLights.size(); ++i) 
 			pWorld->DestroyLight(mvLights[i]);
 		for(size_t i=0; i<mvParticleSystems.size(); ++i) 
-			if(mvParticleSystems[i]) mvParticleSystems[i]->Kill();
+			if(mvParticleSystems[i] && pWorld->ParticleSystemExists(mvParticleSystems[i]))
+				mvParticleSystems[i]->Kill();
 		for(size_t i=0; i<mvBillboards.size(); ++i) 
 			pWorld->DestroyBillboard(mvBillboards[i]);
 		for(size_t i=0; i<mvBeams.size(); ++i) 
@@ -194,11 +206,52 @@ iGameEntity::~iGameEntity()
 
 //-----------------------------------------------------------------------
 
+bool iGameEntity::AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone)
+{
+	if(mpMeshEntity->GetMesh()->GetSkeleton()==nullptr)
+	{
+		Error("Could not attach to skeleton. No skeleton found\n.");
+		return false;
+	}
+
+	cBoneState *pBone = mpMeshEntity->GetBoneStateFromName(asBone);
+	if(pBone==nullptr)
+	{
+		Error("Could not find bone '%s'\n",asBone.c_str());
+		return false;
+	}
+
+	pBone->AddEntity(apEntity);
+	mlstAttachedMeshEntities.push_back(apEntity);
+
+	return true;
+}
+
+//-----------------------------------------------------------------------
+
 void iGameEntity::SetActive(bool abX)
 {
 	if(mbActive == abX) return;
 
 	mbActive =abX;
+
+	//Black Plague: what the player holds, pushes or moves is let go of first
+	if(mbActive==false && cInit::IsOverture()==false)
+	{
+		cPlayer *pPlayer = mpInit->mpPlayer;
+		ePlayerState state = pPlayer->GetState();
+		if(state == ePlayerState_Grab || state == ePlayerState_Move || state == ePlayerState_Push)
+		{
+			for(size_t i=0; i<mvBodies.size(); ++i)
+			{
+				if(mvBodies[i] == pPlayer->GetPushBody())
+				{
+					pPlayer->ChangeState(ePlayerState_Normal);
+					break;
+				}
+			}
+		}
+	}
 
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
@@ -211,6 +264,12 @@ void iGameEntity::SetActive(bool abX)
 		mpMeshEntity->SetVisible(mbActive);
 		mpMeshEntity->SetActive(mbActive);
 		if(mbActive) mpMeshEntity->UpdateLogic(0.01f);
+	}
+
+	for(cMeshEntity *pAttached : mlstAttachedMeshEntities)
+	{
+		pAttached->SetActive(mbActive);
+		pAttached->SetVisible(mbActive);
 	}
 	
 
@@ -516,9 +575,96 @@ static inline tString GetCollideCommand(const tString &asFuncName,const tString 
 
 ////////////////////////////
 
+void iGameEntity::MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float afAcceleration,
+								float afSlowDownDist, const tString& asCallback)
+{
+	mbMoving = true;
+	msMoveCallback = asCallback;
+
+	mvMoveGoal = avPos;
+	mfMoveAcceleration = afAcceleration;
+	mfMoveSpeed = 0;
+	mfMoveMaxSpeed = afMaxSpeed;
+	mfMoveSlowDownDist = afSlowDownDist;
+}
+
+//-----------------------------------------------------------------------
+
+void iGameEntity::UpdateMove(float afTimeStep)
+{
+	if(mbMoving==false) return;
+
+	cVector3f vStartPos = mvBodies.empty() ?	mpMeshEntity->GetWorldPosition() :
+												mvBodies[0]->GetWorldPosition();
+	cVector3f vPos = vStartPos;
+
+	////////////////////////////////////////////
+	// The next position
+	float fDist = cMath::Vector3Dist(mvMoveGoal, vPos);
+
+	if(mfMoveSpeed * afTimeStep >= fDist || fDist < 0.01f)
+	{
+		vPos = mvMoveGoal;
+		mbMoving = false;
+
+		if(msMoveCallback != "")
+		{
+			tString sCommand = msMoveCallback + "(\"" + msName + "\")";
+			mpInit->RunScriptCommand(sCommand);
+		}
+	}
+	else
+	{
+		cVector3f vDir = cMath::Vector3Normalize(mvMoveGoal - vPos);
+
+		//Close to the goal the speed follows the distance, further away it builds up.
+		if(fDist < mfMoveSlowDownDist)
+		{
+			float fWantedSpeed = (fDist / mfMoveSlowDownDist) * mfMoveMaxSpeed;
+			if(mfMoveSpeed > fWantedSpeed || mfMoveSpeed < 0.01f) mfMoveSpeed = fWantedSpeed;
+		}
+		else
+		{
+			mfMoveSpeed += mfMoveAcceleration * afTimeStep;
+			if(mfMoveSpeed > mfMoveMaxSpeed) mfMoveSpeed = mfMoveMaxSpeed;
+		}
+
+		vPos += vDir * mfMoveSpeed * afTimeStep;
+	}
+
+	////////////////////////////////////////////
+	// Entities without bodies
+	if(mvBodies.empty())
+	{
+		mpMeshEntity->SetPosition(vPos);
+		return;
+	}
+
+	////////////////////////////////////////////
+	// Move the body, with the speed it has for what rests on it
+	iPhysicsBody *pBody = mvBodies[0];
+
+	pBody->SetPosition(vPos);
+
+	if(mbMoving)	pBody->SetLinearVelocity((vPos - vStartPos) / afTimeStep);
+	else			pBody->SetLinearVelocity(0);
+
+	////////////////////////////////////////////
+	// Wake what is next to it
+	cBoundingVolume largeBV = *pBody->GetBV();
+	largeBV.SetLocalMinMax(largeBV.GetLocalMin() - cVector3f(0.1f), largeBV.GetLocalMax() + cVector3f(0.1f));
+
+	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+	pPhysicsWorld->EnableBodiesInBV(&largeBV, true);
+}
+
+//-----------------------------------------------------------------------
+
 void iGameEntity::OnUpdate(float afTimeStep)
 {
 	if(mbActive==false) return;
+
+	UpdateMove(afTimeStep);
 
 	////////////////////////////////////////////
 	/// Script Collide test stuff
@@ -938,6 +1084,16 @@ kSerializeVar(mbHasBeenExamined,eSerializeType_Bool)
 kSerializeVar(mbShowDescritionOnce,eSerializeType_Bool)
 kSerializeVar(mType,eSerializeType_Int32)
 kSerializeVar(m_mtxTransform, eSerializeType_Matrixf)
+kSerializeVar(mbHasMeshTransform, eSerializeType_Bool)
+kSerializeVar(m_mtxMeshTransform, eSerializeType_Matrixf)
+
+kSerializeVar(mvMoveGoal, eSerializeType_Vector3f)
+kSerializeVar(mfMoveAcceleration, eSerializeType_Float32)
+kSerializeVar(mfMoveSpeed, eSerializeType_Float32)
+kSerializeVar(mfMoveMaxSpeed, eSerializeType_Float32)
+kSerializeVar(mfMoveSlowDownDist, eSerializeType_Float32)
+kSerializeVar(mbMoving, eSerializeType_Bool)
+kSerializeVar(msMoveCallback, eSerializeType_String)
 
 kSerializeClassContainer(mlstCollideCallbacks,cSaveGame_cGameCollideScript,eSerializeType_Class)
 kSerializeClassContainer(mlstCallbackScripts,cGameEntityScript,eSerializeType_Class)
@@ -969,6 +1125,20 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 	kCopyToVar(apSaveData,mType);
 
 	apSaveData->m_mtxTransform = m_mtxOnLoadTransform;
+
+	kCopyToVar(apSaveData,mvMoveGoal);
+	kCopyToVar(apSaveData,mfMoveAcceleration);
+	kCopyToVar(apSaveData,mfMoveSpeed);
+	kCopyToVar(apSaveData,mfMoveMaxSpeed);
+	kCopyToVar(apSaveData,mfMoveSlowDownDist);
+	kCopyToVar(apSaveData,mbMoving);
+	kCopyToVar(apSaveData,msMoveCallback);
+
+	if(mpMeshEntity)
+	{
+		apSaveData->mbHasMeshTransform = true;
+		apSaveData->m_mtxMeshTransform = mpMeshEntity->GetLocalMatrix();
+	}
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
@@ -1082,7 +1252,18 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	kCopyFromVar(apSaveData,mbHasBeenExamined);
 	kCopyFromVar(apSaveData,mType);
 
+	kCopyFromVar(apSaveData,mvMoveGoal);
+	kCopyFromVar(apSaveData,mfMoveAcceleration);
+	kCopyFromVar(apSaveData,mfMoveSpeed);
+	kCopyFromVar(apSaveData,mfMoveMaxSpeed);
+	kCopyFromVar(apSaveData,mfMoveSlowDownDist);
+	kCopyFromVar(apSaveData,mbMoving);
+	kCopyFromVar(apSaveData,msMoveCallback);
+
 	SetActive(apSaveData->mbActive);
+
+	if(mpMeshEntity && apSaveData->mbHasMeshTransform)
+		mpMeshEntity->SetMatrix(apSaveData->m_mtxMeshTransform);
 
 	//Script functions
 	cContainerListIterator<cGameEntityScript> scriptIt = apSaveData->mlstCallbackScripts.GetIterator();
@@ -1103,8 +1284,14 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	}
 	
 
-	//Bodies
-	for(size_t i=0; i<mvBodies.size(); ++i)
+	//Bodies. A save can hold fewer than the entity has now (it was made
+	//from another file, or lost bodies): load those there are.
+	if(apSaveData->mvBodies.Size() != mvBodies.size())
+	{
+		Warning("Entity '%s' was saved with %d bodies, it has %d\n", msName.c_str(),
+			(int)apSaveData->mvBodies.Size(), (int)mvBodies.size());
+	}
+	for(size_t i=0; i<mvBodies.size() && i<apSaveData->mvBodies.Size(); ++i)
 	{
 		apSaveData->mvBodies[i].ToBody(mvBodies[i]);
 	}

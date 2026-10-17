@@ -15,13 +15,11 @@ in float vFogUv;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 uniform sampler1D tex1; //fogMap
 
 const int kKnots = 32;
 // The colour at kKnots distances, evenly from the middle to the corner
-uniform vec4 haloProfile[kKnots];
-uniform vec4 haloLook;	// x: how much of the rest of the picture is kept,
 						// y: 1 with fog
 
 // A curve through the knots without corners (quadratic B-spline)
@@ -42,7 +40,7 @@ void main()
 
 	// The picture's steps are part of what it has besides the glow: only
 	// what is more than a step counts
-	vec3 vRest = texture(tex0, vUv).rgb - vGlow;
+	vec3 vRest = hpl_Texture0(vUv).rgb - vGlow;
 	vRest = sign(vRest) * max(abs(vRest) - 0.03, 0.0);
 
 	vec3 vHalo = max(vGlow + vRest * haloLook.x, 0.0);

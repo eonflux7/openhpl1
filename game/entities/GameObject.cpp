@@ -705,12 +705,16 @@ void cGameObject::BreakAction()
 		mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	}
 
+	//Black Plague: sound and particles from the middle of the body, unturned
+	const bool bFromCenter = cInit::IsOverture()==false;
+	cVector3f vCenter = pParentBody->GetBV()->GetWorldCenter();
+
 	//////////////////
     //Sound
 	if(mBreakProps.msSound != "")
 	{
 		cSoundEntity *pSound = pWorld->CreateSoundEntity("Break",mBreakProps.msSound,true);
-		if(pSound) pSound->SetPosition(mpMeshEntity->GetWorldPosition());
+		if(pSound) pSound->SetPosition(bFromCenter ? vCenter : mpMeshEntity->GetWorldPosition());
 	}
 
 	//////////////////
@@ -718,7 +722,7 @@ void cGameObject::BreakAction()
     if(mBreakProps.msPS != "")
 	{
 		cParticleSystem3D *pPS = pWorld->CreateParticleSystem("Break",mBreakProps.msPS,cVector3f(1,1,1),
-															pParentBody->GetWorldMatrix());
+										bFromCenter ? cMath::MatrixTranslate(vCenter) : pParentBody->GetWorldMatrix());
 	}
 
 	//////////////////
@@ -731,6 +735,10 @@ void cGameObject::BreakAction()
 		if(pEntity)
 		{
 			iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
+
+			// Black Plague: what comes out may be an enemy (a spider from
+			// its egg), which gets its first state here
+			if(cInit::IsOverture()==false) pGameEntity->OnWorldLoad();
 
 			for(int i=0; i< pGameEntity->GetBodyNum(); ++i)
 			{

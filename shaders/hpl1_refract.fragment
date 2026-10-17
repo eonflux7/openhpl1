@@ -9,7 +9,7 @@
 /// REFRACTION FRAGMENT PROGRAM /////////////////
 ///////////////////////////////////////////////////////
 
-// Reads and writes the scene as it is, linear or not.
+// Reads and writes linear values.
 #define HPL_LINEAR_COLOR
 
 in vec2 vUv; //in object space
@@ -17,14 +17,13 @@ in vec4 vColor;
 
 OUTPUT
 
-uniform sampler2DRect tex0; //screenMap
-uniform sampler2D tex1; //refractMap
+HPL_TEXTURE_2D(0) //screenMap, of the render size
+HPL_TEXTURE_2D(1) //refractMap
 
-uniform float scale;
 
 void main()
 {
-	vec3 offset = vec3(((texture(tex1, vUv)*2.0) - vec4(1.0)) * vColor.w);
+	vec3 offset = vec3(((hpl_Texture1(vUv)*2.0) - vec4(1.0)) * vColor.w);
 
-	outColor = texture(tex0, gl_FragCoord.xy - (offset.xy*scale) / gl_FragCoord.z);
+	outColor = hpl_Texture0((gl_FragCoord.xy - (offset.xy*scale) / gl_FragCoord.z) / vec2(hpl_TextureSize0(0)));
 }

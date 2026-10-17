@@ -36,12 +36,19 @@
 #include "entities/GameLink.h"
 #include "enemies/GameEnemy.h"
 #include "entities/GameLamp.h"
+#include "entities/GameLever.h"
+#include "entities/GameCamera.h"
+#include "entities/GameVentArea.h"
+#include "entities/GameWheel.h"
 #include "entities/GameLadder.h"
 #include "entities/GameDamageArea.h"
 #include "entities/GameForceArea.h"
 #include "entities/GameLiquidArea.h"
 
 #include "ui/Inventory.h"
+#include "ui/GameGui.h"
+#include "systems/GameSoundEnvHandler.h"
+#include "ui/Ending.h"
 #include "systems/FadeHandler.h"
 #include "core/SaveHandler.h"
 #include "systems/TriggerHandler.h"
@@ -51,6 +58,12 @@
 #include "ui/DeathMenu.h"
 #include "core/GraphicsHelper.h"
 #include "systems/EffectHandler.h"
+
+#include <filesystem>
+#include <fstream>
+#if defined(__linux__)
+	#include <unistd.h>
+#endif
 #include "player/PlayerHands.h"
 #include "systems/GameMusicHandler.h"
 #include "systems/RadioHandler.h"
@@ -123,6 +136,232 @@ tWString gsUserSettingsPath = _W("");
 tWString gsDefaultSettingsPath = _W("config/default_settings.cfg");
 bool gbUsingUserSettings=false;
 
+eGameId cInit::mGameId = eGameId_Overture;
+eGameId cInit::mRequestedGameId = eGameId_LastEnum;
+
+//-----------------------------------------------------------------------
+
+// What differs between the games' data folders. Black Plague and Requiem are
+// installed into the same folder, Requiem's own files under other names.
+struct cGameFiles
+{
+	const char *msName;
+	const wchar_t *msPersonalDir;
+	const wchar_t *msDefaultSettings;
+	const wchar_t *msGameConfig;
+	const char *msStartupConfig;
+	const char *msResources;
+	const char *msMaterials;
+	const char *msCacheDir;
+	const wchar_t *msMapsDir;
+	const char *msStartMap;
+	const char *msMenuMusic;
+};
+
+static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
+	{"Penumbra: Overture",
+#if defined(__linux__)
+		_W("Penumbra/OvertureRemade/"),
+#elif defined(WIN32)
+		_W("Penumbra Overture/OvertureRemade/"),
+#else
+		_W("Penumbra/Overture/"),
+#endif
+		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level00_01_boat_cabin.dae",
+		"music_theme.ogg"},
+	{"Penumbra: Black Plague", _W("Penumbra/BlackPlagueRemade/"),
+		_W("config/default_settings.cfg"), _W("config/game.cfg"), "config/startup.cfg",
+		"resources.cfg", "materials.cfg", "core/cache/", _W("maps"), "level01_cells.dae",
+		"Penumbra_BP_M1.ogg"},
+	{"Penumbra: Requiem", _W("Penumbra/RequiemRemade/"),
+		_W("expansion01/config/requiem_default_settings.cfg"), _W("expansion01/config/requiem_game.cfg"),
+		"expansion01/config/requiem_startup.cfg",
+		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae",
+		"Penumbra_Requiem_M.ogg"},
+};
+
+//-----------------------------------------------------------------------
+
+// OVERTURE_GAME=overture|blackplague|requiem. Without it the data in the
+// working directory says which: Black Plague's folder has its first map
+// (Requiem, in the same folder, has to be asked for).
+static eGameId FindGameId()
+{
+	const char *pGame = SDL_getenv("OVERTURE_GAME");
+	if(pGame && pGame[0])
+	{
+		tString sGame = cString::ToLowerCase(pGame);
+		if(sGame == "overture") return eGameId_Overture;
+		if(sGame == "blackplague") return eGameId_BlackPlague;
+		if(sGame == "requiem") return eGameId_Requiem;
+		Warning("OVERTURE_GAME '%s' is not overture, blackplague or requiem\n", pGame);
+	}
+
+	if(FileExists(_W("maps/level01_cells.dae"))) return eGameId_BlackPlague;
+	return eGameId_Overture;
+}
+
+//-----------------------------------------------------------------------
+
+// CHANGING GAME
+
+// The names OVERTURE_GAME takes, also the keys in games.cfg
+static const char *gvGameKeys[eGameId_LastEnum] = {"overture", "blackplague", "requiem"};
+
+// games.cfg: one "key=folder" a line
+static std::string gsGameFoldersFile;
+
+static std::string ReadGameFolder(eGameId aId)
+{
+	std::ifstream file(gsGameFoldersFile);
+	std::string sLine, sKey = std::string(gvGameKeys[aId]) + "=";
+	while(std::getline(file, sLine))
+	{
+		if(sLine.compare(0, sKey.size(), sKey) == 0) return sLine.substr(sKey.size());
+	}
+	return "";
+}
+
+static void WriteGameFolder(eGameId aId, const std::string &asFolder)
+{
+	if(gsGameFoldersFile.empty() || ReadGameFolder(aId) == asFolder) return;
+
+	std::vector<std::string> vLines;
+	{
+		std::ifstream file(gsGameFoldersFile);
+		std::string sLine, sKey = std::string(gvGameKeys[aId]) + "=";
+		while(std::getline(file, sLine))
+			if(sLine.compare(0, sKey.size(), sKey) != 0 && sLine != "") vLines.push_back(sLine);
+	}
+	vLines.push_back(std::string(gvGameKeys[aId]) + "=" + asFolder);
+
+	std::ofstream file(gsGameFoldersFile, std::ios::trunc);
+	for(const std::string &sLine : vLines) file << sLine << "\n";
+}
+
+// A folder holds the game when its first map is there
+static bool HasGameData(eGameId aId, const std::string &asFolder)
+{
+	if(asFolder.empty()) return false;
+	std::error_code err;
+	std::filesystem::path path = std::filesystem::path(asFolder) /
+		cString::To8Char(gvGameFiles[aId].msMapsDir) / gvGameFiles[aId].msStartMap;
+	return std::filesystem::exists(path, err);
+}
+
+const char* cInit::GetGameName(eGameId aId)
+{
+	return gvGameFiles[aId].msName;
+}
+
+bool cInit::CanChangeGame()
+{
+#if defined(__linux__)
+	return true;
+#else
+	return false;
+#endif
+}
+
+tString cInit::FindGameFolder(eGameId aId)
+{
+	// The running game's folder is the working directory
+	if(aId == mGameId)
+	{
+		std::error_code err;
+		return std::filesystem::current_path(err).string();
+	}
+
+	// Black Plague and Requiem are installed together
+	std::vector<std::string> vFolders;
+	vFolders.push_back(ReadGameFolder(aId));
+	if(aId == eGameId_BlackPlague) vFolders.push_back(ReadGameFolder(eGameId_Requiem));
+	if(aId == eGameId_Requiem) vFolders.push_back(ReadGameFolder(eGameId_BlackPlague));
+	if(aId != eGameId_Overture && mGameId != eGameId_Overture)
+	{
+		std::error_code err;
+		vFolders.push_back(std::filesystem::current_path(err).string());
+	}
+
+	const char *pHome = SDL_getenv("HOME");
+	if(pHome)
+	{
+		const char *pSteamName = aId == eGameId_Overture ? "Penumbra Overture" : "Penumbra Black Plague";
+		for(const char *pSteam : {"/.local/share/Steam", "/.steam/steam", "/.var/app/com.valvesoftware.Steam/.local/share/Steam"})
+			vFolders.push_back(std::string(pHome) + pSteam + "/steamapps/common/" + pSteamName);
+	}
+
+	for(const std::string &sFolder : vFolders)
+		if(HasGameData(aId, sFolder)) return sFolder;
+	return "";
+}
+
+void cInit::RequestGameChange(eGameId aId)
+{
+	if(CanChangeGame()==false || aId == mGameId || FindGameFolder(aId) == "") return;
+
+	Log("Changing game to %s\n", GetGameName(aId));
+	mRequestedGameId = aId;
+	mpGame->Exit();
+}
+
+void cInit::RunRequestedGame()
+{
+#if defined(__linux__)
+	if(mRequestedGameId == eGameId_LastEnum) return;
+
+	tString sFolder = FindGameFolder(mRequestedGameId);
+	if(sFolder == "" || chdir(sFolder.c_str()) != 0)
+	{
+		Error("Couldn't go to the folder of %s ('%s')\n", GetGameName(mRequestedGameId), sFolder.c_str());
+		return;
+	}
+
+	// The test hooks are for the game they were set for
+	setenv("OVERTURE_GAME", gvGameKeys[mRequestedGameId], 1);
+	for(const char *pVar : {"OVERTURE_MAP", "OVERTURE_SCRIPT", "OVERTURE_SMOKE"}) unsetenv(pVar);
+
+	// The same arguments as this run had
+	std::vector<std::string> vArgs;
+	{
+		std::ifstream file("/proc/self/cmdline", std::ios::binary);
+		std::string sArg;
+		while(std::getline(file, sArg, '\0')) vArgs.push_back(sArg);
+	}
+	std::vector<char*> vArgPtrs;
+	for(std::string &sArg : vArgs) vArgPtrs.push_back(sArg.data());
+	if(vArgPtrs.empty()) vArgPtrs.push_back((char*)"overture");
+	vArgPtrs.push_back(nullptr);
+
+	fflush(nullptr);
+	execv("/proc/self/exe", vArgPtrs.data());
+	Error("Couldn't start %s again: %s\n", GetGameName(mRequestedGameId), strerror(errno));
+#endif
+}
+
+//-----------------------------------------------------------------------
+
+tWString cInit::GetPersonalGameDir()
+{
+	return gvGameFiles[mGameId].msPersonalDir;
+}
+
+tString cInit::GetStartupConfigFile()
+{
+	return gvGameFiles[mGameId].msStartupConfig;
+}
+
+tWString cInit::GetMapsDir()
+{
+	return gvGameFiles[mGameId].msMapsDir;
+}
+
+tString cInit::GetMenuMusic()
+{
+	return gvGameFiles[mGameId].msMenuMusic;
+}
+
 //-----------------------------------------------------------------------
 
 cInit::cInit(void)  : iUpdateable("Init")
@@ -189,6 +428,20 @@ bool cInit::Init(tString asCommandLine)
 	//iResourceBase::SetLogCreateAndDelete(true);
 	SetWindowCaption("Penumbra Loading...");
 
+	mGameId = FindGameId();
+	// Black Plague: resting bodies are kept 2 mm apart. With Newton 2 a heavy
+	// box sank into the floor and caught on the edges of a hole under it (the
+	// crate over level 4's ladder down to the sewers could not be moved).
+	// 1 cm was tried first: from 3 mm up, small bodies never come to rest
+	// (they shake and creep off shelves; the map checks' settle test).
+	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.002f);
+	// For tests: OVERTURE_CONTACT_SKIN=<metres> sets it for any game
+	if(SDL_getenv("OVERTURE_CONTACT_SKIN"))
+		iPhysicsMaterial::SetContactSkin(cString::ToFloat(SDL_getenv("OVERTURE_CONTACT_SKIN"), 0));
+	const cGameFiles &gameFiles = gvGameFiles[mGameId];
+	gsDefaultSettingsPath = gameFiles.msDefaultSettings;
+	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
+
 	// PERSONAL DIR /////////////////////
 	tWString sPersonalDir = GetPersonalDir();
 	if(	cString::GetLastCharW(sPersonalDir) != _W("/") && 
@@ -206,7 +459,7 @@ bool cInit::Init(tString asCommandLine)
 	}
 
 	// CREATE NEEDED DIRS /////////////////////
-	gsUserSettingsPath = sPersonalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("settings.cfg");
+	gsUserSettingsPath = sPersonalDir + PERSONAL_RELATIVEGAME + _W("settings.cfg");
 	#ifndef WIN32
 	// For Mac OS X and Linux move the OLD Episode 1 folder to Penumbra/Overture and symlink to the old path
 	if (FolderExists(sPersonalDir + PERSONAL_RELATIVEROOT _W("Penumbra Overture/Episode1"))
@@ -225,7 +478,7 @@ bool cInit::Init(tString asCommandLine)
 
 	tWString vDirs[] = { PERSONAL_RELATIVEPIECES //auto includes ,
 			PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT,
-			PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME};
+			PERSONAL_RELATIVEGAME};
 	int lDirNum = PERSONAL_RELATIVEPIECES_COUNT + 2;
 
 	//Check if directories exist and if not create
@@ -237,9 +490,23 @@ bool cInit::Init(tString asCommandLine)
 		CreateFolder(sDir);
 	}
 
+	// Where this game is, for changing to it from another
+	gsGameFoldersFile = cString::To8Char(sPersonalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT) + "games.cfg";
+	{
+		std::error_code err;
+		WriteGameFolder(mGameId, std::filesystem::current_path(err).string());
+	}
+
+	// Mesh caches that have to be rebuilt go here, not into the game's folder
+	{
+		tWString sCacheDir = sPersonalDir + PERSONAL_RELATIVEGAME + _W("cache");
+		if(FolderExists(sCacheDir)==false) CreateFolder(sCacheDir);
+		iMeshLoader::SetCacheWriteDir(cString::To8Char(sCacheDir) + "/");
+	}
+
 	// LOG FILE SETUP /////////////////////
-	SetLogFile(sPersonalDir+PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("hpl.log"));
-	SetUpdateLogFile(sPersonalDir+PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME _W("hpl_update.log"));
+	SetLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl.log"));
+	SetUpdateLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl_update.log"));
 
 	
 	// MAIN INIT /////////////////////
@@ -278,7 +545,7 @@ bool cInit::Init(tString asCommandLine)
 		mpConfig->Save();
 	}
 
-    mpGameConfig = hplNew( cConfigFile, (_W("config/game.cfg")) );
+    mpGameConfig = hplNew( cConfigFile, (gameFiles.msGameConfig) );
 	mpGameConfig->Load();
 
 	mvScreenSize.x = mpConfig->GetInt("Screen","Width",800);
@@ -301,6 +568,7 @@ bool cInit::Init(tString asCommandLine)
 	mbAllowQuickSave  = mpConfig->GetBool("Game","AllowQuickSave",false); 
 	mbFlashItems  = mpConfig->GetBool("Game","FlashItems",true);
 	mbShowCrossHair  = mpConfig->GetBool("Game","ShowCrossHair",false);
+	mbAskTutorial = mpConfig->GetBool("Game","AskTutorial",true);
 	mbImprovedDogAI = mpConfig->GetBool("AI","ImprovedDogAI",true);
 	
 	mbHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
@@ -329,7 +597,7 @@ bool cInit::Init(tString asCommandLine)
 	msCurrentUser = mpConfig->GetString("Game","CurrentUser","default");
 	mDifficulty = (eGameDifficulty)mpConfig->GetInt("Game","Difficulty",1);
 
-	msStartMap = mpConfig->GetString("Map","File","level00_01_boat_cabin.dae"); 
+	msStartMap = mpConfig->GetString("Map","File",gameFiles.msStartMap);
 	msStartLink = mpConfig->GetString("Map","StartPos","link01");
 
 	const char *pDirectMap = SDL_getenv("OVERTURE_MAP");
@@ -349,6 +617,9 @@ bool cInit::Init(tString asCommandLine)
 
 	mlMaxSoundChannels = mpConfig->GetInt("Sound","MaxSoundChannels",32);
 	mbUseSoundHardware = mpConfig->GetBool("Sound","UseSoundHardware",false);
+	// Reverb of the rooms (EFX). Black Plague's sound environments need it;
+	// on here unless the settings say not, where the original had it off.
+	mbUseEnvAudio = mpConfig->GetBool("Sound","UseEnvironmentalAudio",true);
 	//mbForceGenericSoundDevice = mpConfig->GetBool("Sound", "ForceGeneric", false);
 	mlStreamUpdateFreq = mpConfig->GetInt("Sound","StreamUpdateFreq",10);
 	mbUseSoundThreading = mpConfig->GetBool("Sound","UseThreading",true);
@@ -371,6 +642,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddInt("Multisampling",mlFSAA);
 	Vars.AddInt("LogicUpdateRate",60);
 	Vars.AddBool("UseSoundHardware",mbUseSoundHardware);
+	Vars.AddBool("UseEnvironmentalAudio",mbUseEnvAudio);
 	Vars.AddBool("ForceGeneric", mpConfig->GetBool("Sound", "ForceGeneric", false));
 	Vars.AddInt("MaxSoundChannels",mlMaxSoundChannels);
 	Vars.AddInt("StreamUpdateFreq",mlStreamUpdateFreq);
@@ -423,7 +695,7 @@ bool cInit::Init(tString asCommandLine)
 	cMath::Randomize();
 
 	// RESOURCE INIT /////////////////////
-	mpGame->GetResources()->LoadResourceDirsFile("resources.cfg");
+	mpGame->GetResources()->LoadResourceDirsFile(gameFiles.msResources);
 
 	// The fonts (fonts/ in the source tree) are next to the executable. They
 	// replace the glyphs of the game's bitmap fonts.
@@ -440,7 +712,7 @@ bool cInit::Init(tString asCommandLine)
 	// LANGUAGE ////////////////////////////////
 	mpGame->GetResources()->SetLanguageFile(msLanguageFile);
 
-	Log("Initializing " PRODUCT_NAME "\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n");
+	Log("Initializing %s\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n", gameFiles.msName);
 
 	//Add loaders
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameObject,("Object",this)) );
@@ -449,6 +721,14 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLamp,("Lamp",this)) );
 
 	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameEnemy,("Enemy",this)) );
+
+	if(IsOverture()==false)
+	{
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLever,("Lever",this)) );
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameWheel,("Wheel",this)) );
+
+		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameCamera,("Camera",this)) );
+	}
 
     mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameArea,("script",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLink,("link",this)) );
@@ -461,6 +741,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLiquidArea,("liquid",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameStickArea,("stick",this)) );
 #endif
+	if(IsOverture()==false)
+		mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameVentArea,("vent",this)) );
 
 		
 	/// FIRST LOADING SCREEN ////////////////////////////////////
@@ -471,7 +753,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetSound()->GetLowLevel()->SetVolume(mpConfig->GetFloat("Sound","Volume",1));
 		
 	// PHYSICS INIT /////////////////////
-	mpGame->GetPhysics()->LoadSurfaceData("materials.cfg", mpGame->GetHaptic());
+	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials, mpGame->GetHaptic());
 	
 	// EARLY GAME INIT /////////////////////
 	mpEffectHandler = hplNew( cEffectHandler, (this) );
@@ -479,12 +761,8 @@ bool cInit::Init(tString asCommandLine)
 	// GRAPHICS INIT ////////////////////
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(mbPostEffects);
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(mpConfig->GetBool("Graphics", "Bloom", true));
-	mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomSpread(6);
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","BloomType",eBloomType_Original);
-		if(lType < 0 || lType >= eBloomType_LastEnum) lType = eBloomType_Original;
-		pPostEffects->SetBloomType((eBloomType)lType);
 
 		// The defaults are the tuning's own
 		cBloomTuning tuning;
@@ -511,12 +789,8 @@ bool cInit::Init(tString asCommandLine)
 	}
 
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(mpConfig->GetBool("Graphics", "MotionBlur", false));
-	mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurAmount(mpConfig->GetFloat("Graphics", "MotionBlurAmount", 0.3f));
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		int lType = mpConfig->GetInt("Graphics","MotionBlurType",eMotionBlurType_Original);
-		if(lType < 0 || lType >= eMotionBlurType_LastEnum) lType = eMotionBlurType_Original;
-		pPostEffects->SetMotionBlurType((eMotionBlurType)lType);
 
 		cMotionBlurSettings motion;
 		motion.mfShutterTime = mpConfig->GetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
@@ -524,10 +798,6 @@ bool cInit::Init(tString asCommandLine)
 		motion.mlSamples = mpConfig->GetInt("Graphics","MotionBlurSamples",motion.mlSamples);
 		motion.mfNearLimit = mpConfig->GetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
 		pPostEffects->SetMotionBlurSettings(motion);
-
-		lType = mpConfig->GetInt("Graphics","DepthOfFieldType",eDepthOfFieldType_Original);
-		if(lType < 0 || lType >= eDepthOfFieldType_LastEnum) lType = eDepthOfFieldType_Original;
-		pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)lType);
 
 		cDepthOfFieldSettings dof;
 		dof.mfRadius = mpConfig->GetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
@@ -550,7 +820,6 @@ bool cInit::Init(tString asCommandLine)
 		grain.mfDispersion = mpConfig->GetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		pLowLevel->SetFilmGrain(grain);
 		cPlayerEffectSettings feedback;
-		feedback.mbImproved = mpConfig->GetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
 		feedback.mfAdaptationStrength = mpConfig->GetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
 		feedback.mfAdaptationTime = mpConfig->GetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
 		feedback.mfInjuryStrength = mpConfig->GetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
@@ -559,7 +828,7 @@ bool cInit::Init(tString asCommandLine)
 		pLowLevel->SetPlayerEffectSettings(feedback);
 	}
 
-	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", false));
+	mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(mpConfig->GetBool("Graphics", "Refractions", !IsOverture()));
 
 	mpEffectHandler->GetDepthOfField()->SetDisabled(!mpConfig->GetBool("Graphics", "DepthOfField", true));
 
@@ -596,7 +865,6 @@ bool cInit::Init(tString asCommandLine)
 
 	mpGame->GetGraphics()->GetLowLevel()->SetGammaCorrection(mpConfig->GetFloat("Graphics","Gamma",1.0f));
 	mpGame->GetGraphics()->SetRenderScale(mpConfig->GetFloat("Graphics","RenderScale",1.0f));
-	mpGame->GetGraphics()->SetLinearLighting(mpConfig->GetBool("Graphics","LinearLighting",false));
 	{
 		// The defaults are the tuning's own
 		cLinearLightingTuning tuning;
@@ -612,7 +880,6 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cShadingSettings shading;
-		shading.mbImproved = mpConfig->GetBool("Graphics","ShadingImproved",shading.mbImproved);
 		shading.mfSpecular = mpConfig->GetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
 		shading.mfReflectance = mpConfig->GetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
 		shading.mfRoughDull = mpConfig->GetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
@@ -626,13 +893,10 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cEffectSettings effects;
-		effects.mbHalos = mpConfig->GetBool("Graphics","HalosImproved",effects.mbHalos);
 		effects.mfHaloBrightness = mpConfig->GetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
 		effects.mfHaloStreaks = mpConfig->GetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
-		effects.mbShafts = mpConfig->GetBool("Graphics","ShaftsImproved",effects.mbShafts);
 		effects.mfShaftBrightness = mpConfig->GetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
 		effects.mfShaftDust = mpConfig->GetFloat("Graphics","ShaftDust",effects.mfShaftDust);
-		effects.mbParticles = mpConfig->GetBool("Graphics","ParticlesImproved",effects.mbParticles);
 		effects.mfParticleSoft = mpConfig->GetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		effects.mfParticleLight = mpConfig->GetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		effects.mfParticleDark = mpConfig->GetFloat("Graphics","ParticleDark",effects.mfParticleDark);
@@ -642,9 +906,6 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetGraphics()->GetRenderer3D()->SetShowShadows((eRendererShowShadows)mpConfig->GetInt("Graphics","Shadows",0));
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
-		int lType = mpConfig->GetInt("Graphics","ShadowType",eShadowType_Volumes);
-		if(lType < 0 || lType >= eShadowType_LastEnum) lType = eShadowType_Volumes;
-		pRenderer->SetShadowType((eShadowType)lType);
 
 		// The defaults are the settings' own
 		cShadowMapSettings shadows;
@@ -685,6 +946,9 @@ bool cInit::Init(tString asCommandLine)
 	mpMapHandler = hplNew( cMapHandler,(this) );
 	mpGameMessageHandler = hplNew( cGameMessageHandler,(this) );
 	mpRadioHandler = hplNew( cRadioHandler,(this) );
+	mpGameGuiHandler = hplNew( cGameGuiHandler,(this) );
+	mpSoundEnvHandler = hplNew( cGameSoundEnvHandler,(this) );
+	mpEnding = hplNew( cEnding,(this) );
 	mpInventory = hplNew( cInventory,(this) );
 	mpFadeHandler = hplNew( cFadeHandler,(this) );
 	mpSaveHandler = hplNew( cSaveHandler,(this) );
@@ -697,7 +961,6 @@ bool cInit::Init(tString asCommandLine)
 	{
 		// The defaults are the settings' own
 		cFlashlightSettings flashlight;
-		flashlight.mbImproved = mpConfig->GetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
 		flashlight.mfBrightness = mpConfig->GetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
 		// Below what the panel can set: a settings file from when this was
 		// saved after the player had been deleted, which wrote 0 (no light)
@@ -715,7 +978,6 @@ bool cInit::Init(tString asCommandLine)
 	mpLampLooks = hplNew( cLampLooks,(this) );
 	{
 		cLampSettings lamps;
-		lamps.mbImproved = mpConfig->GetBool("Graphics","LampsImproved",lamps.mbImproved);
 		lamps.mfFlicker = mpConfig->GetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
 		lamps.mfSway = mpConfig->GetFloat("Graphics","LampsSway",lamps.mfSway);
 		lamps.mfColour = mpConfig->GetFloat("Graphics","LampsColour",lamps.mfColour);
@@ -765,6 +1027,8 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddUpdate("Default", mpLampLooks);
 	mpGame->GetUpdater()->AddUpdate("Default", mpGameMessageHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpRadioHandler);
+	mpGame->GetUpdater()->AddUpdate("Default", mpGameGuiHandler);
+	mpGame->GetUpdater()->AddUpdate("Default", mpSoundEnvHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpInventory);
 	mpGame->GetUpdater()->AddUpdate("Default", mpFadeHandler);
 	mpGame->GetUpdater()->AddUpdate("Default", mpEffectHandler);
@@ -795,6 +1059,10 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetUpdater()->AddContainer("Credits");
 	mpGame->GetUpdater()->AddUpdate("Credits", mpCredits);
 
+	// Black Plague's endings
+	mpGame->GetUpdater()->AddContainer("Ending");
+	mpGame->GetUpdater()->AddUpdate("Ending", mpEnding);
+
 	//Add to demo end text state
 	mpGame->GetUpdater()->AddContainer("DemoEndText");
 	mpGame->GetUpdater()->AddUpdate("DemoEndText", mpDemoEndText);
@@ -807,7 +1075,7 @@ bool cInit::Init(tString asCommandLine)
 	if(pAutoRun)
 	{
 		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
-									"PreMenu","Credits","DemoEndText"};
+									"PreMenu","Credits","DemoEndText","Ending"};
 		for(const char *sContainer : vContainers)
 			mpGame->GetUpdater()->AddUpdate(sContainer, pAutoRun);
 	}
@@ -937,9 +1205,8 @@ void cInit::Reset()
 
 void cInit::Exit()
 {
-	// Restore temporary capture settings before saving the user's options
-	// and before the player/lighting objects used by the capture are deleted.
-	if(mpRefView) mpRefView->CancelCompareShots();
+	cGameScripts::LogNotPorted();
+
 	mpConfig->SetBool("Haptics","Active",mbHasHapticsOnRestart);
 	mpConfig->SetBool("Haptics","Available",mbHapticsAvailable);
 	mpConfig->SetFloat("Haptics","ForceMul",mfHapticForceMul);
@@ -959,7 +1226,6 @@ void cInit::Exit()
 	// The player keeps the flashlight's settings: read before it goes
 	{
 		const cFlashlightSettings &flashlight = mpPlayer->GetFlashLight()->GetSettings();
-		mpConfig->SetBool("Graphics","FlashlightImproved",flashlight.mbImproved);
 		mpConfig->SetFloat("Graphics","FlashlightBrightness",flashlight.mfBrightness);
 		mpConfig->SetFloat("Graphics","FlashlightWarmth",flashlight.mfWarmth);
 		mpConfig->SetFloat("Graphics","FlashlightReach",flashlight.mfReach);
@@ -973,7 +1239,6 @@ void cInit::Exit()
 
 	{
 		const cLampSettings &lamps = mpLampLooks->GetSettings();
-		mpConfig->SetBool("Graphics","LampsImproved",lamps.mbImproved);
 		mpConfig->SetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
 		mpConfig->SetFloat("Graphics","LampsSway",lamps.mfSway);
 		mpConfig->SetFloat("Graphics","LampsColour",lamps.mfColour);
@@ -1006,6 +1271,12 @@ void cInit::Exit()
 	//hplDelete( mpGameScripts );
 	Log(" Exit Game Message Handler\n");
 	hplDelete( mpGameMessageHandler );
+	Log(" Exit Ending\n");
+	hplDelete( mpEnding );
+	Log(" Exit Sound Environment Handler\n");
+	hplDelete( mpSoundEnvHandler );
+	Log(" Exit Game Gui Handler\n");
+	hplDelete( mpGameGuiHandler );
 	Log(" Exit Radio Handler\n");
 	hplDelete( mpRadioHandler );
 	Log(" Exit Inventory\n");
@@ -1053,7 +1324,6 @@ void cInit::Exit()
 	mpConfig->SetBool("Graphics", "Bloom",mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive());
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
-		mpConfig->SetInt("Graphics","BloomType",pPostEffects->GetBloomType());
 		mpConfig->SetFloat("Graphics","BloomThreshold",pPostEffects->GetBloomTuning().mfThreshold);
 		mpConfig->SetFloat("Graphics","BloomIntensity",pPostEffects->GetBloomTuning().mfIntensity);
 		mpConfig->SetFloat("Graphics","BloomScatter",pPostEffects->GetBloomTuning().mfScatter);
@@ -1071,18 +1341,15 @@ void cInit::Exit()
 		mpConfig->SetInt("Graphics","AOFilter",occlusion.mlFilter);
 	}
 	mpConfig->SetBool("Graphics", "MotionBlur",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
-	mpConfig->SetFloat("Graphics", "MotionBlurAmount",mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurAmount());
 	{
 		cRendererPostEffects *pPostEffects = mpGame->GetGraphics()->GetRendererPostEffects();
 		const cMotionBlurSettings &motion = pPostEffects->GetMotionBlurSettings();
-		mpConfig->SetInt("Graphics","MotionBlurType",pPostEffects->GetMotionBlurType());
 		mpConfig->SetFloat("Graphics","MotionBlurShutter",motion.mfShutterTime);
 		mpConfig->SetFloat("Graphics","MotionBlurMaxLength",motion.mfMaxLength);
 		mpConfig->SetInt("Graphics","MotionBlurSamples",motion.mlSamples);
 		mpConfig->SetFloat("Graphics","MotionBlurNearLimit",motion.mfNearLimit);
 
 		const cDepthOfFieldSettings &dof = pPostEffects->GetDepthOfFieldSettings();
-		mpConfig->SetInt("Graphics","DepthOfFieldType",pPostEffects->GetDepthOfFieldType());
 		mpConfig->SetFloat("Graphics","DepthOfFieldRadius",dof.mfRadius);
 		mpConfig->SetInt("Graphics","DepthOfFieldRings",dof.mlRings);
 
@@ -1095,7 +1362,6 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","GrainRate",grain.mfRate);
 		mpConfig->SetFloat("Graphics","GrainDispersion",grain.mfDispersion);
 		const cPlayerEffectSettings &feedback = mpGame->GetGraphics()->GetLowLevel()->GetPlayerEffectSettings();
-		mpConfig->SetBool("Graphics", "PlayerEffectsImproved", feedback.mbImproved);
 		mpConfig->SetFloat("Graphics", "PlayerAdaptationStrength", feedback.mfAdaptationStrength);
 		mpConfig->SetFloat("Graphics", "PlayerAdaptationTime", feedback.mfAdaptationTime);
 		mpConfig->SetFloat("Graphics", "PlayerInjuryStrength", feedback.mfInjuryStrength);
@@ -1103,10 +1369,11 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics", "PlayerWhiteoutGlow", feedback.mfWhiteoutGlow);
 	}
 	mpConfig->SetBool("Graphics", "DepthOfField",!mpEffectHandler->GetDepthOfField()->IsDisabled());
-	mpConfig->GetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
+	mpConfig->SetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 	
 	mpConfig->SetFloat("Sound","Volume",mpGame->GetSound()->GetLowLevel()->GetVolume());
 	mpConfig->SetBool("Sound","UseSoundHardware", mbUseSoundHardware);
+	mpConfig->SetBool("Sound","UseEnvironmentalAudio", mbUseEnvAudio);
 	mpConfig->SetInt("Sound","MaxSoundChannels",mlMaxSoundChannels);
 	mpConfig->SetInt("Sound","StreamUpdateFreq",mlStreamUpdateFreq);
 	mpConfig->SetBool("Sound","UseThreading",mbUseSoundThreading);
@@ -1121,7 +1388,6 @@ void cInit::Exit()
 
 	mpConfig->SetFloat("Graphics","Gamma",mpGame->GetGraphics()->GetLowLevel()->GetGammaCorrection());
 	mpConfig->SetFloat("Graphics","RenderScale",mpGame->GetGraphics()->GetRenderScale());
-	mpConfig->SetBool("Graphics","LinearLighting",mpGame->GetGraphics()->GetLinearLighting());
 	{
 		const cLinearLightingTuning &tuning = mpGame->GetGraphics()->GetLowLevel()->GetLinearLightingTuning();
 		mpConfig->SetFloat("Graphics","LinearLightExp",tuning.mfLightExp);
@@ -1134,7 +1400,6 @@ void cInit::Exit()
 
 	{
 		const cShadingSettings &shading = mpGame->GetGraphics()->GetLowLevel()->GetShading();
-		mpConfig->SetBool("Graphics","ShadingImproved",shading.mbImproved);
 		mpConfig->SetFloat("Graphics","ShadingSpecular",shading.mfSpecular);
 		mpConfig->SetFloat("Graphics","ShadingReflectance",shading.mfReflectance);
 		mpConfig->SetFloat("Graphics","ShadingRoughDull",shading.mfRoughDull);
@@ -1146,13 +1411,10 @@ void cInit::Exit()
 
 	{
 		const cEffectSettings &effects = mpGame->GetGraphics()->GetLowLevel()->GetEffects();
-		mpConfig->SetBool("Graphics","HalosImproved",effects.mbHalos);
 		mpConfig->SetFloat("Graphics","HaloBrightness",effects.mfHaloBrightness);
 		mpConfig->SetFloat("Graphics","HaloStreaks",effects.mfHaloStreaks);
-		mpConfig->SetBool("Graphics","ShaftsImproved",effects.mbShafts);
 		mpConfig->SetFloat("Graphics","ShaftBrightness",effects.mfShaftBrightness);
 		mpConfig->SetFloat("Graphics","ShaftDust",effects.mfShaftDust);
-		mpConfig->SetBool("Graphics","ParticlesImproved",effects.mbParticles);
 		mpConfig->SetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		mpConfig->SetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		mpConfig->SetFloat("Graphics","ParticleDark",effects.mfParticleDark);
@@ -1179,7 +1441,6 @@ void cInit::Exit()
 	{
 		cRenderer3D *pRenderer = mpGame->GetGraphics()->GetRenderer3D();
 		const cShadowMapSettings &shadows = pRenderer->GetShadowMapSettings();
-		mpConfig->SetInt("Graphics","ShadowType",pRenderer->GetShadowType());
 		mpConfig->SetInt("Graphics","ShadowFilter",shadows.mFilter);
 		mpConfig->SetInt("Graphics","ShadowSpotSize",shadows.mlSpotSize);
 		mpConfig->SetInt("Graphics","ShadowPointSize",shadows.mlPointSize);
@@ -1222,6 +1483,7 @@ void cInit::Exit()
 	mpConfig->SetBool("Game","AllowQuickSave",mbAllowQuickSave); 
 	mpConfig->SetBool("Game","FlashItems",mbFlashItems); 
 	mpConfig->SetBool("Game","ShowCrossHair",mbShowCrossHair);
+	mpConfig->SetBool("Game","AskTutorial",mbAskTutorial);
 	mpConfig->SetBool("AI","ImprovedDogAI",mbImprovedDogAI);
 
 	mpConfig->SetBool("Game","SimpleSwingInOptions",mbSimpleSwingInOptions); 

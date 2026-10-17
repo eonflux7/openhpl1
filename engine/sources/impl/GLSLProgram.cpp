@@ -36,28 +36,20 @@ namespace hpl{
 	//////////////////////////////////////////////////////////////////////////
 
 	tString cGLSLProgram::msShaderDir = "shaders/";
-	GLuint cGLSLProgram::mlPipeline = 0;
 	iLowLevelGraphics* cGLSLProgram::mpLowLevelGraphics = nullptr;
 	bool cGLSLProgram::mbReloadEnabled = false;
 	std::set<cGLSLProgram*> cGLSLProgram::msetPrograms;
-	std::vector<cGLSLProgram::cSourceFile> cGLSLProgram::mvStageSources;
-	cGLSLProgram* cGLSLProgram::mpBoundVertex = nullptr;
-	cGLSLProgram* cGLSLProgram::mpBoundFragment = nullptr;
-	GLuint cGLSLProgram::mlPipelineVertex = 0;
-	GLuint cGLSLProgram::mlPipelineFragment = 0;
+	cGLSLProgram* cGLSLProgram::mpBoundProgram = nullptr;
 
 	// The vertex attributes, at the locations of cGLSLProgram::eVertexAttrib.
 	static const char* kVertexPreamble =
 		"#version 330 core\n"
 		"#define VARYING out\n"
-		"layout(location = 0) in vec4 hpl_Vertex;\n"
-		"layout(location = 1) in vec3 hpl_Normal;\n"
-		"layout(location = 2) in vec4 hpl_Color;\n"
-		"layout(location = 4) in vec4 hpl_MultiTexCoord0;\n"
-		"layout(location = 5) in vec4 hpl_MultiTexCoord1;\n"
-		"layout(location = 6) in vec4 hpl_MultiTexCoord2;\n"
-		"layout(location = 7) in vec4 hpl_MultiTexCoord3;\n"
-		"layout(location = 8) in vec4 hpl_MultiTexCoord4;\n";
+		"layout(location = 0) in vec4 hpl_RawVertex;\n"
+		"layout(location = 1) in vec3 hpl_RawNormal;\n"
+		"layout(location = 2) in vec4 hpl_RawColor;\n"
+		"layout(location = 4) in vec4 hpl_RawUV;\n"
+		"layout(location = 5) in vec4 hpl_RawTangent;\n";
 
 	// The shader's main() is called by the one in kFragmentEpilogue.
 	static const char* kFragmentPreamble =
@@ -69,22 +61,21 @@ namespace hpl{
 	// For the programs the renderer draws with (not the full-screen passes):
 	// the state set through iLowLevelGraphics that fragment shaders act on
 	// (uniform buffer binding kStateBlockBinding), and the colour
-	// conversions for linear lighting. They return the colour as it is
-	// when the target does not hold linear values.
+	// conversions for the linear scene. They return the colour as it is
+	// when the target does not hold linear values (outside the scene).
 	static const char* kFragmentStatePreamble =
 		"#define HPL_STATE\n"
 		"layout(std140) uniform hpl_State\n"
 		"{\n"
-		"	vec4 hpl_AlphaTest; // x: eAlphaTestFunc + 1, 0 for off, 9 for \"at least\n"
-		"						// the reference\" as coverage; y: reference;\n"
+		"	vec4 hpl_AlphaTest; // x: 1 to discard what has an alpha under y,\n"
+		"						// 2 to do that as coverage, 0 for off;\n"
 		"						// z: how far alpha is matched to the original look\n"
-		"						// when it blends into a linear scene, else 0;\n"
-		"						// w: scale for the light of what is added to a\n"
-		"						// linear scene, at full brightness\n"
-		"	vec4 hpl_ColorSpace; // x: 1 when the target holds linear values;\n"
+		"						// when it blends into the scene, else 0;\n"
+		"						// w: scale for the light of what is added to the\n"
+		"						// scene, at full brightness\n"
+		"	vec4 hpl_ColorSpace; // x: 1 when the target holds linear values (the scene);\n"
 		"						// y: scale for the converted colour;\n"
-		"						// z: power for amounts of light;\n"
-		"						// w: 1 when a copy of a linear scene is drawn into it\n"
+		"						// z: power for amounts of light; w: unused\n"
 		"	vec4 hpl_ShadowMap0; // the shadow map of the light that is drawn, see\n"
 		"	vec4 hpl_ShadowMap1; // cShadowMapParams and hpl1_shadow.glsl\n"
 		"	vec4 hpl_ShadowMap2;\n"
@@ -104,7 +95,7 @@ namespace hpl{
 
 	// After every fragment shader: the colour is clamped to 0..1, as the
 	// fixed-function pipeline did, and alpha tested as set with
-	// iLowLevelGraphics::SetAlphaTestActive/Func.
+	// iLowLevelGraphics::SetAlphaCutoff.
 	//
 	// In the multisampled scene the test is made for each sample instead
 	// (kAlphaToCoverage, with GL_SAMPLE_ALPHA_TO_COVERAGE): the alpha that
@@ -114,13 +105,12 @@ namespace hpl{
 	// triangle is.
 	//
 	// Shaders work on encoded (screen) colours, as the original ones do.
-	// With linear lighting the result is converted here, so each draw gives
-	// the colour it always did and only the blending with what is in the
-	// target happens on linear values. A shader that reads or writes linear
-	// values itself defines HPL_LINEAR_COLOR: its result is used as it is,
-	// and not clamped at 1. Neither is a copy of the linear scene drawn back
-	// into it (iLowLevelGraphics::SetLinearSource). HPL_NO_CLAMP leaves the
-	// result unclamped at 1 without linear lighting too.
+	// In the scene, which holds linear values, the result is converted
+	// here, so each draw gives the colour it always did and only the
+	// blending with what is in the target happens on linear values. A
+	// shader that reads or writes linear values itself defines
+	// HPL_LINEAR_COLOR: its result is used as it is, and not clamped at 1.
+	// HPL_NO_CLAMP leaves the result unclamped at 1 too.
 	//
 	// What is added to the scene (halos, lit parts, additive particles) is
 	// scaled by the glow value in proportion to its own brightness: the
@@ -139,14 +129,8 @@ namespace hpl{
 		"void main()\n"
 		"{\n"
 		"	hpl_main();\n"
-		"#if defined(HPL_NO_CLAMP)\n"
+		"#if defined(HPL_NO_CLAMP) || (defined(HPL_STATE) && defined(HPL_LINEAR_COLOR))\n"
 		"	outColor = max(outColor, 0.0);\n"
-		"#elif defined(HPL_STATE) && defined(HPL_LINEAR_COLOR)\n"
-		"	if(hpl_ColorSpace.x > 0.5 || hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
-		"	else													outColor = clamp(outColor, 0.0, 1.0);\n"
-		"#elif defined(HPL_STATE)\n"
-		"	if(hpl_ColorSpace.w > 0.5)	outColor = max(outColor, 0.0);\n"
-		"	else						outColor = clamp(outColor, 0.0, 1.0);\n"
 		"#else\n"
 		"	outColor = clamp(outColor, 0.0, 1.0);\n"
 		"#endif\n"
@@ -159,15 +143,12 @@ namespace hpl{
 		"#ifdef HPL_STATE\n"
 		"	int func = int(hpl_AlphaTest.x);\n"
 		"	float alpha = outColor.a, ref = hpl_AlphaTest.y;\n"
-		"	if(func == 9)\n"
+		"	if(func == 2)\n"
 		"	{\n"
 		"		outColor.a = clamp((alpha - ref) / max(fwidth(alpha), 0.0001) + 0.5, 0.0, 1.0);\n"
 		"		if(outColor.a <= 0.0) discard;\n"
 		"	}\n"
-		"	else if(func == 1 ||\n"
-		"		(func == 2 && !(alpha < ref)) || (func == 3 && !(alpha <= ref)) ||\n"
-		"		(func == 4 && !(alpha > ref)) || (func == 5 && !(alpha >= ref)) ||\n"
-		"		(func == 6 && !(alpha == ref)) || (func == 7 && !(alpha != ref)))\n"
+		"	else if(func == 1 && !(alpha >= ref))\n"
 		"		discard;\n"
 		"#endif\n"
 		"#if defined(HPL_STATE) && !defined(HPL_LINEAR_COLOR)\n"
@@ -183,59 +164,6 @@ namespace hpl{
 		"	}\n"
 		"#endif\n"
 		"}\n";
-
-	// Programs that are variants of a shared file: the engine's program name
-	// (without "_vp"/"_fp"), the file (without "hpl1_" and the extension) and
-	// the #defines it is compiled with. Other names load the file of the
-	// same name.
-	struct cShaderVariant
-	{
-		const char *msName;
-		const char *msFile;
-		const char *msDefines;
-	};
-
-	static const cShaderVariant kShaderVariants[] = {
-		{"Diffuse_Light",				"light",	""},
-		{"Diffuse_Light_Spot",			"light",	"SPOT"},
-		{"DiffuseSpec_Light",			"light",	"SPECULAR"},
-		{"DiffuseSpec_Light_Spot",		"light",	"SPECULAR SPOT"},
-		{"Bump_Light",					"light",	"NORMAL_MAP"},
-		{"Bump_Light_Spot",				"light",	"NORMAL_MAP SPOT"},
-		{"BumpSpec_Light",				"light",	"NORMAL_MAP SPECULAR"},
-		{"BumpSpec_Light_Spot",			"light",	"NORMAL_MAP SPECULAR SPOT"},
-		{"BumpColorSpec_Light",			"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
-		{"BumpColorSpec_Light_Spot",	"light",	"NORMAL_MAP SPECULAR SPECULAR_MAP SPOT"},
-		{"Ambient_Shaded",				"ambient",	""},
-		{"Ambient_Shaded_Spec",			"ambient",	"SPECULAR"},
-		{"Ambient_Shaded_Bump",			"ambient",	"NORMAL_MAP"},
-		{"Ambient_Shaded_Bump_Spec",	"ambient",	"NORMAL_MAP SPECULAR"},
-		{"Ambient_Shaded_Bump_ColorSpec",	"ambient",	"NORMAL_MAP SPECULAR SPECULAR_MAP"},
-		{"Fog_Trans_Alpha",				"Fog_Trans",	""},
-		{"Fog_Trans_Mod",				"Fog_Trans",	"MOD"},
-		{"Fog_Trans_ModX2",				"Fog_Trans",	"MODX2"},
-		{"PostEffect_Blur_2D",			"PostEffect_Blur",	""},
-		{"PostEffect_Blur_Rect",		"PostEffect_Blur",	"RECT"},
-		{"PostEffect_BloomChain_Prefilter",	"PostEffect_BloomChain",	"PREFILTER"},
-		{"PostEffect_BloomChain_Down",		"PostEffect_BloomChain",	"DOWN"},
-		{"PostEffect_BloomChain_Up",		"PostEffect_BloomChain",	"UP"},
-		{"PostEffect_BloomChain_Composite",	"PostEffect_BloomChain",	"COMPOSITE"},
-		{"PostEffect_AO_Deinterleave",	"PostEffect_AO",	"DEINTERLEAVE"},
-		{"PostEffect_AO_Occlusion",		"PostEffect_AO",	"OCCLUSION"},
-		{"PostEffect_AO_Occlusion_2x2",	"PostEffect_AO",	"OCCLUSION SAMPLES_2X2"},
-		{"PostEffect_AO_Occlusion_2x4",	"PostEffect_AO",	"OCCLUSION SAMPLES_2X4"},
-		{"PostEffect_AO_Occlusion_3x6",	"PostEffect_AO",	"OCCLUSION SAMPLES_3X6"},
-		{"PostEffect_AO_Occlusion_4x10",	"PostEffect_AO",	"OCCLUSION SAMPLES_4X10"},
-		{"PostEffect_AO_Occlusion_6x16",	"PostEffect_AO",	"OCCLUSION SAMPLES_6X16"},
-		{"PostEffect_AO_Filter",		"PostEffect_AO",	"FILTER"},
-		{"PostEffect_AO_Composite",		"PostEffect_AO",	"COMPOSITE"},
-		{"PostEffect_AO_Composite_Scene",	"PostEffect_AO",	"COMPOSITE SCENE"},
-		{"PostEffect_AO_Composite_SceneMS",	"PostEffect_AO",	"COMPOSITE SCENE_MULTISAMPLE"},
-		{"PostEffect_Bokeh_Prefilter",	"PostEffect_Bokeh",	"PREFILTER"},
-		{"PostEffect_Bokeh_Gather",		"PostEffect_Bokeh",	"GATHER"},
-		{"PostEffect_Bokeh_Fill",		"PostEffect_Bokeh",	"FILL"},
-		{"PostEffect_Bokeh_Composite",	"PostEffect_Bokeh",	"COMPOSITE"},
-	};
 
 	static const int kMaxIncludeDepth = 8;
 
@@ -257,32 +185,6 @@ namespace hpl{
 		fclose(pFile);
 
 		return lRead == (size_t)lSize;
-	}
-
-	//-----------------------------------------------------------------------
-
-	// "core/programs/Diffuse_Light_Spot_fp.cg" -> "hpl1_light", "SPOT"
-	static tString CgNameToShaderBase(const tString& asCgFile, tString& asDefines)
-	{
-		tString sName = cString::GetFileName(asCgFile);
-		sName = cString::SetFileExt(sName,"");
-
-		size_t lPos = sName.find("_vp");
-		if(lPos == tString::npos) lPos = sName.find("_fp");
-		if(lPos != tString::npos) sName.erase(lPos,3);
-
-		asDefines = "";
-		for(const cShaderVariant& variant : kShaderVariants)
-		{
-			if(sName == variant.msName)
-			{
-				sName = variant.msFile;
-				asDefines = variant.msDefines;
-				break;
-			}
-		}
-
-		return "hpl1_" + sName;
 	}
 
 	//-----------------------------------------------------------------------
@@ -361,23 +263,28 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	cGLSLProgram::cGLSLProgram(tString asName,eGpuProgramType aType)
-	: iGpuProgram(asName, aType)
+	cGLSLProgram::cGLSLProgram(tString asName, bool abState)
+	: iGpuProgram(asName)
 	{
 		msName = asName;
+		mbState = abState;
 		mlProgram = 0;
-		mlCompanionFragment = 0;
 		msetPrograms.insert(this);
 	}
 
 	cGLSLProgram::~cGLSLProgram()
 	{
-		if(mpBoundVertex == this) mpBoundVertex = nullptr;
-		if(mpBoundFragment == this) mpBoundFragment = nullptr;
+		if(mpBoundProgram == this) mpBoundProgram = nullptr;
 		msetPrograms.erase(this);
 
-		if(mlProgram) glDeleteProgram(mlProgram);
-		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
+		GLint current = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+		for(auto& entry : mTextureVariants) {
+			if(current == (GLint)entry.second.handle) glUseProgram(0);
+			glDeleteProgram(entry.second.handle);
+		}
+
+		if(mlMaterialBuffer) glDeleteBuffers(1, &mlMaterialBuffer);
 	}
 
 	//-----------------------------------------------------------------------
@@ -388,107 +295,45 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	bool cGLSLProgram::InitPipeline(iLowLevelGraphics *apLowLevelGraphics)
+	bool cGLSLProgram::InitPrograms(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
-
-		const char *pReload = getenv("OVERTURE_SHADER_RELOAD");
-		mbReloadEnabled = pReload && pReload[0] && tString(pReload) != "0";
-		if(mbReloadEnabled) Log("  Shaders are reloaded when their files change (%s)\n", msShaderDir.c_str());
-
-		if(!GLAD_GL_VERSION_4_1 && !GLAD_GL_ARB_separate_shader_objects)
-		{
-			Error("OpenGL separate shader objects are not supported!\n");
-			return false;
-		}
-
-		// Bound from now on; draws that put their own programs in use put
-		// it back.
-		glGenProgramPipelines(1,&mlPipeline);
-		glBindProgramPipeline(mlPipeline);
-		cGpuProfiler::Label(GL_PROGRAM_PIPELINE, mlPipeline, "Engine programs");
-		glUseProgram(0);
-		mlPipelineVertex = mlPipelineFragment = 0;
+		const char *reload = getenv("OVERTURE_SHADER_RELOAD");
+		mbReloadEnabled = reload && reload[0] && tString(reload) != "0";
 		return true;
 	}
 
-	void cGLSLProgram::ExitPipeline()
+	void cGLSLProgram::ExitPrograms()
 	{
-		if(mlPipeline) glDeleteProgramPipelines(1,&mlPipeline);
-		mlPipeline = 0;
+		glUseProgram(0);
+		mpBoundProgram = nullptr;
+
 	}
 
-	//-----------------------------------------------------------------------
-
-	GLuint cGLSLProgram::CreateStage(GLenum aStage, const tString& asName, const tString& asDefines)
+	bool cGLSLProgram::Apply(unsigned int alArrayMask, const float* apLayers)
 	{
-		std::vector<tString> vFiles;
-		GLuint lProgram = CompileStage(aStage, "hpl1_" + asName +
-									(aStage == GL_VERTEX_SHADER ? ".vertex" : ".fragment"), asDefines, false, &vFiles);
-		WatchFiles(mvStageSources, vFiles);
-		return lProgram;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLuint cGLSLProgram::CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
-										bool abState)
-	{
-		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
-		if(aStage == GL_FRAGMENT_SHADER && abState) sSource += kFragmentStatePreamble;
-		sSource += "#line 1 1\n";
-		sSource += asSource;
-
-		std::vector<tString> vFiles;
-		vFiles.push_back("(preamble)");
-		vFiles.push_back(asName);
-		return LinkStage(aStage, sSource, asName, vFiles);
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLuint cGLSLProgram::GetVertexStage()
-	{
-		return mpBoundVertex ? mpBoundVertex->mlProgram : 0;
-	}
-
-	GLuint cGLSLProgram::GetFragmentStage()
-	{
-		if(mpBoundFragment) return mpBoundFragment->mlProgram;
-		if(mpBoundVertex)	return mpBoundVertex->mlCompanionFragment;
-		return 0;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGLSLProgram::SetPipelineStages(GLuint alVertex, GLuint alFragment)
-	{
-		if(alVertex == mlPipelineVertex && alFragment == mlPipelineFragment) return;
-
-		if(alVertex != mlPipelineVertex) glUseProgramStages(mlPipeline, GL_VERTEX_SHADER_BIT, alVertex);
-		if(alFragment != mlPipelineFragment) glUseProgramStages(mlPipeline, GL_FRAGMENT_SHADER_BIT, alFragment);
-		mlPipelineVertex = alVertex;
-		mlPipelineFragment = alFragment;
-
-		if(mbDebugInfo)
-		{
-			static int lReported = 0;
-			glValidateProgramPipeline(mlPipeline);
-			GLint lValid = GL_TRUE;
-			glGetProgramPipelineiv(mlPipeline, GL_VALIDATE_STATUS, &lValid);
-			if(!lValid && lReported < 10)
-			{
-				++lReported;
-				char sLog[2048] = "";
-				glGetProgramPipelineInfoLog(mlPipeline, sizeof(sLog), nullptr, sLog);
-				Log("GLSL: invalid pipeline (vertex '%s', fragment '%s'): %s\n",
-					mpBoundVertex ? mpBoundVertex->msName.c_str() : "-",
-					mpBoundFragment ? mpBoundFragment->msName.c_str() : "-", sLog);
-			}
+		alArrayMask &= mlSampler2DMask;
+		auto variant = mTextureVariants.find(alArrayMask);
+		if(variant == mTextureVariants.end()) {
+			std::vector<tString> files;
+			auto linked = LinkTextureVariant(alArrayMask, files);
+			WatchFiles(mvSources, files);
+			if(!linked.handle) return false;
+			variant = mTextureVariants.emplace(alArrayMask, linked).first;
 		}
+		if(!variant->second.handle) return false;
+		glUseProgram(variant->second.handle);
+		if(apLayers) for(int i=0; i<8; ++i)
+			if(variant->second.layers[i] >= 0) glUniform1f(variant->second.layers[i], apLayers[i]);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mlMaterialBuffer);
+		if(ParametersChanged()) {
+			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<unsigned>(eProgramParam::Count) * 16, GetParameterData());
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			ParametersUploaded();
+		}
+		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLSLProgram::ReloadChangedFiles()
 	{
@@ -499,7 +344,7 @@ namespace hpl{
 		if(now - lastCheck < std::chrono::milliseconds(500)) return false;
 		lastCheck = now;
 
-		bool bChanged = FilesChanged(mvStageSources);
+		bool bChanged = false;
 		for(cGLSLProgram *pProgram : msetPrograms)
 		{
 			if(!FilesChanged(pProgram->mvSources)) continue;
@@ -514,7 +359,7 @@ namespace hpl{
 
 	bool cGLSLProgram::Reload()
 	{
-		return false;
+		return CompileProgram();
 	}
 
 	void cGLSLProgram::Unload()
@@ -527,9 +372,12 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asEntry)
+	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asDefines)
 	{
-		msBase = CgNameToShaderBase(asFile, msDefines);
+		const size_t separator = asFile.find(':');
+		msVertex = asFile.substr(0, separator);
+		msBase = separator == tString::npos ? msVertex : asFile.substr(separator + 1);
+		msDefines = asDefines;
 
 		if(CompileProgram()==false)
 		{
@@ -548,46 +396,60 @@ namespace hpl{
 	// any, is kept.
 	bool cGLSLProgram::CompileProgram()
 	{
-		std::vector<tString> vFiles;
-		GLuint lProgram = 0, lCompanion = 0;
-		bool bOk;
-
-		if(mProgramType == eGpuProgramType_Vertex)
-		{
-			lProgram = CompileStage(GL_VERTEX_SHADER, msBase + ".vertex", msDefines, true, &vFiles);
-			// Optional: not every vertex shader has a companion.
-			bool bHasCompanion = std::filesystem::exists(msShaderDir + msBase + ".fragment");
-			if(bHasCompanion)
-				lCompanion = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, true, &vFiles);
-			bOk = lProgram != 0 && (lCompanion != 0 || !bHasCompanion);
-		}
-		else
-		{
-			lProgram = CompileStage(GL_FRAGMENT_SHADER, msBase + ".fragment", msDefines, true, &vFiles);
-			bOk = lProgram != 0;
-		}
-
-		WatchFiles(mvSources, vFiles);
-
-		if(!bOk)
-		{
-			if(lProgram) glDeleteProgram(lProgram);
-			if(lCompanion) glDeleteProgram(lCompanion);
+		// Reload every used sampler layout as one transaction. A failed
+		// stage/include keeps the complete working set and material values.
+		std::map<unsigned int, cTextureVariant> replacements;
+		std::vector<tString> files;
+		replacements[0] = LinkTextureVariant(0, files);
+		for(const auto& entry : mTextureVariants)
+			if(entry.first) replacements[entry.first] = LinkTextureVariant(entry.first, files);
+		WatchFiles(mvSources, files);
+		bool valid = true;
+		for(const auto& entry : replacements) valid &= entry.second.handle != 0;
+		if(!valid) {
+			for(const auto& entry : replacements) if(entry.second.handle) glDeleteProgram(entry.second.handle);
 			return false;
 		}
+		GLint current = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &current);
+		for(const auto& entry : mTextureVariants) {
+			if(current == (GLint)entry.second.handle) glUseProgram(replacements[entry.first].handle);
+			glDeleteProgram(entry.second.handle);
+		}
+		mTextureVariants.swap(replacements);
+		mlProgram = mTextureVariants[0].handle;
+		mlSampler2DMask = 0;
+		GLint count = 0;
+		glGetProgramiv(mlProgram, GL_ACTIVE_UNIFORMS, &count);
+		for(GLint i=0; i<count; ++i) {
+			char name[128]; GLsizei length; GLint size; GLenum type;
+			glGetActiveUniform(mlProgram, i, sizeof(name), &length, &size, &type, name);
+			if(type == GL_SAMPLER_2D && length == 4 && tString(name, 3) == "tex" && name[3] >= '0' && name[3] <= '7')
+				mlSampler2DMask |= 1u << (name[3]-'0');
+		}
 
-		if(mlProgram) glDeleteProgram(mlProgram);
-		if(mlCompanionFragment) glDeleteProgram(mlCompanionFragment);
-		mlProgram = lProgram;
-		mlCompanionFragment = lCompanion;
-		// Uniform values are lost with the old program; most are set again
-		// for every draw. The next draw puts the new one in the pipeline.
-		m_mapUniforms.clear();
-
+		if(!mlMaterialBuffer){
+			glGenBuffers(1, &mlMaterialBuffer);
+			glBindBuffer(GL_UNIFORM_BUFFER, mlMaterialBuffer);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(mvParameters), GetParameterData(), GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		}
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
+	cGLSLProgram::cTextureVariant cGLSLProgram::LinkTextureVariant(unsigned int mask, std::vector<tString>& files)
+	{
+		tString defines = msDefines;
+		for(int i=0; i<8; ++i) if(mask & (1u << i)) defines += " HPL_ARRAY_" + std::to_string(i);
+		cTextureVariant variant;
+		std::vector<tString> sources;
+		variant.handle = CreateLinked(msBase, defines, mbState, msVertex, &sources);
+		files.insert(files.end(), sources.begin(), sources.end());
+		variant.layers.fill(-1);
+		if(variant.handle) for(int i=0; i<8; ++i)
+			variant.layers[i] = glGetUniformLocation(variant.handle, ("hpl_TextureLayer" + std::to_string(i)).c_str());
+		return variant;
+	}
 
 	// Adds avFiles (relative to the shader directory) to avWatched with
 	// their current times.
@@ -624,112 +486,8 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	// The pipeline gets the stages at the next draw, see SetPipelineStages().
-	void cGLSLProgram::Bind()
-	{
-		if(mProgramType == eGpuProgramType_Vertex)	mpBoundVertex = this;
-		else										mpBoundFragment = this;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cGLSLProgram::UnBind()
-	{
-		if(mProgramType == eGpuProgramType_Vertex)
-			mpBoundVertex = nullptr;
-		else if(mpBoundFragment == this)
-			mpBoundFragment = nullptr;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cGLSLProgram::SetFloat(const tString& asName, float afX)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-		glProgramUniform1f(mlProgram, lLoc, afX);
-		return true;
-	}
-
-	bool cGLSLProgram::SetVec2f(const tString& asName, float afX,float afY)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-		glProgramUniform2f(mlProgram, lLoc, afX, afY);
-		return true;
-	}
-
-	bool cGLSLProgram::SetVec3f(const tString& asName, float afX,float afY,float afZ)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-		glProgramUniform3f(mlProgram, lLoc, afX, afY, afZ);
-		return true;
-	}
-
-	bool cGLSLProgram::SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-		glProgramUniform4f(mlProgram, lLoc, afX, afY, afZ, afW);
-		return true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cGLSLProgram::SetMatrixf(const tString& asName, const cMatrixf& mMtx)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-		// cMatrixf is row-major
-		glProgramUniformMatrix4fv(mlProgram, lLoc, 1, GL_TRUE, &mMtx.m[0][0]);
-		return true;
-	}
-
-	//-----------------------------------------------------------------------
-
-	bool cGLSLProgram::SetMatrixf(const tString& asName, eGpuProgramMatrix mType,
-									eGpuProgramMatrixOp mOp)
-	{
-		GLint lLoc = GetUniform(asName);
-		if(lLoc < 0) return false;
-
-		// Like cgGLSetStateMatrixParameter: the current matrices, as kept
-		// by the low-level graphics.
-		cMatrixf mtxResult;
-		switch(mType)
-		{
-		case eGpuProgramMatrix_View:
-			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_ModelView);
-			break;
-		case eGpuProgramMatrix_Projection:
-			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_Projection);
-			break;
-		case eGpuProgramMatrix_Texture:
-			mtxResult = mpLowLevelGraphics->GetMatrix(eMatrix_Texture);
-			break;
-		case eGpuProgramMatrix_ViewProjection:
-			mtxResult = cMath::MatrixMul(mpLowLevelGraphics->GetMatrix(eMatrix_Projection),
-										mpLowLevelGraphics->GetMatrix(eMatrix_ModelView));
-			break;
-		default:
-			return false;
-		}
-
-		switch(mOp)
-		{
-		case eGpuProgramMatrixOp_Identity:			break;
-		case eGpuProgramMatrixOp_Inverse:			mtxResult = cMath::MatrixInverse(mtxResult); break;
-		case eGpuProgramMatrixOp_Transpose:			mtxResult = mtxResult.GetTranspose(); break;
-		case eGpuProgramMatrixOp_InverseTranspose:	mtxResult = cMath::MatrixInverse(mtxResult).GetTranspose(); break;
-		default:									break;
-		}
-
-		glProgramUniformMatrix4fv(mlProgram, lLoc, 1, GL_TRUE, &mtxResult.m[0][0]);
-		return true;
-	}
-
-	//-----------------------------------------------------------------------
+	void cGLSLProgram::Bind(){ mpBoundProgram = this; }
+	void cGLSLProgram::UnBind(){ if(mpBoundProgram == this) mpBoundProgram = nullptr; }
 
 	bool cGLSLProgram::SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable)
 	{
@@ -748,25 +506,7 @@ namespace hpl{
 		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
 		if(apTexture==nullptr) return true;
 
-		GLenum Target = GL_TEXTURE_2D;
-		switch(apTexture->GetTarget())
-		{
-		case eTextureTarget_1D:			Target = GL_TEXTURE_1D; break;
-		case eTextureTarget_2D:			Target = GL_TEXTURE_2D; break;
-		case eTextureTarget_Rect:		Target = GL_TEXTURE_RECTANGLE; break;
-		case eTextureTarget_CubeMap:	Target = GL_TEXTURE_CUBE_MAP; break;
-		case eTextureTarget_3D:			Target = GL_TEXTURE_3D; break;
-		default: break;
-		}
-
-		GLint lPrevUnit;
-		glGetIntegerv(GL_ACTIVE_TEXTURE, &lPrevUnit);
-		glActiveTexture(GL_TEXTURE0 + alUnit);
-		glBindTexture(Target, static_cast<cSDLTexture*>(apTexture)->GetTextureHandle());
-		glActiveTexture(lPrevUnit);
-		if(mpLowLevelGraphics)
-			static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics)->BindSampler(alUnit,
-												static_cast<cSDLTexture*>(apTexture)->GetSampler());
+		if(mpLowLevelGraphics) mpLowLevelGraphics->SetTexture(alUnit, apTexture);
 
 		return true;
 	}
@@ -779,21 +519,7 @@ namespace hpl{
 
 	//-----------------------------------------------------------------------
 
-	GLint cGLSLProgram::GetUniform(const tString& asName)
-	{
-		if(mlProgram==0) return -1;
-
-		std::map<tString,GLint>::iterator it = m_mapUniforms.find(asName);
-		if(it != m_mapUniforms.end()) return it->second;
-
-		GLint lLoc = glGetUniformLocation(mlProgram, asName.c_str());
-		m_mapUniforms.insert(std::map<tString,GLint>::value_type(asName,lLoc));
-		return lLoc;
-	}
-
-	//-----------------------------------------------------------------------
-
-	GLuint cGLSLProgram::CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
+	GLuint cGLSLProgram::CompileShader(GLenum aStage, const tString& asFile, const tString& asDefines,
 										bool abState, std::vector<tString> *apFiles)
 	{
 		tString sSource = aStage == GL_VERTEX_SHADER ? kVertexPreamble : kFragmentPreamble;
@@ -805,19 +531,22 @@ namespace hpl{
 
 		// Source number 0 is the preamble above.
 		std::vector<tString> vFiles(1, "(preamble)");
-		bool bRead = ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0);
+		bool bRead = (aStage != GL_VERTEX_SHADER || ExpandIncludes(msShaderDir, "hpl1_quad.glsl", vFiles, sSource, 0)) &&
+			(aStage != GL_FRAGMENT_SHADER || ExpandIncludes(msShaderDir, "hpl1_texture.glsl", vFiles, sSource, 0)) &&
+			ExpandIncludes(msShaderDir, "hpl1_material.glsl", vFiles, sSource, 0) &&
+			ExpandIncludes(msShaderDir, asFile, vFiles, sSource, 0);
 		if(apFiles) apFiles->insert(apFiles->end(), vFiles.begin() + 1, vFiles.end());
 		if(!bRead) return 0;
 
 		tString sName = asFile;
 		if(asDefines != "") sName += " (" + asDefines + ")";
 
-		return LinkStage(aStage, sSource, sName, vFiles);
+		return CompileSource(aStage, sSource, sName, vFiles);
 	}
 
 	//-----------------------------------------------------------------------
 
-	GLuint cGLSLProgram::LinkStage(GLenum aStage, tString asSource, const tString& asName,
+	GLuint cGLSLProgram::CompileSource(GLenum aStage, tString asSource, const tString& asName,
 									const std::vector<tString>& avFiles)
 	{
 		if(aStage == GL_FRAGMENT_SHADER)
@@ -848,49 +577,74 @@ namespace hpl{
 			return 0;
 		}
 
-		GLuint lProgram = glCreateProgram();
-		glProgramParameteri(lProgram, GL_PROGRAM_SEPARABLE, GL_TRUE);
-		glAttachShader(lProgram, lShader);
-		glLinkProgram(lProgram);
-		glDetachShader(lProgram, lShader);
-		glDeleteShader(lShader);
+		cGpuProfiler::Label(GL_SHADER, lShader, sName);
+		return lShader;
+	}
 
-		glGetProgramiv(lProgram, GL_LINK_STATUS, &lOk);
-		if(!lOk)
-		{
-			char sLog[4096];
-			glGetProgramInfoLog(lProgram, sizeof(sLog), nullptr, sLog);
-			Error("GLSL: Linking '%s' failed:\n%s\n",sName.c_str(),sLog);
-			glDeleteProgram(lProgram);
+	GLuint cGLSLProgram::CreateLinked(const tString& name, const tString& defines, bool state,
+		const tString& vertex, std::vector<tString>* files)
+	{
+		std::vector<tString> sources;
+		GLuint vs = CompileShader(GL_VERTEX_SHADER, "hpl1_" + (vertex.empty() ? name : vertex) + ".vertex", defines, state, &sources);
+		GLuint fs = CompileShader(GL_FRAGMENT_SHADER, "hpl1_" + name + ".fragment", defines, state, &sources);
+		if(files) *files = sources;
+		if(!vs || !fs){
+			if(vs) glDeleteShader(vs);
+			if(fs) glDeleteShader(fs);
 			return 0;
 		}
-
-		cGpuProfiler::Label(GL_PROGRAM, lProgram, sName);
+		GLuint lProgram = glCreateProgram();
+		glAttachShader(lProgram, vs);
+		glAttachShader(lProgram, fs);
+		glLinkProgram(lProgram);
+		glDetachShader(lProgram, vs); glDeleteShader(vs);
+		glDetachShader(lProgram, fs); glDeleteShader(fs);
+		GLint lOk = GL_FALSE;
+		glGetProgramiv(lProgram, GL_LINK_STATUS, &lOk);
+		if(!lOk){
+			char log[4096]; glGetProgramInfoLog(lProgram, sizeof(log), nullptr, log);
+			Error("GLSL: Linking '%s' (%s) failed: %s\n", name.c_str(), defines.c_str(), log);
+			glDeleteProgram(lProgram); return 0;
+		}
+		cGpuProfiler::Label(GL_PROGRAM, lProgram, name + " " + defines);
+		GLuint material = glGetUniformBlockIndex(lProgram, "hpl_Material");
+		if(material != GL_INVALID_INDEX){
+			GLint size = 0;
+			glGetActiveUniformBlockiv(lProgram, material, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+			if(size != static_cast<GLint>(static_cast<unsigned>(eProgramParam::Count) * 16)){
+				Error("GLSL: Material block layout mismatch for '%s': %d bytes\n", name.c_str(), size);
+				glDeleteProgram(lProgram); return 0;
+			}
+			glUniformBlockBinding(lProgram, material, 2);
+		}
 
 		GLuint lFrameBlock = glGetUniformBlockIndex(lProgram, "hpl_Frame");
 		if(lFrameBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lFrameBlock, kFrameBlockBinding);
 		GLuint lStateBlock = glGetUniformBlockIndex(lProgram, "hpl_State");
 		if(lStateBlock != GL_INVALID_INDEX) glUniformBlockBinding(lProgram, lStateBlock, kStateBlockBinding);
 
+		GLint previous; glGetIntegerv(GL_CURRENT_PROGRAM, &previous);
+		glUseProgram(lProgram);
 		// texN samplers always read texture unit N
 		for(int i=0; i<kMaxSamplers; ++i)
 		{
 			char sName[8];
 			snprintf(sName, sizeof(sName), "tex%d", i);
 			GLint lLoc = glGetUniformLocation(lProgram, sName);
-			if(lLoc >= 0) glProgramUniform1i(lProgram, lLoc, i);
+			if(lLoc >= 0) glUniform1i(lLoc, i);
 		}
 		// The shadow map of the light that is drawn, as a shadow sampler and
 		// as its depth: on units of their own (hpl1_shadow.glsl)
 		GLint lShadowLoc = glGetUniformLocation(lProgram, "hpl_ShadowMap");
-		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit);
+		if(lShadowLoc >= 0) glUniform1i(lShadowLoc, kShadowMapUnit);
 		lShadowLoc = glGetUniformLocation(lProgram, "hpl_ShadowMapDepth");
-		if(lShadowLoc >= 0) glProgramUniform1i(lProgram, lShadowLoc, kShadowMapUnit + 1);
+		if(lShadowLoc >= 0) glUniform1i(lShadowLoc, kShadowMapUnit + 1);
 		GLint lDepthLoc = glGetUniformLocation(lProgram, "hpl_SceneDepth");
-		if(lDepthLoc >= 0) glProgramUniform1i(lProgram, lDepthLoc, kSceneDepthUnit);
+		if(lDepthLoc >= 0) glUniform1i(lDepthLoc, kSceneDepthUnit);
 		GLint lColorLoc = glGetUniformLocation(lProgram, "hpl_SceneColor");
-		if(lColorLoc >= 0) glProgramUniform1i(lProgram, lColorLoc, kSceneColorUnit);
+		if(lColorLoc >= 0) glUniform1i(lColorLoc, kSceneColorUnit);
 
+		glUseProgram(previous);
 		return lProgram;
 	}
 

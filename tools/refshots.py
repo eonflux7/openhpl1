@@ -15,7 +15,11 @@ saves one PNG per map, place and direction, one per 2D screen (2d-*.png),
 and hpl.log, to OUT_DIR. The graphics settings are fixed (see SETTINGS) so
 that two captures differ only by the build.
 
-effects captures Original and Improved player feedback in the effects lab,
+With --windows, run from WSL, the Windows build in --build is run instead
+(--build may be absolute, e.g. a build-windows on a Windows drive), with
+its window hidden in place of the gamescope session.
+
+effects captures the player feedback in the effects lab,
 checks its live triggers, and verifies white/black endpoints and the neutral
 output. It uses the same isolated profile and headless session as capture.
 
@@ -42,17 +46,18 @@ DEFAULT_GAME_DIR = os.path.expanduser(
     "~/.local/share/Steam/steamapps/common/Penumbra Overture")
 
 # Section -> key -> value. Refractions are on (off by default in the game)
-# so that refracting materials are covered; the noise filter is off, it is
+# so that refracting materials are covered, and so are shadows (0: all),
+# ambient occlusion, SMAA and multisampling; the noise filter is off, it is
 # a random overlay on every frame.
 SETTINGS = {
     "Screen": {"Width": "1280", "Height": "720", "FullScreen": "false",
                "Vsync": "false", "Display": "-1"},
     "Graphics": {"Shadows": "0", "ShaderQuality": "3", "PostEffects": "true",
-                 "Bloom": "true", "MotionBlur": "false",
-                 "MotionBlurAmount": "0.3", "DepthOfField": "true",
-                 "Refractions": "true", "Gamma": "1.0", "FSAA": "0",
+                 "Bloom": "true", "MotionBlur": "false", "DepthOfField": "true",
+                 "Refractions": "true", "Gamma": "1.0", "FSAA": "4",
                  "FOV": "70.0", "TextureSizeLevel": "0", "TextureFilter": "1",
-                 "TextureAnisotropy": "1.0", "SMAA": "false",
+                 "TextureAnisotropy": "1.0", "SMAA": "true",
+                 "AmbientOcclusion": "true",
                  "NoiseFilter": "false", "LimitFPS": "true"},
     "Game": {"FirstStart": "false", "Subtitles": "false",
              "ShowPreMenu": "false", "ShowMenu": "false",
@@ -107,6 +112,25 @@ def run_headless(exe, width, height, cwd, env, log, status_file, timeout):
         return int(f.read().strip() or -1)
 
 
+def run_windows(exe, cwd, env, log, timeout):
+    """Runs the Windows build from WSL, returns its exit code. The window
+    is hidden (OVERTURE_HIDDEN), and the variables of env the game reads
+    are passed on to Windows through WSLENV."""
+    names = [n for n in env if n.startswith("OVERTURE_") or n == "ALSOFT_DRIVERS"]
+    env = dict(env)
+    env["WSLENV"] = ":".join(filter(None, [env.get("WSLENV")] + names))
+    try:
+        return subprocess.run([exe], cwd=cwd, env=env, stdout=log,
+                              stderr=subprocess.STDOUT, timeout=timeout).returncode
+    except subprocess.TimeoutExpired:
+        print("The game did not exit within %d seconds" % timeout)
+        return -1
+
+
+def windows_path(path):
+    return subprocess.check_output(["wslpath", "-w", path], text=True).strip()
+
+
 def capture(args):
     settings = {s: dict(k) for s, k in SETTINGS.items()}
     width, height = args.size.split("x")
@@ -118,12 +142,13 @@ def capture(args):
             sys.exit("--set wants Section.Key=Value, not '%s'" % item)
         settings.setdefault(m.group(1), {})[m.group(2)] = m.group(3)
 
-    exe = os.path.join(SOURCE, args.build, "overture")
+    exe = os.path.join(SOURCE, args.build,
+                       "overture.exe" if args.windows else "overture")
     if not os.path.exists(exe):
         sys.exit("No executable at %s" % exe)
     if not os.path.isdir(args.game_dir):
         sys.exit("Game data not found: %s (set --game-dir)" % args.game_dir)
-    if shutil.which("gamescope") is None:
+    if not args.windows and shutil.which("gamescope") is None:
         sys.exit("gamescope is needed for the headless session")
 
     out = os.path.abspath(args.out_dir)
@@ -131,28 +156,40 @@ def capture(args):
         sys.exit("%s is not empty" % out)
     os.makedirs(out, exist_ok=True)
 
-    home = tempfile.mkdtemp(prefix="refshots-home-")
+    # The Windows build's profile goes next to it, on the Windows drive
+    home = tempfile.mkdtemp(prefix="refshots-home-",
+                            dir=os.path.dirname(exe) if args.windows else None)
     try:
-        personal = os.path.join(home, ".frictionalgames", "Penumbra",
-                                "OvertureRemade")
+        if args.windows:
+            personal = os.path.join(home, "Penumbra Overture", "OvertureRemade")
+        else:
+            personal = os.path.join(home, ".frictionalgames", "Penumbra",
+                                    "OvertureRemade")
         os.makedirs(personal)
         write_settings(os.path.join(personal, "settings.cfg"), settings)
 
         env = dict(os.environ)
         env["HOME"] = home
+        game_path = windows_path if args.windows else (lambda p: p)
+        if args.windows:
+            env["OVERTURE_PROFILE_ROOT"] = windows_path(home)
+            env["OVERTURE_HIDDEN"] = "1"
         # OpenAL Soft's null backend: sounds play, with the same timing,
         # but nothing is heard.
         env["ALSOFT_DRIVERS"] = "null"
         if args.command == "effects":
             env.pop("OVERTURE_REFSHOTS", None)
             env["OVERTURE_MAP"] = "effectslab:link01"
-            env["OVERTURE_EFFECTS_CAPTURE"] = out
+            env["OVERTURE_EFFECTS_CAPTURE"] = game_path(out)
         else:
             env["OVERTURE_REFSHOTS"] = args.maps
-            env["OVERTURE_REFSHOTS_DIR"] = out
+            env["OVERTURE_REFSHOTS_DIR"] = game_path(out)
         with open(os.path.join(out, "run.log"), "w") as log:
-            ret = run_headless(exe, width, height, args.game_dir, env, log,
-                               os.path.join(home, "exit_code"), args.timeout)
+            if args.windows:
+                ret = run_windows(exe, args.game_dir, env, log, args.timeout)
+            else:
+                ret = run_headless(exe, width, height, args.game_dir, env, log,
+                                   os.path.join(home, "exit_code"), args.timeout)
 
         hpl_log = os.path.join(personal, "hpl.log")
         if os.path.exists(hpl_log):
@@ -188,8 +225,7 @@ def check_effects(out):
 
     names = ["neutral", "adaptation", "low-health", "double-vision", "blood", "ice", "panic",
              "flash", "save", "death", "underwater", "combined"]
-    expected = [mode + "-" + name + ".png"
-                for mode in ("original", "improved") for name in names]
+    expected = ["improved-" + name + ".png" for name in names]
     expected += ["improved-flash-full.png", "improved-save-full.png",
                  "improved-death-full.png", "improved-combined-zero.png",
                  "improved-panic-trough.png", "improved-panic-peak.png",
@@ -209,18 +245,13 @@ def check_effects(out):
 
     failures = []
     neutral = frame("improved-neutral")
-    for name in ("original-neutral", "improved-combined-zero"):
-        diff = ImageChops.difference(neutral, frame(name))
-        if max(ImageStat.Stat(diff).mean) > 0.05:
-            failures.append(name + " changes the neutral picture")
+    diff = ImageChops.difference(neutral, frame("improved-combined-zero"))
+    if max(ImageStat.Stat(diff).mean) > 0.05:
+        failures.append("improved-combined-zero changes the neutral picture")
     for name in names[1:]:
         diff = ImageChops.difference(neutral, frame("improved-" + name))
         if max(ImageStat.Stat(diff).mean) < 0.1:
             failures.append(name + " has no visible feedback")
-    for name in ("save", "underwater"):
-        diff = ImageChops.difference(frame("original-" + name), frame("improved-" + name))
-        if max(ImageStat.Stat(diff).mean) < 0.1:
-            failures.append(name + " does not show the improved treatment")
     splashes = ImageChops.difference(frame("improved-blood-seed-a"), frame("improved-blood-seed-b"))
     if max(ImageStat.Stat(splashes).mean) < 0.1:
         failures.append("blood pattern does not change between hits")
@@ -318,6 +349,8 @@ def main():
     common.add_argument("--build", default="build", help="build directory, default build")
     common.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
     common.add_argument("--timeout", type=int, default=1200, help="seconds")
+    common.add_argument("--windows", action="store_true",
+                        help="run the Windows build (overture.exe in --build) from WSL")
 
     c = sub.add_parser("capture", parents=[common], help="run the game headless and save frames")
     c.add_argument("--maps", default="1",

@@ -20,13 +20,16 @@
 #define HPL_RENDER_LIST_H
 
 #include <set>
+#include <array>
+#include <cstdint>
+#include <vector>
+#include "graphics/RenderState.h"
 
 #include "math/MathTypes.h"
 #include "graphics/GraphicsTypes.h"
 #include "system/SystemTypes.h"
 #include "scene/Light3D.h"
 #include "graphics/Material.h"
-#include "graphics/OcclusionQuery.h"
 #include "graphics/VertexBuffer.h"
 
 namespace hpl {
@@ -50,43 +53,36 @@ namespace hpl {
 
 	//-------------------------------------------------------------
 
-	class cRenderNode;
-
-	class cRenderNodeCompare
+	// One complete state and lexicographic key per draw. Queues retain their
+	// storage between frames; no state nodes or per-level allocations.
+	struct cRenderDraw
 	{
-	public:
-		bool operator()(cRenderNode* apNodeA,cRenderNode* apNodeB) const;
+		iRenderState mState{};
+		std::array<uintptr_t, 12 + MAX_TEXTUREUNITS> mKey{};
+		eRenderStateType FirstChangedState(const cRenderDraw* apPrevious) const;
 	};
 
-	typedef std::set<cRenderNode*, cRenderNodeCompare> tRenderNodeSet;
-	typedef tRenderNodeSet::iterator tRenderNodeSetIt;
-
-	class cRenderNode
+	class cRenderQueue
 	{
 	public:
-		cRenderNode() : mpState(nullptr){}
-
-		iRenderState *mpState;
-
-		tRenderNodeSet m_setNodes;
-
-		void DeleteChildren();
+		std::vector<cRenderDraw> mvDraws;
+		bool mbSector = false;
+		void Clear(){ mvDraws.clear(); }
+		void Sort();
 		void Render(cRenderSettings* apSettings);
 	};
 
-	//-------------------------------------------------------------
-
-	class cMotionBlurObject_Compare
+	class cFogObject_Compare
 	{
 	public:
 		bool operator()(iRenderable* pObjectA,iRenderable* pObjectB) const;
 	};
 
-	typedef std::multiset<iRenderable*,cMotionBlurObject_Compare> tMotionBlurObjectSet;
-	typedef tMotionBlurObjectSet::iterator tMotionBlurObjectSetIt;
+	typedef std::multiset<iRenderable*,cFogObject_Compare> tFogObjectSet;
+	typedef tFogObjectSet::iterator tFogObjectSetIt;
 
-	typedef cSTLIterator<iRenderable*, tMotionBlurObjectSet,
-							tMotionBlurObjectSetIt> cMotionBlurObjectIterator;
+	typedef cSTLIterator<iRenderable*, tFogObjectSet,
+							tFogObjectSetIt> cFogObjectIterator;
 
 	//-------------------------------------------------------------
 
@@ -102,31 +98,6 @@ namespace hpl {
 
 	typedef cSTLIterator<iRenderable*, tTransperantObjectSet, tTransperantObjectSetIt> cTransperantObjectIterator;
 
-
-	//-------------------------------------------------------------
-
-	class cOcclusionQueryObject
-	{
-	public:
-		cOcclusionQueryObject() : mpQuery(nullptr), mpVtxBuffer(nullptr),mpMatrix(nullptr){}
-
-		iOcclusionQuery *mpQuery;
-		iVertexBuffer *mpVtxBuffer;
-		cMatrixf *mpMatrix;
-		bool mbDepthTest;
-	};
-
-	class cOcclusionQueryObject_Compare
-	{
-	public:
-		bool operator()(const cOcclusionQueryObject* pObjectA,const cOcclusionQueryObject* pObjectB) const;
-	};
-
-	typedef std::set<cOcclusionQueryObject*,cOcclusionQueryObject_Compare> tOcclusionQueryObjectSet;
-	typedef tOcclusionQueryObjectSet::iterator tOcclusionQueryObjectSetIt;
-
-	typedef cSTLIterator<cOcclusionQueryObject*, tOcclusionQueryObjectSet,
-						tOcclusionQueryObjectSetIt> cOcclusionQueryObjectIterator;
 
 	//-------------------------------------------------------------
 
@@ -154,11 +125,7 @@ namespace hpl {
 		bool Add(iRenderable* apObject);
 		void Clear();
 
-		void AddOcclusionQuery(cOcclusionQueryObject *apObject);
-
-		cOcclusionQueryObjectIterator GetQueryIterator();
-
-		cMotionBlurObjectIterator GetMotionBlurIterator();
+		cFogObjectIterator GetFogIterator();
 
 		cTransperantObjectIterator GetTransperantIterator();
 
@@ -177,14 +144,13 @@ namespace hpl {
 
 		void SetFrameTime(float afTime){ mfFrameTime = afTime;}
 
-		cRenderNode* GetRootNode(eRenderListDrawType aObjectType ,eMaterialRenderType aPassType, int alLightNum);
+		cRenderQueue* GetQueue(eRenderListDrawType aObjectType ,eMaterialRenderType aPassType, int alLightNum);
 
 		static inline int GetGlobalRenderCount(){ return mlGlobalRenderCount;}
 
 	private:
-		cRenderNode* InsertNode(cRenderNode* apListNode, cRenderNode* apTempNode);
 
-		void AddToTree(iRenderable* apObject,eRenderListDrawType aObjectType,
+		void AddDraw(iRenderable* apObject,eRenderListDrawType aObjectType,
 						eMaterialRenderType mPassType,int alLightNum,iLight3D* apLight,
 						bool abUseDepth, int alPass);
 
@@ -195,25 +161,20 @@ namespace hpl {
 
 		tRenderableSet m_setObjects;
 
-		tOcclusionQueryObjectSet m_setQueries;
-
-		tMotionBlurObjectSet m_setMotionBlurObjects;
+		tFogObjectSet m_setFogObjects;
 		tTransperantObjectSet m_setTransperantObjects;
 
-		cRenderNode mRootNodeDepth;
-		cRenderNode mRootNodeDiffuse;
-		cRenderNode mRootNodeLight[MAX_NUM_OF_LIGHTS];
-		cRenderNode mRootNodeTrans;
+		cRenderQueue mDepthQueue;
+		cRenderQueue mDiffuseQueue;
+		cRenderQueue mvLightQueues[MAX_NUM_OF_LIGHTS];
+		cRenderQueue mTransQueue;
 
-		cRenderNode mTempNode;
 
 		int mlRenderCount;
 		int mlLastRenderCount;
 
 		float mfFrameTime;
 
-		cMemoryPool<iRenderState>* m_poolRenderState;
-		cMemoryPool<cRenderNode>* m_poolRenderNode;
 
 		cCamera3D* mpCamera;
 

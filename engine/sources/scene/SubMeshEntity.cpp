@@ -66,7 +66,6 @@ namespace hpl {
 		if(mpMeshEntity->GetMesh()->GetSkeleton())
 		{
 			mpDynVtxBuffer = mpSubMesh->GetVertexBuffer()->CreateCopy(eVertexBufferUsageType_Dynamic);
-			mvDynTriangles = *mpSubMesh->GetTriangleVecPtr();
 		}
 		else
 		{
@@ -197,11 +196,11 @@ namespace hpl {
 
 			const float *pBindPos = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Position);
 			const float *pBindNormal = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Normal);
-			const float *pBindTangent = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Texture1);
+			const float *pBindTangent = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Tangent);
 
 			float *pSkinPos = mpDynVtxBuffer->GetArray(eVertexFlag_Position);
 			float *pSkinNormal = mpDynVtxBuffer->GetArray(eVertexFlag_Normal);
-			float *pSkinTangent = mpDynVtxBuffer->GetArray(eVertexFlag_Texture1);
+			float *pSkinTangent = mpDynVtxBuffer->GetArray(eVertexFlag_Tangent);
 
 			const int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
 			const int lVtxNum = mpDynVtxBuffer->GetVertexNum();
@@ -273,98 +272,11 @@ namespace hpl {
 				pSkinTangent += 4;
 			}
 
-			float *pSkinPosArray = mpDynVtxBuffer->GetArray(eVertexFlag_Position);
-			if(mpMeshEntity->IsShadowCaster())
-			{
-				//Update the shadow double
-				memcpy(&pSkinPosArray[lVtxStride*lVtxNum],pSkinPosArray,sizeof(float)*lVtxStride*lVtxNum);
-				for(int vtx=lVtxStride*lVtxNum + lVtxStride-1; vtx < lVtxStride*lVtxNum*2; vtx+=lVtxStride)
-				{
-					pSkinPosArray[vtx] = 0;
-				}
-			}
-
 			//Update buffer
-			mpDynVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Texture1,false);
-
-			if(mpMeshEntity->IsShadowCaster())
-			{
-				//Update triangles
-				cMath::CreateTriangleData(mvDynTriangles,
-					mpDynVtxBuffer->GetIndices(), mpDynVtxBuffer->GetIndexNum(),
-					pSkinPosArray, lVtxStride, lVtxNum);
-			}
+			mpDynVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Tangent,false);
 		}
 
 
-
-		/*if(mpDynVtxBuffer)
-		{
-		const float *pBindPosArray = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Position);
-		const float *pBindNormalArray = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Normal);
-		const float *pBindTangentArray = mpSubMesh->GetVertexBuffer()->GetArray(eVertexFlag_Texture1);
-
-		float *pSkinPosArray = mpDynVtxBuffer->GetArray(eVertexFlag_Position);
-		float *pSkinNormalArray = mpDynVtxBuffer->GetArray(eVertexFlag_Normal);
-		float *pSkinTangentArray = mpDynVtxBuffer->GetArray(eVertexFlag_Texture1);
-
-		int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
-		int lVtxNum = mpDynVtxBuffer->GetVertexNum();
-
-		memset(pSkinPosArray,0,sizeof(float)*lVtxStride*lVtxNum);
-		memset(pSkinNormalArray,0,sizeof(float)*3*lVtxNum);
-		memset(pSkinTangentArray,0,sizeof(float)*4*lVtxNum);
-
-		int lSize = mpSubMesh->GetVertexBonePairNum();
-		for(int i=0; i<lSize; i++)
-		{
-		const cVertexBonePair& VBPair = mpSubMesh->GetVertexBonePair(i);
-
-		//Log("%d: Vtx: %d Bone: %d\n",i,VBPair.vtxIdx, VBPair.boneIdx);
-
-		const float* pBindPos = &pBindPosArray[VBPair.vtxIdx*lVtxStride];
-		float* pSkinPos = &pSkinPosArray[VBPair.vtxIdx*lVtxStride];
-
-		const float* pBindNorm = &pBindNormalArray[VBPair.vtxIdx*3];
-		float* pSkinNorm = &pSkinNormalArray[VBPair.vtxIdx*3];
-
-		const float* pBindTan = &pBindTangentArray[VBPair.vtxIdx*4];
-		float* pSkinTan = &pSkinTangentArray[VBPair.vtxIdx*4];
-
-		const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[VBPair.boneIdx];
-
-		//Transform with the local movement of the bone.
-		MatrixFloatTransform(pSkinPos,mtxTransform, pBindPos, VBPair.weight);
-		pSkinPos[3] = 1;
-
-		MatrixFloatRotate(pSkinNorm,mtxTransform, pBindNorm, VBPair.weight);
-
-		MatrixFloatRotate(pSkinTan,mtxTransform, pBindTan, VBPair.weight);
-		pSkinTan[3] = pBindTan[3];
-
-		//cVector3f vSkin = cMath::MatrixMul(mpMeshEntity->mvBoneMatrices[VBPair.boneIdx],
-		//									cVector3f(pBindPos[0],pBindPos[1],pBindPos[2]));
-
-		//pSkinPos[0] += vSkin.x * VBPair.weight;
-		//pSkinPos[1] += vSkin.y * VBPair.weight;
-		//pSkinPos[2] += vSkin.z * VBPair.weight;
-		}
-
-		//Update the shadow double
-		memcpy(&pSkinPosArray[lVtxStride*lVtxNum],pSkinPosArray,sizeof(float)*lVtxStride*lVtxNum);
-		for(int vtx=lVtxStride*lVtxNum + lVtxStride-1; vtx < lVtxStride*lVtxNum*2; vtx+=lVtxStride)
-		{
-		pSkinPosArray[vtx] = 0;
-		}
-
-		//Update buffer
-		mpDynVtxBuffer->UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Texture1,false);
-
-		//Update triangles
-		cMath::CreateTriangleData(mvDynTriangles,
-		mpDynVtxBuffer->GetIndices(), mpDynVtxBuffer->GetIndexNum(),
-		pSkinPosArray, lVtxStride, lVtxNum);
-		}*/
 	}
 
 	iVertexBuffer* cSubMeshEntity::GetVertexBuffer()
@@ -456,31 +368,6 @@ namespace hpl {
 	bool cSubMeshEntity::GetUpdateBody()
 	{
 		return mbUpdateBody;
-	}
-
-	//-----------------------------------------------------------------------
-
-	cTriangleData& cSubMeshEntity::GetTriangle(int alIndex)
-	{
-		if(mpDynVtxBuffer)
-			return mvDynTriangles[alIndex];
-		else
-			return (*mpSubMesh->GetTriangleVecPtr())[alIndex];
-	}
-	int cSubMeshEntity::GetTriangleNum()
-	{
-		if(mpDynVtxBuffer)
-			return (int)mvDynTriangles.size();
-		else
-			return (int)mpSubMesh->GetTriangleVecPtr()->size();
-	}
-
-	tTriangleDataVec* cSubMeshEntity::GetTriangleVecPtr()
-	{
-		if(mpDynVtxBuffer)
-			return &mvDynTriangles;
-		else
-			return mpSubMesh->GetTriangleVecPtr();
 	}
 
 	//-----------------------------------------------------------------------

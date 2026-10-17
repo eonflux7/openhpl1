@@ -49,8 +49,7 @@ namespace hpl {
 	class cTransDraw
 	{
 	public:
-		iGpuProgram *mpVtxProgram = nullptr;
-		iGpuProgram *mpFragProgram = nullptr;
+		iGpuProgram *mpProgram = nullptr;
 		iVertexBuffer *mpVtxBuffer = nullptr;
 		cMatrixf *mpModelMatrix = nullptr;
 		bool mbDepthTest = true;
@@ -128,9 +127,6 @@ namespace hpl {
 
 		cMatrixf* GetInvModelMatrix();
 
-		inline void SetPrevMatrix(const cMatrixf& a_mtxPrev){m_mtxPrevious = a_mtxPrev;}
-		inline cMatrixf& GetPrevMatrix(){ return m_mtxPrevious;}
-
 		const cVector3f& GetCalcScale();
 
 		void SetStatic(bool abX){ mbStatic = abX;}
@@ -138,8 +134,6 @@ namespace hpl {
 
 		inline int GetRenderCount() const { return mlRenderCount;}
 		inline void SetRenderCount(const int alCount) { mlRenderCount = alCount;}
-		inline int GetPrevRenderCount() const { return mlPrevRenderCount;}
-		inline void SetPrevRenderCount(const int alCount) { mlPrevRenderCount = alCount;}
 
 		void SetForceShadow(bool abX){ mbForceShadow = abX;}
 		bool GetForceShadow(){ return mbForceShadow;}
@@ -155,7 +149,6 @@ namespace hpl {
 
 	protected:
 		cMatrixf m_mtxInvModel;
-		cMatrixf m_mtxPrevious;
 
 		bool mbIsOneSided;
 		cVector3f mvOneSidedNormal;
@@ -167,7 +160,6 @@ namespace hpl {
 		bool mbForceShadow;
 
 		int mlRenderCount;
-		int mlPrevRenderCount;
 
 		int mlCalcScaleMatrixCount;
 		cVector3f mvCalcScale;

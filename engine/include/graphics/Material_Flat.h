@@ -28,7 +28,7 @@ namespace hpl {
 	public:
 		cMaterial_Flat(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 
 		~cMaterial_Flat() override;
@@ -37,11 +37,9 @@ namespace hpl {
 
 		bool UsesType(eMaterialRenderType aType) override;
 
-		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-
-		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iGpuProgram* GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
@@ -52,17 +50,7 @@ namespace hpl {
 
 		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override;
 
-		//////////////////////////////////////////////////////////////////
-		// Old and worthless stuff, only used by 2D renderer
 		void Compile() override{}
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override{return false;}
-		void EndRendering(eMaterialRenderType aType) override{}
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override{return 0;}
-		bool NextPass(eMaterialRenderType aType) override{return false;}
-		bool HasMultiplePasses(eMaterialRenderType aType) override{return false;}
-		eMaterialType GetType(eMaterialRenderType aType) override{ return eMaterialType_Diffuse;}
-		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 	};
 
 	class cMaterialType_Flat : public iMaterialType
@@ -74,11 +62,11 @@ namespace hpl {
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override
 		{
 			return hplNew( cMaterial_Flat,(asName,apLowLevelGraphics,
-				apImageManager,apTextureManager,apRenderer,
+				apImageManager,apTextureManager,
 				apProgramManager,aPicture,apRenderer3D) );
 		}
 	};

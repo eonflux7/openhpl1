@@ -23,7 +23,6 @@
 #include "graphics/GraphicsTypes.h"
 #include "math/MathTypes.h"
 
-#include "scene/SoundSource.h"
 #include "scene/Entity3D.h"
 
 #include "game/GameTypes.h"
@@ -49,7 +48,6 @@ namespace hpl {
 	class cLight3DSpot;
 	class cLight3DPoint;
 	class iLight3D;
-	class cImageEntity;
 	class cParticleManager;
 	class cParticleSystem3D;
 	class iScript;

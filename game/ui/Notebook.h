@@ -284,6 +284,9 @@ public:
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
 
+	// Black Plague: script function called, once, when the notebook is closed
+	void SetCloseCallback(const tString& asFunc){ msCloseCallback = asFunc;}
+
 	float GetAlpha(){ return mfAlpha;}
 
 	void SetBookType(eNotebookType aType);
@@ -291,6 +294,7 @@ public:
 
 	tNotebook_NoteList_Iterator GetNoteIterator();
 	cNotebook_Note* AddNote(const tWString &asName, const tString &asTextCat, const tString &asTextEntry);
+	bool NoteExists(const tString &asTextCat, const tString &asTextEntry);
 	void RemoveNote(const tString &asName);
 	int GetNoteNum(){ return (int)mlstNotes.size();}
 
@@ -319,6 +323,8 @@ private:
 	
 	bool mbActive;
 	float mfAlpha;
+
+	tString msCloseCallback;
 
 	std::vector<cNotebook_BookType> mvBookTypes;
 

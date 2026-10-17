@@ -54,5 +54,8 @@ int hplMain(const tString& asCommandLine)
 	
 	cMemoryManager::LogResults();
 
+	// Another game asked for in the menu: started in this process's place
+	if(bAutoRunFailed==false) cInit::RunRequestedGame();
+
 	return bAutoRunFailed ? 1 : 0;
 }

@@ -159,6 +159,14 @@ private:
 	int mlTerrorLevel;
 
 	cGfxObject *mpDamageGfx;
+
+	// Black Plague: air under water. Short of it, a picture pulses on the
+	// screen and the player gasps at each peak.
+	void UpdateOxygen(float afTimeStep);
+	float mfOxygenAlpha = 0;
+	float mfOxygenPulseSpeed = 0;
+	float mfOxygenAlphaAdd = 1;
+	cGfxObject *mpLowOxygenGfx = nullptr;
 };
 
 //---------------------------------------------
@@ -261,7 +269,6 @@ private:
 
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
-	cRendererPostEffects *mpPostEffects;
 };
 
 //---------------------------------------------
@@ -303,19 +310,18 @@ private:
 
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
-	cRendererPostEffects *mpPostEffects;
 };
 
 //---------------------------------------------
 
 /**
- * How the flashlight looks (Milestone 5). With mbImproved off it is the
- * original: the light of the hand model with its picture and falloff ramp.
+ * How the flashlight looks (Milestone 5): brighter near and fading with
+ * the distance, a beam with a hotspot, and a little light that comes back
+ * from where it lands.
  */
 class cFlashlightSettings
 {
 public:
-	bool mbImproved = false;
 	/// Scales the amount of light.
 	float mfBrightness = 1.0f;
 	/// 0 is the white of the original, 1 the yellow of a weak bulb.
@@ -356,12 +362,7 @@ public:
 
 	void OnPostSceneDraw();
 
-	void SetSettings(const cFlashlightSettings& aSettings)
-	{
-		// The bounce follows a switch at once, not eased
-		if(aSettings.mbImproved != mSettings.mbImproved) mbSnapBounce = true;
-		mSettings = aSettings;
-	}
+	void SetSettings(const cFlashlightSettings& aSettings){ mSettings = aSettings; }
 	const cFlashlightSettings& GetSettings(){ return mSettings; }
 
 private:
@@ -371,7 +372,6 @@ private:
 	//Where the bounced light is, and how much of it there is, eased
 	cVector3f mvBouncePos;
 	float mfBounceAmount;
-	bool mbSnapBounce = false;
 	//The spotlight's reach as the hand model has it, and as last set here
 	float mfBaseReach;
 	float mfSetReach;
@@ -548,6 +548,7 @@ public:
 	void Reset();
 	
 	void SetTarget(const cVector3f &avTargetPos, float afSpeedMul, float afMaxSpeed);
+	void SetZoomTarget(float afFovMul, float afSpeedMul, float afMaxSpeed);
 	
 	void SetActive(bool abX);
 	bool IsActive(){ return mbActive;}
@@ -558,6 +559,11 @@ private:
 
 	float mfSpeedMul;
 	float mfMaxSpeed;
+
+	float mfDestFovMul;
+	float mfFovMul;
+	float mfFovSpeedMul;
+	float mfFovMaxSpeed;
 
 	cPlayer *mpPlayer;
 };

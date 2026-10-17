@@ -103,33 +103,7 @@ void cDeathMenuButton::OnMouseOver(bool abOver)
 
 void cDeathMenuButton_Continue::OnMouseDown()
 {
-	tWString sAuto = _W("save/auto/") + mpInit->mpSaveHandler->GetLatest(_W("save/auto/"),_W("*.sav"));
-	tWString sSpot = _W("save/spot/") + mpInit->mpSaveHandler->GetLatest(_W("save/spot/"),_W("*.sav"));
-
-	tWString sFile = _W("");
-
-	if(sAuto == _W("save/auto/"))
-	{
-		sFile = sSpot;
-	}
-	else if(sSpot == _W("save/spot/"))
-	{
-		sFile = sAuto;
-	}
-	else
-	{
-		tWString sSaveDir = mpInit->mpSaveHandler->GetSaveDir();
-		cDate dateAuto = FileModifiedDate(sSaveDir +sAuto);
-		cDate dateSpot = FileModifiedDate(sSaveDir +sSpot);
-
-		if(dateAuto > dateSpot) 
-			sFile = sAuto;
-		else
-			sFile = sSpot;
-	}
-
-	if(sFile != _W(""))
-		mpInit->mpSaveHandler->LoadGameFromFile(sFile);
+	mpInit->mpSaveHandler->AutoLoadLatestAutoOrSpot();
 }
 
 //-----------------------------------------------------------------------

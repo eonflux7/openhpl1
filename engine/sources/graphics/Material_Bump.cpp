@@ -30,11 +30,10 @@ namespace hpl {
 
 	cMaterial_Bump::cMaterial_Bump(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial_BaseLight(	"Diffuse_Light_vp.cg",
-								"Bump_Light_fp.cg",
-			asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial_BaseLight("NORMAL_MAP",
+			asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 			aPicture,apRenderer3D)
 	{
 		mbUseSpecular = false;
@@ -58,11 +57,11 @@ namespace hpl {
 
 	iMaterial* cMaterialType_Bump::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 						cImageManager* apImageManager, cTextureManager *apTextureManager,
-						cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+						cGpuProgramManager* apProgramManager,
 						eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 	{
 		return hplNew( cMaterial_Bump, (asName,apLowLevelGraphics,
-								apImageManager,apTextureManager,apRenderer,
+								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
 

@@ -43,7 +43,6 @@ namespace hpl {
 	class iLowLevelGraphics;
 	class iMaterial;
 	class iVertexBuffer;
-	class iOcclusionQuery;
 	class iGpuProgram;
 	class cGpuProgramManager;
 	class cResources;
@@ -100,9 +99,6 @@ namespace hpl {
 		void SetColor(const cColor &aColor);
 		const cColor& GetColor(){ return mColor;}
 
-		void SetHaloAlpha(float afX);
-		float GetHaloAlpha(){ return mfHaloAlpha;}
-
 		void LoadXMLProperties(const tString asFile);
 
 		/////////////////////////////////
@@ -116,9 +112,6 @@ namespace hpl {
 		void SetHaloSourceIsParent(bool abX);
 		bool GetHaloSourceIsParent(){ return mbHaloSourceIsParent;}
 
-		iOcclusionQuery* GetQuery(){ return mQueryObject.mpQuery;}
-		iOcclusionQuery* GetMaxQuery(){ return mMaxQueryObject.mpQuery;}
-
 		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "Billboard";}
@@ -130,9 +123,7 @@ namespace hpl {
 		iMaterial *GetMaterial() override{ return mpMaterial;}
 		iVertexBuffer* GetVertexBuffer() override{return mpVtxBuffer;}
 
-		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
-
-		// Halos and shafts drawn by shaders of their own, see cEffectSettings
+		// Halos and shafts are drawn by shaders of their own, see cEffectSettings
 		bool GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw) override;
 		void SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw) override;
 
@@ -156,9 +147,9 @@ namespace hpl {
 		static const int kHaloKnots = 32;
 
 	private:
-		eBillboardType ToType(const char* apString);
+		void UpdateInstance();
 
-		void UpdateSourceBufferSize();
+		eBillboardType ToType(const char* apString);
 
 		bool DrawnAsHalo();
 		bool DrawnAsShaft();
@@ -167,13 +158,11 @@ namespace hpl {
 		cResources *mpResources;
 		cGpuProgramManager *mpProgramManager;
 
-		iGpuProgram *mpHaloVtxProgram;
-		iGpuProgram *mpHaloFragProgram;
+		iGpuProgram *mpHaloProgram;
 		/// The picture's colour by distance from its middle; null until asked for.
 		const cColor *mpHaloProfile;
 
-		iGpuProgram *mpShaftVtxProgram;
-		iGpuProgram *mpShaftFragProgram;
+		iGpuProgram *mpShaftProgram;
 		/// The box round the shaft, y along its axis
 		iVertexBuffer *mpShaftBuffer;
 		cVector2f mvShaftBufferSize;
@@ -187,25 +176,18 @@ namespace hpl {
 		iMaterial *mpMaterial;
 		iVertexBuffer* mpVtxBuffer;
 
-		iVertexBuffer* mpHaloSourceBuffer;
-
 		cMatrixf m_mtxTempTransform;
 
 		eBillboardType mType;
 		cVector2f mvSize;
 		cVector3f mvAxis;
 
-		int mlLastRenderCount;
-
 		bool mbIsHalo;
 		cVector3f mvHaloSourceSize;
 		bool mbHaloSourceIsParent;
-		cOcclusionQueryObject mQueryObject;
-		cOcclusionQueryObject mMaxQueryObject;
 
 		float mfForwardOffset;
 		cColor mColor;
-		float mfHaloAlpha;
 	};
 
 };

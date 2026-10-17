@@ -66,18 +66,6 @@ namespace hpl {
 
 	//---------------------------------------------
 
-	/**
-	 * How shadows are made. Volumes: the original stencil shadow volumes,
-	 * hard-edged. Maps: a shadow map per light, drawn anew every frame,
-	 * with soft edges.
-	 */
-	enum eShadowType
-	{
-		eShadowType_Volumes,
-		eShadowType_Maps,
-		eShadowType_LastEnum
-	};
-
 	enum eShadowMapFilter
 	{
 		/// One sample, filtered between texels.
@@ -163,11 +151,7 @@ namespace hpl {
 		void Reset(iLowLevelGraphics *apLowLevel);
 
 		//Setings that doesn't change:
-		iGpuProgram *mpVtxExtrudeProgram;
-		iGpuProgram *mpFragExtrudeProgram;
 		iLowLevelGraphics* mpLowLevel;
-
-		unsigned int *mpTempIndexArray;
 
 		//Setting that changes
 		iLight3D* mpLight;
@@ -183,24 +167,19 @@ namespace hpl {
 		cColor mFogColor;
 
 		eRendererShowShadows mShowShadows;
-		eShadowType mShadowType;
 		bool mbLog;
 		tRendererDebugFlag mDebugFlags;
 
 		//State settings
-		int mlLastShadowAlgo;
-
 		bool mbDepthTest;
 
 		eMaterialAlphaMode mAlphaMode;
 		eMaterialBlendMode mBlendMode;
 		eMaterialChannelMode mChannelMode;
 
-		iGpuProgram* mpVertexProgram;
-		bool mbVertexUseLight;
-		iMaterialProgramSetup* mpVtxProgramSetup;
+		iGpuProgram* mpProgram;
+		iMaterialProgramSetup* mpProgramSetup;
 
-		iGpuProgram* mpFragmentProgram;
 
 		bool mbMatrixWasNULL;
 
@@ -278,13 +257,10 @@ namespace hpl {
 		eRendererShowShadows GetShowShadows();
 		void SetShowShadows(eRendererShowShadows aState);
 
-		eShadowType GetShadowType(){ return mRenderSettings.mShadowType; }
-		void SetShadowType(eShadowType aType){ mRenderSettings.mShadowType = aType; }
 		const cShadowMapSettings& GetShadowMapSettings(){ return mShadowMapSettings; }
 		void SetShadowMapSettings(const cShadowMapSettings& aSettings){ mShadowMapSettings = aSettings; }
 		const cShadowMapStats& GetShadowMapStats(){ return mShadowMapStats; }
 
-		void FetchOcclusionQueries();
 
 	private:
 		inline void BeginRendering(cCamera3D* apCamera);
@@ -298,12 +274,11 @@ namespace hpl {
 
 		void RenderZ(cCamera3D *apCamera);
 
-		void RenderOcclusionQueries(cCamera3D *apCamera);
 
 		void RenderLight(cCamera3D *apCamera);
 
 		bool RenderShadowMap(iLight3D *apLight, cCamera3D *apCamera, cShadowMapParams &aParams);
-		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, int alFace);
+		int RenderShadowCasters(iLight3D *apLight, const cMatrixf &a_mtxView, const cMatrixf &a_mtxProjection, int alFace);
 		void UpdateShadowCasterGraphics(cCamera3D *apCamera);
 
 		bool RenderAmbientOcclusion(cCamera3D *apCamera);
@@ -327,19 +302,16 @@ namespace hpl {
 
 		float mfRenderTime;
 
-		iGpuProgram *mpDiffuseVtxProgram;
-		iGpuProgram *mpDiffuseFragProgram;
-		iGpuProgram *mpSolidFogVtxProgram;
-		iGpuProgram *mpSolidFogFragProgram;
+		iGpuProgram *mpDiffuseProgram;
+		iGpuProgram *mpSolidFogProgram;
 
 		iTexture *mpFogLinearSolidTexture;
 
 		iTexture *mpFogLinearAddTexture;
 		iTexture *mpFogLinearAlphaTexture;
 
-		iGpuProgram *mpRefractVtxProgram;
-		iGpuProgram *mpRefractFragProgram;
-		iGpuProgram *mpRefractSpecFragProgram;
+		iGpuProgram *mpRefractProgram;
+		iGpuProgram *mpRefractSpecialProgram;
 		bool mbRefractionAvailable;
 		bool mbRefractionUsed;
 

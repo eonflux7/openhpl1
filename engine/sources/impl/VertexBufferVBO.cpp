@@ -22,6 +22,8 @@
 #include "math/Math.h"
 
 #include <memory.h>
+#include <algorithm>
+#include <cstddef>
 
 #include <glad/gl.h>
 
@@ -50,7 +52,6 @@ namespace hpl {
 					mvVertexArray[i].reserve(alReserveVtxSize * kvVertexElements[i]);
 				}
 
-				mvArrayHandle[i] = 0;
 			}
 		}
 
@@ -58,34 +59,21 @@ namespace hpl {
 			mvIndexArray.reserve(alReserveIdxSize);
 
 		mlElementHandle =0;
-		mlQuadElementHandle = 0;
-		mbQuadIndicesChanged = true;
+		mlVertexHandle = 0;
 		mlVertexArray = 0;
 
 		mbTangents = false;
 
 		mbCompiled = false;
 
-		mbHasShadowDouble = false;
 
 		mpLowLevelGraphics = apLowLevelGraphics;
 	}
 
 	cVertexBufferVBO::~cVertexBufferVBO()
 	{
-		for(int i=0;i< klNumOfVertexFlags; i++)
-		{
-			mvVertexArray[i].clear();
-			if(mVertexFlags & kvVertexFlags[i])
-			{
-				glDeleteBuffers(1,(GLuint *)&mvArrayHandle[i]);
-			}
-		}
-
-		mvIndexArray.clear();
-
-		glDeleteBuffers(1,(GLuint *)&mlElementHandle);
-		if(mlQuadElementHandle) glDeleteBuffers(1, &mlQuadElementHandle);
+		glDeleteBuffers(1, &mlVertexHandle);
+		glDeleteBuffers(1, &mlElementHandle);
 		DeleteVertexArray();
 	}
 
@@ -132,6 +120,23 @@ namespace hpl {
 	cBoundingVolume cVertexBufferVBO::CreateBoundingVolume()
 	{
 		cBoundingVolume bv;
+		if(mbQuadInstances)
+		{
+			cVector3f minimum(0), maximum(0);
+			for(size_t i=0; i<mvQuadInstances.size(); ++i)
+			{
+				const cQuadInstance &sheet = mvQuadInstances[i];
+				for(int axis=0; axis<3; ++axis)
+				{
+					const float extent = std::abs(sheet.mvRight.v[axis]) + std::abs(sheet.mvUp.v[axis]);
+					const float low = sheet.mvCentre.v[axis] - extent, high = sheet.mvCentre.v[axis] + extent;
+					minimum.v[axis] = i == 0 ? low : std::min(minimum.v[axis], low);
+					maximum.v[axis] = i == 0 ? high : std::max(maximum.v[axis], high);
+				}
+			}
+			bv.SetLocalMinMax(minimum, maximum);
+			return bv;
+		}
 
 		int lNum = cMath::Log2ToInt((int)eVertexFlag_Position);
 
@@ -146,27 +151,32 @@ namespace hpl {
 	bool cVertexBufferVBO::Compile(tVertexCompileFlag aFlags)
 	{
 		if(mbCompiled) return false;
-		mbCompiled = true;
+		if(mbQuadInstances)
+		{
+			glGenBuffers(1, &mlVertexHandle);
+			mbCompiled = true;
+			return true;
+		}
 
 		//Create tangents
 		if(aFlags & eVertexCompileFlag_CreateTangents)
 		{
 			mbTangents = true;
 
-			mVertexFlags |= eVertexFlag_Texture1;
+			mVertexFlags |= eVertexFlag_Tangent;
 
-			int idx = cMath::Log2ToInt((int)eVertexFlag_Texture1);
+			int idx = cMath::Log2ToInt((int)eVertexFlag_Tangent);
 
 			int lSize = GetVertexNum()*4;
 			mvVertexArray[idx].resize(lSize);
 
-			cMath::CreateTriTangentVectors(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture1)].data(),
+			cMath::CreateTriTangentVectors(mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Tangent)].data(),
 				mvIndexArray.data(), GetIndexNum(),
 
 				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Position)].data(),
 				kvVertexElements[cMath::Log2ToInt((int)eVertexFlag_Position)],
 
-				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Texture0)].data(),
+				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_TexCoord)].data(),
 				mvVertexArray[cMath::Log2ToInt((int)eVertexFlag_Normal)].data(),
 				GetVertexNum()
 				);
@@ -176,22 +186,10 @@ namespace hpl {
 		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW;
 		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW;
 
-		//Create the VBO vertex arrays
-		for(int i=0;i< klNumOfVertexFlags; i++)
-		{
-			if(mVertexFlags & kvVertexFlags[i])
-			{
-				glGenBuffers(1,(GLuint *)&mvArrayHandle[i]);
-				glBindBuffer(GL_ARRAY_BUFFER, mvArrayHandle[i]);
-
-				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
-						mvVertexArray[i].data(), usageType);
-
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-				//Log("%d-Handle: %d, size: %d \n",i,mvArrayHandle[i], mvVertexArray);
-			}
-		}
+		if(!PackVertices()) return false;
+		glGenBuffers(1, &mlVertexHandle);
+		UploadVertices();
+		mbCompiled = true;
 
 		//Create the VBO index array. Filled through GL_ARRAY_BUFFER: the
 		//element array binding belongs to whichever vertex array is bound.
@@ -200,12 +198,10 @@ namespace hpl {
 		glBufferData(GL_ARRAY_BUFFER, GetIndexNum()*sizeof(unsigned int),
 														mvIndexArray.data(), usageType);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
-		mbQuadIndicesChanged = true;
 
 		//The arrays may have changed (tangents)
 		DeleteVertexArray();
 
-		//Log("VBO compile done!\n");
 
 		return true;
 	}
@@ -215,26 +211,14 @@ namespace hpl {
 
 	void cVertexBufferVBO::UpdateData(tVertexFlag aTypes, bool abIndices)
 	{
+		if(mbQuadInstances) { mbQuadInstancesDirty = true; return; }
 		GLenum usageType = GL_STATIC_DRAW;
 		if(mUsageType== eVertexBufferUsageType_Dynamic) usageType = GL_DYNAMIC_DRAW;
 		else if(mUsageType== eVertexBufferUsageType_Stream) usageType = GL_STREAM_DRAW;
 
-		//Create the VBO vertex arrays
-		for(int i=0;i< klNumOfVertexFlags; i++)
-		{
-			if((mVertexFlags & kvVertexFlags[i]) && (aTypes & kvVertexFlags[i]))
-			{
-				glBindBuffer(GL_ARRAY_BUFFER, mvArrayHandle[i]);
-
-				//This was apparently VERY slow.
-				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
-					nullptr, usageType);//Clear memory
-
-				glBufferData(GL_ARRAY_BUFFER, mvVertexArray[i].size()*sizeof(float),
-					mvVertexArray[i].data(), usageType);
-			}
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// All enabled fields travel together, including unchanged UVs/tangents.
+		// Never invalidate the packed CPU arrays: callers retain pointers to them.
+		if((aTypes & mVertexFlags) && PackVertices()) UploadVertices();
 
 		//Create the VBO index array
 		if(abIndices)
@@ -245,34 +229,6 @@ namespace hpl {
 				mvIndexArray.data(), usageType);
 
 			glBindBuffer(GL_ARRAY_BUFFER,0);
-			mbQuadIndicesChanged = true;
-		}
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cVertexBufferVBO::CreateShadowDouble(bool abUpdateData)
-	{
-		int lIdx = cMath::Log2ToInt(eVertexFlag_Position);
-
-		//Set to new size.
-		int lSize = (int)mvVertexArray[lIdx].size();
-		mvVertexArray[lIdx].reserve(lSize*2);
-
-		int lCount = lSize /4;
-		for(int i=0; i< lCount; i++)
-		{
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+0]);
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+1]);
-			mvVertexArray[lIdx].push_back(mvVertexArray[lIdx][i*4+2]);
-			mvVertexArray[lIdx].push_back(0);//0);
-		}
-
-		mbHasShadowDouble = true;
-
-		if(abUpdateData)
-		{
-			UpdateData(eVertexFlag_Position, false);
 		}
 	}
 
@@ -283,15 +239,13 @@ namespace hpl {
 		float *pPosArray = GetArray(eVertexFlag_Position);
 		float *pNormalArray = GetArray(eVertexFlag_Normal);
 		float *pTangentArray = nullptr;
-		if(mbTangents)pTangentArray = GetArray(eVertexFlag_Texture1);
+		if(mbTangents)pTangentArray = GetArray(eVertexFlag_Tangent);
 
 		int lVtxNum = GetVertexNum();
 
 		cMatrixf mtxRot = a_mtxTransform.GetRotation();
 
 		int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
-
-		int lOffset = GetVertexNum()*4;
 
 		for(int i=0; i<lVtxNum; i++)
 		{
@@ -302,11 +256,6 @@ namespace hpl {
 
 			cVector3f vPos = cMath::MatrixMul(a_mtxTransform, cVector3f(pPos[0],pPos[1],pPos[2]));
 			pPos[0] = vPos.x; pPos[1] = vPos.y; pPos[2] = vPos.z;
-
-			if(mbHasShadowDouble){
-				float* pExtraPos = &pPosArray[i*lVtxStride + lOffset];
-				pExtraPos[0] = vPos.x; pExtraPos[1] = vPos.y; pExtraPos[2] = vPos.z;
-			}
 
 			cVector3f vNorm = cMath::MatrixMul(mtxRot, cVector3f(pNorm[0],pNorm[1],pNorm[2]));
 			vNorm.Normalise();
@@ -322,7 +271,7 @@ namespace hpl {
 		if(mbCompiled)
 		{
 			if(mbTangents)
-				UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Texture1,false);
+				UpdateData(eVertexFlag_Position | eVertexFlag_Normal | eVertexFlag_Tangent,false);
 			else
 				UpdateData(eVertexFlag_Position | eVertexFlag_Normal,false);
 		}
@@ -332,6 +281,22 @@ namespace hpl {
 
 	void cVertexBufferVBO::Draw(eVertexBufferDrawType aDrawType)
 	{
+		if(mbQuadInstances)
+		{
+			const int count = mlElementNum < 0 ? (int)mvQuadInstances.size() :
+				std::min((int)mvQuadInstances.size(), mlElementNum / 6);
+			if(count == 0) return;
+			auto *gfx = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
+			if(!gfx->PrepareDraw()) return;
+			BindVertexArray();
+			const GLenum mode = aDrawType == eVertexBufferDrawType_Lines ? GL_LINE_STRIP : GL_TRIANGLES;
+			gfx->GetGpuProfiler()->CountDraw(mode, count * 6);
+			glDrawElementsInstanced(mode, 6, GL_UNSIGNED_INT, nullptr, count);
+			// Array draws leave generic attributes unspecified. Ordinary mesh,
+			// stream and fullscreen VAOs disable 3 and must see kind zero.
+			glVertexAttrib1f(3, 0);
+			return;
+		}
 		eVertexBufferDrawType drawType = aDrawType == eVertexBufferDrawType_LastEnum ? mDrawType : aDrawType;
 		cLowLevelGraphicsSDL *pLowLevel = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
 
@@ -342,32 +307,14 @@ namespace hpl {
 		//Get the draw type
 		GLenum mode = GL_TRIANGLES;
 		unsigned int lElementHandle = mlElementHandle;
-		if(drawType==eVertexBufferDrawType_Quad)
-		{
-			//Two triangles per quad, from a second index buffer
-			if(mbQuadIndicesChanged)
-			{
-				tUIntVec vTriangles;
-				QuadsToTriangles(mvIndexArray.data(), GetIndexNum(), vTriangles);
-
-				if(mlQuadElementHandle==0) glGenBuffers(1, &mlQuadElementHandle);
-				glBindBuffer(GL_ARRAY_BUFFER, mlQuadElementHandle);
-				glBufferData(GL_ARRAY_BUFFER, vTriangles.size()*sizeof(unsigned int), vTriangles.data(),
-							GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-				mbQuadIndicesChanged = false;
-			}
-			lElementHandle = mlQuadElementHandle;
-			lSize = lSize / 4 * 6;
-		}
-		else if(drawType==eVertexBufferDrawType_Lines)
+		if(drawType==eVertexBufferDrawType_Lines)
 		{
 			mode = GL_LINE_STRIP;
 		}
 
 		//////////////////////////////////
 		//Bind and draw the buffer
-		pLowLevel->PrepareDraw();
+		if(!pLowLevel->PrepareDraw()) return;
 		pLowLevel->GetGpuProfiler()->CountDraw(mode, lSize);
 
 		BindVertexArray();
@@ -385,14 +332,7 @@ namespace hpl {
 		///////////////////////////////
 		//Get the draw type
 		GLenum mode = GL_TRIANGLES;
-		tUIntVec vTriangles;
-		if(drawType==eVertexBufferDrawType_Quad)
-		{
-			QuadsToTriangles(apIndices, alCount, vTriangles);
-			apIndices = vTriangles.data();
-			alCount = (int)vTriangles.size();
-		}
-		else if(drawType==eVertexBufferDrawType_Lines)
+		if(drawType==eVertexBufferDrawType_Lines)
 		{
 			mode = GL_LINE_STRIP;
 		}
@@ -400,7 +340,7 @@ namespace hpl {
 
 		//////////////////////////////////
 		//Bind and draw the buffer
-		pLowLevel->PrepareDraw();
+		if(!pLowLevel->PrepareDraw()) return;
 		pLowLevel->GetGpuProfiler()->CountDraw(mode, alCount);
 
 		BindVertexArray();
@@ -463,15 +403,19 @@ namespace hpl {
 															mVertexFlags,mDrawType,aUsageType,
 															GetVertexNum(),GetIndexNum()));
 
+		if(mbQuadInstances)
+		{
+			pVtxBuff->SetQuadInstances(mvQuadInstances);
+			pVtxBuff->SetElementNum(mlElementNum);
+			pVtxBuff->Compile(0);
+			return pVtxBuff;
+		}
+
 		//Copy the vertices to the new buffer.
 		for(int i=0; i < klNumOfVertexFlags; i++)
 		{
 			if(kvVertexFlags[i] & mVertexFlags)
 			{
-				int lElements = kvVertexElements[i];
-				if(mbTangents && kvVertexFlags[i] == eVertexFlag_Texture1)
-					lElements=4;
-
 				pVtxBuff->ResizeArray(kvVertexFlags[i], (int)mvVertexArray[i].size());
 
 				memcpy(pVtxBuff->GetArray(kvVertexFlags[i]),
@@ -484,7 +428,6 @@ namespace hpl {
 		memcpy(pVtxBuff->GetIndices(), GetIndices(), GetIndexNum() * sizeof(unsigned int) );
 
 		pVtxBuff->mbTangents = mbTangents;
-		pVtxBuff->mbHasShadowDouble = mbHasShadowDouble;
 
 		pVtxBuff->Compile(0);
 
@@ -495,20 +438,29 @@ namespace hpl {
 
 	int cVertexBufferVBO::GetVertexNum()
 	{
+		if(mbQuadInstances) return (int)mvQuadInstances.size() * 4;
 		int idx = cMath::Log2ToInt((int)eVertexFlag_Position);
-		int lSize = (int)mvVertexArray[idx].size()/kvVertexElements[idx];
-
-		//If there is a shadow double, just return the length of the first half.
-		if(mbHasShadowDouble) return lSize / 2;
-		else return lSize;
+		return (int)mvVertexArray[idx].size()/kvVertexElements[idx];
 	}
 	int cVertexBufferVBO::GetIndexNum()
 	{
-		return (int)mvIndexArray.size();
+		return mbQuadInstances ? (int)mvQuadInstances.size() * 6 : (int)mvIndexArray.size();
 	}
 
 	cVector3f cVertexBufferVBO::GetVector3(tVertexFlag aType, unsigned alIdx)
 	{
+		// Debug inspection only. Rendering never expands CPU corners.
+		if(mbQuadInstances)
+		{
+			const cQuadInstance &sheet = mvQuadInstances[alIdx / 4];
+			const int corner = alIdx % 4;
+			if(aType == eVertexFlag_Position)
+				return sheet.mvCentre + (sheet.mvRight * (corner == 0 || corner == 3 ? 1.0f : -1.0f) +
+					sheet.mvUp * (corner < 2 ? -1.0f : 1.0f));
+			if(aType == eVertexFlag_Normal && sheet.mfKind < 2.5f) return cVector3f(0,0,1);
+			if(aType == eVertexFlag_Tangent && sheet.mfKind < 2.5f) return cVector3f(1,0,0);
+			return cVector3f(0);
+		}
 		if(!(aType & mVertexFlags)) return cVector3f(0,0,0);
 
 		int idx = cMath::Log2ToInt((int)aType);
@@ -519,16 +471,19 @@ namespace hpl {
 	}
 	cVector3f cVertexBufferVBO::GetVector4(tVertexFlag aType, unsigned alIdx)
 	{
+		if(mbQuadInstances) return GetVector3(aType, alIdx);
 		if(!(aType & mVertexFlags)) return cVector3f(0,0,0);
 
 		int idx = cMath::Log2ToInt((int)aType);
-		int pos = alIdx * 4;//kvVertexElements[idx];
+		int pos = alIdx * kvVertexElements[idx];
 
 		return cVector3f(mvVertexArray[idx][pos+0],mvVertexArray[idx][pos+1],
 			mvVertexArray[idx][pos+2]);
 	}
 	cColor cVertexBufferVBO::GetColor(tVertexFlag aType, unsigned alIdx)
 	{
+		if(mbQuadInstances && aType == eVertexFlag_Color0)
+			return alIdx % 4 < 2 ? mvQuadInstances[alIdx / 4].mColor : mvQuadInstances[alIdx / 4].mEndColor;
 		if(!(aType & mVertexFlags)) return cColor();
 
 		int idx = cMath::Log2ToInt((int)aType);
@@ -539,6 +494,11 @@ namespace hpl {
 	}
 	unsigned int cVertexBufferVBO::GetIndex(tVertexFlag aType, unsigned alIdx)
 	{
+		if(mbQuadInstances)
+		{
+			static const unsigned corners[] = {0,1,2,2,3,0};
+			return (alIdx / 6) * 4 + corners[alIdx % 6];
+		}
 		return mvIndexArray[alIdx];
 	}
 
@@ -559,16 +519,37 @@ namespace hpl {
 	}
 	//-----------------------------------------------------------------------
 
-	// The triangles 0,1,2 and 0,2,3 of each quad.
-	void cVertexBufferVBO::QuadsToTriangles(const unsigned int *apIndices, int alCount, tUIntVec &avTriangles)
+	bool cVertexBufferVBO::PackVertices()
 	{
-		avTriangles.clear();
-		avTriangles.reserve(alCount / 4 * 6);
-		for(int i=0; i+3 < alCount; i+=4)
+		mlStride = 0;
+		const int count = GetVertexNum();
+		for(int i=0; i<klNumOfVertexFlags; ++i)
 		{
-			const unsigned int *pQuad = &apIndices[i];
-			avTriangles.insert(avTriangles.end(), {pQuad[0], pQuad[1], pQuad[2], pQuad[0], pQuad[2], pQuad[3]});
+			mvOffsets[i] = mlStride;
+			if(!(mVertexFlags & kvVertexFlags[i])) continue;
+			if(mvVertexArray[i].size() != (size_t)count * kvVertexElements[i])
+			{
+				Error("Vertex buffer attribute %d has an invalid size\n", i);
+				return false;
+			}
+			mlStride += kvVertexElements[i];
 		}
+		mvInterleaved.resize((size_t)count * mlStride);
+		for(int v=0; v<count; ++v)
+			for(int i=0; i<klNumOfVertexFlags; ++i)
+				if(mVertexFlags & kvVertexFlags[i])
+					memcpy(&mvInterleaved[(size_t)v*mlStride + mvOffsets[i]],
+						&mvVertexArray[i][(size_t)v*kvVertexElements[i]], kvVertexElements[i]*sizeof(float));
+		return true;
+	}
+
+	void cVertexBufferVBO::UploadVertices()
+	{
+		GLenum usage = mUsageType == eVertexBufferUsageType_Stream ? GL_STREAM_DRAW :
+			(mUsageType == eVertexBufferUsageType_Dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, mlVertexHandle);
+		glBufferData(GL_ARRAY_BUFFER, mvInterleaved.size()*sizeof(float), mvInterleaved.data(), usage);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	//-----------------------------------------------------------------------
@@ -578,6 +559,14 @@ namespace hpl {
 	void cVertexBufferVBO::BindVertexArray()
 	{
 		cLowLevelGraphicsSDL *pLowLevel = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
+		if(mbQuadInstances && mbQuadInstancesDirty)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, mlVertexHandle);
+			glBufferData(GL_ARRAY_BUFFER, mvQuadInstances.size()*sizeof(cQuadInstance),
+				mvQuadInstances.data(), GL_STREAM_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			mbQuadInstancesDirty = false;
+		}
 		if(mlVertexArray)
 		{
 			pLowLevel->BindVertexArray(mlVertexArray);
@@ -586,6 +575,26 @@ namespace hpl {
 
 		glGenVertexArrays(1, &mlVertexArray);
 		pLowLevel->BindVertexArray(mlVertexArray);
+
+		if(mbQuadInstances)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, mlVertexHandle);
+			const int attributes[] = {6,3,7,8,9,10,11};
+			const int sizes[] = {3,1,3,3,4,4,4};
+			const size_t offsets[] = {offsetof(cQuadInstance,mvCentre), offsetof(cQuadInstance,mfKind),
+				offsetof(cQuadInstance,mvRight), offsetof(cQuadInstance,mvUp), offsetof(cQuadInstance,mColor),
+				offsetof(cQuadInstance,mEndColor), offsetof(cQuadInstance,mvUV)};
+			for(int i=0; i<7; ++i)
+			{
+				glVertexAttribPointer(attributes[i], sizes[i], GL_FLOAT, GL_FALSE,
+					sizeof(cQuadInstance), (const void*)offsets[i]);
+				glVertexAttribDivisor(attributes[i], 1);
+				glEnableVertexAttribArray(attributes[i]);
+			}
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			pLowLevel->BindSheetIndices();
+			return;
+		}
 
 		for(int i=0;i< klNumOfVertexFlags; i++)
 		{
@@ -598,19 +607,14 @@ namespace hpl {
 			case eVertexFlag_Position:	lAttrib = cGLSLProgram::eVertexAttrib_Position; break;
 			case eVertexFlag_Normal:	lAttrib = cGLSLProgram::eVertexAttrib_Normal; break;
 			case eVertexFlag_Color0:	lAttrib = cGLSLProgram::eVertexAttrib_Color; break;
-			case eVertexFlag_Texture0:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord0; break;
-			case eVertexFlag_Texture1:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord0 + 1;
-										if(mbTangents) lElements = 4;
-										break;
-			case eVertexFlag_Texture2:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord0 + 2; break;
-			case eVertexFlag_Texture3:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord0 + 3; break;
-			case eVertexFlag_Texture4:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord0 + 4; break;
-			default: break; //Color1 is not drawn with
+			case eVertexFlag_TexCoord:	lAttrib = cGLSLProgram::eVertexAttrib_TexCoord; break;
+			case eVertexFlag_Tangent: lAttrib = cGLSLProgram::eVertexAttrib_Tangent; break;
+			default: break;
 			}
 			if(lAttrib < 0) continue;
 
-			glBindBuffer(GL_ARRAY_BUFFER, mvArrayHandle[i]);
-			glVertexAttribPointer(lAttrib, lElements, GL_FLOAT, GL_FALSE, 0, nullptr);
+			glBindBuffer(GL_ARRAY_BUFFER, mlVertexHandle);
+			glVertexAttribPointer(lAttrib, lElements, GL_FLOAT, GL_FALSE, mlStride*sizeof(float), BUFFER_OFFSET(mvOffsets[i]));
 			glEnableVertexAttribArray(lAttrib);
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

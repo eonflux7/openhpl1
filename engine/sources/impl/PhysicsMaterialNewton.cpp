@@ -182,6 +182,7 @@ namespace hpl {
 
 			NewtonMaterialSetContinuousCollisionMode(mpNewtonWorld,mlMaterialId,pMat->mlMaterialId,
 													1);
+			NewtonMaterialSetSurfaceThickness(mpNewtonWorld,mlMaterialId,pMat->mlMaterialId, mfContactSkin);
 
 			NewtonMaterialSetCollisionCallback(mpNewtonWorld,mlMaterialId,pMat->mlMaterialId,
 				(void*)nullptr,BeginContactCallback,ProcessContactCallback);

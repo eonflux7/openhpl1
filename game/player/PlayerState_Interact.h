@@ -65,8 +65,18 @@ public:
 	bool OnStartInventory() override;
 	bool OnStartInventoryShortCut(int alNum) override;
 
+	// Black Plague: turning the object with the Rotate key held, running
+	// while holding it, and the flare put out by Holster
+	void OnStartRotate() override;
+	void OnStopRotate() override;
+	void OnStartRun() override;
+	void OnStopRun() override;
+	void OnStartHolster() override;
+
 	static float mfMassDiv;
 private:
+	void UpdateRotation(float afTimeStep, const cVector3f &avOmega);
+
 	cVector3f mvRelPickPoint;
 	iPhysicsBody *mpPushBody;
 
@@ -103,7 +113,11 @@ private:
 
 	float mfSpeedMul;
 
-	float mfYRotation;
+	// How much the object is still to turn, about the world's axes. Overture
+	// only uses y, which follows the player turning; Black Plague adds the
+	// mouse moved with Rotate held.
+	cVector3f mvRotation;
+	bool mbRotating;
 
 	float mfMaxPidForce;
 
@@ -227,6 +241,7 @@ private:
 
 	iPhysicsBody *mpPushBody;
 	cVector3f mvLastBodyPos;
+	cVector3f mvRelPlayerPos;	//Black Plague: the player keeps to the body
 
 	cVector2f mvPrevPitchLimits;
 

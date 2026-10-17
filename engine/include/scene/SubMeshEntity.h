@@ -27,7 +27,6 @@
 #include "system/SystemTypes.h"
 #include "scene/Entity3D.h"
 #include "graphics/Renderable.h"
-#include "math/MeshTypes.h"
 #include "scene/SectorVisibility.h"
 
 namespace hpl {
@@ -130,10 +129,6 @@ namespace hpl {
 
 		void UpdateLogic(float afTimeStep) override;
 
-		cTriangleData& GetTriangle(int alIndex);
-		int GetTriangleNum();
-		tTriangleDataVec* GetTriangleVecPtr();
-
 		iPhysicsBody* GetBody(){ return mpBody;}
 		void SetBody(iPhysicsBody* apBody){ mpBody = apBody;}
 
@@ -163,7 +158,6 @@ namespace hpl {
 		cMaterialManager* mpMaterialManager;
 
 		iVertexBuffer* mpDynVtxBuffer;
-		tTriangleDataVec mvDynTriangles;
 
 		cSubMeshEntityBodyUpdate* mpEntityCallback;
 		bool mbUpdateBody;

@@ -78,7 +78,6 @@ namespace hpl {
 
 		for(int i=0;i< (int)mvAnimations.size(); i++)
 		{
-			//mpAnimationManager->Destroy(mvAnimations[i]);
 			hplDelete(mvAnimations[i]);
 		}
 
@@ -201,7 +200,6 @@ namespace hpl {
 		{
 			for(int i=0;i< (int)mvAnimations.size(); i++)
 			{
-				//mpAnimationManager->Destroy(mvAnimations[i]);
 				hplDelete(mvAnimations[i]);
 			}
 		}
@@ -323,7 +321,6 @@ namespace hpl {
 	{
 		cMatrixf mtxOldOffset;
 
-		//Log("Creating node bodies!\n");
 
 		///////////////////////////////////
 		// Create bodies for the sub meshes (if available
@@ -353,7 +350,6 @@ namespace hpl {
 					iCollideShape *pShape = CreateCollideShapeFromCollider(pColl,apPhysicsWorld);
 					vShapes.push_back(pShape);
 
-					//Log("Created shape size: %s offset: %s\n",pShape->GetSize().ToString().c_str(),pShape->);
 
 					pColl->m_mtxOffset = mtxOldOffset;
 				}
@@ -372,7 +368,6 @@ namespace hpl {
 			{
 				Warning("No shapes for sub mesh '%s' with group: '%s'\n",pSubMesh->GetName().c_str(),
 					pSubMesh->GetGroup().c_str());
-				//return;
 				continue;
 			}
 
@@ -402,9 +397,6 @@ namespace hpl {
 				vShapes.push_back(pShape);
 
 				cMatrixf mtxOffset = pShape->GetOffset();
-				//Log("Created shape size: %s at %s. Mtx: %s\n",pShape->GetSize().ToString().c_str(),
-				//					pShape->GetOffset().GetTranslation().ToString().c_str(),
-				//					mtxOffset.ToString().c_str());
 			}
 		}
 
@@ -427,7 +419,6 @@ namespace hpl {
 
 		if(bHasRoot)
 		{
-			//Log("Creating root body!\n");
 
 			iPhysicsBody *pBody = apPhysicsWorld->CreateBody(apEntity->GetName(),
 															pShape);
@@ -531,7 +522,19 @@ namespace hpl {
 					pBody->SetIsRagDoll(true);
 					pBody->SetCollideRagDoll(false);
 
-					pBody->SetMatrix(cMath::MatrixMul(a_mtxOffset, mtxBodyWorld));
+					// Newton takes rotation-only matrices: a moving body loses any scale
+					// on its first step, so joints set up while it still had the scale
+					// of a scaled entity (a mattress placed bigger in the map) were torn
+					// apart by their limits. The bodies keep the scaled layout.
+					cMatrixf mtxBody = cMath::MatrixMul(a_mtxOffset, mtxBodyWorld);
+					for(int col=0; col<3; ++col)
+					{
+						cVector3f vAxis(mtxBody.m[0][col], mtxBody.m[1][col], mtxBody.m[2][col]);
+						float fLength = vAxis.Length();
+						if(fLength <= 0) continue;
+						for(int row=0; row<3; ++row) mtxBody.m[row][col] /= fLength;
+					}
+					pBody->SetMatrix(mtxBody);
 					pBoneState->SetBody(pBody);
 					pBoneState->SetBodyMatrix(mtxBoneToBody);
 
@@ -603,7 +606,6 @@ namespace hpl {
 
 				cMatrixf mtxOldOffset;
 
-				//Log("Sub: %s group: '%s'\n",pSubMesh->GetName().c_str(),pSubMesh->GetGroup().c_str());
 
 				//Iterate the colliders and search for the colliders for each object.
 				tCollideShapeVec vShapes;
@@ -617,13 +619,8 @@ namespace hpl {
 						//Remove the scale
 						cMatrixf mtxSub = pSubEntity->GetWorldMatrix();
 
-						//Log("SubEntity '%s' : %s\n",pSubEntity->GetName().c_str(),mtxSub.ToString().c_str());
-						//if(pSubEntity->GetParent())
-						//	Log("Node parent: %s\n",static_cast<cNode3D*>(pSubEntity->GetParent())->GetName());
 
 						//The scale should allready been removed.
-						/*cMatrixf mtxScale = cMath::MatrixScale(pSubMesh->GetModelScale());
-						mtxSub = cMath::MatrixMul(mtxSub, cMath::MatrixInverse(mtxScale));*/
 
 						//Get the local offset of the collider, relative to the sub mesh
 						pColl->m_mtxOffset = cMath::MatrixMul(cMath::MatrixInverse(mtxSub),
@@ -631,7 +628,6 @@ namespace hpl {
 
 						iCollideShape *pShape = CreateCollideShapeFromCollider(pColl,apPhysicsWorld);
 						vShapes.push_back(pShape);
-						//Log("Created shapes!\n");
 
 						//Setting old offset
 						pColl->m_mtxOffset = mtxOldOffset;
@@ -970,7 +966,6 @@ namespace hpl {
 										cMath::MatrixMul(a_mtxOffset,apMeshRef->m_mtxTransform),
 										apMeshRef->msFile, true);
 
-			//Log("Created ref: %s\n",sName.c_str());
 
 			return pEntity;
 		}
@@ -1035,7 +1030,6 @@ namespace hpl {
 		cSoundEntity *pSound = apWorld->CreateSoundEntity(sName,
 														apMeshSound->msType, false);
 
-		//Log("Created sound entity: '%s'\n",sName.c_str());
 		if(pSound==nullptr)
 		{
 			Error("Couldn't create sound entity '%s'\n",apMeshSound->msType.c_str());

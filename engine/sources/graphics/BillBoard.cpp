@@ -60,57 +60,25 @@ namespace hpl {
 		mpMeshCreator = apGraphics->GetMeshCreator();
 		mpResources = apResources;
 		mpProgramManager = apResources->GetGpuProgramManager();
-
-		mpHaloVtxProgram = nullptr;
-		mpHaloFragProgram = nullptr;
+		mpHaloProgram = nullptr;
 		mpHaloProfile = nullptr;
-		mpShaftVtxProgram = nullptr;
-		mpShaftFragProgram = nullptr;
+		mpShaftProgram = nullptr;
 		mpShaftBuffer = nullptr;
-
-		mpHaloSourceBuffer = mpMeshCreator->CreateBoxVertexBuffer(1);
 
 		mvSize = avSize;
 		mvAxis = cVector3f(0,1,0);
 
 		mColor = cColor(1,1,1,1);
 		mfForwardOffset =0;
-		mfHaloAlpha = 1.0f;
 
 		mType = eBillboardType_Point;
 
 		mpMaterial = nullptr;
 
-		mlLastRenderCount = -1;
-
-		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(
-								eVertexFlag_Position | eVertexFlag_Color0 | eVertexFlag_Texture0 |
-								eVertexFlag_Normal,
-								eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic,4,6);
-
-
-
-		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
-								cVector3f((mvSize.x/2),(mvSize.y/2),0)};
-
-		cVector3f vTexCoords[4] = {cVector3f(1,-1,0),
-								cVector3f(-1,-1,0),
-								cVector3f(-1,1,0),
-								cVector3f(1,1,0)};
-		for(int i=0;i<4;i++)
-		{
-			mpVtxBuffer->AddVertex(eVertexFlag_Position, vCoords[i]);
-			mpVtxBuffer->AddColor(eVertexFlag_Color0, cColor(1,1,1,1));
-			mpVtxBuffer->AddVertex(eVertexFlag_Texture0, (vTexCoords[i] + cVector2f(1,1))/2 );
-			mpVtxBuffer->AddVertex(eVertexFlag_Normal,cVector3f(0,0,1));
-		}
-
-		for(int i=0;i<3;i++) mpVtxBuffer->AddIndex(i);
-		for(int i=2;i<5;i++) mpVtxBuffer->AddIndex(i==4?0:i);
-
-		mpVtxBuffer->Compile(eVertexCompileFlag_CreateTangents);
+		mpVtxBuffer = mpLowLevelGraphics->CreateVertexBuffer(0,
+			eVertexBufferDrawType_Tri, eVertexBufferUsageType_Dynamic);
+		UpdateInstance();
+		mpVtxBuffer->Compile(0);
 
 		mbIsHalo = false;
 		mbHaloSourceIsParent = false;
@@ -126,18 +94,10 @@ namespace hpl {
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
-		if(mpHaloSourceBuffer) hplDelete(mpHaloSourceBuffer);
 		if(mpShaftBuffer) hplDelete(mpShaftBuffer);
 
-		if(mpHaloVtxProgram) mpProgramManager->Destroy(mpHaloVtxProgram);
-		if(mpHaloFragProgram) mpProgramManager->Destroy(mpHaloFragProgram);
-		if(mpShaftVtxProgram) mpProgramManager->Destroy(mpShaftVtxProgram);
-		if(mpShaftFragProgram) mpProgramManager->Destroy(mpShaftFragProgram);
-
-		if(mQueryObject.mpQuery)
-			mpLowLevelGraphics->DestroyOcclusionQuery(mQueryObject.mpQuery);
-		if(mMaxQueryObject.mpQuery)
-			mpLowLevelGraphics->DestroyOcclusionQuery(mMaxQueryObject.mpQuery);
+		if(mpHaloProgram) mpProgramManager->Destroy(mpHaloProgram);
+		if(mpShaftProgram) mpProgramManager->Destroy(mpShaftProgram);
 	}
 
 	//-----------------------------------------------------------------------
@@ -148,27 +108,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cBillboard::UpdateInstance()
+	{
+		cQuadInstance &sheet = mpVtxBuffer->UpdateQuadInstances(1)[0];
+		sheet = cQuadInstance();
+		sheet.mvRight = cVector3f(mvSize.x * 0.5f,0,0);
+		sheet.mvUp = cVector3f(0,mvSize.y * 0.5f,0);
+		sheet.mColor = sheet.mEndColor = mColor;
+	}
+
 	void cBillboard::SetSize(const cVector2f& avSize)
 	{
 		mvSize = avSize;
 		mBoundingVolume.SetSize(cVector3f(mvSize.x, mvSize.y, mvSize.x));
 
-		float *pPos = mpVtxBuffer->GetArray(eVertexFlag_Position);
-
-		cVector3f vCoords[4] = {cVector3f((mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),-(mvSize.y/2),0),
-								cVector3f(-(mvSize.x/2),(mvSize.y/2),0),
-								cVector3f((mvSize.x/2),(mvSize.y/2),0)};
-
-		for(int i=0; i<4;++i)
-		{
-			pPos[0] = vCoords[i].x;
-			pPos[1] = vCoords[i].y;
-			pPos[2] = vCoords[i].z;
-			pPos+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Position,false);
+		UpdateInstance();
 
 		if(mType == eBillboardType_Axis) SetAxis(mvAxis);
 
@@ -213,43 +167,7 @@ namespace hpl {
 
 		mColor = aColor;
 
-		float *pColors = mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		for(int i=0; i<4;++i)
-		{
-			pColors[0] = mColor.r * mfHaloAlpha;
-			pColors[1] = mColor.g * mfHaloAlpha;
-			pColors[2] = mColor.b * mfHaloAlpha;
-			pColors[3] = mColor.a * mfHaloAlpha;
-			pColors+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::SetHaloAlpha(float afX)
-	{
-		if(mfHaloAlpha == afX)
-		{
-			return;
-		}
-
-		mfHaloAlpha = afX;
-
-		float *pColors = mpVtxBuffer->GetArray(eVertexFlag_Color0);
-
-		for(int i=0; i<4;++i)
-		{
-			pColors[0] = mColor.r * mfHaloAlpha;
-			pColors[1] = mColor.g * mfHaloAlpha;
-			pColors[2] = mColor.b * mfHaloAlpha;
-			pColors[3] = mColor.a * mfHaloAlpha;
-			pColors+=4;
-		}
-
-		mpVtxBuffer->UpdateData(eVertexFlag_Color0,false);
+		UpdateInstance();
 	}
 
 	//-----------------------------------------------------------------------
@@ -271,76 +189,6 @@ namespace hpl {
 	cBoundingVolume* cBillboard::GetBoundingVolume()
 	{
 		return &mBoundingVolume;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
-	{
-		if(mbIsHalo==false) return;
-
-		// The halo's shader finds out how much of the lamp is in view
-		if(DrawnAsHalo())
-		{
-			SetHaloAlpha(1);
-			return;
-		}
-
-		////////////////////////
-		//Set the alpha
-		float fAlpha = 0;
-
-		if(mlLastRenderCount == apRenderList->GetLastRenderCount())
-		{
-			if(mMaxQueryObject.mpQuery->GetSampleCount()>0)
-			{
-				fAlpha =	(float)mQueryObject.mpQuery->GetSampleCount() /
-							(float)mMaxQueryObject.mpQuery->GetSampleCount();
-			}
-		}
-		SetHaloAlpha(fAlpha);
-		mlLastRenderCount = apRenderList->GetRenderCount();
-
-		////////////////////////
-		//Add the queries
-		if(mbHaloSourceIsParent)
-		{
-			iRenderable *pParent = static_cast<iRenderable*>(GetEntityParent());
-			if(pParent==nullptr)
-			{
-				Error("Billboard %s has no parent!\n",msName.c_str());
-				return;
-			}
-
-			iVertexBuffer *pVtxBuffer = pParent->GetVertexBuffer();
-			if(pVtxBuffer==nullptr)
-			{
-				Error("Billboard '%s' parent '%s' as NULL vertex buffer!\n",msName.c_str(),
-																		pParent->GetName().c_str());
-				return;
-			}
-
-			mQueryObject.mpMatrix = pParent->GetModelMatrix(apCamera);
-			mQueryObject.mpVtxBuffer = pVtxBuffer;
-
-			mMaxQueryObject.mpMatrix = pParent->GetModelMatrix(apCamera);
-			mMaxQueryObject.mpVtxBuffer = pVtxBuffer;
-		}
-		else
-		{
-			mQueryObject.mpMatrix = &GetWorldMatrix();
-			mQueryObject.mpVtxBuffer = mpHaloSourceBuffer;
-
-			mMaxQueryObject.mpMatrix = &GetWorldMatrix();
-			mMaxQueryObject.mpVtxBuffer = mpHaloSourceBuffer;
-		}
-
-		mQueryObject.mbDepthTest = true;
-		mMaxQueryObject.mbDepthTest = false;
-
-		apRenderList->AddOcclusionQuery(&mQueryObject);
-		apRenderList->AddOcclusionQuery(&mMaxQueryObject);
-
 	}
 
 	//-----------------------------------------------------------------------
@@ -377,8 +225,6 @@ namespace hpl {
 			vRight.Normalise();
 			vForward = cMath::Vector3Cross(vRight, vUp);
 
-			//vForward.Normalise();
-			//vUp.Normalise();
 		}
 
 		if(mfForwardOffset!=0)
@@ -411,7 +257,6 @@ namespace hpl {
 	bool cBillboard::DrawnAsHalo()
 	{
 		if(mType != eBillboardType_Point || mpMaterial==nullptr) return false;
-		if(mpLowLevelGraphics->GetEffects().mbHalos==false) return false;
 		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 	}
 
@@ -421,7 +266,6 @@ namespace hpl {
 		// The small ones are glints on things held in the hand (the
 		// flashlight's lens), not air
 		if(mvSize.y < 0.5f) return false;
-		if(mpLowLevelGraphics->GetEffects().mbShafts==false) return false;
 		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 	}
 
@@ -503,27 +347,24 @@ namespace hpl {
 	{
 		if(DrawnAsHalo())
 		{
-			if(mpHaloVtxProgram==nullptr)
+			if(mpHaloProgram==nullptr)
 			{
-				mpHaloVtxProgram = mpProgramManager->CreateProgram("Halo_vp.cg","main",eGpuProgramType_Vertex);
-				mpHaloFragProgram = mpProgramManager->CreateProgram("Halo_fp.cg","main",eGpuProgramType_Fragment);
+				mpHaloProgram = mpProgramManager->CreateProgram("Halo");
 			}
-			if(mpHaloVtxProgram==nullptr || mpHaloFragProgram==nullptr) return false;
+			if(mpHaloProgram==nullptr) return false;
 
-			aDraw.mpVtxProgram = mpHaloVtxProgram;
-			aDraw.mpFragProgram = mpHaloFragProgram;
+			aDraw.mpProgram = mpHaloProgram;
 			aDraw.mbDepthTest = mpMaterial->GetDepthTest();
 			return true;
 		}
 
 		if(DrawnAsShaft())
 		{
-			if(mpShaftVtxProgram==nullptr)
+			if(mpShaftProgram==nullptr)
 			{
-				mpShaftVtxProgram = mpProgramManager->CreateProgram("Shaft_vp.cg","main",eGpuProgramType_Vertex);
-				mpShaftFragProgram = mpProgramManager->CreateProgram("Shaft_fp.cg","main",eGpuProgramType_Fragment);
+				mpShaftProgram = mpProgramManager->CreateProgram("Shaft");
 			}
-			if(mpShaftVtxProgram==nullptr || mpShaftFragProgram==nullptr) return false;
+			if(mpShaftProgram==nullptr) return false;
 
 			if(mpShaftBuffer==nullptr || mvShaftBufferSize != mvSize)
 			{
@@ -546,8 +387,7 @@ namespace hpl {
 			m_mtxShaft.m[0][2] = vForward.x;m_mtxShaft.m[1][2] = vForward.y;m_mtxShaft.m[2][2] = vForward.z;
 			m_mtxShaft.SetTranslation(GetWorldPosition());
 
-			aDraw.mpVtxProgram = mpShaftVtxProgram;
-			aDraw.mpFragProgram = mpShaftFragProgram;
+			aDraw.mpProgram = mpShaftProgram;
 			aDraw.mpVtxBuffer = mpShaftBuffer;
 			aDraw.mpModelMatrix = &m_mtxShaft;
 			// The shader cuts the shaft off at what is in front of it, and
@@ -567,7 +407,7 @@ namespace hpl {
 		const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
 		bool bFog = apSettings->mbFogActive;
 
-		if(aDraw.mpVtxProgram == mpHaloVtxProgram)
+		if(aDraw.mpProgram == mpHaloProgram)
 		{
 			// The lamp: the box the original asks about, or the box
 			// round the parent where the original draws the parent itself
@@ -592,40 +432,35 @@ namespace hpl {
 			}
 			cVector3f vEye = cMath::MatrixMul(cMath::MatrixInverse(mtxBox), apCamera->GetEyePosition());
 
-			mpHaloVtxProgram->SetMatrixf("haloBox", mtxBox);
-			mpHaloVtxProgram->SetVec3f("haloEye", vEye);
+			mpHaloProgram->SetMatrixf(eProgramParam::haloBox, mtxBox);
+			mpHaloProgram->SetVec3f(eProgramParam::haloEye, vEye);
 			// The original draws the parent itself, all its faces, and the
 			// ones behind others fail the test: a lamp in full view comes
 			// out at about 0.6 (measured on the game's lamps). The box
 			// round it would come out at 1.
 			float fWhole = pParent ? 0.65f : 1.0f;
-			mpHaloVtxProgram->SetVec4f("haloParams", 0, mbIsHalo ? 1.0f : 0.0f, effects.mfHaloBrightness * fWhole, 0);
-			mpHaloVtxProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
-
-			static tString vKnotNames[kHaloKnots];
-			if(vKnotNames[0] == "")
-				for(int i=0; i<kHaloKnots; ++i) vKnotNames[i] = "haloProfile[" + cString::ToString(i) + "]";
+			mpHaloProgram->SetVec4f(eProgramParam::haloParams, 0, mbIsHalo ? 1.0f : 0.0f, effects.mfHaloBrightness * fWhole, 0);
+			mpHaloProgram->SetVec2f(eProgramParam::fogRange, apSettings->mfFogStart, apSettings->mfFogEnd);
 
 			const cColor *pProfile = GetHaloProfile();
 			for(int i=0; i<kHaloKnots; ++i)
-				mpHaloFragProgram->SetVec4f(vKnotNames[i], pProfile[i].r, pProfile[i].g, pProfile[i].b, 0);
-			mpHaloFragProgram->SetVec4f("haloLook", effects.mfHaloStreaks, bFog ? 1.0f : 0.0f, 0, 0);
+				mpHaloProgram->SetVec4f(iGpuProgram::Element(eProgramParam::haloProfile, i), pProfile[i].r, pProfile[i].g, pProfile[i].b, 0);
+			mpHaloProgram->SetVec4f(eProgramParam::haloLook, effects.mfHaloStreaks, bFog ? 1.0f : 0.0f, 0, 0);
 		}
-		else if(aDraw.mpVtxProgram == mpShaftVtxProgram)
+		else if(aDraw.mpProgram == mpShaftProgram)
 		{
 			cMatrixf mtxInv = cMath::MatrixInverse(m_mtxShaft);
 			cVector3f vEye = cMath::MatrixMul(mtxInv, apCamera->GetEyePosition());
 			// The viewer looks along -z
 			cMatrixf mtxView = cMath::MatrixMul(apCamera->GetViewMatrix(), m_mtxShaft);
 
-			mpShaftFragProgram->SetVec3f("shaftEye", vEye);
-			mpShaftFragProgram->SetVec4f("shaftViewZ", -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
-			mpShaftFragProgram->SetVec4f("shaftSize", mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
+			mpShaftProgram->SetVec3f(eProgramParam::shaftEye, vEye);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftViewZ, -mtxView.m[2][0], -mtxView.m[2][1], -mtxView.m[2][2], -mtxView.m[2][3]);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftSize, mvSize.x * 0.5f, mvSize.y * 0.5f, 0, 0);
 			// As the sheet's corners are coloured
-			mpShaftFragProgram->SetVec4f("shaftColor", mColor.r * mfHaloAlpha, mColor.g * mfHaloAlpha,
-													mColor.b * mfHaloAlpha, mColor.a * mfHaloAlpha);
-			mpShaftFragProgram->SetVec4f("shaftLook", effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
-			mpShaftFragProgram->SetVec2f("fogRange", apSettings->mfFogStart, apSettings->mfFogEnd);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftColor, mColor.r, mColor.g, mColor.b, mColor.a);
+			mpShaftProgram->SetVec4f(eProgramParam::shaftLook, effects.mfShaftBrightness, effects.mfShaftDust, bFog ? 1.0f : 0.0f, 0);
+			mpShaftProgram->SetVec2f(eProgramParam::fogRange, apSettings->mfFogStart, apSettings->mfFogEnd);
 		}
 	}
 
@@ -722,20 +557,6 @@ namespace hpl {
 	void cBillboard::SetIsHalo(bool abX)
 	{
 		mbIsHalo = abX;
-
-		if(mbIsHalo)
-		{
-			mQueryObject.mpQuery = mpLowLevelGraphics->CreateOcclusionQuery();
-			mMaxQueryObject.mpQuery = mpLowLevelGraphics->CreateOcclusionQuery();
-
-			mfHaloAlpha = 1; //THis is to make sure that the new alpha is set to the mesh.
-			SetHaloAlpha(0);
-		}
-		else if(mQueryObject.mpQuery)
-		{
-			mpLowLevelGraphics->DestroyOcclusionQuery(mQueryObject.mpQuery);
-			mpLowLevelGraphics->DestroyOcclusionQuery(mMaxQueryObject.mpQuery);
-		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -743,8 +564,6 @@ namespace hpl {
 	void cBillboard::SetHaloSourceSize(const cVector3f &avSize)
 	{
 		mvHaloSourceSize = avSize;
-
-		UpdateSourceBufferSize();
 	}
 
 	//-----------------------------------------------------------------------
@@ -775,37 +594,6 @@ namespace hpl {
 		Warning("Invalid billboard type '%s'\n",apString);
 
 		return eBillboardType_Point;
-	}
-
-	//-----------------------------------------------------------------------
-
-	void cBillboard::UpdateSourceBufferSize()
-	{
-		int lNum = mpHaloSourceBuffer->GetVertexNum();
-		float *pPositions = mpHaloSourceBuffer->GetArray(eVertexFlag_Position);
-
-		for(int i=0; i<lNum;++i)
-		{
-			//X
-			if(pPositions[0] < 0)
-				pPositions[0] = -mvHaloSourceSize.x*0.5f;
-			else
-				pPositions[0] = mvHaloSourceSize.x*0.5f;
-			//Y
-			if(pPositions[1] < 0)
-				pPositions[1] = -mvHaloSourceSize.y*0.5f;
-			else
-				pPositions[1] = mvHaloSourceSize.y*0.5f;
-			//Z
-			if(pPositions[2] < 0)
-				pPositions[2] = -mvHaloSourceSize.z*0.5f;
-			else
-				pPositions[2] = mvHaloSourceSize.z*0.5f;
-
-			pPositions += 4;
-		}
-
-		mpHaloSourceBuffer->UpdateData(eVertexFlag_Position, false);
 	}
 
 	//-----------------------------------------------------------------------
@@ -869,7 +657,8 @@ namespace hpl {
 		kSaveData_SaveTo(mvAxis);
 		kSaveData_SaveTo(mfForwardOffset);
 		kSaveData_SaveTo(mColor);
-		kSaveData_SaveTo(mfHaloAlpha);
+		// Read by the builds that faded halos by occlusion queries
+		pData->mfHaloAlpha = 1;
 
 		kSaveData_SaveTo(mbIsHalo);
 		kSaveData_SaveTo(mvHaloSourceSize);
@@ -887,7 +676,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mvAxis);
 		kSaveData_LoadFrom(mfForwardOffset);
 		kSaveData_LoadFrom(mColor);
-		kSaveData_LoadFrom(mfHaloAlpha);
 
 		SetIsHalo(pData->mbIsHalo);
 		SetHaloSourceSize(pData->mvHaloSourceSize);
@@ -902,7 +690,6 @@ namespace hpl {
 
 		if(mbIsHalo)
 		{
-			//Log("Setting up halo billboard '%s'\n",msName.c_str());
 		}
 	}
 

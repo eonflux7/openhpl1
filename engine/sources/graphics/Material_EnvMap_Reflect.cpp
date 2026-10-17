@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_EnvMap_Reflect.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
@@ -39,7 +38,7 @@ namespace hpl {
 
 	void cEnvMapReflect_SetUp::Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
 	{
-		apProgram->SetVec3f("eyeWorldPos",apRenderSettings->mpCamera->GetPosition());
+		apProgram->SetVec3f(eProgramParam::eyeWorldPos,apRenderSettings->mpCamera->GetPosition());
 	}
 
 	//-----------------------------------------------------------------------
@@ -48,46 +47,16 @@ namespace hpl {
 	{
 		//Put here so it is updated with every matrix, just aswell...
 		if(apModelMatrix)
-			apRenderSettings->mpVertexProgram->SetMatrixf("objectWorldMatrix",*apModelMatrix);
+			apRenderSettings->mpProgram->SetMatrixf(eProgramParam::objectWorldMatrix,*apModelMatrix);
 		else
 		{
-			apRenderSettings->mpVertexProgram->SetMatrixf("objectWorldMatrix",cMatrixf::Identity);
+			apRenderSettings->mpProgram->SetMatrixf(eProgramParam::objectWorldMatrix,cMatrixf::Identity);
 		}
 	}
 
 	//-----------------------------------------------------------------------
 
 	static cEnvMapReflect_SetUp gEnvMaterialSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// FRAGEMENT SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	cGLState_EnvMapReflect::cGLState_EnvMapReflect()
-		: iGLStateProgram("Internal_Diffuse")
-	{
-	}
-
-	void cGLState_EnvMapReflect::Bind()
-	{
-		mpLowGfx->SetActiveTextureUnit(1);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Interpolate);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorSource2,eTextureSource_Previous);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorOp2,eTextureOp_Alpha);
-	}
-
-	void cGLState_EnvMapReflect::UnBind()
-	{
-		mpLowGfx->SetActiveTextureUnit(1);
-		mpLowGfx->SetTextureEnv(eTextureParam_ColorFunc,eTextureFunc_Modulate);
-
-	}
-
-	//-----------------------------------------------------------------------
-
-	cGLState_EnvMapReflect gGLState_EnvMapReflect;
 
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
@@ -97,27 +66,25 @@ namespace hpl {
 
 	cMaterial_EnvMap_Reflect::cMaterial_EnvMap_Reflect(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 		aPicture,apRenderer3D)
 	{
 		mbIsTransperant = false;
 		mbIsGlowing= false;
 		mbUsesLights = false;
 
-		gGLState_EnvMapReflect.SetUp(apLowLevelGraphics);
+		///////////////////////////////////////////
+		//Load the Z pass vertex program
+		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color");
+		SetProgram(pVtxProg,0);
+
 
 		///////////////////////////////////////////
 		//Load the Z pass vertex program
-		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",eGpuProgramType_Vertex);
-		SetProgram(pVtxProg,eGpuProgramType_Vertex,0);
-
-
-		///////////////////////////////////////////
-		//Load the Z pass vertex program
-		pVtxProg = mpProgramManager->CreateProgram("Diffuse_EnvMap_Reflect_vp.cg","main",eGpuProgramType_Vertex);
-		SetProgram(pVtxProg,eGpuProgramType_Vertex,1);
+		pVtxProg = mpProgramManager->CreateProgram("Diffuse_EnvMap_Reflect");
+		SetProgram(pVtxProg,1);
 	}
 
 	//-----------------------------------------------------------------------
@@ -134,36 +101,34 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cMaterial_EnvMap_Reflect::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iGpuProgram* cMaterial_EnvMap_Reflect::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Z)
-			return mpProgram[eGpuProgramType_Vertex][0];
+			return mpProgram[0];
 		else
-			return mpProgram[eGpuProgramType_Vertex][1];
+			return mpProgram[1];
 	}
 
-	bool cMaterial_EnvMap_Reflect::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_EnvMap_Reflect::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	bool cMaterial_EnvMap_Reflect::VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_EnvMap_Reflect::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	iMaterialProgramSetup * cMaterial_EnvMap_Reflect::GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iMaterialProgramSetup * cMaterial_EnvMap_Reflect::GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return &gEnvMaterialSetup;
 
 		return nullptr;
 	}
 
-	iGpuProgram* cMaterial_EnvMap_Reflect::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		if(aType == eMaterialRenderType_Diffuse) return &gGLState_EnvMapReflect;
-		return nullptr;
-	}
+	// Both passes are drawn by the vertex program's own fragment shader
+	// (hpl1_Diffuse_EnvMap_Reflect.fragment for the diffuse one)
+
 
 	eMaterialAlphaMode cMaterial_EnvMap_Reflect::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{

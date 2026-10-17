@@ -101,9 +101,6 @@ namespace hpl {
 
 		//Scale
 		//Skip this for now...
-		/*cVector3f vOne(1,1,1);
-		cVector3f vScale = (Frame.scale - vOne)*afWeight + vOne;
-		apNode->AddScale(vScale);*/
 
 		//Rotation
 		cQuaternion qRot = cMath::QuaternionSlerp(afWeight, cQuaternion::Identity, Frame.rotation, true);

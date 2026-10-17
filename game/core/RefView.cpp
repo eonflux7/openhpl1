@@ -16,7 +16,6 @@
 #include "systems/FadeHandler.h"
 #include "ui/MainMenu.h"
 #include "ui/Inventory.h"
-#include "impl/ComparisonImage.h"
 
 #include <SDL3/SDL.h>
 #include <imgui.h>
@@ -37,9 +36,6 @@ static void Tip(const char *apText)
 
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
-
-// Count presented frames, so a slow renderer cannot skip either capture.
-static const int kCompareSettleFrames = 25;
 
 //-----------------------------------------------------------------------
 
@@ -68,8 +64,6 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 	mbHide2D = false;
 	mbGodMode = true;
 	mbSkippingDrawing = false;
-	mbLinearLighting = false;
-	mbSetLinearLighting = false;
 	mbSetFlashLight = false;
 	mlGiveItems = 0;
 
@@ -107,10 +101,7 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 
 cRefView::~cRefView()
 {
-	EndCompareShots();
 	SetOpen(false);
-	for(cGfxObject *pGfx : mvLegacyPreviewGfx)
-		if(pGfx) mpInit->mpGame->GetGraphics()->GetDrawer()->DestroyGfxObject(pGfx);
 }
 
 //-----------------------------------------------------------------------
@@ -142,233 +133,11 @@ void cRefView::SetOpen(bool abX)
 
 //-----------------------------------------------------------------------
 
-//-----------------------------------------------------------------------
-
-// The options that change how the picture looks, all to what the original
-// game does. Resolution, multisampling, texture filter, render scale,
-// field of view and gamma are left: the original has those too.
-void cRefView::SetOriginalLook()
-{
-	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
-	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
-	cPlayerNoiseFilter *pFilter = mpInit->mpPlayer->GetNoiseFilter();
-	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
-
-	mSavedLook.mbLinearLighting = pGraphics->GetLinearLighting();
-	mSavedLook.mBloomType = pPostEffects->GetBloomType();
-	mSavedLook.mbAmbientOcclusion = pPostEffects->GetAmbientOcclusionActive();
-	mSavedLook.mDofType = pPostEffects->GetDepthOfFieldType();
-	mSavedLook.mMotionBlurType = pPostEffects->GetMotionBlurType();
-	mSavedLook.mShadowType = pGraphics->GetRenderer3D()->GetShadowType();
-	mSavedLook.mlNoiseType = (int)pFilter->GetType();
-	mSavedLook.mbSmaa = pLowLevel->GetSmaa().mbActive;
-	mSavedLook.mbShading = pLowLevel->GetShading().mbImproved;
-	mSavedLook.mbFlashlight = pFlashLight->GetSettings().mbImproved;
-	mSavedLook.mbLamps = mpInit->mpLampLooks->GetSettings().mbImproved;
-	mSavedLook.mEffects = pLowLevel->GetEffects();
-	mSavedLook.mbPlayerEffects = pLowLevel->GetPlayerEffectSettings().mbImproved;
-	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
-	feedback.mbImproved = false;
-	pLowLevel->SetPlayerEffectSettings(feedback);
-
-	pGraphics->SetLinearLighting(false);
-	pPostEffects->SetBloomType(eBloomType_Original);
-	pPostEffects->SetAmbientOcclusionActive(false);
-	pPostEffects->SetDepthOfFieldType(eDepthOfFieldType_Original);
-	pPostEffects->SetMotionBlurType(eMotionBlurType_Original);
-	pGraphics->GetRenderer3D()->SetShadowType(eShadowType_Volumes);
-	pFilter->SetType(eNoiseFilterType_Original);
-	cSmaaSettings smaa = pLowLevel->GetSmaa();
-	smaa.mbActive = false;
-	pLowLevel->SetSmaa(smaa);
-	cShadingSettings shading = pLowLevel->GetShading();
-	shading.mbImproved = false;
-	pLowLevel->SetShading(shading);
-	cFlashlightSettings flashlight = pFlashLight->GetSettings();
-	flashlight.mbImproved = false;
-	pFlashLight->SetSettings(flashlight);
-	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
-	lamps.mbImproved = false;
-	mpInit->mpLampLooks->SetSettings(lamps);
-	cEffectSettings effects = mSavedLook.mEffects;
-	effects.mbHalos = false;
-	effects.mbShafts = false;
-	effects.mbParticles = false;
-	pLowLevel->SetEffects(effects);
-}
-
-void cRefView::RestoreLook()
-{
-	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-	iLowLevelGraphics *pLowLevel = pGraphics->GetLowLevel();
-	cRendererPostEffects *pPostEffects = pGraphics->GetRendererPostEffects();
-	cPlayerFlashLight *pFlashLight = mpInit->mpPlayer->GetFlashLight();
-
-	pGraphics->SetLinearLighting(mSavedLook.mbLinearLighting);
-	pPostEffects->SetBloomType(mSavedLook.mBloomType);
-	pPostEffects->SetAmbientOcclusionActive(mSavedLook.mbAmbientOcclusion);
-	pPostEffects->SetDepthOfFieldType(mSavedLook.mDofType);
-	pPostEffects->SetMotionBlurType(mSavedLook.mMotionBlurType);
-	pGraphics->GetRenderer3D()->SetShadowType(mSavedLook.mShadowType);
-	mpInit->mpPlayer->GetNoiseFilter()->SetType((eNoiseFilterType)mSavedLook.mlNoiseType);
-	cSmaaSettings smaa = pLowLevel->GetSmaa();
-	smaa.mbActive = mSavedLook.mbSmaa;
-	pLowLevel->SetSmaa(smaa);
-	cShadingSettings shading = pLowLevel->GetShading();
-	shading.mbImproved = mSavedLook.mbShading;
-	pLowLevel->SetShading(shading);
-	cFlashlightSettings flashlight = pFlashLight->GetSettings();
-	flashlight.mbImproved = mSavedLook.mbFlashlight;
-	pFlashLight->SetSettings(flashlight);
-	cLampSettings lamps = mpInit->mpLampLooks->GetSettings();
-	lamps.mbImproved = mSavedLook.mbLamps;
-	mpInit->mpLampLooks->SetSettings(lamps);
-	pLowLevel->SetEffects(mSavedLook.mEffects);
-	cPlayerEffectSettings feedback = pLowLevel->GetPlayerEffectSettings();
-	feedback.mbImproved = mSavedLook.mbPlayerEffects;
-	pLowLevel->SetPlayerEffectSettings(feedback);
-}
-
-//-----------------------------------------------------------------------
-
-void cRefView::StartCompareShots()
-{
-	if(IsComparing() || mpInit->mpMapHandler->IsChangingMap() ||
-		mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default" ||
-		!mpInit->mpGame->GetScene()->GetWorld3D()) return;
-
-	// SDL uses the Windows shell folder lookup, including redirected and
-	// OneDrive desktops, and returns UTF-8 for the image writer.
-	const char *pDesktop = SDL_GetUserFolder(SDL_FOLDER_DESKTOP);
-	if(!pDesktop || !pDesktop[0])
-	{
-		Error("Couldn't find the desktop for a comparison image: %s\n", SDL_GetError());
-		return;
-	}
-	time_t lNow = time(nullptr);
-	char sTime[32];
-	strftime(sTime, sizeof(sTime), "%Y%m%d-%H%M%S", localtime(&lNow));
-	const tString sBase = tString(pDesktop) + "overture-compare-" + sTime;
-	msCompareFile = sBase + "-stacked.png";
-	for(int i=2; FileExists(cString::To16Char(msCompareFile)); ++i)
-		msCompareFile = sBase + "-" + cString::ToString(i) + "-stacked.png";
-
-	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
-	mvCompareCameraPos = pCamera->GetPosition();
-	mvCompareCameraAngles = cVector3f(pCamera->GetPitch(), pCamera->GetYaw(), pCamera->GetRoll());
-	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	mbCompareOverlay = pLowLevel->GetDebugOverlayActive();
-	pLowLevel->SetDebugOverlayActive(false);
-
-	SetOriginalLook();
-	mlCompareStep = 1;
-	mlCompareWait = kCompareSettleFrames;
-	Log("Saving Vanilla / Improved comparison to %s\n", msCompareFile.c_str());
-}
-
-void cRefView::HoldCompareCamera()
-{
-	if(!IsComparing()) return;
-	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
-	pCamera->SetPosition(mvCompareCameraPos);
-	pCamera->SetPitch(mvCompareCameraAngles.x);
-	pCamera->SetYaw(mvCompareCameraAngles.y);
-	pCamera->SetRoll(mvCompareCameraAngles.z);
-}
-
-void cRefView::EndCompareShots()
-{
-	if(!IsComparing()) return;
-	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	pLowLevel->CaptureNextFrame({});
-	if(mlCompareStep <= 2) RestoreLook();
-	pLowLevel->SetDebugOverlayActive(mbCompareOverlay);
-	mlCompareStep = 0;
-	std::vector<unsigned char>().swap(mvCompareVanilla);
-}
-
-void cRefView::OnPostBufferSwap()
-{
-	UpdateCompareShots();
-}
-
-// 1: vanilla settles, 2: await its readback, 3: current settings settle,
-// 4: await the combined PNG. The panel and overlay are hidden meanwhile.
-void cRefView::UpdateCompareShots()
-{
-	if(mlCompareStep == 0) return;
-	if(mlCompareWait > 0 && --mlCompareWait > 0) return;
-
-	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	switch(mlCompareStep)
-	{
-	case 1:
-		mbCompareCaptured = false;
-		pLowLevel->CaptureNextFrame([this](const std::vector<unsigned char>& aPixels, const cVector2l& avSize) {
-			mvCompareVanilla = aPixels;
-			mvCompareSize = avSize;
-			mbCompareCaptured = true;
-		});
-		break;
-	case 2:
-		if(!mbCompareCaptured) return;
-		if(mvCompareVanilla.empty())
-		{
-			Error("Couldn't read the vanilla comparison frame\n");
-			EndCompareShots();
-			return;
-		}
-		RestoreLook();
-		mlCompareWait = kCompareSettleFrames;
-		break;
-	case 3:
-		mbCompareCaptured = false;
-		pLowLevel->CaptureNextFrame([this](const std::vector<unsigned char>& aPixels, const cVector2l& avSize) {
-			mbCompareSaved = avSize == mvCompareSize;
-			if(!mbCompareSaved) Error("Couldn't save comparison: the window size changed\n");
-			else
-			{
-				mbCompareSaved = SaveComparisonPNG(msCompareFile, mvCompareSize, mvCompareVanilla, aPixels);
-				if(!mbCompareSaved)
-					Error("Couldn't save comparison to '%s': %s\n", msCompareFile.c_str(), SDL_GetError());
-			}
-			mbCompareCaptured = true;
-		});
-		break;
-	default:
-		if(!mbCompareCaptured) return;
-		if(mbCompareSaved) Log("Comparison image saved: %s\n", msCompareFile.c_str());
-		EndCompareShots();
-		return;
-	}
-	++mlCompareStep;
-}
-
-//-----------------------------------------------------------------------
-
 void cRefView::Update(float afTimeStep)
 {
-	if(IsComparing())
-	{
-		if(mpInit->mpMapHandler->IsChangingMap() ||
-			mpInit->mpGame->GetUpdater()->GetCurrentContainerName() != "Default")
-		{
-			EndCompareShots();
-			return;
-		}
-		HoldCompareCamera();
-		return;
-	}
 	UpdatePlayerEffects(afTimeStep);
 
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
-
-	if(mbSetLinearLighting)
-	{
-		mbSetLinearLighting = false;
-		mpInit->mpGame->GetGraphics()->SetLinearLighting(mbLinearLighting);
-	}
 
 	if(msLoadMap != "")
 	{
@@ -660,12 +429,10 @@ void cRefView::DeleteViewpoint()
 
 void cRefView::Reset()
 {
-	EndCompareShots();
 	// Changing map resets every updateable; the panel keeps its state.
 	mlEffectPreview = ePreview_None;
 	mbEffectTour = false;
 	mfEffectPreviewClock = 0;
-	mbLegacyPreviewTrail = false;
 	mlEffectAction = 0;
 	mfEffectBlackFade = 0;
 }
@@ -858,8 +625,6 @@ void cRefView::ApplyOptions()
 void cRefView::Draw()
 {
 	if(mbOpen==false) return;
-	// Not in the comparison shots
-	if(mlCompareStep != 0) return;
 	if(mpInit->mpDogTestMap->IsActive() && !mpInit->mpDogTestMap->DrawControls()) return;
 
 	if(msViewsMap == "effectslab")
@@ -1128,16 +893,11 @@ void cRefView::DrawPlayer()
 
 void cRefView::DrawRenderer()
 {
-	// Not while a click waits for the next step: the panel can be drawn
-	// several times before it
-	if(mbSetLinearLighting==false) mbLinearLighting = mpInit->mpGame->GetGraphics()->GetLinearLighting();
-	if(ImGui::Checkbox("Linear lighting", &mbLinearLighting)) mbSetLinearLighting = true;
-
-	// The values it is tuned with: kept in settings.cfg, like the option
+	// The values the lighting is tuned with: kept in settings.cfg
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	cLinearLightingTuning tuning = pLowLevel->GetLinearLightingTuning();
 	bool bChanged = false;
-	ImGui::BeginDisabled(mbLinearLighting==false);
+	ImGui::TextUnformatted("Lighting");
 	ImGui::SameLine();
 	if(ImGui::Button("Reset"))
 	{
@@ -1158,8 +918,8 @@ void cRefView::DrawRenderer()
 							"how far their brightest parts go past white. Faint parts are left alone.");
 	bChanged |= ImGui::SliderFloat("Blend match", &tuning.mfBlendMatch, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
-		Tip("Particles, see-through materials and fog: 1 covers as much as without "
-							"linear lighting, 0 blends them as light, which makes smoke, snow and fog heavier.");
+		Tip("Particles, see-through materials and fog: 1 covers as much as in the "
+							"original, 0 blends them as light, which makes smoke, snow and fog heavier.");
 	bChanged |= ImGui::SliderFloat("Shoulder", &tuning.mfShoulder, 0.0f, 1.0f, "%.2f");
 	if(ImGui::IsItemHovered())
 		Tip("Tonemapping: the screen brightness above which bright parts roll off "
@@ -1171,21 +931,15 @@ void cRefView::DrawRenderer()
 							"to come out white. Higher keeps more detail in bright parts and makes them greyer.");
 	ImGui::EndDisabled();
 	ImGui::PopItemWidth();
-	ImGui::EndDisabled();
 	if(bChanged) pLowLevel->SetLinearLightingTuning(tuning);
 
 	// Bloom: these too are kept in settings.cfg
 	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-	int lBloom = pPostEffects->GetBloomActive() ? 1 + (int)pPostEffects->GetBloomType() : 0;
-	ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14);
-	if(ImGui::Combo("Bloom", &lBloom, "Off\0Original\0Soft\0"))
-	{
-		pPostEffects->SetBloomActive(lBloom > 0);
-		if(lBloom > 0) pPostEffects->SetBloomType((eBloomType)(lBloom - 1));
-	}
+	bool bBloom = pPostEffects->GetBloomActive();
+	if(ImGui::Checkbox("Bloom", &bBloom)) pPostEffects->SetBloomActive(bBloom);
 	cBloomTuning bloom = pPostEffects->GetBloomTuning();
 	bChanged = false;
-	ImGui::BeginDisabled(lBloom != 1 + eBloomType_Soft);
+	ImGui::BeginDisabled(bBloom==false);
 	ImGui::SameLine();
 	if(ImGui::Button("Reset##bloom"))
 	{
@@ -1196,7 +950,7 @@ void cRefView::DrawRenderer()
 	bChanged |= ImGui::SliderFloat("Threshold", &bloom.mfThreshold, 0.0f, 1.5f, "%.2f");
 	if(ImGui::IsItemHovered())
 		Tip("The screen brightness at which things begin to glow; 1 is white. "
-							"Above 1 only what is brighter than white glows (needs linear lighting).");
+							"Above 1 only what is brighter than white glows.");
 	bChanged |= ImGui::SliderFloat("Intensity", &bloom.mfIntensity, 0.0f, 2.0f, "%.2f");
 	if(ImGui::IsItemHovered()) Tip("How strong the glow is.");
 	bChanged |= ImGui::SliderFloat("Spread", &bloom.mfScatter, 0.0f, 1.0f, "%.2f");
@@ -1233,15 +987,7 @@ void cRefView::DrawShadows()
 	if(ImGui::Combo("Shadows", &lShow, "On\0Only of what never moves\0Off\0"))
 		pRenderer->SetShowShadows((eRendererShowShadows)lShow);
 
-	int lType = pRenderer->GetShadowType();
-	if(ImGui::Combo("Kind", &lType, "Original (volumes)\0Shadow maps\0"))
-		pRenderer->SetShadowType((eShadowType)lType);
-	if(ImGui::IsItemHovered())
-		Tip("Original: the game's hard-edged shadows.\n"
-							"Shadow maps: what each light sees is drawn into a depth picture, "
-							"which the lit surfaces look themselves up in.");
-
-	ImGui::BeginDisabled(lType != eShadowType_Maps || lShow == eRendererShowShadows_None);
+	ImGui::BeginDisabled(lShow == eRendererShowShadows_None);
 
 	if(ImGui::CollapsingHeader("Edges", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1535,19 +1281,14 @@ void cRefView::DrawLensAndFilm()
 		cDepthOfFieldSettings settings = pPostEffects->GetDepthOfFieldSettings();
 		bool bChanged = false;
 
-		int lType = pDoF->IsDisabled() ? 0 : 1 + (int)pPostEffects->GetDepthOfFieldType();
-		if(ImGui::Combo("Depth of field", &lType, "Off\0Original\0Bokeh\0"))
-		{
-			pDoF->SetDisabled(lType == 0);
-			if(lType > 0) pPostEffects->SetDepthOfFieldType((eDepthOfFieldType)(lType - 1));
-		}
+		bool bDof = !pDoF->IsDisabled();
+		if(ImGui::Checkbox("Depth of field", &bDof)) pDoF->SetDisabled(!bDof);
 		if(ImGui::IsItemHovered())
 			Tip("The game blurs what is out of focus when you look closely at something you picked up, "
-				"and where a map's script asks for it. Original: the scene blended with a small blurred copy. "
-				"Bokeh: every pixel spread over a disc, from the depth of what is on screen; "
-				"bright points become discs and what is in focus keeps its edges.");
+				"and where a map's script asks for it. Every pixel is spread over a disc, from the depth of "
+				"what is on screen; bright points become discs and what is in focus keeps its edges.");
 
-		ImGui::BeginDisabled(lType != 1 + eDepthOfFieldType_Bokeh);
+		ImGui::BeginDisabled(bDof==false);
 		ImGui::SameLine();
 		if(ImGui::Button("Reset##dof"))
 		{
@@ -1570,7 +1311,7 @@ void cRefView::DrawLensAndFilm()
 				"and a bright point shows as dots instead of a disc. F3 shows the time ('Depth of field').");
 		ImGui::EndDisabled();
 
-		ImGui::BeginDisabled(lType == 0);
+		ImGui::BeginDisabled(bDof==false);
 		bChanged |= ImGui::Checkbox("Try it here", &settings.mbTest);
 		if(ImGui::IsItemHovered())
 			Tip("Switches the depth of field on now, focused as set below, whatever the game asks for. "
@@ -1592,18 +1333,13 @@ void cRefView::DrawLensAndFilm()
 		cMotionBlurSettings settings = pPostEffects->GetMotionBlurSettings();
 		bool bChanged = false;
 
-		int lType = pPostEffects->GetMotionBlurActive() ? 1 + (int)pPostEffects->GetMotionBlurType() : 0;
-		if(ImGui::Combo("Motion blur", &lType, "Off\0Original\0Camera\0"))
-		{
-			pPostEffects->SetMotionBlurActive(lType > 0);
-			if(lType > 0) pPostEffects->SetMotionBlurType((eMotionBlurType)(lType - 1));
-		}
+		bool bMotion = pPostEffects->GetMotionBlurActive();
+		if(ImGui::Checkbox("Motion blur", &bMotion)) pPostEffects->SetMotionBlurActive(bMotion);
 		if(ImGui::IsItemHovered())
-			Tip("Original: every object is drawn a second time, smeared from where it was the frame before. "
-				"Camera: one pass that blurs the picture along the way the camera's own turning and walking "
+			Tip("One pass that blurs the picture along the way the camera's own turning and walking "
 				"moves it, from the depth of what is on screen. Things that move by themselves stay sharp.");
 
-		ImGui::BeginDisabled(lType != 1 + eMotionBlurType_Camera);
+		ImGui::BeginDisabled(bMotion==false);
 		ImGui::SameLine();
 		if(ImGui::Button("Reset##motion"))
 		{
@@ -1722,27 +1458,17 @@ void cRefView::DrawShading()
 	cShadingSettings shading = pLowLevel->GetShading();
 	bool bChanged = false;
 
-	int lType = shading.mbImproved ? 1 : 0;
-	ImGui::SetNextItemWidth(fEm * 12);
-	if(ImGui::Combo("Shading##type", &lType, "Original\0Improved\0"))
-	{
-		shading.mbImproved = lType == 1;
-		bChanged = true;
-	}
+	ImGui::TextUnformatted("Shading");
 	if(ImGui::IsItemHovered())
-		Tip("Improved: highlights with a width and strength of their own for each surface, coloured by "
-			"the light, and ambient light that shows the normal maps. Made for linear lighting; "
-			"without it highlights clip at white.");
+		Tip("Highlights with a width and strength of their own for each surface, coloured by "
+			"the light, and ambient light that shows the normal maps.");
 	ImGui::SameLine();
 	if(ImGui::Button("Reset##shading"))
 	{
-		bool bImproved = shading.mbImproved;
 		shading = cShadingSettings();
-		shading.mbImproved = bImproved;
 		bChanged = true;
 	}
 
-	ImGui::BeginDisabled(shading.mbImproved==false);
 	ImGui::PushItemWidth(fEm * 12);
 
 	if(ImGui::CollapsingHeader("Highlights", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1778,7 +1504,6 @@ void cRefView::DrawShading()
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::EndDisabled();
 
 	if(bChanged) pLowLevel->SetShading(shading);
 
@@ -1790,27 +1515,16 @@ void cRefView::DrawShading()
 		cFlashlightSettings flashlight = pFlashLight->GetSettings();
 		bChanged = false;
 
-		int lFlashlight = flashlight.mbImproved ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Flashlight", &lFlashlight, "Original\0Improved\0"))
+		if(ImGui::Button("Reset##flashlight"))
 		{
-			flashlight.mbImproved = lFlashlight == 1;
+			flashlight = cFlashlightSettings();
 			bChanged = true;
 		}
 		if(ImGui::IsItemHovered())
-			Tip("Improved: brighter near and fading with the distance, a beam with a hotspot made by the "
+			Tip("Brighter near and fading with the distance, a beam with a hotspot made by the "
 				"shader in place of the 256 pixel picture, a warmer colour, and light coming back from "
 				"what the beam lands on.");
-		ImGui::SameLine();
-		if(ImGui::Button("Reset##flashlight"))
-		{
-			bool bImproved = flashlight.mbImproved;
-			flashlight = cFlashlightSettings();
-			flashlight.mbImproved = bImproved;
-			bChanged = true;
-		}
 
-		ImGui::BeginDisabled(flashlight.mbImproved==false);
 		ImGui::PushItemWidth(fEm * 12);
 		bChanged |= ImGui::SliderFloat("Brightness", &flashlight.mfBrightness, 0.25f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
 		if(ImGui::IsItemHovered()) Tip("The amount of light: 2 is twice as much.");
@@ -1842,7 +1556,6 @@ void cRefView::DrawShading()
 		if(ImGui::IsItemHovered())
 			Tip("Light coming back from what the beam lands on: a weak light there, without shadows. 0: none.");
 		ImGui::PopItemWidth();
-		ImGui::EndDisabled();
 
 		if(bChanged) pFlashLight->SetSettings(flashlight);
 	}
@@ -1855,29 +1568,19 @@ void cRefView::DrawShading()
 		cLampSettings lamps = pLampLooks->GetSettings();
 		bChanged = false;
 
-		int lLamps = lamps.mbImproved ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Lamps", &lLamps, "Original\0Improved\0"))
+		if(ImGui::Button("Reset##lamps"))
 		{
-			lamps.mbImproved = lLamps == 1;
+			lamps = cLampSettings();
 			bChanged = true;
 		}
 		if(ImGui::IsItemHovered())
 			Tip("The glow stick, the flare and the lamps of the world (paraffin lamps, bulbs, fluorescent "
-				"tubes, emergency and tunnel lights). Improved: flames waver and sway, and their halos "
+				"tubes, emergency and tunnel lights): flames waver and sway, and their halos "
 				"with them, each kind of lamp has a colour of its own, lamps are brighter close by, and "
 				"tubes have long highlights.");
 		ImGui::SameLine();
-		if(ImGui::Button("Reset##lamps"))
-		{
-			bool bImproved = lamps.mbImproved;
-			lamps = cLampSettings();
-			lamps.mbImproved = bImproved;
-			bChanged = true;
-		}
-		if(lamps.mbImproved) ImGui::TextDisabled("%d lights with a look in this map", pLampLooks->GetLampCount());
+		ImGui::TextDisabled("%d lights with a look in this map", pLampLooks->GetLampCount());
 
-		ImGui::BeginDisabled(lamps.mbImproved==false);
 		ImGui::PushItemWidth(fEm * 12);
 		bChanged |= ImGui::SliderFloat("Flicker", &lamps.mfFlicker, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered())
@@ -1905,14 +1608,13 @@ void cRefView::DrawShading()
 		bChanged |= ImGui::SliderFloat("Tube length", &lamps.mfTube, 0.0f, 2.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("Fluorescent tubes: how long their highlights are, in times the tube's own length. "
-				"0: a point, as in the original. Shows with Shading: Improved only.");
+				"0: a point, as in the original.");
 		bChanged |= ImGui::Checkbox("Lights of the maps too", &lamps.mbMapLights);
 		if(ImGui::IsItemHovered())
 			Tip("The lights that are part of a map and not of a lamp (56 in the game): brighter near "
 				"them as well, unless they reach further than 20 m or have a falloff of their own, "
 				"and the furnace's lights waver. Their colours stay.");
 		ImGui::PopItemWidth();
-		ImGui::EndDisabled();
 
 		if(bChanged) pLampLooks->SetSettings(lamps);
 	}
@@ -1924,67 +1626,41 @@ void cRefView::DrawShading()
 		cEffectSettings effects = pLowLevel->GetEffects();
 		bChanged = false;
 
-		int lHalos = effects.mbHalos ? 1 : 0;
-		ImGui::SetNextItemWidth(fEm * 12);
-		if(ImGui::Combo("Halos", &lHalos, "Original\0Improved\0"))
-		{
-			effects.mbHalos = lHalos == 1;
-			bChanged = true;
-		}
-		if(ImGui::IsItemHovered())
-			Tip("The glow round lamps. Improved: drawn by a shader from the shape of the halo's picture, "
-				"so the glow fades out without steps or blocks, and hidden by what stands in front of "
-				"the lamp as the depth buffer has it: it fades as an edge passes, in the same frame.");
-		ImGui::SameLine();
 		if(ImGui::Button("Reset##effects"))
 		{
-			cEffectSettings fresh;
-			fresh.mbHalos = effects.mbHalos;
-			fresh.mbShafts = effects.mbShafts;
-			fresh.mbParticles = effects.mbParticles;
-			effects = fresh;
+			effects = cEffectSettings();
 			bChanged = true;
 		}
 		ImGui::PushItemWidth(fEm * 12);
-		ImGui::BeginDisabled(effects.mbHalos==false);
+		ImGui::TextUnformatted("Halos");
+		if(ImGui::IsItemHovered())
+			Tip("The glow round lamps, drawn by a shader from the shape of the halo's picture, "
+				"so the glow fades out without steps or blocks, and hidden by what stands in front of "
+				"the lamp as the depth buffer has it: it fades as an edge passes, in the same frame.");
 		bChanged |= ImGui::SliderFloat("Brightness##halo", &effects.mfHaloBrightness, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("1: as bright as the original's.");
 		bChanged |= ImGui::SliderFloat("Rays", &effects.mfHaloStreaks, 0.0f, 1.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("How much is kept of what a halo's picture has besides the round glow: the rays of the "
 				"star-shaped ones. 0: only the glow.");
-		ImGui::EndDisabled();
 
-		int lShafts = effects.mbShafts ? 1 : 0;
-		if(ImGui::Combo("Light shafts", &lShafts, "Original\0Improved\0"))
-		{
-			effects.mbShafts = lShafts == 1;
-			bChanged = true;
-		}
+		ImGui::TextUnformatted("Light shafts");
 		if(ImGui::IsItemHovered())
-			Tip("The beams of light under grates and windows. Improved: a body of lit air in place of a "
+			Tip("The beams of light under grates and windows: a body of lit air in place of a "
 				"flat sheet. It ends softly at walls and the floor, looks right from every side and "
 				"can be walked into.");
-		ImGui::BeginDisabled(effects.mbShafts==false);
 		bChanged |= ImGui::SliderFloat("Brightness##shaft", &effects.mfShaftBrightness, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("1: as bright as the original's, seen from the side.");
 		bChanged |= ImGui::SliderFloat("Dust", &effects.mfShaftDust, 0.0f, 1.0f, "%.2f");
 		if(ImGui::IsItemHovered()) Tip("How uneven the lit air is: streaks that drift along the shaft. 0: even.");
-		ImGui::EndDisabled();
 
-		int lParticles = effects.mbParticles ? 1 : 0;
-		if(ImGui::Combo("Particles", &lParticles, "Original\0Improved\0"))
-		{
-			effects.mbParticles = lParticles == 1;
-			bChanged = true;
-		}
+		ImGui::TextUnformatted("Particles");
 		if(ImGui::IsItemHovered())
-			Tip("Smoke, steam, mist, dust, snow, drops, fire and sparks. Improved: they fade out where "
+			Tip("Smoke, steam, mist, dust, snow, drops, fire and sparks: they fade out where "
 				"they meet the floor and walls and close to the eye, and all but fire and sparks are "
 				"lit by the lamps and the flashlight around them: dim in the dark, as bright as the original "
 				"draws them in the light. "
 				"Light is not stopped by walls on its way to them.");
-		ImGui::BeginDisabled(effects.mbParticles==false);
 		bChanged |= ImGui::SliderFloat("Soft edges", &effects.mfParticleSoft, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("The distance over which a particle fades out in front of what is behind it, in times "
@@ -1996,7 +1672,6 @@ void cRefView::DrawShading()
 		if(ImGui::IsItemHovered())
 			Tip("Their brightness where no light reaches them, where the original's is 1. The map's "
 				"ambient light is added to it.");
-		ImGui::EndDisabled();
 		ImGui::PopItemWidth();
 
 		if(bChanged) pLowLevel->SetEffects(effects);

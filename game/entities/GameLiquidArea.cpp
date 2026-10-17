@@ -170,6 +170,12 @@ void cGameLiquidArea::Update(float afTimeStep)
 		mpInit->mpEffectHandler->GetUnderwater()->SetActive(false);
 	}
 
+	// Black Plague: whether the player's body is in this water, and deep in it
+	iPhysicsBody *pPlayerBody = mpInit->mpPlayer->GetCharacterBody() ?
+								mpInit->mpPlayer->GetCharacterBody()->GetBody() : nullptr;
+	bool bPlayerTouches = false;
+	bool bPlayerDeep = false;
+
 	////////////////////////////////////////////////////////
 	//Iterate all bodies in world and check for intersection
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
@@ -189,6 +195,9 @@ void cGameLiquidArea::Update(float afTimeStep)
 			if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false)
 			{
 				pBody->SetBuoyancyActive(false);
+
+				if(cInit::IsOverture()==false && pBody == pPlayerBody && mpInit->mpPlayer->IsUnderWater())
+					mpInit->mpPlayer->SetIsUnderWater(false);
 				continue;
 			}
 
@@ -201,7 +210,27 @@ void cGameLiquidArea::Update(float afTimeStep)
 				continue;
 			}
 
-			if(pBody->IsCharacter())
+			// Black Plague: the player swims (see cPlayerMoveState_Swim) once his
+			// middle is below the surface; no buoyancy pushes him.
+			if(cInit::IsOverture()==false && pBody->IsCharacter())
+			{
+				if(pBody == pPlayerBody && mpInit->mpPlayer->GetState() != ePlayerState_Climb)
+				{
+					if(pPlayerBody->GetCharacterBody()->GetPosition().y < fSurfaceY)
+					{
+						mpInit->mpPlayer->SetWaterSurfaceY(fSurfaceY);
+						bPlayerDeep = true;
+					}
+					bPlayerTouches = true;
+				}
+
+				if(pBody->GetBuoyancyActive()==false)
+				{
+					SplashEffect(pBody);
+					pBody->SetBuoyancyActive(true);
+				}
+			}
+			else if(pBody->IsCharacter())
 			{
 				iCharacterBody *pCharBody = pBody->GetCharacterBody();
 
@@ -262,6 +291,8 @@ void cGameLiquidArea::Update(float afTimeStep)
     		}
 		}
 	}
+
+	if(bPlayerTouches) mpInit->mpPlayer->SetIsUnderWater(bPlayerDeep);
 }
 
 //-----------------------------------------------------------------------

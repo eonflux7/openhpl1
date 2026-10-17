@@ -18,6 +18,8 @@
  */
 #include "impl/PhysicsJointSliderNewton.h"
 
+#include <algorithm>
+
 #include "impl/PhysicsBodyNewton.h"
 #include "impl/PhysicsWorldNewton.h"
 
@@ -120,6 +122,11 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// How near a limit its stop holds, and how much of the way back to it
+	// that stop pulls in one step
+	static const float kfLimitBand = 0.003f;
+	static const float kfLimitPull = 0.3f;
+
 	unsigned cPhysicsJointSliderNewton::LimitCallback(const NewtonJoint* pSlider, NewtonHingeSliderUpdateDesc* pDesc)
 	{
 		cPhysicsJointSliderNewton* pSliderJoint = (cPhysicsJointSliderNewton*)NewtonJointGetUserData(pSlider);
@@ -133,6 +140,8 @@ namespace hpl {
 
 		//Avoid oscillation
 		CheckLimitAutoSleep(pSliderJoint, pSliderJoint->mfMinDistance,pSliderJoint->mfMaxDistance,fDistance);
+
+		const bool bUseBand = pSliderJoint->mpParentBody == nullptr || pSliderJoint->mpParentBody->GetMass() == 0;
 
 		if (fDistance < pSliderJoint->mfMinDistance)
 		{
@@ -153,6 +162,30 @@ namespace hpl {
 			pDesc->m_maxFriction =0;
 
 			//Log("Over Max. Acc: %f Dist %f\n",pDesc->m_accel,fDistance);
+			return 1;
+		}
+		// Within a few millimetres of a limit the stop already holds, pushing
+		// away from it only. Engaged only once past it, a slider pushed onto its
+		// limit (a door kept shut by its controller) went free one step and was
+		// stopped the next, and Newton 2 never let it come to rest there. It aims
+		// a little past the limit, so what rests there reads as being at it.
+		// Only on the static world: the pull is on the child alone (see the hinge).
+		else if (bUseBand && fDistance < pSliderJoint->mfMinDistance + kfLimitBand)
+		{
+			pSliderJoint->OnMinLimit();
+
+			float fSpeed = std::min(NewtonSliderGetJointVeloc(pSlider), 0.0f);
+			pDesc->m_accel = (kfLimitPull * (pSliderJoint->mfMinDistance - kfLimitBand*0.25f - fDistance) / pDesc->m_timestep - fSpeed) / pDesc->m_timestep;
+			pDesc->m_minFriction =0;
+			return 1;
+		}
+		else if (bUseBand && fDistance > pSliderJoint->mfMaxDistance - kfLimitBand)
+		{
+			pSliderJoint->OnMaxLimit();
+
+			float fSpeed = std::max(NewtonSliderGetJointVeloc(pSlider), 0.0f);
+			pDesc->m_accel = (kfLimitPull * (pSliderJoint->mfMaxDistance + kfLimitBand*0.25f - fDistance) / pDesc->m_timestep - fSpeed) / pDesc->m_timestep;
+			pDesc->m_maxFriction =0;
 			return 1;
 		}
 		else

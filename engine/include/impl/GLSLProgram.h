@@ -20,6 +20,7 @@
 #define HPL_GLSLPROGRAM_H
 
 #include <filesystem>
+#include <array>
 #include <map>
 #include <set>
 #include <vector>
@@ -33,22 +34,11 @@ namespace hpl {
 
 	class iLowLevelGraphics;
 
-	/**
-	 * Replacement for the original Cg program class.
-	 *
-	 * The engine treats vertex and fragment programs as independent objects
-	 * (the Cg model), so each one is compiled as a separable GLSL program and
-	 * attached to a shared program pipeline when bound.
-	 *
-	 * Requests for "Foo_vp.cg" / "Foo_fp.cg" load "hpl1_Foo.vertex" /
-	 * "hpl1_Foo.fragment" from the shader directory, or a shared file with
-	 * #defines for the names listed in kShaderVariants. Shader files can
-	 * #include "file" from the shader directory.
-	 */
+	// A linked vertex/fragment program. Reload swaps a complete pair atomically.
 	class cGLSLProgram : public iGpuProgram
 	{
 	public:
-		cGLSLProgram(tString asName, eGpuProgramType aType);
+		cGLSLProgram(tString asName, bool abState=true);
 		~cGLSLProgram() override;
 
 		bool Reload() override;
@@ -57,19 +47,10 @@ namespace hpl {
 
 		tString GetProgramName(){ return msName; }
 
-		bool CreateFromFile(const tString& asFile, const tString& asEntry="main") override;
+		bool CreateFromFile(const tString& asFile, const tString& asDefines="") override;
 
 		void Bind() override;
 		void UnBind() override;
-
-		bool SetFloat(const tString& asName, float afX) override;
-		bool SetVec2f(const tString& asName, float afX,float afY) override;
-		bool SetVec3f(const tString& asName, float afX,float afY,float afZ) override;
-		bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW) override;
-
-		bool SetMatrixf(const tString& asName, const cMatrixf& mMtx) override;
-		bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType,
-									eGpuProgramMatrixOp mOp) override;
 
 		bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true) override;
 		bool SetTextureToUnit(int alUnit, iTexture* apTexture) override;
@@ -77,20 +58,21 @@ namespace hpl {
 		/// GLSL SPECIFIC //////////////////////
 
 		/// Vertex attribute locations: hpl_Vertex, hpl_Normal, hpl_Color and
-		/// hpl_MultiTexCoord0..4 in vertex shaders.
+		/// hpl_TexCoord and hpl_Tangent in vertex shaders.
 		enum eVertexAttrib
 		{
 			eVertexAttrib_Position = 0,
 			eVertexAttrib_Normal = 1,
 			eVertexAttrib_Color = 2,
-			eVertexAttrib_TexCoord0 = 4,
-			eVertexAttrib_LastEnum = 9
+			eVertexAttrib_TexCoord = 4,
+			eVertexAttrib_Tangent = 5,
+			eVertexAttrib_LastEnum = 6
 		};
 
 		/// Uniform buffer binding of the hpl_Frame block (hpl1_frame.glsl).
 		static const GLuint kFrameBlockBinding = 0;
 		/// Uniform buffer binding of the hpl_State block, which has the alpha
-		/// test settings every fragment shader applies (see LinkStage()).
+		/// test settings every fragment shader applies (see CompileSource()).
 		static const GLuint kStateBlockBinding = 1;
 		/// Texture unit of the hpl_ShadowMap sampler; hpl_ShadowMapDepth has
 		/// the next one. Past the units the engine binds textures to.
@@ -103,51 +85,21 @@ namespace hpl {
 		/// (iLowLevelGraphics::BeginSceneColorRead).
 		static const int kSceneColorUnit = 11;
 		/// hpl_AlphaTest.x when the alpha test is done as coverage of the
-		/// pixel's samples; the others are eAlphaTestFunc + 1.
-		static const int kAlphaToCoverage = 9;
+		/// pixel's samples; 1 is the plain test, 0 none.
+		static const int kAlphaToCoverage = 2;
 
 		GLuint GetHandle(){ return mlProgram; }
 
-		/// apLowLevelGraphics supplies the matrices for SetMatrixf.
-		static bool InitPipeline(iLowLevelGraphics *apLowLevelGraphics);
-		static void ExitPipeline();
-
+		static bool InitPrograms(iLowLevelGraphics *apLowLevelGraphics);
+		static void ExitPrograms();
 		static void SetShaderDirectory(const tString& asDir){ msShaderDir = asDir; }
 		static const tString& GetShaderDirectory(){ return msShaderDir; }
 
-		/**
-		 * Compiles "hpl1_<asName>.vertex" or ".fragment" from the shader
-		 * directory as a separable program, for passes that are drawn outside
-		 * the engine's program objects, with asDefines (separated by
-		 * spaces) defined. The caller deletes it.
-		 */
-		static GLuint CreateStage(GLenum aStage, const tString& asName, const tString& asDefines="");
+		static cGLSLProgram* GetBoundProgram(){ return mpBoundProgram; }
+		bool Apply(unsigned int alArrayMask=0, const float* apLayers=nullptr);
 
-		/**
-		 * Compiles source made by the engine as a separable program, with
-		 * the preamble (and, for fragment shaders, the epilogue that clamps
-		 * the colour; with abState it also follows the alpha test and
-		 * colour space set through iLowLevelGraphics). The caller deletes it.
-		 */
-		static GLuint CompileSource(GLenum aStage, const tString& asSource, const tString& asName,
-									bool abState);
-
-		/// The programs bound for each stage (a fragment stage can be a
-		/// vertex program's companion), 0 for none.
-		static GLuint GetVertexStage();
-		static GLuint GetFragmentStage();
-
-		/// Puts programs in the engine's program pipeline, which stays bound;
-		/// done before every draw, as Bind() and UnBind() only take note.
-		static void SetPipelineStages(GLuint alVertex, GLuint alFragment);
-
-		/**
-		 * With OVERTURE_SHADER_RELOAD set, recompiles the programs whose
-		 * files (or the files they include) changed on disk; checks at most
-		 * twice a second. A program that does not compile keeps its old
-		 * version. Returns true if a file changed, so that the owners of
-		 * CreateStage() programs can create them again.
-		 */
+		// Recompile complete pairs after a source/include edit, at most twice
+		// a second. Failed edits retain the previous program and its values.
 		static bool ReloadChangedFiles();
 
 	private:
@@ -157,26 +109,28 @@ namespace hpl {
 			std::filesystem::file_time_type mTime;
 		};
 
-		GLint GetUniform(const tString& asName);
+		static GLuint CreateLinked(const tString& asName, const tString& asDefines="", bool abState=false,
+			const tString& asVertex="", std::vector<tString>* apFiles=nullptr);
 		bool CompileProgram();
-		static GLuint CompileStage(GLenum aStage, const tString& asFile, const tString& asDefines,
+		static GLuint CompileShader(GLenum aStage, const tString& asFile, const tString& asDefines,
 									bool abState, std::vector<tString> *apFiles=nullptr);
-		static GLuint LinkStage(GLenum aStage, tString asSource, const tString& asName,
+		static GLuint CompileSource(GLenum aStage, tString asSource, const tString& asName,
 								const std::vector<tString>& avFiles);
 		static void WatchFiles(std::vector<cSourceFile>& avWatched, const std::vector<tString>& avFiles);
 		static bool FilesChanged(std::vector<cSourceFile>& avWatched);
 
 		tString msName;
 		tString msBase;
+		tString msVertex;
 		tString msDefines;
 		GLuint mlProgram;
-		std::map<tString, GLint> m_mapUniforms;
-
-		// Vertex programs only: the fragment shader written to pair with this
-		// vertex shader, used when no fragment program is bound. Cg vertex
-		// programs could feed fixed-function fragment processing; GLSL ones
-		// with custom outputs cannot.
-		GLuint mlCompanionFragment;
+		struct cTextureVariant {
+			GLuint handle = 0;
+			std::array<GLint, 8> layers;
+		};
+		std::map<unsigned int, cTextureVariant> mTextureVariants;
+		unsigned int mlSampler2DMask = 0;
+		cTextureVariant LinkTextureVariant(unsigned int alMask, std::vector<tString>& avFiles);
 
 		// The files the program was compiled from, for reloading.
 		std::vector<cSourceFile> mvSources;
@@ -185,12 +139,9 @@ namespace hpl {
 		static iLowLevelGraphics* mpLowLevelGraphics;
 		static bool mbReloadEnabled;
 		static std::set<cGLSLProgram*> msetPrograms;
-		static std::vector<cSourceFile> mvStageSources;
-		static GLuint mlPipeline;
-		static cGLSLProgram* mpBoundVertex;
-		static cGLSLProgram* mpBoundFragment;
-		static GLuint mlPipelineVertex;
-		static GLuint mlPipelineFragment;
+		GLuint mlMaterialBuffer = 0;
+		bool mbState;
+		static cGLSLProgram* mpBoundProgram;
 	};
 
 };

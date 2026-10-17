@@ -23,18 +23,17 @@ in vec3 vNormal;
 
 OUTPUT
 
-uniform sampler2D tex0; //diffuseMap
+HPL_TEXTURE_2D(0) //diffuseMap
 #ifdef NORMAL_MAP
-uniform sampler2D tex1; //normalMap
+HPL_TEXTURE_2D(1) //normalMap
 #endif
 #ifdef SPECULAR_MAP
-uniform sampler2D tex6; //specularMap
+HPL_TEXTURE_2D(6) //specularMap
 #endif
-uniform vec3 ambientColor;
 
 void main()
 {
-	outColor = texture(tex0, vUv);
+	outColor = hpl_Texture0(vUv);
 
 	// Some faces in the game's meshes have tangents, or normals, that are
 	// not numbers. The original shaders draw those with the plain ambient
@@ -42,7 +41,7 @@ void main()
 	// then to the plain ambient colour.
 	vec3 normal = hpl_Normalize(vNormal);
 #ifdef NORMAL_MAP
-	vec4 bumpVec = texture(tex1, vUv);
+	vec4 bumpVec = hpl_Texture1(vUv);
 	vec3 bump = 2.0*bumpVec.xyz - vec3(1.0);
 	vec3 bumped = hpl_Normalize(bump.x * hpl_Normalize(vTangent) + bump.y * hpl_Normalize(vBinormal) + bump.z * normal);
 	if(dot(bumped, bumped) > 0.5) normal = bumped;
@@ -59,7 +58,7 @@ void main()
 
 #ifdef SPECULAR
 	#if defined(SPECULAR_MAP)
-	vec3 specularMap = texture(tex6, vUv).xyz;
+	vec3 specularMap = hpl_Texture6(vUv).xyz;
 	#elif defined(NORMAL_MAP)
 	vec3 specularMap = vec3(clamp(bumpVec.w, 0.0, 1.0));
 	#else

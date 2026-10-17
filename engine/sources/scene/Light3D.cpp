@@ -38,7 +38,6 @@
 #include "scene/PortalContainer.h"
 
 
-
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -101,7 +100,6 @@ namespace hpl {
 
 	void iLight3D::AddShadowCaster(iRenderable* apObject, cFrustum* apFrustum, bool abStatic,cRenderList *apRenderList)
 	{
-		//Log("Testing: %s\n",apObject->GetName().c_str());
 		/////////////////////////////////////////////////////
 		// Check if the object should be added
 		eRenderableType renderType = apObject->GetRenderType();
@@ -129,7 +127,6 @@ namespace hpl {
 			}
 		}
 
-		//Log("Right type!\n");
 
 		//Check if the object has all ready been added
 		if(abStatic)
@@ -141,18 +138,11 @@ namespace hpl {
 			if(m_setDynamicCasters.find(apObject) != m_setDynamicCasters.end()) return;
 		}
 
-		//Log("Not in list!\n");
 
 		//Check if the object touches the light.
-		//if(CollidesWithBV(apObject->GetBoundingVolume())==false){
-		//	return;
-		//}
 
 		if(CheckObjectIntersection(apObject)==false) return;
 
-		//Log("Collides!\n");
-
-		//Log("Shadow is in frustum!\n");
 
 		////////////////////////////////////////////////////
 		// All checks passed, add the object!
@@ -229,9 +219,6 @@ namespace hpl {
 
 	bool iLight3D::CheckObjectIntersection(iRenderable *apObject)
 	{
-		//Log("------ Checking %s with light %s -----\n",apObject->GetName().c_str(), GetName().c_str());
-		//Log(" BV: min: %s max: %s\n",	apObject->GetBoundingVolume()->GetMin().ToString().c_str(),
-		//								apObject->GetBoundingVolume()->GetMax().ToString().c_str());
 
 		//////////////////////////////////////////////////////////////
 		// If the lights cast shadows, cull objects that are in shadow
@@ -245,7 +232,6 @@ namespace hpl {
 				if(mpVisSectorCont) hplDelete(mpVisSectorCont);
 
 				mpVisSectorCont = CreateSectorVisibility();
-				//Log("Creating Visibility container!\n");
 			}
 
 
@@ -255,7 +241,6 @@ namespace hpl {
 			//It is not attached to any room. Just use BV test.
 			if(pDataList->empty())
 			{
-				//Log("Empty data list using BV\n");
 				return CollidesWithBV(apObject->GetBoundingVolume());
 			}
 			//The object is in one or more sectors
@@ -267,21 +252,17 @@ namespace hpl {
 				{
 					cSector* pSector = static_cast<cSector*>(*it);
 
-					//Log("Checking intersection in sector %s\n",pSector->GetId().c_str());
 
 					cSectorVisibility *pVisSector = mpVisSectorCont->GetSectorVisibilty(pSector);
 					if(pVisSector)
 					{
 						if(pVisSector->IntersectionBV(apObject->GetBoundingVolume()))
 						{
-							//Log("Intersected!\n");
-							//Log("-----------------------");
 							return true;
 						}
 					}
 				}
 
-				//Log("-----------------------");
 				return false;
 			}
 
@@ -291,7 +272,6 @@ namespace hpl {
 		//Light is not in shadow, do not do any culling
 		else
 		{
-			//Log("No shadow, using BV\n");
 			return CollidesWithBV(apObject->GetBoundingVolume());
 		}
 
@@ -302,20 +282,6 @@ namespace hpl {
 
 	bool iLight3D::BeginDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics)
 	{
-		// Clear Stencil Buffer
-/*		apLowLevelGraphics->SetClearStencilActive(true);
-		apLowLevelGraphics->SetClearDepthActive(false);
-		apLowLevelGraphics->SetClearColorActive(false);
-
-		apLowLevelGraphics->SetClearStencil(0);
-
-		apLowLevelGraphics->ClearScreen();
-
-		apLowLevelGraphics->SetClearStencilActive(false);
-		apLowLevelGraphics->SetClearDepthActive(true);
-		apLowLevelGraphics->SetClearColorActive(true);*/
-
-
 		cRect2l ClipRect;
 		bool bVisible = CreateClipRect(ClipRect, apRenderSettings,apLowLevelGraphics);
 
@@ -333,96 +299,6 @@ namespace hpl {
 				Log("Cliprect entire screen\n");
 		}
 
-		//////////////////////////////////////////////////////////
-		// Cast shadows
-		if(mbCastShadows && apRenderSettings->mShowShadows != eRendererShowShadows_None
-			&& apRenderSettings->mShadowType == eShadowType_Volumes
-			&& apRenderSettings->mpVtxExtrudeProgram != nullptr)
-		{
-			//Get temp index array. (Remove this when the index pool
-			// is implemented.).
-			mpIndexArray = apRenderSettings->mpTempIndexArray;
-
-			//Setup for shadow drawing
-			apLowLevelGraphics->SetStencilActive(true);
-			//Do no set this when debugging.
-			apLowLevelGraphics->SetColorWriteActive(false, false, false,false);
-
-			///////////////////////////////////////////////////////////////////////////
-			//Clear stencil, since scissor is set this should be fast.
-			apLowLevelGraphics->SetClearStencilActive(true);
-			apLowLevelGraphics->SetClearDepthActive(false);
-			apLowLevelGraphics->SetClearColorActive(false);
-
-			apLowLevelGraphics->SetClearStencil(0);
-
-			apLowLevelGraphics->ClearScreen();
-
-			apLowLevelGraphics->SetClearStencilActive(false);
-			apLowLevelGraphics->SetClearDepthActive(true);
-			apLowLevelGraphics->SetClearColorActive(true);
-
-			apLowLevelGraphics->SetCullActive(false);
-
-			apLowLevelGraphics->SetDepthWriteActive(false);
-
-			//Setup the depth test so that shadow volume is not rendered in front
-			//off the normal graphics.
-			apLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Less);
-
-			//Resert the algo (zfail or zpass) used.
-			apRenderSettings->mlLastShadowAlgo=0;
-
-			//Reset this variable so it can be used when rendering shadows.
-			apRenderSettings->mbMatrixWasNULL = false;
-
-			//Set the fragment program.
-			if(apRenderSettings->mpFragExtrudeProgram)
-			{
-				if(apRenderSettings->mbLog)Log("Setting fragment program: '%s'\n",
-													apRenderSettings->mpFragExtrudeProgram->GetName().c_str());
-				apRenderSettings->mpFragExtrudeProgram->Bind();
-				apRenderSettings->mpFragmentProgram = apRenderSettings->mpFragExtrudeProgram;
-
-			}
-
-
-			//Set the vertex program.
-			if(apRenderSettings->mbLog)Log("Setting vertex program: '%s'\n",
-											apRenderSettings->mpVtxExtrudeProgram->GetName().c_str());
-			apRenderSettings->mpVtxExtrudeProgram->Bind();
-			apRenderSettings->mpVertexProgram = apRenderSettings->mpVtxExtrudeProgram;
-
-			//Render shadows
-			tCasterCacheSetIt it = m_setDynamicCasters.begin();
-
-			if(apRenderSettings->mShowShadows == eRendererShowShadows_All)
-			{
-				it = m_setDynamicCasters.begin();
-				for(; it!= m_setDynamicCasters.end(); ++it)
-				{
-					RenderShadow(*it,apRenderSettings,apLowLevelGraphics);
-				}
-			}
-
-			it = m_setStaticCasters.begin();
-			for(; it!= m_setStaticCasters.end(); ++it)
-			{
-				RenderShadow(*it,apRenderSettings,apLowLevelGraphics);
-			}
-
-			//Make rendering ready for the objects.
-			//apLowLevelGraphics->SetStencilTwoSideActive(false);
-
-			apLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_Equal);
-
-			apLowLevelGraphics->SetColorWriteActive(true, true, true,true);
-			apLowLevelGraphics->SetCullActive(true);
-
-			apLowLevelGraphics->SetStencil(eStencilFunc_Equal,0,0xFF,
-											eStencilOp_Keep,eStencilOp_Keep, eStencilOp_Keep);
-		}
-
 		//Reset this var so that the new light properties are set.
 		apRenderSettings->mbMatrixWasNULL = false;
 
@@ -434,7 +310,6 @@ namespace hpl {
 	void iLight3D::EndDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics)
 	{
 		apLowLevelGraphics->SetScissorActive(false);
-		apLowLevelGraphics->SetStencilActive(false);
 	}
 
 	//-----------------------------------------------------------------------
@@ -607,279 +482,6 @@ namespace hpl {
 	//////////////////////////////////////////////////////////////////////////
 	// PROTECTED METHODS
 	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	void iLight3D::RenderShadow(iRenderable *apObject,cRenderSettings *apRenderSettings,
-				iLowLevelGraphics *apLowLevelGraphics)
-	{
-		int lIndexCount = 0;
-
-		//A material with holes has no volume (only shadow maps show them)
-		if(apObject->GetForceShadow()==false)
-		{
-			iMaterial *pMaterial = apObject->GetMaterial();
-			if(pMaterial && pMaterial->HasAlpha()) return;
-		}
-
-		////////////////////////////////////////////////////////////////////////
-		//Check if the shadow volume collides with the frustum
-		cShadowVolumeBV *pVolume = apObject->GetBoundingVolume()->GetShadowVolume(
-												GetLightPosition(), mfFarAttenuation, true);
-		cFrustum *pFrustum = apRenderSettings->mpFrustum;
-		if(pVolume && pFrustum)
-		{
-			if(pFrustum->CheckVolumeIntersection(pVolume)==false)
-			{
-				//This can be skipped if the AABB shadow volume is better.
-				///that is includes the AABB.
-				if(pFrustum->CollideBoundingVolume(apObject->GetBoundingVolume())==eFrustumCollision_Outside)
-				{
-					return;
-				}
-			}
-		}
-
-		if(apRenderSettings->mbLog) Log("Rendering shadow for '%s'\n", apObject->GetName().c_str());
-
-		cSubMeshEntity *pSubEntity = static_cast<cSubMeshEntity*>(apObject);
-		cSubMesh* pSubMesh = pSubEntity->GetSubMesh();
-
-		//////////////////////////////////////////
-		//Check what method to use.
-		bool bZFail = false;
-
-		if(pVolume && pFrustum)
-		{
-			cBoundingVolume *pFrustumBV = pFrustum->GetOriginBV();
-			if(cMath::CheckSphereInPlanes(pFrustumBV->GetWorldCenter(), pFrustumBV->GetRadius(),
-				pVolume->mvPlanes, pVolume->mlPlaneCount))
-			{
-				bZFail = true;
-			}
-			//This is because the AABB-shadow volume is not perfect
-			else if(cMath::CheckCollisionBV(*pFrustumBV,*apObject->GetBoundingVolume()))
-			{
-				bZFail = true;
-			}
-		}
-		else
-		{
-			bZFail = true;
-		}
-		if(apRenderSettings->mbLog) Log("Rendering shadow with '%s'\n", bZFail ? "ZFail" : "ZPass");
-
-		//////////////////////////////////////////
-		//Setup the stencil buffer.
-		if(bZFail)
-		{
-			if(apRenderSettings->mlLastShadowAlgo!=1)
-			{
-				apLowLevelGraphics->SetStencilTwoSide(eStencilFunc_Always,eStencilFunc_Always,0,0x00,
-											eStencilOp_Keep,eStencilOp_DecrementWrap, eStencilOp_Keep,
-											eStencilOp_Keep,eStencilOp_IncrementWrap,eStencilOp_Keep);
-
-				apRenderSettings->mlLastShadowAlgo =1;
-			}
-		}
-		else
-		{
-			if(apRenderSettings->mlLastShadowAlgo!=2)
-			{
-				apLowLevelGraphics->SetStencilTwoSide(eStencilFunc_Always,eStencilFunc_Always,0,0x00,
-					eStencilOp_Keep,eStencilOp_Keep, eStencilOp_IncrementWrap,
-					eStencilOp_Keep,eStencilOp_Keep, eStencilOp_DecrementWrap);
-
-				apRenderSettings->mlLastShadowAlgo =2;
-			}
-		}
-
-		//////////////////////////////////////////
-		//Check if the cache as data.
-		/* TO BE IMPLEMENTED*/
-
-		///////////////////////////////////////////
-		//Get local light position
-		cVector3f vLocalLight = GetLightPosition();
-		cMatrixf *pInvModelMtx = apObject->GetInvModelMatrix();
-		if(pInvModelMtx){
-			vLocalLight = cMath::MatrixMul(*pInvModelMtx, vLocalLight);
-		}
-
-		/////////////////////////////////////////////
-		//Set the model matrix
-		cMatrixf *pModelMtx = apObject->GetModelMatrix(nullptr);
-		if(pModelMtx){
-			apLowLevelGraphics->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(
-				apRenderSettings->mpCamera->GetViewMatrix(),
-				*pModelMtx));
-		}
-		else if(apRenderSettings->mbMatrixWasNULL==false)
-		{
-			apLowLevelGraphics->SetMatrix(eMatrix_ModelView, apRenderSettings->mpCamera->GetViewMatrix());
-		}
-
-		/////////////////////////////////////////////////////////
-		//Get the data arrays
-		const float *pPosArray = pSubEntity->GetVertexBuffer()->GetArray(eVertexFlag_Position);
-		unsigned int* pIdxArray = pSubEntity->GetVertexBuffer()->GetIndices();
-
-		int lVtxStride = kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)];
-
-		const bool bDoubleSided = pSubMesh->GetDoubleSided();
-
-		/////////////////////////////////////////////////////////
-		//Iterate faces and check which are facing the light.
-		cTriangleData* pTriangles = pSubEntity->GetTriangleVecPtr()->data();
-		const int lTriNum = pSubEntity->GetTriangleNum();
-		for(int tri=0, idx=0; tri< lTriNum; tri++,idx+=3)
-		{
-			cTriangleData &Tri = pTriangles[tri];
-
-			const float *pPoint = &pPosArray[pIdxArray[idx]*lVtxStride];
-
-			const cVector3f &vNormal = Tri.normal;
-
-			//Use Dot product to check
-			Tri.facingLight =  ((pPoint[0]-vLocalLight.x) * vNormal.x +
-								(pPoint[1]-vLocalLight.y) * vNormal.y +
-								(pPoint[2]-vLocalLight.z) * vNormal.z) < 0;
-		}
-
-		/////////////////////////////////////////////////////////
-		//Iterate edges and find possible silhouette
-		//Get edge pointer, index pointer and offset
-		unsigned int* pCurrentIndexPos = &mpIndexArray[0];
-		const cTriEdge * pEdges = pSubMesh->GetEdgeVecPtr()->data();
-		int lOffset = pSubEntity->GetVertexBuffer()->GetVertexNum();
-		//Iterate
-		const int lEdgeNum = pSubMesh->GetEdgeNum();
-		for(int edge=0; edge< lEdgeNum; edge++)
-		{
-			const cTriEdge &Edge = pEdges[edge];
-
-			const cTriangleData *pTri1 = &pTriangles[Edge.tri1];
-			const cTriangleData *pTri2;
-			if(Edge.invert_tri2==false) pTri2 = &pTriangles[Edge.tri2];
-
-
-			//Check if this edge has one triangle facing and one not facing the light.
-			//If the triangel is onesided (invert_tri2) then it is always a silhouette
-			if(	(Edge.invert_tri2) ||
-				(pTri1->facingLight && !pTri2->facingLight) ||
-				(pTri2->facingLight && !pTri1->facingLight) )
-			{
-				if(pTri1->facingLight)
-				{
-					*(pCurrentIndexPos++) = Edge.point1;
-					*(pCurrentIndexPos++) = Edge.point2;
-					*(pCurrentIndexPos++) = Edge.point2 + lOffset;
-					*(pCurrentIndexPos++) = Edge.point1;
-					*(pCurrentIndexPos++) = Edge.point2 + lOffset;
-					*(pCurrentIndexPos++) = Edge.point1 + lOffset;
-					lIndexCount += 6;
-				}
-				//Do not draw if the edge only has one face and it is not facing the light.
-				else if(!Edge.invert_tri2)
-				{
-					*(pCurrentIndexPos++) = Edge.point2;
-					*(pCurrentIndexPos++) = Edge.point1;
-					*(pCurrentIndexPos++) = Edge.point1 + lOffset;
-					*(pCurrentIndexPos++) = Edge.point2;
-					*(pCurrentIndexPos++) = Edge.point1 + lOffset;
-					*(pCurrentIndexPos++) = Edge.point2 + lOffset;
-					lIndexCount += 6;
-				}
-
-				//DEBUG:
-				/*if(!(bDoubleSided && Edge.invert_tri2==false))
-				{
-					//apRenderSettings->mpVtxExtrudeProgram->UnBind();
-					apLowLevelGraphics->SetDepthTestActive(false);
-					apLowLevelGraphics->SetStencilActive(false);
-					apLowLevelGraphics->DrawLine(
-						pSubMesh->GetVertexBuffer()->GetVector3(eVertexFlag_Position,Edge.point1),
-						pSubMesh->GetVertexBuffer()->GetVector3(eVertexFlag_Position,Edge.point2),
-						cColor(1,0.9f,0,1));
-					apLowLevelGraphics->SetStencilActive(true);
-					apLowLevelGraphics->SetDepthTestActive(true);
-				}*/
-			}
-		}
-
-		///////////////////////////////////////////////////////
-		//If Z fail is used, generate front and back cap
-		if(bZFail)
-		{
-			for(int tri=0, idx=0; tri< lTriNum; tri++,idx+=3)
-			{
-				cTriangleData &Data = pSubEntity->GetTriangle(tri);
-
-				//Front cap
-				if(Data.facingLight){
-					memcpy(pCurrentIndexPos,&pIdxArray[idx],3*sizeof(unsigned int));
-					pCurrentIndexPos += 3; lIndexCount+=3;
-					/*mpIndexArray[lIndexCount+0] = pIdxArray[idx+0];
-					mpIndexArray[lIndexCount+1] = pIdxArray[idx+1];
-					mpIndexArray[lIndexCount+2] = pIdxArray[idx+2];*/
-
-					if(bDoubleSided){
-						mpIndexArray[lIndexCount+0] = pIdxArray[idx+2]+lOffset;
-						mpIndexArray[lIndexCount+1] = pIdxArray[idx+1]+lOffset;
-						mpIndexArray[lIndexCount+2] = pIdxArray[idx+0]+lOffset;
-						pCurrentIndexPos += 3; lIndexCount+=3;
-					}
-				}
-				//Back Cap
-				//If double sided, the sides facing the light supply their own
-				else if(!bDoubleSided)
-				{
-					mpIndexArray[lIndexCount+0] = pIdxArray[idx+0]+lOffset;
-					mpIndexArray[lIndexCount+1] = pIdxArray[idx+1]+lOffset;
-					mpIndexArray[lIndexCount+2] = pIdxArray[idx+2]+lOffset;
-					pCurrentIndexPos += 3; lIndexCount+=3;
-				}
-
-			}
-		}
-
-		///////////////////////////////////////////////////////
-		//Draw the volume:
-
-		//Set light position and model view matrix, this does not have to be set if last
-		//object was static.
-		if(pModelMtx || apRenderSettings->mbMatrixWasNULL==false)
-		{
-			apRenderSettings->mpVtxExtrudeProgram->SetVec3f("lightPosition", vLocalLight);
-			apRenderSettings->mpVtxExtrudeProgram->SetMatrixf("worldViewProj",
-																eGpuProgramMatrix_ViewProjection,
-																eGpuProgramMatrixOp_Identity);
-
-			//If a null matrix has been set, let other passes know.
-			if(pModelMtx)
-				apRenderSettings->mbMatrixWasNULL = false;
-			else
-				apRenderSettings->mbMatrixWasNULL = true;
-		}
-
-		//Set vertex buffer
-		if(apRenderSettings->mpVtxBuffer != pSubEntity->GetVertexBuffer())
-		{
-			if(apRenderSettings->mbLog)
-				Log(" Setting vertex buffer %d\n",(size_t)pSubEntity->GetVertexBuffer());
-
-			pSubEntity->GetVertexBuffer()->Bind();
-			apRenderSettings->mpVtxBuffer = pSubEntity->GetVertexBuffer();
-		}
-
-		//Draw vertex buffer
-		pSubEntity->GetVertexBuffer()->DrawIndices(mpIndexArray, lIndexCount);
-		if(apRenderSettings->mbLog) Log( " Drawing front and back simultaneously.\n");
-
-		apLowLevelGraphics->SetStencilTwoSide(false);
-		apRenderSettings->mlLastShadowAlgo=0;
-	}
-
 
 	//-----------------------------------------------------------------------
 

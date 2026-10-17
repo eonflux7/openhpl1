@@ -41,6 +41,9 @@ class cEffectHandler;
 class cPlayerHands;
 class cGameMusicHandler;
 class cRadioHandler;
+class cGameGuiHandler;
+class cGameSoundEnvHandler;
+class cEnding;
 class cMapLoadText;
 class cPreMenu;
 class cCredits;
@@ -59,27 +62,37 @@ class cDogTestMap;
 #include "core/GameTypes.h"
 
 #if defined(WIN32)
-	#define PERSONAL_RELATIVEROOT
+	#define PERSONAL_RELATIVEROOT _W("")
 	#define PERSONAL_RELATIVEPIECES
 	#define PERSONAL_RELATIVEPIECES_COUNT 0
 	#define PERSONAL_RELATIVEGAME_PARENT _W("Penumbra Overture/")
-	// Documents\Penumbra Overture\OvertureRemade\, beside the original
-	// game's Episode1 folder so its settings and saves are untouched
-	#define PERSONAL_RELATIVEGAME _W("Penumbra Overture/OvertureRemade/")
 #elif defined(__linux__)
 	#define PERSONAL_RELATIVEROOT _W(".frictionalgames/")
 	#define PERSONAL_RELATIVEPIECES _W(".frictionalgames"),
 	#define PERSONAL_RELATIVEPIECES_COUNT 1
 	#define PERSONAL_RELATIVEGAME_PARENT _W("Penumbra/")
-	// Separate from the original game so its settings and saves are untouched
-	#define PERSONAL_RELATIVEGAME _W("Penumbra/OvertureRemade/")
 #else
 	#define PERSONAL_RELATIVEROOT _W("Library/Preferences/Frictional Games/")
 	#define PERSONAL_RELATIVEPIECES _W("Library"), _W("Library/Preferences"), _W("Library/Preferences/Frictional Games"),
 	#define PERSONAL_RELATIVEPIECES_COUNT 3
 	#define PERSONAL_RELATIVEGAME_PARENT _W("Penumbra/")
-	#define PERSONAL_RELATIVEGAME _W("Penumbra/Overture/")
 #endif
+// The folder of the game being played, with the root in front: settings,
+// saves and logs. Separate from the original games so theirs are untouched.
+#define PERSONAL_RELATIVEGAME (tWString(PERSONAL_RELATIVEROOT) + cInit::GetPersonalGameDir())
+
+//--------------------------------------------------------
+
+// The three games share the engine and most of the game code; which one is
+// played is picked at startup (OVERTURE_GAME, or by the data in the working
+// directory).
+enum eGameId
+{
+	eGameId_Overture,
+	eGameId_BlackPlague,
+	eGameId_Requiem,
+	eGameId_LastEnum
+};
 
 //--------------------------------------------------------
 
@@ -110,6 +123,28 @@ public:
 	void RunScriptCommand(const tString& asCommand);
 
 	void CreateHardCodedPS(iParticleEmitterData *apPE);
+
+	static eGameId GetGameId(){ return mGameId; }
+	static const char* GetGameName(eGameId aId);
+
+	// Changing game: the executable is started again in the other game's
+	// folder after a normal exit. The folders are remembered in games.cfg
+	// next to the games' personal folders; Steam's are found without it.
+	static bool CanChangeGame();
+	// The folder holding a game's data, "" if not found
+	static tString FindGameFolder(eGameId aId);
+	// Saves and exits as Quit does; hplMain then calls RunRequestedGame
+	void RequestGameChange(eGameId aId);
+	// Does not return when it succeeds
+	static void RunRequestedGame();
+	static bool IsOverture(){ return mGameId == eGameId_Overture; }
+	// Folder of this game under the personal root, ending in a slash
+	static tWString GetPersonalGameDir();
+	// The files that are named differently in Requiem
+	static tString GetStartupConfigFile();
+	static tWString GetMapsDir();
+	//The music of the main menu and the menu before it
+	static tString GetMenuMusic();
 
 	void PreloadSoundEntityData(const tString &asFile);
 	void PreloadParticleSystem(const tString &asFile);
@@ -152,6 +187,9 @@ public:
 	int mlMaxSoundChannels;
     int mlStreamUpdateFreq;
 	bool mbUseSoundHardware;
+	bool mbUseEnvAudio;
+	// Black Plague: New Game asks once whether to play the tutorial first
+	bool mbAskTutorial;
 	bool mbUseSoundThreading;
 	int mlMaxMonoChannelsHint;
 	int mlMaxStereoChannelsHint;
@@ -188,6 +226,9 @@ public:
 
 	bool mbWeaponAttacking; //To see if it is a weapon that is dealing the damage.
 
+	static eGameId mGameId;
+	static eGameId mRequestedGameId;
+
 	tString msCurrentUser;
 
 	//Game objects
@@ -209,6 +250,9 @@ public:
 	cPlayerHands *mpPlayerHands;
 	cGameMusicHandler *mpMusicHandler;
 	cRadioHandler *mpRadioHandler;
+	cGameGuiHandler *mpGameGuiHandler;
+	cGameSoundEnvHandler *mpSoundEnvHandler;
+	cEnding *mpEnding;
 	cMapLoadText *mpMapLoadText;
 	cPreMenu *mpPreMenu;
 	cCredits *mpCredits;

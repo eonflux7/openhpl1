@@ -18,8 +18,13 @@
  */
 #include "core/MapHandler.h"
 
+#include <SDL3/SDL.h>
+
 #include "core/Init.h"
+#include "ui/GameGui.h"
+#include "systems/GameSoundEnvHandler.h"
 #include "player/Player.h"
+#include "player/PlayerHelper.h"
 #include "player/PlayerHands.h"
 #include "entities/GameEntity.h"
 #include "enemies/GameEnemy.h"
@@ -40,6 +45,8 @@
 #include "core/SaveTypes.h"
 #include "systems/GameMusicHandler.h"
 #include "systems/GameMessageHandler.h"
+#include "systems/RadioHandler.h"
+#include "entities/GameVentArea.h"
 #include "ui/Inventory.h"
 #include "ui/MapLoadText.h"
 
@@ -299,6 +306,9 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 	cSoundEntity::AddGlobalCallback(mpSoundCallback);
 
 	mpMapChangeTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("other_mapchange.jpg",false);
+
+	cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
+	mpFlashProgram = pProgramManager->CreateProgram("Ambient_Color", "", "Diffuse_Color");
 }
 
 //-----------------------------------------------------------------------
@@ -306,6 +316,7 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 cMapHandler::~cMapHandler(void)
 {
 	if(mpMapChangeTexture)mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpMapChangeTexture);
+	if(mpFlashProgram) mpResources->GetGpuProgramManager()->Destroy(mpFlashProgram);
 	
 	hplDelete(mpSoundCallback );
 	hplDelete( mpWorldCache );
@@ -374,6 +385,8 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpPlayer->OnWorldExit();
 		mpInit->mpPlayerHands->OnWorldExit();
 		mpInit->mpGameMessageHandler->OnWorldExit();
+		mpInit->mpRadioHandler->OnWorldExit();
+		mpInit->mpSoundEnvHandler->OnWorldExit();
 
 		////////////////////////////////////////
 		// SAVING /////////////////////////////
@@ -486,9 +499,12 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpPlayerHands->OnWorldLoad();
 
 		mpInit->mpMusicHandler->OnWorldLoad();
+		mpInit->mpSoundEnvHandler->OnWorldLoad();
 
 		if(bFirstTime)
 		{
+			LiftBodiesOutOfFloors(pWorld);
+
 			//Set a default name
 			msMapGameName = cString::To16Char(cString::SetFileExt(asFile,""));
 
@@ -639,8 +655,10 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 
 void cMapHandler::ChangeMap(const tString &asMap, const tString &asPos, const tString &asStartSound, 
 							const tString &asStopSound, float afFadeOutTime, float afFadeInTime,
-							tString asLoadTextCat, tString asLoadTextEntry)
+							tString asLoadTextCat, tString asLoadTextEntry,
+							tString asLoadImage)
 {
+	mMapChanger.msLoadImage = asLoadImage;
 	mMapChanger.msNewMap = asMap;
     mMapChanger.msPosName = asPos;
 	mMapChanger.msDoneSound = asStopSound;
@@ -806,6 +824,12 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 
 //-----------------------------------------------------------------------
 
+// Black Plague finds entities by name whatever the case of the letters
+static tString EntityKey(const tString &asName)
+{
+	return cInit::IsOverture() ? asName : cString::ToLowerCase(asName);
+}
+
 void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -961,6 +985,12 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	
 	////////////////////////////////
 	//Create Entities
+	std::set<tString> setSavedNames;
+	{
+		cContainerListIterator<iGameEntity_SaveData*> nameIt = apSavedWorld->mlstEntities.GetIterator();
+		while(nameIt.HasNext()) setSavedNames.insert(EntityKey(nameIt.Next()->msName));
+	}
+
 	cContainerListIterator<iGameEntity_SaveData*> it = apSavedWorld->mlstEntities.GetIterator();
 	while(it.HasNext())
 	{
@@ -970,9 +1000,29 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		//The entity is loaded from file
 		if(pSaveEntity->msFileName!="")
 		{
+			std::set<iGameEntity*> setBefore;
+			for(auto &entity : m_mapGameEntities) setBefore.insert(entity.second);
+
 			if(pWorld->CreateEntity(pSaveEntity->msName,pSaveEntity->m_mtxTransform,pSaveEntity->msFileName, true))
 			{
-				iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
+				//A model can hold other entities (Requiem level 3's broken key
+				//box is only its key): the latest one made is then one of them.
+				//They were saved on their own and are made from that, so the
+				//ones made here go. It crashed: the box's save was loaded into
+				//the key, and the key was there twice.
+				iGameEntity *pGameEntity = nullptr;
+				std::vector<iGameEntity*> vMade;
+				for(auto &entity : m_mapGameEntities)
+					if(setBefore.count(entity.second) == 0) vMade.push_back(entity.second);
+				for(iGameEntity *pMade : vMade)
+					if(pMade->GetName() == pSaveEntity->msName) pGameEntity = pMade;
+				if(pGameEntity == nullptr) pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
+				for(iGameEntity *pMade : vMade)
+				{
+					if(pMade != pGameEntity && setSavedNames.count(EntityKey(pMade->GetName())))
+						DestroyGameEntityNow(pMade);
+				}
+
 				pGameEntity->LoadFromSaveData(pSaveEntity);
 
 				pGameEntity->SetSaveData(pSaveEntity);
@@ -1020,6 +1070,10 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 			case eGameEntityType_LiquidArea:
 				vSize = static_cast<cGameLiquidArea_SaveData*>(pSaveEntity)->mvSize;
 				sType = "liquid";
+				break;
+			case eGameEntityType_VentArea:
+				vSize = static_cast<cGameVentArea_SaveData*>(pSaveEntity)->mvSize;
+				sType = "vent";
 				break;
 			}
 
@@ -1135,12 +1189,6 @@ void cMapHandler::RenderItemEffect()
 	pLowGfx->SetBlendActive(true);
 	pLowGfx->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
 
-	pLowGfx->SetActiveTextureUnit(0);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Constant);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorFunc, eTextureFunc_Modulate);
-		
-	
 	it = mlstGameItems.begin();
 	for(; it != mlstGameItems.end(); ++it)
 	{
@@ -1151,10 +1199,7 @@ void cMapHandler::RenderItemEffect()
 
 		cMeshEntity *pMeshEntity = pItem->GetMeshEntity();
 
-		pLowGfx->SetTextureConstantColor(cColor(pItem->GetFlashAlpha(),0));
-		
-		pLowGfx->SetMatrix(eMatrix_ModelView, cMath::MatrixMul(pCam->GetViewMatrix(), 
-														pMeshEntity->GetWorldMatrix()));
+		pLowGfx->SetDrawMatrices(pMeshEntity->GetWorldMatrix(), pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 		for(int i=0; i< pMeshEntity->GetMesh()->GetSubMeshNum(); i++)
 		{
 			cSubMeshEntity *pSubEntity = pMeshEntity->GetSubMeshEntity(i);
@@ -1162,39 +1207,24 @@ void cMapHandler::RenderItemEffect()
 			iVertexBuffer *pVtxBuffer = pSubEntity->GetVertexBuffer();
 			iMaterial *pMaterial = pSubEntity->GetMaterial();
 			
-			iGpuProgram *pVtxProg = pMaterial->GetVertexProgram(eMaterialRenderType_Z,0,nullptr);
-			
-			if(pVtxProg)
-			{
-				pVtxProg->Bind();
-				pVtxProg->SetMatrixf("worldViewProj",
-									eGpuProgramMatrix_ViewProjection,
-									eGpuProgramMatrixOp_Identity);
+			iGpuProgram* program = pMaterial->GetProgram(eMaterialRenderType_Z,0,nullptr);
+			if(!program) program = mpFlashProgram;
+			if(program){
+				program->SetColor3f(eProgramParam::ambientColor, pItem->GetFlashAlpha());
+				program->Bind();
 			}
 
-			iGpuProgram *pFragProg = pMaterial->GetFragmentProgram(eMaterialRenderType_Z,0,nullptr);
-			if(pFragProg)
-			{
-				pFragProg->SetColor3f("ambientColor", pItem->GetFlashAlpha());
-				pFragProg->Bind();
-			}
-			
 			pLowGfx->SetTexture(0,pMaterial->GetTexture(eMaterialTexture_Diffuse));
 
 			pVtxBuffer->Bind();
 			pVtxBuffer->Draw();
 			pVtxBuffer->UnBind();
 
-			if(pFragProg) pFragProg->UnBind();
-			if(pVtxProg) pVtxProg->UnBind();
+			if(program) program->UnBind();
 		}
 	}
 
 	pLowGfx->SetTexture(0,nullptr);
-
-	pLowGfx->SetActiveTextureUnit(0);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource1,eTextureSource_Previous);
-	pLowGfx->SetTextureEnv(eTextureParam_ColorSource0,eTextureSource_Texture);
 
 	pLowGfx->SetBlendActive(false);
 	pLowGfx->SetDepthTestActive(true);
@@ -1211,7 +1241,7 @@ void cMapHandler::OnPostSceneDraw()
 
 
 	cCamera3D *pCam = static_cast<cCamera3D*>(mpScene->GetCamera());
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView, pCam->GetViewMatrix());
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(cMatrixf::Identity, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
 	//mpScene->GetWorld3D()->GetPhysicsWorld()->RenderDebugGeometry(
 	//	mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1));
@@ -1327,9 +1357,223 @@ void cMapHandler::OnPostSceneDraw()
 
 //-----------------------------------------------------------------------
 
+// For the "rays" test command: logs every body a ray hits
+class cLogRayCallback : public iPhysicsRayCallback
+{
+public:
+	bool OnIntersect(iPhysicsBody *apBody, cPhysicsRayParams *apParams)
+	{
+		iGameEntity *pEntity = (iGameEntity*)apBody->GetUserData();
+		Log("   %.4f m: body '%s' material '%s' entity '%s' type %d active %d collide %d id %d\n",
+			apParams->mfDist, apBody->GetName().c_str(), apBody->GetMaterial()->GetName().c_str(),
+			pEntity ? pEntity->GetName().c_str() : "", pEntity ? (int)pEntity->GetType() : -1,
+			pEntity ? (int)pEntity->IsActive() : -1, (int)apBody->GetCollide(), apBody->GetSaveObjectId());
+		return true;
+	}
+};
+
+// For tests: OVERTURE_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
+// script commands that many seconds after the game has started, and says so
+// in the log. With "gui:" before it a command is for the open computer terminal;
+// "save" writes an auto save, "load" loads the newest auto save, "pos:x,y,z"
+// puts the player there, "where:body" logs a body's place, "lookat:body"
+// turns the camera to it, "rays" logs what the pick and ground rays hit,
+// "joint:name" where a joint is, "sounds" the sound entities playing and
+// "click" uses what the player looks at.
+// Returns true when a save was loaded (the world was changed under the update).
+static bool UpdateTestScript(cInit *apInit, float afTimeStep)
+{
+	struct cCommand { float mfTime; tString msCommand; };
+	static std::vector<cCommand> vCommands;
+	static bool bRead = false;
+	static float fTime = 0;
+
+	if(bRead==false)
+	{
+		bRead = true;
+		const char *pSpec = SDL_getenv("OVERTURE_SCRIPT");
+		tStringVec vParts;
+		tString sSep = "|";
+		if(pSpec) cString::GetStringVec(pSpec, vParts, &sSep);
+		for(const tString &sPart : vParts)
+		{
+			size_t lColon = sPart.find(':');
+			if(lColon == tString::npos) continue;
+			vCommands.push_back({cString::ToFloat(sPart.substr(0, lColon).c_str(), 0), sPart.substr(lColon+1)});
+		}
+	}
+	if(vCommands.empty()) return false;
+
+	float fLastTime = fTime;
+	fTime += afTimeStep;
+	for(const cCommand &command : vCommands)
+	{
+		if(command.mfTime < fLastTime || command.mfTime >= fTime) continue;
+
+		Log("TEST SCRIPT at %.2f: %s\n", fTime, command.msCommand.c_str());
+
+		// "gui:Command();" is run in the script of the open computer terminal
+		if(command.msCommand.compare(0, 4, "gui:") == 0)
+		{
+			cGameGui *pGui = apInit->mpGameGuiHandler->GetScreenGui();
+			if(pGui) pGui->RunScriptCommand(command.msCommand.substr(4));
+			else Log(" no computer terminal is open\n");
+			continue;
+		}
+		// "pos:x,y,z" puts the player there (feet), "where:body" logs where a body is
+		if(command.msCommand.compare(0, 4, "pos:") == 0)
+		{
+			tFloatVec vPos;
+			cString::GetFloatVec(command.msCommand.substr(4), vPos);
+			if(vPos.size() == 3)
+				apInit->mpPlayer->GetCharacterBody()->SetFeetPosition(cVector3f(vPos[0], vPos[1], vPos[2]));
+			continue;
+		}
+		// "ray:x,y,z,x,y,z" logs what a ray between two points hits, and what
+		// the player's pick would choose of it
+		if(command.msCommand.compare(0, 4, "ray:") == 0)
+		{
+			tFloatVec vNum;
+			cString::GetFloatVec(command.msCommand.substr(4), vNum, nullptr);
+			if(vNum.size() < 6) continue;
+			cVector3f vStart(vNum[0],vNum[1],vNum[2]), vEnd(vNum[3],vNum[4],vNum[5]);
+			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+			cLogRayCallback callback;
+			pPhysicsWorld->CastRay(&callback, vStart, vEnd, true, false, true);
+			cPlayerPickRayCallback pick;
+			pick.mfMaxDistance = cMath::Vector3Dist(vStart, vEnd);
+			pick.Clear();
+			pPhysicsWorld->CastRay(&pick, vStart, vEnd, true, false, true);
+			pick.CalculateResults();
+			Log(" pick: '%s' at %.4f m\n", pick.mpPickedBody ? pick.mpPickedBody->GetName().c_str() : "", pick.mfPickedDist);
+			continue;
+		}
+		if(command.msCommand.compare(0, 6, "where:") == 0)
+		{
+			tString sName = command.msCommand.substr(6);
+			cPhysicsBodyIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pBody = it.Next();
+				if(pBody->GetName() == sName)
+					Log(" %s at %s, speed %.2f\n", sName.c_str(), pBody->GetWorldPosition().ToString().c_str(),
+						pBody->GetLinearVelocity().Length());
+			}
+			continue;
+		}
+		// "sounds" logs the sound entities that are not stopped
+		if(command.msCommand == "sounds")
+		{
+			cSoundEntityIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetSoundEntityIterator();
+			while(it.HasNext())
+			{
+				cSoundEntity *pSound = it.Next();
+				if(pSound->IsStopped()) continue;
+				cSoundEntry *pEntry = pSound->GetSoundEntry(eSoundEntityType_Main);
+				Log(" sound '%s' (%s) playing %d volume %.2f fading out %d\n", pSound->GetName().c_str(),
+					pSound->GetData() ? pSound->GetData()->GetName().c_str() : "", pEntry != nullptr,
+					pEntry ? pEntry->mfNormalVolumeMul : 0.0f, (int)pSound->IsFadingOut());
+			}
+			continue;
+		}
+		// "joint:name" logs where a joint is between its limits
+		if(command.msCommand.compare(0, 6, "joint:") == 0)
+		{
+			tString sName = command.msCommand.substr(6);
+			cPhysicsJointIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator();
+			while(it.HasNext())
+			{
+				iPhysicsJoint *pJoint = it.Next();
+				if(pJoint->GetName() != sName) continue;
+				iPhysicsBody *pChild = pJoint->GetChildBody();
+				iPhysicsJointSlider *pSlider = pJoint->GetType() == ePhysicsJointType_Slider ? (iPhysicsJointSlider*)pJoint : nullptr;
+				Log(" %s: dist %.4f angle %.4f limits %.4f..%.4f speed %.3f child '%s' at %s frozen %d\n", sName.c_str(),
+					pJoint->GetDistance(), pJoint->GetAngle(), pSlider ? pSlider->GetMinDistance() : 0.0f, pSlider ? pSlider->GetMaxDistance() : 0.0f,
+					pJoint->GetVelocity().Length(), pChild ? pChild->GetName().c_str() : "",
+					pChild ? pChild->GetWorldPosition().ToString().c_str() : "", pChild ? (int)pChild->IsFrozen() : -1);
+			}
+			continue;
+		}
+		// "lookat:body" turns the camera to look at a body's centre
+		if(command.msCommand.compare(0, 7, "lookat:") == 0)
+		{
+			// or "lookat:x,y,z" at a point
+			tString sName = command.msCommand.substr(7);
+			tFloatVec vNum;
+			cString::GetFloatVec(sName, vNum, nullptr);
+			cPhysicsBodyIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
+			bool bPoint = vNum.size() == 3;
+			while(bPoint || it.HasNext())
+			{
+				iPhysicsBody *pBody = bPoint ? nullptr : it.Next();
+				if(pBody && pBody->GetName() != sName) continue;
+				cVector3f vTarget = pBody ? pBody->GetBoundingVolume()->GetWorldCenter() : cVector3f(vNum[0],vNum[1],vNum[2]);
+				bPoint = false;
+				cCamera3D *pCamera = apInit->mpPlayer->GetCamera();
+				cVector3f vDir = vTarget - pCamera->GetPosition();
+				pCamera->SetYaw(atan2(-vDir.x, -vDir.z));
+				pCamera->SetPitch(atan2(vDir.y, sqrt(vDir.x*vDir.x + vDir.z*vDir.z)));
+				apInit->mpPlayer->GetCharacterBody()->SetYaw(pCamera->GetYaw());
+				Log(" looking at %s from %s, %.2f m away\n", sName.c_str(), pCamera->GetPosition().ToString().c_str(), vDir.Length());
+			}
+			continue;
+		}
+		// "rays" logs what the pick ray and the ground ray hit
+		if(command.msCommand == "rays")
+		{
+			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+			cCamera3D *pCamera = apInit->mpPlayer->GetCamera();
+			cLogRayCallback callback;
+			iPhysicsBody *pPicked = apInit->mpPlayer->GetPickedBody();
+			Log(" player active %d state %d move state %d picked '%s' at %.3f m crosshair %d, pick ray from %s\n",
+				(int)apInit->mpPlayer->IsActive(), (int)apInit->mpPlayer->GetState(), (int)apInit->mpPlayer->GetMoveState(),
+				pPicked ? pPicked->GetName().c_str() : "", apInit->mpPlayer->GetPickedDist(),
+				(int)apInit->mpPlayer->GetCrossHairState(), pCamera->GetPosition().ToString().c_str());
+			pPhysicsWorld->CastRay(&callback, pCamera->GetPosition(), pCamera->GetPosition() + pCamera->GetForward()*10, true, false, true);
+			iCharacterBody *pCharBody = apInit->mpPlayer->GetCharacterBody();
+			cVector3f vStart = pCharBody->GetPosition() - cVector3f(0, pCharBody->GetShape()->GetSize().y/2-0.3f, 0);
+			Log(" ground ray from %s\n", vStart.ToString().c_str());
+			pPhysicsWorld->CastRay(&callback, vStart, vStart + cVector3f(0,-0.6f,0), true, false, false);
+			// and any NaN body: one hides most of the map from ray casts
+			cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pBody = it.Next();
+				if(std::isnan(pBody->GetWorldPosition().x) || std::isnan(pBody->GetBV()->GetMin().x))
+					Log("   NaN body: '%s'\n", pBody->GetName().c_str());
+			}
+			continue;
+		}
+		// "click" presses and lets go of Interact, as the left mouse button does
+		if(command.msCommand == "click")
+		{
+			apInit->mpPlayer->StartInteract();
+			apInit->mpPlayer->StopInteract();
+			continue;
+		}
+		if(command.msCommand == "save")
+		{
+			apInit->mpSaveHandler->AutoSave(_W("auto"), 10);
+			continue;
+		}
+		if(command.msCommand == "load")
+		{
+			apInit->mpSaveHandler->AutoLoad(_W("auto"));
+			return true;
+		}
+
+		apInit->RunScriptCommand(command.msCommand);
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
 void cMapHandler::Update(float afTimeStep)
 {
 	mfGameTime += (double)afTimeStep;
+
+	if(UpdateTestScript(mpInit, afTimeStep)) return;
 
 	//iLowLevelSystem *pLowLevelSystem =mpInit->mpGame->GetSystem()->GetLowLevel();
 	
@@ -1362,6 +1606,7 @@ void cMapHandler::Update(float afTimeStep)
 	//LogUpdate(" Entities!\n");
 	////////////////////////////
 	//Update entities.
+	const bool bOverture = cInit::IsOverture();
 	tGameEntityMapIt GIt = m_mapGameEntities.begin();
 	for(; GIt != m_mapGameEntities.end();)
 	{
@@ -1374,7 +1619,8 @@ void cMapHandler::Update(float afTimeStep)
 			pEntity->OnUpdate(afTimeStep);
 		}
 
-		if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+		// Black Plague destroys entities only after all have been updated
+		if(bOverture && (pEntity->GetDestroyMe() || pEntity->GetBreakMe()))
 		{
 			//LogUpdate("    destroying\n");
 			if(pEntity->GetBreakMe()) pEntity->BreakAction();
@@ -1389,9 +1635,25 @@ void cMapHandler::Update(float afTimeStep)
 			//										pLowLevelSystem->GetTime() - lTime);
 			++GIt;
 		}
+	}
 
-		
+	if(bOverture==false)
+	{
+		for(GIt = m_mapGameEntities.begin(); GIt != m_mapGameEntities.end();)
+		{
+			iGameEntity *pEntity = GIt->second;
+			if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+			{
+				if(pEntity->GetBreakMe()) pEntity->BreakAction();
 
+				m_mapGameEntities.erase(GIt++);
+				hplDelete( pEntity );
+			}
+			else
+			{
+				++GIt;
+			}
+		}
 	}
 
 	////////////////////////////
@@ -1411,11 +1673,22 @@ void cMapHandler::Update(float afTimeStep)
 		if(mMapChanger.msLoadTextCat != "")
 		{
 			mpInit->mpMapLoadText->SetText(mMapChanger.msLoadTextCat,mMapChanger.msLoadTextEntry);
+			mpInit->mpMapLoadText->SetBackground(mMapChanger.msLoadImage != "" ? mMapChanger.msLoadImage
+																				: tString("loadscreen_default.jpg"));
 			mpInit->mpMapLoadText->SetActive(true);
 		}
 		else
 		{
-			mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
+			if(cInit::IsOverture())
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
+			else if(mMapChanger.msLoadImage != "")
+				mpInit->mpGraphicsHelper->DrawLoadingScreen(mMapChanger.msLoadImage);
+			//Requiem: black without "Loading" (its check for an image called
+			//"black" can never be true, so this is all it does)
+			else if(cInit::GetGameId() == eGameId_Requiem)
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("", false);
+			else
+				mpInit->mpGraphicsHelper->DrawLoadingScreen("loadscreen_default.jpg");
 		}
 		
 		//Fade in here so that script will over ride it.
@@ -1468,6 +1741,63 @@ void cMapHandler::Reset()
 
 	//Make sure no occulssion queries are left.
 	mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRenderList()->Clear();
+}
+
+//-----------------------------------------------------------------------
+
+// Hits of world geometry and other bodies that do not move, with normals
+class cStaticRayCallback : public iPhysicsRayCallback
+{
+public:
+	iPhysicsBody *mpSkip = nullptr;
+	float mfMinT = 2;
+	cVector3f mvNormal;
+	bool OnIntersect(iPhysicsBody *apBody, cPhysicsRayParams *apParams) override
+	{
+		if(apBody == mpSkip || apBody->GetMass() != 0 || apBody->IsCharacter() || !apBody->GetCollide()) return true;
+		iGameEntity *pEntity = (iGameEntity*)apBody->GetUserData();
+		if(pEntity && pEntity->GetType() != eGameEntityType_Object) return true; //areas
+		if(apParams->mfT < mfMinT){ mfMinT = apParams->mfT; mvNormal = apParams->mvNormal; }
+		return true;
+	}
+};
+
+// Some bodies are placed with their middle a little under the floor (level
+// 7's painkillers in a locker, 1.6 cm). Newton 1 pushed them up; Newton 2
+// only pushes a body out of a floor whose face it is in front of, so these
+// fell through the world before the player arrived. Lift them onto it.
+void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
+{
+	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
+	cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+	while(it.HasNext())
+	{
+		iPhysicsBody *pBody = it.Next();
+		if(pBody->GetMass() == 0 || pBody->IsCharacter() || pBody->IsRagDoll() || pBody->GetJointNum() > 0) continue;
+		if(!pBody->GetCollide()) continue;
+
+		cBoundingVolume *pBV = pBody->GetBV();
+		cVector3f vCenter = pBV->GetWorldCenter();
+		float fTop = pBV->GetMax().y;
+		if(fTop <= vCenter.y) continue;
+
+		//From the top of the body down to its middle: a floor in between
+		//means the middle is under it
+		cStaticRayCallback callback;
+		callback.mpSkip = pBody;
+		cVector3f vStart(vCenter.x, fTop, vCenter.z);
+		pPhysicsWorld->CastRay(&callback, vStart, vCenter, true, true, true);
+		if(callback.mfMinT > 0.99f || callback.mvNormal.y < 0.7f) continue;
+
+		float fFloorY = fTop + (vCenter.y - fTop) * callback.mfMinT;
+		float fLift = fFloorY - pBV->GetMin().y + 0.002f;
+		if(fLift <= 0) continue;
+
+		Log("Lifting body '%s' %.3f m out of the floor under it\n", pBody->GetName().c_str(), fLift);
+		cMatrixf mtxBody = pBody->GetLocalMatrix();
+		mtxBody.SetTranslation(mtxBody.GetTranslation() + cVector3f(0, fLift, 0));
+		pBody->SetMatrix(mtxBody);
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -1606,11 +1936,19 @@ void cMapHandler::AddGameEntity(iGameEntity *apEntity)
 	}
 
 	mpLatestEntity = apEntity;
-	m_mapGameEntities.insert(tGameEntityMap::value_type(apEntity->GetName(),apEntity));
+	m_mapGameEntities.insert(tGameEntityMap::value_type(EntityKey(apEntity->GetName()),apEntity));
 }
 
 void cMapHandler::RemoveGameEntity(iGameEntity *apEntity)
 {
+	// Black Plague: switched off now, destroyed after the entities' update
+	if(cInit::IsOverture()==false)
+	{
+		apEntity->SetActive(false);
+		apEntity->DestroyMe();
+		return;
+	}
+
 	m_mapGameEntities.erase(apEntity->GetName());
 
 	//If the entity is an enemy remove that aswel
@@ -1630,9 +1968,21 @@ void cMapHandler::RemoveGameEntity(iGameEntity *apEntity)
 	hplDelete( apEntity );
 }
 
+// Takes an entity out at once, not after the next update
+void cMapHandler::DestroyGameEntityNow(iGameEntity *apEntity)
+{
+	for(tGameEntityMapIt it = m_mapGameEntities.begin(); it != m_mapGameEntities.end(); ++it)
+	{
+		if(it->second == apEntity){ m_mapGameEntities.erase(it); break; }
+	}
+	mlstGameEnemies.remove_if([apEntity](iGameEnemy *pEnemy){ return (iGameEntity*)pEnemy == apEntity; });
+	if(mpLatestEntity == apEntity) mpLatestEntity = nullptr;
+	hplDelete( apEntity );
+}
+
 iGameEntity* cMapHandler::GetGameEntity(const tString &asName, bool abErrorMessage)
 {
-	tGameEntityMapIt it = m_mapGameEntities.find(asName);
+	tGameEntityMapIt it = m_mapGameEntities.find(EntityKey(asName));
 	if(it == m_mapGameEntities.end())
 	{
 		if(abErrorMessage) Error("Couldn't find game entity '%s'\n",asName.c_str());

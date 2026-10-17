@@ -19,6 +19,7 @@
 #include "math/BoundingVolume.h"
 
 #include "math/Math.h"
+#include "math/MeshTypes.h"
 #include "graphics/LowLevelGraphics.h"
 
 
@@ -403,9 +404,9 @@ namespace hpl {
 		{
 
 			for(int i=0; i<4; i++)
-				vVtx[i].pos = pVolume->mvPoints[quad+i];
+				vVtx[i] = cVertex(pVolume->mvPoints[quad+i], cVector3f(0), cColor(0.2f,0,0.2f));
 
-			apLowLevelGraphics->DrawQuad(vVtx,cColor(0.2f,0,0.2f));
+			apLowLevelGraphics->DrawTriangles({vVtx[0],vVtx[1],vVtx[2],vVtx[0],vVtx[2],vVtx[3]});
 
 			cVector3f vCenter = (vVtx[1].pos + vVtx[0].pos)*0.5f;
 			mShadowVolume.mvPlanes[lPlane].CalcNormal();

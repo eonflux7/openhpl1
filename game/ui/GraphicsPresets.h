@@ -25,28 +25,6 @@ using namespace hpl;
 
 class cInit;
 
-// The Lighting page's options: each is the original's or the improved one,
-// with its settings in the F2 panel.
-enum eImprovedOption
-{
-	eImprovedOption_Shading,
-	eImprovedOption_Flashlight,
-	eImprovedOption_Lamps,
-	eImprovedOption_Halos,
-	eImprovedOption_Shafts,
-	eImprovedOption_Particles,
-	eImprovedOption_LastEnum
-};
-
-bool GetImprovedOption(cInit *apInit, eImprovedOption aOption);
-void SetImprovedOption(cInit *apInit, eImprovedOption aOption, bool abX);
-
-// The Shadows option: On, Only Static, Off (shadow volumes, the original),
-// then Soft and Soft, Only Static (shadow maps).
-static const int glShadowOptionNum = 5;
-int GetShadowOption(cInit *apInit);
-void SetShadowOption(cInit *apInit, int alOption);
-
 // Sets of graphics options. Custom is any other combination: it is what
 // GetGraphicsPreset() returns, never something to apply.
 enum eGraphicsPreset
@@ -54,7 +32,6 @@ enum eGraphicsPreset
 	eGraphicsPreset_ImprovedHigh,
 	eGraphicsPreset_ImprovedMedium,
 	eGraphicsPreset_ImprovedLow,
-	eGraphicsPreset_Original,
 	eGraphicsPreset_Custom,
 	eGraphicsPreset_LastEnum
 };

@@ -31,7 +31,6 @@ namespace hpl {
 	enum eVertexBufferDrawType
 	{
 		eVertexBufferDrawType_Tri,
-		eVertexBufferDrawType_Quad,
 		eVertexBufferDrawType_Lines,
 		eVertexBufferDrawType_LastEnum
 	};
@@ -46,37 +45,38 @@ namespace hpl {
 
 	typedef tFlag tVertexFlag;
 
-	#define eVertexFlag_Normal		(0x00000001)
-	#define eVertexFlag_Position	(0x00000002)
-	#define eVertexFlag_Color0		(0x00000004)
-	#define eVertexFlag_Color1		(0x00000008)
-	#define eVertexFlag_Texture0	(0x00000010)
-	#define eVertexFlag_Texture1	(0x00000020)
-	#define eVertexFlag_Texture2	(0x00000040)
-	#define eVertexFlag_Texture3	(0x00000080)
-	#define eVertexFlag_Texture4	(0x00000100)
+	#define eVertexFlag_Normal   (0x01)
+	#define eVertexFlag_Position (0x02)
+	#define eVertexFlag_Color0   (0x04)
+	#define eVertexFlag_TexCoord (0x08)
+	#define eVertexFlag_Tangent  (0x10)
 
-	#define klNumOfVertexFlags (9)
-
-	const tVertexFlag kvVertexFlags[] = {eVertexFlag_Normal,eVertexFlag_Position,eVertexFlag_Color0,
-				eVertexFlag_Color1,eVertexFlag_Texture0,eVertexFlag_Texture1,eVertexFlag_Texture2,
-				eVertexFlag_Texture3,eVertexFlag_Texture4};
-
-	const int kvVertexElements[] = {3, //Normal
-									4, //Position
-									4, //Color0
-									4, //Color1
-									3, //Texture0
-									3, //Texture1
-									3, //Texture2
-									3, //Texture3
-									3 //Texture4
-								};
+	#define klNumOfVertexFlags (5)
+	const tVertexFlag kvVertexFlags[] = {eVertexFlag_Normal, eVertexFlag_Position,
+		eVertexFlag_Color0, eVertexFlag_TexCoord, eVertexFlag_Tangent};
+	// CPU editing arrays are tightly packed per attribute. GPU uploads interleave
+	// them; callers (skinning, physics, caches) never use the GPU stride.
+	const int kvVertexElements[] = {3, 4, 4, 3, 4};
 
 	typedef tFlag tVertexCompileFlag;
 
 	#define eVertexCompileFlag_CreateTangents	(0x00000001)
 
+
+	// One sheet, expanded from shared triangle corners in the vertex shader.
+	// Extents are half-width/half-height vectors in the object's draw space.
+	// UV bounds are left, bottom, right, top; endpoint colours run bottom to top.
+	struct cQuadInstance
+	{
+		cVector3f mvCentre = cVector3f(0);
+		float mfKind = 1; // 1: billboard, 2: beam, 3: particle
+		cVector3f mvRight = cVector3f(0.5f,0,0);
+		cVector3f mvUp = cVector3f(0,0.5f,0);
+		cColor mColor = cColor(1,1);
+		cColor mEndColor = cColor(1,1);
+		float mvUV[4] = {0,0,1,1};
+	};
+	static_assert(sizeof(cQuadInstance) == 22 * sizeof(float), "Instance GPU layout");
 
 	class iLowLevelGraphics;
 
@@ -92,6 +92,21 @@ namespace hpl {
 
 		virtual ~iVertexBuffer(){}
 
+		// Select compact sheets before Compile instead of editable mesh arrays. No GL work here;
+		// uploads happen when bound/drawn. Empty submissions remain instance buffers.
+		std::vector<cQuadInstance>& UpdateQuadInstances(size_t alCount)
+		{
+			mvQuadInstances.resize(alCount);
+			mbQuadInstances = true;
+			mbQuadInstancesDirty = true;
+			return mvQuadInstances;
+		}
+		void SetQuadInstances(const std::vector<cQuadInstance>& avInstances)
+		{
+			UpdateQuadInstances(avInstances.size()) = avInstances;
+		}
+		const std::vector<cQuadInstance>& GetQuadInstances() const { return mvQuadInstances; }
+
 		tVertexFlag GetFlags(){ return mVertexFlags;}
 
 		virtual void AddVertex(tVertexFlag aType,const cVector3f& avVtx)=0;
@@ -100,12 +115,6 @@ namespace hpl {
 
 		virtual bool Compile(tVertexCompileFlag aFlags)=0;
 		virtual void UpdateData(tVertexFlag aTypes, bool abIndices)=0;
-
-		/**
-		* This creates a double of the vertex array with w=0.
-		* \param abUpdateData if the hardware buffer should be updated aswell.
-		*/
-		virtual void CreateShadowDouble(bool abUpdateData)=0;
 
 		/**
 		 * Transform the entire buffer with transform.
@@ -123,6 +132,7 @@ namespace hpl {
 
 		virtual cBoundingVolume CreateBoundingVolume()=0;
 
+		// Mutable packed CPU data. Call UpdateData after editing a compiled buffer.
 		virtual float* GetArray(tVertexFlag aType)=0;
 		virtual unsigned int* GetIndices()=0;
 
@@ -154,6 +164,9 @@ namespace hpl {
 		void SetTangents(bool abX){ mbTangents = abX;}
 
 	protected:
+		std::vector<cQuadInstance> mvQuadInstances;
+		bool mbQuadInstances = false;
+		bool mbQuadInstancesDirty = false;
 		tVertexFlag mVertexFlags;
 		eVertexBufferDrawType mDrawType;
 		eVertexBufferUsageType mUsageType;

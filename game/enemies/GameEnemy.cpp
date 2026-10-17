@@ -19,7 +19,10 @@
 #include "core/StdAfx.h"
 #include "enemies/GameEnemy.h"
 
+#include <SDL3/SDL.h>
+
 #include "enemies/GameEnemy_Dog.h"
+#include "enemies/GameEnemy_Infected.h"
 #include "enemies/GameEnemy_Spider.h"
 #include "enemies/GameEnemy_Worm.h"
 
@@ -201,6 +204,9 @@ static bool BodyCanBeBroken(iPhysicsBody *pBody)
 {
 	if(pBody->GetUserData()== nullptr) return false;
 
+	//Black Plague: anything of an entity that can be moved is in the way too
+	if(cInit::IsOverture()==false && pBody->GetMass() != 0) return true;
+
 	iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 	if(pEntity->GetType() == eGameEntityType_SwingDoor)
 	{
@@ -372,6 +378,11 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 	mbUsesTriggers = true;
 
 	mfCalcPlayerHiddenPosCount = 0;
+
+	mbAccurateClimbing = false;
+	mpCurrentSound = nullptr;
+	mbAlignToGroundSkipNormal = false;
+	mbStopAtLastPatrolNode = false;
 }
 
 //-----------------------------------------------------------------------
@@ -454,6 +465,7 @@ void iGameEnemy::LoadBaseProperties(TiXmlElement *apGameElem)
 	m_mtxModelOffset.SetTranslation(vPos);
 
 	mbAlignToGroundNormal = cString::ToBool(apGameElem->Attribute("AlignToGroundNormal"),false);
+	mbAlignToGroundSkipNormal = cString::ToBool(apGameElem->Attribute("AlignToGroundSkipNormal"),false);
 
 	msHitPS = cString::ToString(apGameElem->Attribute("HitPS"),"");
 }
@@ -495,6 +507,7 @@ void iGameEnemy::Setup(cWorld3D *apWorld)
 	pBody->SetCustomGravity(cVector3f(0,-13.0f,0));
 	pBody->SetEntitySmoothPosNum(10);
 	pBody->SetGroundFriction(10);
+	pBody->SetAccurateClimbing(mbAccurateClimbing);
 
 	mpMover->SetCharBody(pBody);
 	
@@ -729,6 +742,23 @@ void iGameEnemy::Update(float afTimeStep)
 	
 	START_TIMING_EX(GetName().c_str(),enemy);
 
+	// Test hook: with OVERTURE_ENEMY_LOG, where the enemy is, once a second
+	static const bool bLogStates = SDL_getenv("OVERTURE_ENEMY_LOG") != nullptr;
+	if(bLogStates && mpInit->mpPlayer->GetCharacterBody())
+	{
+		mfLogCount -= afTimeStep;
+		if(mfLogCount <= 0)
+		{
+			mfLogCount = 1.0f;
+			cVector3f vPos = mpMover->GetCharBody()->GetPosition();
+			cVector3f vPlayer = mpInit->mpPlayer->GetCharacterBody()->GetPosition();
+			Log("ENEMY %s: state %d at (%.1f %.1f %.1f) player (%.1f %.1f %.1f) moving %d stuck %.2f sees %d anim %s\n",
+				msName.c_str(),mlCurrentState,vPos.x,vPos.y,vPos.z,vPlayer.x,vPlayer.y,vPlayer.z,
+				mpMover->IsMoving(),mpMover->GetStuckCounter(),mbCanSeePlayer,
+				mpCurrentAnimation ? mpCurrentAnimation->GetName() : "-");
+		}
+	}
+
 	if(mpMeshEntity->GetSkeletonPhysicsActive() && mpCharBody->IsActive()==false &&
 		mfHealth <=0)
 	{
@@ -862,6 +892,16 @@ void iGameEnemy::ChangeState(int alId)
 	sprintf(sStr,"%s State %s -> %s",msName.c_str(),sStateName1.c_str(),sStateName2.c_str());
 	//mpInit->mpEffectHandler->GetSubTitle()->Add(cString::To16Char(sStr),1.2f,false);
 	Log("%s\n",sStr);*/
+
+	// Test hook: OVERTURE_ENEMY_LOG=1 writes each change of state to the log
+	static const bool bLogStates = SDL_getenv("OVERTURE_ENEMY_LOG") != nullptr;
+	if(bLogStates)
+	{
+		Log("ENEMY %s: state %d -> %d (health %.1f, player health %.1f, dist %.2f)\n",msName.c_str(),
+			mlCurrentState,alId,mfHealth,mpInit->mpPlayer->GetHealth(),
+			(mpMover->GetCharBody() && mpInit->mpPlayer->GetCharacterBody()) ?
+				mpMover->DistanceToChar2D(mpInit->mpPlayer->GetCharacterBody()) : -1.0f);
+	}
 
 	//Log("Leave old...");
 	if(mlCurrentState>=0) 
@@ -1020,8 +1060,23 @@ void iGameEnemy::PlaySound(const tString &asName)
     cSoundEntity *pSound = pWorld->CreateSoundEntity("Enemy",asName,true);
 	if(pSound)
 	{
-		pSound->SetPosition(mpMover->GetCharBody()->GetPosition());
-		//TODO: Attach instead...
+		if(cInit::IsOverture())
+		{
+			pSound->SetPosition(mpMover->GetCharBody()->GetPosition());
+			//TODO: Attach instead...
+		}
+		//Black Plague: one sound at a time, and it follows the enemy
+		else
+		{
+			if(mpCurrentSound)
+			{
+				if(pWorld->SoundEntityExists(mpCurrentSound)) mpCurrentSound->FadeOut(0.1f);
+				mpCurrentSound = nullptr;
+			}
+			mpCurrentSound = pSound;
+
+			mpMover->GetCharBody()->GetBody()->AddChild(pSound);
+		}
 	}
 	else
 	{
@@ -1034,6 +1089,29 @@ void iGameEnemy::PlaySound(const tString &asName)
 void iGameEnemy::AddPatrolNode(const tString& asNode, float afTime, const tString& asAnimation)
 {
 	mvPatrolNodes.push_back(cEnemyPatrolNode(asNode,afTime,asAnimation));
+}
+
+//-----------------------------------------------------------------------
+
+void iGameEnemy::IncCurrentPatrolNode()
+{ 
+	mlCurrentPatrolNode++;
+	if(mlCurrentPatrolNode < (int)mvPatrolNodes.size()) return;
+	
+	mlCurrentPatrolNode =0;
+
+	//Black Plague: the patrol can end at its last node, and tell the script.
+	if(mbStopAtLastPatrolNode)
+	{
+		ClearPatrolNodes();
+	}
+
+	if(msOnPatrolOverCallback != "")
+	{
+		tString sCommand = msOnPatrolOverCallback + "(\"" + msName + "\")";
+		msOnPatrolOverCallback = "";
+		mpInit->RunScriptCommand(sCommand);
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -1137,7 +1215,8 @@ bool iGameEnemy::CheckForDoor()
 	cVector3f vEnd = vStart + pBody->GetForward() * 0.4f;
 
 	bool bRet = mDoorCheck.CheckDoor(vStart,vEnd);
-	Log("CheckDoor: %d\n",bRet);
+	//Black Plague leaves this line out of the log
+	if(cInit::IsOverture()) Log("CheckDoor: %d\n",bRet);
 
 	return bRet;
 }
@@ -1205,6 +1284,9 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 		vRotateAxis.Normalise();
 		cQuaternion qRotation = cQuaternion(fAngle, vRotateAxis);
 		cMatrixf mtxPoseRotation = cMath::MatrixQuaternion(qRotation);
+
+		//Black Plague: only moved down to the ground, not leant after it
+		if(mbAlignToGroundSkipNormal) mtxPoseRotation = cMatrixf::Identity;
 		
 			//cVector3f vDelta = vPosition - mpMover->GetCharBody()->GetFeetPosition();
 			
@@ -1321,8 +1403,17 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 	gfCurrentViewDist = fDist;
 	gfCurrentMaxViewDist = fMaxViewDist;
 
-	if( (fDist <= fMaxViewDist && LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fViewFOV)) ||
-		fDist <=  fMinLength)
+	//Black Plague: a player who touches the enemy is no longer seen through
+	//a wall, but is seen from any side.
+	bool bSeen;
+	if(cInit::IsOverture())
+		bSeen = (fDist <= fMaxViewDist && LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fViewFOV)) ||
+				fDist <=  fMinLength;
+	else
+		bSeen = fDist <= fMaxViewDist &&
+				LineOfSight(pPlayerBody->GetPosition(), pPlayerBody->GetSize(), fViewFOV, fDist <= fMinLength);
+
+	if(bSeen)
 	{
 		//Increase LOS counter,
 		mlPlayerInLOSCount++;
@@ -1396,6 +1487,14 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 			mbAnimationCompletionSent = true;
 			const tString sName = mpCurrentAnimation->GetName();
 			mvStates[mlCurrentState]->OnAnimationOver(sName);
+
+			//Black Plague: the script's callback for an animation played by script
+			if(msOnAnimOverCallback != "")
+			{
+				tString sCommand = msOnAnimOverCallback + "(\"" + msName + "\")";
+				msOnAnimOverCallback = "";
+				mpInit->RunScriptCommand(sCommand);
+			}
 			// Completion can replace the clip or enter another state. Let
 			// that state control its own playback on the following update.
 			return;
@@ -1509,6 +1608,9 @@ void iGameEnemy::SetupBody()
 	mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mfMaxForwardSpeed);
 	mpMover->GetCharBody()->SetMaxNegativeMoveSpeed(eCharDir_Forward,-mfMaxBackwardSpeed);
 	mpMover->GetCharBody()->SetMoveAcc(eCharDir_Forward, mfAcceleration);
+	//Black Plague
+	if(cInit::IsOverture()==false)
+		mpMover->GetCharBody()->SetMoveDeacc(eCharDir_Forward, mfDeacceleration);
 
 	mpMover->GetCharBody()->SetMaxPushMass(mfMaxPushMass);
 	mpMover->GetCharBody()->SetPushForce(mfPushForce);
@@ -1531,9 +1633,25 @@ static const cVector2f gvPosAdds[] = {cVector2f(0,0),
 										cVector2f(0,-1)
 };	
 
-bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, float afFOV)
+//Black Plague looks from the top of the body, with more rays and closer together.
+static const cVector2f gvPosAddsBP[] = {cVector2f(0,0),
+										cVector2f(0.5f,0),
+										cVector2f(-0.5f,0),
+										cVector2f(0,1),
+										cVector2f(0,-1),
+										cVector2f(0.25f,0.25f),
+										cVector2f(-0.25f,0.25f),
+										cVector2f(0.25f,0),
+										cVector2f(-0.25f,0)
+};	
+
+bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, float afFOV, bool abSkipFOV)
 {
 	const float fFOV = afFOV >= 0 ? afFOV : mfFOV;
+	const bool bOverture = cInit::IsOverture();
+	const cVector2f *pPosAdds = bOverture ? gvPosAdds : gvPosAddsBP;
+	const int lRayNum = bOverture ? 5 : 9;
+
 	//Setup debug
 	//if(mvRayStartPoses.size()<5) mvRayStartPoses.resize(5);
 	//if(mvRayEndPoses.size()<5) mvRayEndPoses.resize(5);
@@ -1541,6 +1659,7 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
 	cVector3f vStartCenter = mpMover->GetCharBody()->GetPosition();
+	if(bOverture==false) vStartCenter.y += mpMover->GetCharBody()->GetSize().y*0.5f - 0.1f;
 	cVector3f vEndCenter = avPos;
 
 	/////////////////////////////
@@ -1551,7 +1670,7 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 
 	////////////////////////////////////
 	//Check if the pos is within FOV
-	if(fFOV < k2Pif)
+	if(fFOV < k2Pif && abSkipFOV==false)
 	{
 		cVector3f vEnemyForward = mpMover->GetCharBody()->GetForward();
 		
@@ -1577,9 +1696,9 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	//Count of 2 is need for a line of sight sucess.
 	int lCount=0;
 	//Iterate through all the rays.
-	for(int i=0; i< 5; ++i)
+	for(int i=0; i< lRayNum; ++i)
 	{
-		cVector3f vAdd = vRight * (gvPosAdds[i].x*fHalfWidth) + vUp * (gvPosAdds[i].y*fHalfHeight);
+		cVector3f vAdd = vRight * (pPosAdds[i].x*fHalfWidth) + vUp * (pPosAdds[i].y*fHalfHeight);
 		cVector3f vStart = vStartCenter + vAdd;
 		cVector3f vEnd = vEndCenter + vAdd;
 		
@@ -1656,6 +1775,10 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	{
 		pEnemy = hplNew( cGameEnemy_Dog, (mpInit,mpEntity->GetName(),pGameElem) );
 	}
+	else if(sSubtype == "Infected")
+	{
+		pEnemy = hplNew( cGameEnemy_Infected, (mpInit,mpEntity->GetName(),pGameElem) );
+	}
 #ifndef DEMO_VERSION
 	else if(sSubtype == "Spider")
 	{
@@ -1666,6 +1789,15 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 		pEnemy = hplNew( cGameEnemy_Worm, (mpInit,mpEntity->GetName(),pGameElem) );
 	}
 #endif
+	if(pEnemy==nullptr)
+	{
+		Warning("Enemy '%s' has subtype '%s', which is not known; it is left out\n",
+				mpEntity->GetName().c_str(), sSubtype.c_str());
+		mpEntity->SetActive(false);
+		mpEntity->SetVisible(false);
+		for(size_t i=0; i<mvBodies.size(); ++i) mvBodies[i]->SetActive(false);
+		return;
+	}
 	
 	pEnemy->msSubType = sSubtype;
 	pEnemy->msEnemyType = msName;
@@ -1723,6 +1855,10 @@ kSerializeVar(mbUsesTriggers, eSerializeType_Bool)
 kSerializeVar(mvLastPlayerPos, eSerializeType_Vector3f)
 kSerializeVar(msOnDeathCallback, eSerializeType_String)
 kSerializeVar(msOnAttackCallback, eSerializeType_String)
+kSerializeVar(msOnHuntCallback, eSerializeType_String)
+kSerializeVar(msOnAnimOverCallback, eSerializeType_String)
+kSerializeVar(msOnPatrolOverCallback, eSerializeType_String)
+kSerializeVar(mbStopAtLastPatrolNode, eSerializeType_Bool)
 kSerializeClassContainer(mvPatrolNodes,cEnemyPatrolNode,eSerializeType_Class)
 kEndSerialize()
 
@@ -1758,6 +1894,10 @@ void iGameEnemy::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mvLastPlayerPos);
 	kCopyToVar(pData,msOnDeathCallback);
 	kCopyToVar(pData,msOnAttackCallback);
+	kCopyToVar(pData,msOnHuntCallback);
+	kCopyToVar(pData,msOnAnimOverCallback);
+	kCopyToVar(pData,msOnPatrolOverCallback);
+	kCopyToVar(pData,mbStopAtLastPatrolNode);
 
 	kCopyToVar(pData,mfDisappearTime);
 	kCopyToVar(pData,mbDisappearActive);
@@ -1793,6 +1933,10 @@ void iGameEnemy::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mvLastPlayerPos);
 	kCopyFromVar(pData,msOnDeathCallback);
 	kCopyFromVar(pData,msOnAttackCallback);
+	kCopyFromVar(pData,msOnHuntCallback);
+	kCopyFromVar(pData,msOnAnimOverCallback);
+	kCopyFromVar(pData,msOnPatrolOverCallback);
+	kCopyFromVar(pData,mbStopAtLastPatrolNode);
 
 	kCopyFromVar(pData,mfDisappearTime);
 	kCopyFromVar(pData,mbDisappearActive);

@@ -22,7 +22,6 @@
 #include "graphics/LowLevelGraphics.h"
 #include "resources/LowLevelResources.h"
 #include "graphics/GraphicsDrawer.h"
-#include "graphics/Renderer2D.h"
 #include "graphics/Renderer3D.h"
 #include "graphics/RendererPostEffects.h"
 #include "graphics/RenderList.h"
@@ -32,7 +31,6 @@
 #include "resources/Resources.h"
 
 //2D Materials
-#include "graphics/Material_Diffuse2D.h"
 #include "graphics/Material_DiffuseAdditive2D.h"
 #include "graphics/Material_DiffuseAlpha2D.h"
 #include "graphics/Material_Smoke2D.h"
@@ -69,7 +67,6 @@ namespace hpl {
 		mpDrawer = nullptr;
 		mpMeshCreator = nullptr;
 		mpMaterialHandler = nullptr;
-		mpRenderer2D = nullptr;
 		mpRenderer3D = nullptr;
 		mpRendererPostEffects = nullptr;
 	}
@@ -81,7 +78,6 @@ namespace hpl {
 		Log("Exiting Graphics Module\n");
 		Log("--------------------------------------------------------\n");
 
-		hplDelete(mpRenderer2D);
 		hplDelete(mpRenderer3D);
 		hplDelete(mpRendererPostEffects);
 		hplDelete(mpDrawer);
@@ -117,7 +113,6 @@ namespace hpl {
 		Log(" Creating graphic systems\n");
 		mpMaterialHandler = hplNew( cMaterialHandler,(this, apResources));
 		mpDrawer = hplNew( cGraphicsDrawer,(mpLowLevelGraphics,mpMaterialHandler,apResources));
-		mpRenderer2D = hplNew( cRenderer2D,(mpLowLevelGraphics,apResources,mpDrawer));
 		mpRenderList = hplNew( cRenderList,(this));
 		mpMeshCreator = hplNew( cMeshCreator,(mpLowLevelGraphics, apResources));
 		mpRenderer3D = hplNew( cRenderer3D,(mpLowLevelGraphics,apResources,mpMeshCreator,mpRenderList));
@@ -131,7 +126,6 @@ namespace hpl {
 		Log(" Adding engine materials\n");
 		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAdditive2D,()) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAlpha2D,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Diffuse2D,()) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_Smoke2D,()) );
 		mpMaterialHandler->Add(hplNew( cMaterialType_FontNormal,()) );
 
@@ -174,22 +168,6 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cGraphics::SetLinearLighting(bool abX)
-	{
-		if(mpLowLevelGraphics->GetLinearLighting() == abX) return;
-
-		mpLowLevelGraphics->SetLinearLighting(abX);
-		//The copies of the scene change format
-		mpRendererPostEffects->CreateScreenBuffers();
-	}
-
-	bool cGraphics::GetLinearLighting()
-	{
-		return mpLowLevelGraphics->GetLinearLighting();
-	}
-
-	//-----------------------------------------------------------------------
-
 	iLowLevelGraphics* cGraphics::GetLowLevel()
 	{
 		return mpLowLevelGraphics;
@@ -200,13 +178,6 @@ namespace hpl {
 	cGraphicsDrawer* cGraphics::GetDrawer()
 	{
 		return mpDrawer;
-	}
-
-	//-----------------------------------------------------------------------
-
-	cRenderer2D* cGraphics::GetRenderer2D()
-	{
-		return mpRenderer2D;
 	}
 
 	//-----------------------------------------------------------------------

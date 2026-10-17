@@ -65,18 +65,7 @@ public:
 
 	void Update(float afTimeStep) override;
 	void OnDraw() override;
-	void OnPostBufferSwap() override;
 	void Reset() override;
-
-	/**
-	 * Saves one labeled Vanilla / Improved PNG to the desktop, with the
-	 * full Vanilla frame above the Improved frame. Vanilla uses
-	 * the original look, Improved uses the current settings.
-	 * Holds the camera while capturing and restores the settings afterwards.
-	 */
-	void StartCompareShots();
-	void CancelCompareShots() { EndCompareShots(); }
-	bool IsComparing() const { return mlCompareStep != 0; }
 
 private:
 	void Draw();
@@ -87,7 +76,6 @@ private:
 	void DrawEffectsLab();
 	void UpdatePlayerEffects(float afTimeStep);
 	cPlayerEffectState EffectPreviewState() const;
-	void DrawLegacyEffectPreview(const cPlayerEffectState &aState);
 	void CheckEffectsCapture(bool abCondition, const char *asMessage);
 	void UpdateEffectsChecks();
 	void DrawRenderer();
@@ -112,42 +100,6 @@ private:
 	void ApplyOptions();
 	bool CanLoadMap();
 
-	void UpdateCompareShots();
-	void EndCompareShots();
-	void HoldCompareCamera();
-	void SetOriginalLook();
-	void RestoreLook();
-
-	//Comparison shots: the step it is at (0 = not running), frames left to
-	//wait, and the options as they were
-	int mlCompareStep = 0;
-	int mlCompareWait = 0;
-	tString msCompareFile;
-	std::vector<unsigned char> mvCompareVanilla;
-	cVector2l mvCompareSize;
-	cVector3f mvCompareCameraPos;
-	cVector3f mvCompareCameraAngles;
-	bool mbCompareCaptured = false;
-	bool mbCompareSaved = false;
-	bool mbCompareOverlay = false;
-	struct cSavedLook
-	{
-		bool mbLinearLighting;
-		eBloomType mBloomType;
-		bool mbAmbientOcclusion;
-		eDepthOfFieldType mDofType;
-		eMotionBlurType mMotionBlurType;
-		eShadowType mShadowType;
-		int mlNoiseType;
-		bool mbSmaa;
-		bool mbShading;
-		bool mbFlashlight;
-		bool mbLamps;
-		cEffectSettings mEffects;
-		bool mbPlayerEffects;
-	};
-	cSavedLook mSavedLook;
-
 	enum eEffectPreview
 	{
 		ePreview_None,
@@ -171,10 +123,8 @@ private:
 	bool mbEffectPreviewAnimate = true;
 	bool mbEffectTour = false;
 	bool mbEffectsLabFullPanel = false;
-	bool mbLegacyPreviewTrail = false;
 	int mlEffectAction = 0;
 	float mfEffectBlackFade = 0;
-	cGfxObject *mvLegacyPreviewGfx[9] = {};
 	// Headless captures use the same preview as the panel, at fixed amounts.
 	tString msEffectsCapture;
 	int mlEffectsCaptureFrame = 0;
@@ -224,8 +174,6 @@ private:
 	bool mbHide2D;
 	bool mbGodMode;
 	bool mbSkippingDrawing;
-	bool mbLinearLighting;
-	bool mbSetLinearLighting;
 	// The flashlight is switched to mbFlashLight on the next step
 	bool mbSetFlashLight;
 	// Items to put in the inventory on the next step

@@ -24,7 +24,6 @@
 namespace hpl {
 
 	class cResources;
-	class cRenderer2D;
 	class cRenderer3D;
 	class cRendererPostEffects;
 	class cRenderList;
@@ -55,7 +54,6 @@ namespace hpl {
 		 */
 		cGraphicsDrawer* GetDrawer();
 
-		cRenderer2D* GetRenderer2D();
 		cRenderer3D* GetRenderer3D(){ return mpRenderer3D;}
 		cRendererPostEffects* GetRendererPostEffects(){ return mpRendererPostEffects;}
 		cMeshCreator* GetMeshCreator(){return mpMeshCreator;}
@@ -68,21 +66,12 @@ namespace hpl {
 		void SetRenderScale(float afScale);
 		float GetRenderScale();
 
-		/**
-		 * Linear lighting: lights, transparent surfaces and effects add up
-		 * and blend on values proportional to light instead of on screen
-		 * values. Off is the original look.
-		 */
-		void SetLinearLighting(bool abX);
-		bool GetLinearLighting();
-
 	private:
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelResources *mpLowLevelResources;
 		cGraphicsDrawer *mpDrawer;
 		cMeshCreator *mpMeshCreator;
 		cMaterialHandler *mpMaterialHandler;
-		cRenderer2D* mpRenderer2D;
 		cRenderer3D* mpRenderer3D;
 		cRendererPostEffects* mpRendererPostEffects;
 		cRenderList *mpRenderList;

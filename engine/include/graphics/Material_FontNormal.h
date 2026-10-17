@@ -21,7 +21,6 @@
 
 #include "graphics/Material.h"
 
-
 namespace hpl {
 
 	class cMaterial_FontNormal : public iMaterial
@@ -29,20 +28,12 @@ namespace hpl {
 	public:
 		cMaterial_FontNormal(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 		~cMaterial_FontNormal() override;
 
 		void Compile() override;
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override;
-		void EndRendering(eMaterialRenderType aType) override;
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override;
-		bool NextPass(eMaterialRenderType aType) override;
-		bool HasMultiplePasses(eMaterialRenderType aType) override;
-
-		eMaterialType GetType(eMaterialRenderType aType) override;
-		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override;
+		std::optional<cSpriteBlend> GetSpriteBlend() const override { return cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha); }
 
 	private:
 	};
@@ -56,11 +47,11 @@ namespace hpl {
 
 		iMaterial* Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override
 		{
 			return hplNew( cMaterial_FontNormal, (asName,apLowLevelGraphics,
-				apImageManager,apTextureManager,apRenderer,
+				apImageManager,apTextureManager,
 				apProgramManager,aPicture,apRenderer3D) );
 		}
 	};

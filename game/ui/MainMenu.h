@@ -46,6 +46,7 @@ enum eMainMenuState
 	eMainMenuState_OptionsControls,
 	eMainMenuState_OptionsGame,
 	eMainMenuState_OptionsAI,
+	eMainMenuState_OptionsChangeGame,
 	eMainMenuState_OptionsSound,
 	eMainMenuState_OptionsKeySetupMove,
 	eMainMenuState_OptionsKeySetupAction,
@@ -54,6 +55,11 @@ enum eMainMenuState
 	eMainMenuState_GraphicsRestart,
 
 	eMainMenuState_FirstStart,
+
+	// Black Plague: whether to play the tutorial before a new game, and
+	// whether to start it from its own button
+	eMainMenuState_AskTutorial,
+	eMainMenuState_AskStartTutorial,
 
 	eMainMenuState_LastEnum
 };

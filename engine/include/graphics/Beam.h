@@ -129,6 +129,8 @@ namespace hpl {
 
 		eRenderableType GetRenderType() override{ return eRenderableType_ParticleSystem;}
 	private:
+		void UpdateInstance();
+
 		cMaterialManager* mpMaterialManager;
 		cFileSearcher *mpFileSearcher;
 		iLowLevelGraphics* mpLowLevelGraphics;

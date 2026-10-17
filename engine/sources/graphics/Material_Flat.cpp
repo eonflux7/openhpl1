@@ -17,7 +17,6 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/Material_Flat.h"
-#include "graphics/Renderer2D.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
 #include "resources/GpuProgramManager.h"
@@ -37,9 +36,9 @@ namespace hpl {
 
 	cMaterial_Flat::cMaterial_Flat(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
-		cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
-		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apRenderer,apProgramManager,
+		: iMaterial(asName,apLowLevelGraphics,apImageManager,apTextureManager,apProgramManager,
 					aPicture,apRenderer3D)
 	{
 		mbIsTransperant = false;
@@ -48,8 +47,8 @@ namespace hpl {
 
 		///////////////////////////////////////////
 		//Load the Z pass vertex program
-		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color_vp.cg","main",eGpuProgramType_Vertex);
-		SetProgram(pVtxProg,eGpuProgramType_Vertex,0);
+		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color");
+		SetProgram(pVtxProg,0);
 	}
 
 	//-----------------------------------------------------------------------
@@ -66,25 +65,22 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iGpuProgram* cMaterial_Flat::GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	iGpuProgram* cMaterial_Flat::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
-		return nullptr;//return mpProgram[eGpuProgramType_Vertex][0];
+		return nullptr;//return mpProgram[0];
 	}
 
-	bool cMaterial_Flat::VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Flat::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	bool cMaterial_Flat::VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
+	bool cMaterial_Flat::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return false;
 	}
 
-	iGpuProgram* cMaterial_Flat::GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
-	{
-		return nullptr;
-	}
+
 
 	eMaterialAlphaMode cMaterial_Flat::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{

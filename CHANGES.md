@@ -1542,8 +1542,8 @@ reference images are as before.
   renaming always failed, the directory search had a fixed 256-character
   buffer and never closed its handle, and leftover `#pragma comment(lib)`
   lines asked for SDL 1.2 and other libraries by their old names.
-- Sound uses OpenAL Soft's default device on Windows too, without EFX, as on
-  Linux. The original asked for the "Generic Hardware/Software" devices of
+- Sound uses OpenAL Soft's default device on Windows too, with EFX when
+  environmental audio is enabled. The original asked for the "Generic Hardware/Software" devices of
   Creative's old OpenAL, which no longer exist.
 - Settings, saves and `hpl.log` are in
   `Documents\Penumbra Overture\OvertureRemade\`, beside the original game's
@@ -1574,22 +1574,553 @@ reference images are as before.
 
 ## Graphics presets
 
-- Options → Graphics starts with a Preset: Improved High, Improved Medium,
-  Improved Low or Original, applied at once. It shows Custom when the options
-  have been changed by hand (on any page, or in the F2 panel).
-  - Improved High: all the improved looks and linear lighting, soft bloom,
-    Bokeh depth of field, ambient occlusion High, SMAA High, soft shadows,
-    16x anisotropic filtering.
-  - Improved Medium: ambient occlusion Low, SMAA Medium, 8x.
-  - Improved Low: no ambient occlusion, the original shadows and depth of
-    field, SMAA Low, 4x.
-  - Original: as the 2007 game: original shading, lights and effects, no
-    linear lighting, original bloom, no SMAA, trilinear filtering.
+- Options → Graphics starts with High, Medium or Low, applied at once.
+  It shows Custom when the options have been changed by hand.
+  - High: bloom, depth of field, ambient occlusion High, SMAA High,
+    shadow maps and 16x anisotropic filtering.
+  - Medium: ambient occlusion Low, SMAA Medium, 8x.
+  - Low: no ambient occlusion or depth of field, SMAA Low, 4x.
   - All: motion blur off and render scale 100%. Resolution, gamma, field of
     view, the noise filter, VSync and the frame limit are not part of them.
-- First run (no settings file yet) uses Improved High at the desktop
-  resolution. Before, the game's own `default_settings.cfg` gave 800x600 and
-  the original looks.
+- First run (no settings file yet) uses High at the desktop resolution.
+- Presets follow Milestone 6's single improved renderer. The superseded
+  Original preset and F9 Vanilla comparison are removed; their pre-merge
+  implementations remain in commit `22bbc47`. Windows hidden-window support,
+  frame capture callbacks and the tested comparison image compositor are
+  retained in the new SDL window component. Windows Overture settings retain
+  their separate `Documents\Penumbra Overture\OvertureRemade\` directory.
+
+## Milestone 6: the rest of the 2007 renderer
+
+### Dead code removed
+
+What the game never reaches, with the reference images unchanged (original
+look and every improved option on):
+
+- the 2D engine of HPL1, made for 2D games and never used by Penumbra:
+  `cWorld2D` and `cScene::LoadMap2D`, tile maps and tile sets, 2D lights and
+  their stencil shadows, 2D cameras, 2D bodies and colliders, image
+  entities, 2D particles, background images and `cRenderer2D`. Materials
+  no longer take the 2D renderer, and the 2D entity and area loaders and
+  the tile set and image entity managers are gone from `cResources`. The
+  tag `hpl1-2d-engine` marks the last commit that has it
+- the `Diffuse2D` material (`diff2d`), which no file of the three games
+  names
+- low-level graphics functions nothing called: `DrawRect`, `DrawTri`, the
+  triangle batch and its extra texture coordinate arrays, two
+  `AddVertexToBatch` overloads, `TranslateMatrix`, `ScaleMatrix`,
+  `GetClipPlane`, `GetPixelFormat`, `SetBlendFuncSeparate`, the 2D line,
+  rectangle and circle drawing, and the commented-out stencil functions
+- about 700 lines of commented-out code in the renderer, materials,
+  particles, meshes, lights and the GL implementation
+
+`tools/refshots.py --windows` runs the Windows build from WSL, hidden and
+silent, in place of the gamescope session.
+
+### Post effects without screen copies
+
+- `CopyContextToTexure` is gone. Bloom, depth of field, motion blur,
+  ambient occlusion, the image trail, refraction and the dream filter draw
+  the scene into a texture of their own (`DrawSceneCopy`, shader
+  `hpl1_scene_copy`), pixel for pixel from the scene texture. The textures
+  keep their format: 8 bits without Linear Lighting, so values clamp at 1
+  and round as the copies did, and float with it
+- rectangle textures are gone (`eTextureTarget_Rect`, `sampler2DRect`).
+  Shaders read exact pixels with `texelFetch`, and filtered reads sample
+  the same places in 0..1 coordinates
+- the depth of field's sky pass (`PostEffect_DoF` with `SKY`) and the image
+  trail (`hpl1_PostEffect_ImageTrail`) have shaders of their own in place
+  of texture environments. `DrawQuadMultiTex` is gone, and the blur has
+  one program for both of its passes
+
+Checked on Windows against the build before it, 95 reference images each:
+original look, every improved option, original and camera motion blur, and
+Render Scale 1.5 with 4× FSAA are the same apart from the known noise
+(the keypad, and a floor edge in icecave-view04 that also changes between
+runs of the old build). The 41 images of the effects lab, which run the
+image trail, are the same.
+
+### One default shader, no texture environments
+
+- `cFixedFunctionShaders` is gone. What is drawn without a program of its
+  own (the HUD, fonts, menus, particles, billboards, beams, transparent
+  materials without fog, debug lines, the sky box) uses one shader,
+  `hpl1_Default`: the vertex colour, times the texture on unit 0 (2D, or a
+  cube map with `CUBE`). Every such draw was that already
+- gone from `iLowLevelGraphics`: `SetTextureEnv`,
+  `SetTextureConstantColor`, `SetActiveTextureUnit`, `SetColor`, the clip
+  planes (nothing used them) and the texture environment enums. The alpha
+  test is one cut-off, `SetAlphaCutoff` (0 for off), in place of the eight
+  compare functions of `glAlphaFunc`; every caller asked for "at least 0.6"
+- gone: `iGLStateProgram` and the texture environment states of the
+  environment map, Modulative and ModulativeX2. None was read: the
+  environment map draws with its vertex program's own fragment shader,
+  and the Modulative ones only stood in for a fog program that always loads
+- the item flash in `MapHandler` draws materials without programs with
+  `Diffuse_Color` and `Ambient_Color`, as the others already were
+- the light shader normalizes the light vector with `normalize()` instead
+  of the normalization cube map, and computes the spotlight's cut-off
+  behind the light instead of reading `core_spot_negative_reject`.
+  `cTextureManager::CreateAttenuation` (a 3D texture nothing read) is gone
+
+Checked on Windows against step 2, 95 reference images each. All of the
+change is the normalized light vector: with the cube map kept, the
+original look and every improved option are the same (known noise apart).
+With `normalize()`, about 30 frames of each set differ, mostly by 1 to 3
+levels on lit surfaces; a few hundred pixels a frame at most go past 4
+levels, at the edges of lights, and single pixels reach 30. The effects
+lab shows the same.
+
+From here the original look is checked to the eye, not exactly: a few
+levels are fine.
+
+### One look
+
+The improved look is the only one. The original 2007 look was the
+reference it was tuned against; the tag `original-look` marks the last
+commit with it, and its reference images are kept in the Windows kit
+(`captures/original-look`).
+
+- the improved settings are the defaults, and `refshots.py capture` takes
+  the improved look without extra settings, with shadows, ambient
+  occlusion, SMAA and 4x multisampling on. `Graphics.Shadows=2` is shadows
+  off: the improved captures until now had it, so they never showed the
+  shadow maps
+- linear lighting only: the Linear Lighting option, the branches of the
+  light and post-effect shaders for a scene of screen values, the 8-bit
+  screen copies and `SetLinearSource` are gone. The dream filter (Black
+  Plague) draws its copy of the scene with a shader of its own
+  (`hpl1_DreamFilter`). `HPL_LINEAR_COLOR` stays, to mark the shaders that
+  write linear values, and so does the alpha matching: without it smoke,
+  snow and fog cover more (31 frames change, outside by 46 levels on
+  average)
+- shadow maps only: the stencil shadow volumes are gone, with
+  `ShadowType`, the `ShadowExtrude` programs, the triangle normals and
+  edges of every submesh (recomputed each frame for skinned meshes), the
+  doubled positions in vertex buffers and the stencil functions of
+  `iLowLevelGraphics`. Shadows is On, Only Static or Off
+- the bloom chain, bokeh depth of field and camera motion blur only: the
+  original bloom, depth of field and motion blur are gone, with their
+  types, the blur passes, the objects drawn again for them and the
+  previous matrices of renderables and cameras. Bloom, Motion Blur and
+  Depth of Field are On or Off
+- the improved shading, flashlight, lamps, halos, shafts, particles and
+  player effects only: their `...Improved` settings and the original paths
+  are gone, with the occlusion queries that faded halos, the image trail,
+  and the overlay pictures, zooms and hiding light of the original player
+  effects. The Lighting page of the menu keeps Refractions; the settings
+  are in the F2 panel
+- the F9 comparison shots, which switched to the original look, are gone
+
+Checked on Windows area by area, each against the capture before it, 95
+reference images each:
+
+- defaults against the improved look of step 3: the same (the keypad
+  apart)
+- linear lighting only: every 3D frame the same; the menu pages lose their
+  rows. Motion blur and Render Scale 1.5 with 4x FSAA the same, apart from
+  the known noise; the effects lab the same apart from original-combined,
+  which changes as much between two runs of one build
+- shadow maps only, against a new capture with shadows on: the same apart
+  from the menu and the known noise (icecave-view01/04, 101 and 836 px)
+- the post effects: the same, also with motion blur (93 of 95), Render
+  Scale (92 of 95) and in the effects lab (41 of 41)
+- shading, flashlight, lamps, halos, shafts and particles: the same apart
+  from the Lighting menu page; the halos without occlusion queries change
+  no frame
+- player effects: the same. The effects lab has 29 frames; all checks
+  pass, and panic, double vision and combined show the FOV pulse at a
+  slightly different point (edges only, up to 76 levels at a few pixels)
+
+### No matrix stack
+
+Draws supply model, view and projection together in `cDrawMatrices`, through
+`SetDrawMatrices`. The matrix stacks, push/pop/identity methods, `eMatrix`
+and the unused texture matrix are gone.
+
+- world geometry, lights, transparent materials, item outlines and debug
+  geometry keep model and camera view separate; shadow casters receive
+  their light's view and projection explicitly
+- the sky box uses its scale and a view without camera translation
+- post effects, the intro and texture overlays use identity model/view
+  with an explicit orthographic projection; temporary passes save and
+  restore the complete transform, including projection
+- 3D GUI sets supply their own camera projection; 2D sets explicitly
+  select a screen-centred or local orthographic projection. The projection
+  helpers return matrices instead of changing projection state
+- shaders take matrix values only: the Cg-style state-matrix overload of
+  `SetMatrixf`, `eGpuProgramMatrix` and `eGpuProgramMatrixOp` are gone.
+  The combined matrix is still computed as projection × (view × model)
+
+Checked with Linux and Windows builds and the engine regressions. Windows
+reference comparisons against step 4:
+
+- defaults: all 95 frames match within the existing tolerance
+- Render Scale 1.5 with 4× FSAA: all 31 frames match (office, water caves,
+  ice cave and outside, plus the 2D screens)
+- effects lab: all 29 frames match; the pixel and live-transition checks pass
+- motion blur: 94 of 95 match. The keypad's inventory borders draw over
+  the panel in one run: both use the same Z and the batcher sorts ties by
+  texture address. A repeat of the same new build changes those borders
+  back to the baseline, confirming the existing instability. That repeat
+  also shows the known ice-cave noise (104 and 837 pixels over tolerance
+  in view01/04)
+
+### Materials and linked programs
+
+- Each program links its vertex and fragment shaders together and draws
+  with `glUseProgram`. Materials, refraction, transparent objects, post
+  effects and the default/UI shader select one complete program. The Cg
+  stage enum, independent bindings, companion stages and separable
+  pipelines are gone; separate shader objects are no longer required.
+- `CreateProgram` takes a GLSL base name, explicit defines and an optional
+  different vertex shader name. Light, fog, ambient, bloom, AO and bokeh
+  variants use those requests directly. Resource keys distinguish both
+  stages and case-sensitive defines; `CgNameToShaderBase` and its variant
+  translation table are gone.
+- Material, object and post-effect values use `hpl_Material`, a std140
+  block at binding 2. Typed `eProgramParam` slots replace name-based
+  uploads, including array elements; setters update CPU values and a
+  dirty block is uploaded once before drawing. Each linked program owns
+  its block. Frame and render-state blocks stay at bindings 0 and 1;
+  sampler locations and bindings are resolved once when linking.
+- Hot reload watches both stages and their includes for every program,
+  including internal fullscreen passes. A replacement becomes active
+  only after both stages link and its material layout is checked. Failed
+  edits retain the old program; material values survive successful and
+  failed reloads.
+- Contiguous draw queues replace the twelve-level render-state tree,
+  its node/state pools and recursive traversal. Each draw has one
+  lexicographic key, preserving sector/pass and state priorities. A
+  change reapplies the affected state and everything after it, including
+  sector ambient setup and per-object/light matrices. Transparent objects
+  keep their back-to-front order; sprite batching is unchanged.
+- Engine regressions cover isolated parameter blocks, dirty tracking,
+  column-major matrices, array bounds and draw-queue state transitions,
+  including equal-key draws and material setup changes.
+
+Checked with the Linux and Windows builds and the engine regressions.
+The CPU and GLSL material layouts agree on all 68 fields (2,160 bytes),
+and linked programs also check the driver's block size. Windows reference
+comparisons use the existing tolerances:
+
+- defaults: 94 of 95 frames match the fresh step 5 baseline; the keypad's
+  equal-Z inventory borders account for the difference
+- motion blur: 93 of 95 match step 5; icecave-view01/04 differ by 101/836
+  pixels, the previously reproduced noise
+- Render Scale 1.5 with 4× FSAA: 29 of 31 match step 5 (office, water
+  caves, ice cave, outside and UI); icecave-view01/04 differ by 113/727
+  pixels
+- effects lab: all 29 frames match step 5; the pixel and live-transition
+  checks pass
+- shader reload: all 95 frames match the normal step 6 capture. Valid
+  edits, invalid vertex/fragment/include edits and recovery were exercised
+  on the defaults, bloom and internal output passes, with no invalid GL
+  operations. All temporary build-shader edits were restored
+
+Windows validation used the existing test copy; focused patches preserved
+its platform and capture additions.
+
+### One sprite batcher for 2D
+
+- `cSpriteBatch` builds textured triangles for the HUD, GUI, bitmap glyphs,
+  fades, loading screens and story overlays. Each batch carries a texture,
+  blend enable and source/destination factors. Only adjacent compatible
+  sprites merge, so blending never changes the requested order. Replace,
+  alpha, additive, source-alpha additive, modulative and smoke blends keep
+  their existing factors and shader colour handling.
+- Sprites carry position (including Z), colour and texture coordinates.
+  The existing HUD size/rotation/translation geometry, atlas coordinates
+  and GUI size/colour multiplication are retained. Batches draw using the
+  caller's matrices, depth and culling; GUI clip changes flush first.
+  Screen-space and 3D GUI sets use the same path.
+- Equal-Z HUD and GUI sprites now retain submission order. The old texture,
+  material and clip-region address tie-breakers could change which
+  translucent sprite covered another between identical runs. This is an
+  intentional ordering correction, including the keypad's inventory
+  borders, rather than a tolerance change.
+- `AddVertexToBatch` and its variants, index/quad batch calls, `DrawQuad`
+  overloads and the fixed 20,000-entry arrays are removed. The batcher uses
+  growing vectors; sprite material callbacks/type keys and GUI blend
+  callbacks become declarative blend descriptions. Unsupported world
+  materials still do not enter the HUD sprite path.
+- World/debug faces, refraction masks, fullscreen post effects and the
+  screen-copy overlay submit explicit triangles through `DrawTriangles`,
+  keeping their own programs and state. General mesh buffers, textures,
+  fullscreen-pass architecture and backend splitting stay outside step 7.
+- Engine regressions check triangle winding and vertex data, adjacent
+  texture/blend boundaries, more than the old array capacity, GUI blend
+  factors and stable HUD/GUI depth ties.
+
+The Linux build and engine regressions pass, including the new sprite
+checks. The Windows MSVC build passes; this test copy explicitly disables
+CTest targets under MSVC, so its validation uses the game captures.
+Focused patches preserve its Windows and capture additions.
+
+At unchanged comparison tolerances:
+
+- a fresh step 6 baseline (`/tmp/step7-before`) and the batcher-only stage
+  (`/tmp/step7-batcher`), before changing ordering, match in all 95 frames
+- the final default capture (`/tmp/step7-after`) matches 94 of 95 baseline
+  frames. Only `2d-keypad.png` changes (7,225 pixels): the inventory borders
+  now stay beneath the keypad panel. Inspection of the before/after/diff
+  images confirms the correction is confined to those borders
+- motion blur (`/tmp/step7-after-motion`) matches 92 of 95 step 6 frames:
+  the same keypad correction (7,225 pixels) and the previously reproduced
+  icecave-view01/04 variations (103/839 pixels)
+- Render Scale 1.5 with 4× FSAA (`/tmp/step7-after-scale`) matches 29 of
+  31 step 6 frames with the same office/water-cave/ice-cave/outside filter.
+  Only icecave-view01/04 vary (114/727 pixels); all UI frames match
+- the effects lab (`/tmp/step7-after-effects`) matches all 29 step 6
+  frames. Pixel checks and live transitions pass. OpenGL debug output is
+  enabled, with no GL errors or material-layout mismatches (the driver
+  reports only synchronized pixel-readback performance warnings)
+
+The fresh unchanged step 6 run itself reproduces the ice-cave variation:
+icecave-view01/04 differ from `/tmp/step6-after` by 101/837 pixels before
+any step 7 code is applied.
+
+### Step 8: vertex buffers and textures
+
+- Every mesh buffer uploads enabled fields into one interleaved VBO, with
+  one element buffer for indices and explicit offsets/stride in its VAO.
+  Dynamic updates gather all enabled fields, retaining UVs, colours and
+  four-component tangents when only positions/normals change. Packed CPU
+  attribute arrays remain the editing contract: skinning, tangent creation,
+  bounds, Newton collision geometry and mesh caches never read GPU strides.
+  Copies own their editing data and preserve tangent handedness.
+- UVs and tangents are `eVertexFlag_TexCoord`/`eVertexFlag_Tangent` and
+  `hpl_TexCoord`/`hpl_Tangent`. The unused colour and coordinate slots are
+  removed. MSH import expands xyz positions to xyzw; export writes xyz and
+  uses each attribute's own element count, correcting its submesh-index
+  stride bug. Collada caches retain their packed positions and tangents.
+- The skybox creates triangle indices with the same diagonal and winding
+  as before. The quad draw type, second quad element buffer and draw-time
+  conversion are removed. Collada polylist/polygon corners are triangulated
+  before vertex splitting, preserving their position/normal/UV tuples;
+  geometry cache version 2 rebuilds older caches through that loader.
+  Debug lines keep their line primitive. Billboards, beams and particles
+  retain their existing CPU update paths and triangle topology for step 10.
+- Resource textures, float targets, scene/resolve/output textures,
+  multisampled colour/depth and shadow maps allocate immutable storage.
+  Texels arrive through subimage uploads, framebuffer rendering or copies.
+  Repeated atlas uploads reuse storage; changed dimensions/formats replace
+  the GL object and refresh every cached texture-unit binding. Failed
+  allocation retains the previous storage. Render-target binding reattaches a resized resource even
+  when its pointer is unchanged. Mip counts, quality averaging,
+  luminance/alpha swizzles and sampler filtering/wrapping are retained.
+- Animated textures allocate one 2D array, with one layer per frame. The
+  existing fractional time, loop/oscillate and manual stepping controls
+  select a layer at draw time. Alpha coverage is retained independently
+  per layer. Frame dimensions/formats and the driver layer limit are
+  checked before upload.
+- Linked programs cache only the sampler layouts they use: an animated
+  diffuse, normal, specular or spotlight map reads a sampler2DArray on the
+  same unit that a static sampler2D uses. `hpl1_texture.glsl` supplies the
+  sampling/LOD/fetch/size helpers. Layer uniforms resolve at link time;
+  material values share the program's existing UBO. Reload rebuilds every
+  used layout as one transaction and retains the full working set if any
+  stage, include or layout fails.
+- The context chooser still accepts GL 3.3 with both immutable-storage ARB
+  extensions, loading their entry points explicitly on older contexts.
+  GL 4.3 supplies both in core. Drivers lacking either receive a startup
+  error. Backend splitting remains step 9.
+- Engine regressions cover interleaved fields after partial updates,
+  pointer stability, independent mesh copies, tangent handedness, polygon
+  winding/UVs and cache invalidation. An optional Linux EGL regression
+  runs actual GL storage and sampling without a window or game data:
+  mip counts, atlas updates, array layer contents/timing, quality averaging,
+  per-layer alpha coverage, filtering/wrapping, resized FBO attachments,
+  mixed material sampler layouts and successful/failed include reloads.
+  CMake enables it when EGL headers/library are available; CTest reports a
+  skip if a surfaceless GL 4.3 context cannot be created.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass on Linux: 2/2 suites,
+including `renderer_storage` on llvmpipe (LLVM 21.1.8). Linux headless game
+captures still require the unavailable gamescope; the EGL suite does not.
+The separate Windows test copy passes
+`cmd.exe /c platform\windows\build.cmd -j 6`. Its MSVC configuration disables
+CTest targets, so Windows validation is the build and game captures.
+Focused patches preserve its platform and capture additions.
+
+Windows reference comparisons against the step 7 captures, using the
+existing tolerance 2 / maximum 64 changed pixels, on an RTX 2060 / GL 4.6:
+
+- the vertex-only stage (`/tmp/step8-vertices`) matches all 95 frames
+- final defaults (`/tmp/step8-after`) match 93/95; only icecave-view01/04
+  vary (106/837 pixels)
+- motion blur (`/tmp/step8-after-motion`) matches all 95 frames. GL debug
+  output is enabled across every map and UI screen, with no GL errors or
+  shader/material-layout errors; only synchronized pixel-readback
+  performance warnings appear
+- Render Scale 1.5 with 4× FSAA (`/tmp/step8-after-scale`), filtered to
+  office/water_cave/icecave/outside as before, matches 29/31 frames; only
+  icecave-view01/04 vary (114/727 pixels)
+- the effects lab (`/tmp/step8-after-effects`) matches all 29 frames;
+  neutral/visible/opaque pixel checks and live transitions pass, with GL
+  debug output enabled and no GL errors (only the same readback warnings)
+
+All 2D frames match step 7, including inventory borders remaining beneath
+the keypad. The ice-cave variation was reproduced before this milestone
+step (see step 7 above).
+
+### Step 9: SDL graphics backend ownership
+
+`cLowLevelGraphicsSDL` keeps the `iLowLevelGraphics` contract and coordinates
+initialization, frame presentation and resource factories. Its former private
+GL/SDL resources now belong to six components:
+
+- `cSDLGraphicsWindow`: SDL window/context lifetime, display selection,
+  cursor/V-Sync controls and frame capture.
+- `cGLGraphicsState`: default linked programs, frame/state UBOs, matrices,
+  shader-visible state, current attributes and texture/sampler/VAO caches.
+- `cGLRenderTargets`: scene, resolve, output and resource-target framebuffers,
+  render dimensions, multisample/depth resolves and target transitions.
+- `cGLFinalPasses`: scene-copy, output, gamma and SMAA programs/resources,
+  grain/player feedback and temporary fullscreen GL state restoration.
+- `cGLShadowTargets`: spotlight/cube depth targets, comparison/raw samplers
+  on units 8/9, shadow rendering and restoration of the prior draw target.
+- `cGLStreamDrawing`: streamed triangles/sprites, debug lines/boxes/spheres,
+  and streamed indices used by mesh draws.
+
+Components use explicit dependencies and destination facts, without a pointer
+back into the facade's private state. Constructors allocate no GL resources;
+GL components also initialize independently under an external EGL context.
+Cleanup releases programs, framebuffer attachments, buffers, textures and
+samplers while the context is still current, before SDL destroys it. Reset is
+idempotent, including partial or uninitialized teardown. A scene generation
+counter invalidates render-sized SMAA textures after scale/FSAA changes;
+lookup textures remain shared across sizes.
+
+The frame order remains scene → resolve/effects → SMAA/output → HUD → gamma
+→ debug overlay/capture → window swap. Texture units 0–7, shadow units 8/9,
+scene depth/colour units 10/11, immutable storage, animation sampler layouts,
+equal-depth sprite order and CPU billboard/beam/particle updates are retained.
+The latter geometry rewrite remains step 10.
+
+Linux engine regressions now construct and destroy the backend without loading
+GL. The EGL suite additionally exercises scene colour/depth resolve, colour-only
+scene targets, scene copies, resource-target resizing, multiple-to-single
+attachments, spotlight/cube targets and viewport/framebuffer restoration,
+alpha-to-coverage transitions, fullscreen program/material/sampler/capability
+restoration, repeated scale/FSAA/SMAA rebuilding, streamed draws after fullscreen
+passes and deletion of the owned GL objects.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass: 2/2 Linux suites, including
+actual EGL execution on Mesa llvmpipe (LLVM 21.1.8). Linux game captures still
+need the unavailable gamescope. The Windows test copy passes
+`cmd.exe /c platform\windows\build.cmd -j 6`; its MSVC kit disables CTest.
+Focused backend patches retain its hidden-window, comparison-image and frame
+capture additions.
+
+Windows comparisons against step 8 on the RTX 2060 / GL 4.6, with the existing
+tolerance 2 / maximum 64 changed pixels:
+
+- defaults (`/tmp/step9-after`): 93/95 match; only the known icecave-view01/04
+  variation differs (106/837 pixels). All 2D frames match.
+- motion blur (`/tmp/step9-after-motion`): 95/95 match.
+- Render Scale 1.5 with 4× FSAA (`/tmp/step9-after-scale`), filtered to
+  office/water_cave/icecave/outside: 31/31 match.
+- effects lab (`/tmp/step9-after-effects`): 29/29 match; neutral/visible/opaque
+  pixel checks and live effect transitions pass.
+
+Motion/effects runs have GL debug enabled, without GL or shader/material-layout
+errors; only the existing synchronized pixel-readback performance warnings
+appear. Logs are `/tmp/step9-final-{linux-build,linux-ctest,windows-build}.log`
+and `/tmp/step9-{default,motion,scale,effects}-{capture,compare}.log`.
+
+### Step 10: billboards, beams and particles
+
+Effect sheets use `cQuadInstance` records through `iVertexBuffer`, retaining
+`iLowLevelGraphics` and the existing render queues. Each 88-byte record holds
+a centre, two half-extent vectors, UV bounds and endpoint colours. Builders
+fill retained instance storage directly; they no longer allocate or update
+four position/colour/UV vertices per particle. The particle vertex payload
+falls from 176 to 88 bytes per live particle, and the per-emitter maximum-size
+index/vertex arrays are gone. CPU simulation, spawning, warm-up, lifetime,
+random calls, texture-frame selection and save/gameplay code are unchanged.
+
+`cGLStreamDrawing` owns one static six-index triangle buffer shared by all
+effect buffers. Four constant shader corners plus `glDrawElementsInstanced`
+expand the sheets, retaining indexed vertex reuse for the halo visibility
+and particle-light calculations. Each object/emitter stays at its existing
+place in the transparent queue; particles retain their array order. The
+vertex-buffer adapter owns its instance VBO/VAO, uploads changed records on
+bind, skips empty draws and counts triangles for the profiler. Debug line
+drawing and on-demand vertex inspection remain available. No expanded CPU
+arrays are retained for effect rendering.
+
+The shared vertex input include (`hpl1_quad.glsl`) supplies the expanded
+position, colour, UV, normal and tangent to every linked program, including
+default, material, depth, fog, refraction, halo and soft-particle programs.
+Ordinary meshes, 2D streams and fullscreen draws retain their named input
+locations. Instancing uses divisor attributes available in GL 3.3; no new
+version or extension requirement is introduced. The instance-kind attribute
+returns to zero after drawing so subsequent ordinary VAOs keep their input
+contract. Programs still use material binding 2 and frame/state bindings 0/1;
+all sampler units, array layers and atomic reload behavior are retained.
+Failed `PrepareDraw()` calls skip instance rendering as they do mesh draws.
+
+Billboard point/axis facing, forward offsets and UV orientation are unchanged.
+Beams retain endpoint alignment, endpoint colours/alpha multiplication and
+tiled/non-tiled height (including the original negative terminal UV). The
+alpha-multiplication flag still takes effect separately when each endpoint
+colour setter runs; geometry updates do not recolour the other endpoint.
+Particles retain fixed/dynamic point, spin, line and axis drawing, both
+coordinate systems, subdivision order and stationary-line fallback. CPU work
+now prepares a centre and basis rather than corners. Bounds/culling remain
+with their existing owners. These effects still do not cast shadows; opaque
+material depth/fog draws use the same expansion. Halos keep their visibility
+shader and shafts keep their cached volume box. Post effects continue to read
+the scene depth/colour with the existing pass order and soft-particle depth
+behavior.
+
+The parsed `PEType=Beam` particle mode had no beam-specific geometry/render
+implementation before this step and remains non-drawing. Its existing
+particle simulation is unchanged; standalone `cBeam` is fully converted.
+Particle interpolation, simulation on the GPU and combining transparent
+objects into reordered batches are outside this step.
+
+Regression coverage compares production builders with the previous corner
+formulas for every particle orientation, spin and coordinate system, UV
+subdivisions, billboard alignment/offsets and beam endpoints/tiling/colour.
+The EGL suite compares instanced and expanded reference output across blend
+modes and animation layers, checks actual soft-particle alpha/additive depth
+fades, element limits, empty submissions, copies, shared topology ownership,
+resource teardown, ordinary draws after instances, failed sampler layouts and
+valid/invalid geometry-include reloads. It also links fog/halo/shaft programs.
+
+`cmake --build --preset default -j 8` and
+`ctest --test-dir build --output-on-failure` pass (2/2 suites), including real
+EGL execution on Mesa llvmpipe (LLVM 21.1.8). The storage suite also passes
+with Mesa restricted to GL 3.3 plus the existing storage extensions, and to
+GL 4.3. Its EGL setup now loads the ARB storage entry points just as the SDL
+window owner does. No context is needed for backend construction; allocated
+instance and shared topology resources are released before context teardown.
+The Windows MSVC build passes; its kit disables CTest targets, so Linux
+regressions are reported separately. Focused patches retain the Windows
+copy's platform and capture additions.
+
+Windows comparisons against the corresponding step 9 captures, on the RTX
+2060 / GL 4.6, retain refshots tolerance 2 / maximum 64 changed pixels:
+
+- indexed stage defaults (`/tmp/step10-after`): 95/95 match; all UI frames
+  match. The subsequent beam setter preservation is covered by regressions
+  and the final captures below.
+- final motion blur (`/tmp/step10-after-motion`): 95/95 match.
+- final Render Scale 1.5 with 4× FSAA (`/tmp/step10-after-scale`), filtered
+  to office/water_cave/icecave/outside: 31/31 match.
+- final effects lab (`/tmp/step10-after-effects`): 29/29 match; neutral,
+  visible and opaque pixel checks and live effect transitions pass.
+
+All four captures have GL debug enabled, without GL or shader/material-layout
+errors; only the existing synchronized pixel-readback performance warnings
+appear. Linux headless game captures remain unavailable without gamescope.
+Logs are `/tmp/step10-final-{linux-build,linux-ctest,windows-build}.log`,
+`/tmp/step10-gl33.log`, `/tmp/step10-gl43.log` and
+`/tmp/step10-{default,motion,scale,effects}-{capture,compare}.log`.
 
 ## Known issues
 

@@ -39,12 +39,11 @@ namespace hpl {
 	class iMaterial_BaseLight : public iMaterial
 	{
 	public:
-		iMaterial_BaseLight(const tString& asLightVertexProgram,
-							const tString& asLightFragmentProgram,
+		iMaterial_BaseLight(const tString& asLightDefines,
 
 			const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 			cImageManager* apImageManager, cTextureManager *apTextureManager,
-			cRenderer2D* apRenderer, cGpuProgramManager* apProgramManager,
+			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D);
 
 		~iMaterial_BaseLight() override;
@@ -53,13 +52,10 @@ namespace hpl {
 
 		bool UsesType(eMaterialRenderType aType) override;
 
-		iGpuProgram* GetVertexProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		bool VertexProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		iMaterialProgramSetup * GetVertexProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-
-		iGpuProgram* GetFragmentProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
-		iMaterialProgramSetup * GetFragmentProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iGpuProgram* GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		bool ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
+		iMaterialProgramSetup * GetProgramSetup(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 
 		eMaterialAlphaMode GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
 		eMaterialBlendMode GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight) override;
@@ -70,42 +66,27 @@ namespace hpl {
 
 		int GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight) override;
 
-		//////////////////////////////////////////////////////////////////
-		// Old and worthless stuff, only used by 2D renderer
 		void Compile() override{}
-		bool StartRendering(eMaterialRenderType aType,iCamera* apCam,iLight *pLight) override{return false;}
-		void EndRendering(eMaterialRenderType aType) override{}
-		tVtxBatchFlag GetBatchFlags(eMaterialRenderType aType) override{return 0;}
-		bool NextPass(eMaterialRenderType aType) override{return false;}
-		bool HasMultiplePasses(eMaterialRenderType aType) override{return false;}
-		eMaterialType GetType(eMaterialRenderType aType) override{ return eMaterialType_Diffuse;}
-		void EditVertexes(eMaterialRenderType aType, iCamera* apCam, iLight *pLight,
-			tVertexVec *apVtxVec,cVector3f *apTransform,unsigned int alIndexAdd) override{}
 
 	protected:
-		iTexture *mpNormalizationMap;
-		iTexture *mpSpotNegativeRejectMap;
-
 		//properties to set
 		bool mbUseSpecular;
 		bool mbUseNormalMap;
 		bool mbUseColorSpecular;
 
-		iGpuProgram* mpSimpleFP;
-		iGpuProgram* mpAmbientFP;
+		iGpuProgram* mpSimpleProgram;
+		iGpuProgram* mpAmbientProgram;
 
 		/**
-		 * The ambient pass of the improved shading (cShadingSettings):
-		 * programs of hpl1_ambient for what the material has, loaded when
-		 * the option is first on. False if they could not be loaded.
+		 * The ambient pass of the shading (cShadingSettings): programs of
+		 * hpl1_ambient for what the material has, loaded when first used.
+		 * False if they could not be loaded.
 		 */
 		bool UseShadedAmbient();
-		iGpuProgram* mpShadedAmbientVP;
-		iGpuProgram* mpShadedAmbientFP;
+		iGpuProgram* mpShadedAmbientProgram;
 		bool mbShadedAmbientTried;
 
-		iGpuProgram* mvVtxPrograms[eBaseLightProgram_LastEnum];
-		iGpuProgram* mvFragPrograms[eBaseLightProgram_LastEnum];
+		iGpuProgram* mvPrograms[eBaseLightProgram_LastEnum];
 	};
 
 };

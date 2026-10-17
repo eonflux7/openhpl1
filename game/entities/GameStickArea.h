@@ -73,6 +73,7 @@ public:
 	void OnPostSceneDraw() override;
 
 	iPhysicsBody* GetAttachedBody(){ return mpAttachedBody;}
+	void AttachBody(iPhysicsBody *apBody);
 	void DetachBody();
 
 	void SetAttachFunction(const tString& asX){ msAttachFunction = asX;}

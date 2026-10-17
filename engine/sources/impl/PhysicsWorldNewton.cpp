@@ -409,6 +409,13 @@ namespace hpl {
 		cPhysicsBodyNewton* pRigidBody = (cPhysicsBodyNewton*) NewtonBodyGetUserData(apNewtonBody);
 		if(pRigidBody->IsActive()==false) return 1;
 
+		//Newton 2 hits a ray that starts inside a body at its start; Newton 1,
+		//which the games were made with, did not hit it at all. An enemy's
+		//sight, the sound and the pick rays from a camera inside a body that
+		//the player can walk into (a liquid area, level 8's card rack) were
+		//all blocked.
+		if(afIntersetParam * gfRayLength < 0.0001f) return 1;
+
 		gRayParams.mfT = afIntersetParam;
 
 		//Calculate stuff needed.
@@ -457,6 +464,29 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	// Newton 2 finds no contact between two convex shapes whose centres are
+	// exactly in the same place (the search starts along the line between
+	// them). Scripts put entities in the middle of areas and then ask if they
+	// collide, so try again 1 mm to the side.
+	static int CollideNewton(NewtonWorld *apWorld, int alMaxPoints,
+							NewtonCollision *apA, const cMatrixf &a_mtxA,
+							NewtonCollision *apB, const cMatrixf &a_mtxB,
+							float *apPoints, float *apNormals, float *apDepths)
+	{
+		int lNum = NewtonCollisionCollide(apWorld, alMaxPoints, apA, &(a_mtxA.m[0][0]),
+								apB, &(a_mtxB.m[0][0]), apPoints, apNormals, apDepths, 0);
+		if(lNum > 0) return lNum;
+
+		cVector3f vA(a_mtxA.m[3][0], a_mtxA.m[3][1], a_mtxA.m[3][2]);
+		cVector3f vB(a_mtxB.m[3][0], a_mtxB.m[3][1], a_mtxB.m[3][2]);
+		if(cMath::Vector3DistSqr(vA, vB) > 1e-6f) return lNum;
+
+		cMatrixf mtxMoved = a_mtxA;
+		mtxMoved.m[3][0] += 0.001f;
+		return NewtonCollisionCollide(apWorld, alMaxPoints, apA, &(mtxMoved.m[0][0]),
+								apB, &(a_mtxB.m[0][0]), apPoints, apNormals, apDepths, 0);
+	}
+
 	bool cPhysicsWorldNewton::CheckShapeCollision(	iCollideShape* apShapeA, const cMatrixf& a_mtxA,
 										iCollideShape* apShapeB, const cMatrixf& a_mtxB,
 										cCollideData & aCollideData, int alMaxPoints)
@@ -489,10 +519,10 @@ namespace hpl {
 					cCollideShapeNewton *pSubShapeA = static_cast<cCollideShapeNewton*>(pNewtonShapeA->GetSubShape(a));
 					cCollideShapeNewton *pSubShapeB = static_cast<cCollideShapeNewton*>(pNewtonShapeB->GetSubShape(b));
 
-					int lNum = NewtonCollisionCollide(mpNewtonWorld, alMaxPoints,
-												pSubShapeA->GetNewtonCollision(), &(mtxTransposeA.m[0][0]),
-												pSubShapeB->GetNewtonCollision(), &(mtxTransposeB.m[0][0]),
-												mpTempPoints, mpTempNormals, mpTempDepths, 0);
+					int lNum = CollideNewton(mpNewtonWorld, alMaxPoints,
+												pSubShapeA->GetNewtonCollision(), mtxTransposeA,
+												pSubShapeB->GetNewtonCollision(), mtxTransposeB,
+												mpTempPoints, mpTempNormals, mpTempDepths);
 					if(lNum<1) continue;
 					if(lNum > alMaxPoints )lNum = alMaxPoints;
 
@@ -533,10 +563,10 @@ namespace hpl {
 		//Check NON compound collision
 		else
 		{
-			int lNum = NewtonCollisionCollide(mpNewtonWorld, alMaxPoints,
-										pNewtonShapeA->GetNewtonCollision(), &(mtxTransposeA.m[0][0]),
-										pNewtonShapeB->GetNewtonCollision(), &(mtxTransposeB.m[0][0]),
-										mpTempPoints, mpTempNormals, mpTempDepths, 0);
+			int lNum = CollideNewton(mpNewtonWorld, alMaxPoints,
+										pNewtonShapeA->GetNewtonCollision(), mtxTransposeA,
+										pNewtonShapeB->GetNewtonCollision(), mtxTransposeB,
+										mpTempPoints, mpTempNormals, mpTempDepths);
 
 			if(lNum<1) return false;
 			if(lNum > alMaxPoints )lNum = alMaxPoints;

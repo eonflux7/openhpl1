@@ -1,0 +1,16 @@
+// This file is part of Overture Remade, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// The dream filter of Black Plague (cEffect_DreamFilter): a copy of the
+// scene added to it, a little larger.
+
+
+out vec4 vColor;
+out vec2 vUv;
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+	vColor = clamp(hpl_Color, 0.0, 1.0);
+	vUv = hpl_TexCoord.xy;
+}

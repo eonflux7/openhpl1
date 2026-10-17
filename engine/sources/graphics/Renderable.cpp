@@ -39,7 +39,6 @@ namespace hpl {
 		mbStatic = false;
 
 		mlRenderCount = -1;
-		mlPrevRenderCount = -1;
 
 		mlCalcScaleMatrixCount = -1;
 		mvCalcScale = cVector3f(1,1,1);

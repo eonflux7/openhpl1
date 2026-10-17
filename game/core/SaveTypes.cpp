@@ -51,6 +51,17 @@ void cEngineBody_SaveData::ToBody(iPhysicsBody *pBody)
 	pBody->SetActive(mbActive);
 	pBody->SetMass(mfMass);
 	pBody->SetCollideCharacter(mbCollideCharacter);
+
+	// Saves made while a scaled body went NaN under Newton 2 (Black Plague's
+	// artefact statue) keep the body where the map put it, at rest
+	bool bNaN = std::isnan(mvLinearVelocity.x) || std::isnan(mvAngularVelocity.x);
+	for(int i=0; i<16; ++i) bNaN = bNaN || std::isnan(m_mtxTransform.v[i]);
+	if(bNaN)
+	{
+		Warning("Body '%s' was saved with NaN values, left where the map puts it\n", pBody->GetName().c_str());
+		return;
+	}
+
 	pBody->SetAngularVelocity(mvAngularVelocity);
 	pBody->SetLinearVelocity(mvLinearVelocity);
 	pBody->SetMatrix(m_mtxTransform);
@@ -331,7 +342,10 @@ void cEngineSound_SaveData::FromSound(cSoundEntity* apSound)
 {
 	msName = apSound->GetName();
 	mbActive = apSound->IsActive();
-	mbStopped = apSound->IsStopped();
+	// One fading out would have stopped: saved as playing, a looping sound
+	// played on after a load (level 9's ear ring, its auto save comes during
+	// the fade)
+	mbStopped = apSound->IsStopped() || apSound->IsFadingOut();
 }
 
 void cEngineSound_SaveData::ToSound(cSoundEntity* apSound)

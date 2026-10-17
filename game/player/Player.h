@@ -101,6 +101,11 @@ public:
 
 	virtual void OnUpdate(float afTimeStep){}
 
+	// Black Plague: false keeps the player from moving or jumping that way
+	virtual bool OnMoveForwards(float afMul, float afTimeStep){ return true;}
+	virtual bool OnMoveSideways(float afMul, float afTimeStep){ return true;}
+	virtual bool OnJump(){ return true;}
+
 	bool mbActive;
 
 	float mfForwardSpeed;
@@ -161,6 +166,8 @@ public:
 	void StartExamine();
 	void StopExamine();
 	void StartHolster();
+	void StartRotate();
+	void StopRotate();
 
 	void Jump();
 
@@ -193,6 +200,7 @@ public:
 	void RemoveCollideScript(eGameCollideScriptType aType,const tString &asFunc);
 	void RemoveCollideScriptWithChildEntity(iGameEntity *apEntity);
 	void ClearCollideScripts();
+	tGameCollideScriptMap& GetCollideScripts(){ return m_mapCollideCallbacks;}
 	
 	void SetHealth(float afX);
 	void AddHealth(float afX);
@@ -243,6 +251,26 @@ public:
 	void SetPower(float afX);
 	void AddPower(float afX);
 	float GetPower(){ return mfPower;}
+
+	// Black Plague
+	void SetLowPowerCallback(const tString& asFunc, float afVal){ msLowPowerCallback = asFunc; mfLowPowerVal = afVal;}
+	void SetNoFallDamage(bool abX){ mbNoFallDamage = abX;}
+	bool GetNoFallDamage(){ return mbNoFallDamage;}
+
+	/**
+	 * Black Plague: the air left under water, 0 - 100
+	 */
+	void SetOxygen(float afX);
+	void AddOxygen(float afX);
+	float GetOxygen(){ return mfOxygen;}
+
+	/**
+	 * Black Plague: the body is in deep water and swims
+	 */
+	void SetIsUnderWater(bool abX);
+	bool IsUnderWater(){ return mbUnderWater;}
+	void SetWaterSurfaceY(float afY){ mfWaterSurfaceY = afY;}
+	float GetWaterSurfaceY(){ return mfWaterSurfaceY;}
 
 	iCharacterBody* GetCharacterBody(){ return mpCharBody;}
 	cCamera3D* GetCamera(){ return mpCamera;}
@@ -346,11 +374,19 @@ public:
 	void SetJumpButtonDown(bool abX);
 	bool GetJumpButtonDown(){ return mbJumpButtonDown;}
 	float GetJumpCount(){ return mfJumpCount;}
+	void JumpOffLadder();
 	float GetMaxJumpCount(){ return mfMaxJumpCount;}
 
 	/////////////////////////////////////////
 	//Stats
 	int mlStat_NumOfSaves;
+	// Black Plague: shown on the statistics page after the credits
+	int mlStat_Collectables;	//the artefacts picked up
+	bool mbHasFlashlight = false;	//Black Plague: the battery meter is shown
+	int mlStat_Notes;			//notes added to the notebook
+	int mlStat_PlayTime;		//player updates (60 a second)
+	int mlStat_MaxNotes;		//game.cfg's totals
+	int mlStat_MaxCollectables;
 
 
 	/////////////////////////////////////////
@@ -489,6 +525,13 @@ private:
 	float mfHealth;
 
 	float mfPower;
+
+	tString msLowPowerCallback;
+	float mfLowPowerVal = 0;
+	bool mbNoFallDamage = false;
+	float mfOxygen = 100;
+	bool mbUnderWater = false;
+	float mfWaterSurfaceY = 0;
 
 	float mfDefaultMass;
 	float mfMass;

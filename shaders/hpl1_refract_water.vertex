@@ -11,7 +11,7 @@
 
 #define position (hpl_Vertex)
 #define color (hpl_Color)
-#define uv (hpl_MultiTexCoord0.xy)
+#define uv (hpl_TexCoord.xy)
 #define normal (hpl_Normal)
 
 out vec4 vColor;
@@ -19,8 +19,6 @@ out vec2 vUv;
 out vec3 vNormal;
 out vec3 vEyePos;
 
-uniform vec3 EyePos;
-uniform mat4 worldViewProj;
 
 void main()
 {

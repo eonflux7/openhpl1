@@ -153,7 +153,6 @@ cLampLooks::cLampLooks(cInit *apInit)  : iUpdateable("LampLooks")
 	mpInit = apInit;
 
 	mbStill = false;
-	mbApplied = false;
 	mfTime = 0;
 	mlLampCount = 0;
 }
@@ -175,7 +174,6 @@ cLampLooks::~cLampLooks()
 void cLampLooks::Reset()
 {
 	// The lights go with the map
-	mbApplied = false;
 	mlLampCount = 0;
 }
 
@@ -186,8 +184,6 @@ void cLampLooks::Update(float afTimeStep)
 	mfTime += afTimeStep;
 	mlLampCount = 0;
 
-	// Off: the looks are taken back once, then nothing is touched
-	if(mSettings.mbImproved==false && mbApplied==false) return;
 	if(mpInit->mpGame->GetScene()->GetWorld3D()==nullptr) return;
 
 	///////////////////////////////////////
@@ -225,8 +221,6 @@ void cLampLooks::Update(float afTimeStep)
 		if(pModel==nullptr) continue;
 		for(iLight3D *pLight : pModel->mvLights) SetLook(pLight, hand.mKind, nullptr, true);
 	}
-
-	mbApplied = mSettings.mbImproved;
 }
 
 //-----------------------------------------------------------------------
@@ -268,11 +262,6 @@ void cLampLooks::SetMapLightLook(iLight3D *apLight)
 void cLampLooks::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff)
 {
 	cLightLook look;
-	if(mSettings.mbImproved==false)
-	{
-		apLight->SetLook(look);
-		return;
-	}
 	mlLampCount++;
 
 	const cLampKind &kind = gvLampKinds[alKind];

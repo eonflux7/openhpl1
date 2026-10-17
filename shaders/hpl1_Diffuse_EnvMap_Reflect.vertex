@@ -12,15 +12,12 @@
 #define position (hpl_Vertex)
 #define normal (hpl_Normal)
 #define color (hpl_Color.xyz)
-#define uv (hpl_MultiTexCoord0.xyz)
+#define uv (hpl_TexCoord.xyz)
 
 out vec3 vColor;
 out vec3 vUv;
 out vec3 vUv2;
 
-uniform mat4 worldViewProj;
-uniform mat4 objectWorldMatrix;
-uniform vec3 eyeWorldPos;
 
 void main()
 {

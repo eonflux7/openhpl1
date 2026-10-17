@@ -10,6 +10,7 @@
 using namespace hpl;
 
 class cInit;
+class cMapChecks;
 
 //----------------------------------------
 
@@ -20,11 +21,13 @@ class cInit;
 // load that save, run some more frames. Then quit. Progress and failures
 // are logged with a "SMOKE:" prefix to hpl.log, and the exit code is 1 if
 // a map or its level script failed to load. OVERTURE_SMOKE_FRAMES sets the
-// frames per step (default 120, two seconds of game time).
+// frames per step (default 120, two seconds of game time). OVERTURE_CHECKS
+// adds the checks of cMapChecks to every map.
 class cSmokeTest : public iUpdateable
 {
 public:
 	cSmokeTest(cInit *apInit, const tString &asSpec);
+	~cSmokeTest() override;
 
 	static bool IsRequested();
 	static tString GetSpec();
@@ -50,6 +53,7 @@ private:
 	tWString SaveFile();
 
 	cInit *mpInit;
+	cMapChecks *mpChecks;
 
 	tStringVec mvMaps;
 	size_t mlMap;

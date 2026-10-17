@@ -203,16 +203,6 @@ namespace hpl {
 		cVector3f GetRight();
 		cVector3f GetUp();
 
-		//////////////////////////////////////////////////
-		////////// RENDER SPECIFIC ///////////////////////
-		//////////////////////////////////////////////////
-
-		void SetPrevView(const cMatrixf &a_mtxA){ m_mtxPrevView = a_mtxA;}
-		void SetPrevProjection(const cMatrixf &a_mtxA){m_mtxPrevProjection = a_mtxA;}
-
-		cMatrixf& GetPrevView(){ return m_mtxPrevView;}
-		cMatrixf& GetPrevProjection(){ return m_mtxPrevProjection;}
-
 	private:
 		void UpdateMoveMatrix();
 
@@ -236,9 +226,6 @@ namespace hpl {
 		cMatrixf m_mtxView;
 		cMatrixf m_mtxProjection;
 		cMatrixf m_mtxMove;
-
-		cMatrixf m_mtxPrevView;
-		cMatrixf m_mtxPrevProjection;
 
 		cNode3D mNode;
 

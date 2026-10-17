@@ -347,7 +347,6 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			cEnemyPatrolNode *pPatrolNode = mpEnemy->CurrentPatrolNode();
 
 			mpEnemy->SetWaitTime(pPatrolNode->mfWaitTime);
-			mpEnemy->IncCurrentPatrolNode();
             
 			if(pPatrolNode->msAnimation != "")
 			{
@@ -356,6 +355,10 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			}
 
 			mbWaiting = true;
+
+			//Last, as in Black Plague: the callback at the end of the patrol
+			//may clear the nodes.
+			mpEnemy->IncCurrentPatrolNode();
 		}
 	}
 }
@@ -1325,12 +1328,9 @@ void cGameEnemyState_Dog_Attack::OnPostSceneDraw()
 
 	cVector3f vRot = cVector3f(0,mpMover->GetCharBody()->GetYaw(),0);
 	cMatrixf mtxOffset = cMath::MatrixRotate(vRot,eEulerRotationOrder_XYZ);
-	mtxOffset.SetTranslation(vPos);	
-	
-	
-	cMatrixf mtxCollider = cMath::MatrixMul(pCamera->GetViewMatrix(),mtxOffset);
+	mtxOffset.SetTranslation(vPos);
 
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,mtxCollider);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxOffset, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 	cVector3f vSize = mpEnemyDog->GetAttackShape()->GetSize();
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vSize*0.5f,vSize*-0.5f,
@@ -1731,12 +1731,9 @@ void cGameEnemyState_Dog_BreakDoor::OnPostSceneDraw()
 
 	cVector3f vRot = cVector3f(0,mpMover->GetCharBody()->GetYaw(),0);
 	cMatrixf mtxOffset = cMath::MatrixRotate(vRot,eEulerRotationOrder_XYZ);
-	mtxOffset.SetTranslation(vPos);	
+	mtxOffset.SetTranslation(vPos);
 
-
-	cMatrixf mtxCollider = cMath::MatrixMul(pCamera->GetViewMatrix(),mtxOffset);
-
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetMatrix(eMatrix_ModelView,mtxCollider);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxOffset, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 	cVector3f vSize = mpEnemyDog->GetBreakDoorShape()->GetSize();
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vSize*0.5f,vSize*-0.5f,

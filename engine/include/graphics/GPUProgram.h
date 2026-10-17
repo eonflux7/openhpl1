@@ -20,6 +20,7 @@
 #define HPL_GPU_PROGRAM_H
 
 #include "system/SystemTypes.h"
+#include "graphics/ProgramParameters.h"
 #include "math/MathTypes.h"
 #include "resources/ResourceBase.h"
 #include "graphics/GraphicsTypes.h"
@@ -28,49 +29,16 @@ namespace hpl {
 
 	class iTexture;
 
-	enum eGpuProgramType
-	{
-		eGpuProgramType_Vertex,
-		eGpuProgramType_Fragment,
-		eGpuProgramType_LastEnum
-	};
-
-	enum eGpuProgramMatrix
-	{
-		eGpuProgramMatrix_View,
-		eGpuProgramMatrix_Projection,
-		eGpuProgramMatrix_Texture,
-		eGpuProgramMatrix_ViewProjection,
-		eGpuProgramMatrix_LastEnum
-	};
-
-	enum eGpuProgramMatrixOp
-	{
-		eGpuProgramMatrixOp_Identity,
-		eGpuProgramMatrixOp_Inverse,
-		eGpuProgramMatrixOp_Transpose,
-		eGpuProgramMatrixOp_InverseTranspose,
-		eGpuProgramMatrixOp_LastEnum
-	};
-
-
 	class iGpuProgram : public iResourceBase
 	{
 	public:
-		iGpuProgram(tString asName, eGpuProgramType aType) : iResourceBase(asName,0){
-			mProgramType = aType;
-		}
+		iGpuProgram(tString asName) : iResourceBase(asName,0){}
 		~iGpuProgram() override{}
 
 		static void SetLogDebugInformation(bool abX){mbDebugInfo = abX;}
 
-		/**
-		 * Create a from a file. Used internally
-		 * \param asFile
-		 * \param asEntry
-		 * \return
-		 */
-		virtual bool CreateFromFile(const tString& asFile, const tString& asEntry)=0;
+		// GLSL base name (or vertex:fragment) and space-separated defines.
+		virtual bool CreateFromFile(const tString& asFile, const tString& asDefines)=0;
 
 		/**
 		 * Bind the program to the GPU
@@ -81,42 +49,49 @@ namespace hpl {
 		 */
 		virtual void UnBind()=0;
 
-		virtual bool SetFloat(const tString& asName, float afX)=0;
+		// Values belong to this linked program and survive shader reloads.
+		// Typed slots update its CPU block; the backend uploads dirty values
+		// once at draw time. Matrices are converted to std140 column order.
+		bool SetFloat(eProgramParam aParam, float afX);
 
-		bool SetVec2f(const tString& asName, const cVector2f avVec)
+		bool SetVec2f(eProgramParam aParam, const cVector2f avVec)
 		{
-			return SetVec2f(asName,avVec.x, avVec.y);
+			return SetVec2f(aParam,avVec.x, avVec.y);
 		}
-		virtual bool SetVec2f(const tString& asName, float afX,float afY)=0;
+		bool SetVec2f(eProgramParam aParam, float afX,float afY);
 
-		bool SetVec3f(const tString& asName, const cVector3f& avVec)
+		bool SetVec3f(eProgramParam aParam, const cVector3f& avVec)
 		{
-			return SetVec3f(asName, avVec.x,avVec.y,avVec.z);
+			return SetVec3f(aParam, avVec.x,avVec.y,avVec.z);
 		}
-		bool SetColor3f(const tString& asName, const cColor &aCol)
+		bool SetColor3f(eProgramParam aParam, const cColor &aCol)
 		{
-			return SetVec3f(asName,aCol.r, aCol.g, aCol.b);
+			return SetVec3f(aParam,aCol.r, aCol.g, aCol.b);
 		}
-		virtual bool SetVec3f(const tString& asName, float afX,float afY,float afZ)=0;
+		bool SetVec3f(eProgramParam aParam, float afX,float afY,float afZ);
 
-		bool SetColor4f(const tString& asName, const cColor &aCol)
+		bool SetColor4f(eProgramParam aParam, const cColor &aCol)
 		{
-			return SetVec4f(asName,aCol.r, aCol.g, aCol.b, aCol.a);
+			return SetVec4f(aParam,aCol.r, aCol.g, aCol.b, aCol.a);
 		}
-		virtual bool SetVec4f(const tString& asName, float afX,float afY,float afZ, float afW)=0;
+		bool SetVec4f(eProgramParam aParam, float afX,float afY,float afZ, float afW);
 
-		virtual bool SetMatrixf(const tString& asName, const cMatrixf& mMtx)=0;
-		virtual bool SetMatrixf(const tString& asName, eGpuProgramMatrix mType,
-			eGpuProgramMatrixOp mOp)=0;
+		bool SetMatrixf(eProgramParam aParam, const cMatrixf& mMtx);
 
 		virtual bool SetTexture(const tString& asName,iTexture* apTexture, bool abAutoDisable=true)=0;
 		virtual bool SetTextureToUnit(int alUnit, iTexture* apTexture)=0;
 
 
-		eGpuProgramType GetType() { return mProgramType;}
+		static eProgramParam Element(eProgramParam aParam, unsigned index){
+			return static_cast<eProgramParam>(static_cast<unsigned>(aParam) + index);
+		}
+		const float* GetParameterData() const { return mvParameters; }
+		bool ParametersChanged() const { return mbParametersChanged; }
+		void ParametersUploaded(){ mbParametersChanged = false; }
 
 	protected:
-		eGpuProgramType mProgramType;
+		float mvParameters[static_cast<unsigned>(eProgramParam::Count) * 4] = {};
+		bool mbParametersChanged = true;
 
 		static bool mbDebugInfo;
 	};

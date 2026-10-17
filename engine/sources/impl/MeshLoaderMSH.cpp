@@ -129,10 +129,10 @@ namespace hpl {
 			//Check what type of vertices are included.
 			if(pVtxElem->FirstChild("Normal"))vtxFlags |= eVertexFlag_Normal;
 			if(pVtxElem->FirstChild("Position"))vtxFlags |= eVertexFlag_Position;
-			if(pVtxElem->FirstChild("Texture"))vtxFlags |= eVertexFlag_Texture0;
+			if(pVtxElem->FirstChild("Texture"))vtxFlags |= eVertexFlag_TexCoord;
 			if(pVtxElem->FirstChild("Color"))vtxFlags |= eVertexFlag_Color0;
 			if(pVtxElem->FirstChild("Tangent")){
-				vtxFlags |= eVertexFlag_Texture1;
+				vtxFlags |= eVertexFlag_Tangent;
 				bTangents = true;
 			}
 
@@ -150,18 +150,21 @@ namespace hpl {
 			{
 				if(kvVertexFlags[i] & vtxFlags)
 				{
-					int lElemPerVtx = 3;
-					if(kvVertexFlags[i] & eVertexFlag_Texture1 || kvVertexFlags[i] & eVertexFlag_Color0){
-						lElemPerVtx = 4;
-					}
-
+					const int elements = kvVertexElements[i];
 					TiXmlElement* pElem = pVtxElem->FirstChildElement(GetVertexName(kvVertexFlags[i]));
-
-					pVtxBuff->ResizeArray(kvVertexFlags[i],lVtxSize * lElemPerVtx);
+					pVtxBuff->ResizeArray(kvVertexFlags[i], lVtxSize * elements);
 					float *pArray = pVtxBuff->GetArray(kvVertexFlags[i]);
-
-					//Log("TYPE: %s:\n",GetVertexName(kvVertexFlags[i]));
-					FillVtxArray(pArray, pElem->Attribute("data"),lVtxSize * lElemPerVtx);
+					// MSH stores positions as xyz; the editing/GPU layout uses xyzw.
+					if(kvVertexFlags[i] == eVertexFlag_Position)
+					{
+						tFloatVec positions(lVtxSize*3);
+						FillVtxArray(positions.data(), pElem->Attribute("data"), lVtxSize*3);
+						for(int v=0; v<lVtxSize; ++v) {
+							for(int c=0; c<3; ++c) pArray[v*4+c] = positions[v*3+c];
+							pArray[v*4+3] = 1;
+						}
+					}
+					else FillVtxArray(pArray, pElem->Attribute("data"), lVtxSize*elements);
 				}
 			}
 
@@ -240,12 +243,16 @@ namespace hpl {
 			{
 				if(kvVertexFlags[j] & pVtxBuff->GetVertexFlags())
 				{
-					int lSizeMul = kvVertexElements[i];
-					//Only support texture1 coordinate as tangent for now.
-					if(kvVertexFlags[j] & eVertexFlag_Texture1)	lSizeMul = 4;
-
-					SaveFloatData(pVtxElem,lVtxSize * lSizeMul, GetVertexName(kvVertexFlags[j]),
-									pVtxBuff->GetArray(kvVertexFlags[j]));
+					if(kvVertexFlags[j] == eVertexFlag_Position)
+					{
+						tFloatVec positions(lVtxSize*3);
+						const float* source = pVtxBuff->GetArray(eVertexFlag_Position);
+						for(int v=0; v<lVtxSize; ++v)
+							for(int c=0; c<3; ++c) positions[v*3+c] = source[v*4+c];
+						SaveFloatData(pVtxElem, lVtxSize*3, "Position", positions.data());
+					}
+					else SaveFloatData(pVtxElem, lVtxSize*kvVertexElements[j],
+						GetVertexName(kvVertexFlags[j]), pVtxBuff->GetArray(kvVertexFlags[j]));
 				}
 			}
 
@@ -340,8 +347,8 @@ namespace hpl {
 			case eVertexFlag_Normal:	return "Normal";
 			case eVertexFlag_Position:	return "Position";
 			case eVertexFlag_Color0:	return "Color";
-			case eVertexFlag_Texture0:	return "Texture";
-			case eVertexFlag_Texture1:	return "Tangent";
+			case eVertexFlag_TexCoord:	return "Texture";
+			case eVertexFlag_Tangent:	return "Tangent";
 		}
 		return "";
 	}

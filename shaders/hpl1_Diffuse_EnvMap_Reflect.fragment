@@ -6,11 +6,11 @@ in vec3 vUv2;
 
 OUTPUT
 
-uniform sampler2D tex0; // diffuse
+HPL_TEXTURE_2D(0) // diffuse
 uniform samplerCube tex1;
 
 void main() {
-	vec4 diffuseColor = texture(tex0, vUv.st);
+	vec4 diffuseColor = hpl_Texture0(vUv.st);
 	vec4 reflectedColor = texture(tex1, vUv2);
 	outColor = mix(diffuseColor, reflectedColor, diffuseColor.a);
 }
