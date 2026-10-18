@@ -14,6 +14,8 @@ Current technical guides:
   the generated arena and original-asset regression checks.
 - [Shadow-map cache](shadow-cache.md): ownership, invalidation, budgets,
   tests and remaining validation limits.
+- [Audio lifecycle](audio.md): EFX slot mutex ownership, worker shutdown and
+  startup crash regression coverage.
 - [Fonts](../fonts/README.md): bundled typefaces and licences.
 - [Agent instructions](../AGENTS.md): repository conventions and validation.
 

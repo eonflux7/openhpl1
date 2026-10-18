@@ -17,10 +17,11 @@ cOAL_EffectSlot::cOAL_EffectSlot( cOAL_EFXManager* apEFXManager, int alId) : iOA
 																			  mpEffect(NULL),
 																			  mfGain(1.0f),
 																			  mbAutoAdjust (true),
-																			  mpEFXManager(apEFXManager)
+																			  mpEFXManager(apEFXManager),
+																			  mpMutex(SDL_CreateMutex())
 {
-	if (mpEFXManager->IsThreadAlive())
-		mpMutex = SDL_CreateMutex();
+	// Slots exist before the updater starts and outlive its stop request.
+	// Keep their locks valid throughout that lifetime, including Unlock().
 	mbStatus = CreateLowLevelID();
 }
 
@@ -120,12 +121,10 @@ void cOAL_EffectSlot::Update()
 
 void cOAL_EffectSlot::Lock()
 {
-	if ( mpEFXManager->IsThreadAlive() )
-		SDL_LockMutex(mpMutex);
+	SDL_LockMutex(mpMutex);
 }
 
 void cOAL_EffectSlot::Unlock()
 {
-	if ( mpEFXManager->IsThreadAlive() )
-		SDL_UnlockMutex(mpMutex);
+	SDL_UnlockMutex(mpMutex);
 }

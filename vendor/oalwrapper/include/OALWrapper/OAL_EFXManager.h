@@ -8,6 +8,8 @@
 #ifndef _OAL_EFXMANAGER_H
 #define _OAL_EFXMANAGER_H
 
+#include <atomic>
+
 #include "OAL_Types.h"
 #include "OAL_Helper.h"
 #include "OAL_LoggerObject.h"
@@ -79,7 +81,7 @@ private:
 	tOALEffectList*	mplstEffectList;
 	tOALFilterList* mplstFilterList;
 
-	bool mbUsingThread;
+	std::atomic<bool> mbUsingThread;
 	SDL_Thread*		mpUpdaterThread;
 	int				mlThreadWaitTime;
 

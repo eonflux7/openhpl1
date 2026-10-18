@@ -83,6 +83,8 @@ remain unmeasured. Follow-up Windows validation compares pre-step-11
 boat-cabin and ice-cave scene differences remain at unchanged tolerances.
 The current MSVC build and isolated 28-map smoke/save/reload pass; intermittent
 startup access violations also occurred in baseline and current captures.
+Those captured crashes were subsequently traced to EFX slot mutex lifetime
+and fixed; see the [audio validation](CHANGES.md#efx-slot-startup-crashes-2026-10-19).
 See the [recorded results](CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
 and the
 [validation checklist](ROADMAP.md#validation-to-close-first).
@@ -132,6 +134,9 @@ Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
 AddressSanitizer and UBSan; needs `libasan libubsan`).
 
 Run the engine checks with `ctest --test-dir build --output-on-failure`.
+The audio suite uses OpenAL Soft's null driver to check EFX slot locking and
+repeated device startup/teardown with and without the updater thread. It needs
+no game data, display or audio output. See the [audio lifecycle notes](docs/audio.md).
 With EGL headers/library installed, this also builds `renderer_regressions`,
 which tests program submission, transparent ordering, shadow caching,
 immutable textures, animation sampling, instanced effect geometry,

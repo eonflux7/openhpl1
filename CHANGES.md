@@ -2641,10 +2641,52 @@ the exact capture/compare commands. Temporary Linux originals are
 `/tmp/renderer-current-*` logs. These artifact directories are local evidence,
 not repository assets.
 
+### EFX slot startup crashes, 2026-10-19
+
+The six available Windows startup dumps identify the EFX slot updater:
+invalid mutex arguments fault in SDL3 3.4.8's `SDL_LockMutex_srw` at RVA
+`0x166df5` (`SDL_sysmutex.c:71`). The `ntdll.dll` dump has the same EFX
+caller addresses. Matching PDBs map saved return addresses to
+`cOAL_EFXManager::UpdateSlots` and `SlotUpdaterThread`. This is evidence of
+an application lifetime bug, not a diagnosis of an SDL/driver defect.
+
+The EFX manager previously left its threading flag uninitialized until
+after constructing slots. Slot constructors consulted that flag and could
+leave their mutex uninitialized. Slots now own a mutex from construction
+through destruction, independently of the worker flag. Unlocking also stays
+valid after a stop request. The manager initializes its lifecycle fields
+and uses an atomic worker flag; shutdown joins the worker before deleting
+slots. See [audio lifecycle](docs/audio.md).
+
+New `audio_regressions` uses OpenAL Soft's null driver, tests mutex exclusion
+and release, constructs a slot in zeroed storage with threading disabled,
+and repeats device startup/teardown twelve times with and without EFX
+threading. Linking this test against the old slot implementation crashes
+(exit 139). All three Linux CTest suites pass normally and with ASan/UBSan;
+leak detection was disabled, so no leak-free claim is made.
+
+A separate patched MSVC output completes 20 consecutive isolated boat-cabin
+startup/save/reload launches (one logic frame per smoke step), followed by
+all 25 shipped Overture maps with the normal 120 frames per step and
+save/reload. Every run reports `SMOKE: done, 0 failure(s)` and exits 0;
+EFX and threading are enabled with null audio. GL debug reports no messages.
+Generated labs were absent from this diagnostic output, so the fresh full
+run covers 25 maps, not the earlier normal build's 28. Audible reverb,
+native ASan in-game smoke and the separate heap-corruption-on-exit report
+remain unvalidated.
+
+Artifacts, scripts, build logs and `efx-startup-results.json` are under
+`renderer-validation-59f1b97/artifacts/followup-d5f8b3a/` on the same Windows
+drive as the earlier validation. The patched executable is retained in
+`current/build-windows/efx-fixed/`. The validation copy's original sources
+and normal output configuration are restored; its normal executable is
+untouched.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
-- Intermittent Windows startup access violations and renderer capture
-  differences described in the 2026-10-19 validation above.
+- Renderer capture differences described in the 2026-10-19 validation above.
+  The captured Windows startup access violations have an EFX mutex fix and
+  focused regression coverage recorded above.
 - Physics may feel slightly different from the original (see above); not yet
   compared side by side.

@@ -19,7 +19,7 @@ checklists. Their old settings and instructions are not current requirements.
 
 | Area | Implemented | Still needed |
 | --- | --- | --- |
-| Native build (Milestone 0) | C++17, 64-bit Linux and Windows, SDL3, GLSL, Newton 2.36, AngelScript 2.38; current MSVC build and 28-map smoke pass | Diagnose intermittent Windows startup access violations |
+| Native build (Milestone 0) | C++17, 64-bit Linux and Windows, SDL3, GLSL, Newton 2.36, AngelScript 2.38; MSVC build/smoke pass; captured Windows startup crashes traced to EFX slot mutex lifetime and fixed | Broader platform and audio lifecycle coverage |
 | Gameplay parity (Milestone 1) | Map smoke/save/reload tools, physics lab, engine fixes, Dog AI/animation checks | Full playthroughs, original-save compatibility and Newton 1.53 comparisons |
 | Widescreen and usability (Milestone 2) | Wide UI, FOV, TrueType fonts, shader gamma, interpolated rendering, display options | Remaining UI/display and frame-pacing work below |
 | Renderer foundation (Milestone 3) | Core GL, float scene targets, shader includes/reload, reference captures and GPU profiler | Live display reconfiguration; hardware-driver coverage |
@@ -27,8 +27,8 @@ checklists. Their old settings and instructions are not current requirements.
 | Renderer cleanup (Milestone 6) | Steps 1–13 implemented; current game captures, UI/effects checks and Windows smoke recorded | Resolve boat-cabin/ice-cave capture differences; frame-time measurements and broader cache checks |
 | Black Plague / Requiem | Shared executable, scripts, entities, Infected, terminals, swimming, menus, endings and save support | Playthroughs, targeted manual checks and four script stubs |
 
-The next work is to resolve the recorded renderer differences and Windows
-startup failures, then close gameplay and progression gaps across all three games.
+The next work is to resolve the recorded renderer differences, then close
+gameplay and progression gaps across all three games.
 Further visual and performance work should follow evidence from those runs.
 
 The renderer now has one improved look. Milestone 6 step 4 removed the original
@@ -72,9 +72,14 @@ Scene preservation is still open: comparisons below include real mismatches.
       MSVC 19.51 build passes with existing vcpkg dependencies; isolated
       Overture smoke/save/reload passes 28/28 maps, exit 0. MSVC CTest targets
       are disabled. Successful retries do not close the startup issue below.
-- [ ] Diagnose intermittent Windows startup access violations: five failed
-      capture launches, affecting baseline and current, before any frames.
-      Four faulted in SDL3 3.4.8, one in `ntdll.dll`; root cause unknown.
+- [x] Diagnose the captured Windows startup access violations. Available dumps
+      identify invalid EFX slot mutexes in the audio worker, including the
+      `ntdll.dll` case. Slot mutex ownership and the atomic worker stop flag
+      are fixed. Normal and ASan/UBSan audio regressions pass; a patched MSVC
+      build completes 20 consecutive isolated startup/save/reload runs and
+      the 25 shipped-map smoke test, exit 0. See [audio lifecycle](docs/audio.md)
+      and [validation](CHANGES.md#efx-slot-startup-crashes-2026-10-19).
+      This does not close the separate heap-corruption-on-exit report.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
       Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
       the completed game captures above use Windows/NVIDIA and Steam assets.

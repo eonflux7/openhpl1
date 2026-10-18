@@ -65,7 +65,9 @@ LPALGETFILTERIV alGetFilteriv = NULL;
 LPALGETFILTERF alGetFilterf = NULL;
 LPALGETFILTERFV alGetFilterfv = NULL;
 
-cOAL_EFXManager::cOAL_EFXManager() : mlNumSlots(0), mpvSlots(NULL), mplstEffectList(NULL), mplstFilterList(NULL)  
+cOAL_EFXManager::cOAL_EFXManager() : mlNumSlots(0), mlNumSends(0), mpvSlots(NULL),
+	mplstEffectList(NULL), mplstFilterList(NULL), mbUsingThread(false),
+	mpUpdaterThread(NULL), mlThreadWaitTime(0)
 {
 }
 

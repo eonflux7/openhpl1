@@ -221,6 +221,12 @@ if(BUILD_TESTING)
 	add_test(NAME engine_regressions COMMAND engine_regressions)
 	set_tests_properties(engine_regressions PROPERTIES
 		ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
+	add_executable(audio_regressions tests/audio_regressions.cpp)
+	target_link_libraries(audio_regressions PRIVATE oalwrapper)
+	overture_warnings(audio_regressions)
+	add_test(NAME audio_regressions COMMAND audio_regressions)
+	set_tests_properties(audio_regressions PROPERTIES
+		ENVIRONMENT "ALSOFT_DRIVERS=null;UBSAN_OPTIONS=halt_on_error=1")
 	# Renderer regressions under software EGL, without a window or game data.
 	if(UNIX AND NOT APPLE)
 		find_path(OVERTURE_EGL_INCLUDE_DIR EGL/egl.h)
