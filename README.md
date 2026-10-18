@@ -62,7 +62,7 @@ interfaces, caches resolved scene depth until a real depth write, and restores
 fullscreen-pass state from the state and target owners. Both CTest suites pass
 in RelWithDebInfo and ASan/UBSan builds, including EGL on GL 3.3 and GL 4.3.
 Fresh visual captures and Windows validation were unavailable in the
-implementation environment; they remain unvalidated. See
+implementation environment; follow-up results are recorded below. See
 the [archived renderer cleanup report](docs/archive/renderer-cleanup-plan.md).
 
 Step 12 skips redundant linked-program/material-buffer bindings and uploads
@@ -78,8 +78,13 @@ light projections invalidate them. Cube faces are tracked separately as the
 camera turns. F4's Shadows window shows reuse counts and lets the budget be
 set to zero for comparison. See [docs/shadow-cache.md](docs/shadow-cache.md)
 for the ownership and invalidation contracts. Full-game frame-time effects
-remain unmeasured. Current full-game captures and Windows validation for
-steps 11–13 remain outstanding; see the
+remain unmeasured. Follow-up Windows validation compares pre-step-11
+`c2ea1a1` with `59f1b97`: all UI screens and 29 effects frames match, but
+boat-cabin and ice-cave scene differences remain at unchanged tolerances.
+The current MSVC build and isolated 28-map smoke/save/reload pass; intermittent
+startup access violations also occurred in baseline and current captures.
+See the [recorded results](CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
+and the
 [validation checklist](ROADMAP.md#validation-to-close-first).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both

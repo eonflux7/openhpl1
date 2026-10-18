@@ -77,3 +77,17 @@ The pre-change CTest baseline also passed (`/tmp/openhpl1-shadow-cache-baseline.
 `python3 tools/refshots.py capture /tmp/openhpl1-shadow-cache-captures` stopped
 at the missing game-data check. No full-game captures, Windows build or game
 frame-time measurement is claimed.
+
+## Follow-up validation, 2026-10-19
+
+Fresh Windows/MSVC builds and current Overture smoke/save/reload pass.
+Same-driver captures against pre-step-11 `c2ea1a1` match all UI and effects
+frames, with unresolved boat-cabin and ice-cave scene differences. A separate
+budget-zero diagnostic matches all 19 cached first-map/UI frames; disabling
+reuse does not remove the boat-cabin mismatch. This is limited capture
+coverage, not a comprehensive in-game invalidation or performance check.
+Intermittent startup access violations also affected baseline and current.
+See [CHANGES](../CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
+for results, failed attempts and artifact paths, and the
+[roadmap](../ROADMAP.md#validation-to-close-first) for remaining scenarios
+and measurements. No game frame-time improvement is claimed.

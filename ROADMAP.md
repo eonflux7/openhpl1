@@ -19,16 +19,16 @@ checklists. Their old settings and instructions are not current requirements.
 
 | Area | Implemented | Still needed |
 | --- | --- | --- |
-| Native build (Milestone 0) | C++17, 64-bit Linux and Windows, SDL3, GLSL, Newton 2.36, AngelScript 2.38 | Current Windows verification after the latest renderer changes |
+| Native build (Milestone 0) | C++17, 64-bit Linux and Windows, SDL3, GLSL, Newton 2.36, AngelScript 2.38; current MSVC build and 28-map smoke pass | Diagnose intermittent Windows startup access violations |
 | Gameplay parity (Milestone 1) | Map smoke/save/reload tools, physics lab, engine fixes, Dog AI/animation checks | Full playthroughs, original-save compatibility and Newton 1.53 comparisons |
 | Widescreen and usability (Milestone 2) | Wide UI, FOV, TrueType fonts, shader gamma, interpolated rendering, display options | Remaining UI/display and frame-pacing work below |
 | Renderer foundation (Milestone 3) | Core GL, float scene targets, shader includes/reload, reference captures and GPU profiler | Live display reconfiguration; hardware-driver coverage |
 | Lighting and materials (Milestones 4–5) | Linear lighting, shadow maps, bloom, AO, SMAA, improved shading/lights, soft/lit particles, lens and film effects | Remaining visual work and tuning below |
-| Renderer cleanup (Milestone 6) | Steps 1–13 implemented, including state ownership, instancing, reduced binding/uploads and shadow caching | Full-game captures, Windows checks and frame-time measurements for steps 11–13 |
+| Renderer cleanup (Milestone 6) | Steps 1–13 implemented; current game captures, UI/effects checks and Windows smoke recorded | Resolve boat-cabin/ice-cave capture differences; frame-time measurements and broader cache checks |
 | Black Plague / Requiem | Shared executable, scripts, entities, Infected, terminals, swimming, menus, endings and save support | Playthroughs, targeted manual checks and four script stubs |
 
-The next work is to validate the latest renderer on real game scenes and
-Windows, then close gameplay and progression gaps across all three games.
+The next work is to resolve the recorded renderer differences and Windows
+startup failures, then close gameplay and progression gaps across all three games.
 Further visual and performance work should follow evidence from those runs.
 
 The renderer now has one improved look. Milestone 6 step 4 removed the original
@@ -39,23 +39,45 @@ work to restore. The Dog's Original/Improved AI choice is separate and remains.
 
 The [naming/readability review](naming_cleanup.md) is complete through A7
 (2026-10-19), with compatibility decisions and validation limits recorded there.
-The gameplay, renderer, Windows and performance checks below remain outstanding.
+Outstanding gameplay, renderer, Windows and performance checks are listed below.
 
 ## Validation to close first
 
-These are outstanding checks, not claims that they passed in this doc update.
-Steps 11–13 passed normal and ASan/UBSan CTest suites and software EGL checks
-on GL 3.3 and 4.3. Those checks do not replace game captures or a Windows build.
+Updated 2026-10-19: current normal and ASan/UBSan CTest suites pass (leak
+detection disabled), as do software EGL checks on GL 3.3 and 4.3. Fresh Windows
+captures and MSVC build/smoke results are now recorded in
+[CHANGES](CHANGES.md#renderer-steps-1113-game-validation-2026-10-19).
+Scene preservation is still open: comparisons below include real mismatches.
 
-- [ ] Capture and compare the current renderer against a suitable pre-change
+- [x] Capture and compare the current renderer against a suitable pre-change
       baseline: default settings, motion blur, Render Scale 1.5 with 4× FSAA,
       all 2D screens and the effects lab. Retain comparison tolerances and
       record intentional ordering and >30-light corrections separately.
-- [ ] Run GL debug validation in gameplay and the effects lab, including
+      Baseline `c2ea1a1` versus `59f1b97`, both with identical extended UI
+      capture code: default 95/98 match, motion blur 93/98, scaled/MSAA 32/34,
+      effects 29/29. All 15 UI screens match in each scene pair; effects
+      pixel/live checks pass. Each all-map pair has two changed frames under
+      the existing unstable-map policy. Tolerances and exceptions are unchanged.
+- [ ] Resolve boat-cabin view 2 (default/motion blur) and ice-cave views 1/4
+      (motion blur/scaled MSAA). Boat repeats reproduce the cross-build
+      difference; budget-zero shadows retain it. Ice-cave repeatability and
+      causes remain unchecked. No mismatch is accepted as an intentional
+      ordering or >30-light correction yet.
+- [x] Run GL debug validation in gameplay and the effects lab, including
       intro, death and credits screens that earlier checks did not cover.
-- [ ] Build and smoke-test current Windows/MSVC sources, including the
+      Completed NVIDIA GL 4.6 captures show only synchronized readback
+      performance warnings; the current 28-map smoke log has no GL messages.
+- [x] Build and smoke-test current Windows/MSVC sources, including the
       `openhpl1.exe` and manifest rename; earlier step 10 success is historical.
+      MSVC 19.51 build passes with existing vcpkg dependencies; isolated
+      Overture smoke/save/reload passes 28/28 maps, exit 0. MSVC CTest targets
+      are disabled. Successful retries do not close the startup issue below.
+- [ ] Diagnose intermittent Windows startup access violations: five failed
+      capture launches, affecting baseline and current, before any frames.
+      Four faulted in SDL3 3.4.8, one in `ntdll.dll`; root cause unknown.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
+      Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
+      the completed game captures above use Windows/NVIDIA and Steam assets.
 - [ ] Measure CPU/GPU frame times for steps 11–13 on representative scenes.
       Program-bind/upload reductions and fewer shadow draws are established
       by fixtures; full-game speedups are not measured.

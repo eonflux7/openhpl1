@@ -2561,8 +2561,90 @@ map handling. Checked empty/empty and nonempty/empty failures, matching
 nonempty success and Python compilation. Capture exit status and completion
 logs must still be checked separately.
 
+### Renderer steps 11–13: game validation, 2026-10-19
+
+Fresh Windows builds compare `c2ea1a1` (the immediate parent of step 11,
+including step 10) with `59f1b97` (steps 11–13 plus naming cleanup). Both use
+the identical capture-only UI extension from `b3e9e43`; the baseline retains
+its `overture.exe` name. This is a same-driver baseline, independent of the
+historical step 10 images. Builds use MSVC 19.51.36256, the same installed
+vcpkg dependencies, and NVIDIA RTX 2060 / OpenGL 4.6 core for captures.
+Registry fetching stalled in the unmodified build launcher; configuration
+with `VCPKG_MANIFEST_INSTALL=OFF` and an explicit existing
+`VCPKG_INSTALLED_DIR` allowed both builds to finish. No dependency update is
+claimed. Windows CTest targets remain disabled.
+
+All successful captures are 1280×720, with fresh temporary profiles and
+writable mesh caches, null audio and `OVERTURE_GL_DEBUG=1`. Installed assets
+and normal game profiles are untouched. Comparison tolerance stays 2 per
+channel / maximum 64 pixels; the existing two unstable maps are unchanged.
+
+| Capture pair | Matching frames | Changed frames | Changed on existing unstable maps |
+| --- | ---: | ---: | ---: |
+| Default, all 25 maps and UI | 95/98 | 1 | 2 |
+| `Graphics.MotionBlur=true`, all maps and UI | 93/98 | 3 | 2 |
+| `Graphics.RenderScale=1.5`, `Graphics.FSAA=4`, office/water_cave/icecave/outside and UI | 32/34 | 2 | 0 |
+| Effects lab | 29/29 | 0 | 0 |
+
+All 15 UI frames match in each scene pair, including intro, death and credits;
+those three new baseline images were also inspected. Effects pixel checks
+and live transitions pass on both builds. These results do **not** establish
+complete scene preservation:
+
+- Boat-cabin view 2 differs in default and motion-blur captures: 1,263 pixels,
+  maximum channel difference 4. First-map-only repeats match their own builds
+  (4/4 scene frames each), while cross-build repeats reproduce the mismatch.
+  A separate diagnostic executable sets the shadow-cache budget to zero:
+  its 19 first-map/UI frames match the cached current build, but the same
+  boat-cabin mismatch remains against the baseline. Caching does not explain
+  this difference. The diagnostic source/output configuration was restored
+  and the normal Windows executable rebuilt successfully afterwards.
+- Ice-cave views 1/4 differ with motion blur (103/837 pixels, maximum 20/41)
+  and scaled/MSAA rendering (113/727 pixels, maximum 13/21). They remain
+  unresolved; no repeatability or cause is established for those views.
+- Base-entrance views 2/3 differ in both all-map runs, under the existing
+  unstable-map policy. No new exception or relaxed tolerance was added.
+  No difference above is accepted as an intentional ordering or >30-light
+  correction without further evidence.
+
+Completed capture pairs have identical asset/script error counts, no GL error
+or shader/material-layout diagnostics, and only three synchronized pixel-readback
+performance warnings per run (NVIDIA id 131154). The current Windows smoke
+test passes all 28 maps, including generated labs, with save/reload steps,
+`SMOKE: done, 0 failure(s)` and exit 0; its GL debug log has no GL messages.
+
+Five other launches failed before producing frames (three initial matrix
+launches, one scaled retry and the first cache-disabled diagnostic). Windows
+Application Error events report access violation `0xc0000005`: four in
+SDL3 3.4.8 at offset `0x166df5`, one in `ntdll.dll` at `0x44d05`. Both baseline
+and current are affected; the cause is unestablished. Successful retries do
+not close this startup issue. The original empty/empty scaled comparison
+returned 0 despite failed captures; that result is invalid, and motivated
+the comparison guard above. Every result in the table uses completed captures.
+
+Linux default build and both CTest suites pass, as do GL 3.3/4.3 software EGL
+and fresh ASan/UBSan suites (leak detection disabled). Linux game captures
+were unavailable without gamescope; Windows used the installed Steam assets.
+No Mesa hardware driver is exposed (`/dev/dri` absent). ASan in-game smoke,
+manual gameplay, other-game validation, game CPU/GPU frame times, cache
+signature/memory costs and comprehensive in-game cached/uncached scenarios
+remain outstanding.
+
+Artifacts are in `E:\dev\penumbra\renderer-validation-59f1b97\artifacts`
+(`/mnt/e/dev/penumbra/renderer-validation-59f1b97/artifacts` from WSL): original
+and retry PNGs/logs, diff images, `results.json`, `retry-results.json`,
+`repeat-results.json`, and copied build/test/crash logs and runner scripts.
+The successful scaled pair is `baseline-scale-retry` / `current-scale-retry2`;
+effects use `baseline-effects` / `current-effects-retry`. JSON runners retain
+the exact capture/compare commands. Temporary Linux originals are
+`/tmp/renderer-validation-*`, `/tmp/renderer-ui-*`, and
+`/tmp/renderer-current-*` logs. These artifact directories are local evidence,
+not repository assets.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
+- Intermittent Windows startup access violations and renderer capture
+  differences described in the 2026-10-19 validation above.
 - Physics may feel slightly different from the original (see above); not yet
   compared side by side.
