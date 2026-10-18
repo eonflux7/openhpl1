@@ -290,8 +290,9 @@ without viewpoints is shot from automatic places instead: each start
 position, and up to six of the map's lights, looking in four directions
 from each. All with the flashlight on. These frames show the 3D view only, without the HUD, fades
 or menus. Then it loads the first map again and saves the 2D screens over
-it (`2d-*.png`): HUD, inventory, notebook, keypad, a message and the main
-menu pages. All at 1280x720 with fixed graphics settings: shadows,
+it (`2d-*.png`): HUD, inventory, notebook, keypad, a message, the main
+menu pages, death, intro and credits. All at 1280x720 with fixed graphics
+settings: shadows,
 ambient occlusion, SMAA and 4x multisampling on, the noise filter off.
 `--maps office,worm` limits it to
 some maps (compare such a capture only with one of the same maps: frames

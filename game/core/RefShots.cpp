@@ -12,6 +12,9 @@
 #include "player/PlayerHelper.h"
 #include "systems/GameMessageHandler.h"
 #include "ui/Inventory.h"
+#include "ui/Credits.h"
+#include "ui/DeathMenu.h"
+#include "ui/IntroStory.h"
 #include "ui/MainMenu.h"
 #include "ui/Notebook.h"
 #include "ui/NumericalPanel.h"
@@ -82,6 +85,19 @@ static const c2DScreen kv2DScreens[] = {
 	}},
 	{"menu_lighting", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsLighting);
+	}},
+	{"death", 240, [](cInit *apInit){
+		apInit->mpMainMenu->SetActive(false);
+		apInit->mpPlayer->SetGodMode(false);
+		apInit->mpPlayer->SetHealth(0);
+	}},
+	{"intro", 180, [](cInit *apInit){
+		apInit->mpDeathMenu->SetActive(false);
+		apInit->mpIntroStory->SetActive(true);
+	}},
+	{"credits", 180, [](cInit *apInit){
+		apInit->mpIntroStory->SetActive(false);
+		apInit->mpCredits->SetActive(true);
 	}},
 };
 

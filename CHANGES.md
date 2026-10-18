@@ -2536,6 +2536,22 @@ GL 3.3 and GL 4.3. Full-game captures remain unavailable because game data is
 absent; Windows validation and game frame-time profiling were not performed.
 Commands and log locations are recorded in `docs/shadow-cache.md`.
 
+### Reference capture coverage: intro, death and credits
+
+On 2026-10-19, extended the automatic 2D capture sequence with the real death
+transition/menu, intro and scrolling credits. The sequence enters these screens
+after the existing menu pages, so earlier scene/UI captures keep their order.
+The all-map capture now produces 98 frames, including 15 UI frames.
+
+The default Linux build and both CTest suites pass; software EGL also passes
+with GL restricted to 3.3 and 4.3. Both suites pass in a fresh ASan/UBSan build
+with leak detection disabled (no leak-free claim). Fresh Windows/MSVC builds
+of `59f1b97` and pre-step-11 `c2ea1a1`, each with this capture-only patch, pass
+using existing vcpkg dependencies. The current link includes
+`platform/windows/openhpl1.manifest` and produces `openhpl1.exe`.
+All 15 default UI frames match between those builds at tolerance 2 / maximum
+64 pixels. Scene comparisons and the remaining validation are recorded below.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
