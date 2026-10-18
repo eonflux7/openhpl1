@@ -311,7 +311,7 @@ namespace hpl {
 		iPhysicsBody* GetAttachedBody(){ return mpAttachedBody;}
 
 		//O=nly sue when you know what you are doing, Update calls these
-		void UpdateMoveMarix();
+		void UpdateMoveMatrix();
 
 		void UpdateCamera();
 		void UpdateEntity();

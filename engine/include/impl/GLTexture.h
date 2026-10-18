@@ -66,8 +66,8 @@ namespace hpl {
 		void NextFrame() override;
 		void PrevFrame() override;
 		float GetT() override;
-		float GetTimeCount() override;
-		void SetTimeCount(float afX) override;
+		float GetAnimationFramePosition() override;
+		void SetAnimationFramePosition(float afFramePosition) override;
 		int GetCurrentLowlevelHandle() override;
 
 		// OpenGL handles and storage format.
@@ -111,8 +111,8 @@ namespace hpl {
 		int mlFloatChannels;
 		cLowLevelGraphicsSDL* mpGfxSDL;
 
-		float mfTimeCount;
-		float mfTimeDir;
+		float mfAnimationFramePosition;
+		float mfAnimationDirection;
 
 	};
 

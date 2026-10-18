@@ -203,8 +203,8 @@ namespace hpl {
 		cSoundEntity* GetScrapeSoundEntity(){ return mpScrapeSoundEntity;}
 		void SetScrapeBody(iPhysicsBody *apBody){ mpScrapeBody =apBody;}
 		iPhysicsBody * GetScrapeBody(){ return mpScrapeBody;}
-		const cMatrixf& GetPreveScrapeMatrix(){ return m_mtxPrevScrapeMatrix;}
-		void SetPreveScrapeMatrix(const cMatrixf& a_mtxMtx){ m_mtxPrevScrapeMatrix = a_mtxMtx;}
+		const cMatrixf& GetPreviousScrapeMatrix(){ return m_mtxPrevScrapeMatrix;}
+		void SetPreviousScrapeMatrix(const cMatrixf& a_mtxMtx){ m_mtxPrevScrapeMatrix = a_mtxMtx;}
 
 		void SetRollSoundEntity(cSoundEntity *apEntity){ mpRollSoundEntity = apEntity;}
 		cSoundEntity* GetRollSoundEntity(){ return mpRollSoundEntity;}

@@ -1099,7 +1099,7 @@ namespace hpl {
 
 	//----------------------------------------------------------------------
 
-	cMatrixf cMeshEntity::CalculateTransformFromSkeleton(cVector3f *apPostion,cVector3f *apAngles)
+	cMatrixf cMeshEntity::CalculateTransformFromSkeleton(cVector3f *apPosition,cVector3f *apAngles)
 	{
 		//Root bone
 		cNodeIterator StateIt = GetRootNode()->GetChildIterator();
@@ -1109,7 +1109,7 @@ namespace hpl {
 		cBoneIterator BoneIt = GetMesh()->GetSkeleton()->GetRootBone()->GetChildIterator();
 		cBone* pBone = BoneIt.Next();
 
-		//Rotation and postion
+		//Rotation and position
 		cMatrixf mtxInvBind = pBone->GetInvWorldTransform();
 		cMatrixf mtxInvBone = cMath::MatrixInverse(pBoneState->GetWorldMatrix());
 		cVector3f vStateForward = mtxInvBone.GetForward();
@@ -1127,7 +1127,7 @@ namespace hpl {
 
 		mtxTransform.SetTranslation(pBoneState->GetWorldPosition());// - vRootBoneOffset);
 
-		if(apPostion) *apPostion = pBoneState->GetWorldPosition();// - vRootBoneOffset;
+		if(apPosition) *apPosition = pBoneState->GetWorldPosition();// - vRootBoneOffset;
 		if(apAngles) *apAngles = cVector3f(0,fYAngle,0);
 
 		return mtxTransform;
@@ -1502,7 +1502,7 @@ namespace hpl {
 		// Nodes
 		else
 		{
-			//Use this to make sure the the nodes are in the same postions as when
+			//Use this to make sure the the nodes are in the same positions as when
 			//exported. This to give a working Bounding Volume.
 			//This fells kind a slow... but might be only way..
 

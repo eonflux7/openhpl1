@@ -45,6 +45,7 @@ namespace hpl {
 		const tString& GetName(){ return msName;}
 		float GetUpdateStep(){ return mfUpdateStep;}
 
+		// Legacy no-op; does not suspend state updates.
 		void Sleep(float afTime);
 
 	protected:
@@ -57,7 +58,7 @@ namespace hpl {
 		void Update(float afTime);
 		void SetStateMachine(cStateMachine *apStateMachine){ mpStateMachine = apStateMachine;}
 
-		float mfTimeCount;
+		float mfUpdateElapsedSeconds;
 	};
 
 	typedef std::map<int, iAIState*> tAIStateMap;

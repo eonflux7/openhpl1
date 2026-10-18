@@ -50,13 +50,13 @@ namespace hpl {
 	{
 	public:
 		cMusicEntry() : msFileName(""), mpStream(nullptr), mfMaxVolume(1),
-			mfVolume(0), mfVolumeAdd(0.01f){}
+			mfVolume(0), mfVolumeRatePerSecond(0.01f){}
 
 		tString msFileName;
 		iSoundChannel* mpStream;
 		float mfMaxVolume;
 		float mfVolume;
-		float mfVolumeAdd;
+		float mfVolumeRatePerSecond;
 		bool mbLoop;
 	};
 
@@ -79,17 +79,17 @@ namespace hpl {
 		 * Play a song. Playing a song that is already playing updates it's properties.
 		 * \param asFileName file to be played
 		 * \param afVolume volume to be played at
-		 * \param afFadeStepSize volume increse/decrease per app step when fading to new volume.
+		 * \param afVolumeRatePerSecond volume change per second when fading to the new volume.
 		 * \param abLoop If the music should be looped or not.
 		 * \return
 		 */
-		bool Play(const tString& asFileName,float afVolume, float afFadeStepSize, bool abLoop);
+		bool Play(const tString& asFileName,float afVolume, float afVolumeRatePerSecond, bool abLoop);
 
 		/**
 		 * Stop playing the current music.
-		 * \param afFadeStepSize volume increse/decrease per app step when fading volume to 0.
+		 * \param afVolumeRatePerSecond volume change per second when fading to zero.
 		 */
-		void Stop(float afFadeStepSize);
+		void Stop(float afVolumeRatePerSecond);
 		void Pause();
 		void Resume();
 

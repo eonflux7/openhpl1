@@ -6,7 +6,8 @@ Linux build and both CTest suites. All 20 `game/systems/` and 26 `game/ui/`
 headers/sources have been reviewed for naming/comments; A2 is complete.
 All 36 `game/entities/`, 26 `game/player/` and 12 `game/enemies/`
 headers/sources are reviewed; A3 is verified by the default build and both
-CTest suites. A4 core/persistence is now verified; the wider engine/tool inventory and A5–A7 remain open.
+CTest suites. A4 core/persistence and A5 shared-engine/shader naming review are verified.
+A6 tools/build surfaces and A7 closure remain open.
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -226,7 +227,7 @@ below are inspection candidates, not claims that those files are faulty.
 | A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Verified: all 20 systems and 26 UI files reviewed |
 | A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Verified: 36 entity, 26 player and 12 enemy files reviewed |
 | A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Verified; see A4 record |
-| A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Open |
+| A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Verified; see A5 record |
 | A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Open |
 | A7: closure | Reconcile the inventory, findings, current guides and CHANGES; review any justified structural extractions separately | All in-scope areas reviewed; every finding has a disposition; validation gaps and deferred work remain visible | Open |
 
@@ -756,6 +757,57 @@ manual play, sanitizers, captures and Windows were not run for this naming and
 comment pass. Existing gameplay/renderer validation remains in ROADMAP.
 
 Remaining A4 naming scope: none. Next: shared-engine APIs and shader contracts.
+
+### A5: shared engine and shaders (2026-10-19)
+
+Review scope: API/navigation and naming/comment candidates across the 240
+engine headers, 200 implementations and 58 first-party shader files. This is
+a readability review, not an exhaustive algorithm or correctness audit. The
+table identifies the concepts examined and the deeper implementation/caller
+checks used to resolve findings. Unchanged, conventional names are retained;
+there is no requirement to expand every setter argument or mathematical local.
+
+| Area | Header/source files | Reviewed concepts and retained contracts |
+| --- | ---: | --- |
+| AI | 5 / 5 | Node/edge containers, A* callbacks, state-machine ownership and update cadence; retain node/cache fields and state lifecycle names |
+| Game | 7 / 5 | Game setup/timing, updater containers, script wrappers, save-object handlers; retain registration names, save macros and lifecycle APIs |
+| Graphics | 54 / 45 | Materials/programs, geometry, instances, sprite order, texture revisions/animation, render queues and passes; retain material types, linked parameter names, resource/state boundaries and existing class/file groupings |
+| GUI | 21 / 19 | Widget callbacks, clipping, graphics elements/animation and GUI materials; retain message/skin/asset identifiers and equal-depth order |
+| Haptic | 6 / 2 | Force/shape/surface contracts and hardware input; retain hardware types and unimplemented backend contracts |
+| Input | 10 / 8 | Actions, press/release/double-trigger latches, keyboard/mouse/haptic overrides and game callers; retain action/key/device strings |
+| Math | 12 / 8 | Vector/matrix/quaternion operations, bounding volumes/frustum, PID/spring/CRC; retain scoped math names and coefficients |
+| Physics | 15 / 11 | Body/joint/controller/shape APIs, character movement, contacts and surfaces; retain saved DTO/member names, sleep/freeze semantics and settings/asset properties |
+| Resources | 27 / 23 | Resource managers/counts, loader/cache paths, frames/images, fonts and files; retain manager names that identify their resources and file formats |
+| Scene | 21 / 19 | Camera projection/interpolation, transforms, lighting, mesh/skeleton, portal visibility and sound lifetimes; retain serialized scene fields and callback ordering |
+| Sound | 8 / 5 | Music fade integration, channel/environment APIs and ownership; retain updater/asset/property names and playback policy |
+| System | 10 / 6 | Clock units, serialization, containers, memory and strings; retain serialized names, allocator macros and platform contracts |
+| Backends | 43 / 44 | SDL window/input/fonts, GL owners/programs/textures, Newton, OpenAL, Collada/MSH, platform implementations; retain existing ownership/state boundaries, cache formats and external library names |
+| Aggregate | 1 / 0 | `engine/include/hpl.h` remains the engine umbrella header |
+| Shaders | 58 | Vertex/fragment interfaces and shared frame/material/texture/quad/depth/shadow contracts; retain filenames, include paths, uniform/sampler/attribute names and std140 layout. No shader edits; `SMAA.hlsl` excluded as third-party reference |
+
+| ID / status | Evidence and exact change | Dependencies, risk and resolution |
+| --- | --- | --- |
+| R66 / verified | Input `Is/Was/Became/DoubleTriggerd -> Is/Was/Became/DoubleTriggered`; `mbBecameTriggerd/mbIsTriggerd -> mbBecameTriggered/mbIsTriggered`; `mfTimeCount -> mfDoubleTriggerElapsedSeconds`; `afLimit -> afMaxIntervalSeconds` | Medium; base, keyboard/mouse/haptic overrides and all game callers updated. Verified release/press consumption and released-time accumulation; comments describe existing semantics. Device/action strings and script signatures unchanged |
+| R67 / verified | LogicTimer `mlLocalTime -> mfNextUpdateTimeMs`, `mlLocalTimeAdd -> mfStepMilliseconds`, `alMax -> alMaxUpdates`, `abX -> abFixedStep`; state-machine `mfTimeCount -> mfUpdateElapsedSeconds` | Low; clock implementation and notebook timestep caller checked; arithmetic and fixed-step cadence unchanged. Document legacy Sleep as a no-op without implementing behaviour |
+| R68 / verified | Texture `Get/SetTimeCount -> Get/SetAnimationFramePosition`, `mfTimeCount -> mfAnimationFramePosition`, `mfTimeDir -> mfAnimationDirection`, setter `afX -> afFramePosition`; SetFrameTime `afX -> afSecondsPerFrame` | Medium; iTexture, GL backend, engine fixture and EGL animation callers updated; cursor is measured in fractional frames. Loop/oscillate logic and array sampler layout unchanged |
+| R69 / verified | Music `afFadeStepSize -> afVolumeRatePerSecond`, `mfVolumeAdd -> mfVolumeRatePerSecond`; `SetSetRolloffFactor -> SetRolloffFactor` | Medium; music integration, base/AL override and repository uses inspected. Correct per-step comments to per-second; preserve fade signs, playback and streaming policy |
+| R70 / verified | `CreateCompundShape -> CreateCompoundShape`, `UpdateMoveMarix -> UpdateMoveMatrix`, `Get/SetPreveScrapeMatrix -> Get/SetPreviousScrapeMatrix` | Medium; physics/haptic interfaces, Newton override, mesh/body/surface and enemy callers updated; no saved-field or callback changes |
+| R71 / verified | Camera `Set/GetInifintiveFarPlane -> Set/GetInfiniteFarPlane`; aspect `afAngle -> afAspectRatio`; mesh argument `apPostion -> apPosition`; `CollideFustrumSphere -> CollideFrustumSphere` | Medium; camera helpers/frustum and mesh implementation checked; relocate pitch-limits comment to its declaration. Projection, bounds and skeletal transforms unchanged |
+| R72 / verified | GUI `CreateAnimtion -> CreateAnimation`, `GSetAnimationPaused -> GetAnimationPaused`; input constructor declarations use `alButton/aButton` as definitions do | Medium; GUI definition/caller and input constructor assignments inspected; correct Haptic header's closing guard comment |
+| R73 / verified | `CreateVisibiltyFromBV/FromFrustum -> CreateVisibilityFromBV/FromFrustum`, `ComputeSectorVisibilty -> ComputeSectorVisibility`, `CreatePortalVisibiltySet -> CreatePortalVisibilitySet`, `GetSectorVisibilty -> GetSectorVisibility`, `mvVisibiltySets/mlstPortalVisibilty -> mvVisibilitySets/mlstPortalVisibility` | Medium; sector/portal traversal, light callers and resource lifetime inspected; preserve traversal and culling |
+| R74 / verified | `SetRestricStaticLightToSector/mbRestricStaticLightToSector -> SetRestrictStaticLightToSector/mbRestrictStaticLightToSector`; `mbOnlyAffectInInSector -> mbOnlyAffectInSector` | Medium; mesh-loader base/static definition/Collada branches and light uses updated; no corresponding persistence macro use |
+| R75 / retained | Remaining conventional locals/setters, saved fields/classes, material/asset/shader parameter names, lifecycle APIs and class/file groupings | Preserve compatibility and discoverability; no justified file move or structural extraction remains from these findings. Existing algorithm/performance TODOs require separate evidence and are not resolved by this naming review |
+
+Validation: default Linux build and both CTest suites passed (2/2), including
+software EGL without skips; renderer suite also passed with Mesa GL 3.3 and
+GL 4.3 overrides. Compared all 67 changed C++ files against `683b300`: 384
+identifier substitutions, other tokens/literals and persistence macro lines
+unchanged. Checked old-name references and matching overrides/callers; reviewed
+scopes with distinct destination names (including camera/character move-matrix
+methods). No tests added merely to mirror renames. Sanitizers, game smoke,
+manual play/audio/HaptX, visual captures and Windows were not run for this
+identifier/comment-only pass. No shader, resource ownership or rendering
+algorithm changes are claimed. Remaining A5 naming findings: none.
 
 ## Structural refactoring
 

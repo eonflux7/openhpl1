@@ -420,7 +420,7 @@ namespace hpl {
 		// Create animation
 		if(abCreateAnimation)
 		{
-			cGuiGfxAnimation *pAnim = pGfxElem->CreateAnimtion("Default");
+			cGuiGfxAnimation *pAnim = pGfxElem->CreateAnimation("Default");
 			for(size_t i=0; i<vImages.size(); ++i)
 			{
 				pAnim->AddFrame((int)i);

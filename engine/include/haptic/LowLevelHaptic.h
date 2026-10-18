@@ -142,7 +142,7 @@ namespace hpl {
 		virtual iHapticShape* CreateCylinderShape(const tString &asName, float afRadius, float afHeight, cMatrixf* apOffsetMtx)=0;
 		virtual iHapticShape* CreateCapsuleShape(const tString &asName, float afRadius, float afHeight, cMatrixf* apOffsetMtx)=0;
 		virtual iHapticShape* CreateMeshShape(const tString &asName, iVertexBuffer *apVtxBuffer)=0;
-		virtual iHapticShape* CreateCompundShape(const tString &asName, tHapticShapeVec &avShapes)=0;
+		virtual iHapticShape* CreateCompoundShape(const tString &asName, tHapticShapeVec &avShapes)=0;
 
 		virtual iHapticShape* CreateShapeFromPhysicsBody(const tString &asName, iPhysicsBody *apBody)=0;
 

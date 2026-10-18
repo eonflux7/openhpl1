@@ -74,7 +74,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool cMusicHandler::Play(const tString& asFileName,float afVolume, float afFadeStepSize, bool abLoop)
+	bool cMusicHandler::Play(const tString& asFileName,float afVolume, float afVolumeRatePerSecond, bool abLoop)
 	{
 		bool bSongIsPlaying = false;
 
@@ -93,7 +93,7 @@ namespace hpl {
 			//Put the previous song in the fading queue
 			if(mpMainSong != nullptr)
 			{
-				mpMainSong->mfVolumeAdd = afFadeStepSize;
+				mpMainSong->mfVolumeRatePerSecond = afVolumeRatePerSecond;
 				mlstFadingSongs.push_back(mpMainSong);
 			}
 
@@ -137,9 +137,9 @@ namespace hpl {
 		mpMainSong->mbLoop = abLoop;
 
 		if(mpMainSong->mfMaxVolume > mpMainSong->mfVolume)
-			mpMainSong->mfVolumeAdd = afFadeStepSize;
+			mpMainSong->mfVolumeRatePerSecond = afVolumeRatePerSecond;
 		else
-			mpMainSong->mfVolumeAdd = -afFadeStepSize;
+			mpMainSong->mfVolumeRatePerSecond = -afVolumeRatePerSecond;
 
 
 		return true;
@@ -147,14 +147,14 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cMusicHandler::Stop(float afFadeStepSize)
+	void cMusicHandler::Stop(float afVolumeRatePerSecond)
 	{
 		if(mpMainSong==nullptr)return;
 
-		if(afFadeStepSize<0)afFadeStepSize=-afFadeStepSize;
+		if(afVolumeRatePerSecond<0)afVolumeRatePerSecond=-afVolumeRatePerSecond;
 
-		mpMainSong->mfVolumeAdd = afFadeStepSize;
-		if(afFadeStepSize==0){
+		mpMainSong->mfVolumeRatePerSecond = afVolumeRatePerSecond;
+		if(afVolumeRatePerSecond==0){
 			mpMainSong->mpStream->SetVolume(0);
 			mpMainSong->mpStream->Stop();
 			mpMainSong->mfVolume =0;
@@ -253,9 +253,9 @@ namespace hpl {
 			else
 			{
 				//Update the main song
-				mpMainSong->mfVolume+=mpMainSong->mfVolumeAdd*afTimeStep;
+				mpMainSong->mfVolume+=mpMainSong->mfVolumeRatePerSecond*afTimeStep;
 
-				if(mpMainSong->mfVolumeAdd>0)
+				if(mpMainSong->mfVolumeRatePerSecond>0)
 				{
 					if(mpMainSong->mfVolume>=mpMainSong->mfMaxVolume)
 						mpMainSong->mfVolume= mpMainSong->mfMaxVolume;
@@ -280,7 +280,7 @@ namespace hpl {
 		while(it != mlstFadingSongs.end())
 		{
 			cMusicEntry* pSong = *it;
-			pSong->mfVolume-=pSong->mfVolumeAdd*afTimeStep;
+			pSong->mfVolume-=pSong->mfVolumeRatePerSecond*afTimeStep;
 
 			if(pSong->mfVolume<=0)
 			{

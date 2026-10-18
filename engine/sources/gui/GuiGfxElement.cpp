@@ -269,7 +269,7 @@ namespace hpl {
 
 	//---------------------------------------------------
 
-	cGuiGfxAnimation* cGuiGfxElement::CreateAnimtion(const tString& asName)
+	cGuiGfxAnimation* cGuiGfxElement::CreateAnimation(const tString& asName)
 	{
 		cGuiGfxAnimation *pAnimation = hplNew( cGuiGfxAnimation, () );
 		pAnimation->msName = asName;

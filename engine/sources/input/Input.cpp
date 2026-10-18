@@ -96,42 +96,42 @@ namespace hpl
 
 	//-----------------------------------------------------------------------
 
-	bool cInput::IsTriggerd(tString asName)
+	bool cInput::IsTriggered(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
 		if(pAction==nullptr){return false;}//Log("doesn't exist!!!");return false;}
 
-		return pAction->IsTriggerd();
+		return pAction->IsTriggered();
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cInput::WasTriggerd(tString asName)
+	bool cInput::WasTriggered(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
 		if(pAction==nullptr)return false;
 
-		return pAction->WasTriggerd();
+		return pAction->WasTriggered();
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cInput::BecameTriggerd(tString asName)
+	bool cInput::BecameTriggered(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
 		if(pAction==nullptr)return false;
 
-		return pAction->BecameTriggerd();
+		return pAction->BecameTriggered();
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cInput::DoubleTriggerd(tString asName, float afLimit)
+	bool cInput::DoubleTriggered(tString asName, float afMaxIntervalSeconds)
 	{
 		iAction *pAction = GetAction(asName);
 		if(pAction==nullptr)return false;
 
-		return pAction->DoubleTriggerd(afLimit);
+		return pAction->DoubleTriggered(afMaxIntervalSeconds);
 	}
 
 	//-----------------------------------------------------------------------

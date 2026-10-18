@@ -321,8 +321,8 @@ void cNumericalPanel::SetActive(bool abActive)
 		if(mpInit->mbHasHaptics)
 			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
 
-		mpInit->mpGame->GetInput()->BecameTriggerd("RightClick");
-		mpInit->mpGame->GetInput()->BecameTriggerd("LeftClick");
+		mpInit->mpGame->GetInput()->BecameTriggered("RightClick");
+		mpInit->mpGame->GetInput()->BecameTriggered("LeftClick");
 		
 
 		mLastCrossHairState = mpInit->mpPlayer->GetCrossHairState();

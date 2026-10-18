@@ -294,7 +294,7 @@ namespace hpl {
 		//to calculate the near plane in the frustm.
 		bool bWasInf=false;
 		if(mbInfFarPlane){
-			SetInifintiveFarPlane(false);
+			SetInfiniteFarPlane(false);
 			bWasInf=true;
 		}
 		mFrustum.SetViewProjMatrix(GetProjectionMatrix(),
@@ -302,7 +302,7 @@ namespace hpl {
 									GetFarClipPlane(),GetNearClipPlane(),
 									GetScaledFOV(),GetAspect(),GetPosition(),mbInfFarPlane);
 		if(bWasInf){
-			SetInifintiveFarPlane(true);
+			SetInfiniteFarPlane(true);
 		}
 
 		return &mFrustum;
@@ -411,11 +411,11 @@ namespace hpl {
 
 		bool bWasInf=false;
 		if(mbInfFarPlane){
-			SetInifintiveFarPlane(false);bWasInf=true;
+			SetInfiniteFarPlane(false);bWasInf=true;
 		}
 		cMatrixf mtxViewProj = cMath::MatrixMul(GetProjectionMatrix(), GetViewMatrix());
 		if(bWasInf){
-			SetInifintiveFarPlane(true);
+			SetInfiniteFarPlane(true);
 		}
 
 		cVector2f vScreenSize = apLowLevel->GetVirtualSize();

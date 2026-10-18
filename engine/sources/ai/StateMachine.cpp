@@ -31,7 +31,7 @@ namespace hpl {
 
 	iAIState::iAIState()
 	{
-		mfTimeCount = 0;
+		mfUpdateElapsedSeconds = 0;
 	}
 
 	//-----------------------------------------------------------------------
@@ -46,11 +46,11 @@ namespace hpl {
 	void iAIState::Update(float afTime)
 	{
 		//Update according to the time step
-		mfTimeCount	+= afTime;
-		while(mfTimeCount >= mfUpdateStep)
+		mfUpdateElapsedSeconds	+= afTime;
+		while(mfUpdateElapsedSeconds >= mfUpdateStep)
 		{
 			OnUpdate(mfUpdateStep);
-			mfTimeCount -= mfUpdateStep;
+			mfUpdateElapsedSeconds -= mfUpdateStep;
 		}
 	}
 

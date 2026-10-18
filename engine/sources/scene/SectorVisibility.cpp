@@ -125,11 +125,11 @@ namespace hpl {
 
 	cPortalVisibilitySet* cSectorVisibility::GetSetConnectingFromSector(cSector *apSector)
 	{
-		for(size_t i=0; i< mvVisibiltySets.size(); ++i)
+		for(size_t i=0; i< mvVisibilitySets.size(); ++i)
 		{
-			if(mvVisibiltySets[i]->GetVisibility(0)->mpPortal->GetSector() == apSector)
+			if(mvVisibilitySets[i]->GetVisibility(0)->mpPortal->GetSector() == apSector)
 			{
-				return mvVisibiltySets[i];
+				return mvVisibilitySets[i];
 			}
 		}
 
@@ -140,16 +140,16 @@ namespace hpl {
 
 	void cSectorVisibility::AddVisibilitySet(cPortalVisibilitySet* apSet)
 	{
-		mvVisibiltySets.push_back(apSet);
+		mvVisibilitySets.push_back(apSet);
 	}
 
 	//-----------------------------------------------------------------------
 
 	bool cSectorVisibility::PortalExists(cPortal *apPortal)
 	{
-		for(size_t i=0; i< mvVisibiltySets.size(); ++i)
+		for(size_t i=0; i< mvVisibilitySets.size(); ++i)
 		{
-			if(mvVisibiltySets[i]->PortalExists(apPortal)) return true;
+			if(mvVisibilitySets[i]->PortalExists(apPortal)) return true;
 		}
 
 		return false;
@@ -159,18 +159,18 @@ namespace hpl {
 
 	bool cSectorVisibility::IntersectionBV(cBoundingVolume *apBV)
 	{
-		if(mvVisibiltySets.empty())
+		if(mvVisibilitySets.empty())
 		{
 			//Log("Checking start sector %s\n",mpSector->GetId().c_str());
 			return mpContainer->IntersectionBV(apBV,nullptr);
 		}
 		else
 		{
-			//Log("Checking sector %s with %d sets\n", mpSector->GetId().c_str(), mvVisibiltySets.size());
+			//Log("Checking sector %s with %d sets\n", mpSector->GetId().c_str(), mvVisibilitySets.size());
 
-			for(size_t i=0; i< mvVisibiltySets.size(); ++i)
+			for(size_t i=0; i< mvVisibilitySets.size(); ++i)
 			{
-				if(mpContainer->IntersectionBV(apBV,mvVisibiltySets[i]))
+				if(mpContainer->IntersectionBV(apBV,mvVisibilitySets[i]))
 				{
 					return true;
 				}
@@ -198,25 +198,25 @@ namespace hpl {
 	cSectorVisibilityContainer::~cSectorVisibilityContainer()
 	{
 		STLMapDeleteAll(m_mapSectors);
-		STLDeleteAll(mlstPortalVisibilty);
+		STLDeleteAll(mlstPortalVisibility);
 	}
 
 	//-----------------------------------------------------------------------
 
-	cPortalVisibilitySet* cSectorVisibilityContainer::CreatePortalVisibiltySet(cPortalVisibilitySet* apParent)
+	cPortalVisibilitySet* cSectorVisibilityContainer::CreatePortalVisibilitySet(cPortalVisibilitySet* apParent)
 	{
 		cPortalVisibilitySet *pSet = hplNew( cPortalVisibilitySet, (this,apParent) );
 
 
 		//Add to visibility list.
-		mlstPortalVisibilty.push_back(pSet);
+		mlstPortalVisibility.push_back(pSet);
 
 		return pSet;
 	}
 
 	//-----------------------------------------------------------------------
 
-	cSectorVisibility* cSectorVisibilityContainer::GetSectorVisibilty(cSector *apSector)
+	cSectorVisibility* cSectorVisibilityContainer::GetSectorVisibility(cSector *apSector)
 	{
 		// Check if the sector has already been checked.
 		tSectorVisibilityMapIt it = m_mapSectors.find(apSector);
@@ -305,7 +305,7 @@ namespace hpl {
 			mlTabs++;
 		}
 
-		cSectorVisibility *pVisSector = GetSectorVisibilty(apSector);
+		cSectorVisibility *pVisSector = GetSectorVisibility(apSector);
 
 		//Save all portals encountered here.
 		tPortalList lstNewPortals;
@@ -355,7 +355,7 @@ namespace hpl {
 					continue;
 				}
 
-				cSectorVisibility *pTargetVisSector = GetSectorVisibilty(pTargetSector);
+				cSectorVisibility *pTargetVisSector = GetSectorVisibility(pTargetSector);
 
 				////////////////////////////////////////
 				//Check if there is another visibility set connecting to the same room
@@ -364,7 +364,7 @@ namespace hpl {
 				//If none exist, create new set.
 				if(pSet==nullptr) {
 					//Create portal visibility and add it to the sector container
-					pSet = CreatePortalVisibiltySet(apParentSet);
+					pSet = CreatePortalVisibilitySet(apParentSet);
 					//Add to the specific container
 					pTargetVisSector->AddVisibilitySet(pSet);
 

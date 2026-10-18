@@ -271,14 +271,14 @@ void cRefView::UpdateFly(float afTimeStep)
 	if(mbOpen==false)
 	{
 		cInput *pInput = mpInit->mpGame->GetInput();
-		float fSpeed = mfFlySpeed * (pInput->IsTriggerd("Run") ? 4.0f : 1.0f) * afTimeStep;
+		float fSpeed = mfFlySpeed * (pInput->IsTriggered("Run") ? 4.0f : 1.0f) * afTimeStep;
 		cVector3f vMove(0,0,0);
-		if(pInput->IsTriggerd("Forward"))	vMove += pCamera->GetForward();
-		if(pInput->IsTriggerd("Backward"))	vMove -= pCamera->GetForward();
-		if(pInput->IsTriggerd("Right"))		vMove += pCamera->GetRight();
-		if(pInput->IsTriggerd("Left"))		vMove -= pCamera->GetRight();
-		if(pInput->IsTriggerd("Jump"))		vMove.y += 1;
-		if(pInput->IsTriggerd("Crouch"))	vMove.y -= 1;
+		if(pInput->IsTriggered("Forward"))	vMove += pCamera->GetForward();
+		if(pInput->IsTriggered("Backward"))	vMove -= pCamera->GetForward();
+		if(pInput->IsTriggered("Right"))		vMove += pCamera->GetRight();
+		if(pInput->IsTriggered("Left"))		vMove -= pCamera->GetRight();
+		if(pInput->IsTriggered("Jump"))		vMove.y += 1;
+		if(pInput->IsTriggered("Crouch"))	vMove.y -= 1;
 		mvFlyPos += vMove * fSpeed;
 	}
 

@@ -37,7 +37,7 @@ namespace hpl {
 		~cLogicTimer();
 
 		/**
-		 * Reset the time. Do this when the logical update of the game has been ide, ie while loading.
+		 * Reset the next update time after a pause, such as loading.
 		 */
 		void Reset();
 		/**
@@ -59,9 +59,9 @@ namespace hpl {
 
 		/**
 		 * Sets the maximum updates in a row.
-		 * \param alUpdatesPerSec
+		 * \param alMaxUpdates
 		 */
-		void SetMaxUpdates(int alMax);
+		void SetMaxUpdates(int alMaxUpdates);
 
 		/**
 		 * Get the number of updates per second.
@@ -81,15 +81,15 @@ namespace hpl {
 		 * One update for every update loop, whatever the clock says. Makes a
 		 * run repeatable: each drawn frame comes after exactly one step.
 		 */
-		void SetFixedStep(bool abX){ mbFixedStep = abX;}
+		void SetFixedStep(bool abFixedStep){ mbFixedStep = abFixedStep;}
 		bool GetFixedStep(){ return mbFixedStep;}
 
 
 	private:
 		void Update();
 
-		double mlLocalTime;
-		double mlLocalTimeAdd;
+		double mfNextUpdateTimeMs;
+		double mfStepMilliseconds;
 
 		int mlMaxUpdates;
 		int mlUpdateCount;

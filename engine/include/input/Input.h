@@ -65,27 +65,27 @@ namespace hpl {
 		 * \param asName
 		 * \return
 		 */
-		bool IsTriggerd(tString asName);
+		bool IsTriggered(tString asName);
 		/**
 		 *
 		 * \param asName name of the action.
 		 * \return
 		 */
-		bool WasTriggerd(tString asName);
+		bool WasTriggered(tString asName);
 
 		/**
 		 *
 		 * \param asName name of the action.
 		 * \return
 		 */
-		bool BecameTriggerd(tString asName);
+		bool BecameTriggered(tString asName);
 
 		/**
 		*
 		* \param asName name of the action.
 		* \return
 		*/
-		bool DoubleTriggerd(tString asName, float afLimit);
+		bool DoubleTriggered(tString asName, float afMaxIntervalSeconds);
 
 		/**
 		 *

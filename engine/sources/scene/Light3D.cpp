@@ -51,7 +51,7 @@ namespace hpl {
 		mbStaticCasterAdded = false;
 		mbPartOfMap = false;
 
-		mbOnlyAffectInInSector = false;
+		mbOnlyAffectInSector = false;
 
 		mbApplyTransformToBV = false;
 
@@ -253,7 +253,7 @@ namespace hpl {
 					cSector* pSector = static_cast<cSector*>(*it);
 
 
-					cSectorVisibility *pVisSector = mpVisSectorCont->GetSectorVisibilty(pSector);
+					cSectorVisibility *pVisSector = mpVisSectorCont->GetSectorVisibility(pSector);
 					if(pVisSector)
 					{
 						if(pVisSector->IntersectionBV(apObject->GetBoundingVolume()))

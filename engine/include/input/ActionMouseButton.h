@@ -30,9 +30,9 @@ namespace hpl {
 	class cActionMouseButton : public iAction
 	{
 	public:
-		cActionMouseButton(tString asName,cInput* apInput, eMButton mButton);
+		cActionMouseButton(tString asName,cInput* apInput, eMButton aButton);
 
-		bool IsTriggerd() override;
+		bool IsTriggered() override;
 		float GetValue() override;
 
 		tString GetInputName() override;

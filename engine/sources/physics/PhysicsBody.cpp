@@ -490,7 +490,7 @@ namespace hpl {
 				vShapes.push_back(_CreateShape(&it.Next(),apWorld));
 			}
 
-			return apWorld->CreateCompundShape(vShapes);
+			return apWorld->CreateCompoundShape(vShapes);
 		}
 	}
 

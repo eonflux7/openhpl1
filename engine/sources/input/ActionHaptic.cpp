@@ -43,7 +43,7 @@ namespace hpl
 
 	//-----------------------------------------------------------------------
 
-	bool cActionHaptic::IsTriggerd()
+	bool cActionHaptic::IsTriggered()
 	{
 		if(mlButton >= mpHaptic->GetLowLevel()->GetNumberOfButtons()) return false;
 
@@ -54,7 +54,7 @@ namespace hpl
 
 	float cActionHaptic::GetValue()
 	{
-		if(IsTriggerd())return 1.0;
+		if(IsTriggered())return 1.0;
 		else return 0.0;
 	}
 

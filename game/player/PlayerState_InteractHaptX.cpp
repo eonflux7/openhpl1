@@ -82,12 +82,12 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 	
 	///////////////////////////////////
 	// Check wheel input NOT NEEDED!
-	/*if(pInput->IsTriggerd("WheelUp"))
+	/*if(pInput->IsTriggered("WheelUp"))
 	{
 		if(mfGrabDist < mpPlayer->mfCurrentMaxInteractDist*0.8f)
 			mfGrabDist += 0.1f;
 	}
-	if(pInput->IsTriggerd("WheelDown"))
+	if(pInput->IsTriggered("WheelDown"))
 	{
 		if(mfGrabDist > mpPlayer->GetSize().x/2.0f + 0.25f)
 		{

@@ -231,7 +231,7 @@ namespace hpl {
 
 	cSectorVisibilityContainer* cLight3DSpot::CreateSectorVisibility()
 	{
-		return mpWorld3D->GetPortalContainer()->CreateVisibiltyFromFrustum(mpFrustum);
+		return mpWorld3D->GetPortalContainer()->CreateVisibilityFromFrustum(mpFrustum);
 	}
 	//-----------------------------------------------------------------------
 

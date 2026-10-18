@@ -66,12 +66,12 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 	
 	//cVector3f vToCharDir =
 	
-	if(pInput->IsTriggerd("WheelUp"))
+	if(pInput->IsTriggered("WheelUp"))
 	{
 		if(mfGrabDist < mpPlayer->mfCurrentMaxInteractDist*0.8f)
 			mfGrabDist += 0.1f;
 	}
-	if(pInput->IsTriggerd("WheelDown"))
+	if(pInput->IsTriggered("WheelDown"))
 	{
 		if(mfGrabDist > mpPlayer->GetSize().x/2.0f + 0.25f)
 		{
@@ -477,7 +477,7 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 
 	mbPickAtPoint = mpPlayer->mbPickAtPoint;
 	mbRotateWithPlayer = mpPlayer->mbRotateWithPlayer;
-	mbRotating = !cInit::IsOverture() && mpInit->mpGame->GetInput()->IsTriggerd("Rotate");
+	mbRotating = !cInit::IsOverture() && mpInit->mpGame->GetInput()->IsTriggered("Rotate");
 
 	if(mPrevState == ePlayerState_InteractMode) 
 		mbMoveHand = true;

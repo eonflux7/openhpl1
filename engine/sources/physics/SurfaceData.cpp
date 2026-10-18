@@ -155,11 +155,11 @@ namespace hpl {
 		//Check if body is still, in that case stop set speed to 0
 		if(apBody->GetMass() != 0)
 		{
-			if(apBody->GetPreveScrapeMatrix() == apBody->GetLocalMatrix())
+			if(apBody->GetPreviousScrapeMatrix() == apBody->GetLocalMatrix())
 			{
 				afSpeed =0;
 			}
-			apBody->SetPreveScrapeMatrix(apBody->GetLocalMatrix());
+			apBody->SetPreviousScrapeMatrix(apBody->GetLocalMatrix());
 		}
 
 		//If the body all ready has a scrape sound

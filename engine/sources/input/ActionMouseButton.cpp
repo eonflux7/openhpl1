@@ -42,7 +42,7 @@ namespace hpl
 
 	//-----------------------------------------------------------------------
 
-	bool cActionMouseButton::IsTriggerd()
+	bool cActionMouseButton::IsTriggered()
 	{
 		return mpInput->GetMouse()->ButtonIsDown(mButton);
 	}
@@ -51,7 +51,7 @@ namespace hpl
 
 	float cActionMouseButton::GetValue()
 	{
-		if(IsTriggerd())return 1.0;
+		if(IsTriggered())return 1.0;
 		else return 0.0;
 	}
 

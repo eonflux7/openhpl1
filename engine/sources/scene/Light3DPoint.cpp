@@ -55,7 +55,7 @@ namespace hpl {
 
 	cSectorVisibilityContainer* cLight3DPoint::CreateSectorVisibility()
 	{
-		return mpWorld3D->GetPortalContainer()->CreateVisibiltyFromBV(GetBoundingVolume());
+		return mpWorld3D->GetPortalContainer()->CreateVisibilityFromBV(GetBoundingVolume());
 	}
 
 	//-----------------------------------------------------------------------

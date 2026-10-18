@@ -174,8 +174,8 @@ namespace hpl {
 		inline iTexture* GetTempTexture(size_t alIdx){ return mvTempTextures[alIdx];}
 		inline void SetTempTexture(size_t alIdx,iTexture* apTex){ mvTempTextures[alIdx]=apTex;}
 
-		void SetOnlyAffectInSector(bool abX){ mbOnlyAffectInInSector = abX;}
-		bool GetOnlyAffectInSector(){return mbOnlyAffectInInSector;}
+		void SetOnlyAffectInSector(bool abX){ mbOnlyAffectInSector = abX;}
+		bool GetOnlyAffectInSector(){return mbOnlyAffectInSector;}
 
 		//SaveObject implementation
 		iSaveData* CreateSaveData() override;
@@ -215,7 +215,7 @@ namespace hpl {
 		bool mbStaticCasterAdded;
 		bool mbPartOfMap;
 
-		bool mbOnlyAffectInInSector;
+		bool mbOnlyAffectInSector;
 
 		int mlSectorVisibilityCount;
 		cSectorVisibilityContainer *mpVisSectorCont;

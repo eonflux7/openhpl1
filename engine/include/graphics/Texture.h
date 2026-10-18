@@ -166,7 +166,7 @@ namespace hpl {
 		eTextureWrap GetWrapT(){ return mWrapT;}
 		eTextureWrap GetWrapR(){ return mWrapR;}
 
-		void SetFrameTime(float afX){ mfFrameTime = afX;}
+		void SetFrameTime(float afSecondsPerFrame){ mfFrameTime = afSecondsPerFrame;}
 		float GetFrameTime(){ return mfFrameTime;}
 
 		eTextureAnimMode GetAnimMode() { return mAnimMode;}
@@ -180,9 +180,11 @@ namespace hpl {
 		virtual bool HasAnimation()=0;
 		virtual void NextFrame()=0;
 		virtual void PrevFrame()=0;
+		// Fractional progress within the current animation frame.
 		virtual float GetT()=0;
-		virtual float GetTimeCount()=0;
-		virtual void SetTimeCount(float afX)=0;
+		// Animation cursor in frames, including a fractional frame; not seconds.
+		virtual float GetAnimationFramePosition()=0;
+		virtual void SetAnimationFramePosition(float afFramePosition)=0;
 		virtual int GetCurrentLowlevelHandle()=0;
 
 	protected:

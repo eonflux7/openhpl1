@@ -32,7 +32,7 @@ namespace hpl {
 	public:
 		cActionKeyboard(tString asName,cInput* apInput, int aKey);
 
-		bool IsTriggerd() override;
+		bool IsTriggered() override;
 		float GetValue() override;
 
 		tString GetInputName() override;

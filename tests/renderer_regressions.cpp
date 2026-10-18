@@ -1416,9 +1416,9 @@ static void TestShadowCaching(cLowLevelGraphicsSDL &gfx)
 		Check(render(spot) == 0 && renderer.GetShadowMapStats().mlMaps == 1, "failed new caster shader skips geometry");
 		std::ofstream(casterFragment) << casterSource;
 		Check(render(spot) == 2 && render(spot) == 0, "unchanged alpha frame can reuse depth");
-		animated.SetTimeCount(1);
+		animated.SetAnimationFramePosition(1);
 		Check(render(spot) == 2 && depth() == empty, "alpha animation frame invalidates depth");
-		animated.SetTimeCount(0);
+		animated.SetAnimationFramePosition(0);
 		Check(render(spot) == 2 && depth() != empty, "reverse animation also invalidates depth");
 		Check(renderer.mpDiffuseProgram->Reload(), "reload shadow caster shader");
 		Check(render(spot) == 2, "shader revision invalidates cached depth");

@@ -58,7 +58,7 @@ namespace hpl {
 
 		virtual void SetListenerAttenuation (bool abEnabled)=0;
 
-		virtual void SetSetRolloffFactor(float afFactor)=0;
+		virtual void SetRolloffFactor(float afFactor)=0;
 
 		virtual void SetVolume(float afVolume)=0;
 

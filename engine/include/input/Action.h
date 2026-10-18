@@ -31,21 +31,21 @@ namespace hpl {
 
 		/**
 		 *
-		 * \return returns true if the action just was triggered, else false
+		 * \return True once on release after an observed press.
 		 */
-		bool WasTriggerd();
+		bool WasTriggered();
 
 		/**
 		 *
-		 * \return true if the action just became triggered, else false
+		 * \return True once on press until the action is released.
 		 */
-		bool BecameTriggerd();
+		bool BecameTriggered();
 
 		/**
 		*
-		* \return true if the action just was double triggered (double clicked), else false
+		* \return True on a repeated press within afMaxIntervalSeconds; time advances only while released.
 		*/
-		bool DoubleTriggerd(float afLimit);
+		bool DoubleTriggered(float afMaxIntervalSeconds);
 
 		/**
 		 *Update the Action, called by cInput
@@ -68,7 +68,7 @@ namespace hpl {
 		 * Filled in by the class that inherits from Action.
 		 * \return true if the action is being triggered
 		 */
-		virtual bool IsTriggerd()=0;
+		virtual bool IsTriggered()=0;
 
 		/**
 		 *
@@ -89,12 +89,12 @@ namespace hpl {
 	private:
 		tString msName;
 
-		bool mbBecameTriggerd;
-		bool mbIsTriggerd;
+		bool mbBecameTriggered;
+		bool mbIsTriggered;
 
 		bool mbTriggerDown;
 
-		double mfTimeCount;
+		double mfDoubleTriggerElapsedSeconds;
 	};
 
 };

@@ -349,20 +349,20 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	// GLOBAL Key Strokes
 	///////////////////////////////////
-	if(mpInput->BecameTriggerd("QuitGame"))
+	if(mpInput->BecameTriggered("QuitGame"))
 	{
 		mpInit->mpGame->Exit();
 	}
-	if(mpInput->BecameTriggerd("DebugOverlay"))
+	if(mpInput->BecameTriggered("DebugOverlay"))
 	{
 		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 		pLowLevel->SetDebugOverlayActive(!pLowLevel->GetDebugOverlayActive());
 	}
-	if(mpInput->BecameTriggerd("RefView") && mpInit->mpRefView)
+	if(mpInput->BecameTriggered("RefView") && mpInit->mpRefView)
 	{
 		mpInit->mpRefView->SetOpen(!mpInit->mpRefView->IsOpen());
 	}
-	if(mpInput->BecameTriggerd("Screenshot"))
+	if(mpInput->BecameTriggered("Screenshot"))
 	{
 		int lCount = 1;
 		tString sFileName = "screenshot000.bmp";
@@ -378,7 +378,7 @@ void cButtonHandler::Update(float afTimeStep)
 
 		mpInit->mpGame->GetGraphics()->GetLowLevel()->SaveScreenToBMP(sFileName);
 	}
-	if(mpInput->BecameTriggerd("LockInput"))
+	if(mpInput->BecameTriggered("LockInput"))
 	{
 #ifndef WIN32
 		bLockState = !bLockState;
@@ -390,11 +390,11 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	if(mState == eButtonHandlerState_DemoEndText)
 	{
-		if(	mpInput->BecameTriggerd("Escape"))	
+		if(	mpInput->BecameTriggered("Escape"))
 			mpInit->mpDemoEndText->OnButtonDown();
-		if(mpInput->BecameTriggerd("LeftClick"))
+		if(mpInput->BecameTriggered("LeftClick"))
 			mpInit->mpDemoEndText->OnMouseDown(eMButton_Left);
-		if(mpInput->BecameTriggerd("RightClick"))
+		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpDemoEndText->OnMouseDown(eMButton_Right);
 	}
 	///////////////////////////////////
@@ -402,11 +402,11 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Credits)
 	{
-		if(	mpInput->BecameTriggerd("Escape"))	
+		if(	mpInput->BecameTriggered("Escape"))
 			mpInit->mpCredits->OnButtonDown();
-		if(mpInput->BecameTriggerd("LeftClick"))
+		if(mpInput->BecameTriggered("LeftClick"))
 			mpInit->mpCredits->OnMouseDown(eMButton_Left);
-		if(mpInput->BecameTriggerd("RightClick"))
+		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpCredits->OnMouseDown(eMButton_Right);
 	}
 	///////////////////////////////////
@@ -414,11 +414,11 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Ending)
 	{
-		if(	mpInput->BecameTriggerd("Escape"))
+		if(	mpInput->BecameTriggered("Escape"))
 			mpInit->mpEnding->OnButtonDown();
-		if(mpInput->BecameTriggerd("LeftClick"))
+		if(mpInput->BecameTriggered("LeftClick"))
 			mpInit->mpEnding->OnMouseDown(eMButton_Left);
-		if(mpInput->BecameTriggerd("RightClick"))
+		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpEnding->OnMouseDown(eMButton_Right);
 	}
 	///////////////////////////////////
@@ -426,11 +426,11 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_PreMenu)
 	{
-		if(	mpInput->BecameTriggerd("Escape"))	
+		if(	mpInput->BecameTriggered("Escape"))
 			mpInit->mpPreMenu->OnButtonDown();
-		if(mpInput->BecameTriggerd("LeftClick"))
+		if(mpInput->BecameTriggered("LeftClick"))
 			mpInit->mpPreMenu->OnMouseDown(eMButton_Left);
-		if(mpInput->BecameTriggerd("RightClick"))
+		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpPreMenu->OnMouseDown(eMButton_Right);
 	}
 	///////////////////////////////////
@@ -438,9 +438,9 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MapLoadText)
 	{
-		if(	mpInput->BecameTriggerd("Escape") ||
-			mpInput->BecameTriggerd("RightClick") ||
-			mpInput->BecameTriggerd("LeftClick"))
+		if(	mpInput->BecameTriggered("Escape") ||
+			mpInput->BecameTriggered("RightClick") ||
+			mpInput->BecameTriggered("LeftClick"))
 		{
 			mpInit->mpMapLoadText->SetActive(false);
 		}
@@ -450,37 +450,37 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MainMenu)
 	{
-		if(mpInput->BecameTriggerd("Escape"))
+		if(mpInput->BecameTriggered("Escape"))
 		{
 			mpInit->mpMainMenu->Exit();
 		}
 
-		if(	mpInput->BecameTriggerd("RightClick") ||
-			(mpInit->mbHasHaptics && mpInput->BecameTriggerd("MouseClickRight")) )
+		if(	mpInput->BecameTriggered("RightClick") ||
+			(mpInit->mbHasHaptics && mpInput->BecameTriggered("MouseClickRight")) )
 		{
 			mpInit->mpMainMenu->OnMouseDown(eMButton_Right);
-			mpInput->BecameTriggerd("Examine");
+			mpInput->BecameTriggered("Examine");
 		}
-		if(mpInput->WasTriggerd("RightClick"))
+		if(mpInput->WasTriggered("RightClick"))
 		{
 			mpInit->mpMainMenu->OnMouseUp(eMButton_Right);
 		}
-		if(mpInput->DoubleTriggerd("RightClick",0.15f))
+		if(mpInput->DoubleTriggered("RightClick",0.15f))
 		{
 			mpInit->mpMainMenu->OnMouseDoubleClick(eMButton_Right);
 		}
 
-		if(	mpInput->BecameTriggerd("LeftClick") || 
-			(mpInit->mbHasHaptics && mpInput->BecameTriggerd("MouseClick")) )
+		if(	mpInput->BecameTriggered("LeftClick") ||
+			(mpInit->mbHasHaptics && mpInput->BecameTriggered("MouseClick")) )
 		{
 			mpInit->mpMainMenu->OnMouseDown(eMButton_Left);
-			mpInput->BecameTriggerd("Interact");
+			mpInput->BecameTriggered("Interact");
 		}
-		if(mpInput->WasTriggerd("LeftClick"))
+		if(mpInput->WasTriggered("LeftClick"))
 		{
 			mpInit->mpMainMenu->OnMouseUp(eMButton_Left);
 		}
-		if(mpInput->DoubleTriggerd("LeftClick",0.15f))
+		if(mpInput->DoubleTriggered("LeftClick",0.15f))
 		{
 			mpInit->mpMainMenu->OnMouseDoubleClick(eMButton_Left);
 		}
@@ -505,7 +505,7 @@ void cButtonHandler::Update(float afTimeStep)
 	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Intro)
 	{
-		if(mpInput->BecameTriggerd("Escape"))
+		if(mpInput->BecameTriggered("Escape"))
 		{
 			mpInit->mpIntroStory->Exit();
 		}
@@ -517,7 +517,7 @@ void cButtonHandler::Update(float afTimeStep)
 	{
 		///////////////////////////////////////
 		// Global ////////////////////
-		/*if(mpInput->BecameTriggerd("ResetGame"))
+		/*if(mpInput->BecameTriggered("ResetGame"))
 		{
 			mpInit->ResetGame(true);
 			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
@@ -525,16 +525,16 @@ void cButtonHandler::Update(float afTimeStep)
 		// Requiem's quicksave and quickload are player keys, handled below
 		if(mpInit->mbAllowQuickSave && cInit::GetGameId() != eGameId_Requiem)
 		{
-			if(mpInput->BecameTriggerd("SaveGame"))
+			if(mpInput->BecameTriggered("SaveGame"))
 			{
 				mpInit->mpSaveHandler->AutoSave(_W("auto"),cInit::IsOverture() ? 5 : 10);
 			}
-			if(mpInput->BecameTriggerd("LoadGame"))
+			if(mpInput->BecameTriggered("LoadGame"))
 			{
 				mpInit->mpSaveHandler->AutoLoad(_W("auto"));
 			}
 		}
-		if(mpInput->BecameTriggerd("PrintLog"))
+		if(mpInput->BecameTriggered("PrintLog"))
 		{
 			Log("-------------- START RENDERING LOG ------------------------\n");
 			mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(eRendererDebugFlag_LogRendering);
@@ -547,30 +547,30 @@ void cButtonHandler::Update(float afTimeStep)
 		{
 			cGui *pGui = mpInit->mpGame->GetGui();
 
-			if(mpInput->BecameTriggerd("RightClick"))
+			if(mpInput->BecameTriggered("RightClick"))
 			{
 				pGui->SendMouseClickDown(eGuiMouseButton_Right);
-				mpInput->BecameTriggerd("Examine");
+				mpInput->BecameTriggered("Examine");
 			}
-			if(mpInput->WasTriggerd("RightClick"))
+			if(mpInput->WasTriggered("RightClick"))
 			{
 				pGui->SendMouseClickUp(eGuiMouseButton_Right);
 			}
-			if(mpInput->DoubleTriggerd("RightClick",0.2f))
+			if(mpInput->DoubleTriggered("RightClick",0.2f))
 			{
 				pGui->SendMouseDoubleClick(eGuiMouseButton_Right);
 			}
 
-			if(mpInput->BecameTriggerd("LeftClick"))
+			if(mpInput->BecameTriggered("LeftClick"))
 			{
 				pGui->SendMouseClickDown(eGuiMouseButton_Left);
-				mpInput->BecameTriggerd("Interact");
+				mpInput->BecameTriggered("Interact");
 			}
-			if(mpInput->WasTriggerd("LeftClick"))
+			if(mpInput->WasTriggered("LeftClick"))
 			{
 				pGui->SendMouseClickUp(eGuiMouseButton_Left);
 			}
-			if(mpInput->DoubleTriggerd("LeftClick",0.2f))
+			if(mpInput->DoubleTriggered("LeftClick",0.2f))
 			{
 				pGui->SendMouseDoubleClick(eGuiMouseButton_Left);
 			}
@@ -585,7 +585,7 @@ void cButtonHandler::Update(float afTimeStep)
 				pGui->SendKeyPress(mpInput->GetKeyboard()->GetKey());
 			}
 
-			if(mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Escape"))
 			{
 				if(mpInit->mpRadioHandler->IsActive())
 					mpInit->mpRadioHandler->NextMessage();
@@ -597,24 +597,24 @@ void cButtonHandler::Update(float afTimeStep)
 		// Death menu ////////////////////
 		else if(mpInit->mpDeathMenu->IsActive())
 		{
-			if(mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpGame->GetUpdater()->Reset();
 				mpInit->mpMainMenu->SetActive(true);
 			}
 
-			if(mpInput->BecameTriggerd("RightClick"))
+			if(mpInput->BecameTriggered("RightClick"))
 			{
 				mpInit->mpDeathMenu->OnMouseDown(eMButton_Right);
-				mpInput->BecameTriggerd("Examine");
+				mpInput->BecameTriggered("Examine");
 			}
 
-			if(mpInput->BecameTriggerd("LeftClick"))
+			if(mpInput->BecameTriggered("LeftClick"))
 			{
 				mpInit->mpDeathMenu->OnMouseDown(eMButton_Left);
-				mpInput->BecameTriggerd("Interact");
+				mpInput->BecameTriggered("Interact");
 			}
-			if(mpInput->WasTriggerd("LeftClick"))
+			if(mpInput->WasTriggered("LeftClick"))
 			{
 				mpInit->mpDeathMenu->OnMouseUp(eMButton_Left);
 			}
@@ -634,7 +634,7 @@ void cButtonHandler::Update(float afTimeStep)
 		// Death ////////////////////
 		else if(mpPlayer->IsDead())
 		{
-			if(mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpMainMenu->SetActive(true);
 			}
@@ -643,21 +643,21 @@ void cButtonHandler::Update(float afTimeStep)
 		// Numerical panel ////////////////////
 		else if(mpInit->mpNumericalPanel->IsActive())
 		{
-			if(mpInput->BecameTriggerd("Inventory") || mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Inventory") || mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpNumericalPanel->OnExit();
 			}
-			if(mpInput->BecameTriggerd("RightClick"))
+			if(mpInput->BecameTriggered("RightClick"))
 			{
 				mpInit->mpNumericalPanel->OnExit();
 			}
 
-			if(mpInput->BecameTriggerd("LeftClick"))
+			if(mpInput->BecameTriggered("LeftClick"))
 			{
 				mpInit->mpNumericalPanel->OnMouseDown(eMButton_Left);
-				mpInput->BecameTriggerd("Interact");
+				mpInput->BecameTriggered("Interact");
 			}
-			if(mpInput->WasTriggerd("LeftClick"))
+			if(mpInput->WasTriggered("LeftClick"))
 			{
 				mpInit->mpNumericalPanel->OnMouseUp(eMButton_Left);
 			}
@@ -677,23 +677,23 @@ void cButtonHandler::Update(float afTimeStep)
 		// Notebook ////////////////////
 		else if(mpInit->mpNotebook->IsActive())
 		{
-			if(mpInput->BecameTriggerd("Inventory") || mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Inventory") || mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpNotebook->OnExit();
 			}
 			
-			if(mpInput->BecameTriggerd("LeftClick"))
+			if(mpInput->BecameTriggered("LeftClick"))
 			{
 				mpInit->mpNotebook->OnMouseDown(eMButton_Left);
 
-				mpInput->BecameTriggerd("Interact");
+				mpInput->BecameTriggered("Interact");
 			}
 
-			if(mpInput->BecameTriggerd("NoteBook"))
+			if(mpInput->BecameTriggered("NoteBook"))
 			{
 				mpInit->mpNotebook->OnExit();
 			}
-			if(mpInput->BecameTriggerd("PersonalNotes"))
+			if(mpInput->BecameTriggered("PersonalNotes"))
 			{
 				cStateMachine *pStateMachine = mpInit->mpNotebook->GetStateMachine();
 				if(pStateMachine->CurrentState()->GetId() == eNotebookState_TaskList)
@@ -724,50 +724,50 @@ void cButtonHandler::Update(float afTimeStep)
 		{
 			////////////////////////////
 			//Normal Input
-			if(mpInput->BecameTriggerd("Inventory") || mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Inventory") || mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpInventory->OnInventoryDown();
 			}
 			
-			if(mpInput->BecameTriggerd("LeftClick"))
+			if(mpInput->BecameTriggered("LeftClick"))
 			{
 				mpInit->mpInventory->OnMouseDown(eMButton_Left);
 
-				mpInput->BecameTriggerd("Interact");
+				mpInput->BecameTriggered("Interact");
 			}
 			
-			if(mpInput->DoubleTriggerd("LeftClick",0.2f))
+			if(mpInput->DoubleTriggered("LeftClick",0.2f))
 			{
 				mpInit->mpInventory->OnDoubleClick(eMButton_Left);
 			}
-			if(mpInput->WasTriggerd("LeftClick"))
+			if(mpInput->WasTriggered("LeftClick"))
 			{
 				mpInit->mpInventory->OnMouseUp(eMButton_Left);
 			}
 
 				
-			if(mpInput->BecameTriggerd("RightClick"))
+			if(mpInput->BecameTriggered("RightClick"))
 			{
 				mpInit->mpInventory->OnMouseDown(eMButton_Right);
 				
-				mpInput->BecameTriggerd("Examine");
+				mpInput->BecameTriggered("Examine");
 			}
-			if(mpInput->WasTriggerd("RightClick"))
+			if(mpInput->WasTriggered("RightClick"))
 			{
 				mpInit->mpInventory->OnMouseUp(eMButton_Right);
 			}
 			
 			//////////////////////////////
 			//Short cut keys
-			if(mpInput->BecameTriggerd("One")) mpInit->mpInventory->OnShortcutDown(0);
-			if(mpInput->BecameTriggerd("Two")) mpInit->mpInventory->OnShortcutDown(1);
-			if(mpInput->BecameTriggerd("Three")) mpInit->mpInventory->OnShortcutDown(2);
-			if(mpInput->BecameTriggerd("Four")) mpInit->mpInventory->OnShortcutDown(3);
-			if(mpInput->BecameTriggerd("Five")) mpInit->mpInventory->OnShortcutDown(4);
-			if(mpInput->BecameTriggerd("Six")) mpInit->mpInventory->OnShortcutDown(5);
-			if(mpInput->BecameTriggerd("Seven")) mpInit->mpInventory->OnShortcutDown(6);
-			if(mpInput->BecameTriggerd("Eight")) mpInit->mpInventory->OnShortcutDown(7);
-			if(mpInput->BecameTriggerd("Nine")) mpInit->mpInventory->OnShortcutDown(8);
+			if(mpInput->BecameTriggered("One")) mpInit->mpInventory->OnShortcutDown(0);
+			if(mpInput->BecameTriggered("Two")) mpInit->mpInventory->OnShortcutDown(1);
+			if(mpInput->BecameTriggered("Three")) mpInit->mpInventory->OnShortcutDown(2);
+			if(mpInput->BecameTriggered("Four")) mpInit->mpInventory->OnShortcutDown(3);
+			if(mpInput->BecameTriggered("Five")) mpInit->mpInventory->OnShortcutDown(4);
+			if(mpInput->BecameTriggered("Six")) mpInit->mpInventory->OnShortcutDown(5);
+			if(mpInput->BecameTriggered("Seven")) mpInit->mpInventory->OnShortcutDown(6);
+			if(mpInput->BecameTriggered("Eight")) mpInit->mpInventory->OnShortcutDown(7);
+			if(mpInput->BecameTriggered("Nine")) mpInit->mpInventory->OnShortcutDown(8);
 			
 			if(mpInit->mbHasHaptics)
 			{
@@ -785,19 +785,19 @@ void cButtonHandler::Update(float afTimeStep)
 		{
 			bPlayerStateIsActive = true;
 
-			if(mpInput->BecameTriggerd("Escape"))
+			if(mpInput->BecameTriggered("Escape"))
 			{
 				mpInit->mpMainMenu->SetActive(true);
 			}
-			if(mpInput->BecameTriggerd("Hit"))
+			if(mpInput->BecameTriggered("Hit"))
 			{
 				mpInit->mpPlayer->Damage(20,ePlayerDamageType_BloodSplash);
 			}
-			/*if(mpInput->BecameTriggerd("Log"))
+			/*if(mpInput->BecameTriggered("Log"))
 			{
 				mpInit->mpGame->GetPhysics()->SetDebugLog(!mpInit->mpGame->GetPhysics()->GetDebugLog());
 			}*/
-			if(mpInput->BecameTriggerd("Taunt"))
+			if(mpInput->BecameTriggered("Taunt"))
 			{
 				for(int i=0;i<10; ++i)
 					mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_add_note1",
@@ -818,44 +818,44 @@ void cButtonHandler::Update(float afTimeStep)
 					// newest save
 					if(cInit::GetGameId() == eGameId_Requiem && mpInit->mbAllowQuickSave)
 					{
-						if(mpInput->BecameTriggerd("SaveGame"))
+						if(mpInput->BecameTriggered("SaveGame"))
 							mpInit->mpEffectHandler->GetSaveEffect()->AutoSave(_W("auto"));
-						if(mpInput->BecameTriggerd("LoadGame"))
+						if(mpInput->BecameTriggered("LoadGame"))
 							mpInit->mpSaveHandler->AutoLoadLatestAutoOrSpot();
 					}
 
-					if(mpInput->BecameTriggerd("Inventory"))
+					if(mpInput->BecameTriggered("Inventory"))
 					{
 						mpPlayer->StartInventory();
 					}
 
-					if(mpInput->BecameTriggerd("NoteBook"))
+					if(mpInput->BecameTriggered("NoteBook"))
 					{
 						mpInit->mpNotebook->SetActive(true);
 					}
-					if(mpInput->BecameTriggerd("PersonalNotes"))
+					if(mpInput->BecameTriggered("PersonalNotes"))
 					{
 						mpInit->mpNotebook->SetActive(true);
 						mpInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_TaskList);
 					}
 	                
-					if(mpInput->BecameTriggerd("Flashlight"))
+					if(mpInput->BecameTriggered("Flashlight"))
 					{
 						mpPlayer->StartFlashLightButton();
 					}
 
-					if(mpInput->BecameTriggerd("GlowStick"))
+					if(mpInput->BecameTriggered("GlowStick"))
 					{
 						mpPlayer->StartGlowStickButton();
 					}
 
 					///////////////////////////////////////
 					// Player Movement ////////////////////
-					if(mpInput->IsTriggerd("Forward"))
+					if(mpInput->IsTriggered("Forward"))
 					{
 						mpPlayer->MoveForwards(1,afTimeStep);
 					}
-					else if(mpInput->IsTriggerd("Backward"))
+					else if(mpInput->IsTriggered("Backward"))
 					{
 						mpPlayer->MoveForwards(-1,afTimeStep);
 					}
@@ -865,11 +865,11 @@ void cButtonHandler::Update(float afTimeStep)
 					}
 
 
-					if(mpInput->IsTriggerd("Left"))
+					if(mpInput->IsTriggered("Left"))
 					{
 						mpPlayer->MoveSideways(-1,afTimeStep);
 					}
-					else if(mpInput->IsTriggerd("Right"))
+					else if(mpInput->IsTriggered("Right"))
 					{
 						mpPlayer->MoveSideways(1,afTimeStep);
 					}
@@ -878,48 +878,48 @@ void cButtonHandler::Update(float afTimeStep)
 						mpPlayer->MoveSideways(0,afTimeStep);
 					}
 
-					if(mpInput->IsTriggerd("LeanLeft"))
+					if(mpInput->IsTriggered("LeanLeft"))
 					{
 						mpPlayer->Lean(-1,afTimeStep);
 					}
-					else if(mpInput->IsTriggerd("LeanRight"))
+					else if(mpInput->IsTriggered("LeanRight"))
 					{
 						mpPlayer->Lean(1,afTimeStep);
 					}
 					
 
-					if(mpInput->BecameTriggerd("Jump"))
+					if(mpInput->BecameTriggered("Jump"))
 					{
 						mpPlayer->Jump();
 					}
-					if(mpInput->IsTriggerd("Jump"))
+					if(mpInput->IsTriggered("Jump"))
 					{
 						mpPlayer->SetJumpButtonDown(true);
 					}
 					
-					if(mpInput->BecameTriggerd("Run"))
+					if(mpInput->BecameTriggered("Run"))
 					{
 						mpPlayer->StartRun();
 					}
-					if(mpInput->WasTriggerd("Run"))
+					if(mpInput->WasTriggered("Run"))
 					{
 						mpPlayer->StopRun();	
 					}
 
-					if(mpInput->BecameTriggerd("Crouch"))
+					if(mpInput->BecameTriggered("Crouch"))
 					{
 						mpPlayer->StartCrouch();
 					}
 					if(GetToggleCrouch())
 					{
-						if(mpInput->WasTriggerd("Crouch"))	mpPlayer->StopCrouch();	
+						if(mpInput->WasTriggered("Crouch"))	mpPlayer->StopCrouch();
 					}
 					else
 					{
-						if(mpInput->IsTriggerd("Crouch")==false) mpPlayer->StopCrouch();	
+						if(mpInput->IsTriggered("Crouch")==false) mpPlayer->StopCrouch();
 					}
 
-					if(mpInput->BecameTriggerd("InteractMode"))
+					if(mpInput->BecameTriggered("InteractMode"))
 					{
 						if(mpInit->mbHasHaptics==false)
 						{
@@ -973,48 +973,48 @@ void cButtonHandler::Update(float afTimeStep)
 
 				///////////////////////////////////////
 				// Player Interaction /////////////////
-				if(	mpInput->BecameTriggerd("Interact"))
+				if(	mpInput->BecameTriggered("Interact"))
 				{
 					mpPlayer->StartInteract();
-					mpInput->BecameTriggerd("LeftClick");
+					mpInput->BecameTriggered("LeftClick");
 				}
-				if(	mpInput->WasTriggerd("Interact"))
+				if(	mpInput->WasTriggered("Interact"))
 				{
 					mpPlayer->StopInteract();
 				}
-				if(	mpInput->BecameTriggerd("Examine"))
+				if(	mpInput->BecameTriggered("Examine"))
 				{
 					mpPlayer->StartExamine();
 				}
-				if(mpInput->WasTriggerd("Examine"))
+				if(mpInput->WasTriggered("Examine"))
 				{
 					mpPlayer->StopExamine();
 				}
-				if(mpInput->BecameTriggerd("Holster"))
+				if(mpInput->BecameTriggered("Holster"))
 				{
 					mpPlayer->StartHolster();
 				}
 				if(!cInit::IsOverture())
 				{
-					if(mpInput->BecameTriggerd("Rotate")) mpPlayer->StartRotate();
-					if(mpInput->WasTriggerd("Rotate")) mpPlayer->StopRotate();
+					if(mpInput->BecameTriggered("Rotate")) mpPlayer->StartRotate();
+					if(mpInput->WasTriggered("Rotate")) mpPlayer->StopRotate();
 				}
 
 				if(mpPlayer->IsActive())
 				{
-					if(mpInput->BecameTriggerd("One")) mpPlayer->StartInventoryShortCut(0);
-					if(mpInput->BecameTriggerd("Two")) mpPlayer->StartInventoryShortCut(1);
-					if(mpInput->BecameTriggerd("Three")) mpPlayer->StartInventoryShortCut(2);
-					if(mpInput->BecameTriggerd("Four")) mpPlayer->StartInventoryShortCut(3);
-					if(mpInput->BecameTriggerd("Five")) mpPlayer->StartInventoryShortCut(4);
-					if(mpInput->BecameTriggerd("Six")) mpPlayer->StartInventoryShortCut(5);
-					if(mpInput->BecameTriggerd("Seven")) mpPlayer->StartInventoryShortCut(6);
-					if(mpInput->BecameTriggerd("Eight")) mpPlayer->StartInventoryShortCut(7);
-					if(mpInput->BecameTriggerd("Nine")) mpPlayer->StartInventoryShortCut(8);
+					if(mpInput->BecameTriggered("One")) mpPlayer->StartInventoryShortCut(0);
+					if(mpInput->BecameTriggered("Two")) mpPlayer->StartInventoryShortCut(1);
+					if(mpInput->BecameTriggered("Three")) mpPlayer->StartInventoryShortCut(2);
+					if(mpInput->BecameTriggered("Four")) mpPlayer->StartInventoryShortCut(3);
+					if(mpInput->BecameTriggered("Five")) mpPlayer->StartInventoryShortCut(4);
+					if(mpInput->BecameTriggered("Six")) mpPlayer->StartInventoryShortCut(5);
+					if(mpInput->BecameTriggered("Seven")) mpPlayer->StartInventoryShortCut(6);
+					if(mpInput->BecameTriggered("Eight")) mpPlayer->StartInventoryShortCut(7);
+					if(mpInput->BecameTriggered("Nine")) mpPlayer->StartInventoryShortCut(8);
 				}
 			}
 		}
-		if(mpInput->IsTriggerd("Jump")==false || bPlayerStateIsActive==false)
+		if(mpInput->IsTriggered("Jump")==false || bPlayerStateIsActive==false)
 		{
 			mpPlayer->SetJumpButtonDown(false);
 		}

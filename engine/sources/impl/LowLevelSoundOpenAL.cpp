@@ -145,7 +145,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelSoundOpenAL::SetSetRolloffFactor(float afFactor)
+	void cLowLevelSoundOpenAL::SetRolloffFactor(float afFactor)
 	{
 		OAL_SetRollOffFactor ( afFactor );
 	}

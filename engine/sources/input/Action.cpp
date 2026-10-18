@@ -31,10 +31,10 @@ namespace hpl {
 	{
 		msName = asName;
 
-		mbBecameTriggerd= false;
-		mbIsTriggerd = false;
+		mbBecameTriggered= false;
+		mbIsTriggered = false;
 
-		mfTimeCount = -1.0;
+		mfDoubleTriggerElapsedSeconds = -1.0;
 
 		mbTriggerDown = false;
 	}
@@ -47,10 +47,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool iAction::WasTriggerd()
+	bool iAction::WasTriggered()
 	{
-		if(mbBecameTriggerd && !IsTriggerd()){
-			mbBecameTriggerd=false;
+		if(mbBecameTriggered && !IsTriggered()){
+			mbBecameTriggered=false;
 			return true;
 		}
 
@@ -59,10 +59,10 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool iAction::BecameTriggerd()
+	bool iAction::BecameTriggered()
 	{
-		if(!mbIsTriggerd && IsTriggerd()){
-			mbIsTriggerd=true;
+		if(!mbIsTriggered && IsTriggered()){
+			mbIsTriggered=true;
 			return true;
 		}
 
@@ -71,21 +71,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	bool iAction::DoubleTriggerd(float afLimit)
+	bool iAction::DoubleTriggered(float afMaxIntervalSeconds)
 	{
-		if(!mbTriggerDown && IsTriggerd())
+		if(!mbTriggerDown && IsTriggered())
 		{
 			mbTriggerDown=true;
 
-			if(mfTimeCount <0 || mfTimeCount > afLimit)
+			if(mfDoubleTriggerElapsedSeconds <0 || mfDoubleTriggerElapsedSeconds > afMaxIntervalSeconds)
 			{
-				mfTimeCount =0;
+				mfDoubleTriggerElapsedSeconds =0;
 				return false;
 			}
 			else
 			{
-				mfTimeCount =0;
-				mbIsTriggerd=true;
+				mfDoubleTriggerElapsedSeconds =0;
+				mbIsTriggered=true;
 				return true;
 			}
 		}
@@ -99,14 +99,14 @@ namespace hpl {
 	{
 		UpdateLogic(afTimeStep);
 
-		if(!IsTriggerd()){
-			mbIsTriggerd=false;
+		if(!IsTriggered()){
+			mbIsTriggered=false;
 			mbTriggerDown = false;
 
-			if(mfTimeCount >= 0) mfTimeCount += afTimeStep;
+			if(mfDoubleTriggerElapsedSeconds >= 0) mfDoubleTriggerElapsedSeconds += afTimeStep;
 		}
 		else {
-			mbBecameTriggerd=true;
+			mbBecameTriggered=true;
 		}
 	}
 

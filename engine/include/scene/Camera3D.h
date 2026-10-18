@@ -84,7 +84,7 @@ namespace hpl {
 		 */
 		float GetScaledFOV();
 
-		void SetAspect(float afAngle) { mfAspect = afAngle; mbProjectionUpdated = true;}
+		void SetAspect(float afAspectRatio) { mfAspect = afAspectRatio; mbProjectionUpdated = true;}
 		float GetAspect() { return mfAspect;}
 
 		void SetFarClipPlane(float afX) { mfFarClipPlane = afX; mbProjectionUpdated = true;}
@@ -98,8 +98,8 @@ namespace hpl {
 		 * The FarClipPlane is still used for creating bounding box and frustum and
 		 * should be set to some value.
 		 */
-		void SetInifintiveFarPlane(bool abX){ mbInfFarPlane = abX; mbProjectionUpdated = true;}
-		bool GetInifintiveFarPlane(){ return mbInfFarPlane;}
+		void SetInfiniteFarPlane(bool abEnabled){ mbInfFarPlane = abEnabled; mbProjectionUpdated = true;}
+		bool GetInfiniteFarPlane(){ return mbInfFarPlane;}
 
 		cFrustum* GetFrustum();
 
@@ -151,10 +151,6 @@ namespace hpl {
 		float GetRoll() const{ return mfRoll;}
 
 		/**
-		 * Set the limits within the pitch can move
-		 * \param avLimits x = high limt and y low.If both are 0 limits are disabled.
-		 */
-		/**
 		 * Render interpolation, see cGame::Run(). Store keeps the state
 		 * before a logic step; Apply puts the camera between that and the
 		 * current state for rendering and Restore puts it back. While
@@ -174,6 +170,7 @@ namespace hpl {
 		 */
 		const cMatrixf& GetLogicMatrix(){ return m_mtxLogic;}
 
+		// Pitch limits: x is the upper bound, y the lower; (0, 0) disables them.
 		void SetPitchLimits(cVector2f avLimits){ mvPitchLimits = avLimits;}
 		const cVector2f& GetPitchLimits(){return mvPitchLimits;}
 		/**

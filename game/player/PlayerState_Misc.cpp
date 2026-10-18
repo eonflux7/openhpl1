@@ -48,7 +48,7 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
-	if(	pInput->IsTriggerd("Run") && 
+	if(	pInput->IsTriggered("Run") &&
 		mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
 	{
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
@@ -300,7 +300,7 @@ bool cPlayerState_InteractMode::OnAddYaw(float afVal)
 {
 	cInput *pInput = mpInit->mpGame->GetInput();
 
-	if(pInput->IsTriggerd("LookMode"))
+	if(pInput->IsTriggered("LookMode"))
 	{
 		mpPlayer->GetCamera()->AddYaw( -afVal * 2.0f * mpPlayer->GetLookSpeed());
 		mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
@@ -343,7 +343,7 @@ bool cPlayerState_InteractMode::OnAddPitch(float afVal)
 {
 	cInput *pInput = mpInit->mpGame->GetInput();
 
-	if(pInput->IsTriggerd("LookMode"))
+	if(pInput->IsTriggered("LookMode"))
 	{
 		float fInvert = mpInit->mpButtonHandler->GetInvertMouseY() ? -1.0f : 1.0f;
 		mpPlayer->GetCamera()->AddPitch( -afVal *2.0f*fInvert * mpPlayer->GetLookSpeed());
@@ -568,7 +568,7 @@ bool cPlayerState_UseItem::OnAddYaw(float afVal)
 { 
 	cInput *pInput = mpInit->mpGame->GetInput();
 
-	if(pInput->IsTriggerd("LookMode"))
+	if(pInput->IsTriggered("LookMode"))
 	{
 		mpPlayer->GetCamera()->AddYaw( -afVal * 2.0f * mpPlayer->GetLookSpeed());
 		mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
@@ -586,7 +586,7 @@ bool cPlayerState_UseItem::OnAddPitch(float afVal)
 {
 	cInput *pInput = mpInit->mpGame->GetInput();
 
-	if(pInput->IsTriggerd("LookMode"))
+	if(pInput->IsTriggered("LookMode"))
 	{
 		float fInvert = mpInit->mpButtonHandler->GetInvertMouseY() ? -1.0f : 1.0f;
 		mpPlayer->GetCamera()->AddPitch( -afVal *2.0f*fInvert * mpPlayer->GetLookSpeed());

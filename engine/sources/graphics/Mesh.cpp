@@ -358,7 +358,7 @@ namespace hpl {
 			//Create the compound shape if needed.
 			iCollideShape *pShape;
 			if(vShapes.size()>1){
-				pShape = apPhysicsWorld->CreateCompundShape(vShapes);
+				pShape = apPhysicsWorld->CreateCompoundShape(vShapes);
 			}
 			else if(vShapes.size()==1)
 			{
@@ -404,7 +404,7 @@ namespace hpl {
 		iCollideShape *pShape;
 		if(vShapes.size()>1)
 		{
-			pShape = apPhysicsWorld->CreateCompundShape(vShapes);
+			pShape = apPhysicsWorld->CreateCompoundShape(vShapes);
 			bHasRoot = true;
 		}
 		else if(vShapes.size()==1)
@@ -505,7 +505,7 @@ namespace hpl {
 					//Create the compound shape if needed.
 					iCollideShape *pShape;
 					if(vShapes.size()>1){
-						pShape = apPhysicsWorld->CreateCompundShape(vShapes);
+						pShape = apPhysicsWorld->CreateCompoundShape(vShapes);
 					}
 					else if(vShapes.size()==1)
 					{
@@ -637,7 +637,7 @@ namespace hpl {
 				//Create the compound shape if needed.
 				iCollideShape *pShape;
 				if(vShapes.size()>1){
-					pShape = apPhysicsWorld->CreateCompundShape(vShapes);
+					pShape = apPhysicsWorld->CreateCompoundShape(vShapes);
 				}
 				else if(vShapes.size()==1)
 				{
@@ -786,7 +786,7 @@ namespace hpl {
 				vShapes.push_back(CreateCollideShapeFromCollider(mvColliders[i],apWorld));
 			}
 
-			return apWorld->CreateCompundShape(vShapes);
+			return apWorld->CreateCompoundShape(vShapes);
 		}
 	}
 

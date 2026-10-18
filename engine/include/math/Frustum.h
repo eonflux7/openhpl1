@@ -61,7 +61,7 @@ namespace hpl {
 
 		eFrustumCollision CollideBoundingVolume(cBoundingVolume* aBV);
 
-		eFrustumCollision CollideFustrumSphere(cBoundingVolume* aBV);
+		eFrustumCollision CollideFrustumSphere(cBoundingVolume* aBV);
 
 		eFrustumCollision CollideBVSphere(cBoundingVolume* aBV);
 		eFrustumCollision CollideBVAABB(cBoundingVolume* aBV);

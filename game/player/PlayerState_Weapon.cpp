@@ -54,7 +54,7 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
-	if(	pInput->IsTriggerd("Run") && 
+	if(	pInput->IsTriggered("Run") &&
 		mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
 	{
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
@@ -302,7 +302,7 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
-	if(	pInput->IsTriggerd("Run") && 
+	if(	pInput->IsTriggered("Run") &&
 		mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
 	{
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
@@ -430,7 +430,7 @@ bool cPlayerState_WeaponMelee::OnAddPitch(float afVal)
 bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 {	
 	/*cInput *pInput = mpInit->mpGame->GetInput();
-	if(pInput->IsTriggerd("Run"))
+	if(pInput->IsTriggered("Run"))
 	{
 		if(mfLastForward == 0.0f && afMul != 0.0f && mpPlayer->GetCharacterBody()->IsOnGround())
 		{
@@ -456,7 +456,7 @@ bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 bool cPlayerState_WeaponMelee::OnMoveSideways(float afMul, float afTimeStep)
 {
 	/*cInput *pInput = mpInit->mpGame->GetInput();
-	if(pInput->IsTriggerd("Run"))
+	if(pInput->IsTriggered("Run"))
 	{
 		if(mfLastSideways == 0.0f && afMul != 0.0f && mpPlayer->GetCharacterBody()->IsOnGround())
 		{

@@ -276,7 +276,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	iCollideShape* cPhysicsWorldNewton::CreateCompundShape(tCollideShapeVec &avShapes)
+	iCollideShape* cPhysicsWorldNewton::CreateCompoundShape(tCollideShapeVec &avShapes)
 	{
 		cCollideShapeNewton *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Compound,
 															0, nullptr, mpNewtonWorld,this) );

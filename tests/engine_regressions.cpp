@@ -874,8 +874,8 @@ public:
 	void NextFrame() override {}
 	void PrevFrame() override {}
 	float GetT() override { return 0; }
-	float GetTimeCount() override { return 0; }
-	void SetTimeCount(float) override {}
+	float GetAnimationFramePosition() override { return 0; }
+	void SetAnimationFramePosition(float) override {}
 	int GetCurrentLowlevelHandle() override { return 0; }
 };
 

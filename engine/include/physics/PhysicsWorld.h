@@ -147,7 +147,7 @@ namespace hpl {
 		virtual iCollideShape* CreateCylinderShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx)=0;
 		virtual iCollideShape* CreateCapsuleShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx)=0;
 		virtual iCollideShape* CreateMeshShape(iVertexBuffer *apVtxBuffer)=0;
-		virtual iCollideShape* CreateCompundShape(tCollideShapeVec &avShapes)=0;
+		virtual iCollideShape* CreateCompoundShape(tCollideShapeVec &avShapes)=0;
 		void DestroyShape(iCollideShape *apShape);
 
 		//! @}

@@ -53,7 +53,7 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 	void cLogicTimer::Reset()
 	{
-		mlLocalTime = GetApplicationTimeExact();
+		mfNextUpdateTimeMs = GetApplicationTimeExact();
 	}
 
 	//-----------------------------------------------------------------------
@@ -64,7 +64,7 @@ namespace hpl {
 		if(mbFixedStep) return mlUpdateCount == 1;
 		if(mlUpdateCount > mlMaxUpdates) return false;
 
-		if(mlLocalTime< GetApplicationTimeExact())
+		if(mfNextUpdateTimeMs< GetApplicationTimeExact())
 		{
 			Update();
 			return true;
@@ -87,29 +87,29 @@ namespace hpl {
 
 	void cLogicTimer::SetUpdatesPerSec(int alUpdatesPerSec)
 	{
-		mlLocalTimeAdd = 1000.0/((double)alUpdatesPerSec);
+		mfStepMilliseconds = 1000.0/((double)alUpdatesPerSec);
 		Reset();
 	}
 
 	//-----------------------------------------------------------------------
 
-	void cLogicTimer::SetMaxUpdates(int alMax)
+	void cLogicTimer::SetMaxUpdates(int alMaxUpdates)
 	{
-		mlMaxUpdates = alMax;
+		mlMaxUpdates = alMaxUpdates;
 	}
 
 	//-----------------------------------------------------------------------
 
 	int cLogicTimer::GetUpdatesPerSec()
 	{
-		return (int)(1000.0 / ((double)mlLocalTimeAdd));
+		return (int)(1000.0 / ((double)mfStepMilliseconds));
 	}
 
 	//-----------------------------------------------------------------------
 
 	float cLogicTimer::GetStepSize()
 	{
-		return ((float)mlLocalTimeAdd)/1000.0f;
+		return ((float)mfStepMilliseconds)/1000.0f;
 	}
 
 	//-----------------------------------------------------------------------
@@ -118,8 +118,8 @@ namespace hpl {
 	{
 		if(mbFixedStep) return 1.0f;
 
-		// mlLocalTime is when the next update is due.
-		double fT = 1.0 - (mlLocalTime - GetApplicationTimeExact()) / mlLocalTimeAdd;
+		// mfNextUpdateTimeMs is when the next update is due.
+		double fT = 1.0 - (mfNextUpdateTimeMs - GetApplicationTimeExact()) / mfStepMilliseconds;
 		if(fT < 0.0) fT = 0.0;
 		if(fT > 1.0) fT = 1.0;
 		return (float)fT;
@@ -135,7 +135,7 @@ namespace hpl {
 
 	void cLogicTimer::Update()
 	{
-		mlLocalTime+=mlLocalTimeAdd;
+		mfNextUpdateTimeMs+=mfStepMilliseconds;
 	}
 
 	//-----------------------------------------------------------------------

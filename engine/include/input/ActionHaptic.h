@@ -31,9 +31,9 @@ namespace hpl {
 	class cActionHaptic : public iAction
 	{
 	public:
-		cActionHaptic(tString asName,cHaptic *apHaptic, int mlButton);
+		cActionHaptic(tString asName,cHaptic *apHaptic, int alButton);
 
-		bool IsTriggerd() override;
+		bool IsTriggered() override;
 		float GetValue() override;
 
 		tString GetInputName() override;
@@ -47,4 +47,4 @@ namespace hpl {
 	};
 
 };
-#endif // HPL_ACTIONMOUSEBUTTON_H
+#endif // HPL_ACTION_HAPTIC_H

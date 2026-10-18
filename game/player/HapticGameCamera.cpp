@@ -190,7 +190,7 @@ void cHapticGameCamera::Update(float afTimeStep)
 	UpdateProxyInteraction(afTimeStep);
 
 	cInput *pInput = mpInit->mpGame->GetInput();
-	if(pInput->IsTriggerd("InteractMode"))
+	if(pInput->IsTriggered("InteractMode"))
 	{
 		mpLowLevelHaptic->SetRenderingActive(false);
 	}

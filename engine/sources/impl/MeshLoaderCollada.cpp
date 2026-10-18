@@ -2223,7 +2223,7 @@ namespace hpl {
 
 								if(bStatic) pLight->SetStatic(bStatic);
 
-								if(mbRestricStaticLightToSector) pLight->SetOnlyAffectInSector(true);
+								if(mbRestrictStaticLightToSector) pLight->SetOnlyAffectInSector(true);
 
 								apWorld->GetPortalContainer()->Add(pLight, bStatic);
 
@@ -2245,7 +2245,7 @@ namespace hpl {
 
 								if(bStatic) pLight->SetStatic(bStatic);
 
-								if(mbRestricStaticLightToSector) pLight->SetOnlyAffectInSector(true);
+								if(mbRestrictStaticLightToSector) pLight->SetOnlyAffectInSector(true);
 
 								apWorld->GetPortalContainer()->Add(pLight, bStatic);
 

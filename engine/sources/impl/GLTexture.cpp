@@ -85,9 +85,9 @@ namespace hpl {
 
 		mpGfxSDL = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
 
-		mfTimeCount =0;
+		mfAnimationFramePosition =0;
 
-		mfTimeDir = 1;
+		mfAnimationDirection = 1;
 
 		mlBpp = 0;
 
@@ -296,29 +296,29 @@ namespace hpl {
 		if(mlFrameCount > 1)
 		{
 			float fMax = (float)mlFrameCount;
-			mfTimeCount += afTimeStep * (1.0f/mfFrameTime) * mfTimeDir;
+			mfAnimationFramePosition += afTimeStep * (1.0f/mfFrameTime) * mfAnimationDirection;
 
-			if(mfTimeDir > 0)
+			if(mfAnimationDirection > 0)
 			{
-				if(mfTimeCount >= fMax)
+				if(mfAnimationFramePosition >= fMax)
 				{
 					if(mAnimMode == eTextureAnimMode_Loop)
 					{
-						mfTimeCount =0;
+						mfAnimationFramePosition =0;
 					}
 					else
 					{
-						mfTimeCount = fMax - 1.0f;
-						mfTimeDir = -1.0f;
+						mfAnimationFramePosition = fMax - 1.0f;
+						mfAnimationDirection = -1.0f;
 					}
 				}
 			}
 			else
 			{
-				if(mfTimeCount < 0)
+				if(mfAnimationFramePosition < 0)
 				{
-					mfTimeCount =1;
-					mfTimeDir = 1.0f;
+					mfAnimationFramePosition =1;
+					mfAnimationDirection = 1.0f;
 				}
 			}
 		}
@@ -333,76 +333,76 @@ namespace hpl {
 
 	void cGLTexture::NextFrame()
 	{
-		mfTimeCount += mfTimeDir;
+		mfAnimationFramePosition += mfAnimationDirection;
 
-		if(mfTimeDir > 0)
+		if(mfAnimationDirection > 0)
 		{
 			float fMax = (float)mlFrameCount;
-			if(mfTimeCount >= fMax)
+			if(mfAnimationFramePosition >= fMax)
 			{
 				if(mAnimMode == eTextureAnimMode_Loop)
 				{
-					mfTimeCount =0;
+					mfAnimationFramePosition =0;
 				}
 				else
 				{
-					mfTimeCount = fMax - 1.0f;
-					mfTimeDir = -1.0f;
+					mfAnimationFramePosition = fMax - 1.0f;
+					mfAnimationDirection = -1.0f;
 				}
 			}
 		}
 		else
 		{
-			if(mfTimeCount < 0)
+			if(mfAnimationFramePosition < 0)
 			{
-				mfTimeCount =1;
-				mfTimeDir = 1.0f;
+				mfAnimationFramePosition =1;
+				mfAnimationDirection = 1.0f;
 			}
 		}
 	}
 
 	void cGLTexture::PrevFrame()
 	{
-		mfTimeCount -= mfTimeDir;
+		mfAnimationFramePosition -= mfAnimationDirection;
 
-		if(mfTimeDir < 0)
+		if(mfAnimationDirection < 0)
 		{
 			float fMax = (float)mlFrameCount;
-			if(mfTimeCount >= fMax)
+			if(mfAnimationFramePosition >= fMax)
 			{
 				if(mAnimMode == eTextureAnimMode_Loop)
 				{
-					mfTimeCount =0;
+					mfAnimationFramePosition =0;
 				}
 				else
 				{
-					mfTimeCount = fMax - 1.0f;
-					mfTimeDir = -1.0f;
+					mfAnimationFramePosition = fMax - 1.0f;
+					mfAnimationDirection = -1.0f;
 				}
 			}
 		}
 		else
 		{
-			if(mfTimeCount < 0)
+			if(mfAnimationFramePosition < 0)
 			{
-				mfTimeCount =1;
-				mfTimeDir = 1.0f;
+				mfAnimationFramePosition =1;
+				mfAnimationDirection = 1.0f;
 			}
 		}
 	}
 
 	float cGLTexture::GetT()
 	{
-		return cMath::Modulus(mfTimeCount,1.0f);
+		return cMath::Modulus(mfAnimationFramePosition,1.0f);
 	}
 
-	float cGLTexture::GetTimeCount()
+	float cGLTexture::GetAnimationFramePosition()
 	{
-		return mfTimeCount;
+		return mfAnimationFramePosition;
 	}
-	void cGLTexture::SetTimeCount(float afX)
+	void cGLTexture::SetAnimationFramePosition(float afFramePosition)
 	{
-		mfTimeCount = afX;
+		mfAnimationFramePosition = afFramePosition;
 	}
 	int cGLTexture::GetCurrentLowlevelHandle()
 	{
@@ -539,9 +539,9 @@ namespace hpl {
 
 	int cGLTexture::GetAnimationFrame() const
 	{
-		// SetTimeCount is used by callers to synchronize animations. Guard
+		// SetAnimationFramePosition is used by callers to synchronize animations. Guard
 		// out-of-range input without changing the legacy loop/oscillate timing.
-		return cMath::Clamp((int)mfTimeCount, 0, mlFrameCount-1);
+		return cMath::Clamp((int)mfAnimationFramePosition, 0, mlFrameCount-1);
 	}
 
 	//-----------------------------------------------------------------------

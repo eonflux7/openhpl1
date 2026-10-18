@@ -63,6 +63,23 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Shared-engine API and unit names
+
+- Completed A5's engine/shader naming review. Corrected input-trigger,
+  compound-shape, camera/frustum, GUI-animation and portal-visibility API
+  spelling through declarations, implementations, overrides and callers.
+- Texture animation uses an explicit fractional-frame cursor; logic timers
+  distinguish milliseconds from seconds. Music fade names/comments describe
+  volume per second. Clarified press/release semantics and a legacy no-op.
+- Preserved save/script/config/asset identifiers, shader interfaces/layouts,
+  renderer ownership and all calculations. The 58 first-party shaders retain
+  their existing names; third-party reference code is excluded.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL; the renderer suite passed on GL 3.3 and 4.3. Token comparison
+  of 67 C++ files confirms 384 identifier substitutions, with other tokens,
+  literals and persistence macros unchanged. Sanitizers, game runtime/audio,
+  visual captures and Windows were not run for this naming/comment pass.
+
 ### Core and persistence readability
 
 - Completed A4's core naming review. Clarified light-flash fade durations,

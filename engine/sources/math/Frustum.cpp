@@ -81,7 +81,7 @@ namespace hpl {
 	eFrustumCollision cFrustum::CollideBoundingVolume(cBoundingVolume* aBV)
 	{
 		//Check if the BV is in the Frustum sphere.
-		if(CollideFustrumSphere(aBV) == eFrustumCollision_Outside)
+		if(CollideFrustumSphere(aBV) == eFrustumCollision_Outside)
 		{
 			return eFrustumCollision_Outside;
 		}
@@ -144,7 +144,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	eFrustumCollision cFrustum::CollideFustrumSphere(cBoundingVolume* aBV)
+	eFrustumCollision cFrustum::CollideFrustumSphere(cBoundingVolume* aBV)
 	{
 		float fRadiusSum = mBoundingSphere.r + aBV->GetRadius();
 		cVector3f vSepAxis = mBoundingSphere.center - aBV->GetWorldCenter();

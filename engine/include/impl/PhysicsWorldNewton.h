@@ -54,7 +54,7 @@ namespace hpl {
 		iCollideShape* CreateCylinderShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx) override;
 		iCollideShape* CreateCapsuleShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx) override;
 		iCollideShape* CreateMeshShape(iVertexBuffer *apVtxBuffer) override;
-		iCollideShape* CreateCompundShape(tCollideShapeVec &avShapes) override;
+		iCollideShape* CreateCompoundShape(tCollideShapeVec &avShapes) override;
 
 		iPhysicsJointBall* CreateJointBall(const tString &asName,const cVector3f& avPivotPoint,
 												iPhysicsBody* apParentBody, iPhysicsBody *apChildBody) override;

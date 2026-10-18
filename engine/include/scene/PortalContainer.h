@@ -271,8 +271,8 @@ namespace hpl {
 		cPortalContainerEntityIterator GetEntityIterator(cBoundingVolume *apBV);
 
 		//Visibility tools
-		cSectorVisibilityContainer* CreateVisibiltyFromBV(cBoundingVolume *apBV);
-		cSectorVisibilityContainer* CreateVisibiltyFromFrustum(cFrustum *apFrustum);
+		cSectorVisibilityContainer* CreateVisibilityFromBV(cBoundingVolume *apBV);
+		cSectorVisibilityContainer* CreateVisibilityFromFrustum(cFrustum *apFrustum);
 
 		//Debug stuff
 		tSectorMap* GetSectorMap(){ return &m_mapSectors;}
@@ -282,7 +282,7 @@ namespace hpl {
 		tRenderableList* GetGlobalStaticObjectList(){ return &mlstGlobalStaticObjects;}
 
 	private:
-		void ComputeSectorVisibilty(cSectorVisibilityContainer* apContainer);
+		void ComputeSectorVisibility(cSectorVisibilityContainer* apContainer);
 
 		tSectorMap m_mapSectors;
 

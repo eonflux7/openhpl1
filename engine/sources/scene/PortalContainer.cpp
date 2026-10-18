@@ -1029,7 +1029,7 @@ namespace hpl {
 
 		////////////////////////////////////////////////
 		//Get a container with all the visible sectors
-		cSectorVisibilityContainer *pVisSectorCont = CreateVisibiltyFromFrustum(apFrustum);
+		cSectorVisibilityContainer *pVisSectorCont = CreateVisibilityFromFrustum(apFrustum);
 
 		//Iterate visible sectors, check for intersection with object and add the valid ones.
 		tSectorVisibilityIterator SectorIt = pVisSectorCont->GetSectorIterator();
@@ -1236,7 +1236,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cSectorVisibilityContainer* cPortalContainer::CreateVisibiltyFromBV(cBoundingVolume *apBV)
+	cSectorVisibilityContainer* cPortalContainer::CreateVisibilityFromBV(cBoundingVolume *apBV)
 	{
 		cSectorVisibilityContainer *pContainer = hplNew( cSectorVisibilityContainer, (eSectorVisibilityType_BV) );
 		pContainer->SetBV(*apBV);
@@ -1248,7 +1248,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cSectorVisibilityContainer* cPortalContainer::CreateVisibiltyFromFrustum(cFrustum *apFrustum)
+	cSectorVisibilityContainer* cPortalContainer::CreateVisibilityFromFrustum(cFrustum *apFrustum)
 	{
 		cSectorVisibilityContainer *pContainer = hplNew( cSectorVisibilityContainer, (eSectorVisibilityType_Frustum) );
 		pContainer->SetFrustum(*apFrustum);
@@ -1326,7 +1326,7 @@ namespace hpl {
 
 		//DEBUG:
 		//Test the visible sector stuff
-		cSectorVisibilityContainer *pVisSector = CreateVisibiltyFromFrustum(apFrustum);
+		cSectorVisibilityContainer *pVisSector = CreateVisibilityFromFrustum(apFrustum);
 		hplDelete(pVisSector);
 	}*/
 }

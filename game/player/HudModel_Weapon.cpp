@@ -322,11 +322,11 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 		{
 			//If right key is down enable looking.
 			cInput *pInput = mpInit->mpGame->GetInput();
-			if(pInput->IsTriggerd("Examine")) return true;
+			if(pInput->IsTriggered("Examine")) return true;
 			
 			if(mpInit->mbSimpleWeaponSwing)
 			{
-				if(mlCurrentAttack != 2 && pInput->IsTriggerd("Interact")==false)
+				if(mlCurrentAttack != 2 && pInput->IsTriggered("Interact")==false)
 				{
 					mfAttackProgress = 0.0f;
 					mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;

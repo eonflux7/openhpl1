@@ -115,13 +115,13 @@ namespace hpl {
 		bool HasEventInLastUpdate(float afEventTime) const;
 
 		/**
-		 * Set the relative postion. 0 = start, 1 = end
+		 * Set the relative position. 0 = start, 1 = end
 		 * \param afPosition
 		 */
 		void SetRelativeTimePosition(float afPosition);
 
 		/**
-		* Get the relative postion. 0 = start, 1 = end
+		* Get the relative position. 0 = start, 1 = end
 		*/
 		float GetRelativeTimePosition();
 

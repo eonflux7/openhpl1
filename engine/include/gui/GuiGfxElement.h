@@ -82,13 +82,13 @@ namespace hpl {
 		void SetActiveSize(const cVector2f& avSize){mvActiveSize = avSize;}
 		const cVector2f& GetActiveSize(){ return mvActiveSize;}
 
-		cGuiGfxAnimation* CreateAnimtion(const tString& asName);
+		cGuiGfxAnimation* CreateAnimation(const tString& asName);
 		void PlayAnimation(int alNum);
 		cGuiGfxAnimation* GetAnimation(int alIdx){return mvAnimations[alIdx];}
 		void SetAnimationTime(float afTime);
 
 		void SetAnimationPaused(bool abX){mbAnimationPaused = abX;}
-		bool GSetAnimationPaused(){ return mbAnimationPaused;}
+		bool GetAnimationPaused(){ return mbAnimationPaused;}
 
 		void SetMaterial(iGuiMaterial *apMat);
 

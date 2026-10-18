@@ -105,7 +105,7 @@ namespace hpl {
 
 	private:
 		cSector *mpSector;
-		std::vector<cPortalVisibilitySet*> mvVisibiltySets;
+		std::vector<cPortalVisibilitySet*> mvVisibilitySets;
 		bool bStart;
 
 		cSectorVisibilityContainer *mpContainer;
@@ -140,9 +140,9 @@ namespace hpl {
 
 		void Compute(cPortalContainer *apContainer);
 
-		cPortalVisibilitySet* CreatePortalVisibiltySet(cPortalVisibilitySet* apParent);
+		cPortalVisibilitySet* CreatePortalVisibilitySet(cPortalVisibilitySet* apParent);
 
-		cSectorVisibility* GetSectorVisibilty(cSector *apSector);
+		cSectorVisibility* GetSectorVisibility(cSector *apSector);
 
 		tSectorVisibilityIterator GetSectorIterator();
 
@@ -162,7 +162,7 @@ namespace hpl {
 		tSectorVisibilityMap m_mapSectors;
 		eSectorVisibilityType mType;
 
-		tPortalVisibilitySetList mlstPortalVisibilty;
+		tPortalVisibilitySetList mlstPortalVisibility;
 
 		cVector3f mvOrigin;
 		cBoundingVolume mBoundingVolume;

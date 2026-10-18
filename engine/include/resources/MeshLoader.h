@@ -67,7 +67,7 @@ namespace hpl {
 
 		virtual void AddSupportedTypes(tStringVec* avFileTypes)=0;
 
-		static void SetRestricStaticLightToSector(bool abX){ mbRestricStaticLightToSector = abX;}
+		static void SetRestrictStaticLightToSector(bool abX){ mbRestrictStaticLightToSector = abX;}
 		static void SetUseFastMaterial(bool abX) {mbUseFastMaterial = abX;}
 		static void SetFastMaterialFile(const tString& asFile) { msFastMaterialFile = asFile;}
 		static void SetCacheDir(const tString& asDir) { msCacheDir = asDir;}
@@ -82,7 +82,7 @@ namespace hpl {
 		iLowLevelGraphics *mpLowLevelGraphics;
 		cSystem *mpSystem;
 
-		static bool mbRestricStaticLightToSector;
+		static bool mbRestrictStaticLightToSector;
 		static bool mbUseFastMaterial;
 		static tString msFastMaterialFile;
 		static tString msCacheDir;

@@ -45,7 +45,7 @@ namespace hpl
 
 	//-----------------------------------------------------------------------
 
-	bool cActionKeyboard::IsTriggerd()
+	bool cActionKeyboard::IsTriggered()
 	{
 		return mpInput->GetKeyboard()->KeyIsDown(mKey) &&
 			( (mpInput->GetKeyboard()->GetModifier() & mMod) > 0 || mMod == eKeyModifier_NONE);
@@ -54,7 +54,7 @@ namespace hpl
 
 	float cActionKeyboard::GetValue()
 	{
-		if(IsTriggerd())return 1.0;
+		if(IsTriggered())return 1.0;
 		else return 0.0;
 	}
 
