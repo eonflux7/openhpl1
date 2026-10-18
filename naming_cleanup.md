@@ -1,13 +1,14 @@
-# Code readability audit and cleanup plan
+# Code readability audit and cleanup record
 
-Status: audit started on 2026-10-18. The FadeHandler pilot, RadioHandler
-positional-distance batch, systems pass and UI pass are verified by the default
-Linux build and both CTest suites. All 20 `game/systems/` and 26 `game/ui/`
-headers/sources have been reviewed for naming/comments; A2 is complete.
-All 36 `game/entities/`, 26 `game/player/` and 12 `game/enemies/`
-headers/sources are reviewed; A3 is verified by the default build and both
-CTest suites. A4 core/persistence and A5 shared-engine/shader naming review are verified.
-A6 tools/build surfaces is verified; A7 closure remains open.
+Status: completed on 2026-10-19 (started 2026-10-18). A0–A7 are closed;
+R01–R82 are verified or intentionally retained. The inventory covers 684
+first-party source/build files, with review depth and compatibility decisions
+recorded by area below. Default Linux build and both CTest suites pass;
+A5 also passes software EGL on GL 3.3 and GL 4.3. Tool AST/output checks and
+existing comparison-image tests pass. Runtime gameplay, original binaries,
+manual audio/HaptX, visual captures, sanitizers and Windows execution were not
+run for these naming/comment changes. Existing project validation work stays
+in [ROADMAP.md](ROADMAP.md).
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -182,11 +183,10 @@ callers. Isolate and record findings with unresolved compatibility risks so
 independent work can continue; ask only when a material ambiguity or risk
 requires user input. Report any remaining scope explicitly.
 
-The systems and UI passes under A2 and the completed A3 mechanism/state
-reviews in entities, player and enemies are recorded below. Next is A4: core
-and persistence, retaining compatibility-sensitive identifiers.
-Keep findings grouped by responsibility and risk without turning each group
-into a separate user turn.
+The completed subsystem passes and their evidence are recorded below.
+For future follow-ups, group findings by responsibility and risk; preserve
+compatibility-sensitive identifiers and use separate commits for behavioural
+or structural work.
 
 1. Inspect status and relevant diffs; preserve unrelated work. Read the header,
    implementation, callers, current guide and relevant tests before choosing
@@ -222,14 +222,14 @@ below are inspection candidates, not claims that those files are faulty.
 
 | Phase | Scope and deliverable | Exit criteria | Status |
 | --- | --- | --- | --- |
-| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Started: systems/UI/entities/player/enemies inventoried; wider scope open |
+| A0: inventory and criteria | Apply the standards above; list reviewed and remaining areas; expand the seed findings with evidence, dependencies and risk | Initial work queue has concrete bounded batches and required checks; uninspected areas are explicit | Complete: 684 first-party source/build files; see A7 inventory |
 | A1: pilot | Audit `game/systems/FadeHandler.h` / `.cpp`, direct callers and compatibility sites; resolve R01–R03 or record reasons to retain them; inspect comments separately | First naming batch validated; comment decisions recorded; actual results establish the pattern for later batches | Verified |
 | A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Verified: all 20 systems and 26 UI files reviewed |
 | A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Verified: 36 entity, 26 player and 12 enemy files reviewed |
 | A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Verified; see A4 record |
 | A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Verified; see A5 record |
 | A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Verified; see A6 record |
-| A7: closure | Reconcile the inventory, findings, current guides and CHANGES; review any justified structural extractions separately | All in-scope areas reviewed; every finding has a disposition; validation gaps and deferred work remain visible | Open |
+| A7: closure | Reconcile the inventory, findings, current guides and CHANGES; review any justified structural extractions separately | All in-scope areas reviewed; every finding has a disposition; validation gaps and deferred work remain visible | Verified; see A7 record |
 
 A0 inventories the whole scope but does not require a full audit before A1.
 Expand the inventory as each phase starts. A2–A6 can be reordered when a
@@ -257,8 +257,14 @@ For every phase, maintain a short record with these entries:
 Coverage includes all 20 headers/sources in `game/systems/` and all 26 in
 `game/ui/`, with reviewed concepts, callers and retained names recorded below.
 A3 covers all 36 entity, 26 player and 12 enemy files through the records
-below, including the ordinary and HaptX player state paths. A4–A6 remain
-unreviewed except for supporting callers inspected in these passes.
+below, including the ordinary and HaptX player state paths. A4 covers 34 core
+files; A5 covers 440 engine files and 58 first-party shaders; A6 covers 25
+test/tool/generator/Windows files and seven root build/style files.
+
+Dated phase records retain their at-the-time next-step notes as implementation
+history. The status above, phase table and A7 closure record are current.
+API/navigation review and focused implementation/contract checks are identified
+separately; inventory coverage is not a claim of exhaustive algorithm review.
 
 ### A1: FadeHandler pilot record (2026-10-18)
 
@@ -379,7 +385,8 @@ Validation and exit:
   and GameEntity confirmed only the recorded identifier substitutions, comments
   and whitespace; string/character literals, operations and constants match.
   Searches checked removed names and scope-specific uses, including unrelated
-  `GetTimeCount` APIs that must remain unchanged.
+  `GetTimeCount` APIs retained in that systems batch; A5 later renames the
+  texture API under R68 after checking its units and overrides.
 - Local documentation links and `git diff --check` passed. No new tests mirror
   the renames. Existing CTest suites do not directly exercise these game
   systems; Dog fixtures call the unchanged attack APIs but were not run.
@@ -876,6 +883,57 @@ settings or behaviours change. Game runtime, sanitizers, captures and Windows
 were not run for this parameter-only follow-up. No remaining wrapper naming
 finding from this review.
 
+### A7: inventory reconciliation and closure (2026-10-19)
+
+The full inventory is reconciled against tracked paths. A1 is a pilot within
+systems, not an additional pair of files. The exact engine subsystem counts
+and reviewed concepts are in A5; A6 names its smaller scopes explicitly.
+
+| Scope | Files | Review/disposition record |
+| --- | ---: | --- |
+| `game/systems/`, `game/ui/` | 20 + 26 | A1–A2; verified findings and retained APIs/compatibility identifiers |
+| `game/entities/`, `game/player/`, `game/enemies/` | 36 + 26 + 12 | A3; mechanism/state naming, callers and persisted identifiers |
+| `game/core/` | 34 | A4 and R82 follow-up; startup/map/save/script/diagnostic names |
+| `engine/include/`, `engine/sources/` | 240 + 200 | A5; API/navigation inventory, focused implementation/caller and contract review |
+| First-party shaders | 58 | A5; interfaces, shared layouts and shader naming retained |
+| `tests/`, `tools/`, `testmap/`, `platform/windows/` | 4 + 10 + 6 + 5 | A6; fixture/helper names, tool imports/commands, generators and platform references |
+| Root build/style/launch files | 7 | A6; CMakeLists/presets, vcpkg, run.sh, clang-format/tidy and gitignore retained |
+| **Total** | **684** | All in-scope areas inventoried and reviewed at the depth recorded above |
+
+Excluded: vendor/generated code, archived reports, third-party `SMAA.hlsl`
+reference implementation and authored licence texts. Licences were preserved.
+Current guides were checked for renamed tools; archived paths remain historical.
+
+All 82 findings have verified or retained dispositions; no open naming finding
+or proposed structural extraction remains. Retained script/save/asset/settings
+names, conventional locals and clear class/file groupings are intentional.
+Unverified algorithm TODOs are not claims of bugs fixed by this audit; behavioural
+and architecture work requires a separate scoped task and its relevant checks.
+
+Implementation/commit evidence:
+
+- A4: `683b300`; shared engine A5: `66d5d66`; tests/tools A6: `34d086a`.
+- Closure found and resolved the earlier wrapper-parameter note in `bfaaec0`
+  (R82), before the documentation-only closure commit.
+- Each code batch passed the default Linux build and both CTest suites (2/2),
+  including software EGL without skips. A5 additionally passed GL 3.3 and 4.3
+  renderer runs. Token comparisons preserve non-identifier tokens/literals and
+  persistence macros; R82 also preserves every script registration/definition
+  macro. Python AST and before/after fixtures plus the two existing image
+  compositor tests establish the tool checks recorded in A6.
+- Closure checks: counts match tracked files; R01–R82 have terminal
+  dispositions; current Markdown local file targets resolve; old-name matches
+  are audited history or explicitly retained compatibility names;
+  `git diff --check` passes. No code changes in the A7 documentation commit.
+
+Validation limits remain: no original-binary inspection, in-game smoke/save/
+reload, Dog runtime, manual gameplay/audio/HaptX, fresh visual captures,
+sanitizer builds or Windows execution in these naming passes. Naming/token
+checks and software regressions do not establish full-game or hardware parity.
+[ROADMAP](ROADMAP.md) retains those project priorities. No performance gain is
+claimed. Exit decision: A0–A7 naming review complete, with these validation
+limits recorded and no outstanding naming implementation scope.
+
 ## Structural refactoring
 
 Start only when a concrete problem remains after names and formatting are clear:
@@ -935,7 +993,10 @@ every folder or rename every legacy identifier.
 
 ## Audit completion
 
-The audit is complete when A0–A7 have recorded reviewed scope, every finding
+A0–A7 met the following completion standard on 2026-10-19; the final inventory,
+commit references and validation limits are in the A7 record above.
+
+The completion standard is that A0–A7 have recorded reviewed scope, every finding
 is verified, retained or explicitly deferred with a reason, and no unreviewed
 scope is silently treated as clean. Implementation and validation completion
 must be reported separately when checks are unavailable. Deferred structural

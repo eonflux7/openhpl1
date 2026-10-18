@@ -63,6 +63,19 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Readability audit closure
+
+- Closed A0–A7 in `naming_cleanup.md`: reconciled the 684-file first-party
+  inventory, recorded verified/retained dispositions for R01–R82 and updated
+  current guide/tool references. No open naming implementation or structural
+  extraction remains from this review.
+- Each source batch passed the default Linux build and both CTest suites;
+  A5 also passed renderer runs on GL 3.3 and 4.3. C++ tokens/persistence macros,
+  Python AST/output fixtures, shell syntax and documentation paths were checked.
+  These establish naming preservation at the recorded review depth; runtime
+  gameplay, original binaries, audio/HaptX, visual captures, sanitizer builds
+  and Windows execution were not checked. ROADMAP retains that validation work.
+
 ### Diagnostic tool names and test helpers
 
 - Completed A6: renamed porting tools to `inspect_script_function.py`,

@@ -37,6 +37,10 @@ switches. Quality and taste settings remain. The `original-look` tag preserves
 the earlier renderer; do not treat Milestones 4–5's archived dual-path plan as
 work to restore. The Dog's Original/Improved AI choice is separate and remains.
 
+The [naming/readability review](naming_cleanup.md) is complete through A7
+(2026-10-19), with compatibility decisions and validation limits recorded there.
+The gameplay, renderer, Windows and performance checks below remain outstanding.
+
 ## Validation to close first
 
 These are outstanding checks, not claims that they passed in this doc update.
