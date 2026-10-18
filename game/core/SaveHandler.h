@@ -366,7 +366,7 @@ public:
 	cContainerList<cSaveWorldSoundEnv> mlstSoundEnvs;
 
 	bool PSExists(cParticleSystem3D *apPS);
-	bool BeamExists(cBeam *apPS);
+	bool BeamExists(cBeam *apBeam);
 	bool SoundExists(cSoundEntity *apSound);
 	bool JointExists(iPhysicsJoint *apJoint);
 };

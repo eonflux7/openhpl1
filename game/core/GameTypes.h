@@ -245,6 +245,7 @@ public:
 
 	bool mbGlobal;
 
+	// Remaining seconds; the member name is part of the save format.
 	float mfTime;
 
 	bool mbDeleteMe;

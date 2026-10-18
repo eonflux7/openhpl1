@@ -118,7 +118,7 @@ public:
 
 	void ResetGame(bool abRunInitScript);
 	bool GetImprovedDogAI() const { return mbImprovedDogAI; }
-	void SetImprovedDogAI(bool abX) { mbImprovedDogAI = abX; }
+	void SetImprovedDogAI(bool abEnabled) { mbImprovedDogAI = abEnabled; }
 
 	void RunScriptCommand(const tString& asCommand);
 

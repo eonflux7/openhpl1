@@ -63,6 +63,18 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Core and persistence readability
+
+- Completed A4's core naming review. Clarified light-flash fade durations,
+  elapsed map-wait time and setter/diagnostic arguments; aligned declarations
+  and definitions. Corrected obsolete shadow-volume and save-direction comments.
+- Retained serialized fields/classes, script registrations, config/profile and
+  updater strings; documented the saved timer's remaining-seconds contract.
+- Validation: default Linux build and both CTest suites passed (2/2), including
+  software EGL without skips. Token comparison confirms identifiers/comments
+  only, with unchanged literals and persistence macros. Runtime game/save checks,
+  captures, sanitizers and Windows were not run for this naming-only pass.
+
 ### Player and enemy naming and comment cleanup
 
 - Completed A3's remaining audit: all 26 player and 12 enemy headers/sources,

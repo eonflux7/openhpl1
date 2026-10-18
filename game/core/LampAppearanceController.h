@@ -66,7 +66,7 @@ public:
 	const cLampSettings& GetSettings(){ return mSettings; }
 
 	/// Flames that hold still: for pictures that are to be compared.
-	void SetStill(bool abX){ mbStill = abX; }
+	void SetStill(bool abStill){ mbStill = abStill; }
 	bool GetStill(){ return mbStill; }
 
 	/// The lights that have a look at the moment, for the panel.

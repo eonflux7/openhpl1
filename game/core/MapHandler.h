@@ -112,7 +112,7 @@ typedef tGameTimerList::iterator tGameTimerListIt;
 class cEffectLightFlash
 {
 public:
-	cEffectLightFlash(cInit *apInit,const cVector3f& avPos,float afRadius, const cColor &aColor, float afAddTime, float afNegTime);
+	cEffectLightFlash(cInit *apInit,const cVector3f& avPos,float afRadius, const cColor &aColor, float afFadeInSeconds, float afFadeOutSeconds);
 	~cEffectLightFlash();
 
 	void Update(float afTimeStep);
@@ -125,7 +125,7 @@ private:
 	iLight3D *mpLight;
 
 	float mfRadius;
-	float mfNegTime;
+	float mfFadeOutSeconds;
 
 	bool mbIsDying;
 
@@ -183,7 +183,7 @@ public:
 	cGameTimer * CreateTimer(const tString& asName,float afTime, const tString& asCallback, bool abGlobal);
 	cGameTimer * GetTimer(const tString& asName);
 
-	void AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afAddTime, float afNegTime);
+	void AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afFadeInSeconds, float afFadeOutSeconds);
 
 	void AddGameEnemy(iGameEnemy *apEnemy);
 	tGameEnemyIterator GetGameEnemyIterator();
@@ -224,7 +224,7 @@ private:
 
 	void PrintSoundsPlaying();
 
-	void PreUpdate(double afTimeSinceVisit);
+	void PreUpdate(double afSecondsSinceVisit);
 
 	double AddLoadedMap(cWorld3D *apWorld);
 

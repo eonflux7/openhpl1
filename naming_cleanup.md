@@ -6,7 +6,7 @@ Linux build and both CTest suites. All 20 `game/systems/` and 26 `game/ui/`
 headers/sources have been reviewed for naming/comments; A2 is complete.
 All 36 `game/entities/`, 26 `game/player/` and 12 `game/enemies/`
 headers/sources are reviewed; A3 is verified by the default build and both
-CTest suites. The wider inventory and A4–A7 remain open.
+CTest suites. A4 core/persistence is now verified; the wider engine/tool inventory and A5–A7 remain open.
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -225,7 +225,7 @@ below are inspection candidates, not claims that those files are faulty.
 | A1: pilot | Audit `game/systems/FadeHandler.h` / `.cpp`, direct callers and compatibility sites; resolve R01–R03 or record reasons to retain them; inspect comments separately | First naming batch validated; comment decisions recorded; actual results establish the pattern for later batches | Verified |
 | A2: systems and UI | Review remaining `game/systems/`, then `game/ui/`; inspect a contained system such as RadioHandler and one screen interaction at a time | Reviewed scope recorded; actionable findings resolved or deferred with reasons; timing, coordinates, callbacks and resource roles remain clear | Verified: all 20 systems and 26 UI files reviewed |
 | A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Verified: 36 entity, 26 player and 12 enemy files reviewed |
-| A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Open |
+| A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Verified; see A4 record |
 | A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Open |
 | A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Open |
 | A7: closure | Reconcile the inventory, findings, current guides and CHANGES; review any justified structural extractions separately | All in-scope areas reviewed; every finding has a disposition; validation gaps and deferred work remain visible | Open |
@@ -729,6 +729,33 @@ Caller/compatibility evidence and validation:
   26 player, 12 enemies) reviewed; no remaining A3 naming scope. A0's wider
   inventory and A4–A7 remain open; next scope is A4 core and persistence.
   ROADMAP's outstanding gameplay/renderer validation remains unchanged.
+
+### A4: core and persistence (2026-10-19)
+
+Reviewed the 34 files in `game/core/`: map loading/cache/timers and saved-world
+restoration; SaveHandler/SaveTypes/GameTypes declarations and serialization;
+Init startup, per-game paths/config, updater registration and teardown; script
+wrappers/registrations and counting stubs; input/cursor helpers; graphics/lamp
+helpers; smoke, map, Dog and reference/effects diagnostics. Retained the
+precompiled/aggregate headers, startup globals, product/version history and
+clear class/file names. No structural extraction is required by these findings.
+
+| ID / status | Location and evidence | Resolution / dependencies / risk |
+| --- | --- | --- |
+| R61 / verified | `MapHandler.h/.cpp`: flash `afAddTime`, `afNegTime`, `mfNegTime` describe fade durations; `PreUpdate` receives elapsed game time | Rename to `afFadeInSeconds`, `afFadeOutSeconds`, `mfFadeOutSeconds`, `afSecondsSinceVisit`. Low; arguments/private transient member; FadeTo and pre-update arithmetic unchanged |
+| R62 / verified | `RefView.h/.cpp`: `mfWaitTime` accumulates map wait time; `abX` opens the panel | `mfMapWaitElapsedSeconds`, `abOpen`; correct obsolete shadow-volume comment. Low; no state or rendering change |
+| R63 / verified | `Init.h`, `LampAppearanceController.h`, `SaveHandler.h`, `DogTestMap.cpp`: opaque or mismatched arguments | `abX -> abEnabled/abStill`; BeamExists declaration `apPS -> apBeam`; ResetStation/PlayLure definitions match `alStation`, `abMovePlayer`, `alLure`. Low; parameter-only edits |
+| R64 / retained | `cGameTimer::mfTime`, loaded-map/global save fields, `bKillMe`, serialization class names, script signatures, settings/profile/updater strings | Preserve compatibility identifiers; document timer remaining seconds at its declaration. Do not rename script APIs, legacy product metadata or save DTOs merely to fix spelling |
+| R65 / verified | SaveHandler comments call saving music loading and misspell deleting saved records | Correct adjacent comments; destructor and serialization operations retained. Low |
+
+Validation: default Linux build and both CTest suites passed (2/2), including
+software EGL without skips. Token comparison confirms only identifier changes
+outside comments; literals, operators, control flow and persistence macro lines
+are unchanged. No file/build changes. In-game saves/smoke, Dog runtime checks,
+manual play, sanitizers, captures and Windows were not run for this naming and
+comment pass. Existing gameplay/renderer validation remains in ROADMAP.
+
+Remaining A4 naming scope: none. Next: shared-engine APIs and shader contracts.
 
 ## Structural refactoring
 

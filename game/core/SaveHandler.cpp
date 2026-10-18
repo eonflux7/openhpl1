@@ -43,7 +43,7 @@ cSavedWorld::~cSavedWorld()
 void cSavedWorld::Reset()
 {
 	////////////////////////////////
-	//Clear and deleter entities
+	//Delete saved entity records.
 	cContainerListIterator<iGameEntity_SaveData*> it = mlstEntities.GetIterator();
 	while(it.HasNext())
 	{
@@ -556,7 +556,7 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 	mpInit->mpNotebook->SaveToGlobal(&mpSavedGame->mNotebook);
 
 	//////////////////////////////
-	//Load game music
+	//Save game music
 	mpInit->mpMusicHandler->SaveToGlobal(&mpSavedGame->mGameMusicHandler);
 
 	

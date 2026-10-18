@@ -36,8 +36,7 @@ class cInit;
 // the flashlight, flicker, HUD and damage switches. It can also put the
 // flashlight, the glow stick and flares in the inventory.
 //
-// A second window is for the shadows: which kind (the original volumes or
-// shadow maps), how the maps are made and read, what they cost, and the
+// The Shadows window controls shadow-map quality, caching and cost, and the
 // lights in view, each of which can be drawn alone or have its shadows
 // switched. A test light can be put where the camera is, or carried along.
 //
@@ -58,7 +57,7 @@ public:
 	cRefView(cInit *apInit);
 	~cRefView() override;
 
-	void SetOpen(bool abX);
+	void SetOpen(bool abOpen);
 	bool IsOpen(){ return mbOpen; }
 	void ReleaseForDogTest();
 	bool EffectsCaptureFailed() const { return mbEffectsCaptureFailed; }
@@ -165,7 +164,7 @@ private:
 	int mlGoToAngle;
 	// The map being loaded, and the time waited for it
 	tString msWaitMap;
-	float mfWaitTime;
+	float mfMapWaitElapsedSeconds;
 
 	// The options change nothing before the panel has been used
 	bool mbUsed;

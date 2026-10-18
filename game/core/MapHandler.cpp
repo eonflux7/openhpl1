@@ -222,7 +222,7 @@ void cMapHandlerSoundCallback::OnStart(cSoundEntity *apSoundEntity)
 
 cEffectLightFlash::cEffectLightFlash(cInit *apInit,const cVector3f& avPos,
 									float afRadius, const cColor &aColor, 
-									float afAddTime, float afNegTime)
+									float afFadeInSeconds, float afFadeOutSeconds)
 {
 	mpInit = apInit;
 
@@ -236,10 +236,10 @@ cEffectLightFlash::cEffectLightFlash(cInit *apInit,const cVector3f& avPos,
 	mpLight->SetPosition(avPos);
 
 	mfRadius = afRadius;
-	mfNegTime = afNegTime;
+	mfFadeOutSeconds = afFadeOutSeconds;
 	
-	//Log("Fade to %s : %f in time %f\n",aColor.ToString().c_str(),mfRadius,afAddTime);
-	mpLight->FadeTo(aColor,mfRadius,afAddTime);
+	//Log("Fade to %s : %f in time %f\n",aColor.ToString().c_str(),mfRadius,afFadeInSeconds);
+	mpLight->FadeTo(aColor,mfRadius,afFadeInSeconds);
 
 	mbIsDying = false;
 	mbDead = false;
@@ -263,7 +263,7 @@ void cEffectLightFlash::Update(float afTimeStep)
 		if(mpLight->IsFading()==false)
 		{
 			//Log("Fade to black\n");
-			mpLight->FadeTo(cColor(0,0),mfRadius,mfNegTime);
+			mpLight->FadeTo(cColor(0,0),mfRadius,mfFadeOutSeconds);
 			mbIsDying = true;
 		}
 	}
@@ -1842,9 +1842,9 @@ cGameTimer * cMapHandler::GetTimer(const tString& asName)
 
 //-----------------------------------------------------------------------
 
-void cMapHandler::AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afAddTime, float afNegTime)
+void cMapHandler::AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afFadeInSeconds, float afFadeOutSeconds)
 {
-	cEffectLightFlash *pFlash = hplNew( cEffectLightFlash, (mpInit,avPos,afRadius,aColor,afAddTime,afNegTime) );
+	cEffectLightFlash *pFlash = hplNew( cEffectLightFlash, (mpInit,avPos,afRadius,aColor,afFadeInSeconds,afFadeOutSeconds) );
 
 	mlstLightFlashes.push_back(pFlash);
 }
@@ -2166,7 +2166,7 @@ void cMapHandler::RemoveLocalTimers()
 //-----------------------------------------------------------------------
 
 
-void cMapHandler::PreUpdate(double afTimeSinceVisit)
+void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 {
 	cWorld3D* pWorld = mpScene->GetWorld3D();
 	iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
@@ -2185,13 +2185,13 @@ void cMapHandler::PreUpdate(double afTimeSinceVisit)
 	
 	//////////////////////////////////////
 	//Pre update game stuff
-	if(afTimeSinceVisit ==0)
+	if(afSecondsSinceVisit ==0)
 	{
 		pWorld->PreUpdate(2.0f, mpInit->mpGame->GetStepSize());
 	}
 	else
 	{
-		float fTime = (float)afTimeSinceVisit;
+		float fTime = (float)afSecondsSinceVisit;
 		if(fTime > 3) fTime = 3;
 		float fStepSize = mpInit->mpGame->GetStepSize();
         

@@ -106,13 +106,13 @@ void cDogTestMap::Update(float)
     if(mlQueuedLure>=0) { PlayLure(static_cast<size_t>(mlQueuedLure)); mlQueuedLure=-1; }
 }
 
-void cDogTestMap::ResetStation(size_t index, bool movePlayer)
+void cDogTestMap::ResetStation(size_t alStation, bool abMovePlayer)
 {
-    if(!IsActive() || index>=mvStations.size()) return;
+    if(!IsActive() || alStation>=mvStations.size()) return;
     cWorld3D *world=mpInit->mpGame->GetScene()->GetWorld3D();
-    cStartPosEntity *spawn=world->GetStartPosEntity(mvStations[index].msName+"dog");
+    cStartPosEntity *spawn=world->GetStartPosEntity(mvStations[alStation].msName+"dog");
     if(!spawn) { Error("DOGARENA: missing Dog start\n"); return; }
-    if(mpInit->mpRefView && movePlayer) mpInit->mpRefView->ReleaseForDogTest();
+    if(mpInit->mpRefView && abMovePlayer) mpInit->mpRefView->ReleaseForDogTest();
     std::vector<cSoundEntity*> sounds;
     auto soundIt=world->GetSoundEntityIterator();
     while(soundIt.HasNext()) {
@@ -133,8 +133,8 @@ void cDogTestMap::ResetStation(size_t index, bool movePlayer)
         if(entity->GetSubType()=="Dog") static_cast<cGameEnemy_Dog*>(entity)->OnWorldExit();
         mpInit->mpMapHandler->RemoveGameEntity(entity);
     }
-    mlStation=index;
-    const cStation &station=mvStations[index];
+    mlStation=alStation;
+    const cStation &station=mvStations[alStation];
     for(const cProp &prop:station.mvProps) {
         cMatrixf transform=cMath::MatrixRotate(prop.mvRotation,eEulerRotationOrder_XYZ);
         transform.SetTranslation(prop.mvPosition);
@@ -153,7 +153,7 @@ void cDogTestMap::ResetStation(size_t index, bool movePlayer)
         for(const tString &patrol:station.mvPatrol) dog->AddPatrolNode(patrol,1,"Idle");
         if(!station.mvPatrol.empty()) dog->ChangeState(STATE_PATROL);
     }
-    if(movePlayer) {
+    if(abMovePlayer) {
         mpInit->mpPlayer->SetHealth(100);
         mpInit->mpPlayer->GetCharacterBody()->SetForceVelocity(0);
         mpInit->mpPlayer->GetCharacterBody()->SetMoveSpeed(eCharDir_Forward,0);
@@ -163,12 +163,12 @@ void cDogTestMap::ResetStation(size_t index, bool movePlayer)
     Log("DOGARENA: reset %s, %s AI\n",station.msName.c_str(),mpInit->GetImprovedDogAI()?"Improved":"Original");
 }
 
-void cDogTestMap::PlayLure(size_t index)
+void cDogTestMap::PlayLure(size_t alLure)
 {
-    if(!IsActive() || mlStation>=mvStations.size() || index>=mvStations[mlStation].mvLures.size()) return;
+    if(!IsActive() || mlStation>=mvStations.size() || alLure>=mvStations[mlStation].mvLures.size()) return;
     cSoundEntity *sound=mpInit->mpGame->GetScene()->GetWorld3D()->CreateSoundEntity(
-        index==0?"dogtestlureA":"dogtestlureB","unbreak_impact_wood_high.snt",true);
-    if(sound) sound->SetPosition(mvStations[mlStation].mvLures[index]);
+        alLure==0?"dogtestlureA":"dogtestlureB","unbreak_impact_wood_high.snt",true);
+    if(sound) sound->SetPosition(mvStations[mlStation].mvLures[alLure]);
 }
 
 bool cDogTestMap::DrawControls()

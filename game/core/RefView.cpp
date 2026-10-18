@@ -56,7 +56,7 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 
 	mlGoToView = -1;
 	mlGoToAngle = 0;
-	mfWaitTime = 0;
+	mfMapWaitElapsedSeconds = 0;
 
 	mbUsed = false;
 	mbFlashLight = false;
@@ -106,10 +106,10 @@ cRefView::~cRefView()
 
 //-----------------------------------------------------------------------
 
-void cRefView::SetOpen(bool abX)
+void cRefView::SetOpen(bool abOpen)
 {
-	if(mbOpen == abX) return;
-	mbOpen = abX;
+	if(mbOpen == abOpen) return;
+	mbOpen = abOpen;
 
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	if(mbOpen)
@@ -163,7 +163,7 @@ void cRefView::Update(float afTimeStep)
 
 	if(msWaitMap != "")
 	{
-		mfWaitTime += afTimeStep;
+		mfMapWaitElapsedSeconds += afTimeStep;
 		if(msViewsMap == msWaitMap)
 		{
 			msWaitMap = "";
@@ -174,7 +174,7 @@ void cRefView::Update(float afTimeStep)
 				mlGoToAngle = 0;
 			}
 		}
-		else if(mfWaitTime > kfMapTimeout)
+		else if(mfMapWaitElapsedSeconds > kfMapTimeout)
 		{
 			Warning("RefView: %s did not load\n", msWaitMap.c_str());
 			msWaitMap = "";
@@ -457,7 +457,7 @@ void cRefView::LoadMap(const tString &asMap)
 	mbAtView = false;
 	mlGoToView = -1;
 	msWaitMap = cString::ToLowerCase(cString::SetFileExt(asMap, ""));
-	mfWaitTime = 0;
+	mfMapWaitElapsedSeconds = 0;
 
 	if(mpInit->mpMainMenu->IsActive()) mpInit->mpMainMenu->SetActive(false);
 
