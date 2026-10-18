@@ -2552,6 +2552,15 @@ using existing vcpkg dependencies. The current link includes
 All 15 default UI frames match between those builds at tolerance 2 / maximum
 64 pixels. Scene comparisons and the remaining validation are recorded below.
 
+### Reject empty reference comparisons
+
+The validation run exposed a false success when both capture directories had
+zero PNGs after failed game launches. `tools/refshots.py compare` now exits 1
+if either input has no frames, without changing pixel tolerances or unstable
+map handling. Checked empty/empty and nonempty/empty failures, matching
+nonempty success and Python compilation. Capture exit status and completion
+logs must still be checked separately.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).

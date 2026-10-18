@@ -285,6 +285,9 @@ def compare(args):
 
     ref = sorted(f for f in os.listdir(args.ref_dir) if f.endswith(".png"))
     new = sorted(f for f in os.listdir(args.new_dir) if f.endswith(".png"))
+    if not ref or not new:
+        print("Comparison failed: both directories must contain PNG frames")
+        return 1
     missing = sorted(set(ref) - set(new))
     added = sorted(set(new) - set(ref))
     if args.diff_dir:
