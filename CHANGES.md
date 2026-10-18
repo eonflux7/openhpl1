@@ -2682,10 +2682,74 @@ drive as the earlier validation. The patched executable is retained in
 and normal output configuration are restored; its normal executable is
 untouched.
 
+### Boat-cabin ordering and ice-cave repeats, 2026-10-19
+
+Follow-up diagnostics use the same Windows/NVIDIA builds, settings and
+isolated capture profiles as the initial comparisons. The normal validation
+executables are preserved. Tolerance remains 2 per channel / maximum 64 pixels,
+with no new unstable-map exception.
+
+**Boat-cabin view 2 is the step-11 depth-test grouping correction.** This
+classification now has an isolated intervention behind it:
+
+- Draw-logging diagnostics match their own original 19 boat/UI frames.
+  Baseline and current view 2 have the same ten transparent objects at
+  identical depths, and four lighting draws. `halo1`, at camera-space Z
+  `-0.756075978`, moves from last to first; the other nine retain their order.
+  Its shipped `boat_window_halo.mat` sets `DepthTest="False"`. Step 11's
+  repaired A-versus-B comparison implements the chosen depth-disabled-before-
+  depth-enabled policy, whereas the baseline's A-versus-A comparison never
+  grouped by depth test.
+- A separate current diagnostic removes only that depth-test comparison,
+  retaining stable Z sorting, shadow caching and the rest of steps 11–13.
+  It matches all 19 baseline default boat/UI frames. Scene-only comparisons
+  match all four baseline boat frames in default **and** motion blur. Against
+  normal current scenes, the same diagnostic changes only view 2: 1,263
+  pixels with default settings, 1,262 with motion blur, maximum channel
+  difference 4. The earlier motion comparison reported 1,263; this one-pixel
+  count variation does not affect the causal result.
+- This accounts for the recorded boat scene mismatch without a cache or
+  >30-light explanation. The production comparator stays intact. The existing
+  mixed-depth regression is strengthened by placing the depth-disabled object
+  nearer than all depth-tested objects; previously its farthest position also
+  passed a Z-only sort. Normal and ASan/UBSan engine regressions pass (leak
+  detection disabled). Linking the strengthened test with the diagnostic
+  Z-only comparator fails the ordering assertion, exit 1.
+
+Earlier diagnostic pairs disabling bloom or AO retain the boat mismatch
+(387 / 1,244 pixels respectively, maximum 4). Their `2d-message` frames also
+have small mismatches just above the 64-pixel limit; these remain recorded
+as failures. They do not change the initial successful UI comparisons or
+establish their own UI preservation pass.
+
+**Ice-cave causes remain open.** Repeats use the same map selection and order
+as their original runs:
+
+- The unchanged baseline motion-blur repeat differs from its own original
+  in views 1/4 by exactly 103/837 pixels, maximum 20/41, reproducing the
+  initial cross-build difference within one build. The current motion
+  repeat matches its original 98 frames. The repeated cross-build pair has
+  no ice-cave mismatch; boat view 2 and the two existing unstable frames
+  remain. This establishes baseline motion variation, not its cause.
+- Each scaled/MSAA repeat matches its own original 34 frames. The fresh
+  cross-build pair still differs in ice-cave views 1/4 by 114/727 pixels,
+  maximum 13/21 (the initial pair was 113/727). This does not establish an
+  intentional renderer correction or a new unstable-map exception.
+
+Artifacts are in `renderer-validation-59f1b97/artifacts/followup-d5f8b3a/`:
+`compare-results.json`, `ordering-results.json`, frame/log directories,
+view-2 draw lists, the Z-only diagnostic patch/source, build/capture runners
+and restored-configuration logs. Interrupted captures with an accidentally
+empty map selector are not validation results; their two leftover hidden
+processes were stopped. Original baseline/current sources and normal CMake
+output settings are restored. Diagnostic executables remain in separate
+`boat-log/` and `boat-zonly/` output directories.
+
 ## Known issues
 
 - Intermittent heap corruption on exit (`free(): corrupted unsorted chunks`).
-- Renderer capture differences described in the 2026-10-19 validation above.
+- Ice-cave renderer capture differences described in the 2026-10-19 validation
+  above; boat-cabin view 2 is now confirmed as the ordering correction.
   The captured Windows startup access violations have an EFX mutex fix and
   focused regression coverage recorded above.
 - Physics may feel slightly different from the original (see above); not yet

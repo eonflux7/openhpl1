@@ -80,7 +80,10 @@ set to zero for comparison. See [docs/shadow-cache.md](docs/shadow-cache.md)
 for the ownership and invalidation contracts. Full-game frame-time effects
 remain unmeasured. Follow-up Windows validation compares pre-step-11
 `c2ea1a1` with `59f1b97`: all UI screens and 29 effects frames match, but
-boat-cabin and ice-cave scene differences remain at unchanged tolerances.
+boat-cabin and ice-cave scene differences were recorded at unchanged tolerances.
+Follow-up draw logs and a single-change diagnostic confirm the boat-cabin
+difference is the step-11 depth-test ordering correction; ice-cave differences
+remain unresolved. See the [follow-up evidence](CHANGES.md#boat-cabin-ordering-and-ice-cave-repeats-2026-10-19).
 The current MSVC build and isolated 28-map smoke/save/reload pass; intermittent
 startup access violations also occurred in baseline and current captures.
 Those captured crashes were subsequently traced to EFX slot mutex lifetime

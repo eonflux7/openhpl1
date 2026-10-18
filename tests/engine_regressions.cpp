@@ -930,7 +930,9 @@ static void TestTransparentOrder()
 	back.SetPosition(cVector3f(0, 0, -9));
 	front.SetPosition(cVector3f(0, 0, -1));
 	middle.SetPosition(cVector3f(0, 0, -5));
-	disabled.SetPosition(cVector3f(0, 0, -20));
+	// A nearby depth-disabled halo still precedes farther depth-tested draws.
+	// Putting it at the back would also pass an incorrect Z-only sort.
+	disabled.SetPosition(cVector3f(0, 0, -0.5f));
 	equalA.SetPosition(cVector3f(0, 0, -5));
 	equalB.SetPosition(cVector3f(0, 0, -5));
 

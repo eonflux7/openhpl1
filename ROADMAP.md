@@ -24,7 +24,7 @@ checklists. Their old settings and instructions are not current requirements.
 | Widescreen and usability (Milestone 2) | Wide UI, FOV, TrueType fonts, shader gamma, interpolated rendering, display options | Remaining UI/display and frame-pacing work below |
 | Renderer foundation (Milestone 3) | Core GL, float scene targets, shader includes/reload, reference captures and GPU profiler | Live display reconfiguration; hardware-driver coverage |
 | Lighting and materials (Milestones 4–5) | Linear lighting, shadow maps, bloom, AO, SMAA, improved shading/lights, soft/lit particles, lens and film effects | Remaining visual work and tuning below |
-| Renderer cleanup (Milestone 6) | Steps 1–13 implemented; current game captures, UI/effects checks and Windows smoke recorded | Resolve boat-cabin/ice-cave capture differences; frame-time measurements and broader cache checks |
+| Renderer cleanup (Milestone 6) | Steps 1–13 implemented; game/UI/effects captures and Windows smoke recorded; boat-cabin difference confirmed as the step-11 ordering correction | Resolve ice-cave capture differences; frame-time measurements and broader cache checks |
 | Black Plague / Requiem | Shared executable, scripts, entities, Infected, terminals, swimming, menus, endings and save support | Playthroughs, targeted manual checks and four script stubs |
 
 The next work is to resolve the recorded renderer differences, then close
@@ -58,11 +58,22 @@ Scene preservation is still open: comparisons below include real mismatches.
       effects 29/29. All 15 UI screens match in each scene pair; effects
       pixel/live checks pass. Each all-map pair has two changed frames under
       the existing unstable-map policy. Tolerances and exceptions are unchanged.
-- [ ] Resolve boat-cabin view 2 (default/motion blur) and ice-cave views 1/4
-      (motion blur/scaled MSAA). Boat repeats reproduce the cross-build
-      difference; budget-zero shadows retain it. Ice-cave repeatability and
-      causes remain unchecked. No mismatch is accepted as an intentional
-      ordering or >30-light correction yet.
+- [x] Resolve boat-cabin view 2 (default/motion blur). Draw logs show the
+      depth-disabled `halo1` moves from last to first among the same ten
+      transparent objects. Reverting only depth-test grouping in a temporary
+      current executable restores all four baseline boat frames in both
+      modes, plus all 19 default boat/UI frames. This is the step-11 ordering
+      correction; tolerances and unstable-map exceptions are unchanged.
+      The mixed-depth regression now puts its depth-disabled object in front
+      so that Z-only sorting fails the test.
+- [ ] Resolve ice-cave views 1/4 (motion blur/scaled MSAA). A fresh unchanged
+      baseline motion capture reproduces the 103/837-pixel differences;
+      the current repeat matches its original 98 frames, and the repeated
+      cross-build motion pair has no ice-cave mismatch. Both scaled repeats
+      match their own builds, while the cross-build pair still differs by
+      114/727 pixels. Causes remain open; neither an intentional correction
+      nor an additional unstable-map exception is established. See the
+      [follow-up evidence](CHANGES.md#boat-cabin-ordering-and-ice-cave-repeats-2026-10-19).
 - [x] Run GL debug validation in gameplay and the effects lab, including
       intro, death and credits screens that earlier checks did not cover.
       Completed NVIDIA GL 4.6 captures show only synchronized readback
