@@ -103,6 +103,9 @@ commit), and the last official Linux build on Steam.
   and definitions. Corrected obsolete shadow-volume and save-direction comments.
 - Retained serialized fields/classes, script registrations, config/profile and
   updater strings; documented the saved timer's remaining-seconds contract.
+- Closure follow-up: corrected `afMaxDamge` and opaque boolean parameters in
+  C++ script wrappers. All script definition/registration macros remain exact;
+  the default build and both CTest suites pass for the follow-up (2/2).
 - Validation: default Linux build and both CTest suites passed (2/2), including
   software EGL without skips. Token comparison confirms identifiers/comments
   only, with unchanged literals and persistence macros. Runtime game/save checks,

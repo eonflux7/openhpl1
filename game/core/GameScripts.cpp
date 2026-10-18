@@ -357,9 +357,9 @@ SCRIPT_DEFINE_FUNC_7(void, StartNumericalPanel, string, int, int, int, int, floa
 
 //-----------------------------------------------------------------------
 
-static void __stdcall SetInventoryActive(bool abX)
+static void __stdcall SetInventoryActive(bool abActive)
 {
-	gpInit->mpInventory->SetActive(abX);
+	gpInit->mpInventory->SetActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetInventoryActive,bool)
 
@@ -415,9 +415,9 @@ SCRIPT_DEFINE_FUNC_3(void,StartFlash,float,float,float)
 
 //-----------------------------------------------------------------------
 
-static void __stdcall SetWaveGravityActive(bool abX)
+static void __stdcall SetWaveGravityActive(bool abActive)
 {
-	gpInit->mpEffectHandler->GetWaveGravity()->SetActive(abX);
+	gpInit->mpEffectHandler->GetWaveGravity()->SetActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetWaveGravityActive,bool)
 
@@ -432,9 +432,9 @@ SCRIPT_DEFINE_FUNC_4(void, SetupWaveGravity, float, float, float, string)
 
 //-----------------------------------------------------------------------
 
-static void __stdcall SetDepthOfFieldActive(bool abX, float afFadeTime)
+static void __stdcall SetDepthOfFieldActive(bool abActive, float afFadeTime)
 {
-	gpInit->mpEffectHandler->GetDepthOfField()->SetActive(abX,afFadeTime);
+	gpInit->mpEffectHandler->GetDepthOfField()->SetActive(abActive,afFadeTime);
 }
 SCRIPT_DEFINE_FUNC_2(void,SetDepthOfFieldActive,bool,float)
 
@@ -535,7 +535,7 @@ SCRIPT_DEFINE_FUNC_8(void, CreateLightFlashAtArea, string, float, float, float, 
 //-----------------------------------------------------------------------
 
 static void __stdcall CreateSplashDamage(std::string asAreaName, float afRadius, 
-										 float afMinDamage, float afMaxDamge,
+										 float afMinDamage, float afMaxDamage,
 										 float afMinForce, float afMaxForce,
 										 float afMaxImpulse, int alStrength)
 {	
@@ -550,7 +550,7 @@ static void __stdcall CreateSplashDamage(std::string asAreaName, float afRadius,
 	cGameArea *pArea = static_cast<cGameArea*>(pEntity);
 
     gpInit->mpAttackHandler->CreateSplashDamage(pArea->GetBody(0)->GetWorldPosition(),
-												afRadius,afMinDamage,afMaxDamge,
+												afRadius,afMinDamage,afMaxDamage,
 												afMinForce, afMaxForce, afMaxImpulse,
 												eAttackTargetFlag_Bodies | 
 												eAttackTargetFlag_Player |
@@ -873,11 +873,11 @@ SCRIPT_DEFINE_FUNC_4(void, ReplaceEntity, string, string, string, string)
 
 //-----------------------------------------------------------------------
 
-static void __stdcall SetGameEntityActive(std::string asName, bool abX)
+static void __stdcall SetGameEntityActive(std::string asName, bool abActive)
 {
 	GAME_ENTITY_BEGIN(asName)
 
-	pEntity->SetActive(abX);
+	pEntity->SetActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_2(void,SetGameEntityActive,string,bool)
 
@@ -1409,12 +1409,12 @@ SCRIPT_DEFINE_FUNC_2(void, SetEnemyPatrolOverCallback, string, string)
 /**
  * The patrol is over at its last node instead of starting again.
  **/
-static void __stdcall SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abX)
+static void __stdcall SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abStop)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
 
-	pEnemy->SetStopAtLastPatrolNode(abX);
+	pEnemy->SetStopAtLastPatrolNode(abStop);
 }
 SCRIPT_DEFINE_FUNC_2(void, SetEnemyStopAtLastPatrolNode, string, bool)
 
@@ -1480,12 +1480,12 @@ static void __stdcall SetupSecurityCamera(std::string asName, float afMinAngle, 
 }
 SCRIPT_DEFINE_FUNC_8(void, SetupSecurityCamera, string, float, float, float, float, float, string, string)
 
-static void __stdcall SetSecurityCameraAlerted(std::string asName, bool abX)
+static void __stdcall SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 {
 	cGameCamera *pCamera = GetScriptCamera(asName);
 	if(pCamera==nullptr) return;
 
-	pCamera->SetAlerted(abX);
+	pCamera->SetAlerted(abAlerted);
 }
 SCRIPT_DEFINE_FUNC_2(void, SetSecurityCameraAlerted, string, bool)
 
@@ -2483,9 +2483,9 @@ SCRIPT_DEFINE_FUNC_5(void, SetDoorLockedProperties, string, string, string, stri
 
 //-----------------------------------------------------------------------
 
-static void __stdcall SetNoFallDamage(bool abX)
+static void __stdcall SetNoFallDamage(bool abNoFallDamage)
 {
-	gpInit->mpPlayer->SetNoFallDamage(abX);
+	gpInit->mpPlayer->SetNoFallDamage(abNoFallDamage);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetNoFallDamage, bool)
 
@@ -3021,18 +3021,18 @@ SCRIPT_DEFINE_FUNC_6(void, StartImageFlash, float, float, float, string, bool, b
 /**
  * Messages in black, for a bright view
  */
-static void __stdcall SetMessageBlackText(bool abX)
+static void __stdcall SetMessageBlackText(bool abBlackText)
 {
-	gpInit->mpGameMessageHandler->SetBlackText(abX);
+	gpInit->mpGameMessageHandler->SetBlackText(abBlackText);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetMessageBlackText, bool)
 
 /**
  * Subtitles on black strips, for a bright view
  */
-static void __stdcall SetSubTitleBlackText(bool abX)
+static void __stdcall SetSubTitleBlackText(bool abBlackText)
 {
-	gpInit->mpEffectHandler->GetSubTitle()->SetBlackText(abX);
+	gpInit->mpEffectHandler->GetSubTitle()->SetBlackText(abBlackText);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetSubTitleBlackText, bool)
 

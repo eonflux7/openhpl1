@@ -355,7 +355,8 @@ Compatibility and caller evidence:
   dream filter, gravity, depth of field, messages and splash damage in
   `GameScripts.cpp`, plus effect controls in `RefViewEffects.cpp`. Wrapper names,
   parameter order, argument values and registration macros are unchanged.
-  The wrapper's local `afMaxDamge` remains outside this handler batch.
+  The wrapper's local `afMaxDamge` was outside this handler batch;
+  the A4 closure follow-up below resolves it as R82.
 - Read sound-trigger construction in `MapHandler.cpp` and `Player.cpp`, and
   dispatch/consumption in `GameEnemy.cpp`. Trigger ownership, priority ordering,
   body/entity access and update timing are unchanged.
@@ -856,6 +857,24 @@ fixtures establish output preservation on their inputs only. No sanitizer or
 visual checks are needed to establish these identifier/path changes.
 
 Remaining A6 naming findings: none. Next: reconcile inventory and closure.
+
+### A4 closure follow-up: script-wrapper parameters (2026-10-19)
+
+The closure review revisited the systems pass's explicit note about
+`CreateSplashDamage`'s wrapper typo, then checked the remaining opaque boolean
+parameters in `game/core/GameScripts.cpp` against their callees.
+
+| ID / status | Evidence and exact change | Dependencies, risk and validation |
+| --- | --- | --- |
+| R82 / verified | `afMaxDamge -> afMaxDamage`; setter wrapper `abX -> abActive/abStop/abAlerted/abNoFallDamage/abBlackText` according to the called setter | Low; C++ wrapper-local parameters only. All SCRIPT_DEFINE/SCRIPT_REGISTER lines and literals unchanged. The unused SetDoorLockedProperties argument retains its existing name/comment; vector `afX/afY/afZ` remain conventional coordinates |
+
+Default Linux build and both CTest suites passed (2/2), including software EGL
+without skips. Token comparison allows only 20 identifier substitutions, with
+other tokens/literals and persistence macros unchanged. Script registrations
+and definition macros also compare exactly. No game-script API, saved fields,
+settings or behaviours change. Game runtime, sanitizers, captures and Windows
+were not run for this parameter-only follow-up. No remaining wrapper naming
+finding from this review.
 
 ## Structural refactoring
 
