@@ -7,7 +7,7 @@ headers/sources have been reviewed for naming/comments; A2 is complete.
 All 36 `game/entities/`, 26 `game/player/` and 12 `game/enemies/`
 headers/sources are reviewed; A3 is verified by the default build and both
 CTest suites. A4 core/persistence and A5 shared-engine/shader naming review are verified.
-A6 tools/build surfaces and A7 closure remain open.
+A6 tools/build surfaces is verified; A7 closure remains open.
 
 Improve readability through subsystem-sized passes, organized into small,
 behaviour-preserving batches. A folder is a starting point; declarations,
@@ -228,7 +228,7 @@ below are inspection candidates, not claims that those files are faulty.
 | A3: entities, player and enemies | Review `game/entities/`, `game/player/` and `game/enemies/` by mechanism/state; audit names and transition comments | State/callback/physics findings dispositioned; save/script strings checked; applicable smoke, Dog, sanitizer and manual results recorded | Verified: 36 entity, 26 player and 12 enemy files reviewed |
 | A4: core and persistence | Review `game/core/` map/save/script helpers, then bounded sections of `cInit`; document registration and lifetime contracts where needed | Compatibility-sensitive identifiers mapped and retained where required; game-selection, save and initialization contracts checked | Verified; see A4 record |
 | A5: shared engine and shaders | Review focused APIs in `engine/include/` and `engine/sources/`, then their first-party shader counterparts and callers | API/class/file/argument names agree; ownership and state comments checked; applicable engine, EGL, supported GL paths and visual results recorded | Verified; see A5 record |
-| A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Open |
+| A6: tests, tools and build surfaces | Review `tests/`, `tools/`, `testmap/`, root build/launch files and `platform/windows/`; keep fixtures and diagnostics discoverable | Test/helper/file names explain coverage; commands, imports, includes and current documentation agree; affected platform checks recorded | Verified; see A6 record |
 | A7: closure | Reconcile the inventory, findings, current guides and CHANGES; review any justified structural extractions separately | All in-scope areas reviewed; every finding has a disposition; validation gaps and deferred work remain visible | Open |
 
 A0 inventories the whole scope but does not require a full audit before A1.
@@ -808,6 +808,54 @@ methods). No tests added merely to mirror renames. Sanitizers, game smoke,
 manual play/audio/HaptX, visual captures and Windows were not run for this
 identifier/comment-only pass. No shader, resource ownership or rendering
 algorithm changes are claimed. Remaining A5 naming findings: none.
+
+### A6: tests, tools and build surfaces (2026-10-19)
+
+Reviewed scope:
+
+- All four test sources: `engine_regressions.cpp`, `renderer_regressions.cpp`,
+  `dog_regressions.cpp`, `check_comparison_image.py`. Reviewed suite/helper
+  names and fixture entry points; retained test-specific types, scoped math
+  locals and coverage names. Assertions, thresholds and opt-in gating remain.
+- All ten files in `tools/`: `refshots.py`, `check_dog_foundations.py`,
+  `refviews.txt`; porting `check_scripts.py`, `headless.sh`,
+  `disassemble_game.py`, `compact_disassembly.py` and the three renamed tools
+  below. Reviewed command interfaces, imports, binary/cache paths, profile
+  isolation and diagnostic/output names. Retained game tags and CLI options.
+- All six `testmap/` files: `generate.py`, `generate_dogtest.py`,
+  `effectslab.py`, `testmap.hps`, `dogtest.hps`, `effectslab.hps`.
+  Retained the shared Mesh/Map helpers, scoped geometric names, asset/entity
+  labels and script entry points; generators remain discoverable from CMake.
+- All five Windows files: `build.cmd`, `run.cmd`, `smoke.cmd`, `sync.sh`,
+  `openhpl1.manifest`; root `CMakeLists.txt`, `CMakePresets.json`, `run.sh`,
+  `vcpkg.json`, `.clang-format`, `.clang-tidy`, `.gitignore`. Retained existing
+  build helpers/targets/options and environment names, including `OVERTURE_*`,
+  and checked references to `openhpl1`/manifest/test names. No platform edits.
+
+| ID / status | Location and evidence | Resolution / dependencies / risk |
+| --- | --- | --- |
+| R76 / verified | Porting `scriptfn.py`, `script_sigs.py`, `menu_widgets.py`: abbreviated filenames obscure which operation each performs | Rename to `inspect_script_function.py`, `inspect_script_signatures.py`, `summarize_menu_widgets.py`; update usage and current porting guide. Medium; repository imports/references checked; historical archive paths retained |
+| R77 / verified | `Binary.dis` is a cached file path; script inspector's `b/label/lines/start` obscure binary/wrapper/prologue roles | `dis -> disassembly_path` in producer and consumer; `binary`, `wrapper_label`, `instructions`, `prologue_index`. Low; cache filenames and command output unchanged |
+| R78 / verified | Signature inspector `raw/decode`, `BPD/SRC`, `ARG/RET` obscure wrapper calls and vtable offsets | `read_wrapper_calls`, `decode_wrapper_signature`, `GAME_BINARY_DIR`, `SCRIPT_SOURCE`, `ARGUMENT_GETTER_TYPES`, `RETURN_SETTER_TYPES`, argument `binary_path`. Low; preserve decoding offsets, source regex and JSON output |
+| R79 / verified | Compact disassembly `flush`, `SHORT/NOISE/ARGS/PAD` hide output/filter responsibilities; widget summary uses opaque pending/current/output names | `emit_function`, `TYPE_REPLACEMENTS`, `COMPILER_NOISE`, `STACK_ARGUMENT_STORE`, `PADDING`; widget `pending_values/current_widget/widgets/line/line_index/next_lines/widget/state`. Low; same regexes, traversal and formatting |
+| R80 / verified | Renderer fixture `BoundTarget` asserts framebuffer/viewport restoration rather than binding a target | `CheckBoundTarget` and all 18 call sites. Low; assertion expressions/diagnostics unchanged |
+| R81 / retained | Build/launcher/generator/test entry points, options, asset and fixture strings, clear helpers/classes/files | Retain compatible commands, labels and established local conventions; no structural extraction justified |
+
+Validation: default Linux build and both CTest suites passed (2/2), including
+software EGL without skips. C++ token comparison permits only the 19 helper
+identifier substitutions. All 12 Python sources compile; AST comparisons for
+five edited tools permit only the recorded identifier changes and module
+documentation. Before/after synthetic fixtures match for compact disassembly,
+widget summaries, script-function output, binary annotations and wrapper
+signature extraction/decoding. The existing comparison-image tests pass (2).
+Root/porting/Windows sync shell syntax and normal tool help/usage paths checked.
+`disassemble_game.py` with no arguments retains its documented usage/error exit.
+Diff whitespace and current references checked. Original-game binary inspection,
+headless game/Dog/effects runs and Windows execution were not run; synthetic
+fixtures establish output preservation on their inputs only. No sanitizer or
+visual checks are needed to establish these identifier/path changes.
+
+Remaining A6 naming findings: none. Next: reconcile inventory and closure.
 
 ## Structural refactoring
 

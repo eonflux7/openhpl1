@@ -49,7 +49,7 @@ which are not shipped and may no longer exist. Use the tracked tools and
 current source to reproduce those investigations.
 
 `blackplague.bin` and `requiem.bin` export every class and method with full
-signatures (`nm -D --defined-only ... | c++filt`). `tools/porting/script_sigs.py`
+signatures (`nm -D --defined-only ... | c++filt`). `tools/porting/inspect_script_signatures.py`
 reads the script functions' argument types out of them, and
 `tools/porting/disassemble_game.py bp 'cGameLever::Update'` prints a function's
 disassembly with the strings and floats it refers to (32-bit x86; member
@@ -60,6 +60,9 @@ blackplague` runs a game headless and silent in a scratch home.
 runs script commands that many seconds after the start, with `OVERTURE_MAP`
 to start in a map. `Print("...")` and the collision checks in an `if` are
 enough to see in the log whether a function did its work.
+
+Use `python3 tools/porting/inspect_script_function.py bp SetWidgetBool` to
+inspect an unexported script function immediately before its generic wrapper.
 
 Pipe disassembly through `compact_disassembly.py` for labels only at branch
 targets, with unwinding code and string reference counting omitted:
@@ -106,7 +109,7 @@ Our AngelScript is stricter than the one of 2008: Black Plague's scripts give
 `true` and `false` where a number is taken, so `SetLocalVar`, `SetGlobalVar`,
 their `Create` forms and `SetBodyProperty` have bool overloads.
 
-`tools/porting/menu_widgets.py` lists what `cMainMenu::CreateWidgets` builds:
+`tools/porting/summarize_menu_widgets.py` lists what `cMainMenu::CreateWidgets` builds:
 for each widget its class, the strings and floats before it, and the menu
 state it is added to (from the `0x6c + 8 * state` list it is hooked into).
 That gave the later games' menu pages and their state numbers. `disassemble_game.py`

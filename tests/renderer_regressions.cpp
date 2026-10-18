@@ -597,7 +597,7 @@ static GLint GetGLInteger(GLenum name)
 	glGetIntegerv(name, &value);
 	return value;
 }
-static void BoundTarget(GLuint framebuffer, int width, int height)
+static void CheckBoundTarget(GLuint framebuffer, int width, int height)
 {
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -630,7 +630,7 @@ static void TestShadowStorage()
 		glClearDepth(value);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		shadows.EndShadowMap();
-		BoundTarget(scene, 32, 24);
+		CheckBoundTarget(scene, 32, 24);
 	};
 	Check(shadows.SelectShadowMap(1, false, 32, signature, mapBytes * 2) == 0, "new cache entry is invalid");
 	const GLuint first = texture(false);
@@ -640,7 +640,7 @@ static void TestShadowStorage()
 	fill(false, 0, 32, 0.75f);
 	Check(first != second && shadows.SelectShadowMap(1, false, 32, signature, mapBytes * 2) == 1,
 		"unchanged light restores its valid map after drawing another light");
-	BoundTarget(scene, 32, 24);
+	CheckBoundTarget(scene, 32, 24);
 	std::array<float, 32 * 32> depth;
 	glActiveTexture(GL_TEXTURE0 + cGLSLProgram::kShadowMapUnit);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, depth.data());
@@ -703,7 +703,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	Check(targets.GetSamples() >= 2, "exercise multisampled scene");
 	shadows.Init();
 	const GLuint output = targets.GetOutputFramebuffer();
-	BoundTarget(output, 32, 24);
+	CheckBoundTarget(output, 32, 24);
 	state.SetDrawMatrices(cDrawMatrices{});
 	state.SetFrameUniforms(cMatrixf::Identity, cMatrixf::Identity, cVector3f(0), 0.1f, 100, 1, targets.GetSize());
 	if(auto *bound = cGLSLProgram::GetBoundProgram()) bound->UnBind();
@@ -759,7 +759,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 			!glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE),
 		"shadow draws disable alpha to coverage");
 	shadows.EndShadowMap();
-	BoundTarget(scene, 32, 24);
+	CheckBoundTarget(scene, 32, 24);
 	Check(state.PrepareDraw(targets.GetDrawState(false)) && glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE),
 		"shadow exit invalidates shader state");
 	Check(targets.IsSceneDepthResolved() && targets.GetSceneDepthResolveCount() == depthBlits + 2,
@@ -769,7 +769,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		shadows.BeginShadowMap(true, face, 32);
 		Check(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "cube shadow face");
 		shadows.EndShadowMap();
-		BoundTarget(scene, 32, 24);
+		CheckBoundTarget(scene, 32, 24);
 	}
 	GLuint shadowTextures[2], shadowSamplers[2];
 	for(int i = 0; i < 2; ++i)
@@ -790,14 +790,14 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_FALSE, GL_TRUE, GL_FALSE, GL_TRUE);
 	targets.ResolveSceneDepth();
-	BoundTarget(scene, 32, 24);
+	CheckBoundTarget(scene, 32, 24);
 	GLboolean mask[4];
 	glGetBooleanv(GL_COLOR_WRITEMASK, mask);
 	Check(glIsEnabled(GL_SCISSOR_TEST) && !GetGLInteger(GL_DEPTH_WRITEMASK) && !mask[0] && mask[1],
 		"depth resolve restores scissor and write masks");
 	targets.SetSceneColorOnly(true);
 	targets.ResolveScene();
-	BoundTarget(targets.GetResolvedColorFramebuffer(), 32, 24);
+	CheckBoundTarget(targets.GetResolvedColorFramebuffer(), 32, 24);
 	Check(state.PrepareDraw(targets.GetDrawState(false)) && !glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE),
 		"resolved scene disables alpha to coverage");
 	glDisable(GL_SCISSOR_TEST);
@@ -831,14 +831,14 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	cGLTexture copy("scene copy", &copyFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(copy.Create(32, 24, cColor(0)), "scene copy texture");
 	Check(passes.DrawSceneCopy(&copy, cVector2l(0), cVector2l(32, 24)), "copy resolved scene through its pass");
-	BoundTarget(resolved, 32, 24);
+	CheckBoundTarget(resolved, 32, 24);
 	targets.SetRenderTarget(&copy);
 	glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, color);
 	Check(std::fabs(color[0] - 0.25f) < 0.005f && std::fabs(color[2] - 0.75f) < 0.005f, "scene copy retains color");
 	targets.SetRenderTarget(nullptr);
 	shadows.BeginShadowMap(false, 0, 32);
 	shadows.EndShadowMap();
-	BoundTarget(resolved, 32, 24);
+	CheckBoundTarget(resolved, 32, 24);
 	// Offscreen resource-target work is not the scene's depth.
 	const unsigned int beforeResource = targets.GetSceneDepthResolveCount();
 	const bool bDepthWasResolved = targets.IsSceneDepthResolved();
@@ -850,23 +850,23 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	const GLuint resource = GetGLInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 	shadows.BeginShadowMap(true, 3, 64);
 	shadows.EndShadowMap();
-	BoundTarget(resource, 12, 10);
+	CheckBoundTarget(resource, 12, 10);
 	Check(texture.Create(18, 14, cColor(0)), "resize component resource target");
 	targets.SetRenderTarget(&texture);
-	BoundTarget(resource, 18, 14);
+	CheckBoundTarget(resource, 18, 14);
 	cGLTexture second("second target", &format, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(second.Create(18, 14, cColor(0)), "second render target");
 	iTexture *attachments[] = {&texture, &second};
 	targets.SetRenderTargets(attachments, 2);
-	BoundTarget(resource, 18, 14);
+	CheckBoundTarget(resource, 18, 14);
 	Check(GetGLInteger(GL_DRAW_BUFFER1) == GL_COLOR_ATTACHMENT1, "multiple draw buffers");
 	targets.SetRenderTarget(&texture);
-	BoundTarget(resource, 18, 14);
+	CheckBoundTarget(resource, 18, 14);
 	GLint attachment = 0;
 	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &attachment);
 	Check(attachment == 0 && GetGLInteger(GL_DRAW_BUFFER1) == GL_NONE, "single target detaches extra attachments");
 	targets.SetRenderTarget(nullptr);
-	BoundTarget(resolved, 32, 24);
+	CheckBoundTarget(resolved, 32, 24);
 	Check(targets.GetSceneDepthResolveCount() == beforeResource && targets.IsSceneDepthResolved() == bDepthWasResolved,
 		"resource-target work does not touch scene depth");
 	// A 2D-array texture on unit 0 must come back as an array binding, not
@@ -940,7 +940,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	smaa.mbActive = true;
 	passes.SetSmaa(smaa);
 	passes.EndScene();
-	BoundTarget(output, 32, 24);
+	CheckBoundTarget(output, 32, 24);
 	GLint restoredSampler = 0, restoredMaterial = 0;
 	glGetIntegeri_v(GL_SAMPLER_BINDING, 0, &restoredSampler);
 	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, 2, &restoredMaterial);
@@ -998,7 +998,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 	state.SetScissorActive(false);
 	shadows.BeginShadowMap(false, 0, 32);
 	shadows.EndShadowMap();
-	BoundTarget(output, 32, 24);
+	CheckBoundTarget(output, 32, 24);
 
 	// Repeated render-scale/FSAA changes rebuild scene/SMAA resources together.
 	for(int samples : {0, 4, 0})
@@ -1016,7 +1016,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		state.ResyncExternalState();
 		glClear(GL_COLOR_BUFFER_BIT);
 		passes.EndScene();
-		BoundTarget(output, 32, 24);
+		CheckBoundTarget(output, 32, 24);
 		CheckNoGLErrors();
 	}
 	// Stream draws after fullscreen passes must rebind their VAO, not trust a stale cache.
@@ -1332,7 +1332,7 @@ static void TestShadowCaching(cLowLevelGraphicsSDL &gfx)
 			glEndQuery(GL_PRIMITIVES_GENERATED);
 			GLuint primitives = 0;
 			glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
-			BoundTarget(scene, gfx.mTargets.GetSize().x, gfx.mTargets.GetSize().y);
+			CheckBoundTarget(scene, gfx.mTargets.GetSize().x, gfx.mTargets.GetSize().y);
 			const GLenum error = glGetError();
 			if(error != GL_NO_ERROR) throw std::runtime_error("shadow submission " + std::to_string(submission) +
 				" produced GL error " + std::to_string(error));

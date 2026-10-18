@@ -63,6 +63,22 @@ commit), and the last official Linux build on Steam.
   names, suite diagnostics, comments and whitespace changed in C++.
   Windows, sanitizer builds and full-game captures were not run for this pass.
 
+### Diagnostic tool names and test helpers
+
+- Completed A6: renamed porting tools to `inspect_script_function.py`,
+  `inspect_script_signatures.py` and `summarize_menu_widgets.py`, updating usage
+  and the current porting guide. Clarified cached disassembly paths, wrapper
+  signature helpers, filter constants and widget-summary locals.
+- Renamed the renderer's framebuffer/viewport assertion to `CheckBoundTarget`.
+  Build/launcher interfaces, generated assets, test tolerances and diagnostics
+  remain unchanged.
+- Validation: default build and both CTest suites passed (2/2), with software
+  EGL and no skips. All 12 Python sources compile; five edited Python ASTs
+  preserve operations/literals apart from module documentation. Before/after
+  synthetic tool fixtures match; both comparison-image tests pass. Shell
+  syntax, tool usage, references and diff whitespace checked. Original binary
+  inspection, game captures/runtime, sanitizers and Windows were not run.
+
 ### Shared-engine API and unit names
 
 - Completed A5's engine/shader naming review. Corrected input-trigger,
