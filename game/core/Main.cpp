@@ -19,6 +19,7 @@
 //#include <vld.h>
 
 #include "core/Init.h"
+#include "core/GameLauncher.h"
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
 #include "core/RefView.h"
@@ -31,6 +32,9 @@
 
 int hplMain(const tString& asCommandLine)
 {
+	// Which game, and into its folder
+	if(cGameLauncher::Run(asCommandLine)==false) return 0;
+
 	cInit *pInit = hplNew( cInit, () );
 
 	bool bRet = pInit->Init(asCommandLine);

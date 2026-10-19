@@ -8,7 +8,8 @@
 # (BlackPlagueRemade/, RequiemRemade/)
 # Options > Change Game restarts the executable as another of the three; each
 # game's folder is remembered in ~/.frictionalgames/Penumbra/games.cfg when it
-# runs (Steam's default folders are found without it).
+# runs (Steam's folders are found without it). build/openhpl1 started on its
+# own finds the games itself or opens a game chooser.
 HERE="$(cd "$(dirname "$0")" && pwd)"
 STEAM="$HOME/.local/share/Steam/steamapps/common"
 case "$1" in

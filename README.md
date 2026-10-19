@@ -107,13 +107,16 @@ platform\windows\build.cmd
 ```
 
 This produces `build-windows\openhpl1.exe` with its DLLs, shaders, fonts and
-test maps. `platform\windows\run.cmd` starts it against the Steam copy
-(`...\steamapps\common\Penumbra Overture\redist`; set `OVERTURE_GAME_DIR`
-for another), and `platform\windows\smoke.cmd` runs the smoke test with its
+test maps. Starting `openhpl1.exe` directly finds the games or asks for
+them (see [Running](#running)). `platform\windows\run.cmd` starts it against
+the Steam copy of Overture (`...\steamapps\common\Penumbra Overture\redist`;
+set `OVERTURE_GAME_DIR` for another, and the chooser opens if neither is
+there), and `platform\windows\smoke.cmd` runs the smoke test with its
 own settings, in a hidden window and with OpenAL Soft's null backend, so
 nothing is shown or heard. Settings, saves and `hpl.log` are in
-`Documents\Penumbra Overture\OvertureRemade\`, apart from the original
-game's `Episode1`. The test programs are Linux-only and not built with MSVC.
+`Documents\Penumbra Overture\OvertureRemade\` (Black Plague and Requiem:
+`Documents\Penumbra\BlackPlagueRemade\`, `RequiemRemade\`), apart from the
+original games' folders. The test programs are Linux-only and not built with MSVC.
 
 From WSL, `platform/windows/sync.sh` mirrors the source tree to a Windows
 drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
@@ -279,8 +282,8 @@ and the effects lab matches 29/29, at unchanged tolerances. All UI frames,
 effects pixel checks/live transitions and GL debug validation pass.
 See [CHANGES.md](CHANGES.md) for the implementation and results.
 
-To look at those places yourself, press F2 in the game (or start it with
-`OVERTURE_REFVIEW=1`): a panel lists the maps, and for the loaded map the
+To look at those places yourself, press F2 in the game with Developer Mode
+on (Options → Game), or start it with `OVERTURE_REFVIEW=1`: a panel lists the maps, and for the loaded map the
 places and directions of its frames, under the names the frames are saved
 with. Picking one loads the map or puts you there; PgUp and PgDn step through
 the map's frames. The view can be set up as in the frames (no flicker and a
@@ -314,6 +317,28 @@ Options → Graphics offers **High**, **Medium** and **Low** quality presets,
 plus **Custom** when settings are changed by hand. First run uses High at the
 desktop resolution. The renderer uses the improved look throughout.
 
+Starting `openhpl1` (`openhpl1.exe`) on its own opens a small game chooser
+the first time: it lists Overture, Black Plague and Requiem with the folder
+each was found in, and **Browse...** picks a folder for one that wasn't found
+(the system's folder dialog; if there is none, the folder can be typed).
+After that the game played last starts straight away; the chooser opens
+again if that game is no longer found, with `--choose-game`, or at every
+start when **Show this at every start** (or Options → Change Game → *Choose
+the game at every start*) is on. Options → Change Game restarts the
+executable as another of the games, on Linux and Windows.
+
+The games are looked for in the folders remembered in `games.cfg` (next to
+the games' personal folders), `OVERTURE_GAME_DIR`, the working directory, the
+executable's folder, every Steam library (`libraryfolders.vdf`; on Windows
+Steam's folder comes from the registry) and, on Windows, GOG's installs and
+`Program Files`. A folder or its `redist` subfolder (Steam on Windows) may
+hold the data. Requiem uses the Black Plague installation with the expansion
+added.
+
+`--game=overture|blackplague|requiem` or `OVERTURE_GAME` starts that game
+without the chooser, and so does starting it from a game's folder. The
+launcher scripts still work this way:
+
 ```
 ./run.sh
 ./run.sh blackplague
@@ -324,7 +349,13 @@ desktop resolution. The renderer uses the improved look throughout.
 default it looks in the Steam location
 `~/.local/share/Steam/steamapps/common/Penumbra Overture`, or `Penumbra Black
 Plague` for Black Plague and Requiem; set `OVERTURE_GAME_DIR` to use another
-install. Requiem uses the Black Plague installation with the expansion added.
+install. Smoke tests, captures and checks never open the chooser.
+
+The debug keys (F2 renderer tools, F3 performance overlay, L to log a
+frame's rendering) only work with **Developer Mode** on in Options → Game.
+It is off by default; `OVERTURE_DEBUG=1`, `OVERTURE_MAP`, `OVERTURE_REFVIEW`
+and `OVERTURE_DEBUG_OVERLAY` turn it on for that run, so the test maps can
+still be driven with F2.
 
 Settings, saves and the log (`hpl.log`) are stored in
 `~/.frictionalgames/Penumbra/OvertureRemade/`. The original game's folder
@@ -336,8 +367,9 @@ saves.
 
 | Variable | Purpose |
 |---|---|
-| `OVERTURE_GAME` | Select `overture`, `blackplague` or `requiem`; `run.sh` also accepts the game as its first argument |
-| `OVERTURE_GAME_DIR` | Game data directory used by `run.sh` |
+| `OVERTURE_GAME` | Select `overture`, `blackplague` or `requiem` without the chooser (`--game=` on the command line does the same and takes precedence); `run.sh` also accepts the game as its first argument |
+| `OVERTURE_GAME_DIR` | Game data directory used by `run.sh`; the executable also looks for the games there |
+| `OVERTURE_DEBUG=1` | Developer mode for this run (the debug keys F2, F3 and L), whatever the setting |
 | `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
 | `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |

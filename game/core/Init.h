@@ -125,11 +125,14 @@ public:
 	void CreateHardCodedPS(iParticleEmitterData *apPE);
 
 	static eGameId GetGameId(){ return mGameId; }
+	// Set by cGameLauncher before Init; the working directory is then the game's folder
+	static void SetGameId(eGameId aId){ mGameId = aId; }
 	static const char* GetGameName(eGameId aId);
+	// The game's first map, relative to its folder: where it is, the game is
+	static tString GetGameStartFile(eGameId aId);
 
 	// Changing game: the executable is started again in the other game's
-	// folder after a normal exit. The folders are remembered in games.cfg
-	// next to the games' personal folders; Steam's are found without it.
+	// folder after a normal exit (see cGameLauncher for the folders).
 	static bool CanChangeGame();
 	// The folder holding a game's data, "" if not found
 	static tString FindGameFolder(eGameId aId);
@@ -217,6 +220,12 @@ public:
 	tString msWebPageOnExit;
 
 	bool mbDebugInteraction;
+	// Developer mode: F2 renderer tools, F3 overlay, L logs a frame's
+	// rendering. The setting is off by default; debug and test environment
+	// variables turn it on for the run without changing the setting.
+	bool IsDeveloperMode() const { return mbDeveloperMode || mbDeveloperModeForced; }
+	bool mbDeveloperMode;
+	bool mbDeveloperModeForced;
 	float mfMaxPhysicsTimeStep;
 	bool mbDestroyGraphics; //If graphics should be destroyed by the entities. Set to false at map change.
 	bool mbResetCache;

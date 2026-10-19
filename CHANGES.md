@@ -5,6 +5,60 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Game chooser and developer mode (2026-10-19)
+
+- One executable starts any of the three games without a launcher script.
+  `cGameLauncher` (`game/core/GameLauncher.cpp`) runs before `cInit`. It takes
+  the game from `--game=` or `OVERTURE_GAME`, then from the data in the
+  working directory, as before. Failing that it starts the game played last,
+  or opens a small Dear ImGui window on SDL_Renderer that lists the three
+  games, where they were found and **Browse...** (SDL's system folder dialog,
+  with a typed folder if no dialog is available). `--choose-game`, a game
+  that is no longer found, or "Show this at every start" open it too. It
+  closes before the engine creates its window and GL context. ImGui's
+  `imgui_impl_sdlrenderer3` backend from the same 1.92.9b tag was added to
+  `vendor/imgui/backends` (the vendored SDL3 backend is identical to it).
+- Folder search moved from `Init.cpp` to the launcher and now covers
+  `OVERTURE_GAME_DIR`, the executable's folder, every Steam library from
+  `libraryfolders.vdf` (plus the Snap install on Linux, and the registry on
+  Windows), GOG's registry entries and `Program Files`, and accepts a
+  folder's `redist` subfolder, where the Windows Steam copies keep their
+  data. `games.cfg` also stores `last=` and `ask=`. Smoke tests, reference
+  captures and checks never open the chooser: unresolved, they start as
+  before.
+- Options → Change Game now works on Windows (`CreateProcessW` of the same
+  executable with `--game=`) and has the "choose at every start" toggle.
+- Fixed Black Plague and Requiem on Windows failing at startup with
+  `0xC0000409` when `Documents\Penumbra\` doesn't exist (fresh installs,
+  isolated profiles): their personal folders are under it, and only the
+  last folder level was created, so the log file couldn't open. The
+  personal folders are now created with their parents. An older Windows
+  build crashed the same way.
+- Developer mode (Options → Game, saved as `[Debug] DeveloperMode`, off by
+  default) is now needed for F2 (reference view), F3 (debug overlay) and L
+  (log a frame's rendering). `OVERTURE_DEBUG`, `OVERTURE_MAP`,
+  `OVERTURE_REFVIEW` and `OVERTURE_DEBUG_OVERLAY` turn it on for the run
+  without changing the setting, so the test maps keep their F2 controls.
+  Turning it off closes the overlay and the panel.
+- `platform\windows\run.cmd` starts the executable anyway when the Overture
+  copy isn't found, so the chooser can take over.
+- Validation: the default and ASan builds have no warnings and pass
+  `engine_regressions`, `audio_regressions` and `renderer_regressions` (ASan
+  with `detect_leaks=0`). The chooser was rendered with SDL's offscreen video
+  driver and captured: nothing found; a stale "last" game with Black Plague
+  and Requiem found through a remembered folder; and all three found, with
+  Overture through `OVERTURE_GAME_DIR` and `redist`. Under ASan/UBSan it
+  ran and quit cleanly with no reports. With leak detection on, two 56-byte
+  leaks were reported inside the already-unloaded graphics driver, from
+  `SDL_CreateWindowAndRenderer`. The MSVC build has no warnings. The Windows
+  smoke test with a fresh isolated profile passed one map per game: Overture
+  `level00_01_boat_cabin`, Black Plague `level01_cells` and Requiem `level00`.
+  Before the folder fix, Black Plague and Requiem crashed. A Linux ASan
+  Black Plague smoke of `level01_cells` passed (offscreen video, dummy
+  audio). Not checked: clicking through the chooser, the folder dialogs,
+  Change Game on Windows, the Options menu layout with the new row, and a
+  full all-map smoke.
+
 ## Repository publication (2026-10-19)
 
 - Added licence files for vendored AngelScript, Newton, TinyXML, glad and the

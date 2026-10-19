@@ -24,6 +24,8 @@
 #include "core/MapHandler.h"
 #include "core/SaveHandler.h"
 #include "core/LampAppearanceController.h"
+#include "core/GameLauncher.h"
+#include "core/RefView.h"
 #include "ui/IntroStory.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
@@ -1296,6 +1298,29 @@ private:
 	eGameId mGame;
 };
 
+// Whether the game chooser opens at every start (games.cfg)
+class cMainMenuWidget_AskGameAtStart : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_AskGameAtStart(cInit *init, const cVector3f &pos)
+		: cMainMenuWidget_Button(init,pos,Label(),eMainMenuState_LastEnum,18,eFontAlign_Center)
+	{
+		msTip = _W("Without it the last game played starts, unless it can't be found.");
+	}
+	void OnMouseDown(eMButton button) override
+	{
+		if(button != eMButton_Left) return;
+		cGameLauncher::SetAskAtStart(!cGameLauncher::GetAskAtStart());
+		msText = Label();
+	}
+private:
+	static tWString Label()
+	{
+		return cGameLauncher::GetAskAtStart() ? _W("Choose the game at every start: On")
+											  : _W("Choose the game at every start: Off");
+	}
+};
+
 cMainMenuWidget_Text *gpLanguageText=nullptr;
 cMainMenuWidget_Text *gpSubtitlesText=nullptr;
 
@@ -1424,6 +1449,31 @@ public:
 
 		gpDisablePersonalText->msText = mpInit->mbDisablePersonalNotes ?
 			kTranslate("MainMenu","Off") : kTranslate("MainMenu","On");
+	}
+};
+
+cMainMenuWidget_Text *gpDeveloperModeText=nullptr;
+
+class cMainMenuWidget_DeveloperMode : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_DeveloperMode(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("Debug keys: F2 renderer tools, F3 performance overlay, L logs the rendering of a frame.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		mpInit->mbDeveloperMode = !mpInit->mbDeveloperMode;
+		if(mpInit->IsDeveloperMode()==false)
+		{
+			mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDebugOverlayActive(false);
+			if(mpInit->mpRefView) mpInit->mpRefView->SetOpen(false);
+		}
+
+		gpDeveloperModeText->msText = mpInit->mbDeveloperMode ?
+			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	}
 };
 
@@ -3547,6 +3597,8 @@ void cMainMenu::CreateWidgets()
 		vPos.y += 34;
 	}
 	vPos.y += 11;
+	AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_AskGameAtStart,(mpInit,vPos)));
+	vPos.y += 40;
 	AddWidgetToState(eMainMenuState_OptionsChangeGame,hplNew(cMainMenuWidget_Text,(mpInit,vPos,
 		_W("The game closes and starts again as the other one. Anything not saved is lost."),16,eFontAlign_Center,nullptr,560)));
 	vPos.y += 50;
@@ -3911,6 +3963,10 @@ void cMainMenu::CreateWidgets()
 	
 	cMainMenuWidget *pWidgetDisablePersonal = hplNew( cMainMenuWidget_DisablePersonal,(mpInit,vPos,kTranslate("MainMenu","DisablePersonal:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDisablePersonal); 
+	vPos.y += 29;
+
+	cMainMenuWidget *pWidgetDeveloperMode = hplNew( cMainMenuWidget_DeveloperMode,(mpInit,vPos,_W("Developer Mode:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDeveloperMode);
 	vPos.y += 35;
 	AddWidgetToState(eMainMenuState_OptionsGame,hplNew( cMainMenuWidget_GfxBack,(mpInit,vPos,kTranslate("MainMenu","Back"),23,eFontAlign_Center)) ); 
 
@@ -3972,6 +4028,12 @@ void cMainMenu::CreateWidgets()
 	gpDisablePersonalText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGame,gpDisablePersonalText); 
 	gpDisablePersonalText->SetExtraWidget(pWidgetDisablePersonal);
+
+	vPos.y += 29;
+	sText = mpInit->mbDeveloperMode ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	gpDeveloperModeText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGame,gpDeveloperModeText);
+	gpDeveloperModeText->SetExtraWidget(pWidgetDeveloperMode);
 
 	///////////////////////////////////
 	// Options Sound

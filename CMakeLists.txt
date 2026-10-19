@@ -144,8 +144,9 @@ add_library(tinyxml STATIC ${tinyxml_sources})
 target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
 target_compile_options(tinyxml PRIVATE ${OVERTURE_NO_WARNINGS})
 
-# Dear ImGui 1.92.9b (MIT), the debug overlay; SDL3 platform backend and
-# the OpenGL 3 backend on glad (vendor/imgui_glad)
+# Dear ImGui 1.92.9b (MIT), the debug overlay and the game chooser; SDL3
+# platform backend, the OpenGL 3 backend on glad (vendor/imgui_glad) and the
+# SDL_Renderer backend (the chooser runs before the game's GL context)
 add_library(imgui STATIC
 	vendor/imgui/imgui.cpp
 	vendor/imgui/imgui_demo.cpp
@@ -153,6 +154,7 @@ add_library(imgui STATIC
 	vendor/imgui/imgui_tables.cpp
 	vendor/imgui/imgui_widgets.cpp
 	vendor/imgui/backends/imgui_impl_sdl3.cpp
+	vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
 	vendor/imgui_glad/imgui_impl_opengl3_glad.cpp)
 target_include_directories(imgui SYSTEM PUBLIC vendor/imgui vendor/imgui/backends)
 target_link_libraries(imgui PUBLIC glad SDL3::SDL3)

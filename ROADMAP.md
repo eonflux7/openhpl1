@@ -142,6 +142,11 @@ checks are retained in the archived roadmap; they are not new work here.
 - [ ] Apply resolution, fullscreen and display changes without restarting;
       this is also Milestone 3's remaining off-screen-frame convenience item.
 - [ ] Add high-DPI/upscaled cursor, inventory, notebook and menu assets.
+- [ ] Check the game chooser by hand on Windows and Linux desktops: the
+      system folder dialog (XDG portal or zenity on Linux) and its typed-folder
+      fallback, high-DPI sizing, GOG detection, and Options → Change Game
+      restarting on Windows. Only its offscreen rendering and folder
+      detection have been checked so far.
 - [ ] Gamepad support (stretch).
 
 ## Remaining lighting and material work (Milestones 4–5)
@@ -191,7 +196,8 @@ changes rather than listing them as unimplemented optimizations.
 
 ## Black Plague and Requiem
 
-The same executable selects the game through `OVERTURE_GAME` or the launcher.
+The same executable selects the game through its game chooser, `--game=`,
+`OVERTURE_GAME` or the launcher scripts.
 Each has separate settings/saves and writable caches. See the
 [porting guide](docs/black-plague-port.md) for binary inspection, scripted
 checks and bulk map diagnostics.

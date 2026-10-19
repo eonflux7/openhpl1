@@ -353,12 +353,13 @@ void cButtonHandler::Update(float afTimeStep)
 	{
 		mpInit->mpGame->Exit();
 	}
-	if(mpInput->BecameTriggered("DebugOverlay"))
+	// The debug keys need developer mode (Options > Game)
+	if(mpInput->BecameTriggered("DebugOverlay") && mpInit->IsDeveloperMode())
 	{
 		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 		pLowLevel->SetDebugOverlayActive(!pLowLevel->GetDebugOverlayActive());
 	}
-	if(mpInput->BecameTriggered("RefView") && mpInit->mpRefView)
+	if(mpInput->BecameTriggered("RefView") && mpInit->mpRefView && mpInit->IsDeveloperMode())
 	{
 		mpInit->mpRefView->SetOpen(!mpInit->mpRefView->IsOpen());
 	}
@@ -534,7 +535,7 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpSaveHandler->AutoLoad(_W("auto"));
 			}
 		}
-		if(mpInput->BecameTriggered("PrintLog"))
+		if(mpInput->BecameTriggered("PrintLog") && mpInit->IsDeveloperMode())
 		{
 			Log("-------------- START RENDERING LOG ------------------------\n");
 			mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(eRendererDebugFlag_LogRendering);

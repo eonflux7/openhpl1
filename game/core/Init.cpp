@@ -64,6 +64,7 @@
 #if defined(__linux__)
 	#include <unistd.h>
 #endif
+#include "core/GameLauncher.h"
 #include "player/PlayerHands.h"
 #include "systems/GameMusicHandler.h"
 #include "systems/RadioHandler.h"
@@ -183,81 +184,21 @@ static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
 
 //-----------------------------------------------------------------------
 
-// OVERTURE_GAME=overture|blackplague|requiem. Without it the data in the
-// working directory says which: Black Plague's folder has its first map
-// (Requiem, in the same folder, has to be asked for).
-static eGameId FindGameId()
-{
-	const char *pGame = SDL_getenv("OVERTURE_GAME");
-	if(pGame && pGame[0])
-	{
-		tString sGame = cString::ToLowerCase(pGame);
-		if(sGame == "overture") return eGameId_Overture;
-		if(sGame == "blackplague") return eGameId_BlackPlague;
-		if(sGame == "requiem") return eGameId_Requiem;
-		Warning("OVERTURE_GAME '%s' is not overture, blackplague or requiem\n", pGame);
-	}
-
-	if(FileExists(_W("maps/level01_cells.dae"))) return eGameId_BlackPlague;
-	return eGameId_Overture;
-}
-
-//-----------------------------------------------------------------------
-
 // CHANGING GAME
-
-// The names OVERTURE_GAME takes, also the keys in games.cfg
-static const char *gvGameKeys[eGameId_LastEnum] = {"overture", "blackplague", "requiem"};
-
-// games.cfg: one "key=folder" a line
-static std::string gsGameFoldersFile;
-
-static std::string ReadGameFolder(eGameId aId)
-{
-	std::ifstream file(gsGameFoldersFile);
-	std::string sLine, sKey = std::string(gvGameKeys[aId]) + "=";
-	while(std::getline(file, sLine))
-	{
-		if(sLine.compare(0, sKey.size(), sKey) == 0) return sLine.substr(sKey.size());
-	}
-	return "";
-}
-
-static void WriteGameFolder(eGameId aId, const std::string &asFolder)
-{
-	if(gsGameFoldersFile.empty() || ReadGameFolder(aId) == asFolder) return;
-
-	std::vector<std::string> vLines;
-	{
-		std::ifstream file(gsGameFoldersFile);
-		std::string sLine, sKey = std::string(gvGameKeys[aId]) + "=";
-		while(std::getline(file, sLine))
-			if(sLine.compare(0, sKey.size(), sKey) != 0 && sLine != "") vLines.push_back(sLine);
-	}
-	vLines.push_back(std::string(gvGameKeys[aId]) + "=" + asFolder);
-
-	std::ofstream file(gsGameFoldersFile, std::ios::trunc);
-	for(const std::string &sLine : vLines) file << sLine << "\n";
-}
-
-// A folder holds the game when its first map is there
-static bool HasGameData(eGameId aId, const std::string &asFolder)
-{
-	if(asFolder.empty()) return false;
-	std::error_code err;
-	std::filesystem::path path = std::filesystem::path(asFolder) /
-		cString::To8Char(gvGameFiles[aId].msMapsDir) / gvGameFiles[aId].msStartMap;
-	return std::filesystem::exists(path, err);
-}
 
 const char* cInit::GetGameName(eGameId aId)
 {
 	return gvGameFiles[aId].msName;
 }
 
+tString cInit::GetGameStartFile(eGameId aId)
+{
+	return cString::To8Char(gvGameFiles[aId].msMapsDir) + "/" + gvGameFiles[aId].msStartMap;
+}
+
 bool cInit::CanChangeGame()
 {
-#if defined(__linux__)
+#if defined(__linux__) || defined(WIN32)
 	return true;
 #else
 	return false;
@@ -272,29 +213,7 @@ tString cInit::FindGameFolder(eGameId aId)
 		std::error_code err;
 		return std::filesystem::current_path(err).string();
 	}
-
-	// Black Plague and Requiem are installed together
-	std::vector<std::string> vFolders;
-	vFolders.push_back(ReadGameFolder(aId));
-	if(aId == eGameId_BlackPlague) vFolders.push_back(ReadGameFolder(eGameId_Requiem));
-	if(aId == eGameId_Requiem) vFolders.push_back(ReadGameFolder(eGameId_BlackPlague));
-	if(aId != eGameId_Overture && mGameId != eGameId_Overture)
-	{
-		std::error_code err;
-		vFolders.push_back(std::filesystem::current_path(err).string());
-	}
-
-	const char *pHome = SDL_getenv("HOME");
-	if(pHome)
-	{
-		const char *pSteamName = aId == eGameId_Overture ? "Penumbra Overture" : "Penumbra Black Plague";
-		for(const char *pSteam : {"/.local/share/Steam", "/.steam/steam", "/.var/app/com.valvesoftware.Steam/.local/share/Steam"})
-			vFolders.push_back(std::string(pHome) + pSteam + "/steamapps/common/" + pSteamName);
-	}
-
-	for(const std::string &sFolder : vFolders)
-		if(HasGameData(aId, sFolder)) return sFolder;
-	return "";
+	return cGameLauncher::FindGameFolder(aId);
 }
 
 void cInit::RequestGameChange(eGameId aId)
@@ -308,9 +227,9 @@ void cInit::RequestGameChange(eGameId aId)
 
 void cInit::RunRequestedGame()
 {
-#if defined(__linux__)
 	if(mRequestedGameId == eGameId_LastEnum) return;
 
+#if defined(__linux__)
 	tString sFolder = FindGameFolder(mRequestedGameId);
 	if(sFolder == "" || chdir(sFolder.c_str()) != 0)
 	{
@@ -319,15 +238,16 @@ void cInit::RunRequestedGame()
 	}
 
 	// The test hooks are for the game they were set for
-	setenv("OVERTURE_GAME", gvGameKeys[mRequestedGameId], 1);
+	setenv("OVERTURE_GAME", cGameLauncher::GetGameKey(mRequestedGameId), 1);
 	for(const char *pVar : {"OVERTURE_MAP", "OVERTURE_SCRIPT", "OVERTURE_SMOKE"}) unsetenv(pVar);
 
-	// The same arguments as this run had
+	// The same arguments as this run had, but for --game
 	std::vector<std::string> vArgs;
 	{
 		std::ifstream file("/proc/self/cmdline", std::ios::binary);
 		std::string sArg;
-		while(std::getline(file, sArg, '\0')) vArgs.push_back(sArg);
+		while(std::getline(file, sArg, '\0'))
+			if(vArgs.empty() || sArg.compare(0, 7, "--game=") != 0) vArgs.push_back(sArg);
 	}
 	std::vector<char*> vArgPtrs;
 	for(std::string &sArg : vArgs) vArgPtrs.push_back(sArg.data());
@@ -337,6 +257,8 @@ void cInit::RunRequestedGame()
 	fflush(nullptr);
 	execv("/proc/self/exe", vArgPtrs.data());
 	Error("Couldn't start %s again: %s\n", GetGameName(mRequestedGameId), strerror(errno));
+#elif defined(WIN32)
+	cGameLauncher::StartAgain(mRequestedGameId);
 #endif
 }
 
@@ -378,6 +300,8 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mlMaxSoundDataNum = 120;
 	mlMaxPSDataNum = 12;
 	mbShowCrossHair = false;
+	mbDeveloperMode = false;
+	mbDeveloperModeForced = false;
 	mbHasHaptics = false;
 	mbHasHapticsOnRestart = false;
 
@@ -428,7 +352,6 @@ bool cInit::Init(tString asCommandLine)
 	//iResourceBase::SetLogCreateAndDelete(true);
 	SetWindowCaption("Penumbra Loading...");
 
-	mGameId = FindGameId();
 	// Black Plague: resting bodies are kept 2 mm apart. With Newton 2 a heavy
 	// box sank into the floor and caught on the edges of a hole under it (the
 	// crate over level 4's ladder down to the sewers could not be moved).
@@ -481,20 +404,22 @@ bool cInit::Init(tString asCommandLine)
 			PERSONAL_RELATIVEGAME};
 	int lDirNum = PERSONAL_RELATIVEPIECES_COUNT + 2;
 
-	//Check if directories exist and if not create
+	//Check if directories exist and if not create, with their parents (on
+	//Windows Black Plague's is Penumbra/BlackPlagueRemade/, not under
+	//PERSONAL_RELATIVEGAME_PARENT; without it there is no log file to open)
 	for(int i=0; i<lDirNum; ++i)
 	{
 		tWString sDir = sPersonalDir + vDirs[i];
 		if(FolderExists(sDir)) continue;
 
-		CreateFolder(sDir);
+		std::error_code err;
+		std::filesystem::create_directories(std::filesystem::path(cString::To8Char(sDir)), err);
 	}
 
-	// Where this game is, for changing to it from another
-	gsGameFoldersFile = cString::To8Char(sPersonalDir + PERSONAL_RELATIVEROOT PERSONAL_RELATIVEGAME_PARENT) + "games.cfg";
+	// Where this game is, for changing to it from another and the next start
 	{
 		std::error_code err;
-		WriteGameFolder(mGameId, std::filesystem::current_path(err).string());
+		cGameLauncher::RememberGame(mGameId, std::filesystem::current_path(err).string());
 	}
 
 	// Mesh caches that have to be rebuilt go here, not into the game's folder
@@ -558,6 +483,13 @@ bool cInit::Init(tString asCommandLine)
 	mlDisplay = mpConfig->GetInt("Screen","Display",-1);
 	mbVsync = mpConfig->GetBool("Screen", "Vsync", false);
 	mbLogResources = mpConfig->GetBool("Debug", "LogResources", false);
+	mbDeveloperMode = mpConfig->GetBool("Debug", "DeveloperMode", false);
+	// Debugging, or a test map that is driven with F2
+	for(const char *pVar : {"OVERTURE_DEBUG", "OVERTURE_DEBUG_OVERLAY", "OVERTURE_REFVIEW", "OVERTURE_MAP"})
+	{
+		const char *pValue = SDL_getenv(pVar);
+		if(pValue && pValue[0] && pValue[0] != '0') mbDeveloperModeForced = true;
+	}
 	mbDebugInteraction = mpConfig->GetBool("Debug", "DebugInteraction", false);
 
 	msWebPageOnExit = mpConfig->GetString("Demo","WebPageOnExit","http://www.Penumbra-Overture.com");
@@ -1504,6 +1436,7 @@ void cInit::Exit()
 
 
 	mpConfig->SetBool("Debug", "LogResources", mbLogResources);
+	mpConfig->SetBool("Debug", "DeveloperMode", mbDeveloperMode);
 
 	mpConfig->Save();
 	hplDelete( mpConfig );
