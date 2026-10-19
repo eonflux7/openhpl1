@@ -153,6 +153,27 @@ with `OPENHPL_ORIGINAL_HUD=1` it is drawn as in the original game.
   `fonts/README.md`), the cover menu at a size that gives it the original's
   capital height.
 
+## Loading and menu screens
+
+`screens/` holds widescreen versions of the full-screen JPEGs: loading
+screens (1707x960), and the main and pause menu's logo (1707x288) and
+background (1707x672). `cGraphicsHelper::LoadScreenImage` looks for the
+image's name, as `.jpg`, in `screens/requiem/` (Requiem only), then
+`screens/blackplague/` (Black Plague and Requiem), then `screens/`; without
+one, or with `OPENHPL_ORIGINAL_HUD=1`, the game's own image is drawn. A
+widescreen image keeps the height of the original's rectangle in the 800x600
+screen and is centred, so the original's 4:3 part is its middle and the rest
+fills a 16:9 screen.
+
+They were generated as 16:9 images whose middle was made after the original
+as the game shows it, then fitted by `tools/hud_screen.py` (see its
+`--help`): registered to the original, resampled so the original's
+rectangle lands in the middle, and colour-matched to it. The output's pixels
+come from the generated image only. Requiem's loading screens share one
+ragged black frame: `src/screens/requiem_frame.png` is its mask, made from a
+generated frame by `hud_screen.py frame` and laid over each screen by
+`hud_screen.py framed`.
+
 ## Vector images
 
 `src/*.svg` have a viewBox the size of the original image, in its pixels, and

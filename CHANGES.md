@@ -201,6 +201,11 @@ commit), and the last official Linux build on Steam.
 - The reference `inventory` screen has a flashlight first (the hovered item,
   whose name shows its key) and the `message` screen names three keys, so
   both captures change. A new `menu_keys` screen shows the key setup.
+- With the high-resolution HUD, loading screens and the menus' logo and
+  background come from widescreen remakes in `hud/screens/` when there is
+  one (`cGraphicsHelper::LoadScreenImage`, documented in `hud/README.md`),
+  centred at the original's height; `tools/hud_screen.py` fits generated
+  images to the originals.
 - The developer map list (F2) and `refshots` list the running game's maps
   directory (`cInit::GetMapsDir()`, as the smoke test does). They had
   listed `maps`, so Requiem showed Black Plague's maps instead of
