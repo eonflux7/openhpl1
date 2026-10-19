@@ -1,3 +1,5 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
 #ifndef HPL_SPRITE_BATCH_H
 #define HPL_SPRITE_BATCH_H
 

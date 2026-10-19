@@ -1,6 +1,9 @@
-HPL1 Engine Shaders 
+HPL1 Engine Shaders
 
-All CG shaders (located in assets/core/programs) are covered under this zlib license
+The original HPL1 Cg shaders, and the GLSL files in shaders/ derived from them
+(those with a Frictional Games copyright header, ported to GLSL by the ScummVM
+project), are covered under this zlib license. Other files in shaders/ are part
+of OpenHPL1 and covered by the GNU GPL v3; see COPYING.
 
 Copyright (C) 2006-2010 - Frictional Games
 

@@ -1,3 +1,5 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
 #include <algorithm>
 #include <array>
 #include <clocale>

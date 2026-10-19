@@ -18,6 +18,14 @@ commit), and the last official Linux build on Steam.
   dropped in the history rewrite; they are re-added here unchanged.
 - Validation: documentation links and paths checked. The CI workflow has not
   been run yet.
+- `engine/NOTICE` now lists the bundled components and where their licences
+  are, instead of the removed GLee and AngelScript string add-ons.
+  `engine/LICENSE-shaders` names the GLSL files it covers (those with a
+  Frictional Games header). The README credits the fonts and gives glad's
+  actual licence. Added `.gitattributes` (CRLF for `.cmd`, LF for `.sh`,
+  binary fonts; the `.cmd` files are now stored with LF in the index),
+  `vcpkg_installed/` to `.gitignore`, and GPL headers to the files that
+  lacked them.
 
 ## Code readability
 

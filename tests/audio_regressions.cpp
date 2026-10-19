@@ -1,3 +1,5 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
 #include <iostream>
 #include <new>
 #include <stdexcept>

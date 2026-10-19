@@ -1,3 +1,5 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
 // Material and draw parameters. Each offset is a std140 vec4 slot.
 #ifndef HPL_PROGRAM_PARAMETERS_H
 #define HPL_PROGRAM_PARAMETERS_H

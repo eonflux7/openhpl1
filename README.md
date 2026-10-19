@@ -390,16 +390,19 @@ run.sh     launcher
 - **Andreas Jönsson**: AngelScript 2.38 (zlib)
 - **Lee Thomason and Yves Berquin**: TinyXML (zlib)
 - **Omar Cornut and contributors**: Dear ImGui 1.92.9b (MIT)
-- **glad** OpenGL loader by David Herberth (MIT / Apache-2.0 for the
-  generated code)
+- **glad** OpenGL loader by David Herberth (generated code WTFPL or CC0-1.0,
+  with Apache-2.0 Khronos parts)
 - **Jorge Jimenez, Jose I. Echevarria, Belen Masia, Fernando Navarro and
   Diego Gutierrez**: SMAA, the reference shader (`shaders/SMAA.hlsl`) and its
   area and search textures (`vendor/smaa`) (MIT)
+- **Arimo, Cousine, Recursive and Departure Mono** fonts (SIL OFL 1.1; see
+  [fonts/README.md](fonts/README.md))
 
 OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).
-Bundled third-party code keeps its own licence (see each directory under
-`vendor/`, `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`). Penumbra: Overture game assets are
-not covered by this licence and are not included.
+Bundled third-party code keeps its own licence: see
+[engine/NOTICE](engine/NOTICE), each directory under `vendor/`,
+`engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`. Penumbra game
+assets are not covered by this licence and are not included.
 
 Penumbra and HPL are trademarks of Frictional Games. OpenHPL1 is an unofficial
 fan project and is not affiliated with or endorsed by Frictional Games.

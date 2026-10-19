@@ -1,29 +1,23 @@
-HPL1 Engine
+HPL1 Engine (OpenHPL1)
 
-This product includes the following 3rd party products which are covered under their respective licenses.
+OpenHPL1 includes or uses the following third-party components, each covered
+by its own licence. The licence texts are in the listed files.
 
-tinyXML
--------
-tinyXML is covered under the zlib/libpng license
-
-http://www.sourceforge.net/projects/tinyxml
-
-GLee
-----
-GLee is covered under the the Simplified BSD License
-
-http://elf-stone.com/glee.php
+TinyXML 2.5.2 (zlib)                     vendor/tinyxml/LICENSE
+AngelScript 2.38 (zlib)                  vendor/angelscript/LICENSE
+Newton Game Dynamics 2.36 (zlib)         vendor/newton/LICENSE
+OALWrapper (zlib)                        vendor/oalwrapper/LICENSE
+Dear ImGui 1.92.9b (MIT)                 vendor/imgui/LICENSE.txt
+glad (WTFPL or CC0-1.0, and Apache-2.0)  vendor/glad/LICENSE
+SMAA area/search textures (MIT)          vendor/smaa/LICENSE.txt
+Original HPL1 shaders (zlib)             engine/LICENSE-shaders
+Fonts (SIL Open Font License 1.1)        fonts/*-OFL.txt
 
 FreeType
 --------
 Portions of this software are copyright (c) The FreeType Project
 (www.freetype.org). All rights reserved. FreeType is covered under the
-FreeType License.
+FreeType License. It is linked from the system or downloaded by CMake, and
+is not stored in this repository.
 
 https://freetype.org
-
-Angelscript
------------
-The add_on implementations of stdstring and scriptstring implementatations for Angelscript are included
-
-http://www.angelcode.com/
