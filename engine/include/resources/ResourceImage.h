@@ -46,9 +46,18 @@ namespace hpl {
 		void Destroy() override;
 
 		//Image specific
-		int GetHeight()const{return mRect.h;}
-		int GetWidth()const{return mRect.w;}
-		cVector2l GetSize()const{return cVector2l(mRect.w,mRect.h);}
+		//The size the image is drawn at. A high-resolution replacement keeps the
+		//size of the image it replaces while its texels cover more pixels.
+		int GetHeight()const{return mvLogicalSize.y;}
+		int GetWidth()const{return mvLogicalSize.x;}
+		cVector2l GetSize()const{return mvLogicalSize;}
+		//A replacement may also have a transparent margin around that size (in
+		//its units), for edges and shadows that fade out past the original.
+		void SetLogicalSize(const cVector2l &avSize, const cVector2l &avMargin=cVector2l(0,0));
+		cVector2l GetMargin()const{return mvMargin;}
+		//The area the texture covers when the image is drawn at avSize from 0,0
+		cRect2f GetDrawRect(const cVector2f &avSize)const;
+		cVector2l GetTexelSize()const{return cVector2l(mRect.w,mRect.h);}
 		cVector2l GetPosition()const{return cVector2l(mRect.x,mRect.y);}
 
 		int GetSourceWidth()const{return mvSourceSize.x;}
@@ -70,6 +79,8 @@ namespace hpl {
 
 		cVector2l mvSourceSize;
 		cRect2l mRect;
+		cVector2l mvLogicalSize;
+		cVector2l mvMargin;
 		tVertexVec mvVtx;
 
 		int mlHandle;

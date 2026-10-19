@@ -45,6 +45,8 @@ namespace hpl {
 		bool mbFlipH = false;
 		bool mbFlipV = false;
 		float mfAngle = 0;
+		//The part of the object drawn, as fractions of it
+		cRect2f mPart = cRect2f(0,0,1,1);
 
 		iMaterial* GetMaterial() const;
 		float GetZ() const { return mvTransform.z;}
@@ -93,6 +95,14 @@ namespace hpl {
 		void DrawGfxObject(cGfxObject* apObject, const cVector3f& avPos,
 											const cVector2f& avSize, const cColor& aColor,
 											bool abFlipH=false, bool abFlipV=false, float afAngle = 0);
+
+		/**
+		 * Draws only a part of a Gfx object, placed where it is when the whole
+		 * object is drawn at avPos and avSize (e.g. to reveal it bit by bit).
+		 * \param aPart The part, as fractions (0..1) of the object's width and height
+		 */
+		void DrawGfxObjectPart(cGfxObject* apObject, const cVector3f& avPos,
+								const cVector2f& avSize, const cColor& aColor, const cRect2f& aPart);
 
 
 		/**

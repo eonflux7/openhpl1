@@ -363,6 +363,13 @@ namespace hpl {
 		{
 			mvImageSize.x = (float)apImage->GetWidth();
 			mvImageSize.y = (float)apImage->GetHeight();
+
+			//Positions are fractions of the draw size; a margin lies outside 0..1
+			cRect2f rect = apImage->GetDrawRect(cVector2f(1,1));
+			mvVtx[0].pos = cVector3f(rect.x,rect.y,0);
+			mvVtx[1].pos = cVector3f(rect.x+rect.w,rect.y,0);
+			mvVtx[2].pos = cVector3f(rect.x+rect.w,rect.y+rect.h,0);
+			mvVtx[3].pos = cVector3f(rect.x,rect.y+rect.h,0);
 		}
 	}
 

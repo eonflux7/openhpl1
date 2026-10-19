@@ -38,6 +38,8 @@ namespace hpl {
 		mpFrameTexture = apFrameTex;
 		mpFrameBitmap = apFrameBmp;
 		mRect = aRect;
+		mvLogicalSize = cVector2l(aRect.w,aRect.h);
+		mvMargin = cVector2l(0,0);
 		mvSourceSize = avSrcSize;
 		mlHandle = alHandle;
 
@@ -80,6 +82,29 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cResourceImage::SetLogicalSize(const cVector2l &avSize, const cVector2l &avMargin)
+	{
+		mvLogicalSize = avSize;
+		mvMargin = avMargin;
+
+		cRect2f rect = GetDrawRect(cVector2f((float)avSize.x,(float)avSize.y));
+		mvVtx[0].pos = cVector3f(rect.x,rect.y,0);
+		mvVtx[1].pos = cVector3f(rect.x+rect.w,rect.y,0);
+		mvVtx[2].pos = cVector3f(rect.x+rect.w,rect.y+rect.h,0);
+		mvVtx[3].pos = cVector3f(rect.x,rect.y+rect.h,0);
+	}
+
+	//-----------------------------------------------------------------------
+
+	cRect2f cResourceImage::GetDrawRect(const cVector2f &avSize)const
+	{
+		cVector2f vMargin(avSize.x * (float)mvMargin.x / (float)mvLogicalSize.x,
+						avSize.y * (float)mvMargin.y / (float)mvLogicalSize.y);
+		return cRect2f(-vMargin.x, -vMargin.y, avSize.x + vMargin.x*2, avSize.y + vMargin.y*2);
+	}
+
+	//-----------------------------------------------------------------------
+
 	iTexture *cResourceImage::GetTexture()const{return mpFrameTexture->GetTexture();}
 
 	//-----------------------------------------------------------------------
@@ -88,18 +113,12 @@ namespace hpl {
 	{
 		tVertexVec vTmpVtx = mvVtx;
 
-		if(avSize == cVector2f(-1,-1)) {
-			vTmpVtx[1].pos.x = mvVtx[0].pos.x + mRect.w;
-			vTmpVtx[2].pos.x = mvVtx[0].pos.x + mRect.w;
-			vTmpVtx[2].pos.y = mvVtx[0].pos.y + mRect.h;
-			vTmpVtx[3].pos.y = mvVtx[0].pos.y + mRect.h;
-		}
-		else {
-			vTmpVtx[1].pos.x = mvVtx[0].pos.x + avSize.x;
-			vTmpVtx[2].pos.x = mvVtx[0].pos.x + avSize.x;
-			vTmpVtx[2].pos.y = mvVtx[0].pos.y + avSize.y;
-			vTmpVtx[3].pos.y = mvVtx[0].pos.y + avSize.y;
-		}
+		cRect2f rect = GetDrawRect(avSize == cVector2f(-1,-1) ?
+			cVector2f((float)mvLogicalSize.x,(float)mvLogicalSize.y) : avSize);
+		vTmpVtx[0].pos = cVector3f(rect.x,rect.y,0);
+		vTmpVtx[1].pos = cVector3f(rect.x+rect.w,rect.y,0);
+		vTmpVtx[2].pos = cVector3f(rect.x+rect.w,rect.y+rect.h,0);
+		vTmpVtx[3].pos = cVector3f(rect.x,rect.y+rect.h,0);
 
 		for(int i=0;i<4;i++)
 			vTmpVtx[i].pos+=avPos;

@@ -638,6 +638,16 @@ bool cInit::Init(tString asCommandLine)
 			tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "fonts/");
 	}
 
+	// High-resolution HUD images (hud/ in the source tree) are next to the
+	// executable. They replace the game's images at the same on-screen size.
+	const char *pOriginalHud = SDL_getenv("OPENHPL_ORIGINAL_HUD");
+	if(pOriginalHud==nullptr || pOriginalHud[0]==0 || pOriginalHud[0]=='0')
+	{
+		mpGame->GetResources()->GetImageManager()->SetHighResDirectory(
+			tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "hud/");
+		mbHighResHud = true;
+	}
+
 	// The debug test map (testmap/ in the source tree) is built next to the executable.
 	mpGame->GetResources()->AddResourceDir(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap");
 

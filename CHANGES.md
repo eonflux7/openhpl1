@@ -5,6 +5,83 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Remastered notebook (2026-10-19)
+
+- With the high-resolution HUD (`cInit::mbHighResHud`, off with
+  `OPENHPL_ORIGINAL_HUD=1`), a hovered entry on the notebook's cover and in
+  the notes list gets a pencil underline drawn in from left to right instead
+  of the dark smudge, and the notes list is a ruled index page: heading,
+  red margin line, a rule per slot, numbers, titles cut short with "..."
+  instead of running off the page, an ink dot after unread notes. The
+  tasks, notes list and note pages show "page / pages". The images are
+  drawn by `tools/hud_pencil.py`. See `hud/README.md`.
+- Engine: `cImageManager` also loads images that exist only in the
+  high-resolution directory (`name@<N>x.png`, laid out at 1/N of its size);
+  `cGraphicsDrawer::DrawGfxObjectPart` draws a part of a gfx object where
+  it would be in the whole.
+- Fixes in both looks: the notes list opens on the page with the newest
+  notes (it divided by 12 for 11 notes a page, so with 23 notes it opened on
+  page 2 of 3); a note is marked read when opened (`mbRead` was saved but
+  never set, so older saves show every note as unread until it is opened).
+- refshots: a `notebook_list` screen (a full page of notes, some unread, one
+  title too long, one hovered) and the cover with "To do list" hovered. The
+  tasks, note and list screens take 60 logic steps each, so the screens
+  after them keep their timing.
+- Validation: `renderer_regressions` covers the new-image loading;
+  `engine_regressions`, `audio_regressions` and `renderer_regressions` pass,
+  also under ASan/UBSan (`detect_leaks=0`). MSVC build; Windows refshots
+  of `boat_cabin` at 2560x1440: with `OPENHPL_ORIGINAL_HUD=1` against the
+  earlier original-HUD capture, only the notebook screens differ (the hover
+  and cursor on the cover, the world behind the tasks and note screens, now
+  captured 30 steps earlier) and the list screen is new, drawn as in the
+  original game; with the new images, the list and cover were checked by
+  eye. Not checked: actual mouse play, paging with more than 11 notes in
+  game, Black Plague/Requiem, Linux game runs.
+
+## High-resolution HUD images (2026-10-19)
+
+- `cImageManager::SetHighResDirectory`: when the game loads an image, a
+  `name@<N>x.png` (N = 8, 4, 3 or 2) in that directory is loaded instead,
+  into its own locked, mipmapped frame. `cResourceImage` now has a logical
+  size (`GetSize`, `GetWidth`, `GetHeight`) separate from its texel size
+  (`GetTexelSize`), so the replacement is laid out at the original's size
+  and existing callers are unchanged. The PNG may also carry a margin of
+  whole original pixels around the original's rectangle (`GetMargin`,
+  `GetDrawRect`): the quad, `GetVertexVecCopy`, `cGfxObject`'s sized draws in
+  `cGraphicsDrawer` and `cGuiGfxElement` extend over it, scaled with the
+  draw size, so art can fade out past the old sprite border instead of being
+  cut there. The original is loaded for its size; any other PNG size falls
+  back to it with a warning. `cInit` points it at `<exe dir>/hud/` unless
+  `OPENHPL_ORIGINAL_HUD=1`; CMake replaces `hud/` there on every build.
+- Assets in `hud/`: the mouse arrow as an SVG fitted to the original
+  (`tools/hud_raster.py` draws it at 4x); the active, grab, inactive, pickup
+  and examine crosshairs at 4x, the invalid hand recoloured from the active
+  one; a new paper page (3x) and the notebook cover (3x); the next and
+  previous page corners (8x) rendered from the paper page. Generated with
+  Codex and fitted with `tools/hud_fit.py`; the exact commands, prompts and
+  remaining differences from the originals are in `hud/README.md`.
+- Changes after looking at them in game: a blurred-alpha edge on the
+  hands and eye (first answer to "too sharp" edges) read as a glow and is
+  gone; the sharpness came from art cut off at the sprite's border, which
+  the margin now fixes (wrists fade out, the eye is whole). The paper
+  departs from the original: a clean real-looking sheet with a soft,
+  fibrous edge and a shadow, instead of a blotchy texture with ragged
+  corners cut at a rectangle. The page corners are folded from that page
+  itself, so they match it without a seam, and are transparent wherever they
+  would repeat it.
+- Validation: `renderer_regressions` gains `TestHighResImages` (original
+  size and quad, lookup by the original name, separate mipmapped frame,
+  margins and their scaling with the draw size, fallback for wrongly sized
+  PNGs and uneven margins, untouched atlas images), passing on llvmpipe
+  GL 4.5 core with `engine_regressions` and `audio_regressions`, also under
+  ASan/UBSan (`detect_leaks=0`). MSVC build; Windows refshots of `boat_cabin` at
+  2560x1440 with `OPENHPL_ORIGINAL_HUD=1` against the new images: only the
+  screens with the mouse arrow (about 1,130 pixels each) and the three
+  notebook screens differ, and no HUD warnings in `hpl.log`; all 3D views
+  and other 2D screens match. Not checked in game: the hand and eye
+  crosshairs (no capture shows them; checked composited at 1440p scale over
+  a capture), Black Plague/Requiem, Linux game runs, the GL 3.3 path.
+
 ## `OPENHPL_` prefix (2026-10-19)
 
 - Environment variables and CMake options are renamed from `OVERTURE_*` to

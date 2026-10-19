@@ -80,22 +80,33 @@ namespace hpl {
 		{
 			if(sPath != "")
 			{
-				iBitmap2D *pBmp;
-				pBmp = mpLowLevelResources->LoadBitmap2D(sPath);
-				if(pBmp==nullptr){
-					Error("Imagemanager Couldn't load bitmap '%s'\n", sPath.c_str());
-					EndLoad();
-					return nullptr;
+				pImage = LoadHighRes(sPath, sPath);
+				if(pImage==nullptr)
+				{
+					iBitmap2D *pBmp;
+					pBmp = mpLowLevelResources->LoadBitmap2D(sPath);
+					if(pBmp==nullptr){
+						Error("Imagemanager Couldn't load bitmap '%s'\n", sPath.c_str());
+						EndLoad();
+						return nullptr;
+					}
+
+					pImage = AddToFrame(pBmp, alFrameHandle);
+
+					hplDelete(pBmp);
+
+					if(pImage==nullptr){
+						Error("Imagemanager couldn't create image '%s'\n", asName.c_str());
+					}
 				}
 
-				pImage = AddToFrame(pBmp, alFrameHandle);
-
-				hplDelete(pBmp);
-
-				if(pImage==nullptr){
-					Error("Imagemanager couldn't create image '%s'\n", asName.c_str());
-				}
-
+				if(pImage) AddResource(pImage);
+			}
+			else
+			{
+				//Not one of the game's images: it may be a new one in the
+				//high-resolution directory
+				pImage = LoadHighRes(asName, "");
 				if(pImage) AddResource(pImage);
 			}
 		}
@@ -302,6 +313,72 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	cResourceImage *cImageManager::LoadHighRes(const tString &asName, const tString &asOriginalPath)
+	{
+		if(msHighResDir=="") return nullptr;
+
+		tString sBase = cString::SetFileExt(cString::GetFileName(asName),"");
+		const int vScales[] = {8,4,3,2};
+		for(int lScale : vScales)
+		{
+			tString sFile = msHighResDir + sBase + "@" + cString::ToString(lScale) + "x.png";
+			if(FileExists(cString::To16Char(sFile))==false) continue;
+
+			//The original's size is the size the game lays the image out at. An
+			//image the game does not have is laid out at 1/lScale of its size.
+			cVector2l vLogicalSize(-1,-1);
+			if(asOriginalPath != "")
+			{
+				iBitmap2D *pOriginal = mpLowLevelResources->LoadBitmap2D(asOriginalPath);
+				if(pOriginal==nullptr) return nullptr;
+				vLogicalSize = cVector2l(pOriginal->GetWidth(), pOriginal->GetHeight());
+				hplDelete(pOriginal);
+			}
+
+			iBitmap2D *pBmp = mpLowLevelResources->LoadBitmap2D(sFile);
+			if(pBmp==nullptr){
+				Error("Couldn't load high-resolution image '%s'\n", sFile.c_str());
+				return nullptr;
+			}
+
+			//The replacement is lScale times the original plus, optionally, an equal
+			//margin (in the original's pixels) on opposite sides.
+			cVector2l vMargin(0,0);
+			bool bFits = pBmp->GetWidth() % lScale == 0 && pBmp->GetHeight() % lScale == 0;
+			if(vLogicalSize.x < 0) vLogicalSize = cVector2l(pBmp->GetWidth()/lScale, pBmp->GetHeight()/lScale);
+			if(bFits)
+			{
+				cVector2l vExtra(pBmp->GetWidth()/lScale - vLogicalSize.x, pBmp->GetHeight()/lScale - vLogicalSize.y);
+				vMargin = cVector2l(vExtra.x/2, vExtra.y/2);
+				bFits = vExtra.x >= 0 && vExtra.y >= 0 && vExtra.x % 2 == 0 && vExtra.y % 2 == 0;
+			}
+			if(bFits==false)
+			{
+				Warning("'%s' is %dx%d, not %d times %dx%d plus an even margin. Not using it.\n", sFile.c_str(),
+						pBmp->GetWidth(), pBmp->GetHeight(), lScale, vLogicalSize.x, vLogicalSize.y);
+				hplDelete(pBmp);
+				return nullptr;
+			}
+
+			//The replacement gets its own mipmapped frame so that it is filtered down
+			//cleanly and nothing bleeds in from neighbours. Keeping the original path
+			//keeps the resource name the game asks for; a new image is named
+			//"name.png".
+			pBmp->SetPath(asOriginalPath != "" ? asOriginalPath : msHighResDir + sBase + ".png");
+			cFrameBitmap *pFrame = CreateBitmapFrame(cVector2l(pBmp->GetWidth()+2, pBmp->GetHeight()+2), true);
+			pFrame->SetLocked(true);
+			cResourceImage *pImage = pFrame->AddBitmap(pBmp);
+			hplDelete(pBmp);
+
+			if(pImage) pImage->SetLogicalSize(vLogicalSize, vMargin);
+			return pImage;
+		}
+
+		return nullptr;
+	}
+
+	//-----------------------------------------------------------------------
+
 	cResourceImage *cImageManager::AddToFrame(iBitmap2D *apBmp,int alFrameHandle)
 	{
 		bool bFound = false;
@@ -366,9 +443,9 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cFrameBitmap *cImageManager::CreateBitmapFrame(cVector2l avSize)
+	cFrameBitmap *cImageManager::CreateBitmapFrame(cVector2l avSize, bool abMipMaps)
 	{
-		iTexture *pTex = mpLowLevelGraphics->CreateTexture(false,eTextureType_Normal,eTextureTarget_2D);
+		iTexture *pTex = mpLowLevelGraphics->CreateTexture(abMipMaps,eTextureType_Normal,eTextureTarget_2D);
 		cFrameTexture *pTFrame = hplNew( cFrameTexture, (pTex,mlFrameHandle) );
 		iBitmap2D *pBmp = mpLowLevelGraphics->CreateBitmap2D(avSize, 32);
 		cFrameBitmap *pBFrame = hplNew(  cFrameBitmap, (pBmp,pTFrame,mlFrameHandle) );

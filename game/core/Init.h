@@ -214,6 +214,9 @@ public:
 	bool mbFlashItems;
 	bool mbSimpleSwingInOptions;
 	bool mbShowCrossHair;
+	// The high-resolution HUD images in <exe dir>/hud/ are used (not
+	// OPENHPL_ORIGINAL_HUD), and the notebook draws its remastered look
+	bool mbHighResHud = false;
 
 	tWString msErrorMessage;
 

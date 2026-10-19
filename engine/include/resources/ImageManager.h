@@ -64,7 +64,20 @@ namespace hpl {
 
 		int CreateFrame(cVector2l avSize);
 		void SetFrameLocked(int alHandle, bool abLocked);
+
+		/**
+		 * Directory with high-resolution replacements. "name@<N>x.png" (N is 2, 3,
+		 * 4 or 8) there replaces the game's "name.*" and is drawn at the original's
+		 * size, from its own mipmapped texture. It is N times the original's size,
+		 * or N times that plus a margin around it (whole original pixels, the same
+		 * on opposite sides) that is drawn outside the original's rectangle. An
+		 * image there that the game does not have is drawn at 1/N of its size.
+		 * An empty string turns replacements off.
+		 */
+		void SetHighResDirectory(const tString &asDir){ msHighResDir = asDir; }
 	private:
+		cResourceImage *LoadHighRes(const tString &asName, const tString &asOriginalPath);
+
 		iLowLevelGraphics *mpLowLevelGraphics;
 
 		tFrameBitmapList mlstBitmapFrames;
@@ -73,10 +86,11 @@ namespace hpl {
 		tStringList mlstFileFormats;
 		cVector2l mvFrameSize;
 		int mlFrameHandle;
+		tString msHighResDir;
 
 		cResourceImage *FindImage(const tString &asName, tString &asFilePath);
 		cResourceImage *AddToFrame(iBitmap2D *apBmp,int alFrameHandle);
-		cFrameBitmap *CreateBitmapFrame(cVector2l avSize);
+		cFrameBitmap *CreateBitmapFrame(cVector2l avSize, bool abMipMaps=false);
 
 	};
 

@@ -26,6 +26,53 @@
 #include "player/HapticGameCamera.h"
 #include "core/GraphicsHelper.h"
 
+#include <algorithm>
+
+//////////////////////////////////////////////////////////////////////////
+// REMASTERED LOOK
+//////////////////////////////////////////////////////////////////////////
+
+// With the high-resolution HUD, a hovered entry gets a pencil underline,
+// drawn in from left to right, in place of the original's dark smudge, and
+// the notes list is laid out as a ruled index page.
+
+static const float kfUnderlineSpeed = 5.0f; // The whole line in 0.2 s
+
+// Notes list: titles right of a red margin line, numbers left of it
+static const float kfListMarginX = 262;
+static const float kfListTitleX = 270;
+static const float kfListRight = 560;
+static const float kfListTop = 114;
+
+static void UpdateReveal(float &afReveal, float afAlpha, bool abSelected, float afTime)
+{
+	if(abSelected) afReveal = std::min(afReveal + kfUnderlineSpeed * afTime, 1.0f);
+	else if(afAlpha <= 0) afReveal = 0;
+}
+
+static void DrawUnderline(cGraphicsDrawer *apDrawer, cGfxObject *apLine, const cVector3f &avTextPos,
+						float afTextWidth, float afFontHeight, float afReveal, const cColor &aColor)
+{
+	if(afReveal <= 0) return;
+	// Quick to start, slowing toward the end like a hand
+	float fDrawn = 1 - (1 - afReveal) * (1 - afReveal);
+	// The stroke image is 8 high, its line in the middle: a little past both
+	// ends of the text, just under it
+	cVector3f vPos = avTextPos + cVector3f(-5, afFontHeight - 3, -1);
+	apDrawer->DrawGfxObjectPart(apLine, vPos, cVector2f(afTextWidth + 10, 8), aColor, cRect2f(0,0,fDrawn,1));
+}
+
+// asText, cut short with "..." if it is wider than afWidth
+static tWString FitText(iFontData *apFont, const cVector2f &avSize, const tWString &asText, float afWidth)
+{
+	if(apFont->GetLength(avSize, asText.c_str()) <= afWidth) return asText;
+	tWString sText = asText;
+	while(sText.empty()==false && apFont->GetLength(avSize, (sText + _W("...")).c_str()) > afWidth)
+		sText.pop_back();
+	while(sText.empty()==false && sText.back()==_W(' ')) sText.pop_back();
+	return sText + _W("...");
+}
+
 //////////////////////////////////////////////////////////////////////////
 // FRONT STATE
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +83,8 @@ cNotebookState_Front::cNotebookState_Front(cInit *apInit, cNotebook *apNotebook)
 {
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 	mpTextBack = mpDrawer->CreateGfxObject("notebook_textback.bmp","diffalpha2d");
+	if(mpInit->mbHighResHud)
+		mpUnderline = mpDrawer->CreateGfxObject("notebook_underline_1","diffalpha2d");
 	
 	mpFrontFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 
@@ -93,6 +142,7 @@ void cNotebookState_Front::OnUpdate(float afTime)
 			{
 				mlSelected = (int)i;
 				mvOptions[i].mfAlpha = 0;
+				mvOptions[i].mfReveal = 0;
 			}
 			bFound = true;
 			
@@ -104,6 +154,7 @@ void cNotebookState_Front::OnUpdate(float afTime)
 			mvOptions[i].mfAlpha -= 1.3f *afTime;
 			if(mvOptions[i].mfAlpha <0.0f) mvOptions[i].mfAlpha = 0.0f;
 		}
+		UpdateReveal(mvOptions[i].mfReveal, mvOptions[i].mfAlpha, mlSelected==(int)i, afTime);
 	}
 
 	if(bFound ==false) mlSelected = -1;
@@ -121,8 +172,17 @@ void cNotebookState_Front::OnDraw()
 								cColor(0.9f,0.9f,0.9f, 1.0f*mpNotebook->GetAlpha()*mvOptions[i].mfAlpha),
 								eFontAlign_Center,mvOptions[i].msText.c_str());
 
-			mpDrawer->DrawGfxObject(mpTextBack,mvOptions[i].mvPos+cVector3f(-160,-2,-1),
-									cVector2f(320,mvFontSize.y+15),cColor(1,mvOptions[i].mfAlpha*0.7f));
+			if(mpUnderline)
+			{
+				float fAlpha = mpNotebook->GetAlpha() * std::min(1.0f, mvOptions[i].mfAlpha * 3);
+				DrawUnderline(mpDrawer, mpUnderline, mvOptions[i].mvPos - cVector3f(mvOptions[i].mRect.w/2,0,0),
+							mvOptions[i].mRect.w, mvFontSize.y, mvOptions[i].mfReveal, cColor(1,0.85f*fAlpha));
+			}
+			else
+			{
+				mpDrawer->DrawGfxObject(mpTextBack,mvOptions[i].mvPos+cVector3f(-160,-2,-1),
+										cVector2f(320,mvFontSize.y+15),cColor(1,mvOptions[i].mfAlpha*0.7f));
+			}
 		}
 		
 		mpFrontFont->Draw(mvOptions[i].mvPos,mvFontSize,cColor(0.7f,0.7f,0.7f, 0.8f*mpNotebook->GetAlpha()),
@@ -329,8 +389,12 @@ void cNotebookState_TaskList::OnDraw()
 
 	//////////////////////////////////
 	// Page number
-	mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
-		_W("%d"),mlCurrentPage+1);
+	if(mpInit->mbHighResHud)
+		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.12f,0.1f,0.08f,0.85f*mpNotebook->GetAlpha()),
+			eFontAlign_Center,_W("%d / %d"),mlCurrentPage+1,std::max((int)mvTaskPages.size(),1));
+	else
+		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
+			_W("%d"),mlCurrentPage+1);
 
 	//////////////////////////////////
 	// Draw arrows back and forward
@@ -394,6 +458,14 @@ cNotebookState_NoteList::cNotebookState_NoteList(cInit *apInit, cNotebook *apNot
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 	mpTextBack = mpDrawer->CreateGfxObject("notebook_listtextback.bmp","diffalpha2d");
 	mpTab = mpDrawer->CreateGfxObject("notebook_tab.bmp","diffalpha2d");
+	if(mpInit->mbHighResHud)
+	{
+		for(int i=0; i<3; ++i)
+			mpUnderline[i] = mpDrawer->CreateGfxObject("notebook_underline_"+cString::ToString(i+1),"diffalpha2d");
+		mpRule = mpDrawer->CreateGfxObject("notebook_rule","diffalpha2d");
+		mpMargin = mpDrawer->CreateGfxObject("notebook_margin","diffalpha2d");
+		mpUnread = mpDrawer->CreateGfxObject("notebook_unread","diffalpha2d");
+	}
 
 	mpTextFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt",14);
 
@@ -447,29 +519,32 @@ void cNotebookState_NoteList::OnEnterState(int alLastState)
 
 	mpSelectedNote = nullptr;
 	
+	// Open on the last page, where the newest notes are
 	if(alLastState != eNotebookState_Note)
-		mlFirstNote = (mpNotebook->GetNoteNum() / 12) * 11; 
+		mlFirstNote = std::max(mpNotebook->GetNoteNum() - 1, 0) / mlMaxNotesPerPage * mlMaxNotesPerPage;
 	
 	mlSelected = -1;
     
 	//////////////////////////////////////////
 	//Setup pos and size of all entries
+	const bool bRemastered = mpRule != nullptr;
+	const cVector3f vFirstPos = bRemastered ? cVector3f(kfListTitleX, kfListTop, 70) : cVector3f(242, 111, 70);
 	int lCount =0;
-	cVector3f vPos(242, 111, 70);
+	cVector3f vPos = vFirstPos;
 	tNotebook_NoteList_Iterator it = mpNotebook->GetNoteIterator();
 	while(it.HasNext())
 	{
 		if(lCount == mlMaxNotesPerPage)
 		{
 			lCount =0;
-			vPos = cVector3f(242, 111, 70);
+			vPos = vFirstPos;
 		}
 
 		cNotebook_Note *pNote = it.Next();
 		
 		pNote->mRect.x = vPos.x;
 		pNote->mRect.y = vPos.y+6;
-		pNote->mRect.w = 300;
+		pNote->mRect.w = bRemastered ? kfListRight - kfListTitleX : 300;
 		pNote->mRect.h = mvSize.y + 12;
 		
 		vPos.y += mvSize.y + 15;
@@ -519,6 +594,7 @@ void cNotebookState_NoteList::OnUpdate(float afTime)
 			pNote->mfAlpha -= 2.9f * afTime;
 			if(pNote->mfAlpha < 0.0f) pNote->mfAlpha = 0.0f;
 		}
+		UpdateReveal(pNote->mfReveal, pNote->mfAlpha, pNote == mpSelectedNote, afTime);
 
 		lCount++;
 	}
@@ -554,6 +630,22 @@ void cNotebookState_NoteList::OnUpdate(float afTime)
 
 void cNotebookState_NoteList::OnDraw()
 {
+	const bool bRemastered = mpRule != nullptr;
+	const float fBookAlpha = mpNotebook->GetAlpha();
+	if(bRemastered)
+	{
+		// Heading, then a red margin line and a ruled line under every slot,
+		// drawn on the page under the page corners
+		mpTextFont->Draw(cVector3f(400,80,70),18,cColor(0.12f,0.1f,0.08f,0.9f*fBookAlpha),eFontAlign_Center,
+						kTranslate("Notebook", "PickedNotes").c_str());
+		mpDrawer->DrawGfxObject(mpMargin,cVector3f(kfListMarginX-1.5f,70,12),cVector2f(3,460),cColor(1,0.6f*fBookAlpha));
+		for(int i=0; i<mlMaxNotesPerPage; ++i)
+		{
+			float fY = kfListTop + 6 + i*(mvSize.y+15) + mvSize.y + 7;
+			mpDrawer->DrawGfxObject(mpRule,cVector3f(233,fY-1,12),cVector2f(334,2),cColor(1,0.4f*fBookAlpha));
+		}
+	}
+
 	int lCount=0;
 	tNotebook_NoteList_Iterator it = mpNotebook->GetNoteIterator();
 	while(it.HasNext())
@@ -565,6 +657,32 @@ void cNotebookState_NoteList::OnDraw()
 			continue;
 		}
 		
+		if(bRemastered)
+		{
+			cVector3f vTextPos(pNote->mRect.x,pNote->mRect.y,70);
+			// Its number in the margin
+			mpTextFont->Draw(cVector3f(kfListMarginX-6,vTextPos.y+1,70),12,cColor(0.3f,0.26f,0.22f,0.7f*fBookAlpha),
+							eFontAlign_Right,_W("%d."),lCount+1);
+
+			// The title in ink, darker while hovered, cut short to fit the page
+			// with the unread mark
+			float fRoom = kfListRight - kfListTitleX - (pNote->mbRead ? 0 : 14);
+			tWString sName = FitText(mpTextFont, mvSize, pNote->msName, fRoom);
+			float fWidth = mpTextFont->GetLength(mvSize, sName.c_str());
+			float fInk = 1 - pNote->mfAlpha;
+			mpTextFont->Draw(vTextPos,mvSize,cColor(0.17f*fInk,0.14f*fInk,0.11f*fInk,(0.88f+0.12f*pNote->mfAlpha)*fBookAlpha),
+							eFontAlign_Left,sName.c_str());
+			if(pNote->mbRead==false)
+				mpDrawer->DrawGfxObject(mpUnread,cVector3f(vTextPos.x+fWidth+5,vTextPos.y+4,70),cVector2f(8,8),
+										cColor(1,0.9f*fBookAlpha));
+
+			DrawUnderline(mpDrawer, mpUnderline[lCount % 3], vTextPos, fWidth, mvSize.y, pNote->mfReveal,
+						cColor(1,0.9f*fBookAlpha*std::min(1.0f, pNote->mfAlpha*3)));
+
+			lCount++;
+			continue;
+		}
+
 		cVector3f vTabPos(400 - 175,pNote->mRect.y,68);
 		cVector2f vTabSize(14,pNote->mRect.h+3);
 		mpDrawer->DrawGfxObject(mpTab,vTabPos,vTabSize,cColor(1,mpNotebook->GetAlpha()));
@@ -595,8 +713,17 @@ void cNotebookState_NoteList::OnDraw()
 
 	//////////////////////////////////
 	// Page number
-	mpTextFont->Draw(cVector3f(400,490,16),17,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
-					_W("%d"),(mlFirstNote/11)+1);
+	if(bRemastered)
+	{
+		int lPages = std::max((mpNotebook->GetNoteNum() + mlMaxNotesPerPage - 1) / mlMaxNotesPerPage, 1);
+		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.12f,0.1f,0.08f,0.85f*fBookAlpha),eFontAlign_Center,
+						_W("%d / %d"),(mlFirstNote/mlMaxNotesPerPage)+1,lPages);
+	}
+	else
+	{
+		mpTextFont->Draw(cVector3f(400,490,16),17,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
+						_W("%d"),(mlFirstNote/11)+1);
+	}
 
 	//////////////////////////////////
 	// Draw arrows back and forward
@@ -620,6 +747,7 @@ void cNotebookState_NoteList::OnMouseDown(eMButton aButton)
 {
 	if(mpSelectedNote != nullptr)
 	{
+		mpSelectedNote->mbRead = true;
 		mpNotebook->SetSelectedNote(mpSelectedNote);
 		mpStateMachine->ChangeState(eNotebookState_Note);
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_open",false,1);
@@ -828,8 +956,12 @@ void cNotebookState_Note::OnDraw()
 
 	//////////////////////////////////
 	// Page number
-	mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
-		_W("%d"),mlCurrentPage+1);
+	if(mpInit->mbHighResHud)
+		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.12f,0.1f,0.08f,0.85f*mpNotebook->GetAlpha()),
+			eFontAlign_Center,_W("%d / %d"),mlCurrentPage+1,std::max((int)mvPages.size(),1));
+	else
+		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
+			_W("%d"),mlCurrentPage+1);
 	
 	//////////////////////////////////
 	// Draw arrows back and forward

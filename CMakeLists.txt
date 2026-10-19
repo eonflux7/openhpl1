@@ -258,6 +258,14 @@ add_custom_target(openhpl1_shaders ALL
 		${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:openhpl1>/shaders)
 add_dependencies(openhpl1_shaders openhpl1)
 
+# High-resolution HUD images are loaded from <executable dir>/hud/, replaced
+# as a whole so that removed or renamed images do not linger
+add_custom_target(openhpl1_hud ALL
+	COMMAND ${CMAKE_COMMAND} -E rm -rf $<TARGET_FILE_DIR:openhpl1>/hud
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/hud $<TARGET_FILE_DIR:openhpl1>/hud)
+add_dependencies(openhpl1_hud openhpl1)
+
 # Fonts are loaded from <executable dir>/fonts/
 add_custom_command(TARGET openhpl1 POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory

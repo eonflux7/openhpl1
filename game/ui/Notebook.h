@@ -48,12 +48,13 @@ enum eNotebookType
 class cNotebook_Note
 {
 public:
-	cNotebook_Note() : mbRead(false), mfAlpha(0){}
+	cNotebook_Note() : mbRead(false), mfAlpha(0), mfReveal(0){}
 
 	tWString msName;
 	tWString msText;
 	bool mbRead;
 	float mfAlpha;
+	float mfReveal; // How much of the pencil underline is drawn, 0..1
 	cRect2f mRect;
 
 	tString msTextCat;
@@ -90,12 +91,13 @@ protected:
 class cNoteBook_Option
 {
 public:
-	cNoteBook_Option() : mfAlpha(0){}
+	cNoteBook_Option() : mfAlpha(0), mfReveal(0){}
 
 	tWString msText;
 	cVector3f mvPos;
 	cRect2f mRect;
 	float mfAlpha;
+	float mfReveal; // How much of the pencil underline is drawn, 0..1
 };
 
 class cNotebookState_Front : public iNotebookState
@@ -116,6 +118,7 @@ public:
 
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpTextBack;
+	cGfxObject *mpUnderline = nullptr; // The remastered look's, else null
 
 	iFontData *mpFrontFont;
 	std::vector<cNoteBook_Option> mvOptions;
@@ -181,6 +184,11 @@ public:
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpTextBack;
 	cGfxObject *mpTab;
+	// The remastered look's pencil and ink marks (null with the original HUD)
+	cGfxObject *mpUnderline[3] = {};
+	cGfxObject *mpRule = nullptr;
+	cGfxObject *mpMargin = nullptr;
+	cGfxObject *mpUnread = nullptr;
 
 	int mlMaxNotesPerPage;
 	int mlFirstNote;

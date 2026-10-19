@@ -112,6 +112,26 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cGraphicsDrawer::DrawGfxObjectPart(cGfxObject* apObject, const cVector3f& avPos,
+											const cVector2f& avSize, const cColor& aColor, const cRect2f& aPart)
+	{
+		if(aPart.w <= 0 || aPart.h <= 0) return;
+		FlushImage(apObject);
+
+		cGfxBufferObject BuffObj;
+		BuffObj.mpObject = apObject;
+		BuffObj.mvTransform = avPos;
+		BuffObj.mvSize= avSize;
+		BuffObj.mColor = aColor;
+		BuffObj.mPart = aPart;
+
+		BuffObj.mbIsColorAndSize = true;
+
+		m_setGfxBuffer.insert(BuffObj);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cGraphicsDrawer::DrawGfxObject(cGfxObject* apObject, const cVector3f& avPos)
 	{
 		FlushImage(apObject);
@@ -148,7 +168,24 @@ namespace hpl {
 				const float w = object.mvSize.x * 0.5f, h = object.mvSize.y * 0.5f;
 				const cMatrixf translate = cMath::MatrixTranslate(object.mvTransform + cVector3f(w,h,0));
 				const cMatrixf rotate = cMath::MatrixRotateZ(object.mfAngle);
-				const cVector3f positions[] = {{-w,-h,0}, {w,-h,0}, {w,h,0}, {-w,h,0}};
+				// An image's margin is drawn around the requested size
+				const cRect2f& rect = object.mpObject->GetDrawRect();
+				const float x0 = rect.x * object.mvSize.x - w, x1 = (rect.x + rect.w) * object.mvSize.x - w;
+				const float y0 = rect.y * object.mvSize.y - h, y1 = (rect.y + rect.h) * object.mvSize.y - h;
+				cVector3f positions[] = {{x0,y0,0}, {x1,y0,0}, {x1,y1,0}, {x0,y1,0}};
+				const cRect2f& part = object.mPart;
+				if(part.x != 0 || part.y != 0 || part.w != 1 || part.h != 1)
+				{
+					// Corners 0..3 run clockwise from the top left, as in the image
+					const cVector3f uv0 = corners[0].tex, uv1 = corners[2].tex;
+					const float u[] = {part.x, part.x + part.w}, v[] = {part.y, part.y + part.h};
+					for(int i=0; i<4; ++i)
+					{
+						const float fu = u[i==1 || i==2], fv = v[i>=2];
+						positions[i] = cVector3f(x0 + (x1 - x0) * fu, y0 + (y1 - y0) * fv, 0);
+						corners[i].tex = cVector3f(uv0.x + (uv1.x - uv0.x) * fu, uv0.y + (uv1.y - uv0.y) * fv, uv0.z);
+					}
+				}
 				for(int i=0; i<4; ++i)
 				{
 					cVector3f pos = positions[i];

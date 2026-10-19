@@ -39,7 +39,9 @@ static const size_t klMaxLightViews = 6;
 static const int klRandomSeed = 1;
 
 // The 2D screens, in order. Setup is run once, then the frame is saved
-// after the given number of logic steps (for the fades to end).
+// after the given number of logic steps (for the fades to end). The world
+// keeps moving behind them, so a new screen should take its steps from its
+// neighbours (as the notebook's do) to leave the later screens unchanged.
 struct c2DScreen
 {
 	const char *msName;
@@ -58,15 +60,30 @@ static const c2DScreen kv2DScreens[] = {
 	{"notebook", 90, [](cInit *apInit){
 		apInit->mpNotebook->AddTask("refshots_task", _W("A task for the reference images"));
 		apInit->mpNotebook->SetActive(true);
+		// Over "To do list", to show its highlight
+		apInit->mpNotebook->SetMousePos(cVector2f(400, 230));
 	}},
-	{"notebook_tasks", 90, [](cInit *apInit){
+	{"notebook_tasks", 60, [](cInit *apInit){
 		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_TaskList);
 	}},
-	{"notebook_note", 90, [](cInit *apInit){
+	{"notebook_note", 60, [](cInit *apInit){
 		cNotebook_Note *pNote = apInit->mpNotebook->AddNote(_W("A note for the reference images"),
 															"Notes", "spiderhater");
 		apInit->mpNotebook->SetSelectedNote(pNote);
 		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_Note);
+	}},
+	{"notebook_list", 60, [](cInit *apInit){
+		// A full page of notes, some read, one with a title too long for the
+		// page, and the mouse over the second
+		for(int i=0; i<10; ++i)
+		{
+			tWString sName = i==3 ? _W("A note whose title is much too long to fit on one line of the list")
+								: _W("Reference note ") + cString::To16Char(cString::ToString(i+2));
+			cNotebook_Note *pNote = apInit->mpNotebook->AddNote(sName, "Notes", "spiderhater");
+			pNote->mbRead = i % 3 != 0;
+		}
+		apInit->mpNotebook->GetStateMachine()->ChangeState(eNotebookState_NoteList);
+		apInit->mpNotebook->SetMousePos(cVector2f(300, 155));
 	}},
 	{"keypad", 90, [](cInit *apInit){
 		apInit->mpNotebook->SetActive(false);

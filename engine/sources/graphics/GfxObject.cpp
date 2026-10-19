@@ -19,6 +19,7 @@
 #include "graphics/GfxObject.h"
 
 #include "graphics/Material.h"
+#include "resources/ResourceImage.h"
 
 
 namespace hpl {
@@ -37,10 +38,13 @@ namespace hpl {
 		msSourceFile = asFile;
 
 		mbIsImage = abIsImage;
+		mDrawRect = cRect2f(0,0,1,1);
 
 		if(mbIsImage)
 		{
-			mvVtx = apMat->GetImage(eMaterialTexture_Diffuse)->GetVertexVecCopy(0,-1);
+			cResourceImage *pImage = apMat->GetImage(eMaterialTexture_Diffuse);
+			mvVtx = pImage->GetVertexVecCopy(0,-1);
+			mDrawRect = pImage->GetDrawRect(cVector2f(1,1));
 		}
 		else
 		{

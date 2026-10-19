@@ -37,6 +37,11 @@
 #include "graphics/RendererPostEffects.h"
 #include "resources/GpuProgramManager.h"
 #include "resources/TextureManager.h"
+#include "resources/ImageManager.h"
+#include "resources/ResourceImage.h"
+#include "resources/FrameBitmap.h"
+#include "resources/FileSearcher.h"
+#include <SDL3_image/SDL_image.h>
 #include "scene/Light3DPoint.h"
 #include "scene/Light3DSpot.h"
 #include "math/Math.h"
@@ -1491,6 +1496,87 @@ static void TestShadowCaching(cLowLevelGraphicsSDL &gfx)
 	CheckNoGLErrors();
 }
 
+static void TestHighResImages(cLowLevelGraphicsSDL &gfx, const std::filesystem::path &directory)
+{
+	// "name@4x.png" in the high-resolution directory replaces the game's
+	// "name.*": drawn at the original size from its own mipmapped texture.
+	const std::filesystem::path game = directory/"hires_game", hud = directory/"hires_hud";
+	std::filesystem::create_directories(game);
+	std::filesystem::create_directories(hud);
+	auto save = [](const std::filesystem::path &file, int w, int h)
+	{
+		SDL_Surface *surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
+		SDL_FillSurfaceRect(surface, nullptr, 0x80ff00ff);
+		const bool saved = IMG_SavePNG(surface, file.string().c_str());
+		SDL_DestroySurface(surface);
+		Check(saved, "save high-resolution fixture");
+	};
+	save(game/"hud_icon.png", 8, 6); save(hud/"hud_icon@4x.png", 32, 24);
+	save(game/"hud_plain.png", 8, 6);
+	save(game/"hud_odd.png", 8, 6); save(hud/"hud_odd@4x.png", 30, 24);
+	save(game/"hud_margin.png", 8, 6); save(hud/"hud_margin@4x.png", 48, 32);
+	save(game/"hud_uneven.png", 8, 6); save(hud/"hud_uneven@4x.png", 36, 24);
+	save(hud/"hud_new@4x.png", 40, 8);
+
+	cLowLevelResourcesSDL low(&gfx);
+	cFileSearcher files(&low);
+	files.AddDirectory(game.string(), "*.*");
+	cImageManager images(&files, &gfx, &low, nullptr);
+	images.SetHighResDirectory(hud.string()+"/");
+
+	cResourceImage *icon = images.CreateImage("hud_icon");
+	Check(icon && icon->GetSize()==cVector2l(8,6) && icon->GetTexelSize()==cVector2l(32,24),
+		"high-resolution image keeps the original size");
+	const tVertexVec &vtx = icon->GetVertexVec();
+	Check(vtx[2].pos.x==8 && vtx[2].pos.y==6 && vtx[2].tex.x>0.9f && vtx[2].tex.y>0.9f,
+		"high-resolution image quad spans its own frame at the original size");
+	tVertexVec copy = icon->GetVertexVecCopy(cVector2f(10,20), cVector2f(-1,-1));
+	Check(copy[2].pos.x==18 && copy[2].pos.y==26, "default draw size is the original size");
+	Check(icon->GetFrameBitmap()->IsLocked(), "high-resolution frame is not shared");
+	Check(images.CreateImage("hud_icon.png")==icon, "replacement is found under the original name");
+
+	cResourceImage *plain = images.CreateImage("hud_plain");
+	cResourceImage *odd = images.CreateImage("hud_odd");
+	Check(plain && plain->GetSize()==cVector2l(8,6) && plain->GetTexelSize()==cVector2l(8,6),
+		"image without replacement is unchanged");
+	Check(odd && odd->GetTexelSize()==cVector2l(8,6), "replacement of the wrong size falls back to the original");
+	Check(plain->GetFrameTexture()==odd->GetFrameTexture() && plain->GetFrameTexture()!=icon->GetFrameTexture(),
+		"ordinary images still share the atlas");
+
+	// A margin of whole original pixels, equal on opposite sides, is drawn
+	// around the original's rectangle and scales with the draw size.
+	cResourceImage *margin = images.CreateImage("hud_margin");
+	Check(margin && margin->GetSize()==cVector2l(8,6) && margin->GetMargin()==cVector2l(2,1),
+		"replacement with a margin keeps the original size");
+	const tVertexVec &marginVtx = margin->GetVertexVec();
+	Check(marginVtx[0].pos.x==-2 && marginVtx[0].pos.y==-1 && marginVtx[2].pos.x==10 && marginVtx[2].pos.y==7,
+		"margin lies around the original's rectangle");
+	copy = margin->GetVertexVecCopy(cVector2f(10,20), cVector2f(16,12));
+	Check(copy[0].pos.x==6 && copy[0].pos.y==18 && copy[2].pos.x==30 && copy[2].pos.y==34,
+		"margin scales with the draw size");
+	cRect2f fraction = margin->GetDrawRect(cVector2f(1,1));
+	Check(fraction.x==-0.25f && fraction.w==1.5f && std::fabs(fraction.y + 1.0f/6.0f) < 1e-6f,
+		"draw rectangle as a fraction of the draw size");
+	cResourceImage *uneven = images.CreateImage("hud_uneven");
+	Check(uneven && uneven->GetTexelSize()==cVector2l(8,6) && uneven->GetMargin()==cVector2l(0,0),
+		"replacement with an uneven margin falls back to the original");
+
+	// An image the game does not have is laid out at 1/N of its size
+	cResourceImage *added = images.CreateImage("hud_new");
+	Check(added && added->GetSize()==cVector2l(10,2) && added->GetTexelSize()==cVector2l(40,8),
+		"new high-resolution image is laid out at 1/N of its size");
+	Check(images.CreateImage("hud_new")==added, "new high-resolution image is loaded once");
+
+	images.FlushAll();
+	// The replacement's frame is 34x26 (one texel of border each side).
+	CheckImmutableStorage(*icon->GetTexture(), GL_TEXTURE_2D, 6);
+	CheckImmutableStorage(*plain->GetTexture(), GL_TEXTURE_2D, 1);
+	CheckNoGLErrors();
+
+	images.Destroy(icon); images.Destroy(icon); images.Destroy(plain); images.Destroy(odd);
+	images.Destroy(margin); images.Destroy(uneven); images.Destroy(added); images.Destroy(added);
+}
+
 int hplMain(const hpl::tString &)
 {
 	EGLDisplay display = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, nullptr);
@@ -1531,6 +1617,7 @@ int hplMain(const hpl::tString &)
 		cGLSLProgram::SetShaderDirectory(directory.string()+"/");
 		TestQuadInstances(gfx);
 		TestTextures(gfx);
+		TestHighResImages(gfx, directory);
 		TestProgramSubmission();
 		TestBackendComponents(gfx);
 		TestShadowStorage();

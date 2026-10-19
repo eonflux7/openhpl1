@@ -15,6 +15,8 @@ Current technical guides:
 - [Audio lifecycle](audio.md): EFX slot mutex ownership, worker shutdown and
   startup crash regression coverage.
 - [Fonts](../fonts/README.md): bundled typefaces and licences.
+- [HUD images](../hud/README.md): high-resolution cursor, icons and notebook
+  pages, how they replace the game's images and how they were made.
 - [Agent instructions](../AGENTS.md): repository conventions and validation.
 
 [Archived plans and reviews](archive/README.md) retain historical evidence.

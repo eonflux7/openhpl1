@@ -39,9 +39,13 @@ namespace hpl {
 		const tString& GetSourceFile(){ return msSourceFile;}
 
 		bool IsImage(){ return mbIsImage;}
+		//The area drawn, as a fraction of the size the object is drawn at; wider
+		//than 0,0,1,1 for an image with a margin.
+		const cRect2f& GetDrawRect()const{ return mDrawRect;}
 
 	private:
 		tVertexVec mvVtx;
+		cRect2f mDrawRect;
 		iMaterial* mpMat;
 		float mfZ;
 		bool mbIsImage;

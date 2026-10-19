@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="136" viewBox="0 0 32 34">
+  <!-- OpenHPL1 recreation of Penumbra's player_crosshair_pointer (32x34).
+       The game draws the sprite centred on the mouse, so the hotspot is the
+       centre (16,17), which is where the arrow's tip sits. Black arrow, solid
+       white outline and a soft white halo; plain geometry, no filters. -->
+  <defs>
+    <polygon id="arrow" points="15.97,16.96 25.40,20.52 23.22,22.75 27.53,27.20 26.68,28.76 22.02,24.78 19.59,26.68"/>
+  </defs>
+  <g fill="#fff" stroke="#fff" stroke-linejoin="round">
+    <use href="#arrow" stroke-width="4.588" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="4.228" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="3.868" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="3.508" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="3.148" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="2.788" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="2.428" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="2.068" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="1.708" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="1.348" stroke-opacity="0.1487"/>
+    <use href="#arrow" stroke-width="0.988"/>
+  </g>
+  <use href="#arrow" fill="#000"/>
+</svg>

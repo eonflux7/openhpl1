@@ -141,7 +141,16 @@ checks are retained in the archived roadmap; they are not new work here.
       for the next simulation step.
 - [ ] Apply resolution, fullscreen and display changes without restarting;
       this is also Milestone 3's remaining off-screen-frame convenience item.
-- [ ] Add high-DPI/upscaled cursor, inventory, notebook and menu assets.
+- [ ] Add high-DPI/upscaled cursor, inventory, notebook and menu assets
+      (`hud-remaster` branch). Done: `<exe dir>/hud/` replacements at the
+      original size, with an optional margin drawn outside it, the mouse
+      arrow (SVG), the hand and eye crosshairs, the notebook cover, a new
+      paper page and page corners folded from it, and the notebook's
+      pencil-underline highlight and ruled notes list
+      ([hud/README.md](hud/README.md)).
+      Still needed: in-game checks on Windows and Linux, then the doorlink,
+      ladder and cross crosshairs, inventory slots and
+      item icons, health and menu art.
 - [ ] Check the game chooser by hand on Windows and Linux desktops: the
       system folder dialog (XDG portal or zenity on Linux) and its typed-folder
       fallback, high-DPI sizing, GOG detection, and Options → Change Game

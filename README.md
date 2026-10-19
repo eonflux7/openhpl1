@@ -69,7 +69,8 @@ vendored in `vendor/`.
 
 FreeType renders the fonts. With `freetype-devel` installed the system library
 is used; without it, CMake downloads FreeType 2.13.3 and builds it into the
-engine. The fonts themselves are in `fonts/`.
+engine. The fonts themselves are in `fonts/`. High-resolution HUD images
+(cursor, hand and eye icons, notebook pages) are in `hud/`.
 
 ```
 cmake --preset default
@@ -250,7 +251,8 @@ without viewpoints is shot from automatic places instead: each start
 position, and up to six of the map's lights, looking in four directions
 from each. All with the flashlight on. These frames show the 3D view only, without the HUD, fades
 or menus. Then it loads the first map again and saves the 2D screens over
-it (`2d-*.png`): HUD, inventory, notebook, keypad, a message, the main
+it (`2d-*.png`): HUD, inventory, notebook (cover, tasks, a note and the
+notes list, with an entry hovered), keypad, a message, the main
 menu pages, death, intro and credits. All at 1280x720 with fixed graphics
 settings: shadows,
 ambient occlusion, SMAA and 4x multisampling on, the noise filter off.
@@ -377,6 +379,7 @@ saves.
 | `OPENHPL_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OPENHPL_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OPENHPL_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OPENHPL_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
+| `OPENHPL_ORIGINAL_HUD=1` | Draw the game's own HUD images instead of the high-resolution ones in `<exe dir>/hud/` |
 | `OPENHPL_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
@@ -435,7 +438,9 @@ OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).
 Bundled third-party code keeps its own licence: see
 [engine/NOTICE](engine/NOTICE), each directory under `vendor/`,
 `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`. Penumbra game
-assets are not covered by this licence and are not included.
+assets are not covered by this licence and are not included. The images in
+`hud/` recreate some of them at higher resolution; see
+[hud/README.md](hud/README.md).
 
 Penumbra and HPL are trademarks of Frictional Games. OpenHPL1 is an unofficial
 fan project and is not affiliated with or endorsed by Frictional Games.
