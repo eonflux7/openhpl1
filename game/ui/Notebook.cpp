@@ -43,6 +43,9 @@ static const float kfListMarginX = 262;
 static const float kfListTitleX = 270;
 static const float kfListRight = 560;
 static const float kfListTop = 114;
+static const float kfListRowHeight = 29; // As the original's 14 high text and gaps
+static const float kfListTextSize = 16;
+static const float kfListHeadingSize = 22;
 
 static void UpdateReveal(float &afReveal, float afAlpha, bool abSelected, float afTime)
 {
@@ -60,6 +63,26 @@ static void DrawUnderline(cGraphicsDrawer *apDrawer, cGfxObject *apLine, const c
 	// ends of the text, just under it
 	cVector3f vPos = avTextPos + cVector3f(-5, afFontHeight - 3, -1);
 	apDrawer->DrawGfxObjectPart(apLine, vPos, cVector2f(afTextWidth + 10, 8), aColor, cRect2f(0,0,fDrawn,1));
+}
+
+// The paper's font in bold (fonts.cfg), or null with bitmap fonts
+static iFontData *CreatePaperBoldFont(cInit *apInit)
+{
+	cFontManager *pFonts = apInit->mpGame->GetResources()->GetFontManager();
+	if(pFonts->HasVectorFont("notebook_bold.fnt")==false) return nullptr;
+	return pFonts->CreateFontData("notebook_bold.fnt");
+}
+
+// A drop shadow's offset, afSize virtual units rounded to whole screen
+// pixels: each glyph is placed on whole pixels, so an offset that is not
+// would move the shadow's glyphs by different amounts.
+static cVector3f ShadowOffset(cInit *apInit, float afSize)
+{
+	iLowLevelGraphics *pLowLevel = apInit->mpGame->GetGraphics()->GetLowLevel();
+	float fScale = pLowLevel->GetScreenSize().y / (pLowLevel->GetVirtualSize().y + pLowLevel->GetVirtualOffset().y*2);
+	if(fScale <= 0) return cVector3f(afSize,afSize,-1);
+	float fPixels = std::max(1.0f, roundf(afSize * fScale)) / fScale;
+	return cVector3f(fPixels,fPixels,-1);
 }
 
 // asText, cut short with "..." if it is wider than afWidth
@@ -86,7 +109,10 @@ cNotebookState_Front::cNotebookState_Front(cInit *apInit, cNotebook *apNotebook)
 	if(mpInit->mbHighResHud)
 		mpUnderline = mpDrawer->CreateGfxObject("notebook_underline_1","diffalpha2d");
 	
-	mpFrontFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
+	if(mpInit->mbHighResHud) mpFrontFont = CreatePaperBoldFont(mpInit);
+	const bool bPaperFont = mpFrontFont != nullptr;
+	if(mpFrontFont==nullptr)
+		mpFrontFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 
 	mvOptions.resize(2);
 	
@@ -98,7 +124,9 @@ cNotebookState_Front::cNotebookState_Front(cInit *apInit, cNotebook *apNotebook)
 
 	mlSelected = -1;
 
-	mvFontSize = 21;
+	// The paper's font is smaller for its size: this gives its capitals the
+	// original's height
+	mvFontSize = bPaperFont ? 25 : 21;
 
 	for(size_t i=0; i< mvOptions.size(); ++i)
 	{
@@ -176,7 +204,7 @@ void cNotebookState_Front::OnDraw()
 			{
 				float fAlpha = mpNotebook->GetAlpha() * std::min(1.0f, mvOptions[i].mfAlpha * 3);
 				DrawUnderline(mpDrawer, mpUnderline, mvOptions[i].mvPos - cVector3f(mvOptions[i].mRect.w/2,0,0),
-							mvOptions[i].mRect.w, mvFontSize.y, mvOptions[i].mfReveal, cColor(1,0.85f*fAlpha));
+							mvOptions[i].mRect.w, mvFontSize.y, mvOptions[i].mfReveal, cColor(1,fAlpha));
 			}
 			else
 			{
@@ -187,7 +215,7 @@ void cNotebookState_Front::OnDraw()
 		
 		mpFrontFont->Draw(mvOptions[i].mvPos,mvFontSize,cColor(0.7f,0.7f,0.7f, 0.8f*mpNotebook->GetAlpha()),
 				eFontAlign_Center,mvOptions[i].msText.c_str());
-		mpFrontFont->Draw(mvOptions[i].mvPos + cVector3f(1,1,-1),mvFontSize,cColor(0.0f,0.0f,0.0f, 0.8f*mpNotebook->GetAlpha()),
+		mpFrontFont->Draw(mvOptions[i].mvPos + ShadowOffset(mpInit,1),mvFontSize,cColor(0.0f,0.0f,0.0f, 0.8f*mpNotebook->GetAlpha()),
 						eFontAlign_Center,mvOptions[i].msText.c_str());
 	}
 }
@@ -467,11 +495,15 @@ cNotebookState_NoteList::cNotebookState_NoteList(cInit *apInit, cNotebook *apNot
 		mpUnread = mpDrawer->CreateGfxObject("notebook_unread","diffalpha2d");
 	}
 
-	mpTextFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt",14);
+	// The remastered list is written in the paper's font, like the notes
+	mpTextFont =  mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData(
+		mpInit->mbHighResHud ? "cour.fnt" : "verdana.fnt",14);
+	if(mpInit->mbHighResHud) mpHeadingFont = CreatePaperBoldFont(mpInit);
+	if(mpHeadingFont==nullptr) mpHeadingFont = mpTextFont;
 
 	msUnread = kTranslate("Notebook","Unread");
 		
-	mvSize = cVector2f(14,14);
+	mvSize = mpInit->mbHighResHud ? cVector2f(kfListTextSize,kfListTextSize) : cVector2f(14,14);
 
 	mlMaxNotesPerPage = 11;
 	mlFirstNote =0;
@@ -545,9 +577,9 @@ void cNotebookState_NoteList::OnEnterState(int alLastState)
 		pNote->mRect.x = vPos.x;
 		pNote->mRect.y = vPos.y+6;
 		pNote->mRect.w = bRemastered ? kfListRight - kfListTitleX : 300;
-		pNote->mRect.h = mvSize.y + 12;
+		pNote->mRect.h = bRemastered ? kfListRowHeight - 3 : mvSize.y + 12;
 		
-		vPos.y += mvSize.y + 15;
+		vPos.y += bRemastered ? kfListRowHeight : mvSize.y + 15;
 
 		lCount++;
 	}
@@ -636,12 +668,12 @@ void cNotebookState_NoteList::OnDraw()
 	{
 		// Heading, then a red margin line and a ruled line under every slot,
 		// drawn on the page under the page corners
-		mpTextFont->Draw(cVector3f(400,80,70),18,cColor(0.12f,0.1f,0.08f,0.9f*fBookAlpha),eFontAlign_Center,
+		mpHeadingFont->Draw(cVector3f(400,78,70),kfListHeadingSize,cColor(0.12f,0.1f,0.08f,0.9f*fBookAlpha),eFontAlign_Center,
 						kTranslate("Notebook", "PickedNotes").c_str());
 		mpDrawer->DrawGfxObject(mpMargin,cVector3f(kfListMarginX-1.5f,70,12),cVector2f(3,460),cColor(1,0.6f*fBookAlpha));
 		for(int i=0; i<mlMaxNotesPerPage; ++i)
 		{
-			float fY = kfListTop + 6 + i*(mvSize.y+15) + mvSize.y + 7;
+			float fY = kfListTop + 6 + i*kfListRowHeight + 21;
 			mpDrawer->DrawGfxObject(mpRule,cVector3f(233,fY-1,12),cVector2f(334,2),cColor(1,0.4f*fBookAlpha));
 		}
 	}
@@ -661,7 +693,7 @@ void cNotebookState_NoteList::OnDraw()
 		{
 			cVector3f vTextPos(pNote->mRect.x,pNote->mRect.y,70);
 			// Its number in the margin
-			mpTextFont->Draw(cVector3f(kfListMarginX-6,vTextPos.y+1,70),12,cColor(0.3f,0.26f,0.22f,0.7f*fBookAlpha),
+			mpTextFont->Draw(cVector3f(kfListMarginX-6,vTextPos.y+1,70),14,cColor(0.3f,0.26f,0.22f,0.7f*fBookAlpha),
 							eFontAlign_Right,_W("%d."),lCount+1);
 
 			// The title in ink, darker while hovered, cut short to fit the page
@@ -673,11 +705,11 @@ void cNotebookState_NoteList::OnDraw()
 			mpTextFont->Draw(vTextPos,mvSize,cColor(0.17f*fInk,0.14f*fInk,0.11f*fInk,(0.88f+0.12f*pNote->mfAlpha)*fBookAlpha),
 							eFontAlign_Left,sName.c_str());
 			if(pNote->mbRead==false)
-				mpDrawer->DrawGfxObject(mpUnread,cVector3f(vTextPos.x+fWidth+5,vTextPos.y+4,70),cVector2f(8,8),
+				mpDrawer->DrawGfxObject(mpUnread,cVector3f(vTextPos.x+fWidth+5,vTextPos.y+5,70),cVector2f(8,8),
 										cColor(1,0.9f*fBookAlpha));
 
 			DrawUnderline(mpDrawer, mpUnderline[lCount % 3], vTextPos, fWidth, mvSize.y, pNote->mfReveal,
-						cColor(1,0.9f*fBookAlpha*std::min(1.0f, pNote->mfAlpha*3)));
+						cColor(1,fBookAlpha*std::min(1.0f, pNote->mfAlpha*3)));
 
 			lCount++;
 			continue;

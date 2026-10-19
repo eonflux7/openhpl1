@@ -66,6 +66,10 @@ with `OPENHPL_ORIGINAL_HUD=1` it is drawn as in the original game.
   once it has been opened; the game saved that flag but never set it, so in
   saves from before this every note shows as unread until opened.
 - The tasks, notes list and note pages show "page / pages".
+- The notes list is written in the paper's font, like the notes; its
+  heading and the cover menu use the same font in bold (see
+  `fonts/README.md`), the cover menu at a size that gives it the original's
+  capital height.
 
 ## Vector images
 

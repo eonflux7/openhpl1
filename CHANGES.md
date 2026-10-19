@@ -15,6 +15,20 @@ commit), and the last official Linux build on Steam.
   instead of running off the page, an ink dot after unread notes. The
   tasks, notes list and note pages show "page / pages". The images are
   drawn by `tools/hud_pencil.py`. See `hud/README.md`.
+- Follow-up: the notes list is written in the paper's font (`cour.fnt`, as
+  the notes), its heading and the cover menu in a bold instance of it
+  (`fonts/Recursive-MonoCasualItalicBold.ttf`; `fonts.cfg` entries can now
+  name a `Base` .fnt for metrics, `cFontManager::HasVectorFont`), sized to
+  the original capitals; the underline is darker and wider. The cover
+  menu's drop shadow is offset by whole screen pixels (in both looks): each
+  glyph is placed on whole pixels, so the old 1-unit offset (2.4 pixels at
+  1440p) moved glyphs by 2 or 3 pixels and looked uneven.
+- The computer text (`font_computer.fnt`, Courier New in the original) uses
+  Cousine, which matches Courier New's metrics, instead of the Departure
+  Mono pixel font (removed); with Size 0.89 and Width 1.03 the intro's lines
+  match the original bitmap font's length. CMake now replaces `fonts/` next
+  to the executable on every build, as it does `hud/`, so `fonts.cfg` edits
+  and removed fonts arrive without a relink.
 - Engine: `cImageManager` also loads images that exist only in the
   high-resolution directory (`name@<N>x.png`, laid out at 1/N of its size);
   `cGraphicsDrawer::DrawGfxObjectPart` draws a part of a gfx object where
@@ -35,7 +49,10 @@ commit), and the last official Linux build on Steam.
   and cursor on the cover, the world behind the tasks and note screens, now
   captured 30 steps earlier) and the list screen is new, drawn as in the
   original game; with the new images, the list and cover were checked by
-  eye. Not checked: actual mouse play, paging with more than 11 notes in
+  eye. After the follow-up: the same tests pass (also under ASan/UBSan),
+  the original-HUD capture differs only by the cover's shadow (1,090
+  pixels), and the intro's text was compared with `OPENHPL_BITMAP_FONTS=1`.
+  Not checked: actual mouse play, paging with more than 11 notes in
   game, Black Plague/Requiem, Linux game runs.
 
 ## High-resolution HUD images (2026-10-19)

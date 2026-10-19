@@ -431,7 +431,7 @@ run.sh     launcher
 - **Jorge Jimenez, Jose I. Echevarria, Belen Masia, Fernando Navarro and
   Diego Gutierrez**: SMAA, the reference shader (`shaders/SMAA.hlsl`) and its
   area and search textures (`vendor/smaa`) (MIT)
-- **Arimo, Cousine, Recursive and Departure Mono** fonts (SIL OFL 1.1; see
+- **Arimo, Cousine and Recursive** fonts (SIL OFL 1.1; see
   [fonts/README.md](fonts/README.md))
 
 OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).

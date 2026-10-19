@@ -59,11 +59,19 @@ namespace hpl {
 		 */
 		bool LoadVectorFonts(const tString& asDir);
 
+		/**
+		 * True if the list has a vector font for asName. A name in it with a
+		 * Base attribute is a font of its own: the Base .fnt's metrics drawn
+		 * with another font file (e.g. a bold one).
+		 */
+		bool HasVectorFont(const tString& asName) const;
+
 	private:
 		class cVectorFont
 		{
 		public:
 			tString msFile;
+			tString msBase; // For a name the game has no .fnt for: the .fnt to use
 			float mfSize;
 			float mfWidth;
 			float mfPixels;

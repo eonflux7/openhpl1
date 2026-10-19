@@ -120,7 +120,7 @@ public:
 	cGfxObject *mpTextBack;
 	cGfxObject *mpUnderline = nullptr; // The remastered look's, else null
 
-	iFontData *mpFrontFont;
+	iFontData *mpFrontFont = nullptr;
 	std::vector<cNoteBook_Option> mvOptions;
 	int mlSelected;
 	cVector2f mvFontSize;
@@ -196,6 +196,7 @@ public:
 	int mlSelected;
 
 	iFontData *mpTextFont;
+	iFontData *mpHeadingFont = nullptr;
 	tWString msUnread;
 	cVector2f mvSize;
 	cNotebook_Note *mpSelectedNote;

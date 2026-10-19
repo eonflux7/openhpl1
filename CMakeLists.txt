@@ -266,10 +266,13 @@ add_custom_target(openhpl1_hud ALL
 		${CMAKE_CURRENT_SOURCE_DIR}/hud $<TARGET_FILE_DIR:openhpl1>/hud)
 add_dependencies(openhpl1_hud openhpl1)
 
-# Fonts are loaded from <executable dir>/fonts/
-add_custom_command(TARGET openhpl1 POST_BUILD
+# Fonts are loaded from <executable dir>/fonts/, replaced on every build so
+# that edits to fonts.cfg arrive and removed fonts do not linger
+add_custom_target(openhpl1_fonts ALL
+	COMMAND ${CMAKE_COMMAND} -E rm -rf $<TARGET_FILE_DIR:openhpl1>/fonts
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/fonts $<TARGET_FILE_DIR:openhpl1>/fonts)
+add_dependencies(openhpl1_fonts openhpl1)
 
 # The physics test map is generated into <executable dir>/testmap/
 find_package(Python3 COMPONENTS Interpreter)

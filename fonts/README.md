@@ -10,15 +10,16 @@ its own bitmap fonts.
   (`fontTools.varLib.instancer`) from `ofl/arimo/Arimo[wght].ttf` in
   https://github.com/google/fonts. SIL Open Font License 1.1, `Arimo-OFL.txt`.
 - `Cousine-Regular.ttf`: from `ofl/cousine` in https://github.com/google/fonts.
-  SIL Open Font License 1.1, `Cousine-OFL.txt`. Used by the debug panels.
-- `Recursive-MonoCasualItalic.ttf`: the text on paper (notebook notes and
-  tasks). A static instance (`MONO=1, CASL=1, wght=380, slnt=-8, CRSV=1`) of
+  SIL Open Font License 1.1, `Cousine-OFL.txt`. The computer text (the
+  original is Courier New, which Cousine matches in metrics) and the debug
+  panels.
+- `Recursive-MonoCasualItalic.ttf`: the text on paper (notebook notes, tasks
+  and, with the high-resolution HUD, the notes list). A static instance (`MONO=1, CASL=1, wght=380, slnt=-8, CRSV=1`) of
   the Recursive variable font, made with fontTools
   (`fontTools.varLib.instancer`) from
   `ofl/recursive/Recursive[CASL,CRSV,MONO,slnt,wght].ttf` in
   https://github.com/google/fonts. SIL Open Font License 1.1,
   `Recursive-OFL.txt`.
-- `DepartureMono-Regular.otf`: the computer text, a pixel font on a grid of
-  11 pixels per em. Version 1.500 from
-  https://github.com/rektdeckard/departure-mono. SIL Open Font License 1.1,
-  `DepartureMono-OFL.txt`.
+- `Recursive-MonoCasualItalicBold.ttf`: the same at `wght=700`, for the
+  notebook's cover menu and headings (`notebook_bold.fnt` in `fonts.cfg`, a
+  font of its own with `cour.fnt`'s metrics).

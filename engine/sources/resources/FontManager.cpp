@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "resources/FontManager.h"
+#include "resources/FileSearcher.h"
 #include "system/String.h"
 #include "system/LowLevelSystem.h"
 #include "resources/Resources.h"
@@ -73,6 +74,11 @@ namespace hpl {
 
 		pFont = static_cast<iFontData*>(this->FindLoadedResource(asNewName,sPath));
 
+		//A vector font with a base: the base's .fnt under this name
+		auto vectorIt = m_mapVectorFonts.find(cString::GetFileName(asNewName));
+		if(pFont==nullptr && sPath=="" && vectorIt != m_mapVectorFonts.end() && vectorIt->second.msBase != "")
+			sPath = mpFileSearcher->GetFilePath(vectorIt->second.msBase);
+
 		if(pFont==nullptr && sPath!="")
 		{
 			pFont = mpGraphics->GetLowLevel()->CreateFontData(asNewName);
@@ -98,7 +104,6 @@ namespace hpl {
 					return nullptr;
 				}
 
-				auto vectorIt = m_mapVectorFonts.find(cString::GetFileName(asNewName));
 				if(vectorIt != m_mapVectorFonts.end())
 				{
 					const cVectorFont &vectorFont = vectorIt->second;
@@ -147,6 +152,7 @@ namespace hpl {
 
 			cVectorFont vectorFont;
 			vectorFont.msFile = asDir + sFontFile;
+			vectorFont.msBase = cString::ToLowerCase(cString::ToString(pFontElem->Attribute("Base"),""));
 			vectorFont.mfSize = cString::ToFloat(pFontElem->Attribute("Size"),1);
 			vectorFont.mfWidth = cString::ToFloat(pFontElem->Attribute("Width"),1);
 			vectorFont.mfPixels = cString::ToFloat(pFontElem->Attribute("Pixels"),0);
@@ -155,6 +161,13 @@ namespace hpl {
 		}
 
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cFontManager::HasVectorFont(const tString& asName) const
+	{
+		return m_mapVectorFonts.count(cString::ToLowerCase(cString::GetFileName(asName))) > 0;
 	}
 
 	//-----------------------------------------------------------------------

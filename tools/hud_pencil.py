@@ -81,8 +81,8 @@ def underline(seed):
 	# Presses in at the start, lifts off in a longer flick at the end
 	pressure = np.clip(np.minimum(t / 0.04, (1 - t) / 0.18), 0, 1) ** 0.8
 	pressure *= 0.82 + 0.12 * smooth_noise(rng, w, w / 7)
-	half_width = (0.35 + 0.35 * pressure) * SCALE
-	return stroke(rng, w, h, centre, half_width, pressure, (0.20, 0.19, 0.18))
+	half_width = (0.5 + 0.5 * pressure) * SCALE
+	return stroke(rng, w, h, centre, half_width, np.clip(pressure * 1.1, 0, 1), (0.13, 0.12, 0.12))
 
 
 def rule():
