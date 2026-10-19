@@ -14,13 +14,13 @@ class cInit;
 //----------------------------------------
 
 // Reference images for checking renderer changes, enabled with
-// OVERTURE_REFSHOTS:
-//   OVERTURE_REFSHOTS=1            every map in maps/ and the test map
-//   OVERTURE_REFSHOTS=office,worm  maps whose name contains one of these,
+// OPENHPL_REFSHOTS:
+//   OPENHPL_REFSHOTS=1            every map in maps/ and the test map
+//   OPENHPL_REFSHOTS=office,worm  maps whose name contains one of these,
 //                                  in any case
 // A map's frames are taken from its viewpoints in tools/refviews.txt
 // (chosen by hand in the F2 panel, cRefView): the camera is put at each one
-// and a frame saved as <OVERTURE_REFSHOTS_DIR>/<map>-<viewpoint>.png.
+// and a frame saved as <OPENHPL_REFSHOTS_DIR>/<map>-<viewpoint>.png.
 // A map without viewpoints gets automatic places instead: the player is put
 // on every start position in turn, then the camera alone at some of the
 // map's lights, and a frame is saved looking in four directions from each,
@@ -30,7 +30,7 @@ class cInit;
 // game draws in 2D (HUD, fades, effects, menus). The player cannot be hurt.
 // After the last map the first one is loaded again for the 2D screens: the
 // HUD, inventory, notebook, keypad, a message and the main menu, saved as
-// <OVERTURE_REFSHOTS_DIR>/2d-<screen>.png.
+// <OPENHPL_REFSHOTS_DIR>/2d-<screen>.png.
 // The run uses a fixed time step and a fixed random seed, so that two runs
 // of the same build give the same frames; tools/refshots.py runs it headless
 // and compares the result with an earlier run. Progress is logged with a
@@ -60,7 +60,7 @@ public:
 	static int GetAngleNum(const cView &aView){ return aView.mbManual ? 1 : klAngles; }
 
 	// The viewpoints file: tools/refviews.txt of the source tree the game
-	// was built from, or OVERTURE_REFVIEWS_FILE. One line per viewpoint:
+	// was built from, or OPENHPL_REFVIEWS_FILE. One line per viewpoint:
 	// map (lower case, no extension), name, x y z, yaw, pitch, flashlight
 	// (1 or 0; on if left out).
 	static tString GetViewsFile();

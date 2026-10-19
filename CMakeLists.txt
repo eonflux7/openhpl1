@@ -10,15 +10,15 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-option(OVERTURE_WARNINGS "Compiler warnings for the engine and game (not vendor/)" ON)
-set(OVERTURE_SANITIZERS "" CACHE STRING
+option(OPENHPL_WARNINGS "Compiler warnings for the engine and game (not vendor/)" ON)
+set(OPENHPL_SANITIZERS "" CACHE STRING
 	"Comma-separated -fsanitize= list for all targets, e.g. address,undefined")
 
 # Silences the vendored libraries' warnings
 if(MSVC)
-	set(OVERTURE_NO_WARNINGS $<$<COMPILE_LANGUAGE:C,CXX>:/w>)
+	set(OPENHPL_NO_WARNINGS $<$<COMPILE_LANGUAGE:C,CXX>:/w>)
 else()
-	set(OVERTURE_NO_WARNINGS -w)
+	set(OPENHPL_NO_WARNINGS -w)
 endif()
 
 if(MSVC)
@@ -28,21 +28,21 @@ if(MSVC)
 		_USE_MATH_DEFINES)
 endif()
 
-if(OVERTURE_SANITIZERS)
+if(OPENHPL_SANITIZERS)
 	# Alignment is off: AngelScript packs pointers and std::string arguments
 	# at 4-byte offsets by design, which is fine on x86-64.
-	add_compile_options(-fsanitize=${OVERTURE_SANITIZERS} -fno-sanitize=alignment
+	add_compile_options(-fsanitize=${OPENHPL_SANITIZERS} -fno-sanitize=alignment
 		-fno-omit-frame-pointer)
-	add_link_options(-fsanitize=${OVERTURE_SANITIZERS})
+	add_link_options(-fsanitize=${OPENHPL_SANITIZERS})
 endif()
 
 function(overture_warnings target)
-	if(OVERTURE_WARNINGS AND MSVC)
+	if(OPENHPL_WARNINGS AND MSVC)
 		# C4244/C4267/C4305: implicit narrowing, everywhere in the original
 		# code. C4996: the CRT's "unsafe" functions.
 		target_compile_options(${target} PRIVATE
 			/W3 /wd4244 /wd4267 /wd4305 /wd4996 /wd4018 /wd4101)
-	elseif(OVERTURE_WARNINGS)
+	elseif(OPENHPL_WARNINGS)
 		# The -Wno- groups are high-volume noise in the original code
 		# (stdcall on script callbacks, member init order, unhandled enum
 		# values, unused locals). Re-enable one at a time to clean up.
@@ -93,7 +93,7 @@ if(NOT Freetype_FOUND)
 	set(BUILD_SHARED_LIBS OFF)
 	FetchContent_MakeAvailable(freetype)
 	set(BUILD_SHARED_LIBS ${overture_build_shared})
-	target_compile_options(freetype PRIVATE ${OVERTURE_NO_WARNINGS})
+	target_compile_options(freetype PRIVATE ${OPENHPL_NO_WARNINGS})
 	add_library(Freetype::Freetype ALIAS freetype)
 endif()
 
@@ -108,8 +108,8 @@ target_include_directories(glad SYSTEM PUBLIC vendor/glad/include)
 file(GLOB_RECURSE newton_sources CONFIGURE_DEPENDS vendor/newton/*.cpp)
 add_library(newton STATIC ${newton_sources})
 target_include_directories(newton SYSTEM PUBLIC vendor/newton)
-target_compile_options(newton PRIVATE ${OVERTURE_NO_WARNINGS})
-if(OVERTURE_SANITIZERS)
+target_compile_options(newton PRIVATE ${OPENHPL_NO_WARNINGS})
+if(OPENHPL_SANITIZERS)
 	# Upstream Newton relies on shifts of negative values and the like;
 	# keep ASan on it but not UBSan.
 	target_compile_options(newton PRIVATE -fno-sanitize=undefined)
@@ -129,20 +129,20 @@ add_library(angelscript STATIC ${angelscript_sources})
 target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include
 	vendor/angelscript/add_on)
-target_compile_options(angelscript PRIVATE ${OVERTURE_NO_WARNINGS})
+target_compile_options(angelscript PRIVATE ${OPENHPL_NO_WARNINGS})
 
 # OALWrapper (zlib), Frictional Games' OpenAL helper
 file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
 add_library(oalwrapper STATIC ${oalwrapper_sources})
 target_include_directories(oalwrapper SYSTEM PUBLIC vendor/oalwrapper/include)
 target_link_libraries(oalwrapper PUBLIC OpenAL::OpenAL overture_vorbis SDL3::SDL3)
-target_compile_options(oalwrapper PRIVATE ${OVERTURE_NO_WARNINGS})
+target_compile_options(oalwrapper PRIVATE ${OPENHPL_NO_WARNINGS})
 
 # TinyXML 2.x (zlib), as shipped with HPL1
 file(GLOB tinyxml_sources CONFIGURE_DEPENDS vendor/tinyxml/*.cpp)
 add_library(tinyxml STATIC ${tinyxml_sources})
 target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
-target_compile_options(tinyxml PRIVATE ${OVERTURE_NO_WARNINGS})
+target_compile_options(tinyxml PRIVATE ${OPENHPL_NO_WARNINGS})
 
 # Dear ImGui 1.92.9b (MIT), the debug overlay and the game chooser; SDL3
 # platform backend, the OpenGL 3 backend on glad (vendor/imgui_glad) and the
@@ -158,7 +158,7 @@ add_library(imgui STATIC
 	vendor/imgui_glad/imgui_impl_opengl3_glad.cpp)
 target_include_directories(imgui SYSTEM PUBLIC vendor/imgui vendor/imgui/backends)
 target_link_libraries(imgui PUBLIC glad SDL3::SDL3)
-target_compile_options(imgui PRIVATE ${OVERTURE_NO_WARNINGS})
+target_compile_options(imgui PRIVATE ${OPENHPL_NO_WARNINGS})
 
 #--------------------------------------------------------------------
 # HPL1 engine
@@ -216,7 +216,7 @@ endif()
 if(BUILD_TESTING)
 	# Opt-in in-game checks use the original dog mesh, clips and physics.
 	target_sources(openhpl1 PRIVATE tests/dog_regressions.cpp)
-	target_compile_definitions(openhpl1 PRIVATE OVERTURE_DOG_REGRESSIONS)
+	target_compile_definitions(openhpl1 PRIVATE OPENHPL_DOG_REGRESSIONS)
 	add_executable(engine_regressions tests/engine_regressions.cpp)
 	target_link_libraries(engine_regressions PRIVATE hpl)
 	overture_warnings(engine_regressions)
@@ -231,14 +231,14 @@ if(BUILD_TESTING)
 		ENVIRONMENT "ALSOFT_DRIVERS=null;UBSAN_OPTIONS=halt_on_error=1")
 	# Renderer regressions under software EGL, without a window or game data.
 	if(UNIX AND NOT APPLE)
-		find_path(OVERTURE_EGL_INCLUDE_DIR EGL/egl.h)
-		find_library(OVERTURE_EGL_LIBRARY EGL)
-		if(OVERTURE_EGL_INCLUDE_DIR AND OVERTURE_EGL_LIBRARY)
+		find_path(OPENHPL_EGL_INCLUDE_DIR EGL/egl.h)
+		find_library(OPENHPL_EGL_LIBRARY EGL)
+		if(OPENHPL_EGL_INCLUDE_DIR AND OPENHPL_EGL_LIBRARY)
 			add_executable(renderer_regressions tests/renderer_regressions.cpp)
-			target_link_libraries(renderer_regressions PRIVATE hpl ${OVERTURE_EGL_LIBRARY})
-			target_include_directories(renderer_regressions PRIVATE ${OVERTURE_EGL_INCLUDE_DIR})
+			target_link_libraries(renderer_regressions PRIVATE hpl ${OPENHPL_EGL_LIBRARY})
+			target_include_directories(renderer_regressions PRIVATE ${OPENHPL_EGL_INCLUDE_DIR})
 			target_compile_definitions(renderer_regressions PRIVATE
-				OVERTURE_TEST_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+				OPENHPL_TEST_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 			overture_warnings(renderer_regressions)
 			add_test(NAME renderer_regressions COMMAND renderer_regressions)
 			set_tests_properties(renderer_regressions PROPERTIES SKIP_RETURN_CODE 77
@@ -248,7 +248,7 @@ if(BUILD_TESTING)
 endif()
 # The reference image viewpoints are read from, and saved to, the source tree
 target_compile_definitions(openhpl1 PRIVATE
-	OVERTURE_REFVIEWS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tools/refviews.txt")
+	OPENHPL_REFVIEWS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tools/refviews.txt")
 
 # Shaders are loaded from <executable dir>/shaders/. Copied on every build:
 # as a step after linking, an edited shader was not copied until some C++

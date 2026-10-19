@@ -76,7 +76,7 @@ namespace hpl
 		// The version is chosen when the context is created.
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-		const char *pGLDebug = SDL_getenv("OVERTURE_GL_DEBUG");
+		const char *pGLDebug = SDL_getenv("OPENHPL_GL_DEBUG");
 		bool bGLDebug = pGLDebug && pGLDebug[0] && pGLDebug[0] != '0';
 		if(bGLDebug) SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
@@ -95,7 +95,7 @@ namespace hpl
 		}
 
 		// Hidden windows support automated captures without a compositor.
-		const char *pHidden = SDL_getenv("OVERTURE_HIDDEN");
+		const char *pHidden = SDL_getenv("OPENHPL_HIDDEN");
 		const bool bHidden = pHidden && pHidden[0] && pHidden[0] != '0';
 		if(bHidden) abFullscreen = false;
 
@@ -199,7 +199,7 @@ namespace hpl
 	void cSDLGraphicsWindow::DebugDumpFrame()
 	{
 		static int lFrame = 0;
-		static const char *pFrames = SDL_getenv("OVERTURE_DUMP_FRAMES");
+		static const char *pFrames = SDL_getenv("OPENHPL_DUMP_FRAMES");
 		++lFrame;
 		if(pFrames == nullptr || pFrames[0] == 0) return;
 
@@ -216,7 +216,7 @@ namespace hpl
 		}
 		if(!bDump) return;
 
-		const char *pDir = SDL_getenv("OVERTURE_DUMP_DIR");
+		const char *pDir = SDL_getenv("OPENHPL_DUMP_DIR");
 		tString sFile = tString(pDir ? pDir : ".") + "/frame_" + cString::ToString(lFrame) + ".png";
 		SaveFrameToPNG(sFile);
 		Log(" Dumped frame %d to %s (GL error: 0x%x)\n", lFrame, sFile.c_str(), glGetError());
@@ -286,8 +286,8 @@ namespace hpl
 
 		int lChosen = -1;
 
-		// OVERTURE_DISPLAY=<index> goes before the setting.
-		const char *pIndex = SDL_getenv("OVERTURE_DISPLAY");
+		// OPENHPL_DISPLAY=<index> goes before the setting.
+		const char *pIndex = SDL_getenv("OPENHPL_DISPLAY");
 		if(pIndex && pIndex[0])
 		{
 			int lIdx = atoi(pIndex);

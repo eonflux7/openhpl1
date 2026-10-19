@@ -84,7 +84,7 @@ class cDogTestMap;
 //--------------------------------------------------------
 
 // The three games share the engine and most of the game code; which one is
-// played is picked at startup (OVERTURE_GAME, or by the data in the working
+// played is picked at startup (OPENHPL_GAME, or by the data in the working
 // directory).
 enum eGameId
 {
@@ -203,7 +203,7 @@ public:
 
 	tString msStartMap;
 	tString msStartLink;
-	// OVERTURE_MAP=map[:link] loads this map at startup, skipping the menus
+	// OPENHPL_MAP=map[:link] loads this map at startup, skipping the menus
 	tString msDirectMap;
 	tString msDirectLink;
 	
@@ -269,13 +269,13 @@ public:
 	
 	cMainMenu *mpMainMenu;
 
-	cSmokeTest *mpSmokeTest; // NULL unless OVERTURE_SMOKE is set
-	cRefShots *mpRefShots; // NULL unless OVERTURE_REFSHOTS is set
+	cSmokeTest *mpSmokeTest; // NULL unless OPENHPL_SMOKE is set
+	cRefShots *mpRefShots; // NULL unless OPENHPL_REFSHOTS is set
 	cRefView *mpRefView; // NULL during the smoke test and the reference images
 	cDogTestMap *mpDogTestMap;
 	bool mbImprovedDogAI = true;
 	cLampAppearanceController *mpLampAppearanceController;
-	cPhysicsLog *mpPhysicsLog; // NULL unless OVERTURE_PHYSLOG is set
+	cPhysicsLog *mpPhysicsLog; // NULL unless OPENHPL_PHYSLOG is set
 
 	cIntroStory* mpIntroStory;	
 

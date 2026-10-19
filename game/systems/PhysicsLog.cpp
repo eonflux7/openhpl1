@@ -43,7 +43,7 @@ cPhysicsLog::cPhysicsLog(cInit *apInit) : iUpdateable("PhysicsLog")
 
 bool cPhysicsLog::IsRequested()
 {
-	const char *pVal = SDL_getenv("OVERTURE_PHYSLOG");
+	const char *pVal = SDL_getenv("OPENHPL_PHYSLOG");
 	return pVal && pVal[0] && tString(pVal) != "0";
 }
 

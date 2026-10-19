@@ -1,7 +1,7 @@
 # Black Plague and Requiem
 
 The same executable plays all three games. Which one is picked at startup:
-`OVERTURE_GAME=overture|blackplague|requiem`, or without it by the data in the
+`OPENHPL_GAME=overture|blackplague|requiem`, or without it by the data in the
 working directory (Black Plague's folder has `maps/level01_cells.dae`; Requiem
 is installed in the same folder and has to be asked for).
 
@@ -56,8 +56,8 @@ disassembly with the strings and floats it refers to (32-bit x86; member
 offsets are those of the 32-bit build). `tools/porting/headless.sh
 blackplague` runs a game headless and silent in a scratch home.
 
-`OVERTURE_SCRIPT="4:MoveEntityToArea(\"water1\",\"waterup1\",1.4,0.4,0.2,\"\");|9:..."`
-runs script commands that many seconds after the start, with `OVERTURE_MAP`
+`OPENHPL_SCRIPT="4:MoveEntityToArea(\"water1\",\"waterup1\",1.4,0.4,0.2,\"\");|9:..."`
+runs script commands that many seconds after the start, with `OPENHPL_MAP`
 to start in a map. `Print("...")` and the collision checks in an `if` are
 enough to see in the log whether a function did its work.
 
@@ -77,18 +77,18 @@ Many of the later games' classes are an Overture class with changes
 (the Infected is the Dog): comparing the sizes of the functions in the two
 symbol tables shows which ones to read at all.
 
-`OVERTURE_ENEMY_LOG=1` writes every enemy's changes of state to the log, and
+`OPENHPL_ENEMY_LOG=1` writes every enemy's changes of state to the log, and
 once a second where it is, whether it moves and sees the player, and its
-animation. With `OVERTURE_MAP=level07_residental_corridors:link02` and
-`OVERTURE_SCRIPT='5:SetGameEntityActive("inf01",true);|8:ShowEnemyPlayer("inf01");'`
+animation. With `OPENHPL_MAP=level07_residental_corridors:link02` and
+`OPENHPL_SCRIPT='5:SetGameEntityActive("inf01",true);|8:ShowEnemyPlayer("inf01");'`
 that shows a whole hunt and attack. Start at a link the level is entered
 by: from `link01` of that map the player lies in the level's opening scene.
 
-In `OVERTURE_SCRIPT` the command
+In `OPENHPL_SCRIPT` the command
 `save` writes an auto save and `load` loads the newest one, e.g.
 `'12:save|15:load'`, for trying save games of the new entities.
 
-`OVERTURE_PHYSLOG=1` shows bodies that never come to rest (`awake` lines);
+`OPENHPL_PHYSLOG=1` shows bodies that never come to rest (`awake` lines);
 `build/porting/limits/ab.sh GAME MAP:LINK` compared old and new this way when
 the joint limits were changed (through an `OVERTURE_OLD_LIMITS` switch since
 removed), and `check.sh` there tries the tower lever
@@ -127,7 +127,7 @@ x 424; the first at y 298, then every 61).
 
 ## Hunting bugs in bulk
 
-`OVERTURE_SMOKE=all OVERTURE_CHECKS=all tools/porting/headless.sh GAME 2400`
+`OPENHPL_SMOKE=all OPENHPL_CHECKS=all tools/porting/headless.sh GAME 2400`
 loads every map and runs the checks of `game/core/MapChecks.cpp` on each,
 writing `CHECK <kind> <map>: ...` lines to the log (leads, not failures):
 
@@ -157,10 +157,10 @@ writing `CHECK <kind> <map>: ...` lines to the log (leads, not failures):
   "couldn't find" warnings it causes are expected. Load screens it opens
   are closed at once.
 
-Give a subset as `OVERTURE_CHECKS=settle,joints`, and maps as
-`OVERTURE_SMOKE=level07,level09`. Two runs at once need their own home:
+Give a subset as `OPENHPL_CHECKS=settle,joints`, and maps as
+`OPENHPL_SMOKE=level07,level09`. Two runs at once need their own home:
 `HEADLESS_HOME=<dir> HEADLESS_TAG=<name>` for the second.
-`OVERTURE_CONTACT_SKIN=<metres>` overrides the contact skin, for comparing
+`OPENHPL_CONTACT_SKIN=<metres>` overrides the contact skin, for comparing
 (`build/porting/skin/crate1.sh` pushes level 4's crate).
 
 Warnings and errors given while a script runs end with the script function
@@ -173,6 +173,6 @@ the functions the game registers: callbacks that are not defined (a timer,
 collide or use callback naming a missing function), functions defined twice,
 calls with an argument count no overload takes. It reads the registered
 functions from `build/porting/api/<game>.txt`, written by running the game
-once with `OVERTURE_SCRIPT_API=<that file> OVERTURE_SMOKE=none`. On
+once with `OPENHPL_SCRIPT_API=<that file> OPENHPL_SMOKE=none`. On
 2026-10-06 its 8 findings were all mistakes in the shipped scripts
 (functions commented out), the same in the original.

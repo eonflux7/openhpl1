@@ -827,7 +827,7 @@ namespace hpl {
 		}
 
 		// For tools/porting/check_scripts.py: the declarations the scripts can call
-		static FILE *pApiFile = getenv("OVERTURE_SCRIPT_API") ? fopen(getenv("OVERTURE_SCRIPT_API"), "w") : nullptr;
+		static FILE *pApiFile = getenv("OPENHPL_SCRIPT_API") ? fopen(getenv("OPENHPL_SCRIPT_API"), "w") : nullptr;
 		if(pApiFile){ fprintf(pApiFile, "%s\n", asFuncDecl.c_str()); fflush(pApiFile); }
 
 		return true;

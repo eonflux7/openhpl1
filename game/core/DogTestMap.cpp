@@ -76,7 +76,7 @@ void cDogTestMap::Update(float)
     }
     if(mbNeedsSetup) {
         if(!LoadStations()) return;
-        // Honour OVERTURE_MAP=dogtest:<start>, including after a save load.
+        // Honour OPENHPL_MAP=dogtest:<start>, including after a save load.
         cWorld3D *world=mpInit->mpGame->GetScene()->GetWorld3D();
         const cVector3f player=mpInit->mpPlayer->GetCharacterBody()->GetFeetPosition();
         float best=1e30f;

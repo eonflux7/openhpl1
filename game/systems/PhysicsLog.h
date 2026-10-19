@@ -16,7 +16,7 @@ class cInit;
 
 //----------------------------------------
 
-// Physics event log for debugging, enabled with OVERTURE_PHYSLOG=1.
+// Physics event log for debugging, enabled with OPENHPL_PHYSLOG=1.
 // Writes "PHYS:" lines to hpl.log, stamped with seconds since the map loaded:
 //   wake / rest   a dynamic body starts moving / the engine puts it to sleep,
 //                 with how far and how fast it moved while awake and, for

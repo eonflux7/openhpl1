@@ -117,7 +117,7 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 	mb2D = false;
 	ml2DScreen = 0;
 
-	const char *pDir = SDL_getenv("OVERTURE_REFSHOTS_DIR");
+	const char *pDir = SDL_getenv("OPENHPL_REFSHOTS_DIR");
 	msDir = pDir && pDir[0] ? pDir : ".";
 
 	// The same frames every run: one logic step per drawn frame, and the
@@ -176,9 +176,9 @@ void cRefShots::FindMaps(cInit *apInit, tStringVec &avMaps)
 
 tString cRefShots::GetViewsFile()
 {
-	const char *pFile = SDL_getenv("OVERTURE_REFVIEWS_FILE");
+	const char *pFile = SDL_getenv("OPENHPL_REFVIEWS_FILE");
 	if(pFile && pFile[0]) return pFile;
-	return OVERTURE_REFVIEWS_FILE;
+	return OPENHPL_REFVIEWS_FILE;
 }
 
 //-----------------------------------------------------------------------
@@ -300,7 +300,7 @@ bool cRefShots::IsRequested()
 
 tString cRefShots::GetSpec()
 {
-	const char *pSpec = SDL_getenv("OVERTURE_REFSHOTS");
+	const char *pSpec = SDL_getenv("OPENHPL_REFSHOTS");
 	return pSpec ? tString(pSpec) : tString("");
 }
 

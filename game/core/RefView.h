@@ -15,7 +15,7 @@ class cInit;
 //----------------------------------------
 
 // A Dear ImGui panel for looking at the places of the reference images
-// (cRefShots) by hand: F2, or OVERTURE_REFVIEW=1 to start with it open.
+// (cRefShots) by hand: F2, or OPENHPL_REFVIEW=1 to start with it open.
 //
 // It lists the maps, and for the loaded map the same places and directions
 // the reference images are taken from, named as the frames are. Picking one

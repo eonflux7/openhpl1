@@ -306,7 +306,7 @@ def build():
                    ((-HALF_X, 0, HALF_Z), (HALF_X, HEIGHT, HALF_Z + WALL))]:
         m.box(lo, hi, 'testmap_wall', '_noshadow')
 
-    # Start positions: OVERTURE_MAP=testmap:<name>. rot_y 0 faces north, 90 west.
+    # Start positions: OPENHPL_MAP=testmap:<name>. rot_y 0 faces north, 90 west.
     m.start('link01', (0, 0, 6), 0)
     for name, pos, rot in [('doors', (-9, 0, -4), 0), ('furniture', (-9, 0, -10.5), 0),
                            ('levers', (18, 0, -8), -90), ('grab', (-13, 0, 4.5), 0),

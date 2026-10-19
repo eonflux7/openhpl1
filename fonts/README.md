@@ -2,7 +2,7 @@
 
 The build copies this directory to `<executable dir>/fonts/`. `fonts.cfg` lists
 which font file replaces each of the game's bitmap fonts; see the comment in
-it. Without the directory, or with `OVERTURE_BITMAP_FONTS=1`, the game draws
+it. Without the directory, or with `OPENHPL_BITMAP_FONTS=1`, the game draws
 its own bitmap fonts.
 
 - `Arimo-Regular.ttf`, `Arimo-Bold.ttf`: static instances (weight 400 and 700)

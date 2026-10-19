@@ -11,8 +11,8 @@ Reports, per script file:
   - calls to functions the game does not register (would fail to build)
   - the number of arguments of a call to a game function that does not fit
 The functions and their overloads come from the game itself: run each game
-once with OVERTURE_SCRIPT_API=build/porting/api/<game>.txt (and, say,
-OVERTURE_SMOKE=none so it quits at once). Parameter names, to know which
+once with OPENHPL_SCRIPT_API=build/porting/api/<game>.txt (and, say,
+OPENHPL_SMOKE=none so it quits at once). Parameter names, to know which
 argument is a callback, come from the sources (static ... __stdcall Name(...)).
 """
 import os
@@ -61,7 +61,7 @@ def game_functions(game):
     """name -> list of signatures (lists of (type, name)); overloads kept."""
     path = os.path.join(ROOT, "build", "porting", "api", game + ".txt")
     if not os.path.exists(path):
-        sys.exit("%s missing: run the game with OVERTURE_SCRIPT_API=%s first" % (path, path))
+        sys.exit("%s missing: run the game with OPENHPL_SCRIPT_API=%s first" % (path, path))
     names = source_params()
     funcs = {}
     for line in open(path):

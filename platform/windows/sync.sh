@@ -5,7 +5,7 @@
 # Usage: platform/windows/sync.sh [/mnt/e/dev/penumbra/openhpl1]
 set -e
 SRC="$(cd "$(dirname "$0")/../.." && pwd)"
-DEST="${1:-${OVERTURE_WINDOWS_DIR:-/mnt/e/dev/penumbra/openhpl1}}"
+DEST="${1:-${OPENHPL_WINDOWS_DIR:-/mnt/e/dev/penumbra/openhpl1}}"
 mkdir -p "$DEST"
 rsync -rlt --delete --info=stats1 \
 	--exclude='/build/' --exclude='/build-*/' --exclude='/.cache/' --exclude='/.git/' \

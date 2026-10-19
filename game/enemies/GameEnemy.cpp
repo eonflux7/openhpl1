@@ -742,8 +742,8 @@ void iGameEnemy::Update(float afTimeStep)
 	
 	START_TIMING_EX(GetName().c_str(),enemy);
 
-	// Test hook: with OVERTURE_ENEMY_LOG, where the enemy is, once a second
-	static const bool bLogStates = SDL_getenv("OVERTURE_ENEMY_LOG") != nullptr;
+	// Test hook: with OPENHPL_ENEMY_LOG, where the enemy is, once a second
+	static const bool bLogStates = SDL_getenv("OPENHPL_ENEMY_LOG") != nullptr;
 	if(bLogStates && mpInit->mpPlayer->GetCharacterBody())
 	{
 		mfLogCount -= afTimeStep;
@@ -893,8 +893,8 @@ void iGameEnemy::ChangeState(int alId)
 	//mpInit->mpEffectHandler->GetSubTitle()->Add(cString::To16Char(sStr),1.2f,false);
 	Log("%s\n",sStr);*/
 
-	// Test hook: OVERTURE_ENEMY_LOG=1 writes each change of state to the log
-	static const bool bLogStates = SDL_getenv("OVERTURE_ENEMY_LOG") != nullptr;
+	// Test hook: OPENHPL_ENEMY_LOG=1 writes each change of state to the log
+	static const bool bLogStates = SDL_getenv("OPENHPL_ENEMY_LOG") != nullptr;
 	if(bLogStates)
 	{
 		Log("ENEMY %s: state %d -> %d (health %.1f, player health %.1f, dist %.2f)\n",msName.c_str(),

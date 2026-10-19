@@ -379,7 +379,7 @@ protected:
 	//Black Plague: set by the kind of enemy before Setup
 	bool mbAccurateClimbing;
 
-	// For the test log (OVERTURE_ENEMY_LOG)
+	// For the test log (OPENHPL_ENEMY_LOG)
 	float mfLogCount = 0;
 
 	//The last sound made; a new one cuts it off (Black Plague)

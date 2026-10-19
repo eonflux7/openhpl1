@@ -84,11 +84,11 @@ cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 	mfTestLightRadius = 6.0f;
 	mfTestLightBrightness = 0.8f;
 
-	const char *pOpen = SDL_getenv("OVERTURE_REFVIEW");
+	const char *pOpen = SDL_getenv("OPENHPL_REFVIEW");
 	if(pOpen && pOpen[0] && pOpen[0] != '0') SetOpen(true);
-	const char *pMap = SDL_getenv("OVERTURE_MAP");
+	const char *pMap = SDL_getenv("OPENHPL_MAP");
 	if(pMap && tString(pMap).find("effectslab") == 0) SetOpen(true);
-	const char *pCapture = SDL_getenv("OVERTURE_EFFECTS_CAPTURE");
+	const char *pCapture = SDL_getenv("OPENHPL_EFFECTS_CAPTURE");
 	if(pCapture && pCapture[0])
 	{
 		msEffectsCapture = pCapture;

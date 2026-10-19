@@ -14,7 +14,7 @@ class cInit;
 //----------------------------------------
 
 // Checks for bugs of the kind the move to Newton 2 brought, run by the smoke
-// test on every map when OVERTURE_CHECKS lists them:
+// test on every map when OPENHPL_CHECKS lists them:
 //   settle  bodies that move, fall, keep shaking or go NaN with nobody
 //           touching them, joints that leave where the map put them
 //   pick    things the player can use that the pick ray cannot reach from

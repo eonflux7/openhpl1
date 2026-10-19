@@ -34,7 +34,7 @@ namespace hpl {
 	void cGpuProfiler::Init()
 	{
 		mbDebugGroups = GLAD_GL_VERSION_4_3 || GLAD_GL_KHR_debug;
-		const char *pLog = getenv("OVERTURE_GPU_LOG");
+		const char *pLog = getenv("OPENHPL_GPU_LOG");
 		if(pLog && pLog[0] && mpLog == nullptr) mpLog = fopen(pLog, "w");
 		mbInitialized = true;
 	}

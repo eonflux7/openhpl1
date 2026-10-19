@@ -300,7 +300,7 @@ namespace hpl{
 	bool cGLSLProgram::InitPrograms(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
-		const char *reload = getenv("OVERTURE_SHADER_RELOAD");
+		const char *reload = getenv("OPENHPL_SHADER_RELOAD");
 		mbReloadEnabled = reload && reload[0] && tString(reload) != "0";
 		return true;
 	}

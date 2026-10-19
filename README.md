@@ -15,8 +15,9 @@ quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
 
 The project was previously called Overture Remade; its repository and checkout
 are now named `openhpl1`, as is the executable (`openhpl1.exe` on Windows).
-Existing `OVERTURE_*` variables and per-game settings/save folders keep their
-names for compatibility.
+Environment variables and CMake options use the `OPENHPL_` prefix (formerly
+`OVERTURE_`). Per-game settings/save folders keep their names, so existing
+saves still load.
 
 ## Status
 
@@ -110,7 +111,7 @@ This produces `build-windows\openhpl1.exe` with its DLLs, shaders, fonts and
 test maps. Starting `openhpl1.exe` directly finds the games or asks for
 them (see [Running](#running)). `platform\windows\run.cmd` starts it against
 the Steam copy of Overture (`...\steamapps\common\Penumbra Overture\redist`;
-set `OVERTURE_GAME_DIR` for another, and the chooser opens if neither is
+set `OPENHPL_GAME_DIR` for another, and the chooser opens if neither is
 there), and `platform\windows\smoke.cmd` runs the smoke test with its
 own settings, in a hidden window and with OpenAL Soft's null backend, so
 nothing is shown or heard. Settings, saves and `hpl.log` are in
@@ -124,7 +125,7 @@ drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
 Before changing gameplay code, run the smoke test on the ASan build:
 
 ```
-cd "<game dir>" && OVERTURE_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/openhpl1
+cd "<game dir>" && OPENHPL_SMOKE=1 ASAN_OPTIONS=detect_leaks=0 /path/to/build-asan/openhpl1
 ```
 
 Original-asset Dog behaviour and playback checks run in a silent headless
@@ -141,14 +142,14 @@ and the full-map check.
 ### Dog behaviour test map
 
 ```
-OVERTURE_MAP=dogtest ./run.sh
+OPENHPL_MAP=dogtest ./run.sh
 ```
 
 F2 opens the Dog controls: select a bay and **Reset and play**, compare
 Original/Improved AI, play sound lures, reveal a position or knock the Dog
 down. Bays cover patrol/turning, losing sight/search, hearing, obstacle
 recovery, door breaking and attack/get-up. Start directly in a bay with
-`OVERTURE_MAP=dogtest:sound` (`patrol`, `hide`, `sound`, `props`, `door`,
+`OPENHPL_MAP=dogtest:sound` (`patrol`, `hide`, `sound`, `props`, `door`,
 `attack`). The build generates the arena using original game entities.
 
 **Options → AI** also saves the Original/Improved Dog behaviour choice for
@@ -164,11 +165,11 @@ grabbable and pushable objects, stacks, steps, ramps, a ladder and liquid,
 force and stick areas. Start in it with the physics log on:
 
 ```
-OVERTURE_MAP=testmap OVERTURE_PHYSLOG=1 ./run.sh
+OPENHPL_MAP=testmap OPENHPL_PHYSLOG=1 ./run.sh
 grep PHYS: ~/.frictionalgames/Penumbra/OvertureRemade/hpl.log
 ```
 
-`OVERTURE_MAP=testmap:<start>` starts at one of the zones: `doors`,
+`OPENHPL_MAP=testmap:<start>` starts at one of the zones: `doors`,
 `furniture`, `levers`, `grab`, `stacks`, `push`, `pool`, `steps`, `ladder`.
 The log records when each body wakes and comes to rest (time, distance, peak
 speed, joint angle or distance), bodies that never settle, and what the player
@@ -179,7 +180,7 @@ grabs and releases. Both variables work with the original maps too.
 The build also generates a small room for player feedback:
 
 ```
-OVERTURE_MAP=effectslab:link01 ./run.sh
+OPENHPL_MAP=effectslab:link01 ./run.sh
 ```
 
 Its effects panel opens automatically; F2 toggles it. Pick a preview, adjust its amount, animate it or use **Tour all**. Close F2 to walk
@@ -283,7 +284,7 @@ effects pixel checks/live transitions and GL debug validation pass.
 See [CHANGES.md](CHANGES.md) for the implementation and results.
 
 To look at those places yourself, press F2 in the game with Developer Mode
-on (Options → Game), or start it with `OVERTURE_REFVIEW=1`: a panel lists the maps, and for the loaded map the
+on (Options → Game), or start it with `OPENHPL_REFVIEW=1`: a panel lists the maps, and for the loaded map the
 places and directions of its frames, under the names the frames are saved
 with. Picking one loads the map or puts you there; PgUp and PgDn step through
 the map's frames. The view can be set up as in the frames (no flicker and a
@@ -328,14 +329,14 @@ the game at every start*) is on. Options → Change Game restarts the
 executable as another of the games, on Linux and Windows.
 
 The games are looked for in the folders remembered in `games.cfg` (next to
-the games' personal folders), `OVERTURE_GAME_DIR`, the working directory, the
+the games' personal folders), `OPENHPL_GAME_DIR`, the working directory, the
 executable's folder, every Steam library (`libraryfolders.vdf`; on Windows
 Steam's folder comes from the registry) and, on Windows, GOG's installs and
 `Program Files`. A folder or its `redist` subfolder (Steam on Windows) may
 hold the data. Requiem uses the Black Plague installation with the expansion
 added.
 
-`--game=overture|blackplague|requiem` or `OVERTURE_GAME` starts that game
+`--game=overture|blackplague|requiem` or `OPENHPL_GAME` starts that game
 without the chooser, and so does starting it from a game's folder. The
 launcher scripts still work this way:
 
@@ -348,13 +349,13 @@ launcher scripts still work this way:
 `run.sh` changes into the game data directory and starts the executable. By
 default it looks in the Steam location
 `~/.local/share/Steam/steamapps/common/Penumbra Overture`, or `Penumbra Black
-Plague` for Black Plague and Requiem; set `OVERTURE_GAME_DIR` to use another
+Plague` for Black Plague and Requiem; set `OPENHPL_GAME_DIR` to use another
 install. Smoke tests, captures and checks never open the chooser.
 
 The debug keys (F2 renderer tools, F3 performance overlay, L to log a
 frame's rendering) only work with **Developer Mode** on in Options → Game.
-It is off by default; `OVERTURE_DEBUG=1`, `OVERTURE_MAP`, `OVERTURE_REFVIEW`
-and `OVERTURE_DEBUG_OVERLAY` turn it on for that run, so the test maps can
+It is off by default; `OPENHPL_DEBUG=1`, `OPENHPL_MAP`, `OPENHPL_REFVIEW`
+and `OPENHPL_DEBUG_OVERLAY` turn it on for that run, so the test maps can
 still be driven with F2.
 
 Settings, saves and the log (`hpl.log`) are stored in
@@ -367,25 +368,25 @@ saves.
 
 | Variable | Purpose |
 |---|---|
-| `OVERTURE_GAME` | Select `overture`, `blackplague` or `requiem` without the chooser (`--game=` on the command line does the same and takes precedence); `run.sh` also accepts the game as its first argument |
-| `OVERTURE_GAME_DIR` | Game data directory used by `run.sh`; the executable also looks for the games there |
-| `OVERTURE_DEBUG=1` | Developer mode for this run (the debug keys F2, F3 and L), whatever the setting |
-| `OVERTURE_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
-| `OVERTURE_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
-| `OVERTURE_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
-| `OVERTURE_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
-| `OVERTURE_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OVERTURE_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
-| `OVERTURE_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
-| `OVERTURE_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
-| `OVERTURE_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
-| `OVERTURE_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
-| `OVERTURE_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OVERTURE_DUMP_DIR`, default: game dir) |
-| `OVERTURE_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OVERTURE_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
-| `OVERTURE_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
-| `OVERTURE_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
-| `OVERTURE_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
-| `OVERTURE_REFSHOTS=1` | Save reference images of every map and quit (`OVERTURE_REFSHOTS=office,worm` for some maps) to `OVERTURE_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
-| `OVERTURE_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/refshots.py effects dir` for an isolated headless run |
+| `OPENHPL_GAME` | Select `overture`, `blackplague` or `requiem` without the chooser (`--game=` on the command line does the same and takes precedence); `run.sh` also accepts the game as its first argument |
+| `OPENHPL_GAME_DIR` | Game data directory used by `run.sh`; the executable also looks for the games there |
+| `OPENHPL_DEBUG=1` | Developer mode for this run (the debug keys F2, F3 and L), whatever the setting |
+| `OPENHPL_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
+| `OPENHPL_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
+| `OPENHPL_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
+| `OPENHPL_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
+| `OPENHPL_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OPENHPL_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
+| `OPENHPL_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
+| `OPENHPL_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
+| `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
+| `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
+| `OPENHPL_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OPENHPL_DUMP_DIR`, default: game dir) |
+| `OPENHPL_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OPENHPL_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
+| `OPENHPL_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
+| `OPENHPL_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
+| `OPENHPL_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
+| `OPENHPL_REFSHOTS=1` | Save reference images of every map and quit (`OPENHPL_REFSHOTS=office,worm` for some maps) to `OPENHPL_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
+| `OPENHPL_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/refshots.py effects dir` for an isolated headless run |
 
 ## Requirements
 

@@ -238,8 +238,8 @@ void cInit::RunRequestedGame()
 	}
 
 	// The test hooks are for the game they were set for
-	setenv("OVERTURE_GAME", cGameLauncher::GetGameKey(mRequestedGameId), 1);
-	for(const char *pVar : {"OVERTURE_MAP", "OVERTURE_SCRIPT", "OVERTURE_SMOKE"}) unsetenv(pVar);
+	setenv("OPENHPL_GAME", cGameLauncher::GetGameKey(mRequestedGameId), 1);
+	for(const char *pVar : {"OPENHPL_MAP", "OPENHPL_SCRIPT", "OPENHPL_SMOKE"}) unsetenv(pVar);
 
 	// The same arguments as this run had, but for --game
 	std::vector<std::string> vArgs;
@@ -333,7 +333,7 @@ void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 
 tWString cInit::GetPersonalDir()
 {
-	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	const char *pProfile = SDL_getenv("OPENHPL_PROFILE_ROOT");
 	return pProfile && pProfile[0] ? cString::To16Char(pProfile)
 		: GetSystemSpecialPath(eSystemPath_Personal);
 }
@@ -358,9 +358,9 @@ bool cInit::Init(tString asCommandLine)
 	// 1 cm was tried first: from 3 mm up, small bodies never come to rest
 	// (they shake and creep off shelves; the map checks' settle test).
 	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.002f);
-	// For tests: OVERTURE_CONTACT_SKIN=<metres> sets it for any game
-	if(SDL_getenv("OVERTURE_CONTACT_SKIN"))
-		iPhysicsMaterial::SetContactSkin(cString::ToFloat(SDL_getenv("OVERTURE_CONTACT_SKIN"), 0));
+	// For tests: OPENHPL_CONTACT_SKIN=<metres> sets it for any game
+	if(SDL_getenv("OPENHPL_CONTACT_SKIN"))
+		iPhysicsMaterial::SetContactSkin(cString::ToFloat(SDL_getenv("OPENHPL_CONTACT_SKIN"), 0));
 	const cGameFiles &gameFiles = gvGameFiles[mGameId];
 	gsDefaultSettingsPath = gameFiles.msDefaultSettings;
 	iMeshLoader::SetCacheDir(gameFiles.msCacheDir);
@@ -373,7 +373,7 @@ bool cInit::Init(tString asCommandLine)
 		sPersonalDir += _W("/");
 	}
 
-	const char *pProfile = SDL_getenv("OVERTURE_PROFILE_ROOT");
+	const char *pProfile = SDL_getenv("OPENHPL_PROFILE_ROOT");
 	if(pProfile && pProfile[0])
 	{
 		CreateFolder(sPersonalDir);
@@ -485,7 +485,7 @@ bool cInit::Init(tString asCommandLine)
 	mbLogResources = mpConfig->GetBool("Debug", "LogResources", false);
 	mbDeveloperMode = mpConfig->GetBool("Debug", "DeveloperMode", false);
 	// Debugging, or a test map that is driven with F2
-	for(const char *pVar : {"OVERTURE_DEBUG", "OVERTURE_DEBUG_OVERLAY", "OVERTURE_REFVIEW", "OVERTURE_MAP"})
+	for(const char *pVar : {"OPENHPL_DEBUG", "OPENHPL_DEBUG_OVERLAY", "OPENHPL_REFVIEW", "OPENHPL_MAP"})
 	{
 		const char *pValue = SDL_getenv(pVar);
 		if(pValue && pValue[0] && pValue[0] != '0') mbDeveloperModeForced = true;
@@ -532,7 +532,7 @@ bool cInit::Init(tString asCommandLine)
 	msStartMap = mpConfig->GetString("Map","File",gameFiles.msStartMap);
 	msStartLink = mpConfig->GetString("Map","StartPos","link01");
 
-	const char *pDirectMap = SDL_getenv("OVERTURE_MAP");
+	const char *pDirectMap = SDL_getenv("OPENHPL_MAP");
 	if(pDirectMap && pDirectMap[0])
 	{
 		tString sDirectMap = pDirectMap;
@@ -590,7 +590,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddBool("LowLevelSoundLogging", mpConfig->GetBool("Sound","LowLevelLogging", false));
 
 	// GLSL shaders live next to the executable unless overridden.
-	const char *pShaderDir = SDL_getenv("OVERTURE_SHADER_DIR");
+	const char *pShaderDir = SDL_getenv("OPENHPL_SHADER_DIR");
 	if(pShaderDir && pShaderDir[0])
 		cGLSLProgram::SetShaderDirectory(tString(pShaderDir) + "/");
 	else
@@ -631,7 +631,7 @@ bool cInit::Init(tString asCommandLine)
 
 	// The fonts (fonts/ in the source tree) are next to the executable. They
 	// replace the glyphs of the game's bitmap fonts.
-	const char *pBitmapFonts = SDL_getenv("OVERTURE_BITMAP_FONTS");
+	const char *pBitmapFonts = SDL_getenv("OPENHPL_BITMAP_FONTS");
 	if(pBitmapFonts==nullptr || pBitmapFonts[0]==0 || pBitmapFonts[0]=='0')
 	{
 		mpGame->GetResources()->GetFontManager()->LoadVectorFonts(

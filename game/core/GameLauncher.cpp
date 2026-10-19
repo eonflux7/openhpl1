@@ -181,7 +181,7 @@ static std::vector<std::string> CandidateFolders(eGameId aId)
 	if(aId == eGameId_BlackPlague) vFolders.push_back(ReadValue(gvGameKeys[eGameId_Requiem]));
 	if(aId == eGameId_Requiem) vFolders.push_back(ReadValue(gvGameKeys[eGameId_BlackPlague]));
 
-	const char *pGameDir = SDL_getenv("OVERTURE_GAME_DIR");
+	const char *pGameDir = SDL_getenv("OPENHPL_GAME_DIR");
 	if(pGameDir && pGameDir[0]) vFolders.push_back(pGameDir);
 	{
 		std::error_code err;
@@ -318,7 +318,7 @@ static eGameId ChooseWithMessageBox(const std::string& asProblem)
 		if(cGameLauncher::FindGameFolder((eGameId)i) != "")
 			vButtons.push_back({0, i, cInit::GetGameName((eGameId)i)});
 	std::string sText = asProblem == "" ? "" : asProblem + "\n\n";
-	sText += vButtons.empty() ? "No Penumbra game was found. Set OVERTURE_GAME_DIR to the game's folder."
+	sText += vButtons.empty() ? "No Penumbra game was found. Set OPENHPL_GAME_DIR to the game's folder."
 							  : "Which game?";
 	vButtons.push_back({SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, -1, "Quit"});
 
@@ -550,7 +550,7 @@ static eGameId Choose(eGameId aPreferred, const std::string& asProblem)
 static bool IsAutomated()
 {
 	if(cSmokeTest::IsRequested() || cRefShots::IsRequested()) return true;
-	for(const char *pVar : {"OVERTURE_CHECKS", "OVERTURE_EFFECTS_CAPTURE", "OVERTURE_DOG_REGRESSIONS", "OVERTURE_HIDDEN"})
+	for(const char *pVar : {"OPENHPL_CHECKS", "OPENHPL_EFFECTS_CAPTURE", "OPENHPL_DOG_REGRESSIONS", "OPENHPL_HIDDEN"})
 	{
 		const char *pValue = SDL_getenv(pVar);
 		if(pValue && pValue[0] && pValue[0] != '0') return true;
@@ -576,11 +576,11 @@ bool cGameLauncher::Run(const tString& asCommandLine)
 			if(sArg == "--choose-game") bChoose = true;
 		}
 	}
-	const char *pGame = SDL_getenv("OVERTURE_GAME");
+	const char *pGame = SDL_getenv("OPENHPL_GAME");
 	if(asked == eGameId_LastEnum && pGame && pGame[0])
 	{
 		asked = GameFromKey(pGame);
-		if(asked == eGameId_LastEnum) SDL_Log("OVERTURE_GAME '%s' is not overture, blackplague or requiem", pGame);
+		if(asked == eGameId_LastEnum) SDL_Log("OPENHPL_GAME '%s' is not overture, blackplague or requiem", pGame);
 	}
 
 	std::string sCurrent;
@@ -650,7 +650,7 @@ void cGameLauncher::StartAgain(eGameId aId)
 {
 	// The test hooks are for the game they were set for; the new process
 	// inherits this environment
-	for(const wchar_t *pVar : {L"OVERTURE_GAME", L"OVERTURE_MAP", L"OVERTURE_SCRIPT", L"OVERTURE_SMOKE"})
+	for(const wchar_t *pVar : {L"OPENHPL_GAME", L"OPENHPL_MAP", L"OPENHPL_SCRIPT", L"OPENHPL_SMOKE"})
 		SetEnvironmentVariableW(pVar, nullptr);
 
 	// The same arguments as this run had, but for --game, each quoted

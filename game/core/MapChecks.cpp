@@ -79,7 +79,7 @@ cMapChecks::cMapChecks(cInit *apInit)
 	mlFindings = 0;
 	mlStartPos = 0;
 
-	tString sSpec = SDL_getenv("OVERTURE_CHECKS") ? SDL_getenv("OVERTURE_CHECKS") : "";
+	tString sSpec = SDL_getenv("OPENHPL_CHECKS") ? SDL_getenv("OPENHPL_CHECKS") : "";
 	bool bAll = sSpec == "1" || sSpec == "all";
 	mbSettle = bAll || sSpec.find("settle") != tString::npos;
 	mbPick = bAll || sSpec.find("pick") != tString::npos;
@@ -92,7 +92,7 @@ cMapChecks::cMapChecks(cInit *apInit)
 
 bool cMapChecks::IsRequested()
 {
-	const char *pSpec = SDL_getenv("OVERTURE_CHECKS");
+	const char *pSpec = SDL_getenv("OPENHPL_CHECKS");
 	return pSpec && pSpec[0] && tString(pSpec) != "0";
 }
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Runs a game headless and silent in a scratch HOME, for tests:
 #   tools/porting/headless.sh blackplague|requiem|overture [seconds]
-# Environment (OVERTURE_MAP, OVERTURE_SMOKE, OVERTURE_DUMP_FRAMES, ...) is passed on.
+# Environment (OPENHPL_MAP, OPENHPL_SMOKE, OPENHPL_DUMP_FRAMES, ...) is passed on.
 # The log ends up in build/porting/home/.frictionalgames/Penumbra/<game>Remade/hpl.log
 # HEADLESS_HOME=<dir> HEADLESS_TAG=<name> run a second one beside the first.
 HERE="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -26,7 +26,7 @@ if [ ! -f "$SETTINGS" ]; then
 fi
 cat > "$HERE/build/porting/launch-$GAME$HEADLESS_TAG.sh" <<LAUNCH
 #!/bin/sh
-export HOME="$SCRATCH" ALSOFT_DRIVERS=null OVERTURE_GAME=$GAME
+export HOME="$SCRATCH" ALSOFT_DRIVERS=null OPENHPL_GAME=$GAME
 cd "$DIR"
 exec "$HERE/build/openhpl1"
 LAUNCH

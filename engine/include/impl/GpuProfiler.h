@@ -21,7 +21,7 @@ namespace hpl {
 	 * never waits for the GPU. Sections of the same name and parent are
 	 * added up. Also counts draw calls and triangles.
 	 *
-	 * With OVERTURE_GPU_LOG set to a file name, timing is always on and
+	 * With OPENHPL_GPU_LOG set to a file name, timing is always on and
 	 * every frame's times are written to that file, one line a frame.
 	 */
 	class cGpuProfiler
@@ -55,7 +55,7 @@ namespace hpl {
 
 		void CountDraw(GLenum aMode, int alVertices);
 
-		/// Names the current frame in the log (OVERTURE_GPU_LOG).
+		/// Names the current frame in the log (OPENHPL_GPU_LOG).
 		void Mark(const std::string& asText);
 
 		/// Names a GL object for RenderDoc and the debug output (glObjectLabel).

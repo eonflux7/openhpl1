@@ -60,7 +60,7 @@ Keep existing sanitizer policy: AngelScript's packed argument alignment is
 excluded, and vendored Newton retains ASan but excludes UBSan.
 
 Run `./run.sh`, `./run.sh blackplague` or `./run.sh requiem` after building.
-`OVERTURE_GAME_DIR` overrides the launcher's Steam game-data location. The
+`OPENHPL_GAME_DIR` overrides the launcher's Steam game-data location. The
 launcher runs `build/openhpl1` from the data directory; another build must be
 launched explicitly from that directory or through a tool's `--build` option.
 
@@ -76,8 +76,8 @@ a behaviour that those tests do not exercise. Run sanitizers for memory,
 ownership, parsing, serialization, physics and animation changes.
 
 - Gameplay/physics: run the ASan game smoke test with isolated settings and
-  saves. `OVERTURE_SMOKE=1` loads maps, runs, saves, reloads and quits;
-  substrings select maps and `OVERTURE_PHYSLOG=1` records body/joint activity.
+  saves. `OPENHPL_SMOKE=1` loads maps, runs, saves, reloads and quits;
+  substrings select maps and `OPENHPL_PHYSLOG=1` records body/joint activity.
   Compare physics-dependent mechanisms and changed enemy behaviour manually.
 - Dog AI/animation: use
   `python3 tools/check_dog_foundations.py --build build-asan` and relevant
@@ -101,7 +101,7 @@ ownership, parsing, serialization, physics and animation changes.
 
   See README for `--maps`, `--size`, `--set`, `--build` and Windows capture.
   Do not loosen comparison tolerances to hide regressions. Note intentional
-  visual changes and known unstable maps separately. Use `OVERTURE_GL_DEBUG=1`
+  visual changes and known unstable maps separately. Use `OPENHPL_GL_DEBUG=1`
   for driver diagnostics.
 - Performance: measure representative CPU/GPU frame times. Call counts,
   uploaded bytes and synthetic fixtures establish local changes, not game FPS.
@@ -115,10 +115,11 @@ are missing, finish the available checks and state exactly what was skipped.
 - Preserve gameplay, script signatures and save compatibility unless the
   task explicitly changes them. Shared engine changes can affect all three
   games. Use the existing game-selection checks (`cInit::IsOverture()` etc.)
-  where behaviour differs. Keep `OVERTURE_*` and existing personal-directory
-  names compatible despite the executable rename.
+  where behaviour differs. Keep existing personal-directory names so saves
+  and settings still load. Environment variables and CMake options use
+  `OPENHPL_*`; the old `OVERTURE_*` names are no longer read.
 - Keep installed assets and normal user profiles untouched during automation.
-  Prefer isolated tool runners or `OVERTURE_PROFILE_ROOT` (settings, saves,
+  Prefer isolated tool runners or `OPENHPL_PROFILE_ROOT` (settings, saves,
   logs and writable caches). Normal personal directories are under
   `~/.frictionalgames/Penumbra/{Overture,BlackPlague,Requiem}Remade/` on Linux;
   Windows uses its Documents directory. Requiem uses Black Plague's data

@@ -1527,7 +1527,7 @@ int hplMain(const hpl::tString &)
 		cGLSLProgram::InitPrograms(&gfx);
 		auto directory=std::filesystem::temp_directory_path() / ("overture-storage-" +
 			std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-		std::filesystem::copy(OVERTURE_TEST_SHADER_DIR,directory,std::filesystem::copy_options::recursive);
+		std::filesystem::copy(OPENHPL_TEST_SHADER_DIR,directory,std::filesystem::copy_options::recursive);
 		cGLSLProgram::SetShaderDirectory(directory.string()+"/");
 		TestQuadInstances(gfx);
 		TestTextures(gfx);

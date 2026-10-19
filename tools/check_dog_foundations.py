@@ -40,9 +40,9 @@ def main():
     settings['Game']['LastInitOK'] = 'true'
     settings['AI'] = {'ImprovedDogAI': 'true' if args.ai == 'improved' else 'false'}
     refshots.write_settings(personal/'settings.cfg', settings)
-    env = dict(os.environ, OVERTURE_PROFILE_ROOT=str(profile), ALSOFT_DRIVERS='null',
-               OVERTURE_SMOKE=args.maps, OVERTURE_SMOKE_FRAMES='180',
-               OVERTURE_DOG_REGRESSIONS='1')
+    env = dict(os.environ, OPENHPL_PROFILE_ROOT=str(profile), ALSOFT_DRIVERS='null',
+               OPENHPL_SMOKE=args.maps, OPENHPL_SMOKE_FRAMES='180',
+               OPENHPL_DOG_REGRESSIONS='1')
     env.setdefault('ASAN_OPTIONS', 'detect_leaks=0')
     # AngelScript's string class uses memcpy(nullptr, nullptr, 0) while
     # compiling scripts. Suppress only that existing vendored-code warning;
@@ -50,8 +50,8 @@ def main():
     suppression = out/'ubsan.supp'
     suppression.write_text('nonnull-attribute:as_string.cpp\n')
     env.setdefault('UBSAN_OPTIONS', f'halt_on_error=1:print_stacktrace=1:suppressions={suppression}')
-    env.pop('OVERTURE_REFSHOTS', None)
-    env.pop('OVERTURE_MAP', None)
+    env.pop('OPENHPL_REFSHOTS', None)
+    env.pop('OPENHPL_MAP', None)
     status = out/'exit_code'
     status.unlink(missing_ok=True)
     with (out/'run.log').open('w') as log:

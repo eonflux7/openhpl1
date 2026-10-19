@@ -8,7 +8,7 @@
   refshots.py effects OUT_DIR [--size 1280x720] [--build build-asan]
   refshots.py compare REF_DIR NEW_DIR [--diff-dir DIR]
 
-capture runs the game (OVERTURE_REFSHOTS) in a headless gamescope session
+capture runs the game (OPENHPL_REFSHOTS) in a headless gamescope session
 with its own settings file, so the user's settings and screen are left
 alone, and with OpenAL Soft's null audio backend, so nothing is heard. It
 saves one PNG per map, place and direction, one per 2D screen (2d-*.png),
@@ -114,9 +114,9 @@ def run_headless(exe, width, height, cwd, env, log, status_file, timeout):
 
 def run_windows(exe, cwd, env, log, timeout):
     """Runs the Windows build from WSL, returns its exit code. The window
-    is hidden (OVERTURE_HIDDEN), and the variables of env the game reads
+    is hidden (OPENHPL_HIDDEN), and the variables of env the game reads
     are passed on to Windows through WSLENV."""
-    names = [n for n in env if n.startswith("OVERTURE_") or n == "ALSOFT_DRIVERS"]
+    names = [n for n in env if n.startswith("OPENHPL_") or n == "ALSOFT_DRIVERS"]
     env = dict(env)
     env["WSLENV"] = ":".join(filter(None, [env.get("WSLENV")] + names))
     try:
@@ -172,18 +172,18 @@ def capture(args):
         env["HOME"] = home
         game_path = windows_path if args.windows else (lambda p: p)
         if args.windows:
-            env["OVERTURE_PROFILE_ROOT"] = windows_path(home)
-            env["OVERTURE_HIDDEN"] = "1"
+            env["OPENHPL_PROFILE_ROOT"] = windows_path(home)
+            env["OPENHPL_HIDDEN"] = "1"
         # OpenAL Soft's null backend: sounds play, with the same timing,
         # but nothing is heard.
         env["ALSOFT_DRIVERS"] = "null"
         if args.command == "effects":
-            env.pop("OVERTURE_REFSHOTS", None)
-            env["OVERTURE_MAP"] = "effectslab:link01"
-            env["OVERTURE_EFFECTS_CAPTURE"] = game_path(out)
+            env.pop("OPENHPL_REFSHOTS", None)
+            env["OPENHPL_MAP"] = "effectslab:link01"
+            env["OPENHPL_EFFECTS_CAPTURE"] = game_path(out)
         else:
-            env["OVERTURE_REFSHOTS"] = args.maps
-            env["OVERTURE_REFSHOTS_DIR"] = game_path(out)
+            env["OPENHPL_REFSHOTS"] = args.maps
+            env["OPENHPL_REFSHOTS_DIR"] = game_path(out)
         with open(os.path.join(out, "run.log"), "w") as log:
             if args.windows:
                 ret = run_windows(exe, args.game_dir, env, log, args.timeout)
@@ -350,7 +350,7 @@ def main():
     common.add_argument("--set", action="append", default=[], metavar="SECTION.KEY=VALUE",
                         help="override a setting, e.g. Graphics.Shadows=2")
     common.add_argument("--build", default="build", help="build directory, default build")
-    common.add_argument("--game-dir", default=os.environ.get("OVERTURE_GAME_DIR", DEFAULT_GAME_DIR))
+    common.add_argument("--game-dir", default=os.environ.get("OPENHPL_GAME_DIR", DEFAULT_GAME_DIR))
     common.add_argument("--timeout", type=int, default=1200, help="seconds")
     common.add_argument("--windows", action="store_true",
                         help="run the Windows build (openhpl1.exe in --build) from WSL")

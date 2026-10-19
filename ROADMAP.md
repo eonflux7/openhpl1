@@ -114,7 +114,7 @@ Scene preservation is still open: comparisons below include real mismatches.
 - [ ] Resolve per-body sleep thresholds (Newton 2 exposes world-wide ones):
       emulate them or retune defaults. Review `GetEnabled()`'s sleep-state
       semantics, `SetEnabled(false)`'s hard freeze and bodies waking on load,
-      using `OVERTURE_PHYSLOG` and the test map.
+      using `OPENHPL_PHYSLOG` and the test map.
 - [ ] Investigate the reported intermittent heap corruption on exit; record a
       reproducer or explicit closure rather than assuming later fixes cover it.
 - [ ] Verify music stutter, 3D positioning, fades and sector reverb by ear.
@@ -197,7 +197,7 @@ changes rather than listing them as unimplemented optimizations.
 ## Black Plague and Requiem
 
 The same executable selects the game through its game chooser, `--game=`,
-`OVERTURE_GAME` or the launcher scripts.
+`OPENHPL_GAME` or the launcher scripts.
 Each has separate settings/saves and writable caches. See the
 [porting guide](docs/black-plague-port.md) for binary inspection, scripted
 checks and bulk map diagnostics.

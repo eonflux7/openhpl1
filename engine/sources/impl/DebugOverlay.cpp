@@ -24,7 +24,7 @@ namespace hpl {
 
 	cDebugOverlay::cDebugOverlay()
 	{
-		const char *pActive = getenv("OVERTURE_DEBUG_OVERLAY");
+		const char *pActive = getenv("OPENHPL_DEBUG_OVERLAY");
 		mbActive = pActive && pActive[0] && pActive[0] != '0';
 		mbFailed = false;
 		mfFrameMs = 0;

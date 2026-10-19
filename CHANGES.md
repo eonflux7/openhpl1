@@ -5,6 +5,22 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## `OPENHPL_` prefix (2026-10-19)
+
+- Environment variables and CMake options are renamed from `OVERTURE_*` to
+  `OPENHPL_*` (`OPENHPL_GAME`, `OPENHPL_GAME_DIR`, `OPENHPL_SMOKE`,
+  `OPENHPL_SANITIZERS` etc.), since the executable runs all three games. The
+  old names are no longer read; the repository was not yet public. Existing
+  build directories pick up the new CMake options on their next configure
+  (the presets set them). Personal folders keep their names. Entries below
+  use the names of their time.
+- Validation: default and ASan builds pass `engine_regressions`,
+  `audio_regressions` and `renderer_regressions` (ASan with
+  `detect_leaks=0`); the MSVC build and the Windows smoke of
+  `level00_01_boat_cabin` pass, with the map, hidden window and profile
+  taken from the new names. Not run: the Dog checks, refshots and a
+  full-map smoke.
+
 ## Game chooser and developer mode (2026-10-19)
 
 - One executable starts any of the three games without a launcher script.

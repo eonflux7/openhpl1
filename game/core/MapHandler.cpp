@@ -1372,7 +1372,7 @@ public:
 	}
 };
 
-// For tests: OVERTURE_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
+// For tests: OPENHPL_SCRIPT="2:DoThis();|5.5:DoThat();|7:gui:InScreen();" runs
 // script commands that many seconds after the game has started, and says so
 // in the log. With "gui:" before it a command is for the open computer terminal;
 // "save" writes an auto save, "load" loads the newest auto save, "pos:x,y,z"
@@ -1391,7 +1391,7 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 	if(bRead==false)
 	{
 		bRead = true;
-		const char *pSpec = SDL_getenv("OVERTURE_SCRIPT");
+		const char *pSpec = SDL_getenv("OPENHPL_SCRIPT");
 		tStringVec vParts;
 		tString sSep = "|";
 		if(pSpec) cString::GetStringVec(pSpec, vParts, &sSep);

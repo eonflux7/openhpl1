@@ -27,9 +27,9 @@ Launch the generated arena with:
 
 ```sh
 cmake --build build
-OVERTURE_MAP=dogtest ./run.sh
+OPENHPL_MAP=dogtest ./run.sh
 # Or start in a particular bay:
-OVERTURE_MAP=dogtest:sound ./run.sh
+OPENHPL_MAP=dogtest:sound ./run.sh
 ```
 
 The F2 panel opens on entry. Choose a scenario, select an AI mode, and use

@@ -14,14 +14,14 @@ class cMapChecks;
 
 //----------------------------------------
 
-// Automated run through the game, enabled with OVERTURE_SMOKE:
-//   OVERTURE_SMOKE=1            every map in maps/ and the test map
-//   OVERTURE_SMOKE=office,worm  maps whose name contains one of these
+// Automated run through the game, enabled with OPENHPL_SMOKE:
+//   OPENHPL_SMOKE=1            every map in maps/ and the test map
+//   OPENHPL_SMOKE=office,worm  maps whose name contains one of these
 // For each map: change to it the way scripts do, run some frames, save,
 // load that save, run some more frames. Then quit. Progress and failures
 // are logged with a "SMOKE:" prefix to hpl.log, and the exit code is 1 if
-// a map or its level script failed to load. OVERTURE_SMOKE_FRAMES sets the
-// frames per step (default 120, two seconds of game time). OVERTURE_CHECKS
+// a map or its level script failed to load. OPENHPL_SMOKE_FRAMES sets the
+// frames per step (default 120, two seconds of game time). OPENHPL_CHECKS
 // adds the checks of cMapChecks to every map.
 class cSmokeTest : public iUpdateable
 {
