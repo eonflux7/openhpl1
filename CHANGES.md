@@ -15,14 +15,17 @@ commit), and the last official Linux build on Steam.
   libvorbis 1.3.7 from source, links Ogg, Vorbis, FreeType (the engine's
   fallback build), libstdc++ and libgcc statically, and ships the SDL and
   OpenAL libraries in `lib/` (RPATH `$ORIGIN/lib`). The executable needs only
-  libc, libm and the dynamic loader; OpenGL is loaded through SDL.
+  glibc (libc, libm and, before 2.34, libpthread and libdl); OpenGL is loaded
+  through SDL.
 - `.github/workflows/release.yml` runs the Linux script in the Steam Runtime 3
   "sniper" SDK on `v*` tags or by hand and uploads the tarball as an artifact.
 - Validation: the Windows package's own `openhpl1.exe` passed the Overture
   smoke test (25 maps, 0 failures, hidden window, isolated profile). The
-  Linux script ran on Ubuntu 26.04; the package's executable links only
-  libc, libm and the loader besides its bundled libraries. The Linux package
-  has not been run against game data.
+  Linux workflow's package needs at most GLIBC_2.29, and its SDL3 and OpenAL
+  Soft load X11/Wayland/libdecor and PipeWire/PulseAudio/ALSA. The Linux
+  package has not been run against game data.
+- AngelScript and the engine link `Threads::Threads`: with glibc 2.31,
+  `pthread_rwlock_*` are in libpthread and the link failed without it.
 
 ## Inventory drawer and new item icons (2026-10-19)
 
