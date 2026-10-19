@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo-text.svg" alt="OpenHPL1" width="552"></p>
+
 # OpenHPL1
 
 An experimental, modernised **HPL1 engine** and source port of the
