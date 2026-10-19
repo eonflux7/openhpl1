@@ -12,6 +12,7 @@
 #include "player/PlayerHelper.h"
 #include "systems/GameMessageHandler.h"
 #include "ui/Inventory.h"
+#include "core/GraphicsHelper.h"
 #include "ui/Credits.h"
 #include "ui/DeathMenu.h"
 #include "ui/IntroStory.h"
@@ -52,10 +53,26 @@ struct c2DScreen
 static const c2DScreen kv2DScreens[] = {
 	{"hud", 30, [](cInit *apInit){}},
 	{"inventory", 90, [](cInit *apInit){
+		// The map's opening message (on a timer) would keep the inventory shut
+		apInit->mpMapHandler->SetLocalTimersPaused(true);
+		apInit->mpGameMessageHandler->Reset();
+		apInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		apInit->mpInventory->AddItemFromFile("battery", "item_battery.ent", -1);
 		apInit->mpInventory->AddItemFromFile("boltcutter", "item_boltcutter.ent", -1);
 		apInit->mpInventory->AddItemFromFile("blank_note", "item_blank_note.ent", -1);
+		apInit->mpInventory->AddItemFromFile("crowbar", "item_crowbar.ent", -1);
+		apInit->mpInventory->AddItemFromFile("painkillers", "item_painkillers.ent", -1);
+		apInit->mpInventory->AddItemFromFile("chemical_A", "item_chemical_A.ent", -1);
+		apInit->mpInventory->AddItemFromFile("dynamite", "item_dynamite.ent", -1);
+		// The first hotkey slot (after the 24 others)
+		apInit->mpInventory->AddItemFromFile("key01", "item_key01.ent", 24);
+		// Part-way down, to show the bars' colours
+		apInit->mpPlayer->SetHealth(62);
+		apInit->mpPlayer->SetPower(37);
 		apInit->mpPlayer->StartInventory();
+		// Over the first item, to show its name and description
+		apInit->mpInventory->SetMousePos(cVector2f(apInit->mpGraphicsHelper->GetScreenPos().x +
+			apInit->mpGraphicsHelper->GetScreenSize().x - 300 + 40, 50));
 	}},
 	{"notebook", 90, [](cInit *apInit){
 		apInit->mpNotebook->AddTask("refshots_task", _W("A task for the reference images"));

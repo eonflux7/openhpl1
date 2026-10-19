@@ -5,6 +5,7 @@
 
   hud_fit.py icon ORIGINAL.bmp GENERATED.png OUT.png [--scale 4] [--margin M]
              [--box X0 Y0 X1 Y1] [--edge LO HI]
+  hud_fit.py item ORIGINAL.bmp GENERATED.png OUT.png [--scale 4] [--fill F]
   hud_fit.py page ORIGINAL.bmp GENERATED.png OUT.png [--scale 3]
   hud_fit.py sheet ORIGINAL.bmp GENERATED.png OUT.png [--scale 3] [--margin M]
   hud_fit.py curl ORIGINAL_PAGE.bmp PAGE.png ORIGINAL_CORNER.bmp OUT.png
@@ -24,6 +25,11 @@ the original's opaque part fills (or --box, in original pixels, which may
 reach into the margin), with the generated alpha and colours matched to the
 original's (mean and spread per channel). --edge remaps alpha LO..HI to
 0..255, for a generated rim that is too soft.
+item: an inventory icon. The generated object (alpha > 24) keeps its own
+shape and colours and is scaled so that its longer side is --fill of the
+original's shorter side, centred, with a soft shadow below and to the right
+(light from the upper left), so every icon of the set is framed and lit
+alike whatever the original's framing.
 page: the generated image fills the box of every non-transparent original
 pixel and takes the enlarged original alpha (for the cover, which has no
 hard edge of its own).
@@ -104,6 +110,18 @@ def fit_icon(original, generated, scale, margin, box, edge):
 	if edge:
 		out[..., 3] = np.clip((out[..., 3] - edge[0]) * 255 / (edge[1] - edge[0]), 0, 255)
 	return Image.fromarray(np.uint8(out + 0.5), "RGBA")
+
+
+def fit_item(original, generated, scale, fill):
+	size = (original.width * scale, original.height * scale)
+	gx0, gy0, gx1, gy1 = opaque_box(np.array(generated)[..., 3], 24)
+	side = fill * min(size)
+	k = side / max(gx1 - gx0, gy1 - gy0)
+	w, h = (gx1 - gx0) * k, (gy1 - gy0) * k
+	x0, y0 = (size[0] - w) / 2, (size[1] - h) / 2
+	item = premultiply(place(generated, 24, [x0, y0, x0 + w, y0 + h], size))
+	shadow = shadow_of(item[..., 3], scale * 1.2, (round(scale * 0.8), round(scale * 1.1)), 0.45)
+	return unpremultiply(over(item, shadow))
 
 
 def fit_page(original, generated, scale):
@@ -300,6 +318,10 @@ def main():
 	icon.add_argument("--margin", type=int, default=0)
 	icon.add_argument("--box", type=float, nargs=4, metavar=("X0", "Y0", "X1", "Y1"))
 	icon.add_argument("--edge", type=float, nargs=2, metavar=("LO", "HI"))
+	item = sub.add_parser("item")
+	item.add_argument("original"); item.add_argument("generated"); item.add_argument("out")
+	item.add_argument("--scale", type=int, default=4)
+	item.add_argument("--fill", type=float, default=0.9)
 	page = sub.add_parser("page")
 	page.add_argument("original"); page.add_argument("generated"); page.add_argument("out")
 	page.add_argument("--scale", type=int, default=3)
@@ -340,6 +362,11 @@ def main():
 		return
 	if args.command == "icon":
 		result = fit_icon(original, load(args.generated), args.scale, args.margin, args.box, args.edge)
+	elif args.command == "item":
+		result = fit_item(original, load(args.generated), args.scale, args.fill)
+		result.save(args.out)
+		print(f"{args.out}: {result.width}x{result.height}")
+		return
 	elif args.command == "page":
 		result = fit_page(original, load(args.generated), args.scale)
 	elif args.command == "sheet":

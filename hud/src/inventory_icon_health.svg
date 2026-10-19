@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
+  <!-- Health: a heart crossed by a pulse. Light grey; the game tints it
+       with the bar's colour. -->
+  <path d="M7 12.6 C3.2 9.8 1 7.6 1 5 C1 3 2.5 1.6 4.3 1.6 C5.5 1.6 6.4 2.2 7 3.1 C7.6 2.2 8.5 1.6 9.7 1.6 C11.5 1.6 13 3 13 5 C13 7.6 10.8 9.8 7 12.6 Z"
+        fill="#d8d4cc" stroke="#000" stroke-opacity="0.6" stroke-width="0.6"/>
+  <path d="M1.6 6.9 H4.6 L5.7 5 L7.2 8.8 L8.4 6.2 L9 6.9 H12.4" fill="none" stroke="#1a1410" stroke-width="1.05"
+        stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

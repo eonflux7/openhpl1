@@ -321,7 +321,9 @@ namespace hpl {
 		const int vScales[] = {8,4,3,2};
 		for(int lScale : vScales)
 		{
-			tString sFile = msHighResDir + sBase + "@" + cString::ToString(lScale) + "x.png";
+			tString sFile = msHighResOverrideDir + sBase + "@" + cString::ToString(lScale) + "x.png";
+			if(msHighResOverrideDir=="" || FileExists(cString::To16Char(sFile))==false)
+				sFile = msHighResDir + sBase + "@" + cString::ToString(lScale) + "x.png";
 			if(FileExists(cString::To16Char(sFile))==false) continue;
 
 			//The original's size is the size the game lays the image out at. An

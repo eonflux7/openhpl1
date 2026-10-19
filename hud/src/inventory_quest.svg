@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+  <!-- The mark on a quest item, in its cell's top right corner: a small
+       warm light with a soft glow around it. -->
+  <defs>
+    <radialGradient id="glow" cx="6" cy="6" r="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffc45a" stop-opacity="0.75"/>
+      <stop offset="0.4" stop-color="#ff9f2e" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#ff8a1e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="5.6" cy="5.5" r="2.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fffbe8"/>
+      <stop offset="0.45" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#f0a030"/>
+    </radialGradient>
+  </defs>
+  <circle cx="6" cy="6" r="6" fill="url(#glow)"/>
+  <circle cx="6" cy="6" r="2.1" fill="url(#core)" stroke="#5a2c08" stroke-opacity="0.55" stroke-width="0.35"/>
+</svg>

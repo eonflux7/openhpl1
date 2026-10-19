@@ -72,9 +72,12 @@ namespace hpl {
 		 * or N times that plus a margin around it (whole original pixels, the same
 		 * on opposite sides) that is drawn outside the original's rectangle. An
 		 * image there that the game does not have is drawn at 1/N of its size.
-		 * An empty string turns replacements off.
+		 * An empty string turns replacements off. An image in asOverrideDir, if
+		 * given, is used before one of the same name in asDir (for a game whose
+		 * image of that name differs from another game's).
 		 */
-		void SetHighResDirectory(const tString &asDir){ msHighResDir = asDir; }
+		void SetHighResDirectory(const tString &asDir, const tString &asOverrideDir=""){
+			msHighResDir = asDir; msHighResOverrideDir = asOverrideDir; }
 	private:
 		cResourceImage *LoadHighRes(const tString &asName, const tString &asOriginalPath);
 
@@ -87,6 +90,7 @@ namespace hpl {
 		cVector2l mvFrameSize;
 		int mlFrameHandle;
 		tString msHighResDir;
+		tString msHighResOverrideDir;
 
 		cResourceImage *FindImage(const tString &asName, tString &asFilePath);
 		cResourceImage *AddToFrame(iBitmap2D *apBmp,int alFrameHandle);

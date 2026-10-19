@@ -78,6 +78,7 @@ friend class cInventory;
 public:
 	cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEquip, int alIndex);
 	
+	void Draw() override;
 	void OnDraw() override;
 	void OnMouseOver() override;
 	void OnMouseDown(eMButton aButton) override;
@@ -88,6 +89,8 @@ public:
 
 	cInventoryItem* GetItem(){ return mpItem;}
 	void SetItem(cInventoryItem* apItem){ mpItem = apItem;}
+
+	void SetRect(const cRect2f &aRect){ mRect = aRect;}
 
 	void SetIndex(int alIndex){ mlIndex = alIndex;}
 	void SetEquip(bool abEquip){ mbEquip = abEquip;}
@@ -187,10 +190,13 @@ public:
 	cInventoryBattery(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, float afZ);
 	~cInventoryBattery() override;
 	
+	void Draw() override;
 	void OnDraw() override;
 	void OnMouseOver() override;
 	void OnMouseUp(eMButton aButton) override;
 	void OnUpdate(float afTimeStep) override;
+
+	void SetRect(const cRect2f &aRect){ mRect = aRect;}
 
 private:
 	bool IsShown();
@@ -207,9 +213,12 @@ public:
 	cInventoryHealth(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, float afZ);
 	~cInventoryHealth() override;
 
+	void Draw() override;
 	void OnDraw() override;
 	void OnMouseOver() override;
 	void OnUpdate(float afTimeStep) override;
+
+	void SetRect(const cRect2f &aRect){ mRect = aRect;}
 
 private:
 	cGfxObject* mpGfxFine;
@@ -306,6 +315,24 @@ public:
 
 	float GetAlpha(){ return mfAlpha;}
 
+	// The remastered look (high-resolution HUD): a drawer at the right edge
+	// of the screen and a row of hotkey slots beside it
+	bool IsDrawer(){ return mbDrawer;}
+	bool IsPaperDrawer(){ return mbPaperDrawer;}
+	iFontData* GetDrawerFont(){ return mpDrawerFont;}
+	cColor GetDrawerTextColor(float afAlpha);
+	cGfxObject* GetCellGfx(bool abEquip, bool abHover){
+		return abEquip ? (abHover ? mpGfxHotkeyCellHover : mpGfxHotkeyCell) : (abHover ? mpGfxCellHover : mpGfxCell);}
+	cGfxObject* GetQuestGfx(){ return mpGfxQuest;}
+	static bool IsQuestItem(cInventoryItem *apItem);
+	// The item's icon fitted into a square box, centred
+	void DrawItemIcon(cInventoryItem *apItem, const cVector3f &avPos, float afBox, const cColor &aColor);
+	static cRect2f GetIconRect(const cRect2f &aCell);
+	// A labelled bar for health or battery: icon, label and percentage on
+	// a line, the bar under it. A low bar pulses by afPulse (0-1).
+	void DrawMeter(const cRect2f &aRect, float afZ, bool abHealth, const tWString &asLabel,
+					float afPercent, const cColor &aColor, float afPulse);
+
 	void AddWidget(iInventoryWidget* apWidget);
 
 	void AddItem(cGameItem *apGameItem);
@@ -392,6 +419,31 @@ private:
 	cGfxObject *mpHealthTextFrame;
 
 	cGfxObject *mpBagpack;
+
+	void UpdateDrawerLayout();
+	void DrawDrawer();
+	bool IsOverDrawer(const cVector2f &avPos);
+
+	bool mbDrawer;
+	bool mbPaperDrawer;
+	cGfxObject *mpGfxDrawer;
+	cGfxObject *mpGfxCell;
+	cGfxObject *mpGfxCellHover;
+	cGfxObject *mpGfxHotkeyCell;
+	cGfxObject *mpGfxHotkeyCellHover;
+	cGfxObject *mpGfxQuest;
+	cGfxObject *mpGfxMeter;
+	cGfxObject *mpGfxMeterFill;
+	cGfxObject *mpGfxMeterTicks;
+	cGfxObject *mpGfxIconHealth;
+	cGfxObject *mpGfxIconBattery;
+	float mfMeterTime;
+	iFontData *mpDrawerFont;
+	iFontData *mpDrawerNameFont;
+	cRect2f mDrawerRect;
+	cRect2f mHotkeyRect;
+	cInventoryBattery *mpBattery;
+	cInventoryHealth *mpHealth;
 
 	tGameItemTypeVec mvItemTypes;
 

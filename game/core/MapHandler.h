@@ -182,6 +182,9 @@ public:
 
 	cGameTimer * CreateTimer(const tString& asName,float afTime, const tString& asCallback, bool abGlobal);
 	cGameTimer * GetTimer(const tString& asName);
+	// Stops (or restarts) the current map's timers, e.g. for a tool that
+	// wants no scripted events
+	void SetLocalTimersPaused(bool abPaused);
 
 	void AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afFadeInSeconds, float afFadeOutSeconds);
 

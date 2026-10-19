@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5">
+  <!-- The fill of a drawer bar, stretched along it and tinted by the game:
+       white, lit along its top edge. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.35" stop-color="#e2e2e2"/>
+      <stop offset="1" stop-color="#9a9a9a"/>
+    </linearGradient>
+  </defs>
+  <rect width="4" height="5" fill="url(#g)"/>
+</svg>

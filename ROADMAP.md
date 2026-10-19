@@ -146,11 +146,14 @@ checks are retained in the archived roadmap; they are not new work here.
       original size, with an optional margin drawn outside it, the mouse
       arrow (SVG), the hand and eye crosshairs, the notebook cover, a new
       paper page and page corners folded from it, and the notebook's
-      pencil-underline highlight and ruled notes list
+      pencil-underline highlight and ruled notes list, and the inventory as
+      a drawer at the right edge with every item icon generated again as one
+      consistent set and quest items marked
       ([hud/README.md](hud/README.md)).
-      Still needed: in-game checks on Windows and Linux, then the doorlink,
-      ladder and cross crosshairs, inventory slots and
-      item icons, health and menu art.
+      Still needed: in-game checks on Windows and Linux (the drawer's drag,
+      combine, hotkeys and drop by hand, Black Plague/Requiem items), a
+      choice between the drawer's metal and paper looks, then the doorlink,
+      ladder and cross crosshairs and menu art.
 - [ ] Check the game chooser by hand on Windows and Linux desktops: the
       system folder dialog (XDG portal or zenity on Linux) and its typed-folder
       fallback, high-DPI sizing, GOG detection, and Options → Change Game

@@ -50,6 +50,76 @@ there is nothing to sharpen). `notebook_textback`, `notebook_listtextback`
 each entry of the notes list) are not drawn in the remastered look; the
 pencil underline and the ruled page take their place.
 
+## Inventory
+
+With the images below, the inventory (`game/ui/Inventory.cpp`) is a drawer
+that slides in at the right edge of the screen (past the 4:3 area on a wide
+screen) instead of the original's grid in the middle; with
+`OPENHPL_ORIGINAL_HUD=1`, or without the drawer's images, it is the
+original.
+
+- 4x6 cells for the 24 slots, the hovered item's name and description under
+  them, and health and battery at the bottom as two labelled, segmented
+  bars with their percentage (health green, amber then red, battery pale
+  then amber then red; both pulse when low). The original's health figure
+  only hinted at three states; the bar shows how much is left. The nine hotkey slots are a row
+  at the bottom of the screen beside the drawer, numbered.
+- Items of the type `Normal` (keys, parts and the like, which only scripts
+  use: what the story needs) have a small glowing amber light in their cell's corner.
+- An item let go of over the scene is dropped as before; let go of over the
+  drawer (not on a cell) it goes back to its cell.
+- The slot indices, and so scripts and saves, are unchanged.
+- Two looks: metal (the default, after the original: a darkened strip with
+  a rusty rail at its edge and rusty iron cell frames) and a sheet of paper
+  written on in the notebook's fonts (`OPENHPL_INVENTORY_LOOK=paper`).
+
+| File | Use | Made from |
+| --- | --- | --- |
+| `inventory_*@4x.png` (items) | Item icons, replacing the game's (about 60x60) | Generated, `src/prompts/inventory-icons.md` |
+| `blackplague/inventory_saw@4x.png` | Black Plague's saw, which differs from Overture's | Generated, as above |
+| `inventory_drawer_metal@3x.png` | The metal drawer (300 x screen height) | `tools/hud_inventory.py` |
+| `src/textures/rust.png` | Rusted iron photograph mapped onto the metal look's frames and rail (not loaded by the game) | Generated, `src/prompts/rust.md`, scaled to 640x640 |
+| `inventory_drawer_paper@3x.png` | The paper drawer | Generated, `src/prompts/inventory-drawer.md`, then `tools/hud_inventory.py` |
+| `inventory_cell_<look>[_hover]@4x.png` | A cell of the grid (62x62) | `tools/hud_inventory.py` |
+| `inventory_hotkey_<look>[_hover]@4x.png` | A hotkey slot (48x48) | `tools/hud_inventory.py` |
+| `inventory_quest@4x.png` | The quest item mark (12x12), in both looks | `src/inventory_quest.svg`, `tools/hud_raster.py` |
+| `inventory_meter@4x.png`, `inventory_meter_ticks@4x.png` | Health and battery bar: trough (124x9), segment ticks over the fill | `src/*.svg`, `tools/hud_raster.py` |
+| `inventory_meter_fill@4x.png` | The bar's fill, stretched and tinted by the game | As above |
+| `inventory_icon_health@4x.png`, `inventory_icon_battery@4x.png` | The bars' icons (14x14), tinted with the bar's colour | As above |
+
+`blackplague/` holds images that Black Plague and Requiem use in place of
+Overture's image of the same name. The item icons are drawn fitted into
+their cell whatever their size, so they keep the original's size (as
+replacements must) but not its framing.
+
+### Item icons
+
+Every item image of Overture and Black Plague (Requiem has none of its own)
+was generated again as one set: the same camera (a three-quarter view from
+about 35 degrees above), the same light from the upper left, long and flat
+things lying diagonally with their working end to the upper right, things
+that stand standing. Images that are byte-identical in both games were made
+once. Codex's image generation (October 2026) made them in batches of six
+from `src/prompts/inventory-icons.md`, with each original enlarged as its
+reference, the object descriptions in `src/inventory-icons.tsv`, and three
+icons of a first trial batch (acetone jar, crowbar, key) as style
+references for the rest. `tools/hud_fit.py item` fits each: the object,
+scaled so that its longer side is 90% of the original's shorter side,
+centred, with a soft shadow down and to the right. From the repository
+root, with the originals of a game in `ORIG` and a generated image `GEN`:
+
+```sh
+python3 tools/hud_fit.py item $ORIG/inventory_crowbar.bmp $GEN/crowbar.png hud/inventory_crowbar@4x.png
+```
+
+The output keeps the original's file name (case included, e.g.
+`inventory_chemical_A`). Black Plague's `tutorial_chemical_A..C` are
+Overture's `chemical_A..C` and `item_hand` is `hand`, so those are copies.
+
+`python3 tools/hud_inventory.py PAPER.png CANVAS.png` makes the drawer
+images from the two generated backgrounds and draws the cells, hotkey slots
+and marks from fixed random seeds.
+
 ## Notebook
 
 With these images the notebook (`game/ui/Notebook.cpp`) is drawn as follows;

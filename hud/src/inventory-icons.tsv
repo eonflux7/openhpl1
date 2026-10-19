@@ -1,0 +1,84 @@
+game	name	description
+ov	battery	a cylindrical D-cell battery, dark casing with a small label
+ov	blank_note	a single blank, slightly crumpled sheet of old paper
+ov	boat_lock	an old brass padlock with its shackle open
+ov	boltcutter	a pair of long-handled bolt cutters
+ov	bookexplosives	a worn brown leather-bound book about explosives
+ov	broom	a wooden broom with a straw head
+ov	Chemical_A	a conical laboratory flask of dark green-black chemical, a big white letter "A" painted on it
+ov	Chemical_B	a conical laboratory flask of dark green chemical, a big letter "B" painted on it
+ov	Chemical_C	a conical laboratory flask of dark red chemical, a big letter "C" painted on it
+ov	Chemical_D	a conical laboratory flask of dark violet chemical, a big letter "D" painted on it
+ov	Chemical_E	a conical laboratory flask of dark teal chemical, a big letter "E" painted on it
+ov	Chemical_F	a conical laboratory flask of dark crimson chemical, a big letter "F" painted on it
+ov	chestkey	an old ornate iron key for a chest
+ov	comradio	a black handheld walkie-talkie radio with a stubby antenna
+ov	cottonstring	a loose coil of thin white cotton string
+ov	cottonstringsoaked	a loose coil of thin cotton string soaked dark with oil
+ov	crowbar	a dark steel crowbar, slightly rusty
+ov	dextrin	a large olive-grey metal canister of dextrin powder
+ov	dynamite	a single stick of dark red dynamite with a short fuse
+ov	flare	a red road flare with a cap
+ov	flashlight	an old metal flashlight: a straight tube body with a flared reflector head on the same axis (not bent), lens up-right, a small slide switch, worn dark steel
+ov	fuse	a thin length of pale fuse wire / detonator cord
+ov	gasoline	a small red metal gasoline can
+ov	generator_battery	a heavy grey industrial battery block with terminals
+ov	glass_container	a round-bottomed dark glass flask
+ov	glowstick	a green glowing chemical light stick
+ov	hammer	a claw hammer with a dark handle
+ov	key01	a brass key with a round bow
+ov	key01_part1	the bow half of a broken brass key
+ov	key01_part2	the blade half of a broken brass key
+ov	key01_whole	a whole brass key, slightly worn
+ov	lighter	a brushed steel petrol lighter, lid closed
+ov	lightergas	a tall slim can of lighter fluid
+ov	map_folder	a folded paper map with blue and colourful printing
+ov	meat	a raw red chunk of meat
+ov	mining_machine_key	a small T-shaped ignition key with a black rubber head
+ov	note	a sheet of paper with handwritten notes
+ov	notebook	a closed dark leather notebook
+ov	old_newspaper	a folded old newspaper page with columns of print and a photo
+ov	oldkey	a long, old dark iron key
+ov	oldkey_small	a small old dark iron key
+ov	painkillers	a white plastic jar of painkiller pills with a colourful label
+ov	pickaxe	a pickaxe with a wooden handle
+ov	replacement_fuse	a large cylindrical ceramic and brass electrical fuse
+ov	saw	a hacksaw / handsaw with a light blade
+ov	screwdriver	a screwdriver with an orange-brown handle
+ov	secret_mine_door_key	a long, old rusty iron key with a ring bow
+ov	steelrod	a long rusty steel rod / pipe
+bp	artifact_statue	a small dark carved idol statue on a base with a red top
+bp	cassette	an audio cassette tape with a red and white label
+bp	cassette_recorder	a portable cassette recorder, black and silver with a white panel
+bp	chemical_jar_acetone	a metal-capped laboratory jar labelled ACETONE with a white label
+bp	chemical_jar_bromine	a metal-capped laboratory jar labelled BROMINE with a pale label
+bp	chemical_jar_chlorine	a metal-capped laboratory jar labelled CHLORINE with a violet label
+bp	chemical_jar_iodine	a metal-capped laboratory jar labelled IODINE with a grey label
+bp	chemical_jar_nitrogen	a metal-capped laboratory jar labelled NITROGEN with a blue label
+bp	chemical_jar_sulphur	a metal-capped laboratory jar labelled SULPHUR with a yellow label
+bp	chemicalx	a small olive glass jar with a dark lid
+bp	circuit_card_blue	a small blue-violet printed circuit board card
+bp	circuit_card_green	a small green printed circuit board card
+bp	circuit_card_red	a small dark red printed circuit board card
+bp	cloth	a crumpled piece of beige cloth
+bp	cloth02	a crumpled piece of bloodstained cloth
+bp	coin	an old worn gold coin, seen at an angle
+bp	coin_flat	the same old worn gold coin as the attached style_coin_ref.png (same face, same wear), but lying flat on the table, seen from the set camera so it appears as an ellipse with its embossed portrait clearly visible; a crisp round metal coin with a thin rim, not a flat blob
+bp	flamethrower	a red spray can with a lighter taped to it (improvised flamethrower)
+bp	gasmask	a black rubber gas mask with round eye pieces and a filter
+bp	hand	a severed pale human hand
+bp	head	a severed bald human head with a pale face
+bp	iron_bar	a long black iron bar
+bp	keycard	a pale white plastic keycard with a red logo
+bp	medical_alkohol	a small brown glass bottle of medical alcohol with a white label
+bp	saw	a hacksaw with a light grey blade and dark handle
+bp	shelter_cd	a CD in a clear jewel case
+bp	sodacan	an orange-red soda can
+bp	spray_can	an orange spray paint can with a black label
+bp	substance_container	an empty clear cylindrical sample container with metal ends
+bp	substance_container_full	a cylindrical sample container with metal ends, filled with glowing cyan liquid
+bp	swanson_key	a brass key with a rounded bow
+bp	syringe	an empty glass syringe
+bp	syringe_chemical	a glass syringe filled with violet liquid
+bp	syringe_filled	a glass syringe filled with dark red liquid
+bp	wrist_band	a dark watch-like electronic wrist band with a strap

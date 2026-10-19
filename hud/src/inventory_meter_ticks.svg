@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 9">
+  <!-- Drawn over a drawer bar's fill: splits it into ten segments. -->
+  <rect x="13.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="25.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="37.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="49.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="61.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="73.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="85.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="97.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+  <rect x="109.5" y="2" width="1" height="5" fill="#000" opacity="0.75"/>
+</svg>

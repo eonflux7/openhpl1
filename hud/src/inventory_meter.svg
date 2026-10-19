@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 9">
+  <!-- The trough of the drawer's health and battery bars: a recessed
+       dark channel in a thin rusty rim. The fill (inventory_meter_fill)
+       is drawn into it at (2,2), 120x5 when full. -->
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1a10"/>
+      <stop offset="0.5" stop-color="#6b4024"/>
+      <stop offset="1" stop-color="#8a6a50"/>
+    </linearGradient>
+    <linearGradient id="well" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#14100d" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="123" height="8" rx="2" fill="url(#well)" stroke="url(#rim)" stroke-width="1"/>
+  <rect x="1.5" y="1.5" width="121" height="1" fill="#000" opacity="0.5"/>
+</svg>

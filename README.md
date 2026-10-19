@@ -70,7 +70,9 @@ vendored in `vendor/`.
 FreeType renders the fonts. With `freetype-devel` installed the system library
 is used; without it, CMake downloads FreeType 2.13.3 and builds it into the
 engine. The fonts themselves are in `fonts/`. High-resolution HUD images
-(cursor, hand and eye icons, notebook pages) are in `hud/`.
+(cursor, hand and eye icons, notebook pages, inventory item icons and drawer)
+are in `hud/`. With them the inventory is a drawer at the right edge of the
+screen, with quest items marked (see [hud/README.md](hud/README.md)).
 
 ```
 cmake --preset default
@@ -379,7 +381,8 @@ saves.
 | `OPENHPL_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OPENHPL_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OPENHPL_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OPENHPL_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
-| `OPENHPL_ORIGINAL_HUD=1` | Draw the game's own HUD images instead of the high-resolution ones in `<exe dir>/hud/` |
+| `OPENHPL_ORIGINAL_HUD=1` | Draw the game's own HUD images instead of the high-resolution ones in `<exe dir>/hud/`, and the original inventory layout |
+| `OPENHPL_INVENTORY_LOOK=paper` | Draw the inventory drawer as a sheet of paper instead of darkened, with rusty metal cells |
 | `OPENHPL_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |

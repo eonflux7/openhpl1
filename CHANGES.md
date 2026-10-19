@@ -5,6 +5,65 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Inventory drawer and new item icons (2026-10-19)
+
+- With the high-resolution HUD the inventory is a drawer that slides in at
+  the right edge of the screen (`cInventory::UpdateDrawerLayout`,
+  `DrawDrawer`): the 24 slots as 4x6 cells, the hovered item's name and
+  description under them, health and battery bars at the bottom, and the
+  nine hotkey slots in a numbered row at the bottom of the screen beside it.
+  Item icons are fitted into their cells whatever their size. Items of type
+  `Normal` (what only scripts use: keys, parts) are marked as quest items.
+  An item let go of over the drawer goes back to its cell instead of being
+  dropped into the world. Slot indices, scripts and saves are unchanged.
+  `OPENHPL_ORIGINAL_HUD=1`, or missing drawer images, gives the original
+  inventory. Two looks: metal (default) and paper
+  (`OPENHPL_INVENTORY_LOOK=paper`, in the notebook's fonts).
+- Follow-up: the first default look, a generated dark canvas, looked like
+  a satchel and was dropped. The metal look follows the original: the
+  drawer darkens its strip of the screen (fading in from a rusty rail at
+  its edge) and the cells are rounded frames of rusty iron with darkened
+  insides, both drawn by `tools/hud_inventory.py`. Health and battery are
+  bars (`cInventory::DrawMeter`, SVG trough, fill, ticks and icons): icon,
+  label and percentage over a ten-segment bar, health green to amber to
+  red, battery pale to amber to red, pulsing at 30% health and 15% battery.
+  The hover texts are the original's. The flashlight icon was generated
+  again (its head was bent off the body's axis). refshots' inventory screen
+  sets health 62 and battery 37 to show the bars part-way.
+- Follow-up: the rusty frames looked soft at 720p (a bar about three
+  pixels wide with sub-pixel rust detail and a blurred halo). They now have
+  rust patches a pixel or more across, stronger lighting, a dark outline on
+  both edges and a tight drop shadow. The quest mark is a small glowing
+  amber light (`hud/src/inventory_quest.svg`), the same in both looks.
+  Hotkey numbers, counts and quest marks sit inside the frame
+  (`kfCellFrame`) instead of over it.
+- Follow-up: procedural noise still read as a brown gradient. The frames
+  and rail are now a flat, bevelled band textured with a generated rusted
+  iron photograph (`hud/src/textures/rust.png`, toned down), lit from its
+  own relief, its darkest pits eating into the edges; the bands are a
+  little wider (3.2 units on cells, 2.8 on hotkey slots), and icons, numbers
+  and marks keep clear of them.
+- Every item icon of Overture and Black Plague (82 distinct images) is
+  generated again with Codex as one set with a single camera and light,
+  fitted by `tools/hud_fit.py item`; the drawer, cells and hotkey slots
+  come from `tools/hud_inventory.py`, the quest mark from an SVG. See `hud/README.md`.
+- `cImageManager::SetHighResDirectory` takes an override directory, used
+  for Black Plague and Requiem (`hud/blackplague/`): their saw differs from
+  Overture's image of the same name.
+- refshots' inventory screen pauses the map's timers and clears its opening
+  message first: the boat cabin's message kept the inventory from opening,
+  so earlier captures of that screen showed no inventory. It now holds more
+  items (quest items, counts, a hotkey). `cMapHandler::SetLocalTimersPaused`
+  is new for it.
+- Validation: default Linux build passes `engine_regressions`,
+  `audio_regressions` and `renderer_regressions`; the MSVC build passes the
+  Windows smoke test (28 Overture maps, 0 failures); refshots
+  (Windows, 1280x720) captured the drawer in both looks (again after the
+  follow-ups, with the Linux tests passing again). Not checked: drag,
+  combine, hotkeys and dropping by hand in play, low-health pulsing, Black
+  Plague/Requiem in game (their icons were only checked as images), Linux
+  game runs, other aspect ratios than 16:9, ASan.
+
 ## Remastered notebook (2026-10-19)
 
 - With the high-resolution HUD (`cInit::mbHighResHud`, off with

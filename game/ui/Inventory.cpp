@@ -33,6 +33,39 @@
 #include "core/GraphicsHelper.h"
 #include "core/ButtonHandler.h"
 
+#include <SDL3/SDL.h>
+
+// The remastered drawer, in virtual screen units: a grid of 4x6 cells at the
+// right edge of the screen, the hovered item's name and description under
+// it, health and battery at the bottom, and the nine hotkey slots in a row
+// at the bottom left of it.
+static const float kfDrawerWidth = 300;
+static const float kfDrawerCell = 62;
+static const float kfDrawerGap = 4;
+static const int klDrawerColumns = 4;
+static const float kfDrawerTop = 26;
+static const float kfDrawerTextTop = kfDrawerTop + 6*kfDrawerCell + 5*kfDrawerGap + 16;
+static const float kfDrawerStatusTop = 546;
+static const float kfDrawerStatusHeight = 30;
+static const float kfHotkeyCell = 48;
+static const float kfHotkeyGap = 4;
+static const float kfHotkeyBottom = 20;
+// An icon is drawn this much inside its cell
+static const float kfIconInset = 5;
+// The cell's frame takes this much of its edge; text and marks stay inside
+static const float kfCellFrame = 6;
+// The health and battery bars: trough, and the fill inside it
+static const cVector2f kvMeterSize(124, 9);
+static const cVector2f kvMeterFillPos(2, 2);
+static const cVector2f kvMeterFillSize(120, 5);
+static const float kfMeterIcon = 14;
+
+static cColor MixColor(const cColor &aA, const cColor &aB, float afT)
+{
+	afT = cMath::Clamp(afT, 0.0f, 1.0f);
+	return cColor(aA.r + (aB.r-aA.r)*afT, aA.g + (aB.g-aA.g)*afT, aA.b + (aB.b-aA.b)*afT, 1);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
 //////////////////////////////////////////////////////////////////////////
@@ -98,16 +131,72 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	///////////////////////////////////
 	//Init other widgests
-	cInventoryBattery *pBattery = hplNew( cInventoryBattery,(mpInit,
+	mpBattery = hplNew( cInventoryBattery,(mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69 + 5,77,135),
 														nullptr,30.0f) );
-	AddWidget(pBattery);
+	AddWidget(mpBattery);
 
-	cInventoryHealth *pHealth = hplNew( cInventoryHealth, (mpInit,
+	mpHealth = hplNew( cInventoryHealth, (mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69*3 + 5,
 																77,135),
 														nullptr,30.0f) );
-	AddWidget(pHealth);
+	AddWidget(mpHealth);
+
+	///////////////////////////////////
+	//Remastered drawer
+	mbDrawer = mpInit->mbHighResHud;
+	const char *pLook = SDL_getenv("OPENHPL_INVENTORY_LOOK");
+	mbPaperDrawer = pLook && tString(pLook) == "paper";
+	mpGfxDrawer = nullptr;
+	mpGfxCell = nullptr;
+	mpGfxCellHover = nullptr;
+	mpGfxHotkeyCell = nullptr;
+	mpGfxHotkeyCellHover = nullptr;
+	mpGfxQuest = nullptr;
+	mpGfxMeter = nullptr;
+	mpGfxMeterFill = nullptr;
+	mpGfxMeterTicks = nullptr;
+	mpGfxIconHealth = nullptr;
+	mpGfxIconBattery = nullptr;
+	mfMeterTime = 0;
+	mpDrawerFont = mpFont;
+	mpDrawerNameFont = mpFont;
+	if(mbDrawer)
+	{
+		tString sLook = mbPaperDrawer ? "paper" : "metal";
+		mpGfxDrawer = mpDrawer->CreateGfxObject("inventory_drawer_"+sLook,"diffalpha2d");
+		mpGfxCell = mpDrawer->CreateGfxObject("inventory_cell_"+sLook,"diffalpha2d");
+		mpGfxCellHover = mpDrawer->CreateGfxObject("inventory_cell_"+sLook+"_hover","diffalpha2d");
+		mpGfxHotkeyCell = mpDrawer->CreateGfxObject("inventory_hotkey_"+sLook,"diffalpha2d");
+		mpGfxHotkeyCellHover = mpDrawer->CreateGfxObject("inventory_hotkey_"+sLook+"_hover","diffalpha2d");
+		mpGfxQuest = mpDrawer->CreateGfxObject("inventory_quest","diffalpha2d");
+		mpGfxMeter = mpDrawer->CreateGfxObject("inventory_meter","diffalpha2d");
+		mpGfxMeterFill = mpDrawer->CreateGfxObject("inventory_meter_fill","diffalpha2d");
+		mpGfxMeterTicks = mpDrawer->CreateGfxObject("inventory_meter_ticks","diffalpha2d");
+		mpGfxIconHealth = mpDrawer->CreateGfxObject("inventory_icon_health","diffalpha2d");
+		mpGfxIconBattery = mpDrawer->CreateGfxObject("inventory_icon_battery","diffalpha2d");
+
+		//Without its images the original layout is used
+		if(	mpGfxDrawer==nullptr || mpGfxCell==nullptr || mpGfxCellHover==nullptr ||
+			mpGfxHotkeyCell==nullptr || mpGfxHotkeyCellHover==nullptr || mpGfxQuest==nullptr ||
+			mpGfxMeter==nullptr || mpGfxMeterFill==nullptr || mpGfxMeterTicks==nullptr ||
+			mpGfxIconHealth==nullptr || mpGfxIconBattery==nullptr)
+		{
+			Warning("Inventory drawer images are missing; using the original inventory\n");
+			mbDrawer = false;
+		}
+
+		//Paper is written on in the notebook's fonts
+		cFontManager *pFonts = mpInit->mpGame->GetResources()->GetFontManager();
+		if(mbPaperDrawer && pFonts->HasVectorFont("cour.fnt"))
+		{
+			mpDrawerFont = pFonts->CreateFontData("cour.fnt");
+			if(pFonts->HasVectorFont("notebook_bold.fnt"))
+				mpDrawerNameFont = pFonts->CreateFontData("notebook_bold.fnt");
+			else
+				mpDrawerNameFont = mpDrawerFont;
+		}
+	}
 
 	///////////////////////////////////
 	//Init items types
@@ -199,8 +288,63 @@ cInventorySlot::cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEqu
 
 //-----------------------------------------------------------------------
 
+void cInventorySlot::Draw()
+{
+	if(mpInit->mpInventory->IsDrawer()==false)
+	{
+		iInventoryWidget::Draw();
+		return;
+	}
+
+	float fAlpha = mpInit->mpInventory->GetAlpha();
+	bool bHover = cMath::PointBoxCollision(mpInit->mpInventory->GetMousePos(), mRect) &&
+					mpInit->mpInventory->GetContext()->IsActive()==false;
+	mpDrawer->DrawGfxObject(mpInit->mpInventory->GetCellGfx(mbEquip, bHover), cVector3f(mRect.x,mRect.y,3),
+							cVector2f(mRect.w,mRect.h), cColor(1,fAlpha));
+}
+
 void cInventorySlot::OnDraw()
 {
+	if(mpInit->mpInventory->IsDrawer())
+	{
+		cInventory *pInventory = mpInit->mpInventory;
+		float fAlpha = pInventory->GetAlpha();
+		iFontData *pFont = pInventory->GetDrawerFont();
+		bool bPaper = pInventory->IsPaperDrawer();
+
+		if(mbEquip)
+		{
+			pFont->Draw(cVector3f(mRect.x + kfCellFrame + 2, mRect.y + kfCellFrame, 7), 10, pInventory->GetDrawerTextColor(fAlpha*0.75f),
+						eFontAlign_Left, _W("%d"), mlEquipIndex+1);
+		}
+		if(mpItem==nullptr) return;
+
+		cRect2f rectIcon = cInventory::GetIconRect(mRect);
+		pInventory->DrawItemIcon(mpItem, cVector3f(rectIcon.x, rectIcon.y, 5), rectIcon.w, cColor(1,fAlpha));
+
+		if(cInventory::IsQuestItem(mpItem))
+		{
+			float fMark = mbEquip ? 10 : 12;
+			mpDrawer->DrawGfxObject(pInventory->GetQuestGfx(),
+									cVector3f(mRect.x + mRect.w - fMark - kfCellFrame, mRect.y + kfCellFrame, 7),
+									cVector2f(fMark,fMark), cColor(1,fAlpha));
+		}
+
+		cGameItemType *pType = pInventory->GetItemType(mpItem->GetItemType());
+		tWString sString;
+		if(pType && pType->GetString(mpItem)!=_W(""))	sString = pType->GetString(mpItem);
+		else if(mpItem->HasCount())						sString = cString::To16Char(cString::ToString(mpItem->GetCount()));
+		if(sString != _W(""))
+		{
+			cVector3f vPos(mRect.x + mRect.w - kfCellFrame - 2, mRect.y + mRect.h - kfCellFrame - 13, 7);
+			cColor colText = bPaper ? pInventory->GetDrawerTextColor(fAlpha) : cColor(1,fAlpha);
+			if(bPaper==false)
+				pFont->Draw(vPos + cVector3f(1,1,-1), 12, cColor(0,fAlpha), eFontAlign_Right, _W("%ls"), sString.c_str());
+			pFont->Draw(vPos, 12, colText, eFontAlign_Right, _W("%ls"), sString.c_str());
+		}
+		return;
+	}
+
 	if(mpItem)
 	{
 		cVector3f vPos(mRect.x + 4,	mRect.y + 4 ,5);
@@ -327,6 +471,11 @@ void cInventorySlot::OnMouseDown(eMButton aButton)
 
 			cVector2f vOffset = cVector2f(mRect.x + 4,	mRect.y + 4) - 
 								mpInit->mpInventory->GetMousePos();
+			if(mpInit->mpInventory->IsDrawer())
+			{
+				cRect2f rectIcon = cInventory::GetIconRect(mRect);
+				vOffset = cVector2f(rectIcon.x, rectIcon.y) - mpInit->mpInventory->GetMousePos();
+			}
             mpInit->mpInventory->SetCurrentItemOffset(vOffset);			
 		}
 	}
@@ -641,9 +790,26 @@ bool cInventoryBattery::IsShown()
 	return cInit::IsOverture() || mpInit->mpPlayer->mbHasFlashlight;
 }
 
+void cInventoryBattery::Draw()
+{
+	if(mpInit->mpInventory->IsDrawer()==false) iInventoryWidget::Draw();
+}
+
 void cInventoryBattery::OnDraw()
 {
 	if(IsShown()==false) return;
+
+	//Drawer: a bar, pale when full, amber then red as it runs down
+	if(mpInit->mpInventory->IsDrawer())
+	{
+		float fPercent = cMath::Clamp(mpInit->mpPlayer->GetPower()/100.0f, 0.0f, 1.0f);
+		cColor colBar;
+		if(fPercent > 0.2f)	colBar = MixColor(cColor(0.86f,0.6f,0.2f), cColor(0.88f,0.84f,0.62f), (fPercent-0.2f)/0.2f);
+		else				colBar = MixColor(cColor(0.78f,0.2f,0.1f), cColor(0.86f,0.6f,0.2f), fPercent/0.2f);
+		tWString sLabel = cInit::IsOverture() ? kTranslate("Inventory", "BatteryLevel") : kTranslate("Inventory", "Flashlight");
+		mpInit->mpInventory->DrawMeter(mRect, mfZ, false, sLabel, fPercent, colBar, fPercent <= 0.15f ? 1.0f : 0.0f);
+		return;
+	}
 
 	cVector3f vPos = cVector3f(mRect.x, mRect.y, mfZ+1);
 	cVector2f vSize(mRect.w, mRect.h);
@@ -736,6 +902,11 @@ cInventoryHealth::~cInventoryHealth()
 	mpDrawer->DestroyGfxObject(mpGfxDanger);
 }
 
+void cInventoryHealth::Draw()
+{
+	if(mpInit->mpInventory->IsDrawer()==false) iInventoryWidget::Draw();
+}
+
 void cInventoryHealth::OnDraw()
 {
 	cVector3f vPos = cVector3f(mRect.x, mRect.y, mfZ+1);
@@ -749,6 +920,18 @@ void cInventoryHealth::OnDraw()
 	else if(fPercent > 0.3f){	pGfxMan = mpGfxCaution;
 	}
 	else{						pGfxMan = mpGfxDanger;
+	}
+
+	//Drawer: a bar, green to amber to red, pulsing when it is low
+	if(mpInit->mpInventory->IsDrawer())
+	{
+		float fHealth = cMath::Clamp(fPercent, 0.0f, 1.0f);
+		cColor colBar;
+		if(fHealth > 0.35f)	colBar = MixColor(cColor(0.86f,0.58f,0.18f), cColor(0.42f,0.64f,0.3f), (fHealth-0.35f)/0.25f);
+		else				colBar = MixColor(cColor(0.78f,0.16f,0.1f), cColor(0.86f,0.58f,0.18f), (fHealth-0.15f)/0.2f);
+		mpInit->mpInventory->DrawMeter(mRect, mfZ, true, kTranslate("Inventory", "Health"), fHealth, colBar,
+										fHealth <= 0.3f ? 1.0f : 0.0f);
+		return;
 	}
 
 	mpDrawer->DrawGfxObject(pGfxMan,cVector3f(vPos.x+6,vPos.y+6,2),cVector2f(mRect.w-12,mRect.h-12),
@@ -991,6 +1174,159 @@ void cInventoryContext::Setup(cInventoryItem *apItem, const cVector2f& avPos)
 
 
 //////////////////////////////////////////////////////////////////////////
+// REMASTERED DRAWER
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+// Items whose type does nothing of its own: keys, parts and the like, which
+// scripts use on the world or combine. They are the ones the story needs.
+bool cInventory::IsQuestItem(cInventoryItem *apItem)
+{
+	return apItem->GetItemType() == eGameItemType_Normal;
+}
+
+cColor cInventory::GetDrawerTextColor(float afAlpha)
+{
+	if(mbPaperDrawer) return cColor(0.12f,0.1f,0.08f,afAlpha);
+	return cColor(0.86f,0.84f,0.8f,afAlpha);
+}
+
+cRect2f cInventory::GetIconRect(const cRect2f &aCell)
+{
+	return cRect2f(aCell.x + kfIconInset, aCell.y + kfIconInset,
+					aCell.w - kfIconInset*2, aCell.h - kfIconInset*2);
+}
+
+void cInventory::DrawItemIcon(cInventoryItem *apItem, const cVector3f &avPos, float afBox, const cColor &aColor)
+{
+	cGfxObject *pGfx = apItem->GetGfxObject();
+	if(pGfx==nullptr) return;
+
+	cVector2l vSize = pGfx->GetMaterial()->GetImage(eMaterialTexture_Diffuse)->GetSize();
+	if(vSize.x <= 0 || vSize.y <= 0) return;
+	float fScale = afBox / (float)std::max(vSize.x, vSize.y);
+	cVector2f vDrawSize((float)vSize.x * fScale, (float)vSize.y * fScale);
+	cVector3f vPos(avPos.x + (afBox - vDrawSize.x)*0.5f, avPos.y + (afBox - vDrawSize.y)*0.5f, avPos.z);
+
+	mpDrawer->DrawGfxObject(pGfx, vPos, vDrawSize, aColor);
+}
+
+void cInventory::DrawMeter(const cRect2f &aRect, float afZ, bool abHealth, const tWString &asLabel,
+							float afPercent, const cColor &aColor, float afPulse)
+{
+	float fAlpha = mfAlpha;
+	float fGlow = 1.0f - afPulse*0.45f*(0.5f + 0.5f*cos(mfMeterTime*5.0f));
+
+	//Icon, label and percentage
+	mpDrawer->DrawGfxObject(abHealth ? mpGfxIconHealth : mpGfxIconBattery, cVector3f(aRect.x, aRect.y, afZ+1),
+							cVector2f(kfMeterIcon,kfMeterIcon), cColor(aColor.r, aColor.g, aColor.b, fAlpha*fGlow));
+	mpDrawerFont->Draw(cVector3f(aRect.x + kfMeterIcon + 5, aRect.y, afZ+1), 13, GetDrawerTextColor(fAlpha),
+						eFontAlign_Left, _W("%ls"), asLabel.c_str());
+	mpDrawerFont->Draw(cVector3f(aRect.x + kvMeterSize.x, aRect.y, afZ+1), 13, GetDrawerTextColor(fAlpha*0.75f),
+						eFontAlign_Right, _W("%.0f%%"), afPercent*100.0f);
+
+	//The bar: trough, fill, segment ticks over it
+	cVector3f vBar(aRect.x, aRect.y + 18, afZ);
+	mpDrawer->DrawGfxObject(mpGfxMeter, vBar, kvMeterSize, cColor(1,fAlpha));
+	if(afPercent > 0)
+	{
+		mpDrawer->DrawGfxObject(mpGfxMeterFill,
+								cVector3f(vBar.x + kvMeterFillPos.x, vBar.y + kvMeterFillPos.y, afZ+0.5f),
+								cVector2f(kvMeterFillSize.x*afPercent, kvMeterFillSize.y),
+								cColor(aColor.r, aColor.g, aColor.b, fAlpha*fGlow));
+	}
+	mpDrawer->DrawGfxObject(mpGfxMeterTicks, cVector3f(vBar.x, vBar.y, afZ+0.7f), kvMeterSize, cColor(1,fAlpha));
+}
+
+//-----------------------------------------------------------------------
+
+// The drawer slides in from the right edge of the screen (also past the
+// 4:3 area on a wide screen), the hotkey row up from the bottom.
+void cInventory::UpdateDrawerLayout()
+{
+	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
+	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
+
+	float fT = 1.0f - mfAlpha;
+	float fSlide = 1.0f - fT*fT*fT;
+
+	float fRight = vScreenPos.x + vScreenSize.x;
+	float fLeft = fRight - kfDrawerWidth*fSlide;
+	mDrawerRect = cRect2f(fLeft, vScreenPos.y, kfDrawerWidth, vScreenSize.y);
+
+	float fGridWidth = klDrawerColumns*kfDrawerCell + (klDrawerColumns-1)*kfDrawerGap;
+	float fGridLeft = fLeft + (kfDrawerWidth - fGridWidth)*0.5f;
+
+	int lNormal = 0;
+	for(cInventorySlot *pSlot : mlstSlots)
+	{
+		if(pSlot->mbEquip) continue;
+		int lX = lNormal % klDrawerColumns;
+		int lY = lNormal / klDrawerColumns;
+		pSlot->SetRect(cRect2f(fGridLeft + lX*(kfDrawerCell+kfDrawerGap),
+								kfDrawerTop + lY*(kfDrawerCell+kfDrawerGap),
+								kfDrawerCell, kfDrawerCell));
+		++lNormal;
+	}
+
+	float fHotkeyWidth = 9*kfHotkeyCell + 8*kfHotkeyGap;
+	float fHotkeyLeft = fRight - kfDrawerWidth - 18 - fHotkeyWidth;
+	float fHotkeyTop = 600 - kfHotkeyBottom - kfHotkeyCell + (kfHotkeyBottom + kfHotkeyCell + 8)*(1-fSlide);
+	mHotkeyRect = cRect2f(fHotkeyLeft, fHotkeyTop, fHotkeyWidth, kfHotkeyCell);
+	for(size_t i=0; i<mvEquipSlots.size(); ++i)
+	{
+		mvEquipSlots[i]->SetRect(cRect2f(fHotkeyLeft + (float)i*(kfHotkeyCell+kfHotkeyGap), fHotkeyTop,
+										kfHotkeyCell, kfHotkeyCell));
+	}
+
+	float fStatusLeft = fGridLeft;
+	mpHealth->SetRect(cRect2f(fStatusLeft, kfDrawerStatusTop, kvMeterSize.x, kfDrawerStatusHeight));
+	mpBattery->SetRect(cRect2f(fStatusLeft + fGridWidth - kvMeterSize.x, kfDrawerStatusTop,
+								kvMeterSize.x, kfDrawerStatusHeight));
+}
+
+bool cInventory::IsOverDrawer(const cVector2f &avPos)
+{
+	return cMath::PointBoxCollision(avPos, mDrawerRect) ||
+			cMath::PointBoxCollision(avPos, cRect2f(mHotkeyRect.x - kfHotkeyGap, mHotkeyRect.y - kfHotkeyGap,
+													mHotkeyRect.w + kfHotkeyGap*2, mHotkeyRect.h + kfHotkeyGap*2));
+}
+
+//-----------------------------------------------------------------------
+
+void cInventory::DrawDrawer()
+{
+	mpDrawer->DrawGfxObject(mpGfxDrawer, cVector3f(mDrawerRect.x, mDrawerRect.y, 2),
+							cVector2f(mDrawerRect.w, mDrawerRect.h), cColor(1,mfAlpha));
+
+	///////////////////////////////
+	//Name and description of what the mouse is over
+	bool bRadioText = cInit::IsOverture() ?	mpInit->mpRadioHandler->IsActive() && mpInit->mbSubtitles :
+											mpInit->mpRadioHandler->IsShowingText();
+	if(bRadioText) return;
+
+	float fTextAlpha = mfAlpha*mfTextAlpha * (1- mfMessageAlpha);
+	if(fTextAlpha <= 0) return;
+
+	float fGridWidth = klDrawerColumns*kfDrawerCell + (klDrawerColumns-1)*kfDrawerGap;
+	float fTextLeft = mDrawerRect.x + (kfDrawerWidth - fGridWidth)*0.5f;
+	cColor colText = GetDrawerTextColor(fTextAlpha);
+
+	mpDrawerNameFont->Draw(cVector3f(fTextLeft, kfDrawerTextTop, 10), 17, colText, eFontAlign_Left,
+							_W("%ls"), msItemName.c_str());
+	if(mbPaperDrawer==false)
+		mpDrawerNameFont->Draw(cVector3f(fTextLeft+1, kfDrawerTextTop+1, 9), 17, cColor(0,fTextAlpha),
+								eFontAlign_Left, _W("%ls"), msItemName.c_str());
+
+	cColor colDesc = mbPaperDrawer ? cColor(0.17f,0.14f,0.11f,fTextAlpha*0.92f) : cColor(0.72f,0.7f,0.66f,fTextAlpha);
+	mpDrawerFont->DrawWordWrap(cVector3f(fTextLeft, kfDrawerTextTop + 22, 10), fGridWidth, 16, 14, colDesc,
+								eFontAlign_Left, msItemDesc);
+}
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
 // PUBLIC METHODS
 //////////////////////////////////////////////////////////////////////////
 
@@ -1021,6 +1357,9 @@ void cInventory::Update(float afTimeStep)
 		mfAlpha += 2.3f * afTimeStep;
 		if(mfAlpha>1) mfAlpha = 1;
 	}
+
+	if(mbDrawer) UpdateDrawerLayout();
+	mfMeterTime += afTimeStep;
 	
 	///////////////////////////////
 	//Iterate widgets
@@ -1125,6 +1464,12 @@ void cInventory::OnDraw()
 	///////////////////////////////
 	//Draw background
 	mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
+
+	if(mbDrawer)
+	{
+		UpdateDrawerLayout();
+		DrawDrawer();
+	}
 	
 	//Draw backpack and hands
 	//mpDrawer->DrawGfxObject(mpBagpack,cVector3f(0,600 - (160*sqrt(mfAlpha)),-1),cVector2f(800,160),cColor(1,mfAlpha));
@@ -1181,11 +1526,18 @@ void cInventory::OnDraw()
 		mpInit->mpGraphicsHelper->ClampToScreen(vMousePos);
 		cVector3f vPos(vMousePos.x + mvCurrentItemOffset.x, 
 						vMousePos.y + mvCurrentItemOffset.y,15);
+		if(mbDrawer)
+		{
+			DrawItemIcon(mpCurrentItem, vPos, kfDrawerCell - kfIconInset*2, cColor(1,mfAlpha));
+		}
+		else
+		{
 		cVector2l vSize = mpCurrentItem->GetGfxObject()->GetMaterial()->GetImage(eMaterialTexture_Diffuse)->GetSize();
 
 		mpDrawer->DrawGfxObject(mpCurrentItem->GetGfxObject(), vPos,
 								cVector2f((float)vSize.x, (float)vSize.y),
 								cColor(1, mpInit->mpInventory->GetAlpha()));
+		}
 	}
 
 	//////////////////////////
@@ -1215,7 +1567,7 @@ void cInventory::OnDraw()
 	//Black Plague: hidden only while radio text is shown (a far message has none)
 	bool bRadioText = cInit::IsOverture() ?	mpInit->mpRadioHandler->IsActive() && mpInit->mbSubtitles :
 											mpInit->mpRadioHandler->IsShowingText();
-	if(bRadioText==false)
+	if(bRadioText==false && mbDrawer==false)
 	{
 		float fTextAlpha = mfAlpha*mfTextAlpha * (1- mfMessageAlpha);
 		mpFont->Draw(cVector3f(400, 460,10),19,cColor(1,1,1,fTextAlpha),eFontAlign_Center,
@@ -1245,6 +1597,12 @@ void cInventory::SetActive(bool abActive)
 		mLastCrossHairState = mpInit->mpPlayer->GetCrossHairState();
 		
 		mvMousePos = cVector2f(400,300);
+		//Drawer: over the middle of its grid
+		if(mbDrawer)
+		{
+			mvMousePos = cVector2f(mpInit->mpGraphicsHelper->GetScreenPos().x + mpInit->mpGraphicsHelper->GetScreenSize().x -
+									kfDrawerWidth*0.5f, kfDrawerTop + 3*kfDrawerCell);
+		}
 		mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 		mpInit->mpPlayer->SetCrossHairState(eCrossHairState_Pointer);
 	}
@@ -1542,7 +1900,9 @@ void cInventory::OnMouseUp(eMButton aButton)
 		// Item is dropped outside of slots or returned to its previous slot.
 		if(mpCurrentItem && mbDroppedInSlot == false && aButton == eMButton_Left)
 		{
-			if(mpCurrentItem->CanBeDropped() && mpCurrentItem->HasCount()==false)
+			//Drawer: only let go of over the scene is an item dropped
+			if(mpCurrentItem->CanBeDropped() && mpCurrentItem->HasCount()==false &&
+				(mbDrawer==false || IsOverDrawer(mvMousePos)==false))
 			{
 				mpCurrentItem->Drop();
 				RemoveItem(mpCurrentItem);

@@ -2145,6 +2145,16 @@ void cMapHandler::UpdateTimers(float afTimeStep)
 	}
 }
 
+void cMapHandler::SetLocalTimersPaused(bool abPaused)
+{
+	for(cGameTimer *pTimer : mlstTimers)
+	{
+		if(pTimer->mbGlobal==false) pTimer->mbPaused = abPaused;
+	}
+}
+
+//-----------------------------------------------------------------------
+
 void cMapHandler::RemoveLocalTimers()
 {
 	for(tGameTimerListIt it=mlstTimers.begin(); it != mlstTimers.end(); )

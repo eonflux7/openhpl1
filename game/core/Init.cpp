@@ -640,11 +640,14 @@ bool cInit::Init(tString asCommandLine)
 
 	// High-resolution HUD images (hud/ in the source tree) are next to the
 	// executable. They replace the game's images at the same on-screen size.
+	// hud/blackplague/ holds Black Plague's (and Requiem's) images whose
+	// names Overture uses for a different image.
 	const char *pOriginalHud = SDL_getenv("OPENHPL_ORIGINAL_HUD");
 	if(pOriginalHud==nullptr || pOriginalHud[0]==0 || pOriginalHud[0]=='0')
 	{
-		mpGame->GetResources()->GetImageManager()->SetHighResDirectory(
-			tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "hud/");
+		tString sHudDir = tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "hud/";
+		mpGame->GetResources()->GetImageManager()->SetHighResDirectory(sHudDir,
+			IsOverture() ? "" : sHudDir + "blackplague/");
 		mbHighResHud = true;
 	}
 
