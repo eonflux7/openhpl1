@@ -529,15 +529,9 @@ namespace hpl {
 
 	void OpenBrowserWindow ( const tWString& asURL )
 	{
-		#ifdef WIN32
-		ShellExecute ( NULL, _W("open"), asURL.c_str(), NULL, NULL, SW_SHOWNORMAL );
-		#elif defined(__linux__)
-		tString asTemp = "./openurl.sh "+cString::To8Char(asURL);
-		system(asTemp.c_str());
-		#elif defined(__APPLE__)
-		tString asTemp = "open "+cString::To8Char(asURL);
-		system(asTemp.c_str());
-		#endif
+		// SDL passes the URL to the platform's opener without a shell.
+		if(!SDL_OpenURL(cString::To8Char(asURL).c_str()))
+			Warning("Could not open '%s': %s\n", cString::To8Char(asURL).c_str(), SDL_GetError());
 	}
 
 	//-----------------------------------------------------------------------

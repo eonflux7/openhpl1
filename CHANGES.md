@@ -26,6 +26,20 @@ commit), and the last official Linux build on Steam.
   binary fonts; the `.cmd` files are now stored with LF in the index),
   `vcpkg_installed/` to `.gitignore`, and GPL headers to the files that
   lacked them.
+- Cleared the remaining GCC warnings. `cButtonHandlerAction` flags default to
+  false. A Collada joint with an unknown type is skipped with a warning
+  instead of being created with an uninitialized type. A short read of a
+  script file fails the load. `OpenBrowserWindow` uses `SDL_OpenURL` instead
+  of `system("./openurl.sh <url>")`, so a URL from game data no longer goes
+  through a shell.
+- Validation: a fresh clone of the previous commit built and passed CTest.
+  After the changes, the default and ASan builds have no warnings and pass
+  `engine_regressions`, `audio_regressions` and `renderer_regressions`
+  (ASan with `detect_leaks=0`, so not leak-checked). The MSVC build
+  (`platform/windows/build.cmd`) has no warnings, and the Windows smoke test
+  (`smoke.cmd`, Overture) loaded, saved and reloaded all 28 maps with 0
+  failures. No Linux game smoke test, manual play, or Black Plague/Requiem
+  run.
 
 ## Code readability
 

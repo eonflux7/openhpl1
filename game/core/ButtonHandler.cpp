@@ -44,9 +44,9 @@ struct cButtonHandlerAction
 	tString msName;
 	tString msType;
 	int mlVal;
-	bool mbConfig;
+	bool mbConfig = false;
 	// Only in Black Plague and Requiem
-	bool mbNotInOverture;
+	bool mbNotInOverture = false;
 };
 
 static bool IsActionInGame(const cButtonHandlerAction *apAction)

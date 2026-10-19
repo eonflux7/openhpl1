@@ -182,10 +182,8 @@ namespace hpl {
 	{
 		if(aType == eMaterialRenderType_Light)
 		{
-			eBaseLightProgram program;
-
-			if(apLight->GetLightType()==eLight3DType_Point)		program = eBaseLightProgram_Point1;
-			else if(apLight->GetLightType()==eLight3DType_Spot)	program = eBaseLightProgram_Spot1;
+			eBaseLightProgram program = apLight->GetLightType()==eLight3DType_Spot ?
+				eBaseLightProgram_Spot1 : eBaseLightProgram_Point1;
 
 			return mvPrograms[program];
 		}
