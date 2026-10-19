@@ -6,10 +6,8 @@ and [ROADMAP](../ROADMAP.md) for current work across all three games.
 
 Current technical guides:
 
-- [Code readability audit and cleanup](../naming_cleanup.md): naming and concise
-  comment standards, completed A0–A7 review, findings and validation limits.
-- [Black Plague and Requiem](black-plague-port.md): game selection, porting
-  tools, binary inspection and map/script diagnostics.
+- [Black Plague and Requiem](black-plague-port.md): game selection, stand-ins
+  for missing code, test tools and map/script diagnostics.
 - [Dog foundations](dog-foundations.md): Original/Improved AI, animation,
   the generated arena and original-asset regression checks.
 - [Shadow-map cache](shadow-cache.md): ownership, invalidation, budgets,

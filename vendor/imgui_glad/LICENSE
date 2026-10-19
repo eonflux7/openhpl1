@@ -1,0 +1,3 @@
+imgui_impl_opengl3_glad.cpp is a thin wrapper that compiles Dear ImGui's
+OpenGL 3 backend (vendor/imgui/backends/imgui_impl_opengl3.cpp) against glad.
+Dear ImGui is MIT-licensed; see ../imgui/LICENSE.txt.

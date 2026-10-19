@@ -16,6 +16,7 @@ unresolved work is carried into the [current roadmap](../../ROADMAP.md).
 | [Legacy engine fixes](legacy-engine-fixes.md) | Completed branch report and validation history; current testing commands are in the repository README and AGENTS |
 | [Milestone 6 step 9 handoff](milestone6-step9-handoff.md) | Backend split completed; old worktree and assignment are obsolete |
 | [Renderer cleanup plan](renderer-cleanup-plan.md) | Step 11 implemented; retains state/ordering decisions and final validation limits |
+| [Code readability audit](naming_cleanup.md) | Completed A0–A7 naming/comment review (2026-10-19); conventions it established are in AGENTS |
 
 The snapshots retain historical wording, including task instructions. Do not
 execute those instructions as new work. Build directories, `/tmp` logs,

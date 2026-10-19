@@ -1,0 +1,30 @@
+name: Linux
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: fedora:44
+    steps:
+      - name: Install dependencies
+        run: >
+          dnf install -y --setopt=install_weak_deps=False
+          git gcc-c++ cmake ninja-build python3 pkgconf-pkg-config
+          SDL3-devel SDL3_image-devel openal-soft-devel
+          libvorbis-devel libogg-devel freetype-devel
+          mesa-libGL-devel mesa-libEGL-devel mesa-dri-drivers
+
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset default
+
+      - name: Build
+        run: cmake --build --preset default
+
+      # Needs no game data; renderer_regressions runs on software EGL.
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

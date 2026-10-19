@@ -20,77 +20,20 @@ names for compatibility.
 
 ## Status
 
-Overture is the main supported game. Black Plague and Requiem load their maps
-and have substantial game code implemented, but still need playthrough testing
-and have missing features. See the
-[shared roadmap](ROADMAP.md#black-plague-and-requiem) and
-[the porting notes](docs/black-plague-port.md) for their current limitations.
+- **Overture** is the main supported game. It builds and runs as a native
+  64-bit executable on Linux and Windows: the intro, menus and levels load at
+  full speed. Full playthroughs and physics comparisons against the original
+  are still in progress.
+- **Black Plague** and **Requiem** load their maps and have substantial game
+  code implemented, but still need playthrough testing and have missing
+  features. See [the porting notes](docs/black-plague-port.md).
+- **Renderer**: the fixed-function/Cg renderer has been replaced by a core-profile
+  GLSL renderer with linear lighting, shadow maps, AO, bloom and SMAA
+  (renderer cleanup Milestone 6, steps 1–13). Remaining validation is listed
+  in the [roadmap](ROADMAP.md#validation-to-close-first).
 
-**Milestone 0 done:** the game builds and runs as a native 64-bit executable
-on Linux and Windows. It boots, plays the intro and menus and loads levels at
-full speed.
-Full playthroughs are not tested yet, and physics behaviour still has to be
-compared against the original.
-
-Renderer cleanup is through **Milestone 6, step 13**: mesh vertices upload
-interleaved into one buffer, surface geometry uses triangle indices, and
-UVs and tangents have named attributes. Textures use immutable storage;
-animation frames occupy layers of one texture array. The shared triangle
-sprite batcher retains submission order at equal depth, including keypad
-panels over inventory borders. Linked programs keep material values in
-uniform blocks and draw matrices travel together. The SDL graphics backend
-now delegates to separate owners for the window/context and capture, GL state
-and samplers, scene/output targets, final passes, shadow targets, and streamed
-sprite/triangle/debug drawing. The renderer-facing interface and frame order
-stay the same. Billboards, beams and particles now use compact instance
-records and shared static triangle indices; their corners expand in vertex
-shaders. CPU particle simulation, facing, UVs, colours and transparent order
-are retained. Particle vertex uploads use 88 bytes per live particle instead
-of 176, without maximum-size emitter vertex/index arrays.
-
-Linux build and both regression suites pass, including EGL backend checks.
-The renderer suite also passes on GL 3.3 with storage extensions and GL 4.3.
-For step 10, the Windows MSVC build passed; comparisons against step 9 matched
-95/95 default, 95/95 motion-blur, 31/31 scaled/FSAA and 29/29 effects-lab frames.
-All UI frames, effects pixel/live checks and GL debug validation passed for
-that step. Details are in
-[CHANGES.md](CHANGES.md#step-10-billboards-beams-and-particles).
-
-Step 11 keeps see-through draws in explicit submission-ordered records, supports
-every visible light instead of stopping at 30, removes dead per-texture/queue
-interfaces, caches resolved scene depth until a real depth write, and restores
-fullscreen-pass state from the state and target owners. Both CTest suites pass
-in RelWithDebInfo and ASan/UBSan builds, including EGL on GL 3.3 and GL 4.3.
-Fresh visual captures and Windows validation were unavailable in the
-implementation environment; follow-up results are recorded below. See
-the [archived renderer cleanup report](docs/archive/renderer-cleanup-plan.md).
-
-Step 12 skips redundant linked-program/material-buffer bindings and uploads
-only the interval of changed material parameters. EGL call-count checks reduce
-128 unchanged submissions from 128 binds of each kind to zero; a scalar edit
-uploads 16 bytes instead of the full 2,160-byte block. Frame-time effects have
-not been measured. Both regression suites pass normally and with ASan/UBSan
-(leak detection disabled); EGL also passes on GL 3.3 and GL 4.3.
-
-Step 13 retains shadow depth per light under a default 128 MiB cache budget.
-Unchanged maps are reused; moving casters, geometry/alpha updates and changed
-light projections invalidate them. Cube faces are tracked separately as the
-camera turns. F4's Shadows window shows reuse counts and lets the budget be
-set to zero for comparison. See [docs/shadow-cache.md](docs/shadow-cache.md)
-for the ownership and invalidation contracts. Full-game frame-time effects
-remain unmeasured. Follow-up Windows validation compares pre-step-11
-`c2ea1a1` with `59f1b97`: all UI screens and 29 effects frames match, but
-boat-cabin and ice-cave scene differences were recorded at unchanged tolerances.
-Follow-up draw logs and a single-change diagnostic confirm the boat-cabin
-difference is the step-11 depth-test ordering correction; ice-cave differences
-remain unresolved. See the [follow-up evidence](CHANGES.md#boat-cabin-ordering-and-ice-cave-repeats-2026-10-19).
-The current MSVC build and isolated 28-map smoke/save/reload pass; intermittent
-startup access violations also occurred in baseline and current captures.
-Those captured crashes were subsequently traced to EFX slot mutex lifetime
-and fixed; see the [audio validation](CHANGES.md#efx-slot-startup-crashes-2026-10-19).
-See the [recorded results](CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
-and the
-[validation checklist](ROADMAP.md#validation-to-close-first).
+Per-step implementation and validation details are in [CHANGES.md](CHANGES.md);
+current priorities are in the [roadmap](ROADMAP.md).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
 `GL_ARB_texture_storage` and `GL_ARB_texture_storage_multisample`; missing
@@ -457,3 +400,6 @@ OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).
 Bundled third-party code keeps its own licence (see each directory under
 `vendor/`, `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`). Penumbra: Overture game assets are
 not covered by this licence and are not included.
+
+Penumbra and HPL are trademarks of Frictional Games. OpenHPL1 is an unofficial
+fan project and is not affiliated with or endorsed by Frictional Games.

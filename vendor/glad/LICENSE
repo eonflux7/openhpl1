@@ -1,0 +1,9 @@
+The glad loader generator's output (src/gl.c, include/glad/gl.h) is
+SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
+as stated in those files: the generated code is WTFPL or CC0-1.0, and the
+Khronos API specifications it is generated from are Apache-2.0.
+
+include/KHR/khrplatform.h is Copyright (c) 2008-2018 The Khronos Group Inc.
+and is provided under the MIT-style licence at the head of that file.
+
+See https://github.com/Dav1dde/glad for the generator.
