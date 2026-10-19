@@ -1,11 +1,12 @@
 # OpenHPL1
 
-A modernised **HPL1 engine** and source port of **Penumbra: Overture**, with
-experimental support for **Black Plague** and **Requiem**. Built from
-Frictional Games' open-source HPL1 engine and Overture game code, it runs
-natively on 64-bit Linux and Windows against the data from your own games.
+An experimental, modernised **HPL1 engine** and source port of the
+**Penumbra** trilogy: **Overture**, **Black Plague** and **Requiem**. Built
+from Frictional Games' open-source HPL1 engine and Overture code, with the
+other two games' code written to match, it runs natively on 64-bit Linux and
+Windows against the data from your own games.
 
-The goal is to keep the game playing exactly like the original while bringing
+The goal is to keep the games playing exactly like the originals while bringing
 the engine up to date: native widescreen, a modern renderer and a long list of
 quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
 [documentation index](docs/README.md).
@@ -15,13 +16,14 @@ quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
 
 ## Status
 
-- **Overture** is the main supported game. It builds and runs as a native
-  64-bit executable on Linux and Windows: the intro, menus and levels load at
-  full speed. Full playthroughs and physics comparisons against the original
-  are still in progress.
-- **Black Plague** and **Requiem** load their maps and have substantial game
-  code implemented, but still need playthrough testing and have missing
-  features. See [the porting notes](docs/black-plague-port.md).
+Everything here is experimental and still being tested. All three games
+build into one native 64-bit executable for Linux and Windows.
+
+- **Overture**: the intro, menus and levels load and run at full speed. Full
+  playthroughs and physics comparisons against the original are in progress.
+- **Black Plague** and **Requiem**: maps load and much of the game code is
+  in place; some features are still missing and playthroughs are untested.
+  See [the porting notes](docs/black-plague-port.md).
 - **Renderer**: the fixed-function/Cg renderer has been replaced by a core-profile
   GLSL renderer with linear lighting, shadow maps, AO, bloom and SMAA
   (renderer cleanup Milestone 6, steps 1–13). Remaining validation is listed
