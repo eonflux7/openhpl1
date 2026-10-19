@@ -5,6 +5,25 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Release packages (2026-10-19)
+
+- `platform/windows/package.cmd <version>` zips an existing Windows build
+  with its vcpkg DLLs, the app-local Visual C++ runtime from Visual Studio's
+  redistributable folder, shaders, fonts, HUD images and licences.
+- `platform/linux/package.sh <version>` builds SDL3 3.4.16, SDL3_image 3.4.6
+  (stb loaders for PNG and JPEG), OpenAL Soft 1.25.2, libogg 1.3.6 and
+  libvorbis 1.3.7 from source, links Ogg, Vorbis, FreeType (the engine's
+  fallback build), libstdc++ and libgcc statically, and ships the SDL and
+  OpenAL libraries in `lib/` (RPATH `$ORIGIN/lib`). The executable needs only
+  libc, libm and the dynamic loader; OpenGL is loaded through SDL.
+- `.github/workflows/release.yml` runs the Linux script in the Steam Runtime 3
+  "sniper" SDK on `v*` tags or by hand and uploads the tarball as an artifact.
+- Validation: the Windows package's own `openhpl1.exe` passed the Overture
+  smoke test (25 maps, 0 failures, hidden window, isolated profile). The
+  Linux script ran on Ubuntu 26.04; the package's executable links only
+  libc, libm and the loader besides its bundled libraries. The Linux package
+  has not been run against game data.
+
 ## Inventory drawer and new item icons (2026-10-19)
 
 - With the high-resolution HUD the inventory is a drawer that slides in at

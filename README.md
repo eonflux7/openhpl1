@@ -158,6 +158,20 @@ original games' folders. The test programs are Linux-only and not built with MSV
 From WSL, `platform/windows/sync.sh` mirrors the source tree to a Windows
 drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
 
+### Release packages
+
+`platform\windows\package.cmd <version>` packs an existing Windows build as
+`build-windows\openhpl1-<version>-windows-x64.zip`, with its DLLs, the Visual
+C++ runtime, shaders, fonts, HUD images and licences.
+
+`platform/linux/package.sh <version>` builds a portable
+`openhpl1-<version>-linux-x86_64.tar.gz` in `build-release/`: SDL3,
+SDL3_image and OpenAL Soft are built from pinned sources and shipped in
+`lib/`, Ogg, Vorbis, FreeType and the C++ runtime are linked in. The
+**Release** workflow (`.github/workflows/release.yml`, run on `v*` tags or by
+hand) builds it in the Steam Runtime 3 "sniper" SDK, so the binary runs on
+glibc 2.31 and newer.
+
 Before changing gameplay code, run the smoke test on the ASan build:
 
 ```

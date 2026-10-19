@@ -1,0 +1,44 @@
+name: Release
+
+# Builds the portable Linux x86_64 package (platform/linux/package.sh) in the
+# Steam Runtime 3 "sniper" SDK, so it runs on glibc 2.31 and newer. The
+# Windows package is built with platform\windows\package.cmd.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version in the package name, e.g. 0.1.0-alpha
+        required: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
+      CMAKE_VERSION: 3.31.12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake
+        run: |
+          curl -fL --retry 3 "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-linux-x86_64.tar.gz" | tar -xz -C /opt
+          echo "/opt/cmake-$CMAKE_VERSION-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Package
+        run: platform/linux/package.sh "${VERSION#v}" "$RUNNER_TEMP/work" dist
+
+      - name: Check glibc requirement
+        run: |
+          dir="$RUNNER_TEMP/work/openhpl1-${VERSION#v}-linux-x86_64"
+          newest=$(objdump -T "$dir/openhpl1" "$dir"/lib/*.so* | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)
+          echo "Newest glibc symbol: $newest"
+          ldd "$dir/openhpl1"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openhpl1-linux-x86_64
+          path: dist/*.tar.gz
+          if-no-files-found: error
