@@ -7,7 +7,7 @@ and [ROADMAP](../ROADMAP.md) for current work across all three games.
 Current technical guides:
 
 - [Black Plague and Requiem](black-plague-port.md): game selection, stand-ins
-  for missing code, test tools and map/script diagnostics.
+  for missing code, porting tools, binary inspection and map/script diagnostics.
 - [Dog foundations](dog-foundations.md): Original/Improved AI, animation,
   the generated arena and original-asset regression checks.
 - [Shadow-map cache](shadow-cache.md): ownership, invalidation, budgets,

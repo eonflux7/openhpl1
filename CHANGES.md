@@ -7,18 +7,15 @@ commit), and the last official Linux build on Steam.
 
 ## Repository publication (2026-10-19)
 
-- Removed the porting tools that disassembled the original games' binaries
-  (`disassemble_game.py`, `compact_disassembly.py`, `inspect_script_function.py`,
-  `inspect_script_signatures.py`, `summarize_menu_widgets.py`) from the tree and
-  from history; earlier entries that mention them are historical.
-  `tools/porting/check_scripts.py` and `headless.sh` remain. The Black Plague
-  guide keeps its testing and diagnostic notes without the binary-inspection
-  instructions.
 - Added licence files for vendored AngelScript, Newton, TinyXML, glad and the
   ImGui glad backend (texts from their source headers), a trademark note in
   the README, a shorter README status section, a Linux CI workflow and
   `.cache/` to `.gitignore`. Moved the completed readability audit to
   `docs/archive/naming_cleanup.md`.
+- The porting tools and the Black Plague guide's binary-inspection notes
+  (symbols, vtable offsets, static-table addresses) are kept in the published
+  tree so the reconstruction can be reproduced. Their earlier commits were
+  dropped in the history rewrite; they are re-added here unchanged.
 - Validation: documentation links and paths checked. The CI workflow has not
   been run yet.
 

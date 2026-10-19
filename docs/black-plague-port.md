@@ -29,9 +29,9 @@ What Black Plague changed in classes Overture has too (the enemy base class,
 the player's forced look) is behind `cInit::IsOverture()` wherever Overture
 would behave differently.
 
-The initial bootstrap needed no engine additions: Black Plague and Requiem run
-on essentially the same engine as Overture, and many of their classes are an
-Overture class with changes (the Infected is the Dog). Subsequent porting work
+The initial bootstrap needed no engine additions: the binaries export their
+symbols, and all but a handful of template instances of the engine's functions
+have the same size in Overture's and Black Plague's. Subsequent porting work
 also fixed shared physics, audio and other engine behaviour; see CHANGES.
 
 ## The games' folders are left alone
@@ -41,18 +41,41 @@ written to `cache/` in the game's personal folder and looked for there first;
 the ones that came with the game are only read. (Before this, a run rewrote
 87 cache files in Black Plague's `core/cache/`.)
 
-## Testing the later games
+## Finding out what the binaries do
 
-Examples below that mention `build/porting/` experiments refer to historical
-scratch scripts and outputs, which are not shipped and may no longer exist.
+The tools under `tools/porting/` are tracked. Examples below that mention
+`build/porting/` experiments refer to historical scratch scripts and outputs,
+which are not shipped and may no longer exist. Use the tracked tools and
+current source to reproduce those investigations.
 
-`tools/porting/headless.sh blackplague` runs a game headless and silent in a
-scratch home.
+`blackplague.bin` and `requiem.bin` export every class and method with full
+signatures (`nm -D --defined-only ... | c++filt`). `tools/porting/inspect_script_signatures.py`
+reads the script functions' argument types out of them, and
+`tools/porting/disassemble_game.py bp 'cGameLever::Update'` prints a function's
+disassembly with the strings and floats it refers to (32-bit x86; member
+offsets are those of the 32-bit build). `tools/porting/headless.sh
+blackplague` runs a game headless and silent in a scratch home.
 
 `OVERTURE_SCRIPT="4:MoveEntityToArea(\"water1\",\"waterup1\",1.4,0.4,0.2,\"\");|9:..."`
 runs script commands that many seconds after the start, with `OVERTURE_MAP`
 to start in a map. `Print("...")` and the collision checks in an `if` are
 enough to see in the log whether a function did its work.
+
+Use `python3 tools/porting/inspect_script_function.py bp SetWidgetBool` to
+inspect an unexported script function immediately before its generic wrapper.
+
+Pipe disassembly through `compact_disassembly.py` for labels only at branch
+targets, with unwinding code and string reference counting omitted:
+
+```sh
+python3 tools/porting/disassemble_game.py bp \
+  'cGameEnemyState_Infected_Hunt::OnUpdate' |
+  python3 tools/porting/compact_disassembly.py
+```
+
+Many of the later games' classes are an Overture class with changes
+(the Infected is the Dog): comparing the sizes of the functions in the two
+symbol tables shows which ones to read at all.
 
 `OVERTURE_ENEMY_LOG=1` writes every enemy's changes of state to the log, and
 once a second where it is, whether it moves and sees the player, and its
@@ -71,12 +94,30 @@ the joint limits were changed (through an `OVERTURE_OLD_LIMITS` switch since
 removed), and `check.sh` there tries the tower lever
 and Requiem level 2's doors.
 
-Some behaviour only shows up as a side effect: the spider hatching from its
-egg needs `OnWorldLoad` after an object breaks.
+The script functions' own code is not at their `_Generic` symbol but, without
+a name, at the end of the symbol before it: follow the `call` in the wrapper.
+
+Things that helped: the vtable offsets of `iPhysicsBody` (0x38
+SetLinearVelocity, 0x70 GetMass, 0x84 AddTorque, 0x90 SetEnabled) and of the
+hinge (0x3c GetAngle, 0x40/0x44 SetMax/MinAngle, 0x48/0x4c GetMax/MinAngle);
+objdump prints `fsubp`/`fsubrp` and `fdivp`/`fdivrp` swapped in AT&T syntax. Comparing the calls a
+function makes in Overture's binary and in Black Plague's (`objdump -d`) shows
+what a changed function gained: that is how the spider hatching from its egg
+was found to need `OnWorldLoad` after an object breaks.
 
 Our AngelScript is stricter than the one of 2008: Black Plague's scripts give
 `true` and `false` where a number is taken, so `SetLocalVar`, `SetGlobalVar`,
 their `Create` forms and `SetBodyProperty` have bool overloads.
+
+`tools/porting/summarize_menu_widgets.py` lists what `cMainMenu::CreateWidgets` builds:
+for each widget its class, the strings and floats before it, and the menu
+state it is added to (from the `0x6c + 8 * state` list it is hooked into).
+That gave the later games' menu pages and their state numbers. `disassemble_game.py`
+reads wide strings first (`L"EFX:"`, which as a narrow string would read
+"E"). Static tables such as the button handler's default keys are filled by
+an initializer the disassembly files under a neighbouring function's name
+(`cButtonHandler::OnPostSceneDraw`): look for stores to fixed `0x86b....`
+addresses.
 
 Clicking in the menu with injected input (`build/porting/step3/input.py`):
 the pointer now ranges over the whole wide window, so give `MENU_XOFF=0`
