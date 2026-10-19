@@ -62,6 +62,8 @@ find_package(SDL3 REQUIRED CONFIG)
 find_package(SDL3_image REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
+# AngelScript and the engine use threads; glibc before 2.34 has them in libpthread
+find_package(Threads REQUIRED)
 if(WIN32)
 	# Windows: vcpkg (vcpkg.json) provides every dependency
 	find_package(Vorbis CONFIG REQUIRED)
@@ -130,6 +132,7 @@ target_include_directories(angelscript SYSTEM PUBLIC
 	vendor/angelscript/include
 	vendor/angelscript/add_on)
 target_compile_options(angelscript PRIVATE ${OPENHPL_NO_WARNINGS})
+target_link_libraries(angelscript PUBLIC Threads::Threads)
 
 # OALWrapper (zlib), Frictional Games' OpenAL helper
 file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
@@ -180,7 +183,8 @@ target_link_libraries(hpl PUBLIC
 	newton angelscript oalwrapper tinyxml glad imgui
 	SDL3::SDL3 SDL3_image::SDL3_image
 	Freetype::Freetype
-	OpenGL::GL)
+	OpenGL::GL
+	Threads::Threads)
 if(WIN32)
 	target_link_libraries(hpl PUBLIC shell32 user32)
 endif()
