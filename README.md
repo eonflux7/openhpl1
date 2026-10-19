@@ -13,12 +13,6 @@ quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
 > You need your own copy of each game you want to play. This repository
 > contains no original game assets.
 
-The project was previously called Overture Remade; its repository and checkout
-are now named `openhpl1`, as is the executable (`openhpl1.exe` on Windows).
-Environment variables and CMake options use the `OPENHPL_` prefix (formerly
-`OVERTURE_`). Per-game settings/save folders keep their names, so existing
-saves still load.
-
 ## Status
 
 - **Overture** is the main supported game. It builds and runs as a native
@@ -50,7 +44,7 @@ The short list. The full list is in [CHANGES.md](CHANGES.md).
 - Nvidia Cg → **GLSL** shaders (ported by the ScummVM project); GLee/GLU →
   **glad**
 - Closed 32-bit Newton 1.53 → open-source **Newton Game Dynamics 2.36**
-- AngelScript 2.7 → **AngelScript 2.38**; the original game scripts run
+- AngelScript 2.7.1b → **AngelScript 2.38.0**; the original game scripts run
   unchanged
 - Music no longer stutters on modern Linux audio stacks (PipeWire/OpenAL Soft)
 - Separate settings and save folder, so the original game is never touched
