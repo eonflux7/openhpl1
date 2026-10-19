@@ -13,6 +13,13 @@ other size is not used: the original is drawn, with a warning in `hpl.log`.
 Images not listed here are unchanged. `OPENHPL_ORIGINAL_HUD=1` draws all of
 the game's own images.
 
+These images are not covered by OpenHPL1's GPL licence. The generated ones
+(the hands, eye, door, ladder, notebook, paper, item icons and the loading
+and menu screens, logos included) were made after Frictional Games' own
+images, which remain theirs; they are included as fan work, to be changed or
+removed if Frictional Games asks. The SVGs in `src/` and the images drawn by
+`tools/hud_pencil.py` are this project's own.
+
 Overture and Black Plague (and so Requiem) ship byte-identical copies of
 every image replaced here, so one set serves all three games.
 

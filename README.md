@@ -444,8 +444,8 @@ Bundled third-party code keeps its own licence: see
 [engine/NOTICE](engine/NOTICE), each directory under `vendor/`,
 `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`. Penumbra game
 assets are not covered by this licence and are not included. The images in
-`hud/` recreate some of them at higher resolution; see
-[hud/README.md](hud/README.md).
+`hud/` recreate some of them at higher resolution and are not covered by
+the GPL either; see [hud/README.md](hud/README.md).
 
 Penumbra and HPL are trademarks of Frictional Games. OpenHPL1 is an unofficial
 fan project and is not affiliated with or endorsed by Frictional Games.
