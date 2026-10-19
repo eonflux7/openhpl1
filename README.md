@@ -11,7 +11,7 @@ quality-of-life fixes. See the shared [roadmap](ROADMAP.md) and
 [documentation index](docs/README.md).
 
 > You need your own copy of each game you want to play. This repository
-> contains no game assets.
+> contains no original game assets.
 
 The project was previously called Overture Remade; its repository and checkout
 are now named `openhpl1`, as is the executable (`openhpl1.exe` on Windows).
