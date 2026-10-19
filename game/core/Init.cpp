@@ -482,6 +482,8 @@ bool cInit::Init(tString asCommandLine)
 	mbFullScreenSetting = mbFullScreen;
 	mlDisplay = mpConfig->GetInt("Screen","Display",-1);
 	mbVsync = mpConfig->GetBool("Screen", "Vsync", false);
+	// First run: synced to the display rather than the defaults' tearing
+	if(!gbUsingUserSettings) mbVsync = true;
 	mbLogResources = mpConfig->GetBool("Debug", "LogResources", false);
 	mbDeveloperMode = mpConfig->GetBool("Debug", "DeveloperMode", false);
 	// Debugging, or a test map that is driven with F2
@@ -552,6 +554,8 @@ bool cInit::Init(tString asCommandLine)
 	// Reverb of the rooms (EFX). Black Plague's sound environments need it;
 	// on here unless the settings say not, where the original had it off.
 	mbUseEnvAudio = mpConfig->GetBool("Sound","UseEnvironmentalAudio",true);
+	// Black Plague's and Requiem's default_settings.cfg turn it off
+	if(!gbUsingUserSettings) mbUseEnvAudio = true;
 	//mbForceGenericSoundDevice = mpConfig->GetBool("Sound", "ForceGeneric", false);
 	mlStreamUpdateFreq = mpConfig->GetInt("Sound","StreamUpdateFreq",10);
 	mbUseSoundThreading = mpConfig->GetBool("Sound","UseThreading",true);
@@ -871,6 +875,10 @@ bool cInit::Init(tString asCommandLine)
 		shadows.mbAlphaCasters = mpConfig->GetBool("Graphics","ShadowAlphaCasters",shadows.mbAlphaCasters);
 		pRenderer->SetShadowMapSettings(shadows);
 	}
+
+	// First run: the games' default_settings.cfg leave out what the port
+	// added and turn off anisotropic filtering; start from the High preset
+	if(!gbUsingUserSettings) ApplyGraphicsPreset(this, eGraphicsPreset_ImprovedHigh);
 
 	mpGame->SetLimitFPS( mpConfig->GetBool("Graphics","LimitFPS",true));
 

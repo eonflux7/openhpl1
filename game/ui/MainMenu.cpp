@@ -2453,12 +2453,8 @@ public:
 		iAction *pAction = mpInit->mpGame->GetInput()->GetAction(asActionName);
 		if(pAction)
 		{
-			tString sKeyName = pAction->GetInputName();
-			mpKeyWidget->msText =kTranslate("ButtonNames",sKeyName);
-			
-			//If translation is missing, set to default
-			if(mpKeyWidget->msText == _W(""))
-				mpKeyWidget->msText = cString::To16Char(sKeyName);
+			// The same short names as tips and the inventory
+			mpKeyWidget->msText = mpInit->mpButtonHandler->GetKeyLabel(pAction->GetInputName());
 
 		}
 		else
@@ -2483,12 +2479,8 @@ public:
 		
 		if(pAction)
 		{
-			tString sKeyName = pAction->GetInputName();
-			mpKeyWidget->msText =kTranslate("ButtonNames",sKeyName);
-
-			//If translation is missing, set to default
-			if(mpKeyWidget->msText == _W(""))
-				mpKeyWidget->msText = cString::To16Char(sKeyName);
+			// The same short names as tips and the inventory
+			mpKeyWidget->msText = mpInit->mpButtonHandler->GetKeyLabel(pAction->GetInputName());
 
             mpKeyWidget->UpdateSize();
 		}
@@ -2541,8 +2533,8 @@ cMainMenu::cMainMenu(cInit *apInit)  : iUpdateable("MainMenu")
 {
 	mState = eMainMenuState_Start;
 
-	mpLogo = nullptr;
-	mpBackground = nullptr;
+	mLogo = cScreenImage();
+	mBackground = cScreenImage();
 
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
@@ -2599,8 +2591,8 @@ cMainMenu::~cMainMenu(void)
 	mpDrawer->DestroyGfxObject(mpGfxRainSplash);
 	mpDrawer->DestroyGfxObject(mpGfxSnowFlake);
 
-	if(mpLogo) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpLogo);
-	if(mpBackground) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBackground);
+	mpInit->mpGraphicsHelper->DestroyScreenImage(mLogo);
+	mpInit->mpGraphicsHelper->DestroyScreenImage(mBackground);
 	
 }
 
@@ -2639,8 +2631,8 @@ void cMainMenu::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 	
-	mpInit->mpGraphicsHelper->DrawTexture(mpLogo,0,cVector3f(800,180,30),cColor(1,1));
-	mpInit->mpGraphicsHelper->DrawTexture(mpBackground,cVector3f(0,180,0),cVector3f(800,420,0),cColor(1,1));
+	mpInit->mpGraphicsHelper->DrawScreenImage(mLogo,0,cVector2f(800,180));
+	mpInit->mpGraphicsHelper->DrawScreenImage(mBackground,cVector3f(0,180,0),cVector2f(800,420));
 
 	////////////////////////////////
 	// Fade in
@@ -2741,11 +2733,7 @@ void cMainMenu::Update(float afTimeStep)
 			//Log("Creating action '%s'\n",msCurrentActionName.c_str());
 			iAction *pAction = pInput->InputToAction(msCurrentActionName);
 			
-			mpCurrentActionText->msText = kTranslate("ButtonNames",pAction->GetInputName());
-			
-			//If translation is missing, set to default
-			if(mpCurrentActionText->msText == _W(""))
-				mpCurrentActionText->msText = cString::To16Char(pAction->GetInputName());
+			mpCurrentActionText->msText = mpInit->mpButtonHandler->GetKeyLabel(pAction->GetInputName());
 
 			mpCurrentActionText->UpdateSize();
 
@@ -3048,12 +3036,14 @@ void cMainMenu::SetActive(bool abActive)
 
 		mpCurrentActionText = nullptr;
 
-		mpLogo = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("menu_logo.jpg",false);
+		mLogo = mpInit->mpGraphicsHelper->LoadScreenImage("menu_logo.jpg");
 		
 		if(mbGameActive)
-			mpBackground = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("menu_background_ingame.jpg",false);
+			mBackground = mpInit->mpGraphicsHelper->LoadScreenImage("menu_background_ingame.jpg");
+		else if(cInit::GetGameId() == eGameId_Requiem)
+			mBackground = mpInit->mpGraphicsHelper->LoadScreenImage("requiem_menu_background.jpg");
 		else
-			mpBackground = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D("menu_background.jpg",false);
+			mBackground = mpInit->mpGraphicsHelper->LoadScreenImage("menu_background.jpg");
 
 	}
 	else
@@ -3089,10 +3079,8 @@ void cMainMenu::SetActive(bool abActive)
 			mpInit->mpGame->GetHaptic()->GetLowLevel()->SetUpdateShapes(true);
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_Game);
 
-		if(mpLogo) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpLogo);
-		mpLogo = nullptr;
-		if(mpBackground) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBackground);
-		mpBackground = nullptr;
+		mpInit->mpGraphicsHelper->DestroyScreenImage(mLogo);
+		mpInit->mpGraphicsHelper->DestroyScreenImage(mBackground);
 	}
 }
 //-----------------------------------------------------------------------

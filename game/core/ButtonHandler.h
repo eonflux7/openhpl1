@@ -55,6 +55,17 @@ public:
 
 	tString GetActionName(const tString &asInputName,const tString &asSkipAction);
 
+	/**
+	 * The short name of a key or mouse button ("L Ctrl", "Esc", "L Mouse"),
+	 * from an action's input name, for tips and the inventory.
+	 */
+	tWString GetKeyLabel(const tString &asInputName);
+	/**
+	 * The key or button of an action, as a key cap in text (see
+	 * kwcKeyCapStart). The language's "None" if the action has none.
+	 */
+	tWString GetActionKeyCap(const tString &asAction);
+
 	void ChangeState(eButtonHandlerState aState);
 	eButtonHandlerState GetState(){ return mState;}
 

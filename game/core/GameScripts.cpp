@@ -21,6 +21,7 @@
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
+#include "core/ButtonHandler.h"
 #include "player/Player.h"
 #include "player/PlayerHelper.h"
 #include "entities/GameEntity.h"
@@ -80,38 +81,48 @@
 //-----------------------------------------------------------------------
 
 tWString gsTempString = _W("");
+// The key just added was in quotes or brackets (Overture's "LeftMouse" and
+// (Tab)): the closing one, at the start of the next text added, is dropped too
+wchar_t gwcTempStringKeyClose = 0;
+
+static void AddToTempStringText(const tWString &asText)
+{
+	if(gwcTempStringKeyClose && asText.size() > 0 && asText[0] == gwcTempStringKeyClose)
+		gsTempString += asText.substr(1);
+	else
+		gsTempString += asText;
+	gwcTempStringKeyClose = 0;
+}
 
 //-----------------------------------------------------------------------
 
 static void __stdcall AddToTempString(std::string asString)
 {
-    gsTempString += cString::To16Char(asString);
+    AddToTempStringText(cString::To16Char(asString));
 }
 SCRIPT_DEFINE_FUNC_1(void, AddToTempString, string)
 
 static void __stdcall AddToTempStringTrans(std::string asCat,std::string asEntry)
 {
 	cInit *mpInit = gpInit;
-	gsTempString += kTranslate(asCat,asEntry);
+	AddToTempStringText(kTranslate(asCat,asEntry));
 }
 SCRIPT_DEFINE_FUNC_2(void, AddToTempStringTrans, string,string)
 
+// The key is drawn as a key cap, which needs no quotes or brackets around it
 static void __stdcall AddToTempStringAction(std::string asAction)
 {
-	cInit *mpInit = gpInit;
-	iAction *pAction = gpInit->mpGame->GetInput()->GetAction(asAction);
-	if(pAction)
+	wchar_t lClose = 0;
+	if(gsTempString.size() > 0)
 	{
-		tWString sString = kTranslate("ButtonNames",pAction->GetInputName());
-		if(sString != _W(""))
-			gsTempString += sString;
-		else 
-			gsTempString += cString::To16Char(pAction->GetInputName());
+		wchar_t lOpen = gsTempString[gsTempString.size()-1];
+		if(lOpen == _W('"')) lClose = _W('"');
+		else if(lOpen == _W('(')) lClose = _W(')');
 	}
-	else
-	{
-		gsTempString += kTranslate("ButtonNames", "None");
-	}
+	if(lClose) gsTempString.resize(gsTempString.size()-1);
+
+	gsTempString += gpInit->mpButtonHandler->GetActionKeyCap(asAction);
+	gwcTempStringKeyClose = lClose;
 }
 SCRIPT_DEFINE_FUNC_1(void, AddToTempStringAction,string)
 
@@ -159,7 +170,8 @@ static std::string __stdcall GetActionKeyString(std::string asAction)
 	iAction *pAction = gpInit->mpGame->GetInput()->GetAction(asAction);
 	if(pAction)
 	{
-		return pAction->GetInputName();
+		// The same short name as tips and the inventory
+		return cString::To8Char(gpInit->mpButtonHandler->GetKeyLabel(pAction->GetInputName()));
 	}
 	
 	return "ActionNotFound";
@@ -190,6 +202,7 @@ static void __stdcall AddMessageTempString()
 {
 	gpInit->mpGameMessageHandler->Add(gsTempString);
 	gsTempString = _W("");
+	gwcTempStringKeyClose = 0;
 }
 SCRIPT_DEFINE_FUNC(void, AddMessageTempString)
 
@@ -217,6 +230,7 @@ static void __stdcall AddSubTitleTempString(float afTime)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->Add(gsTempString,afTime,false);
 	gsTempString = _W("");
+	gwcTempStringKeyClose = 0;
 }
 SCRIPT_DEFINE_FUNC_1(void, AddSubTitleTempString, float)
 

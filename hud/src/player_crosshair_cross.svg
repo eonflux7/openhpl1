@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 17">
+  <!-- Overture's crosshair, player_crosshair_cross (17x17; the original is a
+       broken cross): the same soft white dot as Black Plague's
+       (blackplague/player_crosshair_cross.svg, 9x9), centred on the larger
+       image, so all three games have the same crosshair. -->
+  <defs>
+    <radialGradient id="dot" cx="8.5" cy="8.5" r="1.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.9"/>
+      <stop offset="0.4" stop-color="#fff" stop-opacity="0.85"/>
+      <stop offset="0.55" stop-color="#fff" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="8.5" cy="8.5" r="1.6" fill="url(#dot)"/>
+</svg>

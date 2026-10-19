@@ -158,6 +158,107 @@ commit), and the last official Linux build on Steam.
   crosshairs (no capture shows them; checked composited at 1440p scale over
   a capture), Black Plague/Requiem, Linux game runs, the GL 3.3 path.
 
+## Key caps in tips and the inventory; Requiem pre-menu; page corners (2026-10-19)
+
+- Keys named in tips (`AddToTempStringAction`, used by the games'
+  tutorial messages and subtitles) and after an item's name in the
+  inventory are drawn as a key with a short name on it: `L Ctrl`, `R Ctrl`,
+  `Alt`, `Alt Gr`, `L Shift`, `Esc`, `PgUp`, `L Mouse`, `,` and so on
+  (`cButtonHandler::GetKeyLabel`; a language's own names, such as the
+  French AZERTY letters, are kept, English's "RightAlt" for `]` is not).
+  The original's quotes and brackets around the key (`using "LeftMouse".`,
+  `inventory (Tab).`) are dropped. The inventory had shown the raw input
+  name in brackets, `Flashlight (F)`. The key setup menu and the script
+  function `GetActionKeyString` give the same short names (they showed
+  `LeftControl`, `RightMouse`).
+- `iFontData` draws text between `kwcKeyCapStart` and `kwcKeyCapEnd`
+  (U+E000, U+E001) as a key: `hud/hud_keycap@4x.png` (from
+  `hud/src/hud_keycap.svg`), tinted with the text's colour, ends kept and
+  middle stretched to the name, which is drawn smaller in the same font.
+  `GetLength` and word wrap measure it as one word (its spaces are
+  U+00A0). Effect passes (outline, glow) draw the key enlarged under it;
+  the inventory's drop shadow shadows it too. With the original HUD the
+  short name is plain text.
+- The key is drawn half a unit of depth under its name and the text, with
+  more space around the name (0.45 of the text's height on each side) and
+  beside the key (0.25). It is 1.2 times the text's height with the name at
+  0.72 of the text's size, and its front edge is thinner, so the name has
+  room above and below it. Its image is 16x16 with ends of 6, so the middle is
+  always stretched: from the first 48-unit-wide version, a narrow key
+  squeezed the middle and a smaller mipmap blurred it into a band.
+- Overture's crosshair (`ShowCrossHair`, off by default) is the same dot
+  as Black Plague's, centred on its 17x17 image
+  (`hud/src/player_crosshair_cross.svg`), instead of the original's broken
+  cross.
+- The door cursor (`player_crosshair_doorlink`) has a faint pale-blue glow
+  around its frame: `hud_fit.py glow`, a blurred rectangle under the icon.
+- Requiem's language file has no `PreMenuText`, so the pre-menu typed
+  nothing and stayed black, with wind, until a key was pressed. It goes on to
+  the logos when there is no text.
+- The notebook's page-turn corners fold less of the page (52x58 page
+  pixels instead of 80x90), so they cover less of the text near the
+  page's bottom corners. Same `hud_fit.py curl` commands with `--fold 52 58`.
+- The reference `inventory` screen has a flashlight first (the hovered item,
+  whose name shows its key) and the `message` screen names three keys, so
+  both captures change. A new `menu_keys` screen shows the key setup.
+- The developer map list (F2) and `refshots` list the running game's maps
+  directory (`cInit::GetMapsDir()`, as the smoke test does). They had
+  listed `maps`, so Requiem showed Black Plague's maps instead of
+  `expansion01/maps`.
+- Validation: default build passes `engine_regressions`,
+  `audio_regressions` and `renderer_regressions`; MSVC build; Windows
+  refshots of `level01_05_office` and `level00_01_boat_cabin` show the keys
+  in the reference message, the inventory and the boat cabin's flashlight
+  tip (`Tab` and `F` without their brackets and quotes), and `menu_keys`
+  shows `L Shift`, `L Ctrl`, `Space`. At 2560x1440 the keys in the message
+  and the inventory, and Overture's dot crosshair (with
+  `--set Game.ShowCrossHair=true`), checked in captures; the door glow
+  checked composited over dark and light backgrounds, not in game.
+  Not run: ASan, Black
+  Plague/Requiem game runs (the Requiem pre-menu and Black Plague's black
+  message text are not checked in game), the paper inventory look.
+
+## Door, ladder and dot crosshairs; grain default; Requiem menu (2026-10-19)
+
+- `hud/player_crosshair_doorlink@4x.png` and `player_crosshair_ladder@4x.png`
+  (margin 3), generated with Codex from `hud/src/prompts/door-ladder.md`
+  and fitted with `hud_fit.py icon` like the hands (difference 0.052 and
+  0.059).
+- Black Plague's and Requiem's dot crosshair is an SVG,
+  `hud/src/blackplague/player_crosshair_cross.svg`, with a smaller dot than
+  the original's. `tools/hud_raster.py` draws `hud/src/blackplague/*.svg` to
+  `hud/blackplague/`. Overture's crosshair (a broken cross) is unchanged.
+- The noise filter defaults to Grain (shader noise under the HUD) instead
+  of Original; settings that already store `NoiseFilterType` keep it.
+- Requiem's main menu draws its own `requiem_menu_background.jpg`, as
+  `Requiem.exe` does, instead of Black Plague's `menu_background.jpg`; the
+  pause menu keeps Black Plague's `menu_background_ingame.jpg`, as the
+  original. Requiem's other images were checked against its data: its logo
+  comes from `expansion01/graphics/lang_specific/eng` through its language
+  file, its loading screens are its own, and its `inventory_comradio.bmp` is
+  identical to Black Plague's. There is no widescreen version of the
+  Requiem menu background yet, so it is drawn 4:3 between black bars.
+- Validation: default build passes `engine_regressions`,
+  `audio_regressions` and `renderer_regressions`. Not run: ASan, refshots,
+  game runs (the crosshairs and the Requiem menu are not checked in game).
+
+## First-run defaults (2026-10-19)
+
+- Without a `settings.cfg`, settings come from the game's
+  `default_settings.cfg`, which turned anisotropic filtering off, left
+  ambient occlusion and SMAA off, vsync off and, for Black Plague and
+  Requiem, room reverb off. A first run now applies the High graphics preset
+  after the graphics settings are read, and turns vsync and environmental
+  audio on (`cInit::Init`). The desktop resolution was already used. Existing
+  settings files are untouched; Overture's refraction default is unchanged
+  (still open in ROADMAP).
+- Validation: default build passes `engine_regressions`,
+  `audio_regressions` and `renderer_regressions`; the MSVC build and the
+  Windows smoke of `level00_01_boat_cabin` from an empty profile pass, and the
+  saved `settings.cfg` has `-1`x`-1`, Vsync, AmbientOcclusion, SMAA,
+  16x anisotropy and UseEnvironmentalAudio on. Not run: ASan, refshots (they
+  write their own settings), Black Plague/Requiem first runs.
+
 ## `OPENHPL_` prefix (2026-10-19)
 
 - Environment variables and CMake options are renamed from `OVERTURE_*` to

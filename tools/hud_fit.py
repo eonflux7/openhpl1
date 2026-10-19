@@ -46,6 +46,8 @@ resized to the corner's size. Only the part that differs from the page is
 kept (the rest is transparent), so nothing is drawn twice over the page.
 --fold A B are the fold line's distances from the corner along the bottom
 and the side, in page pixels.
+glow: IN over a soft halo of a colour around a rectangle (e.g. the door
+icon's frame), blurred, for an icon that should read as lit.
 tint: recolours FITTED as ORIGINAL_TINTED recolours ORIGINAL (same shape,
 different colours, e.g. the red "invalid" hand from the "active" one).
 soften: blurs the premultiplied image (for flat art such as the pointer).
@@ -266,6 +268,18 @@ def fit_curl(page_original, page, corner, draw, side, fold, scale, margin):
 	return rendered.resize((out_w, out_h), Image.LANCZOS)
 
 
+def glow(image, rect, colour, sigma, strength):
+	"""IMAGE over a soft halo of COLOUR around RECT (x0 y0 x1 y1, pixels of
+	IMAGE): the rectangle blurred by SIGMA pixels, STRENGTH its alpha."""
+	h, w = image.height, image.width
+	x0, y0, x1, y1 = rect
+	Y, X = np.mgrid[0:h, 0:w] + 0.5
+	inside = ((X >= x0) & (X <= x1) & (Y >= y0) & (Y <= y1)).astype(float)
+	alpha = np.clip(gaussian(inside, sigma) * strength, 0, 1)
+	halo = np.concatenate([np.array(colour, float) / 255 * alpha[..., None], alpha[..., None]], -1)
+	return unpremultiply(over(premultiply(image), halo))
+
+
 def tint(original, tinted, fitted):
 	a, b = np.array(original).astype(float), np.array(tinted).astype(float)
 	mask = a[..., 3] > 128
@@ -341,6 +355,13 @@ def main():
 	soft = sub.add_parser("soften")
 	soft.add_argument("original", metavar="in"); soft.add_argument("out")
 	soft.add_argument("--sigma", type=float, required=True, help="in pixels of IN")
+	glowed = sub.add_parser("glow")
+	glowed.add_argument("original", metavar="in"); glowed.add_argument("out")
+	glowed.add_argument("--rect", type=float, nargs=4, required=True, metavar=("X0", "Y0", "X1", "Y1"),
+		help="in pixels of IN")
+	glowed.add_argument("--colour", type=int, nargs=3, default=(150, 190, 255), metavar=("R", "G", "B"))
+	glowed.add_argument("--sigma", type=float, default=5, help="in pixels of IN")
+	glowed.add_argument("--strength", type=float, default=0.5)
 	scored = sub.add_parser("score")
 	scored.add_argument("original"); scored.add_argument("out")
 	args = ap.parse_args()
@@ -349,6 +370,10 @@ def main():
 	if args.command == "soften":
 		soften(original, args.sigma).save(args.out)
 		print(f"{args.out}: softened by {args.sigma}")
+		return
+	if args.command == "glow":
+		glow(original, args.rect, args.colour, args.sigma, args.strength).save(args.out)
+		print(f"{args.out}: glow around {args.rect}")
 		return
 	if args.command == "score":
 		print(f"{score(original, load(args.out)):.4f}")

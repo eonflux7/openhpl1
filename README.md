@@ -319,8 +319,10 @@ graphics settings are your own, and the scene keeps moving.
 ## Running
 
 Options → Graphics offers **High**, **Medium** and **Low** quality presets,
-plus **Custom** when settings are changed by hand. First run uses High at the
-desktop resolution. The renderer uses the improved look throughout.
+plus **Custom** when settings are changed by hand. First run (no
+`settings.cfg` yet) uses High at the desktop resolution, with vsync and room
+reverb on, whatever the game's `default_settings.cfg` says. The renderer uses
+the improved look throughout.
 
 Starting `openhpl1` (`openhpl1.exe`) on its own opens a small game chooser
 the first time: it lists Overture, Black Plague and Requiem with the folder
@@ -382,7 +384,7 @@ saves.
 | `OPENHPL_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OPENHPL_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OPENHPL_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |
 | `OPENHPL_ORIGINAL_HUD=1` | Draw the game's own HUD images instead of the high-resolution ones in `<exe dir>/hud/`, and the original inventory layout |
-| `OPENHPL_INVENTORY_LOOK=paper` | Draw the inventory drawer as a sheet of paper instead of darkened, with rusty metal cells |
+| `OPENHPL_INVENTORY_LOOK=paper` | Draw the inventory drawer as a sheet of paper instead of darkened, with rusty metal cells (an extra, not the intended look) |
 | `OPENHPL_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |

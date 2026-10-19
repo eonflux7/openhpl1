@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- A key, drawn behind the name of a key or mouse button in tips and
+       the inventory (iFontData::SetKeyCapGfx). White, tinted by the game
+       with the text's colour. The 6 units at each end keep their shape;
+       the 4 between them are stretched to the name, so they must not
+       change along the width. They are few, so the middle is always
+       stretched, never squeezed (which would blur it, from a smaller
+       mipmap). The name is centred on the top face (45% down); the band
+       below it is the key's front. -->
+  <rect x="0.6" y="0.6" width="14.8" height="14.8" rx="3.6" fill="#fff" fill-opacity="0.16"
+        stroke="#fff" stroke-opacity="0.9" stroke-width="1.1"/>
+  <rect x="2.2" y="1.6" width="11.6" height="11.2" rx="2.4" fill="#fff" fill-opacity="0.12"
+        stroke="#fff" stroke-opacity="0.4" stroke-width="0.6"/>
+</svg>

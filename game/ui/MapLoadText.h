@@ -22,6 +22,7 @@
 #include "core/StdAfx.h"
 
 #include "core/GameTypes.h"
+#include "core/GraphicsHelper.h"
 
 using namespace hpl;
 
@@ -69,7 +70,7 @@ private:
 
 	tWStringVec mvRows;
 
-	iTexture *mpBackgroundTexture;
+	cScreenImage mBackground;
 
 	tString msTextCat;
 	tString msTextEntry;

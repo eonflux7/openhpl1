@@ -25,6 +25,10 @@ every image replaced here, so one set serves all three games.
 | `player_crosshair_pickup@4x.png` | Pinching hand: pick up (27x26) | 3 | Generated, `src/prompts/hands.md` |
 | `player_crosshair_invalid@4x.png` | Red hand: can't use (27x26) | 3 | `active`, recoloured |
 | `player_crosshair_examine@4x.png` | Eye: examine (20x13) | 2 | Generated, `src/prompts/examine.md` |
+| `player_crosshair_doorlink@4x.png` | Open door: go to another map (27x31) | 3 | Generated, `src/prompts/door-ladder.md`; a faint blue glow around the frame (`hud_fit.py glow`) |
+| `player_crosshair_ladder@4x.png` | Ladder: climb (27x31) | 3 | Generated, `src/prompts/door-ladder.md` |
+| `player_crosshair_cross@4x.png` | Overture's crosshair (17x17), a broken cross in the original: the same dot as Black Plague's, centred | | `src/player_crosshair_cross.svg` |
+| `blackplague/player_crosshair_cross@4x.png` | Black Plague's and Requiem's dot crosshair (9x9), smaller than the original's | | `src/blackplague/player_crosshair_cross.svg` |
 | `notebook_open@3x.png` | Paper page for notes and tasks (350x460) | 8 | Generated, `src/prompts/paper.md` |
 | `notebook_front@3x.png` | Notebook cover (350x460) | | Generated, `src/prompts/notebook.md` |
 | `notebook_nextpage@8x.png` | Turned-down corner: next page (79x70) | 6, 5 | Rendered from the paper page |
@@ -43,6 +47,14 @@ remastered look (only with these images, not with `OPENHPL_ORIGINAL_HUD=1`):
 
 `python3 tools/hud_pencil.py` draws them from fixed random seeds, so it
 gives the same files every time.
+
+`hud_keycap@4x.png` (16x16, from `src/hud_keycap.svg`) is the key that
+tips and the inventory draw a key's or mouse button's name on ("L Ctrl",
+"Esc", "L Mouse"; `cButtonHandler::GetKeyLabel`). The game tints it with
+the text's colour and keeps its 6-unit ends while stretching the middle to
+the name, which is drawn in the text's own font (`iFontData`, text between
+`kwcKeyCapStart` and `kwcKeyCapEnd`). Without it (`OPENHPL_ORIGINAL_HUD=1`)
+the short name is plain text.
 
 Not replaced: `notebook_background` (a flat 22% black over the screen, so
 there is nothing to sharpen). `notebook_textback`, `notebook_listtextback`
@@ -157,7 +169,7 @@ edges are no crisper than the enlarged original's.
 
 ## Generated images
 
-The hands, eye, paper and cover were made with Codex's image generation
+The hands, eye, door, ladder, paper and cover were made with Codex's image generation
 (October 2026), from the prompts in `src/prompts/`, with the original image
 enlarged as the reference; the hands, eye and paper on a transparent
 background. `tools/hud_fit.py` fits each result to the game image (the
@@ -170,6 +182,12 @@ for h in active grab inactive pickup; do
   python3 tools/hud_fit.py icon $ORIG/player_crosshair_$h.bmp $GEN/$h.png \
     hud/player_crosshair_$h@4x.png --margin 3
 done
+for h in doorlink ladder; do
+  python3 tools/hud_fit.py icon $ORIG/player_crosshair_$h.bmp $GEN/$h.png \
+    hud/player_crosshair_$h@4x.png --margin 3
+done
+python3 tools/hud_fit.py glow hud/player_crosshair_doorlink@4x.png \
+  hud/player_crosshair_doorlink@4x.png --rect 28 16 102 115
 python3 tools/hud_fit.py tint $ORIG/player_crosshair_active.bmp \
   $ORIG/player_crosshair_invalid.bmp hud/player_crosshair_active@4x.png \
   hud/player_crosshair_invalid@4x.png
@@ -178,9 +196,9 @@ python3 tools/hud_fit.py icon $ORIG/player_crosshair_examine.bmp $GEN/examine.pn
 python3 tools/hud_fit.py sheet $ORIG/notebook_open.bmp $GEN/paper.png \
   hud/notebook_open@3x.png --margin 8
 python3 tools/hud_fit.py curl $ORIG/notebook_open.bmp hud/notebook_open@3x.png \
-  $ORIG/notebook_nextpage.bmp hud/notebook_nextpage@8x.png --draw 231 340 119 120
+  $ORIG/notebook_nextpage.bmp hud/notebook_nextpage@8x.png --draw 231 340 119 120 --fold 52 58
 python3 tools/hud_fit.py curl $ORIG/notebook_open.bmp hud/notebook_open@3x.png \
-  $ORIG/notebook_prevpage.bmp hud/notebook_prevpage@8x.png --draw 0 340 119 120 --side left
+  $ORIG/notebook_prevpage.bmp hud/notebook_prevpage@8x.png --draw 0 340 119 120 --side left --fold 52 58
 python3 tools/hud_fit.py page $ORIG/notebook_front.bmp $GEN/notebook.png \
   hud/notebook_front@3x.png
 ```
@@ -213,7 +231,7 @@ python3 tools/hud_fit.py page $ORIG/notebook_front.bmp $GEN/notebook.png \
 
 Mean difference from the original after shrinking back to its size (margin
 removed), 0..1: pointer 0.017, active 0.052, grab 0.039, inactive 0.049,
-pickup 0.040, invalid 0.054, examine 0.089 (the whole eye), cover 0.031,
+pickup 0.040, invalid 0.054, doorlink 0.052, ladder 0.059, examine 0.089 (the whole eye), cover 0.031,
 paper 0.027 (a new design). A second, more specific eye prompt
 (`src/prompts/examine-refine.md`) matched worse and was not used;
 `notebook.md` also asked for a paper page, which the paper prompt replaced.

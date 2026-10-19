@@ -151,8 +151,7 @@ checks are retained in the archived roadmap; they are not new work here.
       consistent set and quest items marked
       ([hud/README.md](hud/README.md)).
       Still needed: in-game checks on Windows and Linux (the drawer's drag,
-      combine, hotkeys and drop by hand, Black Plague/Requiem items), a
-      choice between the drawer's metal and paper looks, then the doorlink,
+      combine, hotkeys and drop by hand, Black Plague/Requiem items), then the doorlink,
       ladder and cross crosshairs and menu art.
 - [ ] Check the game chooser by hand on Windows and Linux desktops: the
       system folder dialog (XDG portal or zenity on Linux) and its typed-folder

@@ -383,7 +383,9 @@ void cPreMenu::Update(float afTimeStep)
 	// STATE 0 (Premenu Text)
 	if(mlState ==0)
 	{
-		if(mbShowText==false)
+		// Requiem's language file has no PreMenuText: nothing would be typed
+		// and the screen would stay dark until a key was pressed
+		if(mbShowText==false || mlMaxChars==0)
 		{
 			mlState = 1;
 			mfStateElapsedSeconds = 0;

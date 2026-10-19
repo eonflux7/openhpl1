@@ -82,6 +82,12 @@ namespace hpl {
 		cVector2l mvSize = cVector2l(0,0);
 	};
 
+	/// Text between these two characters is drawn as a key cap: the name of
+	/// a key on a key. Spaces in the name are written as U+00A0, so that word
+	/// wrap keeps the key whole.
+	const wchar_t kwcKeyCapStart = 0xE000;
+	const wchar_t kwcKeyCapEnd = 0xE001;
+
 	class iFontData : public iResourceBase
 	{
 	public:
@@ -134,6 +140,16 @@ namespace hpl {
 		inline unsigned short GetLastChar(){ return mlLastChar;}
 
 		inline const cVector2f& GetSizeRatio()const{ return mvSizeRatio;}
+
+		/**
+		 * The image drawn behind a key's name (see kwcKeyCapStart), tinted
+		 * with the text's colour, for all fonts. Its ends keep their shape and
+		 * its middle is stretched to the name.
+		 * \param apGfx nullptr draws the names as plain text.
+		 * \param afEdge Width of each end, as a part of the image's width
+		 * \param afAspect The image's width / height
+		 */
+		static void SetKeyCapGfx(cGfxObject *apGfx, float afEdge, float afAspect);
 
 		/**
 		 * Draw a string.
@@ -254,6 +270,15 @@ eturn nullptr if the glyph could not be made.
 		void DrawString(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 						eFontAlign aAlign, const wchar_t* apText,
 						eFontEffect aEffect, float afEffectWidth);
+		/// DrawString for text without key caps.
+		void DrawStringRun(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
+						eFontAlign aAlign, const wchar_t* apText,
+						eFontEffect aEffect, float afEffectWidth);
+		/// Width of a key cap, the space beside it included.
+		float GetKeyCapLength(const cVector2f& avSize, const tWString& asName);
+		/// Draws a key cap with its left side at avPos.x. Returns GetKeyCapLength.
+		float DrawKeyCap(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
+						const tWString& asName, eFontEffect aEffect, float afEffectWidth);
 		void DrawBitmapString(cVector3f avPos,const cVector2f& avSize, const cColor& aCol,
 								const wchar_t* apText);
 

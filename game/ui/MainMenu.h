@@ -22,6 +22,7 @@
 #include "core/StdAfx.h"
 
 #include "core/GameTypes.h"
+#include "core/GraphicsHelper.h"
 
 using namespace hpl;
 
@@ -420,8 +421,8 @@ private:
 	cGfxObject *mpGfxRainSplash;
 	cGfxObject *mpGfxSnowFlake;
 
-	iTexture *mpLogo;
-	iTexture *mpBackground;
+	cScreenImage mLogo;
+	cScreenImage mBackground;
 	
 	tString msCurrentActionName;
 	cMainMenuWidget_Text *mpCurrentActionText;

@@ -5,7 +5,9 @@
 
   hud_raster.py [--scale 4] [NAME ...]
 
-Each hud/src/NAME.svg is drawn to hud/NAME@<scale>x.png. The SVG's viewBox
+Each hud/src/NAME.svg is drawn to hud/NAME@<scale>x.png, and each
+hud/src/blackplague/NAME.svg (Black Plague's image of a name Overture uses
+for another) to hud/blackplague/NAME@<scale>x.png. The SVG's viewBox
 is the size of the game image it replaces, so the PNG is exactly <scale>
 times that size, which the engine needs to work out the on-screen size.
 Uses rsvg-convert if it is installed, otherwise the cairosvg module.
@@ -50,10 +52,12 @@ def main():
 	ap.add_argument("names", nargs="*")
 	args = ap.parse_args()
 
-	svgs = [SRC / f"{n}.svg" for n in args.names] if args.names else sorted(SRC.glob("*.svg"))
+	svgs = sorted(SRC.glob("*.svg")) + sorted(SRC.glob("blackplague/*.svg"))
+	if args.names:
+		svgs = [s for s in svgs if s.stem in args.names or f"{s.parent.name}/{s.stem}" in args.names]
 	for svg in svgs:
 		w, h = view_size(svg)
-		png = OUT / f"{svg.stem}@{args.scale}x.png"
+		png = OUT / svg.parent.relative_to(SRC) / f"{svg.stem}@{args.scale}x.png"
 		rasterise(svg, png, w * args.scale, h * args.scale)
 		print(f"{png.relative_to(ROOT)}: {w * args.scale}x{h * args.scale}")
 

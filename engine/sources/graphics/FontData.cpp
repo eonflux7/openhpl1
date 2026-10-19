@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <math.h>
+#include <wchar.h>
 
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
@@ -35,6 +36,46 @@
 #include "gui/Gui.h"
 
 namespace hpl {
+
+	//////////////////////////////////////////////////////////////////////////
+	// KEY CAPS
+	//////////////////////////////////////////////////////////////////////////
+
+	static cGfxObject *gpKeyCapGfx = nullptr;
+	static float gfKeyCapEdge = 0.25f;
+	static float gfKeyCapAspect = 2;
+
+	// Sizes as parts of the text's height: the key's height, the name's size
+	// on it, the space between the name and the key's sides, and between the
+	// key and the text beside it.
+	static const float kfKeyCapHeight = 1.2f;
+	static const float kfKeyCapName = 0.72f;
+	static const float kfKeyCapPadding = 0.45f;
+	static const float kfKeyCapGap = 0.25f;
+	// Height of the middle of capital letters above the baseline, where the
+	// key is centred
+	static const float kfKeyCapCentre = 0.36f;
+	// Middle of the key's top face, where the name is centred, as a part of
+	// the key's height from its top
+	static const float kfKeyCapFace = 0.45f;
+
+	// The key's name between apText and the end mark (or the end of the
+	// text), with its non-breaking spaces made spaces. Returns where the
+	// marked text ends: at the end mark, or at the end of the text.
+	static const wchar_t* ReadKeyCapName(const wchar_t* apText, tWString *apName)
+	{
+		const wchar_t* pChar = apText;
+		for(; *pChar != 0 && *pChar != kwcKeyCapEnd; ++pChar)
+			apName->push_back(*pChar == 0xA0 ? _W(' ') : *pChar);
+		return pChar;
+	}
+
+	void iFontData::SetKeyCapGfx(cGfxObject *apGfx, float afEdge, float afAspect)
+	{
+		gpKeyCapGfx = apGfx;
+		gfKeyCapEdge = afEdge;
+		gfKeyCapAspect = afAspect;
+	}
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -277,6 +318,16 @@ namespace hpl {
 		{
 			wchar_t lChar = sText[lCount];
 
+			if(lChar == kwcKeyCapStart)
+			{
+				tWString sName;
+				const wchar_t* pEnd = ReadKeyCapName(&sText[lCount+1], &sName);
+				fLength += GetKeyCapLength(avSize, sName);
+				if(*pEnd == 0) break;
+				lCount = (int)(pEnd - sText);
+				continue;
+			}
+
 			if(HasVectorGlyph(lChar))
 			{
 				fLength += mvVectorAdvance[lChar]*avSize.x;
@@ -362,6 +413,117 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	void iFontData::DrawString(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
+								eFontAlign aAlign, const wchar_t* apText,
+								eFontEffect aEffect, float afEffectWidth)
+	{
+		if(wcschr(apText, kwcKeyCapStart)==nullptr)
+		{
+			DrawStringRun(avPos,avSize,aCol,aAlign,apText,aEffect,afEffectWidth);
+			return;
+		}
+
+		////////////////////////////////////
+		// Text with key caps: the runs of text between them are drawn from
+		// the left, each where the one before it ends.
+		cVector3f vPos = avPos;
+		if(aAlign == eFontAlign_Center)		vPos.x -= GetLength(avSize, apText)/2;
+		else if(aAlign == eFontAlign_Right)	vPos.x -= GetLength(avSize, apText);
+
+		const wchar_t* pText = apText;
+		while(*pText != 0)
+		{
+			const wchar_t* pCap = wcschr(pText, kwcKeyCapStart);
+			tWString sRun = pCap ? tWString(pText, pCap - pText) : tWString(pText);
+			if(sRun.empty()==false)
+			{
+				DrawStringRun(vPos,avSize,aCol,eFontAlign_Left,sRun.c_str(),aEffect,afEffectWidth);
+				vPos.x += GetLength(avSize, sRun.c_str());
+			}
+			if(pCap == nullptr) break;
+
+			tWString sName;
+			const wchar_t* pEnd = ReadKeyCapName(pCap+1, &sName);
+			vPos.x += DrawKeyCap(vPos,avSize,aCol,sName,aEffect,afEffectWidth);
+			if(*pEnd == 0) break;
+			pText = pEnd+1;
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	float iFontData::GetKeyCapLength(const cVector2f& avSize, const tWString& asName)
+	{
+		if(gpKeyCapGfx == nullptr) return GetLength(avSize, asName.c_str());
+
+		float fName = GetLength(avSize * kfKeyCapName, asName.c_str());
+		float fHeight = avSize.y * kfKeyCapHeight;
+		// At least square, so that a single letter is on a square key
+		float fKey = cMath::Max(fName + 2*kfKeyCapPadding*avSize.y, fHeight);
+		return fKey + 2*kfKeyCapGap*avSize.y;
+	}
+
+	//-----------------------------------------------------------------------
+
+	float iFontData::DrawKeyCap(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
+								const tWString& asName, eFontEffect aEffect, float afEffectWidth)
+	{
+		if(gpKeyCapGfx == nullptr)
+		{
+			DrawStringRun(avPos,avSize,aCol,eFontAlign_Left,asName.c_str(),aEffect,afEffectWidth);
+			return GetLength(avSize, asName.c_str());
+		}
+
+		float fLength = GetKeyCapLength(avSize, asName);
+		float fGap = kfKeyCapGap*avSize.y;
+		float fW = fLength - 2*fGap;
+		float fH = avSize.y * kfKeyCapHeight;
+		float fCentreY = avPos.y + (mfBaseLine - kfKeyCapCentre)*avSize.y;
+		// Under the name and the text, above what is drawn under the text
+		cVector3f vKeyPos(avPos.x + fGap, fCentreY - fH/2, avPos.z - 0.5f);
+
+		// An effect (outline or glow) is the key a little larger, under it
+		if(aEffect != eFontEffect_None)
+		{
+			vKeyPos -= cVector3f(afEffectWidth, afEffectWidth, 0);
+			fW += 2*afEffectWidth;
+			fH += 2*afEffectWidth;
+		}
+
+		////////////////////////////////////
+		// The ends at their own shape, the middle stretched between them
+		float fEnd = fH * gfKeyCapAspect * gfKeyCapEdge;
+		if(fW < 2*fEnd) fW = 2*fEnd;
+		float fWhole = fEnd / gfKeyCapEdge;
+		mpGraphicsDrawer->DrawGfxObjectPart(gpKeyCapGfx, vKeyPos, cVector2f(fWhole,fH), aCol,
+											cRect2f(0,0,gfKeyCapEdge,1));
+		mpGraphicsDrawer->DrawGfxObjectPart(gpKeyCapGfx, vKeyPos + cVector3f(fW - fWhole,0,0),
+											cVector2f(fWhole,fH), aCol,
+											cRect2f(1-gfKeyCapEdge,0,gfKeyCapEdge,1));
+		if(fW > 2*fEnd)
+		{
+			float fMiddle = (fW - 2*fEnd) / (1 - 2*gfKeyCapEdge);
+			mpGraphicsDrawer->DrawGfxObjectPart(gpKeyCapGfx,
+											vKeyPos + cVector3f(fEnd - gfKeyCapEdge*fMiddle,0,0),
+											cVector2f(fMiddle,fH), aCol,
+											cRect2f(gfKeyCapEdge,0,1-2*gfKeyCapEdge,1));
+		}
+
+		////////////////////////////////////
+		// The name, smaller, centred on the key
+		cVector2f vNameSize = avSize * kfKeyCapName;
+		float fName = GetLength(vNameSize, asName.c_str());
+		float fFaceY = fCentreY + (kfKeyCapFace - 0.5f)*avSize.y*kfKeyCapHeight;
+		float fNameBase = fFaceY + kfKeyCapCentre*vNameSize.y;
+		cVector3f vNamePos(	avPos.x + fGap + (fLength - 2*fGap - fName)/2,
+							fNameBase - mfBaseLine*vNameSize.y, avPos.z);
+		DrawStringRun(vNamePos,vNameSize,aCol,eFontAlign_Left,asName.c_str(),aEffect,afEffectWidth);
+
+		return fLength;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void iFontData::DrawStringRun(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								eFontAlign aAlign, const wchar_t* apText,
 								eFontEffect aEffect, float afEffectWidth)
 	{

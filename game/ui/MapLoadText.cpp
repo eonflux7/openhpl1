@@ -60,7 +60,7 @@ cMapLoadText::~cMapLoadText(void)
 
 void cMapLoadText::Reset()
 {
-	mpBackgroundTexture = nullptr;
+	mBackground = cScreenImage();
 	mbActive = false;
 	mfPulsePhase = 0;
 	mfPulseRatePerSecond = 1;
@@ -71,7 +71,7 @@ void cMapLoadText::Reset()
 void cMapLoadText::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-	mpInit->mpGraphicsHelper->DrawTexture(mpBackgroundTexture,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
+	mpInit->mpGraphicsHelper->DrawFullScreenImage(mBackground);
 }
 
 //-----------------------------------------------------------------------
@@ -173,10 +173,10 @@ void cMapLoadText::SetActive(bool abActive)
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_MapLoadText);
 
 		tString sBack = cInit::IsOverture() || msBackground == "" ? tString("other_load_text_back.jpg") : msBackground;
-		mpBackgroundTexture = mpInit->mpGame->GetResources()->GetTextureManager()->Create2D(sBack,false);
+		mBackground = mpInit->mpGraphicsHelper->LoadScreenImage(sBack);
 		
 		mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
-		mpInit->mpGraphicsHelper->DrawTexture(mpBackgroundTexture,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,1));
+		mpInit->mpGraphicsHelper->DrawFullScreenImage(mBackground);
 		DrawText(true);
 		mpDrawer->DrawAll();
 		mpInit->mpGraphicsHelper->SwapBuffers();
@@ -185,8 +185,7 @@ void cMapLoadText::SetActive(bool abActive)
 	}
 	else
 	{
-		if(mpBackgroundTexture) mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpBackgroundTexture);
-		mpBackgroundTexture = nullptr;
+		mpInit->mpGraphicsHelper->DestroyScreenImage(mBackground);
 
 		mpInit->mpGame->GetUpdater()->SetContainer("Default");
 		mpInit->mpGame->GetScene()->SetDrawScene(true);

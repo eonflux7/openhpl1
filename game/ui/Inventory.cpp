@@ -409,8 +409,8 @@ void cInventorySlot::OnMouseOver()
 			{
 				tWString wsName = pCurrentItem->GetGameName();
 
-				iAction *pAction = mpInit->mpGame->GetInput()->GetAction(sShortcutAction);
-				if(pAction) wsName = wsName + _W(" (")+ cString::To16Char(pAction->GetInputName()) +_W(")");
+				if(mpInit->mpGame->GetInput()->GetAction(sShortcutAction))
+					wsName += _W(" ") + mpInit->mpButtonHandler->GetActionKeyCap(sShortcutAction);
 
 				mpInit->mpInventory->SetItemName(wsName);
 			}
@@ -441,8 +441,8 @@ void cInventorySlot::OnMouseOver()
 			{
 				tWString wsName = mpItem->GetGameName();
 
-				iAction *pAction = mpInit->mpGame->GetInput()->GetAction(sShortcutAction);
-				if(pAction) wsName = wsName + _W(" (")+ cString::To16Char(pAction->GetInputName()) +_W(")");
+				if(mpInit->mpGame->GetInput()->GetAction(sShortcutAction))
+					wsName += _W(" ") + mpInit->mpButtonHandler->GetActionKeyCap(sShortcutAction);
 
 				mpInit->mpInventory->SetItemName(wsName);
 			}

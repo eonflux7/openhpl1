@@ -1092,6 +1092,78 @@ void cButtonHandler::SetDefaultKeys()
 
 //-----------------------------------------------------------------------
 
+// Short names of keys whose input name is long or a word for a sign
+static const char *gvKeyLabels[][2] = {
+	{"BackSpace","Backspace"}, {"Return","Enter"}, {"Escape","Esc"},
+	{"Exclaim","!"}, {"DblQoute","\""}, {"Hash","#"}, {"Dollar","$"}, {"Ampersand","&"},
+	{"Quote","'"}, {"LeftParent","("}, {"RightParent",")"}, {"Asterisk","*"},
+	{"Plus","+"}, {"Comma",","}, {"Minus","-"}, {"Period","."}, {"Slash","/"},
+	{"Colon",":"}, {"SemiColon",";"}, {"Less","<"}, {"Equals","="}, {"Greater",">"},
+	{"Question","?"}, {"At","@"}, {"LeftBracket","["}, {"BackSlash","\\"},
+	{"RightBracket","]"}, {"Caret","^"}, {"Underscore","_"}, {"BackQuote","`"},
+	{"Divide","/"}, {"Multiply","*"},
+	{"Kp0","Num 0"}, {"Kp1","Num 1"}, {"Kp2","Num 2"}, {"Kp3","Num 3"}, {"Kp4","Num 4"},
+	{"Kp5","Num 5"}, {"Kp6","Num 6"}, {"Kp7","Num 7"}, {"Kp8","Num 8"}, {"Kp9","Num 9"},
+	{"Delete","Del"}, {"Insert","Ins"}, {"PageUp","PgUp"}, {"PageDown","PgDn"},
+	{"NumLock","Num Lock"}, {"CapsLock","Caps Lock"}, {"ScrollLock","Scroll Lock"},
+	{"LeftShift","L Shift"}, {"RightShift","R Shift"},
+	{"LeftControl","L Ctrl"}, {"RightControl","R Ctrl"},
+	{"LeftAlt","Alt"}, {"RightAlt","Alt Gr"},
+	{"LeftMeta","L Meta"}, {"RightMeta","R Meta"}, {"LeftSuper","L Super"}, {"RightSuper","R Super"},
+	{"Print","PrtSc"}, {"SysReq","SysRq"},
+	{"LeftMouse","L Mouse"}, {"MiddleMouse","M Mouse"}, {"RightMouse","R Mouse"},
+	{"WheelUp","Wheel Up"}, {"WheelDown","Wheel Down"},
+	{"Mouse6","Mouse 6"}, {"Mouse7","Mouse 7"}, {"Mouse8","Mouse 8"}, {"Mouse9","Mouse 9"},
+	// Modifiers held with a key (cActionKeyboard::GetInputName)
+	{"Control","Ctrl"}, {"Windows","Win"}, {"Command","Cmd"},
+};
+
+tWString cButtonHandler::GetKeyLabel(const tString &asInputName)
+{
+	// A modifier and a key ("Shift A") are joined with a plus
+	tWString sLabel;
+	tStringVec vParts;
+	cString::GetStringVec(asInputName, vParts, nullptr);
+	for(size_t i=0; i<vParts.size(); ++i)
+	{
+		const tString &sPart = vParts[i];
+		if(i>0) sLabel += _W("+");
+
+		// The language's name where it differs: French names the keys of
+		// an AZERTY keyboard. English names ] "RightAlt", a mistake.
+		tWString sTrans = kTranslate("ButtonNames", sPart);
+		if(sTrans != _W("") && sTrans != cString::To16Char(sPart) && sPart != "RightBracket")
+		{
+			sLabel += sTrans;
+			continue;
+		}
+
+		tWString sShort = cString::To16Char(sPart);
+		for(const auto &vLabel : gvKeyLabels)
+		{
+			if(sPart == vLabel[0]) { sShort = cString::To16Char(vLabel[1]); break; }
+		}
+		sLabel += sShort;
+	}
+	return sLabel;
+}
+
+//-----------------------------------------------------------------------
+
+tWString cButtonHandler::GetActionKeyCap(const tString &asAction)
+{
+	iAction *pAction = mpInput->GetAction(asAction);
+	if(pAction==nullptr) return kTranslate("ButtonNames", "None");
+
+	// Spaces in the name are non-breaking, so word wrap keeps the key whole
+	tWString sLabel = GetKeyLabel(pAction->GetInputName());
+	for(wchar_t &lChar : sLabel) if(lChar == _W(' ')) lChar = 0xA0;
+
+	return tWString(1, kwcKeyCapStart) + sLabel + tWString(1, kwcKeyCapEnd);
+}
+
+//-----------------------------------------------------------------------
+
 tString cButtonHandler::GetActionName(const tString &asInputName,const tString &asSkipAction)
 {
 	cButtonHandlerAction *pBHAction = &gvDefaultActions[0];

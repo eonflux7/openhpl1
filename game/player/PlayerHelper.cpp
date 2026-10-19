@@ -2071,8 +2071,8 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 	mfNoiseRefreshDelaySeconds =0;
 
 	mbActive = mpInit->mpConfig->GetBool("Graphics", "NoiseFilter",true);
-	int lType = mpInit->mpConfig->GetInt("Graphics", "NoiseFilterType",eNoiseFilterType_Original);
-	if(lType < 0 || lType >= eNoiseFilterType_LastEnum) lType = eNoiseFilterType_Original;
+	int lType = mpInit->mpConfig->GetInt("Graphics", "NoiseFilterType",eNoiseFilterType_Grain);
+	if(lType < 0 || lType >= eNoiseFilterType_LastEnum) lType = eNoiseFilterType_Grain;
 	mType = (eNoiseFilterType)lType;
 	UpdateGrain();
 }

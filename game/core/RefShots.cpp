@@ -6,6 +6,7 @@
 #include "core/RefShots.h"
 
 #include "core/Init.h"
+#include "core/ButtonHandler.h"
 #include "core/MapHandler.h"
 #include "core/LampAppearanceController.h"
 #include "player/Player.h"
@@ -17,6 +18,7 @@
 #include "ui/DeathMenu.h"
 #include "ui/IntroStory.h"
 #include "ui/MainMenu.h"
+#include "ui/MapLoadText.h"
 #include "ui/Notebook.h"
 #include "ui/NumericalPanel.h"
 
@@ -57,6 +59,8 @@ static const c2DScreen kv2DScreens[] = {
 		apInit->mpMapHandler->SetLocalTimersPaused(true);
 		apInit->mpGameMessageHandler->Reset();
 		apInit->mpPlayer->ChangeState(ePlayerState_Normal);
+		// First, so that the mouse is over it: its name shows its key as a key cap
+		apInit->mpInventory->AddItemFromFile("flashlight", "item_flashlight.ent", -1);
 		apInit->mpInventory->AddItemFromFile("battery", "item_battery.ent", -1);
 		apInit->mpInventory->AddItemFromFile("boltcutter", "item_boltcutter.ent", -1);
 		apInit->mpInventory->AddItemFromFile("blank_note", "item_blank_note.ent", -1);
@@ -108,8 +112,13 @@ static const c2DScreen kv2DScreens[] = {
 	}},
 	{"message", 90, [](cInit *apInit){
 		apInit->mpNumericalPanel->SetActive(false);
+		// With keys, as the games' tips have them: drawn as key caps
+		cButtonHandler *pButtons = apInit->mpButtonHandler;
 		apInit->mpGameMessageHandler->Add(_W("A message for the reference images, long enough "
-											"to take more than one line of text."));
+											"to take more than one line of text. Run with ") +
+											pButtons->GetActionKeyCap("Run") + _W(", crouch with ") +
+											pButtons->GetActionKeyCap("Crouch") + _W(" and pick things up with ") +
+											pButtons->GetActionKeyCap("Interact") + _W("."));
 	}},
 	{"menu", 90, [](cInit *apInit){ apInit->mpMainMenu->SetActive(true); }},
 	{"menu_options", 30, [](cInit *apInit){ apInit->mpMainMenu->SetState(eMainMenuState_Options); }},
@@ -120,8 +129,20 @@ static const c2DScreen kv2DScreens[] = {
 	{"menu_lighting", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsLighting);
 	}},
-	{"death", 240, [](cInit *apInit){
+	// Key names as tips and the inventory show them
+	{"menu_keys", 30, [](cInit *apInit){
+		apInit->mpMainMenu->SetState(eMainMenuState_OptionsKeySetupMove);
+	}},
+	// The story text shown while a map loads, over its background
+	{"loadtext", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetActive(false);
+		if(cInit::IsOverture()) apInit->mpMapLoadText->SetText("LoadTexts", "00_01_to_01_01");
+		else apInit->mpMapLoadText->SetText("LoadTexts", "01_to_02");
+		apInit->mpMapLoadText->SetBackground("loadscreen_default.jpg");
+		apInit->mpMapLoadText->SetActive(true);
+	}},
+	{"death", 240, [](cInit *apInit){
+		apInit->mpMapLoadText->SetActive(false);
 		apInit->mpPlayer->SetGodMode(false);
 		apInit->mpPlayer->SetHealth(0);
 	}},
@@ -199,7 +220,7 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 void cRefShots::FindMaps(cInit *apInit, tStringVec &avMaps)
 {
 	tWStringList lstFiles;
-	apInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, _W("maps"), _W("*.dae"));
+	apInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, cInit::GetMapsDir(), _W("*.dae"));
 
 	for(tWStringListIt it = lstFiles.begin(); it != lstFiles.end(); ++it)
 		avMaps.push_back(cString::To8Char(*it));
