@@ -41,8 +41,7 @@ The short list. The full list is in [CHANGES.md](CHANGES.md).
 - 64-bit, modern compilers (C++17, GCC 16 / Clang 22)
 - SDL 1.2 → **SDL3**: native Wayland, raw mouse input, borderless fullscreen at
   desktop resolution, picks the largest monitor
-- Nvidia Cg → **GLSL** shaders (ported by the ScummVM project); GLee/GLU →
-  **glad**
+- Nvidia Cg → **GLSL** shaders; GLee/GLU → **glad**
 - Closed 32-bit Newton 1.53 → open-source **Newton Game Dynamics 2.36**
 - AngelScript 2.7.1b → **AngelScript 2.38.0**; the original game scripts run
   unchanged
@@ -407,8 +406,7 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   entities/  map objects and areas
   systems/   effects, fades, music, messages, radio, triggers, attacks, physics log
   ui/        menus, inventory, notebook, credits
-shaders/   GLSL shaders (from ScummVM's HPL1 port); SMAA.hlsl is the SMAA
-           reference implementation
+shaders/   GLSL shaders; SMAA.hlsl is the SMAA reference implementation
 testmap/   generators and level scripts for physics and player effects labs
 tools/     refshots.py: reference images and player effects checks
 vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa
@@ -419,7 +417,8 @@ run.sh     launcher
 
 - **Frictional Games**: HPL1 engine and Penumbra: Overture source code (GPLv3),
   shaders (zlib), OALWrapper (zlib)
-- **The ScummVM project**: GLSL ports of the HPL1 shaders, and the Newton 2.36
+- **The ScummVM project**: GLSL ports of the original HPL1 shaders, the
+  starting point for those with a Frictional Games header, and the Newton 2.36
   copy and porting work used as the reference for the physics port (GPLv3+)
 - **Julio Jerez**: Newton Game Dynamics 2.36 (zlib)
 - **Andreas Jönsson**: AngelScript 2.38 (zlib)
