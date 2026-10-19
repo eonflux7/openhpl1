@@ -40,9 +40,45 @@ storage support is reported at startup.
 
 ## What's different from the original
 
-The short list. The full list is in [CHANGES.md](CHANGES.md).
+The highlights. The full list is in [CHANGES.md](CHANGES.md).
 
-- 64-bit, modern compilers (C++17, GCC 16 / Clang 22)
+**Rendering**
+
+- A new core-profile GLSL renderer with **linear lighting** in place of the
+  fixed-function/Cg one, with one improved look throughout
+- **Soft shadow maps** for spot and point lights, replacing stencil shadow
+  volumes; unchanged shadows are kept between frames instead of redrawn
+- Physically based highlights (GGX microfacet with Fresnel), a reworked
+  **flashlight** beam and lamp lights, and shader-drawn halos, light shafts
+  and particles
+- **Ground-truth ambient occlusion**, soft **bloom**, **bokeh depth of
+  field**, camera **motion blur** and shader film grain
+- **SMAA** and multisampling, **render scale** (supersampling or upscaling),
+  anisotropic filtering up to 16x
+- High / Medium / Low **graphics presets**; first run picks High at the
+  desktop resolution
+
+**Screen, text and HUD**
+
+- **Native widescreen**: menus, HUD, inventory and notebook keep their
+  proportions instead of being stretched; adjustable **field of view** (Hor+)
+- **Sharp font rendering**: text is drawn from TrueType fonts with FreeType at
+  its on-screen size, so it is crisp at any resolution while wrapping where
+  the original did; the computer text is a pixel-exact pixel font
+- **High-resolution HUD** images, an inventory drawer with health and battery
+  bars, a remastered notebook, and keys in tips shown as key caps
+- Frame rates **above 60 FPS**, with the 60 Hz game logic interpolated and
+  mouse look that doesn't lag; turning speed no longer depends on resolution
+- Gamma that only affects the game's window; display, resolution and
+  fullscreen options
+
+**Games and platform**
+
+- **One executable for all three games**: a game chooser finds Overture,
+  Black Plague and Requiem in Steam, GOG or any folder, and **Options →
+  Change Game** switches between them
+- Native 64-bit **Linux and Windows** builds with modern compilers (C++17,
+  GCC 16 / Clang 22)
 - SDL 1.2 → **SDL3**: native Wayland, raw mouse input, borderless fullscreen at
   desktop resolution, picks the largest monitor
 - Nvidia Cg → **GLSL** shaders; GLee/GLU → **glad**
