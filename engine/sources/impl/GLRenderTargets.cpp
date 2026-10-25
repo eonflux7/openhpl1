@@ -210,6 +210,21 @@ namespace hpl
 		if(!CreateSceneFramebuffers()) Error("Couldn't create the scene framebuffer at %d x %d!\n", vSize.x, vSize.y);
 	}
 
+	void cGLRenderTargets::SetOutputSize(const cVector2l &avOutputSize)
+	{
+		if(avOutputSize == mvOutputSize) return;
+		glDeleteFramebuffers(1, &mlOutputFramebuffer);
+		glDeleteTextures(1, &mlOutputColor);
+		glDeleteRenderbuffers(1, &mlOutputDepthStencil);
+		mlOutputFramebuffer = mlOutputColor = mlOutputDepthStencil = 0;
+
+		mvOutputSize = avOutputSize;
+		if(!CreateOutputFramebuffer()) Error("Couldn't create the output framebuffer at %d x %d!\n", avOutputSize.x, avOutputSize.y);
+		// The scene at the render scale of the new size
+		mvRenderSize = cVector2l(-1, -1);
+		SetRenderScale(mfRenderScale);
+	}
+
 	float cGLRenderTargets::GetRenderScale()
 	{
 		return mfRenderScale;

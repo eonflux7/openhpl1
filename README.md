@@ -88,6 +88,18 @@ The highlights. The full list is in [CHANGES.md](CHANGES.md).
 - Music no longer stutters on modern Linux audio stacks (PipeWire/OpenAL Soft)
 - Separate settings and save folder, so the original game is never touched
 
+**Modding**
+
+- **Addons**: folders or `.zip` files in an `addons/` folder replace the
+  game's files of the same names and add new ones, without touching the game
+- **glTF 2.0 models and maps** (`.glb`, `.gltf`) next to Collada, with the
+  same naming conventions; `openhpl1-model` converts the games' Collada
+  files and checks that the engine reads them the same. See
+  [docs/modding.md](docs/modding.md)
+- **Map reload while editing**: in developer mode the map reloads when a
+  file in an addon folder is saved (or with F6), and the player stays where
+  they stood
+
 ## Building
 
 Dependencies (Fedora package names):
@@ -97,8 +109,8 @@ sudo dnf install gcc-c++ cmake ninja-build SDL3-devel SDL3_image-devel \
     openal-soft-devel libvorbis-devel libogg-devel mesa-libGL-devel
 ```
 
-Newton, AngelScript, OALWrapper, Dear ImGui and the glad OpenGL loader are
-vendored in `vendor/`.
+Newton, AngelScript, OALWrapper, Dear ImGui, the glad OpenGL loader, cgltf
+(glTF) and miniz (.zip addons) are vendored in `vendor/`.
 
 FreeType renders the fonts. With `freetype-devel` installed the system library
 is used; without it, CMake downloads FreeType 2.13.3 and builds it into the
@@ -162,7 +174,8 @@ drive (default `/mnt/e/dev/penumbra/openhpl1`) to build it there.
 
 `platform\windows\package.cmd <version>` packs an existing Windows build as
 `build-windows\openhpl1-<version>-windows-x64.zip`, with its DLLs, the Visual
-C++ runtime, shaders, fonts, HUD images and licences.
+C++ runtime, shaders, fonts, HUD images and licences. Both packages also hold
+`openhpl1-model`, an empty `addons/` folder and `docs/modding.md`.
 
 `platform/linux/package.sh <version>` builds a portable
 `openhpl1-<version>-linux-x86_64.tar.gz` in `build-release/`: SDL3,
@@ -267,7 +280,7 @@ To capture and check every preview plus live adaptation, injury, fear and
 underwater transitions in an isolated headless session:
 
 ```
-tools/refshots.py effects /tmp/effects
+tools/levelview.py effects /tmp/effects
 ```
 
 It writes 29 PNGs and the logs, checks correct aspect and subtle/pulsing zoom,
@@ -279,15 +292,16 @@ the same `--size`, `--set` and `--build` options as reference captures.
 
 ### Reference images
 
-`tools/refshots.py` checks that a change leaves the rendering alone. It runs
+`tools/levelview.py capture` (formerly `tools/refshots.py`, which still
+works) checks that a change leaves the rendering alone. It runs
 the game in a headless gamescope session, with its own settings file and
 OpenAL Soft's null audio backend, so your settings, screen and speakers are
 not used:
 
 ```
-tools/refshots.py capture /tmp/ref            # before the change
-tools/refshots.py capture /tmp/new            # after
-tools/refshots.py compare /tmp/ref /tmp/new --diff-dir /tmp/diff
+tools/levelview.py capture /tmp/ref           # before the change
+tools/levelview.py capture /tmp/new           # after
+tools/levelview.py compare /tmp/ref /tmp/new --diff-dir /tmp/diff
 ```
 
 A capture (about a minute) visits every map of the game (not the physics
@@ -405,8 +419,8 @@ default it looks in the Steam location
 Plague` for Black Plague and Requiem; set `OPENHPL_GAME_DIR` to use another
 install. Smoke tests, captures and checks never open the chooser.
 
-The debug keys (F2 renderer tools, F3 performance overlay, L to log a
-frame's rendering) only work with **Developer Mode** on in Options → Game.
+The debug keys (F2 renderer tools, F3 performance overlay, F6 reload the
+map, L to log a frame's rendering) only work with **Developer Mode** on in Options → Game.
 It is off by default; `OPENHPL_DEBUG=1`, `OPENHPL_MAP`, `OPENHPL_REFVIEW`
 and `OPENHPL_DEBUG_OVERLAY` turn it on for that run, so the test maps can
 still be driven with F2.
@@ -417,13 +431,52 @@ Settings, saves and the log (`hpl.log`) are stored in
 original side by side. Copy your old `save/` folder over if you want your
 saves.
 
+### Addons
+
+Put addons (folders, or `.zip` files) into the `addons/` folder of the
+game's personal folder, e.g. `~/.frictionalgames/Penumbra/OvertureRemade/addons/`.
+Their files replace the game's files of the same names. Models and maps can
+be glTF (`.glb`), which `openhpl1-model` converts from the games' Collada
+files. `hpl.log` lists the addons and what they replace. With Developer
+Mode on, saving a file into an addon folder reloads the map (F6 does too),
+so an export from Blender shows up in the running game. See
+[docs/modding.md](docs/modding.md).
+
+### Level viewer and editor
+
+`./run.sh --editor` (Windows: `run.cmd --editor`) opens a map in the level
+editor: Dear ImGui panels (the map's nodes, the selected node, the maps,
+`hpl.log`) around the game's own 3D view, which is held still while it is
+edited. Fly with the right mouse button and WASD, click to select, move,
+turn and scale with the gizmo (W, E, R) and see the change at once; Ctrl+Z
+undoes, Ctrl+S saves the map as an addon, F8 plays from the camera and
+comes back. `OPENHPL_MAP` picks the map.
+
+`tools/levelview.py` runs the game for tools and agents to drive: load a
+map, hold the camera at a viewpoint or on a node, save frames, list and
+move the map's nodes, save the changed map and see it reloaded, and compare
+frames before and after. The F2 panel's Level editor section does the same
+editing by hand. Edited maps are saved into an addon of their own, with a
+list of the changes for carrying them back into a Blender scene.
+
+```
+tools/levelview.py start --map level01_05_office --hidden   # --editor: the editor's window
+tools/levelview.py look woodchair1
+tools/levelview.py set woodchair1 move 0 0 0.5 turn 0 30 0
+tools/levelview.py save
+tools/levelview.py shot /tmp/office.png
+tools/levelview.py stop
+```
+
+See [docs/level-editor.md](docs/level-editor.md).
+
 ### Environment variables
 
 | Variable | Purpose |
 |---|---|
 | `OPENHPL_GAME` | Select `overture`, `blackplague` or `requiem` without the chooser (`--game=` on the command line does the same and takes precedence); `run.sh` also accepts the game as its first argument |
 | `OPENHPL_GAME_DIR` | Game data directory used by `run.sh`; the executable also looks for the games there |
-| `OPENHPL_DEBUG=1` | Developer mode for this run (the debug keys F2, F3 and L), whatever the setting |
+| `OPENHPL_DEBUG=1` | Developer mode for this run (the debug keys F2, F3, F6 and L, map reloads when addon files change, and the level editor's addon folder), whatever the setting |
 | `OPENHPL_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
 | `OPENHPL_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
 | `OPENHPL_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
@@ -436,12 +489,17 @@ saves.
 | `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
 | `OPENHPL_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OPENHPL_DUMP_DIR`, default: game dir) |
-| `OPENHPL_SMOKE=1` | Smoke test: load every map (and the test map), run, save, reload, run, quit. `OPENHPL_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
+| `OPENHPL_SMOKE=1` | Smoke test: load every map (and the test map), run, save, load the save, run, reload the map as F6 does, run, quit. `OPENHPL_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
 | `OPENHPL_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
 | `OPENHPL_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OPENHPL_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
-| `OPENHPL_REFSHOTS=1` | Save reference images of every map and quit (`OPENHPL_REFSHOTS=office,worm` for some maps) to `OPENHPL_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/refshots.py`, which runs it headless |
-| `OPENHPL_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/refshots.py effects dir` for an isolated headless run |
+| `OPENHPL_REFSHOTS=1` | Save reference images of every map and quit (`OPENHPL_REFSHOTS=office,worm` for some maps) to `OPENHPL_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/levelview.py capture`, which runs it headless |
+| `OPENHPL_ADDONS` | `0`: no addons; `a,b`: only the addons with these folder or `.zip` names (see [docs/modding.md](docs/modding.md)) |
+| `OPENHPL_ADDON_DIRS` | More folders of addons, or single addons (folders with an `addon.cfg`), separated by `;` on Windows and `:` elsewhere |
+| `OPENHPL_EFFECTS_CAPTURE=dir` | Capture and check player feedback in `effectslab`; use `tools/levelview.py effects dir` for an isolated headless run |
+| `OPENHPL_CONTROL=dir` | Take commands from files in this folder (developer mode for the run); `tools/levelview.py` uses it (see [docs/level-editor.md](docs/level-editor.md)) |
+| `OPENHPL_EDITOR=1` | Open in the level editor (as `--editor` does): the map from `OPENHPL_MAP`, else the game's first |
+| `OPENHPL_EDIT_DIR=dir` | Where the level editor saves edited maps, as an addon above all others (default: `addons/editor/` in the personal folder) |
 
 ## Requirements
 
@@ -462,8 +520,10 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders; SMAA.hlsl is the SMAA reference implementation
 testmap/   generators and level scripts for physics and player effects labs
-tools/     refshots.py: reference images and player effects checks
-vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa
+tools/     levelview.py: live viewer and level editor control, reference
+           images and player effects checks (refshots.py runs the latter);
+           model_tool.cpp: openhpl1-model, Collada to glTF conversion
+vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa, cgltf, miniz
 run.sh     launcher
 ```
 
@@ -478,6 +538,8 @@ run.sh     launcher
 - **Andreas Jönsson**: AngelScript 2.38 (zlib)
 - **Lee Thomason and Yves Berquin**: TinyXML (zlib)
 - **Omar Cornut and contributors**: Dear ImGui 1.92.9b (MIT)
+- **Johannes Kuhlmann**: cgltf 1.14 (MIT)
+- **Rich Geldreich, RAD Game Tools and Valve Software**: miniz 3.0.2 (MIT)
 - **glad** OpenGL loader by David Herberth (generated code WTFPL or CC0-1.0,
   with Apache-2.0 Khronos parts)
 - **Jorge Jimenez, Jose I. Echevarria, Belen Masia, Fernando Navarro and

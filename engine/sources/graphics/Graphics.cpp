@@ -162,6 +162,13 @@ namespace hpl {
 			mpRendererPostEffects->CreateScreenBuffers();
 	}
 
+	bool cGraphics::ApplyWindowSize()
+	{
+		if(mpLowLevelGraphics->ApplyWindowSize() == false) return false;
+		mpRendererPostEffects->CreateScreenBuffers();
+		return true;
+	}
+
 	float cGraphics::GetRenderScale()
 	{
 		return mpLowLevelGraphics->GetRenderScale();

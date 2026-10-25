@@ -35,7 +35,10 @@
 #include "graphics/AnimationTrack.h"
 
 #include "tinyxml.h"
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <limits>
 #include <stdexcept>
 
@@ -51,6 +54,29 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	static bool IsExternalPath(const tString &asFile)
+	{
+		return (asFile.size() > 0 && (asFile[0] == '/' || asFile[0] == '\\')) ||
+			(asFile.size() > 1 && asFile[1] == ':');
+	}
+
+	// FNV-1a of the lower case folder of a file, as hex
+	static tString DirectoryHash(const tString &asFile)
+	{
+		tString sDir = cString::ToLowerCase(cString::ReplaceCharTo(cString::GetFilePath(asFile), "\\", "/"));
+		uint64_t lHash = 14695981039346656037ull;
+		for(unsigned char c : sDir)
+		{
+			lHash ^= c;
+			lHash *= 1099511628211ull;
+		}
+		char sBuf[17];
+		snprintf(sBuf, sizeof(sBuf), "%016llx", (unsigned long long)lHash);
+		return sBuf;
+	}
+
+	//-----------------------------------------------------------------------
+
 	bool cMeshLoaderCollada::FillStructures(const tString &asFile,
 		tColladaImageVec *apColladaImageVec,
 		tColladaTextureVec *apColladaTextureVec,
@@ -61,6 +87,15 @@ namespace hpl {
 		tColladaAnimationVec *apColladaAnimVec,
 		cColladaScene *apColladaScene,bool abCache)
 	{
+		//glTF files are read without caches
+		tString sFileType = cString::ToLowerCase(cString::GetFileExt(asFile));
+		if(sFileType == "glb" || sFileType == "gltf")
+		{
+			return FillStructuresFromGltf(asFile, apColladaImageVec, apColladaTextureVec,
+				apColladaMaterialVec, apColladaLightVec, apColladaGeometryVec,
+				apColladaControllerVec, apColladaAnimVec, apColladaScene);
+		}
+
 		bool bLoadCache =false;
 		//abCache = false;
 		//Log("Loading %s\n",asFile.c_str());
@@ -70,6 +105,17 @@ namespace hpl {
 		// A cache rebuilt here is written to the write directory, so the
 		// game's own folder is left as it was, and is looked for there first.
 		tString sWriteCacheFile = msCacheWriteDir=="" ? sCacheFile : msCacheWriteDir+sCacheName;
+		// Files from outside the game's folder (addons, given as absolute
+		// paths) may have the names of the game's files. Their caches are kept
+		// apart, in a folder named after the file's folder, and the game's own
+		// caches are not used for them.
+		if(msCacheWriteDir != "" && IsExternalPath(asFile))
+		{
+			tString sDir = msCacheWriteDir + "external/" + DirectoryHash(asFile) + "/";
+			std::error_code err;
+			std::filesystem::create_directories(std::filesystem::u8path(sDir), err);
+			sCacheFile = sWriteCacheFile = sDir + sCacheName;
+		}
 
 		if(abCache && FileExists(cString::To16Char(asFile)))
 		{

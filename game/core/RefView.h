@@ -62,6 +62,36 @@ public:
 	void ReleaseForDogTest();
 	bool EffectsCaptureFailed() const { return mbEffectsCaptureFailed; }
 
+	// For cLiveControl: what the panel does, asked for from outside
+	void RequestMap(const tString &asMap, const tString &asStart)
+	{
+		msLoadMap = cString::SetFileExt(asMap, "dae");
+		msLoadStart = asStart;
+	}
+	// A map asked for has not been loaded yet
+	bool IsMapPending();
+	const tStringVec& GetMaps();
+	// The places of the loaded map, as the panel lists them
+	const std::vector<cRefShots::cView>& GetViews(){ return mvViews; }
+	// Keeps the camera at a place, looking that way, until released; the
+	// player's body is left where it is (as when flying)
+	void HoldCamera(const cVector3f &avPos, float afYaw, float afPitch);
+	bool IsHoldingCamera(){ return mbHoldCamera; }
+	void GetHeldCamera(cVector3f &avPos, float &afYaw, float &afPitch)
+	{
+		avPos = mvHoldPos;
+		afYaw = mfHoldYaw;
+		afPitch = mfHoldPitch;
+	}
+	// The player walks on from the camera
+	void ReleaseCamera();
+	// flashlight, flicker, hud, godmode, dof; false if there is no such option
+	bool SetOption(const tString &asName, bool abValue);
+
+	// The panel's windows, inside the level editor's frame (cEditor has the
+	// ImGui panel then, and SetOpen() only shows or hides them)
+	void DrawWindows(){ Draw(); }
+
 	void Update(float afTimeStep) override;
 	void OnDraw() override;
 	void Reset() override;
@@ -160,6 +190,7 @@ private:
 
 	// What the panel asks for is done in Update(), not while drawing
 	tString msLoadMap;
+	tString msLoadStart; // "" for the map's first start position
 	int mlGoToView;
 	int mlGoToAngle;
 	// The map being loaded, and the time waited for it
@@ -200,6 +231,12 @@ private:
 	bool mbCarryTestLight;
 	float mfTestLightRadius;
 	float mfTestLightBrightness;
+
+	// cLiveControl's camera
+	bool mbHoldCamera = false;
+	cVector3f mvHoldPos;
+	float mfHoldYaw = 0;
+	float mfHoldPitch = 0;
 
 	char msViewpointName[64];
 	bool mbAddViewpoint;

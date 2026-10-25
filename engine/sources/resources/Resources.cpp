@@ -57,6 +57,22 @@ namespace hpl {
 
 		mpFileSearcher = hplNew( cFileSearcher, (mpLowLevelResources) );
 
+		//Created by Init (deleting nullptr does nothing if Init was not called)
+		mpLowLevelSystem = nullptr;
+		mpImageManager = nullptr;
+		mpGpuProgramManager = nullptr;
+		mpParticleManager = nullptr;
+		mpSoundManager = nullptr;
+		mpFontManager = nullptr;
+		mpScriptManager = nullptr;
+		mpTextureManager = nullptr;
+		mpMaterialManager = nullptr;
+		mpSoundEntityManager = nullptr;
+		mpAnimationManager = nullptr;
+		mpVideoManager = nullptr;
+		mpMeshManager = nullptr;
+		mpMeshLoaderHandler = nullptr;
+
 		mpDefaultEntity3DLoader = nullptr;
 		mpDefaultArea3DLoader = nullptr;
 
@@ -145,6 +161,9 @@ namespace hpl {
 		mpMeshLoaderHandler = hplNew( cMeshLoaderHandler,(this, apScene) );
 
 		mpLowLevelResources->AddMeshLoaders(mpMeshLoaderHandler);
+		//Models converted to glTF (from addons) are used in place of the
+		//Collada files that maps, entities and scripts ask for.
+		mpFileSearcher->SetAlternativeExtensions("dae", {"glb", "gltf"});
 		mpLowLevelResources->AddVideoLoaders(mpVideoManager);
 
 		Log("--------------------------------------------------------\n\n");

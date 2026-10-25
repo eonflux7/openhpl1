@@ -21,6 +21,9 @@
 #include <SDL3/SDL.h>
 
 #include "core/Init.h"
+#include "core/AddonWatcher.h"
+#include "systems/EffectHandler.h"
+#include "impl/MeshLoaderCollada.h"
 #include "ui/GameGui.h"
 #include "systems/GameSoundEnvHandler.h"
 #include "player/Player.h"
@@ -295,6 +298,12 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 	mpResources = apInit->mpGame->GetResources();
 
 	mpWorldCache = hplNew( cWorldCache, (apInit) );
+	mbReloadRequested = false;
+	mbPaused = false;
+	mbReloading = false;
+	mlLoadCount = 0;
+	mlReloadFailCount = 0;
+	mlReloadSeed = -1;
 
 	mfGameTime =0;
 
@@ -354,7 +363,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 	
 	unsigned long lStartTime = mpInit->mpGame->GetSystem()->GetLowLevel()->GetTime();
 
-	if(sMapName != msCurrentMap)
+	if(sMapName != msCurrentMap || mbReloading)
 	{
 		////////////////////////////////////////
 		// DESTRUCTION OF STUFF NOT SAVED //////
@@ -391,8 +400,8 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		////////////////////////////////////////
 		// SAVING /////////////////////////////
 
-		//Save the map
-		if(msCurrentMap != "" && mpScene->GetWorld3D() != nullptr)
+		//Save the map (a reloaded map starts anew)
+		if(msCurrentMap != "" && mpScene->GetWorld3D() != nullptr && mbReloading == false)
 		{
 			mpInit->mpSaveHandler->SaveData(msCurrentMap);
 		}
@@ -429,12 +438,22 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		//Destroy Haptic shapes
 		if(mpInit->mbHasHaptics)
 			mpInit->mpGame->GetHaptic()->GetLowLevel()->DestroyAllShapes();
-		
+
+		//Reloading: destroy the map and the resources only it used before
+		//loading it, so that they are read again from their files.
+		if(mbReloading && pLastMap)
+		{
+			mpScene->SetWorld3D(nullptr);
+			mpScene->DestroyWorld3D(pLastMap);
+			pLastMap = nullptr;
+			mpWorldCache->DecResources();
+		}
+
 		////////////////////////////////////////
 		// LOAD THE MAP ////////////////////////
 
-		//Load 
-		if(mpScene->HasLoadedWorld(asFile))
+		//Load
+		if(mbReloading == false && mpScene->HasLoadedWorld(asFile))
 		{
 			//Log("-------- Loaded NOT first time! ----------------\n");
 			pWorld = mpScene->LoadWorld3D(asFile,true,	eWorldLoadFlag_NoGameEntities);
@@ -481,6 +500,9 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		}
 
 		fTimeSinceVisit = AddLoadedMap(pWorld);
+		//A reloaded map starts as on a first visit, not from the time it
+		//was away (which would differ from reload to reload)
+		if(mbReloading) fTimeSinceVisit = 0;
 
 		pWorld->GetPhysicsWorld()->SetMaxTimeStep(mpInit->mfMaxPhysicsTimeStep);
 
@@ -563,8 +585,61 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 
 	//Set physics accuracy
 	pWorld->GetPhysicsWorld()->SetAccuracyLevel(mpInit->mPhysicsAccuracy);
-	
+
+	mlLoadCount++;
 	return true;
+}
+
+//-----------------------------------------------------------------------
+
+void cMapHandler::Reload()
+{
+	if(msCurrentMap == "") return;
+
+	//After a map failed to load (e.g. a broken edit) there is no world: the
+	//next reload tries again from the start position.
+	cWorld3D *pWorld = mpScene->GetWorld3D();
+	tString sFile = pWorld ? pWorld->GetFileName() : msCurrentMap + ".dae";
+	iCharacterBody *pBody = mpInit->mpPlayer->GetCharacterBody();
+	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+	bool bKeepPlace = pWorld != nullptr && pBody != nullptr;
+	cVector3f vFeet = bKeepPlace ? pBody->GetFeetPosition() : cVector3f(0);
+	float fBodyYaw = bKeepPlace ? pBody->GetYaw() : 0;
+	float fYaw = pCamera->GetYaw();
+	float fPitch = pCamera->GetPitch();
+
+	//Files added to the resource folders since are found, and the map is
+	//only replaced if its file can be read (an export may be broken, or
+	//still being written)
+	mpResources->GetFileSearcher()->Rescan();
+	tString sPath = mpResources->GetFileSearcher()->GetFilePath(sFile);
+	cMeshLoaderCollada checkLoader(mpInit->mpGame->GetGraphics()->GetLowLevel());
+	cColladaData checkData;
+	if(sPath == "" || checkLoader.LoadData(sPath, checkData) == false)
+	{
+		Error("Map '%s' can't be read, the loaded one is kept\n", sFile.c_str());
+		mlReloadFailCount++;
+		return;
+	}
+
+	Log("Reloading map '%s'\n", sFile.c_str());
+	if(mlReloadSeed >= 0) cMath::Randomize(mlReloadSeed);
+	//The map's OnStart() sets the waves up again (the boat cabin): from the
+	//start of a swing, as on the first visit, not where they had got to
+	mpInit->mpEffectHandler->GetWaveGravity()->Reset();
+	mpInit->mbDestroyGraphics = false;
+	mbReloading = true;
+	bool bLoaded = Load(sFile, "");
+	mbReloading = false;
+	mpInit->mbDestroyGraphics = true;
+	if(bLoaded == false) mlReloadFailCount++;
+	if(bLoaded == false || bKeepPlace == false) return;
+
+	pBody = mpInit->mpPlayer->GetCharacterBody();
+	pBody->SetFeetPosition(vFeet);
+	pBody->SetYaw(fBodyYaw);
+	pCamera->SetYaw(fYaw);
+	pCamera->SetPitch(fPitch);
 }
 
 //-----------------------------------------------------------------------
@@ -1579,81 +1654,101 @@ void cMapHandler::Update(float afTimeStep)
 	
 	//LogUpdate(" Flashes!\n");
 	
-	////////////////////////////
-	//Update light flashes
-	tEffectLightFlashListIt FlashIt = mlstLightFlashes.begin();
-	for(; FlashIt != mlstLightFlashes.end(); )
+	// The level editor holds the map still: no timers, no entities. Reloads
+	// and map changes go on.
+	if(mbPaused==false)
 	{
-		cEffectLightFlash *pFlash = *FlashIt;
+		////////////////////////////
+		//Update light flashes
+		tEffectLightFlashListIt FlashIt = mlstLightFlashes.begin();
+		for(; FlashIt != mlstLightFlashes.end(); )
+		{
+			cEffectLightFlash *pFlash = *FlashIt;
 
-		pFlash->Update(afTimeStep);
-		if(pFlash->IsDead())
-		{
-			hplDelete( pFlash );
-			FlashIt = mlstLightFlashes.erase(FlashIt);
+			pFlash->Update(afTimeStep);
+			if(pFlash->IsDead())
+			{
+				hplDelete( pFlash );
+				FlashIt = mlstLightFlashes.erase(FlashIt);
+			}
+			else
+			{
+				++FlashIt;
+			}
 		}
-		else
-		{
-			++FlashIt;
-		}
-	}
 	
-	//LogUpdate(" Timers\n");
-	////////////////////////////
-	//Update timers
-	UpdateTimers(afTimeStep);
+		//LogUpdate(" Timers\n");
+		////////////////////////////
+		//Update timers
+		UpdateTimers(afTimeStep);
 
-	//LogUpdate(" Entities!\n");
-	////////////////////////////
-	//Update entities.
-	const bool bOverture = cInit::IsOverture();
-	tGameEntityMapIt GIt = m_mapGameEntities.begin();
-	for(; GIt != m_mapGameEntities.end();)
-	{
-		iGameEntity *pEntity = GIt->second;
-
-		//unsigned int lTime = pLowLevelSystem->GetTime();
-		//LogUpdate("  %s\n",pEntity->GetName().c_str());
-
-		if(pEntity->IsActive()){
-			pEntity->OnUpdate(afTimeStep);
-		}
-
-		// Black Plague destroys entities only after all have been updated
-		if(bOverture && (pEntity->GetDestroyMe() || pEntity->GetBreakMe()))
-		{
-			//LogUpdate("    destroying\n");
-			if(pEntity->GetBreakMe()) pEntity->BreakAction();
-			
-			m_mapGameEntities.erase(GIt++);
-			hplDelete( pEntity );
-			//LogUpdate("    done destroying\n");
-		}
-		else
-		{
-			////LogUpdate("  updating %s took %d ms\n",	pEntity->GetName().c_str(),
-			//										pLowLevelSystem->GetTime() - lTime);
-			++GIt;
-		}
-	}
-
-	if(bOverture==false)
-	{
-		for(GIt = m_mapGameEntities.begin(); GIt != m_mapGameEntities.end();)
+		//LogUpdate(" Entities!\n");
+		////////////////////////////
+		//Update entities.
+		const bool bOverture = cInit::IsOverture();
+		tGameEntityMapIt GIt = m_mapGameEntities.begin();
+		for(; GIt != m_mapGameEntities.end();)
 		{
 			iGameEntity *pEntity = GIt->second;
-			if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+
+			//unsigned int lTime = pLowLevelSystem->GetTime();
+			//LogUpdate("  %s\n",pEntity->GetName().c_str());
+
+			if(pEntity->IsActive()){
+				pEntity->OnUpdate(afTimeStep);
+			}
+
+			// Black Plague destroys entities only after all have been updated
+			if(bOverture && (pEntity->GetDestroyMe() || pEntity->GetBreakMe()))
 			{
+				//LogUpdate("    destroying\n");
 				if(pEntity->GetBreakMe()) pEntity->BreakAction();
 
 				m_mapGameEntities.erase(GIt++);
 				hplDelete( pEntity );
+				//LogUpdate("    done destroying\n");
 			}
 			else
 			{
+				////LogUpdate("  updating %s took %d ms\n",	pEntity->GetName().c_str(),
+				//										pLowLevelSystem->GetTime() - lTime);
 				++GIt;
 			}
 		}
+
+		if(bOverture==false)
+		{
+			for(GIt = m_mapGameEntities.begin(); GIt != m_mapGameEntities.end();)
+			{
+				iGameEntity *pEntity = GIt->second;
+				if(pEntity->GetDestroyMe() || pEntity->GetBreakMe())
+				{
+					if(pEntity->GetBreakMe()) pEntity->BreakAction();
+
+					m_mapGameEntities.erase(GIt++);
+					hplDelete( pEntity );
+				}
+				else
+				{
+					++GIt;
+				}
+			}
+		}
+	}
+
+	if(mpInit->mpAddonWatcher)
+	{
+		mpInit->mpAddonWatcher->SetActive(mpInit->IsDeveloperMode());
+		if(mpInit->mpAddonWatcher->HasChanged())
+		{
+			Log("Files in addon folders changed\n");
+			mbReloadRequested = true;
+		}
+	}
+	if(mbReloadRequested)
+	{
+		mbReloadRequested = false;
+		if(mMapChanger.mbActive == false) Reload();
 	}
 
 	////////////////////////////

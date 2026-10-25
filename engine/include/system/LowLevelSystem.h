@@ -45,6 +45,8 @@ namespace hpl {
 	class iScript;
 
 	extern void SetLogFile(const tWString &asFile);
+	// The program's arguments as main() got them (hplMain gets them joined)
+	extern const tStringVec &GetCommandLineArguments();
 	extern void FatalError(const char* fmt,... );
 	extern void Error(const char* fmt, ...);
 	extern void Warning(const char* fmt, ...);

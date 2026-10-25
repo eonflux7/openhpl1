@@ -38,15 +38,17 @@ exit /b 1
 
 if exist "%DIST%" rmdir /s /q "%DIST%"
 if exist "%BUILD%\%NAME%.zip" del "%BUILD%\%NAME%.zip"
-mkdir "%DIST%\licenses" || exit /b 1
+mkdir "%DIST%\licenses" "%DIST%\addons" "%DIST%\docs" || exit /b 1
 copy /y "%BUILD%\openhpl1.exe" "%DIST%\" >nul || exit /b 1
+copy /y "%BUILD%\openhpl1-model.exe" "%DIST%\" >nul || exit /b 1
 copy /y "%BUILD%\*.dll" "%DIST%\" >nul || exit /b 1
 copy /y "%CRT%\*.dll" "%DIST%\" >nul || exit /b 1
 for %%d in (shaders fonts hud) do (
 	xcopy /e /i /q /y "%BUILD%\%%d" "%DIST%\%%d" >nul || exit /b 1
 )
 for %%f in (COPYING README.md CHANGES.md) do copy /y "%%f" "%DIST%\" >nul || exit /b 1
-for %%d in (angelscript glad imgui imgui_glad newton oalwrapper smaa tinyxml) do (
+copy /y "docs\modding.md" "%DIST%\docs\" >nul || exit /b 1
+for %%d in (angelscript cgltf glad imgui imgui_glad miniz newton oalwrapper smaa tinyxml) do (
 	if exist "vendor\%%d\LICENSE" copy /y "vendor\%%d\LICENSE" "%DIST%\licenses\%%d.txt" >nul
 	if exist "vendor\%%d\LICENSE.txt" copy /y "vendor\%%d\LICENSE.txt" "%DIST%\licenses\%%d.txt" >nul
 )

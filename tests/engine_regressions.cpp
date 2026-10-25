@@ -1140,6 +1140,9 @@ static void TestSprites()
 	Check(cGuiMaterial_Modulative(nullptr).GetBlend() == cSpriteBlend(eBlendFunc_DestColor,eBlendFunc_Zero), "GUI modulative blend");
 }
 
+// tests/model_regressions.cpp
+void RunModelRegressions(const std::filesystem::path &directory);
+
 int hplMain(const hpl::tString&)
 {
 	auto directory = std::filesystem::temp_directory_path() / ("overture-regressions-" + std::to_string(getpid()));
@@ -1152,6 +1155,7 @@ int hplMain(const hpl::tString&)
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
+		RunModelRegressions(directory);
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");
 		pid.SetErrorNum(10); for(int i = 0; i < 9; ++i) pid.Output(1, 0.1f);

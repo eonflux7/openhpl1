@@ -100,6 +100,9 @@ namespace hpl {
 				EndLoad();
 				return nullptr;
 			}
+			//A .glb used for a .dae keeps the .dae name, so that it is found
+			//again and saves name the same file
+			pMesh->SetName(LoadedFileName(asNewName, sPath));
 
 			AddResource(pMesh);
 		}

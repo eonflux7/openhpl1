@@ -95,15 +95,16 @@ PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig" cmake -S "$SRC" -B "$WORK/openhpl1" -G N
 cmake --build "$WORK/openhpl1" -j "$JOBS"
 
 rm -rf "$DIST"
-mkdir -p "$DIST/lib" "$DIST/licenses"
-cp "$WORK/openhpl1/openhpl1" "$DIST/"
-strip "$DIST/openhpl1"
+mkdir -p "$DIST/lib" "$DIST/licenses" "$DIST/addons" "$DIST/docs"
+cp "$WORK/openhpl1/openhpl1" "$WORK/openhpl1/openhpl1-model" "$DIST/"
+strip "$DIST/openhpl1" "$DIST/openhpl1-model"
 cp -r "$WORK/openhpl1/shaders" "$WORK/openhpl1/fonts" "$WORK/openhpl1/hud" "$DIST/"
 for lib in libSDL3.so.0 libSDL3_image.so.0 libopenal.so.1; do
 	cp -L "$PREFIX/lib/$lib" "$DIST/lib/"
 	strip --strip-unneeded "$DIST/lib/$lib"
 done
 cp "$SRC/COPYING" "$SRC/README.md" "$SRC/CHANGES.md" "$DIST/"
+cp "$SRC/docs/modding.md" "$DIST/docs/"
 cp "$WORK/src/sdl/LICENSE.txt" "$DIST/licenses/SDL3.txt"
 cp "$WORK/src/sdl_image/LICENSE.txt" "$DIST/licenses/SDL3_image.txt"
 cp "$WORK/src/openal/COPYING" "$DIST/licenses/openal-soft.txt"
@@ -111,7 +112,7 @@ cp "$WORK/src/ogg/COPYING" "$DIST/licenses/libogg.txt"
 cp "$WORK/src/vorbis/COPYING" "$DIST/licenses/libvorbis.txt"
 cp "$WORK/openhpl1/_deps/freetype-src/LICENSE.TXT" "$DIST/licenses/freetype.txt"
 cp "$WORK/openhpl1/_deps/freetype-src/docs/FTL.TXT" "$DIST/licenses/freetype-FTL.txt"
-for dep in angelscript glad imgui imgui_glad newton oalwrapper smaa tinyxml; do
+for dep in angelscript cgltf glad imgui imgui_glad miniz newton oalwrapper smaa tinyxml; do
 	for f in "$SRC/vendor/$dep/LICENSE" "$SRC/vendor/$dep/LICENSE.txt"; do
 		if [ -f "$f" ]; then cp "$f" "$DIST/licenses/$dep.txt"; fi
 	done

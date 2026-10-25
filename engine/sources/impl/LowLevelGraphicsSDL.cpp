@@ -356,6 +356,13 @@ namespace hpl
 		mTargets.BindFramebuffer(mTargets.GetOutputFramebuffer(), mWindow.GetSize());
 	}
 
+	bool cLowLevelGraphicsSDL::ApplyWindowSize()
+	{
+		if(mWindow.UpdateSize() == false) return false;
+		mTargets.SetOutputSize(mWindow.GetSize());
+		return true;
+	}
+
 	void cLowLevelGraphicsSDL::SetRenderScale(float afScale)
 	{
 		mTargets.SetRenderScale(afScale);

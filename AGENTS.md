@@ -92,17 +92,27 @@ ownership, parsing, serialization, physics and animation changes.
   scaled/MSAA rendering and effects checks when those paths are affected:
 
   ```sh
-  python3 tools/refshots.py capture /tmp/ref-before
+  python3 tools/levelview.py capture /tmp/ref-before
   # Rebuild after the change, then:
-  python3 tools/refshots.py capture /tmp/ref-after
-  python3 tools/refshots.py compare /tmp/ref-before /tmp/ref-after --diff-dir /tmp/ref-diff
-  python3 tools/refshots.py effects /tmp/effects
+  python3 tools/levelview.py capture /tmp/ref-after
+  python3 tools/levelview.py compare /tmp/ref-before /tmp/ref-after --diff-dir /tmp/ref-diff
+  python3 tools/levelview.py effects /tmp/effects
   ```
+
+  (`tools/refshots.py` runs the same three commands.)
 
   See README for `--maps`, `--size`, `--set`, `--build` and Windows capture.
   Do not loosen comparison tolerances to hide regressions. Note intentional
   visual changes and known unstable maps separately. Use `OPENHPL_GL_DEBUG=1`
   for driver diagnostics.
+- Looking at a map, an asset or a script change in the running game:
+  `tools/levelview.py start` runs the game for commands (map, camera,
+  frames, node edits, reloads, script lines) with an isolated profile; see
+  `docs/level-editor.md`. Live `shots` sets compare with `compare --live`;
+  they are not a substitute for `capture` when the renderer changes.
+  `start --editor` opens the level editor's window (`openhpl1 --editor`),
+  which the same commands drive (plus `select`, `undo`, `redo`, `play`,
+  `simulate`, `mouse`); `shot --panel` shows its panels.
 - Performance: measure representative CPU/GPU frame times. Call counts,
   uploaded bytes and synthetic fixtures establish local changes, not game FPS.
 

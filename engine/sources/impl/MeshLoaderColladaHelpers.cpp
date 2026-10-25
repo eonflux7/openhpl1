@@ -137,6 +137,9 @@ namespace hpl {
 	cAnimationTrack* cMeshLoaderCollada::CreateAnimTrack(cAnimation *apAnimation , cSkeleton *apSkeleton,
 		cColladaAnimation &aAnim, cColladaScene *apScene)
 	{
+		if(aAnim.mvBakedKeys.empty() == false)
+			return CreateBakedAnimTrack(apAnimation, apSkeleton, aAnim);
+
 		tTempAnimDataVec vTempData;
 		tTempTimesSet setTempTimes;
 
@@ -853,19 +856,8 @@ namespace hpl {
 				cVector3f vScale = GetVectorScaleFromPtr(&vValVec[0]);
 				pNode->mvScale = vScale;
 
-				//If this node is a light, do not apply scale.
-				if(apColladaLightVec && GetLight(pNode->msSource, *apColladaLightVec))
-				{
-				}
-				//Colliders do not use scale.
-				else if(cString::ToLowerCase(cString::Sub(pNode->msName,1,8))=="collider"
-					|| cString::ToLowerCase(cString::Sub(pNode->msName,1,12))=="charcollider"
-					||  cString::ToLowerCase(cString::Sub(pNode->msName,1,4))=="area")
-				{
-
-				}
 				//This a geometry node (or something else..). Apply scale as normal
-				else
+				if(ScaleIsSeparate(pNode, apColladaLightVec) == false)
 				{
 					mtxTransform = cMath::MatrixMul(mtxTransform, cMath::MatrixScale(vScale));
 				}
@@ -1561,44 +1553,54 @@ namespace hpl {
 
 			////////////////////////////////////
 			//Create Tangents
-			tFloatVec vPosVec;  vPosVec.resize(Geometry.mvVertexVec.size() *4);
-			tFloatVec vNormVec; vNormVec.resize(Geometry.mvVertexVec.size() *3);
-			tFloatVec vTexVec;  vTexVec.resize(Geometry.mvVertexVec.size() *3);
-
-			float *pPosData = &vPosVec[0];
-			float *pNormData = &vNormVec[0];
-			float *pTexData = &vTexVec[0];
-
-			//Fill vectors
-			for(size_t i=0; i<Geometry.mvVertexVec.size(); ++i)
-			{
-				cVertex &vertex = Geometry.mvVertexVec[i];
-
-				pPosData[0] = vertex.pos.x;
-				pPosData[1] = vertex.pos.y;
-				pPosData[2] = vertex.pos.z;
-				pPosData[3] = 1;
-
-				pNormData[0] = vertex.norm.x;
-				pNormData[1] = vertex.norm.y;
-				pNormData[2] = vertex.norm.z;
-
-				pTexData[0] = vertex.tex.x;
-				pTexData[1] = vertex.tex.y;
-				pTexData[2] = vertex.tex.z;
-
-				pPosData +=4;
-				pNormData +=3;
-				pTexData +=3;
-			}
-
-			//Creates tangents
-			Geometry.mvTangents.resize(Geometry.mvVertexVec.size() *4);
-			cMath::CreateTriTangentVectors( Geometry.mvTangents.data(),
-						Geometry.mvIndexVec.data(), (int)Geometry.mvIndexVec.size(),
-						&vPosVec[0],4, &vTexVec[0],&vNormVec[0],
-						(int)Geometry.mvVertexVec.size());
+			CreateTangents(Geometry);
 		}
+	}
+
+	//////////////////////////////////////
+
+	void cMeshLoaderCollada::CreateTangents(cColladaGeometry &aGeometry)
+	{
+		tFloatVec vPosVec;
+		vPosVec.resize(aGeometry.mvVertexVec.size() * 4);
+		tFloatVec vNormVec;
+		vNormVec.resize(aGeometry.mvVertexVec.size() * 3);
+		tFloatVec vTexVec;
+		vTexVec.resize(aGeometry.mvVertexVec.size() * 3);
+
+		float *pPosData = vPosVec.data();
+		float *pNormData = vNormVec.data();
+		float *pTexData = vTexVec.data();
+
+		//Fill vectors
+		for(size_t i = 0; i < aGeometry.mvVertexVec.size(); ++i)
+		{
+			cVertex &vertex = aGeometry.mvVertexVec[i];
+
+			pPosData[0] = vertex.pos.x;
+			pPosData[1] = vertex.pos.y;
+			pPosData[2] = vertex.pos.z;
+			pPosData[3] = 1;
+
+			pNormData[0] = vertex.norm.x;
+			pNormData[1] = vertex.norm.y;
+			pNormData[2] = vertex.norm.z;
+
+			pTexData[0] = vertex.tex.x;
+			pTexData[1] = vertex.tex.y;
+			pTexData[2] = vertex.tex.z;
+
+			pPosData += 4;
+			pNormData += 3;
+			pTexData += 3;
+		}
+
+		//Creates tangents
+		aGeometry.mvTangents.resize(aGeometry.mvVertexVec.size() * 4);
+		cMath::CreateTriTangentVectors(aGeometry.mvTangents.data(),
+			aGeometry.mvIndexVec.data(), (int)aGeometry.mvIndexVec.size(),
+			vPosVec.data(), 4, vTexVec.data(), vNormVec.data(),
+			(int)aGeometry.mvVertexVec.size());
 	}
 
 	//////////////////////////////////////

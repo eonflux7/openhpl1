@@ -447,6 +447,14 @@ namespace hpl {
 
 				//Draw this frame
 				//unsigned long lFTime = GetApplicationTime();
+				// A window resized by hand: the frame and the view follow
+				if(mpGraphics->ApplyWindowSize() && mpScene->GetCamera() &&
+				   mpScene->GetCamera()->GetType() == eCameraType_3D)
+				{
+					cVector2f vSize = mpGraphics->GetLowLevel()->GetScreenSize();
+					static_cast<cCamera3D*>(mpScene->GetCamera())->SetAspect(vSize.x / vSize.y);
+				}
+
 				mpGraphics->GetLowLevel()->SetPlayerEffectState(cPlayerEffectState());
 				mpUpdater->OnDraw();
 				mpScene->Render(mpUpdater,mfFrameTime);

@@ -44,6 +44,13 @@ namespace hpl {
 	class iResourceManager
 	{
 	public:
+		/**
+		 * The name of a resource loaded from asPath when asRequested was asked
+		 * for: the file's name, with the requested extension when a file of
+		 * another type was used in its place (a .glb model for a .dae one).
+		 */
+		static tString LoadedFileName(const tString &asRequested, const tString &asPath);
+
 		iResourceManager(cFileSearcher *apFileSearcher, iLowLevelResources *apLowLevelResources,
 						iLowLevelSystem *apLowLevelSystem);
 		virtual ~iResourceManager(){}

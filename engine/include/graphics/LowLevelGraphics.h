@@ -639,6 +639,19 @@ namespace hpl {
 		virtual void SetDebugPanel(std::function<void()> aDraw)=0;
 		/// Gives ImGui the mouse and the keyboard, and frees the pointer.
 		virtual void SetDebugPanelInput(bool abX)=0;
+		/**
+		 * While the panel has the input: the pointer is hidden and held, and
+		 * its motion is gathered for TakeDebugPanelMouseMotion() instead of
+		 * going to ImGui (an editor's camera, turned with the mouse).
+		 */
+		virtual void SetDebugPanelMouseCapture(bool abX)=0;
+		/**
+		 * Follows a window resized by hand: the screen size and the frame's
+		 * buffers change. True if they did; between frames.
+		 */
+		virtual bool ApplyWindowSize()=0;
+		/// The motion of the captured pointer since the last call, in pixels.
+		virtual cVector2f TakeDebugPanelMouseMotion()=0;
 
 		virtual cMatrixf CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax) = 0;
 		/**

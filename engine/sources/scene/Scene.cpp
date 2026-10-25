@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "scene/Scene.h"
+#include "resources/ResourceManager.h"
 #include "game/Updater.h"
 #include "system/LowLevelSystem.h"
 
@@ -355,6 +356,8 @@ namespace hpl {
 			Error("Couldn't load world from '%s'\n",asPath.c_str());
 			return nullptr;
 		}
+		//A .glb map used for a .dae keeps the .dae name
+		pWorld->SetFileName(iResourceManager::LoadedFileName(asFile, asPath));
 
 		////////////////////////////////////////////////////////////
 		//Load the script

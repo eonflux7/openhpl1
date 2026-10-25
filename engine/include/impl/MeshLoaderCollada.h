@@ -21,6 +21,7 @@
 
 
 #include "math/MathTypes.h"
+#include "math/Quaternion.h"
 #include "resources/MeshLoader.h"
 #include "graphics/VertexBuffer.h"
 #include "physics/PhysicsJoint.h"
@@ -290,6 +291,25 @@ namespace hpl {
 	typedef std::vector<cColladaAnimSource> tColladaAnimSourceVec;
 
 
+	// A key of an animation read from glTF: the node's local translation and
+	// rotation, mfTime seconds from the start of the animation.
+	class cColladaBakedKey
+	{
+	public:
+		cColladaBakedKey() : mbExact(false) {}
+
+		float mfTime;
+		cVector3f mvTrans;
+		cQuaternion mqRot;
+
+		//The engine's key, from an unedited converted file
+		bool mbExact;
+		cVector3f mvExactTrans;
+		cQuaternion mqExactRot;
+	};
+
+	typedef std::vector<cColladaBakedKey> tColladaBakedKeyVec;
+
 	class cColladaAnimation
 	{
 	public:
@@ -301,6 +321,9 @@ namespace hpl {
 		tColladaSamplerVec mvSamplers;
 
 		tColladaAnimSourceVec mvSources;
+
+		//glTF animations have keys instead of channels, samplers and sources.
+		tColladaBakedKeyVec mvBakedKeys;
 
 		tFloatVec* GetSourceVec(const tString& asId)
 		{
@@ -454,11 +477,68 @@ namespace hpl {
 
 	//------------------------------------------------
 
+	// Everything the loader reads from a model file before it creates meshes,
+	// worlds and animations (the contents of a Collada cache).
+	class cColladaData
+	{
+	public:
+		tColladaImageVec mvImages;
+		tColladaTextureVec mvTextures;
+		tColladaMaterialVec mvMaterials;
+		tColladaLightVec mvLights;
+		tColladaGeometryVec mvGeometries;
+		tColladaControllerVec mvControllers;
+		tColladaAnimationVec mvAnimations;
+		cColladaScene mScene;
+	};
+
+	//------------------------------------------------
+
+	// Loads Collada (.dae) and glTF 2.0 (.glb, .gltf) models. Both are read
+	// into the same intermediate data, which the meshes, worlds and
+	// animations are created from, so the naming conventions of the original
+	// Collada files (colliders, joints, areas, lights, references...) apply
+	// to glTF files as well. See docs/modding.md.
 	class cMeshLoaderCollada : public iMeshLoader
 	{
 	public:
 		cMeshLoaderCollada(iLowLevelGraphics *apLowLevelGraphics);
 		~cMeshLoaderCollada() override;
+
+		/////////////////////////////////
+		// Model conversion (tools/model_tool.cpp). These do not need graphics
+		// and neither read nor write caches.
+
+		// Reads a Collada or glTF file.
+		bool LoadData(const tString &asFile, cColladaData &aData);
+		// Writes data read from a Collada file as glTF (.glb or .gltf).
+		// Problems that may make the glTF file differ are added to apWarnings.
+		bool SaveGltf(cColladaData &aData, const tString &asFile, const tString &asSourceName,
+			tStringVec *apWarnings);
+		// The animation tracks the loader creates for the data, or nullptr if
+		// there are none; with abRestPoses also the tracks of the bones that
+		// are not animated, like a loaded mesh. Also returns the skeleton, if
+		// any. The caller deletes both.
+		cAnimation *CreateAnimation(cColladaData &aData, bool abRestPoses, cSkeleton **apSkeleton);
+		// The material file name of a geometry ("" if none).
+		tString GetGeometryMaterialFile(cColladaData &aData, const cColladaGeometry &aGeometry);
+
+		// Collada: whether the scale of a node is kept out of its transform
+		// (lights, colliders and areas keep their size in the scale).
+		static bool ScaleIsSeparate(const cColladaNode *apNode, const tColladaLightVec *apLights);
+		// Sets mvTangents from the vertices and triangles.
+		static void CreateTangents(cColladaGeometry &aGeometry);
+
+		// glTF: the local transform of a node from its translation, rotation
+		// (x,y,z,w) and scale, as the reader makes it.
+		static cMatrixf GltfTransform(const float *apTrans, const float *apRotation, const float *apScale,
+			bool abScaleIsSeparate);
+		// glTF: a light's colour and spot angle (degrees), as the reader makes them.
+		static cColor GltfLightColor(const float *apColor, float afIntensity);
+		static float GltfSpotAngle(float afOuterConeAngle);
+		// glTF: a hash of an animation track's times, translations and
+		// rotations, so that a reader knows they have not been edited.
+		static tString GltfKeyHash(const tFloatVec &avTimes, const tFloatVec &avTrans, const tFloatVec &avRot);
 
 		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags) override;
 		bool SaveMesh(cMesh* apMesh,const tString& asFile) override{return false;}
@@ -518,6 +598,11 @@ namespace hpl {
 
 		cAnimationTrack* CreateAnimTrack(cAnimation *apAnimation , cSkeleton *apSkeleton,
 						cColladaAnimation &aAnim, cColladaScene *apScene);
+		cAnimationTrack *CreateBakedAnimTrack(cAnimation *apAnimation, cSkeleton *apSkeleton,
+			cColladaAnimation &aAnim);
+
+		cSkeleton *CreateSkeleton(tColladaControllerVec &avControllers, cColladaScene &aScene);
+		void AddRestPoseTracks(cAnimation *apAnimation, cSkeleton *apSkeleton, cColladaScene &aScene);
 
 		void CalcLocalMatrixRec(cBone* apBone, cMatrixf a_mtxParentGlobal, int alDepth);
 
@@ -537,6 +622,16 @@ namespace hpl {
 							tColladaAnimationVec *apColladaAnimVec,
 							cColladaScene *apColladaScene,
 							bool abCache);
+
+		bool FillStructuresFromGltf(const tString &asFile,
+			tColladaImageVec *apColladaImageVec,
+			tColladaTextureVec *apColladaTextureVec,
+			tColladaMaterialVec *apColladaMaterialVec,
+			tColladaLightVec *apColladaLightVec,
+			tColladaGeometryVec *apColladaGeometryVec,
+			tColladaControllerVec *apColladaControllerVec,
+			tColladaAnimationVec *apColladaAnimVec,
+			cColladaScene *apColladaScene);
 
 		bool SaveStructures(const tString &asFile,
 							tColladaImageVec *apColladaImageVec,

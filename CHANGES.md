@@ -5,6 +5,240 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Level editor window (2026-10-25)
+
+- `cEditor` (`game/core/Editor.cpp`): `--editor` or `OPENHPL_EDITOR=1`
+  forces developer mode and loads `OPENHPL_MAP` or the game's first map
+  instead of the menus. It owns the debug panel's ImGui callback and input:
+  a main menu bar with tools, Scene (Outliner tree of the map file's nodes,
+  kind-filtered lists, Maps), Inspector and a tail of `hpl.log` around the
+  3D view. The camera is cRefView's held camera, flown with the right mouse
+  button; clicks pick helper dots of lights/areas/sounds/starts/particles,
+  then a physics ray along the pointer; the gizmo (move along an axis or the
+  view plane, turn on rings, scale per axis or all) is drawn on ImGui's
+  background list from the camera's view and projection; F8 plays from the
+  camera and returns (reloading). While editing the map is held still:
+  `cScene::SetUpdateMap(false)` and the new `cMapHandler::SetPaused()`
+  (timers, light flashes and game entity updates skipped; reloads and map
+  changes go on). cRefView's windows are drawn inside the editor's frame.
+- `cLevelEditor`: changes move the world's objects at once (`SyncLive`):
+  per node, what the world made of it is found by name (map mesh and its
+  body, game entity bodies or mesh, light, area, start position, sound,
+  particle system, billboard, beam) with its matrix when first moved; each
+  change applies the node's world delta (rigid for bodies, lights and
+  helpers; with scale for meshes; a light's radius follows the scale).
+  Static meshes and lights become dynamic in the portal container and
+  static lights gather shadow casters again. Undo steps
+  (`BeginUndo`/`EndUndo`, one per change otherwise), `SetWorld`/`GetWorld`,
+  `GetState`/`SetState`, `GetChildren`, `GetNodeBox`, `Pick` along any
+  line. A reload of the same map makes unsaved changes again. `ResetNode`
+  no longer leaves reset nodes counted as changed. The view clearance used
+  by `look` and the editor's focus ignores the node's own map body.
+- `cLiveControl`: `select`, `undo`, `redo`, `play`, `simulate`, `mouse`
+  (ImGui pointer events) for the editor; `status` reports it; `shot` hides
+  the editor's panels unless `panel`. `levelview.py start --editor`.
+- Windows can be resized: windowed mode is `SDL_WINDOW_RESIZABLE`;
+  `cGame`'s loop calls `cGraphics::ApplyWindowSize()` before drawing, which
+  takes the window's pixel size (`cSDLGraphicsWindow::UpdateSize`), makes
+  the output and scene framebuffers again
+  (`cGLRenderTargets::SetOutputSize`, at the render scale) and the post
+  effects' screen buffer, and sets the active 3D camera's aspect. The
+  editor's side panels shrink in a narrow window. `cLiveControl`'s
+  `window <w> <h>` resizes it.
+- `levelview.py` live sessions use 16x anisotropic filtering (the game's
+  default) instead of the reference images' 1.
+- Engine: `cPortalContainer::MakeDynamic()`;
+  `iLowLevelGraphics::SetDebugPanelMouseCapture()` /
+  `TakeDebugPanelMouseMotion()` (relative mouse for the panel's camera,
+  motion kept from ImGui; `cLowLevelInputSDL` locks the pointer meanwhile).
+
+## Live control, level editor and levelview.py (2026-10-25)
+
+- `cLiveControl` (`game/core/LiveControl.cpp`): with `OPENHPL_CONTROL=<dir>`
+  the game reads command files (`<id>.cmd`, renamed into place) in name
+  order, runs them in its update after the F2 panel, in every updater
+  container, and answers in `<id>.out` (`ok` / `error: ...` plus output).
+  Commands that wait (map, reload, save, revert, shot, wait) answer once
+  done; a file's lines run back to back with no frames between them. The
+  folder has a `ready` file while the game runs; stale commands and answers
+  are removed at start. `OPENHPL_CONTROL` turns on developer mode.
+  `option fixedstep 1` sets the logic timer's fixed step, seeds the random
+  numbers after every map load and before every reload.
+- `cLevelEditor` (`game/core/LevelEditor.cpp`): reads the loaded map's file
+  (`cMeshLoaderCollada::LoadData`) on first use per map load, lists its
+  nodes with kinds and world transforms, sets world position, rotation
+  (XYZ Euler degrees) and scale (children follow; lights, colliders and
+  areas keep their size in the scale), and saves the whole map with
+  `SaveGltf()` to `<edit dir>/<map>.glb` (written as `.part`, then renamed),
+  then requests a reload. `<map>.edits.txt` keeps each changed node's world
+  transform now and before its first change. Nodes are also found by the
+  name of the entity, area or sound they make. Pick casts a physics ray
+  from the camera (skipping bodies that do not collide) and takes the game
+  entity owning the body, else the smallest map mesh around the hit. It is a
+  section of the F2 panel's main window, which opens when a node is picked.
+- The edit folder (`cInit::msEditDir`): `OPENHPL_EDIT_DIR`, else
+  `<personal>/addons/editor/`, made with an `addon.cfg` of priority 1000 in
+  developer mode and kept in an `OPENHPL_ADDONS` list.
+- `cRefView`: `RequestMap()` with a start position, `IsMapPending()`,
+  `GetMaps()`, `GetViews()`, `HoldCamera()` / `ReleaseCamera()` (the Fly
+  mode, set every update; the player's hidden-in-the-dark state is reset
+  meanwhile so the held view does not adapt or narrow), `SetOption()`
+  (flashlight, flicker, hud, godmode, dof). The panel shows a held camera
+  with a button to let go.
+- `cMapHandler`: `GetLoadCount()`, `GetReloadFailCount()`,
+  `SetReloadSeed()`. A reload now pre-updates the map as on a first visit
+  (two seconds), not for the game time since its last load (up to three
+  seconds, different each time), and resets the wave gravity effect, which
+  the map's `OnStart()` sets up again; both made reloaded maps start
+  differently each time. `cAddonWatcher::Accept()`: files the game wrote
+  itself are not reported as a change (no second reload after a save).
+- `tools/levelview.py`: `start` (isolated profile and settings, Linux build,
+  gamescope `--headless`, or the Windows build from WSL; hidden window,
+  addons, edit folder), `stop` (waits for the process: it writes its
+  settings after it stops taking commands), the commands above, `shot` and
+  `shots` (every viewpoint after a reload, in one batch; the first set of a
+  session is taken twice), `batch`, `log`, and `compare --live` (tolerance
+  24). The reference image commands moved here from `tools/refshots.py`
+  unchanged; `refshots.py` runs them.
+- Validation (Windows build from WSL, hidden; Overture): every command,
+  error exits, map switching and the boat cabin edit loop (moved table seen
+  after the reload, the flashlight on it falls, revert restores it); the
+  saved map differs from its source only in the three edited nodes
+  (`openhpl1-model compare`); Blender 5.1.2 applying `edits.txt` reproduces
+  the world transforms to 0.00004. Unchanged `shots` sets differ by at most
+  16 per channel, a moved table by up to 240. Two `capture` runs of the
+  cabin are identical (22 frames). Linux and ASan/UBSan CTest pass
+  (`detect_leaks=0`); Linux, ASan and MSVC builds have no warnings in the
+  new files. Windows smoke test: 28 maps, each reloaded, 0 failures. The
+  panel's Level editor section checked in a 1920x1080 frame (`shot
+  --panel`). Not run: a Linux live session (no gamescope here), the game
+  under ASan, Black Plague and Requiem, editing by hand with mouse and
+  keyboard.
+
+## Map reload for editing (2026-10-24)
+
+- `cMapHandler::RequestReload()`: at the next update the current map is
+  loaded again as on a first visit. Its saved state is not used and not
+  saved, and its script's `OnStart()` runs again. Unlike a map change, the
+  old world is destroyed and the world cache released before loading, so
+  meshes, materials and textures that only the map used are read again from
+  their files. The player is put back at the same feet position, body yaw
+  and camera direction.
+- Before anything is destroyed, the map's file is read with
+  `cMeshLoaderCollada::LoadData()`; if that fails the loaded map is kept and
+  an error is logged.
+- In developer mode, F6 (`ReloadMap`) requests it, and so does
+  `cAddonWatcher` (`game/core/AddonWatcher.cpp`): a thread that, while
+  developer mode is on, hashes the path, size and time of every file in the
+  addon folders (not `.zip` addons) twice a second and reports a change once
+  the files have stayed the same for one more look.
+- `cFileSearcher::AddDirectoryTree()` adds a folder with its subfolders
+  (addons use it) and `Rescan()` finds the files again in the same order,
+  with new subfolders, so a file exported into a new addon folder is found
+  ahead of the game's. The reload rescans.
+- The smoke test reloads each map once after loading its save
+  (`eStep_RunReloaded`), and fails if another map is current afterwards.
+- `cPlayer::SetStartPos("")` no longer warns about a missing start position
+  called "".
+- Validation:
+  - Linux CTest and ASan/UBSan CTest pass (leak detection off), with a
+    regression test for trees, hidden folders and rescans.
+  - Windows, the boat cabin with an addon folder holding only `addon.cfg`:
+    copying a Blender-edited map into a new `maps/` folder in it while the
+    game ran reloaded the map (319 ms) from the `.glb`; touching the file
+    reloaded it again; frames after the reload show the edit. Copying a
+    model into it reloaded the map and the whiskey bottle entity's mesh was
+    read from the new `.glb`.
+  - A map file overwritten with random bytes while the game ran: the error
+    was logged, the game kept running in the loaded map, and copying the
+    good file back reloaded it. (Before this check the game exited.)
+  - Windows smoke tests with the reload step: Overture 28 maps, Black Plague
+    29, Requiem 15, each reloaded once, 0 failures; with the final build
+    (the file check added) the boat cabin and office again.
+  - Not run: the ASan game smoke on Linux (no gamescope in this WSL setup),
+    and F6 pressed by hand (the reloads above came from file changes and the
+    smoke test).
+
+
+- Addons (`cAddons`, `engine/sources/resources/Addons.cpp`): every folder and
+  `.zip` file in `<personal folder>/addons/`, `<executable folder>/addons/`
+  and `OPENHPL_ADDON_DIRS` is an addon. An optional `addon.cfg` sets its name,
+  games, priority and whether it is enabled. Its folders, with all
+  subfolders, are added before the game's `resources.cfg` folders, so its
+  files replace the game's files of the same names. `.zip` files are unpacked
+  once (again when they change) into `<personal folder>/cache/addons/`, and
+  entries that would leave that folder are skipped. `OPENHPL_ADDONS=0` turns
+  addons off, and `OPENHPL_ADDONS=a,b` limits them. `hpl.log` lists the
+  addons and every game file they replace.
+- `cFileSearcher`: the earlier directory wins explicitly (it was the first
+  element of a multimap). Alternative extensions: a request for `x.dae` is
+  answered by `x.glb`/`x.gltf` in an earlier or the same directory.
+  `GetExactFilePath` and `GetHiddenFilePath` serve the addon log.
+- glTF 2.0 (`.glb`, `.gltf`) through cgltf 1.14 (`vendor/cgltf`), read into
+  the Collada loader's intermediate data (`MeshLoaderGltf.cpp`), so meshes,
+  maps, skins, lights, animations and the naming conventions use the same
+  code. The mapping and the `hpl_*` extras are in
+  [docs/modding.md](docs/modding.md). Blender's layout is handled: the
+  armature node is left out, a second material becomes a sibling node, empty
+  special nodes get their empty geometry, and missing normals are made. A
+  light intensity above 100 is taken to be in physical units.
+- `openhpl1-model` (`tools/model_tool.cpp`, built with the game, also with
+  MSVC): `convert`, `verify`, `compare`, `convert-dir [--verify] [--textures]`
+  and `info`. The writer (`MeshLoaderGltfWriter.cpp`) writes what the engine
+  uses: split vertices, the engine's tangents, skin bind shapes applied, and
+  animation as the engine's keys as local transforms. Where glTF's values
+  would round the Collada data, it adds the exact matrices, light values and
+  engine keys as extras (with a hash for keys). The reader uses them only
+  while the glTF values agree, so edits still take effect.
+- Meshes, animations and maps loaded from a `.glb` that stands in for a
+  `.dae` keep the `.dae` name (`iResourceManager::LoadedFileName`). They are
+  found again instead of being reloaded, and saves name the same files. The
+  Collada mesh caches of files outside the game's folder go to
+  `<cache>/external/<folder hash>/`.
+- Refactors without behaviour change: `cMeshLoaderCollada::CreateSkeleton`,
+  `AddRestPoseTracks`, `CreateTangents` and `ScaleIsSeparate` are shared by
+  the Collada and glTF paths. `cResources` initialises its managers to null,
+  so it can be destroyed without `Init`. `GetCommandLineArguments` gives
+  tools their arguments unjoined.
+- Release packages (`package.cmd`, `package.sh`) also hold `openhpl1-model`,
+  an empty `addons/` folder, `docs/modding.md` and the cgltf and miniz
+  licences. `package.cmd` was run on the current Windows build; `package.sh`
+  was only syntax-checked.
+- Tests (`tests/model_regressions.cpp`, run by `engine_regressions`): lookup
+  priorities and alternatives, addon discovery, ordering, filters, zips, a
+  zip path that would escape, cache isolation, resource naming, a Collada
+  fixture round trip through `.glb` and `.gltf` (collider, lights,
+  reference, skin with bind shape, animation, small rotations), and a
+  Blender-style glTF.
+- Validation:
+  - Linux: CTest and ASan/UBSan CTest pass (leak detection off).
+  - All 1,084 Collada files of Overture and Black Plague/Requiem convert, and
+    `convert-dir --verify --exact` reads them back bit for bit with the GCC,
+    ASan/UBSan and MSVC builds.
+  - Windows Overture reference captures, 101 frames: without addons this build
+    matches `c2ca6d2`, apart from `level01_15_icecave` view01/view04. Those
+    two frames also differ between two runs of `c2ca6d2` (837 and ~100
+    pixels), so they flip between two states from run to run.
+  - With every Overture model and map replaced through an addon by its `.glb`
+    conversion, 91 of 101 frames match. Two are the ice-cave frames. The other
+    seven (the six 2D screens over the reloaded boat cabin, up to 88 pixels;
+    the destroyed shaft's first view, 474 pixels around a chair) show models
+    that the Collada build had loaded earlier in the run and read back from
+    its own cache, which stores values to six significant digits. A capture
+    that loads each model once (boat cabin and destroyed shaft) matches in
+    every map view.
+  - Black Plague captures of six maps (182 frames): two runs without addons
+    differ in six frames; with the addon, three more level 15 frames differ
+    (a loose plank, a fire light). Level 15 captured alone matches in all 50
+    frames.
+  - Windows smoke tests pass with the glTF addons (Overture 28 maps, Black
+    Plague, Requiem; 0 failures), with the same `hpl.log` error lines as
+    without them.
+  - Blender 5.1.2 import and export of a prop, the dog, a dog animation and a
+    map with the settings in the guide: the engine reads the same except for
+    recomputed normals, renamed duplicates and vertex order. With sampling
+    off, the animation keys are kept.
+
 ## Release packages (2026-10-19)
 
 - `platform/windows/package.cmd <version>` zips an existing Windows build

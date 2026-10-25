@@ -4,7 +4,9 @@
  */
 #include "core/StdAfx.h"
 #include "core/RefView.h"
+#include "core/Editor.h"
 #include "core/DogTestMap.h"
+#include "core/LevelEditor.h"
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
@@ -111,15 +113,18 @@ void cRefView::SetOpen(bool abOpen)
 	if(mbOpen == abOpen) return;
 	mbOpen = abOpen;
 
+	// The editor draws the windows, and keeps the input
+	if(mpInit->mpEditor)
+	{
+		if(mbOpen) GetMaps();
+		else mbHoldDirection = false;
+		return;
+	}
+
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 	if(mbOpen)
 	{
-		if(mvMaps.empty())
-		{
-			cRefShots::FindMaps(mpInit, mvMaps);
-			if(mpInit->mpGame->GetResources()->GetFileSearcher()->GetFilePath("dogtest.dae") != "")
-				mvMaps.push_back("dogtest.dae");
-		}
+		GetMaps();
 		pLowLevel->SetDebugPanel([this](){ Draw(); });
 	}
 	else
@@ -129,6 +134,62 @@ void cRefView::SetOpen(bool abOpen)
 		mbHoldDirection = false;
 	}
 	pLowLevel->SetDebugPanelInput(mbOpen);
+}
+
+//-----------------------------------------------------------------------
+
+bool cRefView::IsMapPending()
+{
+	return msLoadMap != "" || msWaitMap != "" || mpInit->mpMapHandler->IsChangingMap();
+}
+
+const tStringVec& cRefView::GetMaps()
+{
+	if(mvMaps.empty())
+	{
+		cRefShots::FindMaps(mpInit, mvMaps);
+		if(mpInit->mpGame->GetResources()->GetFileSearcher()->GetFilePath("dogtest.dae") != "")
+			mvMaps.push_back("dogtest.dae");
+	}
+	return mvMaps;
+}
+
+void cRefView::HoldCamera(const cVector3f &avPos, float afYaw, float afPitch)
+{
+	mbUsed = true;
+	mbHoldCamera = true;
+	mbFly = true;
+	mvHoldPos = avPos;
+	mfHoldYaw = afYaw;
+	mfHoldPitch = afPitch;
+	// Set at once too, for what is asked next in the same step
+	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+	pCamera->SetPosition(avPos);
+	pCamera->SetYaw(afYaw);
+	pCamera->SetPitch(afPitch);
+}
+
+void cRefView::ReleaseCamera()
+{
+	mbHoldCamera = false;
+	mbFly = false;
+}
+
+bool cRefView::SetOption(const tString &asName, bool abValue)
+{
+	mbUsed = true;
+	if(asName == "flashlight")
+	{
+		mbFlashLight = abValue;
+		mbSetFlashLight = true;
+	}
+	else if(asName == "flicker") mbNoFlicker = !abValue;
+	else if(asName == "hud") mbHide2D = !abValue;
+	else if(asName == "godmode") mbGodMode = abValue;
+	// As the setting: off, the scripts can't blur the view
+	else if(asName == "dof") mpInit->mpEffectHandler->GetDepthOfField()->SetDisabled(!abValue);
+	else return false;
+	return true;
 }
 
 //-----------------------------------------------------------------------
@@ -195,6 +256,20 @@ void cRefView::Update(float afTimeStep)
 	if(bDefault && mbAtView && pWorld && mbOpen==false) Release();
 
 	if(bDefault && pWorld) UpdateFly(afTimeStep);
+	if(bDefault && pWorld && mbHoldCamera)
+	{
+		cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
+		mbAtView = false;
+		mvFlyPos = mvHoldPos;
+		mlFlySeed = 0;
+		pCamera->SetPosition(mvHoldPos);
+		pCamera->SetYaw(mfHoldYaw);
+		pCamera->SetPitch(mfHoldPitch);
+		// The player is not there: the eyes do not adapt to the dark where
+		// the body was left, nor narrow the view
+		mpInit->mpPlayer->GetHidden()->Reset();
+	}
+	mpInit->mpLevelEditor->Update();
 
 	if(bDefault && pWorld) UpdateTestLight();
 	mbPlaceTestLight = mbRemoveTestLight = false;
@@ -452,7 +527,9 @@ bool cRefView::CanLoadMap()
 
 void cRefView::LoadMap(const tString &asMap)
 {
-	const tString sStart = cString::SetFileExt(asMap, "") == "effectslab" ? "link01" : "";
+	tString sStart = cString::SetFileExt(asMap, "") == "effectslab" ? "link01" : "";
+	if(msLoadStart != "") sStart = msLoadStart;
+	msLoadStart = "";
 	mbUsed = true;
 	mbAtView = false;
 	mlGoToView = -1;
@@ -653,6 +730,12 @@ void cRefView::Draw()
 			ImGui::Text("%s: not at a place", msViewsMap.c_str());
 		else
 			ImGui::TextUnformatted("No map loaded");
+		if(mbHoldCamera)
+		{
+			ImGui::TextDisabled("The camera is held by the live control");
+			ImGui::SameLine();
+			if(ImGui::SmallButton("Let go")) ReleaseCamera();
+		}
 		ImGui::Separator();
 
 		// The sections fold, to leave room for the one in use
@@ -660,6 +743,8 @@ void cRefView::Draw()
 		if(ImGui::CollapsingHeader("Place", ImGuiTreeNodeFlags_DefaultOpen)) DrawViews();
 		if(ImGui::CollapsingHeader("Viewpoints")) DrawViewpoints();
 		if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen)) DrawRenderer();
+		if(mpInit->mpLevelEditor->TakeShowRequest()) ImGui::SetNextItemOpen(true);
+		if(ImGui::CollapsingHeader("Level editor")) mpInit->mpLevelEditor->Draw();
 
 		ImGui::Separator();
 		ImGui::TextWrapped("F2 closes the panel and gives the mouse back: the player stands at "

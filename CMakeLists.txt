@@ -147,6 +147,16 @@ add_library(tinyxml STATIC ${tinyxml_sources})
 target_include_directories(tinyxml SYSTEM PUBLIC vendor/tinyxml)
 target_compile_options(tinyxml PRIVATE ${OPENHPL_NO_WARNINGS})
 
+# cgltf 1.14 (MIT), the glTF 2.0 reader of the model loader
+add_library(cgltf STATIC vendor/cgltf/cgltf.c)
+target_include_directories(cgltf SYSTEM PUBLIC vendor/cgltf)
+target_compile_options(cgltf PRIVATE ${OPENHPL_NO_WARNINGS})
+
+# miniz 3.0.2 (MIT), reads addons packed as .zip files
+add_library(miniz STATIC vendor/miniz/miniz.c)
+target_include_directories(miniz SYSTEM PUBLIC vendor/miniz)
+target_compile_options(miniz PRIVATE ${OPENHPL_NO_WARNINGS})
+
 # Dear ImGui 1.92.9b (MIT), the debug overlay and the game chooser; SDL3
 # platform backend, the OpenGL 3 backend on glad (vendor/imgui_glad) and the
 # SDL_Renderer backend (the chooser runs before the game's GL context)
@@ -180,7 +190,7 @@ target_include_directories(hpl PUBLIC engine/include)
 # The area and search textures of the SMAA reference implementation
 target_include_directories(hpl SYSTEM PRIVATE vendor/smaa)
 target_link_libraries(hpl PUBLIC
-	newton angelscript oalwrapper tinyxml glad imgui
+	newton angelscript oalwrapper tinyxml glad imgui cgltf miniz
 	SDL3::SDL3 SDL3_image::SDL3_image
 	Freetype::Freetype
 	OpenGL::GL
@@ -209,6 +219,17 @@ target_precompile_headers(openhpl1 PRIVATE game/core/StdAfx.h)
 target_link_libraries(openhpl1 PRIVATE hpl)
 overture_warnings(openhpl1)
 
+# openhpl1-model: converts Collada models and maps to glTF and checks that
+# the engine reads the same from both (docs/modding.md)
+add_executable(model_tool tools/model_tool.cpp tools/model_compare.cpp)
+set_target_properties(model_tool PROPERTIES OUTPUT_NAME openhpl1-model)
+if(WIN32)
+	# The manifest makes UTF-8 the code page of the arguments and file names
+	target_sources(model_tool PRIVATE platform/windows/openhpl1.manifest)
+endif()
+target_link_libraries(model_tool PRIVATE hpl)
+overture_warnings(model_tool)
+
 include(CTest)
 # The tests reach private members with "#define private public", which MSVC
 # cannot link (access is part of its symbol names), and their harness
@@ -221,8 +242,10 @@ if(BUILD_TESTING)
 	# Opt-in in-game checks use the original dog mesh, clips and physics.
 	target_sources(openhpl1 PRIVATE tests/dog_regressions.cpp)
 	target_compile_definitions(openhpl1 PRIVATE OPENHPL_DOG_REGRESSIONS)
-	add_executable(engine_regressions tests/engine_regressions.cpp)
-	target_link_libraries(engine_regressions PRIVATE hpl)
+	add_executable(engine_regressions tests/engine_regressions.cpp tests/model_regressions.cpp
+		tools/model_compare.cpp)
+	target_include_directories(engine_regressions PRIVATE tools)
+	target_link_libraries(engine_regressions PRIVATE hpl miniz)
 	overture_warnings(engine_regressions)
 	add_test(NAME engine_regressions COMMAND engine_regressions)
 	set_tests_properties(engine_regressions PROPERTIES

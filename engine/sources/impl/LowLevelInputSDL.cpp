@@ -121,7 +121,7 @@ namespace hpl {
 		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
 		if(pWindow==nullptr) return;
 
-		bool bLock = mbLockInput && cDebugOverlay::HasInput()==false;
+		bool bLock = (mbLockInput && cDebugOverlay::HasInput()==false) || cDebugOverlay::IsMouseCaptured();
 		if(SDL_GetWindowRelativeMouseMode(pWindow) != bLock)
 			SDL_SetWindowRelativeMouseMode(pWindow, bLock);
 	}

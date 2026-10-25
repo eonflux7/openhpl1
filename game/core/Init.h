@@ -24,6 +24,10 @@
 using namespace hpl;
 
 class cMapHandler;
+class cAddonWatcher;
+class cLevelEditor;
+class cLiveControl;
+class cEditor;
 class cButtonHandler;
 class cPlayer;
 class cGameScripts;
@@ -275,6 +279,14 @@ public:
 	cSmokeTest *mpSmokeTest; // NULL unless OPENHPL_SMOKE is set
 	cRefShots *mpRefShots; // NULL unless OPENHPL_REFSHOTS is set
 	cRefView *mpRefView; // NULL during the smoke test and the reference images
+	cAddonWatcher *mpAddonWatcher; // NULL without addon folders
+	cLevelEditor *mpLevelEditor; // with cRefView
+	cLiveControl *mpLiveControl; // NULL unless OPENHPL_CONTROL is set
+	cEditor *mpEditor; // NULL unless started with --editor (or OPENHPL_EDITOR)
+	tString msLogFile; // hpl.log
+	// The level editor's addon folder (cLevelEditor); "" when addons are off
+	// or not in developer mode
+	tString msEditDir;
 	cDogTestMap *mpDogTestMap;
 	bool mbImprovedDogAI = true;
 	cLampAppearanceController *mpLampAppearanceController;

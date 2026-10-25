@@ -115,6 +115,7 @@ namespace hpl {
 
 			pAnimation = pTempMesh->GetAnimation(0);
 			pTempMesh->ClearAnimations(false);
+			if(pAnimation->GetName() == pTempMesh->GetName()) pAnimation->SetName(LoadedFileName(asNewName, sPath));
 
 			hplDelete(pTempMesh);
 

@@ -377,7 +377,7 @@ void cPlayer::SetStartPos(const tString& asName)
 		cStartPosEntity *pStart = pWorld->GetStartPosEntity(asName);
 		if(pStart==nullptr)
 		{
-			Warning("Couldn't find start position '%s'\n",asName.c_str());
+			if(asName != "") Warning("Couldn't find start position '%s'\n", asName.c_str());
 
 			pStart = pWorld->GetFirstStartPosEntity();
 		}

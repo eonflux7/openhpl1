@@ -44,6 +44,11 @@ namespace hpl {
 		/// Every SDL event, while HasInput().
 		static void ProcessEvent(const SDL_Event *apEvent);
 
+		/// The pointer is held and hidden, its motion gathered (with HasInput()).
+		static void SetMouseCapture(bool abX){ mbMouseCapture = abX; mvMouseMotion = cVector2f(0,0); }
+		static bool IsMouseCaptured(){ return mbMouseCapture && HasInput(); }
+		static cVector2f TakeMouseMotion(){ cVector2f vMotion = mvMouseMotion; mvMouseMotion = cVector2f(0,0); return vMotion; }
+
 		/// Once per frame, before the swap: draws into the bound framebuffer if active.
 		void Draw(SDL_Window *apWindow, cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
 				float afRenderScale);
@@ -62,6 +67,8 @@ namespace hpl {
 		// There is one ImGui context, and the input code has no overlay object.
 		static bool mbInitialized;
 		static bool mbInput;
+		static bool mbMouseCapture;
+		static cVector2f mvMouseMotion;
 
 		std::chrono::steady_clock::time_point mLastFrame;
 		float mfFrameMs;

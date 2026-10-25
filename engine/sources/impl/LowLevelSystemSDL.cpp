@@ -53,6 +53,13 @@
 
 extern int hplMain(const hpl::tString &asCommandLine);
 
+static hpl::tStringVec gvCommandLineArguments;
+
+const hpl::tStringVec &hpl::GetCommandLineArguments()
+{
+	return gvCommandLineArguments;
+}
+
 // Windows: a GUI program linked with /ENTRY:mainCRTStartup, so it starts
 // here too. Its manifest makes UTF-8 the process code page.
 int main(int argc, char *argv[])
@@ -69,6 +76,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+
+	for(int i = 1; i < argc; i++) gvCommandLineArguments.push_back(argv[i]);
 
 	hpl::tString cmdline = "";
 	for (int i=1; i < argc; i++) {

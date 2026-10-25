@@ -238,6 +238,12 @@ namespace hpl {
 
 		bool Add(iRenderable *apRenderable, bool abStatic) override;
 		bool Remove(iRenderable *apRenderable) override;
+		/**
+		* A static object becomes dynamic, so that it can be moved (the level
+		* editor moves the map's own meshes and lights). Static lights that
+		* have gathered their shadow casters have to gather them again.
+		*/
+		void MakeDynamic(iRenderable *apRenderable);
 
 		void AddLightShadowCasters(iLight3D* apLight,cFrustum* apFrustum,cRenderList *apRenderList);
 

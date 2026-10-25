@@ -850,6 +850,20 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cPortalContainer::MakeDynamic(iRenderable *apRenderable)
+	{
+		if(apRenderable->IsStatic()==false) return;
+
+		mlstGlobalStaticObjects.remove(apRenderable);
+		for(auto &sector : m_mapSectors) sector.second->m_setStaticObjects.erase(apRenderable);
+		apRenderable->GetRenderContainerDataList()->clear();
+
+		apRenderable->SetStatic(false);
+		Add(apRenderable, false);
+	}
+
+	//-----------------------------------------------------------------------
+
 	bool cPortalContainer::AddEntity(iEntity3D *apEntity)
 	{
 		if(apEntity==nullptr)

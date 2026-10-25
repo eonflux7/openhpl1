@@ -19,6 +19,8 @@ namespace hpl {
 
 	bool cDebugOverlay::mbInitialized = false;
 	bool cDebugOverlay::mbInput = false;
+	bool cDebugOverlay::mbMouseCapture = false;
+	cVector2f cDebugOverlay::mvMouseMotion = cVector2f(0,0);
 
 	//-----------------------------------------------------------------------
 
@@ -93,7 +95,14 @@ namespace hpl {
 
 	void cDebugOverlay::ProcessEvent(const SDL_Event *apEvent)
 	{
-		if(HasInput()) ImGui_ImplSDL3_ProcessEvent(apEvent);
+		if(HasInput()==false) return;
+		// A held pointer turns a camera; ImGui keeps the place it was at
+		if(IsMouseCaptured() && apEvent->type == SDL_EVENT_MOUSE_MOTION)
+		{
+			mvMouseMotion += cVector2f(apEvent->motion.xrel, apEvent->motion.yrel);
+			return;
+		}
+		ImGui_ImplSDL3_ProcessEvent(apEvent);
 	}
 
 	//-----------------------------------------------------------------------
@@ -117,7 +126,7 @@ namespace hpl {
 		ImGuiIO& io = ImGui::GetIO();
 		const ImGuiConfigFlags lNoInput = ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
 		io.ConfigFlags = mbInput ? (io.ConfigFlags & ~lNoInput) : (io.ConfigFlags | lNoInput);
-		io.MouseDrawCursor = mbInput;
+		io.MouseDrawCursor = mbInput && mbMouseCapture==false;
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();

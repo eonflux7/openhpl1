@@ -22,9 +22,10 @@
 #include "system/SystemTypes.h"
 
 class TiXmlDocument;
-class cFileSearcher;
 
 namespace hpl {
+
+	class cFileSearcher;
 
 	class cConfigFile
 	{

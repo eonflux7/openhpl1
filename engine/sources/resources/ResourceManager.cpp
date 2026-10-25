@@ -215,6 +215,17 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	tString iResourceManager::LoadedFileName(const tString &asRequested, const tString &asPath)
+	{
+		tString sFile = cString::GetFileName(asPath);
+		tString sExt = cString::GetFileExt(asRequested);
+		if(sExt != "" && cString::ToLowerCase(sExt) != cString::ToLowerCase(cString::GetFileExt(sFile)))
+			sFile = cString::SetFileExt(sFile, sExt);
+		return sFile;
+	}
+
+	//-----------------------------------------------------------------------
+
 	tString iResourceManager::GetTabs()
 	{
 		tString sTabs ="";

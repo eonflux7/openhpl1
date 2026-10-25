@@ -65,6 +65,8 @@ namespace hpl {
 		 */
 		void SetRenderScale(float afScale);
 		float GetRenderScale();
+		// Follows a window resized by hand (between frames); true if it was
+		bool ApplyWindowSize();
 
 	private:
 		iLowLevelGraphics *mpLowLevelGraphics;

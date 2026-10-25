@@ -78,6 +78,10 @@
 #include "core/SmokeTest.h"
 #include "core/RefShots.h"
 #include "core/RefView.h"
+#include "core/AddonWatcher.h"
+#include "core/LevelEditor.h"
+#include "core/LiveControl.h"
+#include "core/Editor.h"
 #include "core/LampAppearanceController.h"
 #include "systems/PhysicsLog.h"
 
@@ -292,6 +296,10 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mpSmokeTest = nullptr;
 	mpRefShots = nullptr;
 	mpRefView = nullptr;
+	mpAddonWatcher = nullptr;
+	mpLevelEditor = nullptr;
+	mpLiveControl = nullptr;
+	mpEditor = nullptr;
 	mpDogTestMap = nullptr;
 	mpLampAppearanceController = nullptr;
 	mpPhysicsLog = nullptr;
@@ -431,6 +439,7 @@ bool cInit::Init(tString asCommandLine)
 
 	// LOG FILE SETUP /////////////////////
 	SetLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl.log"));
+	msLogFile = cString::To8Char(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl.log"));
 	SetUpdateLogFile(sPersonalDir+PERSONAL_RELATIVEGAME+_W("hpl_update.log"));
 
 	
@@ -487,11 +496,14 @@ bool cInit::Init(tString asCommandLine)
 	mbLogResources = mpConfig->GetBool("Debug", "LogResources", false);
 	mbDeveloperMode = mpConfig->GetBool("Debug", "DeveloperMode", false);
 	// Debugging, or a test map that is driven with F2
-	for(const char *pVar : {"OPENHPL_DEBUG", "OPENHPL_DEBUG_OVERLAY", "OPENHPL_REFVIEW", "OPENHPL_MAP"})
+	for(const char *pVar : {"OPENHPL_DEBUG", "OPENHPL_DEBUG_OVERLAY", "OPENHPL_REFVIEW", "OPENHPL_MAP",
+							"OPENHPL_CONTROL"})
 	{
 		const char *pValue = SDL_getenv(pVar);
 		if(pValue && pValue[0] && pValue[0] != '0') mbDeveloperModeForced = true;
 	}
+	const bool bEditor = cEditor::IsRequested(asCommandLine);
+	if(bEditor) mbDeveloperModeForced = true;
 	mbDebugInteraction = mpConfig->GetBool("Debug", "DebugInteraction", false);
 
 	msWebPageOnExit = mpConfig->GetString("Demo","WebPageOnExit","http://www.Penumbra-Overture.com");
@@ -541,6 +553,12 @@ bool cInit::Init(tString asCommandLine)
 		size_t lColon = sDirectMap.find(':');
 		msDirectMap = cString::SetFileExt(sDirectMap.substr(0, lColon), "dae");
 		msDirectLink = lColon == tString::npos ? "" : sDirectMap.substr(lColon + 1);
+	}
+	// The editor opens a map, the first one if none is asked for
+	if(bEditor && msDirectMap == "")
+	{
+		msDirectMap = msStartMap;
+		msDirectLink = msStartLink;
 	}
 
 	mlFSAA = mpConfig->GetInt("Graphics","FSAA",0);
@@ -630,6 +648,59 @@ bool cInit::Init(tString asCommandLine)
 	
 	cMath::Randomize();
 
+	// ADDONS /////////////////////
+	// Folders and .zip files in the addons folders replace the game's files
+	// of the same names and add new ones (docs/modding.md). Their folders are
+	// added before the game's, so their files are found first.
+	tAddonVec vAddons;
+	{
+		tString sGameDir = cString::To8Char(sPersonalDir + PERSONAL_RELATIVEGAME);
+		CreateFolder(cString::To16Char(sGameDir + "addons"));
+
+		const char *pAddons = SDL_getenv("OPENHPL_ADDONS");
+		tString sAddons = pAddons ? pAddons : "";
+		if(sAddons != "0")
+		{
+			tStringVec vRoots;
+			if(const char *pDirs = SDL_getenv("OPENHPL_ADDON_DIRS"))
+			{
+#ifdef WIN32
+				tString sSeparator = ";";
+#else
+				tString sSeparator = ":";
+#endif
+				cString::GetStringVec(pDirs, vRoots, &sSeparator);
+			}
+			// The level editor's saved maps: an addon above all others
+			// (cLevelEditor), made when it is missing
+			if(IsDeveloperMode())
+			{
+				const char *pEditDir = SDL_getenv("OPENHPL_EDIT_DIR");
+				msEditDir = pEditDir && pEditDir[0] ? tString(pEditDir) : sGameDir + "addons/editor";
+				cLevelEditor::PrepareEditDir(msEditDir);
+				if(pEditDir && pEditDir[0]) vRoots.push_back(msEditDir);
+				// Kept when only some addons are used
+				if(sAddons != "" && sAddons != "1")
+					sAddons += "," + cString::GetFileName(cString::ReplaceCharTo(msEditDir, "\\", "/"));
+			}
+			vRoots.push_back(sGameDir + "addons");
+			vRoots.push_back(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "addons");
+
+			vAddons = cAddons::Find(vRoots, cGameLauncher::GetGameKey(mGameId), sGameDir + "cache/addons",
+				sAddons == "1" ? "" : sAddons);
+			cAddons::AddToResources(mpGame->GetResources(), vAddons);
+
+			// In developer mode, the map is reloaded when files in addon
+			// folders change
+			tStringVec vFolders;
+			for(const cAddon &addon : vAddons)
+			{
+				if(addon.msPath == addon.msSource) vFolders.push_back(addon.msPath);
+			}
+			if(vFolders.empty() == false) mpAddonWatcher = hplNew(cAddonWatcher, (vFolders));
+		}
+	}
+
 	// RESOURCE INIT /////////////////////
 	mpGame->GetResources()->LoadResourceDirsFile(gameFiles.msResources);
 
@@ -657,6 +728,8 @@ bool cInit::Init(tString asCommandLine)
 
 	// The debug test map (testmap/ in the source tree) is built next to the executable.
 	mpGame->GetResources()->AddResourceDir(tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap");
+
+	cAddons::LogReplacedFiles(mpGame->GetResources(), vAddons);
 
 	// LANGUAGE ////////////////////////////////
 	mpGame->GetResources()->SetLanguageFile(msLanguageFile);
@@ -963,7 +1036,13 @@ bool cInit::Init(tString asCommandLine)
 	if(mpSmokeTest==nullptr && cRefShots::IsRequested())
 		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
 	if(mpSmokeTest==nullptr && mpRefShots==nullptr)
+	{
 		mpRefView = hplNew( cRefView,(this) );
+		mpLevelEditor = hplNew( cLevelEditor,(this) );
+		if(cLiveControl::IsRequested())
+			mpLiveControl = hplNew( cLiveControl,(this, cLiveControl::GetDir()) );
+		if(bEditor) mpEditor = hplNew( cEditor,(this) );
+	}
 	mpDogTestMap = hplNew( cDogTestMap,(this) );
 
 	// UPDATE STATES INIT /////////////////////
@@ -1030,7 +1109,13 @@ bool cInit::Init(tString asCommandLine)
 		const char *vContainers[] = {"Default","Intro","MainMenu","MapLoadText",
 									"PreMenu","Credits","DemoEndText","Ending"};
 		for(const char *sContainer : vContainers)
+		{
 			mpGame->GetUpdater()->AddUpdate(sContainer, pAutoRun);
+			// After the panel: it holds the panel's camera
+			if(mpEditor) mpGame->GetUpdater()->AddUpdate(sContainer, mpEditor);
+			// After the panel: it can drive the panel's camera
+			if(mpLiveControl) mpGame->GetUpdater()->AddUpdate(sContainer, mpLiveControl);
+		}
 	}
 	if(mpPhysicsLog)
 		mpGame->GetUpdater()->AddUpdate("Default", mpPhysicsLog);
@@ -1257,7 +1342,12 @@ void cInit::Exit()
 	if(mpSmokeTest) hplDelete( mpSmokeTest );
 	if(mpRefShots) hplDelete( mpRefShots );
 	if(mpDogTestMap) hplDelete( mpDogTestMap );
+	if(mpLiveControl) hplDelete( mpLiveControl );
+	if(mpEditor) hplDelete( mpEditor );
+	mpEditor = nullptr;
+	if(mpLevelEditor) hplDelete( mpLevelEditor );
 	if(mpRefView) hplDelete( mpRefView );
+	if(mpAddonWatcher) hplDelete(mpAddonWatcher);
 	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
 	Log(" Exit Player hands\n");
 	hplDelete( mpPlayerHands );

@@ -120,6 +120,7 @@ static cButtonHandlerAction gvDefaultActions[] = {
 {"Screenshot","Keyboard",eKey_F12,false},
 {"DebugOverlay","Keyboard",eKey_F3,false},
 {"RefView","Keyboard",eKey_F2,false},
+{"ReloadMap","Keyboard",eKey_F6,false},
 
 //{"Hit","Keyboard",eKey_h,false},
 //{"Log","Keyboard",eKey_l,false},
@@ -362,6 +363,10 @@ void cButtonHandler::Update(float afTimeStep)
 	if(mpInput->BecameTriggered("RefView") && mpInit->mpRefView && mpInit->IsDeveloperMode())
 	{
 		mpInit->mpRefView->SetOpen(!mpInit->mpRefView->IsOpen());
+	}
+	if(mpInput->BecameTriggered("ReloadMap") && mpInit->IsDeveloperMode())
+	{
+		mpInit->mpMapHandler->RequestReload();
 	}
 	if(mpInput->BecameTriggered("Screenshot"))
 	{

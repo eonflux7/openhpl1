@@ -24,6 +24,9 @@ namespace hpl
 		SDL_Window *GetWindow() const { return mpWindow; }
 		const cVector2l &GetSize() const { return mvScreenSize; }
 		void SwapBuffers() { SDL_GL_SwapWindow(mpWindow); }
+		/// Takes the window's size in pixels; true if it changed (a window
+		/// resized by hand).
+		bool UpdateSize();
 		int GetDisplayNum();
 		tString GetDisplayName(int alDisplay);
 		cVector2l GetDisplaySize(int alDisplay);

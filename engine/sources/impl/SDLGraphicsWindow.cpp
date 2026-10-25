@@ -99,8 +99,10 @@ namespace hpl
 		const bool bHidden = pHidden && pHidden[0] && pHidden[0] != '0';
 		if(bHidden) abFullscreen = false;
 
+		// A window can be resized: the frame follows it (UpdateSize)
 		SDL_WindowFlags lFlags = SDL_WINDOW_OPENGL;
 		if(abFullscreen) lFlags |= SDL_WINDOW_FULLSCREEN;
+		else lFlags |= SDL_WINDOW_RESIZABLE;
 		if(bHidden) lFlags |= SDL_WINDOW_HIDDEN;
 
 		Log(" Setting video mode: %d x %d - %d bpp\n", alWidth, alHeight, alBpp);
@@ -193,6 +195,18 @@ namespace hpl
 			Log("  OpenGL debug output enabled\n");
 		}
 
+		return true;
+	}
+
+	bool cSDLGraphicsWindow::UpdateSize()
+	{
+		int lPixelW = 0, lPixelH = 0;
+		if(mpWindow == nullptr || SDL_GetWindowSizeInPixels(mpWindow, &lPixelW, &lPixelH) == false) return false;
+		// Minimized: kept as it was
+		if(lPixelW <= 0 || lPixelH <= 0) return false;
+		if(lPixelW == mvScreenSize.x && lPixelH == mvScreenSize.y) return false;
+		mvScreenSize = cVector2l(lPixelW, lPixelH);
+		Log(" Window size: %d x %d\n", mvScreenSize.x, mvScreenSize.y);
 		return true;
 	}
 

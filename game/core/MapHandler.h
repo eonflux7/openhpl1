@@ -217,6 +217,28 @@ public:
 
 	bool IsChangingMap(){ return mMapChanger.mbActive;}
 
+	/**
+	 * Loads the current map again from its files at the next update, as on a
+	 * first visit (its saved state is not used), and puts the player back
+	 * where they are. Meshes, materials and textures only the map used are
+	 * read again, and files added to the resource folders since are found.
+	 * For editing (docs/modding.md).
+	 */
+	void RequestReload() { mbReloadRequested = true; }
+	bool IsReloadRequested() { return mbReloadRequested; }
+	// A random seed set before each reload (>= 0), so that a reloaded map
+	// starts the same each time (cLiveControl's fixed steps); -1 for none
+	void SetReloadSeed(int alSeed) { mlReloadSeed = alSeed; }
+	// Counts the maps loaded, reloads too: what was read from a map's file
+	// is out of date when this changes
+	int GetLoadCount() { return mlLoadCount; }
+	// Counts the reloads that kept the loaded map (its file can't be read)
+	int GetReloadFailCount() { return mlReloadFailCount; }
+	// The level editor holds the map still: no timers, no game entity
+	// updates (the world's update is cScene::SetUpdateMap)
+	void SetPaused(bool abX) { mbPaused = abX; }
+	bool IsPaused() { return mbPaused; }
+
 	/////////////////////////////////////////
 	//Saving
 	void SaveToGlobal(cMapHandler_GlobalSave *apSave);
@@ -230,6 +252,8 @@ private:
 	void PreUpdate(double afSecondsSinceVisit);
 
 	double AddLoadedMap(cWorld3D *apWorld);
+
+	void Reload();
 
 	void UpdateTimers(float afTimeStep);
 	void RemoveLocalTimers();
@@ -248,6 +272,12 @@ private:
 
 	cMapChanger mMapChanger;
 	cWorldCache *mpWorldCache;
+	bool mbReloadRequested;
+	bool mbPaused;
+	bool mbReloading;
+	int mlLoadCount;
+	int mlReloadFailCount;
+	int mlReloadSeed;
 
 	iGameEntity* mpLatestEntity;
 	tString msCurrentMap;

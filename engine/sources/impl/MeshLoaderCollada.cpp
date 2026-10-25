@@ -307,47 +307,7 @@ namespace hpl {
 		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
 		{
-			pSkeleton = hplNew( cSkeleton, () );
-
-			tColladaNodeListIt it = ColladaScene.mRoot.mlstChildren.begin();
-			for(; it != ColladaScene.mRoot.mlstChildren.end(); it++)
-			{
-				cColladaNode *pNode = *it;
-
-				CreateSkeletonBone(pNode, pSkeleton->GetRootBone());
-			}
-
-			////////////////////////////////////
-			//Set the bind position of the bones
-			//(This will set the local matrix as the global bind)
-			for(size_t i=0; i< vColladaControllers.size();i++)
-			{
-				cColladaController &Ctrl = vColladaControllers[i];
-
-				for(size_t j=0; j<Ctrl.mvJoints.size(); j++)
-				{
-					cBone *pBone = pSkeleton->GetBoneByName(Ctrl.mvJoints[j]);
-
-					if(pBone)
-					{
-						pBone->SetTransform(cMath::MatrixInverse(Ctrl.mvMatrices[j]));
-						pBone->SetValue(1);
-					}
-					else
-					{
-						Log("Bone '%s' does not exist\n",Ctrl.mvJoints[j].c_str());
-					}
-				}
-			}
-
-			////////////////////////////////////////////////
-			//Do another pass and calculate the local matrix
-			cBoneIterator BoneIt = pSkeleton->GetRootBone()->GetChildIterator();
-			while(BoneIt.HasNext())
-			{
-				cMatrixf mtxRoot = cMatrixf::Identity;
-				CalcLocalMatrixRec(BoneIt.Next(), mtxRoot,0);
-			}
+			pSkeleton = CreateSkeleton(vColladaControllers, ColladaScene);
 		}
 
 		////////////////////////////////////
@@ -1015,43 +975,7 @@ namespace hpl {
 			/////////////////////////////////////////////////////
 			// Go through all bones and check if they have an animation
 			// If not create single frame with the node pose.
-			if(pSkeleton)
-			{
-				for(int i=0; i< pSkeleton->GetBoneNum(); ++i)
-				{
-					cBone *pBone = pSkeleton->GetBoneByIndex(i);
-
-					if(pAnimation->GetTrackByName(pBone->GetName())==nullptr)
-					{
-						cColladaNode *pNode = ColladaScene.GetNode(pBone->GetName());
-						if(pNode)
-						{
-							cMatrixf mtxLocal = pNode->m_mtxTransform;
-							cMatrixf mtxInvBone = cMath::MatrixInverse(pBone->GetLocalTransform());
-
-							cMatrixf mtxChange = cMath::MatrixMul(mtxInvBone,mtxLocal);
-
-							//Log("Bone %s change mtx: %s\n",pBone->GetName().c_str(),
-							//								mtxChange.ToString().c_str());
-
-							cAnimationTrack * pTrack = pAnimation->CreateTrack(pBone->GetName(),eAnimTransformFlag_Rotate | eAnimTransformFlag_Translate | eAnimTransformFlag_Scale);
-							pTrack->SetNodeIndex(i);
-							cKeyFrame *pFrame = pTrack->CreateKeyFrame(0);
-
-							pFrame->trans = mtxChange.GetTranslation();
-							pFrame->scale = 1;
-							pFrame->rotation = cQuaternion::Identity;
-							//Get the quaternion from the rotation matrix
-							mtxChange.SetTranslation(0);
-							pFrame->rotation.FromRotationMatrix(mtxChange);
-						}
-						else
-						{
-							Warning("Couldn't find node for bone '%s'\n",pBone->GetName().c_str());
-						}
-					}
-				}
-			}
+			if(pSkeleton) AddRestPoseTracks(pAnimation, pSkeleton, ColladaScene);
 		}
 
 
@@ -1096,6 +1020,95 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cMeshLoaderCollada::AddRestPoseTracks(cAnimation *apAnimation, cSkeleton *apSkeleton, cColladaScene &aScene)
+	{
+		for(int i = 0; i < apSkeleton->GetBoneNum(); ++i)
+		{
+			cBone *pBone = apSkeleton->GetBoneByIndex(i);
+
+			if(apAnimation->GetTrackByName(pBone->GetName()) == nullptr)
+			{
+				cColladaNode *pNode = aScene.GetNode(pBone->GetName());
+				if(pNode)
+				{
+					cMatrixf mtxLocal = pNode->m_mtxTransform;
+					cMatrixf mtxInvBone = cMath::MatrixInverse(pBone->GetLocalTransform());
+
+					cMatrixf mtxChange = cMath::MatrixMul(mtxInvBone, mtxLocal);
+
+					//Log("Bone %s change mtx: %s\n",pBone->GetName().c_str(),
+					//								mtxChange.ToString().c_str());
+
+					cAnimationTrack *pTrack = apAnimation->CreateTrack(pBone->GetName(), eAnimTransformFlag_Rotate | eAnimTransformFlag_Translate | eAnimTransformFlag_Scale);
+					pTrack->SetNodeIndex(i);
+					cKeyFrame *pFrame = pTrack->CreateKeyFrame(0);
+
+					pFrame->trans = mtxChange.GetTranslation();
+					pFrame->scale = 1;
+					pFrame->rotation = cQuaternion::Identity;
+					//Get the quaternion from the rotation matrix
+					mtxChange.SetTranslation(0);
+					pFrame->rotation.FromRotationMatrix(mtxChange);
+				}
+				else
+				{
+					Warning("Couldn't find node for bone '%s'\n", pBone->GetName().c_str());
+				}
+			}
+		}
+	}
+
+	//-----------------------------------------------------------------------
+
+	cSkeleton *cMeshLoaderCollada::CreateSkeleton(tColladaControllerVec &avControllers, cColladaScene &aScene)
+	{
+		cSkeleton *pSkeleton = hplNew(cSkeleton, ());
+
+		tColladaNodeListIt it = aScene.mRoot.mlstChildren.begin();
+		for(; it != aScene.mRoot.mlstChildren.end(); it++)
+		{
+			cColladaNode *pNode = *it;
+
+			CreateSkeletonBone(pNode, pSkeleton->GetRootBone());
+		}
+
+		////////////////////////////////////
+		//Set the bind position of the bones
+		//(This will set the local matrix as the global bind)
+		for(size_t i = 0; i < avControllers.size(); i++)
+		{
+			cColladaController &Ctrl = avControllers[i];
+
+			for(size_t j = 0; j < Ctrl.mvJoints.size(); j++)
+			{
+				cBone *pBone = pSkeleton->GetBoneByName(Ctrl.mvJoints[j]);
+
+				if(pBone)
+				{
+					pBone->SetTransform(cMath::MatrixInverse(Ctrl.mvMatrices[j]));
+					pBone->SetValue(1);
+				}
+				else
+				{
+					Log("Bone '%s' does not exist\n", Ctrl.mvJoints[j].c_str());
+				}
+			}
+		}
+
+		////////////////////////////////////////////////
+		//Do another pass and calculate the local matrix
+		cBoneIterator BoneIt = pSkeleton->GetRootBone()->GetChildIterator();
+		while(BoneIt.HasNext())
+		{
+			cMatrixf mtxRoot = cMatrixf::Identity;
+			CalcLocalMatrixRec(BoneIt.Next(), mtxRoot, 0);
+		}
+
+		return pSkeleton;
+	}
+
+	//-----------------------------------------------------------------------
+
 	cAnimation* cMeshLoaderCollada::LoadAnimation(const tString& asFile)
 	{
 
@@ -1121,47 +1134,7 @@ namespace hpl {
 		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
 		{
-			pSkeleton = hplNew( cSkeleton, () );
-
-			tColladaNodeListIt it = ColladaScene.mRoot.mlstChildren.begin();
-			for(; it != ColladaScene.mRoot.mlstChildren.end(); it++)
-			{
-				cColladaNode *pNode = *it;
-
-				CreateSkeletonBone(pNode, pSkeleton->GetRootBone());
-			}
-
-			////////////////////////////////////
-			//Set the bind position of the bones
-			//(This will set the local matrix as the global bind)
-			for(size_t i=0; i< vColladaControllers.size();i++)
-			{
-				cColladaController &Ctrl = vColladaControllers[i];
-
-				for(size_t j=0; j<Ctrl.mvJoints.size(); j++)
-				{
-					cBone *pBone = pSkeleton->GetBoneByName(Ctrl.mvJoints[j]);
-
-					if(pBone)
-					{
-						pBone->SetTransform(cMath::MatrixInverse(Ctrl.mvMatrices[j]));
-						pBone->SetValue(1);
-					}
-					else
-					{
-						Log("Bone '%s' does not exist\n",Ctrl.mvJoints[j].c_str());
-					}
-				}
-			}
-
-			////////////////////////////////////////////////
-			//Do another pass and calculate the local matrix
-			cBoneIterator BoneIt = pSkeleton->GetRootBone()->GetChildIterator();
-			while(BoneIt.HasNext())
-			{
-				cMatrixf mtxRoot = cMatrixf::Identity;
-				CalcLocalMatrixRec(BoneIt.Next(), mtxRoot,0);
-			}
+			pSkeleton = CreateSkeleton(vColladaControllers, ColladaScene);
 		}
 
 
@@ -1202,7 +1175,7 @@ namespace hpl {
 
 	bool cMeshLoaderCollada::IsSupported(const tString asFileType)
 	{
-		if(asFileType == "dae") return true;
+		if(asFileType == "dae" || asFileType == "glb" || asFileType == "gltf") return true;
 
 		return false;
 	}
@@ -1212,6 +1185,8 @@ namespace hpl {
 	void cMeshLoaderCollada::AddSupportedTypes(tStringVec* avFileTypes)
 	{
 		avFileTypes->push_back("dae");
+		avFileTypes->push_back("glb");
+		avFileTypes->push_back("gltf");
 	}
 
 	//-----------------------------------------------------------------------
@@ -1426,6 +1401,21 @@ namespace hpl {
 		}
 
 		return nullptr;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cMeshLoaderCollada::ScaleIsSeparate(const cColladaNode *apNode, const tColladaLightVec *apLights)
+	{
+		//If this node is a light, do not apply scale.
+		if(apLights && apNode->msSource != "")
+		{
+			for(const cColladaLight &light : *apLights)
+				if(light.msId == apNode->msSource) return true;
+		}
+
+		//Colliders do not use scale.
+		return cString::ToLowerCase(cString::Sub(apNode->msName, 1, 8)) == "collider" || cString::ToLowerCase(cString::Sub(apNode->msName, 1, 12)) == "charcollider" || cString::ToLowerCase(cString::Sub(apNode->msName, 1, 4)) == "area";
 	}
 
 	//-----------------------------------------------------------------------

@@ -82,6 +82,7 @@
 #include "resources/Resources.h"
 #include "resources/LowLevelResources.h"
 #include "resources/FileSearcher.h"
+#include "resources/Addons.h"
 #include "resources/ImageManager.h"
 #include "resources/GpuProgramManager.h"
 #include "resources/ParticleManager.h"

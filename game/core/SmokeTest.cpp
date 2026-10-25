@@ -188,7 +188,21 @@ void cSmokeTest::Update(float afTimeStep)
 		break;
 
 	case eStep_RunLoaded:
-		if(++mlFrame >= mlFramesPerStep) NextMap();
+		if(++mlFrame < mlFramesPerStep) break;
+		// The map reload used when editing (F6), at the next update
+		mpInit->mpMapHandler->RequestReload();
+		mStep = eStep_RunReloaded;
+		mlFrame = 0;
+		break;
+
+	case eStep_RunReloaded:
+		if(++mlFrame < mlFramesPerStep) break;
+		if(mpInit->mpMapHandler->GetCurrentMapName() != sMap)
+		{
+			Fail("reloading %s gave '%s'", mvMaps[mlMap].c_str(),
+				mpInit->mpMapHandler->GetCurrentMapName().c_str());
+		}
+		NextMap();
 		break;
 
 	case eStep_Done:

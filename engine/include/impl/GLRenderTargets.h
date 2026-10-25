@@ -49,6 +49,9 @@ namespace hpl
 		void DeleteFramebuffers();
 
 		void SetRenderScale(float afScale);
+		/// The window's size changed: the output and scene framebuffers
+		/// are made again at the new size. Not in a scene.
+		void SetOutputSize(const cVector2l &avOutputSize);
 
 		float GetRenderScale();
 

@@ -50,6 +50,8 @@ namespace hpl {
 		virtual void Destroy()=0;
 
 		tString GetName(){return msName;}
+		// Before the resource is added to its manager
+		void SetName(const tString &asName) { msName = asName; }
 		unsigned long GetHandle(){return mlHandle;}
 		void SetHandle(unsigned long alHandle){mlHandle=alHandle;}
 		tString GetFilePath(){return msFilePath;}

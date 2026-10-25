@@ -14,6 +14,15 @@ Current technical guides:
   tests and remaining validation limits.
 - [Audio lifecycle](audio.md): EFX slot mutex ownership, worker shutdown and
   startup crash regression coverage.
+- [Addons and glTF models](modding.md): addon folders and `.zip` files, how
+  the engine reads glTF, `openhpl1-model` conversion and checks, editing in
+  Blender, and the conversion's validation record.
+- [Level viewer and editor](level-editor.md): the editor window
+  (`--editor`: outliner, inspector, gizmo, undo, Play around the game's
+  view), driving the running game from files (`OPENHPL_CONTROL`,
+  `tools/levelview.py`), moving map nodes and
+  saving the map as an addon, live frames before and after, and the
+  reference images.
 - [Fonts](../fonts/README.md): bundled typefaces and licences.
 - [HUD images](../hud/README.md): high-resolution cursor, icons and notebook
   pages, how they replace the game's images and how they were made.
