@@ -32,6 +32,7 @@ namespace hpl {
 		mlMaxUpdates = alUpdatesPerSec;
 		mlUpdateCount =0;
 		mbFixedStep = false;
+		mbPaceFixedStep = false;
 
 		mpLowLevelSystem = apLowLevelSystem;
 
@@ -61,7 +62,21 @@ namespace hpl {
 	bool cLogicTimer::WantUpdate()
 	{
 		++mlUpdateCount;
-		if(mbFixedStep) return mlUpdateCount == 1;
+		if(mbFixedStep)
+		{
+			if(mlUpdateCount != 1) return false;
+			if(mbPaceFixedStep)
+			{
+				double fNow = GetApplicationTimeExact();
+				if(mfNextUpdateTimeMs > fNow)
+					mpLowLevelSystem->Sleep((unsigned int)(mfNextUpdateTimeMs - fNow));
+				mfNextUpdateTimeMs += mfStepMilliseconds;
+				// After a long frame (a map load) do not run to catch up
+				fNow = GetApplicationTimeExact();
+				if(mfNextUpdateTimeMs < fNow) mfNextUpdateTimeMs = fNow;
+			}
+			return true;
+		}
 		if(mlUpdateCount > mlMaxUpdates) return false;
 
 		if(mfNextUpdateTimeMs< GetApplicationTimeExact())

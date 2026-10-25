@@ -455,6 +455,8 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 		// map load, as for the reference images
 		mbFixedStep = avArgs[2] != "0";
 		mpInit->mpGame->GetLogicTimer()->SetFixedStep(mbFixedStep);
+		// A live view runs at the game's speed, however fast frames are drawn
+		mpInit->mpGame->GetLogicTimer()->SetPaceFixedStep(mbFixedStep);
 		mpInit->mpMapHandler->SetReloadSeed(mbFixedStep ? 1 : -1);
 		if(mbFixedStep) mpInit->mpGame->SetLimitFPS(true);
 		return true;

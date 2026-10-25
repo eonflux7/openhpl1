@@ -84,6 +84,13 @@ namespace hpl {
 		void SetFixedStep(bool abFixedStep){ mbFixedStep = abFixedStep;}
 		bool GetFixedStep(){ return mbFixedStep;}
 
+		/**
+		 * With a fixed step: wait for the time each step stands for, so
+		 * the game runs at its own speed (a live view) and not as fast as
+		 * frames can be drawn (reference images).
+		 */
+		void SetPaceFixedStep(bool abPace){ mbPaceFixedStep = abPace; Reset();}
+		bool GetPaceFixedStep(){ return mbPaceFixedStep;}
 
 	private:
 		void Update();
@@ -94,6 +101,7 @@ namespace hpl {
 		int mlMaxUpdates;
 		int mlUpdateCount;
 		bool mbFixedStep;
+		bool mbPaceFixedStep;
 
 		iLowLevelSystem *mpLowLevelSystem;
 	};
