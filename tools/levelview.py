@@ -380,6 +380,8 @@ SESSION_POINTER = os.path.join(STATE_DIR, "levelview-session")
 # a window (which can be resized), with the game's sounds off unless --sound
 LIVE_SETTINGS = {s: dict(k) for s, k in SETTINGS.items()}
 LIVE_SETTINGS["Graphics"]["LimitFPS"] = "true"
+# Fixed-step logic runs once per frame: without vsync a fast GPU makes the game run too fast
+LIVE_SETTINGS["Screen"]["Vsync"] = "true"
 # Scripts blur the view with it now and then (waking up in the boat cabin)
 LIVE_SETTINGS["Graphics"]["DepthOfField"] = "false"
 # Items glow now and then to be noticed, at times that differ from set to set
