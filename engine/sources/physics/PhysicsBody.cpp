@@ -95,6 +95,8 @@ namespace hpl {
 		mbCollideRagDoll = true;
 
 		mbCollide = true;
+		mbStaticFriction = true;
+		mpPassThroughBody = nullptr;
 
 		mbVolatile = false;
 

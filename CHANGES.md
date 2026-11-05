@@ -5,6 +5,29 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Held levers and embedded bodies (2026-11-05)
+
+- Levers ignored small mouse movements (GitHub issue #1). The lever in
+  `level01_13_A_iron_mine_shafts` rests 2 mm into the side of its slot along
+  its hinge axis, so the hinge holds it against that contact and friction
+  takes the force. A jointed body held in Move mode now has no friction
+  against static bodies until it is let go (`iPhysicsBody::SetStaticFriction`).
+- The helmet in `level01_16_destroyed_shaft`'s locker could not be picked up
+  (GitHub issue #1). The map places it with its brim through the locker's
+  wall, and Newton 2 pushes each collider out of its nearest face, which
+  keeps the brim on the far side. Removing friction did not free it. A body
+  grabbed at least 1 cm inside a static body now passes through that one
+  body until they no longer overlap (`iPhysicsBody::SetPassThroughBody`).
+  Collision with everything else stays on, and a body let go half way is
+  remembered for the next grab.
+- Neither setting is saved.
+- Validation: on Windows the lever follows the mouse better and the helmet
+  comes out of the locker in manual play, with the physics log showing it
+  freed and thrown 3.5 m. The ice break still does not crash in this build.
+  Linux CTest passes 3/3, also with ASan and UBSan (leak detection off), and
+  the Windows Overture smoke test passes 28 maps with 0 failures. The noisy
+  debris from the same issue was not reproduced and is not addressed here.
+
 ## Primary display on Windows (2026-11-05)
 
 - With no display chosen the game now opens on the system's primary display

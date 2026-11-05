@@ -227,6 +227,13 @@ namespace hpl {
 
 		void SetCollide(bool abX){mbCollide = abX;}
 		bool GetCollide(){ return mbCollide;}
+		// Off: no friction against static bodies. Not saved; for what holds a
+		// body for a moment, and is set back when it lets go.
+		void SetStaticFriction(bool abX){mbStaticFriction = abX;}
+		bool GetStaticFriction() const { return mbStaticFriction;}
+		// One body this one passes through. Not saved, as above.
+		void SetPassThroughBody(iPhysicsBody *apBody){mpPassThroughBody = apBody;}
+		iPhysicsBody* GetPassThroughBody() const { return mpPassThroughBody;}
 
 		void SetIsCharacter(bool abX){ mbIsCharacter = abX;}
 		bool IsCharacter(){ return mbIsCharacter;}
@@ -346,6 +353,8 @@ namespace hpl {
 		void *mpUserData;
 
 		bool mbCollide;
+		bool mbStaticFriction;
+		iPhysicsBody *mpPassThroughBody;
 	};
 };
 #endif // HPL_PHYSICS_BODY_H

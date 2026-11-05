@@ -223,6 +223,9 @@ namespace hpl {
 		if(mpContactBody1->GetCollide()==false) return 0;
 		if(mpContactBody2->GetCollide()==false) return 0;
 
+		if(mpContactBody1->GetPassThroughBody()==mpContactBody2) return 0;
+		if(mpContactBody2->GetPassThroughBody()==mpContactBody1) return 0;
+
 		if(mpContactBody1->IsActive()==false) return 0;
 		if(mpContactBody2->IsActive()==false) return 0;
 
@@ -259,10 +262,19 @@ namespace hpl {
 
 		mlContactNum =0;
 
+		const bool bNoFriction = (!mpContactBody1->GetStaticFriction() && mpContactBody2->GetMass() == 0) ||
+								(!mpContactBody2->GetStaticFriction() && mpContactBody1->GetMass() == 0);
+
 		for(void *pContact = NewtonContactJointGetFirstContact(apContactJoint); pContact;
 			pContact = NewtonContactJointGetNextContact(apContactJoint, pContact))
 		{
 			NewtonMaterial *pMaterial = NewtonContactGetMaterial(pContact);
+
+			if(bNoFriction)
+			{
+				NewtonMaterialSetContactFrictionState(pMaterial, 0, 0);
+				NewtonMaterialSetContactFrictionState(pMaterial, 0, 1);
+			}
 
 			//Normal speed
 			float fNormSpeed = NewtonMaterialGetContactNormalSpeed(pMaterial);
