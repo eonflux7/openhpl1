@@ -296,8 +296,21 @@ namespace hpl
 
 		if(lChosen < 0 && alDisplay >= 0 && alDisplay < lCount) lChosen = alDisplay;
 
-		// Otherwise use the largest display. Wayland has no primary display,
-		// so SDL_GetPrimaryDisplay() just returns the first one it found.
+		// Otherwise the primary display. Wayland has none (SDL_GetPrimaryDisplay()
+		// just returns the first one it found), so there the largest is used.
+		const char *pDriver = SDL_GetCurrentVideoDriver();
+		if(lChosen < 0 && (pDriver == nullptr || SDL_strcmp(pDriver, "wayland") != 0))
+		{
+			const SDL_DisplayID lPrimary = SDL_GetPrimaryDisplay();
+			for(int i = 0; i < lCount; ++i)
+			{
+				if(pDisplays[i] == lPrimary)
+				{
+					lChosen = i;
+					break;
+				}
+			}
+		}
 		if(lChosen < 0)
 		{
 			long lBestArea = -1;

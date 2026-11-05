@@ -80,7 +80,7 @@ The highlights. The full list is in [CHANGES.md](CHANGES.md).
 - Native 64-bit **Linux and Windows** builds with modern compilers (C++17,
   GCC 16 / Clang 22)
 - SDL 1.2 → **SDL3**: native Wayland, raw mouse input, borderless fullscreen at
-  desktop resolution, picks the largest monitor
+  desktop resolution, opens on the primary monitor
 - Nvidia Cg → **GLSL** shaders; GLee/GLU → **glad**
 - Closed 32-bit Newton 1.53 → open-source **Newton Game Dynamics 2.36**
 - AngelScript 2.7.1b → **AngelScript 2.38.0**; the original game scripts run
@@ -426,7 +426,7 @@ saves.
 | `OPENHPL_DEBUG=1` | Developer mode for this run (the debug keys F2, F3 and L), whatever the setting |
 | `OPENHPL_PROFILE_ROOT` | Override the personal-directory root for isolated settings, saves and logs; mesh/animation caches go under `<root>/cache/` |
 | `OPENHPL_DOG_REGRESSIONS=1` | Run original-asset Dog/arena checks when smoke loads `testmap` / `dogtest` (requires `BUILD_TESTING=ON`); use `tools/check_dog_foundations.py` |
-| `OPENHPL_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the largest monitor |
+| `OPENHPL_DISPLAY` | Monitor index (0-based) to open on, instead of the "Display" option; that defaults to the primary monitor (the largest on Wayland, which has no primary) |
 | `OPENHPL_SHADER_DIR` | Load shaders from here instead of `<exe dir>/shaders/` |
 | `OPENHPL_SHADER_RELOAD=1` | Recompile shaders when their files change while the game runs (pair with `OPENHPL_SHADER_DIR=<repo>/shaders`, as the build's copy is only updated on build); a failed edit keeps the previous linked program, material values survive reloads, and errors go to `hpl.log` |
 | `OPENHPL_BITMAP_FONTS=1` | Draw the game's bitmap fonts instead of the fonts in `<exe dir>/fonts/` |

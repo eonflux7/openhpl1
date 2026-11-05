@@ -5,6 +5,14 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Primary display on Windows (2026-11-05)
+
+- With no display chosen the game now opens on the system's primary display
+  (GitHub issue #1). Wayland has no primary display, so it still uses the
+  largest one there.
+- Validation: built and run on Windows, where this machine's primary display
+  is also its largest, so the runs do not tell the new choice from the old.
+
 ## Lake Utuqaq ice crash (2026-11-02)
 
 - Breaking the ice in `level01_15_icecave` crashed the game (GitHub issue #1).
