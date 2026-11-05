@@ -5,6 +5,21 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Lake Utuqaq ice crash (2026-11-02)
+
+- Breaking the ice in `level01_15_icecave` crashed the game (GitHub issue #1).
+  Newton's compound-against-tree contact code
+  (`dgCollisionCompound::CalculateContactsToCollisionTree`) started from the
+  tree's root node without checking for one; a static mesh whose triangles
+  were all degenerate builds a tree with no root, and the first compound
+  body to touch it read address 0 in `dgAABBPolygonSoup::GetNodeAABB`. The
+  other tree queries already check the root; this one now returns no
+  contacts for an empty tree.
+- Validation: reproduced on the Windows (MSVC) build of `c2ca6d2` by walking
+  onto the ice, with the access violation resolved by cdb to
+  `dgAABBPolygonSoup.cpp:1342`; with the fix, the same manual play breaks
+  the ice without a crash.
+
 ## Release packages (2026-10-19)
 
 - `platform/windows/package.cmd <version>` zips an existing Windows build
