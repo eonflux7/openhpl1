@@ -170,6 +170,7 @@ public:
 
 	void DestroyAll();
 	void LiftBodiesOutOfFloors(cWorld3D *apWorld);
+	void FreeSlidersFromStaticBodies(cWorld3D *apWorld);
 
 	void OnWorldLoad();
 	void OnStart() override;

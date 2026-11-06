@@ -763,6 +763,27 @@ static void TestExpandedPhysicsWorld()
 	Check(body->GetWorldPosition().y < height - 1, "expanded world simulates its previously excluded body");
 }
 
+// A slider placed partly inside the level ignores static bodies. This world has
+// no surface data, so a contact the flag failed to stop would crash the test.
+static void TestPassThroughStatic()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	world.SetWorld3D(nullptr);
+	world.SetWorldSize(cVector3f(-20), cVector3f(20));
+	auto *floor = world.CreateBody("floor", world.CreateBoxShape(cVector3f(8, 1, 8), nullptr));
+	floor->SetMatrix(cMath::MatrixTranslate(cVector3f(0, -0.5f, 0)));
+	auto *body = world.CreateBody("falling", world.CreateBoxShape(cVector3f(0.5f), nullptr));
+	body->SetMass(1);
+	body->SetPassThroughStatic(true);
+	body->SetMatrix(cMath::MatrixTranslate(cVector3f(0, 2, 0)));
+	Check(world.GetBodyOverlap(body, floor) < 0, "bodies apart do not overlap");
+	body->SetMatrix(cMath::MatrixTranslate(cVector3f(0, 0.15f, 0)));
+	Check(world.GetBodyOverlap(body, floor) > 0.05f, "a body inside another overlaps it");
+	for(int i = 0; i < 120; ++i) world.Simulate(1.0f / 60);
+	Check(body->GetWorldPosition().y < -1, "a body set to pass through falls through a static body");
+}
+
 class TestProgram : public iGpuProgram
 {
 public:
@@ -1149,7 +1170,7 @@ int hplMain(const hpl::tString&)
 		{ cLowLevelGraphicsSDL graphics; Check(graphics.GetWindow()==nullptr, "backend lifetime without a GL context"); }
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
-		TestSleepingJointLimits(); TestExpandedPhysicsWorld();
+		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
 		cPidControllerf pid(1,1,1,0);

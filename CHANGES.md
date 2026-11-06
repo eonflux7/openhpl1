@@ -5,6 +5,28 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Sliders placed inside the level (2026-11-06)
+
+- The vertical door by the valve in `level01_17_worm_nest` would not open
+  (GitHub issue #1). The map places it 2.4 mm into `room4_wall2`. Newton 2
+  pushes it about 7 cm off its track, where level geometry holds it against
+  the controller's force. A world-fixed slider at least 2 mm inside level
+  geometry now ignores static bodies (`iPhysicsBody::SetPassThroughStatic`,
+  `cMapHandler::FreeSlidersFromStaticBodies`); its joint keeps it on its track
+  and limits its travel. Frames and cabinets of the slider's own entity don't
+  count. The setting is not saved, so it is applied again on restored maps,
+  and a door saved while jammed returns to its track.
+- `iPhysicsWorld::GetBodyOverlap` replaces the grab state's own overlap helper.
+- The door's `MaxLinearSpeed` of 0.001 stays: it sets the opening speed.
+- Validation: on Windows, with the controllers forced, the door rises at
+  0.086 m/s (`slowup`, to its full 2 m) and 0.014 m/s (`veryslowup`), also from
+  a save made while it was jammed. In manual play the valve opened it at the
+  slower speed, with the pillar intact. Linux CTest passes 3/3, also with ASan
+  and UBSan (leak detection off), and the Windows smoke test passes Overture
+  28, Black Plague 29 and Requiem 15 maps with 0 failures. The rule also
+  applies to `firedoor01` in Requiem's `level09`, which was only loaded, not
+  operated. The valve after the pillar's destruction was not played.
+
 ## Held levers and embedded bodies (2026-11-05)
 
 - Levers ignored small mouse movements (GitHub issue #1). The lever in

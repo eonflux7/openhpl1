@@ -504,6 +504,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		if(bFirstTime)
 		{
 			LiftBodiesOutOfFloors(pWorld);
+			FreeSlidersFromStaticBodies(pWorld);
 
 			//Set a default name
 			msMapGameName = cString::To16Char(cString::SetFileExt(asFile,""));
@@ -1801,6 +1802,42 @@ void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
 }
 
 //-----------------------------------------------------------------------
+
+// Some sliders are placed partly inside the level (level 17's vertical door).
+// Newton 2 pushes such a body out sideways against its joint, and it jams
+// there. The joint keeps it on its track, so static bodies no longer stop it.
+// Frames and cabinets belong to the slider's own entity and are left alone.
+// Not saved: this runs on restored maps too.
+void cMapHandler::FreeSlidersFromStaticBodies(cWorld3D *apWorld)
+{
+	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
+	cPhysicsJointIterator jointIt = pPhysicsWorld->GetJointIterator();
+	while(jointIt.HasNext())
+	{
+		iPhysicsJoint *pJoint = jointIt.Next();
+		if(pJoint->GetType() != ePhysicsJointType_Slider) continue;
+		if(pJoint->GetParentBody() && pJoint->GetParentBody()->GetMass() != 0) continue;
+
+		iPhysicsJointSlider *pSlider = static_cast<iPhysicsJointSlider*>(pJoint);
+		iPhysicsBody *pBody = pJoint->GetChildBody();
+		if(pSlider->GetMaxDistance() <= pSlider->GetMinDistance() || pBody->GetMass() == 0 || !pBody->GetCollide()) continue;
+
+		cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+		while(it.HasNext())
+		{
+			iPhysicsBody *pOther = it.Next();
+			if(pOther->GetMass() != 0 || pOther->GetUserData() != nullptr || pOther->IsCharacter() || !pOther->GetCollide()) continue;
+
+			float fDepth = pPhysicsWorld->GetBodyOverlap(pBody, pOther);
+			if(fDepth >= 0.002f)
+			{
+				Log("Letting slider '%s' through static bodies, %.3f m inside '%s'\n", pBody->GetName().c_str(), fDepth, pOther->GetName().c_str());
+				pBody->SetPassThroughStatic(true);
+				break;
+			}
+		}
+	}
+}
 
 void cMapHandler::DestroyAll()
 {

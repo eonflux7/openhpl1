@@ -245,6 +245,9 @@ namespace hpl {
 										iCollideShape* apShapeB, const cMatrixf& a_mtxB,
 										cCollideData & aCollideData, int alMaxPoints=4)=0;
 
+		// How far two bodies overlap, or -1 if they do not.
+		float GetBodyOverlap(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB);
+
 		bool CheckShapeWorldCollision(cVector3f *apNewPos,
 										iCollideShape* apShape, const cMatrixf& a_mtxTransform,
 										iPhysicsBody *apSkipBody=nullptr, bool abSkipStatic=false,

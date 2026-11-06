@@ -25,21 +25,6 @@
 #include "entities/GameStickArea.h"
 #include "core/GraphicsHelper.h"
 
-// How far two bodies overlap, or -1 if they do not.
-static float BodyOverlap(iPhysicsWorld *apWorld, iPhysicsBody *apBody, iPhysicsBody *apOther)
-{
-	if(cMath::CheckCollisionBV(*apBody->GetBV(), *apOther->GetBV())==false) return -1;
-
-	cCollideData data;
-	data.SetMaxSize(8);
-	if(apWorld->CheckShapeCollision(apBody->GetShape(), apBody->GetLocalMatrix(),
-			apOther->GetShape(), apOther->GetLocalMatrix(), data, 8)==false) return -1;
-
-	float fDepth = 0;
-	for(int i=0; i<data.mlNumOfPoints; ++i) fDepth = cMath::Max(fDepth, data.mvContactPoints[i].mfDepth);
-	return fDepth;
-}
-
 // Maps place some bodies inside static geometry, like the helmet in level 16's
 // locker, whose brim goes through the locker's wall. Newton 2 pushes each part
 // out of its nearest face, which keeps the brim on the far side of the wall.
@@ -53,7 +38,7 @@ static iPhysicsBody* FindEmbeddingBody(iPhysicsWorld *apWorld, iPhysicsBody *apB
 		iPhysicsBody *pOther = it.Next();
 		if(pOther == apBody || pOther->GetMass() != 0 || pOther->IsCharacter() || pOther->GetCollide()==false) continue;
 
-		float fDepth = BodyOverlap(apWorld, apBody, pOther);
+		float fDepth = apWorld->GetBodyOverlap(apBody, pOther);
 		if(fDepth >= fMinDepth || (pOther == apKnown && fDepth >= 0)) return pOther;
 	}
 	return nullptr;
@@ -207,7 +192,7 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 	}
 
 	//Out of what it was embedded in, it collides with that again
-	if(mpPushBody->GetPassThroughBody() && BodyOverlap(pPhysicsWorld, mpPushBody, mpPushBody->GetPassThroughBody()) < 0)
+	if(mpPushBody->GetPassThroughBody() && pPhysicsWorld->GetBodyOverlap(mpPushBody, mpPushBody->GetPassThroughBody()) < 0)
 	{
 		mpPushBody->SetPassThroughBody(nullptr);
 		mpFreeingBody = nullptr;

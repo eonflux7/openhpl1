@@ -235,6 +235,9 @@ namespace hpl {
 		void SetPassThroughBody(iPhysicsBody *apBody){mpPassThroughBody = apBody;}
 		iPhysicsBody* GetPassThroughBody() const { return mpPassThroughBody;}
 
+		void SetPassThroughStatic(bool abX){mbPassThroughStatic = abX;}
+		bool GetPassThroughStatic() const { return mbPassThroughStatic;}
+
 		void SetIsCharacter(bool abX){ mbIsCharacter = abX;}
 		bool IsCharacter(){ return mbIsCharacter;}
 
@@ -355,6 +358,7 @@ namespace hpl {
 		bool mbCollide;
 		bool mbStaticFriction;
 		iPhysicsBody *mpPassThroughBody;
+		bool mbPassThroughStatic;
 	};
 };
 #endif // HPL_PHYSICS_BODY_H
