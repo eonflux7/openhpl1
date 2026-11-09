@@ -50,6 +50,10 @@ public:
 	float mfPoseTime;
 	
 	float mfSetMtxTime;
+
+	// The attached body's own mass, given back when it is detached. Saves
+	// made before it was saved have -1.
+	float mfBodyMass = -1;
 	
 	iGameEntity* CreateEntity() override;
 };

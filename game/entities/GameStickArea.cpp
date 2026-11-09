@@ -26,6 +26,8 @@
 
 #include "core/GlobalInit.h"
 
+#include <cmath>
+
 //////////////////////////////////////////////////////////////////////////
 // LOADER
 //////////////////////////////////////////////////////////////////////////
@@ -90,6 +92,8 @@ cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntit
 
 	mpAttachedBody = nullptr;
 	mpLastAttachedBody = nullptr;
+	mfBodyMass = 0;
+	mbBodyGravity = true;
 
 	msAttachFunction = "";
 	msDetachFunction = "";
@@ -428,6 +432,8 @@ kSerializeVar(mfSetMtxTime,eSerializeType_Float32)
 kSerializeVar(mbCheckCenterInArea,eSerializeType_Bool)
 
 kSerializeVar(mfPoseTime,eSerializeType_Float32)
+
+kSerializeVar(mfBodyMass,eSerializeType_Float32)
 kEndSerialize()
 
 //-----------------------------------------------------------------------
@@ -468,6 +474,8 @@ void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 
 	kCopyToVar(pData,mfSetMtxTime);
 
+	kCopyToVar(pData,mfBodyMass);
+
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 
 	if(mpAttachedBody)
@@ -499,6 +507,8 @@ void cGameStickArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mfPoseTime);
 
 	kCopyFromVar(pData,mfSetMtxTime);
+
+	kCopyFromVar(pData,mfBodyMass);
 }
 
 //-----------------------------------------------------------------------
@@ -513,6 +523,17 @@ void cGameStickArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 		iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 		mpAttachedBody = pWorld->GetBody(pData->msAttachedBody);
 		mpLastAttachedBody = mpAttachedBody;
+
+		// The original game did not save the body's mass, so detaching it
+		// after a load (or on returning to the map) gave it whatever was in
+		// memory: Black Plague's level 20 painting crashed Newton with a NaN
+		// mass, or stayed fixed to the wall with 0. Saves without it get 1 kg.
+		if(mpAttachedBody && !(mfBodyMass >= 0 && std::isfinite(mfBodyMass)))
+		{
+			Warning("Stick area '%s': mass of attached body '%s' not saved, using 1\n",
+					msName.c_str(), mpAttachedBody->GetName().c_str());
+			mfBodyMass = 1;
+		}
 	}
 }
 //-----------------------------------------------------------------------

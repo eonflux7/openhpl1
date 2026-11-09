@@ -5,6 +5,22 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Stick areas keep the attached body's mass in saves (2026-11-10)
+
+- Black Plague crashed in level 20 when the painting was taken off the wall
+  after leaving the map and coming back (Newton's island builder read a NaN
+  mass). A stick area sets the body it holds to mass 0 and gives the mass
+  back when the body is detached, but the mass was not saved, so after a
+  load or a return to the map the body got whatever was in memory: NaN
+  crashed, 0 left the painting fixed to the wall. The original code has the
+  same gap. The mass is now saved (`mfBodyMass`); saves made before it give
+  the body 1 kg, with a warning.
+- Validation: headless runs of level 20 (save, load, detach; leaving for
+  level 16 and back, detach; loading a save made before the fix, detach).
+  Before the fix the painting stayed on the wall with mass 0; after it, it
+  falls with 5 kg (1 kg with the old save). Build, CTest and ASan CTest
+  (`detect_leaks=0`) pass. Not played in the game yet.
+
 ## Unsheared wide images (2026-11-09)
 
 - Images of an odd width, such as the 1707 pixel wide menu backgrounds,
