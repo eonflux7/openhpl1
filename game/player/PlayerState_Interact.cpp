@@ -1335,6 +1335,10 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 	//All pushed bodies shall be affected by player gravity.
 	mbHasPlayerGravityPush = mpPushBody->GetPushedByCharacterGravity();
 	mpPushBody->SetPushedByCharacterGravity(true);
+
+	//Black Plague: the body slides over the lip of a hole it hangs over, as
+	//level 4's crate beside the ladder hole (issue #2)
+	if(!cInit::IsOverture()) mpPushBody->SetSlideOverLips(true);
 	
 	//The pick point relative to the body
 	mvRelPickPoint = mpPlayer->GetPickedPos() - mpPushBody->GetLocalPosition();
@@ -1377,6 +1381,7 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 void cPlayerState_Push::LeaveState(iPlayerState* apNextState)
 {
 	mpPushBody->SetPushedByCharacterGravity(mbHasPlayerGravityPush);
+	mpPushBody->SetSlideOverLips(false);
 
 	if(mPrevMoveState != ePlayerMoveState_Run && mPrevMoveState != ePlayerMoveState_Jump)
 		mpPlayer->ChangeMoveState(mPrevMoveState);

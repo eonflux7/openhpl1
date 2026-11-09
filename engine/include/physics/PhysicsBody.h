@@ -239,6 +239,12 @@ namespace hpl {
 
 		void SetPassThroughStatic(bool abX){mbPassThroughStatic = abX;}
 		bool GetPassThroughStatic() const { return mbPassThroughStatic;}
+		// A body being pushed slides over the edges of static geometry at its
+		// underside: contacts within 1 cm of its lowest point that do not hold
+		// it up are dropped (see PhysicsMaterialNewton). Resting bodies sink a
+		// few mm into the floor and catch on the lip of a hole beside them.
+		void SetSlideOverLips(bool abX){mbSlideOverLips = abX;}
+		bool GetSlideOverLips() const { return mbSlideOverLips;}
 		// Static bodies this one passes through until it no longer overlaps
 		// them: those it was inside when a script made it dynamic (see
 		// iPhysicsWorld::LetOutOfStaticBodies). Not saved.
@@ -371,6 +377,7 @@ namespace hpl {
 		bool mbStaticFriction;
 		iPhysicsBody *mpPassThroughBody;
 		bool mbPassThroughStatic;
+		bool mbSlideOverLips;
 		std::vector<iPhysicsBody*> mvEmbeddingBodies;
 	};
 };

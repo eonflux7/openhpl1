@@ -5,6 +5,28 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Pushed bodies slide over the lips of holes (2026-11-10)
+
+- Black Plague: level 4's crate beside the ladder hole could not be pushed
+  (issue #2). Newton 2 lets it rest 2–5 mm into the floor, so its base dips
+  into the hole and the hole's vertical inner walls press its bottom edges
+  from every side with thousands of newtons. The original game (Newton
+  1.53, checked by logging its contacts at run time) only gives floor
+  contacts there, and the crate slides freely. While a body is pushed
+  (`iPhysicsBody::SetSlideOverLips`, Black Plague and Requiem), contacts with
+  static geometry within 1 cm of its lowest point whose normal does not hold
+  it up (y < 0.5) are dropped.
+- Not a friction difference: the material values, friction combining and
+  push code match the original binary, and Newton 1.53 run from
+  `blackplague.bin` holds a box the same way Newton 2 does. Both games call
+  the button handler twice per physics step, so a push is 2 × 100 N, which
+  beats the crate's friction once it is free. Newton 2 still accelerates it
+  more slowly than the original (1.45 m/s after 1.1 s against 1.85 m/s after
+  0.9 s, holding A), as it does for any body under the same force.
+- Validation: headless level 4, holding A on the crate: before, it stayed in
+  place; after, it slides smoothly. Pushing with W, S, A and D and grabbing
+  it again next to the hole checked in the game. Build and CTest pass.
+
 ## Pick ray passes through player-only colliders (2026-11-10)
 
 - Black Plague: only one of level 20's four desks had drawers that could be

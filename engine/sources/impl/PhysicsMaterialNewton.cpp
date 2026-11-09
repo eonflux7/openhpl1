@@ -265,6 +265,29 @@ namespace hpl {
 
 		mlContactNum =0;
 
+		//A pushed body slides over the edges of static geometry at its
+		//underside (iPhysicsBody::SetSlideOverLips)
+		for(int i=0; i<2; ++i)
+		{
+			iPhysicsBody *pSliding = i==0 ? mpContactBody1 : mpContactBody2;
+			iPhysicsBody *pOther = i==0 ? mpContactBody2 : mpContactBody1;
+			NewtonBody *pNewtonSliding = i==0 ? pNewtonBody1 : pNewtonBody2;
+			if(pSliding->GetSlideOverLips()==false || pOther->GetMass() != 0) continue;
+
+			const float fLowest = pSliding->GetBoundingVolume()->GetMin().y;
+			void *pContact = NewtonContactJointGetFirstContact(apContactJoint);
+			while(pContact)
+			{
+				void *pNext = NewtonContactJointGetNextContact(apContactJoint, pContact);
+				cVector3f vPos, vNormal;
+				NewtonMaterialGetContactPositionAndNormal(NewtonContactGetMaterial(pContact), pNewtonSliding, vPos.v, vNormal.v);
+				//The normal is turned to push the sliding body: a floor's is up
+				if(vNormal.y < 0.5f && vPos.y < fLowest + 0.01f)
+					NewtonContactJointRemoveContact((NewtonJoint*)apContactJoint, pContact);
+				pContact = pNext;
+			}
+		}
+
 		const bool bNoFriction = (!mpContactBody1->GetStaticFriction() && mpContactBody2->GetMass() == 0) ||
 								(!mpContactBody2->GetStaticFriction() && mpContactBody1->GetMass() == 0);
 

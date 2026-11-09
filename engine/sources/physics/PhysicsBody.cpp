@@ -98,6 +98,7 @@ namespace hpl {
 		mbStaticFriction = true;
 		mpPassThroughBody = nullptr;
 		mbPassThroughStatic = false;
+		mbSlideOverLips = false;
 
 		mbVolatile = false;
 
