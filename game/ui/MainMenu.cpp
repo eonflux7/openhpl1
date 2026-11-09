@@ -173,14 +173,14 @@ void cMainMenuWidget_MainButton::OnMouseDown(eMButton aButton)
 
 void cMainMenuWidget_MainButton::OnDraw()
 {
-	mpFont->Draw(mvWidgetPos,mvFontSize,cColor(0.62f + mfAlpha*0.3f,1),eFontAlign_Center,msText.c_str());
+	mpFont->DrawPlain(mvWidgetPos,mvFontSize,cColor(0.62f + mfAlpha*0.3f,1),eFontAlign_Center,msText.c_str());
 
 	float fAdd = sin(mfOverTimer) * 16.0f;
 
 	if(mfAlpha >0)
 	{
-		mpFont->Draw(mvWidgetPos + cVector3f(fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
-		mpFont->Draw(mvWidgetPos + cVector3f(-fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
+		mpFont->DrawPlain(mvWidgetPos + cVector3f(fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
+		mpFont->DrawPlain(mvWidgetPos + cVector3f(-fAdd,0,-1),mvFontSize,cColor(0.56f,0.35f * mfAlpha),eFontAlign_Center,msText.c_str());
 	}
 }
 
@@ -557,13 +557,13 @@ void cMainMenuWidget_List::OnDraw()
 
 		if(mlSelected == i)
 		{
-			mpFont->Draw(vPos,mvFontSize,cColor(0.95f,1),eFontAlign_Left,mvEntries[i].c_str());
+			mpFont->DrawPlain(vPos,mvFontSize,cColor(0.95f,1),eFontAlign_Left,mvEntries[i].c_str());
 			mpDrawer->DrawGfxObject(mpBackGfx,vPos+cVector3f(0,2,-1),
 									cVector2f(mvSize.x-5, mvFontSize.y), 
 									cColor(0.0f,0.0f,0.73f,1));
 		}
 		else
-			mpFont->Draw(vPos,mvFontSize,cColor(0.7f,1),eFontAlign_Left,mvEntries[i].c_str());
+			mpFont->DrawPlain(vPos,mvFontSize,cColor(0.7f,1),eFontAlign_Left,mvEntries[i].c_str());
 
 		vPos.y += mvFontSize.y+2;
 	}

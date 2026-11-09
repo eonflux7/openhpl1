@@ -28,6 +28,7 @@
 #undef private
 #include "impl/LowLevelGraphicsSDL.h"
 #include "graphics/GraphicsDrawer.h"
+#include "graphics/FontData.h"
 #include "gui/GuiSet.h"
 #include "gui/GuiMaterialBasicTypes.h"
 
@@ -1102,6 +1103,32 @@ static void TestDrawQueue()
 	Check(queue.mvDraws.empty(), "cleared queue keeps no previous draws");
 }
 
+// A bitmap font without glyphs: drawing it reaches DrawString but queues nothing.
+class cTestGlyphlessFont : public iFontData
+{
+public:
+	cTestGlyphlessFont() : iFontData("test_glyphless", nullptr)
+	{
+		mpGraphicsDrawer = nullptr;
+		mlFirstChar = 1; mlLastChar = 0;
+	}
+	bool CreateFromFontFile(const tString &, int, unsigned short, unsigned short) override { return false; }
+	bool CreateFromBitmapFile(const tString &) override { return false; }
+};
+
+static void TestFontPlainText()
+{
+	// Black Plague's "Antidote" note has "80% success": drawn as a format, the
+	// "% s" read a string that was never passed and the game crashed (issue
+	// #2). DrawPlain must not format; %n would write through a missing argument.
+	cTestGlyphlessFont font;
+	const wchar_t *sText = L"injections covering as much as 50% of brain tissue at an 80% success rate %s%s%n%ls%n";
+	font.DrawPlain(cVector3f(0,0,0), cVector2f(14,14), cColor(1,1), eFontAlign_Left, sText);
+	font.DrawPlain(cVector3f(0,0,0), cVector2f(14,14), cColor(1,1), eFontAlign_Center, sText);
+	font.DrawPlain(cVector3f(0,0,0), cVector2f(14,14), cColor(1,1), eFontAlign_Right, nullptr);
+	Check(true, "plain text with format conversions draws without formatting");
+}
+
 static void TestSprites()
 {
 	cSpriteBatch batch;
@@ -1174,7 +1201,7 @@ int hplMain(const hpl::tString&)
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
-		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
+		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestFontPlainText(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
 		RunModelRegressions(directory);
 		cPidControllerf pid(1,1,1,0);

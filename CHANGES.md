@@ -43,6 +43,21 @@ the results above. The ASan smoke test of level01_cells and level20 reported
 without a virtual destructor), not looked into. Played in the game: the
 grille falls onto the floor.
 
+## Text with '%' drawn as it is (2026-11-09)
+
+- Black Plague crashed when the "Antidote" note was opened (issue #2): the
+  notebook gave each line of a note to `iFontData::Draw` as its printf
+  format, and the note's "80% success" read a string argument that was never
+  passed. `iFontData::DrawPlain` draws a string without formatting; the 35
+  places that drew text from language files, notes, saves or the user as a
+  format (notebook, menus, death menu, credits, load texts, inventory,
+  intro, pre-menu, keypad) use it. Text without '%' looks the same; no
+  language file of the three games has "%%".
+- Validation: `engine_regressions` has a font test that draws such text; with
+  `DrawPlain` formatting again it fails under ASan (SEGV). Build, CTest and
+  the ASan CTest (`detect_leaks=0`) pass. Not checked by opening the note in
+  the game.
+
 ## Sliders placed inside the level (2026-11-06)
 
 - The vertical door by the valve in `level01_17_worm_nest` would not open

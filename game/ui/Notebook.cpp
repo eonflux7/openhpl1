@@ -196,7 +196,7 @@ void cNotebookState_Front::OnDraw()
 	{
 		if(mvOptions[i].mfAlpha>0)
 		{
-			mpFrontFont->Draw(mvOptions[i].mvPos+cVector3f(0,0,1),mvFontSize,
+			mpFrontFont->DrawPlain(mvOptions[i].mvPos+cVector3f(0,0,1),mvFontSize,
 								cColor(0.9f,0.9f,0.9f, 1.0f*mpNotebook->GetAlpha()*mvOptions[i].mfAlpha),
 								eFontAlign_Center,mvOptions[i].msText.c_str());
 
@@ -213,9 +213,9 @@ void cNotebookState_Front::OnDraw()
 			}
 		}
 		
-		mpFrontFont->Draw(mvOptions[i].mvPos,mvFontSize,cColor(0.7f,0.7f,0.7f, 0.8f*mpNotebook->GetAlpha()),
+		mpFrontFont->DrawPlain(mvOptions[i].mvPos,mvFontSize,cColor(0.7f,0.7f,0.7f, 0.8f*mpNotebook->GetAlpha()),
 				eFontAlign_Center,mvOptions[i].msText.c_str());
-		mpFrontFont->Draw(mvOptions[i].mvPos + ShadowOffset(mpInit,1),mvFontSize,cColor(0.0f,0.0f,0.0f, 0.8f*mpNotebook->GetAlpha()),
+		mpFrontFont->DrawPlain(mvOptions[i].mvPos + ShadowOffset(mpInit,1),mvFontSize,cColor(0.0f,0.0f,0.0f, 0.8f*mpNotebook->GetAlpha()),
 						eFontAlign_Center,mvOptions[i].msText.c_str());
 	}
 }
@@ -668,7 +668,7 @@ void cNotebookState_NoteList::OnDraw()
 	{
 		// Heading, then a red margin line and a ruled line under every slot,
 		// drawn on the page under the page corners
-		mpHeadingFont->Draw(cVector3f(400,78,70),kfListHeadingSize,cColor(0.12f,0.1f,0.08f,0.9f*fBookAlpha),eFontAlign_Center,
+		mpHeadingFont->DrawPlain(cVector3f(400,78,70),kfListHeadingSize,cColor(0.12f,0.1f,0.08f,0.9f*fBookAlpha),eFontAlign_Center,
 						kTranslate("Notebook", "PickedNotes").c_str());
 		mpDrawer->DrawGfxObject(mpMargin,cVector3f(kfListMarginX-1.5f,70,12),cVector2f(3,460),cColor(1,0.6f*fBookAlpha));
 		for(int i=0; i<mlMaxNotesPerPage; ++i)
@@ -702,7 +702,7 @@ void cNotebookState_NoteList::OnDraw()
 			tWString sName = FitText(mpTextFont, mvSize, pNote->msName, fRoom);
 			float fWidth = mpTextFont->GetLength(mvSize, sName.c_str());
 			float fInk = 1 - pNote->mfAlpha;
-			mpTextFont->Draw(vTextPos,mvSize,cColor(0.17f*fInk,0.14f*fInk,0.11f*fInk,(0.88f+0.12f*pNote->mfAlpha)*fBookAlpha),
+			mpTextFont->DrawPlain(vTextPos,mvSize,cColor(0.17f*fInk,0.14f*fInk,0.11f*fInk,(0.88f+0.12f*pNote->mfAlpha)*fBookAlpha),
 							eFontAlign_Left,sName.c_str());
 			if(pNote->mbRead==false)
 				mpDrawer->DrawGfxObject(mpUnread,cVector3f(vTextPos.x+fWidth+5,vTextPos.y+5,70),cVector2f(8,8),
@@ -724,7 +724,7 @@ void cNotebookState_NoteList::OnDraw()
 		if(pNote->mfAlpha < 1)
 		{
 			float fAlpha = 0.9f*mpNotebook->GetAlpha()*(1-pNote->mfAlpha);
-			mpTextFont->Draw(vTextPos,mvSize,cColor(0,fAlpha),eFontAlign_Left,pNote->msName.c_str());
+			mpTextFont->DrawPlain(vTextPos,mvSize,cColor(0,fAlpha),eFontAlign_Left,pNote->msName.c_str());
 		}
 
 		if(pNote->mfAlpha > 0)
@@ -737,7 +737,7 @@ void cNotebookState_NoteList::OnDraw()
 			
 			mpDrawer->DrawGfxObject(mpTextBack,vPos,vSize,cColor(1,fAlpha*0.7f));
 			
-			mpTextFont->Draw(vTextPos,mvSize,cColor(0.85f,fAlpha),eFontAlign_Left,pNote->msName.c_str());
+			mpTextFont->DrawPlain(vTextPos,mvSize,cColor(0.85f,fAlpha),eFontAlign_Left,pNote->msName.c_str());
 		}
 
 		lCount++;
@@ -980,7 +980,7 @@ void cNotebookState_Note::OnDraw()
 	cVector3f vPos(235, 107, 70);
 	for(int i=mvPages[mlCurrentPage].mlFirstRow; i<mvPages[mlCurrentPage].mlEndRow; ++i)
 	{
-		mpTextFont->Draw(vPos,mvSize,cColor(0,1.0f*mpNotebook->GetAlpha()),
+		mpTextFont->DrawPlain(vPos,mvSize,cColor(0,1.0f*mpNotebook->GetAlpha()),
 							eFontAlign_Left,mvRows[i].c_str());
 		
 		vPos.y += mvSize.y+2;

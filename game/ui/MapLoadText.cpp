@@ -92,27 +92,27 @@ void cMapLoadText::DrawText(bool abLoading)
 	cVector3f vStart(25,250.0f - 17.0f* (float)mvRows.size()/2.0f,15);
 	for(size_t i=0; i< mvRows.size(); ++i)
 	{
-		mpTextFont->Draw(vStart + cVector3f(0,17.0f* (float)i,0),15,cColor(1,1),//cColor(0.75f, 1, 0.75f, 1),
+		mpTextFont->DrawPlain(vStart + cVector3f(0,17.0f* (float)i,0),15,cColor(1,1),//cColor(0.75f, 1, 0.75f, 1),
 						eFontAlign_Left,mvRows[i].c_str());
 	}
 
 	if(abLoading)
 	{
-		mpTextFont->Draw(cVector3f(400,550,25),17,cColor(0.75f, 0.75f, 0.75f, 1),
+		mpTextFont->DrawPlain(cVector3f(400,550,25),17,cColor(0.75f, 0.75f, 0.75f, 1),
 			eFontAlign_Center,kTranslate("LoadTexts", "Loading").c_str());
 	}
 	else
 	{
 		tWString wsText = kTranslate("LoadTexts", "ClickToContinue");
 
-		mpTextFont->Draw(cVector3f(400,550,25),
+		mpTextFont->DrawPlain(cVector3f(400,550,25),
 			17,cColor(0.75f*mfPulsePhase, 1, 0.75f*mfPulsePhase, 1),
 			eFontAlign_Center,wsText.c_str());
 
-		mpTextFont->Draw(cVector3f(401+ 10*sin(mfPulsePhase*kPi2f),551,23),
+		mpTextFont->DrawPlain(cVector3f(401+ 10*sin(mfPulsePhase*kPi2f),551,23),
 			17,cColor(0.1f, 0.1f, 0.1f, 0.7f),
 			eFontAlign_Center,wsText.c_str());
-		mpTextFont->Draw(cVector3f(399+ -10*sin(mfPulsePhase*kPi2f),549,23),
+		mpTextFont->DrawPlain(cVector3f(399+ -10*sin(mfPulsePhase*kPi2f),549,23),
 			17,cColor(0.1f, 0.1f, 0.1f, 0.7f),
 			eFontAlign_Center,wsText.c_str());
 

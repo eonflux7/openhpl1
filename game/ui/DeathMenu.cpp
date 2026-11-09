@@ -80,9 +80,9 @@ void cDeathMenuButton::OnDraw()
 {
 	float fAlpha = mpInit->mpDeathMenu->mfAlpha;
 
-	mpFont->Draw(mvPosition,mvFontSize,cColor(0.8f,0.7f,0.7f,fAlpha),eFontAlign_Center,msText.c_str());
+	mpFont->DrawPlain(mvPosition,mvFontSize,cColor(0.8f,0.7f,0.7f,fAlpha),eFontAlign_Center,msText.c_str());
 	
-	mpFont->Draw(mvPosition+cVector3f(0,0,1),mvFontSize,cColor(1,0,0,fAlpha*mfAlpha),eFontAlign_Center,msText.c_str());
+	mpFont->DrawPlain(mvPosition+cVector3f(0,0,1),mvFontSize,cColor(1,0,0,fAlpha*mfAlpha),eFontAlign_Center,msText.c_str());
 }
 
 //-----------------------------------------------------------------------

@@ -238,19 +238,19 @@ void cPreMenu::OnDraw()
 			if(lCharCount >= mlCurrentTextChar)
 			{
 				tWString sText = mvTextRows[i].substr(0,mlCurrentTextChar - lPrevStart);
-				mpTextFont->Draw(cVector3f(25,90+19*(float)i,10)+mvecLastTextPos,17+mfLastTextSize,cColor(mfLastTextColor,mfFontColor,mfFontColor,1),//cColor(0.7f,1,0.7f,1),
+				mpTextFont->DrawPlain(cVector3f(25,90+19*(float)i,10)+mvecLastTextPos,17+mfLastTextSize,cColor(mfLastTextColor,mfFontColor,mfFontColor,1),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
 				if (mlState == 5)
 				{
 					// First pair of shadow texts
-					mpTextFont->Draw(cVector3f(25 + mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.5f,0,0,0.25f),//cColor(0.7f,1,0.7f,1),
+					mpTextFont->DrawPlain(cVector3f(25 + mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.5f,0,0,0.25f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
-					mpTextFont->Draw(cVector3f(25 + 1.5f*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.5f,0,0,0.20f),//cColor(0.7f,1,0.7f,1),
+					mpTextFont->DrawPlain(cVector3f(25 + 1.5f*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.5f,0,0,0.20f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
 					// Second pair
-					mpTextFont->Draw(cVector3f(25 + 3*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.15f),//cColor(0.7f,1,0.7f,1),
+					mpTextFont->DrawPlain(cVector3f(25 + 3*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.15f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
-					mpTextFont->Draw(cVector3f(25 + 5*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.1f),//cColor(0.7f,1,0.7f,1),
+					mpTextFont->DrawPlain(cVector3f(25 + 5*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.1f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
 					
 					//mpTextFont->Draw(cVector3f(25-mfLastTextPos,90+19*(float)i-mfLastTextPos,0),cVector2f(17,17+(mfLastTextSize)),cColor(mfLastTextColor,mfFontColor,mfFontColor,0.25f),//cColor(0.7f,1,0.7f,1),
@@ -261,7 +261,7 @@ void cPreMenu::OnDraw()
 			}
 			else
 			{
-				mpTextFont->Draw(cVector3f(25,90+19*(float)i,10),17,cColor(mfFontColor,mfFontColor),//cColor(0.7f,1,0.7f,1),
+				mpTextFont->DrawPlain(cVector3f(25,90+19*(float)i,10),17,cColor(mfFontColor,mfFontColor),//cColor(0.7f,1,0.7f,1),
 								eFontAlign_Left,mvTextRows[i].c_str());
 			}
 		}

@@ -465,7 +465,7 @@ void cIntroStory::OnDraw()
 	if(msCentreText != _W(""))
 	{
 		float fAlpha = mvImages[5].mfBrightness;
-		mpFont->Draw(	cVector3f(400,300,2),18,cColor(1,1,1,fAlpha),
+		mpFont->DrawPlain(	cVector3f(400,300,2),18,cColor(1,1,1,fAlpha),
 						eFontAlign_Center,msCentreText.c_str());
 		mpFont->DrawEffect(eFontEffect_Outline,1,cVector3f(400,300,1),18,cColor(0,fAlpha),
 							eFontAlign_Center,msCentreText);

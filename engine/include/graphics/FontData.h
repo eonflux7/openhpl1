@@ -163,6 +163,13 @@ namespace hpl {
 		void Draw(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,eFontAlign mAlign,
 					const wchar_t* fmt,...);
 		/**
+		 * Draw a string as it is, without formatting. Use it for text from
+		 * language files, notes, saves or the user: as a format, a '%' in it
+		 * reads arguments that were never passed.
+		 */
+		void DrawPlain(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,eFontAlign aAlign,
+						const wchar_t* apText);
+		/**
 		 * Draw a string  with word wrap.
 		 * \param avPos Screen pos
 		 * \param afLength Max length of a line

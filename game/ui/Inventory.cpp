@@ -359,7 +359,7 @@ void cInventorySlot::OnDraw()
 		if(pType && pType->GetString(mpItem)!=_W(""))
 		{
 			tWString sString = pType->GetString(mpItem);
-			mpFont->Draw(vPos + cVector3f(0,0,1),12,cColor(1,mpInit->mpInventory->GetAlpha()),eFontAlign_Left,
+			mpFont->DrawPlain(vPos + cVector3f(0,0,1),12,cColor(1,mpInit->mpInventory->GetAlpha()),eFontAlign_Left,
 						sString.c_str());
 		}
 		else if(mpItem->HasCount())

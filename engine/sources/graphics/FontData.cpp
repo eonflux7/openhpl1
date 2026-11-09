@@ -151,6 +151,15 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void iFontData::DrawPlain(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
+							eFontAlign aAlign, const wchar_t* apText)
+	{
+		if(apText == nullptr) return;
+		DrawString(avPos,avSize,aCol,aAlign,apText,eFontEffect_None,0);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void iFontData::DrawEffect(eFontEffect aEffect, float afEffectWidth,
 								const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								eFontAlign aAlign, const tWString &asString)

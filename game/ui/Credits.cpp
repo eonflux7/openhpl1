@@ -128,10 +128,10 @@ void cCredits::OnDraw()
 			if(fAlpha > 1) fAlpha = (2 - fAlpha);
 			
 			if(lSize==0)
-				mpFont->Draw(cVector3f(400,fY,10),fSize[lSize],cColor(1,fAlpha),eFontAlign_Center,
+				mpFont->DrawPlain(cVector3f(400,fY,10),fSize[lSize],cColor(1,fAlpha),eFontAlign_Center,
 							mvTextRows[i].c_str());
 			else
-				mpFont->Draw(cVector3f(400,fY,10),fSize[lSize],cColor(0.8f,fAlpha),eFontAlign_Center,
+				mpFont->DrawPlain(cVector3f(400,fY,10),fSize[lSize],cColor(0.8f,fAlpha),eFontAlign_Center,
 							mvTextRows[i].substr(1).c_str());
 		}
 		fY += fSize[lSize];
@@ -352,9 +352,9 @@ void cCredits::DrawSecretText()
 
 void cCredits::DrawStatRow(float afY, const tString &asLabel, const tWString &asValue)
 {
-	mpFont->Draw(cVector3f(380,afY,10),14,cColor(1,1),eFontAlign_Right,
+	mpFont->DrawPlain(cVector3f(380,afY,10),14,cColor(1,1),eFontAlign_Right,
 				kTranslate("Stats",asLabel).c_str());
-	mpFont->Draw(cVector3f(420,afY,10),14,cColor(1,1),eFontAlign_Left,asValue.c_str());
+	mpFont->DrawPlain(cVector3f(420,afY,10),14,cColor(1,1),eFontAlign_Left,asValue.c_str());
 }
 
 void cCredits::DrawStatistics()
@@ -363,7 +363,7 @@ void cCredits::DrawStatistics()
 
 	if(mlPage == 1)
 	{
-		mpFont->Draw(cVector3f(400,100,10),24,cColor(1,1),eFontAlign_Center,
+		mpFont->DrawPlain(cVector3f(400,100,10),24,cColor(1,1),eFontAlign_Center,
 					kTranslate("Stats","Statistics").c_str());
 
 		// Counted in player updates
