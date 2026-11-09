@@ -136,6 +136,9 @@ static cButtonHandlerAction gvDefaultActions[] = {
 
 //-----------------------------------------------------------------------
 
+float cButtonHandler::mfTestForward = 0;
+float cButtonHandler::mfTestSideways = 0;
+
 cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 {
 	mpInit = apInit;
@@ -867,7 +870,7 @@ void cButtonHandler::Update(float afTimeStep)
 					}
 					else
 					{
-						mpPlayer->MoveForwards(0,afTimeStep);
+						mpPlayer->MoveForwards(mfTestForward,afTimeStep);
 					}
 
 
@@ -881,7 +884,7 @@ void cButtonHandler::Update(float afTimeStep)
 					}
 					else
 					{
-						mpPlayer->MoveSideways(0,afTimeStep);
+						mpPlayer->MoveSideways(mfTestSideways,afTimeStep);
 					}
 
 					if(mpInput->IsTriggered("LeanLeft"))

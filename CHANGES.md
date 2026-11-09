@@ -5,6 +5,25 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Pick ray passes through player-only colliders (2026-11-10)
+
+- Black Plague: only one of level 20's four desks had drawers that could be
+  picked (issue #2). The other three stand in `_charcollider` boxes, map
+  bodies that stop only the player, and the pick ray hit the box before the
+  drawer fronts. Black Plague's and Requiem's binaries skip such bodies in
+  `cPlayerPickRayCallback::OnIntersect` (a body without a game entity that
+  collides with the character but not otherwise); Overture's binary and the
+  open source code do not. The port now does the same for Black Plague and
+  Requiem.
+- Validation: headless level 20, the pick ray aimed at each of the 12 desk
+  drawers from in front: before, only desk 03's three were picked; after,
+  all 12, with the interact cross hair. Build, CTest pass. Opening them in
+  the game not checked yet.
+- `OPENHPL_SCRIPT` test commands: `press` and `release` hold and let go of
+  Interact, `move:f,s` holds the movement keys (-1..1 forwards, sideways)
+  until `move:0,0`, and `overlap:body` logs the static bodies a body is in
+  and how deep. They drive the push and grab states headless.
+
 ## Stick areas keep the attached body's mass in saves (2026-11-10)
 
 - Black Plague crashed in level 20 when the painting was taken off the wall

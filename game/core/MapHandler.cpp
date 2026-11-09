@@ -17,6 +17,7 @@
  * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/MapHandler.h"
+#include "core/ButtonHandler.h"
 
 #include <SDL3/SDL.h>
 
@@ -1455,7 +1456,9 @@ public:
 // puts the player there, "where:body" logs a body's place, "lookat:body"
 // turns the camera to it, "rays" logs what the pick and ground rays hit,
 // "joint:name" where a joint is, "sounds" the sound entities playing and
-// "click" uses what the player looks at.
+// "overlap:body" logs the static bodies it is in and how deep.
+// "click" uses what the player looks at; "press"/"release" hold and let go
+// of it, "move:f,s" holds the movement keys (-1..1) until "move:0,0".
 // Returns true when a save was loaded (the world was changed under the update).
 static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 {
@@ -1625,6 +1628,43 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 		{
 			apInit->mpPlayer->StartInteract();
 			apInit->mpPlayer->StopInteract();
+			continue;
+		}
+		// "overlap:body" logs the static bodies a body overlaps, and how deep
+		if(command.msCommand.compare(0, 8, "overlap:") == 0)
+		{
+			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
+			iPhysicsBody *pBody = pPhysicsWorld->GetBody(command.msCommand.substr(8));
+			if(pBody == nullptr) { Log(" no body '%s'\n", command.msCommand.substr(8).c_str()); continue; }
+			cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pOther = it.Next();
+				if(pOther == pBody || pOther->GetMass() != 0 || pOther->IsCharacter()) continue;
+				float fDepth = pPhysicsWorld->GetBodyOverlap(pBody, pOther);
+				if(fDepth >= 0) Log(" %s overlaps '%s' by %.4f m (collide %d)\n", pBody->GetName().c_str(),
+									pOther->GetName().c_str(), fDepth, pOther->GetCollide() ? 1 : 0);
+			}
+			continue;
+		}
+		// "press" and "release" hold and let go of Interact; "move:f,s" holds
+		// the movement keys (-1..1 forwards, sideways) until "move:0,0"
+		if(command.msCommand == "press")
+		{
+			apInit->mpPlayer->StartInteract();
+			continue;
+		}
+		if(command.msCommand == "release")
+		{
+			apInit->mpPlayer->StopInteract();
+			continue;
+		}
+		if(command.msCommand.compare(0, 5, "move:") == 0)
+		{
+			tFloatVec vNum;
+			cString::GetFloatVec(command.msCommand.substr(5), vNum);
+			cButtonHandler::mfTestForward = vNum.size() > 0 ? vNum[0] : 0;
+			cButtonHandler::mfTestSideways = vNum.size() > 1 ? vNum[1] : 0;
 			continue;
 		}
 		if(command.msCommand == "save")

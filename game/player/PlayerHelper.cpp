@@ -285,8 +285,14 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 	}
 	///////////////////////////////
 	// Non Entity
-	else 
+	else
 	{
+		//Black Plague and Requiem: a body that only stops the player (a map's
+		//_charcollider) does not stop the pick ray. Level 20's desks stand in
+		//such boxes, and their drawers could not be picked. As the games'
+		//binaries do; Overture's does not skip them.
+		if(!cInit::IsOverture() && apBody->GetCollideCharacter() && !apBody->GetCollide()) return true;
+
 		if(mfPickedDist > fDist)
 		{
 			mfPickedDist = fDist;

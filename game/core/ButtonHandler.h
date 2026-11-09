@@ -34,6 +34,11 @@ public:
 	cButtonHandler(cInit *apInit);
 	~cButtonHandler() override;
 
+	// For tests (OPENHPL_SCRIPT "move:f,s"): movement held as if by the keys,
+	// -1..1 forwards and sideways. A key that is down wins.
+	static float mfTestForward;
+	static float mfTestSideways;
+
 	void OnStart() override;
 	void Update(float afTimeStep) override;
 	void OnInterpolate(float afT) override;
