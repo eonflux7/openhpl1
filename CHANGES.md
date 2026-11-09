@@ -5,6 +5,17 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Unsheared wide images (2026-11-09)
+
+- Images of an odd width, such as the 1707 pixel wide menu backgrounds,
+  logos and loading screens in `hud/screens/`, were drawn sheared, which
+  looked like the image was moved to the side. SDL_image gives rows without
+  padding and GL read them as padded to 4 bytes. Bitmaps are now uploaded
+  with an unpack alignment of 1, from packed rows.
+- Validation: build, CTest and ASan CTest (`detect_leaks=0`) pass. The main
+  menu at 2560x1440 and 1280x720 was compared before and after; reference
+  captures were not run.
+
 ## Scripted bodies let out of the level (2026-11-09)
 
 - Black Plague: level 1's vent grille, unscrewed with the coin, tipped back

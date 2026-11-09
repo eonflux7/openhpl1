@@ -17,6 +17,9 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/GLTexture.h"
+
+#include <cstring>
+#include <vector>
 #include "impl/SDLBitmap2D.h"
 #include "impl/GpuProfiler.h"
 
@@ -63,6 +66,38 @@ namespace hpl {
 			alChannels <= 2 ? GL_RED : GL_BLUE, alChannels == 2 ? GL_GREEN : (alChannels == 1 ? GL_ONE : GL_ALPHA)};
 		glTexParameteriv(aGLTarget, GL_TEXTURE_SWIZZLE_RGBA, vSwizzle);
 	}
+
+	// The pixels of a surface with its rows one after another. SDL_image
+	// gives rows without padding, other surfaces have rows padded to 4 bytes;
+	// GL's default unpack alignment of 4 sheared the images whose rows are
+	// not a multiple of 4 bytes (24 bit images of an odd width, such as the
+	// 1707 pixel wide menu and loading screens). Upload them with
+	// cPackedUnpack in effect.
+	static const unsigned char* PackedSurfacePixels(SDL_Surface *apSurface, std::vector<unsigned char> &avBuffer)
+	{
+		const size_t lRow = (size_t)apSurface->w * SDL_BYTESPERPIXEL(apSurface->format);
+		const unsigned char *pPixels = static_cast<const unsigned char*>(apSurface->pixels);
+		if((size_t)apSurface->pitch == lRow) return pPixels;
+
+		avBuffer.resize(lRow * apSurface->h);
+		for(int y=0; y<apSurface->h; ++y)
+			memcpy(&avBuffer[lRow * y], pPixels + (size_t)apSurface->pitch * y, lRow);
+		return avBuffer.data();
+	}
+
+	// Unpack alignment 1 while it lives; the previous one is restored.
+	class cPackedUnpack
+	{
+	public:
+		cPackedUnpack()
+		{
+			glGetIntegerv(GL_UNPACK_ALIGNMENT, &mlAlignment);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		}
+		~cPackedUnpack() { glPixelStorei(GL_UNPACK_ALIGNMENT, mlAlignment); }
+	private:
+		GLint mlAlignment;
+	};
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -176,8 +211,10 @@ namespace hpl {
 			GLenum format;
 			GetBitmapFormat(pSrc, lChannels, format);
 
+			std::vector<unsigned char> vPacked;
+			cPackedUnpack packedUnpack;
 			glTexSubImage2D(target, 0, 0, 0, pSrc->GetWidth(), pSrc->GetHeight(),
-				format, GL_UNSIGNED_BYTE, pSrc->GetSurface()->pixels);
+				format, GL_UNSIGNED_BYTE, PackedSurfacePixels(pSrc->GetSurface(), vPacked));
 
 			mlWidth = pSrc->GetWidth();
 			mlHeight = pSrc->GetHeight();
@@ -579,7 +616,9 @@ namespace hpl {
 
 		mlBpp = lChannels * 8;
 
-		unsigned char *pPixelSrc = (unsigned char*)pBitmapSrc->GetSurface()->pixels;
+		std::vector<unsigned char> vPacked;
+		const unsigned char *pPixelSrc = PackedSurfacePixels(pBitmapSrc->GetSurface(), vPacked);
+		cPackedUnpack packedUnpack;
 
 		unsigned char *pNewSrc = nullptr;
 		if(mlSizeLevel>0 && (int)mlWidth > mvMinLevelSize.x*2)
