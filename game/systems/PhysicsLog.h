@@ -9,6 +9,7 @@
 #include "core/GameTypes.h"
 
 #include <map>
+#include <set>
 
 using namespace hpl;
 
@@ -23,6 +24,8 @@ class cInit;
 //                 joint children, the joint's angle or distance at rest
 //   awake         a body that has not gone to sleep for a while, repeated
 //   frozen        a body the engine froze (never wakes from contact)
+//   PHYSTRACE:    with OPENHPL_PHYSTRACE=name1,name2, those bodies every
+//                 frame they are awake: position, up/forward axes, velocities
 //   player        player state changes, and the body being grabbed, moved
 //                 or pushed, with its speed just after release; landings
 //                 with the fall speed, and every loss of health
@@ -61,6 +64,9 @@ private:
 	float mfMapTimeSeconds;
 	std::map<iPhysicsBody*, cBodyTrack> m_mapBodies;
 	std::map<iPhysicsBody*, iPhysicsJoint*> m_mapJoints; // child body -> joint
+	// OPENHPL_PHYSTRACE bodies
+	std::set<iPhysicsBody*> m_setTraceLogged;
+	std::map<iPhysicsBody*, float> m_mapTraceNext;
 
 	ePlayerState mPlayerState;
 	iPhysicsBody *mpHeldBody;

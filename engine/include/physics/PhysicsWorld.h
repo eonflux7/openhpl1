@@ -248,6 +248,23 @@ namespace hpl {
 		// How far two bodies overlap, or -1 if they do not.
 		float GetBodyOverlap(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB);
 
+		/**
+		 * For a static body just made dynamic: it passes through the static
+		 * bodies it overlaps by afMinDepth or more until it no longer overlaps
+		 * them. Maps place such bodies a little inside the level, and Newton 2
+		 * pushes them out with forces that jam them where they are.
+		 * \return how many bodies it passes through
+		 */
+		int LetOutOfStaticBodies(iPhysicsBody *apBody, float afMinDepth);
+
+		/**
+		 * The overlap from which a script's SetBodyProperty "Mass" lets a static
+		 * body it makes dynamic out of the static bodies it is inside. 0, the
+		 * default, is off.
+		 */
+		static void SetScriptReleaseDepth(float afX){ mfScriptReleaseDepth = afX;}
+		static float GetScriptReleaseDepth(){ return mfScriptReleaseDepth;}
+
 		bool CheckShapeWorldCollision(cVector3f *apNewPos,
 										iCollideShape* apShape, const cMatrixf& a_mtxTransform,
 										iPhysicsBody *apSkipBody=nullptr, bool abSkipStatic=false,
@@ -261,6 +278,9 @@ namespace hpl {
 		cWorld3D* GetWorld3D(){ return mpWorld3D;}
 		void SetWorld3D(cWorld3D *apWorld3D){ mpWorld3D = apWorld3D;}
 		//! @}
+
+	private:
+		static float mfScriptReleaseDepth;
 
 	protected:
 		tCollideShapeList mlstShapes;

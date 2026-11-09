@@ -227,6 +227,7 @@ namespace hpl {
 		if(mpContactBody2->GetPassThroughBody()==mpContactBody1) return 0;
 		if(mpContactBody1->GetPassThroughStatic() && mpContactBody2->GetMass()==0) return 0;
 		if(mpContactBody2->GetPassThroughStatic() && mpContactBody1->GetMass()==0) return 0;
+		if(mpContactBody1->IsEmbeddingBody(mpContactBody2) || mpContactBody2->IsEmbeddingBody(mpContactBody1)) return 0;
 
 		if(mpContactBody1->IsActive()==false) return 0;
 		if(mpContactBody2->IsActive()==false) return 0;

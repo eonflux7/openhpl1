@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "physics/PhysicsWorld.h"
+#include <algorithm>
 
 #include "physics/CollideShape.h"
 #include "physics/PhysicsBody.h"
@@ -111,6 +112,17 @@ namespace hpl {
 		//Simulate the physics
 		lTime = GetApplicationTime();
 		Simulate(afTimeStep);
+
+		//Bodies out of the static bodies they started inside collide with them again
+		for(iPhysicsBody *pBody : mlstBodies)
+		{
+			std::vector<iPhysicsBody*> &vEmbedding = pBody->GetEmbeddingBodies();
+			for(size_t i=0; i<vEmbedding.size(); )
+			{
+				if(GetBodyOverlap(pBody, vEmbedding[i]) < 0) vEmbedding.erase(vEmbedding.begin() + i);
+				else ++i;
+			}
+		}
 		//LogUpdate(" Updating lowlevel physics took %d ms\n",mpWorld3D->GetSystem()->GetLowLevel()->GetTime() - lTime);
 
 		////////////////////////////////////
@@ -158,6 +170,12 @@ namespace hpl {
 
 	void iPhysicsWorld::DestroyBody(iPhysicsBody* apBody)
 	{
+		for(iPhysicsBody *pBody : mlstBodies)
+		{
+			std::vector<iPhysicsBody*> &vEmbedding = pBody->GetEmbeddingBodies();
+			vEmbedding.erase(std::remove(vEmbedding.begin(), vEmbedding.end(), apBody), vEmbedding.end());
+		}
+
 		//STLFindAndDelete(mlstBodies, apBody);
 		tPhysicsBodyListIt it = mlstBodies.begin();
 		for(; it != mlstBodies.end(); ++it)
@@ -407,6 +425,21 @@ namespace hpl {
 		float fDepth = 0;
 		for(int i=0; i<data.mlNumOfPoints; ++i) fDepth = cMath::Max(fDepth, data.mvContactPoints[i].mfDepth);
 		return fDepth;
+	}
+
+	//-----------------------------------------------------------------------
+
+	float iPhysicsWorld::mfScriptReleaseDepth = 0;
+
+	int iPhysicsWorld::LetOutOfStaticBodies(iPhysicsBody *apBody, float afMinDepth)
+	{
+		apBody->GetEmbeddingBodies().clear();
+		for(iPhysicsBody *pOther : mlstBodies)
+		{
+			if(pOther == apBody || pOther->GetMass() != 0 || pOther->IsCharacter() || pOther->GetCollide()==false) continue;
+			if(GetBodyOverlap(apBody, pOther) >= afMinDepth) apBody->AddEmbeddingBody(pOther);
+		}
+		return (int)apBody->GetEmbeddingBodies().size();
 	}
 
 	//-----------------------------------------------------------------------

@@ -22,6 +22,8 @@
 #include "scene/Entity3D.h"
 #include "graphics/GraphicsTypes.h"
 
+#include <vector>
+
 namespace hpl {
 
 	class iPhysicsWorld;
@@ -237,6 +239,16 @@ namespace hpl {
 
 		void SetPassThroughStatic(bool abX){mbPassThroughStatic = abX;}
 		bool GetPassThroughStatic() const { return mbPassThroughStatic;}
+		// Static bodies this one passes through until it no longer overlaps
+		// them: those it was inside when a script made it dynamic (see
+		// iPhysicsWorld::LetOutOfStaticBodies). Not saved.
+		void AddEmbeddingBody(iPhysicsBody *apBody){ mvEmbeddingBodies.push_back(apBody);}
+		bool IsEmbeddingBody(iPhysicsBody *apBody) const
+		{
+			for(iPhysicsBody *pBody : mvEmbeddingBodies) if(pBody == apBody) return true;
+			return false;
+		}
+		std::vector<iPhysicsBody*>& GetEmbeddingBodies(){ return mvEmbeddingBodies;}
 
 		void SetIsCharacter(bool abX){ mbIsCharacter = abX;}
 		bool IsCharacter(){ return mbIsCharacter;}
@@ -359,6 +371,7 @@ namespace hpl {
 		bool mbStaticFriction;
 		iPhysicsBody *mpPassThroughBody;
 		bool mbPassThroughStatic;
+		std::vector<iPhysicsBody*> mvEmbeddingBodies;
 	};
 };
 #endif // HPL_PHYSICS_BODY_H

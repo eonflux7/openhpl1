@@ -1145,8 +1145,17 @@ namespace hpl {
 
 		if(sLowProp == "mass")
 		{
+			bool bMadeDynamic = pBody->GetMass() == 0 && afVal > 0;
 			pBody->SetMass(afVal);
 			pBody->SetEnabled(true);
+
+			float fReleaseDepth = iPhysicsWorld::GetScriptReleaseDepth();
+			if(bMadeDynamic && fReleaseDepth > 0)
+			{
+				int lNum = gpScene->GetWorld3D()->GetPhysicsWorld()->LetOutOfStaticBodies(pBody, fReleaseDepth);
+				if(lNum > 0) Log("Body '%s' made dynamic inside %d static bodies; it passes through them until out\n",
+								pBody->GetName().c_str(), lNum);
+			}
 
 			if(afVal == 0)
 			{

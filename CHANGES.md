@@ -5,6 +5,44 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Scripted bodies let out of the level (2026-11-09)
+
+- Black Plague: level 1's vent grille, unscrewed with the coin, tipped back
+  into the vent and stayed there leaning, blocking it (issue #2). The map
+  places it about 1 cm into the frame round it (vent ceiling, floor lip,
+  wall, trims). When the script gives it a mass and a push, Newton 2 pushed
+  it out of the vent ceiling with about 10 kN, which held the top while the
+  bottom slid out. A static body that a script's `SetBodyProperty "Mass"`
+  makes dynamic now passes through the static bodies it is 5 mm or more
+  inside until it no longer overlaps them
+  (`iPhysicsWorld::LetOutOfStaticBodies`), and the grille falls forward
+  onto the floor, about 0.8 s after the push (the script plays its impact
+  sound at 0.73 s). Level 20's grille `vent01`, which did not move, now
+  falls out too; `vent02` moves 3 cm instead of not at all. Only for Black
+  Plague and Requiem: Overture's level01_16 wall and boulder moved
+  differently with it, and Overture has no report of a problem there.
+- Newton 1.53 compared: the original `blackplague.bin` exports Newton's
+  symbols. Its `dgContact::JacobianContactDerivative` pushes bodies out of
+  each other at `10 * softness * min(depth, 0.5)` m/s, once per step, for a
+  direct solver; Newton 2.36 uses 50 and pushes again in every solver pass
+  for contacts deeper than 1 cm. Newton 2.36 changed to the 1.53 values, with
+  the release off, still leaves the grille in the vent (leaning 13 degrees
+  instead of 26), so the push-out is part of the difference but not all of
+  it. The release stays a workaround in the engine's terms.
+- `OPENHPL_PHYSTRACE=name1,name2` (with `OPENHPL_PHYSLOG`) logs those bodies
+  every frame they are awake.
+- Known limits: the list of bodies passed through is not saved, and a body
+  that moves further into one of them instead of out is not stopped.
+
+Validation: build, CTest and ASan CTest (`detect_leaks=0`) pass. Headless
+(SDL offscreen, NVIDIA GL) runs of level 1's coin sequence, level 20's vent
+event and Overture's level01_16 boulder/wall, with and without the release:
+the results above. The ASan smoke test of level01_cells and level20 reported
+0 failures but exited with 1: ASan's new-delete-type-mismatch in the vendored
+`cOAL_EFXManager::Destroy` on exit (a reverb effect deleted through a type
+without a virtual destructor), not looked into. Played in the game: the
+grille falls onto the floor.
+
 ## Sliders placed inside the level (2026-11-06)
 
 - The vertical door by the valve in `level01_17_worm_nest` would not open

@@ -31,6 +31,38 @@ static bool IsTracked(iPhysicsBody *apBody)
 	return apBody->GetMass() > 0 && !apBody->IsCharacter();
 }
 
+// OPENHPL_PHYSTRACE=name1,name2 logs those bodies every frame they are awake.
+static bool IsTraced(const tString &asName)
+{
+	static tStringVec vNames;
+	static bool bRead = false;
+	if(!bRead)
+	{
+		bRead = true;
+		const char *pVal = SDL_getenv("OPENHPL_PHYSTRACE");
+		if(pVal) cString::GetStringVec(pVal, vNames, nullptr);
+	}
+	for(const tString &sName : vNames)
+		if(sName == asName) return true;
+	return false;
+}
+
+static void TraceBody(float afTime, iPhysicsBody *apBody)
+{
+	const cMatrixf &mtx = apBody->GetWorldMatrix();
+	cVector3f vPos = mtx.GetTranslation();
+	// The axes are the matrix's columns (GetUp() and GetForward() give rows)
+	cVector3f vUp(mtx.m[0][1], mtx.m[1][1], mtx.m[2][1]), vFwd(mtx.m[0][2], mtx.m[1][2], mtx.m[2][2]);
+	cVector3f vCentre = apBody->GetMassCentre();
+	cVector3f vVel = apBody->GetLinearVelocity(), vAng = apBody->GetAngularVelocity();
+	Log("PHYSTRACE: %7.3f %s pos (%.3f %.3f %.3f) up (%.2f %.2f %.2f) fwd (%.2f %.2f %.2f) "
+		"vel (%.2f %.2f %.2f) ang (%.2f %.2f %.2f) mass %.1f centre (%.3f %.3f %.3f)%s%s%s\n",
+		afTime, apBody->GetName().c_str(), vPos.x, vPos.y, vPos.z, vUp.x, vUp.y, vUp.z,
+		vFwd.x, vFwd.y, vFwd.z, vVel.x, vVel.y, vVel.z, vAng.x, vAng.y, vAng.z,
+		apBody->GetMass(), vCentre.x, vCentre.y, vCentre.z, apBody->IsSleeping() ? " sleeping" : "",
+		apBody->IsFrozen() ? " frozen" : "", apBody->GetCollideCharacter() ? "" : " nocharcollide");
+}
+
 //-----------------------------------------------------------------------
 
 cPhysicsLog::cPhysicsLog(cInit *apInit) : iUpdateable("PhysicsLog")
@@ -56,6 +88,8 @@ void cPhysicsLog::Reset()
 	mfMapTimeSeconds = 0;
 	m_mapBodies.clear();
 	m_mapJoints.clear();
+	m_setTraceLogged.clear();
+	m_mapTraceNext.clear();
 	mPlayerState = ePlayerState_LastEnum;
 	mpHeldBody = nullptr;
 	mpReleasedBody = nullptr;
@@ -89,6 +123,17 @@ void cPhysicsLog::Update(float afTimeStep)
 	while(bodyIt.HasNext())
 	{
 		iPhysicsBody *pBody = bodyIt.Next();
+		if(IsTraced(pBody->GetName()))
+		{
+			// Every frame it moves, and every 2 s while it does not
+			bool bLogged = m_setTraceLogged.count(pBody) > 0;
+			if(!pBody->IsSleeping() || !bLogged || mfMapTimeSeconds >= m_mapTraceNext[pBody])
+			{
+				TraceBody(mfMapTimeSeconds, pBody);
+				m_setTraceLogged.insert(pBody);
+				m_mapTraceNext[pBody] = mfMapTimeSeconds + 2;
+			}
+		}
 		if(!IsTracked(pBody)) continue;
 
 		std::map<iPhysicsBody*, cBodyTrack>::iterator it = m_mapBodies.find(pBody);
@@ -123,6 +168,17 @@ void cPhysicsLog::StartWorld(cWorld3D *apWorld)
 	while(bodyIt.HasNext())
 	{
 		iPhysicsBody *pBody = bodyIt.Next();
+		if(IsTraced(pBody->GetName()))
+		{
+			// Every frame it moves, and every 2 s while it does not
+			bool bLogged = m_setTraceLogged.count(pBody) > 0;
+			if(!pBody->IsSleeping() || !bLogged || mfMapTimeSeconds >= m_mapTraceNext[pBody])
+			{
+				TraceBody(mfMapTimeSeconds, pBody);
+				m_setTraceLogged.insert(pBody);
+				m_mapTraceNext[pBody] = mfMapTimeSeconds + 2;
+			}
+		}
 		if(!IsTracked(pBody)) continue;
 
 		// Report the state the map starts in, then only changes from it.

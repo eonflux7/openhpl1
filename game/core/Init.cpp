@@ -366,6 +366,13 @@ bool cInit::Init(tString asCommandLine)
 	// 1 cm was tried first: from 3 mm up, small bodies never come to rest
 	// (they shake and creep off shelves; the map checks' settle test).
 	if(mGameId != eGameId_Overture) iPhysicsMaterial::SetContactSkin(0.002f);
+	// Black Plague: a static body a script makes dynamic passes through the
+	// static bodies it is 5 mm or more inside until it is out of them (more
+	// than bodies resting on something sink into it). Level 1's vent grille,
+	// 1 cm into the frame round it, was held there when pushed and tipped back
+	// into the vent (issue #2). Overture is left as it was: its scripted
+	// boulder and wall in level01_16 move differently with it.
+	if(mGameId != eGameId_Overture) iPhysicsWorld::SetScriptReleaseDepth(0.005f);
 	// For tests: OPENHPL_CONTACT_SKIN=<metres> sets it for any game
 	if(SDL_getenv("OPENHPL_CONTACT_SKIN"))
 		iPhysicsMaterial::SetContactSkin(cString::ToFloat(SDL_getenv("OPENHPL_CONTACT_SKIN"), 0));
