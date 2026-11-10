@@ -107,6 +107,7 @@ namespace hpl {
 		//Newton only takes a rigid matrix: a scaled one (Black Plague's maps place
 		//the artefact statue with its mesh scale) makes the body NaN under Newton 2,
 		//and one NaN body hides most of the world from ray casts. Remove the scale.
+		bool bScaled = false;
 		for(int i=0; i<3; ++i)
 		{
 			cVector3f vAxis(mtxTranspose.m[i][0], mtxTranspose.m[i][1], mtxTranspose.m[i][2]);
@@ -114,7 +115,20 @@ namespace hpl {
 			if(fLength > 0 && std::fabs(fLength - 1) > 1e-4f)
 			{
 				for(int j=0; j<3; ++j) mtxTranspose.m[i][j] /= fLength;
+				bScaled = true;
 			}
+		}
+
+		//The body keeps the rigid matrix too. Newton's first step would give it
+		//anyway, but until then its bounding volume had the scale: level 19's
+		//rocks (x200) and trash can lids (x33) were lifted metres "out of the
+		//floor" into the air at load.
+		if(bScaled)
+		{
+			pRigidBody->m_mtxLocalTransform.FromTranspose(&mtxTranspose.m[0][0]);
+			cPhysicsBodyNewton::mbUseCallback = false;
+			pRigidBody->SetTransformUpdated(true);
+			cPhysicsBodyNewton::mbUseCallback = true;
 		}
 
 		NewtonBodySetMatrix(pRigidBody->mpNewtonBody, &mtxTranspose.m[0][0]);

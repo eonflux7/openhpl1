@@ -5,6 +5,37 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Scaled bodies keep no scale (2026-11-10)
+
+- Black Plague: level 19's trash can lid was stuck in the ceiling and a rock
+  hung 48 m up (found while triaging issue #2). The maps place these
+  references with editor scales (lids ×33, rocks ×60–200; Black Plague and
+  Overture have many smaller ones). Newton is given the matrix without the
+  scale (since the statue fix of 2026-10-06), but the body kept the scaled
+  one until Newton's first step replaced it, so its bounding volume was up
+  to 180 m across when `LiftBodiesOutOfFloors` ran at load. That function
+  took the body to be under the floor and lifted it by the volume's height
+  (lid 7.7 m, rock 48 m). The body now keeps the rigid matrix as soon as it
+  is set. Meshes already drew without the scale after the first step, so
+  their sizes do not change.
+- `tools/levelview.py start` passes `OPENHPL_PHYSTRACE` to the game.
+- Level 20's `vent02` (no change): it has no mass and is not for the
+  player. The script knocks it loose with `vent01` when Clarence wakes up,
+  pushing both along +x. `vent01` falls into its room, but `vent02` faces the
+  other way and is pushed into its duct, where it wedges between the
+  duct's side walls (the grille is 8 mm wider than the duct) after 3 cm.
+  The room behind it has a door, so nothing is blocked. How far it went in
+  the original was not checked.
+- Validation: headless level 19, before: lid01 lifted 7.674 m and left
+  asleep at y 3.04, rock202 lifted 48.2 m; after: lid01 rests at y 0.17,
+  rock202 at 0.21, and only the bodies that are really low (plasticbarrel02,
+  crate07) are lifted, by the same amounts as before. Build and CTest pass.
+  ASan smoke (`detect_leaks=0`, leaks not checked): Black Plague levels 2,
+  4, 7, 16, 18, 19 and 20, and all 28 Overture maps, 0 failures. Both runs
+  exit with 1 only for the known `cOAL_EFXManager::Destroy`
+  new-delete-type-mismatch at quit, alongside AngelScript's known
+  `as_string.cpp` nonnull warning. Not checked in the game.
+
 ## Pushed bodies slide over the lips of holes (2026-11-10)
 
 - Black Plague: level 4's crate beside the ladder hole could not be pushed

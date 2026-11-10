@@ -560,7 +560,7 @@ def start(args):
     path = windows_path if windows else (lambda p: p)
     env = dict(os.environ)
     for name in [n for n in env if n.startswith("OPENHPL_")]:
-        if name not in ("OPENHPL_GL_DEBUG", "OPENHPL_SHADER_DIR", "OPENHPL_PHYSLOG"):
+        if name not in ("OPENHPL_GL_DEBUG", "OPENHPL_SHADER_DIR", "OPENHPL_PHYSLOG", "OPENHPL_PHYSTRACE"):
             del env[name]
     env["OPENHPL_GAME"] = args.game
     env["OPENHPL_PROFILE_ROOT"] = path(profile)
