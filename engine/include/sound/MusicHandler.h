@@ -109,6 +109,10 @@ namespace hpl {
 
 		void Update(float afTimeStep);
 
+		/** The music bus gain (0-1), multiplied into every song's volume. */
+		void SetBusVolume(float afVolume);
+		float GetBusVolume(){ return mfBusVolume;}
+
 	private:
 		iLowLevelSound* mpLowLevelSound;
 		cResources* mpResources;
@@ -117,6 +121,7 @@ namespace hpl {
 		cMusicEntry* mpMainSong;
 		cMusicLock* mpLock;
 		bool mbIsPaused;
+		float mfBusVolume;
 
 
 		bool LoadAndStart(const tString& asFileName,cMusicEntry* apSong  ,float afVolume, bool abLoop);

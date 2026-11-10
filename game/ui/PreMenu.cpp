@@ -349,7 +349,9 @@ void cPreMenu::Update(float afTimeStep)
 			else
 				mbFadeRainSound = false;
             
-			mfRaindropFade = mpRainSound->GetVolume();
+			// The entry's volume, not the channel's: the channel includes the
+			// ambience bus, which must not dim the raindrops.
+			mfRaindropFade = pEntry->mfNormalVolume * pEntry->mfNormalVolumeMul;
 		}
 		else
 		{

@@ -43,6 +43,7 @@ namespace hpl {
 		mpMainSong = nullptr;
 		mpLock  = nullptr;
 		mbIsPaused = false;
+		mfBusVolume = 1;
 	}
 
 	//-----------------------------------------------------------------------
@@ -267,9 +268,9 @@ namespace hpl {
 				}
 
 
-				if(mpMainSong->mpStream->GetVolume()!=mpMainSong->mfVolume)
+				if(mpMainSong->mpStream->GetVolume()!=mpMainSong->mfVolume * mfBusVolume)
 				{
-					mpMainSong->mpStream->SetVolume(mpMainSong->mfVolume);
+					mpMainSong->mpStream->SetVolume(mpMainSong->mfVolume * mfBusVolume);
 				}
 			}
 		}
@@ -293,7 +294,7 @@ namespace hpl {
 			}
 			else
 			{
-				pSong->mpStream->SetVolume(pSong->mfVolume);
+				pSong->mpStream->SetVolume(pSong->mfVolume * mfBusVolume);
 				it++;
 			}
 		}
@@ -304,6 +305,13 @@ namespace hpl {
 	//////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	void cMusicHandler::SetBusVolume(float afVolume)
+	{
+		mfBusVolume = cMath::Clamp(afVolume, 0.0f, 1.0f);
+	}
 
 	//-----------------------------------------------------------------------
 
@@ -323,7 +331,7 @@ namespace hpl {
 
 		apSong->msFileName = asFileName;
 		apSong->mpStream = pStream;
-		apSong->mpStream->SetVolume(afVolume);
+		apSong->mpStream->SetVolume(afVolume * mfBusVolume);
 		apSong->mpStream->SetLooping(abLoop);
 
 		apSong->mpStream->Play();

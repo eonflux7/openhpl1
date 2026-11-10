@@ -132,6 +132,30 @@ past `AL_REFERENCE_DISTANCE`, 1 m by default): factor 10 at 30 m removed
 about 26 dB above 8 kHz. A realistic factor of 1 is about −1.6 dB at 5 kHz
 at 30 m, which game sounds' max distances rarely reach.
 
+## Volume buses
+
+The Sound menu's volume (`[Sound] Volume`) is the master: the listener gain.
+Under it, four buses scale sounds by kind, each with a menu row and a
+setting (0–1, default 1):
+
+| Bus | Setting | Sounds |
+|---|---|---|
+| Music | `MusicVolume` | everything `cMusicHandler` plays, and handler sounds under `music/` |
+| Voice | `VoiceVolume` | files under `sounds/voices/` (the intro story, Black Plague's radio) |
+| Ambience | `AmbienceVolume` | any other looping sound: machinery, wind, water, pre-menu rain |
+| Effects | `EffectsVolume` | everything else |
+
+`cSoundHandler::BusForSound` picks the bus from the file path the sound
+manager resolved (now kept in `iResourceBase::GetFilePath`) and whether the
+sound loops; the path match is case-insensitive and folder-based, so a file
+named `musicbox` is still an effect. The bus gain is a multiplier in the
+handlers, applied with every volume they send, so a change takes effect at
+the next update with sounds playing; OpenAL only sees the product. Game
+logic doesn't see it: enemy hearing uses sound-entity data volumes, saves
+store song volumes before the bus, and the pre-menu raindrops follow the
+rain entry's volume rather than its channel's. `cSound::SetBusVolume` sets
+the music bus in both handlers.
+
 ## Reverb
 
 Sound environments (`.snt`, `Type="OpenAL"`) are read into
@@ -167,6 +191,9 @@ game data or audio device. It covers:
 - the occlusion low-pass: off when clear, blocked GainHF on the direct path
   and send when blocked, following the block fade, detached when clear,
   off when `OcclusionGainHF` is 1, and reset on a reused source
+- bus rules (voices, music, looping, folder-only matching, backslashes) and
+  routing: `cSoundHandler::Update` on real channels scales each entry by
+  its bus only, mutes a bus at 0 without stopping it, and clamps gains
 
 A real unplug can't be simulated on the null backend; the reconnect path
 is checked by hand.

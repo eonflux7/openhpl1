@@ -241,12 +241,15 @@ the original game as well as tests.
      but at realistic factors it's about 1.6 dB at 30 m, so it isn't used.
      Steam Audio is still only worth it if measured CPU cost allows and the
      gain is audible; it would add to EFX reverb, not replace it.
-3. **Volume buses with options-menu sliders** (modernization 6).
-   - Master, music, SFX, voice and ambience gains, as multipliers in the
-     sound and music handlers rather than in OpenAL.
-   - First decide how a sound gets its category: sound-entity data, the
-     file path (`sounds/voice/…`), or how it is played (looping sound
-     entities count as ambience).
+3. **Done (code and tests; listening and the menu page on screen not yet
+   checked): volume buses with options-menu rows** (modernization 6). See
+   [audio](audio.md#volume-buses).
+   - Master (the existing volume), music, effects, voice and ambience
+     gains, as multipliers in the sound and music handlers rather than in
+     OpenAL.
+   - Category, decided 2026-11-10: the music handler and `music/` are
+     music, `sounds/voices/` is voice (by the resolved file path), other
+     looping sounds are ambience, the rest effects.
    - Ducking and snapshots (menus, cutscenes, underwater) come later, and
      only where a scene needs one. The handlers already fade and pause by
      sound type.
@@ -276,8 +279,9 @@ Not needed:
   path, with sources surviving `alcReopenDeviceSOFT`. A real unplug can't
   be simulated on the null backend and is checked by hand.
 - step 2: filter state when sounds are blocked and cleared.
-- step 3: bus routing, in the engine's sound-handler tests rather than the
-  backend's, since the buses are handler gains.
+- step 3: bus routing. Done in `audio_regressions`, which drives
+  `cSoundHandler::Update` on real channels, since the buses are handler
+  gains and need a device to read back.
 - step 4: reverb slot gains during a crossfade.
 
 Stream continuity, source filtering and shutdown order are already covered.

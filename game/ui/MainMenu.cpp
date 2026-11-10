@@ -1162,6 +1162,42 @@ public:
 	}
 };
 
+// Volume buses under the master volume. The labels and tips are English
+// only; the language files don't have them.
+cMainMenuWidget_Text *gpSoundBusText[eSoundBus_LastEnum] = {};
+
+static tWString SoundBusText(cInit *apInit, eSoundBus aBus)
+{
+	char sTemp[32];
+	snprintf(sTemp, sizeof(sTemp), "%.0f", apInit->mpGame->GetSound()->GetBusVolume(aBus)*100);
+	return cString::To16Char(sTemp);
+}
+
+class cMainMenuWidget_SoundBus : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_SoundBus(cInit *apInit, eSoundBus aBus, const cVector3f &avPos, const tWString& asText,
+							 const tWString& asTip, cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment), mBus(aBus)
+	{
+		msTip = asTip;
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cSound *pSound = mpInit->mpGame->GetSound();
+		float fVolume = pSound->GetBusVolume(mBus);
+		if(aButton == eMButton_Left) fVolume = cMath::Min(fVolume + 0.1f, 1.0f);
+		else if(aButton == eMButton_Right) fVolume = cMath::Max(fVolume - 0.1f, 0.0f);
+		// Snap to tenths so repeated steps don't drift.
+		pSound->SetBusVolume(mBus, std::round(fVolume * 10) / 10);
+		gpSoundBusText[mBus]->msText = SoundBusText(mpInit, mBus);
+	}
+
+private:
+	eSoundBus mBus;
+};
+
 class cMainMenuWidget_SoundHardware : public cMainMenuWidget_Button
 {
 public:
@@ -4077,9 +4113,23 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 37;
 	
 	//Buttons
-	cMainMenuWidget *pWidgetSoundVolume = hplNew( cMainMenuWidget_SoundVolume, (mpInit,vPos,kTranslate("MainMenu","Sound Volume:"),20,eFontAlign_Right) );  
-	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundVolume); 
+	cMainMenuWidget *pWidgetSoundVolume = hplNew( cMainMenuWidget_SoundVolume, (mpInit,vPos,kTranslate("MainMenu","Sound Volume:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundVolume);
 	vPos.y += 29;
+	const eSoundBus vMenuBuses[] = { eSoundBus_Music, eSoundBus_Effects, eSoundBus_Voice, eSoundBus_Ambience };
+	const wchar_t *vBusLabels[] = { L"Music:", L"Effects:", L"Voice:", L"Ambience:" };
+	const wchar_t *vBusTips[] = {
+		L"Volume of the music, relative to the sound volume.",
+		L"Volume of sound effects, relative to the sound volume.",
+		L"Volume of spoken lines and radio messages, relative to the sound volume.",
+		L"Volume of looping background sounds such as machinery, wind and water, relative to the sound volume." };
+	cMainMenuWidget *vBusWidgets[4];
+	for(int i=0; i<4; ++i)
+	{
+		vBusWidgets[i] = hplNew( cMainMenuWidget_SoundBus, (mpInit,vMenuBuses[i],vPos,vBusLabels[i],vBusTips[i],20,eFontAlign_Right) );
+		AddWidgetToState(eMainMenuState_OptionsSound,vBusWidgets[i]);
+		vPos.y += 29;
+	}
 	cMainMenuWidget *pWidgetSoundHardware = hplNew( cMainMenuWidget_SoundHardware, (mpInit,vPos,kTranslate("MainMenu","Use Hardware:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHardware); 
 	vPos.y += 29;
@@ -4103,6 +4153,14 @@ void cMainMenu::CreateWidgets()
 	gpSoundVolumeText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundVolumeText); 
 	gpSoundVolumeText->SetExtraWidget(pWidgetSoundVolume);
+
+	for(int i=0; i<4; ++i)
+	{
+		vPos.y += 29;
+		gpSoundBusText[vMenuBuses[i]] = hplNew( cMainMenuWidget_Text, (mpInit,vPos,SoundBusText(mpInit,vMenuBuses[i]),20,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsSound,gpSoundBusText[vMenuBuses[i]]);
+		gpSoundBusText[vMenuBuses[i]]->SetExtraWidget(vBusWidgets[i]);
+	}
 
 	vPos.y += 29;
 	sText = mpInit->mbUseSoundHardware ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");

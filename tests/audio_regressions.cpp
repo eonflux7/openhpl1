@@ -7,6 +7,7 @@
 #include "impl/OpenALDevice.h"
 #include "impl/OpenALSoundChannel.h"
 #include "impl/OpenALSoundEnvironment.h"
+#include "sound/MusicHandler.h"
 #include "sound/SoundHandler.h"
 
 #include <chrono>
@@ -289,6 +290,76 @@ static void TestOcclusionFilter()
 
 //-----------------------------------------------------------------------
 
+static void TestBusRules()
+{
+	const char *kVoice = "/games/Penumbra Overture/sounds/voices/eng/intro_01_01.ogg";
+	Check(cSoundHandler::BusForSound(kVoice, false) == eSoundBus_Voice, "sounds/voices is the voice bus");
+	Check(cSoundHandler::BusForSound("sounds\\Voices\\radio_02.ogg", true) == eSoundBus_Voice,
+		  "voice paths match with backslashes and any case, even looping");
+	Check(cSoundHandler::BusForSound("music/penumbra_music_E1_I.ogg", false) == eSoundBus_Music, "music/ is the music bus");
+	Check(cSoundHandler::BusForSound("sounds/iron_mine/machine_loop.ogg", true) == eSoundBus_Ambience,
+		  "other looping sounds are ambience");
+	Check(cSoundHandler::BusForSound("sounds/break/glass.ogg", false) == eSoundBus_Effects, "one-shots are effects");
+	Check(cSoundHandler::BusForSound("", false) == eSoundBus_Effects, "an unknown path is an effect");
+	Check(cSoundHandler::BusForSound("sounds/musicbox.ogg", false) == eSoundBus_Effects,
+		  "only a music folder counts, not a file name");
+}
+
+// The handler multiplies each entry's volume by its bus gain at every update.
+static void TestBusRouting()
+{
+	cLowLevelSoundOpenAL lowLevel; // uninitialized: only its listener matrix is used
+	cOpenALDevice device;
+	if(!device.Open(Params(4, false))) { Check(false, "device opens for bus test"); return; }
+	std::unique_ptr<cOpenALSample> pSample = MakeSample(1);
+	{
+		cSoundHandler handler(&lowLevel, nullptr); // deletes its channels before the device closes
+		const eSoundBus vBuses[] = { eSoundBus_Effects, eSoundBus_Voice, eSoundBus_Ambience };
+		iSoundChannel *vChannels[3];
+		for(int i = 0; i < 3; ++i)
+		{
+			int lHandle = device.PlaySample(pSample.get(), 10, 1, true);
+			vChannels[i] = new cOpenALSoundChannel(nullptr, &device, lHandle, nullptr);
+			vChannels[i]->SetPositionRelative(true);
+			cSoundEntry entry;
+			entry.mpSound = vChannels[i];
+			entry.mfNormalVolume = 0.8f;
+			entry.mfNormalSpeed = 1;
+			entry.mfBlockMul = entry.mfBlockFadeDest = 1;
+			entry.mfBlockFadeSpeed = 1;
+			entry.mbFirstTime = true;
+			entry.mEffectType = eSoundDest_Gui;
+			entry.mBus = vBuses[i];
+			handler.GetGuiEntryList()->push_back(entry);
+		}
+
+		handler.Update(1.0f / 60);
+		bool bUnity = true;
+		for(iSoundChannel *pChannel : vChannels) bUnity = bUnity && std::fabs(pChannel->GetVolume() - 0.8f) < 1e-5f;
+		Check(bUnity, "buses at 1 leave volumes unchanged");
+
+		handler.SetBusVolume(eSoundBus_Voice, 0.5f);
+		handler.SetBusVolume(eSoundBus_Ambience, 0);
+		handler.Update(1.0f / 60);
+		Check(std::fabs(vChannels[0]->GetVolume() - 0.8f) < 1e-5f, "other buses leave effects alone");
+		Check(std::fabs(vChannels[1]->GetVolume() - 0.4f) < 1e-5f, "the voice bus scales voice entries");
+		Check(vChannels[2]->GetVolume() == 0, "a muted bus silences its entries");
+		Check(handler.GetGuiEntryList()->size() == 3, "a muted entry keeps playing");
+
+		handler.SetBusVolume(eSoundBus_Voice, 3);
+		Check(handler.GetBusVolume(eSoundBus_Voice) == 1, "bus gains are clamped to 1");
+		handler.SetBusVolume((eSoundBus)99, 0.5f);
+		Check(handler.GetBusVolume((eSoundBus)99) == 1, "an unknown bus is ignored");
+
+		cMusicHandler music(&lowLevel, nullptr);
+		music.SetBusVolume(-1);
+		Check(music.GetBusVolume() == 0, "the music bus is clamped to 0");
+	}
+	device.Close();
+}
+
+//-----------------------------------------------------------------------
+
 static void TestStreaming(bool abThread)
 {
 	cOpenALDevice device;
@@ -494,6 +565,8 @@ int hplMain(const hpl::tString&)
 	TestVoiceStealing();
 	TestHandlesAndPause();
 	TestOcclusionFilter();
+	TestBusRules();
+	TestBusRouting();
 	TestStreaming(false);
 	TestStreaming(true);
 	TestLoaders(dir);

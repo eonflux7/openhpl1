@@ -55,6 +55,7 @@ namespace hpl {
 		unsigned long GetHandle(){return mlHandle;}
 		void SetHandle(unsigned long alHandle){mlHandle=alHandle;}
 		tString GetFilePath(){return msFilePath;}
+		void SetFilePath(const tString &asFilePath){ msFilePath = asFilePath;}
 		unsigned long GetTime(){return mlTime;}
 		unsigned long GetPrio(){return mlPrio;}
 		unsigned long GetSize(){return mlSize;}

@@ -52,6 +52,7 @@ namespace hpl {
 		mfNewVolume=1;
 		mfVolumeRate=0;
 		mfBlockedGainHF=0.25f;
+		for(float &fBus : mvBusVolume) fBus = 1;
 
 		mpWorld3D = nullptr;
 
@@ -228,13 +229,14 @@ namespace hpl {
 		Entry.mbFirstTime = true;
 
 		Entry.mEffectType = aEffectType;
+		Entry.mBus = BusForSound(pSound->GetData() ? pSound->GetData()->GetFilePath() : "", abLoop);
 
 		////////////////////////
 		//Set start volume
 		//GUI
 		if(mType == eSoundDest_Gui)
 		{
-			pSound->SetVolume(afVolume);
+			pSound->SetVolume(afVolume * mvBusVolume[Entry.mBus]);
 		}
 		//World
 		else
@@ -327,6 +329,7 @@ namespace hpl {
 		Entry.mbStream = true;
 
 		Entry.mEffectType = aEffectType;
+		Entry.mBus = BusForSound(pData->GetFilePath(), abLoop);
 
 		/////////////////////////
 		//Setup position
@@ -565,6 +568,38 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cSoundHandler::SetBusVolume(eSoundBus aBus, float afVolume)
+	{
+		if(aBus < 0 || aBus >= eSoundBus_LastEnum) return;
+		mvBusVolume[aBus] = cMath::Clamp(afVolume, 0.0f, 1.0f);
+	}
+
+	float cSoundHandler::GetBusVolume(eSoundBus aBus)
+	{
+		if(aBus < 0 || aBus >= eSoundBus_LastEnum) return 1;
+		return mvBusVolume[aBus];
+	}
+
+	//-----------------------------------------------------------------------
+
+	eSoundBus cSoundHandler::BusForSound(const tString& asFilePath, bool abLoop)
+	{
+		tString sPath = "/" + cString::ToLowerCase(asFilePath);
+		for(char &c : sPath) if(c == '\\') c = '/';
+		if(sPath.find("/voices/") != tString::npos) return eSoundBus_Voice;
+		if(sPath.find("/music/") != tString::npos) return eSoundBus_Music;
+		return abLoop ? eSoundBus_Ambience : eSoundBus_Effects;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cSoundHandler::SetEntryVolume(cSoundEntry* apEntry, float afVolume)
+	{
+		apEntry->mpSound->SetVolume(afVolume * mvBusVolume[apEntry->mBus]);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cSoundHandler::SetBlockedGainHF(float afX)
 	{
 		mfBlockedGainHF = cMath::Clamp(afX, 0.0f, 1.0f);
@@ -710,7 +745,7 @@ namespace hpl {
 			//3D Position!
 			if(apEntry->mbStream)
 			{
-				apEntry->mpSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
+				SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
 			}
 			//else if(apEntry->mpSound->Get3D())
 			if(apEntry->mpSound->Get3D())
@@ -729,11 +764,11 @@ namespace hpl {
 
 					if(apEntry->mEffectType & mAffectedByVolume)
 					{
-						pSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
+						SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
 					}
 					else
 					{
-						pSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul);
+						SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul);
 					}
 				}
 				else
@@ -752,7 +787,7 @@ namespace hpl {
 					{
 						if(fDist< pSound->GetMinDistance())
 						{
-							pSound->SetVolume(apEntry->mfNormalVolume); //some other stuff to support volume effects
+							SetEntryVolume(apEntry, apEntry->mfNormalVolume); //some other stuff to support volume effects
 						}
 						else
 						{
@@ -760,7 +795,7 @@ namespace hpl {
 											(pSound->GetMaxDistance() - pSound->GetMinDistance()) );
 							fVolume *= apEntry->mfNormalVolume;
 
-							pSound->SetVolume(fVolume);
+							SetEntryVolume(apEntry, fVolume);
 						}
 						float fPan = 1- (0.5f - 0.4f*(fDX / pSound->GetMaxDistance()));
 						pSound->SetPan(fPan);
@@ -800,11 +835,11 @@ namespace hpl {
 
 			if(apEntry->mEffectType & mAffectedByVolume)
 			{
-				pSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
+				SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
 			}
 			else
 			{
-				pSound->SetVolume(apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul);
+				SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul);
 			}
 		}
 		else
@@ -910,11 +945,11 @@ namespace hpl {
 
 				if(apEntry->mEffectType & mAffectedByVolume)
 				{
-					pSound->SetVolume(fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);
+					SetEntryVolume(apEntry, fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);
 				}
 				else
 				{
-					pSound->SetVolume(fBlock * fVolume * apEntry->mfNormalVolumeMul);
+					SetEntryVolume(apEntry, fBlock * fVolume * apEntry->mfNormalVolumeMul);
 				}
 
 				UpdateBlockFilter(apEntry, mfBlockedGainHF);

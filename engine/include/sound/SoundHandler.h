@@ -23,6 +23,7 @@
 #include "system/SystemTypes.h"
 #include "math/MathTypes.h"
 #include "physics/PhysicsWorld.h"
+#include "sound/Sound.h"
 
 namespace hpl {
 
@@ -67,7 +68,7 @@ namespace hpl {
 	public:
 		cSoundEntry() : mfNormalVolume(1), mfNormalVolumeFadeDest(1),
 						mfNormalVolumeMul(1), mfNormalVolumeFadeSpeed(0), mbStream(false),
-						mfBlockRayTime(0), mfFilterGainHF(1){}
+						mfBlockRayTime(0), mfFilterGainHF(1), mBus(eSoundBus_Effects){}
 
 		void Update(float afTimeStep);
 
@@ -93,6 +94,8 @@ namespace hpl {
 		float mfBlockRayTime;
 		// Low-pass GainHF last sent to the channel; 1 means the filter is off.
 		float mfFilterGainHF;
+
+		eSoundBus mBus;
 
 		eSoundDest mEffectType;
 	};
@@ -170,6 +173,13 @@ namespace hpl {
 		void SetBlockedGainHF(float afX);
 		float GetBlockedGainHF(){ return mfBlockedGainHF;}
 
+		void SetBusVolume(eSoundBus aBus, float afVolume);
+		float GetBusVolume(eSoundBus aBus);
+
+		/** The bus for a sound file: voices/ and music/ folders by path,
+		 * other looping sounds are ambience, the rest effects. */
+		static eSoundBus BusForSound(const tString& asFilePath, bool abLoop);
+
 		// Seconds between blocking rays for one sound.
 		static constexpr float kBlockRayInterval = 0.5f;
 
@@ -205,6 +215,7 @@ namespace hpl {
 		tFlag mAffectedByVolume;
 
 		float mfBlockedGainHF;
+		float mvBusVolume[eSoundBus_LastEnum];
 
 		cWorld3D *mpWorld3D;
 
@@ -215,6 +226,7 @@ namespace hpl {
 		cSoundEntry* GetEntry(const tString& asName);
 		bool UpdateEntry(cSoundEntry* apEntry,float afTimeStep, tFlag aTypes);
 		void UpdateDistanceVolume3D(cSoundEntry* apEntry,float afTimeStep,bool abFade,tFlag aTypes);
+		void SetEntryVolume(cSoundEntry* apEntry, float afVolume);
 
 		int mlCount;
 		int mlIdCount;

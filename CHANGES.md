@@ -5,6 +5,31 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Volume buses (2026-11-10)
+
+- The Sound menu has Music, Effects, Voice and Ambience rows under the
+  sound (master) volume, saved as `[Sound] MusicVolume`, `EffectsVolume`,
+  `VoiceVolume` and `AmbienceVolume` (0–1, default 1). They apply at once.
+  The labels and tips are English only.
+- A sound's bus comes from its resolved file path and whether it loops:
+  `sounds/voices/` is voice, `music/` and the music handler are music,
+  other looping sounds are ambience, the rest effects. Sound data now keeps
+  its resolved path (`iResourceBase::GetFilePath` was never set before).
+- The gains are multipliers in the sound and music handlers. Enemy
+  hearing, saves and the pre-menu raindrops don't depend on them; the
+  raindrops read the rain entry's volume instead of the channel's.
+- `iSoundChannel` now initializes its 3D flag and pan, which were left
+  uninitialized (UBSan found the 3D flag being read in the new test).
+- Reference captures add the Sound options page (`2d-menu_sound`).
+- Validation: `audio_regressions` adds the bus rules and routing through
+  `cSoundHandler::Update` with real channels; mutating the routing makes it
+  fail. Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The ASan
+  Overture smoke test (isolated profile, null backend) passes with no new
+  warnings and saves the four settings. In a live session the boat map's
+  loops were classed as ambience, its horn as an effect and
+  `intro_01_01` (`sounds/voices/eng/`) as voice. Not checked: the menu
+  page on screen (capture needs gamescope), listening, Windows.
+
 ## Occlusion low-pass (2026-11-10)
 
 - Blocked 3D sounds are muffled as well as quieter. The original enabled a

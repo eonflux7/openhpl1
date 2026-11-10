@@ -100,10 +100,11 @@ Scene preservation is still open: comparisons below include real mismatches.
       output-device option). HRTF/output mode and device recovery are
       implemented and tested on the null backend; listen with HRTF on
       headphones, switch devices from the menu and unplug a device while
-      music plays. Occlusion filtering is implemented and tested; listen
-      to blocked sounds behind doors and walls. Then follow the
-      [audio plan](docs/audio-review.md#plan): volume buses with menu
-      sliders, then reverb crossfades.
+      music plays. Occlusion filtering and volume buses are implemented
+      and tested; listen to blocked sounds behind doors and walls, and
+      check the Sound menu's Music/Effects/Voice/Ambience rows and that
+      each moves only its kind of sound. Then follow the
+      [audio plan](docs/audio-review.md#plan): reverb crossfades.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
       Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
       the completed game captures above use Windows/NVIDIA and Steam assets.

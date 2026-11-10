@@ -45,6 +45,8 @@ namespace hpl {
 			mbLooping=false;
 			mbPaused=true;
 			mbPositionRelative=false;
+			mb3D=false;
+			mfPan=0.5f;
 
 			mfSpeed=1;
 			mfVolume=1;
