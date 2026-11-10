@@ -5,6 +5,24 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Resizable debug panels, kept between runs (2026-11-10)
+
+- The F2 panel's windows were fixed in width and fitted their contents
+  every frame, so they could not be resized. They now open once at a set
+  size (Render 28x24 em, God 26x34 em; Move, Views and Level editor fit
+  their contents) and can then be resized, down to three quarters of that
+  width. The God window's item tables fill it down to the Give row.
+- ImGui keeps the windows' places and sizes in `debug_panels.ini`, next to
+  `settings.cfg` in the profile (`iLowLevelGraphics::SetDebugPanelIniFile`,
+  set by `cInit`). Before this nothing was written, so that ImGui would not
+  leave a file in the game's data directory (the working directory). The
+  F3 stats window is still not saved.
+- Validation: Linux build without warnings, `ctest --test-dir build`
+  passes. In the editor (`levelview.py`, 1080x720), dragging the God
+  window's left edge widened it from 335 to 512 px and its table followed.
+  After the game was stopped and started again, the window came back at that
+  position and size (`[Window][God] Pos=558,271 Size=515,442`).
+
 ## Compact debug panels: Render, Move and God (2026-11-10)
 
 - F2 used to open seven floating windows at once (Reference views, Player,

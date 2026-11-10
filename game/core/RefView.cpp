@@ -700,11 +700,14 @@ void cRefView::ApplyOptions()
 
 //-----------------------------------------------------------------------
 
-// A window of the panel: placed once, its corner or middle at the same
-// fraction of the screen (0: left or top, 1: right or bottom), as wide as
-// asked and as high as what is in it, under the menu bar. End() it if this
-// returns true.
-bool cRefView::BeginWindow(const char *asName, bool *apShow, float afX, float afY, float afWidthEm)
+// A window of the panel, under the menu bar. The first time it is shown it
+// is put with its corner or middle at the same fraction of the screen (0:
+// left or top, 1: right or bottom), at the size asked for (a height of 0
+// fits what is in it). After that it is where and as large as it was left:
+// ImGui keeps that in debug_panels.ini, next to settings.cfg. End() it if
+// this returns true.
+bool cRefView::BeginWindow(const char *asName, bool *apShow, float afX, float afY, float afWidthEm,
+						   float afHeightEm)
 {
 	const ImVec2 vAnchor(afX, afY), vPivot(afX, afY);
 	if(*apShow==false) return false;
@@ -718,8 +721,11 @@ bool cRefView::BeginWindow(const char *asName, bool *apShow, float afX, float af
 	ImVec2 vMax(pViewport->Pos.x + pViewport->Size.x - fMargin, pViewport->Pos.y + pViewport->Size.y - fMargin);
 	ImGui::SetNextWindowPos(ImVec2(vMin.x + (vMax.x - vMin.x) * vAnchor.x, vMin.y + (vMax.y - vMin.y) * vAnchor.y),
 							ImGuiCond_FirstUseEver, vPivot);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * afWidthEm, 0), ImVec2(fEm * afWidthEm, vMax.y - vMin.y));
-	if(ImGui::Begin(asName, apShow, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+	ImGui::SetNextWindowSize(ImVec2(fEm * afWidthEm, cMath::Min(fEm * afHeightEm, vMax.y - vMin.y)),
+							 ImGuiCond_FirstUseEver);
+	// Narrower than this and the sliders' names are cut off
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * afWidthEm * 0.75f, fEm * 4), ImVec2(FLT_MAX, FLT_MAX));
+	if(ImGui::Begin(asName, apShow))
 		return true;
 	ImGui::End();
 	return false;
@@ -800,7 +806,7 @@ void cRefView::DrawMenuBar()
 // settings.cfg.
 void cRefView::DrawRenderWindow()
 {
-	if(BeginWindow("Render", &mbShowRender, 0, 0, 28)==false) return;
+	if(BeginWindow("Render", &mbShowRender, 0, 0, 28, 24)==false) return;
 
 	if(ImGui::BeginTabBar("##render", ImGuiTabBarFlags_FittingPolicyShrink))
 	{
@@ -844,7 +850,7 @@ void cRefView::DrawRenderWindow()
 // The reference images' places and the viewpoints they are taken from
 void cRefView::DrawViewsWindow()
 {
-	if(BeginWindow("Views", &mbShowViews, 0.5f, 0, 26)==false) return;
+	if(BeginWindow("Views", &mbShowViews, 0.5f, 0, 26, 0)==false) return;
 
 	// The frame the view is at, named as tools/refshots.py saves it
 	if(mbAtView && mbHoldDirection)
@@ -871,7 +877,7 @@ void cRefView::DrawViewsWindow()
 
 void cRefView::DrawEditorWindow()
 {
-	if(BeginWindow("Level editor", &mbShowEditor, 0.5f, 1, 30)==false) return;
+	if(BeginWindow("Level editor", &mbShowEditor, 0.5f, 1, 30, 0)==false) return;
 	mpInit->mpLevelEditor->Draw();
 	ImGui::End();
 }

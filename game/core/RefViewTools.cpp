@@ -46,7 +46,7 @@ static tString ItemNameFromFile(const tString &asFile)
 
 void cRefView::DrawMoveWindow()
 {
-	if(BeginWindow("Move", &mbShowMove, 1, 0, 22)==false) return;
+	if(BeginWindow("Move", &mbShowMove, 1, 0, 22, 0)==false) return;
 
 	const float fEm = ImGui::GetFontSize();
 	bool bInGame = msViewsMap != "" && msWaitMap == "" &&
@@ -182,7 +182,7 @@ void cRefView::DrawBookmarks()
 
 void cRefView::DrawGodWindow()
 {
-	if(BeginWindow("God", &mbShowGod, 1, 1, 26)==false) return;
+	if(BeginWindow("God", &mbShowGod, 1, 1, 26, 34)==false) return;
 
 	bool bInGame = msViewsMap != "" && msWaitMap == "" &&
 					mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
@@ -263,6 +263,14 @@ void cRefView::DrawGodWindow()
 
 //-----------------------------------------------------------------------
 
+// The line under the God window's tabs that says what was last given
+float cRefView::ItemMessageHeight()
+{
+	return msItemMessage != "" ? ImGui::GetTextLineHeightWithSpacing() : 0.0f;
+}
+
+//-----------------------------------------------------------------------
+
 void cRefView::FindItemFiles()
 {
 	mbItemFilesFound = true;
@@ -321,7 +329,10 @@ void cRefView::DrawItems(bool abQuest)
 
 	const ImGuiTableFlags lFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersInnerV |
 									ImGuiTableFlags_SizingStretchProp;
-	if(ImGui::BeginTable("##items", 2, lFlags, ImVec2(0, fEm * 14)))
+	// To the bottom of the window, above the name and Give
+	float fFooter = ImGui::GetFrameHeightWithSpacing() + ItemMessageHeight();
+	float fHeight = cMath::Max(ImGui::GetContentRegionAvail().y - fFooter, fEm * 6);
+	if(ImGui::BeginTable("##items", 2, lFlags, ImVec2(0, fHeight)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
@@ -395,7 +406,8 @@ void cRefView::DrawMapItems()
 	const ImGuiTableFlags lFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersInnerV |
 									ImGuiTableFlags_SizingStretchProp;
 	int lCount = 0;
-	if(ImGui::BeginTable("##mapitems", 3, lFlags, ImVec2(0, fEm * 16)))
+	float fHeight = cMath::Max(ImGui::GetContentRegionAvail().y - ItemMessageHeight(), fEm * 6);
+	if(ImGui::BeginTable("##mapitems", 3, lFlags, ImVec2(0, fHeight)))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
@@ -428,9 +440,14 @@ void cRefView::DrawMapItems()
 				ImGui::SetTooltip("Picks it up as if the player had: its pickup callbacks run");
 			ImGui::PopID();
 		}
+		if(lCount == 0)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::TextDisabled("No items left in this map.");
+		}
 		ImGui::EndTable();
 	}
-	if(lCount == 0) ImGui::TextDisabled("No items left in this map.");
 }
 
 //-----------------------------------------------------------------------

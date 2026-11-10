@@ -646,6 +646,9 @@ bool cInit::Init(tString asCommandLine)
 	mbUseSoundHardware = mpGame->GetSound()->GetLowLevel()->IsHardwareAccelerated();
 
 	mpGame->GetGraphics()->GetLowLevel()->SetVsyncActive(mbVsync);
+	// The debug panels' places and sizes, next to the settings
+	mpGame->GetGraphics()->GetLowLevel()->SetDebugPanelIniFile(
+		cString::GetFilePath(cString::To8Char(gsUserSettingsPath)) + "debug_panels.ini");
 
 	mbShowPreMenu = mpConfig->GetBool("Game","ShowPreMenu",true);
 	mbShowMenu = mpConfig->GetBool("Game","ShowMenu",true);

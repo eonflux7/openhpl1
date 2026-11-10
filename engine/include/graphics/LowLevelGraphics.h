@@ -639,6 +639,8 @@ namespace hpl {
 		virtual void SetDebugPanel(std::function<void()> aDraw)=0;
 		/// Gives ImGui the mouse and the keyboard, and frees the pointer.
 		virtual void SetDebugPanelInput(bool abX)=0;
+		/// Where ImGui keeps the windows' places and sizes; "" for nowhere.
+		virtual void SetDebugPanelIniFile(const tString &asFile)=0;
 		/**
 		 * While the panel has the input: the pointer is hidden and held, and
 		 * its motion is gathered for TakeDebugPanelMouseMotion() instead of

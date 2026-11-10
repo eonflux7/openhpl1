@@ -44,9 +44,9 @@ namespace hpl {
 		ImGui::CreateContext();
 
 		ImGuiIO& io = ImGui::GetIO();
-		// The working directory is the game's data directory: keep ImGui's
-		// files out of it.
-		io.IniFilename = nullptr;
+		// The working directory is the game's data directory: ImGui's files
+		// go to the profile, if the game says where (SetIniFile).
+		io.IniFilename = msIniFile.empty() ? nullptr : msIniFile.c_str();
 		io.LogFilename = nullptr;
 		// The game hides the system pointer; ImGui draws its own while it
 		// has the input (see Draw).
@@ -80,6 +80,15 @@ namespace hpl {
 
 		mbInitialized = true;
 		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cDebugOverlay::SetIniFile(const std::string &asFile)
+	{
+		// Before the context is made: it reads the file on its first frame
+		if(mbInitialized) return;
+		msIniFile = asFile;
 	}
 
 	//-----------------------------------------------------------------------

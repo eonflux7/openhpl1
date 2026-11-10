@@ -94,7 +94,7 @@ public:
 
 private:
 	static void Tip(const char *apText);
-	bool BeginWindow(const char *asName, bool *apShow, float afX, float afY, float afWidthEm);
+	bool BeginWindow(const char *asName, bool *apShow, float afX, float afY, float afWidthEm, float afHeightEm);
 	void Draw();
 	void DrawMenuBar();
 	void DrawRenderWindow();
@@ -109,6 +109,7 @@ private:
 	void DrawItems(bool abQuest);
 	void DrawMapItems();
 	void FindItemFiles();
+	float ItemMessageHeight();
 	void UpdateMoveAndGod();
 	void MoveCameraTo(const cVector3f &avPos, float afYaw, float afPitch);
 	void DrawPlayerEffects();

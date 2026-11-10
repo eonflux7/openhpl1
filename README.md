@@ -381,7 +381,10 @@ the top switches the panel's windows on and off:
 
 Options such as no flicker and cannot be hurt apply once something in the
 panel is used; flashlight and HUD are left as they are until switched. The
-panels use Dear ImGui's pixel font at its own size, without scaling. While
+panels use Dear ImGui's pixel font at its own size, without scaling. The
+windows can be moved and resized (double-click an edge to fit what is in
+it); their places and sizes are kept in `debug_panels.ini` next to
+`settings.cfg`. While
 the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the
