@@ -92,6 +92,14 @@ Scene preservation is still open: comparisons below include real mismatches.
       the 25 shipped-map smoke test, exit 0. See [audio lifecycle](docs/audio.md)
       and [validation](CHANGES.md#efx-slot-startup-crashes-2026-10-19).
       This does not close the separate heap-corruption-on-exit report.
+- [ ] Validate the direct OpenAL Soft backend that replaced OALWrapper
+      (`feat/better-audio`, [audio](docs/audio.md)) where it could not be
+      checked on Linux: the MSVC build and Windows smoke, and listening in
+      the game (music and stream continuity across map loads, reverb
+      transitions between sectors, voice stealing in busy scenes, the
+      output-device option). Then follow the [audio plan](docs/audio-review.md#plan):
+      HRTF/output mode and device recovery, occlusion filtering, volume
+      buses with menu sliders, then reverb crossfades.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
       Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
       the completed game captures above use Windows/NVIDIA and Steam assets.

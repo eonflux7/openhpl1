@@ -21,32 +21,30 @@
 
 #include "sound/SoundData.h"
 
-#include "OALWrapper/OAL_Funcs.h"
+#include <memory>
 
 namespace hpl {
+
+	class cOpenALDevice;
+	class cOpenALSample;
+	class cOpenALStream;
 
 	class cOpenALSoundData : public iSoundData
 	{
 	public:
-		cOpenALSoundData(tString asName, bool abStream);
+		cOpenALSoundData(tString asName, bool abStream, cOpenALDevice* apDevice);
 		~cOpenALSoundData() override;
 
 		bool CreateFromFile(const tString &asFile) override;
 
 		iSoundChannel* CreateChannel(int alPriority) override;
 
-		bool IsStream(){ return mbStream;}
-
 		bool IsStereo() override;
 
-		cOAL_Sample*	GetSample(){ return ( mpSample ); } //static_cast<cOAL_Sample*> (mpSoundData));}
-		cOAL_Stream*	GetStream(){ return ( mpStream ); } //static_cast<cOAL_Stream*> (mpSoundData));}
-
 	private:
-		cOAL_Sample*	mpSample;
-		cOAL_Stream*	mpStream;
-
-//iOAL_Loadable*	mpSoundData;
+		cOpenALDevice* mpDevice;
+		std::unique_ptr<cOpenALSample> mpSample;
+		std::unique_ptr<cOpenALStream> mpStream;
 	};
 };
 #endif // HPL_OPENAL_SOUND_DATA_H

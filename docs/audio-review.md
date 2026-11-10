@@ -4,8 +4,32 @@ Review of the audio stack on `feat/better-audio`, based on main at 4b105f7.
 Covers `engine/sources/impl/*OpenAL*`, `engine/sources/sound/`,
 `engine/sources/resources/SoundManager.cpp`, the game's music/sound-environment
 handlers and the vendored OALWrapper (`vendor/oalwrapper`, about 6.6k lines).
-Nothing below is implemented or measured yet. Line references point to the
-tree at that commit.
+Line references point to the tree at that commit.
+
+## Status (2026-11-10)
+
+Decision: replace OALWrapper rather than patch it. The engine used about 70
+of its functions, mostly through four adapter files, and its two worker
+threads held both threading defects found so far. The reverb (EFX) thread
+only reattached the effect, which the engine already did itself.
+
+Done on this branch (see [audio](audio.md) and CHANGES):
+
+- OALWrapper removed. `cOpenALDevice` talks to OpenAL Soft through the
+  system headers (modernization 1), keeps OALWrapper's source, priority and
+  stream rules, and uses one mutex that never depends on a flag (defect 1).
+- Defect 2: `StreamBufferSize` is read as KiB (64 KiB × 4 blocks); the 50 Hz
+  refill floor is gone.
+- Defect 5: malformed sound-environment files are rejected safely.
+- Defect 6 (partly): fades no longer send an uninitialized `DecayHFRatio`.
+  The parameter-lerp fade itself is unchanged.
+- Defect 7: `NULL` and empty device names open the default device without
+  an error; `ALC_FREQUENCY` is no longer forced to 44.1 kHz.
+- Defect 8: the leaked environment and the unused effect are gone. `SetPan`
+  stays a no-op as before.
+- Modernization 7: no `alGetError` after every call.
+
+The remaining work and its order are in [Plan](#plan).
 
 ## Stack in brief
 
@@ -180,13 +204,71 @@ Ordered by value for the risk involved.
   - unplugging and replugging a device
 - Windows build and smoke separately; MSVC does not run CTest.
 
-## Suggested order of work
+## Plan
 
-1. Defect 1 with a regression test, then defects 5, 7 and 8 (small and
-   self-contained).
-2. Defect 2, then remove the 50 Hz workaround.
-3. System headers (modernization 1), HRTF/output mode and hot-plug.
-4. Occlusion low-pass and time-based blocking (defects 3 and 4). Compare
-   these by listening against the original game.
-5. Reverb slot-gain crossfade (defect 6), then decide on equal-power fades
-   and volume buses.
+Agreed 2026-11-10, after the backend replacement. Steps change what
+players hear from step 2 on, so each needs a listening comparison against
+the original game as well as tests.
+
+0. **Done:** the direct OpenAL Soft backend replaced OALWrapper, and
+   defects 1, 2, 5, 7 and 8 are fixed (see [Status](#status-2026-11-10)).
+1. **HRTF/output mode and device recovery** (modernization 2 and 3).
+   - Add a `Sound.HRTF` setting (auto/on/off) and an output mode
+     (`ALC_HRTF_SOFT`, `ALC_OUTPUT_MODE_SOFT`), shown in the options menu
+     next to the device list. Music and UI streams use
+     `AL_DIRECT_CHANNELS_SOFT`, so HRTF doesn't virtualise them.
+   - Check `ALC_CONNECTED` each frame. On loss, `alcReopenDeviceSOFT` moves
+     to the default device and keeps the context, sources and buffers.
+     Changing device from the menu uses the same call instead of a restart.
+   - A sample-rate setting is optional and stays unset by default.
+     Consider `AL_SOFT_source_spatialize` only for stereo world sounds that
+     should be positioned.
+2. **Occlusion** (defects 3 and 4).
+   - Blocked sounds get a low-pass (`GainHF`) that fades in and out, and the
+     filter turns off when the ray is clear.
+   - Blocking rays and the global speed fade run on time, not per frame.
+   - The raycast plus low-pass stays the default. Per-source air absorption
+     comes after it, but first check whether OpenAL Soft applies it with
+     the engine's `AL_NONE` distance model. Steam Audio only if measured CPU
+     cost allows it and the quality gain is audible; it would add to EFX
+     reverb, not replace it.
+3. **Volume buses with options-menu sliders** (modernization 6).
+   - Master, music, SFX, voice and ambience gains, as multipliers in the
+     sound and music handlers rather than in OpenAL.
+   - First decide how a sound gets its category: sound-entity data, the
+     file path (`sounds/voice/…`), or how it is played (looping sound
+     entities count as ambience).
+   - Ducking and snapshots (menus, cutscenes, underwater) come later, and
+     only where a scene needs one. The handlers already fade and pause by
+     sound type.
+4. **Reverb crossfades** (defect 6). EFX sector reverb stays: it is cheap,
+   authored in the games' environment files and part of the original feel.
+   Fade the slot gain, or crossfade two slots, instead of interpolating
+   every parameter toward zero. Decide on equal-power music fades at the
+   same time.
+
+Also planned: cache sound-variant counts (modernization 5).
+
+**On demand only** (no shipped asset needs them):
+- FLAC or Opus, through `dr_flac` or `opusfile` rather than miniaudio or
+  libsndfile.
+- `AL_SOFT_loop_points` and ambisonic/B-format.
+- Snapshots beyond those in step 3.
+
+Not needed:
+- A fixed 50 Hz refill rate. Stream stutter came from 4 KiB buffers. With
+  4 × 64 KiB queued, the worker's 5–50 ms wake-ups leave about 1.5 s of
+  headroom; the rule is to keep enough audio queued, not a refill rate.
+- Streaming from `.zip` addons. They are unpacked to `cache/addons/`, so
+  the decoders read them as ordinary files.
+
+**Tests to add with each step** (`audio_regressions`, null backend):
+- step 1: HRTF on/off, read back through `ALC_HRTF_STATUS_SOFT`; the reopen
+  path, with sources surviving `alcReopenDeviceSOFT`. A real unplug can't
+  be simulated on the null backend and is checked by hand.
+- step 2: filter state when sounds are blocked and cleared.
+- step 3: bus routing, in the engine's sound-handler tests rather than the
+  backend's, since the buses are handler gains.
+- step 4: reverb slot gains during a crossfade.
+
+Stream continuity, source filtering and shutdown order are already covered.

@@ -6,7 +6,6 @@ by its own licence. The licence texts are in the listed files.
 TinyXML 2.5.2 (zlib)                     vendor/tinyxml/LICENSE
 AngelScript 2.38 (zlib)                  vendor/angelscript/LICENSE
 Newton Game Dynamics 2.36 (zlib)         vendor/newton/LICENSE
-OALWrapper (zlib)                        vendor/oalwrapper/LICENSE
 Dear ImGui 1.92.9b (MIT)                 vendor/imgui/LICENSE.txt
 glad (WTFPL or CC0-1.0, and Apache-2.0)  vendor/glad/LICENSE
 SMAA area/search textures (MIT)          vendor/smaa/LICENSE.txt

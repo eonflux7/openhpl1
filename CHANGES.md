@@ -5,6 +5,69 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Direct OpenAL Soft backend replaces OALWrapper (2026-11-10)
+
+- The vendored OALWrapper (about 6.6k lines, with 2006-era copies of the AL
+  headers) is removed. `cOpenALDevice` (`engine/{include,sources}/impl/
+  OpenALDevice.*`) uses OpenAL Soft through the system headers. The
+  `cOpenAL*` adapters and everything above them keep their interfaces. See
+  [audio](docs/audio.md); the review and the plan for the remaining work are
+  in [audio review](docs/audio-review.md).
+- Behaviour kept from OALWrapper:
+  - a fixed pool of `MaxSoundChannels` sources
+  - one voice per data channel
+  - stealing only below the requested priority, with streams at 256
+  - handles that carry a generation, so stale ones are ignored
+  - sounds created paused
+  - streams that stay bound until stopped
+  - gain clamped to (0, 1] and pitch to (0, 10]
+  - `AL_NONE` distance model
+- Threading: one `std::mutex` guards all sources and streams. Locking never
+  depends on whether the worker runs, the worker's stop flag is atomic, and
+  `Close` joins the worker before releasing anything. OALWrapper's stream
+  manager took its locks only while a plain `bool` was set and cleared it
+  during shutdown, the same pattern as the EFX slot crashes of 2026-10-19.
+  Its EFX worker thread is gone: it only reattached the effect, which the
+  engine already did.
+- Fixed:
+  - `StreamBufferSize=64` meant 64 bytes and was ignored, so streams queued
+    4 KiB blocks (~93 ms). It is now read as KiB (4 × 64 KiB, about 1.5 s),
+    and the 50 Hz refill floor is gone.
+  - Reverb fades sent an uninitialized `DecayHFRatio`, because the fade
+    environment's constructor initialized nothing.
+  - A sound-environment file without its root, `Main` element or `Type`
+    attribute crashed the parser; it is now rejected.
+  - Device name `NULL` (the shipped default) logged an open failure before
+    opening the default device; it now opens the default device directly.
+  - Output is no longer forced to 44.1 kHz.
+  - The ASan new-delete-type-mismatch in `cOAL_EFXManager::Destroy` at
+    quit, which made every ASan smoke run exit with 1, is gone with the
+    wrapper.
+- Ogg files decode with vorbisfile through the engine's own file
+  callbacks. WAV files decode with SDL3; formats other than 8/16-bit PCM
+  are converted, and more than two channels are folded to stereo. The main
+  menu's device list uses `iLowLevelSound::GetOutputDevices`.
+- Validation:
+  - Build and CTest pass, and the ASan/UBSan CTest passes
+    (`detect_leaks=0`; leaks not checked).
+  - `audio_regressions` is rewritten for the new device (null backend, with
+    a 0.5 s Ogg fixture) and passes three runs in a row.
+  - A ThreadSanitizer build of `audio_regressions` passes. Its 64 reports
+    are all between OpenAL Soft's own mixer thread and calls into the
+    uninstrumented `libopenal`; none involve the stream worker or engine
+    data.
+  - All 2,772 `.ogg` and `.wav` files of the installed Overture and Black
+    Plague load with the new decoders (every Ogg also as a stream).
+  - ASan smoke (`OPENHPL_HIDDEN=1`, `ALSOFT_DRIVERS=null`, isolated
+    profiles; gamescope not installed): Overture 28/28 maps and Black Plague
+    29/29 maps, 0 failures, both exit 0. The only sanitizer report is
+    AngelScript's known `as_string.cpp` warning. The `Couldn't create
+    SoundEntity` errors in both logs name `.snt` files that are not in the
+    game data.
+- Not checked: Requiem, the MSVC build and Windows smoke, and listening in
+  the game (music across map loads, reverb transitions, voice stealing in
+  busy scenes, the output-device option).
+
 ## Windows package built by the release workflow (2026-11-10)
 
 - `.github/workflows/release.yml` has a Windows job: `windows-latest`, a

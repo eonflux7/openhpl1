@@ -88,6 +88,11 @@ namespace hpl {
 		virtual void FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT )=0;
 
 		iSoundEnvironment* GetSoundEnvironmentFromFileName (const tString& asName);
+
+		/** Output devices that can be passed to Init as the device name. */
+		virtual tStringVec GetOutputDevices() { return tStringVec(); }
+		/** Name of the device in use, or an empty string. */
+		virtual tString GetDeviceName() { return ""; }
 		//void DestroySoundEnvironment( iSoundEnvironment* apSoundEnv);
 
 

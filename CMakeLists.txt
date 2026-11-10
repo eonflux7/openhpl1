@@ -134,13 +134,6 @@ target_include_directories(angelscript SYSTEM PUBLIC
 target_compile_options(angelscript PRIVATE ${OPENHPL_NO_WARNINGS})
 target_link_libraries(angelscript PUBLIC Threads::Threads)
 
-# OALWrapper (zlib), Frictional Games' OpenAL helper
-file(GLOB oalwrapper_sources CONFIGURE_DEPENDS vendor/oalwrapper/sources/*.cpp)
-add_library(oalwrapper STATIC ${oalwrapper_sources})
-target_include_directories(oalwrapper SYSTEM PUBLIC vendor/oalwrapper/include)
-target_link_libraries(oalwrapper PUBLIC OpenAL::OpenAL overture_vorbis SDL3::SDL3)
-target_compile_options(oalwrapper PRIVATE ${OPENHPL_NO_WARNINGS})
-
 # TinyXML 2.x (zlib), as shipped with HPL1
 file(GLOB tinyxml_sources CONFIGURE_DEPENDS vendor/tinyxml/*.cpp)
 add_library(tinyxml STATIC ${tinyxml_sources})
@@ -190,7 +183,8 @@ target_include_directories(hpl PUBLIC engine/include)
 # The area and search textures of the SMAA reference implementation
 target_include_directories(hpl SYSTEM PRIVATE vendor/smaa)
 target_link_libraries(hpl PUBLIC
-	newton angelscript oalwrapper tinyxml glad imgui cgltf miniz
+	newton angelscript tinyxml glad imgui cgltf miniz
+	OpenAL::OpenAL overture_vorbis
 	SDL3::SDL3 SDL3_image::SDL3_image
 	Freetype::Freetype
 	OpenGL::GL
@@ -251,7 +245,9 @@ if(BUILD_TESTING)
 	set_tests_properties(engine_regressions PROPERTIES
 		ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
 	add_executable(audio_regressions tests/audio_regressions.cpp)
-	target_link_libraries(audio_regressions PRIVATE oalwrapper)
+	target_link_libraries(audio_regressions PRIVATE hpl)
+	target_compile_definitions(audio_regressions PRIVATE
+		OPENHPL_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
 	overture_warnings(audio_regressions)
 	add_test(NAME audio_regressions COMMAND audio_regressions)
 	set_tests_properties(audio_regressions PROPERTIES

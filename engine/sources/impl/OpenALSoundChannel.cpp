@@ -17,10 +17,8 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/OpenALSoundChannel.h"
-#include "impl/OpenALSoundData.h"
+#include "impl/OpenALDevice.h"
 #include "resources/SoundManager.h"
-
-#include "math/Math.h"
 
 namespace hpl {
 
@@ -30,33 +28,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cOpenALSoundChannel::cOpenALSoundChannel(iSoundData* apData, int alChannel,cSoundManager* apSoundManger)
-	: iSoundChannel(apData, apSoundManger)
+	cOpenALSoundChannel::cOpenALSoundChannel(iSoundData* apData, cOpenALDevice* apDevice, int alHandle,
+											 cSoundManager* apSoundManger)
+	: iSoundChannel(apData, apSoundManger), mpDevice(apDevice), mlHandle(alHandle)
 	{
-		mlChannel = alChannel;
-
-
-		for(int i=0;i<3;i++)
-		{
-			mfPosition[i] = 0;
-			mfVelocity[i] = 0;
-		}
-
-		OAL_Source_SetAttributes ( mlChannel, mfPosition, mfVelocity );
-		OAL_Source_SetFilterType(mlChannel, eOALFilterType_LowPass);
-//		SetAffectedByEnv(true);
-//		SetFilterGainHF(0.01f);
-
-//		SetFiltering(true,0x3);
-//		OAL_Source_SetMinMaxDistance ( mlChannel, 100000.0f, 200000.f );
+		const float vZero[3] = {0,0,0};
+		mpDevice->SetPositionVelocity(mlHandle, vZero, vZero);
+		mpDevice->SetLowPassFilter(mlHandle, true);
 	}
 
 	//-----------------------------------------------------------------------
 
 	cOpenALSoundChannel::~cOpenALSoundChannel()
 	{
-		if(mlChannel>=0)
-			OAL_Source_Stop ( mlChannel );
+		if(mlHandle>=0)
+			mpDevice->Stop(mlHandle);
 
 		if(mpSoundManger)mpSoundManger->Destroy(mpData);
 	}
@@ -71,8 +57,6 @@ namespace hpl {
 
 	void cOpenALSoundChannel::Play()
 	{
-		//Log("Playing %s - Source %d Ref %d\n",mpData->GetName().c_str(), mlChannel & 0xFFF, (mlChannel & 0x7ffff000) >> 12);
-
 		SetPaused(false);
 
 		mbStopUsed = false;
@@ -82,9 +66,8 @@ namespace hpl {
 
 	void cOpenALSoundChannel::Stop()
 	{
-		//Log("Stopping %s - Source %d Ref %d\n",mpData->GetName().c_str(), mlChannel & 0xFFF, (mlChannel & 0x7ffff000) >> 12);
-		OAL_Source_Stop ( mlChannel );
-		mlChannel = -1;
+		mpDevice->Stop(mlHandle);
+		mlHandle = -1;
 
 		mbStopUsed = true;
 	}
@@ -93,15 +76,8 @@ namespace hpl {
 
 	void cOpenALSoundChannel::SetPaused(bool abX)
 	{
-//		Log("Setting %s %spaused! - Source %d\n",mpData->GetName().c_str(),abX?"":"un", mlChannel);
-
 		mbPaused = abX;
-		OAL_Source_SetPaused ( mlChannel, abX );
-
-//		if(mbPaused)
-//		{
-			//Log("Setting %s paused!\n",mpData->GetName().c_str());
-//		}
+		mpDevice->SetPaused(mlHandle, abX);
 	}
 
 	//-----------------------------------------------------------------------
@@ -109,8 +85,7 @@ namespace hpl {
 	void cOpenALSoundChannel::SetSpeed(float afSpeed)
 	{
 		mfSpeed = afSpeed;
-
-		OAL_Source_SetPitch ( mlChannel, afSpeed );
+		mpDevice->SetPitch(mlHandle, afSpeed);
 	}
 
 	//-----------------------------------------------------------------------
@@ -118,8 +93,7 @@ namespace hpl {
 	void cOpenALSoundChannel::SetVolume(float afVolume)
 	{
 		mfVolume = afVolume;
-
-		OAL_Source_SetVolume(mlChannel, mfVolume);
+		mpDevice->SetGain(mlHandle, mfVolume);
 	}
 
 	//-----------------------------------------------------------------------
@@ -127,19 +101,14 @@ namespace hpl {
 	void cOpenALSoundChannel::SetLooping (bool abLoop)
 	{
 		mbLooping = abLoop;
-
-		OAL_Source_SetLoop ( mlChannel, abLoop );
+		mpDevice->SetLoop(mlHandle, abLoop);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetPan (float afPan)
 	{
-		//Log("Pan: %d\n", lPan);
-//		cVector3f vPosition = mvPosition;
-//		vPosition.x =
-//		OAL_Source_SetAttributes ( mlChannel, mvPosition.
-//		FSOUND_SetPan(mlChannel, lPan);
+		mfPan = afPan;
 	}
 
 	//-----------------------------------------------------------------------
@@ -153,8 +122,8 @@ namespace hpl {
 
 	void cOpenALSoundChannel::SetPositionRelative(bool abRelative)
 	{
+		// The sound handler converts relative positions to world space itself.
 		mbPositionRelative = abRelative;
-//		OAL_Source_SetPositionRelative ( mlChannel, abRelative );
 	}
 
 	//-----------------------------------------------------------------------
@@ -162,8 +131,7 @@ namespace hpl {
 	void cOpenALSoundChannel::SetPosition(const cVector3f &avPos)
 	{
 		mvPosition = avPos;
-
-		OAL_Source_SetAttributes ( mlChannel, mvPosition.v, mvVelocity.v );
+		mpDevice->SetPositionVelocity(mlHandle, mvPosition.v, mvVelocity.v);
 	}
 
 	//-----------------------------------------------------------------------
@@ -171,8 +139,7 @@ namespace hpl {
 	void cOpenALSoundChannel::SetVelocity(const cVector3f &avVel)
 	{
 		mvVelocity = avVel;
-
-		OAL_Source_SetAttributes ( mlChannel, mvPosition.v, mvVelocity.v );
+		mpDevice->SetPositionVelocity(mlHandle, mvPosition.v, mvVelocity.v);
 	}
 
 	//-----------------------------------------------------------------------
@@ -188,12 +155,26 @@ namespace hpl {
 	{
 		mfMaxDistance = afMax;
 	}
+
 	//-----------------------------------------------------------------------
 
 	bool cOpenALSoundChannel::IsPlaying()
 	{
-		return OAL_Source_IsPlaying( mlChannel );
+		return mpDevice->IsPlaying(mlHandle);
 	}
+
+	//-----------------------------------------------------------------------
+
+	double cOpenALSoundChannel::GetElapsedTime()
+	{
+		return mpDevice->GetElapsedTime(mlHandle);
+	}
+
+	double cOpenALSoundChannel::GetTotalTime()
+	{
+		return mpDevice->GetTotalTime(mlHandle);
+	}
+
 	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetPriority(int alX)
@@ -201,53 +182,38 @@ namespace hpl {
 		int lPrio = alX+mlPriorityModifier;
 		if(lPrio>255)lPrio = 255;
 
-		OAL_Source_SetPriority ( mlChannel, lPrio );
+		mpDevice->SetPriority(mlHandle, lPrio);
 	}
 
 	//-----------------------------------------------------------------------
 
 	int cOpenALSoundChannel::GetPriority()
 	{
-		return OAL_Source_GetPriority ( mlChannel );
+		return mpDevice->GetPriority(mlHandle);
 	}
 
 	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetAffectedByEnv(bool abAffected)
 	{
-//		if (!(gpGame->GetSound()->GetLowLevel()->IsEnvAudioAvailable()))
-//			return;
-
 		iSoundChannel::SetAffectedByEnv(abAffected);
 
-		if (mbAffectedByEnv)
-			OAL_Source_SetAuxSendSlot(mlChannel,0,0);
-		else
-			OAL_Source_SetAuxSendSlot(mlChannel,0,-1);
+		mpDevice->SetSendToReverb(mlHandle, mbAffectedByEnv);
 	}
 
 	void cOpenALSoundChannel::SetFiltering(bool abEnabled, int alFlags)
 	{
-//		if (!(gpGame->GetSound()->GetLowLevel()->IsEnvAudioAvailable()))
-//			return;
-
-		OAL_Source_SetFiltering(mlChannel,abEnabled, alFlags);
+		mpDevice->SetFiltering(mlHandle, abEnabled, alFlags);
 	}
 
 	void cOpenALSoundChannel::SetFilterGain(float afGain)
 	{
-//		if (!(gpGame->GetSound()->GetLowLevel()->IsEnvAudioAvailable()))
-//			return;
-
-		OAL_Source_SetFilterGain(mlChannel, afGain);
+		mpDevice->SetFilterGain(mlHandle, afGain);
 	}
 
 	void cOpenALSoundChannel::SetFilterGainHF( float afGainHF)
 	{
-//		if (!(gpGame->GetSound()->GetLowLevel()->IsEnvAudioAvailable()))
-//			return;
-
-		OAL_Source_SetFilterGainHF(mlChannel, afGainHF);
+		mpDevice->SetFilterGainHF(mlHandle, afGainHF);
 	}
 
 }

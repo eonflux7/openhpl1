@@ -21,11 +21,12 @@
 
 #include "sound/LowLevelSound.h"
 
-class cOAL_Effect_Reverb;
-
+#include <memory>
 
 namespace hpl
 {
+	class cOpenALDevice;
+	class cOpenALSoundEnvironment;
 
 	class cLowLevelSoundOpenAL : public iLowLevelSound
 	{
@@ -45,10 +46,7 @@ namespace hpl
 		void SetListenerPosition(const cVector3f &avPos) override;
 
 		void SetRolloffFactor(float afFactor) override;
-
 		void SetListenerAttenuation (bool abEnabled) override;
-
-//		void LogSoundStatus();
 
 		void Init ( bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 					int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
@@ -65,15 +63,21 @@ namespace hpl
 		void SetSoundEnvironment ( iSoundEnvironment* apSoundEnv ) override;
 		void FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT ) override;
 
-	private:
-		tString mvFormats[30];
-		bool	mbLogSounds;
-		bool	mbInitialized;
-		int		mlEffectSlotId;
-		bool	mbNullEffectAttached;
+		tStringVec GetOutputDevices() override;
+		tString GetDeviceName() override;
 
-		cOAL_Effect_Reverb* mpEffect;
+		cOpenALDevice* GetDevice() { return mpDevice.get(); }
+
+		/** Stream block size in bytes. Values below 4096 are KiB, as in the
+		 * shipped settings (StreamBufferSize=64). */
+		static size_t StreamBlockBytes(int alConfigured);
+
+	private:
+		void ApplyEnvironment(const cOpenALSoundEnvironment &aEnv);
+
+		std::unique_ptr<cOpenALDevice> mpDevice;
+		tString mvFormats[3];
+		bool	mbInitialized;
 	};
 };
 #endif // HPL_LOWLEVELSOUND_OPENAL_H
-

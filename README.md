@@ -109,7 +109,7 @@ sudo dnf install gcc-c++ cmake ninja-build SDL3-devel SDL3_image-devel \
     openal-soft-devel libvorbis-devel libogg-devel mesa-libGL-devel
 ```
 
-Newton, AngelScript, OALWrapper, Dear ImGui, the glad OpenGL loader, cgltf
+Newton, AngelScript, Dear ImGui, the glad OpenGL loader, cgltf
 (glTF) and miniz (.zip addons) are vendored in `vendor/`.
 
 FreeType renders the fonts. With `freetype-devel` installed the system library
@@ -129,9 +129,11 @@ Other presets: `debug` (`build-debug/`) and `asan` (`build-asan/`, Debug with
 AddressSanitizer and UBSan; needs `libasan libubsan`).
 
 Run the engine checks with `ctest --test-dir build --output-on-failure`.
-The audio suite uses OpenAL Soft's null driver to check EFX slot locking and
-repeated device startup/teardown with and without the updater thread. It needs
-no game data, display or audio output. See the [audio lifecycle notes](docs/audio.md).
+The audio suite uses OpenAL Soft's null driver to check the OpenAL backend:
+voice stealing and stale handles, stream refill and looping, decoders,
+sound-environment files, and repeated device startup/teardown with and without
+the stream worker. It needs no game data, display or audio output. See the
+[audio notes](docs/audio.md).
 With EGL headers/library installed, this also builds `renderer_regressions`,
 which tests program submission, transparent ordering, shadow caching,
 immutable textures, animation sampling, instanced effect geometry,
@@ -528,14 +530,14 @@ testmap/   generators and level scripts for physics and player effects labs
 tools/     levelview.py: live viewer and level editor control, reference
            images and player effects checks (refshots.py runs the latter);
            model_tool.cpp: openhpl1-model, Collada to glTF conversion
-vendor/    newton, angelscript, oalwrapper, tinyxml, glad, imgui, smaa, cgltf, miniz
+vendor/    newton, angelscript, tinyxml, glad, imgui, smaa, cgltf, miniz
 run.sh     launcher
 ```
 
 ## Credits and licences
 
 - **Frictional Games**: HPL1 engine and Penumbra: Overture source code (GPLv3),
-  shaders (zlib), OALWrapper (zlib)
+  shaders (zlib)
 - **The ScummVM project**: GLSL ports of the original HPL1 shaders, the
   starting point for those with a Frictional Games header, and the Newton 2.36
   copy and porting work used as the reference for the physics port (GPLv3+)

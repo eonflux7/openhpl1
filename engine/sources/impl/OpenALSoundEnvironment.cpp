@@ -17,64 +17,31 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/OpenALSoundEnvironment.h"
+#include "system/String.h"
 #include "tinyxml.h"
 
 namespace hpl
 {
 
-	cOpenALSoundEnvironment::cOpenALSoundEnvironment ( ) /*:
-										mfDensity(1.0f),
-										mfDiffusion(1.0f),
-										mfGain(0.32f),
-										mfGainHF(0.89f),
-										mfGainLF(0.0f),
-										mfDecayTime(1.49f),
-										mfDecayHFRatio(0.83f),
-										mfDecayLFRatio(1.0f),
-										mfReflectionsGain(0.05f),
-										mfReflectionsDelay(0.007f),
-										mfLateReverbGain(1.25f),
-										mfLateReverbDelay(0.011f),
-										mfEchoTime(0.25f),
-										mfEchoDepth(0.0f),
-										mfModulationTime(0.25f),
-										mfModulationDepth(0.0f),
-										mfAirAbsorptionGainHF(0.994f),
-										mfHFReference(5000.0f),
-										mfLFReference(250.0f),
-										mfRoomRolloffFactor(0.0f),
-										mbDecayHFLimit(true)*/
-	{
-	}
-
-	cOpenALSoundEnvironment::~cOpenALSoundEnvironment()
-	{
-	}
-
 	bool cOpenALSoundEnvironment::CreateFromFile(const tString &asFile)
 	{
-		tString strType;
 		TiXmlDocument doc;
 		if (!doc.LoadFile(asFile.c_str()))
 			return false;
 
-		TiXmlElement* pMain = doc.FirstChildElement("SoundEnvironment")->FirstChildElement("Main");
-		if (pMain)
-		{
-			strType = pMain->Attribute("Type");
-			mstrName = pMain->Attribute("Name");
-		}
-
-
-		cVector3f vTemp;
-
-		TiXmlElement* pParams = doc.FirstChildElement("SoundEnvironment")->FirstChildElement("Parameters");
-
-		if ( (pParams == nullptr) || (strType.compare("OpenAL")!=0) )
-		{
-			doc.Clear();
+		TiXmlElement* pRoot = doc.FirstChildElement("SoundEnvironment");
+		if (pRoot == nullptr)
 			return false;
-		}
+
+		TiXmlElement* pMain = pRoot->FirstChildElement("Main");
+		const char* pType = pMain ? pMain->Attribute("Type") : nullptr;
+		const char* pName = pMain ? pMain->Attribute("Name") : nullptr;
+		if (pName)
+			mstrName = pName;
+
+		TiXmlElement* pParams = pRoot->FirstChildElement("Parameters");
+		if ( (pParams == nullptr) || (pType == nullptr) || (tString(pType) != "OpenAL") )
+			return false;
 
 		mfDensity = cString::ToFloat(pParams->Attribute("Density"),0);
 		mfDiffusion = cString::ToFloat(pParams->Attribute("Diffusion"),0);
@@ -86,7 +53,7 @@ namespace hpl
 		mfDecayLFRatio = cString::ToFloat (pParams->Attribute("DecayLFRatio"),0);
 		mfReflectionsGain = cString::ToFloat(pParams->Attribute("ReflectionsGain"),0);
 		mfReflectionsDelay = cString::ToFloat(pParams->Attribute("ReflectionsDelay"),0);
-		vTemp = cString::ToVector3f(pParams->Attribute("ReflectionsPan"),cVector3f(0));
+		cVector3f vTemp = cString::ToVector3f(pParams->Attribute("ReflectionsPan"),cVector3f(0));
 		mfReflectionsPan[0] = vTemp.x;
 		mfReflectionsPan[1] = vTemp.y;
 		mfReflectionsPan[2] = vTemp.z;
@@ -106,10 +73,39 @@ namespace hpl
 		mfRoomRolloffFactor =cString::ToFloat(pParams->Attribute("RoomRolloffFactor"),0);
 		mbDecayHFLimit = cString::ToInt(pParams->Attribute("DecayHFLimit"),0);
 
-		doc.Clear();
-		pParams = nullptr;
-
 		return true;
 	}
 
-};
+	void cOpenALSoundEnvironment::LerpFrom(const cOpenALSoundEnvironment &a, const cOpenALSoundEnvironment &b, float afT)
+	{
+		float s = 1 - afT;
+#define HPL_LERP(member) member = a.member*s + b.member*afT
+		HPL_LERP(mfDensity);
+		HPL_LERP(mfDiffusion);
+		HPL_LERP(mfGain);
+		HPL_LERP(mfGainHF);
+		HPL_LERP(mfGainLF);
+		HPL_LERP(mfDecayTime);
+		HPL_LERP(mfDecayHFRatio);
+		HPL_LERP(mfDecayLFRatio);
+		HPL_LERP(mfReflectionsGain);
+		HPL_LERP(mfReflectionsDelay);
+		HPL_LERP(mfLateReverbGain);
+		HPL_LERP(mfLateReverbDelay);
+		HPL_LERP(mfEchoTime);
+		HPL_LERP(mfEchoDepth);
+		HPL_LERP(mfModulationTime);
+		HPL_LERP(mfModulationDepth);
+		HPL_LERP(mfAirAbsorptionGainHF);
+		HPL_LERP(mfHFReference);
+		HPL_LERP(mfLFReference);
+		HPL_LERP(mfRoomRolloffFactor);
+		for(int i=0; i<3; ++i)
+		{
+			HPL_LERP(mfReflectionsPan[i]);
+			HPL_LERP(mfLateReverbPan[i]);
+		}
+#undef HPL_LERP
+	}
+
+}

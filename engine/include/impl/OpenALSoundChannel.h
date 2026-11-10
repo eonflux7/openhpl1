@@ -22,14 +22,14 @@
 #include "sound/SoundChannel.h"
 #include "sound/SoundData.h"
 
-#include "OALWrapper/OAL_Funcs.h"
-
 namespace hpl {
+
+	class cOpenALDevice;
 
 	class cOpenALSoundChannel : public iSoundChannel
 	{
 	public:
-		cOpenALSoundChannel(iSoundData* apData, int alChannel, cSoundManager* apSoundManger);
+		cOpenALSoundChannel(iSoundData* apData, cOpenALDevice* apDevice, int alHandle, cSoundManager* apSoundManger);
 		~cOpenALSoundChannel() override;
 
 		void Play() override;
@@ -54,9 +54,9 @@ namespace hpl {
 
 		bool IsPlaying() override;
 
-		bool IsBufferUnderrun() override { return OAL_Source_IsBufferUnderrun(mlChannel);}
-		double GetElapsedTime() override	{ return OAL_Source_GetElapsedTime(mlChannel);}
-		double GetTotalTime() override	{ return OAL_Source_GetTotalTime(mlChannel);}
+		bool IsBufferUnderrun() override { return false; }
+		double GetElapsedTime() override;
+		double GetTotalTime() override;
 
 		void SetAffectedByEnv(bool abAffected) override;
 		void SetFiltering ( bool abEnabled, int alFlags) override;
@@ -64,11 +64,8 @@ namespace hpl {
 		void SetFilterGainHF(float afGainHF) override;
 
 	private:
-		int mlChannel;
-		int mlDefaultFreq;
-
-		float mfPosition[3];
-		float mfVelocity[3];
+		cOpenALDevice* mpDevice;
+		int mlHandle;
 	};
 };
 #endif // HPL_OPENAL_CHANNEL_H

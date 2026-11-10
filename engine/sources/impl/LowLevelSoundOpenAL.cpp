@@ -19,15 +19,13 @@
 
 #include "impl/LowLevelSoundOpenAL.h"
 #include "system/String.h"
+#include "impl/OpenALDevice.h"
 #include "impl/OpenALSoundData.h"
 #include "impl/OpenALSoundEnvironment.h"
 
 #include "math/Math.h"
 
 #include "system/LowLevelSystem.h"
-
-#include "OALWrapper/OAL_Funcs.h"
-#include "OALWrapper/OAL_Effect_Reverb.h"
 
 namespace hpl {
 
@@ -38,21 +36,20 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	cLowLevelSoundOpenAL::cLowLevelSoundOpenAL()
+		: mpDevice(new cOpenALDevice)
 	{
 		mvFormats[0] = "WAV";
 		mvFormats[1] = "OGG";
 		mvFormats[2] = "";
 		mbInitialized = false;
 		mbEnvAudioEnabled = false;
-		mbNullEffectAttached = false;
 	}
 
 	//-----------------------------------------------------------------------
 
 	cLowLevelSoundOpenAL::~cLowLevelSoundOpenAL()
 	{
-		if (mbInitialized)
-			OAL_Close();
+		mpDevice->Close();
 	}
 
 	//-----------------------------------------------------------------------
@@ -66,7 +63,7 @@ namespace hpl {
 	iSoundData* cLowLevelSoundOpenAL::LoadSoundData(const tString& asName, const tString& asFilePath,
 												const tString& asType, bool abStream,bool abLoopStream)
 	{
-		cOpenALSoundData* pSoundData = hplNew( cOpenALSoundData, (asName,abStream) );
+		cOpenALSoundData* pSoundData = hplNew( cOpenALSoundData, (asName,abStream,mpDevice.get()) );
 
 		pSoundData->SetLoopStream(abLoopStream);
 
@@ -83,19 +80,14 @@ namespace hpl {
 
 	void cLowLevelSoundOpenAL::GetSupportedFormats(tStringList &alstFormats)
 	{
-		int lPos = 0;
-
-		while(mvFormats[lPos]!="")
-		{
-			alstFormats.push_back(mvFormats[lPos]);
-			lPos++;
-		}
+		for(int i = 0; mvFormats[i] != ""; ++i)
+			alstFormats.push_back(mvFormats[i]);
 	}
 	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::UpdateSound(float afTimeStep)
 	{
-		OAL_Update();
+		mpDevice->Update();
 	}
 
 	//-----------------------------------------------------------------------
@@ -110,12 +102,6 @@ namespace hpl {
 
 		mvListenerRight = cMath::Vector3Cross(mvListenerForward,mvListenerUp);
 
-//		m_mtxListener = cMatrixf(
-//				-mvListenerRight.x, -mvListenerRight.y,-mvListenerRight.z, avPos.x,
-//				-mvListenerUp.x, -mvListenerUp.y,-mvListenerUp.z, avPos.y,
-//				-mvListenerForward.x, -mvListenerForward.y,-mvListenerForward.z, avPos.z,
-//				0, 0,0, 1
-//			);
 		m_mtxListener = cMatrixf::Identity;
 		m_mtxListener.SetRight(mvListenerRight);
 		m_mtxListener.SetUp(mvListenerUp);
@@ -123,8 +109,8 @@ namespace hpl {
 		m_mtxListener = cMath::MatrixInverse(m_mtxListener);
 		m_mtxListener.SetTranslation(mvListenerPosition);
 
-		float fVel[3]={0,0,0};
-		OAL_Listener_SetAttributes ( avPos.v, avVel.v, (avForward*(-1)).v, avUp.v );
+		cVector3f vForward = avForward*(-1);
+		mpDevice->SetListener(avPos.v, avVel.v, vForward.v, avUp.v);
 	}
 
 	//-----------------------------------------------------------------------
@@ -133,7 +119,8 @@ namespace hpl {
 	{
 		mvListenerPosition = avPos;
 
-		OAL_Listener_SetAttributes ( avPos.v, mvListenerVelocity.v, (mvListenerForward*(-1)).v, mvListenerUp.v );
+		cVector3f vForward = mvListenerForward*(-1);
+		mpDevice->SetListener(avPos.v, mvListenerVelocity.v, vForward.v, mvListenerUp.v);
 	}
 
 	//-----------------------------------------------------------------------
@@ -147,7 +134,7 @@ namespace hpl {
 
 	void cLowLevelSoundOpenAL::SetRolloffFactor(float afFactor)
 	{
-		OAL_SetRollOffFactor ( afFactor );
+		// OpenAL distance attenuation is off; the sound handler computes gains.
 	}
 
 	//-----------------------------------------------------------------------
@@ -156,66 +143,49 @@ namespace hpl {
 	{
 		mfVolume = afVolume;
 
-		OAL_Listener_SetMasterVolume ( afVolume );
+		mpDevice->SetListenerGain(afVolume);
 	}
 
 	//-----------------------------------------------------------------------
 
-	/*void cLowLevelSoundOpenAL::LogSoundStatus()
+	size_t cLowLevelSoundOpenAL::StreamBlockBytes(int alConfigured)
 	{
-		//mbLogSounds = !mbLogSounds;
-		//OAL_SetLoggingEnabled ( mbLogSounds );
+		size_t lBytes = alConfigured <= 0 ? 64 * 1024
+						: (alConfigured < 4096 ? (size_t)alConfigured * 1024 : (size_t)alConfigured);
+		const size_t lMin = 16 * 1024;
+		const size_t lMax = 1024 * 1024;
+		return lBytes < lMin ? lMin : (lBytes > lMax ? lMax : lBytes);
 	}
-*/
+
 	//-----------------------------------------------------------------------
 
-	void cLowLevelSoundOpenAL::Init(bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio,int alMaxChannels,
+	void cLowLevelSoundOpenAL::Init(bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 									int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
 									int alMaxMonoSourceHint, int alMaxStereoSourceHint,
 									int alStreamingBufferSize, int alStreamingBufferCount, bool abEnableLowLevelLog, tString asDeviceName)
 	{
-
-		cOpenALSoundEnvironment* pEnv = hplNew(cOpenALSoundEnvironment,());
-
-
-
-		mbLogSounds = abEnableLowLevelLog;
-
 		Log(" Initializing OpenAL.\n");
 
-		cOAL_Init_Params cInitParams;
-		cInitParams.mbVoiceManagement = abUseVoiceManagement;
-		cInitParams.mlNumSourcesHint = alMaxChannels;
-		// The original 10 Hz refill with ~185 ms of queued audio underruns on
-		// modern OpenAL Soft/PipeWire, which audibly stutters. Refill often.
-		cInitParams.mlUpdateFreq = alStreamUpdateFreq < 50 ? 50 : alStreamUpdateFreq;
-		cInitParams.mlStreamingBufferCount = alStreamingBufferCount;
-		cInitParams.mlStreamingBufferSize = alStreamingBufferSize;
-		cInitParams.mlMinMonoSourcesHint = alMaxMonoSourceHint;
-		cInitParams.mlMinStereoSourcesHint = alMaxStereoSourceHint;
-		cInitParams.mbUseThread = abUseThreading;
-		cInitParams.mlOutputFreq = 44100;
-		cInitParams.msDeviceName = asDeviceName;
+		cOpenALDeviceParams params;
+		params.msDeviceName = asDeviceName;
+		params.mlSources = alMaxChannels > 0 ? alMaxChannels : 32;
+		params.mbUseEFX = abUseEnvAudio;
+		params.mbUseThread = abUseThreading;
+		params.mlStreamUpdateFreq = alStreamUpdateFreq;
+		params.mlStreamBlockBytes = StreamBlockBytes(alStreamingBufferSize);
+		params.mlStreamBlockCount = alStreamingBufferCount < 3 ? 3 : (alStreamingBufferCount > 16 ? 16 : alStreamingBufferCount);
 
-		if (mbLogSounds)
-			Log("  Sound logging enabled\n");
+		bool bNamed = asDeviceName != "" && asDeviceName != "NULL";
+		Log("  Trying to open audio device %s... ", bNamed ? asDeviceName.c_str() : "(default)");
 
-		// OpenAL Soft uses the selected/default device and EFX on every platform.
-		cInitParams.mbUseEFX = abUseEnvAudio;
-
-		Log("  Trying to open audio device... ");
-
-		OAL_SetupLogging(mbLogSounds, eOAL_LogOutput_File, eOAL_LogVerbose_High, "HPL_OpenAL");
-
-		mbInitialized = OAL_Init(cInitParams);
-
-		if (!mbInitialized)
+		mbInitialized = mpDevice->Open(params);
+		if (!mbInitialized && bNamed)
 		{
 			// Device names saved by older OpenAL builds (e.g. "PulseAudio
 			// Software") no longer exist; fall back to the default device.
-			Error("Failed to inialize Audio device '%s', trying default device\n", asDeviceName.c_str());
-			cInitParams.msDeviceName = "";
-			mbInitialized = OAL_Init(cInitParams);
+			Log("not found, trying default device... ");
+			params.msDeviceName = "";
+			mbInitialized = mpDevice->Open(params);
 		}
 		if (!mbInitialized)
 		{
@@ -225,52 +195,34 @@ namespace hpl {
 
 		Log("Success!\n");
 
-		OAL_SetDistanceModel ( eOAL_DistanceModel_None );
-
-
-		Log("  Device name: %s\n", OAL_Info_GetDeviceName() );
-		Log("  Number of mono sources: %d\n", OAL_Info_GetNumSources());
-		Log("  Vendor name: %s\n", OAL_Info_GetVendorName());
-		Log("  Renderer: %s\n", OAL_Info_GetRendererName());
-		Log("  OpenAL Version Supported: %d.%d\n", OAL_Info_GetMajorVersion(), OAL_Info_GetMinorVersion() );
-		Log("  EFX: %d\n", OAL_Info_IsEFXActive() );
+		Log("  Device name: %s\n", mpDevice->GetDeviceName().c_str());
+		Log("  Number of sources: %d\n", mpDevice->GetNumSources());
+		Log("  Vendor name: %s\n", mpDevice->GetString(AL_VENDOR).c_str());
+		Log("  Renderer: %s\n", mpDevice->GetString(AL_RENDERER).c_str());
+		Log("  OpenAL version: %s\n", mpDevice->GetString(AL_VERSION).c_str());
+		Log("  Stream buffers: %d x %d bytes\n", params.mlStreamBlockCount, (int)params.mlStreamBlockBytes);
+		Log("  EFX: %d\n", mpDevice->IsEFXActive() ? 1 : 0);
 		Log("  Output Devices: \n");
-		tStringVec llDevices = OAL_Info_GetOutputDevices();
-		tStringVecIt it;
-		for (it = llDevices.begin(); it != llDevices.end(); ++it) {
-			Log("    %s\n", (*it).c_str());
-		}
-//		Log("  Available extensions:\n");
-//		for ( int i = 0; i < OAL_ gpDevice->GetExtensions->size(); ++i )
-//			Log(" \t%s\n", (*pDeviceInfo->vsExtensions)[i].c_str());
+		for (const tString &sDevice : GetOutputDevices())
+			Log("    %s\n", sDevice.c_str());
 
 		if (abUseEnvAudio)
 		{
-			mbEnvAudioEnabled = OAL_Info_IsEFXActive();
-			mpEffect = OAL_Effect_Reverb_Create();
-			if (mbEnvAudioEnabled && (mpEffect != NULL))
+			mbEnvAudioEnabled = mpDevice->IsEFXActive();
+			if (mbEnvAudioEnabled)
 			{
-				//SetSoundEnvironment(NULL);
-				OAL_EffectSlot_AttachEffect(0, (cOAL_Effect*)mpEffect);
-				OAL_EffectSlot_SetAutoAdjust(0, false);
-
 				SetEnvVolume(1.0f);
-
 				Log("  Setting up Environmental Audio...Success.\n");
 			}
 			else
 				Log("  Setting up Environmental Audio...Failed.\n");
 		}
 
-
 		//Default listener settings.
-		float Pos[3] = {0,0,0};
-		float Vel[3] = {0,0,0};
-
 		mvListenerForward = cVector3f(0,0,1);
 		mvListenerUp = cVector3f(0,1,0);
-
-		OAL_Listener_SetAttributes ( Pos, Vel, mvListenerForward.v, mvListenerUp.v );
+		const float vZero[3] = {0,0,0};
+		mpDevice->SetListener(vZero, vZero, mvListenerForward.v, mvListenerUp.v);
 
 		//Default volume:
 		SetVolume(1.0f);
@@ -278,6 +230,17 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	tStringVec cLowLevelSoundOpenAL::GetOutputDevices()
+	{
+		return cOpenALDevice::GetOutputDevices();
+	}
+
+	tString cLowLevelSoundOpenAL::GetDeviceName()
+	{
+		return mpDevice->GetDeviceName();
+	}
+
+	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::SetEnvVolume( float afEnvVolume )
 	{
@@ -289,7 +252,7 @@ namespace hpl {
 		if (afEnvVolume >1)
 			afEnvVolume = 1;
 		mfEnvVolume = afEnvVolume;
-		OAL_EffectSlot_SetGain(0, mfEnvVolume);
+		mpDevice->SetReverbGain(mfEnvVolume);
 	}
 
 	//-----------------------------------------------------------------------
@@ -318,10 +281,36 @@ namespace hpl {
 
 		mlstSoundEnv.push_back(pSoundEnv);
 
-		//Log(" Created %d '%s'\n",pSoundEnv, pSoundEnv->GetName().c_str());
-
 		return pSoundEnv;
+	}
 
+	//-----------------------------------------------------------------------
+
+	void cLowLevelSoundOpenAL::ApplyEnvironment(const cOpenALSoundEnvironment &e)
+	{
+		cOpenALReverb r;
+		r.mfDensity = e.mfDensity;
+		r.mfDiffusion = e.mfDiffusion;
+		r.mfGain = e.mfGain;
+		r.mfGainHF = e.mfGainHF;
+		r.mfGainLF = e.mfGainLF;
+		r.mfDecayTime = e.mfDecayTime;
+		r.mfDecayHFRatio = e.mfDecayHFRatio;
+		r.mfDecayLFRatio = e.mfDecayLFRatio;
+		r.mfReflectionsGain = e.mfReflectionsGain;
+		r.mfReflectionsDelay = e.mfReflectionsDelay;
+		r.mfLateReverbGain = e.mfLateReverbGain;
+		r.mfLateReverbDelay = e.mfLateReverbDelay;
+		r.mfEchoTime = e.mfEchoTime;
+		r.mfEchoDepth = e.mfEchoDepth;
+		r.mfModulationTime = e.mfModulationTime;
+		r.mfModulationDepth = e.mfModulationDepth;
+		r.mfAirAbsorptionGainHF = e.mfAirAbsorptionGainHF;
+		r.mfHFReference = e.mfHFReference;
+		r.mfLFReference = e.mfLFReference;
+		r.mfRoomRolloffFactor = e.mfRoomRolloffFactor;
+		r.mbDecayHFLimit = e.mbDecayHFLimit != 0;
+		mpDevice->SetReverb(r);
 	}
 
 	//-----------------------------------------------------------------------
@@ -331,91 +320,12 @@ namespace hpl {
 		if (!mbEnvAudioEnabled)
 			return;
 
+		// No environment: every parameter at zero (clamped to its minimum),
+		// which silences the reverb.
 		if (apSoundEnv == nullptr)
-		{
-			//Log(" Setting null env\n");
-			//if (mbNullEffectAttached == false)
-			//{
-			//	mbNullEffectAttached = true;
-
-				OAL_Effect_Reverb_SetDensity(mpEffect, 0);
-				OAL_Effect_Reverb_SetDiffusion(mpEffect, 0);
-				OAL_Effect_Reverb_SetEchoTime (mpEffect, 0);
-				OAL_Effect_Reverb_SetEchoDepth (mpEffect,0);
-				OAL_Effect_Reverb_SetModulationTime(mpEffect,0);
-				OAL_Effect_Reverb_SetModulationDepth(mpEffect,0);
-				OAL_Effect_Reverb_SetGain(mpEffect,0);
-				OAL_Effect_Reverb_SetGainHF(mpEffect,0);
-				OAL_Effect_Reverb_SetGainLF(mpEffect,0);
-				OAL_Effect_Reverb_SetReflectionsDelay(mpEffect,0);
-				OAL_Effect_Reverb_SetReflectionsGain(mpEffect, 0);
-				OAL_Effect_Reverb_SetLateReverbGain(mpEffect, 0);
-				OAL_Effect_Reverb_SetLateReverbDelay( mpEffect, 0);
-				OAL_Effect_Reverb_SetHFReference(mpEffect, 0);
-				OAL_Effect_Reverb_SetLFReference(mpEffect, 0);
-				OAL_Effect_Reverb_SetAirAbsorptionGainHF(mpEffect, 0);
-				OAL_Effect_Reverb_SetDecayTime( mpEffect,0);
-				OAL_Effect_Reverb_SetDecayHFRatio (mpEffect, 0);
-				OAL_Effect_Reverb_SetDecayLFRatio (mpEffect, 0);
-				OAL_Effect_Reverb_SetDecayHFLimit(mpEffect, 0);
-				OAL_Effect_Reverb_SetRoomRolloffFactor(mpEffect, 0);
-			//}
-			return;
-		}
-		//Log(" Setting non-null env\n");
-
-		cOpenALSoundEnvironment* pEnv = (cOpenALSoundEnvironment*) apSoundEnv;
-
-		OAL_Effect_Reverb_SetDensity(mpEffect, pEnv->GetDensity());
-		OAL_Effect_Reverb_SetDiffusion(mpEffect, pEnv->GetDiffusion());
-		OAL_Effect_Reverb_SetEchoTime (mpEffect, pEnv->GetEchoTime());
-		OAL_Effect_Reverb_SetEchoDepth (mpEffect, pEnv->GetEchoDepth());
-		OAL_Effect_Reverb_SetModulationTime(mpEffect,pEnv->GetModulationTime());
-		OAL_Effect_Reverb_SetModulationDepth(mpEffect,pEnv->GetModulationDepth());
-		OAL_Effect_Reverb_SetGain(mpEffect,pEnv->GetGain());
-		OAL_Effect_Reverb_SetGainHF(mpEffect,pEnv->GetGainHF());
-		OAL_Effect_Reverb_SetGainLF(mpEffect,pEnv->GetGainLF());
-		OAL_Effect_Reverb_SetReflectionsDelay(mpEffect, pEnv->GetReflectionsDelay());
-		OAL_Effect_Reverb_SetReflectionsGain(mpEffect, pEnv->GetReflectionsGain());
-		OAL_Effect_Reverb_SetLateReverbGain(mpEffect, pEnv->GetLateReverbGain());
-		OAL_Effect_Reverb_SetLateReverbDelay( mpEffect, pEnv->GetLateReverbDelay());
-		OAL_Effect_Reverb_SetHFReference(mpEffect, pEnv->GetHFReference());
-		OAL_Effect_Reverb_SetLFReference(mpEffect, pEnv->GetLFReference());
-		OAL_Effect_Reverb_SetAirAbsorptionGainHF(mpEffect, pEnv->GetAirAbsorptionGainHF());
-		OAL_Effect_Reverb_SetDecayTime( mpEffect, pEnv->GetDecayTime());
-		OAL_Effect_Reverb_SetDecayHFRatio (mpEffect, pEnv->GetDecayHFRatio());
-		OAL_Effect_Reverb_SetDecayLFRatio (mpEffect, pEnv->GetDecayLFRatio());
-		OAL_Effect_Reverb_SetDecayHFLimit(mpEffect, pEnv->GetDecayHFLimit());
-		OAL_Effect_Reverb_SetRoomRolloffFactor(mpEffect, pEnv->GetRoomRolloffFactor());
-
-		/*Log(" %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
-			mpEffect->GetDensity(),
-			mpEffect->GetDiffusion(),
-			mpEffect->GetEchoTime(),
-			mpEffect->GetEchoDepth(),
-			mpEffect->GetModulationTime(),
-			mpEffect->GetModulationDepth(),
-			mpEffect->GetGain(),
-			mpEffect->GetGainHF(),
-			mpEffect->GetGainLF(),
-			mpEffect->GetReflectionsDelay(),
-			mpEffect->GetReflectionsGain(),
-			mpEffect->GetLateReverbGain(),
-			mpEffect->GetLateReverbDelay(),
-			mpEffect->GetHFReference(),
-			mpEffect->GetLFReference(),
-			mpEffect->GetAirAbsorptionGainHF(),
-			mpEffect->GetDecayTime(),
-			mpEffect->GetDecayHFRatio(),
-			mpEffect->GetDecayLFRatio(),
-			mpEffect->GetRoomRolloffFactor());*/
-
-//		if (mbNullEffectAttached)
-//			mbNullEffectAttached = false;
-
-		//OAL_UpdateEffectSlots();
-		OAL_EffectSlot_AttachEffect(0, (cOAL_Effect*)mpEffect);
-
+			ApplyEnvironment(cOpenALSoundEnvironment());
+		else
+			ApplyEnvironment(*static_cast<cOpenALSoundEnvironment*>(apSoundEnv));
 	}
 
 	//-----------------------------------------------------------------------
@@ -425,103 +335,24 @@ namespace hpl {
 		if (!mbEnvAudioEnabled)
 			return;
 
+		if ((apSourceSoundEnv == nullptr) && (apDestSoundEnv==nullptr))
+			return;
+
 		if (afT<0)
 			afT = 0;
 		if (afT>1)
 			afT = 1;
 
-		float fOneMinusT = 1-afT;
+		// A missing environment fades from or to zero, as in the original.
+		const cOpenALSoundEnvironment zero;
+		const cOpenALSoundEnvironment &src = apSourceSoundEnv ? *static_cast<cOpenALSoundEnvironment*>(apSourceSoundEnv) : zero;
+		const cOpenALSoundEnvironment &dst = apDestSoundEnv ? *static_cast<cOpenALSoundEnvironment*>(apDestSoundEnv) : zero;
 
-		if ((apSourceSoundEnv == nullptr) && (apDestSoundEnv==nullptr))
-			return;
+		cOpenALSoundEnvironment env;
+		env.LerpFrom(src, dst, afT);
+		env.mbDecayHFLimit = apDestSoundEnv ? dst.mbDecayHFLimit : src.mbDecayHFLimit;
 
-		cOpenALSoundEnvironment pEnv;
-
-		cOpenALSoundEnvironment* pSrcEnv = (cOpenALSoundEnvironment*) apSourceSoundEnv;
-		cOpenALSoundEnvironment* pDstEnv = (cOpenALSoundEnvironment*) apDestSoundEnv;
-
-		if (pSrcEnv == nullptr)
-		{
-			/*
-			SetSoundEnvironment(apDestSoundEnv);
-			OAL_EffectSlot_SetGain(0, afT * mfEnvVolume);
-			return;
-			*/
-			pEnv.SetDensity(	pDstEnv->GetDensity()*afT	);
-			pEnv.SetDiffusion(	pDstEnv->GetDiffusion()*afT	);
-			pEnv.SetGain(		pDstEnv->GetGain()*afT);
-			pEnv.SetGainHF(		pDstEnv->GetGainHF()*afT);
-			pEnv.SetGainLF(		pDstEnv->GetGainLF()*afT);
-			pEnv.SetDecayTime(	pDstEnv->GetDecayTime()*afT);
-			pEnv.SetDecayLFRatio(	pDstEnv->GetDecayLFRatio()*afT);
-			pEnv.SetReflectionsGain(	pDstEnv->GetReflectionsGain()*afT);
-			pEnv.SetReflectionsDelay(	pDstEnv->GetReflectionsDelay()*afT);
-			pEnv.SetLateReverbGain(pDstEnv->GetLateReverbGain()*afT);
-			pEnv.SetLateReverbDelay(pDstEnv->GetLateReverbDelay()*afT);
-			pEnv.SetEchoTime(pDstEnv->GetEchoTime()*afT);
-			pEnv.SetEchoDepth(pDstEnv->GetEchoDepth()*afT);
-			pEnv.SetModulationTime(pDstEnv->GetModulationTime()*afT);
-			pEnv.SetModulationDepth(pDstEnv->GetModulationDepth()*afT);
-			pEnv.SetAirAbsorptionGainHF(pDstEnv->GetAirAbsorptionGainHF()*afT);
-			pEnv.SetHFReference(pDstEnv->GetHFReference()*afT);
-			pEnv.SetLFReference(pDstEnv->GetLFReference()*afT);
-			pEnv.SetRoomRolloffFactor(pDstEnv->GetRoomRolloffFactor()*afT);
-			pEnv.SetDecayHFLimit(pDstEnv->GetDecayHFLimit());
-
-		}
-		else if (pDstEnv == nullptr)
-		{
-			/*SetSoundEnvironment( apDestSoundEnv);//((*apSourceSoundEnv)*afT));
-			OAL_EffectSlot_SetGain(0, fOneMinusT * mfEnvVolume);
-			return;*/
-			pEnv.SetDensity(	pSrcEnv->GetDensity()*fOneMinusT	);
-			pEnv.SetDiffusion(	pSrcEnv->GetDiffusion()*fOneMinusT		);
-			pEnv.SetGain(		pSrcEnv->GetGain()*fOneMinusT);
-			pEnv.SetGainHF(		pSrcEnv->GetGainHF()*fOneMinusT);
-			pEnv.SetGainLF(		pSrcEnv->GetGainLF()*fOneMinusT	);
-			pEnv.SetDecayTime(	pSrcEnv->GetDecayTime()*fOneMinusT);
-			pEnv.SetDecayLFRatio(pSrcEnv->GetDecayLFRatio()*fOneMinusT );
-			pEnv.SetReflectionsGain(pSrcEnv->GetReflectionsGain()*fOneMinusT);
-			pEnv.SetReflectionsDelay(pSrcEnv->GetReflectionsDelay()*fOneMinusT);
-			pEnv.SetLateReverbGain(pSrcEnv->GetLateReverbGain()*fOneMinusT);
-			pEnv.SetLateReverbDelay(pSrcEnv->GetLateReverbDelay()*fOneMinusT);
-			pEnv.SetEchoTime(pSrcEnv->GetEchoTime()*fOneMinusT);
-			pEnv.SetEchoDepth(pSrcEnv->GetEchoDepth()*fOneMinusT );
-			pEnv.SetModulationTime(pSrcEnv->GetModulationTime()*fOneMinusT);
-			pEnv.SetModulationDepth(pSrcEnv->GetModulationDepth()*fOneMinusT );
-			pEnv.SetAirAbsorptionGainHF(pSrcEnv->GetAirAbsorptionGainHF()*fOneMinusT);
-			pEnv.SetHFReference(pSrcEnv->GetHFReference()*fOneMinusT);
-			pEnv.SetLFReference(pSrcEnv->GetLFReference()*fOneMinusT);
-			pEnv.SetRoomRolloffFactor(pSrcEnv->GetRoomRolloffFactor()*fOneMinusT);
-			pEnv.SetDecayHFLimit(pSrcEnv->GetDecayHFLimit());
-
-		}
-		else
-		{
-			pEnv.SetDensity(	pSrcEnv->GetDensity()*fOneMinusT	+	pDstEnv->GetDensity()*afT	);
-			pEnv.SetDiffusion(	pSrcEnv->GetDiffusion()*fOneMinusT	+	pDstEnv->GetDiffusion()*afT	);
-			pEnv.SetGain(		pSrcEnv->GetGain()*fOneMinusT		+	pDstEnv->GetGain()*afT);
-			pEnv.SetGainHF(		pSrcEnv->GetGainHF()*fOneMinusT		+	 pDstEnv->GetGainHF()*afT);
-			pEnv.SetGainLF(		pSrcEnv->GetGainLF()*fOneMinusT		+	 pDstEnv->GetGainLF()*afT);
-			pEnv.SetDecayTime(	pSrcEnv->GetDecayTime()*fOneMinusT + pDstEnv->GetDecayTime()*afT);
-			pEnv.SetDecayLFRatio(pSrcEnv->GetDecayLFRatio()*fOneMinusT + pDstEnv->GetDecayLFRatio()*afT);
-			pEnv.SetReflectionsGain(pSrcEnv->GetReflectionsGain()*fOneMinusT + pDstEnv->GetReflectionsGain()*afT);
-			pEnv.SetReflectionsDelay(pSrcEnv->GetReflectionsDelay()*fOneMinusT + pDstEnv->GetReflectionsDelay()*afT);
-			pEnv.SetLateReverbGain(pSrcEnv->GetLateReverbGain()*fOneMinusT + pDstEnv->GetLateReverbGain()*afT);
-			pEnv.SetLateReverbDelay(pSrcEnv->GetLateReverbDelay()*fOneMinusT + pDstEnv->GetLateReverbDelay()*afT);
-			pEnv.SetEchoTime(pSrcEnv->GetEchoTime()*fOneMinusT + pDstEnv->GetEchoTime()*afT);
-			pEnv.SetEchoDepth(pSrcEnv->GetEchoDepth()*fOneMinusT + pDstEnv->GetEchoDepth()*afT);
-			pEnv.SetModulationTime(pSrcEnv->GetModulationTime()*fOneMinusT + pDstEnv->GetModulationTime()*afT);
-			pEnv.SetModulationDepth(pSrcEnv->GetModulationDepth()*fOneMinusT + pDstEnv->GetModulationDepth()*afT);
-			pEnv.SetAirAbsorptionGainHF(pSrcEnv->GetAirAbsorptionGainHF()*fOneMinusT + pDstEnv->GetAirAbsorptionGainHF()*afT);
-			pEnv.SetHFReference(pSrcEnv->GetHFReference()*fOneMinusT + pDstEnv->GetHFReference()*afT);
-			pEnv.SetLFReference(pSrcEnv->GetLFReference()*fOneMinusT + pDstEnv->GetLFReference()*afT);
-			pEnv.SetRoomRolloffFactor(pSrcEnv->GetRoomRolloffFactor()*fOneMinusT + pDstEnv->GetRoomRolloffFactor()*afT);
-			pEnv.SetDecayHFLimit(pDstEnv->GetDecayHFLimit());
-		}
-
-		SetSoundEnvironment(&pEnv);
-
+		ApplyEnvironment(env);
 	}
 
 }

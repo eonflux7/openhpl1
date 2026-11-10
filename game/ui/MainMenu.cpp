@@ -33,7 +33,6 @@
 #include "ui/GraphicsPresets.h"
 #include "player/HapticGameCamera.h"
 
-#include "OALWrapper/OAL_Init.h"
 
 #include <algorithm>
 
@@ -1214,7 +1213,7 @@ public:
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
 		msTip = kTranslate("MainMenu", "TipSoundOutputDevice");
-		mlDevices = OAL_Info_GetOutputDevices();
+		mlDevices = apInit->mpGame->GetSound()->GetLowLevel()->GetOutputDevices();
 	}
 
 	void OnMouseDown(eMButton aButton) override
@@ -4064,7 +4063,7 @@ void cMainMenu::CreateWidgets()
 
 	vPos.y += 29;
 	// Set the default to what's really being used
-	mpInit->msDeviceName = tString(OAL_Info_GetDeviceName());
+	mpInit->msDeviceName = mpInit->mpGame->GetSound()->GetLowLevel()->GetDeviceName();
 
 	sText = cString::To16Char(mpInit->msDeviceName);
 	gpSoundOutputDevice = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
