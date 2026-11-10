@@ -4,7 +4,7 @@
  */
 // The F2 panel's Particles window: a dot and a name on the screen at each
 // particle system of the map, a list of them, and switching the systems an
-// addon replaces (tools/fxpack.py's flipbooks, say) between the addon's
+// addon replaces (flipbook materials, say) between the addon's
 // look ("new") and the game's own files ("old"), one picked system or all.
 #include "core/StdAfx.h"
 #include "core/RefView.h"

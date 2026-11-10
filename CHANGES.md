@@ -109,8 +109,7 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - glTF 2.0 models and maps next to Collada; `openhpl1-model` converts and
   checks them ([modding](docs/modding.md)).
 - Flipbook particle materials, played over each particle's life with
-  blended frames; `tools/fxpack.py` builds an addon of them from CC0
-  smoke and fire sequences.
+  blended frames.
 - Developer mode: map reload while editing (F6, or on save in an addon
   folder), a level editor window (`--editor`), live control from
   `tools/levelview.py`, a debug overlay (F3) and a reference/shading panel

@@ -92,14 +92,8 @@ its texture. `FlipbookBlend="False"` steps from frame to frame. In a `.ps`
 file, `SubDivBlend="True"` blends the frames of an emitter's own
 `SubDivType="Animation"` sub division.
 
-`tools/fxpack.py build` makes such an addon, `build/addons/openhpl-fx`,
-from Unity Labs' smoke and fire image sequences (CC0, downloaded once into
-`build/fx-cache`). `--list` shows which materials it replaces. Run the
-game with it through `OPENHPL_ADDON_DIRS=build/addons/openhpl-fx` or
-`levelview.py start --addons build/addons/openhpl-fx`. The panel's Particles
-window (F2) switches any of them between the addon's look and the game's. Its fire still uses
-the games' emitters, which draw many small, overlapping flames; they need
-their own settings before the fire looks right.
+The panel's Particles window (F2) switches a system an addon replaces
+between the addon's look and the game's, to compare them.
 
 ### Caches and saves
 
