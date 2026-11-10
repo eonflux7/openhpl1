@@ -12,8 +12,15 @@ commit), and the last official Linux build on Steam.
   kept between runs, then `build.cmd` and `package.cmd`. A publish job
   attaches the Linux and Windows packages to the release of the version, if
   it exists. Runs by hand take an optional `ref` to build (a tag).
-- Validation: not run yet when this was committed; the first run is by
-  hand for `0.1.3-alpha` at `v0.1.3-alpha`.
+- `build.cmd` keeps its `VCPKG_ROOT` after `vcvars64.bat`: Visual Studio
+  18's sets it to its own vcpkg, which then built the dependencies. The
+  runner's Visual Studio 18 has no Ninja on the PATH, so the job installs it.
+- Validation: run by hand for `0.1.3-alpha` at `v0.1.3-alpha` (run
+  42771325373): Linux, Windows and publish succeed, and the release has
+  both packages. The Windows zip holds `openhpl1.exe`, `openhpl1-model.exe`,
+  the vcpkg DLLs, the Visual C++ runtime, 60 shader files and the licences.
+  The first run failed (Visual Studio's vcpkg, no Ninja, and an SSL error
+  downloading libogg). The Windows package was not started on Windows.
 
 ## Stick areas stop at their pose (2026-11-10)
 
