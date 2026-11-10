@@ -225,6 +225,11 @@ namespace hpl {
 		void SetPhysicsWorld(iPhysicsWorld *apWorld, bool abAutoDelete=true);
 		iPhysicsWorld* GetPhysicsWorld();
 
+		// Where a frame is drawn between the last two logic steps (0: the
+		// step before, 1: the last step). 1 unless cScene interpolates.
+		void SetInterpolation(float afT){ mfInterpolation = afT;}
+		float GetInterpolation() const { return mfInterpolation;}
+
 		///// AREA ////////////////////////////////
 
 		cAreaEntity* CreateAreaEntity(const tString &asName);
@@ -347,6 +352,8 @@ namespace hpl {
 
 		iPhysicsWorld *mpPhysicsWorld;
 		bool mbAutoDeletePhysicsWorld;
+
+		float mfInterpolation = 1.0f;
 
 		cVector3f mvWorldSize;
 

@@ -10,6 +10,7 @@
 
 in vec4 vColor;
 in vec2 vUv;
+in vec3 vNextUv;
 in float vFogUv;
 in float vDistance;
 
@@ -23,7 +24,9 @@ uniform sampler1D tex1; //fogMap
 
 void main()
 {
-	vec4 vParticle = hpl_Texture0(vUv) * vColor;
+	vec4 vSheet = hpl_Texture0(vUv);
+	if(vNextUv.z > 0.0) vSheet = mix(vSheet, hpl_Texture0(vNextUv.xy), vNextUv.z);
+	vec4 vParticle = vSheet * vColor;
 	if(partLook.y > 0.5) vParticle *= texture(tex1, vFogUv).r;
 
 	float fFade = 1.0;

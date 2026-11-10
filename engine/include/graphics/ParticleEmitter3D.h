@@ -149,6 +149,14 @@ namespace hpl {
 		iGpuProgram *mpSoftProgram;
 
 		std::vector<cPESubDivision> mvSubDivUV;
+		// Blend each particle's flipbook frame into the next (SubDivBlend)
+		bool mbSubDivBlend;
+
+		// What the sheets were last built for: they are in the camera's
+		// space and between the last two steps, so a frame drawn with
+		// another view or interpolation needs them again
+		cMatrixf m_mtxGfxView;
+		float mfGfxInterpolation;
 
 		cVector3f mvDirection;
 		int mlDirectionUpdateCount;

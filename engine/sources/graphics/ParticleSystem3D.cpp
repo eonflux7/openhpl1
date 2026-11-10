@@ -240,29 +240,18 @@ namespace hpl {
 			iParticleEmitter3D *pPE = mvEmitters[i];
 
 			//////////////////////////
-			//Warm Up
-			if(mbFirstUpdate)
+			//Warm Up, every emitter (the original only did the first)
+			if(mbFirstUpdate && pPE->IsActive())
 			{
 				iParticleEmitterData *pData =  mpData->GetEmitterData((int)i);
-
-				if(pData->GetWarmUpTime() >0)
-				{
-					float fTime = pData->GetWarmUpTime();
-					float fStepSize = 1.0f /pData->GetWarmUpStepsPerSec();
-
-					while(fTime >0)
-					{
-						pPE->UpdateLogic(fStepSize);
-						fTime -= fStepSize;
-					}
-				}
-				mbFirstUpdate = false;
+				pPE->WarmUp(pData->GetWarmUpTime(), pData->GetWarmUpStepsPerSec());
 			}
 
 			//////////////////////////
 			//Update
 			pPE->UpdateLogic(afTimeStep);
 		}
+		mbFirstUpdate = false;
 	}
 
 	//-----------------------------------------------------------------------
@@ -378,10 +367,9 @@ namespace hpl {
 
 			for(int i=0; i<GetEmitterNum();++i)
 			{
-				iParticleEmitter3D *pPE = GetEmitter(i);
-				pPE->KillInstantly();
-				return;
+				GetEmitter(i)->KillInstantly();
 			}
+			return;
 		}
 
 		for(int i=0; i< GetEmitterNum(); ++i)

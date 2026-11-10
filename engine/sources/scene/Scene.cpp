@@ -231,6 +231,9 @@ namespace hpl {
 
 		if(mbUpdateMap && mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
 			mpCurrentWorld3D->GetPhysicsWorld()->ApplyInterpolation(afT);
+
+		// Particles blend between their last two positions themselves
+		if(mpCurrentWorld3D) mpCurrentWorld3D->SetInterpolation(mbUpdateMap ? afT : 1.0f);
 	}
 
 	void cScene::RestoreInterpolation()
@@ -242,6 +245,8 @@ namespace hpl {
 
 		if(mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
 			mpCurrentWorld3D->GetPhysicsWorld()->RestoreInterpolation();
+
+		if(mpCurrentWorld3D) mpCurrentWorld3D->SetInterpolation(1.0f);
 	}
 
 	//-----------------------------------------------------------------------

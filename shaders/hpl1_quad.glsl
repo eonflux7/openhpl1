@@ -7,6 +7,8 @@ layout(location = 8) in vec3 hpl_QuadUp;
 layout(location = 9) in vec4 hpl_QuadColor;
 layout(location = 10) in vec4 hpl_QuadEndColor;
 layout(location = 11) in vec4 hpl_QuadUV;
+// Particles only: UV offset to the next flipbook frame (xy), its weight (z)
+layout(location = 12) in vec4 hpl_QuadNextFrame;
 const vec2 hpl_QuadCorners[4] = vec2[4](
     vec2(1,-1), vec2(-1,-1), vec2(-1,1), vec2(1,1));
 vec4 hpl_ExpandedVertex()

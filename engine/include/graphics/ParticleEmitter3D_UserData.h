@@ -125,6 +125,8 @@ namespace hpl {
 
 		cVector2l mvSubDiv;
 		ePESubDivType mSubDivType;
+		// Blend each frame of an Animation sub division into the next
+		bool mbSubDivBlend;
 
 		///////// START POS //////////
 		ePEStartPosType mStartPosType;
@@ -282,6 +284,9 @@ namespace hpl {
 		bool mbPaused;
 
 		bool mbRespawn;
+
+		// The data's, or Animation when the material is a flipbook
+		ePESubDivType mSubDivType;
 	};
 
 

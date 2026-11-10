@@ -75,6 +75,31 @@ paths) are skipped.
 they replace, for example
 `'office_cabinet.glb' replaces 'models/office/office_cabinet.dae'`.
 
+### Particle flipbooks
+
+A particle material can be a flipbook: a sheet of frames that each particle
+plays over its life, from the first frame at birth to the last at death,
+with each frame blended into the next. `Flipbook` on the material's `Main`
+gives the columns and rows; the frames run row by row from the top left:
+
+```xml
+<Main Type="Alpha" PhysicsMaterial="Default" UseAlpha="False" Flipbook="8 8" FlipbookBlend="True" />
+```
+
+Every emitter that uses the material then plays it, whatever `SubDiv` and
+`SubDivType` its `.ps` file gives, so an addon only replaces the `.mat` and
+its texture. `FlipbookBlend="False"` steps from frame to frame. In a `.ps`
+file, `SubDivBlend="True"` blends the frames of an emitter's own
+`SubDivType="Animation"` sub division.
+
+`tools/fxpack.py build` makes such an addon, `build/addons/openhpl-fx`,
+from Unity Labs' smoke and fire image sequences (CC0, downloaded once into
+`build/fx-cache`). `--list` shows which materials it replaces. Run the
+game with it through `OPENHPL_ADDON_DIRS=build/addons/openhpl-fx` or
+`levelview.py start --addons build/addons/openhpl-fx`. Its fire still uses
+the games' emitters, which draw many small, overlapping flames; they need
+their own settings before the fire looks right.
+
 ### Caches and saves
 
 - Collada mesh caches of addon files are kept in

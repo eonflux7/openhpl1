@@ -168,6 +168,13 @@ namespace hpl {
 		bool GetDepthTest(){ return mbDepthTest;}
 		void SetDepthTest(bool abX){ mbDepthTest = abX;}
 
+		// A particle texture that is a flipbook: columns x rows of frames,
+		// played over each particle's life (Main's Flipbook="x y"). 0 0 when
+		// it is one picture. FlipbookBlend blends each frame into the next.
+		const cVector2l& GetFlipbook() const { return mvFlipbook;}
+		bool GetFlipbookBlend() const { return mbFlipbookBlend;}
+		void SetFlipbook(const cVector2l &avGrid, bool abBlend){ mvFlipbook = avGrid; mbFlipbookBlend = abBlend;}
+
 		float GetValue() { return mfValue;}
 		void SetValue(float afX) { mfValue = afX;}
 
@@ -240,6 +247,8 @@ namespace hpl {
 		bool mbUsesLights;
 		bool mbHasAlpha;
 		bool mbDepthTest;
+		cVector2l mvFlipbook = cVector2l(0,0);
+		bool mbFlipbookBlend = false;
 		float mfValue;
 
 		int mlId;

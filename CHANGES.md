@@ -48,6 +48,8 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - SMAA, multisampling, render scale, and anisotropic filtering up to 16x.
   Graphics presets: High, Medium and Low.
 - Gamma is a final shader pass affecting only the game window.
+- Particles move smoothly above 60 FPS and keep their place as the view
+  turns; every emitter of a system warms up, for as long as its file asks.
 - Fixed: fogged maps drawn as flat fog colour, sheared odd-width images, and
   the black screen and transparent window on modern drivers and Wayland.
 
@@ -106,6 +108,9 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - Addons: folders or `.zip` files in `addons/` override and add game files.
 - glTF 2.0 models and maps next to Collada; `openhpl1-model` converts and
   checks them ([modding](docs/modding.md)).
+- Flipbook particle materials, played over each particle's life with
+  blended frames; `tools/fxpack.py` builds an addon of them from CC0
+  smoke and fire sequences.
 - Developer mode: map reload while editing (F6, or on save in an addon
   folder), a level editor window (`--editor`), live control from
   `tools/levelview.py`, a debug overlay (F3) and a reference/shading panel

@@ -227,6 +227,7 @@ namespace hpl {
 
 		mvSubDiv = cString::ToVector2l(apElement->Attribute("SubDiv"),1);
 		mSubDivType = GetSubDivType(apElement->Attribute("SubDivType"));
+		mbSubDivBlend = cString::ToBool(apElement->Attribute("SubDivBlend"),false);
 
 		if(lMaterialNum <= 1)
 		{
@@ -466,6 +467,20 @@ namespace hpl {
 
 		// NEW
 		mbUsePartSpin = apData->mbUsePartSpin;
+		mSubDivType = apData->mSubDivType;
+		mbSubDivBlend = apData->mbSubDivBlend;
+
+		// A flipbook material plays its frames over each particle's life,
+		// whatever sub division the emitter asks for
+		iMaterial *pMaterial = apMaterials->empty() ? nullptr : (*apMaterials)[0];
+		if(pMaterial && pMaterial->GetFlipbook().x * pMaterial->GetFlipbook().y > 1)
+		{
+			mvSubDivUV.clear();
+			SetSubDivUV(pMaterial->GetFlipbook());
+			mSubDivType = ePESubDivType_Animation;
+			mbSubDivBlend = pMaterial->GetFlipbookBlend();
+		}
+		if(mSubDivType != ePESubDivType_Animation) mbSubDivBlend = false;
 		mbUseRevolution = apData->mbUseRevolution;
 
 		mPEType = apData->mPEType;
@@ -540,7 +555,7 @@ namespace hpl {
 		//Start sub division
 		if(mvSubDivUV.size() > 1)
 		{
-			if(mpData->mSubDivType == ePESubDivType_Animation)
+			if(mSubDivType == ePESubDivType_Animation)
 			{
 				apParticle->mlSubDivNum = 0;
 			}
@@ -688,11 +703,15 @@ namespace hpl {
 		///////////////////////////////////////////////
 		//If not rendered this previous frame check if it should be paused.
 		//To be safe skip systems that has a parent...
-		if(mbDying == false && mbRespawn && mpParentSystem->GetParent()==nullptr)
+		//Not while warming up: nothing has been drawn yet then.
+		if(mbWarmingUp == false && mbDying == false && mbRespawn && mpParentSystem->GetParent()==nullptr)
 		{
 			if(GetGlobalRenderCount() != cRenderList::GetGlobalRenderCount())
 			{
 				if(mlUpdateCount > 120) {
+					// Standing still: nothing to blend between steps
+					for(unsigned int i=0; i<mlNumOfParticles; ++i)
+						mvParticles[i]->mvLastPos = mvParticles[i]->mvPos;
 					return;
 				}
 				mlUpdateCount++;
@@ -762,7 +781,7 @@ namespace hpl {
 
 		///////////////////////////////////////////
 		//Particle update
-		for(unsigned int i=0; i< mlNumOfParticles; ++i)
+		for(unsigned int i=0; i< mlNumOfParticles; )
 		{
 			cParticle *pParticle = mvParticles[i];
 
@@ -894,9 +913,12 @@ namespace hpl {
 				if(mbRespawn)
 				{
 					if(mbPaused)
+					{
+						// The last particle moves into this slot and is updated next
 						SwapRemove(i);
-					else
-						SetParticleDefaults(pParticle);
+						continue;
+					}
+					SetParticleDefaults(pParticle);
 				}
 				else
 				{
@@ -907,16 +929,24 @@ namespace hpl {
 					{
 						mbDying = true;
 					}
+					continue;
 				}
 			}
 
 			////////////
 			//Subdiv Update
 
-			if(mpData->mSubDivType == ePESubDivType_Animation)
+			if(mSubDivType == ePESubDivType_Animation)
 			{
 				float fLifePercent = (1.0f - (pParticle->mfLife / pParticle->mfStartLife));
-				pParticle->mlSubDivNum = (int)(fLifePercent * (float)mvSubDivUV.size() - 0.0001f);
+				if(mbSubDivBlend)
+				{
+					// From the first frame at birth to the last at death
+					pParticle->mfSubDivFrame = cMath::Clamp(fLifePercent, 0.0f, 1.0f) * (float)((int)mvSubDivUV.size()-1);
+					pParticle->mlSubDivNum = (int)pParticle->mfSubDivFrame;
+				}
+				else
+					pParticle->mlSubDivNum = (int)(fLifePercent * (float)mvSubDivUV.size() - 0.0001f);
 			}
 
 			////////////
@@ -977,6 +1007,8 @@ namespace hpl {
 				pParticle->mvSize = (pParticle->mvStartSize * mpData->mfMiddleRelSize * fT) +
 									(pParticle->mvStartSize * mpData->mfEndRelSize * (1-fT));
 			}
+
+			++i;
 		}
 
 		///////////////////////////////////////////

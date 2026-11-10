@@ -57,6 +57,10 @@ namespace hpl {
 		mpVtxBuffer->Compile(0);
 		mpSoftProgram = nullptr;
 
+		mbSubDivBlend = false;
+		m_mtxGfxView = cMatrixf::Identity;
+		mfGfxInterpolation = -1;
+
 		//Setup vars
 		mlDirectionUpdateCount = -1;
 		mvDirection = cVector3f(0,0,0);
@@ -152,10 +156,19 @@ namespace hpl {
 
 	void iParticleEmitter3D::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
-		if(apCamera==nullptr || !mbUpdateGfx) return;
+		if(apCamera==nullptr) return;
 		// PEType=Beam has never supplied geometry (the simulation branch is
 		// empty as well). Keep it empty rather than inventing a new effect.
 		if(mPEType == ePEType_Beam) return;
+
+		// Frames drawn between logic steps show the particles between their
+		// last two positions, and the sheets are in the camera's space: build
+		// them again when either changed, not only after a step.
+		const float fT = mpWorld ? cMath::Clamp(mpWorld->GetInterpolation(), 0.0f, 1.0f) : 1.0f;
+		const cMatrixf &mtxView = apCamera->GetViewMatrix();
+		if(!mbUpdateGfx && fT == mfGfxInterpolation && mtxView == m_mtxGfxView) return;
+		mfGfxInterpolation = fT;
+		m_mtxGfxView = mtxView;
 
 		if(mDrawType == eParticleEmitter3DType_Axis && mlAxisDrawUpdateCount != GetMatrixUpdateCount())
 		{
@@ -177,14 +190,26 @@ namespace hpl {
 			sheet.mvUV[3] = 0;
 			if(mvSubDivUV.size() > 1)
 			{
-				const cPESubDivision &sub = mvSubDivUV[particle.mlSubDivNum];
+				const int lLast = (int)mvSubDivUV.size()-1;
+				const int lFrame = cMath::Clamp(particle.mlSubDivNum, 0, lLast);
+				const cPESubDivision &sub = mvSubDivUV[lFrame];
 				sheet.mvUV[0] = sub.mvUV[1].x;
 				sheet.mvUV[1] = sub.mvUV[1].y;
 				sheet.mvUV[2] = sub.mvUV[3].x;
 				sheet.mvUV[3] = sub.mvUV[3].y;
+
+				if(mbSubDivBlend && lFrame < lLast)
+				{
+					const cPESubDivision &next = mvSubDivUV[lFrame+1];
+					sheet.mvNextFrame[0] = next.mvUV[1].x - sub.mvUV[1].x;
+					sheet.mvNextFrame[1] = next.mvUV[1].y - sub.mvUV[1].y;
+					sheet.mvNextFrame[2] = cMath::Clamp(particle.mfSubDivFrame - (float)lFrame, 0.0f, 1.0f);
+				}
 			}
 
-			cVector3f position = particle.mvPos;
+			// Between the position before the last step and after it
+			const cVector3f vStep = particle.mvPos - particle.mvLastPos;
+			cVector3f position = particle.mvLastPos + vStep * fT;
 			if(mCoordSystem == eParticleEmitter3DCoordSystem_Local)
 				position = cMath::MatrixMul(mpParentSystem->GetWorldMatrix(), position);
 			if(mDrawType == eParticleEmitter3DType_Axis)
@@ -209,7 +234,8 @@ namespace hpl {
 			}
 			else if(mDrawType == eParticleEmitter3DType_Line)
 			{
-				cVector3f last = particle.mvLastPos;
+				// The streak keeps the length of the last step
+				cVector3f last = particle.mvLastPos + vStep * (fT - 1.0f);
 				if(mCoordSystem == eParticleEmitter3DCoordSystem_Local)
 					last = cMath::MatrixMul(mpParentSystem->GetWorldMatrix(), last);
 				last = cMath::MatrixMul(apCamera->GetViewMatrix(), last);
@@ -357,21 +383,23 @@ namespace hpl {
 			cVector3f vMin(100000, 100000, 100000);
 			cVector3f vMax(-100000, -100000, -100000);
 
+			// Both ends of the last step: frames between steps and line
+			// particles are drawn between them
 			for(int i=0;i<(int)mlNumOfParticles;i++)
 			{
 				cParticle *pParticle = mvParticles[i];
-
-				//X
-				if(pParticle->mvPos.x < vMin.x)		 vMin.x = pParticle->mvPos.x;
-				else if(pParticle->mvPos.x > vMax.x) vMax.x = pParticle->mvPos.x;
-
-				//Y
-				if(pParticle->mvPos.y < vMin.y)		 vMin.y = pParticle->mvPos.y;
-				else if(pParticle->mvPos.y > vMax.y) vMax.y = pParticle->mvPos.y;
-
-				//Z
-				if(pParticle->mvPos.z < vMin.z)		 vMin.z = pParticle->mvPos.z;
-				else if(pParticle->mvPos.z > vMax.z) vMax.z = pParticle->mvPos.z;
+				for(const cVector3f *pPos : {&pParticle->mvPos, &pParticle->mvLastPos})
+				{
+					vMin.x = cMath::Min(vMin.x, pPos->x); vMax.x = cMath::Max(vMax.x, pPos->x);
+					vMin.y = cMath::Min(vMin.y, pPos->y); vMax.y = cMath::Max(vMax.y, pPos->y);
+					vMin.z = cMath::Min(vMin.z, pPos->z); vMax.z = cMath::Max(vMax.z, pPos->z);
+				}
+			}
+			// No particles: an empty box at the emitter, not an inverted one
+			if(mlNumOfParticles==0)
+			{
+				vMin = vMax = mCoordSystem == eParticleEmitter3DCoordSystem_World ?
+									GetWorldPosition() : GetLocalPosition();
 			}
 
 			vMax += cVector3f(mvMaxDrawSize.x,mvMaxDrawSize.y, mvMaxDrawSize.x);

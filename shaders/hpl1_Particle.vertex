@@ -16,6 +16,8 @@ const int kLights = 6;
 
 out vec4 vColor;
 out vec2 vUv;
+// The next flipbook frame and how much of it shows (SubDivBlend)
+out vec3 vNextUv;
 out float vFogUv;
 out float vDistance;
 
@@ -26,6 +28,7 @@ void main()
 	vDistance = gl_Position.w;
 
 	vUv = hpl_TexCoord.xy;
+	vNextUv = vec3(vUv + hpl_QuadNextFrame.xy, hpl_QuadKind > 2.5 ? hpl_QuadNextFrame.z : 0.0);
 	vFogUv = (fogRange.y - gl_Position.z) / (fogRange.y - fogRange.x);
 	vColor = clamp(hpl_Color, vec4(0.0), vec4(1.0));
 

@@ -584,12 +584,12 @@ namespace hpl {
 		if(mbQuadInstances)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, mlVertexHandle);
-			const int attributes[] = {6,3,7,8,9,10,11};
-			const int sizes[] = {3,1,3,3,4,4,4};
+			const int attributes[] = {6,3,7,8,9,10,11,12};
+			const int sizes[] = {3,1,3,3,4,4,4,4};
 			const size_t offsets[] = {offsetof(cQuadInstance,mvCentre), offsetof(cQuadInstance,mfKind),
 				offsetof(cQuadInstance,mvRight), offsetof(cQuadInstance,mvUp), offsetof(cQuadInstance,mColor),
-				offsetof(cQuadInstance,mEndColor), offsetof(cQuadInstance,mvUV)};
-			for(int i=0; i<7; ++i)
+				offsetof(cQuadInstance,mEndColor), offsetof(cQuadInstance,mvUV), offsetof(cQuadInstance,mvNextFrame)};
+			for(int i=0; i<8; ++i)
 			{
 				glVertexAttribPointer(attributes[i], sizes[i], GL_FLOAT, GL_FALSE,
 					sizeof(cQuadInstance), (const void*)offsets[i]);

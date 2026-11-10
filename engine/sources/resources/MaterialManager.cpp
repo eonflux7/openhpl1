@@ -253,6 +253,8 @@ namespace hpl {
 
 		pMat->SetHasAlpha(bUseAlpha);
 		pMat->SetDepthTest(bDepthTest);
+		pMat->SetFlipbook(cString::ToVector2l(pMain->Attribute("Flipbook"), 0),
+						cString::ToBool(pMain->Attribute("FlipbookBlend"), true));
 		pMat->SetValue(fValue);
 		pMat->SetPhysicsMaterial(sPhysicsMatName);
 

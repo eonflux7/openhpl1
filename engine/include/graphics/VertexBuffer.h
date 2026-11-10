@@ -77,8 +77,11 @@ namespace hpl {
 		cColor mColor = cColor(1,1);
 		cColor mEndColor = cColor(1,1);
 		float mvUV[4] = {0,0,1,1};
+		// Particles: the UV offset from this flipbook frame to the next one
+		// (x, y) and how much of the next one is blended in (z)
+		float mvNextFrame[4] = {0,0,0,0};
 	};
-	static_assert(sizeof(cQuadInstance) == 22 * sizeof(float), "Instance GPU layout");
+	static_assert(sizeof(cQuadInstance) == 26 * sizeof(float), "Instance GPU layout");
 
 	class iLowLevelGraphics;
 

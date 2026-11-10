@@ -17,6 +17,8 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/ParticleEmitter.h"
+
+#include <cmath>
 #include "system/LowLevelSystem.h"
 #include "resources/Resources.h"
 #include "graphics/Graphics.h"
@@ -118,6 +120,22 @@ namespace hpl {
 		mfTime++;
 		mbUpdateGfx = true;
 		mbUpdateBV = true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void iParticleEmitter::WarmUp(float afTime, float afStepsPerSec)
+	{
+		if(afTime <= 0 || afStepsPerSec <= 0) return;
+
+		mbWarmingUp = true;
+		const float fStepSize = 1.0f / afStepsPerSec;
+		const int lSteps = (int)std::ceil(afTime * afStepsPerSec - 0.001f);
+		for(int i=0; i<lSteps; ++i)
+		{
+			Update(fStepSize);
+		}
+		mbWarmingUp = false;
 	}
 
 	//-----------------------------------------------------------------------

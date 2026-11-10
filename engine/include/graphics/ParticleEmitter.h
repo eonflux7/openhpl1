@@ -94,6 +94,8 @@ namespace hpl {
 		float mfLifeColor_MiddleEnd;
 
 		int mlSubDivNum;
+		// The flipbook frame with its fraction, for SubDivType Animation
+		float mfSubDivFrame = 0;
 
 		float mfBounceAmount;
 		int mlBounceCount;
@@ -156,6 +158,12 @@ namespace hpl {
 
 		int GetParticleNum(){ return mlNumOfParticles;}
 
+		/**
+		 * Runs the emitter for afTime in steps of 1/afStepsPerSec, as if it
+		 * had been going before it was created.
+		 */
+		void WarmUp(float afTime, float afStepsPerSec);
+
 	protected:
 		cGraphics *mpGraphics;
 		cResources *mpResources;
@@ -178,6 +186,8 @@ namespace hpl {
 
 		bool mbUpdateGfx;
 		bool mbUpdateBV;
+
+		bool mbWarmingUp = false;
 
 		virtual void UpdateMotion(float afTimeStep)=0;
 
