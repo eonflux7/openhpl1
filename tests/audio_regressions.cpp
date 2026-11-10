@@ -5,7 +5,9 @@
 // real time without an audio device.
 #include "impl/LowLevelSoundOpenAL.h"
 #include "impl/OpenALDevice.h"
+#include "impl/OpenALSoundChannel.h"
 #include "impl/OpenALSoundEnvironment.h"
+#include "sound/SoundHandler.h"
 
 #include <chrono>
 #include <cmath>
@@ -234,6 +236,59 @@ static void TestHandlesAndPause()
 
 //-----------------------------------------------------------------------
 
+static bool FilterIs(cOpenALDevice &aDevice, int alHandle, bool abOn, float afGainHF)
+{
+	bool bDirect = !abOn, bSend = !abOn;
+	float fGainHF = -1;
+	if(!aDevice.GetFilterState(alHandle, bDirect, bSend, fGainHF)) return false;
+	return bDirect == abOn && bSend == abOn && std::fabs(fGainHF - afGainHF) < 1e-4f;
+}
+
+// Occlusion: the handler's block fade drives the channel's low-pass, which
+// covers the direct path and the reverb send and is detached when clear.
+static void TestOcclusionFilter()
+{
+	cOpenALDevice device;
+	if(!device.Open(Params(2, false))) { Check(false, "device opens for occlusion test"); return; }
+	if(!device.IsEFXActive()) { std::printf("SKIP: occlusion filter (no EFX)\n"); device.Close(); return; }
+	std::unique_ptr<cOpenALSample> pSample = MakeSample(1);
+
+	int lHandle = device.PlaySample(pSample.get(), 10, 1, true);
+	auto *pChannel = new cOpenALSoundChannel(nullptr, &device, lHandle, nullptr);
+	cSoundEntry entry;
+	entry.mpSound = pChannel;
+	entry.mfBlockMul = 1;
+
+	cSoundHandler::UpdateBlockFilter(&entry, 0.25f);
+	Check(FilterIs(device, lHandle, false, 1), "a clear sound is not filtered");
+
+	entry.mfBlockMul = 0;
+	cSoundHandler::UpdateBlockFilter(&entry, 0.25f);
+	Check(FilterIs(device, lHandle, true, 0.25f), "a blocked sound gets the blocked GainHF on direct and send");
+
+	entry.mfBlockMul = 0.5f;
+	cSoundHandler::UpdateBlockFilter(&entry, 0.25f);
+	Check(FilterIs(device, lHandle, true, 0.625f), "GainHF follows the block fade");
+
+	entry.mfBlockMul = 1;
+	cSoundHandler::UpdateBlockFilter(&entry, 0.25f);
+	Check(FilterIs(device, lHandle, false, 0.625f), "the filter is detached once the sound is clear");
+
+	entry.mfBlockMul = 0;
+	cSoundHandler::UpdateBlockFilter(&entry, 1.0f);
+	Check(FilterIs(device, lHandle, false, 0.625f), "GainHF 1 turns occlusion filtering off");
+	Check(alGetError() == AL_NO_ERROR, "filter changes raise no OpenAL error");
+
+	cSoundHandler::UpdateBlockFilter(&entry, 0.1f);
+	delete pChannel;
+	int lNext = device.PlaySample(pSample.get(), 10, 1, true);
+	Check(FilterIs(device, lNext, false, 1), "a reused source starts unfiltered");
+
+	device.Close();
+}
+
+//-----------------------------------------------------------------------
+
 static void TestStreaming(bool abThread)
 {
 	cOpenALDevice device;
@@ -438,6 +493,7 @@ int hplMain(const hpl::tString&)
 	TestLifecycle();
 	TestVoiceStealing();
 	TestHandlesAndPause();
+	TestOcclusionFilter();
 	TestStreaming(false);
 	TestStreaming(true);
 	TestLoaders(dir);

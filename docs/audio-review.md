@@ -20,6 +20,8 @@ Done on this branch (see [audio](audio.md) and CHANGES):
   stream rules, and uses one mutex that never depends on a flag (defect 1).
 - Defect 2: `StreamBufferSize` is read as KiB (64 KiB × 4 blocks); the 50 Hz
   refill floor is gone.
+- Defects 3 and 4 (plan step 2): blocked sounds get a low-pass that is
+  removed when clear; blocking rays and the speed fade run on time.
 - Defect 5: malformed sound-environment files are rejected safely.
 - Defect 6 (partly): fades no longer send an uninitialized `DecayHFRatio`.
   The parameter-lerp fade itself is unchanged.
@@ -226,15 +228,19 @@ the original game as well as tests.
      moves to the default device, retried once a second. The menu's device
      option uses the same call instead of a restart.
    - No sample-rate setting, and `AL_SOFT_source_spatialize` isn't used.
-2. **Occlusion** (defects 3 and 4).
-   - Blocked sounds get a low-pass (`GainHF`) that fades in and out, and the
-     filter turns off when the ray is clear.
-   - Blocking rays and the global speed fade run on time, not per frame.
-   - The raycast plus low-pass stays the default. Per-source air absorption
-     comes after it, but first check whether OpenAL Soft applies it with
-     the engine's `AL_NONE` distance model. Steam Audio only if measured CPU
-     cost allows it and the quality gain is audible; it would add to EFX
-     reverb, not replace it.
+2. **Done (code and tests; listening not yet checked): occlusion**
+   (defects 3 and 4). See [audio](audio.md#occlusion).
+   - Blocked sounds get a low-pass whose `GainHF` follows the existing
+     block fade, on the direct path and the reverb send; the filter is
+     detached when the ray is clear. `[Sound] OcclusionGainHF` (default
+     0.25) sets the blocked value.
+   - Blocking rays run every 0.5 s per sound instead of every 30 updates
+     (the same at the default 60 Hz logic rate); the speed fade's rate is
+     per second.
+   - Air absorption was checked: OpenAL Soft applies it under `AL_NONE`,
+     but at realistic factors it's about 1.6 dB at 30 m, so it isn't used.
+     Steam Audio is still only worth it if measured CPU cost allows and the
+     gain is audible; it would add to EFX reverb, not replace it.
 3. **Volume buses with options-menu sliders** (modernization 6).
    - Master, music, SFX, voice and ambience gains, as multipliers in the
      sound and music handlers rather than in OpenAL.

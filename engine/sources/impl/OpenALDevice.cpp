@@ -1096,6 +1096,17 @@ namespace hpl {
 		ApplyFilters(*pSource);
 	}
 
+	bool cOpenALDevice::GetFilterState(int alHandle, bool &abDirect, bool &abSend, float &afGainHF)
+	{
+		std::lock_guard<std::mutex> lock(mMutex);
+		sSource *pSource = GetSource(alHandle);
+		if(pSource == nullptr) return false;
+		abDirect = pSource->mbLowPass && pSource->mbDirectFilter;
+		abSend = pSource->mbLowPass && pSource->mbSendFilter;
+		afGainHF = pSource->mfFilterGainHF;
+		return true;
+	}
+
 	void cOpenALDevice::SetSendToReverb(int alHandle, bool abSend)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);

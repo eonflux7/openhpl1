@@ -67,7 +67,7 @@ namespace hpl {
 	public:
 		cSoundEntry() : mfNormalVolume(1), mfNormalVolumeFadeDest(1),
 						mfNormalVolumeMul(1), mfNormalVolumeFadeSpeed(0), mbStream(false),
-						mlCount(0){}
+						mfBlockRayTime(0), mfFilterGainHF(1){}
 
 		void Update(float afTimeStep);
 
@@ -89,7 +89,10 @@ namespace hpl {
 
 		bool mbStream;
 
-		long int mlCount;
+		// Seconds until the next blocking ray; the first update casts at once.
+		float mfBlockRayTime;
+		// Low-pass GainHF last sent to the channel; 1 means the filter is off.
+		float mfFilterGainHF;
 
 		eSoundDest mEffectType;
 	};
@@ -156,10 +159,23 @@ namespace hpl {
 
 		void Update(float afTimeStep);
 
+		// afRate is the change in speed per second.
 		void SetSpeed(float afSpeed,float afRate,tFlag mTypes);
 		void SetVolume(float afVolume, float afRate, tFlag mTypes);
 
 		float GetVolume(){ return mfVolume;}
+
+		// Low-pass GainHF (0-1, at 5 kHz) for a fully blocked sound. 1 turns
+		// occlusion filtering off; blocked sounds still get quieter.
+		void SetBlockedGainHF(float afX);
+		float GetBlockedGainHF(){ return mfBlockedGainHF;}
+
+		// Seconds between blocking rays for one sound.
+		static constexpr float kBlockRayInterval = 0.5f;
+
+		// Sets the entry's low-pass from its block fade. Called every update;
+		// public for the audio tests.
+		static void UpdateBlockFilter(cSoundEntry* apEntry, float afBlockedGainHF);
 
 		void SetWorld3D(cWorld3D *apWorld3D);
 
@@ -187,6 +203,8 @@ namespace hpl {
 		float mfNewVolume;
 		float mfVolumeRate;
 		tFlag mAffectedByVolume;
+
+		float mfBlockedGainHF;
 
 		cWorld3D *mpWorld3D;
 

@@ -102,6 +102,36 @@ stream manager).
 Data is released before its buffers are deleted: `cOpenALSoundData` asks the
 device to stop every source using it.
 
+## Occlusion
+
+`cSoundHandler` casts a ray from each blockable 3D sound to the listener
+every 0.5 s (`kBlockRayInterval`), and at once when the sound starts. A hit
+fades the entry's block multiplier to 0 over 0.55 s and a clear ray fades it
+back to 1 over 0.2 s; at the first update it jumps. The multiplier lowers
+the volume as before (toward the sound's `BlockVolumeMul` and a squared
+distance curve), and it now also drives a low-pass on the direct path and
+the reverb send:
+
+    GainHF = OcclusionGainHF + block * (1 - OcclusionGainHF)
+
+The filter is detached when the sound is clear, and only changes are sent
+to the device. `[Sound] OcclusionGainHF` (default 0.25, at OpenAL's 5 kHz
+reference) sets the fully blocked value; 1 turns filtering off. Rendered
+white noise at 0.25 loses about 22 dB between 8 and 14 kHz relative to
+200–800 Hz.
+
+The original game cast the ray every 30 updates and enabled a filter with
+unit gains when blocked and never disabled it, so blocked sounds only got
+quieter. At the default 60 logic updates per second the ray interval is
+unchanged. `cSoundHandler::SetSpeed`'s rate is now per second (nothing in
+the games calls it).
+
+Air absorption isn't used. OpenAL Soft does apply `AL_AIR_ABSORPTION_FACTOR`
+with the engine's `AL_NONE` distance model (it uses the source's distance
+past `AL_REFERENCE_DISTANCE`, 1 m by default): factor 10 at 30 m removed
+about 26 dB above 8 kHz. A realistic factor of 1 is about −1.6 dB at 5 kHz
+at 30 m, which game sounds' max distances rarely reach.
+
 ## Reverb
 
 Sound environments (`.snt`, `Type="OpenAL"`) are read into
@@ -134,10 +164,13 @@ game data or audio device. It covers:
   refilling and the looping sample keeps playing; an unknown device fails
   and keeps the current one
 - reading and writing the `HRTF` setting
+- the occlusion low-pass: off when clear, blocked GainHF on the direct path
+  and send when blocked, following the block fade, detached when clear,
+  off when `OcclusionGainHF` is 1, and reset on a reused source
 
 A real unplug can't be simulated on the null backend; the reconnect path
 is checked by hand.
 
 The fixture `tests/data/tone_stereo_0.5s.ogg` is a 0.5 s 440 Hz tone made
 with ffmpeg's libvorbis encoder. The tests don't check audible reverb,
-occlusion or the mix; those need listening in the game.
+the blocking rays or the mix; those need listening in the game.

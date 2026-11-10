@@ -781,6 +781,7 @@ bool cInit::Init(tString asCommandLine)
 
 	// SOUND ////////////////////////////////
 	mpGame->GetSound()->GetLowLevel()->SetVolume(mpConfig->GetFloat("Sound","Volume",1));
+	mpGame->GetSound()->GetSoundHandler()->SetBlockedGainHF(mpConfig->GetFloat("Sound","OcclusionGainHF",0.25f));
 		
 	// PHYSICS INIT /////////////////////
 	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials, mpGame->GetHaptic());
@@ -1423,6 +1424,7 @@ void cInit::Exit()
 	mpConfig->SetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 	
 	mpConfig->SetFloat("Sound","Volume",mpGame->GetSound()->GetLowLevel()->GetVolume());
+	mpConfig->SetFloat("Sound","OcclusionGainHF",mpGame->GetSound()->GetSoundHandler()->GetBlockedGainHF());
 	mpConfig->SetBool("Sound","UseSoundHardware", mbUseSoundHardware);
 	mpConfig->SetBool("Sound","UseEnvironmentalAudio", mbUseEnvAudio);
 	mpConfig->SetInt("Sound","MaxSoundChannels",mlMaxSoundChannels);

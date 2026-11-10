@@ -216,6 +216,9 @@ namespace hpl {
 		void SetFilterGain(int alHandle, float afGain);
 		void SetFilterGainHF(int alHandle, float afGainHF);
 		void SetSendToReverb(int alHandle, bool abSend);
+		/** Low-pass state of a source: whether the filter is on the direct path
+		 * and the sends, and its GainHF. False for a stale handle. */
+		bool GetFilterState(int alHandle, bool &abDirect, bool &abSend, float &afGainHF);
 
 		/** Stops every source using the data so it can be deleted. */
 		void ReleaseSample(cOpenALSample *apSample);

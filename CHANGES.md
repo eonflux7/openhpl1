@@ -5,6 +5,28 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Occlusion low-pass (2026-11-10)
+
+- Blocked 3D sounds are muffled as well as quieter. The original enabled a
+  filter with unit gains when a blocking ray hit and never disabled it.
+  The low-pass `GainHF` now follows the block fade (0.55 s in, 0.2 s out)
+  on the direct path and the reverb send, and the filter is detached when
+  the sound is clear. `[Sound] OcclusionGainHF` (default 0.25; 1 turns it
+  off) sets the fully blocked value.
+- Blocking rays run every 0.5 s per sound rather than every 30 logic
+  updates, which is the same at the default 60 Hz. The sound handler's
+  speed fade (unused by the games) now changes per second, not per update.
+- Air absorption under the engine's `AL_NONE` distance model was measured
+  and not adopted: it works, but realistic values are inaudible at game
+  distances. See [audio](docs/audio.md#occlusion).
+- Validation: `audio_regressions` checks the filter state through blocked,
+  fading, clear and disabled states and on a reused source. A loopback
+  render of white noise confirmed about 22 dB less energy above 8 kHz at
+  the default. Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The
+  ASan Overture smoke test (isolated profile, null backend) loads 28/28
+  maps with no new warnings or sanitizer reports. Not checked: listening
+  in the game, Windows.
+
 ## HRTF setting and audio device recovery (2026-11-10)
 
 - New `[Sound] HRTF` setting (`auto`, the default, `on` or `off`) and an

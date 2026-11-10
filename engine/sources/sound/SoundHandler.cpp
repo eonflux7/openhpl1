@@ -51,6 +51,7 @@ namespace hpl {
 		mfVolume=1;
 		mfNewVolume=1;
 		mfVolumeRate=0;
+		mfBlockedGainHF=0.25f;
 
 		mpWorld3D = nullptr;
 
@@ -497,7 +498,7 @@ namespace hpl {
 	{
 		if(mfNewSpeed != mfSpeed)
 		{
-			mfSpeed+=mfSpeedRate;
+			mfSpeed+=mfSpeedRate * afTimeStep;
 			if(mfSpeedRate<0 && mfSpeed<mfNewSpeed)mfSpeed=mfNewSpeed;
 			if(mfSpeedRate>0 && mfSpeed>mfNewSpeed)mfSpeed=mfNewSpeed;
 		}
@@ -560,6 +561,13 @@ namespace hpl {
 		mAffectedBySpeed = aTypes;
 
 		if(afRate==0)mfSpeed = mfNewSpeed;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cSoundHandler::SetBlockedGainHF(float afX)
+	{
+		mfBlockedGainHF = cMath::Clamp(afX, 0.0f, 1.0f);
 	}
 
 	//-----------------------------------------------------------------------
@@ -823,8 +831,12 @@ namespace hpl {
 
 				////////////////////////////////////////
 				//Check if sound is blocked.
-				if(	pSound->GetBlockable() && mpWorld3D && mpWorld3D->GetPhysicsWorld() && (apEntry->mlCount % 30) == 0)
+				apEntry->mfBlockRayTime -= afTimeStep;
+				if(	pSound->GetBlockable() && mpWorld3D && mpWorld3D->GetPhysicsWorld() &&
+					apEntry->mfBlockRayTime <= 0)
 				{
+					apEntry->mfBlockRayTime = kBlockRayInterval;
+
 					iPhysicsWorld *pPhysicsWorld = mpWorld3D->GetPhysicsWorld();
 
 					mSoundRayCallback.Reset();
@@ -847,13 +859,10 @@ namespace hpl {
 							apEntry->mfBlockMul = 0.0f;
 						}
 
-						pSound->SetFiltering(true, 0xF);
 						bBlocked = true;
 					}
 					else
 					{
-						//pSound->SetFiltering(false, 0xF);
-
 						apEntry->mfBlockFadeDest = 1;
 						apEntry->mfBlockFadeSpeed = 1.0f / 0.2f;
 
@@ -864,7 +873,6 @@ namespace hpl {
 
 					//Log("Blocked: %d ",bBlocked ? 1 : 0);
 				}
-				++apEntry->mlCount;
 
 				/////////////////////////////////////
 				// Lower volume according to distance
@@ -903,14 +911,13 @@ namespace hpl {
 				if(apEntry->mEffectType & mAffectedByVolume)
 				{
 					pSound->SetVolume(fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);
-					//pSound->SetFilterGainHF(fBlock * fVolume * apEntry->mfNormalVolumeMul * mfVolume);
 				}
 				else
 				{
 					pSound->SetVolume(fBlock * fVolume * apEntry->mfNormalVolumeMul);
 				}
 
-				//pSound->SetFilterGainHF(0.1f);
+				UpdateBlockFilter(apEntry, mfBlockedGainHF);
 
 				//Log("Vol: %f\n",fBlock * fVolume * apEntry->mfNormalVolumeMul);
 				//Log("%s Block: %f\n",apEntry->msName.c_str(),apEntry->mfBlockMul);
@@ -918,6 +925,32 @@ namespace hpl {
 		}
 	}
 
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * Muffles a blocked sound: the low-pass GainHF follows the block fade
+	 * (1 clear, 0 blocked) and the filter is detached once the sound is clear.
+	 * It applies to the direct path and the reverb sends.
+	 */
+	void cSoundHandler::UpdateBlockFilter(cSoundEntry* apEntry, float afBlockedGainHF)
+	{
+		float fGainHF = afBlockedGainHF + apEntry->mfBlockMul * (1.0f - afBlockedGainHF);
+		if(fGainHF >= 0.999f) fGainHF = 1.0f;
+		if(fGainHF == apEntry->mfFilterGainHF) return;
+
+		iSoundChannel *pSound = apEntry->mpSound;
+		if(fGainHF >= 1.0f)
+		{
+			pSound->SetFiltering(false, 0xF);
+		}
+		else
+		{
+			pSound->SetFilterGainHF(fGainHF);
+			if(apEntry->mfFilterGainHF >= 1.0f) pSound->SetFiltering(true, 0xF);
+		}
+		apEntry->mfFilterGainHF = fGainHF;
+	}
 
 	//-----------------------------------------------------------------------
 
