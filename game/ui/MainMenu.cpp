@@ -2163,7 +2163,7 @@ public:
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
 		// Not in the game's language files
-		msTip = _W("The monitor to use. Automatic picks the largest. Requires restart.");
+		msTip = _W("The monitor to use. Automatic picks the primary one (the largest on Wayland). Requires restart.");
 	}
 
 	void OnMouseDown(eMButton aButton) override

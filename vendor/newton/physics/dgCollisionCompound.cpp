@@ -1710,6 +1710,12 @@ dgInt32 dgCollisionCompound::CalculateContactsToCollisionTree(
 	dgMatrix myMatrix(m_offset * myBody->m_matrix);
 	OOBBTestData data(proxy.m_floatingMatrix * myMatrix.Inverse());
 
+	// OpenHPL1: a tree whose faces were all degenerate has no root node; the
+	// other tree queries check for that, this one dereferenced it.
+	if (!treeCollision->GetRootNode()) {
+		return 0;
+	}
+
 	dgInt32 stack = 1;
 	stackPool[0].m_myNode = m_root;
 	stackPool[0].m_treeNode = treeCollision->GetRootNode();

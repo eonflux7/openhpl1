@@ -5,6 +5,74 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Sliders placed inside the level (2026-11-06)
+
+- The vertical door by the valve in `level01_17_worm_nest` would not open
+  (GitHub issue #1). The map places it 2.4 mm into `room4_wall2`. Newton 2
+  pushes it about 7 cm off its track, where level geometry holds it against
+  the controller's force. A world-fixed slider at least 2 mm inside level
+  geometry now ignores static bodies (`iPhysicsBody::SetPassThroughStatic`,
+  `cMapHandler::FreeSlidersFromStaticBodies`); its joint keeps it on its track
+  and limits its travel. Frames and cabinets of the slider's own entity don't
+  count. The setting is not saved, so it is applied again on restored maps,
+  and a door saved while jammed returns to its track.
+- `iPhysicsWorld::GetBodyOverlap` replaces the grab state's own overlap helper.
+- The door's `MaxLinearSpeed` of 0.001 stays: it sets the opening speed.
+- Validation: on Windows, with the controllers forced, the door rises at
+  0.086 m/s (`slowup`, to its full 2 m) and 0.014 m/s (`veryslowup`), also from
+  a save made while it was jammed. In manual play the valve opened it at the
+  slower speed, with the pillar intact. Linux CTest passes 3/3, also with ASan
+  and UBSan (leak detection off), and the Windows smoke test passes Overture
+  28, Black Plague 29 and Requiem 15 maps with 0 failures. The rule also
+  applies to `firedoor01` in Requiem's `level09`, which was only loaded, not
+  operated. The valve after the pillar's destruction was not played.
+
+## Held levers and embedded bodies (2026-11-05)
+
+- Levers ignored small mouse movements (GitHub issue #1). The lever in
+  `level01_13_A_iron_mine_shafts` rests 2 mm into the side of its slot along
+  its hinge axis, so the hinge holds it against that contact and friction
+  takes the force. A jointed body held in Move mode now has no friction
+  against static bodies until it is let go (`iPhysicsBody::SetStaticFriction`).
+- The helmet in `level01_16_destroyed_shaft`'s locker could not be picked up
+  (GitHub issue #1). The map places it with its brim through the locker's
+  wall, and Newton 2 pushes each collider out of its nearest face, which
+  keeps the brim on the far side. Removing friction did not free it. A body
+  grabbed at least 1 cm inside a static body now passes through that one
+  body until they no longer overlap (`iPhysicsBody::SetPassThroughBody`).
+  Collision with everything else stays on, and a body let go half way is
+  remembered for the next grab.
+- Neither setting is saved.
+- Validation: on Windows the lever follows the mouse better and the helmet
+  comes out of the locker in manual play, with the physics log showing it
+  freed and thrown 3.5 m. The ice break still does not crash in this build.
+  Linux CTest passes 3/3, also with ASan and UBSan (leak detection off), and
+  the Windows Overture smoke test passes 28 maps with 0 failures. The noisy
+  debris from the same issue was not reproduced and is not addressed here.
+
+## Primary display on Windows (2026-11-05)
+
+- With no display chosen the game now opens on the system's primary display
+  (GitHub issue #1). Wayland has no primary display, so it still uses the
+  largest one there.
+- Validation: built and run on Windows, where this machine's primary display
+  is also its largest, so the runs do not tell the new choice from the old.
+
+## Lake Utuqaq ice crash (2026-11-02)
+
+- Breaking the ice in `level01_15_icecave` crashed the game (GitHub issue #1).
+  Newton's compound-against-tree contact code
+  (`dgCollisionCompound::CalculateContactsToCollisionTree`) started from the
+  tree's root node without checking for one; a static mesh whose triangles
+  were all degenerate builds a tree with no root, and the first compound
+  body to touch it read address 0 in `dgAABBPolygonSoup::GetNodeAABB`. The
+  other tree queries already check the root; this one now returns no
+  contacts for an empty tree.
+- Validation: reproduced on the Windows (MSVC) build of `c2ca6d2` by walking
+  onto the ice, with the access violation resolved by cdb to
+  `dgAABBPolygonSoup.cpp:1342`; with the fix, the same manual play breaks
+  the ice without a crash.
+
 ## Level editor window (2026-10-25)
 
 - `cEditor` (`game/core/Editor.cpp`): `--editor` or `OPENHPL_EDITOR=1`

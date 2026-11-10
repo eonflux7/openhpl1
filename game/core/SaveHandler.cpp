@@ -498,6 +498,8 @@ void cSaveHandler::LoadData(const tString &asName)
 	mpInit->mpPlayer->LoadSaveData(pSavedWorld);
 
 	mpInit->mpSoundEnvHandler->LoadSaveData(pSavedWorld);
+
+	mpInit->mpMapHandler->FreeSlidersFromStaticBodies(pWorld);
 }
 
 

@@ -25,6 +25,25 @@
 #include "entities/GameStickArea.h"
 #include "core/GraphicsHelper.h"
 
+// Maps place some bodies inside static geometry, like the helmet in level 16's
+// locker, whose brim goes through the locker's wall. Newton 2 pushes each part
+// out of its nearest face, which keeps the brim on the far side of the wall.
+static iPhysicsBody* FindEmbeddingBody(iPhysicsWorld *apWorld, iPhysicsBody *apBody, iPhysicsBody *apKnown)
+{
+	const float fMinDepth = 0.01f;
+
+	cPhysicsBodyIterator it = apWorld->GetBodyIterator();
+	while(it.HasNext())
+	{
+		iPhysicsBody *pOther = it.Next();
+		if(pOther == apBody || pOther->GetMass() != 0 || pOther->IsCharacter() || pOther->GetCollide()==false) continue;
+
+		float fDepth = apWorld->GetBodyOverlap(apBody, pOther);
+		if(fDepth >= fMinDepth || (pOther == apKnown && fDepth >= 0)) return pOther;
+	}
+	return nullptr;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // GRAB STATE
 //////////////////////////////////////////////////////////////////////////
@@ -34,6 +53,8 @@ float cPlayerState_Grab::mfMassDiv = 5.0f;
 cPlayerState_Grab::cPlayerState_Grab(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Grab)
 {
 	mpPushBody = nullptr;
+	mpFreeingBody = nullptr;
+	mpFreeingFrom = nullptr;
 
 	//Init controllers
 	mGrabPid.SetErrorNum(10);
@@ -168,6 +189,13 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 	else
 	{
 		mpPushBody->AddForce(vForce * mpPushBody->GetMass()*mpPlayer->mfGrabMassMul);
+	}
+
+	//Out of what it was embedded in, it collides with that again
+	if(mpPushBody->GetPassThroughBody() && pPhysicsWorld->GetBodyOverlap(mpPushBody, mpPushBody->GetPassThroughBody()) < 0)
+	{
+		mpPushBody->SetPassThroughBody(nullptr);
+		mpFreeingBody = nullptr;
 	}
 
 	////////////////////////////
@@ -493,6 +521,14 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 	mbHasPlayerGravityPush = mpPushBody->GetPushedByCharacterGravity();
 	mpPushBody->SetPushedByCharacterGravity(true);
 
+	//A body that starts inside static geometry is let out of it. Letting go
+	//part of the way out, it is still known here for the next try.
+	iPhysicsBody *pEmbedding = FindEmbeddingBody(mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld(),
+							mpPushBody, mpPushBody == mpFreeingBody ? mpFreeingFrom : nullptr);
+	mpPushBody->SetPassThroughBody(pEmbedding);
+	mpFreeingBody = pEmbedding ? mpPushBody : nullptr;
+	mpFreeingFrom = pEmbedding;
+
 	//Set a newer player mass
 	mpPlayer->SetMass(mpPlayer->GetMass() + mpPushBody->GetMass());
 
@@ -554,6 +590,7 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 
 void cPlayerState_Grab::LeaveState(iPlayerState* apNextState)
 {
+	mpPushBody->SetPassThroughBody(nullptr);
 	mpPushBody->SetPushedByCharacterGravity(mbHasPlayerGravityPush);
 	mpPushBody->SetGravity(mbHasGravity);
 	mpPushBody->SetActive(true);
@@ -907,6 +944,10 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 	mpPushBody = mpPlayer->GetPushBody();
 	mpPushBody->SetAutoDisable(false);
 
+	//A joint holds the body against what it touches, a lever against the side of
+	//its slot, and with friction there small movements of the mouse do nothing
+	if(mpPushBody->GetJointNum() > 0) mpPushBody->SetStaticFriction(false);
+
 	//The pick point relative to the body
 	mvPickPoint = mpPlayer->GetPickedPos();
 
@@ -953,6 +994,8 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 
 void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 {
+	mpPushBody->SetStaticFriction(true);
+
 	//Remove callback to body if needed
 	/*if(mpPushBody->GetCollideCharacter())
 	{

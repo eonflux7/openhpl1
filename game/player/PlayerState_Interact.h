@@ -96,6 +96,10 @@ private:
 
 	float mfDefaultMass;
 
+	// The body being let out of static geometry, kept between grabs
+	iPhysicsBody *mpFreeingBody;
+	iPhysicsBody *mpFreeingFrom;
+
 	bool mbHasPlayerGravityPush;
 
 	bool mbPickAtPoint;

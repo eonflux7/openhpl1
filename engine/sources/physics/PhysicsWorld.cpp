@@ -395,6 +395,22 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	float iPhysicsWorld::GetBodyOverlap(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB)
+	{
+		if(cMath::CheckCollisionBV(*apBodyA->GetBV(), *apBodyB->GetBV())==false) return -1;
+
+		cCollideData data;
+		data.SetMaxSize(8);
+		if(CheckShapeCollision(apBodyA->GetShape(), apBodyA->GetLocalMatrix(),
+				apBodyB->GetShape(), apBodyB->GetLocalMatrix(), data, 8)==false) return -1;
+
+		float fDepth = 0;
+		for(int i=0; i<data.mlNumOfPoints; ++i) fDepth = cMath::Max(fDepth, data.mvContactPoints[i].mfDepth);
+		return fDepth;
+	}
+
+	//-----------------------------------------------------------------------
+
 	bool iPhysicsWorld::CheckShapeWorldCollision(cVector3f *apNewPos,
 							iCollideShape* apShape, const cMatrixf& a_mtxTransform,
 							iPhysicsBody *apSkipBody, bool abSkipStatic, bool abIsCharacter,
