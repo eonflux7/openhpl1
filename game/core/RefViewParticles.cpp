@@ -272,16 +272,8 @@ void cRefView::DrawParticleMarkers()
 void cRefView::DrawParticles()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + fEm, pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
-							ImGuiCond_FirstUseEver, ImVec2(0, 1));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-	// Folded, it shows nothing on the screen either
-	if(ImGui::Begin("Particles", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize) == false)
-	{
-		ImGui::End();
-		return;
-	}
+	// Off or folded, it shows nothing on the screen either
+	if(BeginWindow("Particles", &mbShowParticles, 0, 1, 36, 18) == false) return;
 
 	// C cycles as the button does, unless typing
 	bool bKey = ImGui::GetIO().WantTextInput == false && ImGui::IsKeyPressed(ImGuiKey_C, false);
@@ -343,7 +335,7 @@ void cRefView::DrawParticles()
 	ImGui::TextDisabled("New systems: %s", pManager->GetUseOriginal() ? "old" : "new");
 
 	if(ImGui::BeginTable("##particles", 4, ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit,
-							ImVec2(fEm * 34, fEm * 12)))
+							ImVec2(0, cMath::Max(ImGui::GetContentRegionAvail().y, fEm * 6))))
 	{
 		ImGui::TableSetupColumn("System", ImGuiTableColumnFlags_WidthStretch);
 		ImGui::TableSetupColumn("File");

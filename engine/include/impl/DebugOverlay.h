@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <functional>
+#include <string>
 
 #include <SDL3/SDL.h>
 
@@ -39,6 +40,9 @@ namespace hpl {
 		void SetPanel(std::function<void()> aDraw){ mPanel = std::move(aDraw); }
 
 		void SetInput(bool abX){ mbInput = abX; }
+		/// Where the windows' places and sizes are kept; "" for nowhere
+		/// (the default: the working directory is the game's data).
+		void SetIniFile(const std::string &asFile);
 		/// The overlay has the mouse and the keyboard.
 		static bool HasInput(){ return mbInput && mbInitialized; }
 		/// Every SDL event, while HasInput().
@@ -63,6 +67,7 @@ namespace hpl {
 		bool mbActive;
 		bool mbFailed;
 		std::function<void()> mPanel;
+		std::string msIniFile;
 
 		// There is one ImGui context, and the input code has no overlay object.
 		static bool mbInitialized;

@@ -631,7 +631,12 @@ void cEditor::DrawMenuBar()
 		ImGui::MenuItem("Log", nullptr, &mbShowLog);
 		ImGui::Separator();
 		bool bPanel = mpInit->mpRefView->IsOpen();
-		if(ImGui::MenuItem("Renderer and views panel", "F2", &bPanel)) mpInit->mpRefView->SetOpen(bPanel);
+		if(ImGui::MenuItem("Debug panels", "F2", &bPanel)) mpInit->mpRefView->SetOpen(bPanel);
+		if(ImGui::BeginMenu("Debug windows"))
+		{
+			mpInit->mpRefView->DrawWindowMenuItems();
+			ImGui::EndMenu();
+		}
 		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
 		bool bStats = pLowLevel->GetDebugOverlayActive();
 		if(ImGui::MenuItem("Frame times", "F3", &bStats)) pLowLevel->SetDebugOverlayActive(bStats);
@@ -656,7 +661,7 @@ void cEditor::DrawMenuBar()
 							   "Click: select.  W move, E turn, R scale, Q select only.\n"
 							   "X: world or local axes.  G: snap.  F: focus.\n"
 							   "Ctrl+Z / Ctrl+Y undo and redo, Ctrl+S save, Ctrl+R reload.\n"
-							   "F8: play from the camera, and back.  F2: renderer panel.");
+							   "F8: play from the camera, and back.  F2: debug panels.");
 		ImGui::EndMenu();
 	}
 

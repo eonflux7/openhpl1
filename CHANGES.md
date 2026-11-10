@@ -114,8 +114,9 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
   blended frames.
 - Developer mode: map reload while editing (F6, or on save in an addon
   folder), a level editor window (`--editor`), live control from
-  `tools/levelview.py`, a debug overlay (F3) and a reference/shading panel
-  (F2).
+  `tools/levelview.py`, a debug overlay (F3) and F2 debug panels (Render,
+  Move, God, Views, Level editor) with fly, bookmarks, god mode and an item
+  spawner; their layout is kept in `debug_panels.ini` in the profile.
 - Tests: engine, renderer and audio regressions, an automated smoke run
   through every map, reference-image capture and comparison, and generated
   physics, Dog and effects test maps.
