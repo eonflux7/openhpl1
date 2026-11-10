@@ -6,6 +6,7 @@ setlocal
 cd /d "%~dp0\..\.."
 
 if not defined VCPKG_ROOT set "VCPKG_ROOT=C:\vcpkg"
+set "OUR_VCPKG_ROOT=%VCPKG_ROOT%"
 if not exist "%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" (
 	echo vcpkg not found in %VCPKG_ROOT%. Set VCPKG_ROOT.
 	exit /b 1
@@ -21,6 +22,9 @@ if not defined VCINSTALLDIR (
 	)
 	call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat" >nul || exit /b 1
 )
+
+rem Newer vcvars64.bat set VCPKG_ROOT to Visual Studio's own vcpkg; keep ours
+set "VCPKG_ROOT=%OUR_VCPKG_ROOT%"
 
 cmake --preset windows || exit /b 1
 cmake --build --preset windows %* || exit /b 1

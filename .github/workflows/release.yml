@@ -77,6 +77,10 @@ jobs:
           key: vcpkg-x64-windows-${{ hashFiles('vcpkg.json') }}
           restore-keys: vcpkg-x64-windows-
 
+      # Visual Studio 18's developer environment has no Ninja on the PATH
+      - name: Install Ninja
+        run: choco install ninja --no-progress -y
+
       - name: Build
         shell: cmd
         run: call platform\windows\build.cmd
