@@ -32,7 +32,8 @@ would behave differently.
 The initial bootstrap needed no engine additions: the binaries export their
 symbols, and all but a handful of template instances of the engine's functions
 have the same size in Overture's and Black Plague's. Subsequent porting work
-also fixed shared physics, audio and other engine behaviour; see CHANGES.
+also fixed shared physics, audio and other engine behaviour; see
+[CHANGES](../CHANGES.md) and the [archived change log](archive/CHANGES-2026-11.md).
 
 ## The games' folders are left alone
 

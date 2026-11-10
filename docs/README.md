@@ -2,7 +2,8 @@
 
 Start with the repository [README](../README.md) for build/run instructions
 and [ROADMAP](../ROADMAP.md) for current work across all three games.
-[CHANGES](../CHANGES.md) records the implementation history.
+[CHANGES](../CHANGES.md) summarises changes from the originals; the detailed
+log to 2026-11-10 is [archived](archive/CHANGES-2026-11.md).
 
 Current technical guides:
 
