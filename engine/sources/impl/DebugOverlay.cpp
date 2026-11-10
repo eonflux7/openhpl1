@@ -52,21 +52,23 @@ namespace hpl {
 		// has the input (see Draw).
 		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
-		// Sized for 1080 lines, larger above that.
-		int lW = 0, lH = 0;
-		SDL_GetWindowSizeInPixels(apWindow, &lW, &lH);
-		float fScale = std::max(1.0f, lH / 1080.0f);
-
+		// ImGui's own pixel font at its native size, at 100 %: the panels
+		// stay small and sharp instead of growing with the window.
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
-		style.ScaleAllSizes(fScale);
-		style.FontSizeBase = std::round(15.0f * fScale);
+		style.FontSizeBase = 13.0f;
 		style.WindowRounding = 0;
-
-		std::string sFont = std::string(SDL_GetBasePath() ? SDL_GetBasePath() : "") +
-							"fonts/Cousine-Regular.ttf";
-		if(io.Fonts->AddFontFromFileTTF(sFont.c_str()) == nullptr)
-			io.Fonts->AddFontDefault();
+		style.WindowPadding = ImVec2(6, 6);
+		style.FramePadding = ImVec2(4, 2);
+		style.ItemSpacing = ImVec2(6, 3);
+		style.ItemInnerSpacing = ImVec2(4, 3);
+		style.CellPadding = ImVec2(4, 1);
+		style.IndentSpacing = 12;
+		style.ScrollbarSize = 11;
+		style.GrabMinSize = 8;
+		style.TabRounding = 0;
+		style.WindowTitleAlign = ImVec2(0, 0.5f);
+		io.Fonts->AddFontDefaultBitmap();
 
 		if(!ImGui_ImplSDL3_InitForOpenGL(apWindow, SDL_GL_GetCurrentContext()) ||
 			!ImGui_ImplOpenGL3_Init("#version 330"))
@@ -144,7 +146,9 @@ namespace hpl {
 	void cDebugOverlay::DrawRenderer(cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
 									float afRenderScale)
 	{
-		ImGui::SetNextWindowPos(ImVec2(8, 8), ImGuiCond_Always);
+		// Under a menu bar, if one is shown
+		const ImVec2 vWorkPos = ImGui::GetMainViewport()->WorkPos;
+		ImGui::SetNextWindowPos(ImVec2(vWorkPos.x + 6, vWorkPos.y + 6), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.7f);
 		ImGui::Begin("Renderer", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs |
 					ImGuiWindowFlags_NoSavedSettings);

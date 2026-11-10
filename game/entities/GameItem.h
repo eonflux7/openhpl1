@@ -67,6 +67,8 @@ public:
 	void OnPlayerPick() override;
 
 	void OnPlayerInteract() override;
+	// Into the inventory from wherever the player is, as when picked up
+	void TakeIntoInventory();
 	
 	void Update(float afTimeStep) override;
 

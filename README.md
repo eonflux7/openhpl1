@@ -352,29 +352,37 @@ effects pixel checks/live transitions and GL debug validation pass.
 See [CHANGES.md](CHANGES.md) for the implementation and results.
 
 To look at those places yourself, press F2 in the game with Developer Mode
-on (Options → Game), or start it with `OPENHPL_REFVIEW=1`: a panel lists the maps, and for the loaded map the
-places and directions of its frames, under the names the frames are saved
-with. Picking one loads the map or puts you there; PgUp and PgDn step through
-the map's frames. The view can be set up as in the frames (no flicker and a
-player that cannot be hurt, which are on; flashlight on and no HUD, which
-are off until switched), and
-the lighting can be tuned from the panel: Light power, Exposure, Glow, Blend
-match and the tonemapping's Shoulder and White. The bloom can be switched
-off and has its own sliders (see CHANGES; Ctrl+click a slider to type a
-value). A second window, Shadows, switches shadows and has the maps'
-settings, a view of the shadows alone, the lights in view (to
-draw one alone, or switch its shadows) and a test light to put anywhere or
-carry around. A third, Player, has Fly (a free camera; switching it off puts
-the player where the camera is), the switches for flashlight, flicker,
-HUD and damage, and buttons that put the flashlight, the glow stick or a
-flare in the inventory. A fourth, Ambient occlusion, switches it and has its
-quality, radius, strength and filter, and a view of the occlusion alone.
-A fifth, Lens and film, has the depth of field (with a switch to try it at
-a distance of your choosing), motion blur and noise filter, and their
-settings. A sixth, Anti-aliasing, is folded at the bottom right:
-multisampling, the texture filter, and SMAA with its settings and a view of
-the edges it finds.
-While the panel is open it
+on (Options → Game), or start it with `OPENHPL_REFVIEW=1`. A menu bar along
+the top switches the panel's windows on and off:
+
+- **Render**: a tab each for the lighting (Light power, Exposure, Glow,
+  Blend match, the tonemapping's Shoulder and White) and bloom, shading,
+  shadows (the maps' settings, a view of the shadows alone, the lights in
+  view and a test light to put anywhere or carry around), ambient
+  occlusion, lens and film (depth of field, motion blur, grain) and
+  anti-aliasing (multisampling, the texture filter, SMAA). These are kept in
+  `settings.cfg`; Ctrl+click a slider to type a value.
+- **Move**: Fly (a free camera; switching it off puts the player where the
+  camera is) and its speed, the camera's position (copy it, or type one and
+  Go), every map, the loaded map's start positions, and bookmarks of camera
+  places in any map for the session.
+- **God**: cannot be hurt, Heal, the flashlight, flicker and HUD switches,
+  quick buttons for the flashlight, glow stick and flares, and items:
+  every item entity in the game's files, quest items (type Normal) apart
+  from the others, given under a name of your choosing, and the items lying
+  in the loaded map, taken into the inventory as if picked up. Scripts know
+  quest items by their name in the map (`coffinkey`, not `item_key01`), so
+  **In this map** is the way to get a working one. The player effects
+  preview is a tab here too.
+- **Views**: the places and directions of the loaded map's frames, under
+  the names the frames are saved with (PgUp and PgDn step through them),
+  and the viewpoints.
+- **Level editor** and **Stats** (the F3 overlay).
+
+Options such as no flicker and cannot be hurt apply once something in the
+panel is used; flashlight and HUD are left as they are until switched. The
+panels use Dear ImGui's pixel font at its own size, without scaling. While
+the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the
 camera stays at the light until "Release". The live view is not a capture:
@@ -422,7 +430,7 @@ default it looks in the Steam location
 Plague` for Black Plague and Requiem; set `OPENHPL_GAME_DIR` to use another
 install. Smoke tests, captures and checks never open the chooser.
 
-The debug keys (F2 renderer tools, F3 performance overlay, F6 reload the
+The debug keys (F2 debug panels, F3 performance overlay, F6 reload the
 map, L to log a frame's rendering) only work with **Developer Mode** on in Options → Game.
 It is off by default; `OPENHPL_DEBUG=1`, `OPENHPL_MAP`, `OPENHPL_REFVIEW`
 and `OPENHPL_DEBUG_OVERLAY` turn it on for that run, so the test maps can
@@ -458,7 +466,7 @@ comes back. `OPENHPL_MAP` picks the map.
 `tools/levelview.py` runs the game for tools and agents to drive: load a
 map, hold the camera at a viewpoint or on a node, save frames, list and
 move the map's nodes, save the changed map and see it reloaded, and compare
-frames before and after. The F2 panel's Level editor section does the same
+frames before and after. The F2 panel's Level editor window does the same
 editing by hand. Edited maps are saved into an addon of their own, with a
 list of the changes for carrying them back into a Blender scene.
 

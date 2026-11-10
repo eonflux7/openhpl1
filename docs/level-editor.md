@@ -13,7 +13,7 @@ physics and scripts. Four parts:
 - **Level editor** (`game/core/LevelEditor.cpp`): the editing underneath:
   moves, turns and scales the nodes of the loaded map's file, moves what
   the world made of them at once, keeps the undo steps, and saves the map
-  as an addon. The editor window, the F2 panel's Level editor section and
+  as an addon. The editor window, the F2 panel's Level editor window and
   the live commands all use it.
 - **`tools/levelview.py`**: starts the game for live control with its own
   profile, sends commands, takes and compares frames. It also does the
@@ -63,7 +63,7 @@ keeping unsaved changes.
 | Ctrl+Z, Ctrl+Y (Ctrl+Shift+Z) | undo, redo; a gizmo drag or a field's drag is one step |
 | Ctrl+S, Ctrl+R | save, reload |
 | Esc | deselect |
-| F2, F3 | the renderer and views panel, frame times |
+| F2, F3 | the debug panels (also under View → Debug windows), frame times |
 
 The gizmo: arrows move along an axis and the ring in the middle moves in
 the view's plane; rings turn around an axis; boxes scale along an axis
@@ -188,7 +188,7 @@ commands use the last session started (or `--session`,
 
 ## Level editor
 
-The editor window, the F2 panel's **Level editor** section (it opens when
+The editor window, the F2 panel's **Level editor** window (it opens when
 a node is picked), or the live commands above. The loaded map's file (its `.dae`, or the `.glb` of an addon that stands in for
 it) is read when the editor is first used on a map. A node is picked from
 the list (filter by name, kind or file) or with **Pick** (what the middle

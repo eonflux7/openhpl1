@@ -27,7 +27,7 @@
 #include <set>
 
 // A tooltip that wraps instead of running off the screen
-static void Tip(const char *apText)
+void cRefView::Tip(const char *apText)
 {
 	if(ImGui::BeginTooltip()==false) return;
 	ImGui::PushTextWrapPos(ImGui::GetFontSize() * 28);
@@ -228,8 +228,8 @@ void cRefView::Update(float afTimeStep)
 		if(msViewsMap == msWaitMap)
 		{
 			msWaitMap = "";
-			// Start at the map's first frame
-			if(mlGoToView < 0)
+			// Start at the map's first frame, unless going to a bookmark
+			if(mlGoToView < 0 && mlGoToBookmark < 0)
 			{
 				mlGoToView = 0;
 				mlGoToAngle = 0;
@@ -255,6 +255,7 @@ void cRefView::Update(float afTimeStep)
 	// at the place while the body walks off reads as a stuck view.
 	if(bDefault && mbAtView && pWorld && mbOpen==false) Release();
 
+	if(bDefault && pWorld && msWaitMap == "") UpdateMoveAndGod();
 	if(bDefault && pWorld) UpdateFly(afTimeStep);
 	if(bDefault && pWorld && mbHoldCamera)
 	{
@@ -699,6 +700,33 @@ void cRefView::ApplyOptions()
 
 //-----------------------------------------------------------------------
 
+// A window of the panel: placed once, its corner or middle at the same
+// fraction of the screen (0: left or top, 1: right or bottom), as wide as
+// asked and as high as what is in it, under the menu bar. End() it if this
+// returns true.
+bool cRefView::BeginWindow(const char *asName, bool *apShow, float afX, float afY, float afWidthEm)
+{
+	const ImVec2 vAnchor(afX, afY), vPivot(afX, afY);
+	if(*apShow==false) return false;
+	const float fEm = ImGui::GetFontSize();
+	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
+	// The work area leaves out the menu bar only from the frame after it is
+	// first drawn
+	float fTop = pViewport->Pos.y + ImGui::GetFrameHeight();
+	float fMargin = fEm * 0.5f;
+	ImVec2 vMin(pViewport->Pos.x + fMargin, fTop + fMargin);
+	ImVec2 vMax(pViewport->Pos.x + pViewport->Size.x - fMargin, pViewport->Pos.y + pViewport->Size.y - fMargin);
+	ImGui::SetNextWindowPos(ImVec2(vMin.x + (vMax.x - vMin.x) * vAnchor.x, vMin.y + (vMax.y - vMin.y) * vAnchor.y),
+							ImGuiCond_FirstUseEver, vPivot);
+	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * afWidthEm, 0), ImVec2(fEm * afWidthEm, vMax.y - vMin.y));
+	if(ImGui::Begin(asName, apShow, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+		return true;
+	ImGui::End();
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
 void cRefView::Draw()
 {
 	if(mbOpen==false) return;
@@ -709,59 +737,143 @@ void cRefView::Draw()
 		DrawEffectsLab();
 		if(!mbEffectsLabFullPanel) return;
 	}
-	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x - fEm, pViewport->WorkPos.y + fEm),
-							ImGuiCond_FirstUseEver, ImVec2(1, 0));
-	// A fixed width, as high as what is in it
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 30, 0), ImVec2(fEm * 30, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
+	if(mpInit->mpLevelEditor->TakeShowRequest()) mbShowEditor = true;
 
-	bool bOpen = true;
-	if(ImGui::Begin("Reference views (F2)", &bOpen, ImGuiWindowFlags_NoSavedSettings |
-					ImGuiWindowFlags_AlwaysAutoResize))
+	// The editor has a menu bar of its own, with these in its View menu
+	if(mpInit->mpEditor==nullptr) DrawMenuBar();
+
+	DrawRenderWindow();
+	DrawMoveWindow();
+	DrawGodWindow();
+	DrawViewsWindow();
+	DrawEditorWindow();
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawWindowMenuItems()
+{
+	struct { const char *msName; bool *mpShow; } vWindows[] = {
+		{"Render", &mbShowRender}, {"Move", &mbShowMove}, {"God", &mbShowGod},
+		{"Views", &mbShowViews}, {"Level editor", &mbShowEditor}};
+	for(auto &window : vWindows)
 	{
-		// The frame the view is at, named as tools/refshots.py saves it
-		if(mbAtView && mbHoldDirection)
-			ImGui::Text("%s.png", cRefShots::GetFrameName(msViewsMap, mvViews[mlView], mlAngle).c_str());
-		else if(mbAtView)
-			ImGui::Text("%s, %s: looking freely", msViewsMap.c_str(), mvViews[mlView].msName.c_str());
-		else if(msViewsMap != "")
-			ImGui::Text("%s: not at a place", msViewsMap.c_str());
-		else
-			ImGui::TextUnformatted("No map loaded");
-		if(mbHoldCamera)
+		// Showing a window opens the panel, if it is closed
+		if(ImGui::MenuItem(window.msName, nullptr, window.mpShow) && *window.mpShow && mbOpen==false)
+			SetOpen(true);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawMenuBar()
+{
+	if(ImGui::BeginMainMenuBar()==false) return;
+
+	DrawWindowMenuItems();
+	ImGui::Separator();
+	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+	bool bStats = pLowLevel->GetDebugOverlayActive();
+	if(ImGui::MenuItem("Stats", nullptr, &bStats)) pLowLevel->SetDebugOverlayActive(bStats);
+	if(ImGui::IsItemHovered()) ImGui::SetTooltip("F3: frame and GPU times");
+
+	// What is going on, on the right
+	tString sStatus;
+	if(msWaitMap != "") sStatus = "loading " + msWaitMap;
+	else if(msViewsMap != "") sStatus = msViewsMap;
+	else sStatus = "no map";
+	if(mbFly) sStatus += "  [fly]";
+	if(mbUsed && mbGodMode) sStatus += "  [god]";
+	if(mbHoldCamera) sStatus += "  [camera held]";
+	sStatus += "   F2 closes";
+	float fWidth = ImGui::CalcTextSize(sStatus.c_str()).x;
+	ImGui::SameLine(cMath::Max(ImGui::GetWindowWidth() - fWidth - ImGui::GetFontSize(),
+							   ImGui::GetCursorPosX() + ImGui::GetFontSize()));
+	ImGui::TextDisabled("%s", sStatus.c_str());
+
+	ImGui::EndMainMenuBar();
+}
+
+//-----------------------------------------------------------------------
+
+// The renderer's settings, a tab for each part. All of them are kept in
+// settings.cfg.
+void cRefView::DrawRenderWindow()
+{
+	if(BeginWindow("Render", &mbShowRender, 0, 0, 28)==false) return;
+
+	if(ImGui::BeginTabBar("##render", ImGuiTabBarFlags_FittingPolicyShrink))
+	{
+		if(ImGui::BeginTabItem("Light"))
 		{
-			ImGui::TextDisabled("The camera is held by the live control");
-			ImGui::SameLine();
-			if(ImGui::SmallButton("Let go")) ReleaseCamera();
+			DrawRenderer();
+			ImGui::EndTabItem();
 		}
-		ImGui::Separator();
-
-		// The sections fold, to leave room for the one in use
-		if(ImGui::CollapsingHeader("Map", ImGuiTreeNodeFlags_DefaultOpen)) DrawMaps();
-		if(ImGui::CollapsingHeader("Place", ImGuiTreeNodeFlags_DefaultOpen)) DrawViews();
-		if(ImGui::CollapsingHeader("Viewpoints")) DrawViewpoints();
-		if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen)) DrawRenderer();
-		if(mpInit->mpLevelEditor->TakeShowRequest()) ImGui::SetNextItemOpen(true);
-		if(ImGui::CollapsingHeader("Level editor")) mpInit->mpLevelEditor->Draw();
-
-		ImGui::Separator();
-		ImGui::TextWrapped("F2 closes the panel and gives the mouse back: the player stands at "
-							"the place and walks on from there, or flies with Fly (Player window). "
-							"While the panel is open the camera is kept at the place.");
+		if(ImGui::BeginTabItem("Shading"))
+		{
+			DrawShading();
+			ImGui::EndTabItem();
+		}
+		if(ImGui::BeginTabItem("Shadows"))
+		{
+			DrawShadows();
+			ImGui::EndTabItem();
+		}
+		if(ImGui::BeginTabItem("AO"))
+		{
+			DrawAmbientOcclusion();
+			ImGui::EndTabItem();
+		}
+		if(ImGui::BeginTabItem("Lens"))
+		{
+			DrawLensAndFilm();
+			ImGui::EndTabItem();
+		}
+		if(ImGui::BeginTabItem("AA"))
+		{
+			DrawAntiAliasing();
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
 	}
 	ImGui::End();
+}
 
-	DrawShadows();
-	DrawPlayer();
-	DrawAmbientOcclusion();
-	DrawLensAndFilm();
-	DrawAntiAliasing();
-	DrawShading();
+//-----------------------------------------------------------------------
 
-	// Closed with the window's button
-	if(bOpen==false) SetOpen(false);
+// The reference images' places and the viewpoints they are taken from
+void cRefView::DrawViewsWindow()
+{
+	if(BeginWindow("Views", &mbShowViews, 0.5f, 0, 26)==false) return;
+
+	// The frame the view is at, named as tools/refshots.py saves it
+	if(mbAtView && mbHoldDirection)
+		ImGui::Text("%s.png", cRefShots::GetFrameName(msViewsMap, mvViews[mlView], mlAngle).c_str());
+	else if(mbAtView)
+		ImGui::Text("%s, %s: looking freely", msViewsMap.c_str(), mvViews[mlView].msName.c_str());
+	else if(msViewsMap != "")
+		ImGui::Text("%s: not at a place", msViewsMap.c_str());
+	else
+		ImGui::TextUnformatted("No map loaded");
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if(ImGui::IsItemHovered())
+		Tip("The places the reference images (tools/refshots.py) are taken from. While the panel is "
+			"open the camera is kept at the place; F2 closes the panel and the player walks on from there.");
+
+	DrawViews();
+	ImGui::SeparatorText("Viewpoints");
+	DrawViewpoints();
+	ImGui::End();
+}
+
+//-----------------------------------------------------------------------
+
+void cRefView::DrawEditorWindow()
+{
+	if(BeginWindow("Level editor", &mbShowEditor, 0.5f, 1, 30)==false) return;
+	mpInit->mpLevelEditor->Draw();
+	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -899,83 +1011,6 @@ void cRefView::DrawViewpoints()
 
 //-----------------------------------------------------------------------
 
-// What changes how the game plays while testing.
-void cRefView::DrawPlayer()
-{
-	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	// Between the other two windows
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f, pViewport->WorkPos.y + fEm),
-							ImGuiCond_FirstUseEver, ImVec2(0.5f, 0));
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 24, 0), ImVec2(fEm * 24, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	if(ImGui::Begin("Player", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
-	{
-		ImGui::End();
-		return;
-	}
-
-	bool bInGame = msViewsMap != "" && msWaitMap == "" &&
-					mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
-	ImGui::BeginDisabled(bInGame==false);
-
-	ImGui::Checkbox("Fly", &mbFly);
-	if(ImGui::IsItemHovered())
-		Tip("With the panel closed (F2): the movement keys move the camera where it looks, "
-							"Run is faster, Jump and Crouch go up and down. The player's body is switched "
-							"off meanwhile. Unticking puts the player where the camera is.");
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(fEm * 10);
-	ImGui::SliderFloat("Speed", &mfFlySpeed, 0.5f, 20.0f, "%.1f m/s", ImGuiSliderFlags_Logarithmic);
-	if(ImGui::IsItemHovered()) Tip("Four times this with Run held.");
-
-	if(bInGame)
-	{
-		cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
-		const cVector3f &vPos = pCamera->GetPosition();
-		ImGui::TextDisabled("Camera %.2f %.2f %.2f", vPos.x, vPos.y, vPos.z);
-	}
-
-	ImGui::Separator();
-	if(mbUsed==false) ImGui::TextDisabled("Applied once something is picked in the panel.");
-	if(mbSetFlashLight==false && bInGame) mbFlashLight = mpInit->mpPlayer->GetFlashLight()->IsActive();
-	if(ImGui::Checkbox("Flashlight on", &mbFlashLight))
-	{
-		mbSetFlashLight = true;
-		mbUsed = true;
-	}
-	if(ImGui::IsItemHovered())
-		Tip("Switches it whether it is in the inventory or not; it does not run down. Its key works with "
-			"the flashlight in the inventory. A viewpoint is saved with the flashlight as it is.");
-	ImGui::SameLine();
-	if(ImGui::Checkbox("Cannot be hurt", &mbGodMode)) mbUsed = true;
-	if(ImGui::Checkbox("No flicker", &mbNoFlicker)) mbUsed = true;
-	if(ImGui::IsItemHovered())
-		Tip("Flickering lights stay on. Lights already stopped stay so until the map is loaded again.");
-	ImGui::SameLine();
-	if(ImGui::Checkbox("3D view only", &mbHide2D)) mbUsed = true;
-	if(ImGui::IsItemHovered()) Tip("No HUD, fades, damage or hiding effects.");
-
-	ImGui::Separator();
-	ImGui::TextUnformatted("Give");
-	ImGui::SameLine();
-	if(ImGui::Button("Flashlight")) mlGiveItems |= eGiveItem_Flashlight;
-	if(ImGui::IsItemHovered()) Tip("Puts the flashlight in the inventory, if it is not there: its key works then.");
-	ImGui::SameLine();
-	if(ImGui::Button("Glow stick")) mlGiveItems |= eGiveItem_GlowStick;
-	if(ImGui::IsItemHovered()) Tip("Puts the glow stick in the inventory, if it is not there: its key works then.");
-	ImGui::SameLine();
-	if(ImGui::Button("Flare")) mlGiveItems |= eGiveItem_Flare;
-	if(ImGui::IsItemHovered()) Tip("One more flare in the inventory. It is lit from there, and thrown when put away.");
-
-	ImGui::EndDisabled();
-	if(msViewsMap != "effectslab" && ImGui::CollapsingHeader("Player effects")) DrawPlayerEffects();
-	ImGui::End();
-}
-
-//-----------------------------------------------------------------------
-
 void cRefView::DrawRenderer()
 {
 	// The values the lighting is tuned with: kept in settings.cfg
@@ -1050,16 +1085,6 @@ void cRefView::DrawRenderer()
 void cRefView::DrawShadows()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + fEm, pViewport->WorkPos.y + fEm), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 30, 0), ImVec2(fEm * 30, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	if(ImGui::Begin("Shadows", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
-	{
-		ImGui::End();
-		return;
-	}
 
 	// Kept in settings.cfg, like the renderer's other options
 	cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
@@ -1221,7 +1246,6 @@ void cRefView::DrawShadows()
 
 	if(ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_DefaultOpen)) DrawShadowLights();
 
-	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -1229,18 +1253,6 @@ void cRefView::DrawShadows()
 void cRefView::DrawAmbientOcclusion()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	// Under the Player window
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f, pViewport->WorkPos.y + fEm * 11),
-							ImGuiCond_FirstUseEver, ImVec2(0.5f, 0));
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 24, 0), ImVec2(fEm * 24, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	if(ImGui::Begin("Ambient occlusion", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
-	{
-		ImGui::End();
-		return;
-	}
 
 	// Kept in settings.cfg, like the renderer's other options
 	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
@@ -1335,7 +1347,6 @@ void cRefView::DrawAmbientOcclusion()
 	ImGui::EndDisabled();
 	if(bChanged) pPostEffects->SetAmbientOcclusionSettings(settings);
 
-	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -1343,19 +1354,6 @@ void cRefView::DrawAmbientOcclusion()
 void cRefView::DrawLensAndFilm()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	// At the bottom, in the middle
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x * 0.5f,
-									pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
-							ImGuiCond_FirstUseEver, ImVec2(0.5f, 1));
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	if(ImGui::Begin("Lens and film", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
-	{
-		ImGui::End();
-		return;
-	}
 
 	// Kept in settings.cfg, like the renderer's other options
 	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
@@ -1518,7 +1516,6 @@ void cRefView::DrawLensAndFilm()
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -1528,18 +1525,6 @@ void cRefView::DrawLensAndFilm()
 void cRefView::DrawShading()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	// At the bottom left
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + fEm, pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
-							ImGuiCond_FirstUseEver, ImVec2(0, 1));
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	if(ImGui::Begin("Shading", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)==false)
-	{
-		ImGui::End();
-		return;
-	}
 
 	// Kept in settings.cfg, like the renderer's other options
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
@@ -1765,7 +1750,6 @@ void cRefView::DrawShading()
 		if(bChanged) pLowLevel->SetEffects(effects);
 	}
 
-	ImGui::End();
 }
 
 //-----------------------------------------------------------------------
@@ -1773,30 +1757,6 @@ void cRefView::DrawShading()
 void cRefView::DrawAntiAliasing()
 {
 	const float fEm = ImGui::GetFontSize();
-	const ImGuiViewport *pViewport = ImGui::GetMainViewport();
-	// At the bottom right, folded until it is wanted: open, it covers the end
-	// of the window above it on a small screen. Its corner is put back
-	// in the screen's for a few frames when it is folded or unfolded (it
-	// takes a frame to know its new size), so that it opens upwards.
-	ImGui::SetNextWindowPos(ImVec2(pViewport->WorkPos.x + pViewport->WorkSize.x - fEm,
-									pViewport->WorkPos.y + pViewport->WorkSize.y - fEm),
-							mlAntiAliasingPlace > 0 ? ImGuiCond_Always : ImGuiCond_FirstUseEver, ImVec2(1, 1));
-	if(mlAntiAliasingPlace > 0) --mlAntiAliasingPlace;
-	ImGui::SetNextWindowSizeConstraints(ImVec2(fEm * 26, 0), ImVec2(fEm * 26, pViewport->WorkSize.y));
-	ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowBgAlpha(0.85f);
-
-	bool bShown = ImGui::Begin("Anti-aliasing", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize);
-	if(bShown == mbAntiAliasingFolded)
-	{
-		mbAntiAliasingFolded = !bShown;
-		mlAntiAliasingPlace = 3;
-	}
-	if(bShown==false)
-	{
-		ImGui::End();
-		return;
-	}
 	ImGui::PushItemWidth(fEm * 12);
 
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
@@ -1902,7 +1862,6 @@ void cRefView::DrawAntiAliasing()
 	if(bChanged) pLowLevel->SetSmaa(smaa);
 
 	ImGui::PopItemWidth();
-	ImGui::End();
 }
 
 //-----------------------------------------------------------------------

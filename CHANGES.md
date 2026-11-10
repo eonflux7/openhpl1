@@ -5,6 +5,45 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Compact debug panels: Render, Move and God (2026-11-10)
+
+- F2 used to open seven floating windows at once (Reference views, Player,
+  Shadows, Ambient occlusion, Lens and film, Shading, Anti-aliasing). It now
+  shows a menu bar that switches five windows: **Render** (the five renderer
+  windows and the lighting/bloom section as tabs), **Move**, **God**,
+  **Views** (reference places and viewpoints) and **Level editor**, plus the
+  F3 stats. The level editor lists the same toggles under View → Debug
+  windows. Long explanations moved into tooltips.
+- **Move** (`game/core/RefViewTools.cpp`): Fly and its speed, the camera
+  position (copy, or type coordinates and Go), the map list, the loaded
+  map's start positions, and session bookmarks of camera places; a
+  bookmark in another map loads it first and then moves there.
+- **God**: cannot be hurt, Heal, flashlight, no flicker, 3D view only and
+  the flashlight/glow stick/flare buttons, as before, and an item
+  spawner. It lists every `.ent` file of type Item that the resources can
+  find (`cFileSearcher::GetFiles()`, read once when the list is first
+  shown), quest items (`ItemType="Normal"`) and the others in separate tabs,
+  named in the game's language with the file's name beside them. They are
+  given under an editable name. Scripts check quest items by their map
+  instance name, so **In this map** lists the item entities left in the
+  loaded map and takes one into the inventory through the normal pickup
+  (`cGameItem::TakeIntoInventory()`, which `OnPlayerInteract()` now uses as
+  well), so pickup callbacks run.
+- Dear ImGui now uses its built-in ProggyClean bitmap font
+  (`AddFontDefaultBitmap()`) at 13 px with no resolution scaling (it was
+  Cousine at 15 px, scaled from 1080 lines), and a tighter style (padding
+  and spacing). This applies to the level editor too. The F3 overlay sits
+  below a menu bar when one is shown. The game launcher keeps its own style.
+- Validation: Linux build without warnings; `ctest --test-dir build` passes
+  (engine, audio and renderer regressions). In `level01_05_office` (Overture,
+  1280x720), screenshots taken with `levelview.py` show the menu bar and
+  windows in the game and inside the editor (View → Debug panels). Clicking
+  through the live control's `mouse` command, In this map listed `coffinkey`,
+  `dextrin`, `battery1` and the rest, and Take put `coffinkey` in the
+  inventory and took it out of the list. Not checked by hand: Give from the
+  file lists, start positions, coordinates, bookmarks across maps, and Black
+  Plague's items.
+
 ## Windows package built by the release workflow (2026-11-10)
 
 - `.github/workflows/release.yml` has a Windows job: `windows-latest`, a
