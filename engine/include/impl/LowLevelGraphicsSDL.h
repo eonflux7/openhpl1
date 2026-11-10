@@ -131,6 +131,7 @@ namespace hpl
 		bool GetDebugOverlayActive() override { return mDebugOverlay.IsActive(); }
 		void SetDebugPanel(std::function<void()> aDraw) override { mDebugOverlay.SetPanel(std::move(aDraw)); }
 		void SetDebugPanelInput(bool abX) override { mDebugOverlay.SetInput(abX); }
+		void SetDebugPanelIniFile(const tString &asFile) override { mDebugOverlay.SetIniFile(asFile); }
 		void SetDebugPanelMouseCapture(bool abX) override { cDebugOverlay::SetMouseCapture(abX); }
 		bool ApplyWindowSize() override;
 		cVector2f TakeDebugPanelMouseMotion() override { return cDebugOverlay::TakeMouseMotion(); }

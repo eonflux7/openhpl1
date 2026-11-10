@@ -235,14 +235,16 @@ void cGameItem::OnPlayerPick()
 
 void cGameItem::OnPlayerInteract()
 {
-	if(mpInit->mpPlayer->GetPickedDist() <= mfMaxInteractDist)
-	{
-		mpInit->mpInventory->AddItem(this);
+	if(mpInit->mpPlayer->GetPickedDist() <= mfMaxInteractDist) TakeIntoInventory();
+}
 
-		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui(msPickUpSound,false,1);
+void cGameItem::TakeIntoInventory()
+{
+	mpInit->mpInventory->AddItem(this);
 
-		mbDestroyMe = true;
-	}
+	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui(msPickUpSound,false,1);
+
+	mbDestroyMe = true;
 }
 
 //-----------------------------------------------------------------------

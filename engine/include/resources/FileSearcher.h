@@ -79,6 +79,9 @@ namespace hpl {
 		 */
 		tString GetFilePath(tString asName);
 
+		/// Every file found, by its name in lower case
+		const tFilePathMap& GetFiles() const { return m_mapFiles; }
+
 		/**
 		 * Lets a request for a file with extension asExt be answered by a file
 		 * of the same name with one of the alternatives instead (e.g. a model
