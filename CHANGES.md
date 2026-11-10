@@ -100,6 +100,8 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 
 - AngelScript 2.7.1b → 2.38.0. The original game scripts run unchanged, and
   each `Run("...")` line is compiled once and cached.
+- Particle systems a script switched off stay off after loading a save; the
+  originals lit them again (Requiem level 9's fuse and nitroglycerin fires).
 
 ## Modding and tools
 
