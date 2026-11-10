@@ -49,10 +49,13 @@
 #include "impl/LowLevelPhysicsNewton.h"
 #include "impl/PhysicsWorldNewton.h"
 #include "physics/CollideData.h"
+#include "physics/Physics.h"
 #include "physics/PhysicsBody.h"
+#include "physics/PhysicsMaterial.h"
 #include "physics/PhysicsJointHinge.h"
 #include "physics/PhysicsJointSlider.h"
 #include "physics/PhysicsJointScrew.h"
+#include "physics/SurfaceData.h"
 
 // Exercise search/cache internals without a physics world or graphics context.
 // These tests still call the actual engine methods, including CPU skinning.
@@ -785,6 +788,61 @@ static void TestPassThroughStatic()
 	Check(body->GetWorldPosition().y < -1, "a body set to pass through falls through a static body");
 }
 
+class TestMeshBuffer : public TestVertexBuffer
+{
+public:
+	explicit TestMeshBuffer(int count) : TestVertexBuffer(count) {}
+	std::vector<unsigned> indices;
+	unsigned* GetIndices() override { return indices.data(); }
+	int GetIndexNum() override { return (int)indices.size(); }
+};
+
+// Requiem's pipes are double-sided: a second mesh repeats the faces with the
+// winding reversed. Newton 1.53 dropped contacts with those back faces; Newton
+// 2.36 gave their edge contacts the face normal, pulling a ball rolling inside
+// into the floor until it stopped (level 6's energy orb, level 7's barrels).
+static void TestMeshBackFaces()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysics physics(&lowLevel);
+	cSurfaceData surface("test", &physics, nullptr);
+	surface.SetMinScrapeContacts(1);
+	cPhysicsWorldNewton world;
+	world.SetWorld3D(nullptr);
+	world.SetWorldSize(cVector3f(-20), cVector3f(20));
+	world.GetMaterialFromName("Default")->SetSurfaceData(&surface);
+
+	// A V-shaped trough falling 0.2 m per metre, cut into 1 m segments
+	const int lSegments = 14;
+	const float vAcross[3][2] = {{-0.6f, 0.3f}, {0, 0}, {0.6f, 0.3f}};
+	for(bool bReversed : {false, true})
+	{
+		TestMeshBuffer buffer((lSegments + 1) * 3);
+		for(int i = 0; i <= lSegments; ++i)
+		for(int j = 0; j < 3; ++j)
+		{
+			float *pPos = &buffer.positions[(i * 3 + j) * 4];
+			pPos[0] = (float)i; pPos[1] = -0.2f * i + vAcross[j][1]; pPos[2] = vAcross[j][0];
+		}
+		for(int i = 0; i < lSegments; ++i)
+		for(int j = 0; j < 2; ++j)
+		{
+			const unsigned a = i * 3 + j, b = a + 1, c = a + 3, d = a + 4;
+			for(unsigned lIdx : {a, b, d, a, d, c}) buffer.indices.push_back(lIdx);
+			if(bReversed) std::reverse(buffer.indices.end() - 6, buffer.indices.end());
+		}
+		world.CreateBody(bReversed ? "reversed" : "trough", world.CreateMeshShape(&buffer));
+	}
+
+	auto *ball = world.CreateBody("ball", world.CreateSphereShape(cVector3f(0.4f), nullptr));
+	ball->SetMass(32);
+	ball->SetMatrix(cMath::MatrixTranslate(cVector3f(0.5f, -0.1f + 0.46f, 0)));
+	for(int i = 0; i < 180; ++i) world.Simulate(1.0f / 60);
+	// It rolls about 5.5 m in 3 s; held by the back faces it stops after 0.6 m
+	Check(ball->GetWorldPosition().x > 4.5f, "a ball rolls through a double-sided mesh trough");
+	world.GetMaterialFromName("Default")->SetSurfaceData(nullptr);
+}
+
 class TestProgram : public iGpuProgram
 {
 public:
@@ -1201,6 +1259,7 @@ int hplMain(const hpl::tString&)
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
+		TestMeshBackFaces();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestFontPlainText(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
 		RunModelRegressions(directory);

@@ -357,6 +357,17 @@ dgInt32 dgCollisionMesh::dgCollisionConvexPolygon::QuickTest(const dgCollisionCo
 
 dgInt32 dgCollisionMesh::dgCollisionConvexPolygon::ClipContacts(dgInt32 count, dgContactPoint *const contactOut, const dgMatrix &globalMatrix) const {
 	dgVector normal(globalMatrix.RotateVector(m_normal));
+	// OpenHPL1: Newton 1.53 dropped every contact whose normal is more than
+	// about 84 degrees from the face normal, before anything else. Without
+	// this, a body behind a face (the reversed copy of a double-sided mesh)
+	// gets that face's normal at an edge and is pulled into the surface.
+	for (dgInt32 i = 0; i < count; i++) {
+		if ((contactOut[i].m_normal % normal) < dgFloat32(0.1f)) {
+			contactOut[i] = contactOut[count - 1];
+			count--;
+			i--;
+		}
+	}
 	if (m_normalIndex) {
 		for (dgInt32 i = 0; i < count; i++) {
 			if (contactOut[i].m_isEdgeContact) {
