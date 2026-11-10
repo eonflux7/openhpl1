@@ -493,7 +493,8 @@ See [docs/level-editor.md](docs/level-editor.md).
 | `OPENHPL_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |
 | `OPENHPL_PHYSLOG=1` | Log physics events (`PHYS:` lines) to `hpl.log`: bodies waking, resting, freezing; player grabs and releases |
 | `OPENHPL_PHYSTRACE=name1,name2` | With `OPENHPL_PHYSLOG`, log those bodies every frame they are awake (`PHYSTRACE:` lines): position, up and forward axes, velocities, mass, mass centre |
-| `OPENHPL_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds) |
+| `OPENHPL_SMOKE_FRAMES` | Logic frames per smoke-test step (default 120, two seconds of game time) |
+| `OPENHPL_SMOKE_STEPS` | Logic steps per drawn frame in the smoke test (default 4). The smoke test runs fixed steps as fast as it can, not at the clock's pace, with vsync off for the run |
 | `OPENHPL_REFSHOTS=1` | Save reference images of every map and quit (`OPENHPL_REFSHOTS=office,worm` for some maps) to `OPENHPL_REFSHOTS_DIR`. Logs `REFSHOTS:` lines; exit code 1 on failure. Use `tools/levelview.py capture`, which runs it headless |
 | `OPENHPL_ADDONS` | `0`: no addons; `a,b`: only the addons with these folder or `.zip` names (see [docs/modding.md](docs/modding.md)) |
 | `OPENHPL_ADDON_DIRS` | More folders of addons, or single addons (folders with an `addon.cfg`), separated by `;` on Windows and `:` elsewhere |

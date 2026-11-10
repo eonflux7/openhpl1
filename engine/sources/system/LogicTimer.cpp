@@ -33,6 +33,7 @@ namespace hpl {
 		mlUpdateCount =0;
 		mbFixedStep = false;
 		mbPaceFixedStep = false;
+		mlFixedStepsPerFrame = 1;
 
 		mpLowLevelSystem = apLowLevelSystem;
 
@@ -64,7 +65,7 @@ namespace hpl {
 		++mlUpdateCount;
 		if(mbFixedStep)
 		{
-			if(mlUpdateCount != 1) return false;
+			if(mlUpdateCount > mlFixedStepsPerFrame) return false;
 			if(mbPaceFixedStep)
 			{
 				double fNow = GetApplicationTimeExact();

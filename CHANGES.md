@@ -183,6 +183,24 @@ grille falls onto the floor.
   the ASan CTest (`detect_leaks=0`) pass. Not checked by opening the note in
   the game.
 
+## Faster tests and smoke runs (2026-11-08)
+
+- The smoke test runs on game time rather than the clock: fixed, unpaced
+  logic steps (`cLogicTimer::SetFixedStepsPerFrame`), a frame drawn after
+  every 4 steps (`OPENHPL_SMOKE_STEPS`) and vsync off for the run only. Each
+  map's three steps of 120 frames no longer wait out six seconds of real
+  time; a slow (ASan) build draws a quarter of the frames. Steps, saves,
+  reloads and checks are unchanged.
+- `audio_regressions` sets the stream updater to 1000 Hz like the EFX slot
+  updater: its default 10 Hz made each threaded close wait up to 100 ms
+  (0.67 s to 0.1 s, same coverage).
+- `tools/check_dog_foundations.py` read its settings and runner from
+  `refshots.py`, which became a wrapper of `levelview.py`, and so stopped
+  with an `AttributeError`; it uses `levelview` now. Map copies kept from an
+  earlier run are no longer copied again.
+- Validation: build and CTest (engine, audio, renderer) pass. The smoke test
+  and Dog checks were not run: no game data or gamescope on this machine.
+
 ## Sliders placed inside the level (2026-11-06)
 
 - The vertical door by the valve in `level01_17_worm_nest` would not open

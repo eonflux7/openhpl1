@@ -54,6 +54,10 @@ int main()
 			params.mbUseThread = (i % 2) != 0;
 			params.mlNumSourcesHint = 2;
 			params.mlNumSlotsHint = 2;
+			// Both updater threads sleep a period between updates and are
+			// joined on close; the stream updater's default 10 Hz made every
+			// threaded close wait up to 100 ms.
+			params.mlUpdateFreq = 1000;
 			params.mlSlotUpdateFreq = 1000;
 			Check(OAL_Init(params), "null audio device initialization");
 			Check(OAL_Info_IsEFXActive(), "null audio device supports EFX");

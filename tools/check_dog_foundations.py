@@ -4,9 +4,20 @@ import argparse
 import os
 from pathlib import Path
 import shutil
-import refshots
+import levelview
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def copy_if_changed(source, target):
+    """copy2, skipping copies kept from an earlier run (same size and time)."""
+    try:
+        old, new = os.stat(target), os.stat(source)
+        if old.st_size == new.st_size and old.st_mtime_ns == new.st_mtime_ns:
+            return target
+    except FileNotFoundError:
+        pass
+    return shutil.copy2(source, target)
 
 
 def main():
@@ -15,7 +26,7 @@ def main():
     parser.add_argument('--out', type=Path)
     parser.add_argument('--maps', default='testmap')
     parser.add_argument('--ai', choices=('original', 'improved'), default='improved')
-    parser.add_argument('--game-dir', type=Path, default=refshots.DEFAULT_GAME_DIR)
+    parser.add_argument('--game-dir', type=Path, default=levelview.DEFAULT_GAME_DIR)
     parser.add_argument('--timeout', type=int, default=180)
     args = parser.parse_args()
     exe = args.build.resolve()/'openhpl1'
@@ -30,16 +41,16 @@ def main():
     for source in args.game_dir.resolve().iterdir():
         target = game_data/source.name
         if source.name == 'maps':
-            shutil.copytree(source, target, dirs_exist_ok=True)
+            shutil.copytree(source, target, dirs_exist_ok=True, copy_function=copy_if_changed)
         elif not target.exists():
             target.symlink_to(source, target_is_directory=source.is_dir())
     profile = out/'profile'
     personal = profile/'.frictionalgames/Penumbra/OvertureRemade'
     personal.mkdir(parents=True, exist_ok=True)
-    settings = {section: dict(keys) for section, keys in refshots.SETTINGS.items()}
+    settings = {section: dict(keys) for section, keys in levelview.SETTINGS.items()}
     settings['Game']['LastInitOK'] = 'true'
     settings['AI'] = {'ImprovedDogAI': 'true' if args.ai == 'improved' else 'false'}
-    refshots.write_settings(personal/'settings.cfg', settings)
+    levelview.write_settings(personal/'settings.cfg', settings)
     env = dict(os.environ, OPENHPL_PROFILE_ROOT=str(profile), ALSOFT_DRIVERS='null',
                OPENHPL_SMOKE=args.maps, OPENHPL_SMOKE_FRAMES='180',
                OPENHPL_DOG_REGRESSIONS='1')
@@ -55,7 +66,7 @@ def main():
     status = out/'exit_code'
     status.unlink(missing_ok=True)
     with (out/'run.log').open('w') as log:
-        result = refshots.run_headless(str(exe), '1280', '720', str(game_data),
+        result = levelview.run_headless(str(exe), '1280', '720', str(game_data),
                                       env, log, str(status), args.timeout)
     game_log = personal/'hpl.log'
     lines = game_log.read_text(errors='replace').splitlines() if game_log.is_file() else []

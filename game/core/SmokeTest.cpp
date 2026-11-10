@@ -36,6 +36,19 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 	const char *pFrames = SDL_getenv("OPENHPL_SMOKE_FRAMES");
 	mlFramesPerStep = pFrames ? cString::ToInt(pFrames, 120) : 120;
 
+	// Run on game time, not the clock: fixed steps, unpaced and without
+	// vsync (only for this run, the setting is not changed), drawing a
+	// frame after every few steps. A fast build no longer waits out each
+	// step's two seconds, and a slow one (ASan) draws fewer frames.
+	const char *pSteps = SDL_getenv("OPENHPL_SMOKE_STEPS");
+	int lStepsPerFrame = pSteps ? cString::ToInt(pSteps, 4) : 4;
+	cLogicTimer *pTimer = mpInit->mpGame->GetLogicTimer();
+	pTimer->SetFixedStep(true);
+	pTimer->SetPaceFixedStep(false);
+	pTimer->SetFixedStepsPerFrame(lStepsPerFrame);
+	mpInit->mpGame->SetLimitFPS(true);
+	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetVsyncActive(false);
+
 	tWStringList lstFiles;
 	mpInit->mpGame->GetResources()->GetLowLevel()->FindFilesInDir(lstFiles, cInit::GetMapsDir(), _W("*.dae"));
 	tString sTestMapDir = tString(SDL_GetBasePath() ? SDL_GetBasePath() : "") + "testmap";
@@ -57,7 +70,8 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 	}
 	std::sort(mvMaps.begin(), mvMaps.end());
 
-	Log("SMOKE: %d maps, %d frames per step\n", (int)mvMaps.size(), mlFramesPerStep);
+	Log("SMOKE: %d maps, %d frames per step, %d steps per drawn frame\n", (int)mvMaps.size(),
+		mlFramesPerStep, pTimer->GetFixedStepsPerFrame());
 	if(mvMaps.empty()) Fail("no maps matched '%s'", asSpec.c_str());
 }
 

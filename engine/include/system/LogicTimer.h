@@ -92,6 +92,14 @@ namespace hpl {
 		void SetPaceFixedStep(bool abPace){ mbPaceFixedStep = abPace; Reset();}
 		bool GetPaceFixedStep(){ return mbPaceFixedStep;}
 
+		/**
+		 * With a fixed step: steps per update loop, so per drawn frame
+		 * (default 1). More lets a run whose frames are slow to draw
+		 * (the smoke test) get through its game time sooner.
+		 */
+		void SetFixedStepsPerFrame(int alSteps){ mlFixedStepsPerFrame = alSteps < 1 ? 1 : alSteps;}
+		int GetFixedStepsPerFrame(){ return mlFixedStepsPerFrame;}
+
 	private:
 		void Update();
 
@@ -100,6 +108,7 @@ namespace hpl {
 
 		int mlMaxUpdates;
 		int mlUpdateCount;
+		int mlFixedStepsPerFrame;
 		bool mbFixedStep;
 		bool mbPaceFixedStep;
 

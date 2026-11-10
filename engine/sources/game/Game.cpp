@@ -442,7 +442,8 @@ namespace hpl {
 				double fTimeNow = GetApplicationTimeExact();
 				mfFrameTime = (float)((fTimeNow - fTempFrameTime)/1000.0);
 				// A fixed step run must not depend on how long a frame took.
-				if(mpLogicTimer->GetFixedStep()) mfFrameTime = GetStepSize();
+				if(mpLogicTimer->GetFixedStep())
+					mfFrameTime = GetStepSize() * mpLogicTimer->GetFixedStepsPerFrame();
 				fTempFrameTime = fTimeNow;
 
 				//Draw this frame
