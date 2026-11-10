@@ -356,6 +356,76 @@ static void TestSettings()
 
 //-----------------------------------------------------------------------
 
+static void TestHRTFSetting()
+{
+	Check(SoundHRTFFromString("on") == eSoundHRTF_On && SoundHRTFFromString("Off") == eSoundHRTF_Off
+		  && SoundHRTFFromString("auto") == eSoundHRTF_Auto && SoundHRTFFromString("") == eSoundHRTF_Auto
+		  && SoundHRTFFromString("1") == eSoundHRTF_On && SoundHRTFFromString("false") == eSoundHRTF_Off,
+		  "HRTF setting values are read");
+	for(int i = 0; i < eSoundHRTF_LastEnum; ++i)
+		Check(SoundHRTFFromString(SoundHRTFToString((eSoundHRTF)i)) == i, "HRTF setting round-trips");
+}
+
+static void TestOutput()
+{
+	// HRTF requested at open.
+	{
+		cOpenALDeviceParams params = Params(4, false);
+		params.mHRTF = eOpenALHRTF::On;
+		cOpenALDevice device;
+		Check(device.Open(params), "device opens with HRTF on");
+		Check(device.GetHRTFStatus() != -1, "ALC_SOFT_HRTF is available");
+		Check(device.IsHRTFEnabled(), "HRTF on at open is enabled");
+		Check(device.GetHRTFStatus() == ALC_HRTF_ENABLED_SOFT, "HRTF status reads enabled");
+		Check(!device.GetHRTFName().empty(), "HRTF data set is named");
+	}
+
+	// HRTF changed at runtime, with a stream and a looping sample playing.
+	cOpenALDevice device;
+	if(!device.Open(Params(8, true))) { Check(false, "device opens for output test"); return; }
+	Check(device.CanReopen(), "ALC_SOFT_reopen_device is available");
+	Check(!device.IsHRTFEnabled(), "auto HRTF stays off on the null backend");
+
+	auto pStream = cOpenALStream::Open(kStreamFile, 4096, 3);
+	auto pLoop = MakeSample(1, 2205);
+	auto pStereo = MakeSample(2, 2205);
+	if(!pStream || !pLoop || !pStereo) { Check(false, "output test data loads"); return; }
+	pStream->SetLoop(true);
+	int lStream = device.PlayStream(pStream.get(), 1, false);
+	int lLoop = device.PlaySample(pLoop.get(), 10, 1, true);
+	device.SetLoop(lLoop, true);
+	device.SetPaused(lLoop, false);
+	int lStereo = device.PlaySample(pStereo.get(), 10, 1, false);
+	Check(lStream >= 0 && lLoop >= 0 && lStereo >= 0, "output test sounds play");
+
+	Check(device.SetHRTF(eOpenALHRTF::On), "HRTF can be turned on at runtime");
+	Check(device.IsHRTFEnabled() && device.GetHRTFStatus() == ALC_HRTF_ENABLED_SOFT, "runtime HRTF on is enabled");
+	Wait(device, 150);
+	Check(device.IsPlaying(lStream) && device.IsPlaying(lLoop), "sounds survive an HRTF reset");
+	Check(device.SetHRTF(eOpenALHRTF::Off), "HRTF can be turned off at runtime");
+	Check(!device.IsHRTFEnabled() && device.GetHRTFStatus() == ALC_HRTF_DISABLED_SOFT, "runtime HRTF off is disabled");
+	Check(device.SetHRTF(eOpenALHRTF::Auto) && !device.IsHRTFEnabled(), "HRTF back to auto");
+
+	// Reopen keeps the context, sources and buffers, so handles stay valid.
+	std::string sName = device.GetDeviceName();
+	Check(device.Reopen(""), "device reopens on the default device");
+	Check(device.IsConnected(), "reopened device is connected");
+	Check(device.GetDeviceName() == sName, "reopened device name is read again");
+	Check(device.IsPlaying(lStream) && device.IsPlaying(lLoop), "sounds survive a reopen");
+	Check(device.GetPriority(lLoop) == 10, "handles stay valid across a reopen");
+	Wait(device, 700);
+	Check(device.IsPlaying(lStream), "looping stream keeps refilling after a reopen");
+	Check(device.IsPlaying(lLoop), "looping sample keeps playing after a reopen");
+	Check(!device.IsPlaying(lStereo), "one-shot stereo sample still finishes");
+	Check(!device.Reopen("No Such Device"), "reopening an unknown device fails");
+	Check(device.IsPlaying(lStream) && device.GetDeviceName() == sName, "a failed reopen keeps the device");
+
+	device.Close();
+	Check(!device.Reopen(""), "a closed device cannot reopen");
+}
+
+//-----------------------------------------------------------------------
+
 int hplMain(const hpl::tString&)
 {
 	fs::path dir = fs::temp_directory_path() / ("openhpl_audio_" + std::to_string(
@@ -363,6 +433,8 @@ int hplMain(const hpl::tString&)
 	fs::create_directories(dir);
 
 	TestSettings();
+	TestHRTFSetting();
+	TestOutput();
 	TestLifecycle();
 	TestVoiceStealing();
 	TestHandlesAndPause();

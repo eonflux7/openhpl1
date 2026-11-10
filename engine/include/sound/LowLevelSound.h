@@ -33,6 +33,18 @@ namespace hpl {
 	typedef std::list<iSoundEnvironment*> tSoundEnvList;
 	typedef tSoundEnvList::iterator tSoundEnvListIt;
 
+	/** HRTF (binaural rendering for headphones). Auto lets the backend decide. */
+	enum eSoundHRTF
+	{
+		eSoundHRTF_Auto,
+		eSoundHRTF_Off,
+		eSoundHRTF_On,
+		eSoundHRTF_LastEnum
+	};
+
+	/** Reads the "HRTF" setting: "on"/"true"/"1", "off"/"false"/"0", otherwise auto. */
+	eSoundHRTF SoundHRTFFromString(const tString& asValue);
+	const char* SoundHRTFToString(eSoundHRTF aMode);
 
 	class iLowLevelSound
 	{
@@ -93,6 +105,14 @@ namespace hpl {
 		virtual tStringVec GetOutputDevices() { return tStringVec(); }
 		/** Name of the device in use, or an empty string. */
 		virtual tString GetDeviceName() { return ""; }
+		/** Moves output to another device while running. False if it can't. */
+		virtual bool SetOutputDevice(const tString& asDeviceName) { return false; }
+
+		/** Before Init, sets the mode Init uses; afterwards applies it at once. */
+		virtual void SetHRTF(eSoundHRTF aMode) { mHRTF = aMode; }
+		eSoundHRTF GetHRTF() { return mHRTF; }
+		/** Whether HRTF is in use, for display (e.g. "On (Built-In HRTF)"). */
+		virtual tString GetHRTFStatus() { return ""; }
 		//void DestroySoundEnvironment( iSoundEnvironment* apSoundEnv);
 
 
@@ -103,6 +123,7 @@ namespace hpl {
 
 		bool mbHardwareAcc;
 		bool mbEnvAudioEnabled;
+		eSoundHRTF mHRTF;
 
 		cVector3f mvListenerUp;
 		cVector3f mvListenerForward;

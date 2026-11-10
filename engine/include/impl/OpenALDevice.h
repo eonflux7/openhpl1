@@ -7,8 +7,10 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <memory>
@@ -92,9 +94,13 @@ namespace hpl {
 	// DEVICE
 	//////////////////////////////////////////////////////////////////////////
 
+	/** HRTF request. Auto lets OpenAL Soft decide (on for headphones it can detect). */
+	enum class eOpenALHRTF { Auto, Off, On };
+
 	struct cOpenALDeviceParams
 	{
 		std::string msDeviceName;	///< Empty or "NULL" selects the default device.
+		eOpenALHRTF mHRTF = eOpenALHRTF::Auto;
 		int mlSources = 32;			///< Size of the source pool; also the voice budget.
 		bool mbUseEFX = true;
 		bool mbUseThread = true;
@@ -162,8 +168,27 @@ namespace hpl {
 		size_t GetStreamBlockBytes() const { return mParams.mlStreamBlockBytes; }
 		int GetStreamBlockCount() const { return mParams.mlStreamBlockCount; }
 
-		/** Refills streams when no worker thread is used. */
+		/**
+		 * Called once per frame on the main thread. Refills streams when no
+		 * worker thread is used, and moves to the default device when the
+		 * current one is disconnected.
+		 */
 		void Update();
+
+		//////////////
+		// Output
+		/** Applies an HRTF request now (device reset); stored for the next Open otherwise. */
+		bool SetHRTF(eOpenALHRTF aMode);
+		eOpenALHRTF GetHRTF() const { return mParams.mHRTF; }
+		/** ALC_HRTF_STATUS_SOFT, or -1 without ALC_SOFT_HRTF. */
+		int GetHRTFStatus() const;
+		bool IsHRTFEnabled() const;
+		/** Name of the HRTF data set in use, or an empty string. */
+		std::string GetHRTFName() const;
+		/** Moves to another output device, keeping every source and buffer. */
+		bool Reopen(const std::string &asDeviceName);
+		bool IsConnected() const { return mbConnected; }
+		bool CanReopen() const { return mpReopenDevice != nullptr; }
 
 		//////////////
 		// Listener
@@ -233,13 +258,28 @@ namespace hpl {
 		void UpdateStreamsLocked();
 		void WorkerLoop();
 		bool LoadEFX();
+		std::vector<ALCint> Attributes() const;
+		void ReadDeviceName();
+		bool CheckConnected();
+		void ResumeAfterReopen();
+		void ApplyDirectChannels(sSource &aSource, int alChannels);
 
 		ALCdevice *mpDevice = nullptr;
 		ALCcontext *mpContext = nullptr;
 		std::string msDeviceName;
 		cOpenALDeviceParams mParams;
 		bool mbEFX = false;
+		bool mbEFXRequested = false;
 		bool mbEAXReverb = false;
+		bool mbHRTFExt = false;
+		bool mbOutputModeExt = false;
+		bool mbDisconnectExt = false;
+		ALint mlDirectChannels = 0;	///< AL_DIRECT_CHANNELS_SOFT value for stereo sources, 0 if unsupported.
+		LPALCREOPENDEVICESOFT mpReopenDevice = nullptr;
+		LPALCRESETDEVICESOFT mpResetDevice = nullptr;
+		std::atomic<bool> mbConnected{true};
+		bool mbLossReported = false;
+		std::chrono::steady_clock::time_point mNextReconnect;
 		ALuint mlReverbSlot = 0;
 		ALuint mlReverbEffect = 0;
 

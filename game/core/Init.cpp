@@ -614,6 +614,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddInt("StreamBufferSize",mpConfig->GetInt("Sound", "StreamBufferSize", 64));
 	Vars.AddInt("StreamBufferCount",mpConfig->GetInt("Sound", "StreamBufferCount", 4));
 	Vars.AddString("DeviceName",mpConfig->GetString("Sound", "DeviceName", "NULL"));
+	Vars.AddString("HRTF",mpConfig->GetString("Sound", "HRTF", "auto"));
 	Vars.AddString("WindowCaption", "Penumbra Loading...");
 
 	Vars.AddBool("LowLevelSoundLogging", mpConfig->GetBool("Sound","LowLevelLogging", false));
@@ -1430,6 +1431,7 @@ void cInit::Exit()
 	mpConfig->SetInt("Sound","MaxMonoChannelsHint",mlMaxMonoChannelsHint);
 	mpConfig->SetInt("Sound","MaxStereoChannelsHint",mlMaxStereoChannelsHint);
 	mpConfig->SetString("Sound","DeviceName",msDeviceName);
+	mpConfig->SetString("Sound","HRTF",SoundHRTFToString(mpGame->GetSound()->GetLowLevel()->GetHRTF()));
 
 	
 	mpConfig->SetInt("Graphics","TextureSizeLevel",mpGame->GetResources()->GetMaterialManager()->GetTextureSizeLevel());

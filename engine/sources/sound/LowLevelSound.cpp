@@ -21,6 +21,22 @@
 #include "sound/SoundEnvironment.h"
 
 namespace hpl {
+
+	eSoundHRTF SoundHRTFFromString(const tString& asValue)
+	{
+		tString sValue = cString::ToLowerCase(asValue);
+		if(sValue == "on" || sValue == "true" || sValue == "1") return eSoundHRTF_On;
+		if(sValue == "off" || sValue == "false" || sValue == "0") return eSoundHRTF_Off;
+		return eSoundHRTF_Auto;
+	}
+
+	const char* SoundHRTFToString(eSoundHRTF aMode)
+	{
+		if(aMode == eSoundHRTF_On) return "on";
+		if(aMode == eSoundHRTF_Off) return "off";
+		return "auto";
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTORS
 	//////////////////////////////////////////////////////////////////////////
@@ -34,6 +50,7 @@ namespace hpl {
 		mbListenerAttenuation=true;
 		mbHardwareAcc = false;
 		mbEnvAudioEnabled = false;
+		mHRTF = eSoundHRTF_Auto;
 	}
 
 	//-----------------------------------------------------------------------

@@ -97,9 +97,12 @@ Scene preservation is still open: comparisons below include real mismatches.
       checked on Linux: the MSVC build and Windows smoke, and listening in
       the game (music and stream continuity across map loads, reverb
       transitions between sectors, voice stealing in busy scenes, the
-      output-device option). Then follow the [audio plan](docs/audio-review.md#plan):
-      HRTF/output mode and device recovery, occlusion filtering, volume
-      buses with menu sliders, then reverb crossfades.
+      output-device option). HRTF/output mode and device recovery are
+      implemented and tested on the null backend; listen with HRTF on
+      headphones, switch devices from the menu and unplug a device while
+      music plays. Then follow the [audio plan](docs/audio-review.md#plan):
+      occlusion filtering, volume buses with menu sliders, then reverb
+      crossfades.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
       Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
       the completed game captures above use Windows/NVIDIA and Steam assets.

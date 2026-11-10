@@ -212,17 +212,20 @@ the original game as well as tests.
 
 0. **Done:** the direct OpenAL Soft backend replaced OALWrapper, and
    defects 1, 2, 5, 7 and 8 are fixed (see [Status](#status-2026-11-10)).
-1. **HRTF/output mode and device recovery** (modernization 2 and 3).
-   - Add a `Sound.HRTF` setting (auto/on/off) and an output mode
-     (`ALC_HRTF_SOFT`, `ALC_OUTPUT_MODE_SOFT`), shown in the options menu
-     next to the device list. Music and UI streams use
-     `AL_DIRECT_CHANNELS_SOFT`, so HRTF doesn't virtualise them.
-   - Check `ALC_CONNECTED` each frame. On loss, `alcReopenDeviceSOFT` moves
-     to the default device and keeps the context, sources and buffers.
-     Changing device from the menu uses the same call instead of a restart.
-   - A sample-rate setting is optional and stays unset by default.
-     Consider `AL_SOFT_source_spatialize` only for stereo world sounds that
-     should be positioned.
+1. **Done (code and tests; listening and a real unplug not yet checked):
+   HRTF/output mode and device recovery** (modernization 2 and 3). See
+   [audio](audio.md#output-hrtf-and-device-loss).
+   - `[Sound] HRTF` (auto/on/off) in the settings and the Sound options
+     menu, applied at runtime with `alcResetDeviceSOFT`. On also asks for
+     stereo HRTF output (`ALC_OUTPUT_MODE_SOFT`). A separate output-mode
+     option wasn't added: OpenAL Soft takes the layout from the device.
+   - Every stereo source uses `AL_DIRECT_CHANNELS_SOFT`, not only music and
+     UI: OpenAL doesn't position stereo sources, so direct channels only
+     stop HRTF and surround layouts from virtualising them.
+   - `ALC_CONNECTED` is checked each frame; on loss `alcReopenDeviceSOFT`
+     moves to the default device, retried once a second. The menu's device
+     option uses the same call instead of a restart.
+   - No sample-rate setting, and `AL_SOFT_source_spatialize` isn't used.
 2. **Occlusion** (defects 3 and 4).
    - Blocked sounds get a low-pass (`GainHF`) that fades in and out, and the
      filter turns off when the ray is clear.

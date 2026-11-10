@@ -1127,6 +1127,8 @@ public:
 cMainMenuWidget_Text *gpSoundVolumeText=nullptr;
 cMainMenuWidget_Text *gpSoundHardwareText=nullptr;
 cMainMenuWidget_Text *gpSoundOutputDevice=nullptr;
+cMainMenuWidget_Text *gpSoundHRTFText=nullptr;
+static tWString HRTFText(cInit *mpInit);
 
 class cMainMenuWidget_SoundVolume : public cMainMenuWidget_Button
 {
@@ -1218,6 +1220,11 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
+		iLowLevelSound *pLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+		// Devices can be plugged in while the game runs.
+		mlDevices = pLowLevel->GetOutputDevices();
+		if(mlDevices.empty()) return;
+
 		int lCurrentNum = 0;
 
 		//get current num
@@ -1243,9 +1250,48 @@ public:
 
 		mpInit->msDeviceName = mlDevices[lCurrentNum];
 
-		gpSoundOutputDevice->msText = cString::To16Char(mpInit->msDeviceName);
+		// Switches at once where the backend can; otherwise on restart.
+		if(pLowLevel->SetOutputDevice(mpInit->msDeviceName))
+			mpInit->msDeviceName = pLowLevel->GetDeviceName();
+		else
+			gbMustRestart = true;
 
-		gbMustRestart = true;
+		gpSoundOutputDevice->msText = cString::To16Char(mpInit->msDeviceName);
+		if(gpSoundHRTFText) gpSoundHRTFText->msText = HRTFText(mpInit);
+	}
+};
+
+static tWString HRTFText(cInit *mpInit)
+{
+	iLowLevelSound *apLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+	tWString sMode = apLowLevel->GetHRTF() == eSoundHRTF_On ? kTranslate("MainMenu","On")
+					: apLowLevel->GetHRTF() == eSoundHRTF_Off ? kTranslate("MainMenu","Off") : _W("Auto");
+	tString sStatus = apLowLevel->GetHRTFStatus();
+	if(apLowLevel->GetHRTF() == eSoundHRTF_Auto && sStatus != "")
+		sMode += _W(" (") + cString::To16Char(sStatus.substr(0, sStatus.find(' '))) + _W(")");
+	return sMode;
+}
+
+class cMainMenuWidget_SoundHRTF : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_SoundHRTF(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("3D sound for headphones. Auto enables it when headphones are detected.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		iLowLevelSound *pLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+		// Auto -> On -> Off with the left button, the reverse with the right.
+		int lMode = (int)pLowLevel->GetHRTF();
+		const int vNext[] = { eSoundHRTF_On, eSoundHRTF_Auto, eSoundHRTF_Off };
+		const int vPrev[] = { eSoundHRTF_Off, eSoundHRTF_On, eSoundHRTF_Auto };
+		lMode = aButton == eMButton_Right ? vPrev[lMode] : vNext[lMode];
+		pLowLevel->SetHRTF((eSoundHRTF)lMode);
+
+		gpSoundHRTFText->msText = HRTFText(mpInit);
 	}
 };
 
@@ -4040,6 +4086,9 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetSoundOutputDevice = hplNew( cMainMenuWidget_SoundOutputDevice, (mpInit,vPos,kTranslate("MainMenu","Output Device:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundOutputDevice);
 	vPos.y += 29;
+	cMainMenuWidget *pWidgetSoundHRTF = hplNew( cMainMenuWidget_SoundHRTF, (mpInit,vPos,_W("HRTF:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHRTF);
+	vPos.y += 29;
 	cMainMenuWidget *pWidgetSoundEFX = hplNew( cMainMenuWidget_SoundEFX, (mpInit,vPos,_W("EFX:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundEFX);
 	vPos.y += 35;
@@ -4069,6 +4118,11 @@ void cMainMenu::CreateWidgets()
 	gpSoundOutputDevice = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundOutputDevice);
 	gpSoundOutputDevice->SetExtraWidget(pWidgetSoundOutputDevice);
+
+	vPos.y += 29;
+	gpSoundHRTFText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,HRTFText(mpInit),20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundHRTFText);
+	gpSoundHRTFText->SetExtraWidget(pWidgetSoundHRTF);
 
 	vPos.y += 29;
 	sText = mpInit->mbUseEnvAudio ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");

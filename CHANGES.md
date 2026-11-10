@@ -5,6 +5,27 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## HRTF setting and audio device recovery (2026-11-10)
+
+- New `[Sound] HRTF` setting (`auto`, the default, `on` or `off`) and an
+  HRTF option in the Sound menu. It applies at once through
+  `alcResetDeviceSOFT`; On also asks for stereo HRTF output. The log and
+  the menu show the status read back from OpenAL Soft.
+- The menu's output-device option switches devices at once with
+  `alcReopenDeviceSOFT` instead of asking for a restart, and lists devices
+  plugged in after launch.
+- When the output device is disconnected, audio moves to the default
+  device (retried once a second) with every source, buffer and handle kept.
+  Looping samples resume, streams continue, and the stream worker pauses
+  refills while no device is connected.
+- Stereo sources use `AL_DIRECT_CHANNELS_SOFT`, so HRTF and surround
+  layouts don't play music or stereo UI sounds through virtual speakers.
+- Validation: `audio_regressions` adds HRTF on/off/auto at open and at
+  runtime with sounds playing, reopen with handles, streams and looping
+  samples surviving, and the setting's values. Default CTest, ASan/UBSan
+  CTest (`detect_leaks=0`) and the TSan audio test pass. Not checked:
+  listening with HRTF, a real unplug, Windows.
+
 ## Direct OpenAL Soft backend replaces OALWrapper (2026-11-10)
 
 - The vendored OALWrapper (about 6.6k lines, with 2006-era copies of the AL

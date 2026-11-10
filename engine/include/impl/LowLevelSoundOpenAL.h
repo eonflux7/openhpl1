@@ -26,6 +26,7 @@
 namespace hpl
 {
 	class cOpenALDevice;
+	enum class eOpenALHRTF;
 	class cOpenALSoundEnvironment;
 
 	class cLowLevelSoundOpenAL : public iLowLevelSound
@@ -65,6 +66,9 @@ namespace hpl
 
 		tStringVec GetOutputDevices() override;
 		tString GetDeviceName() override;
+		bool SetOutputDevice(const tString& asDeviceName) override;
+		void SetHRTF(eSoundHRTF aMode) override;
+		tString GetHRTFStatus() override;
 
 		cOpenALDevice* GetDevice() { return mpDevice.get(); }
 
@@ -74,6 +78,7 @@ namespace hpl
 
 	private:
 		void ApplyEnvironment(const cOpenALSoundEnvironment &aEnv);
+		static eOpenALHRTF ToDeviceHRTF(eSoundHRTF aMode);
 
 		std::unique_ptr<cOpenALDevice> mpDevice;
 		tString mvFormats[3];

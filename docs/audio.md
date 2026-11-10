@@ -19,13 +19,42 @@ cSoundHandler / cMusicHandler / game        (unchanged)
 
 - The `DeviceName` setting picks the output. An empty name or `NULL` (the
   shipped default) opens the default device. An unknown name falls back to
-  the default device.
+  the default device. The options menu switches devices at once with
+  `alcReopenDeviceSOFT` and refreshes the device list on each click.
 - `ALC_FREQUENCY` is not requested; OpenAL Soft mixes at the device's rate.
 - The engine computes distance gains itself, so the distance model is
   `AL_NONE` and OpenAL is used for panning, pitch, reverb and filtering.
 - `MaxSoundChannels` (32) sources are created up front. EFX
   (`UseEnvironmentalAudio`) adds an EAX reverb in one auxiliary slot, falling
   back to standard reverb, and one filter per source.
+
+## Output: HRTF and device loss
+
+- `[Sound] HRTF` is `auto` (default), `on` or `off`, also in the Sound
+  options menu. Auto leaves the choice to OpenAL Soft, which enables HRTF
+  when it detects headphones or its config says so. On asks for
+  `ALC_HRTF_SOFT` and stereo HRTF output (`ALC_OUTPUT_MODE_SOFT`), even if
+  the device reports surround. Off asks for no HRTF. The menu changes it
+  with `alcResetDeviceSOFT`, without a restart; sources keep playing. The
+  log and the menu show the result read back from `ALC_HRTF_STATUS_SOFT`.
+- Stereo sounds (music streams and any stereo UI or ambience sample) use
+  `AL_DIRECT_CHANNELS_SOFT` (with `AL_REMIX_UNMATCHED_SOFT` when present),
+  so each channel goes to the matching output channel. OpenAL never
+  positions stereo sources, so this changes nothing about placement; it
+  keeps HRTF and surround layouts from playing them through virtual
+  speakers. Mono sounds are positioned and get HRTF.
+- `Update` (once per frame) reads `ALC_CONNECTED`. When the device is gone
+  it logs once and calls `alcReopenDeviceSOFT` on the default device,
+  retrying once a second. The context, sources, buffers and handles
+  survive. A lost device stops every source: looping samples start again,
+  streams restart through the underrun check and skip what was queued,
+  and one-shot sounds that were cut off end. While disconnected the
+  stream worker doesn't refill, so streams don't race ahead.
+- A looping sample only counts as finished after `Stop`, so the sound
+  handler doesn't drop looping ambience during a disconnect.
+- No sample-rate setting: OpenAL Soft uses the device's rate.
+  `AL_SOFT_source_spatialize` (positioning stereo world sounds) isn't used;
+  no shipped stereo sound is known to need it.
 
 ## Sources and handles
 
@@ -99,6 +128,15 @@ game data or audio device. It covers:
 - Ogg and WAV decoding, float WAV conversion, and rejection of broken files
 - sound-environment XML edge cases and fade interpolation
 - `StreamBufferSize` units and the `NULL` device name
+- HRTF on at open, and on/off/auto at runtime with a stream and a looping
+  sample playing, read back through `ALC_HRTF_STATUS_SOFT`
+- `alcReopenDeviceSOFT`: handles stay valid, the looping stream keeps
+  refilling and the looping sample keeps playing; an unknown device fails
+  and keeps the current one
+- reading and writing the `HRTF` setting
+
+A real unplug can't be simulated on the null backend; the reconnect path
+is checked by hand.
 
 The fixture `tests/data/tone_stereo_0.5s.ogg` is a 0.5 s 440 Hz tone made
 with ffmpeg's libvorbis encoder. The tests don't check audible reverb,

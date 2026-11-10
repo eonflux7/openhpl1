@@ -174,6 +174,7 @@ namespace hpl {
 		params.mlStreamUpdateFreq = alStreamUpdateFreq;
 		params.mlStreamBlockBytes = StreamBlockBytes(alStreamingBufferSize);
 		params.mlStreamBlockCount = alStreamingBufferCount < 3 ? 3 : (alStreamingBufferCount > 16 ? 16 : alStreamingBufferCount);
+		params.mHRTF = ToDeviceHRTF(mHRTF);
 
 		bool bNamed = asDeviceName != "" && asDeviceName != "NULL";
 		Log("  Trying to open audio device %s... ", bNamed ? asDeviceName.c_str() : "(default)");
@@ -202,6 +203,8 @@ namespace hpl {
 		Log("  OpenAL version: %s\n", mpDevice->GetString(AL_VERSION).c_str());
 		Log("  Stream buffers: %d x %d bytes\n", params.mlStreamBlockCount, (int)params.mlStreamBlockBytes);
 		Log("  EFX: %d\n", mpDevice->IsEFXActive() ? 1 : 0);
+		Log("  HRTF: %s, %s\n", SoundHRTFToString(mHRTF), GetHRTFStatus().c_str());
+		Log("  Device reopen: %d\n", mpDevice->CanReopen() ? 1 : 0);
 		Log("  Output Devices: \n");
 		for (const tString &sDevice : GetOutputDevices())
 			Log("    %s\n", sDevice.c_str());
@@ -238,6 +241,57 @@ namespace hpl {
 	tString cLowLevelSoundOpenAL::GetDeviceName()
 	{
 		return mpDevice->GetDeviceName();
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cLowLevelSoundOpenAL::SetOutputDevice(const tString& asDeviceName)
+	{
+		if(!mbInitialized) return false;
+		if(!mpDevice->Reopen(asDeviceName))
+		{
+			Warning("Couldn't switch audio to '%s'; keeping '%s'.\n", asDeviceName.c_str(),
+					mpDevice->GetDeviceName().c_str());
+			return false;
+		}
+		Log("Audio output moved to: %s (HRTF %s)\n", mpDevice->GetDeviceName().c_str(), GetHRTFStatus().c_str());
+		return true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	eOpenALHRTF cLowLevelSoundOpenAL::ToDeviceHRTF(eSoundHRTF aMode)
+	{
+		if(aMode == eSoundHRTF_On) return eOpenALHRTF::On;
+		if(aMode == eSoundHRTF_Off) return eOpenALHRTF::Off;
+		return eOpenALHRTF::Auto;
+	}
+
+	void cLowLevelSoundOpenAL::SetHRTF(eSoundHRTF aMode)
+	{
+		mHRTF = aMode;
+		if(!mbInitialized) return;
+		if(!mpDevice->SetHRTF(ToDeviceHRTF(aMode)))
+			Warning("Couldn't apply HRTF setting '%s'.\n", SoundHRTFToString(aMode));
+		Log("HRTF set to %s: %s\n", SoundHRTFToString(aMode), GetHRTFStatus().c_str());
+	}
+
+	tString cLowLevelSoundOpenAL::GetHRTFStatus()
+	{
+		switch(mpDevice->GetHRTFStatus())
+		{
+		case ALC_HRTF_ENABLED_SOFT:
+		case ALC_HRTF_HEADPHONES_DETECTED_SOFT:
+		case ALC_HRTF_REQUIRED_SOFT:
+		{
+			tString sName = mpDevice->GetHRTFName();
+			return sName.empty() ? tString("on") : "on (" + sName + ")";
+		}
+		case ALC_HRTF_DISABLED_SOFT: return "off";
+		case ALC_HRTF_DENIED_SOFT: return "off (denied by the OpenAL config)";
+		case ALC_HRTF_UNSUPPORTED_FORMAT_SOFT: return "off (output isn't stereo)";
+		default: return "unavailable";
+		}
 	}
 
 	//-----------------------------------------------------------------------

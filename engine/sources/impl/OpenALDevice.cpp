@@ -421,16 +421,18 @@ namespace hpl {
 		if(mpDevice == nullptr) return false;
 
 		bool bEFX = aParams.mbUseEFX && alcIsExtensionPresent(mpDevice, "ALC_EXT_EFX") == ALC_TRUE;
+		mbEFXRequested = bEFX;
+		mbHRTFExt = alcIsExtensionPresent(mpDevice, "ALC_SOFT_HRTF") == ALC_TRUE;
+		mbOutputModeExt = alcIsExtensionPresent(mpDevice, "ALC_SOFT_output_mode") == ALC_TRUE;
+		mbDisconnectExt = alcIsExtensionPresent(mpDevice, "ALC_EXT_disconnect") == ALC_TRUE;
+		mpResetDevice = mbHRTFExt
+			? reinterpret_cast<LPALCRESETDEVICESOFT>(alcGetProcAddress(mpDevice, "alcResetDeviceSOFT")) : nullptr;
+		mpReopenDevice = alcIsExtensionPresent(mpDevice, "ALC_SOFT_reopen_device") == ALC_TRUE
+			? reinterpret_cast<LPALCREOPENDEVICESOFT>(alcGetProcAddress(mpDevice, "alcReopenDeviceSOFT")) : nullptr;
 
 		int lSources = std::max(1, std::min(aParams.mlSources, kHandleIndexMask));
-		// No ALC_FREQUENCY: OpenAL Soft mixes at the device's own rate.
-		ALCint vAttributes[] = {
-			ALC_MONO_SOURCES, lSources,
-			ALC_STEREO_SOURCES, lSources,
-			ALC_MAX_AUXILIARY_SENDS, bEFX ? 2 : 0,
-			0
-		};
-		mpContext = alcCreateContext(mpDevice, vAttributes);
+		std::vector<ALCint> vAttributes = Attributes();
+		mpContext = alcCreateContext(mpDevice, vAttributes.data());
 		if(mpContext == nullptr || alcMakeContextCurrent(mpContext) == ALC_FALSE)
 		{
 			if(mpContext) alcDestroyContext(mpContext);
@@ -440,13 +442,20 @@ namespace hpl {
 			return false;
 		}
 
-		const ALCchar *pName = nullptr;
-		if(alcIsExtensionPresent(mpDevice, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE)
-			pName = alcGetString(mpDevice, ALC_ALL_DEVICES_SPECIFIER);
-		if(pName == nullptr) pName = alcGetString(mpDevice, ALC_DEVICE_SPECIFIER);
-		msDeviceName = pName ? pName : "";
+		ReadDeviceName();
+		mbConnected = true;
+		mbLossReported = false;
 
 		alDistanceModel(AL_NONE);
+
+		// Stereo data plays straight to the matching output channels, so HRTF
+		// or a surround layout doesn't turn music and UI sounds into virtual
+		// speakers. OpenAL doesn't position stereo sources either way.
+		mlDirectChannels = 0;
+		if(alIsExtensionPresent("AL_SOFT_direct_channels_remix") == AL_TRUE)
+			mlDirectChannels = AL_REMIX_UNMATCHED_SOFT;
+		else if(alIsExtensionPresent("AL_SOFT_direct_channels") == AL_TRUE)
+			mlDirectChannels = AL_TRUE;
 
 		//////////////
 		// Reverb slot and effect
@@ -541,6 +550,127 @@ namespace hpl {
 			alcCloseDevice(mpDevice);
 			mpDevice = nullptr;
 		}
+		mpReopenDevice = nullptr;
+		mpResetDevice = nullptr;
+		mbConnected = true;
+	}
+
+	//-----------------------------------------------------------------------
+
+	std::vector<ALCint> cOpenALDevice::Attributes() const
+	{
+		int lSources = std::max(1, std::min(mParams.mlSources, kHandleIndexMask));
+		// No ALC_FREQUENCY: OpenAL Soft mixes at the device's own rate.
+		std::vector<ALCint> vAttributes = {
+			ALC_MONO_SOURCES, lSources,
+			ALC_STEREO_SOURCES, lSources,
+			ALC_MAX_AUXILIARY_SENDS, mbEFXRequested ? 2 : 0,
+		};
+		if(mbHRTFExt && mParams.mHRTF != eOpenALHRTF::Auto)
+		{
+			vAttributes.push_back(ALC_HRTF_SOFT);
+			vAttributes.push_back(mParams.mHRTF == eOpenALHRTF::On ? ALC_TRUE : ALC_FALSE);
+		}
+		// HRTF needs stereo output, so ask for it even when the device reports
+		// a surround layout. Otherwise the device's own layout is used.
+		if(mbOutputModeExt && mParams.mHRTF == eOpenALHRTF::On)
+		{
+			vAttributes.push_back(ALC_OUTPUT_MODE_SOFT);
+			vAttributes.push_back(ALC_STEREO_HRTF_SOFT);
+		}
+		vAttributes.push_back(0);
+		return vAttributes;
+	}
+
+	void cOpenALDevice::ReadDeviceName()
+	{
+		const ALCchar *pName = nullptr;
+		if(alcIsExtensionPresent(mpDevice, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE)
+			pName = alcGetString(mpDevice, ALC_ALL_DEVICES_SPECIFIER);
+		if(pName == nullptr) pName = alcGetString(mpDevice, ALC_DEVICE_SPECIFIER);
+		msDeviceName = pName ? pName : "";
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cOpenALDevice::SetHRTF(eOpenALHRTF aMode)
+	{
+		std::lock_guard<std::mutex> lock(mMutex);
+		mParams.mHRTF = aMode;
+		if(mpDevice == nullptr) return true;
+		if(mpResetDevice == nullptr) return false;
+		std::vector<ALCint> vAttributes = Attributes();
+		return mpResetDevice(mpDevice, vAttributes.data()) == ALC_TRUE;
+	}
+
+	int cOpenALDevice::GetHRTFStatus() const
+	{
+		if(mpDevice == nullptr || !mbHRTFExt) return -1;
+		ALCint lStatus = 0;
+		alcGetIntegerv(mpDevice, ALC_HRTF_STATUS_SOFT, 1, &lStatus);
+		return lStatus;
+	}
+
+	bool cOpenALDevice::IsHRTFEnabled() const
+	{
+		if(mpDevice == nullptr || !mbHRTFExt) return false;
+		ALCint lEnabled = 0;
+		alcGetIntegerv(mpDevice, ALC_HRTF_SOFT, 1, &lEnabled);
+		return lEnabled == ALC_TRUE;
+	}
+
+	std::string cOpenALDevice::GetHRTFName() const
+	{
+		if(!IsHRTFEnabled()) return "";
+		const ALCchar *pName = alcGetString(mpDevice, ALC_HRTF_SPECIFIER_SOFT);
+		return pName ? pName : "";
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cOpenALDevice::Reopen(const std::string &asDeviceName)
+	{
+		if(mpDevice == nullptr || mpReopenDevice == nullptr) return false;
+		std::string sName = asDeviceName == "NULL" ? "" : asDeviceName;
+
+		std::lock_guard<std::mutex> lock(mMutex);
+		std::vector<ALCint> vAttributes = Attributes();
+		if(mpReopenDevice(mpDevice, sName.empty() ? nullptr : sName.c_str(), vAttributes.data()) != ALC_TRUE)
+			return false;
+		ReadDeviceName();
+		mbConnected = true;
+		mbLossReported = false;
+		ResumeAfterReopen();
+		return true;
+	}
+
+	bool cOpenALDevice::CheckConnected()
+	{
+		if(mpDevice == nullptr || !mbDisconnectExt) return true;
+		ALCint lConnected = ALC_TRUE;
+		alcGetIntegerv(mpDevice, ALC_CONNECTED, 1, &lConnected);
+		mbConnected = lConnected != ALC_FALSE;
+		return mbConnected;
+	}
+
+	void cOpenALDevice::ResumeAfterReopen()
+	{
+		// A lost device stops every source. Looping samples start again,
+		// streams restart through the underrun check, and one-shot samples
+		// that were cut off end normally.
+		for(sSource &source : mvSources)
+		{
+			if(!source.mbPlaying || source.mbPaused || source.mpSample == nullptr || !source.mbLoop) continue;
+			ALint lState = 0;
+			alGetSourcei(source.mlId, AL_SOURCE_STATE, &lState);
+			if(lState == AL_STOPPED) alSourcePlay(source.mlId);
+		}
+	}
+
+	void cOpenALDevice::ApplyDirectChannels(sSource &aSource, int alChannels)
+	{
+		if(mlDirectChannels == 0) return;
+		alSourcei(aSource.mlId, AL_DIRECT_CHANNELS_SOFT, alChannels > 1 ? mlDirectChannels : AL_FALSE);
 	}
 
 	//-----------------------------------------------------------------------
@@ -560,13 +690,40 @@ namespace hpl {
 
 	void cOpenALDevice::Update()
 	{
-		if(mWorker.joinable()) return;
-		std::lock_guard<std::mutex> lock(mMutex);
-		UpdateStreamsLocked();
+		if(mpDevice == nullptr) return;
+
+		bool bReopen = false;
+		{
+			std::lock_guard<std::mutex> lock(mMutex);
+			if(CheckConnected())
+			{
+				if(!mWorker.joinable()) UpdateStreamsLocked();
+				return;
+			}
+			auto now = std::chrono::steady_clock::now();
+			if(!mbLossReported)
+			{
+				Warning("Audio device '%s' was disconnected.\n", msDeviceName.c_str());
+				mbLossReported = true;
+				mNextReconnect = now;
+			}
+			if(mpReopenDevice && now >= mNextReconnect)
+			{
+				mNextReconnect = now + std::chrono::seconds(1);
+				bReopen = true;
+			}
+		}
+
+		// Retried once a second until a device is available.
+		if(bReopen && Reopen(""))
+			Log("Audio moved to the default device: %s\n", msDeviceName.c_str());
 	}
 
 	void cOpenALDevice::UpdateStreamsLocked()
 	{
+		// A lost device stops its sources at once; refilling them would race
+		// through the streams.
+		if(!CheckConnected()) return;
 		for(sSource &source : mvSources)
 		{
 			if(source.mpStream && !IsFree(source)) UpdateStream(source);
@@ -633,6 +790,9 @@ namespace hpl {
 		alGetSourcei(aSource.mlId, AL_SOURCE_STATE, &lState);
 		if(lState != AL_STOPPED && lState != AL_INITIAL) return false;
 		if(aSource.mbPaused) return false;
+		// A looping sample only ends through Stop. It stops by itself only
+		// when the device is lost, and plays again after the reopen.
+		if(aSource.mbPlaying && aSource.mpSample && aSource.mbLoop) return false;
 		if(aSource.mbPlaying && aSource.mpStream && !IsStreamDrained(aSource)) return false;
 		return true;
 	}
@@ -728,6 +888,7 @@ namespace hpl {
 		StopSource(source);
 		++source.mlGeneration;
 		alSourcei(source.mlId, AL_BUFFER, (ALint)apSample->GetBuffer());
+		ApplyDirectChannels(source, apSample->GetChannels());
 		source.mpSample = apSample;
 		source.mlVoices = apSample->GetChannels();
 		mlFreeVoices -= source.mlVoices;
@@ -753,6 +914,7 @@ namespace hpl {
 		StopSource(source);
 		++source.mlGeneration;
 		source.mpStream = apStream;
+		ApplyDirectChannels(source, apStream->GetChannels());
 		source.mlVoices = apStream->GetChannels();
 		mlFreeVoices -= source.mlVoices;
 		source.mlPriority = kStreamPriority;
