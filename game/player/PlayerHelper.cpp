@@ -89,6 +89,12 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 	/////////////////////
 	//Fall damage
 	//Hard
+	if(avVel.y < mfFallSpeed_Min && !mpPlayer->GetNoFallDamage())
+	{
+		cVector3f vPos = apCharBody->GetPosition();
+		Log("Player landed at %.2f m/s at (%.2f %.2f %.2f)\n", avVel.y, vPos.x, vPos.y, vPos.z);
+	}
+
 	if(mpPlayer->GetNoFallDamage())
 	{
 		//Black Plague: the script has turned it off
