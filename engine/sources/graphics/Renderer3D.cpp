@@ -253,6 +253,7 @@ namespace hpl {
 		}
 
 		mpVtxBuffer = nullptr;
+		mvFrameShadows.clear();
 	}
 
 	void cRenderSettings::Reset(iLowLevelGraphics *apLowLevel)
@@ -696,6 +697,7 @@ namespace hpl {
 	void cRenderer3D::RenderLights(cCamera3D *apCamera)
 	{
 		mShadowMapStats = cShadowMapStats();
+		mRenderSettings.mvFrameShadows.clear();
 
 		if(mDebugFlags & eRendererDebugFlag_DisableLighting) return;
 
@@ -1021,6 +1023,18 @@ namespace hpl {
 			aParams.mfFar = mtxProj.m[2][3] / (mtxProj.m[2][2] + 1.0f);
 			aParams.mfTexelSize = 2.0f * fTan / (float)lSize;
 			aParams.mvUvScale = cVector2f(0.5f / (fTan * pSpot->GetAspect()), 0.5f / fTan);
+
+			// Kept for the particles, which are drawn after the lights
+			if(cacheable)
+			{
+				cRenderSettings::cFrameShadow frameShadow;
+				frameShadow.mpLight = apLight;
+				frameShadow.mlCacheId = apLight->GetShadowCacheId();
+				frameShadow.mfNear = aParams.mfNear;
+				frameShadow.mfFar = aParams.mfFar;
+				frameShadow.mvUvScale = aParams.mvUvScale;
+				mRenderSettings.mvFrameShadows.push_back(frameShadow);
+			}
 		}
 
 		if(rendered)

@@ -13,11 +13,32 @@ in vec2 vUv;
 in vec3 vNextUv;
 in float vFogUv;
 in float vDistance;
+in vec3 vLight;
+in vec3 vShadowLight;
+in vec3 vShadowPos;
 
 OUTPUT
 
 HPL_TEXTURE_2D(0) //diffuseMap
 uniform sampler1D tex1; //fogMap
+// The shadow map of the light partLight.w names (bound to the unit of
+// hpl1_shadow.glsl by its name)
+uniform sampler2DShadow hpl_ShadowMap;
+
+// 0 to 1: how much of that light reaches the point p in its view. A smoke
+// sheet is not a surface and does not shadow itself: only a little bias,
+// for the precision of the map.
+float ParticleShadow(vec3 p)
+{
+	float n = partShadow.x, f = partShadow.y;
+	float dist = -p.z - 0.03;
+	// Nearer than the map begins or past where it ends: the light does
+	// not reach there anyway
+	if(dist <= n || dist >= f) return 1.0;
+	vec2 uv = 0.5 + p.xy / -p.z * partShadow.zw;
+	float depth = 0.5 * ((f + n) - 2.0 * f * n / dist) / (f - n) + 0.5;
+	return texture(hpl_ShadowMap, vec3(uv, depth));
+}
 
 						// y: 1 with fog; z: 1 when added to the scene,
 						// 0 when blended by alpha
@@ -26,7 +47,9 @@ void main()
 {
 	vec4 vSheet = hpl_Texture0(vUv);
 	if(vNextUv.z > 0.0) vSheet = mix(vSheet, hpl_Texture0(vNextUv.xy), vNextUv.z);
-	vec4 vParticle = vSheet * vColor;
+	vec3 vLit = vLight;
+	if(partLight.w > 0.5) vLit += vShadowLight * ParticleShadow(vShadowPos);
+	vec4 vParticle = vSheet * vec4(vColor.rgb * min(vLit, vec3(1.0)), vColor.a);
 	if(partLook.y > 0.5) vParticle *= texture(tex1, vFogUv).r;
 
 	float fFade = 1.0;

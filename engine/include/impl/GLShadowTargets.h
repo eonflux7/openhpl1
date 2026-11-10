@@ -26,6 +26,9 @@ namespace hpl
 		// zero identity or an over-budget map uses the uncached scratch target.
 		unsigned SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
 			const std::vector<uint64_t> &avSignature, size_t alBudgetBytes);
+		// Bind a retained spotlight map whose face is valid, without
+		// selecting it for drawing; false if there is none.
+		bool BindRetainedShadowMap(uint64_t alLightId);
 		size_t GetCacheBytes() const { return mlCacheBytes; }
 		size_t GetCacheEntries() const { return mCache.size(); }
 		cGLShadowTargets(const cGLShadowTargets &) = delete;

@@ -37,6 +37,13 @@ layout. Shadow framebuffer attachments are detached after rendering, so they
 cannot keep evicted storage alive. Reset releases retained and scratch textures
 and samplers before the GL context is destroyed.
 
+Particles drawn after the light passes read the flashlight's shadow, or
+another spotlight's, from this cache. `cRenderer3D` lists the spotlights
+whose maps it retained in this `RenderWorld` (`cRenderSettings::mvFrameShadows`,
+emptied by `Clear()`), and `BindRetainedShadowMap` binds one again only if
+its face is valid. Scratch maps are not listed, since a later light may
+have overwritten them, so with reuse disabled particles go unshadowed.
+
 CPU geometry edits follow the existing `UpdateData` contract. Texture uploads,
 alpha-coverage edits and sampler changes advance revisions. Raw texture writers
 must call `MarkContentChanged`. Live render-target textures and alpha casters

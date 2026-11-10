@@ -757,6 +757,9 @@ namespace hpl {
 		/// The signature describes depth-producing inputs, not sampling settings.
 		virtual unsigned SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
 			const std::vector<uint64_t> &avSignature, size_t alBudgetBytes) = 0;
+		/// Bind a spotlight's retained map again for what is drawn after the
+		/// light passes (particles), if it is up to date; false otherwise.
+		virtual bool BindRetainedShadowMap(uint64_t alLightId) { return false; }
 		/**
 		 * Back to the target before BeginShadowMap().
 		 */

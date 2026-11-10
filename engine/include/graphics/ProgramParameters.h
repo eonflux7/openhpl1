@@ -73,7 +73,9 @@ enum class eProgramParam : unsigned {
 	playerWaterColor = 132,
 	scale = 133,
 	t = 134,
-	Count = 135
+	partShadowView = 135,
+	partShadow = 139,
+	Count = 140
 };
 }
 #endif

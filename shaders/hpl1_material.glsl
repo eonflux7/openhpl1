@@ -126,4 +126,6 @@ layout(std140) uniform hpl_Material
 	float hpl_padding_t_0;
 	float hpl_padding_t_1;
 	float hpl_padding_t_2;
+	mat4 partShadowView;
+	vec4 partShadow;
 };

@@ -296,6 +296,9 @@ namespace hpl {
 		/////////////////////////////////////
 		// The lights that reach the particles: the strongest few
 		int lCount = 0;
+		// The strongest of them whose shadow map is at hand (slot + 1, 0
+		// for none): what is behind a wall or a door from it is not lit.
+		int lShadowed = 0;
 		if(bAdded==false && effects.mfParticleLight > 0 && mpWorld)
 		{
 			iLight3D *vLights[kLights];
@@ -350,13 +353,28 @@ namespace hpl {
 				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightPos, i), vPos.x, vPos.y, vPos.z, pLight->GetFarAttenuation());
 				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightColor, i), col.r, col.g, col.b, fEdge);
 				mpSoftProgram->SetVec4f(iGpuProgram::Element(eProgramParam::partLightDir, i), vDir.x, vDir.y, vDir.z, 0);
+
+				if(lShadowed == 0 && pLight->GetLightType() == eLight3DType_Spot)
+				{
+					for(const cRenderSettings::cFrameShadow &shadow : apSettings->mvFrameShadows)
+					{
+						if(shadow.mpLight != pLight) continue;
+						if(mpGraphics->GetLowLevel()->BindRetainedShadowMap(shadow.mlCacheId)==false) break;
+						cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(pLight);
+						mpSoftProgram->SetMatrixf(eProgramParam::partShadowView, pSpot->GetViewMatrix());
+						mpSoftProgram->SetVec4f(eProgramParam::partShadow, shadow.mfNear, shadow.mfFar,
+												shadow.mvUvScale.x, shadow.mvUvScale.y);
+						lShadowed = i + 1;
+						break;
+					}
+				}
 			}
 		}
 
 		// What the map's own light adds to the brightness in the dark
 		const cColor &ambient = apSettings->mAmbientColor;
 		float fDark = cMath::Min(effects.mfParticleDark + (ambient.r + ambient.g + ambient.b) / 3.0f, 1.0f);
-		mpSoftProgram->SetVec4f(eProgramParam::partLight, (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, 0);
+		mpSoftProgram->SetVec4f(eProgramParam::partLight, (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, (float)lShadowed);
 	}
 
 	//-----------------------------------------------------------------------

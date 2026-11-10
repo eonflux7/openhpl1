@@ -19,6 +19,8 @@
 #ifndef HPL_RENDERER3D_H
 #define HPL_RENDERER3D_H
 
+#include <cstdint>
+#include <vector>
 #include "graphics/GraphicsTypes.h"
 #include "math/MathTypes.h"
 #include "graphics/Material.h"
@@ -198,6 +200,22 @@ namespace hpl {
 		iTexture* mpTexture[MAX_TEXTUREUNITS];
 
 		iVertexBuffer* mpVtxBuffer;
+
+		/// A spotlight whose shadow map the light passes left in the cache,
+		/// for what is drawn after them (particles). Only during one
+		/// RenderWorld: Clear() empties it.
+		class cFrameShadow
+		{
+		public:
+			iLight3D *mpLight = nullptr;
+			uint64_t mlCacheId = 0;
+			/// The depth range and texture coordinates per x/z and y/z
+			/// that the map was drawn with (cShadowMapParams).
+			float mfNear = 0.05f;
+			float mfFar = 1;
+			cVector2f mvUvScale = cVector2f(1,1);
+		};
+		std::vector<cFrameShadow> mvFrameShadows;
 	};
 
 	//---------------------------------------------

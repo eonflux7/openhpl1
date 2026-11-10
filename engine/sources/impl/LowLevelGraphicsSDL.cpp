@@ -541,6 +541,11 @@ namespace hpl
 		return mShadows.SelectShadowMap(alLightId, abCube, alResolution, avSignature, alBudgetBytes);
 	}
 
+	bool cLowLevelGraphicsSDL::BindRetainedShadowMap(uint64_t alLightId)
+	{
+		return mShadows.BindRetainedShadowMap(alLightId);
+	}
+
 	void cLowLevelGraphicsSDL::EndShadowMap()
 	{
 		mShadows.EndShadowMap();

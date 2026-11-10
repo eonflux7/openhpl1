@@ -249,6 +249,7 @@ namespace hpl
 		void BeginShadowMap(bool abCube, int alFace, int alSize) override;
 		unsigned SelectShadowMap(uint64_t alLightId, bool abCube, int alResolution,
 			const std::vector<uint64_t> &avSignature, size_t alBudgetBytes) override;
+		bool BindRetainedShadowMap(uint64_t alLightId) override;
 		void EndShadowMap() override;
 		void SetShadowMapParams(const cShadowMapParams &aParams) override;
 		void SetLightLook(const cLightLook &aLook) override;

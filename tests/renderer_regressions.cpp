@@ -639,6 +639,7 @@ static void TestShadowStorage()
 	};
 	Check(shadows.SelectShadowMap(1, false, 32, signature, mapBytes * 2) == 0, "new cache entry is invalid");
 	const GLuint first = texture(false);
+	Check(!shadows.BindRetainedShadowMap(1), "particles do not read a map that is not drawn yet");
 	fill(false, 0, 32, 0.25f);
 	Check(shadows.SelectShadowMap(2, false, 32, signature, mapBytes * 2) == 0, "second light has independent storage");
 	const GLuint second = texture(false);
@@ -651,6 +652,12 @@ static void TestShadowStorage()
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, depth.data());
 	glActiveTexture(GL_TEXTURE0 + state.GetActiveTextureUnit());
 	Check(std::fabs(depth[0] - 0.25f) < 1e-5f, "cached depth pixels survive another light");
+	// Particles bind a valid retained spotlight map again after the light
+	// passes, without changing which is least recently used.
+	Check(shadows.BindRetainedShadowMap(2) && texture(false) == second, "particles bind another light's retained map");
+	Check(shadows.BindRetainedShadowMap(1) && texture(false) == first, "particles bind the retained map they ask for");
+	Check(!shadows.BindRetainedShadowMap(0) && !shadows.BindRetainedShadowMap(77) && texture(false) == first,
+		"particles bind no scratch or unknown map");
 	shadows.SelectShadowMap(3, false, 32, signature, mapBytes * 2);
 	Check(glIsTexture(first) && (!glIsTexture(second) || second == texture(false)),
 		"LRU eviction preserves the most recently reused light");
@@ -662,6 +669,7 @@ static void TestShadowStorage()
 	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 0, "new cube has no valid faces");
 	fill(true, 0, 16, 0.125f);
 	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 1, "only the rendered cube face is valid");
+	Check(!shadows.BindRetainedShadowMap(4), "particles bind no cube map");
 	fill(true, 5, 16, 0.875f);
 	Check(shadows.SelectShadowMap(4, true, 16, signature, budget) == 33, "newly exposed face preserves existing faces");
 	std::array<float, 16 * 16> cubeDepth;

@@ -192,6 +192,15 @@ namespace hpl
 		return cachedMap.mlValidFaceMask;
 	}
 
+	bool cGLShadowTargets::BindRetainedShadowMap(uint64_t alLightId)
+	{
+		if(alLightId == 0 || mbInShadowMap) return false;
+		auto cacheIt = mCache.find(alLightId);
+		if(cacheIt == mCache.end() || cacheIt->second.mbCube || (cacheIt->second.mlValidFaceMask & 1u) == 0) return false;
+		BindShadowMap(false, cacheIt->second.mlTexture);
+		return true;
+	}
+
 	void cGLShadowTargets::BeginShadowMap(bool abCube, int alFace, int alSize)
 	{
 		if(!mbInShadowMap) mbDrawFailed = false;

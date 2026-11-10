@@ -50,6 +50,8 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - Gamma is a final shader pass affecting only the game window.
 - Particles move smoothly above 60 FPS and keep their place as the view
   turns; every emitter of a system warms up, for as long as its file asks.
+- Smoke, dust and mist are dim in the dark and lit by nearby lamps and the
+  flashlight, whose shadow map keeps it from lighting them through walls.
 - Fixed: fogged maps drawn as flat fog colour, sheared odd-width images, and
   the black screen and transparent window on modern drivers and Wayland.
 
