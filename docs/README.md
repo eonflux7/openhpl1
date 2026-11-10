@@ -14,6 +14,8 @@ Current technical guides:
   tests and remaining validation limits.
 - [Audio lifecycle](audio.md): EFX slot mutex ownership, worker shutdown and
   startup crash regression coverage.
+- [Audio review](audio-review.md): audio defects and the modernization plan
+  for the `feat/better-audio` branch.
 - [Addons and glTF models](modding.md): addon folders and `.zip` files, how
   the engine reads glTF, `openhpl1-model` conversion and checks, editing in
   Blender, and the conversion's validation record.
