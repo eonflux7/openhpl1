@@ -5,6 +5,24 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Audio source fixes from the merge review (2026-11-10)
+
+- Unpausing no longer replays a one-shot sample that ended before the
+  pause (the menu pauses every sound, so a sound ending in that frame came
+  back from the start). OALWrapper did the same. Looping samples stopped by
+  a device loss still resume.
+- When voices run short, sources that ended by themselves are reclaimed
+  before a playing sound is stolen. They kept their voices until the sound
+  handler stopped their channels, up to one update later, so a playing
+  low-priority loop could be stolen while a finished sound held a voice.
+- Validation: two new `audio_regressions` checks, both failing on the
+  previous code. Default and ASan/UBSan CTest (`detect_leaks=0`) pass 3/3.
+  ASan smoke (`OPENHPL_HIDDEN=1`, `ALSOFT_DRIVERS=null`, isolated
+  profiles): Overture 28/28 and Black Plague 29/29 maps, 0 failures, both
+  exit 0; the only sanitizer report is AngelScript's known `as_string.cpp`
+  warning. Not checked: listening, Requiem, Windows; gamescope is not
+  installed, so the `2d-menu_sound` capture was not run.
+
 ## Reverb crossfades and equal-power music fades (2026-11-10)
 
 - Sector reverb (Black Plague and Requiem) uses two EFX slots, one

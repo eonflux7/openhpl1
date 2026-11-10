@@ -205,6 +205,19 @@ static void TestVoiceStealing()
 
 	device.ReleaseStream(pStream.get());
 	device.Close();
+
+	// A sample that ended by itself still holds its voice until its channel
+	// is stopped. A new sound takes that voice before stealing a playing one.
+	if(!device.Open(Params(2, false))) { Check(false, "device reopens for reclaim test"); return; }
+	std::unique_ptr<cOpenALSample> pShort = MakeSample(1, 2205);
+	int lLow = device.PlaySample(pMono.get(), 10, 1, false);
+	device.SetLoop(lLow, true);
+	int lEnded = device.PlaySample(pShort.get(), 50, 1, false);
+	Wait(device, 300);
+	Check(device.IsPlaying(lLow) && !device.IsPlaying(lEnded), "short sample ended, loop plays");
+	Check(device.PlaySample(pMono.get(), 100, 1, false) >= 0, "new sample gets the ended sample's voice");
+	Check(device.IsPlaying(lLow), "playing low-priority loop is not stolen");
+	device.Close();
 }
 
 //-----------------------------------------------------------------------
@@ -223,6 +236,13 @@ static void TestHandlesAndPause()
 	Check(device.IsPlaying(lPaused), "unpaused sample plays");
 	Wait(device, 300);
 	Check(!device.IsPlaying(lPaused), "0.1 s sample finishes");
+
+	// Pausing a sample that already ended (the menu pauses every sound)
+	// must not play it again on unpause.
+	device.SetPaused(lPaused, true);
+	device.SetPaused(lPaused, false);
+	Wait(device, 30);
+	Check(!device.IsPlaying(lPaused), "unpausing an ended sample does not replay it");
 
 	int lFirst = device.PlaySample(pSample.get(), 10, 1, false);
 	device.Stop(lFirst);

@@ -866,6 +866,21 @@ namespace hpl {
 
 	int cOpenALDevice::AcquireSource(int alPriority, int alVoices)
 	{
+		// Sources that ended by themselves keep their voices until the
+		// engine stops their channels. Reclaim those before stealing a sound
+		// that is still playing.
+		if(mlFreeVoices < alVoices)
+		{
+			for(sSource &source : mvSources)
+			{
+				if(source.mlVoices > 0 && IsFree(source))
+				{
+					StopSource(source);
+					++source.mlGeneration;
+				}
+			}
+		}
+
 		// Steal the lowest-priority sources below the request until enough
 		// voices are free.
 		while(mlFreeVoices < alVoices)
@@ -972,9 +987,21 @@ namespace hpl {
 		sSource *pSource = GetSource(alHandle);
 		if(pSource == nullptr) return;
 		if(abPaused && !pSource->mbPaused)
+		{
 			alSourcePause(pSource->mlId);
+		}
 		else if(!abPaused && pSource->mbPaused && (pSource->mpSample || pSource->mpStream))
-			alSourcePlay(pSource->mlId);
+		{
+			// A one-shot sample that ended before the pause stays ended;
+			// playing a stopped source would start it again from the top.
+			// Looping samples stopped by a device loss resume, and streams
+			// restart through the underrun check.
+			ALint lState = 0;
+			alGetSourcei(pSource->mlId, AL_SOURCE_STATE, &lState);
+			if(lState == AL_PAUSED || lState == AL_INITIAL ||
+			   (lState == AL_STOPPED && pSource->mpSample && pSource->mbLoop))
+				alSourcePlay(pSource->mlId);
+		}
 		pSource->mbPaused = abPaused;
 	}
 

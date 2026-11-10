@@ -71,7 +71,11 @@ The rules follow OALWrapper's, which the sound handler depends on:
 - Sounds are created paused and count as playing until stopped or finished.
   A finished source keeps its data, and a stream stays bound, until the
   channel is stopped, which the sound handler does when it deletes the
-  channel.
+  channel. When voices run short, finished sources are reclaimed (their
+  handles go stale) before any playing source is stolen.
+- Unpausing replays nothing that already ended: a one-shot sample that
+  finished before the pause stays finished. Looping samples stopped by a
+  device loss resume, as do paused streams.
 - Gains are clamped to (0, 1] and pitch to (0, 10], as before.
 - `SetFiltering(enabled, flags)` attaches the source's low-pass filter to
   the direct path (bit 1) and the reverb send (bit 2). Filter parameter
@@ -234,8 +238,10 @@ game data or audio device. It covers:
 - twelve open/close cycles alternating the stream worker, with a looping
   stream, a filtered sample and reverb active, then closes while the worker
   is mid-update
-- voice stealing: equal priority, stereo taking two voices, streams
-- stale handles, start-paused sounds and sounds finishing
+- voice stealing: equal priority, stereo taking two voices, streams,
+  finished sources reclaimed before a playing one is stolen
+- stale handles, start-paused sounds and sounds finishing, and an ended
+  sample staying ended through a pause and unpause
 - stream refill past the queued blocks, end of a non-looping stream, looping
   past the length, and rebinding, with and without the worker
 - Ogg and WAV decoding, float WAV conversion, and rejection of broken files
