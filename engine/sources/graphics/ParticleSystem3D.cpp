@@ -43,6 +43,7 @@ namespace hpl {
 	{
 		mpResources = apResources;
 		mpGraphics = apGraphics;
+		mpOriginal = nullptr;
 	}
 
 	//-----------------------------------------------------------------------
@@ -50,6 +51,37 @@ namespace hpl {
 	cParticleSystemData3D::~cParticleSystemData3D()
 	{
 		STLDeleteAll(mvEmitterData);
+		if(mpOriginal) hplDelete(mpOriginal);
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cParticleSystemData3D::SetOriginal(cParticleSystemData3D *apData)
+	{
+		if(mpOriginal) hplDelete(mpOriginal);
+		mpOriginal = apData;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cParticleSystemData3D::UsesReplacedMaterial() const
+	{
+		for(iParticleEmitterData *pData : mvEmitterData)
+			if(pData->UsesReplacedMaterial()) return true;
+		return false;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cParticleSystemData3D::CreateEmitters(cParticleSystem3D *apPS, const tString &asName,
+												const cVector3f &avSize)
+	{
+		for(size_t i=0; i<mvEmitterData.size(); ++i)
+		{
+			iParticleEmitter3D *pPE = static_cast<iParticleEmitter3D*>(mvEmitterData[i]->Create(asName, avSize));
+			apPS->AddEmitter(pPE);
+			pPE->SetSystem(apPS);
+		}
 	}
 
 	//-----------------------------------------------------------------------
@@ -62,9 +94,10 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	cParticleSystem3D* cParticleSystemData3D::Create(tString asName, cVector3f avSize,
-													const cMatrixf& a_mtxTransform)
+													const cMatrixf& a_mtxTransform, bool abOriginal)
 	{
-		if(mvEmitterData.empty())
+		cParticleSystemData3D *pEmitterData = abOriginal && mpOriginal ? mpOriginal : this;
+		if(pEmitterData->mvEmitterData.empty())
 		{
 			Warning("Particle system '%s' has no emitters.\n",msName.c_str());
 			return nullptr;
@@ -72,22 +105,16 @@ namespace hpl {
 
 		cParticleSystem3D *pPS = hplNew( cParticleSystem3D, (asName,this,mpResources,mpGraphics) );
 		pPS->SetMatrix(a_mtxTransform);
+		pPS->SetOriginal(pEmitterData != this);
 
-		for(size_t i=0; i<mvEmitterData.size(); ++i)
-		{
-			///////////////////////////
-			// Create and add
-			iParticleEmitter3D *pPE = static_cast<iParticleEmitter3D*>(mvEmitterData[i]->Create(asName, avSize));
-			pPS->AddEmitter(pPE);
-			pPE->SetSystem(pPS);
-		}
+		pEmitterData->CreateEmitters(pPS, asName, avSize);
 
 		return pPS;
 	}
 
 	//-----------------------------------------------------------------------
 
-	bool cParticleSystemData3D::LoadFromFile(const tString &asFile)
+	bool cParticleSystemData3D::LoadFromFile(const tString &asFile, bool abOriginal)
 	{
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument,(asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -105,6 +132,7 @@ namespace hpl {
 			cParticleEmitterData3D_UserData *pPE = hplNew( cParticleEmitterData3D_UserData,("",
 																	mpResources,mpGraphics) );
 
+			pPE->SetOriginal(abOriginal);
 			pPE->LoadFromElement(pEmitterElem);
 
 			mvEmitterData.push_back(pPE);
@@ -135,6 +163,7 @@ namespace hpl {
 		mpData = apData;
 
 		mbFirstUpdate = true;
+		mbOriginal = false;
 	}
 
 	//-----------------------------------------------------------------------
@@ -146,6 +175,30 @@ namespace hpl {
 			hplDelete(mvEmitters[i]);
 		}
 		if(mpParticleManager) mpParticleManager->Destroy(mpData);
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cParticleSystem3D::HasOriginal()
+	{
+		return mpData->GetOriginal() != nullptr;
+	}
+
+	cParticleSystemData3D *cParticleSystem3D::GetEmitterData()
+	{
+		return mbOriginal && mpData->GetOriginal() ? mpData->GetOriginal() : mpData;
+	}
+
+	//-----------------------------------------------------------------------
+
+	void cParticleSystem3D::DeleteEmitters()
+	{
+		for(iParticleEmitter3D *pPE : mvEmitters)
+		{
+			RemoveChild(pPE);
+			hplDelete(pPE);
+		}
+		mvEmitters.clear();
 	}
 
 	//-----------------------------------------------------------------------
@@ -243,7 +296,7 @@ namespace hpl {
 			//Warm Up, every emitter (the original only did the first)
 			if(mbFirstUpdate && pPE->IsActive())
 			{
-				iParticleEmitterData *pData =  mpData->GetEmitterData((int)i);
+				iParticleEmitterData *pData =  GetEmitterData()->GetEmitterData((int)i);
 				pPE->WarmUp(pData->GetWarmUpTime(), pData->GetWarmUpStepsPerSec());
 			}
 

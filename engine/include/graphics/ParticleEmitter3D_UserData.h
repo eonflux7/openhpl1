@@ -90,6 +90,8 @@ namespace hpl {
 									cVector3f *apPosVec);
 
 	private:
+		iMaterial* LoadMaterial(const tString &asFile);
+
 		bool OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams) override;
 		float mfShortestDist;
 		bool mbIntersected;

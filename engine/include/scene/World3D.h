@@ -281,6 +281,13 @@ namespace hpl {
 		void DestroyParticleSystem(cParticleSystem3D* apPS);
 		cParticleSystem3D* GetParticleSystem(const tString& asName);
 		bool ParticleSystemExists(cParticleSystem3D* apPS);
+		/**
+		 * Makes the system's emitters again from the game's own files
+		 * (abOriginal) or from the addon's, where an addon replaces them
+		 * (cParticleSystem3D::HasOriginal()). The new emitters start over,
+		 * warmed up; a system that was stopped or dying stays so.
+		 */
+		void SetParticleSystemOriginal(cParticleSystem3D* apPS, bool abOriginal);
 
 		cParticleSystem3DIterator GetParticleSystemIterator(){ return cParticleSystem3DIterator(&mlstParticleSystems);}
 

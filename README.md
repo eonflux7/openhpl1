@@ -400,7 +400,14 @@ A fifth, Lens and film, has the depth of field (with a switch to try it at
 a distance of your choosing), motion blur and noise filter, and their
 settings. A sixth, Anti-aliasing, is folded at the bottom right:
 multisampling, the texture filter, and SMAA with its settings and a view of
-the edges it finds.
+the edges it finds. A seventh, Particles, puts a dot and a name on the screen
+at each particle system in range and lists them. Systems that an addon
+replaces (a `.ps` file or a material it uses) can be shown either way:
+green is the addon's look (new), orange the game's own files (old), grey a
+system no addon touches. Click a dot to pick it and C (or the button)
+switches it; with none picked, C switches all the map's systems and the ones
+made from then on. `levelview.py particles` does the same from outside
+(`new`/`old [NAME]`, `pick NAME|none`, `cycle`).
 While the panel is open it
 has the mouse and keyboard and the view is held on the frame. F2 closes it
 and gives them back, to look and walk around from that place; at a light the

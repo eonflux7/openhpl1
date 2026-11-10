@@ -39,9 +39,12 @@ namespace hpl {
 		cParticleSystemData3D(const tString &asName,cResources* apResources,cGraphics *apGraphics);
 		~cParticleSystemData3D() override;
 
-		cParticleSystem3D* Create(tString asName, cVector3f avSize,const cMatrixf& a_mtxTransform);
+		/// abOriginal: the emitters of GetOriginal() where there is one
+		cParticleSystem3D* Create(tString asName, cVector3f avSize,const cMatrixf& a_mtxTransform,
+									bool abOriginal=false);
 
-		bool LoadFromFile(const tString &asFile);
+		/// abOriginal: the game's own materials where an addon replaces them
+		bool LoadFromFile(const tString &asFile, bool abOriginal=false);
 
 		void AddEmitterData(iParticleEmitterData *apData);
 
@@ -50,12 +53,28 @@ namespace hpl {
 		void Destroy() override{}
 
 		iParticleEmitterData* GetEmitterData(int alIdx) const { return mvEmitterData[alIdx]; }
+		int GetEmitterDataNum() const { return (int)mvEmitterData.size(); }
+
+		/// Adds new emitters of this data to apPS
+		void CreateEmitters(cParticleSystem3D *apPS, const tString &asName, const cVector3f &avSize);
+
+		/// An emitter uses a material that an addon replaces
+		bool UsesReplacedMaterial() const;
+
+		/**
+		 * The system as the game has it, where an addon replaces the .ps
+		 * file or a material it uses; nullptr if nothing is replaced. This
+		 * data owns it.
+		 */
+		cParticleSystemData3D* GetOriginal() const { return mpOriginal; }
+		void SetOriginal(cParticleSystemData3D *apData);
 
 	private:
 		cResources* mpResources;
 		cGraphics *mpGraphics;
 
 		std::vector<iParticleEmitterData*> mvEmitterData;
+		cParticleSystemData3D *mpOriginal;
 	};
 
 	//----------------------------------------------------
@@ -123,6 +142,21 @@ namespace hpl {
 
 		cParticleSystemData3D *GetData(){ return mpData;}
 
+		/// An addon replaces the system or its materials: it can be shown as the game has it
+		bool HasOriginal();
+		/// The emitters are those of the game's own files (see cParticleSystemData3D::GetOriginal())
+		bool IsOriginal(){ return mbOriginal;}
+		/**
+		 * The data the emitters were made from. Used by cWorld3D::SetParticleSystemOriginal(),
+		 * which replaces the emitters.
+		 */
+		cParticleSystemData3D *GetEmitterData();
+		void SetOriginal(bool abX){ mbOriginal = abX; }
+		/// Removes the emitters from the system and deletes them
+		void DeleteEmitters();
+		/// Warm up again on the next update, for new emitters
+		void RestartWarmUp(){ mbFirstUpdate = true; }
+
 		//SaveObject implementation
 		iSaveData* CreateSaveData() override;
 		void SaveToSaveData(iSaveData *apSaveData) override;
@@ -141,6 +175,7 @@ namespace hpl {
 		cVector3f mvDataSize;
 
 		bool mbFirstUpdate;
+		bool mbOriginal;
 	};
 
 };

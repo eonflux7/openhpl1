@@ -96,7 +96,8 @@ file, `SubDivBlend="True"` blends the frames of an emitter's own
 from Unity Labs' smoke and fire image sequences (CC0, downloaded once into
 `build/fx-cache`). `--list` shows which materials it replaces. Run the
 game with it through `OPENHPL_ADDON_DIRS=build/addons/openhpl-fx` or
-`levelview.py start --addons build/addons/openhpl-fx`. Its fire still uses
+`levelview.py start --addons build/addons/openhpl-fx`. The panel's Particles
+window (F2) switches any of them between the addon's look and the game's. Its fire still uses
 the games' emitters, which draw many small, overlapping flames; they need
 their own settings before the fire looks right.
 

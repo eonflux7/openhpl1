@@ -62,11 +62,22 @@ namespace hpl {
 
 		void Preload(const tString& asFile);
 
+		/**
+		 * New systems use the game's own files where an addon replaces a
+		 * system or its materials (see cParticleSystemData3D::GetOriginal()).
+		 * cWorld3D::SetParticleSystemOriginal() switches existing ones.
+		 */
+		void SetUseOriginal(bool abX){ mbUseOriginal = abX;}
+		bool GetUseOriginal(){ return mbUseOriginal;}
+
 		void Destroy(iResourceBase* apResource) override;
 		void Unload(iResourceBase* apResource) override;
 	private:
+		cParticleSystemData3D* LoadData(const tString& asType);
+
 		cGraphics* mpGraphics;
 		cResources *mpResources;
+		bool mbUseOriginal;
 
 		std::list<cParticleSystem3D*> mlstSystems;
 

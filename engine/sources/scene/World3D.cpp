@@ -730,6 +730,37 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cWorld3D::SetParticleSystemOriginal(cParticleSystem3D* apPS, bool abOriginal)
+	{
+		if(apPS==nullptr || apPS->HasOriginal()==false || apPS->IsOriginal() == abOriginal) return;
+
+		//What the old emitters were doing
+		bool bActive = false, bDying = apPS->GetEmitterNum() > 0;
+		for(int i=0; i< apPS->GetEmitterNum();++i)
+		{
+			iParticleEmitter3D *pPE = apPS->GetEmitter(i);
+			if(pPE->IsActive()) bActive = true;
+			if(pPE->IsDying()==false) bDying = false;
+			mpPortalContainer->Remove(pPE);
+		}
+		apPS->DeleteEmitters();
+
+		apPS->SetOriginal(abOriginal);
+		apPS->GetEmitterData()->CreateEmitters(apPS, apPS->GetName(), apPS->GetDataSize());
+		for(int i=0; i< apPS->GetEmitterNum();++i)
+		{
+			iParticleEmitter3D *pPE = apPS->GetEmitter(i);
+			mpPortalContainer->Add(pPE, false);
+			pPE->SetWorld(this);
+			pPE->SetVisible(apPS->IsVisible());
+			pPE->SetActive(bActive);
+			if(bDying) pPE->Kill();
+		}
+		apPS->RestartWarmUp();
+	}
+
+	//-----------------------------------------------------------------------
+
 	cParticleSystem3D* cWorld3D::GetParticleSystem(const tString& asName)
 	{
 		return (cParticleSystem3D*)STLFindByName(mlstParticleSystems,asName);

@@ -37,6 +37,14 @@ namespace hpl {
 
 		iResourceBase* Create(const tString& asName) override;
 		iMaterial* CreateMaterial(const tString& asName);
+		/**
+		 * The game's own material when an addon replaces asName, loaded
+		 * as a resource of its own ("original:" and the name); else the
+		 * same as CreateMaterial(). For comparing an addon with the game.
+		 */
+		iMaterial* CreateOriginalMaterial(const tString& asName);
+		/// An addon replaces the material file
+		bool IsReplaced(const tString& asName);
 
 		void Update(float afTimeStep) override;
 

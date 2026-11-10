@@ -467,6 +467,32 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 			return Fail("option <flashlight|flicker|hud|godmode|dof|fixedstep> <0|1>");
 		return true;
 	}
+	if(sCmd == "particles")
+	{
+		// The map's particle systems, or those an addon replaces shown as
+		// the addon has them (new) or as the game has them (old)
+		if(avArgs.size() < 2)
+		{
+			mOut << pView->ListParticles();
+			return true;
+		}
+		if(avArgs[1] == "pick")
+		{
+			if(pView->PickParticles(avArgs.size() > 2 ? avArgs[2] : "") == false)
+				return Fail("no particle system '" + avArgs[2] + "'");
+			return true;
+		}
+		if(avArgs[1] == "cycle")
+		{
+			pView->CycleParticles();
+			return true;
+		}
+		if(avArgs[1] != "new" && avArgs[1] != "old")
+			return Fail("particles [new|old [name] | pick <name|none> | cycle]");
+		int lCount = pView->SetParticlesOriginal(avArgs.size() > 2 ? avArgs[2] : "", avArgs[1] == "old");
+		mOut << "switched " << lCount << "\n";
+		return true;
+	}
 	if(sCmd == "shot")
 	{
 		if(avArgs.size() < 2) return Fail("shot <file.png> [frames] [2d] [panel]");

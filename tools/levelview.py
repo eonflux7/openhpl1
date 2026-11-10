@@ -818,6 +818,9 @@ LIVE_COMMANDS = {
     "save": "save the changed map into the edit addon and reload it",
     "revert": "remove the map's saved edits and reload it",
     "pick": "the node in the middle of the screen",
+    "particles": "the particle systems (name, .ps, distance, new/old/-, position), or show "
+                 "those an addon replaces as the addon has them or as the game does: "
+                 "[new|old [NAME] | pick NAME|none | cycle]",
     "wait": "let FRAMES frames pass",
     "select": "the editor's selection (start --editor): [NODE [focus]]",
     "undo": "undo the editor's last step",

@@ -88,6 +88,19 @@ public:
 	// flashlight, flicker, hud, godmode, dof; false if there is no such option
 	bool SetOption(const tString &asName, bool abValue);
 
+	// The particle systems of the map that an addon replaces: shown as the
+	// addon has them (false) or as the game has them (true). asName: one
+	// system (its name or its .ps), "" all, and new ones. The number switched.
+	int SetParticlesOriginal(const tString &asName, bool abOriginal);
+	// One line per particle system, nearest first: name, .ps, distance,
+	// "new"/"old"/"-", position
+	tString ListParticles();
+	// Picks a system as a click on its dot does (its name or its .ps, the
+	// nearest); "" or "none" picks none. False if there is no such system.
+	bool PickParticles(const tString &asName);
+	// As the C key: switches the picked system, or all with none picked
+	void CycleParticles();
+
 	// The panel's windows, inside the level editor's frame (cEditor has the
 	// ImGui panel then, and SetOpen() only shows or hides them)
 	void DrawWindows(){ Draw(); }
@@ -115,6 +128,10 @@ private:
 	void DrawShading();
 	void DrawShadowLights();
 	void UpdateTestLight();
+	void DrawParticles();
+	void DrawParticleMarkers();
+	void UpdateParticles();
+	cParticleSystem3D* PickedParticleSystem();
 
 	void DrawViewpoints();
 	void UpdateFly(float afTimeStep);
@@ -231,6 +248,18 @@ private:
 	bool mbCarryTestLight;
 	float mfTestLightRadius;
 	float mfTestLightBrightness;
+
+	// The particles window: markers on the screen at the systems, one picked
+	// to switch between the addon's look and the game's
+	bool mbParticleMarkers = true;
+	bool mbParticleNames = true;
+	bool mbParticleOnlyReplaced = false;
+	float mfParticleRange = 30.0f;
+	cParticleSystem3D *mpParticlePicked = nullptr;
+	// Asked for while drawing, done in Update()
+	enum { eParticleSwitch_None, eParticleSwitch_Picked, eParticleSwitch_All, eParticleSwitch_AllNew,
+		   eParticleSwitch_AllOld };
+	int mlParticleSwitch = eParticleSwitch_None;
 
 	// cLiveControl's camera
 	bool mbHoldCamera = false;

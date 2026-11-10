@@ -44,6 +44,9 @@ namespace hpl {
 
 		mfWarmUpTime =0;
 		mfWarmUpStepsPerSec = 20;
+
+		mbOriginal = false;
+		mbReplacedMaterial = false;
 	}
 
 	//-----------------------------------------------------------------------

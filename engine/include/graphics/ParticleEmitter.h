@@ -232,6 +232,11 @@ namespace hpl {
 		float GetWarmUpTime() const { return mfWarmUpTime;}
 		float GetWarmUpStepsPerSec() const { return mfWarmUpStepsPerSec;}
 
+		/// Load the game's own materials where an addon replaces them (before loading)
+		void SetOriginal(bool abX){ mbOriginal = abX;}
+		/// An addon replaces a material the emitter uses
+		bool UsesReplacedMaterial() const { return mbReplacedMaterial;}
+
 	protected:
 		cResources *mpResources;
 		cGraphics *mpGraphics;
@@ -241,6 +246,9 @@ namespace hpl {
 
 		float mfWarmUpTime;
 		float mfWarmUpStepsPerSec;
+
+		bool mbOriginal;
+		bool mbReplacedMaterial;
 	};
 
 	typedef std::map<tString,iParticleEmitterData*> tParticleEmitterDataMap;

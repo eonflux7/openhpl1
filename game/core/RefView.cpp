@@ -197,6 +197,7 @@ bool cRefView::SetOption(const tString &asName, bool abValue)
 void cRefView::Update(float afTimeStep)
 {
 	UpdatePlayerEffects(afTimeStep);
+	UpdateParticles();
 
 	bool bDefault = mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default";
 
@@ -510,6 +511,8 @@ void cRefView::Reset()
 	mfEffectPreviewClock = 0;
 	mlEffectAction = 0;
 	mfEffectBlackFade = 0;
+	mpParticlePicked = nullptr;
+	mlParticleSwitch = eParticleSwitch_None;
 }
 
 //-----------------------------------------------------------------------
@@ -759,6 +762,7 @@ void cRefView::Draw()
 	DrawLensAndFilm();
 	DrawAntiAliasing();
 	DrawShading();
+	DrawParticles();
 
 	// Closed with the window's button
 	if(bOpen==false) SetOpen(false);

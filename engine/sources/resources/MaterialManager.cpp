@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "resources/MaterialManager.h"
+#include "resources/FileSearcher.h"
 #include "system/String.h"
 #include "system/System.h"
 #include "graphics/Graphics.h"
@@ -96,6 +97,35 @@ namespace hpl {
 		if(pMaterial)pMaterial->IncUserCount();
 		else Error("Couldn't create material '%s'\n",asNewName.c_str());
 
+		EndLoad();
+		return pMaterial;
+	}
+
+	//-----------------------------------------------------------------------
+
+	bool cMaterialManager::IsReplaced(const tString& asName)
+	{
+		return mpFileSearcher->GetHiddenFilePath(cString::SetFileExt(asName,"mat")) != "";
+	}
+
+	//-----------------------------------------------------------------------
+
+	iMaterial* cMaterialManager::CreateOriginalMaterial(const tString& asName)
+	{
+		tString sFile = cString::SetFileExt(asName,"mat");
+		tString sHidden = mpFileSearcher->GetHiddenFilePath(sFile);
+		if(sHidden == "") return CreateMaterial(asName);
+
+		BeginLoad(asName);
+		tString sResName = "original:" + sFile;
+		iMaterial *pMaterial = static_cast<iMaterial*>(GetByName(sResName));
+		if(pMaterial == nullptr)
+		{
+			pMaterial = LoadFromFile(sResName,sHidden);
+			if(pMaterial) AddResource(pMaterial);
+			else Error("Couldn't load the game's material '%s'\n",sHidden.c_str());
+		}
+		if(pMaterial) pMaterial->IncUserCount();
 		EndLoad();
 		return pMaterial;
 	}

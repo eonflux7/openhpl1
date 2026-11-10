@@ -69,6 +69,15 @@ namespace hpl {
 
 	//////////////////////////
 
+	iMaterial* cParticleEmitterData3D_UserData::LoadMaterial(const tString &asFile)
+	{
+		cMaterialManager *pManager = mpResources->GetMaterialManager();
+		if(pManager->IsReplaced(asFile)) mbReplacedMaterial = true;
+		return mbOriginal ? pManager->CreateOriginalMaterial(asFile) : pManager->CreateMaterial(asFile);
+	}
+
+	//////////////////////////
+
 	// NEW
 	static ePEType GetPEType(const char *apString)
 	{
@@ -232,7 +241,7 @@ namespace hpl {
 		if(lMaterialNum <= 1)
 		{
 			sMaterial = cString::SetFileExt(sMaterial,"mat");
-			iMaterial *pMaterial = mpResources->GetMaterialManager()->CreateMaterial(sMaterial);
+			iMaterial *pMaterial = LoadMaterial(sMaterial);
 
 			if(pMaterial) mvMaterials.push_back(pMaterial);
 		}
@@ -246,7 +255,7 @@ namespace hpl {
 
 				sFileName = cString::SetFileExt(sFileName,"mat");
 
-				iMaterial *pMaterial = mpResources->GetMaterialManager()->CreateMaterial(sFileName);
+				iMaterial *pMaterial = LoadMaterial(sFileName);
 				if(pMaterial) mvMaterials.push_back(pMaterial);
 			}
 		}
