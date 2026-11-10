@@ -295,6 +295,30 @@ underwater triggers, double vision between heartbeats, healing and an
 interrupted save. It accepts
 the same `--size`, `--set` and `--build` options as reference captures.
 
+### Particle lab
+
+`testmap/particlelab.py` generates a hall with all 97 of Overture's particle
+systems and the entities that emit them (Overture's data):
+
+```
+OPENHPL_MAP=particlelab:ambient ./run.sh
+```
+
+Starts: `ambient` faces the 44 looping systems, always on (large weather and
+fog at the back, falling dust and drips hung from the ceiling); `emitters`
+the lamps and tripod (their buttons light and put them out), the furnace, a
+carried lamp, a smoking flask and a thrown flare (its button lights it);
+`oneshots` a button for each of the 53 one-shot systems, which plays it on the
+button; `breakables` every entity with a break effect, each with a button
+that breaks it; `blast` the annex with lit dynamite, the burning gas canister
+(a button lights each) and the rubble pile, whose buttons stand outside their
+blast radii. Using a button or pedestal shows the system's name and what emits
+it in the game (entity, material, level map or script, or unused) as a subtitle;
+subtitles must be on. F6 reloads the map to rebuild what was broken or burnt
+out (`OPENHPL_MAP` turns developer mode on). The nine ice-cave sheets share
+one break effect, so only one is placed, and `worm_nest_junk_falling` stands
+in for the 60 m `worm_nest_junk`.
+
 ### Reference images
 
 `tools/levelview.py capture` (formerly `tools/refshots.py`, which still
@@ -527,7 +551,7 @@ game/      Penumbra: Overture game code (FrictionalGames/PenumbraOverture), port
   systems/   effects, fades, music, messages, radio, triggers, attacks, physics log
   ui/        menus, inventory, notebook, credits
 shaders/   GLSL shaders; SMAA.hlsl is the SMAA reference implementation
-testmap/   generators and level scripts for physics and player effects labs
+testmap/   generators and level scripts for physics, Dog, player effects and particle labs
 tools/     levelview.py: live viewer and level editor control, reference
            images and player effects checks (refshots.py runs the latter);
            model_tool.cpp: openhpl1-model, Collada to glTF conversion

@@ -325,6 +325,12 @@ if(Python3_FOUND)
 		DEPENDS testmap/effectslab.py testmap/effectslab.hps testmap/generate.py ${testmap_dir}/testmap.dae
 		COMMENT "Generating the effects lab")
 	add_custom_target(effectslab ALL DEPENDS ${testmap_dir}/effectslab.dae ${testmap_dir}/effectslab.hps)
+	add_custom_command(
+		OUTPUT ${testmap_dir}/particlelab.dae ${testmap_dir}/particlelab.hps
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/testmap/particlelab.py ${testmap_dir}
+		DEPENDS testmap/particlelab.py testmap/generate.py ${testmap_dir}/testmap.dae
+		COMMENT "Generating the particle lab")
+	add_custom_target(particlelab ALL DEPENDS ${testmap_dir}/particlelab.dae ${testmap_dir}/particlelab.hps)
 else()
 	message(STATUS "Python 3 not found, the test map will not be built")
 endif()
