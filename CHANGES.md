@@ -5,6 +5,32 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Stick areas stop at their pose (2026-11-10)
+
+- Black Plague: level 8's circuit cards went into the server at wrong
+  angles (issue #2). A stick area moves and turns a body into its pose by
+  a slerp over its pose time (0.3 s), adding `step / pose time` each step.
+  At 60 steps a second the sum is just under 1 after 18 steps, so the 19th
+  step reaches 1.056 and the slerp goes past the pose. The card came to
+  rest about 6% of its turn and travel beyond the area: 10° and 36 cm off
+  when it was turned the whole way round from the format rack, a few
+  degrees when the player inserts it at an angle. The pose time now stops
+  at 1. The original game has the same code (its `cGameStickArea::Update`
+  and `cMath::MatrixSlerp` do not clamp, and its x87 sums also reach
+  1.056), so it should show the same, smaller overshoot. This was not
+  checked in the original.
+- Validation: headless level 8 (levelview, `OPENHPL_PHYSTRACE=card11`),
+  card11 detached from the format rack and attached to `replacestick1`
+  with the broken card removed. Before: it reached the area's pose
+  (-5.095, -1.386, 5.150, facing -x, the same as the broken cards) on step
+  18, then went on to (-4.738, -1.429, 5.696), facing 10° away, and stayed
+  there. After: it stops at the area's pose. Build and CTest pass. ASan
+  smoke (`detect_leaks=0`, leaks not checked; `OPENHPL_HIDDEN=1`, as
+  gamescope is not installed now) of levels 8 and 20: 0 failures, exit 1
+  only for the known `cOAL_EFXManager::Destroy` mismatch at quit, plus
+  AngelScript's known `as_string.cpp` warning. A card inserted by hand
+  was not checked in the game.
+
 ## Scaled bodies keep no scale (2026-11-10)
 
 - Black Plague: level 19's trash can lid was stuck in the ceiling and a rock

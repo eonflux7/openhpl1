@@ -26,6 +26,7 @@
 
 #include "core/GlobalInit.h"
 
+#include <algorithm>
 #include <cmath>
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,10 +145,13 @@ void cGameStickArea::Update(float afTimeStep)
 	
 	if(mpAttachedBody && mfSetMtxTime < 1)
 	{	
+		// The pose time stops at 1. At 60 steps a second, 0.3 s took 19 steps to
+		// pass 1 (1.056), and the slerp then went past the area's pose: a card
+		// turned into level 8's server came to rest about 6% beyond it.
 		if(mbMoveBody && mbRotateBody)
 		{
 			if(mfPoseTime==0)	mfSetMtxTime = 1.0f;
-			else				mfSetMtxTime += afTimeStep / mfPoseTime;
+			else				mfSetMtxTime = std::min(mfSetMtxTime + afTimeStep / mfPoseTime, 1.0f);
 
 			cMatrixf mtxGoal = pAreaBody->GetWorldMatrix();
 			mtxGoal.SetTranslation(pAreaBody->GetWorldPosition() - mpAttachedBody->GetMassCentre());
@@ -159,7 +163,7 @@ void cGameStickArea::Update(float afTimeStep)
 		else if(mbMoveBody && !mbRotateBody)
 		{
 			if(mfPoseTime==0)	mfSetMtxTime = 1.0f;
-			else				mfSetMtxTime += afTimeStep / mfPoseTime;
+			else				mfSetMtxTime = std::min(mfSetMtxTime + afTimeStep / mfPoseTime, 1.0f);
 
 			cVector3f vGoal = pAreaBody->GetWorldPosition() - mpAttachedBody->GetMassCentre();
 
@@ -171,7 +175,7 @@ void cGameStickArea::Update(float afTimeStep)
 		else if(!mbMoveBody && mbRotateBody)
 		{
 			if(mfPoseTime==0)	mfSetMtxTime = 1.0f;
-			else				mfSetMtxTime += afTimeStep / mfPoseTime;
+			else				mfSetMtxTime = std::min(mfSetMtxTime + afTimeStep / mfPoseTime, 1.0f);
 			
 			cMatrixf mtxGoal = pAreaBody->GetWorldMatrix();
 			
