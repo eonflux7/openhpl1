@@ -17,6 +17,9 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "sound/MusicHandler.h"
+
+#include <cmath>
+
 #include "resources/Resources.h"
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
@@ -43,6 +46,7 @@ namespace hpl {
 		mpMainSong = nullptr;
 		mpLock  = nullptr;
 		mbIsPaused = false;
+		mfBusVolume = 1;
 	}
 
 	//-----------------------------------------------------------------------
@@ -93,6 +97,7 @@ namespace hpl {
 			//Put the previous song in the fading queue
 			if(mpMainSong != nullptr)
 			{
+				BeginFadeOut(mpMainSong);
 				mpMainSong->mfVolumeRatePerSecond = afVolumeRatePerSecond;
 				mlstFadingSongs.push_back(mpMainSong);
 			}
@@ -124,12 +129,16 @@ namespace hpl {
 				mpMainSong = nullptr;
 				return false;
 			}
+			// Fading in from silence: equal-power up to the target.
+			mpMainSong->mfCurveRef = afVolume > 0 ? afVolume : 0;
 		}
 		else
 		{
 			mpMainSong->mbLoop = abLoop;
 			mpMainSong->mpStream->SetLooping(abLoop);
 			if(mpMainSong->mfMaxVolume == afVolume)return true;
+			// A new target: carry on linearly from the gain heard now.
+			EndCurve(mpMainSong);
 		}
 
 		//Set Properties
@@ -153,6 +162,7 @@ namespace hpl {
 
 		if(afVolumeRatePerSecond<0)afVolumeRatePerSecond=-afVolumeRatePerSecond;
 
+		BeginFadeOut(mpMainSong);
 		mpMainSong->mfVolumeRatePerSecond = afVolumeRatePerSecond;
 		if(afVolumeRatePerSecond==0){
 			mpMainSong->mpStream->SetVolume(0);
@@ -267,9 +277,10 @@ namespace hpl {
 				}
 
 
-				if(mpMainSong->mpStream->GetVolume()!=mpMainSong->mfVolume)
+				float fGain = FadeGain(mpMainSong) * mfBusVolume;
+				if(mpMainSong->mpStream->GetVolume()!=fGain)
 				{
-					mpMainSong->mpStream->SetVolume(mpMainSong->mfVolume);
+					mpMainSong->mpStream->SetVolume(fGain);
 				}
 			}
 		}
@@ -293,7 +304,7 @@ namespace hpl {
 			}
 			else
 			{
-				pSong->mpStream->SetVolume(pSong->mfVolume);
+				pSong->mpStream->SetVolume(FadeGain(pSong) * mfBusVolume);
 				it++;
 			}
 		}
@@ -304,6 +315,37 @@ namespace hpl {
 	//////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
 	//////////////////////////////////////////////////////////////////////////
+
+	//-----------------------------------------------------------------------
+
+	void cMusicHandler::SetBusVolume(float afVolume)
+	{
+		mfBusVolume = cMath::Clamp(afVolume, 0.0f, 1.0f);
+	}
+
+	//-----------------------------------------------------------------------
+
+	float cMusicHandler::FadeGain(const cMusicEntry *apSong)
+	{
+		float fRef = apSong->mfCurveRef;
+		if(fRef <= 0) return apSong->mfVolume;
+		float fT = cMath::Clamp(apSong->mfVolume / fRef, 0.0f, 1.0f);
+		return fRef * std::sin(fT * kPi2f);
+	}
+
+	// Continue linearly from the current gain, so there is no jump.
+	void cMusicHandler::EndCurve(cMusicEntry *apSong)
+	{
+		apSong->mfVolume = FadeGain(apSong);
+		apSong->mfCurveRef = 0;
+	}
+
+	// Fading out to silence: the curve starts from the current gain.
+	void cMusicHandler::BeginFadeOut(cMusicEntry *apSong)
+	{
+		EndCurve(apSong);
+		apSong->mfCurveRef = apSong->mfVolume;
+	}
 
 	//-----------------------------------------------------------------------
 
@@ -323,7 +365,7 @@ namespace hpl {
 
 		apSong->msFileName = asFileName;
 		apSong->mpStream = pStream;
-		apSong->mpStream->SetVolume(afVolume);
+		apSong->mpStream->SetVolume(afVolume * mfBusVolume);
 		apSong->mpStream->SetLooping(abLoop);
 
 		apSong->mpStream->Play();

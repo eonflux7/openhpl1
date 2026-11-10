@@ -17,8 +17,10 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "impl/OpenALSoundData.h"
-#include "system/LowLevelSystem.h"
+#include "impl/OpenALDevice.h"
 #include "impl/OpenALSoundChannel.h"
+#include "system/LowLevelSystem.h"
+
 namespace hpl {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -27,27 +29,18 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	cOpenALSoundData::cOpenALSoundData(tString asName, bool abStream) : iSoundData(asName,abStream)
+	cOpenALSoundData::cOpenALSoundData(tString asName, bool abStream, cOpenALDevice* apDevice)
+		: iSoundData(asName,abStream), mpDevice(apDevice)
 	{
-		mpSample = nullptr;
-		mpStream = nullptr;
-//		mpSoundData = NULL;
 	}
 
 	//-----------------------------------------------------------------------
 
 	cOpenALSoundData::~cOpenALSoundData()
 	{
-		if (mbStream)
-		{
-			if(mpStream)
-				OAL_Stream_Unload ( mpStream );//static_cast<cOAL_Stream*>(mpSoundData) );
-		}
-		else
-		{
-			if(mpSample)
-				OAL_Sample_Unload ( mpSample );//static_cast<cOAL_Sample*>(mpSoundData) );
-		}
+		// Stop any source still using the data before its buffers go away.
+		if(mpSample) mpDevice->ReleaseSample(mpSample.get());
+		if(mpStream) mpDevice->ReleaseStream(mpStream.get());
 	}
 
 	//-----------------------------------------------------------------------
@@ -60,46 +53,25 @@ namespace hpl {
 
 	bool cOpenALSoundData::CreateFromFile(const tString &asFile)
 	{
-		int lFlags=0;
-
-		unsigned int lCaps = 0;
-//		FSOUND_GetDriverCaps(0, &lCaps);//Current driver here instead of 0
-
-		//Get the load flags
-//		if(lCaps & FSOUND_CAPS_HARDWARE)	lFlags |= FSOUND_HW3D;
-		//if(mbStream)						lFlags |= FSOUND_STREAMABLE;
-
 		if(mbStream)
 		{
-			//mpSoundData
-			mpStream = OAL_Stream_Load ( asFile.c_str() );
-
-
-
-			if(mpStream == nullptr )//mpSoundData==NULL){
+			mpStream = cOpenALStream::Open(asFile, mpDevice->GetStreamBlockBytes(),
+										   mpDevice->GetStreamBlockCount());
+			if(mpStream == nullptr)
 			{
 				Error("Couldn't load sound stream '%s'\n", asFile.c_str());
 				return false;
 			}
-			else
-				OAL_Stream_SetLoop(mpStream,mbLoopStream);
-				//mpStream->SetLoop(mbLoopStream);
-				//mpSoundData->SetLoop(mbLoopStream);
-
+			mpStream->SetLoop(mbLoopStream);
 		}
 		else
 		{
-			mpSample = OAL_Sample_Load ( asFile.c_str() );
-//			mpSoundData = OAL_Sample_Load ( asFile.c_str() );
-			if(mpSample == nullptr)//mpSoundData==NULL){
+			mpSample = cOpenALSample::Load(asFile);
+			if(mpSample == nullptr)
 			{
 				Error("Couldn't load sound data '%s'\n", asFile.c_str());
 				return false;
 			}
-			else
-				OAL_Sample_SetLoop(mpSample,true);
-				//mpSample->SetLoop ( true );
-
 		}
 
 		return true;
@@ -109,28 +81,18 @@ namespace hpl {
 
 	iSoundChannel* cOpenALSoundData::CreateChannel(int alPriority)
 	{
-		//if(mpSoundData==NULL)return NULL;
-		if ( (mpSample == nullptr) && (mpStream == nullptr) ) return nullptr;
-
 		int lHandle;
-		iSoundChannel *pSoundChannel=nullptr;
-		if(mbStream)
-		{
-			lHandle = OAL_Stream_Play ( OAL_FREE, GetStream(), 1.0f, true );
-			if(lHandle==-1)return nullptr;
-
-			pSoundChannel = hplNew( cOpenALSoundChannel, (this,lHandle, mpSoundManger) );
-			IncUserCount();
-		}
+		if(mpStream)
+			lHandle = mpDevice->PlayStream(mpStream.get(), 1.0f, true);
+		else if(mpSample)
+			lHandle = mpDevice->PlaySample(mpSample.get(), alPriority, 1.0f, true);
 		else
-		{
-			lHandle = OAL_Sample_Play ( OAL_FREE, GetSample(), 1.0f, true, alPriority);
-			if(lHandle==-1)return nullptr;
+			return nullptr;
 
-			pSoundChannel = hplNew( cOpenALSoundChannel, (this,lHandle, mpSoundManger) );
-			IncUserCount();
-		}
+		if(lHandle == cOpenALDevice::kInvalidHandle) return nullptr;
 
+		iSoundChannel *pSoundChannel = hplNew( cOpenALSoundChannel, (this, mpDevice, lHandle, mpSoundManger) );
+		IncUserCount();
 		return pSoundChannel;
 	}
 
@@ -138,11 +100,8 @@ namespace hpl {
 
 	bool cOpenALSoundData::IsStereo()
 	{
-		if (mbStream)
-			return (OAL_Stream_GetChannels(mpStream)==2);
-		if (mpSample)
-			return (OAL_Sample_GetChannels(mpSample)==2);
-
+		if(mpStream) return mpStream->GetChannels() == 2;
+		if(mpSample) return mpSample->GetChannels() == 2;
 		return false;
 	}
 

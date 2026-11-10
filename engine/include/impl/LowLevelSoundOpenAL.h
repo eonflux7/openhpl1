@@ -21,11 +21,13 @@
 
 #include "sound/LowLevelSound.h"
 
-class cOAL_Effect_Reverb;
-
+#include <memory>
 
 namespace hpl
 {
+	class cOpenALDevice;
+	enum class eOpenALHRTF;
+	class cOpenALSoundEnvironment;
 
 	class cLowLevelSoundOpenAL : public iLowLevelSound
 	{
@@ -45,10 +47,7 @@ namespace hpl
 		void SetListenerPosition(const cVector3f &avPos) override;
 
 		void SetRolloffFactor(float afFactor) override;
-
 		void SetListenerAttenuation (bool abEnabled) override;
-
-//		void LogSoundStatus();
 
 		void Init ( bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 					int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
@@ -65,15 +64,30 @@ namespace hpl
 		void SetSoundEnvironment ( iSoundEnvironment* apSoundEnv ) override;
 		void FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT ) override;
 
-	private:
-		tString mvFormats[30];
-		bool	mbLogSounds;
-		bool	mbInitialized;
-		int		mlEffectSlotId;
-		bool	mbNullEffectAttached;
+		tStringVec GetOutputDevices() override;
+		tString GetDeviceName() override;
+		bool SetOutputDevice(const tString& asDeviceName) override;
+		void SetHRTF(eSoundHRTF aMode) override;
+		tString GetHRTFStatus() override;
 
-		cOAL_Effect_Reverb* mpEffect;
+		cOpenALDevice* GetDevice() { return mpDevice.get(); }
+		/** The environment loaded in a reverb slot (tests). */
+		iSoundEnvironment* GetSlotEnvironment(int alSlot) const;
+
+		/** Stream block size in bytes. Values below 4096 are KiB, as in the
+		 * shipped settings (StreamBufferSize=64). */
+		static size_t StreamBlockBytes(int alConfigured);
+
+	private:
+		void ApplyEnvironment(int alSlot, const cOpenALSoundEnvironment &aEnv);
+		int SlotFor(iSoundEnvironment *apEnv, int alAvoidSlot);
+		static eOpenALHRTF ToDeviceHRTF(eSoundHRTF aMode);
+
+		std::unique_ptr<cOpenALDevice> mpDevice;
+		tString mvFormats[3];
+		bool	mbInitialized;
+		static constexpr int kReverbSlots = 2;	///< cOpenALDevice::kMaxReverbSlots
+		iSoundEnvironment *mpSlotEnv[kReverbSlots] = {nullptr, nullptr};
 	};
 };
 #endif // HPL_LOWLEVELSOUND_OPENAL_H
-

@@ -33,7 +33,6 @@
 #include "ui/GraphicsPresets.h"
 #include "player/HapticGameCamera.h"
 
-#include "OALWrapper/OAL_Init.h"
 
 #include <algorithm>
 
@@ -1128,6 +1127,8 @@ public:
 cMainMenuWidget_Text *gpSoundVolumeText=nullptr;
 cMainMenuWidget_Text *gpSoundHardwareText=nullptr;
 cMainMenuWidget_Text *gpSoundOutputDevice=nullptr;
+cMainMenuWidget_Text *gpSoundHRTFText=nullptr;
+static tWString HRTFText(cInit *mpInit);
 
 class cMainMenuWidget_SoundVolume : public cMainMenuWidget_Button
 {
@@ -1159,6 +1160,42 @@ public:
 		sprintf(sTempVec,"%.0f",mpInit->mpGame->GetSound()->GetLowLevel()->GetVolume()*100);
 		gpSoundVolumeText->msText = cString::To16Char(sTempVec);
 	}
+};
+
+// Volume buses under the master volume. The labels and tips are English
+// only; the language files don't have them.
+cMainMenuWidget_Text *gpSoundBusText[eSoundBus_LastEnum] = {};
+
+static tWString SoundBusText(cInit *apInit, eSoundBus aBus)
+{
+	char sTemp[32];
+	snprintf(sTemp, sizeof(sTemp), "%.0f", apInit->mpGame->GetSound()->GetBusVolume(aBus)*100);
+	return cString::To16Char(sTemp);
+}
+
+class cMainMenuWidget_SoundBus : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_SoundBus(cInit *apInit, eSoundBus aBus, const cVector3f &avPos, const tWString& asText,
+							 const tWString& asTip, cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment), mBus(aBus)
+	{
+		msTip = asTip;
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		cSound *pSound = mpInit->mpGame->GetSound();
+		float fVolume = pSound->GetBusVolume(mBus);
+		if(aButton == eMButton_Left) fVolume = cMath::Min(fVolume + 0.1f, 1.0f);
+		else if(aButton == eMButton_Right) fVolume = cMath::Max(fVolume - 0.1f, 0.0f);
+		// Snap to tenths so repeated steps don't drift.
+		pSound->SetBusVolume(mBus, std::round(fVolume * 10) / 10);
+		gpSoundBusText[mBus]->msText = SoundBusText(mpInit, mBus);
+	}
+
+private:
+	eSoundBus mBus;
 };
 
 class cMainMenuWidget_SoundHardware : public cMainMenuWidget_Button
@@ -1214,11 +1251,16 @@ public:
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
 		msTip = kTranslate("MainMenu", "TipSoundOutputDevice");
-		mlDevices = OAL_Info_GetOutputDevices();
+		mlDevices = apInit->mpGame->GetSound()->GetLowLevel()->GetOutputDevices();
 	}
 
 	void OnMouseDown(eMButton aButton) override
 	{
+		iLowLevelSound *pLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+		// Devices can be plugged in while the game runs.
+		mlDevices = pLowLevel->GetOutputDevices();
+		if(mlDevices.empty()) return;
+
 		int lCurrentNum = 0;
 
 		//get current num
@@ -1244,9 +1286,48 @@ public:
 
 		mpInit->msDeviceName = mlDevices[lCurrentNum];
 
-		gpSoundOutputDevice->msText = cString::To16Char(mpInit->msDeviceName);
+		// Switches at once where the backend can; otherwise on restart.
+		if(pLowLevel->SetOutputDevice(mpInit->msDeviceName))
+			mpInit->msDeviceName = pLowLevel->GetDeviceName();
+		else
+			gbMustRestart = true;
 
-		gbMustRestart = true;
+		gpSoundOutputDevice->msText = cString::To16Char(mpInit->msDeviceName);
+		if(gpSoundHRTFText) gpSoundHRTFText->msText = HRTFText(mpInit);
+	}
+};
+
+static tWString HRTFText(cInit *mpInit)
+{
+	iLowLevelSound *apLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+	tWString sMode = apLowLevel->GetHRTF() == eSoundHRTF_On ? kTranslate("MainMenu","On")
+					: apLowLevel->GetHRTF() == eSoundHRTF_Off ? kTranslate("MainMenu","Off") : _W("Auto");
+	tString sStatus = apLowLevel->GetHRTFStatus();
+	if(apLowLevel->GetHRTF() == eSoundHRTF_Auto && sStatus != "")
+		sMode += _W(" (") + cString::To16Char(sStatus.substr(0, sStatus.find(' '))) + _W(")");
+	return sMode;
+}
+
+class cMainMenuWidget_SoundHRTF : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_SoundHRTF(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		msTip = _W("3D sound for headphones. Auto enables it when headphones are detected.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		iLowLevelSound *pLowLevel = mpInit->mpGame->GetSound()->GetLowLevel();
+		// Auto -> On -> Off with the left button, the reverse with the right.
+		int lMode = (int)pLowLevel->GetHRTF();
+		const int vNext[] = { eSoundHRTF_On, eSoundHRTF_Auto, eSoundHRTF_Off };
+		const int vPrev[] = { eSoundHRTF_Off, eSoundHRTF_On, eSoundHRTF_Auto };
+		lMode = aButton == eMButton_Right ? vPrev[lMode] : vNext[lMode];
+		pLowLevel->SetHRTF((eSoundHRTF)lMode);
+
+		gpSoundHRTFText->msText = HRTFText(mpInit);
 	}
 };
 
@@ -4032,14 +4113,31 @@ void cMainMenu::CreateWidgets()
 	vPos.y += 37;
 	
 	//Buttons
-	cMainMenuWidget *pWidgetSoundVolume = hplNew( cMainMenuWidget_SoundVolume, (mpInit,vPos,kTranslate("MainMenu","Sound Volume:"),20,eFontAlign_Right) );  
-	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundVolume); 
+	cMainMenuWidget *pWidgetSoundVolume = hplNew( cMainMenuWidget_SoundVolume, (mpInit,vPos,kTranslate("MainMenu","Sound Volume:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundVolume);
 	vPos.y += 29;
+	const eSoundBus vMenuBuses[] = { eSoundBus_Music, eSoundBus_Effects, eSoundBus_Voice, eSoundBus_Ambience };
+	const wchar_t *vBusLabels[] = { L"Music:", L"Effects:", L"Voice:", L"Ambience:" };
+	const wchar_t *vBusTips[] = {
+		L"Volume of the music, relative to the sound volume.",
+		L"Volume of sound effects, relative to the sound volume.",
+		L"Volume of spoken lines and radio messages, relative to the sound volume.",
+		L"Volume of looping background sounds such as machinery, wind and water, relative to the sound volume." };
+	cMainMenuWidget *vBusWidgets[4];
+	for(int i=0; i<4; ++i)
+	{
+		vBusWidgets[i] = hplNew( cMainMenuWidget_SoundBus, (mpInit,vMenuBuses[i],vPos,vBusLabels[i],vBusTips[i],20,eFontAlign_Right) );
+		AddWidgetToState(eMainMenuState_OptionsSound,vBusWidgets[i]);
+		vPos.y += 29;
+	}
 	cMainMenuWidget *pWidgetSoundHardware = hplNew( cMainMenuWidget_SoundHardware, (mpInit,vPos,kTranslate("MainMenu","Use Hardware:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHardware); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetSoundOutputDevice = hplNew( cMainMenuWidget_SoundOutputDevice, (mpInit,vPos,kTranslate("MainMenu","Output Device:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundOutputDevice);
+	vPos.y += 29;
+	cMainMenuWidget *pWidgetSoundHRTF = hplNew( cMainMenuWidget_SoundHRTF, (mpInit,vPos,_W("HRTF:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHRTF);
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetSoundEFX = hplNew( cMainMenuWidget_SoundEFX, (mpInit,vPos,_W("EFX:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundEFX);
@@ -4056,6 +4154,14 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundVolumeText); 
 	gpSoundVolumeText->SetExtraWidget(pWidgetSoundVolume);
 
+	for(int i=0; i<4; ++i)
+	{
+		vPos.y += 29;
+		gpSoundBusText[vMenuBuses[i]] = hplNew( cMainMenuWidget_Text, (mpInit,vPos,SoundBusText(mpInit,vMenuBuses[i]),20,eFontAlign_Left) );
+		AddWidgetToState(eMainMenuState_OptionsSound,gpSoundBusText[vMenuBuses[i]]);
+		gpSoundBusText[vMenuBuses[i]]->SetExtraWidget(vBusWidgets[i]);
+	}
+
 	vPos.y += 29;
 	sText = mpInit->mbUseSoundHardware ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpSoundHardwareText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
@@ -4064,12 +4170,17 @@ void cMainMenu::CreateWidgets()
 
 	vPos.y += 29;
 	// Set the default to what's really being used
-	mpInit->msDeviceName = tString(OAL_Info_GetDeviceName());
+	mpInit->msDeviceName = mpInit->mpGame->GetSound()->GetLowLevel()->GetDeviceName();
 
 	sText = cString::To16Char(mpInit->msDeviceName);
 	gpSoundOutputDevice = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundOutputDevice);
 	gpSoundOutputDevice->SetExtraWidget(pWidgetSoundOutputDevice);
+
+	vPos.y += 29;
+	gpSoundHRTFText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,HRTFText(mpInit),20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundHRTFText);
+	gpSoundHRTFText->SetExtraWidget(pWidgetSoundHRTF);
 
 	vPos.y += 29;
 	sText = mpInit->mbUseEnvAudio ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");

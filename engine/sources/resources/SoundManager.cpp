@@ -71,6 +71,7 @@ namespace hpl {
 															abLoopStream);
 			if(pSound)
 			{
+				pSound->SetFilePath(sPath);
 				AddResource(pSound);
 				pSound->SetSoundManager(mpResources->GetSoundManager());
 			}

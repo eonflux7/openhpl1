@@ -23,6 +23,7 @@
 #include "system/SystemTypes.h"
 #include "math/MathTypes.h"
 #include "physics/PhysicsWorld.h"
+#include "sound/Sound.h"
 
 namespace hpl {
 
@@ -67,7 +68,7 @@ namespace hpl {
 	public:
 		cSoundEntry() : mfNormalVolume(1), mfNormalVolumeFadeDest(1),
 						mfNormalVolumeMul(1), mfNormalVolumeFadeSpeed(0), mbStream(false),
-						mlCount(0){}
+						mfBlockRayTime(0), mfFilterGainHF(1), mBus(eSoundBus_Effects){}
 
 		void Update(float afTimeStep);
 
@@ -89,7 +90,12 @@ namespace hpl {
 
 		bool mbStream;
 
-		long int mlCount;
+		// Seconds until the next blocking ray; the first update casts at once.
+		float mfBlockRayTime;
+		// Low-pass GainHF last sent to the channel; 1 means the filter is off.
+		float mfFilterGainHF;
+
+		eSoundBus mBus;
 
 		eSoundDest mEffectType;
 	};
@@ -156,10 +162,30 @@ namespace hpl {
 
 		void Update(float afTimeStep);
 
+		// afRate is the change in speed per second.
 		void SetSpeed(float afSpeed,float afRate,tFlag mTypes);
 		void SetVolume(float afVolume, float afRate, tFlag mTypes);
 
 		float GetVolume(){ return mfVolume;}
+
+		// Low-pass GainHF (0-1, at 5 kHz) for a fully blocked sound. 1 turns
+		// occlusion filtering off; blocked sounds still get quieter.
+		void SetBlockedGainHF(float afX);
+		float GetBlockedGainHF(){ return mfBlockedGainHF;}
+
+		void SetBusVolume(eSoundBus aBus, float afVolume);
+		float GetBusVolume(eSoundBus aBus);
+
+		/** The bus for a sound file: voices/ and music/ folders by path,
+		 * other looping sounds are ambience, the rest effects. */
+		static eSoundBus BusForSound(const tString& asFilePath, bool abLoop);
+
+		// Seconds between blocking rays for one sound.
+		static constexpr float kBlockRayInterval = 0.5f;
+
+		// Sets the entry's low-pass from its block fade. Called every update;
+		// public for the audio tests.
+		static void UpdateBlockFilter(cSoundEntry* apEntry, float afBlockedGainHF);
 
 		void SetWorld3D(cWorld3D *apWorld3D);
 
@@ -188,15 +214,22 @@ namespace hpl {
 		float mfVolumeRate;
 		tFlag mAffectedByVolume;
 
+		float mfBlockedGainHF;
+		float mvBusVolume[eSoundBus_LastEnum];
+
 		cWorld3D *mpWorld3D;
 
 		cSoundRayCallback mSoundRayCallback;
 
 		tPlayedSoundNumMap m_mapPlayedSound;
+		/** Number of variants (name1, name2, ...) found for a base name, so
+		 * they are probed through the resources once rather than per play. */
+		tPlayedSoundNumMap m_mapVariantCount;
 
 		cSoundEntry* GetEntry(const tString& asName);
 		bool UpdateEntry(cSoundEntry* apEntry,float afTimeStep, tFlag aTypes);
 		void UpdateDistanceVolume3D(cSoundEntry* apEntry,float afTimeStep,bool abFade,tFlag aTypes);
+		void SetEntryVolume(cSoundEntry* apEntry, float afVolume);
 
 		int mlCount;
 		int mlIdCount;

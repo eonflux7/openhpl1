@@ -614,6 +614,7 @@ bool cInit::Init(tString asCommandLine)
 	Vars.AddInt("StreamBufferSize",mpConfig->GetInt("Sound", "StreamBufferSize", 64));
 	Vars.AddInt("StreamBufferCount",mpConfig->GetInt("Sound", "StreamBufferCount", 4));
 	Vars.AddString("DeviceName",mpConfig->GetString("Sound", "DeviceName", "NULL"));
+	Vars.AddString("HRTF",mpConfig->GetString("Sound", "HRTF", "auto"));
 	Vars.AddString("WindowCaption", "Penumbra Loading...");
 
 	Vars.AddBool("LowLevelSoundLogging", mpConfig->GetBool("Sound","LowLevelLogging", false));
@@ -780,6 +781,9 @@ bool cInit::Init(tString asCommandLine)
 
 	// SOUND ////////////////////////////////
 	mpGame->GetSound()->GetLowLevel()->SetVolume(mpConfig->GetFloat("Sound","Volume",1));
+	mpGame->GetSound()->GetSoundHandler()->SetBlockedGainHF(mpConfig->GetFloat("Sound","OcclusionGainHF",0.25f));
+	for(int i=0; i<eSoundBus_LastEnum; ++i)
+		mpGame->GetSound()->SetBusVolume((eSoundBus)i, mpConfig->GetFloat("Sound",gvSoundBusConfigNames[i],1));
 		
 	// PHYSICS INIT /////////////////////
 	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials, mpGame->GetHaptic());
@@ -1422,6 +1426,9 @@ void cInit::Exit()
 	mpConfig->SetBool("Graphics", "Refractions", mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 	
 	mpConfig->SetFloat("Sound","Volume",mpGame->GetSound()->GetLowLevel()->GetVolume());
+	mpConfig->SetFloat("Sound","OcclusionGainHF",mpGame->GetSound()->GetSoundHandler()->GetBlockedGainHF());
+	for(int i=0; i<eSoundBus_LastEnum; ++i)
+		mpConfig->SetFloat("Sound",gvSoundBusConfigNames[i],mpGame->GetSound()->GetBusVolume((eSoundBus)i));
 	mpConfig->SetBool("Sound","UseSoundHardware", mbUseSoundHardware);
 	mpConfig->SetBool("Sound","UseEnvironmentalAudio", mbUseEnvAudio);
 	mpConfig->SetInt("Sound","MaxSoundChannels",mlMaxSoundChannels);
@@ -1430,6 +1437,7 @@ void cInit::Exit()
 	mpConfig->SetInt("Sound","MaxMonoChannelsHint",mlMaxMonoChannelsHint);
 	mpConfig->SetInt("Sound","MaxStereoChannelsHint",mlMaxStereoChannelsHint);
 	mpConfig->SetString("Sound","DeviceName",msDeviceName);
+	mpConfig->SetString("Sound","HRTF",SoundHRTFToString(mpGame->GetSound()->GetLowLevel()->GetHRTF()));
 
 	
 	mpConfig->SetInt("Graphics","TextureSizeLevel",mpGame->GetResources()->GetMaterialManager()->GetTextureSizeLevel());

@@ -68,6 +68,19 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void cSound::SetBusVolume(eSoundBus aBus, float afVolume)
+	{
+		mpSoundHandler->SetBusVolume(aBus, afVolume);
+		if(aBus == eSoundBus_Music) mpMusicHandler->SetBusVolume(afVolume);
+	}
+
+	float cSound::GetBusVolume(eSoundBus aBus)
+	{
+		return mpSoundHandler->GetBusVolume(aBus);
+	}
+
+	//-----------------------------------------------------------------------
+
 	void cSound::Init(	cResources *apResources, bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 						int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
 						int alMaxMonoSourceHint, int alMaxStereoSourceHint,

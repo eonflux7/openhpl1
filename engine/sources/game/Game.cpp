@@ -32,6 +32,8 @@
 #include "graphics/Renderer3D.h"
 
 #include "gui/Gui.h"
+#include "sound/Sound.h"
+#include "sound/LowLevelSound.h"
 
 #include "system/LowLevelSystem.h"
 #include "game/LowLevelGameSetup.h"
@@ -231,6 +233,7 @@ namespace hpl {
 			aVars.GetInt("Display",-1));
 
 		//Init Sound
+		mpSound->GetLowLevel()->SetHRTF(SoundHRTFFromString(aVars.GetString("HRTF")));
 		mpSound->Init(mpResources, aVars.GetBool("UseSoundHardware",true),
 						aVars.GetBool("ForceGeneric",false),
 						aVars.GetBool("UseEnvironmentalAudio", false),

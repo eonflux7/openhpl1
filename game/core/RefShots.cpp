@@ -129,6 +129,7 @@ static const c2DScreen kv2DScreens[] = {
 	{"menu_lighting", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetState(eMainMenuState_OptionsGraphicsLighting);
 	}},
+	{"menu_sound", 30, [](cInit *apInit){ apInit->mpMainMenu->SetState(eMainMenuState_OptionsSound); }},
 	// Key names as tips and the inventory show them
 	{"menu_keys", 30, [](cInit *apInit){
 		apInit->mpMainMenu->SetState(eMainMenuState_OptionsKeySetupMove);

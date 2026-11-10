@@ -5,6 +5,184 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Audio source fixes from the merge review (2026-11-10)
+
+- Unpausing no longer replays a one-shot sample that ended before the
+  pause (the menu pauses every sound, so a sound ending in that frame came
+  back from the start). OALWrapper did the same. Looping samples stopped by
+  a device loss still resume.
+- When voices run short, sources that ended by themselves are reclaimed
+  before a playing sound is stolen. They kept their voices until the sound
+  handler stopped their channels, up to one update later, so a playing
+  low-priority loop could be stolen while a finished sound held a voice.
+- Validation: two new `audio_regressions` checks, both failing on the
+  previous code. Default and ASan/UBSan CTest (`detect_leaks=0`) pass 3/3.
+  ASan smoke (`OPENHPL_HIDDEN=1`, `ALSOFT_DRIVERS=null`, isolated
+  profiles): Overture 28/28 and Black Plague 29/29 maps, 0 failures, both
+  exit 0; the only sanitizer report is AngelScript's known `as_string.cpp`
+  warning. Not checked: listening, Requiem, Windows; gamescope is not
+  installed, so the `2d-menu_sound` capture was not run.
+
+## Reverb crossfades and equal-power music fades (2026-11-10)
+
+- Sector reverb (Black Plague and Requiem) uses two EFX slots, one
+  environment each. Fades change only the slot gains, cos/sin, instead of
+  interpolating every parameter (toward zero for no environment) and
+  re-sending the effect each frame. An environment is loaded into a slot
+  only when it isn't already in one. With one send, the slot fades out and
+  in through silence.
+- `ReflectionsPan` and `LateReverbPan` are sent, shortened to length 1.
+  They were read and never sent; `Vent` and `Jensy` are the only shipped
+  presets with non-zero pans.
+- Music fades in from silence and fades out follow `ref*sin(pi/2*v/ref)`
+  on output, so crossfades keep constant power. The stored volume, ramp
+  rate and saves are unchanged; a new target partway through a fade in
+  continues linearly from the gain heard. Sound-entity fades stay linear.
+- Sound variants (`name1`, `name2`, ...) are counted once per base name
+  instead of probed through the resource manager on every play.
+- Validation: `audio_regressions` adds reverb crossfades through
+  `cLowLevelSoundOpenAL` (slot gains read back from OpenAL) and the music
+  curve; changing either curve to linear makes five checks fail. A
+  loopback render of seven shipped preset pairs measured the reverbs
+  uncorrelated (|ρ| ≤ 0.02): equal-power midpoints were within 0.1 dB of the
+  mean level, linear ones 3 dB low, and the old parameter lerp 0 to −5 dB.
+  Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The ASan smoke
+  tests (isolated profiles, null backend) pass with no new warnings:
+  Overture 28/28, and Black Plague with all 53 environment fades of the
+  previous run (Vent, Psychotic, Hallway and others). Not checked:
+  listening, Windows.
+
+## Volume buses (2026-11-10)
+
+- The Sound menu has Music, Effects, Voice and Ambience rows under the
+  sound (master) volume, saved as `[Sound] MusicVolume`, `EffectsVolume`,
+  `VoiceVolume` and `AmbienceVolume` (0–1, default 1). They apply at once.
+  The labels and tips are English only.
+- A sound's bus comes from its resolved file path and whether it loops:
+  `sounds/voices/` is voice, `music/` and the music handler are music,
+  other looping sounds are ambience, the rest effects. Sound data now keeps
+  its resolved path (`iResourceBase::GetFilePath` was never set before).
+- The gains are multipliers in the sound and music handlers. Enemy
+  hearing, saves and the pre-menu raindrops don't depend on them; the
+  raindrops read the rain entry's volume instead of the channel's.
+- `iSoundChannel` now initializes its 3D flag and pan, which were left
+  uninitialized (UBSan found the 3D flag being read in the new test).
+- Reference captures add the Sound options page (`2d-menu_sound`).
+- Validation: `audio_regressions` adds the bus rules and routing through
+  `cSoundHandler::Update` with real channels; mutating the routing makes it
+  fail. Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The ASan
+  Overture smoke test (isolated profile, null backend) passes with no new
+  warnings and saves the four settings. In a live session the boat map's
+  loops were classed as ambience, its horn as an effect and
+  `intro_01_01` (`sounds/voices/eng/`) as voice. Not checked: the menu
+  page on screen (capture needs gamescope), listening, Windows.
+
+## Occlusion low-pass (2026-11-10)
+
+- Blocked 3D sounds are muffled as well as quieter. The original enabled a
+  filter with unit gains when a blocking ray hit and never disabled it.
+  The low-pass `GainHF` now follows the block fade (0.55 s in, 0.2 s out)
+  on the direct path and the reverb send, and the filter is detached when
+  the sound is clear. `[Sound] OcclusionGainHF` (default 0.25; 1 turns it
+  off) sets the fully blocked value.
+- Blocking rays run every 0.5 s per sound rather than every 30 logic
+  updates, which is the same at the default 60 Hz. The sound handler's
+  speed fade (unused by the games) now changes per second, not per update.
+- Air absorption under the engine's `AL_NONE` distance model was measured
+  and not adopted: it works, but realistic values are inaudible at game
+  distances. See [audio](docs/audio.md#occlusion).
+- Validation: `audio_regressions` checks the filter state through blocked,
+  fading, clear and disabled states and on a reused source. A loopback
+  render of white noise confirmed about 22 dB less energy above 8 kHz at
+  the default. Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The
+  ASan Overture smoke test (isolated profile, null backend) loads 28/28
+  maps with no new warnings or sanitizer reports. Not checked: listening
+  in the game, Windows.
+
+## HRTF setting and audio device recovery (2026-11-10)
+
+- New `[Sound] HRTF` setting (`auto`, the default, `on` or `off`) and an
+  HRTF option in the Sound menu. It applies at once through
+  `alcResetDeviceSOFT`; On also asks for stereo HRTF output. The log and
+  the menu show the status read back from OpenAL Soft.
+- The menu's output-device option switches devices at once with
+  `alcReopenDeviceSOFT` instead of asking for a restart, and lists devices
+  plugged in after launch.
+- When the output device is disconnected, audio moves to the default
+  device (retried once a second) with every source, buffer and handle kept.
+  Looping samples resume, streams continue, and the stream worker pauses
+  refills while no device is connected.
+- Stereo sources use `AL_DIRECT_CHANNELS_SOFT`, so HRTF and surround
+  layouts don't play music or stereo UI sounds through virtual speakers.
+- Validation: `audio_regressions` adds HRTF on/off/auto at open and at
+  runtime with sounds playing, reopen with handles, streams and looping
+  samples surviving, and the setting's values. Default CTest, ASan/UBSan
+  CTest (`detect_leaks=0`) and the TSan audio test pass. Not checked:
+  listening with HRTF, a real unplug, Windows.
+
+## Direct OpenAL Soft backend replaces OALWrapper (2026-11-10)
+
+- The vendored OALWrapper (about 6.6k lines, with 2006-era copies of the AL
+  headers) is removed. `cOpenALDevice` (`engine/{include,sources}/impl/
+  OpenALDevice.*`) uses OpenAL Soft through the system headers. The
+  `cOpenAL*` adapters and everything above them keep their interfaces. See
+  [audio](docs/audio.md); the review and the plan for the remaining work are
+  in [audio review](docs/audio-review.md).
+- Behaviour kept from OALWrapper:
+  - a fixed pool of `MaxSoundChannels` sources
+  - one voice per data channel
+  - stealing only below the requested priority, with streams at 256
+  - handles that carry a generation, so stale ones are ignored
+  - sounds created paused
+  - streams that stay bound until stopped
+  - gain clamped to (0, 1] and pitch to (0, 10]
+  - `AL_NONE` distance model
+- Threading: one `std::mutex` guards all sources and streams. Locking never
+  depends on whether the worker runs, the worker's stop flag is atomic, and
+  `Close` joins the worker before releasing anything. OALWrapper's stream
+  manager took its locks only while a plain `bool` was set and cleared it
+  during shutdown, the same pattern as the EFX slot crashes of 2026-10-19.
+  Its EFX worker thread is gone: it only reattached the effect, which the
+  engine already did.
+- Fixed:
+  - `StreamBufferSize=64` meant 64 bytes and was ignored, so streams queued
+    4 KiB blocks (~93 ms). It is now read as KiB (4 × 64 KiB, about 1.5 s),
+    and the 50 Hz refill floor is gone.
+  - Reverb fades sent an uninitialized `DecayHFRatio`, because the fade
+    environment's constructor initialized nothing.
+  - A sound-environment file without its root, `Main` element or `Type`
+    attribute crashed the parser; it is now rejected.
+  - Device name `NULL` (the shipped default) logged an open failure before
+    opening the default device; it now opens the default device directly.
+  - Output is no longer forced to 44.1 kHz.
+  - The ASan new-delete-type-mismatch in `cOAL_EFXManager::Destroy` at
+    quit, which made every ASan smoke run exit with 1, is gone with the
+    wrapper.
+- Ogg files decode with vorbisfile through the engine's own file
+  callbacks. WAV files decode with SDL3; formats other than 8/16-bit PCM
+  are converted, and more than two channels are folded to stereo. The main
+  menu's device list uses `iLowLevelSound::GetOutputDevices`.
+- Validation:
+  - Build and CTest pass, and the ASan/UBSan CTest passes
+    (`detect_leaks=0`; leaks not checked).
+  - `audio_regressions` is rewritten for the new device (null backend, with
+    a 0.5 s Ogg fixture) and passes three runs in a row.
+  - A ThreadSanitizer build of `audio_regressions` passes. Its 64 reports
+    are all between OpenAL Soft's own mixer thread and calls into the
+    uninstrumented `libopenal`; none involve the stream worker or engine
+    data.
+  - All 2,772 `.ogg` and `.wav` files of the installed Overture and Black
+    Plague load with the new decoders (every Ogg also as a stream).
+  - ASan smoke (`OPENHPL_HIDDEN=1`, `ALSOFT_DRIVERS=null`, isolated
+    profiles; gamescope not installed): Overture 28/28 maps and Black Plague
+    29/29 maps, 0 failures, both exit 0. The only sanitizer report is
+    AngelScript's known `as_string.cpp` warning. The `Couldn't create
+    SoundEntity` errors in both logs name `.snt` files that are not in the
+    game data.
+- Not checked: Requiem, the MSVC build and Windows smoke, and listening in
+  the game (music across map loads, reverb transitions, voice stealing in
+  busy scenes, the output-device option).
+
 ## Windows package built by the release workflow (2026-11-10)
 
 - `.github/workflows/release.yml` has a Windows job: `windows-latest`, a
