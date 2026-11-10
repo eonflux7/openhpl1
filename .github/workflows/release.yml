@@ -1,8 +1,10 @@
 name: Release
 
 # Builds the portable Linux x86_64 package (platform/linux/package.sh) in the
-# Steam Runtime 3 "sniper" SDK, so it runs on glibc 2.31 and newer. The
-# Windows package is built with platform\windows\package.cmd.
+# Steam Runtime 3 "sniper" SDK, so it runs on glibc 2.31 and newer, and the
+# Windows x64 package (platform\windows\build.cmd and package.cmd) with MSVC
+# and vcpkg. Both are attached to the GitHub release of the same version when
+# there is one (a tag push, or a manual run with that version).
 on:
   push:
     tags: ['v*']
@@ -11,16 +13,24 @@ on:
       version:
         description: Version in the package name, e.g. 0.1.0-alpha
         required: true
+      ref:
+        description: Tag, branch or commit to build (default the branch the run is started on)
+        required: false
+        default: ''
+
+env:
+  VERSION: ${{ inputs.version || github.ref_name }}
 
 jobs:
   linux:
     runs-on: ubuntu-latest
     container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
     env:
-      VERSION: ${{ inputs.version || github.ref_name }}
       CMAKE_VERSION: 3.31.12
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install CMake
         run: |
@@ -42,3 +52,66 @@ jobs:
           name: openhpl1-linux-x86_64
           path: dist/*.tar.gz
           if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}\..\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\..\vcpkg-cache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      # A full clone: vcpkg.json's builtin-baseline is a commit of vcpkg's history
+      - name: Install vcpkg
+        shell: cmd
+        run: |
+          git clone https://github.com/microsoft/vcpkg "%VCPKG_ROOT%" || exit /b 1
+          call "%VCPKG_ROOT%\bootstrap-vcpkg.bat" -disableMetrics || exit /b 1
+          mkdir "%VCPKG_DEFAULT_BINARY_CACHE%"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: vcpkg-x64-windows-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-x64-windows-
+
+      - name: Build
+        shell: cmd
+        run: call platform\windows\build.cmd
+
+      - name: Package
+        shell: cmd
+        run: |
+          set "V=%VERSION%"
+          if "%V:~0,1%"=="v" set "V=%V:~1%"
+          call platform\windows\package.cmd %V%
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openhpl1-windows-x64
+          path: build-windows/*.zip
+          if-no-files-found: error
+
+  publish:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${VERSION#v}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            echo "No release $tag; the packages are only this run's artifacts."
+          fi

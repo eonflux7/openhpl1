@@ -183,7 +183,10 @@ SDL3_image and OpenAL Soft are built from pinned sources and shipped in
 `lib/`, Ogg, Vorbis, FreeType and the C++ runtime are linked in. The
 **Release** workflow (`.github/workflows/release.yml`, run on `v*` tags or by
 hand) builds it in the Steam Runtime 3 "sniper" SDK, so the binary runs on
-glibc 2.31 and newer.
+glibc 2.31 and newer. It also builds the Windows package on a Windows runner
+with `build.cmd` and `package.cmd`, and attaches both packages to the GitHub
+release of that version when there is one. A run by hand takes the version
+and, optionally, the tag or commit to build (e.g. `v0.1.3-alpha`).
 
 Before changing gameplay code, run the smoke test on the ASan build:
 

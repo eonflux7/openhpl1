@@ -5,6 +5,16 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Windows package built by the release workflow (2026-11-10)
+
+- `.github/workflows/release.yml` has a Windows job: `windows-latest`, a
+  full clone of vcpkg (for `vcpkg.json`'s baseline) with its binary cache
+  kept between runs, then `build.cmd` and `package.cmd`. A publish job
+  attaches the Linux and Windows packages to the release of the version, if
+  it exists. Runs by hand take an optional `ref` to build (a tag).
+- Validation: not run yet when this was committed; the first run is by
+  hand for `0.1.3-alpha` at `v0.1.3-alpha`.
+
 ## Stick areas stop at their pose (2026-11-10)
 
 - Black Plague: level 8's circuit cards went into the server at wrong
