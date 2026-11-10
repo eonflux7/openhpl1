@@ -240,8 +240,9 @@ game data or audio device. It covers:
   is mid-update
 - voice stealing: equal priority, stereo taking two voices, streams,
   finished sources reclaimed before a playing one is stolen
-- stale handles, start-paused sounds and sounds finishing, and an ended
-  sample staying ended through a pause and unpause
+- stale handles, start-paused sounds and sounds finishing, an ended
+  sample staying ended through a pause and unpause, and start-paused
+  sounds playing on a source whose previous sound ended by itself
 - stream refill past the queued blocks, end of a non-looping stream, looping
   past the length, and rebinding, with and without the worker
 - Ogg and WAV decoding, float WAV conversion, and rejection of broken files

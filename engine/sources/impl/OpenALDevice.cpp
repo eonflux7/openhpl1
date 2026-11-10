@@ -822,6 +822,9 @@ namespace hpl {
 	void cOpenALDevice::StopSource(sSource &aSource)
 	{
 		alSourceStop(aSource.mlId);
+		// Back to AL_INITIAL: the next sound bound here starts paused, and
+		// unpausing plays only initial or paused sources.
+		alSourceRewind(aSource.mlId);
 		alSourcei(aSource.mlId, AL_LOOPING, AL_FALSE);
 		alSourcef(aSource.mlId, AL_GAIN, 0.00001f);
 		alSourcef(aSource.mlId, AL_PITCH, 1.0f);
