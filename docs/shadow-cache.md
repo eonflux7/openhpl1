@@ -87,7 +87,7 @@ budget-zero diagnostic matches all 19 cached first-map/UI frames; disabling
 reuse does not remove the boat-cabin mismatch. This is limited capture
 coverage, not a comprehensive in-game invalidation or performance check.
 Intermittent startup access violations also affected baseline and current.
-See [CHANGES](../CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
+See [CHANGES at 232fe8a](https://github.com/eonflux7/openhpl1/blob/232fe8addc71bff506d387fa95324d260564b3bd/CHANGES.md#renderer-steps-1113-game-validation-2026-10-19)
 for results, failed attempts and artifact paths, and the
 [roadmap](../ROADMAP.md#validation-to-close-first) for remaining scenarios
 and measurements. No game frame-time improvement is claimed.

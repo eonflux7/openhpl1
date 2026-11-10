@@ -13,7 +13,8 @@ of its functions, mostly through four adapter files, and its two worker
 threads held both threading defects found so far. The reverb (EFX) thread
 only reattached the effect, which the engine already did itself.
 
-Done on this branch (see [audio](audio.md) and CHANGES):
+Done on this branch (see [audio](audio.md) and the
+[archived change log](archive/CHANGES-2026-11.md)):
 
 - OALWrapper removed. `cOpenALDevice` talks to OpenAL Soft through the
   system headers (modernization 1), keeps OALWrapper's source, priority and

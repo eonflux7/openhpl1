@@ -9,7 +9,7 @@ their maps load and much of their game code is implemented, but neither has a
 verified full playthrough. Game assets come from the user's own installations.
 
 This file tracks current work. [README.md](README.md) covers building, running
-and test tools; [CHANGES.md](CHANGES.md) records implementation history.
+and test tools; [CHANGES.md](CHANGES.md) summarises changes from the originals.
 [Technical notes](docs/README.md) describe current subsystems. The previous
 [engine roadmap](docs/archive/ROADMAP.md) and
 [porting roadmap](docs/archive/PORTING-ROADMAP.md) retain detailed historical
@@ -47,7 +47,7 @@ Outstanding gameplay, renderer, Windows and performance checks are listed below.
 Updated 2026-10-19: current normal and ASan/UBSan CTest suites pass (leak
 detection disabled), as do software EGL checks on GL 3.3 and 4.3. Fresh Windows
 captures and MSVC build/smoke results are now recorded in
-[CHANGES](CHANGES.md#renderer-steps-1113-game-validation-2026-10-19).
+[CHANGES at 232fe8a](https://github.com/eonflux7/openhpl1/blob/232fe8addc71bff506d387fa95324d260564b3bd/CHANGES.md#renderer-steps-1113-game-validation-2026-10-19).
 Scene preservation is still open: comparisons below include real mismatches.
 
 - [x] Capture and compare the current renderer against a suitable pre-change
@@ -74,7 +74,7 @@ Scene preservation is still open: comparisons below include real mismatches.
       match their own builds, while the cross-build pair still differs by
       114/727 pixels. Causes remain open; neither an intentional correction
       nor an additional unstable-map exception is established. See the
-      [follow-up evidence](CHANGES.md#boat-cabin-ordering-and-ice-cave-repeats-2026-10-19).
+      [follow-up evidence](https://github.com/eonflux7/openhpl1/blob/04724d2305db801c41270439d330d2b05c170fbe/CHANGES.md#boat-cabin-ordering-and-ice-cave-repeats-2026-10-19).
 - [x] Run GL debug validation in gameplay and the effects lab, including
       intro, death and credits screens that earlier checks did not cover.
       Completed NVIDIA GL 4.6 captures show only synchronized readback
@@ -90,7 +90,7 @@ Scene preservation is still open: comparisons below include real mismatches.
       are fixed. Normal and ASan/UBSan audio regressions pass; a patched MSVC
       build completes 20 consecutive isolated startup/save/reload runs and
       the 25 shipped-map smoke test, exit 0. See [audio lifecycle](docs/audio.md)
-      and [validation](CHANGES.md#efx-slot-startup-crashes-2026-10-19).
+      and [validation](https://github.com/eonflux7/openhpl1/blob/7c66be9b520a9c5f7673f3a03bcfdd33c3f56d67/CHANGES.md#efx-slot-startup-crashes-2026-10-19).
       This does not close the separate heap-corruption-on-exit report.
 - [ ] Validate the direct OpenAL Soft backend that replaced OALWrapper
       (`feat/better-audio`, [audio](docs/audio.md)) where it could not be
@@ -180,7 +180,8 @@ checks are retained in the archived roadmap; they are not new work here.
 ## Remaining lighting and material work (Milestones 4–5)
 
 These extend the current improved renderer. Completed implementation details
-and original tuning values are in CHANGES and the archived roadmaps.
+and original tuning values are in the
+[archived change log](docs/archive/CHANGES-2026-11.md) and the archived roadmaps.
 
 - [ ] Revisit tonemapping with the current bloom; its shoulder curve was left
       off after the first play-test. Add colour grading if useful.
@@ -301,4 +302,4 @@ Script compilation alone cannot prove these behaviours work.
 When updating this plan, distinguish implementation, automated regression
 coverage, visual comparison, manual play and measured performance. Preserve
 unresolved work when archiving a completed plan; keep historical step numbers
-stable for CHANGES and existing validation records.
+stable for the archived change log and existing validation records.

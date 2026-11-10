@@ -8,7 +8,8 @@ Overture, with experimental Black Plague and Requiem game code. One executable,
 The repository does not include those proprietary assets.
 
 - Read `README.md` for commands, `ROADMAP.md` for current work and
-  `docs/README.md` for subsystem guides. `CHANGES.md` is implementation history.
+  `docs/README.md` for subsystem guides. `CHANGES.md` summarises what differs
+  from the original games; commit messages hold implementation history.
 - Inspect `git status` and relevant diffs before editing. Preserve existing
   work, including untracked files; do not reset, discard, stage or commit
   unrelated changes.
@@ -167,8 +168,11 @@ or naming churn. `.clang-tidy` defines bug-finding checks; the optional
 findings rather than applying broad automatic fixes.
 
 For behaviour or architecture changes, update the relevant current guide and
-README as needed, record implementation and validation in CHANGES, and adjust
-ROADMAP when status changes. Keep one current roadmap. Archive superseded
+README as needed, and adjust ROADMAP when status changes. Record the
+implementation and its validation in the commit message body. Edit CHANGES
+only when a user-visible difference from the original games is added,
+removed or changed, with a line or two in the matching area; it is a
+summary, not a log. Keep one current roadmap. Archive superseded
 plans with context, redirect references and carry forward unresolved work.
 Distinguish code implemented, tests passed, visual checks, manual play and
 measured performance; do not report an unavailable check as passed.

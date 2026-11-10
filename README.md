@@ -31,7 +31,7 @@ build into one native 64-bit executable for Linux and Windows.
   (renderer cleanup Milestone 6, steps 1–13). Remaining validation is listed
   in the [roadmap](ROADMAP.md#validation-to-close-first).
 
-Per-step implementation and validation details are in [CHANGES.md](CHANGES.md);
+A summary of every change from the originals is in [CHANGES.md](CHANGES.md);
 current priorities are in the [roadmap](ROADMAP.md).
 
 OpenGL 4.3 is sufficient. Earlier core contexts (3.3 or newer) need both
@@ -351,7 +351,8 @@ are disabled there). The indexed stage matches all 95 default step 9 frames;
 final motion blur matches 95/95, Render Scale 1.5 with 4× FSAA matches 31/31,
 and the effects lab matches 29/29, at unchanged tolerances. All UI frames,
 effects pixel checks/live transitions and GL debug validation pass.
-See [CHANGES.md](CHANGES.md) for the implementation and results.
+The implementation and results are in the
+[archived change log](docs/archive/CHANGES-2026-11.md).
 
 To look at those places yourself, press F2 in the game with Developer Mode
 on (Options → Game), or start it with `OPENHPL_REFVIEW=1`: a panel lists the maps, and for the loaded map the
@@ -362,7 +363,7 @@ player that cannot be hurt, which are on; flashlight on and no HUD, which
 are off until switched), and
 the lighting can be tuned from the panel: Light power, Exposure, Glow, Blend
 match and the tonemapping's Shoulder and White. The bloom can be switched
-off and has its own sliders (see CHANGES; Ctrl+click a slider to type a
+off and has its own sliders (Ctrl+click a slider to type a
 value). A second window, Shadows, switches shadows and has the maps'
 settings, a view of the shadows alone, the lights in view (to
 draw one alone, or switch its shadows) and a test light to put anywhere or
