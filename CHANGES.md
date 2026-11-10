@@ -5,6 +5,35 @@ released, i.e. FrictionalGames/HPL1Engine @ `5e441bb` and
 FrictionalGames/PenumbraOverture @ `6a6953a` (imported unmodified in the first
 commit), and the last official Linux build on Steam.
 
+## Reverb crossfades and equal-power music fades (2026-11-10)
+
+- Sector reverb (Black Plague and Requiem) uses two EFX slots, one
+  environment each. Fades change only the slot gains, cos/sin, instead of
+  interpolating every parameter (toward zero for no environment) and
+  re-sending the effect each frame. An environment is loaded into a slot
+  only when it isn't already in one. With one send, the slot fades out and
+  in through silence.
+- `ReflectionsPan` and `LateReverbPan` are sent, shortened to length 1.
+  They were read and never sent; `Vent` and `Jensy` are the only shipped
+  presets with non-zero pans.
+- Music fades in from silence and fades out follow `ref*sin(pi/2*v/ref)`
+  on output, so crossfades keep constant power. The stored volume, ramp
+  rate and saves are unchanged; a new target partway through a fade in
+  continues linearly from the gain heard. Sound-entity fades stay linear.
+- Sound variants (`name1`, `name2`, ...) are counted once per base name
+  instead of probed through the resource manager on every play.
+- Validation: `audio_regressions` adds reverb crossfades through
+  `cLowLevelSoundOpenAL` (slot gains read back from OpenAL) and the music
+  curve; changing either curve to linear makes five checks fail. A
+  loopback render of seven shipped preset pairs measured the reverbs
+  uncorrelated (|ρ| ≤ 0.02): equal-power midpoints were within 0.1 dB of the
+  mean level, linear ones 3 dB low, and the old parameter lerp 0 to −5 dB.
+  Default and ASan/UBSan CTest (`detect_leaks=0`) pass. The ASan smoke
+  tests (isolated profiles, null backend) pass with no new warnings:
+  Overture 28/28, and Black Plague with all 53 environment fades of the
+  previous run (Vent, Psychotic, Hallway and others). Not checked:
+  listening, Windows.
+
 ## Volume buses (2026-11-10)
 
 - The Sound menu has Music, Effects, Voice and Ambience rows under the

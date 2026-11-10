@@ -100,11 +100,14 @@ Scene preservation is still open: comparisons below include real mismatches.
       output-device option). HRTF/output mode and device recovery are
       implemented and tested on the null backend; listen with HRTF on
       headphones, switch devices from the menu and unplug a device while
-      music plays. Occlusion filtering and volume buses are implemented
-      and tested; listen to blocked sounds behind doors and walls, and
-      check the Sound menu's Music/Effects/Voice/Ambience rows and that
-      each moves only its kind of sound. Then follow the
-      [audio plan](docs/audio-review.md#plan): reverb crossfades.
+      music plays. Occlusion filtering, volume buses, two-slot reverb
+      crossfades and equal-power music fades are implemented and tested;
+      listen to blocked sounds behind doors and walls, check the Sound
+      menu's Music/Effects/Voice/Ambience rows and that each moves only its
+      kind of sound, walk between Black Plague's reverb sectors (the vents
+      and `Jensy`'s room have newly sent reverb pans) and listen to music
+      changes. The [audio plan](docs/audio-review.md#plan)'s steps are
+      done; the rest is on demand.
 - [ ] Check a Mesa hardware driver; software llvmpipe coverage already exists.
       Unavailable here: no `/dev/dri`. Linux game captures also lack gamescope;
       the completed game captures above use Windows/NVIDIA and Steam assets.

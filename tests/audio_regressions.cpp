@@ -134,7 +134,10 @@ static void TestLifecycle()
 		int lSample = device.PlaySample(pSample.get(), 10, 1, false);
 		device.SetLoop(lSample, true);
 		device.SetFiltering(lSample, true, 0x3);
-		device.SetReverb(cOpenALReverb());
+		device.SetReverb(0, cOpenALReverb());
+		device.SetReverb(1, cOpenALReverb());
+		device.SetReverbWeight(0, 0.7f);
+		device.SetReverbWeight(1, 0.7f);
 		Wait(device, 15);
 
 		// Release while playing, as the sound manager does when unloading.
@@ -455,10 +458,125 @@ static void TestEnvironmentFiles(const fs::path &aDir)
 	hall.CreateFromFile((aDir / "valid.snt").string());
 	Check(hall.GetName() == "Hall" && hall.mfDecayTime == 2.5f && hall.mbDecayHFLimit == 1, "parameters are read");
 
-	// Fading from nothing interpolates every parameter, including DecayHFRatio.
-	cOpenALSoundEnvironment zero, mid;
-	mid.LerpFrom(zero, hall, 0.5f);
-	Check(mid.mfDecayTime == 1.25f && mid.mfDecayHFRatio == 0.25f && mid.mfDensity == 0.5f, "fade interpolates");
+}
+
+//-----------------------------------------------------------------------
+
+static bool Near(float a, float b) { return std::fabs(a - b) < 1e-4f; }
+
+// Environments sit in their own reverb slots; fades move only slot gains,
+// equal-power, and reuse environments already loaded.
+static void TestReverbCrossfade(const fs::path &aDir)
+{
+	cLowLevelSoundOpenAL lowLevel;
+	lowLevel.Init(false, false, true, 8, 10, false, false, 0, 0, 64, 4, false, "");
+	cOpenALDevice *pDevice = lowLevel.GetDevice();
+	if(!lowLevel.IsEnvAudioAvailable()) { Check(false, "EFX for the reverb test"); return; }
+	Check(pDevice->GetReverbSlotCount() == 2, "two reverb slots");
+	auto Gain = [&](int alSlot) { return pDevice->GetReverbSlotGain(alSlot); };
+	Check(Gain(0) == 0 && Gain(1) == 0, "reverb is silent before an environment is set");
+
+	iSoundEnvironment *pHall = lowLevel.LoadSoundEnvironment((aDir / "valid.snt").string());
+	iSoundEnvironment *pRoom = lowLevel.LoadSoundEnvironment((aDir / "noname.snt").string());
+	if(pHall == nullptr || pRoom == nullptr) { Check(false, "reverb test environments load"); return; }
+
+	// From nothing: only the destination's slot rises, along sin.
+	lowLevel.FadeSoundEnvironment(nullptr, pHall, 0.5f);
+	int lHall = lowLevel.GetSlotEnvironment(0) == pHall ? 0 : 1;
+	Check(lowLevel.GetSlotEnvironment(lHall) == pHall, "the faded-in environment gets a slot");
+	Check(Near(Gain(lHall), std::sin(0.25f * 3.14159265f)) && Gain(1 - lHall) == 0, "fade from nothing is a gain ramp");
+
+	lowLevel.SetSoundEnvironment(pHall);
+	Check(Near(Gain(lHall), 1) && Gain(1 - lHall) == 0, "an environment plays at full gain");
+
+	// Hall to room: the hall stays in its slot, the room takes the other.
+	bool bPower = true, bMonotonic = true;
+	float fLastHall = 2;
+	for(int i = 0; i <= 8; ++i)
+	{
+		float fT = i / 8.0f;
+		lowLevel.FadeSoundEnvironment(pHall, pRoom, fT);
+		float fH = Gain(lHall), fR = Gain(1 - lHall);
+		bPower = bPower && Near(fH * fH + fR * fR, 1);
+		bMonotonic = bMonotonic && fH <= fLastHall;
+		fLastHall = fH;
+	}
+	Check(lowLevel.GetSlotEnvironment(lHall) == pHall && lowLevel.GetSlotEnvironment(1 - lHall) == pRoom,
+		  "a crossfade keeps the source's slot and loads the destination into the other");
+	Check(bPower, "crossfade gains are equal-power");
+	Check(bMonotonic && Near(Gain(lHall), 0) && Near(Gain(1 - lHall), 1), "crossfade ends on the destination");
+
+	// And back again: both are loaded, so nothing moves between slots.
+	lowLevel.FadeSoundEnvironment(pRoom, pHall, 0.25f);
+	Check(lowLevel.GetSlotEnvironment(lHall) == pHall && lowLevel.GetSlotEnvironment(1 - lHall) == pRoom,
+		  "fading back reuses both slots");
+	Check(Near(Gain(1 - lHall), std::cos(0.125f * 3.14159265f)), "fading back starts from the room");
+
+	// To nothing: the source fades out.
+	lowLevel.SetSoundEnvironment(pRoom);
+	lowLevel.FadeSoundEnvironment(pRoom, nullptr, 0.5f);
+	Check(Near(Gain(1 - lHall), std::cos(0.25f * 3.14159265f)) && Gain(lHall) == 0, "fade to nothing");
+
+	// The environment volume scales every slot.
+	lowLevel.SetSoundEnvironment(pRoom);
+	lowLevel.SetEnvVolume(0.5f);
+	Check(Near(Gain(1 - lHall), 0.5f) && Gain(lHall) == 0, "env volume scales the slot gain");
+	lowLevel.FadeSoundEnvironment(pRoom, pHall, 0.5f);
+	Check(Near(Gain(lHall), 0.5f * std::sin(0.25f * 3.14159265f)), "env volume scales crossfades");
+
+	lowLevel.SetSoundEnvironment(nullptr);
+	Check(Gain(0) == 0 && Gain(1) == 0, "no environment silences both slots");
+
+	// A world sound sends to both slots and plays through a crossfade.
+	std::unique_ptr<cOpenALSample> pSample = MakeSample(1);
+	int lHandle = pDevice->PlaySample(pSample.get(), 10, 1, false);
+	pDevice->SetSendToReverb(lHandle, true);
+	pDevice->SetFiltering(lHandle, true, 0x3);
+	lowLevel.FadeSoundEnvironment(pHall, pRoom, 0.3f);
+	Check(alGetError() == AL_NO_ERROR, "two sends and two slots raise no AL error");
+	pDevice->ReleaseSample(pSample.get());
+}
+
+// Music fades: equal-power from and to silence, linear otherwise, no jumps.
+static void TestMusicFades()
+{
+	cMusicEntry in, out;
+	in.mfCurveRef = 1;
+	out.mfVolume = 1;
+	cMusicHandler::BeginFadeOut(&out);
+	Check(out.mfCurveRef == 1 && cMusicHandler::FadeGain(&out) == 1, "a fade out starts at the current gain");
+
+	bool bPower = true;
+	for(int i = 0; i <= 10; ++i)
+	{
+		in.mfVolume = i / 10.0f;
+		out.mfVolume = 1 - i / 10.0f;
+		float a = cMusicHandler::FadeGain(&in), b = cMusicHandler::FadeGain(&out);
+		bPower = bPower && Near(a * a + b * b, 1);
+	}
+	Check(bPower, "a symmetric music crossfade keeps constant power");
+
+	// A new target halfway through a fade in carries on from the gain heard.
+	cMusicEntry song;
+	song.mfCurveRef = 0.8f;
+	song.mfVolume = 0.4f;
+	float fHeard = cMusicHandler::FadeGain(&song);
+	cMusicHandler::EndCurve(&song);
+	Check(Near(cMusicHandler::FadeGain(&song), fHeard) && song.mfCurveRef == 0, "leaving the curve doesn't jump");
+	Check(Near(fHeard, 0.8f * std::sin(0.25f * 3.14159265f)), "fade in follows ref*sin");
+
+	// Fading out halfway through a fade in.
+	song.mfCurveRef = 0.8f;
+	song.mfVolume = 0.2f;
+	fHeard = cMusicHandler::FadeGain(&song);
+	cMusicHandler::BeginFadeOut(&song);
+	Check(Near(cMusicHandler::FadeGain(&song), fHeard), "a fade out mid fade-in doesn't jump");
+
+	cMusicEntry steady;
+	steady.mfVolume = 0.6f;
+	Check(cMusicHandler::FadeGain(&steady) == 0.6f, "without a curve the gain is the volume");
+	steady.mfCurveRef = 0.6f;
+	Check(Near(cMusicHandler::FadeGain(&steady), 0.6f), "a finished fade in plays at its volume");
 }
 
 //-----------------------------------------------------------------------
@@ -571,6 +689,8 @@ int hplMain(const hpl::tString&)
 	TestStreaming(true);
 	TestLoaders(dir);
 	TestEnvironmentFiles(dir);
+	TestReverbCrossfade(dir);
+	TestMusicFades();
 
 	std::error_code ec;
 	fs::remove_all(dir, ec);

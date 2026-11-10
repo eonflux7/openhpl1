@@ -25,8 +25,9 @@ cSoundHandler / cMusicHandler / game        (unchanged)
 - The engine computes distance gains itself, so the distance model is
   `AL_NONE` and OpenAL is used for panning, pitch, reverb and filtering.
 - `MaxSoundChannels` (32) sources are created up front. EFX
-  (`UseEnvironmentalAudio`) adds an EAX reverb in one auxiliary slot, falling
-  back to standard reverb, and one filter per source.
+  (`UseEnvironmentalAudio`) adds two auxiliary slots with an EAX reverb each
+  (standard reverb if EAX reverb is missing; one slot if the device has a
+  single send), and one filter per source.
 
 ## Output: HRTF and device loss
 
@@ -158,14 +159,72 @@ the music bus in both handlers.
 
 ## Reverb
 
-Sound environments (`.snt`, `Type="OpenAL"`) are read into
-`cOpenALSoundEnvironment`; malformed files are rejected without crashing. A
-missing environment is every parameter at zero, clamped to EAX's minimums,
-which silences the reverb. Fades interpolate every parameter between the two
-environments (a missing one counts as zero). The previous code never set
-`DecayHFRatio` on its fade environment, which had uninitialized fields, so
-each fade sent an indeterminate value. The slot copies the effect when it is
-attached, so every change reattaches it.
+Sector reverb is used by Black Plague and Requiem (`soundenvs/*.snv`);
+Overture's maps set no environment. Environments (`Type="OpenAL"`) are read
+into `cOpenALSoundEnvironment`; malformed files are rejected without
+crashing.
+
+Every world sound sends to two reverb slots (send 0 to slot 0, send 1 to
+slot 1, both through the occlusion filter). Each slot holds one
+environment's parameters, loaded only when that environment isn't already
+in a slot, and fades move only the slot gains:
+
+    source slot: cos(t * pi/2)    destination slot: sin(t * pi/2)
+
+times the environment volume (`SetEnvVolume`). A fade loads the destination
+into the slot the source isn't using; the game only ever fades between the
+environment playing and the next, so that slot is silent when it is
+reloaded. No environment means both slots at gain 0; fading from or to
+nothing ramps one slot. Before any environment is set the slots are silent.
+With a single send, the one slot fades the source out and the destination
+in, switching at the silent midpoint. The slot copies the effect when it is
+attached, so loading an environment reattaches it.
+
+The curve is equal-power because two different environments' reverbs are
+uncorrelated. Rendered on a loopback device with noise and shipped preset
+pairs (Room/Hallway, Room/Bathroom, Hallway/Vent, Room/DustyRoom,
+StoneCorridor/Hallway, Room/Psychotic, Bathroom/Hallway), the correlation
+was within ±0.02 and the midpoint level within 0.1 dB of the mean of the
+two rooms; a linear fade dipped 3 dB. Two slots with identical early
+reflections would correlate and rise about 3 dB at the midpoint, but the
+shipped presets differ in density and delays.
+
+The previous code interpolated every parameter between the environments,
+toward zero for a missing one, and re-sent the whole effect each frame. At
+the midpoint that was 0 to −1 dB from the mean for most pairs and −5 dB for
+Hallway→Vent, and it moved through parameter sets neither room has. It
+also never set `DecayHFRatio` on its fade environment, so each fade sent an
+indeterminate value.
+
+`ReflectionsPan` and `LateReverbPan` are now sent (EAX reverb only),
+shortened to length 1 when longer. Of the 108 shipped presets, 106 have
+zero pans; `Vent` (used in six maps) parses to small pans, and `Jensy` (one
+map) has strong ones. The original code read them and never sent them, so
+those two now sound as authored. `Vent`'s file writes negative components as
+`0.-300000`, which parse as 0, as they always did.
+
+## Music fades
+
+`cMusicHandler` ramps a song's volume at a rate per second; saves and the
+debug overlay read that volume. Fades in from silence and fades out are
+shaped on output only: the stream gain is `ref*sin(pi/2 * volume/ref)`,
+where `ref` is the target when a new song starts, or the gain heard when a
+song starts fading out. Two songs crossfading at the same rate therefore
+keep constant power instead of dipping 3 dB in the middle. When a playing
+song gets a new target partway through a fade in, its volume becomes the
+gain heard and the ramp continues linearly, so the gain never jumps. A song
+at its target plays at exactly its volume, as before. Sound-entity fades
+are single sounds, not crossfades, and stay linear.
+
+## Sound variants
+
+A sound name without a trailing digit picks a random variant (`name1`,
+`name2`, ...). The handler probed `name1` upward through the resource
+manager on every play, ending each time with a failed file search. It now
+counts the variants once per base name and keeps the count; the chosen
+variant is still loaded through the sound manager, so data a map change
+unloaded is reloaded as before. Files added while the game runs aren't
+seen until restart.
 
 ## Tests
 
@@ -194,10 +253,19 @@ game data or audio device. It covers:
 - bus rules (voices, music, looping, folder-only matching, backslashes) and
   routing: `cSoundHandler::Update` on real channels scales each entry by
   its bus only, mutes a bus at 0 without stopping it, and clamps gains
+- reverb crossfades through `cLowLevelSoundOpenAL` with two environments,
+  reading slot gains back from OpenAL: silent before an environment, a
+  ramp from nothing, equal-power through a crossfade with the source
+  keeping its slot, fading back without reloading, fading to nothing, the
+  environment volume, and a world sound sending to both slots
+- the music fade curve: constant power through a symmetric crossfade, no
+  jump when a fade in gets a new target or turns into a fade out
 
 A real unplug can't be simulated on the null backend; the reconnect path
 is checked by hand.
 
 The fixture `tests/data/tone_stereo_0.5s.ogg` is a 0.5 s 440 Hz tone made
 with ffmpeg's libvorbis encoder. The tests don't check audible reverb,
-the blocking rays or the mix; those need listening in the game.
+the blocking rays or the mix; those need listening in the game. The
+crossfade levels above were measured once with a throwaway loopback
+program, not in CTest.

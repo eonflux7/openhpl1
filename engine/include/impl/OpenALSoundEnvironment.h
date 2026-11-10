@@ -33,9 +33,6 @@ namespace hpl
 
 		bool CreateFromFile(const tString &asFile) override;
 
-		/** Sets every interpolated parameter to a*(1-t) + b*t. DecayHFLimit is not interpolated. */
-		void LerpFrom(const cOpenALSoundEnvironment &a, const cOpenALSoundEnvironment &b, float afT);
-
 		float	mfDensity = 0;
 		float	mfDiffusion = 0;
 		float	mfGain = 0;

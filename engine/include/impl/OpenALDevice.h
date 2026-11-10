@@ -132,6 +132,8 @@ namespace hpl {
 		float mfHFReference = 5000.0f;
 		float mfLFReference = 250.0f;
 		float mfRoomRolloffFactor = 0.0f;
+		float mvReflectionsPan[3] = {0,0,0};	///< EAX reverb only; length clamped to 1.
+		float mvLateReverbPan[3] = {0,0,0};
 		bool mbDecayHFLimit = true;
 	};
 
@@ -165,6 +167,9 @@ namespace hpl {
 		std::string GetString(ALenum aParam) const;
 		int GetNumSources() const { return (int)mvSources.size(); }
 		bool IsEFXActive() const { return mbEFX; }
+		static constexpr int kMaxReverbSlots = 2;
+		/** Reverb slots in use: 2, or 1 if the device has a single send. */
+		int GetReverbSlotCount() const { return mlReverbSlots; }
 		size_t GetStreamBlockBytes() const { return mParams.mlStreamBlockBytes; }
 		int GetStreamBlockCount() const { return mParams.mlStreamBlockCount; }
 
@@ -226,8 +231,14 @@ namespace hpl {
 
 		//////////////
 		// Reverb
-		void SetReverb(const cOpenALReverb &aReverb);
+		/** Each slot holds one reverb. Every source sending to reverb feeds
+		 * every slot (send i to slot i); a slot's gain is its weight times
+		 * the master reverb gain, so fades change only gains. */
+		void SetReverb(int alSlot, const cOpenALReverb &aReverb);
+		void SetReverbWeight(int alSlot, float afWeight);
 		void SetReverbGain(float afGain);
+		/** The slot gain as OpenAL reports it, 0 without EFX. */
+		float GetReverbSlotGain(int alSlot);
 
 	private:
 		struct sSource
@@ -283,8 +294,13 @@ namespace hpl {
 		std::atomic<bool> mbConnected{true};
 		bool mbLossReported = false;
 		std::chrono::steady_clock::time_point mNextReconnect;
-		ALuint mlReverbSlot = 0;
-		ALuint mlReverbEffect = 0;
+		ALuint mlReverbSlot[kMaxReverbSlots] = {0, 0};
+		ALuint mlReverbEffect[kMaxReverbSlots] = {0, 0};
+		int mlReverbSlots = 0;
+		float mfReverbWeight[kMaxReverbSlots] = {0, 0};
+		float mfReverbGain = 1;
+		void ApplyReverbGains();
+		void DeleteReverb();
 
 		std::vector<sSource> mvSources;
 		int mlFreeVoices = 0;

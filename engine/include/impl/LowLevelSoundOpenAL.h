@@ -71,18 +71,23 @@ namespace hpl
 		tString GetHRTFStatus() override;
 
 		cOpenALDevice* GetDevice() { return mpDevice.get(); }
+		/** The environment loaded in a reverb slot (tests). */
+		iSoundEnvironment* GetSlotEnvironment(int alSlot) const;
 
 		/** Stream block size in bytes. Values below 4096 are KiB, as in the
 		 * shipped settings (StreamBufferSize=64). */
 		static size_t StreamBlockBytes(int alConfigured);
 
 	private:
-		void ApplyEnvironment(const cOpenALSoundEnvironment &aEnv);
+		void ApplyEnvironment(int alSlot, const cOpenALSoundEnvironment &aEnv);
+		int SlotFor(iSoundEnvironment *apEnv, int alAvoidSlot);
 		static eOpenALHRTF ToDeviceHRTF(eSoundHRTF aMode);
 
 		std::unique_ptr<cOpenALDevice> mpDevice;
 		tString mvFormats[3];
 		bool	mbInitialized;
+		static constexpr int kReverbSlots = 2;	///< cOpenALDevice::kMaxReverbSlots
+		iSoundEnvironment *mpSlotEnv[kReverbSlots] = {nullptr, nullptr};
 	};
 };
 #endif // HPL_LOWLEVELSOUND_OPENAL_H

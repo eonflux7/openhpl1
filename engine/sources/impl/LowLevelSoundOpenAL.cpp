@@ -18,6 +18,9 @@
  */
 
 #include "impl/LowLevelSoundOpenAL.h"
+
+#include <cmath>
+
 #include "system/String.h"
 #include "impl/OpenALDevice.h"
 #include "impl/OpenALSoundData.h"
@@ -340,7 +343,7 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cLowLevelSoundOpenAL::ApplyEnvironment(const cOpenALSoundEnvironment &e)
+	void cLowLevelSoundOpenAL::ApplyEnvironment(int alSlot, const cOpenALSoundEnvironment &e)
 	{
 		cOpenALReverb r;
 		r.mfDensity = e.mfDensity;
@@ -364,7 +367,40 @@ namespace hpl {
 		r.mfLFReference = e.mfLFReference;
 		r.mfRoomRolloffFactor = e.mfRoomRolloffFactor;
 		r.mbDecayHFLimit = e.mbDecayHFLimit != 0;
-		mpDevice->SetReverb(r);
+		for(int i = 0; i < 3; ++i)
+		{
+			r.mvReflectionsPan[i] = e.mfReflectionsPan[i];
+			r.mvLateReverbPan[i] = e.mfLateReverbPan[i];
+		}
+		mpDevice->SetReverb(alSlot, r);
+	}
+
+	//-----------------------------------------------------------------------
+
+	iSoundEnvironment* cLowLevelSoundOpenAL::GetSlotEnvironment(int alSlot) const
+	{
+		static_assert(kReverbSlots == cOpenALDevice::kMaxReverbSlots, "one environment per reverb slot");
+		if(alSlot < 0 || alSlot >= kReverbSlots) return nullptr;
+		return mpSlotEnv[alSlot];
+	}
+
+	// The slot holding the environment, other than alAvoidSlot. If none
+	// does, the environment is loaded into the first other slot; that slot
+	// is silent whenever the game fades, since only the source and the
+	// destination are ever audible.
+	int cLowLevelSoundOpenAL::SlotFor(iSoundEnvironment *apEnv, int alAvoidSlot)
+	{
+		int lSlots = mpDevice->GetReverbSlotCount();
+		for(int i = 0; i < lSlots; ++i)
+			if(i != alAvoidSlot && mpSlotEnv[i] == apEnv) return i;
+		for(int i = 0; i < lSlots; ++i)
+		{
+			if(i == alAvoidSlot) continue;
+			mpSlotEnv[i] = apEnv;
+			ApplyEnvironment(i, *static_cast<cOpenALSoundEnvironment*>(apEnv));
+			return i;
+		}
+		return -1;
 	}
 
 	//-----------------------------------------------------------------------
@@ -374,12 +410,11 @@ namespace hpl {
 		if (!mbEnvAudioEnabled)
 			return;
 
-		// No environment: every parameter at zero (clamped to its minimum),
-		// which silences the reverb.
-		if (apSoundEnv == nullptr)
-			ApplyEnvironment(cOpenALSoundEnvironment());
-		else
-			ApplyEnvironment(*static_cast<cOpenALSoundEnvironment*>(apSoundEnv));
+		// No environment: every slot silent. Loaded environments stay in
+		// their slots for the next fade.
+		int lSlot = apSoundEnv ? SlotFor(apSoundEnv, -1) : -1;
+		for(int i = 0; i < mpDevice->GetReverbSlotCount(); ++i)
+			mpDevice->SetReverbWeight(i, i == lSlot ? 1.0f : 0.0f);
 	}
 
 	//-----------------------------------------------------------------------
@@ -397,16 +432,52 @@ namespace hpl {
 		if (afT>1)
 			afT = 1;
 
-		// A missing environment fades from or to zero, as in the original.
-		const cOpenALSoundEnvironment zero;
-		const cOpenALSoundEnvironment &src = apSourceSoundEnv ? *static_cast<cOpenALSoundEnvironment*>(apSourceSoundEnv) : zero;
-		const cOpenALSoundEnvironment &dst = apDestSoundEnv ? *static_cast<cOpenALSoundEnvironment*>(apDestSoundEnv) : zero;
+		if (apSourceSoundEnv == apDestSoundEnv)
+		{
+			SetSoundEnvironment(apDestSoundEnv);
+			return;
+		}
 
-		cOpenALSoundEnvironment env;
-		env.LerpFrom(src, dst, afT);
-		env.mbDecayHFLimit = apDestSoundEnv ? dst.mbDecayHFLimit : src.mbDecayHFLimit;
+		// Each environment keeps its own parameters in its own slot; only the
+		// slot gains move. The two reverbs are uncorrelated, so the weights
+		// are equal-power: cos^2 + sin^2 = 1 through the fade. A missing
+		// environment is silence.
+		int lSlots = mpDevice->GetReverbSlotCount();
+		float fSrc, fDst;
+		if(lSlots >= 2)
+		{
+			fSrc = std::cos(afT * kPi2f);
+			fDst = std::sin(afT * kPi2f);
+		}
+		else
+		{
+			// One send: fade the source out, then the destination in.
+			fSrc = afT < 0.5f ? 1 - 2 * afT : 0;
+			fDst = afT < 0.5f ? 0 : 2 * afT - 1;
+		}
 
-		ApplyEnvironment(env);
+		int lDstHeld = -1;
+		for(int i = 0; i < lSlots; ++i)
+			if(apDestSoundEnv && mpSlotEnv[i] == apDestSoundEnv) lDstHeld = i;
+
+		int lSrc = -1, lDst = -1;
+		if(lSlots >= 2)
+		{
+			if(apSourceSoundEnv) lSrc = SlotFor(apSourceSoundEnv, lDstHeld);
+			if(apDestSoundEnv) lDst = SlotFor(apDestSoundEnv, lSrc);
+		}
+		else if(lSlots == 1)
+		{
+			// The single slot switches environments at the silent midpoint.
+			iSoundEnvironment *pEnv = afT < 0.5f ? apSourceSoundEnv : apDestSoundEnv;
+			if(pEnv) (afT < 0.5f ? lSrc : lDst) = SlotFor(pEnv, -1);
+		}
+
+		for(int i = 0; i < lSlots; ++i)
+		{
+			float fWeight = (i == lSrc ? fSrc : 0.0f) + (i == lDst ? fDst : 0.0f);
+			mpDevice->SetReverbWeight(i, fWeight);
+		}
 	}
 
 }

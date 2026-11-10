@@ -50,7 +50,7 @@ namespace hpl {
 	{
 	public:
 		cMusicEntry() : msFileName(""), mpStream(nullptr), mfMaxVolume(1),
-			mfVolume(0), mfVolumeRatePerSecond(0.01f){}
+			mfVolume(0), mfVolumeRatePerSecond(0.01f), mfCurveRef(0){}
 
 		tString msFileName;
 		iSoundChannel* mpStream;
@@ -58,6 +58,8 @@ namespace hpl {
 		float mfVolume;
 		float mfVolumeRatePerSecond;
 		bool mbLoop;
+		/** Fade reference for the equal-power curve; 0 means linear. */
+		float mfCurveRef;
 	};
 
 	typedef std::list<cMusicEntry*> tMusicEntryList;
@@ -112,6 +114,18 @@ namespace hpl {
 		/** The music bus gain (0-1), multiplied into every song's volume. */
 		void SetBusVolume(float afVolume);
 		float GetBusVolume(){ return mfBusVolume;}
+
+		/**
+		 * The gain a song plays at, before the bus. A song fading in from
+		 * silence or fading out follows ref*sin(pi/2 * volume/ref), with ref
+		 * fixed when the fade starts, so two songs crossfading at the same
+		 * rate keep constant power. Otherwise the gain is the volume.
+		 */
+		static float FadeGain(const cMusicEntry *apSong);
+		/** Starts a fade to silence: the curve's reference becomes the gain heard now. */
+		static void BeginFadeOut(cMusicEntry *apSong);
+		/** Leaves the curve: the volume becomes the gain heard now, then moves linearly. */
+		static void EndCurve(cMusicEntry *apSong);
 
 	private:
 		iLowLevelSound* mpLowLevelSound;

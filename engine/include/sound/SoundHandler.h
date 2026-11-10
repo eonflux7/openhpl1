@@ -222,6 +222,9 @@ namespace hpl {
 		cSoundRayCallback mSoundRayCallback;
 
 		tPlayedSoundNumMap m_mapPlayedSound;
+		/** Number of variants (name1, name2, ...) found for a base name, so
+		 * they are probed through the resources once rather than per play. */
+		tPlayedSoundNumMap m_mapVariantCount;
 
 		cSoundEntry* GetEntry(const tString& asName);
 		bool UpdateEntry(cSoundEntry* apEntry,float afTimeStep, tFlag aTypes);

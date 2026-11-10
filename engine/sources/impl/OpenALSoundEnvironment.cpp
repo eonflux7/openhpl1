@@ -76,36 +76,4 @@ namespace hpl
 		return true;
 	}
 
-	void cOpenALSoundEnvironment::LerpFrom(const cOpenALSoundEnvironment &a, const cOpenALSoundEnvironment &b, float afT)
-	{
-		float s = 1 - afT;
-#define HPL_LERP(member) member = a.member*s + b.member*afT
-		HPL_LERP(mfDensity);
-		HPL_LERP(mfDiffusion);
-		HPL_LERP(mfGain);
-		HPL_LERP(mfGainHF);
-		HPL_LERP(mfGainLF);
-		HPL_LERP(mfDecayTime);
-		HPL_LERP(mfDecayHFRatio);
-		HPL_LERP(mfDecayLFRatio);
-		HPL_LERP(mfReflectionsGain);
-		HPL_LERP(mfReflectionsDelay);
-		HPL_LERP(mfLateReverbGain);
-		HPL_LERP(mfLateReverbDelay);
-		HPL_LERP(mfEchoTime);
-		HPL_LERP(mfEchoDepth);
-		HPL_LERP(mfModulationTime);
-		HPL_LERP(mfModulationDepth);
-		HPL_LERP(mfAirAbsorptionGainHF);
-		HPL_LERP(mfHFReference);
-		HPL_LERP(mfLFReference);
-		HPL_LERP(mfRoomRolloffFactor);
-		for(int i=0; i<3; ++i)
-		{
-			HPL_LERP(mfReflectionsPan[i]);
-			HPL_LERP(mfLateReverbPan[i]);
-		}
-#undef HPL_LERP
-	}
-
 }

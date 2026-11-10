@@ -1045,12 +1045,21 @@ namespace hpl {
 				lLastNum = SoundIt->second;
 			}
 
-			sName = sBaseName+cString::ToString(lCount+1);
-			pData = mpResources->GetSoundManager()->CreateSoundData(sName,false);
-			while(pData) {
-				lCount++;
-				sName = sBaseName + cString::ToString(lCount+1);
+			tPlayedSoundNumMapIt CountIt = m_mapVariantCount.find(sBaseName);
+			if(CountIt != m_mapVariantCount.end())
+			{
+				lCount = CountIt->second;
+			}
+			else
+			{
+				sName = sBaseName+cString::ToString(lCount+1);
 				pData = mpResources->GetSoundManager()->CreateSoundData(sName,false);
+				while(pData) {
+					lCount++;
+					sName = sBaseName + cString::ToString(lCount+1);
+					pData = mpResources->GetSoundManager()->CreateSoundData(sName,false);
+				}
+				m_mapVariantCount.insert(tPlayedSoundNumMap::value_type(sBaseName,lCount));
 			}
 
 			if(lCount>0)

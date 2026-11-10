@@ -23,8 +23,10 @@ Done on this branch (see [audio](audio.md) and CHANGES):
 - Defects 3 and 4 (plan step 2): blocked sounds get a low-pass that is
   removed when clear; blocking rays and the speed fade run on time.
 - Defect 5: malformed sound-environment files are rejected safely.
-- Defect 6 (partly): fades no longer send an uninitialized `DecayHFRatio`.
-  The parameter-lerp fade itself is unchanged.
+- Defect 6 (plan step 4): environments crossfade between two reverb
+  slots by gain, equal-power; reverb pans are sent. Music fades in and out
+  are equal-power too, and sound-variant counts are cached
+  (modernization 5).
 - Defect 7: `NULL` and empty device names open the default device without
   an error; `ALC_FREQUENCY` is no longer forced to 44.1 kHz.
 - Defect 8: the leaked environment and the unused effect are gone. `SetPan`
@@ -198,8 +200,8 @@ Ordered by value for the risk involved.
 - ASan game smoke (`OPENHPL_SMOKE=1`) for all three games, plus
   repeated quit-cycles to look for the exit heap corruption.
 - Manual listening:
-  - reverb transitions between sectors (Overture's mines; Black Plague's
-    labs)
+  - reverb transitions between sectors (Black Plague and Requiem;
+    Overture's maps set no environment)
   - occluded sounds behind doors
   - music crossfades
   - HRTF on headphones
@@ -253,13 +255,20 @@ the original game as well as tests.
    - Ducking and snapshots (menus, cutscenes, underwater) come later, and
      only where a scene needs one. The handlers already fade and pause by
      sound type.
-4. **Reverb crossfades** (defect 6). EFX sector reverb stays: it is cheap,
-   authored in the games' environment files and part of the original feel.
-   Fade the slot gain, or crossfade two slots, instead of interpolating
-   every parameter toward zero. Decide on equal-power music fades at the
-   same time.
-
-Also planned: cache sound-variant counts (modernization 5).
+4. **Done (code and tests; listening not yet checked): reverb
+   crossfades** (defect 6). See [audio](audio.md#reverb). EFX sector
+   reverb stays: it is cheap, authored in the games' environment files and
+   part of the original feel.
+   - Two slots, one environment each; fades move only slot gains, with
+     cos/sin weights. Shipped preset pairs measured uncorrelated, so the
+     level stays within 0.1 dB of the mean through a crossfade.
+   - `ReflectionsPan` and `LateReverbPan` are sent; only the `Vent` and
+     `Jensy` presets have non-zero pans.
+   - Equal-power music fades, decided 2026-11-10: yes, for songs fading in
+     from silence and fading out, shaped on output so saves and the ramp
+     rate are unchanged. Sound-entity fades stay linear. See
+     [audio](audio.md#music-fades).
+   - Sound-variant counts are cached per base name (modernization 5).
 
 **On demand only** (no shipped asset needs them):
 - FLAC or Opus, through `dr_flac` or `opusfile` rather than miniaudio or
@@ -282,6 +291,7 @@ Not needed:
 - step 3: bus routing. Done in `audio_regressions`, which drives
   `cSoundHandler::Update` on real channels, since the buses are handler
   gains and need a device to read back.
-- step 4: reverb slot gains during a crossfade.
+- step 4: reverb slot gains during a crossfade. Done, with the music fade
+  curve.
 
 Stream continuity, source filtering and shutdown order are already covered.

@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -35,11 +36,24 @@ namespace hpl {
 		const uint32_t kGenerationMask = 0x7FFFF;
 		const int kStreamPriority = 256;
 		const int kMaxPriority = 255;
-		const ALuint kReverbSend = 0;
 
 		float Clamp(float afX, float afMin, float afMax)
 		{
 			return afX < afMin ? afMin : (afX > afMax ? afMax : afX);
+		}
+
+		struct sPan { ALfloat v[3]; };
+
+		/** EAX reverb pans are vectors no longer than 1; a non-finite value
+		 * counts as no pan. */
+		sPan ClampPan(const float *apPan)
+		{
+			sPan pan = {{apPan[0], apPan[1], apPan[2]}};
+			float fLength = std::sqrt(pan.v[0]*pan.v[0] + pan.v[1]*pan.v[1] + pan.v[2]*pan.v[2]);
+			if(!std::isfinite(fLength)) return sPan{{0, 0, 0}};
+			if(fLength > 1)
+				for(ALfloat &f : pan.v) f /= fLength;
+			return pan;
 		}
 
 		std::string LowerExtension(const std::string &asFile)
@@ -125,10 +139,12 @@ namespace hpl {
 		LPALDELETEEFFECTS alDeleteEffects = nullptr;
 		LPALEFFECTI alEffecti = nullptr;
 		LPALEFFECTF alEffectf = nullptr;
+		LPALEFFECTFV alEffectfv = nullptr;
 		LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = nullptr;
 		LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = nullptr;
 		LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = nullptr;
 		LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf = nullptr;
+		LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf = nullptr;
 		LPALGENFILTERS alGenFilters = nullptr;
 		LPALDELETEFILTERS alDeleteFilters = nullptr;
 		LPALFILTERI alFilteri = nullptr;
@@ -144,10 +160,12 @@ namespace hpl {
 		HPL_LOAD_EFX(alDeleteEffects)
 		HPL_LOAD_EFX(alEffecti)
 		HPL_LOAD_EFX(alEffectf)
+		HPL_LOAD_EFX(alEffectfv)
 		HPL_LOAD_EFX(alGenAuxiliaryEffectSlots)
 		HPL_LOAD_EFX(alDeleteAuxiliaryEffectSlots)
 		HPL_LOAD_EFX(alAuxiliaryEffectSloti)
 		HPL_LOAD_EFX(alAuxiliaryEffectSlotf)
+		HPL_LOAD_EFX(alGetAuxiliaryEffectSlotf)
 		HPL_LOAD_EFX(alGenFilters)
 		HPL_LOAD_EFX(alDeleteFilters)
 		HPL_LOAD_EFX(alFilteri)
@@ -458,30 +476,37 @@ namespace hpl {
 			mlDirectChannels = AL_TRUE;
 
 		//////////////
-		// Reverb slot and effect
+		// Reverb slots and effects: one per send, up to two, so environments
+		// can crossfade. Slots start silent (weight 0).
 		mbEFX = false;
+		mlReverbSlots = 0;
 		if(bEFX && LoadEFX())
 		{
 			ALCint lSends = 0;
 			alcGetIntegerv(mpDevice, ALC_MAX_AUXILIARY_SENDS, 1, &lSends);
+			int lSlots = std::max(0, std::min((int)lSends, kMaxReverbSlots));
 			alGetError();
-			mpEFX->alGenAuxiliaryEffectSlots(1, &mlReverbSlot);
-			mpEFX->alGenEffects(1, &mlReverbEffect);
-			if(lSends > 0 && alGetError() == AL_NO_ERROR)
+			for(int i = 0; i < lSlots; ++i)
 			{
-				mpEFX->alEffecti(mlReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-				mbEAXReverb = alGetError() == AL_NO_ERROR;
-				if(!mbEAXReverb) mpEFX->alEffecti(mlReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-				mpEFX->alAuxiliaryEffectSloti(mlReverbSlot, AL_EFFECTSLOT_EFFECT, (ALint)mlReverbEffect);
-				mpEFX->alAuxiliaryEffectSloti(mlReverbSlot, AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, AL_FALSE);
-				mbEFX = alGetError() == AL_NO_ERROR;
+				mpEFX->alGenAuxiliaryEffectSlots(1, &mlReverbSlot[i]);
+				mpEFX->alGenEffects(1, &mlReverbEffect[i]);
+				if(alGetError() != AL_NO_ERROR) break;
+				if(i == 0)
+				{
+					mpEFX->alEffecti(mlReverbEffect[i], AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+					mbEAXReverb = alGetError() == AL_NO_ERROR;
+				}
+				if(i > 0 || !mbEAXReverb)
+					mpEFX->alEffecti(mlReverbEffect[i], AL_EFFECT_TYPE, mbEAXReverb ? AL_EFFECT_EAXREVERB : AL_EFFECT_REVERB);
+				mpEFX->alAuxiliaryEffectSlotf(mlReverbSlot[i], AL_EFFECTSLOT_GAIN, 0.0f);
+				mpEFX->alAuxiliaryEffectSloti(mlReverbSlot[i], AL_EFFECTSLOT_EFFECT, (ALint)mlReverbEffect[i]);
+				mpEFX->alAuxiliaryEffectSloti(mlReverbSlot[i], AL_EFFECTSLOT_AUXILIARY_SEND_AUTO, AL_FALSE);
+				if(alGetError() != AL_NO_ERROR) break;
+				mfReverbWeight[i] = 0;
+				mlReverbSlots = i + 1;
 			}
-			if(!mbEFX)
-			{
-				if(mlReverbEffect) mpEFX->alDeleteEffects(1, &mlReverbEffect);
-				if(mlReverbSlot) mpEFX->alDeleteAuxiliaryEffectSlots(1, &mlReverbSlot);
-				mlReverbEffect = mlReverbSlot = 0;
-			}
+			mbEFX = mlReverbSlots > 0;
+			if(!mbEFX) DeleteReverb();
 		}
 
 		//////////////
@@ -531,12 +556,7 @@ namespace hpl {
 		mvSources.clear();
 		mlFreeVoices = 0;
 
-		if(mpEFX)
-		{
-			if(mlReverbSlot) mpEFX->alDeleteAuxiliaryEffectSlots(1, &mlReverbSlot);
-			if(mlReverbEffect) mpEFX->alDeleteEffects(1, &mlReverbEffect);
-		}
-		mlReverbSlot = mlReverbEffect = 0;
+		DeleteReverb();
 		mbEFX = false;
 
 		if(mpContext)
@@ -1054,9 +1074,12 @@ namespace hpl {
 		}
 		// Filter parameters are copied when attached, so reattach after changes.
 		alSourcei(aSource.mlId, AL_DIRECT_FILTER, (ALint)(aSource.mbDirectFilter ? lFilter : AL_FILTER_NULL));
-		alSource3i(aSource.mlId, AL_AUXILIARY_SEND_FILTER,
-				   (ALint)(aSource.mbSendToReverb ? mlReverbSlot : AL_EFFECTSLOT_NULL), (ALint)kReverbSend,
-				   (ALint)(aSource.mbSendFilter ? lFilter : AL_FILTER_NULL));
+		for(int i = 0; i < mlReverbSlots; ++i)
+		{
+			alSource3i(aSource.mlId, AL_AUXILIARY_SEND_FILTER,
+					   (ALint)(aSource.mbSendToReverb ? mlReverbSlot[i] : AL_EFFECTSLOT_NULL), (ALint)i,
+					   (ALint)(aSource.mbSendFilter ? lFilter : AL_FILTER_NULL));
+		}
 	}
 
 	void cOpenALDevice::SetLowPassFilter(int alHandle, bool abLowPass)
@@ -1163,17 +1186,53 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	void cOpenALDevice::SetReverbGain(float afGain)
+	void cOpenALDevice::DeleteReverb()
 	{
-		if(!mbEFX) return;
-		mpEFX->alAuxiliaryEffectSlotf(mlReverbSlot, AL_EFFECTSLOT_GAIN, Clamp(afGain, 0, 1));
+		for(int i = 0; i < kMaxReverbSlots; ++i)
+		{
+			if(mpEFX && mlReverbSlot[i]) mpEFX->alDeleteAuxiliaryEffectSlots(1, &mlReverbSlot[i]);
+			if(mpEFX && mlReverbEffect[i]) mpEFX->alDeleteEffects(1, &mlReverbEffect[i]);
+			mlReverbSlot[i] = mlReverbEffect[i] = 0;
+			mfReverbWeight[i] = 0;
+		}
+		mlReverbSlots = 0;
 	}
 
-	void cOpenALDevice::SetReverb(const cOpenALReverb &r)
+	void cOpenALDevice::ApplyReverbGains()
 	{
 		if(!mbEFX) return;
+		for(int i = 0; i < mlReverbSlots; ++i)
+			mpEFX->alAuxiliaryEffectSlotf(mlReverbSlot[i], AL_EFFECTSLOT_GAIN, mfReverbGain * mfReverbWeight[i]);
+	}
+
+	void cOpenALDevice::SetReverbGain(float afGain)
+	{
+		mfReverbGain = Clamp(afGain, 0, 1);
+		ApplyReverbGains();
+	}
+
+	void cOpenALDevice::SetReverbWeight(int alSlot, float afWeight)
+	{
+		if(!mbEFX || alSlot < 0 || alSlot >= mlReverbSlots) return;
+		float fWeight = Clamp(afWeight, 0, 1);
+		if(fWeight == mfReverbWeight[alSlot]) return;
+		mfReverbWeight[alSlot] = fWeight;
+		mpEFX->alAuxiliaryEffectSlotf(mlReverbSlot[alSlot], AL_EFFECTSLOT_GAIN, mfReverbGain * fWeight);
+	}
+
+	float cOpenALDevice::GetReverbSlotGain(int alSlot)
+	{
+		if(!mbEFX || alSlot < 0 || alSlot >= mlReverbSlots) return 0;
+		ALfloat fGain = 0;
+		mpEFX->alGetAuxiliaryEffectSlotf(mlReverbSlot[alSlot], AL_EFFECTSLOT_GAIN, &fGain);
+		return fGain;
+	}
+
+	void cOpenALDevice::SetReverb(int alSlot, const cOpenALReverb &r)
+	{
+		if(!mbEFX || alSlot < 0 || alSlot >= mlReverbSlots) return;
 		sEFX &e = *mpEFX;
-		ALuint id = mlReverbEffect;
+		ALuint id = mlReverbEffect[alSlot];
 
 		if(mbEAXReverb)
 		{
@@ -1200,6 +1259,8 @@ namespace hpl {
 			HPL_EAX(ROOM_ROLLOFF_FACTOR, r.mfRoomRolloffFactor);
 #undef HPL_EAX
 			e.alEffecti(id, AL_EAXREVERB_DECAY_HFLIMIT, r.mbDecayHFLimit ? AL_TRUE : AL_FALSE);
+			e.alEffectfv(id, AL_EAXREVERB_REFLECTIONS_PAN, ClampPan(r.mvReflectionsPan).v);
+			e.alEffectfv(id, AL_EAXREVERB_LATE_REVERB_PAN, ClampPan(r.mvLateReverbPan).v);
 		}
 		else
 		{
@@ -1221,7 +1282,7 @@ namespace hpl {
 		}
 
 		// The slot copies the effect's parameters when the effect is attached.
-		e.alAuxiliaryEffectSloti(mlReverbSlot, AL_EFFECTSLOT_EFFECT, (ALint)id);
+		e.alAuxiliaryEffectSloti(mlReverbSlot[alSlot], AL_EFFECTSLOT_EFFECT, (ALint)id);
 	}
 
 }
