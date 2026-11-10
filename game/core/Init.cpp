@@ -48,6 +48,7 @@
 #include "ui/Inventory.h"
 #include "ui/GameGui.h"
 #include "systems/GameSoundEnvHandler.h"
+#include "systems/GameMist.h"
 #include "ui/Ending.h"
 #include "systems/FadeHandler.h"
 #include "core/SaveHandler.h"
@@ -936,6 +937,9 @@ bool cInit::Init(tString asCommandLine)
 		effects.mfParticleSoft = mpConfig->GetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		effects.mfParticleLight = mpConfig->GetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		effects.mfParticleDark = mpConfig->GetFloat("Graphics","ParticleDark",effects.mfParticleDark);
+		effects.mfMist = mpConfig->GetFloat("Graphics","Mist",effects.mfMist);
+		effects.mfMistLight = mpConfig->GetFloat("Graphics","MistLight",effects.mfMistLight);
+		effects.mlMistSteps = mpConfig->GetInt("Graphics","MistSteps",effects.mlMistSteps);
 		mpGame->GetGraphics()->GetLowLevel()->SetEffects(effects);
 	}
 
@@ -988,6 +992,8 @@ bool cInit::Init(tString asCommandLine)
 	mpRadioHandler = hplNew( cRadioHandler,(this) );
 	mpGameGuiHandler = hplNew( cGameGuiHandler,(this) );
 	mpSoundEnvHandler = hplNew( cGameSoundEnvHandler,(this) );
+	mpMist = hplNew( cGameMist,(this) );
+	mpGame->GetGraphics()->GetRenderer3D()->SetMistSource(mpMist);
 	mpEnding = hplNew( cEnding,(this) );
 	mpInventory = hplNew( cInventory,(this) );
 	mpFadeHandler = hplNew( cFadeHandler,(this) );
@@ -1317,6 +1323,8 @@ void cInit::Exit()
 	// BASE GAME EXIT //////////////////
 	Log(" Exit Button Handler\n");
 	hplDelete( mpButtonHandler );
+	mpGame->GetGraphics()->GetRenderer3D()->SetMistSource(nullptr);
+	hplDelete( mpMist );
 	Log(" Exit Map Handler\n");
 	hplDelete( mpMapHandler );
 	//Log(" Exit Game Scripts\n");
@@ -1479,6 +1487,9 @@ void cInit::Exit()
 		mpConfig->SetFloat("Graphics","ParticleSoft",effects.mfParticleSoft);
 		mpConfig->SetFloat("Graphics","ParticleLight",effects.mfParticleLight);
 		mpConfig->SetFloat("Graphics","ParticleDark",effects.mfParticleDark);
+		mpConfig->SetFloat("Graphics","Mist",effects.mfMist);
+		mpConfig->SetFloat("Graphics","MistLight",effects.mfMistLight);
+		mpConfig->SetInt("Graphics","MistSteps",effects.mlMistSteps);
 	}
 
 	mpConfig->SetInt("Graphics","FSAA",mlFSAA);

@@ -411,7 +411,9 @@ the top switches the panel's windows on and off:
   Click a dot to pick it and C (or the button) switches it; with none
   picked, C switches all the map's systems and the ones made from then on.
   `levelview.py particles` does the same from outside (`new`/`old [NAME]`,
-  `pick NAME|none`, `cycle`).
+  `pick NAME|none`, `cycle`). The mist's sliders are in Render >
+  Shading with the particles' (thickness, lighting, steps, and the boxes
+  it lies in shown); `levelview.py mist` lists the boxes or sets them.
 - **Level editor** and **Stats** (the F3 overlay).
 
 Options such as no flicker and cannot be hurt apply once something in the

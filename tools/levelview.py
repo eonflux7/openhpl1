@@ -821,6 +821,8 @@ LIVE_COMMANDS = {
     "particles": "the particle systems (name, .ps, distance, new/old/-, position), or show "
                  "those an addon replaces as the addon has them or as the game does: "
                  "[new|old [NAME] | pick NAME|none | cycle]",
+    "mist": "the mist's boxes on the map, or set how it is drawn: "
+            "[thickness X | light X | boxes 0|1]",
     "wait": "let FRAMES frames pass",
     "select": "the editor's selection (start --editor): [NODE [focus]]",
     "undo": "undo the editor's last step",

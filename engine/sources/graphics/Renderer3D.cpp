@@ -18,6 +18,7 @@
  */
 #include "graphics/Renderer3D.h"
 #include <cstring>
+#include <cmath>
 
 #include "math/Math.h"
 #include "graphics/Texture.h"
@@ -117,6 +118,11 @@ namespace hpl {
 		if(!mpDiffuseProgram || !mpSolidFogProgram)
 			Error("Couldn't load the renderer's diffuse/fog programs\n");
 
+		mpMistProgram = pProgramManager->CreateProgram("Mist");
+		if(mpMistProgram==nullptr) Warning("Couldn't load the mist program: no mist\n");
+		mpMistSource = nullptr;
+		mlMistDrawn = 0;
+
 
 		///////////////////////////////////
 		//Fog Texture Init
@@ -204,6 +210,7 @@ namespace hpl {
 		if(mpDiffuseProgram) mpResources->GetGpuProgramManager()->Destroy(mpDiffuseProgram);
 
 		if(mpSolidFogProgram)mpResources->GetGpuProgramManager()->Destroy(mpSolidFogProgram);
+		if(mpMistProgram)mpResources->GetGpuProgramManager()->Destroy(mpMistProgram);
 
 		if(mpRefractProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractProgram);
 		if(mpRefractSpecialProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractSpecialProgram);
@@ -408,6 +415,14 @@ namespace hpl {
 		// is behind them
 		mpLowLevelGraphics->ResolveSceneDepth();
 		if(bOcclusionOnly == false) RenderTransparent(apCamera);
+		mpLowLevelGraphics->EndGpuSection();
+
+		////////////////////////////
+		//Mist: over what is see-through too, so that water does not
+		//cover the mist above it
+		if(mbLog) Log("Rendering mist:\n");
+		mpLowLevelGraphics->BeginGpuSection("Mist");
+		if(bOcclusionOnly == false) RenderMist(apWorld, apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
 		mRenderSettings.Reset(mpLowLevelGraphics);
@@ -1172,6 +1187,208 @@ namespace hpl {
 		mRenderSettings.mChannelMode = eMaterialChannelMode_LastEnum;
 
 		return mpPostEffects->GetAmbientOcclusionSettings().mbShowOnly;
+	}
+
+	//-----------------------------------------------------------------------
+
+	/**
+	 * The mist boxes in view (iMistSource), at most eight, the nearest
+	 * first, drawn over the scene in one pass over the whole picture: for
+	 * each pixel the view is stepped through the boxes up to what is seen
+	 * there, the light the mist lets through multiplies the scene and the
+	 * light it sends towards the eye is added (hpl1_Mist.fragment). It is
+	 * lit by the map's ambient light and by the strongest lights near it,
+	 * and in the shadow of the strongest spotlight whose shadow map the
+	 * light passes left, mostly the flashlight. Drawn after what is
+	 * see-through, which is mist-covered as what is behind it is.
+	 */
+	void cRenderer3D::RenderMist(cWorld3D *apWorld, cCamera3D *apCamera)
+	{
+		static const int kVolumes = 8;
+		static const int kLights = 8;
+
+		mvMistVolumes.clear();
+		mlMistDrawn = 0;
+		const cEffectSettings &effects = mpLowLevelGraphics->GetEffects();
+		if(mpMistProgram==nullptr || mpMistSource==nullptr || apWorld==nullptr) return;
+		if(effects.mfMist <= 0 && effects.mbMistBoxes==false) return;
+
+		mpMistSource->GetMistVolumes(apCamera, mvMistVolumes);
+		if(mvMistVolumes.empty()) return;
+
+		///////////////////////////////
+		// The boxes in view, nearest first
+		cVector3f vEye = apCamera->GetPosition();
+		const cMistVolume *vVolumes[kVolumes];
+		float vDists[kVolumes];
+		int lCount = 0;
+		for(const cMistVolume &vol : mvMistVolumes)
+		{
+			if(vol.mfDensity <= 0) continue;
+			cBoundingVolume bv;
+			bv.SetLocalMinMax(vol.mvMin, vol.mvMax);
+			if(mRenderSettings.mpFrustum && mRenderSettings.mpFrustum->CollideBoundingVolume(&bv) == eFrustumCollision_Outside)
+				continue;
+			cVector3f vNear(cMath::Clamp(vEye.x, vol.mvMin.x, vol.mvMax.x),
+							cMath::Clamp(vEye.y, vol.mvMin.y, vol.mvMax.y),
+							cMath::Clamp(vEye.z, vol.mvMin.z, vol.mvMax.z));
+			float fDist = cMath::Vector3Dist(vEye, vNear);
+			int lAt = lCount;
+			while(lAt > 0 && vDists[lAt-1] > fDist) --lAt;
+			if(lAt >= kVolumes) continue;
+			for(int i=cMath::Min(lCount, kVolumes-1); i>lAt; --i)
+			{
+				vVolumes[i] = vVolumes[i-1];
+				vDists[i] = vDists[i-1];
+			}
+			vVolumes[lAt] = &vol;
+			vDists[lAt] = fDist;
+			if(lCount < kVolumes) ++lCount;
+		}
+		if(lCount == 0) return;
+
+		// Linear colour, lit by the map's ambient light
+		const cColor &amb = mRenderSettings.mAmbientColor;
+		float fAmb = std::pow(cMath::Clamp(cMath::Max(amb.r, cMath::Max(amb.g, amb.b)), 0.0f, 1.0f), 2.2f);
+		cVector3f vUnionMin(1e9f), vUnionMax(-1e9f);
+		for(int i=0; i<lCount; ++i)
+		{
+			const cMistVolume &vol = *vVolumes[i];
+			vUnionMin = cVector3f(cMath::Min(vUnionMin.x, vol.mvMin.x), cMath::Min(vUnionMin.y, vol.mvMin.y), cMath::Min(vUnionMin.z, vol.mvMin.z));
+			vUnionMax = cVector3f(cMath::Max(vUnionMax.x, vol.mvMax.x), cMath::Max(vUnionMax.y, vol.mvMax.y), cMath::Max(vUnionMax.z, vol.mvMax.z));
+			const cColor &col = vol.mColor;
+			mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistMin, i), vol.mvMin.x, vol.mvMin.y, vol.mvMin.z, 0);
+			mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistMax, i), vol.mvMax.x, vol.mvMax.y, vol.mvMax.z, 0);
+			mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistShape, i),
+				vol.mfDensity * cMath::Max(effects.mfMist, 0.0f), cMath::Max(vol.mfFalloff, 0.05f),
+				cMath::Max(vol.mfSoftness, 0.05f), cMath::Clamp(vol.mfNoise, 0.0f, 1.0f));
+			mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistColor, i),
+				std::pow(col.r, 2.2f) * fAmb, std::pow(col.g, 2.2f) * fAmb, std::pow(col.b, 2.2f) * fAmb, 0);
+		}
+		mlMistDrawn = lCount;
+		cBoundingVolume unionBV;
+		unionBV.SetLocalMinMax(vUnionMin, vUnionMax);
+
+		///////////////////////////////
+		// The lights that reach the mist: the strongest few
+		int lLights = 0;
+		int lShadowed = 0;
+		if(effects.mfMistLight > 0)
+		{
+			iLight3D *vLights[kLights];
+			float vScores[kLights];
+			cVector3f vCentre = unionBV.GetWorldCenter();
+			cLight3DListIterator lightIt = apWorld->GetLightIterator();
+			while(lightIt.HasNext())
+			{
+				iLight3D *pLight = lightIt.Next();
+				if(pLight->IsVisible()==false) continue;
+				const cColor &col = pLight->GetDiffuseColor();
+				float fBright = cMath::Max(col.r, cMath::Max(col.g, col.b)) * pLight->GetLook().mfBrightness;
+				if(fBright <= 0.01f || pLight->GetFarAttenuation() <= 0) continue;
+				if(pLight->CollidesWithBV(&unionBV)==false) continue;
+
+				// Near the mist or near the eye: the flashlight lights the
+				// air in front of it wherever the mist's middle is
+				float fDist = cMath::Min(cMath::Vector3Dist(pLight->GetLightPosition(), vCentre),
+										 cMath::Vector3Dist(pLight->GetLightPosition(), vEye));
+				float fScore = fBright * cMath::Max(1.0f - fDist / (pLight->GetFarAttenuation() + unionBV.GetRadius()), 0.05f);
+
+				int lAt = lLights;
+				while(lAt > 0 && vScores[lAt-1] < fScore) --lAt;
+				if(lAt >= kLights) continue;
+				for(int i=cMath::Min(lLights, kLights-1); i>lAt; --i)
+				{
+					vLights[i] = vLights[i-1];
+					vScores[i] = vScores[i-1];
+				}
+				vLights[lAt] = pLight;
+				vScores[lAt] = fScore;
+				if(lLights < kLights) ++lLights;
+			}
+
+			for(int i=0; i<lLights; ++i)
+			{
+				iLight3D *pLight = vLights[i];
+				const cLightLook &look = pLight->GetLook();
+				cVector3f vPos = pLight->GetLightPosition();
+				cColor col = pLight->GetDiffuseColor() * look.mTint * look.mfBrightness;
+				float fEdge = -2.0f;
+				cVector3f vDir(0,0,-1);
+				if(pLight->GetLightType() == eLight3DType_Spot)
+				{
+					cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(pLight);
+					// A spotlight shines along its own -z
+					vDir = pSpot->GetViewMatrix().GetForward() * -1.0f;
+					fEdge = std::cos(pSpot->GetFOV() * 0.5f * (look.mbBeam ? look.mfBeamWidth : 1.0f));
+				}
+				mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistLightPos, i), vPos.x, vPos.y, vPos.z, pLight->GetFarAttenuation());
+				mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistLightColor, i),
+					std::pow(cMath::Max(col.r, 0.0f), 2.2f), std::pow(cMath::Max(col.g, 0.0f), 2.2f),
+					std::pow(cMath::Max(col.b, 0.0f), 2.2f), fEdge);
+				mpMistProgram->SetVec4f(iGpuProgram::Element(eProgramParam::mistLightDir, i), vDir.x, vDir.y, vDir.z, 0);
+
+				if(lShadowed == 0 && pLight->GetLightType() == eLight3DType_Spot)
+				{
+					for(const cRenderSettings::cFrameShadow &shadow : mRenderSettings.mvFrameShadows)
+					{
+						if(shadow.mpLight != pLight) continue;
+						if(mpLowLevelGraphics->BindRetainedShadowMap(shadow.mlCacheId)==false) break;
+						cLight3DSpot *pSpot = static_cast<cLight3DSpot*>(pLight);
+						mpMistProgram->SetMatrixf(eProgramParam::mistShadowView, pSpot->GetViewMatrix());
+						mpMistProgram->SetVec4f(eProgramParam::mistShadow, shadow.mfNear, shadow.mfFar,
+												shadow.mvUvScale.x, shadow.mvUvScale.y);
+						lShadowed = i + 1;
+						break;
+					}
+				}
+			}
+		}
+
+		mpMistProgram->SetVec4f(eProgramParam::mistParams, (float)lCount, (float)lLights,
+								(float)cMath::Clamp(effects.mlMistSteps, 2, 64), (float)lShadowed);
+		mpMistProgram->SetVec4f(eProgramParam::mistLook, mfAccumulatedFrameTime, cMath::Max(effects.mfMistLight, 0.0f),
+								effects.mbMistBoxes ? 1.0f : 0.0f, 0);
+
+		///////////////////////////////
+		// Let go of what the passes before left set
+		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
+		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
+		mRenderSettings.mpVtxBuffer = nullptr;
+		mRenderSettings.mpProgram = nullptr;
+		for(int i=0; i<MAX_TEXTUREUNITS; ++i)
+		{
+			if(mRenderSettings.mpTexture[i]==nullptr) continue;
+			mpLowLevelGraphics->SetTexture(i,nullptr);
+			mRenderSettings.mpTexture[i] = nullptr;
+		}
+
+		mpLowLevelGraphics->ResolveSceneDepth();
+		mpLowLevelGraphics->SetDepthTestActive(false);
+		mpLowLevelGraphics->SetAlphaCutoff(0);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, false);
+		mpLowLevelGraphics->SetBlendActive(true);
+		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One, eBlendFunc_OneMinusSrcAlpha);
+		const cDrawMatrices previousMatrices = mpLowLevelGraphics->GetDrawMatrices();
+		cVector2f vSize = mpLowLevelGraphics->GetVirtualSize();
+		mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
+			mpLowLevelGraphics->CreateOrthoProjection(vSize, -1000, 1000));
+
+		mpMistProgram->Bind();
+		// One triangle that reaches past the target (see
+		// cRendererPostEffects::DrawAmbientOcclusionPass)
+		mpLowLevelGraphics->DrawTriangles({
+			cVertex(cVector3f(0,0,40),cVector2f(0,1),cColor(1,1.0f)),
+			cVertex(cVector3f(vSize.x * 2,0,40),cVector2f(2,1),cColor(1,1.0f)),
+			cVertex(cVector3f(0,vSize.y * 2,40),cVector2f(0,-1),cColor(1,1.0f))});
+		mpMistProgram->UnBind();
+
+		mpLowLevelGraphics->SetDrawMatrices(previousMatrices);
+		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
+		mpLowLevelGraphics->SetDepthTestActive(mRenderSettings.mbDepthTest);
+		mRenderSettings.mBlendMode = eMaterialBlendMode_LastEnum;
+		mRenderSettings.mChannelMode = eMaterialChannelMode_LastEnum;
+		mRenderSettings.mbMatrixWasNULL = false;
 	}
 
 	//-----------------------------------------------------------------------

@@ -1710,7 +1710,7 @@ void cRefView::DrawShading()
 
 	///////////////////////////////////////////
 	// Halos, shafts of light
-	if(ImGui::CollapsingHeader("Halos, light shafts and particles##section", ImGuiTreeNodeFlags_DefaultOpen))
+	if(ImGui::CollapsingHeader("Halos, light shafts, particles and mist##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		cEffectSettings effects = pLowLevel->GetEffects();
 		bChanged = false;
@@ -1749,7 +1749,7 @@ void cRefView::DrawShading()
 				"they meet the floor and walls and close to the eye, and all but fire and sparks are "
 				"lit by the lamps and the flashlight around them: dim in the dark, as bright as the original "
 				"draws them in the light. "
-				"Light is not stopped by walls on its way to them.");
+				"Only the flashlight's light is stopped by walls on its way to them.");
 		bChanged |= ImGui::SliderFloat("Soft edges", &effects.mfParticleSoft, 0.0f, 3.0f, "%.2f");
 		if(ImGui::IsItemHovered())
 			Tip("The distance over which a particle fades out in front of what is behind it, in times "
@@ -1761,6 +1761,27 @@ void cRefView::DrawShading()
 		if(ImGui::IsItemHovered())
 			Tip("Their brightness where no light reaches them, where the original's is 1. The map's "
 				"ambient light is added to it.");
+
+		ImGui::TextUnformatted("Mist");
+		if(ImGui::IsItemHovered())
+			Tip("Damp air where the maps have it: a low layer over water, and pockets where mist, fog "
+				"and steam are let out. It hides what is behind it a little and shows where light falls "
+				"on it: the beam of the flashlight, with the shadows of what stands in it, and the glow "
+				"round lamps.");
+		bChanged |= ImGui::SliderFloat("Thickness##mist", &effects.mfMist, 0.0f, 3.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("1: as the game puts it. 0: no mist.");
+		bChanged |= ImGui::SliderFloat("Lighting##mist", &effects.mfMistLight, 0.0f, 3.0f, "%.2f");
+		if(ImGui::IsItemHovered()) Tip("How much the lamps and the flashlight light it up.");
+		bChanged |= ImGui::SliderInt("Steps##mist", &effects.mlMistSteps, 2, 32);
+		if(ImGui::IsItemHovered()) Tip("Samples along the view through each pocket: more is smoother and slower.");
+		bChanged |= ImGui::Checkbox("Show the pockets##mist", &effects.mbMistBoxes);
+		if(ImGui::IsItemHovered())
+		{
+			cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+			Tip(("Draws the edges of the boxes the mist is in. " +
+				std::to_string(pRenderer->GetMistVolumes().size()) + " on this map, " +
+				std::to_string(pRenderer->GetMistVolumesDrawn()) + " drawn (at most 8).").c_str());
+		}
 		ImGui::PopItemWidth();
 
 		if(bChanged) pLowLevel->SetEffects(effects);

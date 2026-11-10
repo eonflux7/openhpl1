@@ -24,6 +24,7 @@
 using namespace hpl;
 
 class cMapHandler;
+class cGameMist;
 class cAddonWatcher;
 class cLevelEditor;
 class cLiveControl;
@@ -268,6 +269,7 @@ public:
 	cRadioHandler *mpRadioHandler;
 	cGameGuiHandler *mpGameGuiHandler;
 	cGameSoundEnvHandler *mpSoundEnvHandler;
+	cGameMist *mpMist; // where the mist is (cRenderer3D::SetMistSource)
 	cEnding *mpEnding;
 	cMapLoadText *mpMapLoadText;
 	cPreMenu *mpPreMenu;

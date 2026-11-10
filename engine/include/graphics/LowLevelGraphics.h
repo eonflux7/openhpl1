@@ -178,6 +178,20 @@ namespace hpl {
 		float mfParticleLight = 1.0f;
 		/// Their brightness with no light on them, where the original's is 1.
 		float mfParticleDark = 0.55f;
+		/**
+		 * Mist: air that holds water or steam, in soft boxes that the game
+		 * puts where the maps have it (cRenderer3D::SetMistSource): over
+		 * water and where mist, fog and steam are let out. It hides what
+		 * is behind it a little and is seen where light falls on it.
+		 */
+		/// How thick it is, in times the thickness the game gives it. 0: none.
+		float mfMist = 1.0f;
+		/// How much the lamps and the flashlight light it up.
+		float mfMistLight = 1.0f;
+		/// Steps through each box along a pixel's view: more is smoother and slower.
+		int mlMistSteps = 12;
+		/// Debug: draws the boxes' edges as thick mist.
+		bool mbMistBoxes = false;
 	};
 
 	enum eFilmGrain

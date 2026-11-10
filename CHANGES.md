@@ -52,6 +52,8 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
   turns; every emitter of a system warms up, for as long as its file asks.
 - Smoke, dust and mist are dim in the dark and lit by nearby lamps and the
   flashlight, whose shadow map keeps it from lighting them through walls.
+- Mist lies low over water and around the maps' mist, fog and steam: it
+  veils what is behind it and shows the flashlight's beam and lamps' glow.
 - Fixed: fogged maps drawn as flat fog colour, sheared odd-width images, and
   the black screen and transparent window on modern drivers and Wayland.
 

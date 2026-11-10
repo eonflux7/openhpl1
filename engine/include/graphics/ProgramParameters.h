@@ -75,7 +75,18 @@ enum class eProgramParam : unsigned {
 	t = 134,
 	partShadowView = 135,
 	partShadow = 139,
-	Count = 140
+	mistMin = 140,
+	mistMax = 148,
+	mistShape = 156,
+	mistColor = 164,
+	mistLightPos = 172,
+	mistLightColor = 180,
+	mistLightDir = 188,
+	mistShadowView = 196,
+	mistShadow = 200,
+	mistParams = 201,
+	mistLook = 202,
+	Count = 203
 };
 }
 #endif

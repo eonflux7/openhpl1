@@ -1,0 +1,186 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// Mist (cRenderer3D::RenderMist): up to eight soft boxes of air that holds water or
+// steam, drawn over the scene. For each pixel the view is stepped through
+// each box it passes, nearest first, up to what is seen there. At each
+// step the mist takes away part of the light behind it and sends some of
+// the light that falls on it towards the eye: the map's ambient light and
+// up to eight lamps, one of them (mostly the flashlight) in its shadow
+// map's shadow. The light that is let through multiplies the scene and
+// what is sent towards the eye is added (blended One, OneMinusSrcAlpha).
+//
+// A box is thickest at its bottom and thins out upward (by mistShape.y
+// metres to a third) and within mistShape.z of its sides. Slow drifting
+// noise makes it patchy (mistShape.w).
+//
+// mistParams: x boxes, y lights, z steps per box, w shadowed light + 1
+// mistLook: x seconds, y how much the lights count, z 1: show the boxes
+
+#define HPL_LINEAR_COLOR
+#define HPL_NO_CLAMP
+
+OUTPUT
+
+#include "hpl1_scene_depth.glsl"
+
+uniform sampler2DShadow hpl_ShadowMap;
+
+float Hash(vec3 p)
+{
+	p = fract(p * 0.3183099 + 0.1);
+	p *= 17.0;
+	return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float Noise(vec3 p)
+{
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(Hash(i + vec3(0,0,0)), Hash(i + vec3(1,0,0)), f.x),
+				   mix(Hash(i + vec3(0,1,0)), Hash(i + vec3(1,1,0)), f.x), f.y),
+			   mix(mix(Hash(i + vec3(0,0,1)), Hash(i + vec3(1,0,1)), f.x),
+				   mix(Hash(i + vec3(0,1,1)), Hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
+
+float Density(int i, vec3 p)
+{
+	vec3 vMin = mistMin[i].xyz, vMax = mistMax[i].xyz;
+	vec4 shape = mistShape[i];
+	float h = p.y - vMin.y;
+	float fDensity = shape.x * exp(-h / shape.y);
+	// Thins out at the top and towards the sides
+	fDensity *= 1.0 - smoothstep(0.75, 1.0, h / max(vMax.y - vMin.y, 0.01));
+	float fSide = min(min(p.x - vMin.x, vMax.x - p.x), min(p.z - vMin.z, vMax.z - p.z));
+	fDensity *= smoothstep(0.0, shape.z, fSide);
+	if(shape.w > 0.0)
+	{
+		float t = mistLook.x;
+		vec3 q = p * 0.7 + vec3(t * 0.07, t * 0.015, t * 0.05);
+		float n = Noise(q) * 0.65 + Noise(q * 2.3 - vec3(t * 0.04, 0.0, 0.0)) * 0.35;
+		fDensity *= mix(1.0, smoothstep(0.15, 0.85, n) * 2.0, shape.w);
+	}
+	return fDensity;
+}
+
+float Shadow(vec3 avWorld)
+{
+	vec3 p = (mistShadowView * vec4(avWorld, 1.0)).xyz;
+	float n = mistShadow.x, f = mistShadow.y;
+	float dist = -p.z - 0.05;
+	if(dist <= n || dist >= f) return 1.0;
+	vec2 uv = 0.5 + p.xy / -p.z * mistShadow.zw;
+	if(any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return 0.0;
+	float depth = 0.5 * ((f + n) - 2.0 * f * n / dist) / (f - n) + 0.5;
+	return texture(hpl_ShadowMap, vec3(uv, depth));
+}
+
+// Light falling on the mist at p, sent along -avView towards the eye
+vec3 InLight(int i, vec3 p, vec3 avView)
+{
+	vec3 vLit = mistColor[i].rgb;
+	int lLights = int(mistParams.y);
+	int lShadowed = int(mistParams.w) - 1;
+	for(int l=0; l<lLights; ++l)
+	{
+		vec3 vTo = p - mistLightPos[l].xyz;
+		float fReach = mistLightPos[l].w;
+		float fDist2 = dot(vTo, vTo);
+		float fAmount = clamp(1.0 - fDist2 / (fReach * fReach), 0.0, 1.0);
+		if(fAmount <= 0.0) continue;
+		fAmount *= fAmount;
+		vec3 vDir = vTo * inversesqrt(max(fDist2, 1e-6));
+		float fEdge = mistLightColor[l].w;
+		if(fEdge > -1.5)
+			fAmount *= smoothstep(fEdge, mix(fEdge, 1.0, 0.35), dot(vDir, mistLightDir[l].xyz));
+		if(fAmount <= 0.0) continue;
+		if(l == lShadowed) fAmount *= Shadow(p);
+		// More of it goes on forward than to the sides (Henyey-Greenstein,
+		// g = 0.35, 1 for light going on evenly in all directions). Of the
+		// light that falls on it, a quarter goes towards any one side as
+		// much as a white wall facing the light sends back: spread over
+		// all directions instead of over half of them, at a slant
+		const float g = 0.35;
+		float c = dot(vDir, -avView);
+		float fPhase = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * c, 1.5);
+		vLit += mistLightColor[l].rgb * (fAmount * fPhase * 0.25 * mistLook.y);
+	}
+	return vLit;
+}
+
+void main()
+{
+	ivec2 vPixel = ivec2(gl_FragCoord.xy);
+	vec2 ndc = gl_FragCoord.xy * hpl_RenderSize.zw * 2.0 - 1.0;
+	vec3 vViewDir = vec3((ndc.x + hpl_Projection[2][0]) / hpl_Projection[0][0],
+						 (ndc.y + hpl_Projection[2][1]) / hpl_Projection[1][1], -1.0);
+	// The camera's view turned into the world
+	vec3 vRay = transpose(mat3(hpl_View)) * vViewDir;
+	float fLength = length(vRay);
+	vec3 vDir = vRay / fLength;
+	vec3 vEye = hpl_EyePos.xyz;
+	float fEnd = min(hpl_SceneDistanceAt(vPixel), 1e4) * fLength;
+
+	// The boxes along the view, nearest first
+	int lBoxes = int(mistParams.x);
+	float vNear[8], vFar[8];
+	int vOrder[8];
+	int lHit = 0;
+	vec3 vInv = 1.0 / mix(vDir, vec3(1e-6), lessThan(abs(vDir), vec3(1e-6)));
+	for(int i=0; i<lBoxes; ++i)
+	{
+		vec3 t0 = (mistMin[i].xyz - vEye) * vInv;
+		vec3 t1 = (mistMax[i].xyz - vEye) * vInv;
+		vec3 tMin = min(t0, t1), tMax = max(t0, t1);
+		float fNear = max(max(tMin.x, tMin.y), max(tMin.z, 0.0));
+		float fFar = min(min(tMax.x, tMax.y), min(tMax.z, fEnd));
+		if(fFar <= fNear) continue;
+		int j = lHit;
+		while(j > 0 && vNear[j-1] > fNear)
+		{
+			vNear[j] = vNear[j-1]; vFar[j] = vFar[j-1]; vOrder[j] = vOrder[j-1];
+			--j;
+		}
+		vNear[j] = fNear; vFar[j] = fFar; vOrder[j] = i;
+		++lHit;
+	}
+	if(lHit == 0) discard;
+
+	// The same step pattern for a pixel every frame: no crawling noise
+	float fJitter = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+	int lSteps = int(mistParams.z);
+	float fThrough = 1.0;
+	vec3 vSent = vec3(0.0);
+	for(int k=0; k<lHit; ++k)
+	{
+		int i = vOrder[k];
+		float fStep = (vFar[k] - vNear[k]) / float(lSteps);
+		for(int s=0; s<lSteps; ++s)
+		{
+			vec3 p = vEye + vDir * (vNear[k] + (float(s) + fJitter) * fStep);
+			float fDensity = Density(i, p);
+			if(fDensity <= 0.0) continue;
+			float fKept = exp(-fDensity * fStep);
+			vSent += fThrough * (1.0 - fKept) * InLight(i, p, vDir);
+			fThrough *= fKept;
+		}
+		if(mistLook.z > 0.5)
+		{
+			// The box's edges where the view enters and leaves it
+			vec3 a = vEye + vDir * vNear[k], b = vEye + vDir * vFar[k];
+			vec3 vMin = mistMin[i].xyz, vMax = mistMax[i].xyz;
+			for(int e=0; e<2; ++e)
+			{
+				vec3 q = e == 0 ? a : b;
+				vec3 d = min(abs(q - vMin), abs(q - vMax));
+				// Near two faces at once: on an edge
+				float fFaces = float(d.x < 0.04) + float(d.y < 0.04) + float(d.z < 0.04);
+				if(fFaces >= 2.0) { vSent = mix(vSent, vec3(0.2, 0.6, 1.0), 0.8); fThrough *= 0.2; }
+			}
+		}
+		if(fThrough < 0.003) break;
+	}
+
+	outColor = vec4(vSent, 1.0 - fThrough);
+}

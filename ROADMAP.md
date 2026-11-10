@@ -199,9 +199,11 @@ and original tuning values are in the
       default it on; do not apply the old “no menu option” claim to them.
 - [ ] Consider object velocities for camera motion blur if the absence of
       independently moving-object blur is noticeable.
-- [ ] Consider particle shadows, shader detail for small particle images,
-      velocity stretching and swirling smoke.
-- [ ] Consider a volumetric flashlight cone sampled through its shadow map.
+- [ ] Consider shader detail for small particle images, velocity stretching
+      and swirling smoke. Particles already take the flashlight's shadow.
+- [ ] Tune the mist (`game/systems/GameMist.cpp`) map by map and measure its
+      GPU cost. Its pockets come from liquid areas and mist/fog/steam
+      particle systems; the flashlight's cone shows only inside them.
 
 ## Further performance work
 

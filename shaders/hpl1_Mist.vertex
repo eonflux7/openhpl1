@@ -1,0 +1,10 @@
+// This file is part of OpenHPL1, licensed under the GNU GPL v3 or
+// later. See COPYING.
+
+// A triangle over the whole scene for the mist (cRenderer3D::RenderMist).
+
+
+void main()
+{
+	gl_Position = worldViewProj * hpl_Vertex;
+}

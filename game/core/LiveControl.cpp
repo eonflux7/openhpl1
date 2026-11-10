@@ -493,6 +493,29 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 		mOut << "switched " << lCount << "\n";
 		return true;
 	}
+	if(sCmd == "mist")
+	{
+		// The mist's boxes on the map, or how thick and lit it is drawn
+		iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
+		cEffectSettings effects = pLowLevel->GetEffects();
+		if(avArgs.size() > 1)
+		{
+			if(avArgs.size() < 3 || (avArgs[1] != "thickness" && avArgs[1] != "light" && avArgs[1] != "boxes"))
+				return Fail("mist [thickness <x> | light <x> | boxes <0|1>]");
+			float fValue = cString::ToFloat(avArgs[2].c_str(), 1.0f);
+			if(avArgs[1] == "thickness") effects.mfMist = fValue;
+			else if(avArgs[1] == "light") effects.mfMistLight = fValue;
+			else effects.mbMistBoxes = fValue != 0;
+			pLowLevel->SetEffects(effects);
+			return true;
+		}
+		cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
+		mOut << "thickness " << effects.mfMist << " light " << effects.mfMistLight
+			 << " drawn " << pRenderer->GetMistVolumesDrawn() << "\n";
+		for(const cMistVolume &vol : pRenderer->GetMistVolumes())
+			mOut << Vec(vol.mvMin) << "\t" << Vec(vol.mvMax) << "\tdensity " << vol.mfDensity << "\n";
+		return true;
+	}
 	if(sCmd == "shot")
 	{
 		if(avArgs.size() < 2) return Fail("shot <file.png> [frames] [2d] [panel]");

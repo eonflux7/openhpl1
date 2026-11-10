@@ -824,7 +824,7 @@ static void TestProgramParameters()
 		for(unsigned col=0; col<4; ++col)
 			Check(data[col * 4 + row] == matrix.m[row][col], "std140 matrix keeps column-major order");
 	Check(!a.SetFloat(eProgramParam::Count, 1), "invalid parameter cannot overwrite block");
-	Check(!a.SetMatrixf(eProgramParam::partShadow, matrix), "matrix cannot overrun block");
+	Check(!a.SetMatrixf(eProgramParam::mistLook, matrix), "matrix cannot overrun block");
 }
 
 class TestRenderMaterial : public iMaterial

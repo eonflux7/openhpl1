@@ -41,6 +41,7 @@ namespace hpl {
 	typedef tFlag tRendererDebugFlag;
 
 	class cResources;
+	class iGpuProgram;
 	class iLowLevelGraphics;
 	class iLowLevelResources;
 	class iTexture;
@@ -220,6 +221,35 @@ namespace hpl {
 
 	//---------------------------------------------
 
+	/**
+	 * A soft box of mist (hpl1_Mist.fragment). World space. It is thickest
+	 * at its bottom and thins out upward and towards its sides.
+	 */
+	class cMistVolume
+	{
+	public:
+		cVector3f mvMin, mvMax;
+		/// Thickness at the bottom: how much of the light is taken away over a metre, 0 to about 1.
+		float mfDensity = 0.2f;
+		/// The height over which the thickness falls to a third, in metres.
+		float mfFalloff = 1.0f;
+		/// The distance from the sides over which it thins out, in metres.
+		float mfSoftness = 1.0f;
+		/// How patchy it is, 0 to 1: drifting clumps.
+		float mfNoise = 0.5f;
+		/// Its colour where only the map's ambient light falls on it (screen value).
+		cColor mColor = cColor(0.6f, 0.62f, 0.65f, 1.0f);
+	};
+
+	/// Where the mist is, asked each frame: the game knows the maps.
+	class iMistSource
+	{
+	public:
+		virtual ~iMistSource(){}
+		/// Adds the boxes of the world drawn by apCamera.
+		virtual void GetMistVolumes(cCamera3D *apCamera, std::vector<cMistVolume> &avVolumes)=0;
+	};
+
 	class cRenderer3D
 	{
 	public:
@@ -267,6 +297,13 @@ namespace hpl {
 
 		void SetPostEffects(cRendererPostEffects *apPostEffects){ mpPostEffects = apPostEffects;}
 
+		/// What says where the mist is; NULL: none. Not owned.
+		void SetMistSource(iMistSource *apSource){ mpMistSource = apSource;}
+		/// The boxes of the last frame, as the source gave them.
+		const std::vector<cMistVolume>& GetMistVolumes(){ return mvMistVolumes;}
+		/// How many of them were drawn in the last frame.
+		int GetMistVolumesDrawn(){ return mlMistDrawn;}
+
 
 		//Debug setup
 		void SetDebugFlags(tRendererDebugFlag aFlags){ mDebugFlags = aFlags;}
@@ -308,6 +345,8 @@ namespace hpl {
 
 		bool RenderAmbientOcclusion(cCamera3D *apCamera);
 
+		void RenderMist(cWorld3D *apWorld, cCamera3D *apCamera);
+
 		void RenderDiffuse(cCamera3D *apCamera);
 
 		void RenderTransparent(cCamera3D *apCamera);
@@ -333,6 +372,11 @@ namespace hpl {
 
 		iGpuProgram *mpDiffuseProgram;
 		iGpuProgram *mpSolidFogProgram;
+
+		iGpuProgram *mpMistProgram;
+		iMistSource *mpMistSource;
+		std::vector<cMistVolume> mvMistVolumes;
+		int mlMistDrawn;
 
 		iTexture *mpFogLinearSolidTexture;
 

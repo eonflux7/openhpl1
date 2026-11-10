@@ -128,4 +128,15 @@ layout(std140) uniform hpl_Material
 	float hpl_padding_t_2;
 	mat4 partShadowView;
 	vec4 partShadow;
+	vec4 mistMin[8];
+	vec4 mistMax[8];
+	vec4 mistShape[8];
+	vec4 mistColor[8];
+	vec4 mistLightPos[8];
+	vec4 mistLightColor[8];
+	vec4 mistLightDir[8];
+	mat4 mistShadowView;
+	vec4 mistShadow;
+	vec4 mistParams;
+	vec4 mistLook;
 };
