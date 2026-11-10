@@ -40,7 +40,12 @@ commit), and the last official Linux build on Steam.
   windows in the game and inside the editor (View → Debug panels). Clicking
   through the live control's `mouse` command, In this map listed `coffinkey`,
   `dextrin`, `battery1` and the rest, and Take put `coffinkey` in the
-  inventory and took it out of the list. Not checked by hand: Give from the
+  inventory and took it out of the list. The ASan/UBSan build passes CTest
+  (`detect_leaks=0`). Its game run with the panels open (the item list
+  read) reports nothing in this code. At exit it reports two problems in
+  vendored code this change does not touch: AngelScript's
+  `as_string.cpp:187` (a null argument) and a new/delete type mismatch in
+  `cOAL_EFXManager::Destroy()`. Not checked by hand: Give from the
   file lists, start positions, coordinates, bookmarks across maps, and Black
   Plague's items.
 
