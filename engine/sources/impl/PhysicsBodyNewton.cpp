@@ -356,6 +356,16 @@ namespace hpl {
 	void cPhysicsBodyNewton::SetEnabled(bool abEnabled)
 	{
 		NewtonBodySetFreezeState(mpNewtonBody, abEnabled ? 0 : 1);
+
+		//Newton 1's unfreeze woke a body at rest. Newton 2 keeps sleeping apart
+		//from freezing, and only an impulse clears it, so without this nothing
+		//woke what had gone to sleep: crates stayed in the air after what they
+		//lay on was moved or switched off (Requiem level 3's container).
+		if(abEnabled && NewtonBodyGetSleepState(mpNewtonBody))
+		{
+			const cVector3f vZero(0,0,0);
+			NewtonBodyAddImpulse(mpNewtonBody, vZero.v, GetWorldPosition().v);
+		}
 	}
 	bool cPhysicsBodyNewton::GetEnabled() const
 	{
