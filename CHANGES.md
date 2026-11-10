@@ -21,7 +21,11 @@ commit), and the last official Linux build on Steam.
   passes. In the editor (`levelview.py`, 1080x720), dragging the God
   window's left edge widened it from 335 to 512 px and its table followed.
   After the game was stopped and started again, the window came back at that
-  position and size (`[Window][God] Pos=558,271 Size=515,442`).
+  position and size (`[Window][God] Pos=558,271 Size=515,442`). The
+  game (not the editor) loaded the same layout. The ASan/UBSan build
+  passes CTest (`detect_leaks=0`). Its game run with the panels open
+  reports only the two problems in vendored code noted below, AngelScript's
+  `as_string.cpp:187` and `cOAL_EFXManager::Destroy()` at exit.
 
 ## Compact debug panels: Render, Move and God (2026-11-10)
 
