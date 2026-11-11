@@ -55,6 +55,7 @@ namespace hpl {
 
 		mbLoop =false;
 		mbPaused = false;
+		mbTimeJumped = false;
 
 		mfSpecialEventTime =0;
 
@@ -182,6 +183,7 @@ namespace hpl {
 
 	void cAnimationState::SetTimePosition(float afPosition)
 	{
+		if(mbActive) mbTimeJumped = true;
 		mfTimeDelta = 0;
 		if(mbLoop && mfLength > 0)
 		{
@@ -238,6 +240,7 @@ namespace hpl {
 		if(mbActive == abActive) return;
 
 		mbActive = abActive;
+		mbTimeJumped = true;
 
 		//Should this really be here?
 		mbPaused = false;
@@ -289,7 +292,9 @@ namespace hpl {
 		mfPrevTimePos = mfTimePos;
 
 		float fDelta = afAdd*mfSpeed*mfBaseSpeed;
+		bool bTimeJumped = mbTimeJumped;
 		SetTimePosition(mfTimePos + fDelta);
+		mbTimeJumped = bTimeJumped;
 		mfTimeDelta = mbLoop ? fDelta : mfTimePos - mfPrevTimePos;
 	}
 

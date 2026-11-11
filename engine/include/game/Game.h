@@ -192,6 +192,13 @@ namespace hpl {
 		void SetLimitFPS(bool abX){ mbLimitFPS = abX;}
 		bool GetLimitFPS(){ return mbLimitFPS;}
 
+		/**
+		 * The most frames drawn per second with the 60 FPS limit off, 0 for
+		 * no cap. V-Sync can cap them further.
+		 */
+		void SetMaxFPS(int alX){ mlMaxFPS = alX > 0 ? alX : 0;}
+		int GetMaxFPS(){ return mlMaxFPS;}
+
 	private:
 		bool mbGameIsDone;
 
@@ -211,6 +218,7 @@ namespace hpl {
 		cFPSCounter* mpFPSCounter;
 
 		bool mbLimitFPS;
+		int mlMaxFPS;
 
 		//Modules that Game connnect to:
 		cResources *mpResources;

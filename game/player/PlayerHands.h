@@ -183,6 +183,19 @@ private:
 	// along with the camera for a frame (see OnInterpolate).
 	std::vector<std::pair<cMeshEntity*, cMatrixf> > mvInterpolatedModels;
 
+	// The matrices Update() gave each current hud model in the last two
+	// logic steps (cRenderInterpolation), for blending its sway.
+	class cHudModelSteps
+	{
+	public:
+		cMeshEntity *mpEntity = nullptr;
+		cMatrixf m_mtxPrev;
+		cMatrixf m_mtxLast;
+		unsigned int mlLastStep = 0;
+		bool mbPrevValid = false;
+	};
+	cHudModelSteps mvHudModelSteps[2];
+
 	cMeshManager *mpMeshManager;
 
 	tVector3fList mlstPositions;

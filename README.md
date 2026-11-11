@@ -67,8 +67,9 @@ The highlights. The full list is in [CHANGES.md](CHANGES.md).
   the original did; the computer text is a pixel-exact pixel font
 - **High-resolution HUD** images, an inventory drawer with health and battery
   bars, a remastered notebook, and keys in tips shown as key caps
-- Frame rates **above 60 FPS**, with the 60 Hz game logic interpolated and
-  mouse look that doesn't lag; turning speed no longer depends on resolution
+- Frame rates **above 60 FPS**, with the 60 Hz game logic interpolated
+  (animation and particles included), an optional frame-rate cap, and mouse
+  look that doesn't lag; turning speed no longer depends on resolution
 - Gamma that only affects the game's window; display, resolution and
   fullscreen options
 

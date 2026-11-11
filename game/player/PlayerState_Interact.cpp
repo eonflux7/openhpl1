@@ -782,13 +782,7 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 
 	///////////////////////////////////////////////////////////////////////
 	// Project the position of the pick point and set is as crosshair pos
-	cVector3f vProjPos = cMath::MatrixMul(mpPlayer->GetCamera()->GetViewMatrix(),mvPickPoint);
-	vProjPos = cMath::MatrixMulDivideW(mpPlayer->GetCamera()->GetProjectionMatrix(),vProjPos);
-
-	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
-	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
-	mpPlayer->SetCrossHairPos(cVector2f((vProjPos.x+1)*0.5f*vScreenSize.x + vScreenPos.x,
-										((-vProjPos.y)+1)*0.5f*vScreenSize.y + vScreenPos.y));
+	mpPlayer->SetCrossHairPos(ProjectToScreen(mvPickPoint));
 
 	/////////////////////////////////////////////////
 	// Check if the camera should be turned
@@ -805,6 +799,29 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 		mpPlayer->GetCamera()->AddPitch( (vBorder.y - vCrossPos.y)/600 * mpPlayer->GetLookSpeed());
 	if(vCrossPos.y > (599 - vBorder.y))
 		mpPlayer->GetCamera()->AddPitch( -(vCrossPos.y - (599 - vBorder.y))/600 * mpPlayer->GetLookSpeed());
+}
+
+//-----------------------------------------------------------------------
+
+cVector2f cPlayerState_Move::ProjectToScreen(const cVector3f &avWorldPos)
+{
+	cVector3f vProjPos = cMath::MatrixMul(mpPlayer->GetCamera()->GetViewMatrix(),avWorldPos);
+	vProjPos = cMath::MatrixMulDivideW(mpPlayer->GetCamera()->GetProjectionMatrix(),vProjPos);
+
+	cVector3f vScreenPos = mpInit->mpGraphicsHelper->GetScreenPos();
+	cVector2f vScreenSize = mpInit->mpGraphicsHelper->GetScreenSize();
+	return cVector2f((vProjPos.x+1)*0.5f*vScreenSize.x + vScreenPos.x,
+					 ((-vProjPos.y)+1)*0.5f*vScreenSize.y + vScreenPos.y);
+}
+
+// The pick point is on the body, so in a frame between two logic steps it
+// is where the body is drawn, seen from the camera of the frame.
+bool cPlayerState_Move::GetFrameCrossHairPos(cVector2f &avPos)
+{
+	if(cRenderInterpolation::IsFrame()==false || mpPushBody==nullptr || mpPushBody->GetNode()==nullptr) return false;
+
+	avPos = ProjectToScreen(cMath::MatrixMul(mpPushBody->GetNode()->GetWorldMatrix(),mvRelPickPoint));
+	return true;
 }
 
 //-----------------------------------------------------------------------

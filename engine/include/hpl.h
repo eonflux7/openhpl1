@@ -105,6 +105,7 @@
 #include "scene/Camera3D.h"
 #include "scene/RenderableContainer.h"
 #include "scene/MeshEntity.h"
+#include "scene/RenderInterpolation.h"
 #include "scene/Light3DPoint.h"
 #include "scene/Light3DSpot.h"
 #include "scene/AnimationState.h"

@@ -169,6 +169,11 @@ namespace hpl {
 		 * interpolation is applied.
 		 */
 		const cMatrixf& GetLogicMatrix(){ return m_mtxLogic;}
+		/**
+		 * The camera's node matrix as it was before the last logic step.
+		 * Kept only while cRenderInterpolation is enabled.
+		 */
+		const cMatrixf& GetInterpolationPrevMatrix(){ return m_mtxInterpolatePrev;}
 
 		// Pitch limits: x is the upper bound, y the lower; (0, 0) disables them.
 		void SetPitchLimits(cVector2f avLimits){ mvPitchLimits = avLimits;}
@@ -245,6 +250,7 @@ namespace hpl {
 		float mfLogicYaw;
 		float mfLogicRoll;
 		cMatrixf m_mtxLogic;
+		cMatrixf m_mtxInterpolatePrev;
 	};
 
 };

@@ -1660,6 +1660,7 @@ cMainMenuWidget_Text *gpBloomText=nullptr;
 cMainMenuWidget_Text *gpMotionBlurText=nullptr;
 cMainMenuWidget_Text *gpVSyncText=nullptr;
 cMainMenuWidget_Text *gpLimitFPSText=nullptr;
+cMainMenuWidget_Text *gpMaxFPSText=nullptr;
 cMainMenuWidget_Text *gpTextureQualityText=nullptr;
 cMainMenuWidget_Text *gpShadowsText=nullptr;
 cMainMenuWidget_Text *gpTextureFilterText=nullptr;
@@ -2480,7 +2481,7 @@ public:
 		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
 	{
 		// Not in the game's language files
-		msTip = _W("Off: frames are drawn as fast as possible, or at the display's rate with VSync on. The game itself still runs at 60 steps per second.");
+		msTip = _W("Off: frames are drawn as fast as possible (up to the frame rate cap), or at the display's rate with VSync on. The game itself still runs at 60 steps per second.");
 	}
 
 	void OnMouseDown(eMButton aButton) override
@@ -2488,6 +2489,51 @@ public:
 		mpInit->mpGame->SetLimitFPS(!mpInit->mpGame->GetLimitFPS());
 
 		gpLimitFPSText->msText = mpInit->mpGame->GetLimitFPS() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	}
+};
+
+//------------------------------------------------------------
+
+// The caps offered for the frame rate with the 60 FPS limit off; 0 is none.
+// The settings file can hold another.
+static const int gvMaxFPS[] = {0, 75, 90, 100, 120, 144, 165, 240, 360};
+static const int glMaxFPSNum = sizeof(gvMaxFPS) / sizeof(gvMaxFPS[0]);
+
+static tWString GetMaxFPSText(cInit *mpInit)
+{
+	int lMax = mpInit->mpGame->GetMaxFPS();
+	if(lMax <= 0) return kTranslate("MainMenu","Off");
+	return cString::To16Char(cString::ToString(lMax));
+}
+
+class cMainMenuWidget_MaxFPS : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_MaxFPS(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
+	{
+		// Not in the game's language files
+		msTip = _W("The most frames drawn per second when Limit to 60 FPS is off. Off: as many as can be drawn, or the display's rate with VSync on.");
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		// The next cap above (left button) or below (right) the current one
+		int lMax = mpInit->mpGame->GetMaxFPS();
+		int lIdx = -1;
+		if(aButton == eMButton_Right)
+		{
+			for(int i=glMaxFPSNum-1; i>=0; --i) if(gvMaxFPS[i] < lMax){ lIdx = i; break; }
+			if(lIdx < 0) lIdx = glMaxFPSNum-1;
+		}
+		else
+		{
+			for(int i=0; i<glMaxFPSNum; ++i) if(gvMaxFPS[i] > lMax){ lIdx = i; break; }
+			if(lIdx < 0) lIdx = 0;
+		}
+
+		mpInit->mpGame->SetMaxFPS(gvMaxFPS[lIdx]);
+		gpMaxFPSText->msText = GetMaxFPSText(mpInit);
 	}
 };
 
@@ -4304,40 +4350,43 @@ void cMainMenu::CreateWidgets()
 	//Buttons
 	cMainMenuWidget *pTextureQualityButton = hplNew( cMainMenuWidget_TextureQuality,(mpInit,vPos,kTranslate("MainMenu","Texture Quality:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureQualityButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pShadowsButton = hplNew( cMainMenuWidget_Shadows,(mpInit,vPos,kTranslate("MainMenu","Shadows:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pShadowsButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pPostEffectsButton = hplNew( cMainMenuWidget_PostEffects,(mpInit,vPos,kTranslate("MainMenu","Post Effects:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pPostEffectsButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pMotionBlurButton = hplNew( cMainMenuWidget_MotionBlur,(mpInit,vPos,kTranslate("MainMenu","Motion Blur:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pMotionBlurButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pVSyncButton = hplNew( cMainMenuWidget_VSync,(mpInit,vPos,kTranslate("MainMenu","VSync:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pVSyncButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pLimitFPSButton = hplNew( cMainMenuWidget_LimitFPS,(mpInit,vPos,_W("Limit to 60 FPS:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLimitFPSButton); 
-	vPos.y += 22;
+	vPos.y += 21;
+	cMainMenuWidget *pMaxFPSButton = hplNew( cMainMenuWidget_MaxFPS,(mpInit,vPos,_W("Frame Rate Cap:"),20,eFontAlign_Right) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pMaxFPSButton);
+	vPos.y += 21;
 	cMainMenuWidget *pTextureFilterButton = hplNew( cMainMenuWidget_TextureFilter,(mpInit,vPos,kTranslate("MainMenu","Texture Filter:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pTextureFilterButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pFSAAButton = hplNew( cMainMenuWidget_FSAA,(mpInit,vPos,kTranslate("MainMenu","Anti-Aliasing:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pFSAAButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pSmaaButton = hplNew( cMainMenuWidget_Smaa,(mpInit,vPos,_W("Edge Smoothing (SMAA):"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pSmaaButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pRenderScaleButton = hplNew( cMainMenuWidget_RenderScale,(mpInit,vPos,_W("Render Scale:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pRenderScaleButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pAmbientOcclusionButton = hplNew( cMainMenuWidget_AmbientOcclusion,(mpInit,vPos,_W("Ambient Occlusion:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pAmbientOcclusionButton); 
-	vPos.y += 22;
+	vPos.y += 21;
 	cMainMenuWidget *pDOFButton = hplNew( cMainMenuWidget_DOF,(mpInit,vPos,kTranslate("MainMenu","Depth of Field:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pDOFButton); 
-	vPos.y += 31;
+	vPos.y += 28;
     AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_OptionsGraphics,23,eFontAlign_Center)) );
 
 	//Text
@@ -4348,43 +4397,48 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureQualityText); 
 	gpTextureQualityText->SetExtraWidget(pTextureQualityButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = GetShadowOptionText(mpInit, mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows());
 	gpShadowsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpShadowsText); 
 	gpShadowsText->SetExtraWidget(pShadowsButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive() ?	kTranslate("MainMenu","On") : 
 																					kTranslate("MainMenu","Off");
 	gpPostEffectsText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left ));
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpPostEffectsText);
 	gpPostEffectsText->SetExtraWidget(pPostEffectsButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = GetMotionBlurText(mpInit);
 	gpMotionBlurText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpMotionBlurText);
 	gpMotionBlurText->SetExtraWidget(pMotionBlurButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = mpInit->mbVsync ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpVSyncText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpVSyncText);
 	gpVSyncText->SetExtraWidget(pVSyncButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = mpInit->mpGame->GetLimitFPS() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpLimitFPSText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLimitFPSText);
 	gpLimitFPSText->SetExtraWidget(pLimitFPSButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
+	gpMaxFPSText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetMaxFPSText(mpInit),20,eFontAlign_Left) );
+	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpMaxFPSText);
+	gpMaxFPSText->SetExtraWidget(pMaxFPSButton);
+
+	vPos.y += 21;
 	gpTextureFilterText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetTextureFilterText(mpInit),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpTextureFilterText);
 	gpTextureFilterText->SetExtraWidget(pTextureFilterButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	int lFSAA = mpInit->mlFSAA;
 	if(lFSAA!=0)	sText = cString::To16Char(cString::ToString(lFSAA)+"x");
 	else			sText = kTranslate("MainMenu","Off");
@@ -4392,23 +4446,23 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpFSAAText);
 	gpFSAAText->SetExtraWidget(pFSAAButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	gpSmaaText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetSmaaText(mpInit),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpSmaaText);
 	gpSmaaText->SetExtraWidget(pSmaaButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	gpRenderScaleText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetRenderScaleText(mpInit->mpGame->GetGraphics()->GetRenderScale()),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpRenderScaleText);
 	gpRenderScaleText->SetExtraWidget(pRenderScaleButton);
 
 
-	vPos.y += 22;
+	vPos.y += 21;
 	gpAmbientOcclusionText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,GetAmbientOcclusionText(mpInit),20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpAmbientOcclusionText);
 	gpAmbientOcclusionText->SetExtraWidget(pAmbientOcclusionButton);
 
-	vPos.y += 22;
+	vPos.y += 21;
 	sText = GetDoFText(mpInit);
 
 	gpDoFText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );

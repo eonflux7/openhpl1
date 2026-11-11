@@ -37,6 +37,7 @@
 
 #include "system/LowLevelSystem.h"
 #include "game/LowLevelGameSetup.h"
+#include "scene/RenderInterpolation.h"
 
 namespace hpl {
 
@@ -297,6 +298,7 @@ namespace hpl {
 		mlLogicStepCount =0;
 
 		mbLimitFPS = true;
+		mlMaxFPS = 0;
 
 		mpFPSCounter = hplNew( cFPSCounter,(mpSystem->GetLowLevel()) );
 		Log("--------------------------------------------------------\n\n");
@@ -370,10 +372,33 @@ namespace hpl {
 
 		bool mbIsUpdated = true;
 
+		// When the next frame may start, with the frame rate capped.
+		double fNextFrameTime = 0;
+
 		//cMemoryManager::SetLogCreation(true);
 
 		while(!mbGameIsDone)
 		{
+			// What is drawn between logic steps blends from the state before
+			// the last step; with the frame rate limited, or fixed steps,
+			// that state is not kept.
+			cRenderInterpolation::SetEnabled(mbLimitFPS==false && mpLogicTimer->GetFixedStep()==false);
+
+			// Without the 60 FPS limit a frame is drawn each time round. With
+			// a cap, rest until the next one may start; a frame that took
+			// longer than its share does not make the next ones hurry.
+			if(mbLimitFPS==false && mlMaxFPS > 0 && mpLogicTimer->GetFixedStep()==false)
+			{
+				double fNow = GetApplicationTimeExact();
+				if(fNextFrameTime > fNow)
+				{
+					mpSystem->GetLowLevel()->SleepPrecise(fNextFrameTime - fNow);
+					fNow = GetApplicationTimeExact();
+				}
+				fNextFrameTime += 1000.0 / (double)mlMaxFPS;
+				if(fNextFrameTime < fNow) fNextFrameTime = fNow;
+			}
+
 			//Log("-----------------\n");
 			//////////////////////////
 			//Update logic.

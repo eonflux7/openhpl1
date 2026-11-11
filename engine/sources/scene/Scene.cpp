@@ -39,6 +39,7 @@
 
 #include "resources/FileSearcher.h"
 #include "resources/MeshLoaderHandler.h"
+#include "scene/RenderInterpolation.h"
 
 namespace hpl {
 
@@ -213,6 +214,8 @@ namespace hpl {
 
 	void cScene::StoreInterpolation()
 	{
+		cRenderInterpolation::BeginStep();
+
 		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
 		{
 			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->StoreInterpolation();
@@ -224,6 +227,8 @@ namespace hpl {
 
 	void cScene::ApplyInterpolation(float afT)
 	{
+		cRenderInterpolation::BeginFrame(afT);
+
 		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
 		{
 			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->ApplyInterpolation(afT);
@@ -235,6 +240,8 @@ namespace hpl {
 
 	void cScene::RestoreInterpolation()
 	{
+		cRenderInterpolation::EndFrame();
+
 		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
 		{
 			if((*it)->GetType() == eCameraType_3D) static_cast<cCamera3D*>(*it)->RestoreInterpolation();
