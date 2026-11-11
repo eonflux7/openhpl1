@@ -142,6 +142,8 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 			//Player
 			if(apCollideBody == mpInit->mpPlayer->GetCharacterBody()->GetBody())
 			{
+				Log("Player hit by '%s' at %.2f m/s, %.2f rad/s: %.1f damage\n", mpObject->GetName().c_str(),
+					apBody->GetLinearVelocity().Length(), apBody->GetAngularVelocity().Length(), fDamage);
 				mpInit->mpPlayer->Damage(fDamage, ePlayerDamageType_BloodSplash);
 			}
 			//Entity

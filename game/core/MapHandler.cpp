@@ -1160,7 +1160,10 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				iArea3DLoader *pLoader = pWorld->GetResources()->GetArea3DLoader(sType);
 				if(pLoader)
 				{
-					pLoader->Load(pSaveEntity->msName,vSize,pSaveEntity->m_mtxTransform,pWorld);
+					//Saves from before SplitScale keep the parent's scale in the matrix
+					cMatrixf mtxArea = pSaveEntity->m_mtxTransform;
+					iArea3DLoader::SplitScale(vSize, mtxArea);
+					pLoader->Load(pSaveEntity->msName,vSize,mtxArea,pWorld);
 
 					iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
 					pGameEntity->LoadFromSaveData(pSaveEntity);
@@ -1918,14 +1921,26 @@ void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
 		if(fTop <= vCenter.y) continue;
 
 		//From the top of the body down to its middle: a floor in between
-		//means the middle is under it
-		cStaticRayCallback callback;
-		callback.mpSkip = pBody;
-		cVector3f vStart(vCenter.x, fTop, vCenter.z);
-		pPhysicsWorld->CastRay(&callback, vStart, vCenter, true, true, true);
-		if(callback.mfMinT > 0.99f || callback.mvNormal.y < 0.7f) continue;
+		//means the middle is under it. The floor must be under the whole
+		//body, so the ray is also cast near the corners: Requiem level 5's
+		//chair is placed partly under a desk and was lifted onto it, into
+		//the computer there.
+		cVector3f vHalf = (pBV->GetMax() - pBV->GetMin()) * 0.5f * 0.8f;
+		const float vOffsets[5][2] = {{0,0}, {-1,-1}, {1,-1}, {-1,1}, {1,1}};
+		float fFloorY = 0;
+		bool bUnderFloor = true;
+		for(int i=0; i<5 && bUnderFloor; ++i)
+		{
+			cStaticRayCallback callback;
+			callback.mpSkip = pBody;
+			cVector3f vEnd(vCenter.x + vOffsets[i][0]*vHalf.x, vCenter.y, vCenter.z + vOffsets[i][1]*vHalf.z);
+			cVector3f vStart(vEnd.x, fTop, vEnd.z);
+			pPhysicsWorld->CastRay(&callback, vStart, vEnd, true, true, true);
+			if(callback.mfMinT > 0.99f || callback.mvNormal.y < 0.7f) bUnderFloor = false;
+			else if(i == 0) fFloorY = fTop + (vCenter.y - fTop) * callback.mfMinT;
+		}
+		if(!bUnderFloor) continue;
 
-		float fFloorY = fTop + (vCenter.y - fTop) * callback.mfMinT;
 		float fLift = fFloorY - pBV->GetMin().y + 0.002f;
 		if(fLift <= 0) continue;
 

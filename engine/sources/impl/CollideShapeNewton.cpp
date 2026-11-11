@@ -18,6 +18,9 @@
  */
 #include "impl/CollideShapeNewton.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "physics/PhysicsWorld.h"
 #include "system/LowLevelSystem.h"
 
@@ -72,9 +75,19 @@ namespace hpl {
 												mvSize.x, mvSize.y,
 												0, pMtx); break;
 
-		case eCollideShapeType_Capsule:		mpNewtonCollision = NewtonCreateCapsule(apNewtonWorld,
-												mvSize.x, mvSize.y,
-												0, pMtx); break;
+		case eCollideShapeType_Capsule:
+		{
+			// Newton 1.53 kept at least 0.05 of straight cylinder on each side
+			// of the centre; 2.36 keeps only 0.01. Pass the height 1.53 ended up
+			// with so short capsules (the Dog's neck, egg spiders) keep their
+			// original shape and mass centre.
+			float fRadius = std::fabs(mvSize.x);
+			float fHalfCylinder = std::max(0.05f, std::fabs(mvSize.y * 0.5f) - fRadius);
+			mpNewtonCollision = NewtonCreateCapsule(apNewtonWorld,
+												mvSize.x, 2.0f * (fHalfCylinder + fRadius),
+												0, pMtx);
+			break;
+		}
 		}
 
 		////////////////////////////////////////////

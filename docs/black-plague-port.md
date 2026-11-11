@@ -95,6 +95,41 @@ the joint limits were changed (through an `OVERTURE_OLD_LIMITS` switch since
 removed), and `check.sh` there tries the tower lever
 and Requiem level 2's doors.
 
+The original games still run (32-bit, with the Steam runtime's
+`usr/lib/i386-linux-gnu` and the game's `lib/` on `LD_LIBRARY_PATH`), which
+answers what the original does with a map. Run a *copy* of `requiem.bin` in
+a folder of symlinks to the game's files: the binary changes to the folder it
+really lives in, and it rewrites out-of-date `.collcach` files there. A
+separate `HOME` holds its `settings.cfg` (`<Map File=... StartPos=...>`,
+`ShowPreMenu`/`ShowMenu` false, a small window, volume 0) and an
+`.asoundrc` with `pcm.!default { type null }` (its OpenAL does not take the
+null driver). A copied level script with its own timers drives the test;
+its `Print` is not logged, but `SetGameEntityActive("MARKER", false)` puts
+`Couldn't find game entity 'MARKER'` in `hpl.log`. ImageMagick's
+`import -window Penumbra` saves the window. This showed that Requiem
+level 9's `moveback` area covers only its parent's scaled box (below).
+
+Under gdb, a breakpoint on one of the original's exported Newton functions
+shows what the game hands it (`NewtonBodySetCentreOfMass`'s vector is at
+`*(float**)($esp+8)`), and gdb's Python can log every call to a file and
+pair bodies with their shapes. Compared with the same breakpoints on the
+port this found that Newton 1.53 integrated a shape's mass over its faces
+but skipped faces whose first three corners span a normal of squared length
+≤ 1e-8 (the ends of cylinders under about 7.5 cm radius), and divided by
+at least 0.001 m³; `PhysicsBodyNewton.cpp` now does the same. 1.53 also
+kept at least 0.05 m of straight capsule on each side of the centre where
+2.36 keeps 0.01, so `CollideShapeNewton.cpp` passes 2.36 the longer height.
+With both, the bodies that Requiem's levels, 11 Black Plague maps and 12
+Overture maps create while loading have the original's centre of mass and
+inertia (within 5 mm and 5 %).
+
+Areas take their size from their own scale; a scaled parent node leaves its
+scale in the area's matrix. Newton 1.53 collided with the box as that matrix
+scaled it, Newton 2.36 does not, so the loader moves the matrix's scale into
+the size (`iArea3DLoader::SplitScale`, also for areas from older saves). Only
+Requiem has such areas: level 9's `moveback`, `dumpme`, `play*` and four
+others, and level 8's `stepbehind9`–`12` and `descvalve1`–`3`.
+
 The script functions' own code is not at their `_Generic` symbol but, without
 a name, at the end of the symbol before it: follow the `call` in the wrapper.
 

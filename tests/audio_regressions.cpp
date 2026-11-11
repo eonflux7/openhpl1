@@ -244,6 +244,18 @@ static void TestHandlesAndPause()
 	Wait(device, 30);
 	Check(!device.IsPlaying(lPaused), "unpausing an ended sample does not replay it");
 
+	// Channels start paused and play on unpause. A source whose last sound
+	// ended by itself is stopped, not initial, and must still start.
+	for(int i = 0; i < 2; ++i)
+	{
+		int lReused = device.PlaySample(pSample.get(), 10, 1, true);
+		device.SetPaused(lReused, false);
+		Wait(device, 30);
+		Check(device.IsPlaying(lReused), "a sample started paused on a reused source plays");
+		Wait(device, 300);
+		Check(!device.IsPlaying(lReused), "the reused source's sample finishes");
+	}
+
 	int lFirst = device.PlaySample(pSample.get(), 10, 1, false);
 	device.Stop(lFirst);
 	Check(!device.IsPlaying(lFirst), "stopped handle is not playing");

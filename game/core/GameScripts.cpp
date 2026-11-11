@@ -705,6 +705,7 @@ SCRIPT_DEFINE_FUNC_2(void,SetPlayerPose,string,bool)
 static void __stdcall SetPlayerActive(bool abActive)
 {
 	gpInit->mpPlayer->SetActive(abActive);
+	if(cInit::IsOverture()==false) gpInit->mpGameMessageHandler->ClearMessages();
 }
 SCRIPT_DEFINE_FUNC_1(void,SetPlayerActive,bool)
 

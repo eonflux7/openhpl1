@@ -59,6 +59,7 @@ public:
 
 	void Add(const tWString& asText);
 	void ShowNext();
+	void ClearMessages();
 
 	void Update(float afTimeStep) override;
 	void OnDraw() override;

@@ -48,11 +48,15 @@
 #include "tinyxml.h"
 #include "impl/LowLevelPhysicsNewton.h"
 #include "impl/PhysicsWorldNewton.h"
+#include "impl/CollideShapeNewton.h"
 #include "physics/CollideData.h"
+#include "physics/Physics.h"
 #include "physics/PhysicsBody.h"
+#include "physics/PhysicsMaterial.h"
 #include "physics/PhysicsJointHinge.h"
 #include "physics/PhysicsJointSlider.h"
 #include "physics/PhysicsJointScrew.h"
+#include "physics/SurfaceData.h"
 
 // Exercise search/cache internals without a physics world or graphics context.
 // These tests still call the actual engine methods, including CPU skinning.
@@ -703,6 +707,101 @@ static void TestCollideSameCentre()
 	}
 }
 
+// An area under a scaled parent (Requiem level 9's moveback) collides as the
+// scaled box, as with Newton 1.53, not as its unscaled size.
+static void TestAreaParentScale()
+{
+	cMatrixf mtxArea = cMath::MatrixMul(cMath::MatrixRotateY(cMath::ToRad(30.0f)),
+		cMath::MatrixScale(cVector3f(0.5f, 0.25f, 0.25f)));
+	mtxArea.SetTranslation(cVector3f(1, -7, -50));
+	cVector3f vSize(176, 20, 96);
+	iArea3DLoader::SplitScale(vSize, mtxArea);
+	CheckVector(vSize, cVector3f(88, 5, 24), "area size with the parent's scale");
+	for(int lAxis=0; lAxis<3; ++lAxis)
+		Check(Near(cVector3f(mtxArea.m[0][lAxis], mtxArea.m[1][lAxis], mtxArea.m[2][lAxis]).Length(), 1),
+			"area matrix without scale");
+	CheckVector(mtxArea.GetTranslation(), cVector3f(1, -7, -50), "area position");
+
+	cVector3f vSizeAgain = vSize;
+	iArea3DLoader::SplitScale(vSizeAgain, mtxArea);
+	CheckVector(vSizeAgain, vSize, "splitting an unscaled area again");
+
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	iCollideShape *pArea = world.CreateBoxShape(vSize, nullptr);
+	iCollideShape *pPlayer = world.CreateSphereShape(cVector3f(0.3f), nullptr);
+	cCollideData collideData;
+	collideData.SetMaxSize(1);
+	cMatrixf mtxPlayer = cMatrixf::Identity;
+	mtxPlayer.SetTranslation(cVector3f(1, -7, -50));
+	Check(world.CheckShapeCollision(pPlayer, mtxPlayer, pArea, mtxArea, collideData, 1),
+		"player in the middle of a scaled area");
+	mtxPlayer.SetTranslation(cVector3f(1, 1, -50));
+	Check(world.CheckShapeCollision(pPlayer, mtxPlayer, pArea, mtxArea, collideData, 1) == false,
+		"player above a scaled area, inside its unscaled size");
+}
+
+// Centres of mass as Newton 1.53 gave them (values read from requiem.bin):
+// the ends of thin cylinders were left out, and volumes under 0.001 m³ counted
+// as 0.001. Requiem level 5's pipe only fits its socket with its old centre.
+static void TestMassLikeNewton153()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	world.SetWorld3D(nullptr);
+
+	// items_pipe.ent: two long cylinders along x, three at 45° and two along z.
+	struct sCylinder { float mfHeight; float mfCos, mfSin; cVector3f mvPos; };
+	const sCylinder vCylinders[] = {
+		{0.633170f, 1, 0, cVector3f(0.057014f, 0, 0.088936f)},
+		{0.094518f, 0.707107f, 0.707107f, cVector3f(0.452412f, 0, 0.130936f)},
+		{0.170702f, 0, 1, cVector3f(0.482327f, 0, 0.263821f)},
+		{0.170702f, 0, 1, cVector3f(0.482327f, 0, 0.263821f)},
+		{0.094518f, 0.707107f, 0.707107f, cVector3f(0.452412f, 0, 0.130936f)},
+		{0.094518f, 0.707107f, 0.707107f, cVector3f(0.452412f, 0, 0.130936f)},
+		{0.633170f, 1, 0, cVector3f(0.057014f, 0, 0.088936f)},
+	};
+	tCollideShapeVec vShapes;
+	for(const sCylinder &cylinder : vCylinders)
+	{
+		// The cylinder's axis (Newton's x) turned about y to (cos, 0, sin).
+		float vMtx[16] = {	cylinder.mfCos,	0, -cylinder.mfSin,	cylinder.mvPos.x,
+							0,				1, 0,				cylinder.mvPos.y,
+							cylinder.mfSin,	0, cylinder.mfCos,	cylinder.mvPos.z,
+							0,				0, 0,				1};
+		cMatrixf mtxOffset(vMtx);
+		vShapes.push_back(world.CreateCylinderShape(0.059487f, cylinder.mfHeight, &mtxOffset));
+	}
+	iPhysicsBody *pPipe = world.CreateBody("pipe", world.CreateCompoundShape(vShapes));
+	pPipe->SetMass(12);
+	CheckVector(pPipe->GetMassCentre(), cVector3f(0.473549f, 0, 0.271507f), "centre of mass of Requiem's pipe");
+
+	// level05_spin_machine_stick.ent: a box of 0.00067 m³ away from the origin.
+	float vBox[16] = {	1, 0,			0,			-1.90586f,
+						0, -0.573578f,	-0.819151f,	0.930224f,
+						0, 0.819151f,	-0.573578f,	0.567329f,
+						0, 0,			0,			1};
+	cMatrixf mtxBox(vBox);
+	iPhysicsBody *pStick = world.CreateBody("stick",
+		world.CreateBoxShape(cVector3f(0.063525f, 0.07154f, 0.146751f), &mtxBox));
+	pStick->SetMass(1);
+	CheckVector(pStick->GetMassCentre(), cVector3f(-1.271054f, 0.620385f, 0.378364f), "centre of mass of a small box");
+
+	// Larger shapes: the centre of their volume.
+	iPhysicsBody *pCrate = world.CreateBody("crate", world.CreateBoxShape(cVector3f(0.5f), &mtxBox));
+	pCrate->SetMass(1);
+	CheckVector(pCrate->GetMassCentre(), mtxBox.GetTranslation(), "centre of mass of a crate");
+
+	// Newton 1.53 kept at least 0.05 m of straight capsule on each side of the
+	// centre (2.36 keeps 0.01); a Black Plague egg spider's capsule needs it.
+	auto *pCapsule = static_cast<cCollideShapeNewton*>(world.CreateCapsuleShape(0.0833f, 0.1858f, nullptr));
+	cMatrixf mtxIdentity = cMatrixf::Identity;
+	cVector3f vMin, vMax;
+	NewtonCollisionCalculateAABB(pCapsule->GetNewtonCollision(), &mtxIdentity.m[0][0], &vMin.x, &vMax.x);
+	// Newton pads bounding boxes equally on every side.
+	Check(std::fabs((vMax.x - vMax.y) - 0.05f) < 0.001f, "short capsule keeps Newton 1.53's length");
+}
+
 // A scripted limit must move an island that Newton has already put to sleep.
 static void TestSleepingJointLimits()
 {
@@ -783,6 +882,61 @@ static void TestPassThroughStatic()
 	Check(world.GetBodyOverlap(body, floor) > 0.05f, "a body inside another overlaps it");
 	for(int i = 0; i < 120; ++i) world.Simulate(1.0f / 60);
 	Check(body->GetWorldPosition().y < -1, "a body set to pass through falls through a static body");
+}
+
+class TestMeshBuffer : public TestVertexBuffer
+{
+public:
+	explicit TestMeshBuffer(int count) : TestVertexBuffer(count) {}
+	std::vector<unsigned> indices;
+	unsigned* GetIndices() override { return indices.data(); }
+	int GetIndexNum() override { return (int)indices.size(); }
+};
+
+// Requiem's pipes are double-sided: a second mesh repeats the faces with the
+// winding reversed. Newton 1.53 dropped contacts with those back faces; Newton
+// 2.36 gave their edge contacts the face normal, pulling a ball rolling inside
+// into the floor until it stopped (level 6's energy orb, level 7's barrels).
+static void TestMeshBackFaces()
+{
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysics physics(&lowLevel);
+	cSurfaceData surface("test", &physics, nullptr);
+	surface.SetMinScrapeContacts(1);
+	cPhysicsWorldNewton world;
+	world.SetWorld3D(nullptr);
+	world.SetWorldSize(cVector3f(-20), cVector3f(20));
+	world.GetMaterialFromName("Default")->SetSurfaceData(&surface);
+
+	// A V-shaped trough falling 0.2 m per metre, cut into 1 m segments
+	const int lSegments = 14;
+	const float vAcross[3][2] = {{-0.6f, 0.3f}, {0, 0}, {0.6f, 0.3f}};
+	for(bool bReversed : {false, true})
+	{
+		TestMeshBuffer buffer((lSegments + 1) * 3);
+		for(int i = 0; i <= lSegments; ++i)
+		for(int j = 0; j < 3; ++j)
+		{
+			float *pPos = &buffer.positions[(i * 3 + j) * 4];
+			pPos[0] = (float)i; pPos[1] = -0.2f * i + vAcross[j][1]; pPos[2] = vAcross[j][0];
+		}
+		for(int i = 0; i < lSegments; ++i)
+		for(int j = 0; j < 2; ++j)
+		{
+			const unsigned a = i * 3 + j, b = a + 1, c = a + 3, d = a + 4;
+			for(unsigned lIdx : {a, b, d, a, d, c}) buffer.indices.push_back(lIdx);
+			if(bReversed) std::reverse(buffer.indices.end() - 6, buffer.indices.end());
+		}
+		world.CreateBody(bReversed ? "reversed" : "trough", world.CreateMeshShape(&buffer));
+	}
+
+	auto *ball = world.CreateBody("ball", world.CreateSphereShape(cVector3f(0.4f), nullptr));
+	ball->SetMass(32);
+	ball->SetMatrix(cMath::MatrixTranslate(cVector3f(0.5f, -0.1f + 0.46f, 0)));
+	for(int i = 0; i < 180; ++i) world.Simulate(1.0f / 60);
+	// It rolls about 5.5 m in 3 s; held by the back faces it stops after 0.6 m
+	Check(ball->GetWorldPosition().x > 4.5f, "a ball rolls through a double-sided mesh trough");
+	world.GetMaterialFromName("Default")->SetSurfaceData(nullptr);
 }
 
 class TestProgram : public iGpuProgram
@@ -1201,6 +1355,7 @@ int hplMain(const hpl::tString&)
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
+		TestMeshBackFaces(); TestAreaParentScale(); TestMassLikeNewton153();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestFontPlainText(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
 		RunModelRegressions(directory);

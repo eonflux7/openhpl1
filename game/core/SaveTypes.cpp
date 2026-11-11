@@ -250,6 +250,7 @@ void cEnginePS_SaveData::FromPS(cParticleSystem3D *apPS)
 		msType = apPS->GetDataName();
 		mvSize = apPS->GetDataSize();
 		m_mtxTransform = apPS->GetWorldMatrix();
+		mbActive = apPS->IsActive();
 
 		mvEmitterActive.Resize(apPS->GetEmitterNum());
 		for(int i=0; i< apPS->GetEmitterNum(); ++i)
@@ -273,6 +274,12 @@ void cEnginePS_SaveData::ToPS(cParticleSystem3D *apPS)
 {
 	if(apPS==nullptr) return;
 
+	if(mbActive==false)
+	{
+		apPS->SetActive(false);
+		apPS->SetVisible(false);
+	}
+
 	for(size_t i=0; i< mvEmitterActive.Size(); ++i)
 	{
 		iParticleEmitter *pEmitter = apPS->GetEmitter((int)i);
@@ -295,6 +302,7 @@ kSerializeVar(msName,eSerializeType_String)
 kSerializeVar(msType,eSerializeType_String)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(m_mtxTransform,eSerializeType_Matrixf)
+kSerializeVar(mbActive,eSerializeType_Bool)
 kSerializeClassContainer(mvEmitterActive,cEnginePSEmitter_SaveData,eSerializeType_Class)
 kEndSerialize()
 

@@ -18,6 +18,8 @@
  */
 #include "impl/PhysicsBodyNewton.h"
 
+#include <algorithm>
+
 #include "impl/CollideShapeNewton.h"
 #include "impl/PhysicsWorldNewton.h"
 #include "impl/PhysicsMaterialNewton.h"
@@ -248,6 +250,94 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	namespace
+	{
+		// Volume integrals over polygons (Newton's polyhedra mass properties).
+		struct cMassIntegrals
+		{
+			double mfVolume = 0;			// times 6
+			double mvFirst[3] = {0,0,0};	// integral of x, y, z times 24
+			double mvSecond[3] = {0,0,0};	// integral of x², y², z² times 60
+		};
+
+		void AddFaceIntegrals(void *apUserData, int alVertexCount, const dFloat *apVertex, int)
+		{
+			cMassIntegrals *pData = static_cast<cMassIntegrals*>(apUserData);
+			const dFloat *p0 = &apVertex[0];
+
+			// Newton 1.53 left out faces whose first three corners span a
+			// normal of squared length 1e-8 or less.
+			double vA[3] = {apVertex[3]-p0[0], apVertex[4]-p0[1], apVertex[5]-p0[2]};
+			double vB[3] = {apVertex[6]-p0[0], apVertex[7]-p0[1], apVertex[8]-p0[2]};
+			double vN[3] = {	vA[1]*vB[2] - vA[2]*vB[1],
+								vA[2]*vB[0] - vA[0]*vB[2],
+								vA[0]*vB[1] - vA[1]*vB[0]};
+			if(vN[0]*vN[0] + vN[1]*vN[1] + vN[2]*vN[2] <= 1.0e-8) return;
+
+			for(int i = 2; i < alVertexCount; ++i)
+			{
+				const dFloat *p1 = &apVertex[(i-1)*3];
+				const dFloat *p2 = &apVertex[i*3];
+				double vE1[3] = {p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2]};
+				double vE2[3] = {p2[0]-p0[0], p2[1]-p0[1], p2[2]-p0[2]};
+				double vD[3] = {	vE1[1]*vE2[2] - vE1[2]*vE2[1],
+									vE1[2]*vE2[0] - vE1[0]*vE2[2],
+									vE1[0]*vE2[1] - vE1[1]*vE2[0]};
+				for(int k = 0; k < 3; ++k)
+				{
+					double w0 = p0[k], w1 = p1[k], w2 = p2[k];
+					double fTemp0 = w0 + w1;
+					double fTemp1 = w0 * w0;
+					double fTemp2 = fTemp1 + w1 * fTemp0;
+					double f1 = fTemp0 + w2;
+					double f2 = fTemp2 + w2 * f1;
+					double f3 = w0 * fTemp1 + w1 * fTemp2 + w2 * f2;
+					if(k == 0) pData->mfVolume += vD[0] * f1;
+					pData->mvFirst[k] += vD[k] * f2;
+					pData->mvSecond[k] += vD[k] * f3;
+				}
+			}
+		}
+
+		/**
+		 * A shape's centre of mass and inertia per unit mass as Newton 1.53
+		 * gave them. It summed volume integrals over the faces of the shape
+		 * (of each part of a compound), but:
+		 *  - skipped faces whose first three corners were nearly in line. A
+		 *    cylinder's ends are 24-gons, so those of cylinders under about
+		 *    7.5 cm radius were left out: the volume, centre and inertia of
+		 *    such a cylinder came from its side only;
+		 *  - divided by at least 0.001 m³ (Newton 2.36: 1e-6 for compounds),
+		 *    which pulls the centre of small shapes towards the body's origin.
+		 * Maps were made for the centres this gave: Requiem level 5's pipe only
+		 * fits its socket with it.
+		 */
+		void MassLikeNewton153(cCollideShapeNewton *apShape, cVector3f &avInertia, cVector3f &avOffset)
+		{
+			cMassIntegrals total;
+			cMatrixf mtxIdentity = cMatrixf::Identity;
+			for(int i = 0; i < apShape->GetSubShapeNum(); ++i)
+			{
+				cCollideShapeNewton *pPart = static_cast<cCollideShapeNewton*>(apShape->GetSubShape(i));
+				NewtonCollisionForEachPolygonDo(pPart->GetNewtonCollision(), &mtxIdentity.m[0][0],
+												AddFaceIntegrals, &total);
+			}
+
+			double fVolume = std::max(total.mfVolume / 6.0, 0.001);
+			double vCentre[3], vSecond[3];
+			for(int k = 0; k < 3; ++k)
+			{
+				vCentre[k] = total.mvFirst[k] / 24.0 / fVolume;
+				vSecond[k] = total.mvSecond[k] / 60.0 / fVolume;
+			}
+			avOffset = cVector3f((float)vCentre[0], (float)vCentre[1], (float)vCentre[2]);
+			avInertia = cVector3f(
+				(float)(vSecond[1] + vSecond[2] - (vCentre[1]*vCentre[1] + vCentre[2]*vCentre[2])),
+				(float)(vSecond[0] + vSecond[2] - (vCentre[2]*vCentre[2] + vCentre[0]*vCentre[0])),
+				(float)(vSecond[0] + vSecond[1] - (vCentre[0]*vCentre[0] + vCentre[1]*vCentre[1])));
+		}
+	}
+
 	void  cPhysicsBodyNewton::SetMass(float afMass)
 	{
 		cCollideShapeNewton *pShapeNewton = static_cast<cCollideShapeNewton*>(mpShape);
@@ -255,8 +345,20 @@ namespace hpl {
 		cVector3f vInertia;// = pShapeNewton->GetInertia(afMass);
 		cVector3f vOffset;
 
-		NewtonConvexCollisionCalculateInertialMatrix(pShapeNewton->GetNewtonCollision(),
-													vInertia.v, vOffset.v);
+		switch(pShapeNewton->GetType())
+		{
+		case eCollideShapeType_Box:
+		case eCollideShapeType_Sphere:
+		case eCollideShapeType_Cylinder:
+		case eCollideShapeType_Capsule:
+		case eCollideShapeType_ConvexHull:
+		case eCollideShapeType_Compound:
+			MassLikeNewton153(pShapeNewton, vInertia, vOffset);
+			break;
+		default:
+			NewtonConvexCollisionCalculateInertialMatrix(pShapeNewton->GetNewtonCollision(),
+														vInertia.v, vOffset.v);
+		}
 		vInertia = vInertia * afMass;
 
 		// Newton 1.53 kept each axis of inertia above 0.01 * mass; Newton 2 only
@@ -356,6 +458,16 @@ namespace hpl {
 	void cPhysicsBodyNewton::SetEnabled(bool abEnabled)
 	{
 		NewtonBodySetFreezeState(mpNewtonBody, abEnabled ? 0 : 1);
+
+		//Newton 1's unfreeze woke a body at rest. Newton 2 keeps sleeping apart
+		//from freezing, and only an impulse clears it, so without this nothing
+		//woke what had gone to sleep: crates stayed in the air after what they
+		//lay on was moved or switched off (Requiem level 3's container).
+		if(abEnabled && NewtonBodyGetSleepState(mpNewtonBody))
+		{
+			const cVector3f vZero(0,0,0);
+			NewtonBodyAddImpulse(mpNewtonBody, vZero.v, GetWorldPosition().v);
+		}
 	}
 	bool cPhysicsBodyNewton::GetEnabled() const
 	{

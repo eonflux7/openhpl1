@@ -91,6 +91,9 @@ public:
 	tString msType;
 	cVector3f mvSize;
 	cMatrixf m_mtxTransform;
+	//Switched off with SetParticleSystemActive. Not in the original games'
+	//saves, so their map systems came back lit; true for older saves.
+	bool mbActive = true;
 	
 	cContainerVec<cEnginePSEmitter_SaveData> mvEmitterActive;
 };

@@ -213,6 +213,20 @@ void cGameMessageHandler::ShowNext()
 
 //-----------------------------------------------------------------------
 
+/**
+ * Black Plague and Requiem: SetPlayerActive drops queued messages and fades
+ * out the depth of field, ending blur that a scripted sequence left on.
+ */
+void cGameMessageHandler::ClearMessages()
+{
+	STLDeleteAll(mlstMessages);
+	mlstMessages.clear();
+
+	mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,1.0f);
+}
+
+//-----------------------------------------------------------------------
+
 void cGameMessageHandler::Update(float afTimeStep)
 {
 	if(mpInit->mpPlayer->IsDead())
