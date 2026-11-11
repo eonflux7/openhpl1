@@ -17,6 +17,7 @@
  * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "graphics/ParticleEmitter3D.h"
+#include "scene/RenderInterpolation.h"
 #include "system/LowLevelSystem.h"
 #include "resources/Resources.h"
 #include "graphics/Graphics.h"
@@ -64,6 +65,7 @@ namespace hpl {
 		mvMaxDrawSize =0;
 
 		mlAxisDrawUpdateCount = -1;
+		mlInterpolateStep = 0;
 
 		mbApplyTransformToBV = false;
 
@@ -152,7 +154,10 @@ namespace hpl {
 
 	void iParticleEmitter3D::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
-		if(apCamera==nullptr || !mbUpdateGfx) return;
+		// The sheets are in the space of the camera, so a frame drawn between
+		// two logic steps, with the camera somewhere else, builds them again.
+		const bool bFrame = cRenderInterpolation::IsFrame();
+		if(apCamera==nullptr || (!mbUpdateGfx && !bFrame)) return;
 		// PEType=Beam has never supplied geometry (the simulation branch is
 		// empty as well). Keep it empty rather than inventing a new effect.
 		if(mPEType == ePEType_Beam) return;
@@ -164,6 +169,12 @@ namespace hpl {
 			mvRight = inverse.GetRight();
 			mvForward = inverse.GetForward();
 		}
+
+		// Particles that moved in the last step are drawn on the way from
+		// where they were before it. A line already spans the step.
+		const bool bBlend = cRenderInterpolation::IsBlending() && mlInterpolateStep == cRenderInterpolation::GetStep() &&
+							mDrawType != eParticleEmitter3DType_Line;
+		const float fT = cRenderInterpolation::GetT();
 
 		auto &instances = mpVtxBuffer->UpdateQuadInstances(mlNumOfParticles);
 		for(unsigned int i=0; i<mlNumOfParticles; ++i)
@@ -185,6 +196,7 @@ namespace hpl {
 			}
 
 			cVector3f position = particle.mvPos;
+			if(bBlend) position = particle.mvLastPos + (particle.mvPos - particle.mvLastPos) * fT;
 			if(mCoordSystem == eParticleEmitter3DCoordSystem_Local)
 				position = cMath::MatrixMul(mpParentSystem->GetWorldMatrix(), position);
 			if(mDrawType == eParticleEmitter3DType_Axis)
@@ -227,7 +239,9 @@ namespace hpl {
 				sheet.mvUp = (position - last) * 0.5f + along * size.y;
 			}
 		}
-		mbUpdateGfx = false;
+		// Drawn between steps: the next frame at the step builds the sheets
+		// of the step again.
+		mbUpdateGfx = bFrame;
 	}
 
 	//-----------------------------------------------------------------------

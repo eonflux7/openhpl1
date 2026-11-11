@@ -153,8 +153,12 @@ TrueType fonts and menu display options are implemented. Earlier manual
 checks are retained in the archived roadmap; they are not new work here.
 
 - [ ] Decide whether 4:3 menu/logo art should fill the widescreen sides.
-- [ ] Blend skeletal animation and particles between fixed logic ticks.
-- [ ] Add a frame-rate cap with V-Sync off and avoid spinning while waiting
+- [x] Blend skeletal animation and particles between fixed logic ticks.
+      Also the sway of held items and the crosshair on a dragged object.
+      Not blended yet: node-animated (non-skinned) meshes, entities attached
+      to bones, and nodes that scripts or game code move without physics.
+- [x] Add a frame-rate cap with V-Sync off (`Graphics.MaxFPS`, "Frame Rate
+      Cap" in the advanced graphics options) and avoid spinning while waiting
       for the next simulation step.
 - [ ] Apply resolution, fullscreen and display changes without restarting;
       this is also Milestone 3's remaining off-screen-frame convenience item.

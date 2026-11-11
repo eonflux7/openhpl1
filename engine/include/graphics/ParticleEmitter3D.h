@@ -159,6 +159,10 @@ namespace hpl {
 
 		cParticleSystem3D *mpParentSystem;
 
+		// The logic step (cRenderInterpolation) in which the particles last
+		// moved, from mvLastPos to mvPos. Set by the implementation.
+		unsigned int mlInterpolateStep;
+
 		//Set by the particle system implementation.
 		cVector2f mvDrawSize;
 		cVector2f mvMaxDrawSize;

@@ -69,6 +69,13 @@ public:
 	virtual void OnPostSceneDraw(){}
 	virtual void OnDraw(){}
 
+	/**
+	 * Where the crosshair is drawn in a frame between two logic steps
+	 * (cRenderInterpolation), if the state places it on something in the
+	 * world; false for where the logic put it.
+	 */
+	virtual bool GetFrameCrossHairPos(cVector2f &avPos){ return false; }
+
 	virtual void OnStartInteract(){}
 	virtual void OnStopInteract(){}
 	virtual void OnStartExamine(){}

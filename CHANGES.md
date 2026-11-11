@@ -62,9 +62,12 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
   bars, a remastered notebook, key caps for keys in tips, and door, ladder and
   dot crosshairs. `OPENHPL_ORIGINAL_HUD=1` keeps the original HUD.
 - Frame rates above 60 FPS: game logic stays at 60 steps a second and
-  rendering interpolates between steps; mouse look and cursors don't lag.
-  With "Limit to 60 FPS" on, the game rests between frames instead of
-  keeping a CPU core fully busy.
+  rendering interpolates between steps (cameras, physics bodies, characters,
+  skeletal animation, particles, the sway of held items and the crosshair
+  on a dragged object); mouse look and cursors don't lag. "Frame Rate Cap"
+  (advanced graphics) limits the frame rate with the 60 FPS limit off. With
+  "Limit to 60 FPS" on, the game rests between frames instead of keeping a
+  CPU core fully busy.
 - Turning speed no longer depends on the resolution or aspect ratio.
 - Text from language files and notes is no longer used as a printf format
   (a '%' in a note crashed Black Plague).

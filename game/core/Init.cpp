@@ -968,6 +968,7 @@ bool cInit::Init(tString asCommandLine)
 	if(!gbUsingUserSettings) ApplyGraphicsPreset(this, eGraphicsPreset_ImprovedHigh);
 
 	mpGame->SetLimitFPS( mpConfig->GetBool("Graphics","LimitFPS",true));
+	mpGame->SetMaxFPS( mpConfig->GetInt("Graphics","MaxFPS",0));
 
 	// HAPTIC INIT ////////////////////
 	if(mbHasHaptics)
@@ -1497,6 +1498,7 @@ void cInit::Exit()
 	}
 	mpConfig->SetBool("Graphics","PostEffects",mbPostEffects);
 	mpConfig->SetBool("Graphics","LimitFPS",mpGame->GetLimitFPS());
+	mpConfig->SetInt("Graphics","MaxFPS",mpGame->GetMaxFPS());
 
 	mpConfig->SetInt("Graphics","Shadows",mpGame->GetGraphics()->GetRenderer3D()->GetShowShadows());
 	{

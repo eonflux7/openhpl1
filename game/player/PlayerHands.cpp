@@ -360,8 +360,20 @@ void cPlayerHands::Update(float afTimeStep)
 									cVector3f(0,-mpInit->mpPlayer->GetHeadMove()->GetPos()*0.1f,0);;
 
 		mtxTransform.SetTranslation(pCam->GetPosition() + vRealLocalPos);
-		
+
 		pHudModel->mpEntity->SetMatrix(mtxTransform);
+
+		// Kept for frames drawn between this step and the next
+		if(cRenderInterpolation::IsEnabled())
+		{
+			cHudModelSteps &steps = mvHudModelSteps[i];
+			unsigned int lStep = cRenderInterpolation::GetStep();
+			steps.mbPrevValid = steps.mpEntity == pHudModel->mpEntity && steps.mlLastStep + 1 == lStep;
+			steps.m_mtxPrev = steps.m_mtxLast;
+			steps.m_mtxLast = mtxTransform;
+			steps.mpEntity = pHudModel->mpEntity;
+			steps.mlLastStep = lStep;
+		}
 	}
 }
 
@@ -400,23 +412,43 @@ void cPlayerHands::OnDraw()
 /**
  * The hud models are placed relative to the camera in Update(). A frame
  * drawn between two logic steps has the camera somewhere else, so move them
- * along with it: they stay where Update() put them on the screen.
+ * along with it. Where they are relative to the camera (the sway, equipping)
+ * is blended between the last two steps; a model that was not placed in
+ * both is drawn where Update() last put it on the screen.
  */
 void cPlayerHands::OnInterpolate(float afT)
 {
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	if(pCam->IsInterpolated()==false) return;
 
-	cMatrixf mtxMove = cMath::MatrixMul(cMath::MatrixInverse(pCam->GetViewMatrix()),
-										cMath::MatrixInverse(pCam->GetLogicMatrix()));
+	cMatrixf mtxFrame = cMath::MatrixInverse(pCam->GetViewMatrix());
+	cMatrixf mtxLogicView = cMath::MatrixInverse(pCam->GetLogicMatrix());
+	cMatrixf mtxMove = cMath::MatrixMul(mtxFrame, mtxLogicView);
+
+	const bool bBlend = cRenderInterpolation::IsBlending();
+	cMatrixf mtxPrevView;
+	if(bBlend) mtxPrevView = cMath::MatrixInverse(pCam->GetInterpolationPrevMatrix());
 
 	for(int i=0; i< mlCurrentModelNum; ++i)
 	{
 		iHudModel *pHudModel = mvCurrentHudModels[i];
 		if(pHudModel==nullptr || pHudModel->mpEntity==nullptr) continue;
 
-		mvInterpolatedModels.push_back(std::make_pair(pHudModel->mpEntity, pHudModel->mpEntity->GetLocalMatrix()));
-		pHudModel->mpEntity->SetMatrix(cMath::MatrixMul(mtxMove, pHudModel->mpEntity->GetLocalMatrix()));
+		const cMatrixf &mtxLogic = pHudModel->mpEntity->GetLocalMatrix();
+		mvInterpolatedModels.push_back(std::make_pair(pHudModel->mpEntity, mtxLogic));
+
+		const cHudModelSteps &steps = mvHudModelSteps[i];
+		if(bBlend && steps.mbPrevValid && steps.mpEntity == pHudModel->mpEntity &&
+		   steps.mlLastStep == cRenderInterpolation::GetStep() && steps.m_mtxLast == mtxLogic)
+		{
+			cMatrixf mtxRel = cMath::MatrixInterpolate(afT, cMath::MatrixMul(mtxPrevView, steps.m_mtxPrev),
+															cMath::MatrixMul(mtxLogicView, mtxLogic));
+			pHudModel->mpEntity->SetMatrix(cMath::MatrixMul(mtxFrame, mtxRel));
+		}
+		else
+		{
+			pHudModel->mpEntity->SetMatrix(cMath::MatrixMul(mtxMove, mtxLogic));
+		}
 	}
 }
 

@@ -183,11 +183,15 @@ public:
 	void LeaveState(iPlayerState* apNextState) override;
 	
 	void OnPostSceneDraw() override;
-	
+
 	bool OnStartInventory() override;
 	bool OnStartInventoryShortCut(int alNum) override;
 
+	bool GetFrameCrossHairPos(cVector2f &avPos) override;
+
 private:
+	cVector2f ProjectToScreen(const cVector3f &avWorldPos);
+
 	cVector3f mvForward;
 	cVector3f mvRight;
 	cVector3f mvUp;

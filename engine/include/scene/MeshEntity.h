@@ -261,6 +261,15 @@ namespace hpl {
 		int mlUpdateCount;
 		float mfTimeStepAccum;
 
+		// Render interpolation (cRenderInterpolation): the pose of each
+		// bone relative to the mesh before the last logic step, the step it
+		// was kept in (0 if it is not to be blended) and if something since
+		// then made the pose jump.
+		void StoreInterpolationPose();
+		std::vector<cMatrixf> mvInterpolatePrevPose;
+		unsigned int mlInterpolateStep;
+		bool mbInterpolateCut;
+
 
 		cMesh* mpMesh;
 

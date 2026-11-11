@@ -99,6 +99,13 @@ namespace hpl {
 		void SetLength(float afLength);
 		float GetLength();
 
+		/**
+		 * True if the time was set, or the state started or stopped, from
+		 * outside Update() since this was last asked; asking clears it. The
+		 * pose may then jump, and a mesh does not blend into it.
+		 */
+		bool TakeTimeJump(){ bool bX = mbTimeJumped; mbTimeJumped = false; return bX; }
+
 		void SetWeight(float afWeight);
 		float GetWeight();
 
@@ -180,6 +187,8 @@ namespace hpl {
 		bool mbActive;
 		bool mbLoop;
 		bool mbPaused;
+
+		bool mbTimeJumped;
 
 		//properties for update
 		float mfFadeStep;

@@ -35,6 +35,7 @@
 #include "physics/PhysicsBody.h"
 
 #include "scene/World3D.h"
+#include "scene/RenderInterpolation.h"
 
 #include "math/Math.h"
 
@@ -762,6 +763,7 @@ namespace hpl {
 
 		///////////////////////////////////////////
 		//Particle update
+		mlInterpolateStep = cRenderInterpolation::GetStep();
 		for(unsigned int i=0; i< mlNumOfParticles; ++i)
 		{
 			cParticle *pParticle = mvParticles[i];

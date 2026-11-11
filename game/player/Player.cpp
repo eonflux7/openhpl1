@@ -1550,7 +1550,8 @@ void cPlayer::OnDraw()
 	////////////////////////////////
 	//Cross hair
 	cVector2f vCrossHairPos = mvCrossHairPos + mpInit->mpButtonHandler->GetCursorDrawOffset(false);
-	mpInit->mpGraphicsHelper->ClampToScreen(vCrossHairPos);
+	mvStates[mState]->GetFrameCrossHairPos(vCrossHairPos);
+mpInit->mpGraphicsHelper->ClampToScreen(vCrossHairPos);
 	if(IsActive()==false)
 	{
 		//Do noting...

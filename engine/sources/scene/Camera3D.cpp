@@ -21,6 +21,7 @@
 #include "graphics/LowLevelGraphics.h"
 #include "math/Math.h"
 #include "scene/Entity3D.h"
+#include "scene/RenderInterpolation.h"
 
 
 namespace hpl {
@@ -230,6 +231,8 @@ namespace hpl {
 		mfInterpolatePrevYaw = mfYaw;
 		mfInterpolatePrevRoll = mfRoll;
 		mbInterpolatePrevValid = true;
+		if(cRenderInterpolation::IsEnabled())
+			m_mtxInterpolatePrev = cMath::MatrixInverse(GetViewMatrix());
 	}
 
 	// The short way from one angle to another
