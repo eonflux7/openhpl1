@@ -90,7 +90,11 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - Matching the original's behaviour: inertia is kept above 0.01 × mass,
   contact normals from `NewtonCollisionCollide` are no longer reversed, and
   the back faces of level meshes make no contacts (Requiem's energy orb and
-  barrels stopped in double-sided pipes and ramps).
+  barrels stopped in double-sided pipes and ramps). Centres of mass and
+  inertia are computed as Newton 1.53 did, ends of thin cylinders and the
+  0.001 m³ minimum volume included (Requiem's generator pipe sat beside its
+  socket), and short capsules keep 1.53's minimum straight length (the Dog's
+  neck, egg spiders).
 - Map objects placed slightly inside level geometry no longer stick. This
   covers sliders and doors, held levers, scripted bodies, pushed crates over
   hole edges, scaled bodies and stick areas that went past their pose.
