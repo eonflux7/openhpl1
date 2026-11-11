@@ -477,6 +477,12 @@ namespace hpl {
 
 				fNumOfTimes++;
 			}
+			else
+			{
+				// With the frame rate limited nothing is drawn until the
+				// next step: rest until it is due instead of spinning.
+				mpSystem->GetLowLevel()->SleepPrecise(mpLogicTimer->GetMillisecsToUpdate());
+			}
 
 			mpScene->RestoreInterpolation();
 

@@ -81,6 +81,7 @@ namespace hpl {
 		bool AddScriptVar(const tString& asVarDecl, void *pVar) override;
 
 		void Sleep ( const unsigned int alMillisecs ) override;
+		void SleepPrecise ( double afMillisecs ) override;
 
 	private:
 		asIScriptEngine *mpScriptEngine;
