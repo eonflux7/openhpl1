@@ -92,6 +92,14 @@ namespace hpl {
 
 		virtual iEntity3D* Load(const tString &asName, const cVector3f &avSize, const cMatrixf &a_mtxTransform,cWorld3D *apWorld)=0;
 
+		/**
+		 * An area's own scale is its size, but a scaled parent leaves its scale
+		 * in the area's matrix. Newton 1.53 collided with the box as that matrix
+		 * scaled it; Newton 2.36 needs an unscaled matrix. Moves the matrix's
+		 * scale into the size.
+		 */
+		static void SplitScale(cVector3f &avSize, cMatrixf &a_mtxTransform);
+
 	protected:
 		tString msName;
 	};

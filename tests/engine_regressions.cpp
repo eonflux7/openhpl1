@@ -706,6 +706,40 @@ static void TestCollideSameCentre()
 	}
 }
 
+// An area under a scaled parent (Requiem level 9's moveback) collides as the
+// scaled box, as with Newton 1.53, not as its unscaled size.
+static void TestAreaParentScale()
+{
+	cMatrixf mtxArea = cMath::MatrixMul(cMath::MatrixRotateY(cMath::ToRad(30.0f)),
+		cMath::MatrixScale(cVector3f(0.5f, 0.25f, 0.25f)));
+	mtxArea.SetTranslation(cVector3f(1, -7, -50));
+	cVector3f vSize(176, 20, 96);
+	iArea3DLoader::SplitScale(vSize, mtxArea);
+	CheckVector(vSize, cVector3f(88, 5, 24), "area size with the parent's scale");
+	for(int lAxis=0; lAxis<3; ++lAxis)
+		Check(Near(cVector3f(mtxArea.m[0][lAxis], mtxArea.m[1][lAxis], mtxArea.m[2][lAxis]).Length(), 1),
+			"area matrix without scale");
+	CheckVector(mtxArea.GetTranslation(), cVector3f(1, -7, -50), "area position");
+
+	cVector3f vSizeAgain = vSize;
+	iArea3DLoader::SplitScale(vSizeAgain, mtxArea);
+	CheckVector(vSizeAgain, vSize, "splitting an unscaled area again");
+
+	cLowLevelPhysicsNewton lowLevel;
+	cPhysicsWorldNewton world;
+	iCollideShape *pArea = world.CreateBoxShape(vSize, nullptr);
+	iCollideShape *pPlayer = world.CreateSphereShape(cVector3f(0.3f), nullptr);
+	cCollideData collideData;
+	collideData.SetMaxSize(1);
+	cMatrixf mtxPlayer = cMatrixf::Identity;
+	mtxPlayer.SetTranslation(cVector3f(1, -7, -50));
+	Check(world.CheckShapeCollision(pPlayer, mtxPlayer, pArea, mtxArea, collideData, 1),
+		"player in the middle of a scaled area");
+	mtxPlayer.SetTranslation(cVector3f(1, 1, -50));
+	Check(world.CheckShapeCollision(pPlayer, mtxPlayer, pArea, mtxArea, collideData, 1) == false,
+		"player above a scaled area, inside its unscaled size");
+}
+
 // A scripted limit must move an island that Newton has already put to sleep.
 static void TestSleepingJointLimits()
 {
@@ -1259,7 +1293,7 @@ int hplMain(const hpl::tString&)
 		TestStrings(); TestDirectoryScan(directory); TestSkinning(); TestPathfinding(directory); TestTangents();
 		TestAnimation(directory); TestColladaCache(directory); TestSound(); TestCollideSameCentre();
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
-		TestMeshBackFaces();
+		TestMeshBackFaces(); TestAreaParentScale();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestFontPlainText(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
 		TestTransparentOrder(); TestLightList();
 		RunModelRegressions(directory);

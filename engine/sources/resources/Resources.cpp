@@ -274,6 +274,21 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
+	void iArea3DLoader::SplitScale(cVector3f &avSize, cMatrixf &a_mtxTransform)
+	{
+		for(int lAxis=0; lAxis<3; ++lAxis)
+		{
+			float fScale = std::sqrt(a_mtxTransform.m[0][lAxis]*a_mtxTransform.m[0][lAxis] +
+									a_mtxTransform.m[1][lAxis]*a_mtxTransform.m[1][lAxis] +
+									a_mtxTransform.m[2][lAxis]*a_mtxTransform.m[2][lAxis]);
+			if(fScale < kEpsilonf || std::abs(fScale - 1.0f) < 1e-4f) continue;
+
+			for(int lRow=0; lRow<3; ++lRow) a_mtxTransform.m[lRow][lAxis] /= fScale;
+			avSize.v[lAxis] *= fScale;
+		}
+	}
+
+	//-----------------------------------------------------------------------
 
 	void cResources::AddArea3DLoader(iArea3DLoader* apLoader, bool abSetAsDefault)
 	{

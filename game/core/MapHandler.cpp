@@ -1160,7 +1160,10 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				iArea3DLoader *pLoader = pWorld->GetResources()->GetArea3DLoader(sType);
 				if(pLoader)
 				{
-					pLoader->Load(pSaveEntity->msName,vSize,pSaveEntity->m_mtxTransform,pWorld);
+					//Saves from before SplitScale keep the parent's scale in the matrix
+					cMatrixf mtxArea = pSaveEntity->m_mtxTransform;
+					iArea3DLoader::SplitScale(vSize, mtxArea);
+					pLoader->Load(pSaveEntity->msName,vSize,mtxArea,pWorld);
 
 					iGameEntity *pGameEntity = mpInit->mpMapHandler->GetLatestEntity();
 					pGameEntity->LoadFromSaveData(pSaveEntity);

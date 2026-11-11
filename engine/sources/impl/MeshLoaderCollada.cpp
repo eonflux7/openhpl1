@@ -2053,19 +2053,21 @@ namespace hpl {
 					}
 
 					cVector3f vSize = TempBV.GetSize() * apNode->mvScale;
+					cMatrixf mtxArea = apNode->m_mtxWorldTransform;
+					iArea3DLoader::SplitScale(vSize, mtxArea);
 
 					if(sType!="")
 					{
 						iArea3DLoader *pLoader = apWorld->GetResources()->GetArea3DLoader(sType);
 						if(pLoader)
 						{
-							pLoader->Load(sName,vSize,apNode->m_mtxWorldTransform,apWorld);
+							pLoader->Load(sName,vSize,mtxArea,apWorld);
 						}
 					}
 
 					//Create engine area.
 					cAreaEntity *pArea = apWorld->CreateAreaEntity(sName);
-					pArea->m_mtxTransform = apNode->m_mtxWorldTransform;
+					pArea->m_mtxTransform = mtxArea;
 					pArea->msType = sType;
 					pArea->mvSize = vSize;
 				}
