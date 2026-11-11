@@ -100,6 +100,12 @@ namespace hpl {
 		void SetFixedStepsPerFrame(int alSteps){ mlFixedStepsPerFrame = alSteps < 1 ? 1 : alSteps;}
 		int GetFixedStepsPerFrame(){ return mlFixedStepsPerFrame;}
 
+		/**
+		 * Milliseconds until the clock wants the next update, 0 if it is
+		 * due (and always 0 with a fixed step).
+		 */
+		double GetMillisecsToUpdate();
+
 	private:
 		void Update();
 

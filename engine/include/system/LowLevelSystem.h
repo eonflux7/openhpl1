@@ -136,6 +136,12 @@ namespace hpl {
 		*/
 		virtual void Sleep ( const unsigned int alMillisecs )=0 ;
 
+		/**
+		* Rests until this much time has passed, to well under a millisecond:
+		* sleeps for most of it and waits out the rest.
+		*/
+		virtual void SleepPrecise ( double afMillisecs )=0 ;
+
 	};
 };
 #endif // HPL_LOWLEVELSYSTEM_H

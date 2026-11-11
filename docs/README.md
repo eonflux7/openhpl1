@@ -26,6 +26,9 @@ Current technical guides:
   `tools/levelview.py`), moving map nodes and
   saving the map as an addon, live frames before and after, and the
   reference images.
+- [Frame-time work](fix-opti-run.md): profile of every Overture map (GPU
+  sections, main-thread CPU), the plan for rendering, shader and CPU fixes,
+  and their progress on the `fix/opti` branch.
 - [Fonts](../fonts/README.md): bundled typefaces and licences.
 - [HUD images](../hud/README.md): high-resolution cursor, icons and notebook
   pages, how they replace the game's images and how they were made.

@@ -862,6 +862,17 @@ namespace hpl {
 		SDL_Delay ( alMillisecs );
 	}
 
+	void cLowLevelSystemSDL::SleepPrecise ( double afMillisecs )
+	{
+		if(afMillisecs <= 0) return;
+		// A sleep can wake late, so the last two milliseconds are waited out.
+		const Uint64 lEnd = SDL_GetTicksNS() + (Uint64)(afMillisecs * 1000000.0);
+		const Uint64 lSpinNs = 2000000;
+		Uint64 lNow = SDL_GetTicksNS();
+		if(lEnd > lNow + lSpinNs) SDL_DelayNS(lEnd - lNow - lSpinNs);
+		while(SDL_GetTicksNS() < lEnd) SDL_CPUPauseInstruction();
+	}
+
 	//-----------------------------------------------------------------------
 	//////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS

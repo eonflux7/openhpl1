@@ -236,11 +236,18 @@ void dgBroadPhaseCell::UpdateAutoPair(dgWorld *const world,
 		dgBody *const body0 = outerNode->GetInfo().m_body;
 		if (!body0->m_collision->IsType(dgCollision::dgCollisionNull_RTTI)) {
 			dgFloat32 maxVal = body0->m_maxAABB[indexX];
+			// OpenHPL1: AddPair drops a pair of two bodies without mass (both
+			// asleep, as the broad phase keeps them); skip it before the
+			// overlap test. Maps hold hundreds of such static bodies.
+			const bool static0 = body0->m_invMass.m_w == dgFloat32(0.0f);
 
 			for (dgSortArray::dgListNode *innerNode = outerNode->GetNext();
 			        innerNode && innerNode->GetInfo().m_key <= maxVal; innerNode =
 			            innerNode->GetNext()) {
 				dgBody *const body1 = innerNode->GetInfo().m_body;
+				if (static0 && body1->m_invMass.m_w == dgFloat32(0.0f)) {
+					continue;
+				}
 				if (!body1->m_collision->IsType(dgCollision::dgCollisionNull_RTTI)) {
 					NEWTON_ASSERT(body0 != body1);
 					if (OverlapTest(body0, body1)) {
@@ -461,9 +468,14 @@ void dgBroadPhaseCollision::UpdatePairs(dgBody *const body0,
 	if (!body0->m_collision->IsType(dgCollision::dgCollisionNull_RTTI)) {
 		dgFloat32 val = body0->m_maxAABB[axisX];
 		dgCollidingPairCollector &contactPair = *((dgWorld *)this);
+		// OpenHPL1: static pairs are dropped by AddPair (see UpdateAutoPair)
+		const bool static0 = body0->m_invMass.m_w == dgFloat32(0.0f);
 		for (dgSortArray::dgListNode *node = srcnode;
 		        node && (node->GetInfo().m_key < val); node = node->GetNext()) {
 			dgBody *const body1 = node->GetInfo().m_body;
+			if (static0 && body1->m_invMass.m_w == dgFloat32(0.0f)) {
+				continue;
+			}
 			if (!body1->m_collision->IsType(dgCollision::dgCollisionNull_RTTI)) {
 				NEWTON_ASSERT(body0 != body1);
 				if (OverlapTest(body0, body1)) {

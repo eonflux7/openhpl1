@@ -70,7 +70,7 @@ namespace hpl {
 			{
 				double fNow = GetApplicationTimeExact();
 				if(mfNextUpdateTimeMs > fNow)
-					mpLowLevelSystem->Sleep((unsigned int)(mfNextUpdateTimeMs - fNow));
+					mpLowLevelSystem->SleepPrecise(mfNextUpdateTimeMs - fNow);
 				mfNextUpdateTimeMs += mfStepMilliseconds;
 				// After a long frame (a map load) do not run to catch up
 				fNow = GetApplicationTimeExact();
@@ -86,6 +86,15 @@ namespace hpl {
 			return true;
 		}
 		return false;
+	}
+
+	//-----------------------------------------------------------------------
+
+	double cLogicTimer::GetMillisecsToUpdate()
+	{
+		if(mbFixedStep) return 0;
+		double fMs = mfNextUpdateTimeMs - GetApplicationTimeExact();
+		return fMs > 0 ? fMs : 0;
 	}
 
 	//-----------------------------------------------------------------------
