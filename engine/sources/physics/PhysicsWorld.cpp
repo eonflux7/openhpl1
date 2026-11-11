@@ -208,23 +208,17 @@ namespace hpl {
 	{
 		for(tPhysicsBodyListIt it = mlstBodies.begin(); it != mlstBodies.end(); ++it)
 			(*it)->StoreInterpolation();
-		for(tCharacterBodyListIt it = mlstCharBodies.begin(); it != mlstCharBodies.end(); ++it)
-			(*it)->StoreInterpolation();
 	}
 
 	void iPhysicsWorld::ApplyInterpolation(float afT)
 	{
 		for(tPhysicsBodyListIt it = mlstBodies.begin(); it != mlstBodies.end(); ++it)
 			(*it)->ApplyInterpolation(afT);
-		for(tCharacterBodyListIt it = mlstCharBodies.begin(); it != mlstCharBodies.end(); ++it)
-			(*it)->ApplyInterpolation(afT);
 	}
 
 	void iPhysicsWorld::RestoreInterpolation()
 	{
 		for(tPhysicsBodyListIt it = mlstBodies.begin(); it != mlstBodies.end(); ++it)
-			(*it)->RestoreInterpolation();
-		for(tCharacterBodyListIt it = mlstCharBodies.begin(); it != mlstCharBodies.end(); ++it)
 			(*it)->RestoreInterpolation();
 	}
 

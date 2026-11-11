@@ -89,6 +89,8 @@ void iHudModel::LoadEntities()
 	//Mesh entity
 	mpMesh->IncUserCount(); //entity is newer user.
 	mpEntity = pWorld->CreateMeshEntity(msName,	mpMesh);
+	// Placed relative to the camera by cPlayerHands::OnInterpolate.
+	mpEntity->SetRenderInterpolated(false);
 
 	// Create lights
 	for(int i=0; i< mpMesh->GetLightNum(); i++)

@@ -194,6 +194,9 @@ namespace hpl {
 
 		//Renderable implementation.
 		void UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList) override;
+
+		void ApplyRenderInterpolation(float afT) override;
+		void RestoreRenderInterpolation() override;
 		void SetRendered(bool abX) override;
 		iMaterial *GetMaterial() override;
 		iVertexBuffer* GetVertexBuffer() override;
@@ -261,14 +264,19 @@ namespace hpl {
 		int mlUpdateCount;
 		float mfTimeStepAccum;
 
-		// Render interpolation (cRenderInterpolation): the pose of each
-		// bone relative to the mesh before the last logic step, the step it
-		// was kept in (0 if it is not to be blended) and if something since
-		// then made the pose jump.
+		// Render interpolation (cRenderInterpolation): the local matrix of
+		// each bone (or node of a mesh animated without a skeleton) before
+		// the last logic step, the step it was kept in (0 if it is not to
+		// be blended), if something since then made the pose jump, and
+		// while a frame has the blended pose set, the pose the step left.
 		void StoreInterpolationPose();
+		tNodeStateVec* GetInterpolationNodes();
+		void UpdateInterpolatedNodes();
 		std::vector<cMatrixf> mvInterpolatePrevPose;
+		std::vector<cMatrixf> mvInterpolateCurrentPose;
 		unsigned int mlInterpolateStep;
 		bool mbInterpolateCut;
+		bool mbInterpolatePoseApplied;
 
 
 		cMesh* mpMesh;
