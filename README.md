@@ -487,6 +487,24 @@ tools/levelview.py stop
 
 See [docs/level-editor.md](docs/level-editor.md).
 
+### Frame-time benchmark
+
+`tools/framebench.py` (Linux) measures GPU sections and main-thread CPU at
+one viewpoint per rendering feature, chosen where that feature costs the
+most, in under two minutes; `--features ao,lights` takes less. Compare two
+builds' runs with `compare`:
+
+```
+tools/framebench.py list
+tools/framebench.py run /tmp/fb-before --features ao
+# rebuild, then:
+tools/framebench.py run /tmp/fb-after --features ao
+tools/framebench.py compare /tmp/fb-before /tmp/fb-after
+```
+
+See [docs/fix-opti-run.md](docs/fix-opti-run.md) for how it measures and
+how much its numbers vary between runs.
+
 ### Environment variables
 
 | Variable | Purpose |
@@ -505,6 +523,7 @@ See [docs/level-editor.md](docs/level-editor.md).
 | `OPENHPL_DEBUG_OVERLAY=1` | Start with the debug overlay shown (frame and GPU section times, draw calls); F3 toggles it in the game |
 | `OPENHPL_REFVIEW=1` | Start with the reference view panel open (F2 toggles it in the game): go to the places the reference images are taken from |
 | `OPENHPL_GL_DEBUG=1` | Create a debug OpenGL context and log driver messages to `hpl.log` |
+| `OPENHPL_GPU_LOG=file` | Write every frame's GPU section times to this file (tab-separated), waiting for them if the GPU is behind; `tools/framebench.py` uses it |
 | `OPENHPL_DUMP_FRAMES=60,300` | Save these frame numbers as PNGs (to `OPENHPL_DUMP_DIR`, default: game dir) |
 | `OPENHPL_SMOKE=1` | Smoke test: load every map (and the test map), run, save, load the save, run, reload the map as F6 does, run, quit. `OPENHPL_SMOKE=office,worm` limits it to maps whose names contain those words. Logs `SMOKE:` lines to `hpl.log`; exit code 1 on failure |
 | `OPENHPL_MAP=name[:start]` | Skip the menus and load this map, e.g. `testmap` or `level01_05_office:link01` |

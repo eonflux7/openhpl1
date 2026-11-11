@@ -7,7 +7,44 @@ commit message keeps the implementation detail.
 
 Status key: `[ ]` open, `[~]` in progress, `[x]` done (with measurements).
 
-## Baseline (2026-11-11)
+## Benchmark: one viewpoint per feature
+
+`tools/framebench.py` (see its header and README) measures each rendering
+feature at the viewpoint where the all-maps survey below found it costs the
+most. A full run takes about 110 s; `--features ao,lights` only loads the
+maps those need. `level01_20_base_entrance` is left out although it tops
+some features: its scripted lights change from run to run.
+
+Per viewpoint, GPU times are taken with frames drawn as fast as they can be
+(`option pace 0`, one logic step per frame, so the frames are the same every
+run) and are medians over 300 frames. CPU times are taken at 60 Hz (the
+main thread then does not wait for the GPU in the driver), from 1 kHz
+stack samples. Same settings as the survey: 1920×1080, reference-capture
+graphics, vsync off.
+
+Baseline on the RTX 2060, two runs of the same build (ms; the feature's
+own time, not the whole frame):
+
+| Feature | What | Viewpoint | Run 1 / run 2 | Spread |
+|---|---|---|---|---|
+| `ao` | ambient occlusion | `level01_07_lead_mine_shafts_a` view02 | 1.31 / 1.32 | 1% |
+| `lights` | light passes without their shadow maps | `level00_01_boat_cabin` view01 | 2.01 / 2.05 | 2% |
+| `shadows` | shadow-map rendering (GPU) | `level01_07_lead_mine_shafts_c` view02 | 1.11 / 1.07 | 4% |
+| `shadowcpu` | shadow casters and maps (CPU) | `level01_07_lead_mine_shafts_c` view02 | 1.23 / 1.46 | 19% |
+| `transparent` | transparent objects, halos, particles | `level01_01_outside` view03 | 1.17 / 1.16 | 0% |
+| `z` | depth and ambient pass | `level01_04_old_storage` view01 | 0.56 / 0.77 | 38% |
+| `bloom` | bloom | `level01_09_generator_room` view02 | 0.37 / 0.37 | 0% |
+| `smaa` | SMAA | `level01_14_refinery` view03 | 0.37 / 0.37 | 1% |
+| `submit` | draw submission (CPU) | `level01_15_icecave` view03 | 1.32 / 1.22 | 7% |
+| `visibility` | render list and visibility (CPU) | `level01_14_refinery` view01 | 0.81 / 0.79 | 2% |
+| `physics` | physics (CPU) | `level01_13_b_iron_storage_tunnels` view02 | 2.69 / 2.75 | 2% |
+
+Changes within the spread are noise: run `z` and `shadowcpu` several times
+before trusting a difference. The whole-frame CPU and GPU totals per
+viewpoint move by 10–18% between runs; judge a change by its feature's
+number.
+
+## Survey baseline (2026-11-11)
 
 Measured on Linux, RTX 2060 (driver 620.70.06), 1920×1080, the reference
 capture settings of `tools/levelview.py` (4× MSAA, SMAA, AO, bloom, all
@@ -22,8 +59,12 @@ item 0):
   timestamped every `SDL_GL_SwapWindow`; samples were symbolised with
   `addr2line`.
 - `OPENHPL_GPU_LOG` recorded the engine's per-section GPU timestamps.
-- A paced pass (60 Hz fixed step) gave reliable GPU sections and CPU busy
-  time; an uncapped pass gave achieved frame times. The uncapped pass was
+- A paced pass (60 Hz fixed step) gave GPU sections and CPU busy time; an
+  uncapped pass gave achieved frame times. The paced GPU numbers are high:
+  at 60 Hz the GPU is lightly loaded and lowers its clocks (AO measured
+  1.8 ms there against 1.3 ms at full load in the benchmark above). The
+  ranking of features and viewpoints still holds; use the benchmark's
+  numbers for before/after. The uncapped pass was
   only run on `level01_05_office` (stopped to spare the GPU), and the GPU log
   drops frames there because queries are not ready when the GPU lags.
 
@@ -99,13 +140,35 @@ Heaviest CPU viewpoints: `level01_13_b_iron_storage_tunnels`,
   - Validation: build, CTest 3/3, `OPENHPL_SMOKE=office` 0 failures. No
     sanitizer run, no manual play.
 
+- [x] **Static pairs in Newton's broad phase (CPU).** `level01_13_B` has
+  1163 bodies, 1089 of them static (no mass), none moving once settled; the
+  broad phase still overlap-tested every static/static pair in active cells,
+  which `dgCollidingPairCollector::AddPair` then dropped. `UpdateAutoPair`
+  and `UpdatePairs` (vendor/newton/physics/dgBroadPhaseCollision.cpp) now
+  skip such pairs before the test. The live `status` command reports
+  `bodies N static N moving N`.
+  - `physics` feature: 2.54–2.75 ms → 1.88–2.42 ms (three runs each; about
+    −20%).
+  - Same simulation: `OPENHPL_PHYSLOG` of a smoke run over `13_B`,
+    refinery and testmap is byte-identical before and after (13523 lines).
+  - Validation: CTest 3/3 (release and ASan); ASan smoke on office,
+    refinery, testmap, `13_B`, `13_C` with 0 failures. The only sanitizer
+    report is UBSan's null `memcpy` argument in vendored AngelScript
+    (`as_string.cpp:187`), not from this change.
+
 ## Plan
 
 ### 0. Measurement tool
 
-- [ ] Add the profiler as a repository tool (e.g. `tools/framebench.py` plus
-  the preload sampler): every viewpoint paced at 60 Hz, a table of GPU
-  sections and CPU categories per viewpoint, and a compare mode for two runs.
+- [x] `tools/framebench.py` with `tools/framebench_sampler.c`: one viewpoint
+  per feature (`--survey` for every viewpoint), GPU sections at full GPU
+  load, CPU at 60 Hz, `show` and `compare`. Supporting changes: the live
+  command `option pace 0|1`; the GPU profiler keeps 8 frames in flight
+  instead of 4, and with `OPENHPL_GPU_LOG` waits for a frame's results
+  instead of skipping it; `tools/levelview.py` passes `OPENHPL_GPU_LOG`
+  through and notices a crashed game it started itself. The sampler takes
+  stacks only while a viewpoint is measured and drops a sample whose stack
+  walk faults (an earlier version crashed the game during a map load).
 - [ ] A visible-window uncapped pass to settle the 1-second stalls above.
 - [ ] Profile Black Plague and Requiem maps (start positions where there are
   no viewpoints).
@@ -139,10 +202,12 @@ Heaviest CPU viewpoints: `level01_13_b_iron_storage_tunnels`,
 - [ ] **6. Draw submission (~2 ms).** Per-draw state comparisons, uniform
   setup and `PrepareDraw` repeat for every light pass; prepare each
   object's draw state once per frame and reuse it.
-- [ ] **7. Physics (0.8 ms, 1.1 ms in slow frames).** Log awake bodies per
-  map and check that resting bodies sleep before touching the broadphase.
-  Behaviour must not change: physics log comparisons and the Requiem
-  mechanisms.
+- [~] **7. Physics (0.8 ms, 1.1 ms in slow frames).** Resting bodies do
+  sleep (`status` shows 0 moving after settling); static pairs are skipped
+  (Done). Remaining: the per-step walk over all bodies in
+  `iPhysicsWorld::StoreInterpolation` (0.3 ms on `13_B`, mostly static
+  bodies) and the broad phase's cell sorting. Behaviour must not change:
+  compare `OPENHPL_PHYSLOG` before and after.
 - [ ] **8. Visibility (0.4–0.6 ms).** Keep portal visibility and light
   shadow-caster results while the camera and lights have not moved.
 - [ ] **9. Draw-heavy maps.** Find what makes 600–840 draw calls on the

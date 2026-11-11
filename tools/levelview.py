@@ -443,6 +443,12 @@ class Session:
             return True
         pid = self.info.get("pid")
         if pid:
+            # A game started by this process (framebench.py) that crashed
+            # stays a zombie, which kill() still finds, until it is reaped
+            try:
+                os.waitpid(pid, os.WNOHANG)
+            except ChildProcessError:
+                pass
             try:
                 os.kill(pid, 0)
             except OSError:
@@ -560,7 +566,8 @@ def start(args):
     path = windows_path if windows else (lambda p: p)
     env = dict(os.environ)
     for name in [n for n in env if n.startswith("OPENHPL_")]:
-        if name not in ("OPENHPL_GL_DEBUG", "OPENHPL_SHADER_DIR", "OPENHPL_PHYSLOG", "OPENHPL_PHYSTRACE"):
+        if name not in ("OPENHPL_GL_DEBUG", "OPENHPL_SHADER_DIR", "OPENHPL_PHYSLOG", "OPENHPL_PHYSTRACE",
+                        "OPENHPL_GPU_LOG"):
             del env[name]
     env["OPENHPL_GAME"] = args.game
     env["OPENHPL_PROFILE_ROOT"] = path(profile)
@@ -810,7 +817,7 @@ LIVE_COMMANDS = {
     "camera": "where the camera is, or hold it: [X Y Z [YAW PITCH]] (radians)",
     "look": "hold the camera looking at a node, short of walls: NODE [DIST [YAW PITCH]]",
     "release": "let go of the camera, the player walks on from there",
-    "option": "flashlight, flicker, hud, godmode, dof or fixedstep: NAME 0|1",
+    "option": "flashlight, flicker, hud, godmode, dof, fixedstep or pace: NAME 0|1",
     "nodes": "the nodes of the map's file [FILTER: name, kind or file]",
     "node": "one node: NAME",
     "set": "change a node: NODE [pos|rot|scale|move|turn X Y Z]... (degrees)",

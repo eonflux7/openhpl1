@@ -303,6 +303,23 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 		mOut << "held " << (pView->IsHoldingCamera() ? 1 : 0) << "\n";
 		mOut << "edits " << pEditor->GetEditCount() << "\n";
 		mOut << "editdir " << mpInit->msEditDir << "\n";
+		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
+		iPhysicsWorld *pPhysics = pWorld ? pWorld->GetPhysicsWorld() : nullptr;
+		if(pPhysics)
+		{
+			// Bodies with no mass do not move; the others move unless they
+			// rest (sleeping or frozen) or are disabled
+			int lBodies = 0, lStatic = 0, lMoving = 0;
+			cPhysicsBodyIterator it = pPhysics->GetBodyIterator();
+			while(it.HasNext())
+			{
+				iPhysicsBody *pBody = it.Next();
+				++lBodies;
+				if(pBody->GetMass() == 0) ++lStatic;
+				else if(pBody->GetEnabled() && !pBody->IsSleeping() && !pBody->IsFrozen()) ++lMoving;
+			}
+			mOut << "bodies " << lBodies << " static " << lStatic << " moving " << lMoving << "\n";
+		}
 		tString sEdited = pEditor->GetEditedMapFile();
 		if(sEdited != "") mOut << "editedmap " << sEdited << "\n";
 		if(mpInit->mpEditor)
@@ -459,6 +476,14 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 		mpInit->mpGame->GetLogicTimer()->SetPaceFixedStep(mbFixedStep);
 		mpInit->mpMapHandler->SetReloadSeed(mbFixedStep ? 1 : -1);
 		if(mbFixedStep) mpInit->mpGame->SetLimitFPS(true);
+		return true;
+	}
+	if(sCmd == "option" && avArgs.size() > 2 && avArgs[1] == "pace")
+	{
+		// With a fixed step: 0 draws frames as fast as they can be drawn
+		// (one step each), keeping the GPU busy for steady timings
+		// (tools/framebench.py); 1 runs at the game's speed
+		mpInit->mpGame->GetLogicTimer()->SetPaceFixedStep(mbFixedStep && avArgs[2] != "0");
 		return true;
 	}
 	if(sCmd == "option")

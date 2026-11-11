@@ -142,7 +142,7 @@ game starts.
 
 | Command | Does |
 |---------|------|
-| `status` | game, state (`Default` is playing), map, its file, camera (x y z yaw pitch), whether it is held, unsaved changes, the edit folder and the map's saved edits |
+| `status` | game, state (`Default` is playing), map, its file, camera (x y z yaw pitch), whether it is held, unsaved changes, the edit folder, the map's saved edits, and its physics bodies (all, static, moving) |
 | `maps [filter]` | maps that can be loaded |
 | `map <name> [start]` | loads a map (from the main menu too) and answers when it has settled (30 frames) |
 | `reload` | loads the map again from its files, as F6 does; an error if the file can't be read |
@@ -151,7 +151,7 @@ game starts.
 | `camera [x y z [yaw pitch]]` | where the camera is; with numbers, holds it there (radians) |
 | `look <node> [dist [yaw pitch]]` | holds the camera looking at what a node shows, from above at the side the camera looks from (or turned until nothing is in the way), short of walls |
 | `release` | lets go of the camera: the player stands where it was and walks on |
-| `option <name> <0\|1>` | `flashlight`, `flicker` (lamps flicker), `hud`, `godmode`, `dof` (depth of field), `fixedstep` (one logic step per frame, and the same random numbers after every load) |
+| `option <name> <0\|1>` | `flashlight`, `flicker` (lamps flicker), `hud`, `godmode`, `dof` (depth of field), `fixedstep` (one logic step per frame, and the same random numbers after every load), `pace` (with `fixedstep`: 0 draws frames as fast as they can be drawn, 1 at the game's speed; `tools/framebench.py` uses 0) |
 | `shot <file> [frames] [2d] [panel]` | saves a PNG after some frames (10): the 3D view only, unless `2d`; `panel` opens the F2 panel and shows it |
 | `nodes [filter]` / `node <name>` | nodes of the map's file: name, kind, world position, rotation (degrees), scale, entity name, file, parent, `edited` |
 | `set <node> ...` | `pos x y z`, `rot x y z` (degrees, X then Y then Z), `scale x y z`, `move x y z`, `turn x y z` (adds to the angles), several in one line |

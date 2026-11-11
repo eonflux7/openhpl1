@@ -91,7 +91,7 @@ namespace hpl {
 		GLuint NewQuery(cFrame &aFrame);
 		void Collect(cFrame &aFrame);
 
-		static const int kFrameLag = 4;
+		static const int kFrameLag = 8;
 
 		bool mbInitialized;
 		bool mbDebugGroups;

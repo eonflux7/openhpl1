@@ -182,10 +182,11 @@ namespace hpl {
 		aFrame.mbPending = false;
 
 		// The frame's last time stamp is available once all of them are;
-		// if it is not, the GPU is far behind and the frame is skipped.
+		// if it is not, the GPU is far behind and the frame is skipped,
+		// unless every frame is logged: then the results are waited for.
 		GLuint lAvailable = GL_FALSE;
 		glGetQueryObjectuiv(aFrame.mlFrameEnd, GL_QUERY_RESULT_AVAILABLE, &lAvailable);
-		if(!lAvailable) return;
+		if(!lAvailable && mpLog == nullptr) return;
 
 		GLuint64 lBegin, lEnd;
 		glGetQueryObjectui64v(aFrame.mlFrameBegin, GL_QUERY_RESULT, &lBegin);
