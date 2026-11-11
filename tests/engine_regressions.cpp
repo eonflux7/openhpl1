@@ -36,6 +36,7 @@
 #include "math/PidController.h"
 #include "graphics/VertexBuffer.h"
 #include "graphics/RenderList.h"
+#include "scene/RenderInterpolation.h"
 #include "graphics/GPUProgram.h"
 #include "graphics/Animation.h"
 #include "graphics/AnimationTrack.h"
@@ -1155,6 +1156,83 @@ static void TestTransparentOrder()
 		"refraction records the material-selected texture, not the diffuse texture");
 }
 
+// Entities moved without physics in a logic step are drawn between where
+// they were before it and where it left them (cRenderInterpolation).
+static void TestEntityInterpolation()
+{
+	TestVertexBuffer vertices(1);
+	TestRenderMaterial material(false, true);
+	TestRenderable moved("moved", &material, &vertices);
+	TestRenderable child("child", &material, &vertices);
+	TestRenderable optOut("optOut", &material, &vertices);
+	TestRenderable jumped("jumped", &material, &vertices);
+	auto doomed = std::make_unique<TestRenderable>("doomed", &material, &vertices);
+	moved.AddChild(&child);
+	child.SetPosition(cVector3f(0, 1, 0));
+	optOut.SetRenderInterpolated(false);
+
+	auto frame = [&](float afT)
+	{
+		cRenderInterpolation::BeginFrame(afT);
+		cRenderInterpolation::ApplyEntities(afT);
+	};
+	auto endFrame = []()
+	{
+		cRenderInterpolation::RestoreEntities();
+		cRenderInterpolation::EndFrame();
+	};
+
+	// Disabled (the 60 FPS limit on): nothing is kept or blended.
+	cRenderInterpolation::SetEnabled(false);
+	cRenderInterpolation::BeginStep();
+	moved.SetPosition(cVector3f(1, 0, 0));
+	frame(0.5f);
+	CheckVector(moved.GetWorldPosition(), cVector3f(1, 0, 0), "nothing is blended with interpolation off");
+	endFrame();
+	moved.SetPosition(cVector3f(0));
+
+	cRenderInterpolation::SetEnabled(true);
+	cRenderInterpolation::BeginStep();
+	moved.SetPosition(cVector3f(2, 0, 0));
+	moved.SetPosition(cVector3f(1, 0, 0));
+	optOut.SetPosition(cVector3f(1, 0, 0));
+	jumped.SetPosition(cVector3f(5, 0, 0));
+	doomed->SetPosition(cVector3f(1, 0, 0));
+	TestRenderable created("created", &material, &vertices);
+	created.SetPosition(cVector3f(1, 0, 0));
+	doomed.reset();
+
+	frame(0.25f);
+	CheckVector(moved.GetWorldPosition(), cVector3f(0.25f, 0, 0), "a moved entity is blended from where it was before the step");
+	CheckVector(child.GetWorldPosition(), cVector3f(0.25f, 1, 0), "its child follows");
+	CheckVector(optOut.GetWorldPosition(), cVector3f(1, 0, 0), "an entity that keeps its own placement is not blended");
+	CheckVector(jumped.GetWorldPosition(), cVector3f(5, 0, 0), "a teleport is not blended");
+	CheckVector(created.GetWorldPosition(), cVector3f(1, 0, 0), "an entity made in the step is not blended from where it was made");
+	endFrame();
+	CheckVector(moved.GetWorldPosition(), cVector3f(1, 0, 0), "after the frame it is where the step left it");
+	CheckVector(child.GetWorldPosition(), cVector3f(1, 1, 0), "and so is its child");
+
+	// Putting it back after a frame is not a movement: the next frame
+	// blends from before the step again.
+	frame(0.75f);
+	CheckVector(moved.GetWorldPosition(), cVector3f(0.75f, 0, 0), "a second frame blends between the same two steps");
+	endFrame();
+
+	// A frame at the step itself leaves it there.
+	frame(1.0f);
+	CheckVector(moved.GetWorldPosition(), cVector3f(1, 0, 0), "a frame at the step is not blended");
+	endFrame();
+
+	// Not moved in the next step: not blended.
+	cRenderInterpolation::BeginStep();
+	frame(0.5f);
+	CheckVector(moved.GetWorldPosition(), cVector3f(1, 0, 0), "an entity not moved in the last step stays");
+	endFrame();
+
+	cRenderInterpolation::SetEnabled(false);
+	cRenderInterpolation::BeginStep();
+}
+
 static void TestLightList()
 {
 	cLowLevelGraphicsSDL low;
@@ -1357,7 +1435,7 @@ int hplMain(const hpl::tString&)
 		TestSleepingJointLimits(); TestExpandedPhysicsWorld(); TestPassThroughStatic();
 		TestMeshBackFaces(); TestAreaParentScale(); TestMassLikeNewton153();
 		TestEffectInstances(); TestProgramParameters(); TestDrawQueue(); TestFontPlainText(); TestSprites(); TestVertexUploads(); TestColladaPolygons();
-		TestTransparentOrder(); TestLightList();
+		TestTransparentOrder(); TestLightList(); TestEntityInterpolation();
 		RunModelRegressions(directory);
 		cPidControllerf pid(1,1,1,0);
 		for(int i = 0; i < 9; ++i) Check(std::isfinite(pid.Output(1, 0.1f)), "zero-history PID");

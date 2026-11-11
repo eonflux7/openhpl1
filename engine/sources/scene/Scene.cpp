@@ -236,11 +236,14 @@ namespace hpl {
 
 		if(mbUpdateMap && mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
 			mpCurrentWorld3D->GetPhysicsWorld()->ApplyInterpolation(afT);
+
+		// Entities moved without physics and the nodes of animated meshes
+		if(mbUpdateMap) cRenderInterpolation::ApplyEntities(afT);
 	}
 
 	void cScene::RestoreInterpolation()
 	{
-		cRenderInterpolation::EndFrame();
+		cRenderInterpolation::RestoreEntities();
 
 		for(tCameraListIt it = mlstCamera.begin(); it != mlstCamera.end(); ++it)
 		{
@@ -249,6 +252,9 @@ namespace hpl {
 
 		if(mpCurrentWorld3D && mpCurrentWorld3D->GetPhysicsWorld())
 			mpCurrentWorld3D->GetPhysicsWorld()->RestoreInterpolation();
+
+		// Last, so that putting things back is not recorded as a movement.
+		cRenderInterpolation::EndFrame();
 	}
 
 	//-----------------------------------------------------------------------

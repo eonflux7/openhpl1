@@ -24,6 +24,7 @@
 #include "system/LowLevelSystem.h"
 
 #include "scene/PortalContainer.h"
+#include "scene/RenderInterpolation.h"
 
 namespace hpl {
 
@@ -53,10 +54,18 @@ namespace hpl {
 		mlIteratorCount =-1;
 
 		mpCurrentSector = nullptr;
+
+		mbRenderInterpolated = true;
+		mlRenderInterpolateCreateStep = cRenderInterpolation::GetStep();
+		mlRenderInterpolateStep = 0;
+		mbRenderInterpolateTransform = false;
+		mbRenderInterpolateApplied = false;
 	}
 
 	iEntity3D::~iEntity3D()
 	{
+		if(IsRenderInterpolationRegistered()) cRenderInterpolation::RemoveEntity(this);
+
 		if(mpParent) mpParent->RemoveChild(this);
 
 		for(tEntity3DListIt it = mlstChildren.begin(); it != mlstChildren.end();++it)
@@ -108,6 +117,8 @@ namespace hpl {
 
 	void iEntity3D::SetPosition(const cVector3f& avPos)
 	{
+		KeepRenderInterpolationTransform();
+
 		m_mtxLocalTransform.m[0][3] = avPos.x;
 		m_mtxLocalTransform.m[1][3] = avPos.y;
 		m_mtxLocalTransform.m[2][3] = avPos.z;
@@ -119,6 +130,8 @@ namespace hpl {
 
 	void iEntity3D::SetMatrix(const cMatrixf& a_mtxTransform)
 	{
+		KeepRenderInterpolationTransform();
+
 		m_mtxLocalTransform = a_mtxTransform;
 
 		SetTransformUpdated();
@@ -298,6 +311,71 @@ namespace hpl {
 	//////////////////////////////////////////////////////////////////////////
 
 	//-----------------------------------------------------------------------
+	bool iEntity3D::IsRenderInterpolationRegistered()
+	{
+		return mlRenderInterpolateStep != 0 && mlRenderInterpolateStep == cRenderInterpolation::GetStep();
+	}
+
+	bool iEntity3D::RegisterRenderInterpolation()
+	{
+		if(cRenderInterpolation::IsRecording()==false) return false;
+		// Placed where it was made: there is nothing to blend from.
+		if(mlRenderInterpolateCreateStep == cRenderInterpolation::GetStep()) return false;
+
+		if(IsRenderInterpolationRegistered()==false)
+		{
+			mlRenderInterpolateStep = cRenderInterpolation::GetStep();
+			mbRenderInterpolateTransform = false;
+			mbRenderInterpolateApplied = false;
+			cRenderInterpolation::AddEntity(this);
+		}
+		return true;
+	}
+
+	// The first time in a step that the entity's own matrix is set, keep
+	// the one it had before the step.
+	void iEntity3D::KeepRenderInterpolationTransform()
+	{
+		if(mbRenderInterpolated==false) return;
+		if(IsRenderInterpolationRegistered() && mbRenderInterpolateTransform) return;
+		if(RegisterRenderInterpolation()==false) return;
+
+		m_mtxRenderInterpolatePrev = m_mtxLocalTransform;
+		mbRenderInterpolateTransform = true;
+	}
+
+	// Further than this in one step is a teleport, not a movement.
+	static const float kMaxInterpolateEntityMove = 2.0f;
+
+	void iEntity3D::ApplyRenderInterpolation(float afT)
+	{
+		if(mbRenderInterpolateTransform==false || mbRenderInterpolated==false || mbRenderInterpolateApplied) return;
+		if(m_mtxRenderInterpolatePrev == m_mtxLocalTransform) return;
+
+		cVector3f vMove = m_mtxLocalTransform.GetTranslation() - m_mtxRenderInterpolatePrev.GetTranslation();
+		if(vMove.SqrLength() > kMaxInterpolateEntityMove*kMaxInterpolateEntityMove) return;
+
+		m_mtxRenderInterpolateCurrent = m_mtxLocalTransform;
+		m_mtxRenderInterpolateBlend = cRenderInterpolation::BlendMatrix(afT, m_mtxRenderInterpolatePrev, m_mtxLocalTransform);
+		m_mtxLocalTransform = m_mtxRenderInterpolateBlend;
+		mbRenderInterpolateApplied = true;
+		SetTransformUpdated();
+	}
+
+	void iEntity3D::RestoreRenderInterpolation()
+	{
+		if(mbRenderInterpolateApplied==false) return;
+		mbRenderInterpolateApplied = false;
+
+		// Something placed it again while the frame was drawn: keep that.
+		if(m_mtxLocalTransform != m_mtxRenderInterpolateBlend) return;
+
+		m_mtxLocalTransform = m_mtxRenderInterpolateCurrent;
+		SetTransformUpdated();
+	}
+
+	//-----------------------------------------------------------------------
+
 	void iEntity3D::UpdateWorldTransform()
 	{
 		if(mbTransformUpdated)

@@ -98,6 +98,7 @@ namespace hpl {
 
 		mlInterpolateStep = 0;
 		mbInterpolateCut = false;
+		mbInterpolatePoseApplied = false;
 
 		////////////////////////////////////////////////
 		//Create sub entities
@@ -1270,97 +1271,119 @@ namespace hpl {
 
 	//-----------------------------------------------------------------------
 
-	// A bone moving further than this relative to the mesh in one step
-	// jumps there; it is not blended.
-	static const float kMaxInterpolateBoneMove = 0.5f;
+	// A node moving further than this relative to its parent in one step
+	// jumps there; the pose is not blended.
+	static const float kMaxInterpolateNodeMove = 0.5f;
 
-	// Blends two poses of a bone. MatrixInterpolate takes rigid transforms;
-	// one with a scale is blended element by element.
-	static cMatrixf InterpolateBonePose(float afT, const cMatrixf& a_mtxA, const cMatrixf& a_mtxB)
+	// The nodes that make the pose: the bones of a skeleton, or the nodes
+	// of a mesh animated without one.
+	tNodeStateVec* cMeshEntity::GetInterpolationNodes()
 	{
-		for(int c=0; c<3; ++c)
-		{
-			float fLenA = a_mtxA.m[0][c]*a_mtxA.m[0][c] + a_mtxA.m[1][c]*a_mtxA.m[1][c] + a_mtxA.m[2][c]*a_mtxA.m[2][c];
-			float fLenB = a_mtxB.m[0][c]*a_mtxB.m[0][c] + a_mtxB.m[1][c]*a_mtxB.m[1][c] + a_mtxB.m[2][c]*a_mtxB.m[2][c];
-			if(std::abs(fLenA - 1.0f) > 1e-3f || std::abs(fLenB - 1.0f) > 1e-3f)
-			{
-				cMatrixf mtxOut = a_mtxB;
-				for(int r=0; r<3; ++r)
-					for(int k=0; k<4; ++k)
-						mtxOut.m[r][k] = a_mtxA.m[r][k] + (a_mtxB.m[r][k] - a_mtxA.m[r][k]) * afT;
-				return mtxOut;
-			}
-		}
-		return cMath::MatrixInterpolate(afT, a_mtxA, a_mtxB);
+		if(mpRootNode==nullptr) return nullptr;
+		if(mbHasNodes) return mvNodeStates.empty() ? nullptr : &mvNodeStates;
+		if(mpMesh->GetSkeleton()) return mvBoneStates.empty() ? nullptr : &mvBoneStates;
+		return nullptr;
 	}
 
 	void cMeshEntity::StoreInterpolationPose()
 	{
-		if(mpMesh->GetSkeleton()==nullptr || mbHasNodes || mvBoneStates.empty()) return;
+		tNodeStateVec *pNodes = GetInterpolationNodes();
+		if(pNodes==nullptr) return;
 
 		// Started, stopped or restarted animations make the pose jump.
-		bool bAnimationActive = false;
 		bool bCut = mbInterpolateCut;
 		mbInterpolateCut = false;
 		for(size_t i=0; i< mvAnimationStates.size(); ++i)
 		{
 			cAnimationState *pAnimState = mvAnimationStates[i];
 			if(pAnimState->TakeTimeJump() && pAnimState->GetWeight() > 0) bCut = true;
-			if(pAnimState->IsActive()) bAnimationActive = true;
 		}
+		if(bCut) return;
 
-		// A pose that nothing moves stays as it is.
-		if(bCut || (bAnimationActive==false && mbSkeletonPhysics==false)) return;
+		// Game code can move bones after this update (the worm sets its
+		// own), so the pose is kept even when no animation is running; a
+		// frame finds out whether it changed.
+		if(RegisterRenderInterpolation()==false) return;
 
-		cMatrixf *pInvWorldMtx = GetInvModelMatrix();
-		mvInterpolatePrevPose.resize(mvBoneStates.size());
-		for(size_t i=0; i< mvBoneStates.size(); ++i)
-		{
-			mvInterpolatePrevPose[i] = cMath::MatrixMul(*pInvWorldMtx, mvBoneStates[i]->GetWorldMatrix());
-		}
+		mvInterpolatePrevPose.resize(pNodes->size());
+		for(size_t i=0; i< pNodes->size(); ++i)
+			mvInterpolatePrevPose[i] = (*pNodes)[i]->GetLocalMatrix();
 		mlInterpolateStep = cRenderInterpolation::GetStep();
+	}
+
+	void cMeshEntity::ApplyRenderInterpolation(float afT)
+	{
+		//Where the mesh is (when its own matrix was set in the step)
+		iEntity3D::ApplyRenderInterpolation(afT);
+
+		//Its pose, set on the nodes so that what is attached to them follows
+		if(mbInterpolatePoseApplied || mlInterpolateStep == 0 || mlInterpolateStep != cRenderInterpolation::GetStep()) return;
+
+		tNodeStateVec *pNodes = GetInterpolationNodes();
+		if(pNodes==nullptr || mvInterpolatePrevPose.size() != pNodes->size()) return;
+
+		bool bChanged = false;
+		for(size_t i=0; i< pNodes->size(); ++i)
+		{
+			const cMatrixf &mtxCurrent = (*pNodes)[i]->GetLocalMatrix();
+			if(mtxCurrent == mvInterpolatePrevPose[i]) continue;
+			bChanged = true;
+
+			cVector3f vMove = mtxCurrent.GetTranslation() - mvInterpolatePrevPose[i].GetTranslation();
+			if(vMove.SqrLength() > kMaxInterpolateNodeMove*kMaxInterpolateNodeMove) return;
+		}
+		if(bChanged==false) return;
+
+		mvInterpolateCurrentPose.resize(pNodes->size());
+		for(size_t i=0; i< pNodes->size(); ++i)
+		{
+			cNode3D *pNode = (*pNodes)[i];
+			mvInterpolateCurrentPose[i] = pNode->GetLocalMatrix();
+			if(mvInterpolateCurrentPose[i] == mvInterpolatePrevPose[i]) continue;
+
+			pNode->SetMatrix(cRenderInterpolation::BlendMatrix(afT, mvInterpolatePrevPose[i], mvInterpolateCurrentPose[i]), false);
+		}
+		mbInterpolatePoseApplied = true;
+		UpdateInterpolatedNodes();
+	}
+
+	void cMeshEntity::RestoreRenderInterpolation()
+	{
+		if(mbInterpolatePoseApplied)
+		{
+			mbInterpolatePoseApplied = false;
+
+			tNodeStateVec *pNodes = GetInterpolationNodes();
+			if(pNodes && mvInterpolateCurrentPose.size() == pNodes->size())
+			{
+				for(size_t i=0; i< pNodes->size(); ++i)
+					(*pNodes)[i]->SetMatrix(mvInterpolateCurrentPose[i], false);
+				UpdateInterpolatedNodes();
+			}
+		}
+
+		iEntity3D::RestoreRenderInterpolation();
+	}
+
+	// After node matrices were set: the nodes, what is attached to them
+	// and the bounds of a node mesh's parts follow.
+	void cMeshEntity::UpdateInterpolatedNodes()
+	{
+		mpRootNode->SetWorldTransformUpdated();
+		if(mbHasNodes)
+		{
+			UpdateBVFromSubs();
+			SetTransformUpdated(true);
+		}
 	}
 
 	void cMeshEntity::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
-		//Update the bone matrices
+		//Update the bone matrices. A frame drawn between two logic steps
+		//has the blended pose set on the bones (ApplyRenderInterpolation).
 		cSkeleton *pSkeleton = mpMesh->GetSkeleton();
-
-		//Drawn between two logic steps: blend the pose kept before the last
-		//step with the one it made.
-		if(pSkeleton && mlInterpolateStep != 0 && mlInterpolateStep == cRenderInterpolation::GetStep() &&
-			cRenderInterpolation::IsBlending() && mvInterpolatePrevPose.size() == mvBoneStates.size())
+		if(pSkeleton)
 		{
-			cMatrixf *pInvWorldMtx = GetInvModelMatrix();
-
-			bool bBlend = true;
-			for(int i=0; i< pSkeleton->GetBoneNum(); i++)
-			{
-				mvBoneMatrices[i] = cMath::MatrixMul(*pInvWorldMtx, mvBoneStates[i]->GetWorldMatrix());
-
-				cVector3f vMove = mvBoneMatrices[i].GetTranslation() - mvInterpolatePrevPose[i].GetTranslation();
-				if(vMove.SqrLength() > kMaxInterpolateBoneMove*kMaxInterpolateBoneMove) bBlend = false;
-			}
-
-			const float fT = cRenderInterpolation::GetT();
-			for(int i=0; i< pSkeleton->GetBoneNum(); i++)
-			{
-				cBone *pBone = pSkeleton->GetBoneByIndex(i);
-				cMatrixf mtxLocal = bBlend ? InterpolateBonePose(fT, mvInterpolatePrevPose[i], mvBoneMatrices[i])
-										   : mvBoneMatrices[i];
-
-				mvBoneMatrices[i] = cMath::MatrixMul(mtxLocal,pBone->GetInvWorldTransform());
-			}
-		}
-		else if(pSkeleton)
-		{
-			//Save the root node to a temp matrix
-			/*cMatrixf mtxTemp;
-			if(mpRootNode)
-			{
-				mtxTemp = mpRootNode->GetWorldMatrix();
-				mpRootNode->SetMatrix(cMatrixf::Identity);
-			}*/
 			cMatrixf *pInvWorldMtx = GetInvModelMatrix();
 
 			for(int i=0; i< pSkeleton->GetBoneNum(); i++)
@@ -1374,15 +1397,6 @@ namespace hpl {
 
 				mvBoneMatrices[i] = cMath::MatrixMul(mtxLocal,pBone->GetInvWorldTransform());
 			}
-
-			//Set back the matrix.
-			/*if(mpRootNode){
-				mpRootNode->SetMatrix(mtxTemp);
-				SetTransformUpdated(true);
-			}
-			else {
-				SetTransformUpdated(true);
-			}*/
 		}
 	}
 

@@ -137,7 +137,30 @@ namespace hpl {
 		void LoadFromSaveData(iSaveData *apSaveData) override;
 		void SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame) override;
 
+		/**
+		 * Render interpolation (cRenderInterpolation). An entity whose own
+		 * matrix is set in a logic step keeps the one it had before, and a
+		 * frame drawn before the next step shows it between the two. Off
+		 * for what keeps its own: physics bodies, models placed relative
+		 * to the camera, and what is not drawn (sounds, triggers).
+		 */
+		void SetRenderInterpolated(bool abX){ mbRenderInterpolated = abX; }
+		bool GetRenderInterpolated(){ return mbRenderInterpolated; }
+
+		/** Called by cRenderInterpolation for an entity registered in the last step. */
+		virtual void ApplyRenderInterpolation(float afT);
+		virtual void RestoreRenderInterpolation();
+
 	protected:
+		/**
+		 * Registers the entity with cRenderInterpolation for this step, once.
+		 * Returns false if it is not to be, that is not in a logic step with
+		 * interpolation enabled, or it was created in this step.
+		 */
+		bool RegisterRenderInterpolation();
+		/** Registered in the current step. */
+		bool IsRenderInterpolationRegistered();
+
 		cMatrixf m_mtxLocalTransform;
 		cMatrixf m_mtxWorldTransform;
 
@@ -165,6 +188,19 @@ namespace hpl {
 		int mlIteratorCount;
 	private:
 		void UpdateWorldTransform();
+		void KeepRenderInterpolationTransform();
+
+		bool mbRenderInterpolated;
+		// The step the entity was created in and the one it is registered for.
+		unsigned int mlRenderInterpolateCreateStep;
+		unsigned int mlRenderInterpolateStep;
+		// The local matrix before the step was kept, and a frame has the
+		// blended one set: the local matrix the step left and the blended one.
+		bool mbRenderInterpolateTransform;
+		bool mbRenderInterpolateApplied;
+		cMatrixf m_mtxRenderInterpolatePrev;
+		cMatrixf m_mtxRenderInterpolateCurrent;
+		cMatrixf m_mtxRenderInterpolateBlend;
 	};
 
 };

@@ -46,6 +46,9 @@ namespace hpl {
 								cSoundHandler *apSoundHandler, bool abRemoveWhenOver)
 		:iEntity3D(asName)
 	{
+		// Heard where the logic steps put it.
+		SetRenderInterpolated(false);
+
 		mbRemoveWhenOver = abRemoveWhenOver;
 
 		//Log("Created sound entity '%s'\n",msName.c_str());

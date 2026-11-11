@@ -52,6 +52,10 @@ namespace hpl {
 		mpShape = apShape;
 		mpNode = nullptr;
 
+		// Its node is blended (ApplyInterpolation); the body itself stays
+		// where the simulation has it.
+		SetRenderInterpolated(false);
+
 		mbInterpolatePrevValid = false;
 		mbInterpolated = false;
 

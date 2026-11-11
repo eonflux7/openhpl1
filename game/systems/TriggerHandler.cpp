@@ -31,6 +31,7 @@
 cGameTrigger::cGameTrigger() : iEntity3D("")
 {
 	SetRadius(1);
+	SetRenderInterpolated(false);
 }
 
 //-----------------------------------------------------------------------
