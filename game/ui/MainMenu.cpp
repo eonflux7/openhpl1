@@ -18,6 +18,7 @@
 
 
 #include <algorithm>
+#include <functional>
 
 float gfMenuFadeAmount;
 bool gbMustRestart=false;
@@ -799,28 +800,49 @@ public:
 	int mlNum;
 };
 
+static tWString OnOffText(cInit *mpInit, bool abOn)
+{
+	return abOn ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+}
+
+// A button that switches an On/Off option and shows the new value in the
+// text widget beside it. That widget is made after the button, so the
+// pointer to it is held by reference.
+class cMainMenuWidget_Toggle : public cMainMenuWidget_Button
+{
+public:
+	cMainMenuWidget_Toggle(cInit *apInit, const cVector3f &avPos, const tWString& asText, const tWString& asTip,
+							cMainMenuWidget_Text *&apValueText, std::function<bool()> aGet, std::function<void(bool)> aSet)
+		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,20,eFontAlign_Right),
+		  mpValueText(apValueText), mGet(std::move(aGet)), mSet(std::move(aSet))
+	{
+		msTip = asTip;
+	}
+
+	cMainMenuWidget_Toggle(cInit *apInit, const cVector3f &avPos, const tWString& asText, const tWString& asTip,
+							cMainMenuWidget_Text *&apValueText, bool &abValue)
+		: cMainMenuWidget_Toggle(apInit,avPos,asText,asTip,apValueText,
+			[&abValue]{ return abValue; }, [&abValue](bool abX){ abValue = abX; })
+	{
+	}
+
+	void OnMouseDown(eMButton aButton) override
+	{
+		mSet(!mGet());
+		mpValueText->msText = OnOffText(mpInit, mGet());
+	}
+
+private:
+	cMainMenuWidget_Text *&mpValueText;
+	std::function<bool()> mGet;
+	std::function<void(bool)> mSet;
+};
+
 // OPTIONS CONTROLS
 
 cMainMenuWidget_Text *gpInvertMouseYText=nullptr;
 cMainMenuWidget_Text *gpMouseSensitivityText=nullptr;
 cMainMenuWidget_Text *gpToggleCrouchText=nullptr;
-
-class cMainMenuWidget_InvertMouseY : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_InvertMouseY(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-								: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipControlsInvertMouseY");
-	}
-	
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mpButtonHandler->mbInvertMouseY = !mpInit->mpButtonHandler->mbInvertMouseY;
-		gpInvertMouseYText->msText = mpInit->mpButtonHandler->mbInvertMouseY ? kTranslate("MainMenu","On") : 
-																				kTranslate("MainMenu","Off");
-	}
-};
 
 class cMainMenuWidget_MouseSensitivity : public cMainMenuWidget_Button
 {
@@ -849,23 +871,6 @@ public:
 		char sTempVec[256];
 		sprintf(sTempVec,"%.1f",mpInit->mpButtonHandler->mfMouseSensitivity);
 		gpMouseSensitivityText->msText = cString::To16Char(sTempVec);
-	}
-};
-
-class cMainMenuWidget_ToggleCrouch : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_ToggleCrouch(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipControlsToggleCrouch");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mpButtonHandler->mbToggleCrouch = !mpInit->mpButtonHandler->mbToggleCrouch;
-		gpToggleCrouchText->msText = mpInit->mpButtonHandler->mbToggleCrouch ? kTranslate("MainMenu","On")
-																			: kTranslate("MainMenu","Off");
 	}
 };
 
@@ -945,49 +950,9 @@ private:
 	eSoundBus mBus;
 };
 
-class cMainMenuWidget_SoundHardware : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_SoundHardware(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipSoundHardware");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbUseSoundHardware = !mpInit->mbUseSoundHardware;
-
-		gpSoundHardwareText->msText = mpInit->mbUseSoundHardware ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-
-		gbMustRestart = true;
-	}
-};
-
 // Black Plague: reverb and echo of the rooms (EFX). The label and tip are
 // not in the language files; the game has them in English only.
 cMainMenuWidget_Text *gpSoundEFXText=nullptr;
-
-class cMainMenuWidget_SoundEFX : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_SoundEFX(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = _W("Enables environmental effects such as reverb and echo. Requires restart.");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbUseEnvAudio = !mpInit->mbUseEnvAudio;
-
-		gpSoundEFXText->msText = mpInit->mbUseEnvAudio ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-
-		gbMustRestart = true;
-	}
-};
 
 class cMainMenuWidget_SoundOutputDevice : public cMainMenuWidget_Button
 {
@@ -1151,48 +1116,11 @@ cMainMenuWidget_Text *gpLanguageText=nullptr;
 cMainMenuWidget_Text *gpSubtitlesText=nullptr;
 
 cMainMenuWidget_Text *gpSimpleSwingText=nullptr;
-cMainMenuWidget_Text *gpAllowQuickSaveText=nullptr;
 cMainMenuWidget_Text *gpDisablePersonalText=nullptr;
 cMainMenuWidget_Text *gpDifficultyText=nullptr;
 cMainMenuWidget_Text *gpFlashItemsText=nullptr;
 cMainMenuWidget_Text *gpShowCrossHairText=nullptr;
 
-
-class cMainMenuWidget_ShowCrossHair : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_ShowCrossHair(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGameShowCrossHair");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbShowCrossHair = !mpInit->mbShowCrossHair;
-
-		gpShowCrossHairText->msText = mpInit->mbShowCrossHair ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
-class cMainMenuWidget_FlashItems : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_FlashItems(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGameFlashText");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbFlashItems = !mpInit->mbFlashItems;
-
-		gpFlashItemsText->msText = mpInit->mbFlashItems ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
 
 
 tString gvDifficultyLevel[] = {"Easy","Normal","Hard"};
@@ -1226,100 +1154,7 @@ public:
 	}
 };
 
-class cMainMenuWidget_SimpleSwing : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_SimpleSwing(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbSimpleWeaponSwing = !mpInit->mbSimpleWeaponSwing;
-		
-		gpSimpleSwingText->msText = mpInit->mbSimpleWeaponSwing ?
-									kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
-class cMainMenuWidget_AllowQuickSave : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_AllowQuickSave(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbAllowQuickSave = !mpInit->mbAllowQuickSave;
-
-		gpAllowQuickSaveText->msText = mpInit->mbAllowQuickSave ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
-class cMainMenuWidget_DisablePersonal : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_DisablePersonal(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGameDisablePersonal");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbDisablePersonalNotes = !mpInit->mbDisablePersonalNotes;
-
-		gpDisablePersonalText->msText = mpInit->mbDisablePersonalNotes ?
-			kTranslate("MainMenu","Off") : kTranslate("MainMenu","On");
-	}
-};
-
 cMainMenuWidget_Text *gpDeveloperModeText=nullptr;
-
-class cMainMenuWidget_DeveloperMode : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_DeveloperMode(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = _W("Debug keys: F2 renderer tools, F3 performance overlay, L logs the rendering of a frame.");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbDeveloperMode = !mpInit->mbDeveloperMode;
-		if(mpInit->IsDeveloperMode()==false)
-		{
-			mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDebugOverlayActive(false);
-			if(mpInit->mpRefView) mpInit->mpRefView->SetOpen(false);
-		}
-
-		gpDeveloperModeText->msText = mpInit->mbDeveloperMode ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
-class cMainMenuWidget_Subtitles : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_Subtitles(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGameSubtitles");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbSubtitles = !mpInit->mbSubtitles;
-
-		gpSubtitlesText->msText = mpInit->mbSubtitles ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
 
 class cMainMenuWidget_Language : public cMainMenuWidget_Button
 {
@@ -1754,26 +1589,8 @@ public:
 
 static tWString GetDoFText(cInit *mpInit)
 {
-	return kTranslate("MainMenu", mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled() ? "Off" : "On");
+	return OnOffText(mpInit, !mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled());
 }
-
-class cMainMenuWidget_DOF : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_DOF(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsDOF");	
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		cEffect_DepthOfField *pDoF = mpInit->mpEffectHandler->GetDepthOfField();
-		pDoF->SetDisabled(!pDoF->IsDisabled());
-
-		gpDoFText->msText = GetDoFText(mpInit);
-	}
-};
 
 
 // Water, some windows and particles drawn through what is behind them.
@@ -1785,26 +1602,6 @@ static tWString TranslateOr(cInit *mpInit, const tString &asEntry, const tWStrin
 	tWString sText = kTranslate("MainMenu", asEntry);
 	return sText == _W("") ? asFallback : sText;
 }
-
-class cMainMenuWidget_Refractions : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_Refractions(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = TranslateOr(mpInit,"TipGraphicsRefractions",
-			_W("Adds more realism to water, some windows and particle effects. Quite large impact on framerate."));
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
-		pRenderer->SetRefractionUsed(!pRenderer->GetRefractionUsed());
-
-		gpRefractionsText->msText = pRenderer->GetRefractionUsed() ?
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
 
 class cMainMenuWidget_TextureQuality : public cMainMenuWidget_Button
 {
@@ -1918,26 +1715,6 @@ public:
 	}
 };
 
-class cMainMenuWidget_Fullscreen : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_Fullscreen(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		// Not in the game's language files
-		msTip = _W("Fill the screen or run in a window. Requires restart.");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbFullScreenSetting = !mpInit->mbFullScreenSetting;
-
-		gpFullscreenText->msText = mpInit->mbFullScreenSetting ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-
-		gbMustRestart = true;
-	}
-};
-
 static tWString GetDisplayText(cInit *apInit)
 {
 	iLowLevelGraphics *pLowLevel = apInit->mpGame->GetGraphics()->GetLowLevel();
@@ -1988,26 +1765,6 @@ public:
 	}
 };
 
-class cMainMenuWidget_PostEffects : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_PostEffects(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsPostEffects");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		bool bPostEffectsActive = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive();
-		mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(!bPostEffectsActive);
-		mpInit->mbPostEffects = !bPostEffectsActive;
-
-		gpPostEffectsText->msText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive() ? 
-			kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
 class cMainMenuWidget_FOV : public cMainMenuWidget_Button
 {
 public:
@@ -2051,49 +1808,13 @@ public:
 
 static tWString GetBloomText(cInit *mpInit)
 {
-	return kTranslate("MainMenu", mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive() ? "On" : "Off");
+	return OnOffText(mpInit, mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive());
 }
-
-class cMainMenuWidget_Bloom : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_Bloom(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsBloom");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-		pPostEffects->SetBloomActive(!pPostEffects->GetBloomActive());
-
-		gpBloomText->msText = GetBloomText(mpInit);
-	}
-};
 
 static tWString GetMotionBlurText(cInit *mpInit)
 {
-	return kTranslate("MainMenu", mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive() ? "On" : "Off");
+	return OnOffText(mpInit, mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive());
 }
-
-class cMainMenuWidget_MotionBlur : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_MotionBlur(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsMotionBlur");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
-		pPostEffects->SetMotionBlurActive(!pPostEffects->GetMotionBlurActive());
-
-		gpMotionBlurText->msText = GetMotionBlurText(mpInit);
-	}
-};
 
 // Graphics presets. The names are not in the game's language files.
 
@@ -2116,11 +1837,8 @@ public:
 static void UpdateGraphicsTexts(cInit *mpInit)
 {
 	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
-	const tWString sOn = kTranslate("MainMenu","On");
-	const tWString sOff = kTranslate("MainMenu","Off");
-
 	gpBloomText->msText = GetBloomText(mpInit);
-	gpPostEffectsText->msText = pGraphics->GetRendererPostEffects()->GetActive() ? sOn : sOff;
+	gpPostEffectsText->msText = OnOffText(mpInit, pGraphics->GetRendererPostEffects()->GetActive());
 	gpMotionBlurText->msText = GetMotionBlurText(mpInit);
 	gpShadowsText->msText = GetShadowOptionText(mpInit, (int)pGraphics->GetRenderer3D()->GetShowShadows());
 	gpTextureFilterText->msText = GetTextureFilterText(mpInit);
@@ -2151,42 +1869,6 @@ public:
 
 		ApplyGraphicsPreset(mpInit, (eGraphicsPreset)lCurrent);
 		UpdateGraphicsTexts(mpInit);
-	}
-};
-
-class cMainMenuWidget_VSync : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_VSync(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		msTip = kTranslate("MainMenu", "TipGraphicsVSync");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mbVsync = !mpInit->mbVsync;
-		mpInit->mpGame->GetGraphics()->GetLowLevel()->SetVsyncActive(mpInit->mbVsync);
-
-		gpVSyncText->msText = mpInit->mbVsync ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	}
-};
-
-class cMainMenuWidget_LimitFPS : public cMainMenuWidget_Button
-{
-public:
-	cMainMenuWidget_LimitFPS(cInit *apInit, const cVector3f &avPos, const tWString& asText,cVector2f avFontSize, eFontAlign aAlignment)
-		: cMainMenuWidget_Button(apInit,avPos,asText,eMainMenuState_LastEnum,avFontSize,aAlignment)
-	{
-		// Not in the game's language files
-		msTip = _W("Off: frames are drawn as fast as possible (up to the frame rate cap), or at the display's rate with VSync on. The game itself still runs at 60 steps per second.");
-	}
-
-	void OnMouseDown(eMButton aButton) override
-	{
-		mpInit->mpGame->SetLimitFPS(!mpInit->mpGame->GetLimitFPS());
-
-		gpLimitFPSText->msText = mpInit->mpGame->GetLimitFPS() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	}
 };
 
@@ -3305,13 +2987,15 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsControls,new cMainMenuWidget_Text(mpInit,vPos,kTranslate("MainMenu","Controls"),25,eFontAlign_Center) ); 
 	vPos.y += 37;
 	//Buttons
-	cMainMenuWidget *pWidgetInvertMouseY = new cMainMenuWidget_InvertMouseY(mpInit,vPos,kTranslate("MainMenu","Invert Mouse Y:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetInvertMouseY = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Invert Mouse Y:"),kTranslate("MainMenu","TipControlsInvertMouseY"),
+		gpInvertMouseYText, mpInit->mpButtonHandler->mbInvertMouseY);
 	AddWidgetToState(eMainMenuState_OptionsControls,pWidgetInvertMouseY); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetMouseSensitivity = new cMainMenuWidget_MouseSensitivity(mpInit,vPos,kTranslate("MainMenu","Mouse Sensitivity:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsControls,pWidgetMouseSensitivity); 
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetToggleCrouch = new cMainMenuWidget_ToggleCrouch(mpInit,vPos,kTranslate("MainMenu","Toggle Crouch:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetToggleCrouch = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Toggle Crouch:"),kTranslate("MainMenu","TipControlsToggleCrouch"),
+		gpToggleCrouchText, mpInit->mpButtonHandler->mbToggleCrouch);
 	AddWidgetToState(eMainMenuState_OptionsControls,pWidgetToggleCrouch); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetChangeKeyConf = new cMainMenuWidget_Button(mpInit,vPos,kTranslate("MainMenu","Change Key Mapping"),eMainMenuState_OptionsKeySetupMove,20,eFontAlign_Center);
@@ -3322,7 +3006,7 @@ void cMainMenu::CreateWidgets()
 	//Text
 	vPos = cVector3f(vTextStart.x+12, vTextStart.y+37, vTextStart.z);
 
-	sText = mpInit->mpButtonHandler->mbInvertMouseY ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mpButtonHandler->mbInvertMouseY);
 	gpInvertMouseYText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left,pWidgetInvertMouseY);
 	AddWidgetToState(eMainMenuState_OptionsControls,gpInvertMouseYText); 
 
@@ -3333,7 +3017,7 @@ void cMainMenu::CreateWidgets()
 	AddWidgetToState(eMainMenuState_OptionsControls,gpMouseSensitivityText); 
 
 	vPos.y += 29;
-	sText = mpInit->mpButtonHandler->mbToggleCrouch ? kTranslate("MainMenu","On"): kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mpButtonHandler->mbToggleCrouch);
 	gpToggleCrouchText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left,pWidgetToggleCrouch);
 	AddWidgetToState(eMainMenuState_OptionsControls,gpToggleCrouchText); 
 
@@ -3539,7 +3223,8 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetLanguage = new cMainMenuWidget_Language(mpInit,vPos,kTranslate("MainMenu","Language:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetLanguage); 
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetSubtitles = new cMainMenuWidget_Subtitles(mpInit,vPos,kTranslate("MainMenu","Subtitle:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetSubtitles = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Subtitle:"),kTranslate("MainMenu","TipGameSubtitles"),
+		gpSubtitlesText, mpInit->mbSubtitles);
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetSubtitles); 
 	vPos.y += 50;
 	// Requiem has no difficulty
@@ -3553,24 +3238,39 @@ void cMainMenu::CreateWidgets()
 	}
 	if(mpInit->mbSimpleSwingInOptions)
 	{
-		AddWidgetToState(eMainMenuState_OptionsGame,new cMainMenuWidget_SimpleSwing(mpInit,vPos,kTranslate("MainMenu","SimpleSwing:"),20,eFontAlign_Right) ); 
+		AddWidgetToState(eMainMenuState_OptionsGame,new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","SimpleSwing:"),_W(""),
+		gpSimpleSwingText, mpInit->mbSimpleWeaponSwing) ); 
 		vPos.y += 29;
 	}
 	tWString sCrosshairText = kTranslate("MainMenu","Show Crosshair:");
 	if(sCrosshairText == _W("")) sCrosshairText = _W("Show Crosshair:");
-	cMainMenuWidget *pWidgetShowCrossHair = new cMainMenuWidget_ShowCrossHair(mpInit,vPos,sCrosshairText,20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetShowCrossHair = new cMainMenuWidget_Toggle(mpInit,vPos,sCrosshairText,kTranslate("MainMenu","TipGameShowCrossHair"),
+		gpShowCrossHairText, mpInit->mbShowCrossHair);
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetShowCrossHair); 
 	vPos.y += 29;
 		
-	cMainMenuWidget *pWidgetFlashItems = new cMainMenuWidget_FlashItems(mpInit,vPos,kTranslate("MainMenu","FlashItems:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetFlashItems = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","FlashItems:"),kTranslate("MainMenu","TipGameFlashText"),
+		gpFlashItemsText, mpInit->mbFlashItems);
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetFlashItems); 
 	vPos.y += 29;
 	
-	cMainMenuWidget *pWidgetDisablePersonal = new cMainMenuWidget_DisablePersonal(mpInit,vPos,kTranslate("MainMenu","DisablePersonal:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetDisablePersonal = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","DisablePersonal:"),kTranslate("MainMenu","TipGameDisablePersonal"),
+		gpDisablePersonalText, [this]{ return !mpInit->mbDisablePersonalNotes; },
+		[this](bool abX){ mpInit->mbDisablePersonalNotes = !abX; });
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDisablePersonal); 
 	vPos.y += 29;
 
-	cMainMenuWidget *pWidgetDeveloperMode = new cMainMenuWidget_DeveloperMode(mpInit,vPos,_W("Developer Mode:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetDeveloperMode = new cMainMenuWidget_Toggle(mpInit,vPos,_W("Developer Mode:"),_W("Debug keys: F2 renderer tools, F3 performance overlay, L logs the rendering of a frame."),
+		gpDeveloperModeText, [this]{ return mpInit->mbDeveloperMode; },
+		[this](bool abX)
+		{
+			mpInit->mbDeveloperMode = abX;
+			if(mpInit->IsDeveloperMode()==false)
+			{
+				mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDebugOverlayActive(false);
+				if(mpInit->mpRefView) mpInit->mpRefView->SetOpen(false);
+			}
+		});
 	AddWidgetToState(eMainMenuState_OptionsGame,pWidgetDeveloperMode);
 	vPos.y += 35;
 	AddWidgetToState(eMainMenuState_OptionsGame,new cMainMenuWidget_GfxBack(mpInit,vPos,kTranslate("MainMenu","Back"),23,eFontAlign_Center) ); 
@@ -3584,7 +3284,7 @@ void cMainMenu::CreateWidgets()
 	gpLanguageText->SetExtraWidget(pWidgetLanguage);
 
 	vPos.y += 29;
-	sText = mpInit->mbSubtitles ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbSubtitles);
 	gpSubtitlesText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGame,gpSubtitlesText); 
 	gpSubtitlesText->SetExtraWidget(pWidgetSubtitles);
@@ -3607,31 +3307,31 @@ void cMainMenu::CreateWidgets()
 
 	if(mpInit->mbSimpleSwingInOptions)
 	{
-		sText = mpInit->mbSimpleWeaponSwing ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		sText = OnOffText(mpInit, mpInit->mbSimpleWeaponSwing);
 		gpSimpleSwingText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 		AddWidgetToState(eMainMenuState_OptionsGame,gpSimpleSwingText); 
 		vPos.y += 29;
 	}
 	
-	sText = mpInit->mbShowCrossHair ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbShowCrossHair);
 	gpShowCrossHairText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGame,gpShowCrossHairText);
 	gpShowCrossHairText->SetExtraWidget(pWidgetShowCrossHair);
 	vPos.y += 29;
 	
-	sText = mpInit->mbFlashItems ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbFlashItems);
 	gpFlashItemsText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGame,gpFlashItemsText);
 	gpFlashItemsText->SetExtraWidget(pWidgetFlashItems);
 	
 	vPos.y += 29;
-	sText = mpInit->mbDisablePersonalNotes ? kTranslate("MainMenu","Off") : kTranslate("MainMenu","On");
+	sText = OnOffText(mpInit, !mpInit->mbDisablePersonalNotes);
 	gpDisablePersonalText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGame,gpDisablePersonalText); 
 	gpDisablePersonalText->SetExtraWidget(pWidgetDisablePersonal);
 
 	vPos.y += 29;
-	sText = mpInit->mbDeveloperMode ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbDeveloperMode);
 	gpDeveloperModeText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGame,gpDeveloperModeText);
 	gpDeveloperModeText->SetExtraWidget(pWidgetDeveloperMode);
@@ -3660,7 +3360,9 @@ void cMainMenu::CreateWidgets()
 		AddWidgetToState(eMainMenuState_OptionsSound,vBusWidgets[i]);
 		vPos.y += 29;
 	}
-	cMainMenuWidget *pWidgetSoundHardware = new cMainMenuWidget_SoundHardware(mpInit,vPos,kTranslate("MainMenu","Use Hardware:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetSoundHardware = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Use Hardware:"),kTranslate("MainMenu","TipSoundHardware"),
+		gpSoundHardwareText, [this]{ return mpInit->mbUseSoundHardware; },
+		[this](bool abX){ mpInit->mbUseSoundHardware = abX; gbMustRestart = true; });
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHardware); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetSoundOutputDevice = new cMainMenuWidget_SoundOutputDevice(mpInit,vPos,kTranslate("MainMenu","Output Device:"),20,eFontAlign_Right);
@@ -3669,7 +3371,9 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetSoundHRTF = new cMainMenuWidget_SoundHRTF(mpInit,vPos,_W("HRTF:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundHRTF);
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetSoundEFX = new cMainMenuWidget_SoundEFX(mpInit,vPos,_W("EFX:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetSoundEFX = new cMainMenuWidget_Toggle(mpInit,vPos,_W("EFX:"),_W("Enables environmental effects such as reverb and echo. Requires restart."),
+		gpSoundEFXText, [this]{ return mpInit->mbUseEnvAudio; },
+		[this](bool abX){ mpInit->mbUseEnvAudio = abX; gbMustRestart = true; });
 	AddWidgetToState(eMainMenuState_OptionsSound,pWidgetSoundEFX);
 	vPos.y += 35;
     AddWidgetToState(eMainMenuState_OptionsSound,new cMainMenuWidget_GfxBack(mpInit,vPos,kTranslate("MainMenu","Back"),23,eFontAlign_Center) ); 
@@ -3693,7 +3397,7 @@ void cMainMenu::CreateWidgets()
 	}
 
 	vPos.y += 29;
-	sText = mpInit->mbUseSoundHardware ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbUseSoundHardware);
 	gpSoundHardwareText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundHardwareText); 
 	gpSoundHardwareText->SetExtraWidget(pWidgetSoundHardware);
@@ -3713,7 +3417,7 @@ void cMainMenu::CreateWidgets()
 	gpSoundHRTFText->SetExtraWidget(pWidgetSoundHRTF);
 
 	vPos.y += 29;
-	sText = mpInit->mbUseEnvAudio ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbUseEnvAudio);
 	gpSoundEFXText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsSound,gpSoundEFXText);
 	gpSoundEFXText->SetExtraWidget(pWidgetSoundEFX);
@@ -3738,7 +3442,9 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetResolution = new cMainMenuWidget_Resolution(mpInit,vPos,kTranslate("MainMenu","Resolution:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetResolution); 
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetFullscreen = new cMainMenuWidget_Fullscreen(mpInit,vPos,_W("Fullscreen:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetFullscreen = new cMainMenuWidget_Toggle(mpInit,vPos,_W("Fullscreen:"),_W("Fill the screen or run in a window. Requires restart."),
+		gpFullscreenText, [this]{ return mpInit->mbFullScreenSetting; },
+		[this](bool abX){ mpInit->mbFullScreenSetting = abX; gbMustRestart = true; });
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetFullscreen); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetDisplay = new cMainMenuWidget_Display(mpInit,vPos,_W("Display:"),20,eFontAlign_Right);
@@ -3747,7 +3453,9 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetNoiseFilter = new cMainMenuWidget_NoiseFilter(mpInit,vPos,kTranslate("MainMenu","Noise Filter:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetNoiseFilter); 
 	vPos.y += 29;
-	cMainMenuWidget *pWidgetBloom = new cMainMenuWidget_Bloom(mpInit,vPos,kTranslate("MainMenu","Bloom:"),20,eFontAlign_Right);
+	cMainMenuWidget *pWidgetBloom = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Bloom:"),kTranslate("MainMenu","TipGraphicsBloom"),
+		gpBloomText, [this]{ return mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetBloomActive(); },
+		[this](bool abX){ mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetBloomActive(abX); });
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetBloom); 
 	vPos.y += 29;
 	cMainMenuWidget *pWidgetGamma = new cMainMenuWidget_Gamma(mpInit,vPos,kTranslate("MainMenu","Gamma:"),20,eFontAlign_Right,0);
@@ -3780,7 +3488,7 @@ void cMainMenu::CreateWidgets()
 	gpResolutionText->SetExtraWidget(pWidgetResolution);
 
 	vPos.y += 29;
-	sText = mpInit->mbFullScreenSetting ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbFullScreenSetting);
 	gpFullscreenText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGraphics,gpFullscreenText); 
 	gpFullscreenText->SetExtraWidget(pWidgetFullscreen);
@@ -3832,16 +3540,24 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pShadowsButton = new cMainMenuWidget_Shadows(mpInit,vPos,kTranslate("MainMenu","Shadows:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pShadowsButton); 
 	vPos.y += 21;
-	cMainMenuWidget *pPostEffectsButton = new cMainMenuWidget_PostEffects(mpInit,vPos,kTranslate("MainMenu","Post Effects:"),20,eFontAlign_Right);
+	cMainMenuWidget *pPostEffectsButton = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Post Effects:"),kTranslate("MainMenu","TipGraphicsPostEffects"),
+		gpPostEffectsText, [this]{ return mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive(); },
+		[this](bool abX){ mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(abX); mpInit->mbPostEffects = abX; });
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pPostEffectsButton); 
 	vPos.y += 21;
-	cMainMenuWidget *pMotionBlurButton = new cMainMenuWidget_MotionBlur(mpInit,vPos,kTranslate("MainMenu","Motion Blur:"),20,eFontAlign_Right);
+	cMainMenuWidget *pMotionBlurButton = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Motion Blur:"),kTranslate("MainMenu","TipGraphicsMotionBlur"),
+		gpMotionBlurText, [this]{ return mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetMotionBlurActive(); },
+		[this](bool abX){ mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->SetMotionBlurActive(abX); });
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pMotionBlurButton); 
 	vPos.y += 21;
-	cMainMenuWidget *pVSyncButton = new cMainMenuWidget_VSync(mpInit,vPos,kTranslate("MainMenu","VSync:"),20,eFontAlign_Right);
+	cMainMenuWidget *pVSyncButton = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","VSync:"),kTranslate("MainMenu","TipGraphicsVSync"),
+		gpVSyncText, [this]{ return mpInit->mbVsync; },
+		[this](bool abX){ mpInit->mbVsync = abX; mpInit->mpGame->GetGraphics()->GetLowLevel()->SetVsyncActive(abX); });
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pVSyncButton); 
 	vPos.y += 21;
-	cMainMenuWidget *pLimitFPSButton = new cMainMenuWidget_LimitFPS(mpInit,vPos,_W("Limit to 60 FPS:"),20,eFontAlign_Right);
+	cMainMenuWidget *pLimitFPSButton = new cMainMenuWidget_Toggle(mpInit,vPos,_W("Limit to 60 FPS:"),_W("Off: frames are drawn as fast as possible (up to the frame rate cap), or at the display's rate with VSync on. The game itself still runs at 60 steps per second."),
+		gpLimitFPSText, [this]{ return mpInit->mpGame->GetLimitFPS(); },
+		[this](bool abX){ mpInit->mpGame->SetLimitFPS(abX); });
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pLimitFPSButton); 
 	vPos.y += 21;
 	cMainMenuWidget *pMaxFPSButton = new cMainMenuWidget_MaxFPS(mpInit,vPos,_W("Frame Rate Cap:"),20,eFontAlign_Right);
@@ -3862,7 +3578,9 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pAmbientOcclusionButton = new cMainMenuWidget_AmbientOcclusion(mpInit,vPos,_W("Ambient Occlusion:"),20,eFontAlign_Right);
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pAmbientOcclusionButton); 
 	vPos.y += 21;
-	cMainMenuWidget *pDOFButton = new cMainMenuWidget_DOF(mpInit,vPos,kTranslate("MainMenu","Depth of Field:"),20,eFontAlign_Right);
+	cMainMenuWidget *pDOFButton = new cMainMenuWidget_Toggle(mpInit,vPos,kTranslate("MainMenu","Depth of Field:"),kTranslate("MainMenu","TipGraphicsDOF"),
+		gpDoFText, [this]{ return !mpInit->mpEffectHandler->GetDepthOfField()->IsDisabled(); },
+		[this](bool abX){ mpInit->mpEffectHandler->GetDepthOfField()->SetDisabled(!abX); });
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,pDOFButton); 
 	vPos.y += 28;
     AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,new cMainMenuWidget_Button(mpInit,vPos,kTranslate("MainMenu","Back"),eMainMenuState_OptionsGraphics,23,eFontAlign_Center) );
@@ -3882,8 +3600,7 @@ void cMainMenu::CreateWidgets()
 	gpShadowsText->SetExtraWidget(pShadowsButton);
 
 	vPos.y += 21;
-	sText = mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive() ?	kTranslate("MainMenu","On") : 
-																					kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mpGame->GetGraphics()->GetRendererPostEffects()->GetActive());
 	gpPostEffectsText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left );
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpPostEffectsText);
 	gpPostEffectsText->SetExtraWidget(pPostEffectsButton);
@@ -3895,13 +3612,13 @@ void cMainMenu::CreateWidgets()
 	gpMotionBlurText->SetExtraWidget(pMotionBlurButton);
 
 	vPos.y += 21;
-	sText = mpInit->mbVsync ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mbVsync);
 	gpVSyncText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpVSyncText);
 	gpVSyncText->SetExtraWidget(pVSyncButton);
 
 	vPos.y += 21;
-	sText = mpInit->mpGame->GetLimitFPS() ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+	sText = OnOffText(mpInit, mpInit->mpGame->GetLimitFPS());
 	gpLimitFPSText = new cMainMenuWidget_Text(mpInit,vPos,sText,20,eFontAlign_Left);
 	AddWidgetToState(eMainMenuState_OptionsGraphicsAdvanced,gpLimitFPSText);
 	gpLimitFPSText->SetExtraWidget(pLimitFPSButton);
@@ -3954,10 +3671,12 @@ void cMainMenu::CreateWidgets()
 		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,new cMainMenuWidget_Text(mpInit,vPos,_W("Lighting"),25,eFontAlign_Center) );
 		vPos.y += 37;
 
-		cMainMenuWidget *pRefractionsButton = new cMainMenuWidget_Refractions(mpInit,vPos,TranslateOr(mpInit,"Refractions:",_W("Refractions:")),20,eFontAlign_Right);
+		cMainMenuWidget *pRefractionsButton = new cMainMenuWidget_Toggle(mpInit,vPos,TranslateOr(mpInit,"Refractions:",_W("Refractions:")),TranslateOr(mpInit,"TipGraphicsRefractions",
+			_W("Adds more realism to water, some windows and particle effects. Quite large impact on framerate.")),
+		gpRefractionsText, [this]{ return mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed(); },
+		[this](bool abX){ mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetRefractionUsed(abX); });
 		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,pRefractionsButton);
-		sText = mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed() ?
-					kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
+		sText = OnOffText(mpInit, mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRefractionUsed());
 		gpRefractionsText = new cMainMenuWidget_Text(mpInit,vPos + cVector3f(12,0,0),sText,20,eFontAlign_Left);
 		AddWidgetToState(eMainMenuState_OptionsGraphicsLighting,gpRefractionsText);
 		gpRefractionsText->SetExtraWidget(pRefractionsButton);
