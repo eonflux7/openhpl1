@@ -253,7 +253,9 @@ void cGameEnemyState_Infected_Patrol::OnUpdate(float afTimeStep)
 		{
 			if(mpEnemy->CheckForDoor())
 			{
+				mpMover->ResetStuckCounter();
 				mpEnemy->ChangeState(STATE_BREAKDOOR);
+				return;
 			}
 			else
 			{
@@ -263,6 +265,7 @@ void cGameEnemyState_Infected_Patrol::OnUpdate(float afTimeStep)
 					mpEnemy->ChangeState(STATE_IDLE);
 					mpEnemy->SetWaitTime(1.0f);
 					mpEnemy->IncCurrentPatrolNode();
+					return;
 				}
 			}
 			mpMover->ResetStuckCounter();
@@ -487,15 +490,19 @@ void cGameEnemyState_Infected_Investigate::OnUpdate(float afTimeStep)
 	if(mpMover->GetStuckCounter() > 1.5f)
 	{
 		if(mlKnockCount == 1){
+			mlKnockCount =0;
 			mpEnemy->ChangeState(STATE_IDLE);
 			mpEnemy->PlaySound(mpEnemyInfected->msInvestigateOverSound);
-			mlKnockCount =0;
+			return;
 		}
 		else
 		{
 			if(mpEnemy->CheckForDoor())
 			{
+				mpMover->ResetStuckCounter();
+				mlKnockCount++;
 				mpEnemy->ChangeState(STATE_BREAKDOOR);
+				return;
 			}
 			mpMover->ResetStuckCounter();
 			mlKnockCount++;
@@ -583,12 +590,16 @@ void cGameEnemyState_Infected_MoveTo::OnUpdate(float afTimeStep)
 		if(mlBreakCount ==1)
 		{
 			mpEnemy->ChangeState(STATE_IDLE);
+			return;
 		}
 		else
 		{
 			if(mpEnemy->CheckForDoor())
 			{
+				mpMover->ResetStuckCounter();
+				mlBreakCount++;
 				mpEnemy->ChangeState(STATE_BREAKDOOR);
+				return;
 			}
 			mpMover->ResetStuckCounter();
 			mlBreakCount++;
@@ -1109,6 +1120,7 @@ void cGameEnemyState_Infected_Flee::OnEnterState(iGameEnemyState *apPrevState)
 			else
 			{
 				mpEnemy->ChangeState(STATE_HUNT);
+				return;
 			}
 			mfTimer = mpEnemyInfected->mfFleePositionMaxTime;
 			mbBackwards = false;
@@ -1159,6 +1171,7 @@ void cGameEnemyState_Infected_Flee::OnUpdate(float afTimeStep)
 				{
 					mpEnemy->ChangeState(STATE_HUNT);
 				}
+				return;
 			}
 		}
 		else
@@ -1172,6 +1185,7 @@ void cGameEnemyState_Infected_Flee::OnUpdate(float afTimeStep)
 				mpEnemy->ChangeState(mlPreviousState);
 			else
 				mpEnemy->ChangeState(STATE_HUNT);
+			return;
 		}
 		mpMover->GetCharBody()->Move(eCharDir_Forward,-1.0f,afTimeStep);
 		mpMover->TurnToPos(mpInit->mpPlayer->GetCharacterBody()->GetFeetPosition());

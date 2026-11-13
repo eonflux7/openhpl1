@@ -20,6 +20,9 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
   V-Sync and environmental audio on. Existing settings files are untouched.
 - Dogs have Original and Improved AI (Options → AI). Both share animation
   and stability fixes; see [Dog foundations](docs/dog-foundations.md).
+- The Infected has the Dog's state-change fixes: a patrol, investigation,
+  move or flee that hands over to another state stops there, so the rest of
+  its old update can't undo the change or play the "investigation over" sound twice.
 
 ## Platform and build
 
