@@ -640,10 +640,8 @@ tString cLevelEditor::Pick(const cVector3f &vStart, const cVector3f &vEnd)
 	if(hit.mpBody == nullptr) return "";
 
 	// A body of a game entity: the entity
-	tGameEntityIterator entityIt = mpInit->mpMapHandler->GetGameEntityIterator();
-	while(entityIt.HasNext())
+	for(iGameEntity *pEntity : mpInit->mpMapHandler->GetGameEntityIterator())
 	{
-		iGameEntity *pEntity = entityIt.Next();
 		for(int i = 0; i < pEntity->GetBodyNum(); ++i)
 		{
 			if(pEntity->GetBody(i) != hit.mpBody) continue;
@@ -1005,10 +1003,8 @@ void cLevelEditor::SyncLive(cColladaNode *apNode)
 	if(mbStaticMoved)
 	{
 		mbStaticMoved = false;
-		cLight3DListIterator lightIt = pWorld->GetLightIterator();
-		while(lightIt.HasNext())
+		for(iLight3D *pLight : pWorld->GetLightIterator())
 		{
-			iLight3D *pLight = lightIt.Next();
 			if(pLight->IsStatic() == false) continue;
 			pLight->ClearCasters(true);
 			pLight->SetAllStaticCastersAdded(false);

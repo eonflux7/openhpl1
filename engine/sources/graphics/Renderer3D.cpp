@@ -488,11 +488,9 @@ namespace hpl {
 		mRenderSettings.mpTexture[0] = mpFogLinearSolidTexture;
 
 		// Render objects
-		cFogObjectIterator it = mpRenderList->GetFogIterator();
 
-		while(it.HasNext())
+		for(iRenderable *pObject : mpRenderList->GetFogIterator())
 		{
-			iRenderable *pObject = it.Next();
 			cMatrixf *pMtx = pObject->GetModelMatrix(apCamera);
 
 			//Non static models
@@ -650,10 +648,8 @@ namespace hpl {
 
 		const int lRenderCount = mpRenderList->GetRenderCount();
 
-		cLight3DIterator lightIt = mpRenderList->GetLightIt();
-		while(lightIt.HasNext())
+		for(iLight3D *pLight : mpRenderList->GetLightIt())
 		{
-			iLight3D *pLight = lightIt.Next();
 			if(pLight->GetCastShadows()==false) continue;
 
 			for(iRenderable *pObject : *pLight->GetDynamicCasters())
@@ -1322,11 +1318,8 @@ namespace hpl {
 
 
 			//Render Debug for objects
-			cRenderableIterator objectIt = mpRenderList->GetObjectIt();
-			while(objectIt.HasNext())
+			for(iRenderable* pObject : mpRenderList->GetObjectIt())
 			{
-				iRenderable* pObject = objectIt.Next();
-
 				RenderDebugObject(apCamera,pObject,nullptr,0,nullptr,eMaterialRenderType_Diffuse,nullptr);
 			}
 
@@ -1337,10 +1330,8 @@ namespace hpl {
 				mpLowLevelGraphics->SetDepthTestActive(false);
 				mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, apCamera->GetViewMatrix(), apCamera->GetProjectionMatrix());
 
-				cLight3DIterator lightIt = mpRenderList->GetLightIt();
-				while(lightIt.HasNext())
+				for(iLight3D* pLight : mpRenderList->GetLightIt())
 				{
-					iLight3D* pLight = lightIt.Next();
 					cBoundingVolume *pBV = pLight->GetBoundingVolume();
 
 					cColor Col = pLight->GetDiffuseColor();

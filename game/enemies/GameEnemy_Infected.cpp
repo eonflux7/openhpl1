@@ -1218,10 +1218,8 @@ void cGameEnemyState_Infected_CallBackup::OnEnterState(iGameEnemyState *apPrevSt
 	//Iterate enemies and show them the player
 	cVector3f vPostion = mpMover->GetCharBody()->GetFeetPosition();
 
-	tGameEnemyIterator it = mpInit->mpMapHandler->GetGameEnemyIterator();
-	while(it.HasNext())
+	for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 	{
-		iGameEnemy *pEnemy = it.Next();
 		if(pEnemy->GetEnemyType() != mpEnemy->GetEnemyType()) continue;
 		if(pEnemy == mpEnemy || pEnemy->IsActive()==false || pEnemy->GetHealth()<=0) continue;
 

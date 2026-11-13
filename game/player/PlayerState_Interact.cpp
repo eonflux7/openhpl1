@@ -16,10 +16,8 @@ static iPhysicsBody* FindEmbeddingBody(iPhysicsWorld *apWorld, iPhysicsBody *apB
 {
 	const float fMinDepth = 0.01f;
 
-	cPhysicsBodyIterator it = apWorld->GetBodyIterator();
-	while(it.HasNext())
+	for(iPhysicsBody *pOther : apWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pOther = it.Next();
 		if(pOther == apBody || pOther->GetMass() != 0 || pOther->IsCharacter() || pOther->GetCollide()==false) continue;
 
 		float fDepth = apWorld->GetBodyOverlap(apBody, pOther);

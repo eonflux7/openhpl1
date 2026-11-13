@@ -655,10 +655,8 @@ void cRefView::ApplyOptions()
 	mpInit->mpLampAppearanceController->SetStill(mbNoFlicker);
 	if(mbNoFlicker && pWorld)
 	{
-		cLight3DListIterator lightIt = pWorld->GetLightIterator();
-		while(lightIt.HasNext())
+		for(iLight3D *pLight : pWorld->GetLightIterator())
 		{
-			iLight3D *pLight = lightIt.Next();
 			if(pLight->GetFlickerActive()==false) continue;
 			pLight->SetFlickerActive(false);
 			pLight->FadeTo(pLight->GetFlickerOnColor(), pLight->GetFlickerOnRadius(), 0);
@@ -1826,10 +1824,8 @@ void cRefView::DrawShadowLights()
 
 	std::vector<iLight3D*> vLights;
 	iLight3D *pPicked = nullptr;
-	cLight3DListIterator lightIt = pWorld->GetLightIterator();
-	while(lightIt.HasNext())
+	for(iLight3D *pLight : pWorld->GetLightIterator())
 	{
-		iLight3D *pLight = lightIt.Next();
 		if(pLight->GetName() == msShadowLight) pPicked = pLight;
 		if(mbShadowAllLights==false && setInView.count(pLight) == 0) continue;
 		vLights.push_back(pLight);

@@ -366,11 +366,8 @@ namespace hpl {
 	{
 
 		bool bFound = false;
-		cParticleSystem3DIterator it = gpScene->GetWorld3D()->GetParticleSystemIterator();
-		while(it.HasNext())
+		for(cParticleSystem3D *pPS : gpScene->GetWorld3D()->GetParticleSystemIterator())
 		{
-			cParticleSystem3D *pPS = it.Next();
-
 			if(pPS->GetName() == asName)
 			{
 				pPS->Kill();

@@ -1260,11 +1260,8 @@ void cPlayerFlashLight::Update(float afTimeStep)
 			
 			if(pHudModel == mpInit->mpPlayerHands->GetCurrentModel(0))
 			{
-				tGameEnemyIterator it = mpInit->mpMapHandler->GetGameEnemyIterator();
-				while(it.HasNext())
+				for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 				{
-					iGameEnemy *pEnemy = it.Next();
-
 					if(pEnemy->GetHealth() <=0 || pEnemy->IsActive()==false) continue;
 					
 					cVector3f vToEnemy =	pEnemy->GetMover()->GetCharBody()->GetPosition() -
@@ -2140,10 +2137,8 @@ void cPlayerHidden::Update(float afTimeStep)
 		if(mpInit->mpPlayer->GetFlashLight()->IsActive()) mfLight+= 0.5;
 
 		//Iterate lights
-		cLight3DListIterator lightIt = pWorld->GetLightIterator();
-		while(lightIt.HasNext())
+		for(iLight3D *pLight : pWorld->GetLightIterator())
 		{
-			iLight3D *pLight = lightIt.Next();
 			if(pLight == mpLight) continue;
 			if(pLight->IsActive()==false || pLight->IsVisible()==false) continue;
 
@@ -2335,11 +2330,8 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
 			
 			//Iterate enemies
-			tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-			while(enemyIt.HasNext())
+			for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 			{
-				iGameEnemy *pEnemy = enemyIt.Next();
-
 				if(pEnemy->GetHealth() <=0 || pEnemy->IsActive()==false) continue;
 
 				iCharacterBody *pCharBody = pEnemy->GetMover()->GetCharBody();
@@ -2402,11 +2394,8 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				}
 				
 				//Show player to nearby enemies.
-				tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-				while(enemyIt.HasNext())
+				for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 				{
-					iGameEnemy *pEnemy = enemyIt.Next();
-
 					if(pEnemy->GetHealth() <=0 || pEnemy->IsActive()==false) continue;
 					iCharacterBody *pCharBody = pEnemy->GetMover()->GetCharBody();
 

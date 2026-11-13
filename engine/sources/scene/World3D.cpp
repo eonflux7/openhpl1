@@ -690,18 +690,14 @@ namespace hpl {
 		//Make sure no body has any sound entity
 		if(mpPhysicsWorld)
 		{
-			cPhysicsBodyIterator bodyIt = mpPhysicsWorld->GetBodyIterator();
-			while(bodyIt.HasNext())
+			for(iPhysicsBody *pBody : mpPhysicsWorld->GetBodyIterator())
 			{
-				iPhysicsBody *pBody = bodyIt.Next();
 				pBody->SetScrapeSoundEntity(nullptr);
 				pBody->SetRollSoundEntity(nullptr);
 			}
 
-			cPhysicsJointIterator jointIt = mpPhysicsWorld->GetJointIterator();
-			while(jointIt.HasNext())
+			for(iPhysicsJoint *pJoint : mpPhysicsWorld->GetJointIterator())
 			{
-				iPhysicsJoint *pJoint = jointIt.Next();
 				pJoint->SetSound(nullptr);
 			}
 		}
@@ -1008,19 +1004,15 @@ namespace hpl {
 		cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
 
 		//Start pos
-		cContainerListIterator<cStartPosEntity> StartIt = mlstStartpos.GetIterator();
-		while(StartIt.HasNext())
+		for(cStartPosEntity &tempStart : mlstStartpos.GetIterator())
 		{
-			cStartPosEntity &tempStart = StartIt.Next();
 			cStartPosEntity *pStart = pWorld->CreateStartPos(tempStart.GetName());
 			pStart->SetMatrix(tempStart.GetWorldMatrix());
 		}
 
 		//Area entities
-		cContainerListIterator<cAreaEntity> AreaIt = mlstAreaEntities.GetIterator();
-		while(AreaIt.HasNext())
+		for(cAreaEntity &tempArea : mlstAreaEntities.GetIterator())
 		{
-			cAreaEntity &tempArea = AreaIt.Next();
 			cAreaEntity *pArea = pWorld->CreateAreaEntity(tempArea.msName);
 			pArea->m_mtxTransform = tempArea.m_mtxTransform;
 			pArea->msType = tempArea.msType;
@@ -1028,10 +1020,8 @@ namespace hpl {
 		}
 
 		//Script vars
-		cContainerListIterator<cScriptVar> VarIt = mlstScriptVars.GetIterator();
-		while(VarIt.HasNext())
+		for(cScriptVar &tempVar : mlstScriptVars.GetIterator())
 		{
-			cScriptVar &tempVar = VarIt.Next();
 			cScriptVar *pVar = apGame->GetScene()->CreateLocalVar(tempVar.msName);
 			pVar->mlVal = tempVar.mlVal;
 		}

@@ -103,18 +103,14 @@ void cPhysicsLog::Update(float afTimeStep)
 
 	// Joints can break and bodies can be destroyed, so rebuild every frame.
 	m_mapJoints.clear();
-	cPhysicsJointIterator jointIt = mpWorld->GetJointIterator();
-	while(jointIt.HasNext())
+	for(iPhysicsJoint *pJoint : mpWorld->GetJointIterator())
 	{
-		iPhysicsJoint *pJoint = jointIt.Next();
 		if(pJoint->GetChildBody()) m_mapJoints[pJoint->GetChildBody()] = pJoint;
 	}
 
 	std::map<iPhysicsBody*, cBodyTrack> mapSeen;
-	cPhysicsBodyIterator bodyIt = mpWorld->GetBodyIterator();
-	while(bodyIt.HasNext())
+	for(iPhysicsBody *pBody : mpWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = bodyIt.Next();
 		if(IsTraced(pBody->GetName()))
 		{
 			// Every frame it moves, and every 2 s while it does not
@@ -154,10 +150,8 @@ void cPhysicsLog::StartWorld(cWorld3D *apWorld)
 	mpWorld = apWorld->GetPhysicsWorld();
 
 	int lBodies = 0, lAwake = 0, lFrozen = 0;
-	cPhysicsBodyIterator bodyIt = mpWorld->GetBodyIterator();
-	while(bodyIt.HasNext())
+	for(iPhysicsBody *pBody : mpWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = bodyIt.Next();
 		if(IsTraced(pBody->GetName()))
 		{
 			// Every frame it moves, and every 2 s while it does not

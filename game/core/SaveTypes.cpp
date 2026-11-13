@@ -78,10 +78,8 @@ void cEngineJoint_SaveData::FromJoint(iPhysicsJoint *apJoint)
 	}
 	
 	//Controllers
-	cPhysicsControllerIterator ctrlIt = apJoint->GetControllerIterator();
-	while(ctrlIt.HasNext())
+	for(iPhysicsController *pCtrl : apJoint->GetControllerIterator())
 	{
-		iPhysicsController *pCtrl = ctrlIt.Next();
 		cEngineJointController_SaveData saveCtrl;
 
 		saveCtrl.msName = pCtrl->GetName();

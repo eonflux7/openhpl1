@@ -1143,11 +1143,8 @@ void cEffect_WaveGravity::Update(float afTimeStep)
 	
 	// Wake dynamic bodies for the changing gravity.
 	
-	cPhysicsBodyIterator it = pWorld->GetBodyIterator();
-	while(it.HasNext())
+	for(iPhysicsBody *pBody : pWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = it.Next();
-		
 		//quick fix for oscillation
 		if(pBody->GetJointNum()>0 && pBody->GetJoint(0)->GetLimitAutoSleep()) continue;
 

@@ -2104,29 +2104,23 @@ iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveOb
 {
 	//Use callbacks
 	{
-		cContainerListIterator<cInventoryUseCallback> it = mlstUseCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryUseCallback &temp : mlstUseCallbacks.GetIterator())
 		{
-			cInventoryUseCallback &temp = it.Next();
 			gpInit->mpInventory->AddUseCallback(temp.msItem,temp.msObject,temp.msFunction);
 		}
 	}
 
 	//Pickup callbacks
 	{
-		cContainerListIterator<cInventoryPickupCallback> it = mlstPickupCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryPickupCallback &temp : mlstPickupCallbacks.GetIterator())
 		{
-			cInventoryPickupCallback &temp = it.Next();
 			gpInit->mpInventory->AddPickupCallback(temp.msItem,temp.msFunction);
 		}
 	}
 	//Combine callbacks
 	{
-		cContainerListIterator<cInventoryCombineCallback> it = mlstCombineCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryCombineCallback &temp : mlstCombineCallbacks.GetIterator())
 		{
-			cInventoryCombineCallback &temp = it.Next();
 			gpInit->mpInventory->AddCombineCallback(temp.msItem1, temp.msItem2, temp.msFunction);
 		}
 	}

@@ -290,10 +290,8 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 			// Bodies with no mass do not move; the others move unless they
 			// rest (sleeping or frozen) or are disabled
 			int lBodies = 0, lStatic = 0, lMoving = 0;
-			cPhysicsBodyIterator it = pPhysics->GetBodyIterator();
-			while(it.HasNext())
+			for(iPhysicsBody *pBody : pPhysics->GetBodyIterator())
 			{
-				iPhysicsBody *pBody = it.Next();
 				++lBodies;
 				if(pBody->GetMass() == 0) ++lStatic;
 				else if(pBody->GetEnabled() && !pBody->IsSleeping() && !pBody->IsFrozen()) ++lMoving;

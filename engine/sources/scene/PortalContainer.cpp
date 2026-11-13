@@ -900,10 +900,8 @@ namespace hpl {
 		cSectorVisibilityContainer *pVisSectorCont = CreateVisibilityFromFrustum(apFrustum);
 
 		//Iterate visible sectors, check for intersection with object and add the valid ones.
-		tSectorVisibilityIterator SectorIt = pVisSectorCont->GetSectorIterator();
-		while(SectorIt.HasNext())
+		for(cSectorVisibility *pVisSector : pVisSectorCont->GetSectorIterator())
 		{
-			cSectorVisibility *pVisSector = SectorIt.Next();
 			cSector *pSector = pVisSector->GetSector();
 
 			mlstVisibleSectors.push_back(pSector->GetId());

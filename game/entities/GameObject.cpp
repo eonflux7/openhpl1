@@ -441,10 +441,8 @@ void cGameObject::Update(float afTimeStep)
 			{
 				mfDuplicateCheckDelaySeconds = 5.5f;
 
-				tGameEntityIterator it = mpInit->mpMapHandler->GetGameEntityIterator();
-				while(it.HasNext())
+				for(iGameEntity *pEntity : mpInit->mpMapHandler->GetGameEntityIterator())
 				{
-					iGameEntity *pEntity = it.Next();
 					if(pEntity == this) continue;
 					if(pEntity->GetType() != eGameEntityType_Object) continue;
 					if(pEntity->GetFileName() != GetFileName()) continue;
@@ -835,11 +833,8 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 			iGameEnemy *pChosenEnemy = nullptr;
 
 
-			tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-			while(enemyIt.HasNext())
+			for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 			{
-				iGameEnemy *pEnemy = enemyIt.Next();
-
 				if(	pEnemy->GetHealth() <= 0 || pEnemy->IsActive()==false || 
 					pEnemy->IsAttracted()) 
 				{

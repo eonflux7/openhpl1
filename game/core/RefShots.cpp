@@ -305,10 +305,8 @@ size_t cRefShots::FindViews(cWorld3D *apWorld, const tString &asMap, std::vector
 	// The lights the map file has, spread evenly over their names.
 	// Scripts and entities add lights too, those are left out.
 	std::vector<cView> vLights;
-	cLight3DListIterator lightIt = apWorld->GetLightIterator();
-	while(lightIt.HasNext())
+	for(iLight3D *pLight : apWorld->GetLightIterator())
 	{
-		iLight3D *pLight = lightIt.Next();
 		if(pLight->GetName() == "" || pLight->GetEntityParent() != nullptr) continue;
 		// Made by the game for the hiding effect, not part of the map
 		if(pLight->GetName() == "HiddenLight") continue;
@@ -398,10 +396,8 @@ void cRefShots::Update(float afTimeStep)
 	mpInit->mpLampAppearanceController->SetStill(true);
 	if(pWorld && mStep != eStep_Done)
 	{
-		cLight3DListIterator lightIt = pWorld->GetLightIterator();
-		while(lightIt.HasNext())
+		for(iLight3D *pLight : pWorld->GetLightIterator())
 		{
-			iLight3D *pLight = lightIt.Next();
 			if(pLight->GetFlickerActive()==false) continue;
 			pLight->SetFlickerActive(false);
 			pLight->FadeTo(pLight->GetFlickerOnColor(), pLight->GetFlickerOnRadius(), 0);

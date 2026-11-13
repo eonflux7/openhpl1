@@ -57,30 +57,24 @@ void cWorldCache::AddResources()
 {
 	// Materials
 	{
-		cResourceBaseIterator it = mpResources->GetMaterialManager()->GetResourceBaseIterator();
-		while(it.HasNext())
+		for(iResourceBase *pResource : mpResources->GetMaterialManager()->GetResourceBaseIterator())
 		{
-			iResourceBase *pResource = it.Next();
 			pResource->IncUserCount();
 			mlstMaterials.push_back(pResource);
 		}
 	}
 	// Meshes
 	{
-		cResourceBaseIterator it = mpResources->GetMeshManager()->GetResourceBaseIterator();
-		while(it.HasNext())
+		for(iResourceBase *pResource : mpResources->GetMeshManager()->GetResourceBaseIterator())
 		{
-			iResourceBase *pResource = it.Next();
 			pResource->IncUserCount();
 			mlstMeshes.push_back(pResource);
 		}
 	}
 	// Animations
 	{
-		cResourceBaseIterator it = mpResources->GetAnimationManager()->GetResourceBaseIterator();
-		while(it.HasNext())
+		for(iResourceBase *pResource : mpResources->GetAnimationManager()->GetResourceBaseIterator())
 		{
-			iResourceBase *pResource = it.Next();
 			pResource->IncUserCount();
 			mlstAnimations.push_back(pResource);
 		}
@@ -663,10 +657,8 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 	
 	//Lights
 	{
-		cLight3DListIterator it = pWorld->GetLightIterator();
-		while(it.HasNext())
+		for(iLight3D *pLight : pWorld->GetLightIterator())
 		{
-			iLight3D *pLight = it.Next();
 			cEngineLight_SaveData saveLight;
 
 			if(pLight->IsSaved() && pLight->GetParent() == nullptr && pLight->GetEntityParent()==nullptr)
@@ -679,10 +671,8 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 
 	//Particle systems
 	{
-		cParticleSystem3DIterator it = pWorld->GetParticleSystemIterator();
-		while(it.HasNext())
+		for(cParticleSystem3D *pPS : pWorld->GetParticleSystemIterator())
 		{
-			cParticleSystem3D *pPS = it.Next();
 			cEnginePS_SaveData savePS;
 
 			if( pPS->IsSaved() && pPS->GetParent() == nullptr && pPS->GetEntityParent()==nullptr
@@ -696,10 +686,8 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 
 	//Beams
 	{
-		cBeamIterator it = pWorld->GetBeamIterator();
-		while(it.HasNext())
+		for(cBeam *pBeam : pWorld->GetBeamIterator())
 		{
-			cBeam *pBeam = it.Next();
 			cEngineBeam_SaveData saveBeam;
 
 			if(pBeam->IsSaved() && pBeam->GetParent() == nullptr && pBeam->GetEntityParent()==nullptr)
@@ -712,10 +700,8 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 
 	//Sounds
 	{
-		cSoundEntityIterator it = pWorld->GetSoundEntityIterator();
-		while(it.HasNext())
+		for(cSoundEntity *pSound : pWorld->GetSoundEntityIterator())
 		{
-			cSoundEntity *pSound = it.Next();
 			cEngineSound_SaveData saveSound;
 
 			if(pSound->IsSaved() && pSound->GetParent() == nullptr && pSound->GetEntityParent()==nullptr)
@@ -731,10 +717,8 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 	
 	//Joints
 	{
-		cPhysicsJointIterator it = pWorld->GetPhysicsWorld()->GetJointIterator();
-		while(it.HasNext())
+		for(iPhysicsJoint *pJoint : pWorld->GetPhysicsWorld()->GetJointIterator())
 		{
-			iPhysicsJoint *pJoint = it.Next();
 			cEngineJoint_SaveData saveJoint;
 
 			if(pJoint->IsSaved())
@@ -783,20 +767,15 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	msMapGameName = apSavedWorld->msGameName;
 
 	//Script variables
-	cContainerListIterator<cScriptVar> scriptVar = apSavedWorld->mlstVars.GetIterator();
-	while(scriptVar.HasNext())
+	for(cScriptVar &var : apSavedWorld->mlstVars.GetIterator())
 	{
-		cScriptVar &var = scriptVar.Next();
 		cScriptVar *pVar = mpScene->CreateLocalVar(var.msName);
 		pVar->mlVal = var.mlVal;
 	}
 
 	//Local timers
-	cContainerListIterator<cGameTimer> timerIt = apSavedWorld->mlstTimers.GetIterator();
-	while(timerIt.HasNext())
+	for(cGameTimer& savedTimer : apSavedWorld->mlstTimers.GetIterator())
 	{
-		cGameTimer& savedTimer = timerIt.Next();
-
         cGameTimer *pTimer = new cGameTimer();
 		*pTimer = savedTimer;
 
@@ -830,21 +809,16 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		//Particle systems
 
 		//Go through particle systems and throw away those not present.
-		cParticleSystem3DIterator psIt = pWorld->GetParticleSystemIterator();
-		while(psIt.HasNext())
+		for(cParticleSystem3D *pPS : pWorld->GetParticleSystemIterator())
 		{
-			cParticleSystem3D *pPS = psIt.Next();
 			if(apSavedWorld->PSExists(pPS)==false)
 			{
 				pPS->KillInstantly();
 			}
 		}
 		//Set data to map particle systems or create if no system exist.
-		cContainerListIterator<cEnginePS_SaveData> it = apSavedWorld->mlstPS.GetIterator();
-		while(it.HasNext())
+		for(cEnginePS_SaveData &savePS : apSavedWorld->mlstPS.GetIterator())
 		{
-			cEnginePS_SaveData &savePS = it.Next();
-
 			cParticleSystem3D *pPS = pWorld->GetParticleSystem(savePS.msName);
 			if(pPS)
 			{
@@ -862,21 +836,16 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	//Beams
 	{
 		//Go through beams and throw away those not present.
-		cBeamIterator beamIt = pWorld->GetBeamIterator();
-		while(beamIt.HasNext())
+		for(cBeam *pBeam : pWorld->GetBeamIterator())
 		{
-			cBeam *pBeam = beamIt.Next();
 			if(apSavedWorld->BeamExists(pBeam)==false)
 			{
 				mpScene->GetWorld3D()->DestroyBeam(pBeam);
 			}
 		}
 		//Set data to map particle systems or create if no system exist.
-		cContainerListIterator<cEngineBeam_SaveData> it = apSavedWorld->mlstBeams.GetIterator();
-		while(it.HasNext())
+		for(cEngineBeam_SaveData &saveBeam : apSavedWorld->mlstBeams.GetIterator())
 		{
-			cEngineBeam_SaveData &saveBeam = it.Next();
-
 			cBeam *pBeam = pWorld->GetBeam(saveBeam.msName);
 			if(pBeam)
 			{
@@ -894,21 +863,16 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		//Sounds
 
 		//Go through sound entities and throw away those not present.
-		cSoundEntityIterator soundIt = pWorld->GetSoundEntityIterator();
-		while(soundIt.HasNext())
+		for(cSoundEntity *pSound : pWorld->GetSoundEntityIterator())
 		{
-			cSoundEntity *pSound = soundIt.Next();
 			if(apSavedWorld->SoundExists(pSound)==false)
 			{
 				mpScene->GetWorld3D()->DestroySoundEntity(pSound);
 			}
 		}
 		//Set data to map sound entities
-		cContainerListIterator<cEngineSound_SaveData> it = apSavedWorld->mlstSounds.GetIterator();
-		while(it.HasNext())
+		for(cEngineSound_SaveData &saveSound : apSavedWorld->mlstSounds.GetIterator())
 		{
-			cEngineSound_SaveData &saveSound = it.Next();
-
 			cSoundEntity *pSound = pWorld->GetSoundEntity(saveSound.msName);
 			if(pSound)
 			{
@@ -924,11 +888,8 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		while(nameIt.HasNext()) setSavedNames.insert(EntityKey(nameIt.Next()->msName));
 	}
 
-	cContainerListIterator<iGameEntity_SaveData*> it = apSavedWorld->mlstEntities.GetIterator();
-	while(it.HasNext())
+	for(iGameEntity_SaveData *pSaveEntity : apSavedWorld->mlstEntities.GetIterator())
 	{
-		iGameEntity_SaveData *pSaveEntity = it.Next();
-
 		//The entity is loaded from file
 		if(pSaveEntity->msFileName!="")
 		{
@@ -1043,21 +1004,16 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		// this need to be done after entity creation so all joints are created.
 
 		//Go through joints and throw away those not present.
-		cPhysicsJointIterator jointIt = pPhysicsWorld->GetJointIterator();
-		while(jointIt.HasNext())
+		for(iPhysicsJoint *pJoint : pPhysicsWorld->GetJointIterator())
 		{
-			iPhysicsJoint *pJoint = jointIt.Next();
 			if(apSavedWorld->JointExists(pJoint)==false)
 			{
 				pPhysicsWorld->DestroyJoint(pJoint);
 			}
 		}
 		//Set data to map Joint entities
-		cContainerListIterator<cEngineJoint_SaveData> it = apSavedWorld->mlstJoints.GetIterator();
-		while(it.HasNext())
+		for(cEngineJoint_SaveData &saveJoint : apSavedWorld->mlstJoints.GetIterator())
 		{
-			cEngineJoint_SaveData &saveJoint = it.Next();
-
 			iPhysicsJoint *pJoint = pPhysicsWorld->GetJoint(saveJoint.msName);
 			if(pJoint)
 			{
@@ -1186,11 +1142,8 @@ void cMapHandler::OnPostSceneDraw()
 	cVector3f vMin = mpScene->GetWorld3D()->GetPhysicsWorld()->GetWorldSizeMin();
 	cVector3f vMax = mpScene->GetWorld3D()->GetPhysicsWorld()->GetWorldSizeMax();
 
-	cLight3DListIterator lightIt = mpScene->GetWorld3D()->GetLightIterator();
-	while(lightIt.HasNext())
+	for(iLight3D *pLight : mpScene->GetWorld3D()->GetLightIterator())
 	{
-		iLight3D *pLight = lightIt.Next();
-
 		if(pLight->IsVisible() && pLight->IsActive() && pLight->GetLightType() == eLight3DType_Spot)
 		{
 			cBoundingVolume *pBV = pLight->GetBoundingVolume();
@@ -1307,10 +1260,8 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 		if(command.msCommand.compare(0, 6, "where:") == 0)
 		{
 			tString sName = command.msCommand.substr(6);
-			cPhysicsBodyIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
-			while(it.HasNext())
+			for(iPhysicsBody *pBody : apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator())
 			{
-				iPhysicsBody *pBody = it.Next();
 				if(pBody->GetName() == sName)
 					Log(" %s at %s, speed %.2f\n", sName.c_str(), pBody->GetWorldPosition().ToString().c_str(),
 						pBody->GetLinearVelocity().Length());
@@ -1320,10 +1271,8 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 		// "sounds" logs the sound entities that are not stopped
 		if(command.msCommand == "sounds")
 		{
-			cSoundEntityIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetSoundEntityIterator();
-			while(it.HasNext())
+			for(cSoundEntity *pSound : apInit->mpGame->GetScene()->GetWorld3D()->GetSoundEntityIterator())
 			{
-				cSoundEntity *pSound = it.Next();
 				if(pSound->IsStopped()) continue;
 				cSoundEntry *pEntry = pSound->GetSoundEntry(eSoundEntityType_Main);
 				Log(" sound '%s' (%s) playing %d volume %.2f fading out %d\n", pSound->GetName().c_str(),
@@ -1336,10 +1285,8 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 		if(command.msCommand.compare(0, 6, "joint:") == 0)
 		{
 			tString sName = command.msCommand.substr(6);
-			cPhysicsJointIterator it = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator();
-			while(it.HasNext())
+			for(iPhysicsJoint *pJoint : apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator())
 			{
-				iPhysicsJoint *pJoint = it.Next();
 				if(pJoint->GetName() != sName) continue;
 				iPhysicsBody *pChild = pJoint->GetChildBody();
 				iPhysicsJointSlider *pSlider = pJoint->GetType() == ePhysicsJointType_Slider ? (iPhysicsJointSlider*)pJoint : nullptr;
@@ -1391,10 +1338,8 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 			Log(" ground ray from %s\n", vStart.ToString().c_str());
 			pPhysicsWorld->CastRay(&callback, vStart, vStart + cVector3f(0,-0.6f,0), true, false, false);
 			// and any NaN body: one hides most of the map from ray casts
-			cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
-			while(it.HasNext())
+			for(iPhysicsBody *pBody : pPhysicsWorld->GetBodyIterator())
 			{
-				iPhysicsBody *pBody = it.Next();
 				if(std::isnan(pBody->GetWorldPosition().x) || std::isnan(pBody->GetBV()->GetMin().x))
 					Log("   NaN body: '%s'\n", pBody->GetName().c_str());
 			}
@@ -1413,10 +1358,8 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 			iPhysicsWorld *pPhysicsWorld = apInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 			iPhysicsBody *pBody = pPhysicsWorld->GetBody(command.msCommand.substr(8));
 			if(pBody == nullptr) { Log(" no body '%s'\n", command.msCommand.substr(8).c_str()); continue; }
-			cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
-			while(it.HasNext())
+			for(iPhysicsBody *pOther : pPhysicsWorld->GetBodyIterator())
 			{
-				iPhysicsBody *pOther = it.Next();
 				if(pOther == pBody || pOther->GetMass() != 0 || pOther->IsCharacter()) continue;
 				float fDepth = pPhysicsWorld->GetBodyOverlap(pBody, pOther);
 				if(fDepth >= 0) Log(" %s overlaps '%s' by %.4f m (collide %d)\n", pBody->GetName().c_str(),
@@ -1695,10 +1638,8 @@ void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
 void cMapHandler::FreeSlidersFromStaticBodies(cWorld3D *apWorld)
 {
 	iPhysicsWorld *pPhysicsWorld = apWorld->GetPhysicsWorld();
-	cPhysicsJointIterator jointIt = pPhysicsWorld->GetJointIterator();
-	while(jointIt.HasNext())
+	for(iPhysicsJoint *pJoint : pPhysicsWorld->GetJointIterator())
 	{
-		iPhysicsJoint *pJoint = jointIt.Next();
 		if(pJoint->GetType() != ePhysicsJointType_Slider) continue;
 		if(pJoint->GetParentBody() && pJoint->GetParentBody()->GetMass() != 0) continue;
 
@@ -1706,10 +1647,8 @@ void cMapHandler::FreeSlidersFromStaticBodies(cWorld3D *apWorld)
 		iPhysicsBody *pBody = pJoint->GetChildBody();
 		if(pSlider->GetMaxDistance() <= pSlider->GetMinDistance() || pBody->GetMass() == 0 || !pBody->GetCollide()) continue;
 
-		cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
-		while(it.HasNext())
+		for(iPhysicsBody *pOther : pPhysicsWorld->GetBodyIterator())
 		{
-			iPhysicsBody *pOther = it.Next();
 			if(pOther->GetMass() != 0 || pOther->GetUserData() != nullptr || pOther->IsCharacter() || !pOther->GetCollide()) continue;
 
 			float fDepth = pPhysicsWorld->GetBodyOverlap(pBody, pOther);
@@ -2068,10 +2007,8 @@ void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 	unsigned long lStart = mpInit->mpGame->GetSystem()->GetLowLevel()->GetTime();
 
 	//Enable all physic bodies
-	cPhysicsBodyIterator bodyIt = pPhysicsWorld->GetBodyIterator();
-	while(bodyIt.HasNext())
+	for(iPhysicsBody *pBody : pPhysicsWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = bodyIt.Next();
 		pBody->SetEnabled(true);
 	}
 	

@@ -380,10 +380,8 @@ namespace hpl {
 				Error("Couldn't find parent entity id %d for '%s'\n",pData->mlParentId,GetName().c_str());
 		}
 
-		cContainerListIterator<int> it = pData->mlstChildren.GetIterator();
-		while(it.HasNext())
+		for(int mlId : pData->mlstChildren.GetIterator())
 		{
-			int mlId = it.Next();
 			if(mlId != -1)
 			{
 				iEntity3D *pChildEntity = static_cast<iEntity3D*>(apSaveObjectHandler->Get(mlId));

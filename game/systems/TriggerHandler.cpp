@@ -53,10 +53,8 @@ void cTriggerHandler::OnStart()
 void cTriggerHandler::Update(float afTimeStep)
 {
 	//Go through the enemies and hand them triggers
-	tGameEnemyIterator EnemyIt = mpMapHandler->GetGameEnemyIterator();
-	while(EnemyIt.HasNext())
+	for(iGameEnemy *pEnemy : mpMapHandler->GetGameEnemyIterator())
 	{
-		iGameEnemy *pEnemy = EnemyIt.Next();
 		if(pEnemy->IsActive()==false || pEnemy->GetUsesTriggers()==false) continue;
 		
 		//Go through triggers by priority

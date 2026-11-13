@@ -145,10 +145,8 @@ void cLampAppearanceController::Update(float afTimeStep)
 	if(mpInit->mpGame->GetScene()->GetWorld3D()==nullptr) return;
 
 	// The lamps of the world, and the flare once thrown
-	tGameEntityIterator entityIt = mpInit->mpMapHandler->GetGameEntityIterator();
-	while(entityIt.HasNext())
+	for(iGameEntity *pEntity : mpInit->mpMapHandler->GetGameEntityIterator())
 	{
-		iGameEntity *pEntity = entityIt.Next();
 		if(pEntity->GetLightNum() == 0) continue;
 		eLampKind kind = GetLampKind(pEntity->GetFileName());
 		if(kind == eLampKind_None) continue;
@@ -160,10 +158,8 @@ void cLampAppearanceController::Update(float afTimeStep)
 	}
 
 	// The lights that are part of the map
-	cLight3DListIterator lightIt = mpInit->mpGame->GetScene()->GetWorld3D()->GetLightIterator();
-	while(lightIt.HasNext())
+	for(iLight3D *pLight : mpInit->mpGame->GetScene()->GetWorld3D()->GetLightIterator())
 	{
-		iLight3D *pLight = lightIt.Next();
 		if(pLight->IsPartOfMap()) SetMapLightLook(pLight);
 	}
 

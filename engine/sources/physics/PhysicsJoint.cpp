@@ -627,10 +627,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mbAutoDeleteCallback);
 
 		//Controllers
-		cContainerListIterator<cSaveData_iPhysicsController> CtrlIt = pData->mlstControllers.GetIterator();
-		while(CtrlIt.HasNext())
+		for(cSaveData_iPhysicsController &saveCtrl : pData->mlstControllers.GetIterator())
 		{
-			cSaveData_iPhysicsController &saveCtrl = CtrlIt.Next();
 			iPhysicsController *pController = mpWorld->CreateController(saveCtrl.msName);
 			pController->LoadFromSaveData(&saveCtrl);
 

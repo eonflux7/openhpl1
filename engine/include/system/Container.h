@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <utility>
 
 
 namespace hpl {
@@ -20,6 +21,26 @@ namespace hpl {
 
 		virtual void* NextPtr()=0;
 	};
+
+	// Range-for over an iterator with HasNext() and Next(). As in
+	// while(it.HasNext()){ x = it.Next(); ... }, the iterator is moved past
+	// each element before the loop body runs, so the body may remove that
+	// element from its container.
+	struct cHasNextEnd {};
+
+	template<class IT>
+	struct cHasNextPos
+	{
+		IT *mpIt;
+		bool operator!=(cHasNextEnd) const { return mpIt->HasNext(); }
+		decltype(auto) operator*() const { return mpIt->Next(); }
+		void operator++() const {}
+	};
+
+	template<class IT, class = decltype(std::declval<IT&>().HasNext())>
+	cHasNextPos<IT> begin(IT &aIt){ return {&aIt}; }
+	template<class IT, class = decltype(std::declval<IT&>().HasNext())>
+	cHasNextEnd end(IT &aIt){ return {}; }
 
 	class iContainer
 	{

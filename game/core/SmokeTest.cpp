@@ -171,10 +171,8 @@ void cSmokeTest::Update(float afTimeStep)
 
 		{
 			// A NaN body hides most of the map from Newton 2's ray casts (picks, footsteps)
-			cPhysicsBodyIterator it = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator();
-			while(it.HasNext())
+			for(iPhysicsBody *pBody : mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetBodyIterator())
 			{
-				iPhysicsBody *pBody = it.Next();
 				if(std::isnan(pBody->GetWorldPosition().x) || std::isnan(pBody->GetBV()->GetMin().x))
 					Fail("%s: body '%s' is NaN", mvMaps[mlMap].c_str(), pBody->GetName().c_str());
 			}

@@ -213,10 +213,8 @@ void cMapChecks::StartSettle()
 	m_mapJoints.clear();
 
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
-	cPhysicsBodyIterator bodyIt = pWorld->GetBodyIterator();
-	while(bodyIt.HasNext())
+	for(iPhysicsBody *pBody : pWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = bodyIt.Next();
 		if(!IsSettleTracked(pBody)) continue;
 		cBodyStart &start = m_mapBodies[pBody];
 		start.msName = pBody->GetName();
@@ -224,10 +222,8 @@ void cMapChecks::StartSettle()
 		start.m_mtxRot = pBody->GetWorldMatrix().GetRotation();
 	}
 
-	cPhysicsJointIterator jointIt = pWorld->GetJointIterator();
-	while(jointIt.HasNext())
+	for(iPhysicsJoint *pJoint : pWorld->GetJointIterator())
 	{
-		iPhysicsJoint *pJoint = jointIt.Next();
 		cJointStart &start = m_mapJoints[pJoint];
 		start.msName = pJoint->GetName();
 		start.mfAngle = pJoint->GetAngle();
@@ -239,10 +235,8 @@ void cMapChecks::FinishSettle()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
-	cPhysicsBodyIterator bodyIt = pWorld->GetBodyIterator();
-	while(bodyIt.HasNext())
+	for(iPhysicsBody *pBody : pWorld->GetBodyIterator())
 	{
-		iPhysicsBody *pBody = bodyIt.Next();
 		cVector3f vPos = pBody->GetWorldPosition();
 		if(std::isnan(vPos.x) || std::isnan(pBody->GetBV()->GetMin().x))
 		{
@@ -289,10 +283,8 @@ void cMapChecks::FinishSettle()
 		}
 	}
 
-	cPhysicsJointIterator jointIt = pWorld->GetJointIterator();
-	while(jointIt.HasNext())
+	for(iPhysicsJoint *pJoint : pWorld->GetJointIterator())
 	{
-		iPhysicsJoint *pJoint = jointIt.Next();
 		auto it = m_mapJoints.find(pJoint);
 		if(it == m_mapJoints.end() || it->second.msName != pJoint->GetName()) continue;
 		iPhysicsBody *pChild = pJoint->GetChildBody();
@@ -339,10 +331,8 @@ void cMapChecks::CheckPicks()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
-	tGameEntityIterator it = mpInit->mpMapHandler->GetGameEntityIterator();
-	while(it.HasNext())
+	for(iGameEntity *pEntity : mpInit->mpMapHandler->GetGameEntityIterator())
 	{
-		iGameEntity *pEntity = it.Next();
 		if(!pEntity->IsActive()) continue;
 
 		for(int i = 0; i < pEntity->GetBodyNum(); ++i)
@@ -467,10 +457,8 @@ static float JointValue(iPhysicsJoint *apJoint)
 void cMapChecks::StartJoints()
 {
 	mvPushes.clear();
-	cPhysicsJointIterator it = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator();
-	while(it.HasNext())
+	for(iPhysicsJoint *pJoint : mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->GetJointIterator())
 	{
-		iPhysicsJoint *pJoint = it.Next();
 		iPhysicsBody *pChild = pJoint->GetChildBody();
 		if(pChild == nullptr || pChild->GetMass() <= 0 || pChild->IsCharacter() || pChild->IsRagDoll()) continue;
 		if(!pChild->IsActive() || pJoint->IsBroken()) continue;

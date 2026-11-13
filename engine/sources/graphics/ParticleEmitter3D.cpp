@@ -248,10 +248,8 @@ namespace hpl {
 			cBoundingVolume *pBV = GetBoundingVolume();
 			cVector3f vCentre = pBV->GetWorldCenter();
 
-			cLight3DListIterator lightIt = mpWorld->GetLightIterator();
-			while(lightIt.HasNext())
+			for(iLight3D *pLight : mpWorld->GetLightIterator())
 			{
-				iLight3D *pLight = lightIt.Next();
 				if(pLight->IsVisible()==false) continue;
 				const cColor &col = pLight->GetDiffuseColor();
 				float fBright = cMath::Max(col.r, cMath::Max(col.g, col.b)) * pLight->GetLook().mfBrightness;

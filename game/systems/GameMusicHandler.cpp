@@ -54,11 +54,8 @@ void cGameMusicHandler::Update(float afTimeStep)
 		{
 			tString sMusic ="";
 			int lHighestPrio =-1;
-			tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-			while(enemyIt.HasNext())
+			for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 			{
-				iGameEnemy *pEnemy = enemyIt.Next();
-
 				if(pEnemy->GetHealth() <= 0 || pEnemy->IsActive()==false) continue;
 			
 				float fDist = cMath::Vector3Dist(pEnemy->GetMover()->GetCharBody()->GetFeetPosition(),
@@ -89,11 +86,8 @@ void cGameMusicHandler::Update(float afTimeStep)
 		else
 		{
 			bool bFound = false;
-			tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-			while(enemyIt.HasNext())
+			for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 			{
-				iGameEnemy *pEnemy = enemyIt.Next();
-
 				if(pEnemy->GetHealth() <= 0 || pEnemy->IsActive()==false) continue;
 
 				float fDist = cMath::Vector3Dist(pEnemy->GetMover()->GetCharBody()->GetFeetPosition(),

@@ -1267,10 +1267,8 @@ namespace hpl {
 		kSaveData_LoadObject(mpEntity,mlEntityId,iEntity3D*);
 		kSaveData_LoadObject(mpBody,mlBodyId,iPhysicsBody*);
 		mvExtraBodies.clear();
-		cContainerListIterator<int> it = pData->mvExtraBodyIds.GetIterator();
-		while(it.HasNext())
+		for(int lId : pData->mvExtraBodyIds.GetIterator())
 		{
-			int lId = it.Next();
 			iPhysicsBody* pBody = static_cast<iPhysicsBody*>(apSaveObjectHandler->Get(lId));
 			mvExtraBodies.push_back(pBody);
 			if(pBody==nullptr)

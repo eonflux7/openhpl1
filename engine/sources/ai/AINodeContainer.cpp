@@ -255,11 +255,8 @@ namespace hpl {
 			cAINode *pNode = *CurrentNodeIt;
 
 			//Add the ends that are connected to the node.
-			cAINodeIterator nodeIt = GetNodeIterator(pNode->mvPosition,mfMaxEndDistance*1.5f);
-			while(nodeIt.HasNext())
+			for(cAINode *pEndNode : GetNodeIterator(pNode->mvPosition,mfMaxEndDistance*1.5f))
 			{
-				cAINode *pEndNode = nodeIt.Next();
-
 				if(pEndNode == pNode) continue;
 				float fDist = cMath::Vector3Dist(pNode->mvPosition, pEndNode->mvPosition);
 				if(fDist > mfMaxEndDistance*2) continue;

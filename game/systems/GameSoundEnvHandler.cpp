@@ -200,11 +200,8 @@ void cGameSoundEnvHandler::LoadSaveData(cSavedWorld *apSavedWorld)
 	mpDefaultEnv = apSavedWorld->msDefaultSoundEnv=="" ? nullptr : GetSoundEnv(apSavedWorld->msDefaultSoundEnv);
 	mfDefaultFadeTime = apSavedWorld->mfDefaultSoundEnvFadeTime;
 
-	cContainerListIterator<cSaveWorldSoundEnv> it = apSavedWorld->mlstSoundEnvs.GetIterator();
-	while(it.HasNext())
+	for(cSaveWorldSoundEnv &savedEnv : apSavedWorld->mlstSoundEnvs.GetIterator())
 	{
-		cSaveWorldSoundEnv &savedEnv = it.Next();
-
 		cSectorSoundEnv *pSectorEnv = new cSectorSoundEnv();
 		pSectorEnv->mpSoundEnv = savedEnv.msSoundEnv=="" ? nullptr : GetSoundEnv(savedEnv.msSoundEnv);
 		pSectorEnv->mpSector = savedEnv.msSector=="" ? nullptr : pContainer->GetSector(savedEnv.msSector);

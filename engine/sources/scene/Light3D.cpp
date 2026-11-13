@@ -596,10 +596,8 @@ namespace hpl {
 		kSaveData_SetupBegin(iLight3D);
 
 		//Get attached billboards.
-		cContainerListIterator<int> it = pData->mlstBillboardIds.GetIterator();
-		while(it.HasNext())
+		for(int lId : pData->mlstBillboardIds.GetIterator())
 		{
-			int lId = it.Next();
 			iSaveObject *pObject = apSaveObjectHandler->Get(lId);
 			cBillboard *pBill = static_cast<cBillboard*>(pObject);
 

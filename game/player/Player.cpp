@@ -1370,10 +1370,8 @@ void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 {
 	//Collide callbacks
 	//Collide scripts
-	cContainerListIterator<cSaveGame_cGameCollideScript> colIt = apSavedWorld->mlstCollideCallbacks.GetIterator();
-	while(colIt.HasNext())
+	for(cSaveGame_cGameCollideScript &savedScript : apSavedWorld->mlstCollideCallbacks.GetIterator())
 	{
-		cSaveGame_cGameCollideScript &savedScript = colIt.Next();
 		cGameCollideScript *pCallback = new cGameCollideScript();
 
 		pCallback->mpEntity = mpInit->mpMapHandler->GetGameEntity(savedScript.msEntity);
@@ -1578,11 +1576,8 @@ kEndSerialize()
 
 iSaveObject* cSaveData_cPlayer::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 {
-	cContainerListIterator<cSaveGame_cGameCollideScript> it = mlstCollideCallbacks.GetIterator();
-	while(it.HasNext())
+	for(cSaveGame_cGameCollideScript& saveScript : mlstCollideCallbacks.GetIterator())
 	{
-		cSaveGame_cGameCollideScript& saveScript = it.Next();
-
 		iGameEntity* pEntity = gpInit->mpMapHandler->GetGameEntity(saveScript.msEntity);
 		if(pEntity==nullptr){
 			Error("Couldn't find game entity '%s'\n",saveScript.msEntity.c_str());

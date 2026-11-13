@@ -1015,10 +1015,8 @@ bool iGameEnemy::CheckForDoor()
 bool iGameEnemy::CheckForTeamMate(float afMaxDist, bool abCheckIfFighting)
 {
 	cVector3f vPosition = mpMover->GetCharBody()->GetFeetPosition();
-	tGameEnemyIterator it = mpInit->mpMapHandler->GetGameEnemyIterator();
-	while(it.HasNext())
+	for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 	{
-		iGameEnemy *pEnemy = it.Next();
 		if(GetEnemyType() != pEnemy->GetEnemyType()) continue;
 		if(pEnemy == this || pEnemy->IsActive()==false || pEnemy->GetHealth()<=0) continue;
 

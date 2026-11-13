@@ -23,10 +23,8 @@ cSavedWorld::~cSavedWorld()
 void cSavedWorld::Reset()
 {
 	//Delete saved entity records.
-	cContainerListIterator<iGameEntity_SaveData*> it = mlstEntities.GetIterator();
-	while(it.HasNext())
+	for(iGameEntity_SaveData *pSaveEntity : mlstEntities.GetIterator())
 	{
-		iGameEntity_SaveData *pSaveEntity = it.Next();
         delete pSaveEntity;
 	}
 	mlstEntities.Clear();
@@ -55,11 +53,8 @@ void cSavedWorld::Reset()
 
 bool cSavedWorld::PSExists(cParticleSystem3D *apPS)
 {
-	cContainerListIterator<cEnginePS_SaveData> it = mlstPS.GetIterator();
-	while(it.HasNext())
+	for(cEnginePS_SaveData &savePS : mlstPS.GetIterator())
 	{
-		cEnginePS_SaveData &savePS = it.Next();
-	
 		if(savePS.msName == apPS->GetName()) return true;
 	}
 
@@ -68,11 +63,8 @@ bool cSavedWorld::PSExists(cParticleSystem3D *apPS)
 
 bool cSavedWorld::BeamExists(cBeam *apBeam)
 {
-	cContainerListIterator<cEngineBeam_SaveData> it = mlstBeams.GetIterator();
-	while(it.HasNext())
+	for(cEngineBeam_SaveData &saveBeam : mlstBeams.GetIterator())
 	{
-		cEngineBeam_SaveData &saveBeam = it.Next();
-
 		if(saveBeam.msName == apBeam->GetName()) return true;
 	}
 
@@ -81,11 +73,8 @@ bool cSavedWorld::BeamExists(cBeam *apBeam)
 
 bool cSavedWorld::SoundExists(cSoundEntity *apSound)
 {
-	cContainerListIterator<cEngineSound_SaveData> it = mlstSounds.GetIterator();
-	while(it.HasNext())
+	for(cEngineSound_SaveData &saveSound : mlstSounds.GetIterator())
 	{
-		cEngineSound_SaveData &saveSound = it.Next();
-
 		if(saveSound.msName == apSound->GetName()) return true;
 	}
 
@@ -94,11 +83,8 @@ bool cSavedWorld::SoundExists(cSoundEntity *apSound)
 
 bool cSavedWorld::JointExists(iPhysicsJoint *apJoint)
 {
-	cContainerListIterator<cEngineJoint_SaveData> it = mlstJoints.GetIterator();
-	while(it.HasNext())
+	for(cEngineJoint_SaveData &saveJoint : mlstJoints.GetIterator())
 	{
-		cEngineJoint_SaveData &saveJoint = it.Next();
-
 		if(saveJoint.msName == apJoint->GetName()) return true;
 	}
 
@@ -120,11 +106,8 @@ void cSavedGame::Reset()
 
 void cSavedGame::ResetWorlds()
 {
-	cContainerListIterator<cSavedWorld*> it = mlstWorlds.GetIterator();
-	while(it.HasNext())
+	for(cSavedWorld* pWorld : mlstWorlds.GetIterator())
 	{
-		cSavedWorld* pWorld =it.Next();
-		
 		delete pWorld;
 	}
 	mlstWorlds.Clear();
@@ -153,10 +136,8 @@ cSavedWorld* cSavedGame::GetSavedWorld(const tString &asName)
 	tString sLowName = cString::ToLowerCase(asName);
 	
 	//See if world allready exists
-	cContainerListIterator<cSavedWorld*> it = mlstWorlds.GetIterator();
-	while(it.HasNext())
+	for(cSavedWorld* pWorld : mlstWorlds.GetIterator())
 	{
-		cSavedWorld* pWorld = it.Next();
 		if(cString::ToLowerCase(pWorld->msName) == sLowName)
 		{
 			return pWorld;
@@ -355,19 +336,15 @@ void cSaveHandler::LoadData(const tString &asName)
 	//Sectors (Black Plague)
 	{
 		cPortalContainer *pContainer = pWorld->GetPortalContainer();
-		cContainerListIterator<cSaveWorldSector> it = pSavedWorld->mlstSectors.GetIterator();
-		while(it.HasNext())
+		for(cSaveWorldSector &savedSector : pSavedWorld->mlstSectors.GetIterator())
 		{
-			cSaveWorldSector &savedSector = it.Next();
 			cSector *pSector = pContainer->GetSector(savedSector.msId);
 			if(pSector==nullptr) continue;
 
 			pSector->SetAmbientColor(savedSector.mAmbient);
 
-			cContainerListIterator<cSaveWorldPortal> portalIt = savedSector.mlstPortals.GetIterator();
-			while(portalIt.HasNext())
+			for(cSaveWorldPortal &savedPortal : savedSector.mlstPortals.GetIterator())
 			{
-				cSaveWorldPortal &savedPortal = portalIt.Next();
 				cPortal *pPortal = pSector->GetPortal(savedPortal.mlId);
 				if(pPortal) pPortal->SetActive(savedPortal.mbActive);
 			}
@@ -379,29 +356,23 @@ void cSaveHandler::LoadData(const tString &asName)
 	
 	//Use callbacks
 	{
-		cContainerListIterator<cInventoryUseCallback> it =pSavedWorld->mlstUseCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryUseCallback &temp : pSavedWorld->mlstUseCallbacks.GetIterator())
 		{
-			cInventoryUseCallback &temp = it.Next();
 			mpInit->mpInventory->AddUseCallback(temp.msItem,temp.msObject,temp.msFunction);
 		}
 	}
 
 	//Pickup callbacks
 	{
-		cContainerListIterator<cInventoryPickupCallback> it = pSavedWorld->mlstPickupCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryPickupCallback &temp : pSavedWorld->mlstPickupCallbacks.GetIterator())
 		{
-			cInventoryPickupCallback &temp = it.Next();
 			mpInit->mpInventory->AddPickupCallback(temp.msItem,temp.msFunction);
 		}
 	}
 	//Combine callbacks
 	{
-		cContainerListIterator<cInventoryCombineCallback> it = pSavedWorld->mlstCombineCallbacks.GetIterator();
-		while(it.HasNext())
+		for(cInventoryCombineCallback &temp : pSavedWorld->mlstCombineCallbacks.GetIterator())
 		{
-			cInventoryCombineCallback &temp = it.Next();
 			mpInit->mpInventory->AddCombineCallback(temp.msItem1, temp.msItem2, temp.msFunction);
 		}
 	}
@@ -516,10 +487,8 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 	mpInit->mpMapHandler->LoadFromGlobal(&mpSavedGame->mMapHandler);
 
 	// Load Global variables
-	cContainerListIterator<cScriptVar> VarIt = mpSavedGame->mlstScriptVars.GetIterator();
-	while(VarIt.HasNext())
+	for(cScriptVar &tempVar : mpSavedGame->mlstScriptVars.GetIterator())
 	{
-		cScriptVar &tempVar = VarIt.Next();
 		cScriptVar *pVar = mpInit->mpGame->GetScene()->CreateGlobalVar(tempVar.msName);
 		pVar->mlVal = tempVar.mlVal;
 

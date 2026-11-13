@@ -84,10 +84,8 @@ iGameEntity::~iGameEntity()
 	//                 in that case it is not needed and might be bad).
 	if(mpInit->mpMapHandler->IsDestroyingAll()==false)
 	{
-		tGameEntityIterator it = mpInit->mpMapHandler->GetGameEntityIterator();
-		while(it.HasNext())
+		for(iGameEntity *pEntity : mpInit->mpMapHandler->GetGameEntityIterator())
 		{
-			iGameEntity *pEntity = it.Next();
 			pEntity->RemoveCollideScriptWithChildEntity(this);
 		}
 	}
@@ -1115,20 +1113,15 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 		mpMeshEntity->SetMatrix(apSaveData->m_mtxMeshTransform);
 
 	//Script functions
-	cContainerListIterator<cGameEntityScript> scriptIt = apSaveData->mlstCallbackScripts.GetIterator();
-	while(scriptIt.HasNext())
+	for(cGameEntityScript &script : apSaveData->mlstCallbackScripts.GetIterator())
 	{
-		cGameEntityScript &script = scriptIt.Next();
-
 		mvCallbackScripts[script.mlNum] = new cGameEntityScript();
 		mvCallbackScripts[script.mlNum]->msScriptFunc = script.msScriptFunc;
 	}
 	
 	//Script variables
-	cContainerListIterator<cScriptVar> scriptVar = apSaveData->mlstVars.GetIterator();
-	while(scriptVar.HasNext())
+	for(cScriptVar &var : apSaveData->mlstVars.GetIterator())
 	{
-		cScriptVar &var = scriptVar.Next();
 		CreateVar(var.msName,var.mlVal);	
 	}
 	
@@ -1234,10 +1227,8 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	//Collide scripts
-	cContainerListIterator<cSaveGame_cGameCollideScript> colIt = apSaveData->mlstCollideCallbacks.GetIterator();
-	while(colIt.HasNext())
+	for(cSaveGame_cGameCollideScript &savedScript : apSaveData->mlstCollideCallbacks.GetIterator())
 	{
-		cSaveGame_cGameCollideScript &savedScript = colIt.Next();
 		cGameCollideScript *pCallback = new cGameCollideScript();
 
 		pCallback->mpEntity = mpInit->mpMapHandler->GetGameEntity(savedScript.msEntity);

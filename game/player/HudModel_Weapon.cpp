@@ -446,10 +446,8 @@ void cHudModel_WeaponMelee::Attack()
 	tVector3fList lstPostions;
 
 	//Iterate Enemies
-	tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
-	while(enemyIt.HasNext())
+	for(iGameEnemy *pEnemy : mpInit->mpMapHandler->GetGameEnemyIterator())
 	{
-		iGameEnemy *pEnemy = enemyIt.Next();
 		iPhysicsBody *pBody = pEnemy->GetMover()->GetCharBody()->GetBody();
 		float fMass = pBody->GetMass();
 

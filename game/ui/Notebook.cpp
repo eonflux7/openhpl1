@@ -259,11 +259,8 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 	float fYPos =0;
 	tWStringVec vTempStrings;
 
-	tNotebook_BookTaskList_Iterator it = mpNotebook->GetTaskIterator();
-	while(it.HasNext())
+	for(cNotebook_BookTask *pTask : mpNotebook->GetTaskIterator())
 	{
-		cNotebook_BookTask *pTask = it.Next();
-		
 		mpTextFont->GetWordWrapRows(308,mfFontSize,mfFontSize-1,_W("- ")+pTask->msText, &vTempStrings);
 
 		fYPos += ((float)vTempStrings.size()) * mfFontSize;
@@ -339,11 +336,8 @@ void cNotebookState_TaskList::OnDraw()
 
 	int lCount=0;
 
-	tNotebook_BookTaskList_Iterator it = mpNotebook->GetTaskIterator();
-	while(it.HasNext())
+	for(cNotebook_BookTask *pTask : mpNotebook->GetTaskIterator())
 	{
-		cNotebook_BookTask *pTask = it.Next();
-
 		if(	lCount < mvTaskPages[mlCurrentPage].mlStartTask ||
 			lCount > mvTaskPages[mlCurrentPage].mlEndTask)
 		{
@@ -524,10 +518,8 @@ void cNotebookState_NoteList::OnUpdate(float afTime)
 	
 	// Notes
 	int lCount=0;
-	tNotebook_NoteList_Iterator it = mpNotebook->GetNoteIterator();
-	while(it.HasNext())
+	for(cNotebook_Note *pNote : mpNotebook->GetNoteIterator())
 	{
-		cNotebook_Note *pNote = it.Next();
 		if(lCount < mlFirstNote || lCount >= mlFirstNote + mlMaxNotesPerPage)
 		{
 			lCount++;
@@ -599,10 +591,8 @@ void cNotebookState_NoteList::OnDraw()
 	}
 
 	int lCount=0;
-	tNotebook_NoteList_Iterator it = mpNotebook->GetNoteIterator();
-	while(it.HasNext())
+	for(cNotebook_Note *pNote : mpNotebook->GetNoteIterator())
 	{
-		cNotebook_Note *pNote = it.Next();
 		if(lCount < mlFirstNote || lCount >= mlFirstNote + mlMaxNotesPerPage)
 		{
 			lCount++;
