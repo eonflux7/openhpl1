@@ -167,6 +167,19 @@ or naming churn. `.clang-tidy` defines bug-finding checks; the optional
 `cmake --build build --target tidy` target requires clang-tools-extra. Review
 findings rather than applying broad automatic fixes.
 
+Comments say why, not what: explain intent, divergence from the original
+games, save/compatibility constraints and non-obvious reasons; do not
+restate the code. Do not add separator lines (`//----`, `/////`) or banners
+for constructors/public/private sections; a short `// NAME` label may mark a
+class or state in a multi-class file. Delete code instead of commenting it
+out (git history and the import commit keep the original); commented
+`#define` build switches with live `#ifdef`s are the exception. New source
+files start with a copyright line and
+`// SPDX-License-Identifier: GPL-3.0-or-later`; keep third-party headers
+(shaders, SMAA, `vendor/`) as they are. Tree-wide mechanical commits are
+listed in `.git-blame-ignore-revs`
+(`git config blame.ignoreRevsFile .git-blame-ignore-revs`).
+
 For behaviour or architecture changes, update the relevant current guide and
 README as needed, and adjust ROADMAP when status changes. Record the
 implementation and its validation in the commit message body. Edit CHANGES
