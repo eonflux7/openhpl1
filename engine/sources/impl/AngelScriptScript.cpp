@@ -4,7 +4,6 @@
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
 #include "math/Math.h"
-#include "impl/Platform.h"
 #include <stdio.h>
 
 namespace hpl {
@@ -195,7 +194,13 @@ namespace hpl {
 			return nullptr;
 		}
 
-		int lLength = (int)Platform::FileLength(pFile);
+		fseek(pFile, 0, SEEK_END);
+		int lLength = (int)ftell(pFile);
+		fseek(pFile, 0, SEEK_SET);
+		if(lLength < 0){
+			fclose(pFile);
+			return nullptr;
+		}
 		alLength = lLength;
 
 		char *pBuffer = new char[lLength];

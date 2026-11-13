@@ -19,7 +19,7 @@
 #ifndef WIN32
 #include <unistd.h>
 #endif
-#include <fstream>
+#include <filesystem>
 #include <string>
 
 #include "impl/LowLevelSystemSDL.h"
@@ -473,84 +473,56 @@ namespace hpl {
 		return true;
 	}
 
+	static std::filesystem::path ToPath(const tWString& asPath)
+	{
+		return std::filesystem::u8path(cString::To8Char(asPath));
+	}
+
 	void RemoveFile(const tWString& asFilePath)
 	{
-	#ifdef WIN32
-		_wremove(asFilePath.c_str());
-	#else
-		remove(cString::To8Char(asFilePath).c_str());
-	#endif
+		std::error_code err;
+		std::filesystem::remove(ToPath(asFilePath), err);
 	}
 
 	bool CloneFile(const tWString& asSrcFileName,const tWString& asDestFileName,
 		bool abFailIfExists)
 	{
-	#ifdef WIN32
-		return CopyFile(asSrcFileName.c_str(),asDestFileName.c_str(),abFailIfExists)==TRUE;
-	#else
-		if (abFailIfExists && FileExists(asDestFileName)) {
-			return true;
-		}
-		std::ifstream IN (cString::To8Char(asSrcFileName).c_str(), std::ios::binary);
-		std::ofstream OUT (cString::To8Char(asDestFileName).c_str(), std::ios::binary);
-		OUT << IN.rdbuf();
-		OUT.flush();
-		return true;
-	#endif
+		std::error_code err;
+		return std::filesystem::copy_file(ToPath(asSrcFileName), ToPath(asDestFileName),
+			abFailIfExists ? std::filesystem::copy_options::none
+				: std::filesystem::copy_options::overwrite_existing, err);
 	}
 
 	bool CreateFolder(const tWString& asPath)
 	{
-	#ifdef WIN32
-		return CreateDirectory(asPath.c_str(),NULL)==TRUE;
-	#else
-		return mkdir(cString::To8Char(asPath).c_str(),0755)==0;
-	#endif
+		std::error_code err;
+		return std::filesystem::create_directory(ToPath(asPath), err);
 	}
 
 	bool FolderExists(const tWString& asPath)
 	{
-	#ifdef WIN32
-		DWORD lAttributes = GetFileAttributes(asPath.c_str());
-		return lAttributes != INVALID_FILE_ATTRIBUTES && (lAttributes & FILE_ATTRIBUTE_DIRECTORY);
-	#else
-		struct stat statbuf;
-		return (stat(cString::To8Char(asPath).c_str(), &statbuf) != -1);
-	#endif
+		std::error_code err;
+		return std::filesystem::is_directory(ToPath(asPath), err);
 	}
 
 	bool IsFileLink(const tWString& asPath)
 	{
-	// Symbolic Links Not Supported under Windows
-	#ifndef WIN32
-		struct stat statbuf;
-		if (lstat(cString::To8Char(asPath).c_str(), &statbuf) == 0) {
-			return statbuf.st_mode == S_IFLNK;
-		} else {
-			return false;
-		}
-	#else
-			return false;
-	#endif
+		std::error_code err;
+		return std::filesystem::is_symlink(ToPath(asPath), err);
 	}
 
 	bool LinkFile(const tWString& asPointsTo, const tWString& asLink)
 	{
-	// Symbolic Links Not Supported under Windows
-	#ifndef WIN32
-		return (symlink(cString::To8Char(asPointsTo).c_str(), cString::To8Char(asLink).c_str()) == 0);
-	#else
-		return false;
-	#endif
+		std::error_code err;
+		std::filesystem::create_symlink(ToPath(asPointsTo), ToPath(asLink), err);
+		return !err;
 	}
 
 	bool RenameFile(const tWString& asFrom, const tWString& asTo)
 	{
-	#ifdef WIN32
-		return MoveFile(asFrom.c_str(), asTo.c_str())==TRUE;
-	#else
-		return (rename(cString::To8Char(asFrom).c_str(), cString::To8Char(asTo).c_str()) == 0);
-	#endif
+		std::error_code err;
+		std::filesystem::rename(ToPath(asFrom), ToPath(asTo), err);
+		return !err;
 	}
 
 	cDate FileModifiedDate(const tWString& asFilePath)
