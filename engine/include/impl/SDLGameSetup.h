@@ -36,7 +36,7 @@ namespace hpl {
 		iLowLevelGraphics *mpLowLevelGraphics;
 		iLowLevelInput *mpLowLevelInput;
 		iLowLevelResources *mpLowLevelResources;
-			iLowLevelSound*	mpLowLevelSound;
+		iLowLevelSound*	mpLowLevelSound;
 		iLowLevelPhysics* mpLowLevelPhysics;
 		iLowLevelHaptic* mpLowLevelHaptic;
 	};

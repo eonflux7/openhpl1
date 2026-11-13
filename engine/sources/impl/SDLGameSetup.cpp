@@ -29,7 +29,7 @@ namespace hpl {
 		mpLowLevelGraphics = hplNew( cLowLevelGraphicsSDL,() );
 		mpLowLevelInput = hplNew( cLowLevelInputSDL,(mpLowLevelGraphics) );
 		mpLowLevelResources = hplNew( cLowLevelResourcesSDL,((cLowLevelGraphicsSDL *)mpLowLevelGraphics) );
-			mpLowLevelSound	= hplNew( cLowLevelSoundOpenAL,() );
+		mpLowLevelSound	= hplNew( cLowLevelSoundOpenAL,() );
 		mpLowLevelPhysics = hplNew( cLowLevelPhysicsNewton,() );
 
 #ifdef INCLUDE_HAPTIC
