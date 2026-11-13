@@ -1,7 +1,11 @@
-# Mechanical comment cleanup; use: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Mechanical cleanups; use: git config blame.ignoreRevsFile .git-blame-ignore-revs
 # Remove separator and section-banner comments
 45b973744a247ecb4aa0acf513c7496eb86ce927
 # Shorten GPL headers to a copyright line and SPDX tag
 3841fc162ab7fec50ddba4f9603241d8e6908370
 # Remove commented-out code
 f3cfb4fdd45018d98531a77fb81d670a4fa92242
+# Remove the __stdcall annotations from script functions
+e6fb074bef00bae283c521568b1ac532268fb6eb
+# Replace the hplNew/hplDelete macros with new/delete
+2d6dc63466caa63342865b4df684fa4d75d8fefc
