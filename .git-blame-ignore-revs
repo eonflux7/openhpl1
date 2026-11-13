@@ -9,3 +9,5 @@ f3cfb4fdd45018d98531a77fb81d670a4fa92242
 e6fb074bef00bae283c521568b1ac532268fb6eb
 # Replace the hplNew/hplDelete macros with new/delete
 2d6dc63466caa63342865b4df684fa4d75d8fefc
+# Loop over HasNext/Next iterators with range-for
+be13cf5c3f3df23ccf3cf871790efcf02ea8ff06
