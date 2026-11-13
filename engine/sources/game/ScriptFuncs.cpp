@@ -89,6 +89,40 @@ namespace hpl {
 	static cSound *gpSound=nullptr;
 	static cGame *gpGame=nullptr;
 
+	// Scripts name things that may not be in the map: the function warns
+	// and does nothing
+	template<class T>
+	static T* Found(T *apThing, const char *asWhat, const tString &asName)
+	{
+		if(apThing==nullptr) Warning("Couldn't find %s '%s'\n",asWhat,asName.c_str());
+		return apThing;
+	}
+
+	static cAreaEntity* FindArea(const tString &asName)
+	{
+		return Found(gpScene->GetWorld3D()->GetAreaEntity(asName),"area",asName);
+	}
+
+	static iLight3D* FindLight(const tString &asName)
+	{
+		return Found(gpScene->GetWorld3D()->GetLight(asName),"light",asName);
+	}
+
+	static cSoundEntity* FindSoundEntity(const tString &asName)
+	{
+		return Found(gpScene->GetWorld3D()->GetSoundEntity(asName),"sound entity",asName);
+	}
+
+	static iPhysicsJoint* FindJoint(const tString &asName)
+	{
+		return Found(gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asName),"joint",asName);
+	}
+
+	static iPhysicsBody* FindBody(const tString &asName)
+	{
+		return Found(gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asName),"Body",asName);
+	}
+
 	static void Print(std::string asText)
 	{
 		Log(asText.c_str());
@@ -344,11 +378,8 @@ namespace hpl {
 	static void CreateParticleSystem(std::string asName, std::string asType, std::string asArea,
 												float afX, float afY, float afZ)
 	{
-		cAreaEntity* pArea = gpScene->GetWorld3D()->GetAreaEntity(asArea);
-		if(pArea==nullptr){
-			Warning("Couldn't find area '%s'\n",asArea.c_str());
-			return;
-		}
+		cAreaEntity *pArea = FindArea(asArea);
+		if(pArea==nullptr) return;
 
 		cParticleSystem3D *pPS = gpScene->GetWorld3D()->CreateParticleSystem(asName,asType,
 														cVector3f(afX,afY,afZ),pArea->m_mtxTransform);
@@ -390,17 +421,11 @@ namespace hpl {
 	static void CreateBeam(std::string asName, std::string asFile,
 									std::string asStartArea, std::string asEndArea)
 	{
-		cAreaEntity* pStartArea = gpScene->GetWorld3D()->GetAreaEntity(asStartArea);
-		if(pStartArea==nullptr){
-			Warning("Couldn't find area '%s'\n",asStartArea.c_str());
-			return;
-		}
+		cAreaEntity *pStartArea = FindArea(asStartArea);
+		if(pStartArea==nullptr) return;
 
-		cAreaEntity* pEndArea = gpScene->GetWorld3D()->GetAreaEntity(asEndArea);
-		if(pEndArea==nullptr){
-			Warning("Couldn't find area '%s'\n",asEndArea.c_str());
-			return;
-		}
+		cAreaEntity *pEndArea = FindArea(asEndArea);
+		if(pEndArea==nullptr) return;
 
 		cBeam *pBeam = gpScene->GetWorld3D()->CreateBeam(asName);
 
@@ -446,12 +471,8 @@ namespace hpl {
 	static void FadeLight3D(std::string asName, float afR,float afG, float afB, float afA,
 										float afRadius, float afTime)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asName);
+		if(pLight==nullptr) return;
 
 		pLight->FadeTo(cColor(afR,afG,afB,afA),afRadius, afTime);
 		pLight->SetVisible(true);
@@ -466,12 +487,8 @@ namespace hpl {
 	**/
 	static void AttachBillboardToLight3D(std::string asBillboardName, std::string asLightName,bool abX)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asLightName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asLightName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asLightName);
+		if(pLight==nullptr) return;
 
 		cBillboard *pBillboard = gpScene->GetWorld3D()->GetBillboard(asBillboardName);
 		if(pBillboard==nullptr)
@@ -493,12 +510,8 @@ namespace hpl {
 	**/
 	static void SetLight3DVisible(std::string asName, bool abX)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asName);
+		if(pLight==nullptr) return;
 
 		pLight->SetVisible(abX);
 	}
@@ -510,12 +523,8 @@ namespace hpl {
 	**/
 	static void SetLight3DOnlyAffectInSector(std::string asName, bool abX)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asName);
+		if(pLight==nullptr) return;
 
 		pLight->SetOnlyAffectInSector(abX);
 	}
@@ -527,12 +536,8 @@ namespace hpl {
 	**/
 	static void SetLight3DFlickerActive(std::string asName, bool abX)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asName);
+		if(pLight==nullptr) return;
 
 		pLight->SetFlickerActive(abX);
 	}
@@ -567,12 +572,8 @@ namespace hpl {
 											bool abFade,
 											float afOnFadeLength, float afOffFadeLength)
 	{
-		iLight3D *pLight = gpScene->GetWorld3D()->GetLight(asName);
-		if(pLight==nullptr)
-		{
-			Warning("Couldn't find light '%s'\n",asName.c_str());
-			return;
-		}
+		iLight3D *pLight = FindLight(asName);
+		if(pLight==nullptr) return;
 
 		pLight->SetFlicker(cColor(afR,afG,afB,afA),afRadius,
 							afOnMinLength, afOnMaxLength,asOnSound,asOnPS,
@@ -591,11 +592,8 @@ namespace hpl {
 	static void CreateSoundEntity(std::string asName, std::string asFile,
 												std::string asArea)
 	{
-		cAreaEntity* pArea = gpScene->GetWorld3D()->GetAreaEntity(asArea);
-		if(pArea==nullptr){
-			Warning("Couldn't find area '%s'\n",asArea.c_str());
-			return;
-		}
+		cAreaEntity *pArea = FindArea(asArea);
+		if(pArea==nullptr) return;
 
 		cSoundEntity *pSound = gpScene->GetWorld3D()->CreateSoundEntity(asName,asFile,true);
 		if(pSound==nullptr)
@@ -614,12 +612,8 @@ namespace hpl {
 	**/
 	static void PlaySoundEntity(std::string asName, bool abPlayStart)
 	{
-		cSoundEntity *pSound = gpScene->GetWorld3D()->GetSoundEntity(asName);
-		if(pSound==nullptr)
-		{
-			Warning("Couldn't find sound entity '%s'\n",asName.c_str());
-			return;
-		}
+		cSoundEntity *pSound = FindSoundEntity(asName);
+		if(pSound==nullptr) return;
 
 		pSound->Play(abPlayStart);
 	}
@@ -631,12 +625,8 @@ namespace hpl {
 	**/
 	static void StopSoundEntity(std::string asName, bool abPlayEnd)
 	{
-		cSoundEntity *pSound = gpScene->GetWorld3D()->GetSoundEntity(asName);
-		if(pSound==nullptr)
-		{
-			Warning("Couldn't find sound entity '%s'\n",asName.c_str());
-			return;
-		}
+		cSoundEntity *pSound = FindSoundEntity(asName);
+		if(pSound==nullptr) return;
 
 		pSound->Stop(abPlayEnd);
 	}
@@ -648,12 +638,8 @@ namespace hpl {
 	**/
 	static void FadeInSoundEntity(std::string asName, float afSpeed)
 	{
-		cSoundEntity *pSound = gpScene->GetWorld3D()->GetSoundEntity(asName);
-		if(pSound==nullptr)
-		{
-			Warning("Couldn't find sound entity '%s'\n",asName.c_str());
-			return;
-		}
+		cSoundEntity *pSound = FindSoundEntity(asName);
+		if(pSound==nullptr) return;
 
 		pSound->FadeIn(afSpeed);
 	}
@@ -665,12 +651,8 @@ namespace hpl {
 	**/
 	static void FadeOutSoundEntity(std::string asName, float afSpeed)
 	{
-		cSoundEntity *pSound = gpScene->GetWorld3D()->GetSoundEntity(asName);
-		if(pSound==nullptr)
-		{
-			Warning("Couldn't find sound entity '%s'\n",asName.c_str());
-			return;
-		}
+		cSoundEntity *pSound = FindSoundEntity(asName);
+		if(pSound==nullptr) return;
 
 		pSound->FadeOut(afSpeed);
 	}
@@ -707,10 +689,8 @@ namespace hpl {
 	static void SetJointCallback(std::string asJointName, std::string asType,
 											std::string asFunc)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		int lType = 0;
 		tString sLowName = cString::ToLowerCase(asType);
@@ -738,10 +718,8 @@ namespace hpl {
 	**/
 	static void BreakJoint(std::string asJointName)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		pJoint->Break();
 	}
@@ -754,10 +732,8 @@ namespace hpl {
 	**/
 	static void SetJointControllerActive(std::string asJointName,std::string asCtrlName, bool abActive)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		iPhysicsController *pCtrl = pJoint->GetController(asCtrlName);
 		if(pCtrl==nullptr){
@@ -774,10 +750,8 @@ namespace hpl {
 	**/
 	static void ChangeJointController(std::string asJointName,std::string asCtrlName)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		if(pJoint->ChangeController(asCtrlName)==false)
 		{
@@ -796,10 +770,8 @@ namespace hpl {
 	static void SetJointControllerPropertyFloat(std::string asJointName,std::string asCtrlName,
 													std::string asProperty, float afValue)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		iPhysicsController *pCtrl = pJoint->GetController(asCtrlName);
 		if(pCtrl==nullptr){
@@ -827,10 +799,8 @@ namespace hpl {
 	**/
 	static float GetJointProperty(std::string asJointName, std::string asProp)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return 0;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return 0;
 
 		tString sLowProp = cString::ToLowerCase(asProp);
 
@@ -915,10 +885,8 @@ namespace hpl {
 	**/
 	static float GetBodyProperty(std::string asBodyName, std::string asProp)
 	{
-		iPhysicsBody *pBody = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asBodyName);
-		if(pBody==nullptr){
-			Warning("Couldn't find Body '%s'\n",asBodyName.c_str());return 0;
-		}
+		iPhysicsBody *pBody = FindBody(asBodyName);
+		if(pBody==nullptr) return 0;
 
 		tString sLowProp = cString::ToLowerCase(asProp);
 
@@ -950,10 +918,8 @@ namespace hpl {
 	**/
 	static void SetBodyProperty(std::string asBodyName, std::string asProp, float afVal)
 	{
-		iPhysicsBody *pBody = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asBodyName);
-		if(pBody==nullptr){
-			Warning("Couldn't find Body '%s'\n",asBodyName.c_str());return;
-		}
+		iPhysicsBody *pBody = FindBody(asBodyName);
+		if(pBody==nullptr) return;
 
 		tString sLowProp = cString::ToLowerCase(asProp);
 
@@ -1004,15 +970,11 @@ namespace hpl {
 
 	static void AttachBodiesWithJoint(std::string asParentName, std::string asChildName, std::string asJointName)
 	{
-		iPhysicsBody *pParent = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asParentName);
-		if(pParent==nullptr){
-			Warning("Couldn't find Body '%s'\n",asParentName.c_str());return;
-		}
+		iPhysicsBody *pParent = FindBody(asParentName);
+		if(pParent==nullptr) return;
 
-		iPhysicsBody *pChild = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asChildName);
-		if(pChild==nullptr){
-			Warning("Couldn't find Body '%s'\n",asChildName.c_str());return;
-		}
+		iPhysicsBody *pChild = FindBody(asChildName);
+		if(pChild==nullptr) return;
 
 		iPhysicsWorld *pPhysicsWorld = gpScene->GetWorld3D()->GetPhysicsWorld();
 
@@ -1036,10 +998,8 @@ namespace hpl {
 	**/
 	static void SetJointProperty(std::string asJointName, std::string asProp, float afVal)
 	{
-		iPhysicsJoint *pJoint = gpScene->GetWorld3D()->GetPhysicsWorld()->GetJoint(asJointName);
-		if(pJoint==nullptr){
-			Warning("Couldn't find joint '%s'\n",asJointName.c_str());return;
-		}
+		iPhysicsJoint *pJoint = FindJoint(asJointName);
+		if(pJoint==nullptr) return;
 
 		tString sLowProp = cString::ToLowerCase(asProp);
 
@@ -1114,10 +1074,8 @@ namespace hpl {
 	static void AddBodyForce(std::string asBodyName, std::string asCoordType,
 										float afX, float afY, float afZ)
 	{
-		iPhysicsBody *pBody = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asBodyName);
-		if(pBody==nullptr){
-			Warning("Couldn't find Body '%s'\n",asBodyName.c_str());return;
-		}
+		iPhysicsBody *pBody = FindBody(asBodyName);
+		if(pBody==nullptr) return;
 
 		int lType =0;
 		tString sLowType = cString::ToLowerCase(asCoordType);
@@ -1153,10 +1111,8 @@ namespace hpl {
 	static void AddBodyImpulse(std::string asBodyName, std::string asCoordType,
 		float afX, float afY, float afZ)
 	{
-		iPhysicsBody *pBody = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asBodyName);
-		if(pBody==nullptr){
-			Warning("Couldn't find Body '%s'\n",asBodyName.c_str());return;
-		}
+		iPhysicsBody *pBody = FindBody(asBodyName);
+		if(pBody==nullptr) return;
 
 		int lType =0;
 		tString sLowType = cString::ToLowerCase(asCoordType);

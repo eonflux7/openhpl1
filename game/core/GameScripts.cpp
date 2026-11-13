@@ -48,10 +48,29 @@
 
 // SCRIPT FUNCTIONS
 
-#define GAME_ENTITY_BEGIN(asName) iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName); \
-	if(pEntity==NULL){ \
-	Warning("Couldn't find game entity '%s'\n",asName.c_str()); \
-	return; } \
+// Maps' scripts name entities that may be missing or of another type: the
+// function warns and does nothing. asWhat names the expected kind in the
+// warning; eGameEntityType_LastEnum accepts any type.
+template<class T = iGameEntity>
+static T* FindScriptEntity(const tString &asName, const char *asWhat,
+							eGameEntityType aType = eGameEntityType_LastEnum)
+{
+	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
+	if(pEntity==nullptr || (aType != eGameEntityType_LastEnum && pEntity->GetType() != aType))
+	{
+		Warning("Couldn't find %s '%s'\n",asWhat,asName.c_str());
+		return nullptr;
+	}
+	return static_cast<T*>(pEntity);
+}
+
+static cGameTimer* FindScriptTimer(const tString &asName)
+{
+	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
+	if(pTimer==nullptr) Warning("Couldn't find timer '%s'\n",asName.c_str());
+	return pTimer;
+}
+
 
 tWString gsTempString = _W("");
 // The key just added was in quotes or brackets (Overture's "LeftMouse" and
@@ -330,7 +349,8 @@ static void SetupDepthOfField(float afNearPlane, float afFocalPlane, float afFar
 
 static void FocusOnEntity(std::string asEntity)
 {
-	GAME_ENTITY_BEGIN(asEntity);
+	iGameEntity *pEntity = FindScriptEntity(asEntity, "game entity");
+	if(pEntity==nullptr) return;
 	
 	if(pEntity->GetBodyNum()==0) {
 		Error("Entity %s had no bodies and can not be focus on.\n",pEntity->GetName().c_str());
@@ -349,7 +369,8 @@ static void SetConstantFocusOnEntity(std::string asEntity)
 		return;
 	}
 
-	GAME_ENTITY_BEGIN(asEntity);
+	iGameEntity *pEntity = FindScriptEntity(asEntity, "game entity");
+	if(pEntity==nullptr) return;
 
 	if(pEntity->GetBodyNum()==0) {
 		Error("Entity %s had no bodies and can not be focus on.\n",pEntity->GetName().c_str());
@@ -398,13 +419,8 @@ static void CreateSplashDamage(std::string asAreaName, float afRadius,
 										 float afMaxImpulse, int alStrength)
 {	
 	//Get area
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asAreaName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Area)
-	{
-		Warning("Couldn't find area entity '%s'\n",asAreaName.c_str());
-		return;
-	}
-	cGameArea *pArea = static_cast<cGameArea*>(pEntity);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asAreaName, "area entity", eGameEntityType_Area);
+	if(pArea==nullptr) return;
 
     gpInit->mpAttackHandler->CreateSplashDamage(pArea->GetBody(0)->GetWorldPosition(),
 												afRadius,afMinDamage,afMaxDamage,
@@ -424,55 +440,40 @@ static void CreateTimer(std::string asName, float afTime, std::string asCallback
 
 static void DestroyTimer(std::string asName)
 {
-	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
-	if(pTimer==nullptr){
-		Warning("Couldn't find timer '%s'\n",asName.c_str());
-		return;
-	}
+	cGameTimer *pTimer = FindScriptTimer(asName);
+	if(pTimer==nullptr) return;
 	
 	pTimer->mbDeleteMe = true;
 }
 
 static void SetTimerPaused(std::string asName, bool abPaused)
 {
-	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
-	if(pTimer==nullptr){
-		Warning("Couldn't find timer '%s'\n",asName.c_str());
-		return;
-	}
+	cGameTimer *pTimer = FindScriptTimer(asName);
+	if(pTimer==nullptr) return;
 
 	pTimer->mbPaused = abPaused;
 }
 
 static void SetTimerTime(std::string asName, float afTime)
 {
-	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
-	if(pTimer==nullptr){
-		Warning("Couldn't find timer '%s'\n",asName.c_str());
-		return;
-	}
+	cGameTimer *pTimer = FindScriptTimer(asName);
+	if(pTimer==nullptr) return;
 
 	pTimer->mfTime = afTime;
 }
 
 static void AddTimerTime(std::string asName, float afTime)
 {
-	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
-	if(pTimer==nullptr){
-		Warning("Couldn't find timer '%s'\n",asName.c_str());
-		return;
-	}
+	cGameTimer *pTimer = FindScriptTimer(asName);
+	if(pTimer==nullptr) return;
 
 	pTimer->mfTime += afTime;
 }
 
 static float GetTimerTime(std::string asName)
 {
-	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
-	if(pTimer==nullptr){
-		Warning("Couldn't find timer '%s'\n",asName.c_str());
-		return 0.0f;
-	}
+	cGameTimer *pTimer = FindScriptTimer(asName);
+	if(pTimer==nullptr) return 0.0f;
 
 	return pTimer->mfTime;
 }
@@ -531,12 +532,8 @@ static void SetPlayerActive(bool abActive)
 static void StartPlayerLookAt(std::string asEntityName, float afSpeedMul, float afMaxSpeed)
 {
 	//Get entity
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntityName);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find entity '%s'\n",asEntityName.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asEntityName, "entity");
+	if(pEntity==nullptr) return;
 	if(pEntity->GetBody(0)==nullptr)
 	{
 		Warning("Couldn't find a body in entity '%s'\n",asEntityName.c_str());
@@ -628,7 +625,8 @@ static void GiveItem(std::string asName,std::string asEntityFile,int alSlotIndex
 static void ReplaceEntity(std::string asName, std::string asBodyName,
 											   std::string asNewName, std::string asNewFile)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	if(pEntity->GetBodyNum()==0){
         Error("Entity '%s' contains no bodies!\n",pEntity->GetName().c_str());
@@ -670,64 +668,64 @@ static void ReplaceEntity(std::string asName, std::string asBodyName,
 
 static void SetGameEntityActive(std::string asName, bool abActive)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetActive(abActive);
 }
 
 static bool GetGameEntityActive(std::string asName)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName); 
-	if(pEntity==nullptr){ 
-		Warning("Couldn't find game entity '%s'\n",asName.c_str()); 
-		return false; 
-	}
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return false;
 
 	return pEntity->IsActive();
 }
 
 static void CreateGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
-	GAME_ENTITY_BEGIN(asEntName);
+	iGameEntity *pEntity = FindScriptEntity(asEntName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->CreateVar(asVarName,alVal);
 }
 
 static void SetGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
-	GAME_ENTITY_BEGIN(asEntName);
+	iGameEntity *pEntity = FindScriptEntity(asEntName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetVar(asVarName,alVal);
 }
 
 static void AddGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
-	GAME_ENTITY_BEGIN(asEntName);
+	iGameEntity *pEntity = FindScriptEntity(asEntName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->AddVar(asVarName,alVal);
 }
 
 static int GetGameEntityVar(std::string asEntName, std::string asVarName)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntName); 
-	if(pEntity==nullptr){ 
-		Warning("Couldn't find game entity '%s'\n",asEntName.c_str()); 
-		return 0; 
-	}
+	iGameEntity *pEntity = FindScriptEntity(asEntName, "game entity");
+	if(pEntity==nullptr) return 0;
 
 	return pEntity->GetVar(asVarName);
 }
 
 static void SetGameEntityMaxExamineDist(std::string asName,float afDist)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 	
 	pEntity->SetMaxExamineDist(afDist);
 }
 
 static void SetGameEntityMaxInteractDist(std::string asName,float afDist)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetMaxInteractDist(afDist);
 }
@@ -737,7 +735,8 @@ static void SetGameEntityDescriptionTrans(std::string asName,
 													std::string asTransName)
 {
 	cInit *mpInit = gpInit;
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetDescription(kTranslate(asTransCat,asTransName));
 	pEntity->SetShowDescritionOnce(false);
@@ -748,7 +747,8 @@ static void SetGameEntityDescriptionOnceTrans(std::string asName,
 														   std::string asTransName)
 {
 	cInit *mpInit = gpInit;
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetDescription(kTranslate(asTransCat,asTransName));
 	pEntity->SetShowDescritionOnce(true);
@@ -756,7 +756,8 @@ static void SetGameEntityDescriptionOnceTrans(std::string asName,
 
 static void SetGameEntityDescription(std::string asName, std::string asMessage)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetDescription(cString::To16Char(asMessage));
 	pEntity->SetShowDescritionOnce(false);
@@ -767,7 +768,8 @@ static void SetGameEntityGameNameTrans(std::string asName,
 												 std::string asTransName)
 {
 	cInit *mpInit = gpInit;
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetGameName(kTranslate(asTransCat,asTransName));
 }
@@ -776,21 +778,24 @@ static void ChangeEntityAnimation(std::string asName,
 											std::string asAnimation,
 											bool abLoop)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
  	pEntity->GetMeshEntity()->PlayName(asAnimation,abLoop, true);
 }
 
 static void SetEntityHealth(std::string asName, float afHealth)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->SetHealth(afHealth);
 }
 
 static void DamageEntity(std::string asName, float afDamage, int alStrength)
 {
-	GAME_ENTITY_BEGIN(asName)
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
 	pEntity->Damage(afDamage,alStrength);
 }
@@ -802,14 +807,8 @@ static void SetDoorState(std::string asName,
 
 static void SetObjectInteractMode(std::string asName,std::string asMode)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Object)
-	{
-		Warning("Couldn't find object entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	cGameObject *pObject = static_cast<cGameObject*>(pEntity);
+	cGameObject *pObject = FindScriptEntity<cGameObject>(asName, "object entity", eGameEntityType_Object);
+	if(pObject==nullptr) return;
 
 	pObject->SetInteractMode(cEntityLoader_GameObject::ToInteractMode(asMode.c_str()));
 }
@@ -819,14 +818,8 @@ static void SetupLink(std::string asName,
 								std::string asStartSound, std::string asStopSound,
 								float afFadeOutTime, float afFadeInTime)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
-	{
-		Warning("Couldn't find object entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	cGameLink *pLink = static_cast<cGameLink*>(pEntity);
+	cGameLink *pLink = FindScriptEntity<cGameLink>(asName, "object entity", eGameEntityType_Link);
+	if(pLink==nullptr) return;
 
 	pLink->msMapFile = asMapFile;
 	pLink->msMapPos = asMapPos;
@@ -858,14 +851,8 @@ static void SetupLinkLoadText(std::string asName,
 										float afFadeOutTime, float afFadeInTime,
 										std::string asTextCat, std::string asTextEntry)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
-	{
-		Warning("Couldn't find object entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	cGameLink *pLink = static_cast<cGameLink*>(pEntity);
+	cGameLink *pLink = FindScriptEntity<cGameLink>(asName, "object entity", eGameEntityType_Link);
+	if(pLink==nullptr) return;
 
 	pLink->msMapFile = asMapFile;
 	pLink->msMapPos = asMapPos;
@@ -897,14 +884,8 @@ static void SetupLinkLoadTextLoadImage(std::string asName,
  */
 static void SetLinkLocked(std::string asName, bool abLocked)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
-	{
-		Warning("Couldn't find object entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	static_cast<cGameLink*>(pEntity)->mbLocked = abLocked;
+	cGameLink *pLink = FindScriptEntity<cGameLink>(asName, "object entity", eGameEntityType_Link);
+	if(pLink) pLink->mbLocked = abLocked;
 }
 
 /**
@@ -913,14 +894,8 @@ static void SetLinkLocked(std::string asName, bool abLocked)
 static void SetupLinkLockedProp(std::string asName, std::string asLockedSound,
 											std::string asLockedDescCat, std::string asLockedDescEntry)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
-	{
-		Warning("Couldn't find object entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	cGameLink *pLink = static_cast<cGameLink*>(pEntity);
+	cGameLink *pLink = FindScriptEntity<cGameLink>(asName, "object entity", eGameEntityType_Link);
+	if(pLink==nullptr) return;
 
 	pLink->msLockedSound = asLockedSound;
 	if(asLockedDescCat != "")
@@ -929,13 +904,8 @@ static void SetupLinkLockedProp(std::string asName, std::string asLockedSound,
 
 static void SetAreaCustomIcon(std::string asName, std::string asIcon)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Area)
-	{
-		Warning("Couldn't find area entity '%s'\n",asName.c_str());
-		return;
-	}
-	cGameArea *pArea = static_cast<cGameArea*>(pEntity);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asName, "area entity", eGameEntityType_Area);
+	if(pArea==nullptr) return;
 
 	eCrossHairState aCrosshair = eCrossHairState_None;
 	
@@ -960,13 +930,8 @@ static void SetAreaCustomIcon(std::string asName, std::string asIcon)
 static void AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTime,
 														std::string asAnimation)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
     
     pEnemy->AddPatrolNode(asNode,afTime,asAnimation);
 }
@@ -977,85 +942,49 @@ static void AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTi
 */
 static void ClearEnemyPatrolNodes(std::string asEnemy)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
 	
 	pEnemy->ClearPatrolNodes();
 }
 
 static void SetEnemyDeathCallback(std::string asEnemy,std::string asFunction)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
 
 	pEnemy->SetOnDeathCallback(asFunction);
 }
 
 static void SetEnemyAttackCallback(std::string asEnemy,std::string asFunction)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
 
 	pEnemy->SetOnAttackCallback(asFunction);
 }
 
 static float GetEnemyHealth(std::string asEnemy)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return 0;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return 0;
 
 	return pEnemy->GetHealth();
 }
 
 static void SetEnemyUseTriggers(std::string asEnemy, bool abUseTriggers)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
 
 	pEnemy->SetUsesTriggers(abUseTriggers);
 }
 
 // Black Plague's enemy functions
 
-static iGameEnemy* GetScriptEnemy(const std::string &asEnemy)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return nullptr;
-	}
-	return static_cast<iGameEnemy*>(pEntity);
-}
-
 static cGameEnemy_Infected* GetScriptInfected(const std::string &asEnemy)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return nullptr;
 
 	cGameEnemy_Infected *pInfected = dynamic_cast<cGameEnemy_Infected*>(pEnemy);
@@ -1068,7 +997,7 @@ static cGameEnemy_Infected* GetScriptInfected(const std::string &asEnemy)
  **/
 static void PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return;
 
 	pEnemy->PlayAnim(asAnim,abLoop,0.5f);
@@ -1079,7 +1008,7 @@ static void PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
  **/
 static void SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return;
 
 	pEnemy->SetOnAnimOverCallback(asFunc);
@@ -1090,7 +1019,7 @@ static void SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
  **/
 static void SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return;
 
 	pEnemy->SetOnHuntCallback(asFunc);
@@ -1101,7 +1030,7 @@ static void SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
  **/
 static void SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return;
 
 	pEnemy->SetOnPatrolOverCallback(asFunc);
@@ -1112,7 +1041,7 @@ static void SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
  **/
 static void SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abStop)
 {
-	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
 	if(pEnemy==nullptr) return;
 
 	pEnemy->SetStopAtLastPatrolNode(abStop);
@@ -1148,17 +1077,6 @@ static void AddInfectedFlashlight(std::string asEnemy)
 
 // Black Plague's security cameras
 
-static cGameCamera* GetScriptCamera(const std::string &asName)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Camera)
-	{
-		Warning("Couldn't find camera entity '%s'\n",asName.c_str());
-		return nullptr;
-	}
-	return static_cast<cGameCamera*>(pEntity);
-}
-
 /**
  * How a security camera turns: the angles to each side in degrees, the pause
  * at each end in seconds and the speed. asSpottedCallback(string asCamera) is
@@ -1168,7 +1086,7 @@ static void SetupSecurityCamera(std::string asName, float afMinAngle, float afMa
 											float afMinPause, float afMaxPause, float afSpeed,
 											std::string asSpottedCallback, std::string asAlertOverCallback)
 {
-	cGameCamera *pCamera = GetScriptCamera(asName);
+	cGameCamera *pCamera = FindScriptEntity<cGameCamera>(asName, "camera entity", eGameEntityType_Camera);
 	if(pCamera==nullptr) return;
 
 	pCamera->Setup(cMath::ToRad(afMinAngle),cMath::ToRad(afMaxAngle),afMinPause,afMaxPause,afSpeed,
@@ -1177,7 +1095,7 @@ static void SetupSecurityCamera(std::string asName, float afMinAngle, float afMa
 
 static void SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 {
-	cGameCamera *pCamera = GetScriptCamera(asName);
+	cGameCamera *pCamera = FindScriptEntity<cGameCamera>(asName, "camera entity", eGameEntityType_Camera);
 	if(pCamera==nullptr) return;
 
 	pCamera->SetAlerted(abAlerted);
@@ -1185,13 +1103,8 @@ static void SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 
 static void ShowEnemyPlayer(std::string asEnemy)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
-	{
-		Warning("Couldn't find enemy entity '%s'\n",asEnemy.c_str());
-		return;
-	}
-	iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
+	iGameEnemy *pEnemy = FindScriptEntity<iGameEnemy>(asEnemy, "enemy entity", eGameEntityType_Enemy);
+	if(pEnemy==nullptr) return;
 
 
 	pEnemy->SetLastPlayerPos(	gpInit->mpPlayer->GetCharacterBody()->GetFeetPosition() + 
@@ -1201,13 +1114,8 @@ static void ShowEnemyPlayer(std::string asEnemy)
 
 static void SetDoorLocked(std::string asDoor, bool abLocked)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDoor);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_SwingDoor)
-	{
-		Warning("Couldn't find swing door entity '%s'\n",asDoor.c_str());
-		return;
-	}
-	cGameSwingDoor *pDoor = static_cast<cGameSwingDoor*>(pEntity);
+	cGameSwingDoor *pDoor = FindScriptEntity<cGameSwingDoor>(asDoor, "swing door entity", eGameEntityType_SwingDoor);
+	if(pDoor==nullptr) return;
 
 	pDoor->SetLocked(abLocked);
 
@@ -1220,13 +1128,8 @@ static void SetupStickArea(	std::string asArea, bool abCanDeatch,
 									 std::string asAttachPS, std::string asDetachPS,
 									 std::string asAttachFunc, std::string asDetachFunc)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asArea);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_StickArea)
-	{
-		Warning("Couldn't find stick area '%s'\n",asArea.c_str());
-		return;
-	}
-	cGameStickArea *pArea = static_cast<cGameStickArea*>(pEntity);
+	cGameStickArea *pArea = FindScriptEntity<cGameStickArea>(asArea, "stick area", eGameEntityType_StickArea);
+	if(pArea==nullptr) return;
 
     pArea->SetCanDetach(abCanDeatch);
 
@@ -1254,39 +1157,24 @@ static void AllowAttachment()
 
 static void SetLampLit(std::string asName,bool abLit, bool abFade)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
-	{
-		Warning("Couldn't find lamp '%s'\n",asName.c_str());
-		return;
-	}
-	cGameLamp *pLamp = static_cast<cGameLamp*>(pEntity);
+	cGameLamp *pLamp = FindScriptEntity<cGameLamp>(asName, "lamp", eGameEntityType_Lamp);
+	if(pLamp==nullptr) return;
 
     pLamp->SetLit(abLit,abFade);
 }
 
 static void SetLampFlicker(std::string asName,bool abFlicker)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
-	{
-		Warning("Couldn't find lamp '%s'\n",asName.c_str());
-		return;
-	}
-	cGameLamp *pLamp = static_cast<cGameLamp*>(pEntity);
+	cGameLamp *pLamp = FindScriptEntity<cGameLamp>(asName, "lamp", eGameEntityType_Lamp);
+	if(pLamp==nullptr) return;
 
 	pLamp->SetFlicker(abFlicker);
 }
 
 static void SetLampLitChangeCallback(std::string asName,std::string asCallback)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
-	{
-		Warning("Couldn't find lamp '%s'\n",asName.c_str());
-		return;
-	}
-	cGameLamp *pLamp = static_cast<cGameLamp*>(pEntity);
+	cGameLamp *pLamp = FindScriptEntity<cGameLamp>(asName, "lamp", eGameEntityType_Lamp);
+	if(pLamp==nullptr) return;
 
 	pLamp->SetLitChangeCallback(asCallback);
 }
@@ -1296,13 +1184,8 @@ static void SetupLadder(	std::string asName,
 											std::string asClimbUpSound, 
 											std::string asClimbDownSound)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Ladder)
-	{
-		Warning("Couldn't find ladder '%s'\n",asName.c_str());
-		return;
-	}
-	cGameLadder *pLadder = static_cast<cGameLadder*>(pEntity);
+	cGameLadder *pLadder = FindScriptEntity<cGameLadder>(asName, "ladder", eGameEntityType_Ladder);
+	if(pLadder==nullptr) return;
 
 	pLadder->SetAttachSound(asAttachSound);
 	pLadder->SetClimbUpSound(asClimbUpSound);
@@ -1313,13 +1196,8 @@ static void SetupDamageArea(std::string asName, float afDamage,
 													 float afUpdatesPerSec, int alStrength,
 													 bool abDisableObjects, bool abDisableEnemies)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_DamageArea)
-	{
-		Warning("Couldn't find damage area '%s'\n",asName.c_str());
-		return;
-	}
-	cGameDamageArea *pDamage = static_cast<cGameDamageArea*>(pEntity);
+	cGameDamageArea *pDamage = FindScriptEntity<cGameDamageArea>(asName, "damage area", eGameEntityType_DamageArea);
+	if(pDamage==nullptr) return;
 
 	pDamage->SetDamage(afDamage);
 	pDamage->SetUpdatesPerSec(afUpdatesPerSec);
@@ -1339,12 +1217,8 @@ static void SetupDamageAreaType(std::string asName, float afDamage,
 													 bool abDisableObjects, bool abDisableEnemies,
 													 std::string asDamageType, std::string asDamageSound)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_DamageArea)
-	{
-		Warning("Couldn't find damage area '%s'\n",asName.c_str());
-		return;
-	}
+	cGameDamageArea *pDamage = FindScriptEntity<cGameDamageArea>(asName, "damage area", eGameEntityType_DamageArea);
+	if(pDamage==nullptr) return;
 
 	SetupDamageArea(asName, afDamage, afUpdatesPerSec, alStrength, abDisableObjects, abDisableEnemies);
 
@@ -1355,7 +1229,6 @@ static void SetupDamageAreaType(std::string asName, float afDamage,
 	else if(sType == "poison")	type = ePlayerDamageType_Poison;
 	else Warning("Damage type %s does not exist!\n",asDamageType.c_str());
 
-	cGameDamageArea *pDamage = static_cast<cGameDamageArea*>(pEntity);
 	pDamage->SetDamageType(type);
 	pDamage->SetDamageSound(asDamageSound);
 }
@@ -1366,13 +1239,8 @@ static void SetupForceArea(std::string asName,
 									 bool abMulWithMass, bool abForceAtPoint,
 									 bool abAffectBodies, bool abAffectCharacters)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_ForceArea)
-	{
-		Warning("Couldn't find force area '%s'\n",asName.c_str());
-		return;
-	}
-	cGameForceArea *pForce = static_cast<cGameForceArea*>(pEntity);
+	cGameForceArea *pForce = FindScriptEntity<cGameForceArea>(asName, "force area", eGameEntityType_ForceArea);
+	if(pForce==nullptr) return;
 
 	pForce->SetMaxForce(afMaxForce);
 	pForce->SetConstant(afConstant);
@@ -1391,13 +1259,8 @@ static void SetupLiquidArea(std::string asName,
 								  float fR, float fG, float fB,
 								  bool abHasWaves)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_LiquidArea)
-	{
-		Warning("Couldn't find liquid area '%s'\n",asName.c_str());
-		return;
-	}
-	cGameLiquidArea *pLiquid = static_cast<cGameLiquidArea*>(pEntity);
+	cGameLiquidArea *pLiquid = FindScriptEntity<cGameLiquidArea>(asName, "liquid area", eGameEntityType_LiquidArea);
+	if(pLiquid==nullptr) return;
 
 	pLiquid->SetDensity(afDensity);
 	pLiquid->SetLinearViscosity(afLinearViscosity);
@@ -1414,13 +1277,8 @@ static void SetupSaveArea(std::string asName,
 											std::string asMessageCat,std::string asMessageEntry, 
 											std::string asSound)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_SaveArea)
-	{
-		Warning("Couldn't find save area '%s'\n",asName.c_str());
-		return;
-	}
-	cGameSaveArea *pSave = static_cast<cGameSaveArea*>(pEntity);
+	cGameSaveArea *pSave = FindScriptEntity<cGameSaveArea>(asName, "save area", eGameEntityType_SaveArea);
+	if(pSave==nullptr) return;
 
 	pSave->SetMessageCat(asMessageCat);
 	pSave->SetMessageEntry(asMessageEntry);
@@ -1456,12 +1314,8 @@ static void AddEntityCollideCallback(std::string asType,
 	}
 	else
 	{
-		iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
-		if(pEntity==nullptr)
-		{
-			Warning("Couldn't find entity '%s'\n",asDestName.c_str());
-			return;
-		}
+		iGameEntity *pEntity = FindScriptEntity(asDestName, "entity");
+		if(pEntity==nullptr) return;
 
 		eGameCollideScriptType type = GetGameCollideScriptType(asType);
 
@@ -1484,12 +1338,8 @@ static void RemoveEntityCollideCallback(std::string asType,
 	}
 	else
 	{
-		iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
-		if(pEntity==nullptr)
-		{
-			Warning("Couldn't find entity '%s'\n",asDestName.c_str());
-			return;
-		}
+		iGameEntity *pEntity = FindScriptEntity(asDestName, "entity");
+		if(pEntity==nullptr) return;
 
 		eGameCollideScriptType type = GetGameCollideScriptType(asType);
 
@@ -1519,12 +1369,8 @@ static void AddEntityCallback(std::string asType,
 										std::string asDestName,
 										std::string asFuncName)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find entity '%s'\n",asDestName.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asDestName, "entity");
+	if(pEntity==nullptr) return;
 
 	eGameEntityScriptType type = GetGameScriptType(asType);
 
@@ -1537,12 +1383,8 @@ static void AddEntityCallback(std::string asType,
 static void RemoveEntityCallback(std::string asType,
 										   std::string asDestName)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find entity '%s'\n",asDestName.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asDestName, "entity");
+	if(pEntity==nullptr) return;
 
 	eGameEntityScriptType type = GetGameScriptType(asType);
 
@@ -1597,12 +1439,8 @@ static void CreateSoundEntityAt(std::string asType,std::string asDestName,
 	}
 	// Entity
 	{
-		iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
-		if(pEntity==nullptr)
-		{
-			Warning("Couldn't find entity '%s'\n",asDestName.c_str());
-			return;
-		}
+		iGameEntity *pEntity = FindScriptEntity(asDestName, "entity");
+		if(pEntity==nullptr) return;
 		
 		if(pEntity->GetMeshEntity())
 			vPos = pEntity->GetMeshEntity()->GetWorldPosition();
@@ -1622,28 +1460,6 @@ static void CreateSoundEntityAt(std::string asType,std::string asDestName,
 
 // LEVERS AND WHEELS (BLACK PLAGUE)
 
-static cGameLever* GetLever(const std::string &asName)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lever)
-	{
-		Warning("Couldn't find lever '%s'\n",asName.c_str());
-		return nullptr;
-	}
-	return static_cast<cGameLever*>(pEntity);
-}
-
-static cGameWheel* GetWheel(const std::string &asName)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Wheel)
-	{
-		Warning("Couldn't find wheel '%s'\n",asName.c_str());
-		return nullptr;
-	}
-	return static_cast<cGameWheel*>(pEntity);
-}
-
 /**
  * The function is called as Func(string asName, int alAction, int alState):
  * the action 0 = enter, 1 = leave, 2 = during; the state -1 = min, 0 = middle, 1 = max.
@@ -1651,7 +1467,7 @@ static cGameWheel* GetWheel(const std::string &asName)
  */
 static void SetLeverCallback(std::string asName, std::string asType, std::string asFunc)
 {
-	cGameLever *pLever = GetLever(asName);
+	cGameLever *pLever = FindScriptEntity<cGameLever>(asName, "lever", eGameEntityType_Lever);
 	if(pLever==nullptr) return;
 
 	tString sType = cString::ToLowerCase(asType);
@@ -1666,7 +1482,7 @@ static void SetLeverCallback(std::string asName, std::string asType, std::string
  */
 static void SetLeverStuck(std::string asName, int alState)
 {
-	cGameLever *pLever = GetLever(asName);
+	cGameLever *pLever = FindScriptEntity<cGameLever>(asName, "lever", eGameEntityType_Lever);
 	if(pLever==nullptr) return;
 
 	if(alState == 0)		pLever->SetIsStuck(false);
@@ -1679,7 +1495,7 @@ static void SetLeverStuck(std::string asName, int alState)
  */
 static int GetLeverState(std::string asName)
 {
-	cGameLever *pLever = GetLever(asName);
+	cGameLever *pLever = FindScriptEntity<cGameLever>(asName, "lever", eGameEntityType_Lever);
 	if(pLever==nullptr) return 0;
 
 	switch(pLever->GetState())
@@ -1692,7 +1508,7 @@ static int GetLeverState(std::string asName)
 
 static void SetWheelCallback(std::string asName, std::string asType, std::string asFunc)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return;
 
 	tString sType = cString::ToLowerCase(asType);
@@ -1704,7 +1520,7 @@ static void SetWheelCallback(std::string asName, std::string asType, std::string
 
 static void SetWheelStuck(std::string asName, int alState)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return;
 
 	if(alState == 0)		pWheel->SetIsStuck(false);
@@ -1714,7 +1530,7 @@ static void SetWheelStuck(std::string asName, int alState)
 
 static int GetWheelState(std::string asName)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return 0;
 
 	switch(pWheel->GetState())
@@ -1730,7 +1546,7 @@ static int GetWheelState(std::string asName)
  */
 static float GetWheelAngle(std::string asName)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return 0;
 
 	return cMath::ToDeg(pWheel->GetAngle());
@@ -1738,7 +1554,7 @@ static float GetWheelAngle(std::string asName)
 
 static float GetWheelSpeed(std::string asName)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return 0;
 
 	return pWheel->GetSpeed();
@@ -1751,7 +1567,7 @@ static float GetWheelSpeed(std::string asName)
 static void ConnectWheelToJoint(std::string asName, std::string asJoint,
 											float afMin, float afMax, float afRange)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return;
 
 	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -1771,31 +1587,16 @@ static void ConnectWheelToJoint(std::string asName, std::string asJoint,
 static void ConnectWheelToController(std::string asName, std::string asEntity, std::string asController,
 											float afMin, float afMax)
 {
-	cGameWheel *pWheel = GetWheel(asName);
+	cGameWheel *pWheel = FindScriptEntity<cGameWheel>(asName, "wheel", eGameEntityType_Wheel);
 	if(pWheel==nullptr) return;
 
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntity);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find controller entity '%s'\n",asEntity.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asEntity, "controller entity");
+	if(pEntity==nullptr) return;
 
 	pWheel->ConnectToController(pEntity, asController, afMin, afMax);
 }
 
 // MOVING THINGS TO AREAS (BLACK PLAGUE)
-
-static cGameArea* GetArea(const std::string &asName)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Area)
-	{
-		Warning("Couldn't find area entity '%s'\n",asName.c_str());
-		return nullptr;
-	}
-	return static_cast<cGameArea*>(pEntity);
-}
 
 static iPhysicsBody* GetBody(const std::string &asName)
 {
@@ -1836,14 +1637,10 @@ static void TeleportBody(iPhysicsBody *apBody, cGameArea *apArea, bool abResetVe
 static void MoveEntityToArea(std::string asName, std::string asArea, float afMaxSpeed,
 										float afAcceleration, float afSlowDownDist, std::string asCallback)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find game entity '%s'\n",asName.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
-	cGameArea *pArea = GetArea(asArea);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asArea, "area entity", eGameEntityType_Area);
 	if(pArea==nullptr) return;
 
 	pEntity->MoveToPosition(pArea->GetBody(0)->GetWorldPosition(), afMaxSpeed, afAcceleration,
@@ -1861,7 +1658,7 @@ static void TeleportBodyToArea(std::string asBody, std::string asArea, bool abRe
 	iPhysicsBody *pBody = GetBody(asBody);
 	if(pBody==nullptr) return;
 
-	cGameArea *pArea = GetArea(asArea);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asArea, "area entity", eGameEntityType_Area);
 	if(pArea==nullptr) return;
 
 	TeleportBody(pBody, pArea, abResetVelocity, abSetRotation, cVector3f(afRotX, afRotY, afRotZ));
@@ -1873,14 +1670,10 @@ static void TeleportBodyToArea(std::string asBody, std::string asArea, bool abRe
 static void TeleportEntityToArea(std::string asName, std::string asArea, bool abResetVelocity,
 										bool abSetRotation, float afRotX, float afRotY, float afRotZ)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr)
-	{
-		Warning("Couldn't find game entity '%s'\n",asName.c_str());
-		return;
-	}
+	iGameEntity *pEntity = FindScriptEntity(asName, "game entity");
+	if(pEntity==nullptr) return;
 
-	cGameArea *pArea = GetArea(asArea);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asArea, "area entity", eGameEntityType_Area);
 	if(pArea==nullptr) return;
 
 	if(pEntity->GetBodyNum()==0)
@@ -1897,7 +1690,7 @@ static void TeleportEntityToArea(std::string asName, std::string asArea, bool ab
  */
 static void TeleportPlayerToArea(std::string asArea)
 {
-	cGameArea *pArea = GetArea(asArea);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asArea, "area entity", eGameEntityType_Area);
 	if(pArea==nullptr) return;
 
 	gpInit->mpPlayer->GetCharacterBody()->SetFeetPosition(pArea->GetBody(0)->GetWorldPosition(), false);
@@ -1910,7 +1703,7 @@ static void CreateEntityAtArea(std::string asName, std::string asFile, std::stri
 {
 	cWorld3D *pWorld = gpInit->mpGame->GetScene()->GetWorld3D();
 
-	cGameArea *pArea = GetArea(asArea);
+	cGameArea *pArea = FindScriptEntity<cGameArea>(asArea, "area entity", eGameEntityType_Area);
 	if(pArea==nullptr) return;
 
 	pWorld->CreateEntity(asName, pArea->GetBody(0)->GetWorldMatrix(), asFile, true);
@@ -1982,23 +1775,12 @@ static bool CheckGameEntityCollision(std::string asNameA, std::string asNameB)
 	return false;
 }
 
-static cGameStickArea* GetStickArea(const std::string &asName)
-{
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_StickArea)
-	{
-		Warning("Couldn't find stick area '%s'\n",asName.c_str());
-		return nullptr;
-	}
-	return static_cast<cGameStickArea*>(pEntity);
-}
-
 /**
  * A stick area takes hold of a body, wherever the body is
  */
 static void AttachBodyToStickArea(std::string asBody, std::string asArea)
 {
-	cGameStickArea *pStickArea = GetStickArea(asArea);
+	cGameStickArea *pStickArea = FindScriptEntity<cGameStickArea>(asArea, "stick area", eGameEntityType_StickArea);
 	if(pStickArea==nullptr) return;
 
 	iPhysicsBody *pBody = GetBody(asBody);
@@ -2009,7 +1791,7 @@ static void AttachBodyToStickArea(std::string asBody, std::string asArea)
 
 static void DetachBodyFromStickArea(std::string asArea)
 {
-	cGameStickArea *pStickArea = GetStickArea(asArea);
+	cGameStickArea *pStickArea = FindScriptEntity<cGameStickArea>(asArea, "stick area", eGameEntityType_StickArea);
 	if(pStickArea==nullptr) return;
 
 	pStickArea->DetachBody();
@@ -2024,13 +1806,8 @@ static void DetachBodyFromStickArea(std::string asArea)
 static void SetDoorLockedProperties(std::string asDoor, std::string asDescCat, std::string asDescEntry,
 												std::string asSound, bool abX)
 {
-	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDoor);
-	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_SwingDoor)
-	{
-		Warning("Couldn't find swing door entity '%s'\n",asDoor.c_str());
-		return;
-	}
-	cGameSwingDoor *pDoor = static_cast<cGameSwingDoor*>(pEntity);
+	cGameSwingDoor *pDoor = FindScriptEntity<cGameSwingDoor>(asDoor, "swing door entity", eGameEntityType_SwingDoor);
+	if(pDoor==nullptr) return;
 
 	pDoor->SetLockedDesc(gpInit->mpGame->GetResources()->Translate(asDescCat, asDescEntry));
 	pDoor->SetLockedSound(asSound);
