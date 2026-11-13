@@ -1507,7 +1507,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	{
 		pEnemy = hplNew( cGameEnemy_Infected, (mpInit,mpEntity->GetName(),pGameElem) );
 	}
-#ifndef DEMO_VERSION
 	else if(sSubtype == "Spider")
 	{
 		pEnemy = hplNew( cGameEnemy_Spider, (mpInit,mpEntity->GetName(),pGameElem) );
@@ -1516,7 +1515,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	{
 		pEnemy = hplNew( cGameEnemy_Worm, (mpInit,mpEntity->GetName(),pGameElem) );
 	}
-#endif
 	if(pEnemy==nullptr)
 	{
 		Warning("Enemy '%s' has subtype '%s', which is not known; it is left out\n",

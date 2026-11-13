@@ -313,10 +313,7 @@ void cGameEnemyState_Dog_Attention::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->PlaySound(mpEnemyDog->msAttentionSound);	
 	mfTime = mpEnemyDog->mfAttentionTime;
 	
-#ifndef DEMO_VERSION
 	if(mpInit->mDifficulty == eGameDifficulty_Easy) mfTime *=1.7f;
-
-#endif
 }
 
 void cGameEnemyState_Dog_Attention::OnLeaveState(iGameEnemyState *apNextState)
@@ -628,7 +625,6 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup body
 	mpEnemy->SetupBody();
 
-#ifndef DEMO_VERSION
 	float fMul = 1.0f;
 
 	if(mpInit->mDifficulty == eGameDifficulty_Easy)
@@ -637,9 +633,6 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed*fMul);
 	else 
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed*1.25f*fMul);
-#else
-	mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed);
-#endif
 
 
 	//Setup enemy

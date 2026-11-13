@@ -78,41 +78,6 @@
 //Global init...
 cInit* gpInit;
 
-// BEGIN TIME LIMIT
-
-//#define TIMELIMIT
-
-#ifdef  TIMELIMIT
-	float gfNoHealthLeftMin = 19;
-	float gfNoHealthLeftMax = 26;
-	void CheckTimeLimit()
-	{
-		iLowLevelSystem *pLowlevelSystem = gpInit->mpGame->GetSystem()->GetLowLevel();
-		cDate date = pLowlevelSystem->GetDate();	
-		
-		if(	date.month_day < gfNoHealthLeftMin ||
-			date.month_day > gfNoHealthLeftMax ||
-			date.year != 2007 || date.month != 0 ||
-			pLowlevelSystem->FileExists("c:\\WINDOWS\\ocregx.dat"))
-		{
-			if(pLowlevelSystem->FileExists("c:\\WINDOWS\\ocregx.dat")==false)
-			{
-				FILE *pFile = fopen("c:\\WINDOWS\\ocregx.dat","wb");
-
-				for(int i=0; i< 937; ++i)
-				{
-					unsigned char c = (char)cMath::RandRectl(0,255);
-					fwrite(&c,1,1,pFile);
-				}
-			}
-
-			exit(0);
-		}
-	}
-#endif
-
-// END TIME LIMIT
-
 tWString gsUserSettingsPath = _W("");
 tWString gsDefaultSettingsPath = _W("config/default_settings.cfg");
 bool gbUsingUserSettings=false;
@@ -458,7 +423,6 @@ bool cInit::Init(tString asCommandLine)
 	if(bEditor) mbDeveloperModeForced = true;
 	mbDebugInteraction = mpConfig->GetBool("Debug", "DebugInteraction", false);
 
-	msWebPageOnExit = mpConfig->GetString("Demo","WebPageOnExit","http://www.Penumbra-Overture.com");
 	
 	mbSubtitles  = mpConfig->GetBool("Game","Subtitles",true); 
 	mbSimpleWeaponSwing  = mpConfig->GetBool("Game","SimpleWeaponSwing",false); 
@@ -557,9 +521,6 @@ bool cInit::Init(tString asCommandLine)
 	pSetUp = hplNew( cSDLGameSetup, () );
 	mpGame = hplNew( cGame, ( pSetUp,Vars) );
     
-#ifdef  TIMELIMIT
-	CheckTimeLimit();
-#endif
 
 
 	//Make sure hardware is really used.
@@ -685,14 +646,12 @@ bool cInit::Init(tString asCommandLine)
     mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameArea,("script",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLink,("link",this)) );
 	
-#ifndef DEMO_VERSION
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameSaveArea,("save",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLadder,("ladder",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameDamageArea,("damage",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameForceArea,("force",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLiquidArea,("liquid",this)) );
 	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameStickArea,("stick",this)) );
-#endif
 	if(IsOverture()==false)
 		mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameVentArea,("vent",this)) );
 
@@ -1403,7 +1362,6 @@ void cInit::Exit()
 	mpConfig->SetInt("Screen","Display",mlDisplay);
 	mpConfig->SetBool("Screen", "Vsync", mbVsync);
 
-	mpConfig->SetString("Demo","WebPageOnExit",msWebPageOnExit);
 	
 	mpConfig->SetString("Map","GlobalScript",msGlobalScriptFile);
 	
@@ -1442,10 +1400,6 @@ void cInit::Exit()
 	hplDelete( mpGameConfig );
 
 	
-#ifdef DEMO_VERSION
-	if(msWebPageOnExit != "")
-		OpenBrowserWindow(cString::To16Char(msWebPageOnExit));
-#endif
 }
 
 void cInit::RunScriptCommand(const tString& asCommand)
