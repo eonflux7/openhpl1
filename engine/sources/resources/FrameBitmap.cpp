@@ -27,7 +27,7 @@ namespace hpl {
 
 	cFrameBitmap::~cFrameBitmap()
 	{
-		hplDelete(mpBitmap);
+		delete mpBitmap;
 		mpBitmap = nullptr;
 	}
 
@@ -141,10 +141,10 @@ namespace hpl {
 		if(bFoundNode)
 		{
 			//Create the image resource
-			pImage = hplNew( cResourceImage, (apSrc->GetFileName(),mpFrameTexture, this,
+			pImage = new cResourceImage(apSrc->GetFileName(),mpFrameTexture, this,
 				cRect2l(vPos,cVector2l(lSW-2,lSH-2)),//-2 to get the correct size.
 				cVector2l(mpBitmap->GetWidth(),mpBitmap->GetHeight()),
-				mlHandle) );
+				mlHandle);
 
 			if(!bFoundEmptyNode)
 			{

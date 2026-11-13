@@ -81,7 +81,7 @@ namespace hpl {
 
 	cSurfaceData *cPhysics::CreateSurfaceData(const tString& asName)
 	{
-		cSurfaceData *pData = hplNew( cSurfaceData, (asName, this,mpResources) );
+		cSurfaceData *pData = new cSurfaceData(asName, this,mpResources);
 
 		m_mapSurfaceData.insert(tSurfaceDataMap::value_type(asName, pData));
 
@@ -99,11 +99,11 @@ namespace hpl {
 	bool cPhysics::LoadSurfaceData(const tString& asFile)
 	{
 		//Open document
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Error("Couldn't load XML file '%s'!\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -191,7 +191,7 @@ namespace hpl {
 			}
 		}
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 
 		return true;

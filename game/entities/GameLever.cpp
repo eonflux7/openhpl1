@@ -42,7 +42,7 @@ static eGameLeverMovement ToMovementType(const char *apString)
 void cEntityLoader_GameLever::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
 {
-	cGameLever *pObject = hplNew( cGameLever, (mpInit,mpEntity->GetName()) );
+	cGameLever *pObject = new cGameLever(mpInit,mpEntity->GetName());
 
 	pObject->msFileName = msFileName;
 	pObject->m_mtxOnLoadTransform = a_mtxTransform;
@@ -355,7 +355,7 @@ iGameEntity* cGameLever_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameLever::CreateSaveData()
 {
-	return hplNew( cGameLever_SaveData, () );
+	return new cGameLever_SaveData();
 }
 
 void cGameLever::SaveToSaveData(iGameEntity_SaveData *apSaveData)

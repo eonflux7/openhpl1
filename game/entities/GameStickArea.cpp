@@ -29,7 +29,7 @@ cAreaLoader_GameStickArea::~cAreaLoader_GameStickArea()
 iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
 {
-	cGameStickArea *pArea = hplNew( cGameStickArea, (mpInit,asName) ); 
+	cGameStickArea *pArea = new cGameStickArea(mpInit,asName); 
 
 	pArea->m_mtxOnLoadTransform = a_mtxTransform;
 
@@ -354,7 +354,7 @@ iGameEntity* cGameStickArea_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameStickArea::CreateSaveData()
 {
-	return hplNew( cGameStickArea_SaveData, () );
+	return new cGameStickArea_SaveData();
 }
 
 void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)

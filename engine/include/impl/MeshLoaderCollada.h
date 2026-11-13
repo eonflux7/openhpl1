@@ -9,7 +9,6 @@
 #include "resources/MeshLoader.h"
 #include "graphics/VertexBuffer.h"
 #include "physics/PhysicsJoint.h"
-#include "system/MemoryManager.h"
 
 class TiXmlElement;
 
@@ -345,7 +344,7 @@ namespace hpl {
 
 		cColladaNode* CreateChild()
 		{
-			cColladaNode *pNode = hplNew( cColladaNode, () );
+			cColladaNode *pNode = new cColladaNode();
 			mlstChildren.push_back(pNode);
 			pNode->pParent = this;
 			return pNode;

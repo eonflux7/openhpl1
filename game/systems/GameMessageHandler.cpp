@@ -87,7 +87,7 @@ void cGameMessageHandler::Add(const tWString& asText)
 {
 	if(mpInit->mpPlayer->GetHealth() <=0) return;
 
-	cGameMessage *pMessage = hplNew( cGameMessage, (asText,this) );
+	cGameMessage *pMessage = new cGameMessage(asText,this);
 	mlstMessages.push_back(pMessage);
 
 	if(mpInit->mpPlayer->GetState() != ePlayerState_Message)
@@ -199,7 +199,7 @@ void cGameMessageHandler::Update(float afTimeStep)
 		
 		if(lCount==0 && pMessage->mbActive==false)
 		{
-			hplDelete( pMessage );
+			delete pMessage;
 			it = mlstMessages.erase(it);
 		}
 		else

@@ -34,13 +34,13 @@ namespace hpl {
 	iSoundData* cLowLevelSoundOpenAL::LoadSoundData(const tString& asName, const tString& asFilePath,
 												const tString& asType, bool abStream,bool abLoopStream)
 	{
-		cOpenALSoundData* pSoundData = hplNew( cOpenALSoundData, (asName,abStream,mpDevice.get()) );
+		cOpenALSoundData* pSoundData = new cOpenALSoundData(asName,abStream,mpDevice.get());
 
 		pSoundData->SetLoopStream(abLoopStream);
 
 		if(pSoundData->CreateFromFile(asFilePath)==false)
 		{
-			hplDelete(pSoundData);
+			delete pSoundData;
 			return nullptr;
 		}
 
@@ -265,11 +265,11 @@ namespace hpl {
 		if(pSE) return pSE;
 
 		///Create new and load from file
-		cOpenALSoundEnvironment* pSoundEnv = hplNew(cOpenALSoundEnvironment,());
+		cOpenALSoundEnvironment* pSoundEnv = new cOpenALSoundEnvironment();
 
 		if (pSoundEnv->CreateFromFile(asFilePath)==false)
 		{
-			hplDelete(pSoundEnv);
+			delete pSoundEnv;
 			return nullptr;
 		}
 

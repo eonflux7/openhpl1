@@ -27,7 +27,7 @@ namespace hpl {
 		tMeshLoaderListIt it = mlstLoaders.begin();
 		for(;it != mlstLoaders.end();it++)
 		{
-			hplDelete(*it);
+			delete *it;
 		}
 
 		mlstLoaders.clear();

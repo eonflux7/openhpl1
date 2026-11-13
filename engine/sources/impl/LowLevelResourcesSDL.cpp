@@ -79,7 +79,7 @@ namespace hpl {
 
 	void cLowLevelResourcesSDL::AddMeshLoaders(cMeshLoaderHandler* apHandler)
 	{
-		apHandler->AddLoader(hplNew( cMeshLoaderCollada,(mpLowLevelGraphics)));
+		apHandler->AddLoader(new cMeshLoaderCollada(mpLowLevelGraphics));
 	}
 
 	//This is a windows implementation of this...I think.

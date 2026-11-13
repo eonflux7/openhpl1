@@ -22,7 +22,7 @@ namespace hpl {
 
 	cLogicTimer * cSystem::CreateLogicTimer(unsigned int alUpdatesPerSec)
 	{
-		return hplNew( cLogicTimer, (alUpdatesPerSec, mpLowLevelSystem) );
+		return new cLogicTimer(alUpdatesPerSec, mpLowLevelSystem);
 	}
 
 	iLowLevelSystem* cSystem::GetLowLevel()

@@ -100,7 +100,7 @@ namespace hpl {
 
 		if(apResource->HasUsers()==false){
 			RemoveResource(apResource);
-			hplDelete(apResource);
+			delete apResource;
 		}
 	}
 }

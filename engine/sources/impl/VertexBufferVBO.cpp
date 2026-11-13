@@ -338,9 +338,9 @@ namespace hpl {
 
 	iVertexBuffer* cVertexBufferVBO::CreateCopy(eVertexBufferUsageType aUsageType)
 	{
-		cVertexBufferVBO *pVtxBuff = hplNew( cVertexBufferVBO, (mpLowLevelGraphics,
+		cVertexBufferVBO *pVtxBuff = new cVertexBufferVBO(mpLowLevelGraphics,
 															mVertexFlags,mDrawType,aUsageType,
-															GetVertexNum(),GetIndexNum()));
+															GetVertexNum(),GetIndexNum());
 
 		if(mbQuadInstances)
 		{

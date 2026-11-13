@@ -49,7 +49,7 @@ namespace hpl {
 
 	iSaveData* iPhysicsJointHinge::CreateSaveData()
 	{
-		return hplNew( cSaveData_iPhysicsJointHinge, () );
+		return new cSaveData_iPhysicsJointHinge();
 	}
 
 	void iPhysicsJointHinge::SaveToSaveData(iSaveData *apSaveData)

@@ -1589,19 +1589,19 @@ cGameEnemy_Infected::cGameEnemy_Infected(cInit *apInit,const tString& asName,TiX
 	mfEatMinHearVolume = cString::ToFloat(apGameElem->Attribute("EatMinHearVolume"),0);
 
 	//Set up states
-	AddState(hplNew( cGameEnemyState_Infected_Idle,(STATE_IDLE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Hunt,(STATE_HUNT,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Attack,(STATE_ATTACK,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Flee,(STATE_FLEE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_KnockDown,(STATE_KNOCKDOWN,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Dead,(STATE_DEAD,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Patrol,(STATE_PATROL,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Investigate,(STATE_INVESTIGATE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_BreakDoor,(STATE_BREAKDOOR,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_CallBackup,(STATE_CALLBACKUP,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_MoveTo,(STATE_MOVETO,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Eat,(STATE_EAT,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Infected_Attention,(STATE_ATTENTION,mpInit,this)) );
+	AddState(new cGameEnemyState_Infected_Idle(STATE_IDLE,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Hunt(STATE_HUNT,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Attack(STATE_ATTACK,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Flee(STATE_FLEE,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_KnockDown(STATE_KNOCKDOWN,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Dead(STATE_DEAD,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Patrol(STATE_PATROL,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Investigate(STATE_INVESTIGATE,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_BreakDoor(STATE_BREAKDOOR,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_CallBackup(STATE_CALLBACKUP,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_MoveTo(STATE_MOVETO,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Eat(STATE_EAT,mpInit,this) );
+	AddState(new cGameEnemyState_Infected_Attention(STATE_ATTENTION,mpInit,this) );
 }
 
 cGameEnemy_Infected::~cGameEnemy_Infected()
@@ -1763,7 +1763,7 @@ iGameEntity* cGameEnemy_Infected_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameEnemy_Infected::CreateSaveData()
 {
-	return hplNew( cGameEnemy_Infected_SaveData, () );
+	return new cGameEnemy_Infected_SaveData();
 }
 
 void cGameEnemy_Infected::SaveToSaveData(iGameEntity_SaveData *apSaveData)

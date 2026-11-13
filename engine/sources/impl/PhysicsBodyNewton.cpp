@@ -27,7 +27,7 @@ namespace hpl {
 										pShapeNewton->GetNewtonCollision(),
 										&cMatrixf::Identity.m[0][0]);
 
-		mpCallback = hplNew( cPhysicsBodyNewtonCallback, () );
+		mpCallback = new cPhysicsBodyNewtonCallback();
 
 		AddCallback(mpCallback);
 
@@ -58,7 +58,7 @@ namespace hpl {
 	void cPhysicsBodyNewton::DeleteLowLevel()
 	{
 		NewtonDestroyBody(mpNewtonWorld,mpNewtonBody);
-		hplDelete(mpCallback);
+		delete mpCallback;
 	}
 
 	// CALLBACK METHODS

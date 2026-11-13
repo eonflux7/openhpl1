@@ -144,7 +144,7 @@ namespace hpl {
 	{
 		mpScriptEngine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 
-		mpScriptOutput = hplNew( cScriptOutput, () );
+		mpScriptOutput = new cScriptOutput();
 		mpScriptEngine->SetMessageCallback(asMETHOD(cScriptOutput,AddMessage), mpScriptOutput, asCALL_THISCALL);
 
 		RegisterStdString(mpScriptEngine);
@@ -161,7 +161,7 @@ namespace hpl {
 		/*Release all runnings contexts */
 
 		mpScriptEngine->Release();
-		hplDelete(mpScriptOutput);
+		delete mpScriptOutput;
 
 		//perhaps not the best thing to skip :)
 	}
@@ -641,7 +641,7 @@ namespace hpl {
 
 	iScript* cLowLevelSystemSDL::CreateScript(const tString& asName)
 	{
-		return hplNew( cAngelScriptScript, (asName,mpScriptEngine,mpScriptOutput,mlHandleCount++) );
+		return new cAngelScriptScript(asName,mpScriptEngine,mpScriptOutput,mlHandleCount++);
 	}
 
 	bool cLowLevelSystemSDL::AddScriptFunc(const tString& asFuncDecl, void* pFunc, int callConv)

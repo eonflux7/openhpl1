@@ -100,7 +100,7 @@ namespace hpl {
 
 			if(pTexture->CreateFromArray(vPixels.data(),4,cVector3l(glAtlasSize,glAtlasSize,1))==false)
 			{
-				hplDelete(pTexture);
+				delete pTexture;
 				return false;
 			}
 
@@ -215,9 +215,9 @@ namespace hpl {
 			{
 				//The atlas owns the texture.
 				pGlyph->mpGfxObject->GetMaterial()->SetTexture(nullptr,eMaterialTexture_Diffuse);
-				hplDelete(pGlyph->mpGfxObject);
+				delete pGlyph->mpGfxObject;
 			}
-			hplDelete(pGlyph);
+			delete pGlyph;
 		}
 
 		if(mpFace)
@@ -227,7 +227,7 @@ namespace hpl {
 			glVectorFontCount--;
 			if(glVectorFontCount <= 0)
 			{
-				for(cFontAtlasPage &page : gvAtlasPages) hplDelete(page.mpTexture);
+				for(cFontAtlasPage &page : gvAtlasPages) delete page.mpTexture;
 				gvAtlasPages.clear();
 
 				FT_Done_FreeType(gpFTLibrary);
@@ -242,12 +242,12 @@ namespace hpl {
 		tString sPath = cString::GetFilePath(asFileName);
 
 		// Load xml file
-		TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument,(asFileName.c_str()) );
+		TiXmlDocument *pXmlDoc = new TiXmlDocument(asFileName.c_str());
 
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Error("Couldn't load angle code font file '%s'\n",asFileName.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -286,7 +286,7 @@ namespace hpl {
 			if(pBitmap==nullptr)
 			{
 				Error("Couldn't load bitmap %s for FNT file '%s'\n",sFilePath.c_str(),asFileName.c_str());
-				hplDelete(pXmlDoc);
+				delete pXmlDoc;
 				return false;
 			}
 
@@ -343,7 +343,7 @@ namespace hpl {
 
 			mvGlyphs[lId] = pGlyph;
 
-			hplDelete(pBmp);
+			delete pBmp;
 		}
 
 
@@ -352,7 +352,7 @@ namespace hpl {
 		STLDeleteAll(vBitmaps);
 
 		//Destroy XML
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 
@@ -436,7 +436,7 @@ namespace hpl {
 
 		//A glyph that can't be made is stored empty, so it is only tried once.
 		cFontSizedGlyph *pGlyph = CreateSizedGlyph(key);
-		if(pGlyph==nullptr) pGlyph = hplNew( cFontSizedGlyph, () );
+		if(pGlyph==nullptr) pGlyph = new cFontSizedGlyph();
 
 		m_mapSizedGlyphs.insert(tSDLFontSizedGlyphMap::value_type(key,pGlyph));
 		return pGlyph;
@@ -581,7 +581,7 @@ namespace hpl {
 			{
 				float fAtlasSize = (float)glAtlasSize;
 
-				pGlyph = hplNew( cFontSizedGlyph, () );
+				pGlyph = new cFontSizedGlyph();
 				pGlyph->mpGfxObject = mpGraphicsDrawer->CreateGfxObject(pTexture,
 										cVector2f((float)vPos.x / fAtlasSize, (float)vPos.y / fAtlasSize),
 										cVector2f((float)(vPos.x+lW) / fAtlasSize, (float)(vPos.y+lH) / fAtlasSize),

@@ -72,8 +72,8 @@ namespace hpl {
 
 	cGlyph::~cGlyph()
 	{
-		if(mpGfxObject) hplDelete(mpGfxObject);
-		if(mpGuiGfx) hplDelete(mpGuiGfx);
+		if(mpGfxObject) delete mpGfxObject;
+		if(mpGuiGfx) delete mpGuiGfx;
 
 	}
 
@@ -92,7 +92,7 @@ namespace hpl {
 	{
 		for(int i=0;i<(int)mvGlyphs.size();i++)
 		{
-			if(mvGlyphs[i]) hplDelete(mvGlyphs[i]);
+			if(mvGlyphs[i]) delete mvGlyphs[i];
 		}
 	}
 
@@ -620,7 +620,7 @@ namespace hpl {
 
 		float fAdvance = ((float)alAdvance)/((float)avFontSize.x) * mvSizeRatio.x;
 
-		cGlyph* pGlyph = hplNew( cGlyph,(pObject,pGuiGfx,vOffset,vSize,fAdvance));
+		cGlyph* pGlyph = new cGlyph(pObject,pGuiGfx,vOffset,vSize,fAdvance);
 
 		return pGlyph;
 	}

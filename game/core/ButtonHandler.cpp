@@ -1043,13 +1043,13 @@ iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tStrin
 
 	if(asType == "Keyboard")
 	{
-		return hplNew( cActionKeyboard, (asName,mpInit->mpGame->GetInput(),(eKey)cString::ToInt(asVal.c_str(),0)) );
+		return new cActionKeyboard(asName,mpInit->mpGame->GetInput(),(eKey)cString::ToInt(asVal.c_str(),0));
 	}
 	// Settings saved by the original games with haptics enabled store
 	// mouse bindings as HapticDeviceButton; read them as mouse buttons.
 	else if(asType == "MouseButton" || asType == "HapticDeviceButton")
 	{
-		return hplNew( cActionMouseButton, (asName,mpInit->mpGame->GetInput(),(eMButton)cString::ToInt(asVal.c_str(),0)) );
+		return new cActionMouseButton(asName,mpInit->mpGame->GetInput(),(eMButton)cString::ToInt(asVal.c_str(),0));
 	}
 
 	return nullptr;

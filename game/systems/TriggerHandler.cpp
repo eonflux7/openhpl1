@@ -95,7 +95,7 @@ void cTriggerHandler::Update(float afTimeStep)
 
 		if(pTrigger->mfRemainingSeconds <= 0)
 		{
-			hplDelete( pTrigger );
+			delete pTrigger;
 			m_mapTriggers.erase(TriggerIt++);
 		} else {
 			++TriggerIt;

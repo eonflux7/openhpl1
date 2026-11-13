@@ -53,7 +53,7 @@ namespace hpl {
 
 	iSaveData* iPhysicsJointBall::CreateSaveData()
 	{
-		return hplNew( cSaveData_iPhysicsJointBall, () );
+		return new cSaveData_iPhysicsJointBall();
 	}
 
 	void iPhysicsJointBall::SaveToSaveData(iSaveData *apSaveData)

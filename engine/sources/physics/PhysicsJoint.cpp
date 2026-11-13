@@ -80,7 +80,7 @@ namespace hpl {
 
 	iPhysicsJoint::~iPhysicsJoint()
 	{
-		if(mbAutoDeleteCallback && mpCallback) hplDelete(mpCallback);
+		if(mbAutoDeleteCallback && mpCallback) delete mpCallback;
 
 		//Destroy all controllers.
 		tPhysicsControllerMapIt it = m_mapControllers.begin();
@@ -644,7 +644,7 @@ namespace hpl {
 
 		if(pData->msCallbackMaxFunc != "" || pData->msCallbackMinFunc != "")
 		{
-			cScriptJointCallback *pCallback = hplNew( cScriptJointCallback, (apGame->GetScene()) );
+			cScriptJointCallback *pCallback = new cScriptJointCallback(apGame->GetScene());
 			pCallback->msMaxFunc =pData->msCallbackMaxFunc;
 			pCallback->msMinFunc =pData->msCallbackMinFunc;
 			SetCallback(pCallback, true);

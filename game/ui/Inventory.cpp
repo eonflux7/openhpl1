@@ -58,7 +58,7 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 
-	mpContext = hplNew( cInventoryContext, (mpInit) );
+	mpContext = new cInventoryContext(mpInit);
 
 	mbMessageActive = false;
 	msMessage = _W("");
@@ -74,7 +74,7 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	for(float y=0; y<4; ++y)
 	for(float x=0; x<6; ++x)
 	{
-		pSlot = hplNew( cInventorySlot, (mpInit,vSlotBegin + cVector2f(x * 77,y*69),false,lCount++) );
+		pSlot = new cInventorySlot(mpInit,vSlotBegin + cVector2f(x * 77,y*69),false,lCount++);
 		AddWidget(pSlot);
 		mlstSlots.push_back(pSlot);
 	}
@@ -84,7 +84,7 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	cVector2f vEquipSlotBegin = cVector2f(400 - 77*4.5f,15);
 	for(float x=0; x<9; ++x)
 	{
-		pSlot = hplNew( cInventorySlot, (mpInit,vEquipSlotBegin + cVector2f(x*77,0),true,lCount++) );
+		pSlot = new cInventorySlot(mpInit,vEquipSlotBegin + cVector2f(x*77,0),true,lCount++);
 		AddWidget(pSlot);
 		mlstSlots.push_back(pSlot);
 		pSlot->SetEquipIndex(lEquipSlot++);
@@ -92,15 +92,15 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	}
 
 	//Init other widgests
-	mpBattery = hplNew( cInventoryBattery,(mpInit,
+	mpBattery = new cInventoryBattery(mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69 + 5,77,135),
-														nullptr,30.0f) );
+														nullptr,30.0f);
 	AddWidget(mpBattery);
 
-	mpHealth = hplNew( cInventoryHealth, (mpInit,
+	mpHealth = new cInventoryHealth(mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69*3 + 5,
 																77,135),
-														nullptr,30.0f) );
+														nullptr,30.0f);
 	AddWidget(mpHealth);
 
 	//Remastered drawer
@@ -161,31 +161,31 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	//Init items types
 	mvItemTypes.resize(eGameItemType_LastEnum, nullptr);
 
-	mvItemTypes[eGameItemType_Normal] = hplNew( cGameItemType_Normal,(mpInit) );
-	mvItemTypes[eGameItemType_Notebook] = hplNew( cGameItemType_Notebook,(mpInit) );
-	mvItemTypes[eGameItemType_Note] = hplNew( cGameItemType_Note,(mpInit));
-	mvItemTypes[eGameItemType_Battery] = hplNew( cGameItemType_Battery,(mpInit) );
-	mvItemTypes[eGameItemType_Flashlight] = hplNew( cGameItemType_Flashlight,(mpInit) );
-	mvItemTypes[eGameItemType_GlowStick] = hplNew( cGameItemType_GlowStick,(mpInit) );
-	mvItemTypes[eGameItemType_Flare] = hplNew( cGameItemType_Flare,(mpInit) );
-	mvItemTypes[eGameItemType_Painkillers] = hplNew( cGameItemType_Painkillers,(mpInit) );
-	mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMelee,(mpInit) );
-	mvItemTypes[eGameItemType_Throw] = hplNew( cGameItemType_Throw,(mpInit) );
-	mvItemTypes[eGameItemType_GasMask] = hplNew( cGameItemType_GasMask,(mpInit) );
-	mvItemTypes[eGameItemType_Collectable] = hplNew( cGameItemType_Collectable,(mpInit) );
+	mvItemTypes[eGameItemType_Normal] = new cGameItemType_Normal(mpInit);
+	mvItemTypes[eGameItemType_Notebook] = new cGameItemType_Notebook(mpInit);
+	mvItemTypes[eGameItemType_Note] = new cGameItemType_Note(mpInit);
+	mvItemTypes[eGameItemType_Battery] = new cGameItemType_Battery(mpInit);
+	mvItemTypes[eGameItemType_Flashlight] = new cGameItemType_Flashlight(mpInit);
+	mvItemTypes[eGameItemType_GlowStick] = new cGameItemType_GlowStick(mpInit);
+	mvItemTypes[eGameItemType_Flare] = new cGameItemType_Flare(mpInit);
+	mvItemTypes[eGameItemType_Painkillers] = new cGameItemType_Painkillers(mpInit);
+	mvItemTypes[eGameItemType_WeaponMelee] = new cGameItemType_WeaponMelee(mpInit);
+	mvItemTypes[eGameItemType_Throw] = new cGameItemType_Throw(mpInit);
+	mvItemTypes[eGameItemType_GasMask] = new cGameItemType_GasMask(mpInit);
+	mvItemTypes[eGameItemType_Collectable] = new cGameItemType_Collectable(mpInit);
 
 	Reset();
 }
 
 cInventory::~cInventory(void)
 {
-	hplDelete( mpContext );
+	delete mpContext;
 
 	ClearCallbacks();
 	
 	for(size_t i=0; i<mvItemTypes.size(); ++i)
 	{
-		if(mvItemTypes[i])  hplDelete(mvItemTypes[i]);
+		if(mvItemTypes[i])  delete mvItemTypes[i];
 	}
 
 	STLDeleteAll(mlstWidgets);
@@ -588,7 +588,7 @@ bool cInventoryItem::InitFromFile(const tString &asFile)
 
 	if(sPath!="")
 	{
-		TiXmlDocument *pEntityDoc = hplNew( TiXmlDocument, () );
+		TiXmlDocument *pEntityDoc = new TiXmlDocument();
 		if(pEntityDoc->LoadFile(sPath.c_str())==false)
 		{
 			Error("Couldn't load '%s'!\n",sPath.c_str());
@@ -630,7 +630,7 @@ bool cInventoryItem::InitFromFile(const tString &asFile)
 			
 			msEntityFile = sEntityFile;
 		}
-		hplDelete( pEntityDoc );
+		delete pEntityDoc;
 	}
 	else
 	{
@@ -1452,14 +1452,14 @@ void cInventory::AddItem(cGameItem *apGameItem)
 	}
 
 	//Create item
-	cInventoryItem *pItem = hplNew( cInventoryItem, (mpInit) );
+	cInventoryItem *pItem = new cInventoryItem(mpInit);
 	pItem->Init(apGameItem);
 	
 	cGameItemType *pType = GetItemType(pItem->GetItemType());
     if(pType->OnPickUp(pItem,true)==false)
 	{
 		CheckPickupCallback(pItem->GetName());
-		hplDelete( pItem );
+		delete pItem;
 		return;
 	}
 	
@@ -1484,7 +1484,7 @@ void cInventory::AddItem(cGameItem *apGameItem)
 void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, int alSlotIndex)
 {
 	//Create Item	
-	cInventoryItem *pItem = hplNew( cInventoryItem, (mpInit) );
+	cInventoryItem *pItem = new cInventoryItem(mpInit);
 	pItem->SetName(asName);
 	pItem->InitFromFile(asFile);
 
@@ -1494,13 +1494,13 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 	if(pType == nullptr)
 	{
 		Error("Item type %d does not exist!\n", lType);
-		hplDelete( pItem );
+		delete pItem;
 		return;
 	}
 	if(pType->OnPickUp(pItem,false)==false)
 	{
 		CheckPickupCallback(pItem->GetName());
-		hplDelete( pItem );
+		delete pItem;
 		return;
 	}
 
@@ -1525,7 +1525,7 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 		{
 			pFoundItem->AddCount(pItem->GetCount());
 			CheckPickupCallback(pItem->GetName());
-			hplDelete( pItem ); 
+			delete pItem; 
 			return;
 		}
 	}
@@ -1580,7 +1580,7 @@ void cInventory::RemoveItem(cInventoryItem *apItem)
 		mpCurrentItem = nullptr;
 	}
 
-	hplDelete( apItem );
+	delete apItem;
 }
 
 cInventoryItem *cInventory::GetItem(const tString &asName)
@@ -1756,7 +1756,7 @@ void cInventory::SetMessage(const tWString &asMessage)
 void cInventory::AddPickupCallback(const tString &asItem, const tString &asFunction)
 {
 
-	cInventoryPickupCallback *pCallback = hplNew( cInventoryPickupCallback, () );
+	cInventoryPickupCallback *pCallback = new cInventoryPickupCallback();
 	pCallback->msFunction = asFunction;
 	pCallback->msItem = asItem;
 
@@ -1782,7 +1782,7 @@ void cInventory::AddUseCallback(const tString &asItem, const tString &asObject, 
 	}
 
 	//Add new.
-	cInventoryUseCallback *pCallback = hplNew( cInventoryUseCallback,());
+	cInventoryUseCallback *pCallback = new cInventoryUseCallback();
 	pCallback->msFunction = asFunction;
 	pCallback->msItem = asItem;
 	pCallback->msObject = asObject;
@@ -1792,7 +1792,7 @@ void cInventory::AddUseCallback(const tString &asItem, const tString &asObject, 
 
 void cInventory::AddCombineCallback(const tString &asItem1,const tString &asItem2, const tString &asFunction)
 {
-	cInventoryCombineCallback *pCallback = hplNew( cInventoryCombineCallback, () );
+	cInventoryCombineCallback *pCallback = new cInventoryCombineCallback();
 	pCallback->msFunction = asFunction;
 	pCallback->msItem1 = asItem1;
 	pCallback->msItem2 = asItem2;
@@ -1810,7 +1810,7 @@ void cInventory::RemovePickupCallback(const tString &asFunction)
 		if(pCallback->msFunction == asFunction)
 		{
 			m_mapPickupCallbacks.erase(it++);
-			hplDelete( pCallback );
+			delete pCallback;
 		}
 		else
 		{
@@ -1828,7 +1828,7 @@ void cInventory::RemoveUseCallback(const tString &asFunction)
 		if(pCallback->msFunction == asFunction)
 		{
 			m_mapUseCallbacks.erase(it++);
-			hplDelete( pCallback );
+			delete pCallback;
 		}
 		else
 		{
@@ -1852,7 +1852,7 @@ void cInventory::RemoveCombineCallback(const tString &asFunction)
 			else
 			{
 				mlstCombineCallbacks.erase(it);
-				hplDelete( pCallback );
+				delete pCallback;
 			}
 			return;
 		}
@@ -1941,7 +1941,7 @@ bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asIt
 		if(pCallback->bKillMe)
 		{
 			it = mlstCombineCallbacks.erase(it);
-			hplDelete( pCallback );
+			delete pCallback;
 		}
 		else
 		{
@@ -2025,7 +2025,7 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 	cContainerListIterator<cInventoryItem_GlobalSave> ItemIt = apSave->mlstItems.GetIterator();
 	while(ItemIt.HasNext())
 	{
-		cInventoryItem *pItem = hplNew( cInventoryItem, (mpInit) );
+		cInventoryItem *pItem = new cInventoryItem(mpInit);
 		cInventoryItem_GlobalSave saveItem = ItemIt.Next();
 
 		pItem->msName = saveItem.msName;
@@ -2141,7 +2141,7 @@ int cSaveData_cInventory::GetSaveCreatePrio()
 
 iSaveData* cInventory::CreateSaveData()
 {
-	cSaveData_cInventory *pData = hplNew( cSaveData_cInventory, () );
+	cSaveData_cInventory *pData = new cSaveData_cInventory();
 	
 	//Use callbacks
 	{

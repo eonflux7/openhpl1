@@ -26,7 +26,7 @@ void cEntityLoader_GameCamera::BeforeLoad(TiXmlElement *apRootElem, const cMatri
 void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
 {
-	cGameCamera *pObject = hplNew( cGameCamera, (mpInit,mpEntity->GetName()) );
+	cGameCamera *pObject = new cGameCamera(mpInit,mpEntity->GetName());
 
 	pObject->msFileName = msFileName;
 	pObject->m_mtxOnLoadTransform = a_mtxTransform;
@@ -381,7 +381,7 @@ iGameEntity* cGameCamera_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameCamera::CreateSaveData()
 {
-	return hplNew( cGameCamera_SaveData, () );
+	return new cGameCamera_SaveData();
 }
 
 void cGameCamera::SaveToSaveData(iGameEntity_SaveData *apSaveData)

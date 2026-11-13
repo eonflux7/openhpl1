@@ -29,7 +29,7 @@ namespace hpl
 	: mTargets(mState), mStream(mState, mGpuProfiler),
 	  mFinalPasses(mState, mTargets, mGpuProfiler), mShadows(mState, mTargets)
 	{
-		mpPixelFormat = hplNew(cSDLPixelFormat, ());
+		mpPixelFormat = new cSDLPixelFormat();
 	}
 
 	cLowLevelGraphicsSDL::~cLowLevelGraphicsSDL()
@@ -44,7 +44,7 @@ namespace hpl
 		mTargets.DeleteFramebuffers();
 		mState.Reset();
 		if(glUseProgram) cGLSLProgram::ExitPrograms();
-		hplDelete(mpPixelFormat);
+		delete mpPixelFormat;
 	}
 
 	bool cLowLevelGraphicsSDL::Init(int alWidth, int alHeight, int alBpp, int abFullscreen,
@@ -160,7 +160,7 @@ namespace hpl
 
 	iBitmap2D *cLowLevelGraphicsSDL::CreateBitmap2D(const cVector2l &avSize, unsigned int alBpp)
 	{
-		cSDLBitmap2D *pBmp = hplNew(cSDLBitmap2D, (mpPixelFormat));
+		cSDLBitmap2D *pBmp = new cSDLBitmap2D(mpPixelFormat);
 		pBmp->Create(avSize, alBpp);
 
 		return pBmp;
@@ -168,12 +168,12 @@ namespace hpl
 
 	iFontData *cLowLevelGraphicsSDL::CreateFontData(const tString &asName)
 	{
-		return hplNew(cSDLFontData, (asName, this));
+		return new cSDLFontData(asName, this);
 	}
 
 	iBitmap2D *cLowLevelGraphicsSDL::CreateBitmap2DFromSurface(SDL_Surface *apSurface, const tString &asType)
 	{
-		cSDLBitmap2D *pBmp = hplNew(cSDLBitmap2D, (apSurface, mpPixelFormat, asType));
+		cSDLBitmap2D *pBmp = new cSDLBitmap2D(apSurface, mpPixelFormat, asType);
 
 		pBmp->msType = asType;
 
@@ -182,23 +182,23 @@ namespace hpl
 
 	iGpuProgram *cLowLevelGraphicsSDL::CreateGpuProgram(const tString &asName)
 	{
-		return hplNew(cGLSLProgram, (asName));
+		return new cGLSLProgram(asName);
 	}
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		return hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		return new cGLTexture("", mpPixelFormat, this, aType, abUseMipMaps, aTarget);
 	}
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(const tString &asName, bool abUseMipMaps, eTextureType aType, eTextureTarget aTarget)
 	{
-		return hplNew(cGLTexture, (asName, mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		return new cGLTexture(asName, mpPixelFormat, this, aType, abUseMipMaps, aTarget);
 	}
 
 	iTexture *cLowLevelGraphicsSDL::CreateTexture(iBitmap2D *apBmp, bool abUseMipMaps, eTextureType aType,
 		eTextureTarget aTarget)
 	{
-		cGLTexture *pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+		cGLTexture *pTex = new cGLTexture("", mpPixelFormat, this, aType, abUseMipMaps, aTarget);
 		pTex->CreateFromBitmap(apBmp);
 
 		return pTex;
@@ -211,7 +211,7 @@ namespace hpl
 
 		if(aType == eTextureType_RenderTarget)
 		{
-			pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+			pTex = new cGLTexture("", mpPixelFormat, this, aType, abUseMipMaps, aTarget);
 			pTex->Create(avSize.x, avSize.y, aFillCol);
 		}
 		else
@@ -221,15 +221,15 @@ namespace hpl
 			iBitmap2D *pBmp = CreateBitmap2D(avSize, bFloat ? 32 : alBpp);
 			pBmp->FillRect(cRect2l(0, 0, 0, 0), aFillCol);
 
-			pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, aType, abUseMipMaps, aTarget));
+			pTex = new cGLTexture("", mpPixelFormat, this, aType, abUseMipMaps, aTarget);
 			pTex->SetFloat(bFloat);
 			bool bRet = pTex->CreateFromBitmap(pBmp);
 
-			hplDelete(pBmp);
+			delete pBmp;
 
 			if(bRet == false)
 			{
-				hplDelete(pTex);
+				delete pTex;
 				return nullptr;
 			}
 		}
@@ -241,15 +241,15 @@ namespace hpl
 		iBitmap2D *pBmp = CreateBitmap2D(avSize, 32);
 		pBmp->FillRect(cRect2l(0, 0, 0, 0), cColor(0, 0));
 
-		cGLTexture *pTex = hplNew(cGLTexture, ("", mpPixelFormat, this, eTextureType_Normal, false, aTarget));
+		cGLTexture *pTex = new cGLTexture("", mpPixelFormat, this, eTextureType_Normal, false, aTarget);
 		pTex->SetFloat(true);
 		pTex->SetFloatChannels(alChannels);
 		bool bRet = pTex->CreateFromBitmap(pBmp);
-		hplDelete(pBmp);
+		delete pBmp;
 
 		if(bRet == false)
 		{
-			hplDelete(pTex);
+			delete pTex;
 			return nullptr;
 		}
 		return pTex;
@@ -298,7 +298,7 @@ namespace hpl
 		eVertexBufferUsageType aUsageType,
 		int alReserveVtxSize, int alReserveIdxSize)
 	{
-		return hplNew(cVertexBufferVBO, (this, aFlags, aDrawType, aUsageType, alReserveVtxSize, alReserveIdxSize));
+		return new cVertexBufferVBO(this, aFlags, aDrawType, aUsageType, alReserveVtxSize, alReserveIdxSize);
 	}
 
 	void cLowLevelGraphicsSDL::FlushRendering()

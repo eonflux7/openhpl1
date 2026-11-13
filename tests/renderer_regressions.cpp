@@ -913,7 +913,7 @@ static void TestBackendComponents(cLowLevelGraphicsSDL &gfx)
 		"storage replacement updates a cached handle without the resource pointer");
 
 	// A deleted texture must not be restored by a fullscreen pass.
-	cGLTexture *pDeleted = hplNew(cGLTexture, ("deleted", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D));
+	cGLTexture *pDeleted = new cGLTexture("deleted", &arrayFormat, &gfx, eTextureType_RenderTarget, false, eTextureTarget_2D);
 	Check(pDeleted->Create(2, 2, cColor(0)), "texture deleted before a pass");
 	state.SetTexture(0, pDeleted);
 	// Unbinding keeps the GL texture bound; deletion still has to clear the
@@ -1069,7 +1069,7 @@ public:
 		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
 		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
 		mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
-		mpGpuProgramManager = hplNew(cGpuProgramManager, (mpFileSearcher, gfx, low, nullptr));
+		mpGpuProgramManager = new cGpuProgramManager(mpFileSearcher, gfx, low, nullptr);
 	}
 };
 class TransparentMaterial : public iMaterial
@@ -1239,8 +1239,8 @@ public:
 	ShadowResources(cLowLevelResourcesSDL &low, cLowLevelGraphicsSDL &gfx, cGraphics &graphics, cSDLPixelFormat &format)
 		: TransparentResources(&low, &gfx)
 	{
-		mpTextureManager = hplNew(ShadowTextureManager, (&graphics, this));
-		auto *falloff = hplNew(cGLTexture, ("core_falloff_linear.BMP", &format, &gfx, eTextureType_Normal, false, eTextureTarget_1D));
+		mpTextureManager = new ShadowTextureManager(&graphics, this);
+		auto *falloff = new cGLTexture("core_falloff_linear.BMP", &format, &gfx, eTextureType_Normal, false, eTextureTarget_1D);
 		unsigned char pixels[] = {255, 255};
 		Check(falloff->CreateFromArray(pixels, 1, cVector3l(2, 1, 1)), "fixture light falloff");
 		falloff->IncUserCount();

@@ -253,7 +253,7 @@ cInit::~cInit(void)
 
 void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 {
-	cParticleSystemData3D *pPS = hplNew( cParticleSystemData3D, (apPE->GetName(),mpGame->GetResources(),mpGame->GetGraphics()) );
+	cParticleSystemData3D *pPS = new cParticleSystemData3D(apPE->GetName(),mpGame->GetResources(),mpGame->GetGraphics());
 	pPS->AddEmitterData(apPE);
 	mpGame->GetResources()->GetParticleManager()->AddData3D(pPS);
 }
@@ -365,12 +365,12 @@ bool cInit::Init(tString asCommandLine)
 	//Check for what settings file to use.
 	if(FileExists(gsUserSettingsPath))
 	{
-		mpConfig = hplNew( cConfigFile, (gsUserSettingsPath) );
+		mpConfig = new cConfigFile(gsUserSettingsPath);
 		gbUsingUserSettings = true;
 	}
 	else
 	{
-		mpConfig = hplNew( cConfigFile, (gsDefaultSettingsPath) );
+		mpConfig = new cConfigFile(gsDefaultSettingsPath);
 		gbUsingUserSettings = false;
 	}
 	
@@ -381,8 +381,8 @@ bool cInit::Init(tString asCommandLine)
 	//If last init was not okay, reset all settings.
 	if ( mpConfig->GetBool("Game","LastInitOK",true) == false )
 	{
-		hplDelete( mpConfig );
-		mpConfig = hplNew( cConfigFile, (gsDefaultSettingsPath) );
+		delete mpConfig;
+		mpConfig = new cConfigFile(gsDefaultSettingsPath);
 		gbUsingUserSettings = false;
 		CreateMessageBoxW(
 			_W("Info"), 
@@ -396,7 +396,7 @@ bool cInit::Init(tString asCommandLine)
 		mpConfig->Save();
 	}
 
-    mpGameConfig = hplNew( cConfigFile, (gameFiles.msGameConfig) );
+    mpGameConfig = new cConfigFile(gameFiles.msGameConfig);
 	mpGameConfig->Load();
 
 	mvScreenSize.x = mpConfig->GetInt("Screen","Width",800);
@@ -518,8 +518,8 @@ bool cInit::Init(tString asCommandLine)
 
 	iLowLevelGameSetup *pSetUp = nullptr;
 
-	pSetUp = hplNew( cSDLGameSetup, () );
-	mpGame = hplNew( cGame, ( pSetUp,Vars) );
+	pSetUp = new cSDLGameSetup();
+	mpGame = new cGame( pSetUp,Vars);
     
 
 
@@ -588,7 +588,7 @@ bool cInit::Init(tString asCommandLine)
 			{
 				if(addon.msPath == addon.msSource) vFolders.push_back(addon.msPath);
 			}
-			if(vFolders.empty() == false) mpAddonWatcher = hplNew(cAddonWatcher, (vFolders));
+			if(vFolders.empty() == false) mpAddonWatcher = new cAddonWatcher(vFolders);
 		}
 	}
 
@@ -628,36 +628,36 @@ bool cInit::Init(tString asCommandLine)
 	Log("Initializing %s\n  Version\t" PRODUCT_VERSION "\n  Date\t" PRODUCT_DATE "\n", gameFiles.msName);
 
 	//Add loaders
-	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameObject,("Object",this)) );
-	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameItem,("Item",this)) );
-	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameSwingDoor,("SwingDoor",this)) );
-	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLamp,("Lamp",this)) );
+	mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameObject("Object",this) );
+	mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameItem("Item",this) );
+	mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameSwingDoor("SwingDoor",this) );
+	mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameLamp("Lamp",this) );
 
-	mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameEnemy,("Enemy",this)) );
+	mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameEnemy("Enemy",this) );
 
 	if(IsOverture()==false)
 	{
-		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameLever,("Lever",this)) );
-		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameWheel,("Wheel",this)) );
+		mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameLever("Lever",this) );
+		mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameWheel("Wheel",this) );
 
-		mpGame->GetResources()->AddEntity3DLoader(hplNew( cEntityLoader_GameCamera,("Camera",this)) );
+		mpGame->GetResources()->AddEntity3DLoader(new cEntityLoader_GameCamera("Camera",this) );
 	}
 
-    mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameArea,("script",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLink,("link",this)) );
+    mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameArea("script",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameLink("link",this) );
 	
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameSaveArea,("save",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLadder,("ladder",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameDamageArea,("damage",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameForceArea,("force",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameLiquidArea,("liquid",this)) );
-	mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameStickArea,("stick",this)) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameSaveArea("save",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameLadder("ladder",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameDamageArea("damage",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameForceArea("force",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameLiquidArea("liquid",this) );
+	mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameStickArea("stick",this) );
 	if(IsOverture()==false)
-		mpGame->GetResources()->AddArea3DLoader(hplNew( cAreaLoader_GameVentArea,("vent",this)) );
+		mpGame->GetResources()->AddArea3DLoader(new cAreaLoader_GameVentArea("vent",this) );
 
 		
 	/// FIRST LOADING SCREEN ////////////////////////////////////
-	mpGraphicsHelper = hplNew( cGraphicsHelper, (this) );
+	mpGraphicsHelper = new cGraphicsHelper(this);
 	mpGraphicsHelper->DrawLoadingScreen("");
 
 	// SOUND ////////////////////////////////
@@ -670,7 +670,7 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials);
 	
 	// EARLY GAME INIT /////////////////////
-	mpEffectHandler = hplNew( cEffectHandler, (this) );
+	mpEffectHandler = new cEffectHandler(this);
 	
 	// GRAPHICS INIT ////////////////////
 	mpGame->GetGraphics()->GetRendererPostEffects()->SetActive(mbPostEffects);
@@ -849,24 +849,24 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->SetMaxFPS( mpConfig->GetInt("Graphics","MaxFPS",0));
 
 	// BASE GAME INIT /////////////////////
-	mpMusicHandler = hplNew( cGameMusicHandler,(this) );
-	mpPlayerHands = hplNew( cPlayerHands,(this) );
-	mpButtonHandler = hplNew( cButtonHandler,(this) );
-	mpMapHandler = hplNew( cMapHandler,(this) );
-	mpGameMessageHandler = hplNew( cGameMessageHandler,(this) );
-	mpRadioHandler = hplNew( cRadioHandler,(this) );
-	mpGameGuiHandler = hplNew( cGameGuiHandler,(this) );
-	mpSoundEnvHandler = hplNew( cGameSoundEnvHandler,(this) );
-	mpEnding = hplNew( cEnding,(this) );
-	mpInventory = hplNew( cInventory,(this) );
-	mpFadeHandler = hplNew( cFadeHandler,(this) );
-	mpSaveHandler = hplNew( cSaveHandler,(this) );
-	mpTriggerHandler = hplNew( cTriggerHandler,(this) );
-	mpAttackHandler = hplNew( cAttackHandler,(this) );
-	mpNotebook = hplNew( cNotebook,(this) );
-	mpNumericalPanel = hplNew( cNumericalPanel,(this) );
-	mpDeathMenu = hplNew( cDeathMenu,(this) );
-	mpPlayer = hplNew( cPlayer,(this) );
+	mpMusicHandler = new cGameMusicHandler(this);
+	mpPlayerHands = new cPlayerHands(this);
+	mpButtonHandler = new cButtonHandler(this);
+	mpMapHandler = new cMapHandler(this);
+	mpGameMessageHandler = new cGameMessageHandler(this);
+	mpRadioHandler = new cRadioHandler(this);
+	mpGameGuiHandler = new cGameGuiHandler(this);
+	mpSoundEnvHandler = new cGameSoundEnvHandler(this);
+	mpEnding = new cEnding(this);
+	mpInventory = new cInventory(this);
+	mpFadeHandler = new cFadeHandler(this);
+	mpSaveHandler = new cSaveHandler(this);
+	mpTriggerHandler = new cTriggerHandler(this);
+	mpAttackHandler = new cAttackHandler(this);
+	mpNotebook = new cNotebook(this);
+	mpNumericalPanel = new cNumericalPanel(this);
+	mpDeathMenu = new cDeathMenu(this);
+	mpPlayer = new cPlayer(this);
 	{
 		// The defaults are the settings' own
 		cFlashlightSettings flashlight;
@@ -884,7 +884,7 @@ bool cInit::Init(tString asCommandLine)
 		flashlight.mfBounce = mpConfig->GetFloat("Graphics","FlashlightBounce",flashlight.mfBounce);
 		mpPlayer->GetFlashLight()->SetSettings(flashlight);
 	}
-	mpLampAppearanceController = hplNew(cLampAppearanceController, (this));
+	mpLampAppearanceController = new cLampAppearanceController(this);
 	{
 		cLampSettings lamps;
 		lamps.mfFlicker = mpConfig->GetFloat("Graphics","LampsFlicker",lamps.mfFlicker);
@@ -897,12 +897,12 @@ bool cInit::Init(tString asCommandLine)
 		lamps.mbMapLights = mpConfig->GetBool("Graphics","LampsMapLights",lamps.mbMapLights);
 		mpLampAppearanceController->SetSettings(lamps);
 	}
-	mpMapLoadText = hplNew( cMapLoadText,(this) );
-	mpPreMenu = hplNew( cPreMenu,(this) );
-	mpCredits = hplNew( cCredits,(this) );
-	mpDemoEndText = hplNew( cDemoEndText,(this) );
+	mpMapLoadText = new cMapLoadText(this);
+	mpPreMenu = new cPreMenu(this);
+	mpCredits = new cCredits(this);
+	mpDemoEndText = new cDemoEndText(this);
     
-	mpIntroStory = hplNew( cIntroStory,(this) );
+	mpIntroStory = new cIntroStory(this);
 
 	// First run: the improved looks. The menu shows the options as they are
 	// when it is created.
@@ -910,23 +910,23 @@ bool cInit::Init(tString asCommandLine)
 
 	// Reference images: the menu's snow starts in the same places every run
 	if(cRefShots::IsRequested()) cMath::Randomize(1);
-	mpMainMenu = hplNew( cMainMenu,(this) );
+	mpMainMenu = new cMainMenu(this);
 
 	if(cSmokeTest::IsRequested())
-		mpSmokeTest = hplNew( cSmokeTest,(this, cSmokeTest::GetSpec()) );
+		mpSmokeTest = new cSmokeTest(this, cSmokeTest::GetSpec());
 	if(cPhysicsLog::IsRequested())
-		mpPhysicsLog = hplNew( cPhysicsLog,(this) );
+		mpPhysicsLog = new cPhysicsLog(this);
 	if(mpSmokeTest==nullptr && cRefShots::IsRequested())
-		mpRefShots = hplNew( cRefShots,(this, cRefShots::GetSpec()) );
+		mpRefShots = new cRefShots(this, cRefShots::GetSpec());
 	if(mpSmokeTest==nullptr && mpRefShots==nullptr)
 	{
-		mpRefView = hplNew( cRefView,(this) );
-		mpLevelEditor = hplNew( cLevelEditor,(this) );
+		mpRefView = new cRefView(this);
+		mpLevelEditor = new cLevelEditor(this);
 		if(cLiveControl::IsRequested())
-			mpLiveControl = hplNew( cLiveControl,(this, cLiveControl::GetDir()) );
-		if(bEditor) mpEditor = hplNew( cEditor,(this) );
+			mpLiveControl = new cLiveControl(this, cLiveControl::GetDir());
+		if(bEditor) mpEditor = new cEditor(this);
 	}
-	mpDogTestMap = hplNew( cDogTestMap,(this) );
+	mpDogTestMap = new cDogTestMap(this);
 
 	// UPDATE STATES INIT /////////////////////
 	//Add to the global state
@@ -1053,8 +1053,8 @@ bool cInit::Init(tString asCommandLine)
 	// Create newer settings file, if using default.
 	if(gbUsingUserSettings == false)
 	{
-		if(mpConfig) hplDelete( mpConfig );
-		mpConfig = hplNew( cConfigFile, (gsUserSettingsPath) );
+		if(mpConfig) delete mpConfig;
+		mpConfig = new cConfigFile(gsUserSettingsPath);
 		gbUsingUserSettings = true;
 	}
 
@@ -1140,68 +1140,68 @@ void cInit::Exit()
 
 	Log(" Exit Player\n");
 	// PLAYER EXIT /////////////////////
-	hplDelete( mpPlayer );
-	hplDelete(mpLampAppearanceController);
+	delete mpPlayer;
+	delete mpLampAppearanceController;
 
 	// BASE GAME EXIT //////////////////
 	Log(" Exit Button Handler\n");
-	hplDelete( mpButtonHandler );
+	delete mpButtonHandler;
 	Log(" Exit Map Handler\n");
-	hplDelete( mpMapHandler );
+	delete mpMapHandler;
 	Log(" Exit Game Message Handler\n");
-	hplDelete( mpGameMessageHandler );
+	delete mpGameMessageHandler;
 	Log(" Exit Ending\n");
-	hplDelete( mpEnding );
+	delete mpEnding;
 	Log(" Exit Sound Environment Handler\n");
-	hplDelete( mpSoundEnvHandler );
+	delete mpSoundEnvHandler;
 	Log(" Exit Game Gui Handler\n");
-	hplDelete( mpGameGuiHandler );
+	delete mpGameGuiHandler;
 	Log(" Exit Radio Handler\n");
-	hplDelete( mpRadioHandler );
+	delete mpRadioHandler;
 	Log(" Exit Inventory\n");
-	hplDelete( mpInventory );
+	delete mpInventory;
 	Log(" Exit Fade Handler\n");
-	hplDelete( mpFadeHandler );
+	delete mpFadeHandler;
 	Log(" Exit Save Handler\n");
-	hplDelete( mpSaveHandler );
+	delete mpSaveHandler;
 	Log(" Exit Trigger Handler\n");
-	hplDelete( mpTriggerHandler );
+	delete mpTriggerHandler;
 	Log(" Exit Attack Handler\n");
-	hplDelete( mpAttackHandler );
+	delete mpAttackHandler;
 	Log(" Exit Notebook\n");
-	hplDelete( mpNotebook );
+	delete mpNotebook;
 	Log(" Exit Numerical panel\n");
-	hplDelete( mpNumericalPanel );
+	delete mpNumericalPanel;
 	Log(" Exit Intro story\n");
-	hplDelete( mpIntroStory );
+	delete mpIntroStory;
 	Log(" Exit Death menu\n");
-	hplDelete( mpDeathMenu );
+	delete mpDeathMenu;
 	Log(" Exit Graphics helper\n");
-	hplDelete( mpGraphicsHelper );
+	delete mpGraphicsHelper;
 	Log(" Exit Main menu\n");
-	hplDelete( mpMainMenu );
-	if(mpSmokeTest) hplDelete( mpSmokeTest );
-	if(mpRefShots) hplDelete( mpRefShots );
-	if(mpDogTestMap) hplDelete( mpDogTestMap );
-	if(mpLiveControl) hplDelete( mpLiveControl );
-	if(mpEditor) hplDelete( mpEditor );
+	delete mpMainMenu;
+	if(mpSmokeTest) delete mpSmokeTest;
+	if(mpRefShots) delete mpRefShots;
+	if(mpDogTestMap) delete mpDogTestMap;
+	if(mpLiveControl) delete mpLiveControl;
+	if(mpEditor) delete mpEditor;
 	mpEditor = nullptr;
-	if(mpLevelEditor) hplDelete( mpLevelEditor );
-	if(mpRefView) hplDelete( mpRefView );
-	if(mpAddonWatcher) hplDelete(mpAddonWatcher);
-	if(mpPhysicsLog) hplDelete( mpPhysicsLog );
+	if(mpLevelEditor) delete mpLevelEditor;
+	if(mpRefView) delete mpRefView;
+	if(mpAddonWatcher) delete mpAddonWatcher;
+	if(mpPhysicsLog) delete mpPhysicsLog;
 	Log(" Exit Player hands\n");
-	hplDelete( mpPlayerHands );
+	delete mpPlayerHands;
 	Log(" Exit Music handler\n");
-	hplDelete( mpMusicHandler );
+	delete mpMusicHandler;
 	Log(" Exit Map Load Text\n");
-	hplDelete( mpMapLoadText );
+	delete mpMapLoadText;
 	Log(" Exit PreMenu\n");
-	hplDelete( mpPreMenu );
+	delete mpPreMenu;
 	Log(" Exit Credits\n");
-	hplDelete( mpCredits );
+	delete mpCredits;
 	Log(" Exit Demo end text\n");
-	hplDelete( mpDemoEndText );
+	delete mpDemoEndText;
 
     Log(" Saving config\n");
 	//Save engine stuff.
@@ -1346,13 +1346,13 @@ void cInit::Exit()
 	}
 		
 	Log(" Exit Effect Handler\n");
-	hplDelete( mpEffectHandler );
+	delete mpEffectHandler;
 
 	Log(" Exit Game\n");
 
 	// MAIN EXIT /////////////////////
 	//Delete the game,  do this after all else is deleted.
-	hplDelete( mpGame );
+	delete mpGame;
 	
 	Log(" Saving last config\n");
 	//Save the stuff to the config file
@@ -1395,9 +1395,9 @@ void cInit::Exit()
 	mpConfig->SetBool("Debug", "DeveloperMode", mbDeveloperMode);
 
 	mpConfig->Save();
-	hplDelete( mpConfig );
+	delete mpConfig;
 
-	hplDelete( mpGameConfig );
+	delete mpGameConfig;
 
 	
 }
@@ -1434,5 +1434,5 @@ void cInit::PreloadParticleSystem(const tString &asFile)
 	if(asFile=="") return;
 	cParticleSystem3D *pPS  = mpGame->GetResources()->GetParticleManager()->CreatePS3D(
 																"",asFile,1,cMatrixf::Identity);
-	hplDelete( pPS );
+	delete pPS;
 }

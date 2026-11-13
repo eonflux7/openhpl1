@@ -149,7 +149,7 @@ namespace hpl {
 
 		glTabs=0;
 
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, () );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument();
 
 		//Create root
 		TiXmlElement XmlRoot(asRoot.c_str());
@@ -170,7 +170,7 @@ namespace hpl {
 
 		if(pFile) fclose(pFile);
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return bRet;
 	}
 
@@ -242,7 +242,7 @@ namespace hpl {
 		glTabs=0;
 
 		//Load document
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument,() );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument();
 		#ifdef WIN32
 		FILE *pFile = _wfopen(asFile.c_str(),_W("rb"));
 		#else
@@ -255,7 +255,7 @@ namespace hpl {
 									cString::To8Char(asFile).c_str(),
 									pXmlDoc->ErrorDesc());
 			if(pFile) fclose(pFile);
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 		if(pFile) fclose(pFile);
@@ -268,7 +268,7 @@ namespace hpl {
 
 		LoadFromElement(apData,pClassElem);
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 
@@ -757,7 +757,7 @@ namespace hpl {
 			}
 		}
 
-		hplDelete(pContIt);
+		delete pContIt;
 	}
 
 	void cSerializeClass::LoadVariable(TiXmlElement *apElement, iSerializable* apData,
@@ -829,7 +829,7 @@ namespace hpl {
 					*pValuePtr = pSavedClass->mpCreateFunc();
 				}
 				else {
-					hplDelete(*pValuePtr);
+					delete *pValuePtr;
 					*pValuePtr = pSavedClass->mpCreateFunc();
 				}
 
@@ -936,7 +936,7 @@ namespace hpl {
 				LoadFromElement(pData,pVarElem);
 				pCont->AddVoidClass(pData);
 
-				hplDelete(pData);
+				delete pData;
 			}
 		}
 		// CLASS POINTER ////////////////////////////////////////////
@@ -949,9 +949,9 @@ namespace hpl {
 			iContainerIterator *pContIt = pCont->CreateIteratorPtr();
 			while(pContIt->HasNext()){
 				iSerializable *pContData = (iSerializable*)pContIt->NextPtr();
-				hplDelete(pContData);
+				delete pContData;
 			}
-			hplDelete(pContIt);
+			delete pContIt;
 			pCont->Clear();
 
 			TiXmlElement *pVarElem = apElement->FirstChildElement();
@@ -978,14 +978,14 @@ namespace hpl {
 			for(; pVarElem != nullptr; pVarElem = pVarElem->NextSiblingElement())
 			{
 				const char* sVal = pVarElem->Attribute("val");
-				void *pData = hplMalloc(SizeOfType(type));
+				void *pData = malloc(SizeOfType(type));
 
 				if(gbLog) Log("%s Element var val '%s' type: %d\n",GetTabs(),sVal,type);
 
 				StringToValue(pData,0,type,sVal);
 				pCont->AddVoidClass(pData);
 
-				hplFree(pData);
+				free(pData);
 			}
 		}
 

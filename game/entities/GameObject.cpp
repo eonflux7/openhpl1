@@ -149,7 +149,7 @@ void cEntityLoader_GameObject::BeforeLoad(TiXmlElement *apRootElem, const cMatri
 void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										cWorld3D *apWorld)
 {
-	cGameObject *pObject = hplNew( cGameObject, (mpInit,mpEntity->GetName()) );
+	cGameObject *pObject = new cGameObject(mpInit,mpEntity->GetName());
 
 	pObject->msFileName = msFileName;
 	pObject->m_mtxOnLoadTransform = a_mtxTransform;
@@ -298,7 +298,7 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		}
 
 		//Add callback for all bodies
-		pObject->mpBodyCallback = hplNew( cGameObjectBodyCallback, (mpInit,pObject) );
+		pObject->mpBodyCallback = new cGameObjectBodyCallback(mpInit,pObject);
 		for(size_t i=0; i<mvBodies.size(); ++i)
 			mvBodies[i]->AddBodyCallback(pObject->mpBodyCallback);
 	}
@@ -360,7 +360,7 @@ cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apIn
 
 cGameObject::~cGameObject(void)
 {
-	if(mpBodyCallback) hplDelete( mpBodyCallback );
+	if(mpBodyCallback) delete mpBodyCallback;
 }
 
 void cGameObject::OnPlayerPick()
@@ -679,7 +679,7 @@ void cGameObject::SetupBreakObject()
 	{
 		cParticleSystem3D *pPS  = mpInit->mpGame->GetResources()->GetParticleManager()->CreatePS3D(
 															"",mBreakProps.msPS,1,cMatrixf::Identity);
-		hplDelete( pPS );
+		delete pPS;
 	}
 	if(mBreakProps.msSound!="")
 	{
@@ -898,7 +898,7 @@ iGameEntity* cGameObject_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameObject::CreateSaveData()
 {
-	return hplNew( cGameObject_SaveData, () );
+	return new cGameObject_SaveData();
 }
 
 void cGameObject::SaveToSaveData(iGameEntity_SaveData *apSaveData)

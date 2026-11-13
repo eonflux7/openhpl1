@@ -87,7 +87,7 @@ namespace hpl {
 			if(pRes->HasUsers()==false)
 			{
 				RemoveResource(pRes);
-				hplDelete(pRes);
+				delete pRes;
 			}
 		}
 

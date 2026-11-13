@@ -41,23 +41,23 @@ namespace hpl {
 		mpAnimationManager = apAnimationManager;
 		mpSkeleton = nullptr;
 
-		mpRootNode = hplNew( cNode3D, () );
+		mpRootNode = new cNode3D();
 	}
 
 	cMesh::~cMesh()
 	{
 		for(int i=0;i<(int)mvSubMeshes.size();i++)
 		{
-			hplDelete(mvSubMeshes[i]);
+			delete mvSubMeshes[i];
 		}
-		if(mpSkeleton) hplDelete(mpSkeleton);
+		if(mpSkeleton) delete mpSkeleton;
 
 		for(int i=0;i< (int)mvAnimations.size(); i++)
 		{
-			hplDelete(mvAnimations[i]);
+			delete mvAnimations[i];
 		}
 
-		if(mpRootNode) hplDelete(mpRootNode);
+		if(mpRootNode) delete mpRootNode;
 
 		STLDeleteAll(mvColliders);
 		STLDeleteAll(mvPhysicJoints);
@@ -76,7 +76,7 @@ namespace hpl {
 
 	cSubMesh* cMesh::CreateSubMesh(const tString &asName)
 	{
-		cSubMesh* pSubMesh = hplNew( cSubMesh, (asName,mpMaterialManager) );
+		cSubMesh* pSubMesh = new cSubMesh(asName,mpMaterialManager);
 
 		pSubMesh->mpParent = this;
 
@@ -161,7 +161,7 @@ namespace hpl {
 		{
 			for(int i=0;i< (int)mvAnimations.size(); i++)
 			{
-				hplDelete(mvAnimations[i]);
+				delete mvAnimations[i];
 			}
 		}
 
@@ -183,7 +183,7 @@ namespace hpl {
 
 	cMeshJoint* cMesh::CreatePhysicsJoint(ePhysicsJointType aType)
 	{
-		cMeshJoint* pJoint = hplNew( cMeshJoint,() );
+		cMeshJoint* pJoint = new cMeshJoint();
 		pJoint->mType = aType;
 
 		mvPhysicJoints.push_back(pJoint);
@@ -662,7 +662,7 @@ namespace hpl {
 
 	cMeshCollider* cMesh::CreateCollider(eCollideShapeType aType)
 	{
-		cMeshCollider* pColl = hplNew( cMeshCollider, () );
+		cMeshCollider* pColl = new cMeshCollider();
 		pColl->mType = aType;
 
 		mvColliders.push_back(pColl);
@@ -723,7 +723,7 @@ namespace hpl {
 
 	cMeshLight* cMesh::CreateLight(eLight3DType aType)
 	{
-		cMeshLight* pLight = hplNew( cMeshLight, () );
+		cMeshLight* pLight = new cMeshLight();
 
 		mvLights.push_back(pLight);
 
@@ -783,7 +783,7 @@ namespace hpl {
 
 	cMeshBillboard* cMesh::CreateBillboard()
 	{
-		cMeshBillboard *pBillboard = hplNew( cMeshBillboard, () );
+		cMeshBillboard *pBillboard = new cMeshBillboard();
 		mvBillboards.push_back(pBillboard);
 		return pBillboard;
 	}
@@ -816,7 +816,7 @@ namespace hpl {
 
 	cMeshBeam* cMesh::CreateBeam()
 	{
-		cMeshBeam *pBeam = hplNew( cMeshBeam, () );
+		cMeshBeam *pBeam = new cMeshBeam();
 		mvBeams.push_back(pBeam);
 		return pBeam;
 	}
@@ -849,7 +849,7 @@ namespace hpl {
 
 	cMeshReference* cMesh::CreateReference()
 	{
-		cMeshReference *pRef = hplNew( cMeshReference, () );
+		cMeshReference *pRef = new cMeshReference();
 		mvReferences.push_back(pRef);
 		return pRef;
 	}
@@ -894,7 +894,7 @@ namespace hpl {
 
 	cMeshParticleSystem* cMesh::CreateParticleSystem()
 	{
-		cMeshParticleSystem *pPS = hplNew( cMeshParticleSystem, () );
+		cMeshParticleSystem *pPS = new cMeshParticleSystem();
 		mvParticleSystems.push_back(pPS);
 		return pPS;
 	}
@@ -928,7 +928,7 @@ namespace hpl {
 
 	cMeshSoundEntity* cMesh::CreateSoundEntity()
 	{
-		cMeshSoundEntity *pSound = hplNew( cMeshSoundEntity, () );
+		cMeshSoundEntity *pSound = new cMeshSoundEntity();
 		mvSoundEntities.push_back(pSound);
 		return pSound;
 	}

@@ -3,7 +3,6 @@
 #ifndef HPL_LOWLEVELSYSTEM_H
 #define HPL_LOWLEVELSYSTEM_H
 
-#include "system/MemoryManager.h"
 #include "system/SystemTypes.h"
 
 

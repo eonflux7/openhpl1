@@ -55,12 +55,12 @@ namespace hpl {
 		Log("Exiting Graphics Module\n");
 		Log("--------------------------------------------------------\n");
 
-		hplDelete(mpRenderer3D);
-		hplDelete(mpRendererPostEffects);
-		hplDelete(mpDrawer);
-		hplDelete(mpMeshCreator);
-		hplDelete(mpMaterialHandler);
-		hplDelete(mpRenderList);
+		delete mpRenderer3D;
+		delete mpRendererPostEffects;
+		delete mpDrawer;
+		delete mpMeshCreator;
+		delete mpMaterialHandler;
+		delete mpRenderList;
 
 		Log("--------------------------------------------------------\n\n");
 	}
@@ -80,40 +80,40 @@ namespace hpl {
 		mpLowLevelGraphics->Init(alWidth,alHeight,alBpp,abFullscreen,alMultisampling,asWindowCaption,alDisplay);
 
 		Log(" Creating graphic systems\n");
-		mpMaterialHandler = hplNew( cMaterialHandler,(this, apResources));
-		mpDrawer = hplNew( cGraphicsDrawer,(mpLowLevelGraphics,mpMaterialHandler,apResources));
-		mpRenderList = hplNew( cRenderList,(this));
-		mpMeshCreator = hplNew( cMeshCreator,(mpLowLevelGraphics, apResources));
-		mpRenderer3D = hplNew( cRenderer3D,(mpLowLevelGraphics,apResources,mpMeshCreator,mpRenderList));
-		mpRendererPostEffects = hplNew( cRendererPostEffects,(mpLowLevelGraphics,apResources,mpRenderList,
-														mpRenderer3D));
+		mpMaterialHandler = new cMaterialHandler(this, apResources);
+		mpDrawer = new cGraphicsDrawer(mpLowLevelGraphics,mpMaterialHandler,apResources);
+		mpRenderList = new cRenderList(this);
+		mpMeshCreator = new cMeshCreator(mpLowLevelGraphics, apResources);
+		mpRenderer3D = new cRenderer3D(mpLowLevelGraphics,apResources,mpMeshCreator,mpRenderList);
+		mpRendererPostEffects = new cRendererPostEffects(mpLowLevelGraphics,apResources,mpRenderList,
+														mpRenderer3D);
 		mpRenderer3D->SetPostEffects(mpRendererPostEffects);
 
 
 		//Add all the materials.
 		//2D
 		Log(" Adding engine materials\n");
-		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAdditive2D,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseAlpha2D,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Smoke2D,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_FontNormal,()) );
+		mpMaterialHandler->Add(new cMaterialType_DiffuseAdditive2D() );
+		mpMaterialHandler->Add(new cMaterialType_DiffuseAlpha2D() );
+		mpMaterialHandler->Add(new cMaterialType_Smoke2D() );
+		mpMaterialHandler->Add(new cMaterialType_FontNormal() );
 
 		//3D
-		mpMaterialHandler->Add(hplNew( cMaterialType_Diffuse,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Bump,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_DiffuseSpec,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_BumpSpec,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_BumpColorSpec,()) );
+		mpMaterialHandler->Add(new cMaterialType_Diffuse() );
+		mpMaterialHandler->Add(new cMaterialType_Bump() );
+		mpMaterialHandler->Add(new cMaterialType_DiffuseSpec() );
+		mpMaterialHandler->Add(new cMaterialType_BumpSpec() );
+		mpMaterialHandler->Add(new cMaterialType_BumpColorSpec() );
 
-		mpMaterialHandler->Add(hplNew( cMaterialType_Additive,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Alpha,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Flat,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_Modulative,()) );
-		mpMaterialHandler->Add(hplNew( cMaterialType_ModulativeX2,()) );
+		mpMaterialHandler->Add(new cMaterialType_Additive() );
+		mpMaterialHandler->Add(new cMaterialType_Alpha() );
+		mpMaterialHandler->Add(new cMaterialType_Flat() );
+		mpMaterialHandler->Add(new cMaterialType_Modulative() );
+		mpMaterialHandler->Add(new cMaterialType_ModulativeX2() );
 
-		mpMaterialHandler->Add(hplNew( cMaterialType_EnvMap_Reflect,()) );
+		mpMaterialHandler->Add(new cMaterialType_EnvMap_Reflect() );
 
-		mpMaterialHandler->Add(hplNew( cMaterialType_Water,()) );
+		mpMaterialHandler->Add(new cMaterialType_Water() );
 
 		Log("--------------------------------------------------------\n\n");
 

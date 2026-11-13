@@ -64,7 +64,7 @@ namespace hpl {
 
 	cGuiClipRegion* cGuiClipRegion::CreateChild(const cVector3f &avPos, const cVector2f &avSize)
 	{
-		cGuiClipRegion *pRegion = hplNew( cGuiClipRegion, () );
+		cGuiClipRegion *pRegion = new cGuiClipRegion();
 
 		if(mRect.w <0)
 		{
@@ -119,7 +119,7 @@ namespace hpl {
 		m_mtx3DTransform = cMatrixf::Identity;
 		mbCullBackface = false;
 
-		mpWidgetRoot = hplNew( iWidget, (eWidgetType_Root,this,mpSkin) );
+		mpWidgetRoot = new iWidget(eWidgetType_Root,this,mpSkin);
 		mpWidgetRoot->AddCallback(eGuiMessage_OnDraw,this,kGuiCallback(DrawMouse));
 
 		mpCurrentClipRegion = &mBaseClipRegion;
@@ -139,7 +139,7 @@ namespace hpl {
 
 		STLDeleteAll(mlstPopUps);
 		STLDeleteAll(mlstWidgets);
-		hplDelete(mpWidgetRoot);
+		delete mpWidgetRoot;
 
 		mbDestroyingSet = false;
 	}
@@ -332,7 +332,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetWindow *pWindow = hplNew( cWidgetWindow, (this,mpSkin) );
+		cWidgetWindow *pWindow = new cWidgetWindow(this,mpSkin);
 		pWindow->SetPosition(avLocalPos);
 		pWindow->SetSize(avSize);
 		pWindow->SetText(asText);
@@ -347,7 +347,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetFrame *pFrame = hplNew( cWidgetFrame, (this,mpSkin) );
+		cWidgetFrame *pFrame = new cWidgetFrame(this,mpSkin);
 		pFrame->SetPosition(avLocalPos);
 		pFrame->SetSize(avSize);
 		pFrame->SetDrawFrame(abDrawFrame);
@@ -362,7 +362,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetButton *pButton = hplNew( cWidgetButton, (this,mpSkin) );
+		cWidgetButton *pButton = new cWidgetButton(this,mpSkin);
 		pButton->SetPosition(avLocalPos);
 		pButton->SetSize(avSize);
 		pButton->SetText(asText);
@@ -377,7 +377,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetLabel *pLabel = hplNew( cWidgetLabel, (this,mpSkin) );
+		cWidgetLabel *pLabel = new cWidgetLabel(this,mpSkin);
 		pLabel->SetPosition(avLocalPos);
 		pLabel->SetSize(avSize);
 		pLabel->SetText(asText);
@@ -393,7 +393,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetSlider *pSlider = hplNew( cWidgetSlider, (this,mpSkin,aOrientation) );
+		cWidgetSlider *pSlider = new cWidgetSlider(this,mpSkin,aOrientation);
 		pSlider->SetPosition(avLocalPos);
 		pSlider->SetSize(avSize);
 		pSlider->SetMaxValue(alMaxValue);
@@ -408,7 +408,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetTextBox *pTextBox = hplNew( cWidgetTextBox, (this,mpSkin) );
+		cWidgetTextBox *pTextBox = new cWidgetTextBox(this,mpSkin);
 		pTextBox->SetPosition(avLocalPos);
 		pTextBox->SetSize(avSize);
 		pTextBox->SetText(asText);
@@ -423,7 +423,7 @@ namespace hpl {
 													iWidget *apParent,
 													const tString& asName)
 	{
-		cWidgetCheckBox *pCheckBox = hplNew( cWidgetCheckBox, (this,mpSkin) );
+		cWidgetCheckBox *pCheckBox = new cWidgetCheckBox(this,mpSkin);
 		pCheckBox->SetPosition(avLocalPos);
 		pCheckBox->SetSize(avSize);
 		pCheckBox->SetText(asText);
@@ -440,7 +440,7 @@ namespace hpl {
 											iWidget *apParent,
 											const tString& asName)
 	{
-		cWidgetImage *pImage = hplNew( cWidgetImage, (this,mpSkin) );
+		cWidgetImage *pImage = new cWidgetImage(this,mpSkin);
 
 		cGuiGfxElement *pGfx = nullptr;
 		if(asFile != "")
@@ -478,7 +478,7 @@ namespace hpl {
 												iWidget *apParent,
 												const tString& asName)
 	{
-		cWidgetListBox *pListBox = hplNew( cWidgetListBox,(this,mpSkin) );
+		cWidgetListBox *pListBox = new cWidgetListBox(this,mpSkin);
 		pListBox->SetPosition(avLocalPos);
 		pListBox->SetSize(avSize);
 		pListBox->SetName(asName);
@@ -492,7 +492,7 @@ namespace hpl {
 													iWidget *apParent,
 													const tString& asName)
 	{
-		cWidgetComboBox *pComboBox = hplNew( cWidgetComboBox, (this,mpSkin) );
+		cWidgetComboBox *pComboBox = new cWidgetComboBox(this,mpSkin);
 		pComboBox->SetPosition(avLocalPos);
 		pComboBox->SetSize(avSize);
 		pComboBox->SetText(asText);
@@ -516,9 +516,9 @@ namespace hpl {
 								const tWString& asButton1, const tWString& asButton2,
 								void *apCallbackObject, tGuiCallbackFunc apCallback)
 	{
-		cGuiPopUpMessageBox* pMessageBox = hplNew( cGuiPopUpMessageBox, (this, asLabel,asText,
+		cGuiPopUpMessageBox* pMessageBox = new cGuiPopUpMessageBox(this, asLabel,asText,
 																asButton1,asButton2,
-																apCallbackObject,apCallback) );
+																apCallbackObject,apCallback);
 	}
 
 	void cGuiSet::DestroyPopUp(iGuiPopUp *apPopUp)

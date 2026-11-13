@@ -567,7 +567,7 @@ namespace hpl {
 			}
 
 
-			pNewSrc = hplNewArray( unsigned char, lChannels * mlWidth * mlHeight);
+			pNewSrc = new unsigned char[lChannels * mlWidth * mlHeight];
 
 			// Each new texel is the average of the old ones it covers
 			const int lBlock = lSizeDiv * lSizeDiv;
@@ -591,7 +591,7 @@ namespace hpl {
 		GLenum floatFormat = mlFloatChannels == 1 ? GL_R16F : (mlFloatChannels == 2 ? GL_RG16F : GL_RGBA16F);
 		if(!EnsureStorage(GLTarget, mbFloat ? floatFormat : InternalFormat(lChannels),
 			mlWidth, mlHeight, mTarget == eTextureTarget_2DArray ? mlFrameCount : 1)) {
-			if(pNewSrc) hplDeleteArray(pNewSrc);
+			if(pNewSrc) delete [] pNewSrc;
 			return false;
 		}
 		if(mTarget == eTextureTarget_1D)
@@ -609,7 +609,7 @@ namespace hpl {
 
 		if(mlSizeLevel>0 && pNewSrc)
 		{
-			hplDeleteArray(pNewSrc);
+			delete [] pNewSrc;
 		}
 
 		return true;

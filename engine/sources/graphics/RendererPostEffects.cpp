@@ -111,12 +111,12 @@ namespace hpl {
 
 	cRendererPostEffects::~cRendererPostEffects()
 	{
-		if(mpScreenBuffer) hplDelete(mpScreenBuffer);
+		if(mpScreenBuffer) delete mpScreenBuffer;
 
 		iGpuProgram *vChainPrograms[] = {mpBloomPrefilterProgram, mpBloomDownProgram, mpBloomUpProgram, mpBloomCompositeProgram};
 		for(iGpuProgram *pProgram : vChainPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
-		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
-		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
+		for(iTexture *pTexture : mvBloomDown) delete pTexture;
+		for(iTexture *pTexture : mvBloomUp) delete pTexture;
 
 		iGpuProgram *vAoPrograms[] = {mpAoDeinterleaveProgram, mpAoOcclusionProgram, mpAoFilterProgram, mpAoCompositeProgram,
 										mpAoCompositeSceneProgram[0], mpAoCompositeSceneProgram[1]};
@@ -127,12 +127,12 @@ namespace hpl {
 		iGpuProgram *vNewPrograms[] = {mpMotionCameraProgram, mpBokehPrefilterProgram,
 										mpBokehGatherProgram, mpBokehFillProgram, mpBokehCompositeProgram};
 		for(iGpuProgram *pProgram : vNewPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
-		for(iTexture *pTexture : mpBokehTexture) if(pTexture) hplDelete(pTexture);
+		for(iTexture *pTexture : mpBokehTexture) if(pTexture) delete pTexture;
 	}
 
 	void cRendererPostEffects::CreateScreenBuffers()
 	{
-		if(mpScreenBuffer) hplDelete(mpScreenBuffer);
+		if(mpScreenBuffer) delete mpScreenBuffer;
 		mpScreenBuffer = nullptr;
 
 		// The copy holds linear values, which need more than 8 bits in
@@ -157,8 +157,8 @@ namespace hpl {
 		//The levels of the bloom, from half the render size down to
 		//a few pixels: the widest level covers the same part of the picture
 		//at any resolution. Floating point always, they hold linear values.
-		for(iTexture *pTexture : mvBloomDown) hplDelete(pTexture);
-		for(iTexture *pTexture : mvBloomUp) hplDelete(pTexture);
+		for(iTexture *pTexture : mvBloomDown) delete pTexture;
+		for(iTexture *pTexture : mvBloomUp) delete pTexture;
 		mvBloomDown.clear();
 		mvBloomUp.clear();
 		cVector2l vLevelSize((int)mvScreenSize.x / 2, (int)mvScreenSize.y / 2);
@@ -176,8 +176,8 @@ namespace hpl {
 			if(vTextures[0] == nullptr || vTextures[1] == nullptr)
 			{
 				Error("Couldn't create bloom texture!\n");
-				if(vTextures[0]) hplDelete(vTextures[0]);
-				if(vTextures[1]) hplDelete(vTextures[1]);
+				if(vTextures[0]) delete vTextures[0];
+				if(vTextures[1]) delete vTextures[1];
 				break;
 			}
 			mvBloomDown.push_back(vTextures[0]);
@@ -190,7 +190,7 @@ namespace hpl {
 		DestroyAmbientOcclusionTextures();
 		for(iTexture *&pTexture : mpBokehTexture)
 		{
-			if(pTexture) hplDelete(pTexture);
+			if(pTexture) delete pTexture;
 			pTexture = nullptr;
 		}
 
@@ -285,7 +285,7 @@ namespace hpl {
 		cVector2l vSize(((int)mvScreenSize.x + 1) / 2, ((int)mvScreenSize.y + 1) / 2);
 		for(iTexture *&pTexture : mpBokehTexture)
 		{
-			if(pTexture) hplDelete(pTexture);
+			if(pTexture) delete pTexture;
 			pTexture = mpLowLevelGraphics->CreateFloatTexture(vSize, 4, eTextureTarget_2D);
 			if(pTexture==nullptr) continue;
 			pTexture->SetWrapS(eTextureWrap_ClampToEdge);
@@ -296,7 +296,7 @@ namespace hpl {
 			Error("Couldn't create the depth of field textures!\n");
 			for(iTexture *&pTexture : mpBokehTexture)
 			{
-				if(pTexture) hplDelete(pTexture);
+				if(pTexture) delete pTexture;
 				pTexture = nullptr;
 			}
 			return false;
@@ -513,13 +513,13 @@ namespace hpl {
 		iTexture **vTextures[] = {&mpAoTiledTexture, &mpAoTexture[0], &mpAoTexture[1]};
 		for(iTexture **pTexture : vTextures)
 		{
-			if(*pTexture) hplDelete(*pTexture);
+			if(*pTexture) delete *pTexture;
 			*pTexture = nullptr;
 		}
 		for(int i=0; i<16; ++i)
 		{
-			if(mvAoDistanceTexture[i]) hplDelete(mvAoDistanceTexture[i]);
-			if(mvAoNormalTexture[i]) hplDelete(mvAoNormalTexture[i]);
+			if(mvAoDistanceTexture[i]) delete mvAoDistanceTexture[i];
+			if(mvAoNormalTexture[i]) delete mvAoNormalTexture[i];
 			mvAoDistanceTexture[i] = mvAoNormalTexture[i] = nullptr;
 		}
 	}

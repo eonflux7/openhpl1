@@ -285,7 +285,7 @@ namespace hpl
 	bool cGLFinalPasses::CreateFullscreenPass(cFullscreenPass &aPass)
 	{
 		if(aPass.mpProgram) return aPass.mpProgram->GetHandle() != 0;
-		aPass.mpProgram = hplNew(cGLSLProgram, (aPass.msName + " " + aPass.msDefines, false));
+		aPass.mpProgram = new cGLSLProgram(aPass.msName + " " + aPass.msDefines, false);
 		// Retain a failed object too: its watched files allow a later edit
 		// to recover it, and no incomplete program is ever drawn.
 		if(!aPass.mpProgram->CreateFromFile(aPass.msName, aPass.msDefines)) return false;
@@ -294,7 +294,7 @@ namespace hpl
 
 	void cGLFinalPasses::DeleteFullscreenPass(cFullscreenPass &aPass)
 	{
-		if(aPass.mpProgram) hplDelete(aPass.mpProgram);
+		if(aPass.mpProgram) delete aPass.mpProgram;
 		aPass.mpProgram = nullptr;
 	}
 

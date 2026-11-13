@@ -52,7 +52,7 @@ namespace hpl {
 		if(mpModule->AddScriptSection("main", pCharBuffer, lLength)<0)
 		{
 			Error("Couldn't add script '%s'!\n",asFileName.c_str());
-			hplDeleteArray(pCharBuffer);
+			delete [] pCharBuffer;
 			return false;
 		}
 
@@ -66,12 +66,12 @@ namespace hpl {
 
 
 
-			hplDeleteArray(pCharBuffer);
+			delete [] pCharBuffer;
 			return false;
 		}
 		mpScriptOutput->Clear();
 
-		hplDeleteArray(pCharBuffer);
+		delete [] pCharBuffer;
 		return true;
 	}
 
@@ -198,14 +198,14 @@ namespace hpl {
 		int lLength = (int)Platform::FileLength(pFile);
 		alLength = lLength;
 
-		char *pBuffer = hplNewArray(char,lLength);
+		char *pBuffer = new char[lLength];
 		size_t lRead = fread(pBuffer, lLength, 1, pFile);
 
 		fclose(pFile);
 
 		if(lLength > 0 && lRead != 1)
 		{
-			hplDeleteArray(pBuffer);
+			delete [] pBuffer;
 			return nullptr;
 		}
 

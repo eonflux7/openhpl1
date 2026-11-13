@@ -50,7 +50,7 @@ namespace hpl {
 			BeginLoad(asName);
 			program = mpLowLevelGraphics->CreateGpuProgram(key);
 			if(!program->CreateFromFile(vertex + ":" + asName, asDefines)){
-				hplDelete(program);
+				delete program;
 				EndLoad();
 				return nullptr;
 			}
@@ -72,7 +72,7 @@ namespace hpl {
 
 		if(apResource->HasUsers()==false){
 			RemoveResource(apResource);
-			hplDelete(apResource);
+			delete apResource;
 		}
 	}
 }

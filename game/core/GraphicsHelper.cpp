@@ -110,12 +110,12 @@ cScreenImage cGraphicsHelper::LoadScreenImage(const tString &asFile)
 			iTexture *pTex = pBmp ? mpLowLevelGfx->CreateTexture(true,eTextureType_Normal,eTextureTarget_2D) : nullptr;
 			if(pTex && pTex->CreateFromBitmap(pBmp)==false)
 			{
-				hplDelete(pTex);
+				delete pTex;
 				pTex = nullptr;
 			}
 			if(pBmp)
 			{
-				hplDelete(pBmp);
+				delete pBmp;
 			}
 			if(pTex==nullptr)
 			{
@@ -140,7 +140,7 @@ void cGraphicsHelper::DestroyScreenImage(cScreenImage &aImage)
 {
 	if(aImage.mbWide)
 	{
-		hplDelete(aImage.mpTexture);
+		delete aImage.mpTexture;
 	}
 	else if(aImage.mpTexture)
 	{

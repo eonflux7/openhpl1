@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 
-#include "system/MemoryManager.h"
 
 namespace hpl {
 
@@ -101,7 +100,7 @@ namespace hpl {
 		}
 		iContainerIterator* CreateIteratorPtr() override
 		{
-			return hplNew( cContainerVecIterator<T>, (&mvVector) );
+			return new cContainerVecIterator<T>(&mvVector);
 		}
 
 	public:
@@ -201,7 +200,7 @@ namespace hpl {
 		}
 		iContainerIterator* CreateIteratorPtr() override
 		{
-			return hplNew( cContainerListIterator<T>, (&mvVector) );
+			return new cContainerListIterator<T>(&mvVector);
 		}
 
 	public:

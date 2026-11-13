@@ -313,7 +313,7 @@ int RunDogRegressions(cInit *init)
 
 	// A completion handler may keep the final pose. It gets one notification
 	// per playback, including another notification when the clip is replayed.
-	auto *completion = hplNew(CompletionState, (init, dog));
+	auto *completion = new CompletionState(init, dog);
 	dog->AddState(completion);
 	dog->ChangeState(completion->GetId());
 	dog->PlayAnim("AttackLow", false, 0.2f);

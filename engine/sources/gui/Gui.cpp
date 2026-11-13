@@ -41,7 +41,7 @@ namespace hpl {
 
 		for(int i=0; i< eGuiMaterial_LastEnum; ++i)
 		{
-			if(mvMaterials[i]) hplDelete(mvMaterials[i]);
+			if(mvMaterials[i]) delete mvMaterials[i];
 		}
 
 		Log("--------------------------------------------------------\n\n");
@@ -58,11 +58,11 @@ namespace hpl {
 		// Create materials
 		for(int i=0; i< eGuiMaterial_LastEnum; ++i) mvMaterials[i] = nullptr;
 
-		mvMaterials[eGuiMaterial_Diffuse] = hplNew( cGuiMaterial_Diffuse,(mpGraphics->GetLowLevel()) );
-		mvMaterials[eGuiMaterial_Alpha] = hplNew( cGuiMaterial_Alpha,(mpGraphics->GetLowLevel()) );
-		mvMaterials[eGuiMaterial_FontNormal] = hplNew( cGuiMaterial_FontNormal,(mpGraphics->GetLowLevel()) );
-		mvMaterials[eGuiMaterial_Additive] = hplNew( cGuiMaterial_Additive,(mpGraphics->GetLowLevel()) );
-		mvMaterials[eGuiMaterial_Modulative] = hplNew( cGuiMaterial_Modulative,(mpGraphics->GetLowLevel()) );
+		mvMaterials[eGuiMaterial_Diffuse] = new cGuiMaterial_Diffuse(mpGraphics->GetLowLevel());
+		mvMaterials[eGuiMaterial_Alpha] = new cGuiMaterial_Alpha(mpGraphics->GetLowLevel());
+		mvMaterials[eGuiMaterial_FontNormal] = new cGuiMaterial_FontNormal(mpGraphics->GetLowLevel());
+		mvMaterials[eGuiMaterial_Additive] = new cGuiMaterial_Additive(mpGraphics->GetLowLevel());
+		mvMaterials[eGuiMaterial_Modulative] = new cGuiMaterial_Modulative(mpGraphics->GetLowLevel());
 
 		// Skin setup
 		GenerateSkinTypeStrings();
@@ -145,13 +145,13 @@ namespace hpl {
 	cGuiSkin* cGui::CreateSkin(const tString& asFile)
 	{
 		tString sName = cString::SetFileExt(asFile,"");
-		cGuiSkin *pSkin = hplNew( cGuiSkin, (sName, this) );
+		cGuiSkin *pSkin = new cGuiSkin(sName, this);
 
 		tString sPath = mpResources->GetFileSearcher()->GetFilePath(asFile);
 
 		if(pSkin->LoadFromFile(sPath)==false)
 		{
-			hplDelete(pSkin);
+			delete pSkin;
 			return nullptr;
 		}
 
@@ -197,7 +197,7 @@ namespace hpl {
 
 	cGuiSet* cGui::CreateSet(const tString& asName, cGuiSkin *apSkin)
 	{
-		cGuiSet *pSet = hplNew( cGuiSet, (asName,this,apSkin,mpResources, mpGraphics, mpSound,mpScene) );
+		cGuiSet *pSet = new cGuiSet(asName,this,apSkin,mpResources, mpGraphics, mpSound,mpScene);
 
 		m_mapSets.insert(tGuiSetMap::value_type(asName, pSet));
 
@@ -236,7 +236,7 @@ namespace hpl {
 		{
 			if(apSet == it->second)
 			{
-				hplDelete( apSet);
+				delete apSet;
 				m_mapSets.erase(it++);
 				break;
 			} else {
@@ -247,7 +247,7 @@ namespace hpl {
 
 	cGuiGfxElement* cGui::CreateGfxFilledRect(const cColor& aColor, eGuiMaterial aMaterial, bool abAddToList)
 	{
-		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
+		cGuiGfxElement *pGfxElem = new cGuiGfxElement(this);
 
 		pGfxElem->SetColor(aColor);
 		pGfxElem->SetMaterial(GetMaterial(aMaterial));
@@ -268,7 +268,7 @@ namespace hpl {
 		}
 
 		// Create element
-		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
+		cGuiGfxElement *pGfxElem = new cGuiGfxElement(this);
 
 		pGfxElem->SetColor(aColor);
 		pGfxElem->SetMaterial(GetMaterial(aMaterial));
@@ -291,7 +291,7 @@ namespace hpl {
 		}
 
 		// Create element
-		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
+		cGuiGfxElement *pGfxElem = new cGuiGfxElement(this);
 
 		pGfxElem->SetColor(aColor);
 		pGfxElem->SetMaterial(GetMaterial(aMaterial));
@@ -332,7 +332,7 @@ namespace hpl {
 		}
 
 		// Create element
-		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
+		cGuiGfxElement *pGfxElem = new cGuiGfxElement(this);
 
 		pGfxElem->SetColor(aColor);
 		pGfxElem->SetMaterial(GetMaterial(aMaterial));

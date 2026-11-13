@@ -188,7 +188,7 @@ namespace hpl {
 
 		pMat->SetImage(pImage, eMaterialTexture_Diffuse);
 
-		cGfxObject* pObject = hplNew( cGfxObject,(pMat,asFileName,true));
+		cGfxObject* pObject = new cGfxObject(pMat,asFileName,true);
 
 		if(abAddToList) mlstGfxObjects.push_back(pObject);
 
@@ -212,7 +212,7 @@ namespace hpl {
 
 		pMat->SetImage(pImage, eMaterialTexture_Diffuse);
 
-		cGfxObject* pObject = hplNew( cGfxObject,(pMat,"",true));
+		cGfxObject* pObject = new cGfxObject(pMat,"",true);
 
 		if(abAddToList) mlstGfxObjects.push_back(pObject);
 
@@ -237,7 +237,7 @@ namespace hpl {
 
 		pMat->SetTexture(pTex, eMaterialTexture_Diffuse);
 
-		cGfxObject* pObject = hplNew( cGfxObject,(pMat,asFileName,false));
+		cGfxObject* pObject = new cGfxObject(pMat,asFileName,false);
 
 		if(abAddToList) mlstGfxObjects.push_back(pObject);
 
@@ -255,7 +255,7 @@ namespace hpl {
 
 		pMat->SetTexture(apTexture, eMaterialTexture_Diffuse);
 
-		cGfxObject* pObject = hplNew( cGfxObject,(pMat,"",false));
+		cGfxObject* pObject = new cGfxObject(pMat,"",false);
 
 		pObject->GetVtxPtr(0)->tex = cVector3f(avUVStart.x,avUVStart.y,0);
 		pObject->GetVtxPtr(1)->tex = cVector3f(avUVEnd.x,avUVStart.y,0);

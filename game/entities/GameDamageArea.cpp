@@ -27,7 +27,7 @@ cAreaLoader_GameDamageArea::~cAreaLoader_GameDamageArea()
 iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
 {
-	cGameDamageArea *pArea = hplNew( cGameDamageArea, (mpInit,asName) );
+	cGameDamageArea *pArea = new cGameDamageArea(mpInit,asName);
 
 	pArea->m_mtxOnLoadTransform = a_mtxTransform;
 
@@ -178,7 +178,7 @@ iGameEntity* cGameDamageArea_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameDamageArea::CreateSaveData()
 {
-	return hplNew( cGameDamageArea_SaveData, () );
+	return new cGameDamageArea_SaveData();
 }
 
 void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)

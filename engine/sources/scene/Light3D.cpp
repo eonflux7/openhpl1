@@ -50,7 +50,7 @@ namespace hpl {
 	{
 		mpTextureManager->Destroy(mpFalloffMap);
 
-		if(mpVisSectorCont) hplDelete(mpVisSectorCont);
+		if(mpVisSectorCont) delete mpVisSectorCont;
 	}
 
 	void iLight3D::SetVisible(bool abVisible)
@@ -186,7 +186,7 @@ namespace hpl {
 			if(mlSectorVisibilityCount != GetMatrixUpdateCount())
 			{
 				mlSectorVisibilityCount = GetMatrixUpdateCount();
-				if(mpVisSectorCont) hplDelete(mpVisSectorCont);
+				if(mpVisSectorCont) delete mpVisSectorCont;
 
 				mpVisSectorCont = CreateSectorVisibility();
 			}
@@ -351,7 +351,7 @@ namespace hpl {
 		tString sPath = mpFileSearcher->GetFilePath(asFile);
 		if(sPath != "")
 		{
-			TiXmlDocument *pDoc = hplNew( TiXmlDocument,(sPath.c_str()) );
+			TiXmlDocument *pDoc = new TiXmlDocument(sPath.c_str());
 			if(pDoc->LoadFile())
 			{
 				TiXmlElement *pRootElem = pDoc->RootElement();
@@ -378,7 +378,7 @@ namespace hpl {
 			{
 				Error("Couldn't load file '%s'\n",asFile.c_str());
 			}
-			hplDelete(pDoc);
+			delete pDoc;
 		}
 		else
 		{

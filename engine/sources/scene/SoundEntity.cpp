@@ -62,7 +62,7 @@ namespace hpl {
 
 		mfSleepCount = 0;
 
-		mpSoundCallback = hplNew( cSoundEntityChannelCallback, () );
+		mpSoundCallback = new cSoundEntityChannelCallback();
 		mpSoundCallback->mpEntity = this;
 
 		if(mpSoundHandler->GetSilent())
@@ -86,7 +86,7 @@ namespace hpl {
 			}
 		}
 
-		hplDelete(mpSoundCallback);
+		delete mpSoundCallback;
 
 		if(mbLog)Log("end\n");
 
@@ -495,7 +495,7 @@ namespace hpl {
 
 	iSaveData* cSoundEntity::CreateSaveData()
 	{
-		return hplNew( cSaveData_cSoundEntity, () );
+		return new cSaveData_cSoundEntity();
 	}
 
 	void cSoundEntity::SaveToSaveData(iSaveData *apSaveData)

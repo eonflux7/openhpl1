@@ -62,9 +62,9 @@ namespace hpl
 		glBindBufferBase(GL_UNIFORM_BUFFER, cGLSLProgram::kStateBlockBinding, mlStateUniformBuffer);
 		cGpuProfiler::Label(GL_BUFFER, mlStateUniformBuffer, "hpl_State");
 
-		mpDefaultProgram = hplNew(cGLSLProgram, ("Default"));
-		mpDefaultTextureProgram = hplNew(cGLSLProgram, ("Default TEXTURE"));
-		mpDefaultCubeProgram = hplNew(cGLSLProgram, ("Default CUBE"));
+		mpDefaultProgram = new cGLSLProgram("Default");
+		mpDefaultTextureProgram = new cGLSLProgram("Default TEXTURE");
+		mpDefaultCubeProgram = new cGLSLProgram("Default CUBE");
 		if(!mpDefaultProgram->CreateFromFile("Default") ||
 			!mpDefaultTextureProgram->CreateFromFile("Default", "TEXTURE") ||
 			!mpDefaultCubeProgram->CreateFromFile("Default", "CUBE"))
@@ -84,9 +84,9 @@ namespace hpl
 		if(mlStateUniformBuffer) glDeleteBuffers(1, &mlStateUniformBuffer);
 		if(mlEmptyVertexArray) glDeleteVertexArrays(1, &mlEmptyVertexArray);
 		mlFrameUniformBuffer = mlStateUniformBuffer = mlEmptyVertexArray = 0;
-		if(mpDefaultProgram) hplDelete(mpDefaultProgram);
-		if(mpDefaultTextureProgram) hplDelete(mpDefaultTextureProgram);
-		if(mpDefaultCubeProgram) hplDelete(mpDefaultCubeProgram);
+		if(mpDefaultProgram) delete mpDefaultProgram;
+		if(mpDefaultTextureProgram) delete mpDefaultTextureProgram;
+		if(mpDefaultCubeProgram) delete mpDefaultCubeProgram;
 		mpDefaultProgram = mpDefaultTextureProgram = mpDefaultCubeProgram = nullptr;
 	}
 

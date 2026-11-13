@@ -1188,32 +1188,32 @@ cEffectHandler::cEffectHandler(cInit *apInit)  : iUpdateable("EffectHandler")
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-	mpFlash = hplNew( cEffect_Flash,(mpInit, mpDrawer) );
-	mpWaveGravity = hplNew( cEffect_WaveGravity,(mpInit) );
-	mpSubTitle = hplNew( cEffect_SubTitle,(mpInit,mpDrawer) );
-	mpDepthOfField = hplNew( cEffect_DepthOfField,(mpInit) );
-	mpSaveEffect = hplNew( cEffect_SaveEffect,(mpInit,mpDrawer) );
-	mpShakeScreen = hplNew( cEffect_ShakeScreen,(mpInit) );
-	mpUnderwater = hplNew( cEffect_Underwater,(mpInit,mpDrawer) );
-	mpImageFlash = hplNew( cEffect_ImageFlash,(mpInit,mpDrawer) );
-	mpDreamFilter = hplNew( cEffect_DreamFilter,(mpInit) );
-	mpGasMask = hplNew( cEffect_GasMask,(mpInit) );
+	mpFlash = new cEffect_Flash(mpInit, mpDrawer);
+	mpWaveGravity = new cEffect_WaveGravity(mpInit);
+	mpSubTitle = new cEffect_SubTitle(mpInit,mpDrawer);
+	mpDepthOfField = new cEffect_DepthOfField(mpInit);
+	mpSaveEffect = new cEffect_SaveEffect(mpInit,mpDrawer);
+	mpShakeScreen = new cEffect_ShakeScreen(mpInit);
+	mpUnderwater = new cEffect_Underwater(mpInit,mpDrawer);
+	mpImageFlash = new cEffect_ImageFlash(mpInit,mpDrawer);
+	mpDreamFilter = new cEffect_DreamFilter(mpInit);
+	mpGasMask = new cEffect_GasMask(mpInit);
 
 	Reset();
 }
 
 cEffectHandler::~cEffectHandler(void)
 {
-	hplDelete( mpFlash );
-	hplDelete( mpWaveGravity );
-	hplDelete( mpSubTitle );
-	hplDelete( mpDepthOfField );
-	hplDelete( mpSaveEffect );
-	hplDelete( mpShakeScreen );
-	hplDelete( mpUnderwater );
-	hplDelete( mpImageFlash );
-	hplDelete( mpDreamFilter );
-	hplDelete( mpGasMask );
+	delete mpFlash;
+	delete mpWaveGravity;
+	delete mpSubTitle;
+	delete mpDepthOfField;
+	delete mpSaveEffect;
+	delete mpShakeScreen;
+	delete mpUnderwater;
+	delete mpImageFlash;
+	delete mpDreamFilter;
+	delete mpGasMask;
 }
 
 void cEffectHandler::OnStart()

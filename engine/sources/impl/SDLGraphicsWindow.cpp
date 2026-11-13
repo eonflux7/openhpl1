@@ -411,11 +411,11 @@ namespace hpl
 		// last one (without the gamma pass).
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, alOutputFramebuffer);
 
-		cSDLBitmap2D *pBmp = hplNew(cSDLBitmap2D, (mpPixelFormat));
+		cSDLBitmap2D *pBmp = new cSDLBitmap2D(mpPixelFormat);
 		pBmp->Create(cVector2l(mvScreenSize.x, mvScreenSize.y), 32);
 
 		unsigned char *pDestPixels = (unsigned char *)pBmp->GetSurface()->pixels;
-		unsigned char *pSrcPixels = (unsigned char *)hplMalloc(mvScreenSize.x * mvScreenSize.y * 4);
+		unsigned char *pSrcPixels = (unsigned char *)malloc(mvScreenSize.x * mvScreenSize.y * 4);
 
 		SDL_LockSurface(pBmp->GetSurface());
 		glReadPixels(0, 0, mvScreenSize.x, mvScreenSize.y, GL_RGBA, GL_UNSIGNED_BYTE, pSrcPixels);
@@ -439,8 +439,8 @@ namespace hpl
 		SDL_UnlockSurface(pBmp->GetSurface());
 		SDL_SaveBMP(pBmp->GetSurface(), asFile.c_str());
 
-		hplFree(pSrcPixels);
-		hplDelete(pBmp);
+		free(pSrcPixels);
+		delete pBmp;
 	}
 
 	void cSDLGraphicsWindow::CaptureFrame(cGpuProfiler &aProfiler)

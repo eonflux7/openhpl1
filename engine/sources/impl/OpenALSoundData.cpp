@@ -57,7 +57,7 @@ namespace hpl {
 
 		if(lHandle == cOpenALDevice::kInvalidHandle) return nullptr;
 
-		iSoundChannel *pSoundChannel = hplNew( cOpenALSoundChannel, (this, mpDevice, lHandle, mpSoundManger) );
+		iSoundChannel *pSoundChannel = new cOpenALSoundChannel(this, mpDevice, lHandle, mpSoundManger);
 		IncUserCount();
 		return pSoundChannel;
 	}

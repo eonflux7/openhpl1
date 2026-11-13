@@ -203,7 +203,7 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 	mTriggerTypes = eGameTriggerType_Sound;
 
-	mpMover = hplNew( cCharacterMove, (mpInit) );
+	mpMover = new cCharacterMove(mpInit);
 
 	mlCurrentState = -1;
 
@@ -337,11 +337,11 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 
 iGameEnemy::~iGameEnemy(void)
 {
-	hplDelete( mpMover );
+	delete mpMover;
 
 	for(size_t i=0; i < mvStates.size(); ++i)
 	{
-		if(mvStates[i]) hplDelete( mvStates[i] );
+		if(mvStates[i]) delete mvStates[i];
 	}
 
 	mvStates.clear();
@@ -1501,19 +1501,19 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
     
 	if(sSubtype == "Dog")
 	{
-		pEnemy = hplNew( cGameEnemy_Dog, (mpInit,mpEntity->GetName(),pGameElem) );
+		pEnemy = new cGameEnemy_Dog(mpInit,mpEntity->GetName(),pGameElem);
 	}
 	else if(sSubtype == "Infected")
 	{
-		pEnemy = hplNew( cGameEnemy_Infected, (mpInit,mpEntity->GetName(),pGameElem) );
+		pEnemy = new cGameEnemy_Infected(mpInit,mpEntity->GetName(),pGameElem);
 	}
 	else if(sSubtype == "Spider")
 	{
-		pEnemy = hplNew( cGameEnemy_Spider, (mpInit,mpEntity->GetName(),pGameElem) );
+		pEnemy = new cGameEnemy_Spider(mpInit,mpEntity->GetName(),pGameElem);
 	}
 	else if(sSubtype == "Worm")
 	{
-		pEnemy = hplNew( cGameEnemy_Worm, (mpInit,mpEntity->GetName(),pGameElem) );
+		pEnemy = new cGameEnemy_Worm(mpInit,mpEntity->GetName(),pGameElem);
 	}
 	if(pEnemy==nullptr)
 	{
@@ -1585,7 +1585,7 @@ iGameEntity* iGameEnemy_SaveData::CreateEntity()
 
 iGameEntity_SaveData* iGameEnemy::CreateSaveData()
 {
-	return hplNew( iGameEnemy_SaveData, () );
+	return new iGameEnemy_SaveData();
 }
 
 void iGameEnemy::SaveToSaveData(iGameEntity_SaveData *apSaveData)

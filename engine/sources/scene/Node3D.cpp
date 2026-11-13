@@ -42,7 +42,7 @@ namespace hpl {
 
 	cNode3D* cNode3D::CreateChild3D(const tString &asName, bool abAutoDeleteChildren)
 	{
-		cNode3D *pNode = hplNew( cNode3D, (asName,abAutoDeleteChildren) );
+		cNode3D *pNode = new cNode3D(asName,abAutoDeleteChildren);
 
 		pNode->mpParent = this;
 		mlstNode.push_back(pNode);
@@ -247,7 +247,7 @@ namespace hpl {
 
 	iSaveObject* cSaveData_cNode3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
-		return hplNew( cNode3D,(msName,mbAutoDeleteChildren) );
+		return new cNode3D(msName,mbAutoDeleteChildren);
 	}
 
 	int cSaveData_cNode3D::GetSaveCreatePrio()
@@ -257,7 +257,7 @@ namespace hpl {
 
 	iSaveData* cNode3D::CreateSaveData()
 	{
-		return hplNew( cSaveData_cNode3D,() );
+		return new cSaveData_cNode3D();
 	}
 
 	void cNode3D::SaveToSaveData(iSaveData *apSaveData)

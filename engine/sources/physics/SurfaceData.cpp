@@ -512,7 +512,7 @@ namespace hpl {
 
 	cSurfaceImpactData* cSurfaceData::CreateImpactData(float afMinSpeed)
 	{
-		cSurfaceImpactData *pData = hplNew( cSurfaceImpactData, () );
+		cSurfaceImpactData *pData = new cSurfaceImpactData();
 		pData->mfMinSpeed = afMinSpeed;
 
 		mvImpactData.push_back(pData);
@@ -544,7 +544,7 @@ namespace hpl {
 
 	cSurfaceImpactData* cSurfaceData::CreateHitData(float afMinSpeed)
 	{
-		cSurfaceImpactData *pData = hplNew( cSurfaceImpactData, () );
+		cSurfaceImpactData *pData = new cSurfaceImpactData();
 		pData->mfMinSpeed = afMinSpeed;
 
 		mvHitData.push_back(pData);
