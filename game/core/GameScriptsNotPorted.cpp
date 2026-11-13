@@ -25,13 +25,13 @@ static void NotPorted(const char *apFunc)
 
 // BUTTONS
 
-static void __stdcall SetButtonOn(std::string asArg0, bool abArg1, bool abArg2)
+static void SetButtonOn(std::string asArg0, bool abArg1, bool abArg2)
 {
 	NotPorted("SetButtonOn");
 }
 SCRIPT_DEFINE_FUNC_3(void, SetButtonOn, string, bool, bool)
 
-static void __stdcall SetupButton(std::string asArg0, std::string asArg1, std::string asArg2)
+static void SetupButton(std::string asArg0, std::string asArg1, std::string asArg2)
 {
 	NotPorted("SetupButton");
 }
@@ -39,14 +39,14 @@ SCRIPT_DEFINE_FUNC_3(void, SetupButton, string, string, string)
 
 // OTHER
 
-static void __stdcall StartRecordDump(std::string asArg0)
+static void StartRecordDump(std::string asArg0)
 {
 	NotPorted("StartRecordDump");
 }
 SCRIPT_DEFINE_FUNC_1(void, StartRecordDump, string)
 
 // The password of the game on the terminal of level 18; false: wrong password
-static bool __stdcall StartSchmup(std::string asArg0)
+static bool StartSchmup(std::string asArg0)
 {
 	NotPorted("StartSchmup");
 	return false;
