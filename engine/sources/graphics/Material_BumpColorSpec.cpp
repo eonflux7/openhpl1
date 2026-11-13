@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/Material_BumpColorSpec.h"
 
-#include "graphics/Material_Alpha.h"
 
 namespace hpl {
 

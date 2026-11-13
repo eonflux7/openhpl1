@@ -21,17 +21,13 @@
 #include "graphics/Material_FontNormal.h"
 
 //3D Materials
-#include "graphics/Material_Alpha.h"
 #include "graphics/Material_Diffuse.h"
 #include "graphics/Material_DiffuseSpec.h"
 #include "graphics/Material_Bump.h"
 #include "graphics/Material_BumpSpec.h"
 #include "graphics/Material_BumpColorSpec.h"
-#include "graphics/Material_Additive.h"
 #include "graphics/Material_Flat.h"
-#include "graphics/Material_Modulative.h"
-#include "graphics/Material_ModulativeX2.h"
-#include "graphics/Material_Alpha.h"
+#include "graphics/Material_Translucent.h"
 #include "graphics/Material_EnvMap_Reflect.h"
 #include "graphics/Material_Water.h"
 
@@ -105,11 +101,11 @@ namespace hpl {
 		mpMaterialHandler->Add(new cMaterialType_BumpSpec() );
 		mpMaterialHandler->Add(new cMaterialType_BumpColorSpec() );
 
-		mpMaterialHandler->Add(new cMaterialType_Additive() );
-		mpMaterialHandler->Add(new cMaterialType_Alpha() );
+		mpMaterialHandler->Add(new cMaterialType_Translucent({"additive", eMaterialBlendMode_Add, "", false}) );
+		mpMaterialHandler->Add(new cMaterialType_Translucent({"alpha", eMaterialBlendMode_Alpha, "", true}) );
 		mpMaterialHandler->Add(new cMaterialType_Flat() );
-		mpMaterialHandler->Add(new cMaterialType_Modulative() );
-		mpMaterialHandler->Add(new cMaterialType_ModulativeX2() );
+		mpMaterialHandler->Add(new cMaterialType_Translucent({"modulative", eMaterialBlendMode_Mul, "MOD", false}) );
+		mpMaterialHandler->Add(new cMaterialType_Translucent({"modulativex2", eMaterialBlendMode_MulX2, "MODX2", false}) );
 
 		mpMaterialHandler->Add(new cMaterialType_EnvMap_Reflect() );
 
