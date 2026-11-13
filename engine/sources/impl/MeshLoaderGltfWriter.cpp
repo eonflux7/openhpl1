@@ -260,11 +260,11 @@ namespace hpl
 
 		if(aData.mvAnimations.empty())
 		{
-			if(apSkeleton == nullptr && pSkeleton) hplDelete(pSkeleton);
+			if(apSkeleton == nullptr && pSkeleton) delete pSkeleton;
 			return nullptr;
 		}
 
-		cAnimation *pAnimation = hplNew(cAnimation, ("Default", ""));
+		cAnimation *pAnimation = new cAnimation("Default", "");
 		pAnimation->SetAnimationName("Default");
 		pAnimation->SetLength(aData.mScene.mfDeltaTime);
 		pAnimation->ResizeTracks((int)aData.mvAnimations.size());
@@ -274,7 +274,7 @@ namespace hpl
 		}
 		if(abRestPoses && pSkeleton) AddRestPoseTracks(pAnimation, pSkeleton, aData.mScene);
 
-		if(apSkeleton == nullptr && pSkeleton) hplDelete(pSkeleton);
+		if(apSkeleton == nullptr && pSkeleton) delete pSkeleton;
 		return pAnimation;
 	}
 
@@ -822,9 +822,9 @@ namespace hpl
 						JsonMember("samplers", JsonArray(vSamplers)),
 						JsonMember("extras", JsonObject({JsonMember("hpl_length", JsonFloat(aData.mScene.mfDeltaTime))}))}));
 				}
-				hplDelete(pAnimation);
+				delete pAnimation;
 			}
-			if(pSkeleton) hplDelete(pSkeleton);
+			if(pSkeleton) delete pSkeleton;
 		}
 
 		// The document

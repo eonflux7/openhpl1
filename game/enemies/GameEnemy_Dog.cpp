@@ -313,10 +313,7 @@ void cGameEnemyState_Dog_Attention::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->PlaySound(mpEnemyDog->msAttentionSound);	
 	mfTime = mpEnemyDog->mfAttentionTime;
 	
-#ifndef DEMO_VERSION
 	if(mpInit->mDifficulty == eGameDifficulty_Easy) mfTime *=1.7f;
-
-#endif
 }
 
 void cGameEnemyState_Dog_Attention::OnLeaveState(iGameEnemyState *apNextState)
@@ -628,7 +625,6 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup body
 	mpEnemy->SetupBody();
 
-#ifndef DEMO_VERSION
 	float fMul = 1.0f;
 
 	if(mpInit->mDifficulty == eGameDifficulty_Easy)
@@ -637,9 +633,6 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed*fMul);
 	else 
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed*1.25f*fMul);
-#else
-	mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed);
-#endif
 
 
 	//Setup enemy
@@ -1810,19 +1803,19 @@ cGameEnemy_Dog::cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement 
 	mfEatMinHearVolume = cString::ToFloat(apGameElem->Attribute("EatMinHearVolume"),0);
 
 	//Set up states
-	AddState(hplNew( cGameEnemyState_Dog_Idle,(STATE_IDLE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Hunt,(STATE_HUNT,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Attack,(STATE_ATTACK,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Flee,(STATE_FLEE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_KnockDown,(STATE_KNOCKDOWN,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Dead,(STATE_DEAD,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Patrol,(STATE_PATROL,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Investigate,(STATE_INVESTIGATE,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_BreakDoor,(STATE_BREAKDOOR,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_CallBackup,(STATE_CALLBACKUP,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_MoveTo,(STATE_MOVETO,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Eat,(STATE_EAT,mpInit,this)) );
-	AddState(hplNew( cGameEnemyState_Dog_Attention,(STATE_ATTENTION,mpInit,this)) );
+	AddState(new cGameEnemyState_Dog_Idle(STATE_IDLE,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Hunt(STATE_HUNT,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Attack(STATE_ATTACK,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Flee(STATE_FLEE,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_KnockDown(STATE_KNOCKDOWN,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Dead(STATE_DEAD,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Patrol(STATE_PATROL,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Investigate(STATE_INVESTIGATE,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_BreakDoor(STATE_BREAKDOOR,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_CallBackup(STATE_CALLBACKUP,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_MoveTo(STATE_MOVETO,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Eat(STATE_EAT,mpInit,this) );
+	AddState(new cGameEnemyState_Dog_Attention(STATE_ATTENTION,mpInit,this) );
 }
 
 cGameEnemy_Dog::~cGameEnemy_Dog()

@@ -82,11 +82,11 @@ namespace hpl {
 	bool cGuiSkin::LoadFromFile(const tString &asFile)
 	{
 		//Open document
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Error("Couldn't load skin file '%s'!\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -135,7 +135,7 @@ namespace hpl {
 			cVector2f vSize = cString::ToVector2f(pFontElem->Attribute("size"),1);
 			cColor color = cString::ToColor(pFontElem->Attribute("color"),cColor(1,1));
 
-			cGuiSkinFont *pFont = hplNew( cGuiSkinFont, (mpGui) );
+			cGuiSkinFont *pFont = new cGuiSkinFont(mpGui);
 
 			pFont->mpFont = mpGui->GetResources()->GetFontManager()->CreateFontData(sFontFile);
 			pFont->mvSize = vSize;
@@ -202,7 +202,7 @@ namespace hpl {
 			}
 		}
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 
 		return true;
 	}

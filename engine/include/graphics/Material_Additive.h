@@ -53,9 +53,9 @@ namespace hpl {
 			cGpuProgramManager* apProgramManager,
 			eMaterialPicture aPicture, cRenderer3D *apRenderer3D) override
 		{
-			return hplNew( cMaterial_Additive, (asName,apLowLevelGraphics,
+			return new cMaterial_Additive(asName,apLowLevelGraphics,
 				apImageManager,apTextureManager,
-				apProgramManager,aPicture,apRenderer3D) );
+				apProgramManager,aPicture,apRenderer3D);
 		}
 	};
 

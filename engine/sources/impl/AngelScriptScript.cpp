@@ -4,7 +4,6 @@
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
 #include "math/Math.h"
-#include "impl/Platform.h"
 #include <stdio.h>
 
 namespace hpl {
@@ -52,7 +51,7 @@ namespace hpl {
 		if(mpModule->AddScriptSection("main", pCharBuffer, lLength)<0)
 		{
 			Error("Couldn't add script '%s'!\n",asFileName.c_str());
-			hplDeleteArray(pCharBuffer);
+			delete [] pCharBuffer;
 			return false;
 		}
 
@@ -66,12 +65,12 @@ namespace hpl {
 
 
 
-			hplDeleteArray(pCharBuffer);
+			delete [] pCharBuffer;
 			return false;
 		}
 		mpScriptOutput->Clear();
 
-		hplDeleteArray(pCharBuffer);
+		delete [] pCharBuffer;
 		return true;
 	}
 
@@ -195,17 +194,23 @@ namespace hpl {
 			return nullptr;
 		}
 
-		int lLength = (int)Platform::FileLength(pFile);
+		fseek(pFile, 0, SEEK_END);
+		int lLength = (int)ftell(pFile);
+		fseek(pFile, 0, SEEK_SET);
+		if(lLength < 0){
+			fclose(pFile);
+			return nullptr;
+		}
 		alLength = lLength;
 
-		char *pBuffer = hplNewArray(char,lLength);
+		char *pBuffer = new char[lLength];
 		size_t lRead = fread(pBuffer, lLength, 1, pFile);
 
 		fclose(pFile);
 
 		if(lLength > 0 && lRead != 1)
 		{
-			hplDeleteArray(pBuffer);
+			delete [] pBuffer;
 			return nullptr;
 		}
 

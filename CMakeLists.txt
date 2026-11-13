@@ -172,11 +172,6 @@ target_compile_options(imgui PRIVATE ${OPENHPL_NO_WARNINGS})
 file(GLOB_RECURSE hpl_sources CONFIGURE_DEPENDS
 	engine/sources/*.cpp
 	engine/sources/*.c)
-if(WIN32)
-	list(FILTER hpl_sources EXCLUDE REGEX "/posix\\.cpp$")
-else()
-	list(FILTER hpl_sources EXCLUDE REGEX "/win32\\.cpp$")
-endif()
 
 add_library(hpl STATIC ${hpl_sources})
 target_include_directories(hpl PUBLIC engine/include)

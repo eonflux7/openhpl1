@@ -80,8 +80,6 @@ enum eGameId
 	eGameId_LastEnum
 };
 
-//#define DEMO_VERSION
-
 class cInit : public iUpdateable
 {
 public:
@@ -193,7 +191,6 @@ public:
 
 	tWString msErrorMessage;
 
-	tString msWebPageOnExit;
 
 	bool mbDebugInteraction;
 	// Developer mode: F2 renderer tools, F3 overlay, L logs a frame's

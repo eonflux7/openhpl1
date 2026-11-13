@@ -44,7 +44,7 @@ namespace hpl {
 			return nullptr;
 		}
 
-		cParticleSystem3D *pPS = hplNew( cParticleSystem3D, (asName,this,mpResources,mpGraphics) );
+		cParticleSystem3D *pPS = new cParticleSystem3D(asName,this,mpResources,mpGraphics);
 		pPS->SetMatrix(a_mtxTransform);
 
 		for(size_t i=0; i<mvEmitterData.size(); ++i)
@@ -60,11 +60,11 @@ namespace hpl {
 
 	bool cParticleSystemData3D::LoadFromFile(const tString &asFile)
 	{
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument,(asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Warning("Couldn't open XML file %s\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -73,8 +73,8 @@ namespace hpl {
 		TiXmlElement *pEmitterElem = pRootElem->FirstChildElement("ParticleEmitter");
 		for(; pEmitterElem != nullptr; pEmitterElem = pEmitterElem->NextSiblingElement("ParticleEmitter"))
 		{
-			cParticleEmitterData3D_UserData *pPE = hplNew( cParticleEmitterData3D_UserData,("",
-																	mpResources,mpGraphics) );
+			cParticleEmitterData3D_UserData *pPE = new cParticleEmitterData3D_UserData("",
+																	mpResources,mpGraphics);
 
 			pPE->LoadFromElement(pEmitterElem);
 
@@ -82,7 +82,7 @@ namespace hpl {
 		}
 
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 
@@ -103,7 +103,7 @@ namespace hpl {
 	{
 		for(size_t i=0; i< mvEmitters.size(); ++i)
 		{
-			hplDelete(mvEmitters[i]);
+			delete mvEmitters[i];
 		}
 		if(mpParticleManager) mpParticleManager->Destroy(mpData);
 	}
@@ -253,7 +253,7 @@ namespace hpl {
 
 	iSaveData* cParticleSystem3D::CreateSaveData()
 	{
-		return hplNew( cSaveData_cParticleSystem3D, () );
+		return new cSaveData_cParticleSystem3D();
 	}
 
 	void cParticleSystem3D::SaveToSaveData(iSaveData *apSaveData)

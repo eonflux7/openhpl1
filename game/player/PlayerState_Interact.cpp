@@ -647,12 +647,12 @@ void cPlayerState_Move_BodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBod
 cPlayerState_Move::cPlayerState_Move(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Move)
 {
 	mpPushBody = nullptr;
-	mpCallback = hplNew( cPlayerState_Move_BodyCallback, (apPlayer, apInit->mpGame->GetStepSize()) );
+	mpCallback = new cPlayerState_Move_BodyCallback(apPlayer, apInit->mpGame->GetStepSize());
 }
 
 cPlayerState_Move::~cPlayerState_Move()
 {
-	hplDelete( mpCallback );
+	delete mpCallback;
 }
 
 void cPlayerState_Move::OnUpdate(float afTimeStep)

@@ -61,7 +61,7 @@ namespace hpl {
 
 					pImage = AddToFrame(pBmp, alFrameHandle);
 
-					hplDelete(pBmp);
+					delete pBmp;
 
 					if(pImage==nullptr){
 						Error("Imagemanager couldn't create image '%s'\n", asName.c_str());
@@ -135,7 +135,7 @@ namespace hpl {
 			pFrame->DecPicCount(); // Doing it here now instead.
 			pBmpFrame->DecPicCount();
 			RemoveResource(apResource);
-			hplDelete(apResource);
+			delete apResource;
 
 		}
 
@@ -149,7 +149,7 @@ namespace hpl {
 				cFrameBitmap *pBmpFrame = *it;
 				if(pBmpFrame->GetFrameTexture() == pFrame)
 				{
-					hplDelete(pBmpFrame);
+					delete pBmpFrame;
 					mlstBitmapFrames.erase(it);
 					break;
 				}
@@ -157,7 +157,7 @@ namespace hpl {
 
 			//delete from list
 			m_mapTextureFrames.erase(pFrame->GetHandle());
-			hplDelete(pFrame);
+			delete pFrame;
 		}
 
 	}
@@ -167,7 +167,7 @@ namespace hpl {
 		FlushAll();
 		for(tFrameBitmapListIt it=mlstBitmapFrames.begin();it!=mlstBitmapFrames.end();)
 		{
-			hplDelete(*it);
+			delete *it;
 			it = mlstBitmapFrames.erase(it);
 		}
 	}
@@ -257,7 +257,7 @@ namespace hpl {
 				iBitmap2D *pOriginal = mpLowLevelResources->LoadBitmap2D(asOriginalPath);
 				if(pOriginal==nullptr) return nullptr;
 				vLogicalSize = cVector2l(pOriginal->GetWidth(), pOriginal->GetHeight());
-				hplDelete(pOriginal);
+				delete pOriginal;
 			}
 
 			iBitmap2D *pBmp = mpLowLevelResources->LoadBitmap2D(sFile);
@@ -281,7 +281,7 @@ namespace hpl {
 			{
 				Warning("'%s' is %dx%d, not %d times %dx%d plus an even margin. Not using it.\n", sFile.c_str(),
 						pBmp->GetWidth(), pBmp->GetHeight(), lScale, vLogicalSize.x, vLogicalSize.y);
-				hplDelete(pBmp);
+				delete pBmp;
 				return nullptr;
 			}
 
@@ -293,7 +293,7 @@ namespace hpl {
 			cFrameBitmap *pFrame = CreateBitmapFrame(cVector2l(pBmp->GetWidth()+2, pBmp->GetHeight()+2), true);
 			pFrame->SetLocked(true);
 			cResourceImage *pImage = pFrame->AddBitmap(pBmp);
-			hplDelete(pBmp);
+			delete pBmp;
 
 			if(pImage) pImage->SetLogicalSize(vLogicalSize, vMargin);
 			return pImage;
@@ -365,9 +365,9 @@ namespace hpl {
 	cFrameBitmap *cImageManager::CreateBitmapFrame(cVector2l avSize, bool abMipMaps)
 	{
 		iTexture *pTex = mpLowLevelGraphics->CreateTexture(abMipMaps,eTextureType_Normal,eTextureTarget_2D);
-		cFrameTexture *pTFrame = hplNew( cFrameTexture, (pTex,mlFrameHandle) );
+		cFrameTexture *pTFrame = new cFrameTexture(pTex,mlFrameHandle);
 		iBitmap2D *pBmp = mpLowLevelGraphics->CreateBitmap2D(avSize, 32);
-		cFrameBitmap *pBFrame = hplNew(  cFrameBitmap, (pBmp,pTFrame,mlFrameHandle) );
+		cFrameBitmap *pBFrame = new cFrameBitmap(pBmp,pTFrame,mlFrameHandle);
 
 		mlstBitmapFrames.push_back(pBFrame);
 

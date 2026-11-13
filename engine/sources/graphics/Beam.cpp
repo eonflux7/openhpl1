@@ -51,7 +51,7 @@ namespace hpl {
 		mpVtxBuffer->UpdateQuadInstances(1)[0].mfKind = 2;
 		mpVtxBuffer->Compile(0);
 
-		mpEnd = hplNew( cBeamEnd, (asName + "_end",this));
+		mpEnd = new cBeamEnd(asName + "_end",this);
 		mpEnd->AddCallback(&mEndCallback);
 
 		//Some temp setup
@@ -62,9 +62,9 @@ namespace hpl {
 
 	cBeam::~cBeam()
 	{
-		hplDelete(mpEnd);
+		delete mpEnd;
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
-		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
+		if(mpVtxBuffer) delete mpVtxBuffer;
 	}
 
 	void cBeam::SetSize(const cVector2f& avSize)
@@ -207,7 +207,7 @@ namespace hpl {
 		tString sPath = mpFileSearcher->GetFilePath(sNewFile);
 		if(sPath != "")
 		{
-			TiXmlDocument *pDoc = hplNew( TiXmlDocument, (sPath.c_str()) );
+			TiXmlDocument *pDoc = new TiXmlDocument(sPath.c_str());
 			if(pDoc->LoadFile())
 			{
 				TiXmlElement *pRootElem = pDoc->RootElement();
@@ -252,7 +252,7 @@ namespace hpl {
 			{
 				Error("Couldn't load file '%s'\n",sNewFile.c_str());
 			}
-			hplDelete(pDoc);
+			delete pDoc;
 		}
 		else
 		{

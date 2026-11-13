@@ -21,12 +21,12 @@ namespace hpl {
 			exit(1);
 		}
 
-		mpLowLevelSystem = hplNew( cLowLevelSystemSDL, () );
-		mpLowLevelGraphics = hplNew( cLowLevelGraphicsSDL,() );
-		mpLowLevelInput = hplNew( cLowLevelInputSDL,(mpLowLevelGraphics) );
-		mpLowLevelResources = hplNew( cLowLevelResourcesSDL,((cLowLevelGraphicsSDL *)mpLowLevelGraphics) );
-		mpLowLevelSound	= hplNew( cLowLevelSoundOpenAL,() );
-		mpLowLevelPhysics = hplNew( cLowLevelPhysicsNewton,() );
+		mpLowLevelSystem = new cLowLevelSystemSDL();
+		mpLowLevelGraphics = new cLowLevelGraphicsSDL();
+		mpLowLevelInput = new cLowLevelInputSDL(mpLowLevelGraphics);
+		mpLowLevelResources = new cLowLevelResourcesSDL((cLowLevelGraphicsSDL *)mpLowLevelGraphics);
+		mpLowLevelSound	= new cLowLevelSoundOpenAL();
+		mpLowLevelPhysics = new cLowLevelPhysicsNewton();
 	}
 
 	cSDLGameSetup::~cSDLGameSetup()
@@ -34,17 +34,17 @@ namespace hpl {
 		Log("- Deleting lowlevel stuff.\n");
 
 		Log("  Physics\n");
-		hplDelete(mpLowLevelPhysics);
+		delete mpLowLevelPhysics;
 		Log("  Sound\n");
-		hplDelete(mpLowLevelSound);
+		delete mpLowLevelSound;
 		Log("  Input\n");
-		hplDelete(mpLowLevelInput);
+		delete mpLowLevelInput;
 		Log("  Resources\n");
-		hplDelete(mpLowLevelResources);
+		delete mpLowLevelResources;
 		Log("  System\n");
-		hplDelete(mpLowLevelSystem);
+		delete mpLowLevelSystem;
 		Log("  Graphics\n");
-		hplDelete(mpLowLevelGraphics);
+		delete mpLowLevelGraphics;
 
 		SDL_Quit();
 	}
@@ -52,7 +52,7 @@ namespace hpl {
 	cScene* cSDLGameSetup::CreateScene(cGraphics* apGraphics, cResources *apResources, cSound* apSound,
 										cPhysics *apPhysics, cSystem *apSystem,cAI *apAI)
 	{
-		cScene *pScene = hplNew( cScene, (apGraphics,apResources, apSound,apPhysics, apSystem,apAI) );
+		cScene *pScene = new cScene(apGraphics,apResources, apSound,apPhysics, apSystem,apAI);
 		return pScene;
 	}
 
@@ -63,43 +63,43 @@ namespace hpl {
 	 */
 	cResources* cSDLGameSetup::CreateResources(cGraphics* apGraphics)
 	{
-		cResources *pResources = hplNew( cResources, (mpLowLevelResources,mpLowLevelGraphics) );
+		cResources *pResources = new cResources(mpLowLevelResources,mpLowLevelGraphics);
 		return pResources;
 	}
 
 	cInput* cSDLGameSetup::CreateInput(cGraphics* apGraphics)
 	{
-		cInput *pInput = hplNew( cInput, (mpLowLevelInput) );
+		cInput *pInput = new cInput(mpLowLevelInput);
 		return pInput;
 	}
 
 	cSystem* cSDLGameSetup::CreateSystem()
 	{
-		cSystem *pSystem = hplNew( cSystem, (mpLowLevelSystem) );
+		cSystem *pSystem = new cSystem(mpLowLevelSystem);
 		return pSystem;
 	}
 
 	cGraphics* cSDLGameSetup::CreateGraphics()
 	{
-		cGraphics *pGraphics = hplNew( cGraphics, (mpLowLevelGraphics,mpLowLevelResources) );
+		cGraphics *pGraphics = new cGraphics(mpLowLevelGraphics,mpLowLevelResources);
 		return pGraphics;
 	}
 
 	cSound* cSDLGameSetup::CreateSound()
 	{
-		cSound *pSound = hplNew( cSound, (mpLowLevelSound) );
+		cSound *pSound = new cSound(mpLowLevelSound);
 		return pSound;
 	}
 
 	cPhysics* cSDLGameSetup::CreatePhysics()
 	{
-		cPhysics *pPhysics = hplNew( cPhysics, (mpLowLevelPhysics) );
+		cPhysics *pPhysics = new cPhysics(mpLowLevelPhysics);
 		return pPhysics;
 	}
 
 	cAI* cSDLGameSetup::CreateAI()
 	{
-		cAI *pAI = hplNew( cAI,() );
+		cAI *pAI = new cAI();
 		return pAI;
 	}
 }

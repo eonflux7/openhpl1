@@ -79,12 +79,12 @@ cAttackHandler::cAttackHandler(cInit *apInit) : iUpdateable("AttackHandler")
 {
 	mpInit = apInit;
 
-	mpSplashBlockCheck = hplNew( cSplashDamageBlockCheck,(apInit) ); 
+	mpSplashBlockCheck = new cSplashDamageBlockCheck(apInit); 
 }
 
 cAttackHandler::~cAttackHandler(void)
 {
-	hplDelete( mpSplashBlockCheck );
+	delete mpSplashBlockCheck;
 }
 
 bool cAttackHandler::CreateLineAttack(const cVector3f& avStart, const cVector3f& avEnd, float afDamage, 

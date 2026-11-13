@@ -162,7 +162,7 @@ void cGameSoundEnvHandler::AddSectorSoundEnv(cSector *apSector, iSoundEnvironmen
 		return;
 	}
 
-	cSectorSoundEnv *pEnv = hplNew( cSectorSoundEnv, () );
+	cSectorSoundEnv *pEnv = new cSectorSoundEnv();
 	pEnv->mpSector = apSector;
 	pEnv->mpSoundEnv = apSoundEnv;
 	pEnv->mfFadeTime = afFadeTime;
@@ -205,7 +205,7 @@ void cGameSoundEnvHandler::LoadSaveData(cSavedWorld *apSavedWorld)
 	{
 		cSaveWorldSoundEnv &savedEnv = it.Next();
 
-		cSectorSoundEnv *pSectorEnv = hplNew( cSectorSoundEnv, () );
+		cSectorSoundEnv *pSectorEnv = new cSectorSoundEnv();
 		pSectorEnv->mpSoundEnv = savedEnv.msSoundEnv=="" ? nullptr : GetSoundEnv(savedEnv.msSoundEnv);
 		pSectorEnv->mpSector = savedEnv.msSector=="" ? nullptr : pContainer->GetSector(savedEnv.msSector);
 		pSectorEnv->mfFadeTime = savedEnv.mfFadeTime;

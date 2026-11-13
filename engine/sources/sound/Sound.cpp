@@ -20,8 +20,8 @@ namespace hpl {
 		Log("Exiting Sound Module\n");
 		Log("--------------------------------------------------------\n");
 
-		hplDelete(mpSoundHandler);
-		hplDelete(mpMusicHandler);
+		delete mpSoundHandler;
+		delete mpMusicHandler;
 
 		Log("--------------------------------------------------------\n\n");
 	}
@@ -59,8 +59,8 @@ namespace hpl {
 								abUseVoiceManagement, alMaxMonoSourceHint, alMaxStereoSourceHint,
 								alStreamingBufferSize, alStreamingBufferCount, abEnableLowLevelLog, asDeviceName);
 
-		mpSoundHandler = hplNew( cSoundHandler, (mpLowLevelSound, mpResources) );
-		mpMusicHandler = hplNew( cMusicHandler, (mpLowLevelSound, mpResources) );
+		mpSoundHandler = new cSoundHandler(mpLowLevelSound, mpResources);
+		mpMusicHandler = new cMusicHandler(mpLowLevelSound, mpResources);
 
 		Log("--------------------------------------------------------\n\n");
 	}

@@ -62,7 +62,7 @@ namespace hpl {
 
 	iParticleEmitter3D::~iParticleEmitter3D()
 	{
-		hplDelete(mpVtxBuffer);
+		delete mpVtxBuffer;
 
 		cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
 		if(mpSoftProgram) pProgramManager->Destroy(mpSoftProgram);

@@ -146,7 +146,7 @@ public:
 		mpParticleManager = nullptr; mpSoundManager = nullptr;
 		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
 		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
-		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
+		mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
 	}
 };
 
@@ -1078,10 +1078,10 @@ public:
 		mpParticleManager = nullptr; mpSoundManager = nullptr;
 		mpFontManager = nullptr; mpScriptManager = nullptr;
 		mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
-		mpVideoManager = nullptr; mpMeshManager = nullptr;
+		mpMeshManager = nullptr;
 		mpMaterialManager = nullptr; mpMeshLoaderHandler = nullptr;
-		mpTextureManager = hplNew(TestTextureManager, (apGraphics, this));
-		TestTexture *pFalloff = hplNew(TestTexture, ("core_falloff_linear.BMP", apLowLevelGraphics));
+		mpTextureManager = new TestTextureManager(apGraphics, this);
+		TestTexture *pFalloff = new TestTexture("core_falloff_linear.BMP", apLowLevelGraphics);
 		// Keep the fixture texture alive between light bursts; the manager
 		// releases the remaining users at teardown.
 		for(int i = 0; i < 256; ++i) pFalloff->IncUserCount();

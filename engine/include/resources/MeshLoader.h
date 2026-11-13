@@ -41,7 +41,6 @@ namespace hpl {
 					: mpLowLevelGraphics(apLowLevelGraphics){}
 
 		virtual cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags)=0;
-		virtual bool SaveMesh(cMesh* apMesh,const tString& asFile)=0;
 
 		virtual cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags)=0;
 

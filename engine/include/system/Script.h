@@ -6,13 +6,6 @@
 #include "resources/ResourceBase.h"
 #include <angelscript.h>
 
-#ifdef __GNUC__
-	#ifdef __ppc__
-		#define __stdcall
-	#else
-		#define __stdcall __attribute__((stdcall))
-	#endif
-#endif
 // Script Macros to build Generic wrappers if necessary
 	#define SCRIPT_DEFINE_FUNC(return, funcname) \
 			SCRIPT_FUNC_BEGIN(funcname, return, "") \

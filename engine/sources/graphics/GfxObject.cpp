@@ -34,6 +34,6 @@ namespace hpl {
 
 	cGfxObject::~cGfxObject()
 	{
-		hplDelete(mpMat);
+		delete mpMat;
 	}
 }

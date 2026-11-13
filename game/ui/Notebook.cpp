@@ -943,10 +943,10 @@ cNotebook::cNotebook(cInit *apInit)  : iUpdateable("Notebook")
 
 	mpGfxBackground = mpDrawer->CreateGfxObject("notebook_background.bmp","diffalpha2d");
 	
-    mStateMachine.AddState(hplNew( cNotebookState_Front,(mpInit,this) ),"Front",eNotebookState_Front,mpInit->mpGame->GetStepSize());
-	mStateMachine.AddState(hplNew( cNotebookState_TaskList,(mpInit,this) ),"TaskList",eNotebookState_TaskList,mpInit->mpGame->GetStepSize());
-	mStateMachine.AddState(hplNew( cNotebookState_NoteList,(mpInit,this) ),"NoteList",eNotebookState_NoteList,mpInit->mpGame->GetStepSize());
-	mStateMachine.AddState(hplNew( cNotebookState_Note,(mpInit,this) ),"Note",eNotebookState_Note,mpInit->mpGame->GetStepSize());
+    mStateMachine.AddState(new cNotebookState_Front(mpInit,this),"Front",eNotebookState_Front,mpInit->mpGame->GetStepSize());
+	mStateMachine.AddState(new cNotebookState_TaskList(mpInit,this),"TaskList",eNotebookState_TaskList,mpInit->mpGame->GetStepSize());
+	mStateMachine.AddState(new cNotebookState_NoteList(mpInit,this),"NoteList",eNotebookState_NoteList,mpInit->mpGame->GetStepSize());
+	mStateMachine.AddState(new cNotebookState_Note(mpInit,this),"Note",eNotebookState_Note,mpInit->mpGame->GetStepSize());
 
 	//Book types
 	mvBookTypes.resize(2);
@@ -1088,7 +1088,7 @@ tNotebook_NoteList_Iterator cNotebook::GetNoteIterator()
 
 cNotebook_Note* cNotebook::AddNote(const tWString &asName, const tString &asTextCat, const tString &asTextEntry)
 {
-	cNotebook_Note *pNote = hplNew( cNotebook_Note,() );
+	cNotebook_Note *pNote = new cNotebook_Note();
 	pNote->msName =asName;
 	
 	pNote->msTextCat = asTextCat;
@@ -1136,7 +1136,7 @@ void cNotebook::AddTask(const tString &asName, const tWString &asText)
 		}
 	}
 	
-	cNotebook_BookTask *pTask = hplNew( cNotebook_BookTask, () );
+	cNotebook_BookTask *pTask = new cNotebook_BookTask();
 	pTask->msName =asName;
 	pTask->msText =asText;
 
@@ -1155,7 +1155,7 @@ void cNotebook::RemoveTask(const tString &asName)
 		if(pTask->msName == asName)
 		{
 			it = mlstTasks.erase(it);
-			hplDelete( pTask );
+			delete pTask;
 		}
 		else
 		{
@@ -1259,7 +1259,7 @@ void cNotebook::LoadFromGlobal(cNotebook_GlobalSave *apSave)
 		cContainerListIterator<cNotebookTask_GlobalSave> it = apSave->mlstTasks.GetIterator();
 		while(it.HasNext())
 		{
-			cNotebook_BookTask *pTask = hplNew( cNotebook_BookTask, () );
+			cNotebook_BookTask *pTask = new cNotebook_BookTask();
 			cNotebookTask_GlobalSave& saveTask = it.Next();
 
 			pTask->msName = saveTask.msName;
@@ -1274,7 +1274,7 @@ void cNotebook::LoadFromGlobal(cNotebook_GlobalSave *apSave)
 		cContainerListIterator<cNotebookNote_GlobalSave> it = apSave->mlstNotes.GetIterator();
 		while(it.HasNext())
 		{
-			cNotebook_Note *pNote = hplNew( cNotebook_Note, () );
+			cNotebook_Note *pNote = new cNotebook_Note();
 			cNotebookNote_GlobalSave &saveNote = it.Next();
 
 			pNote->mbRead = saveNote.mbRead;

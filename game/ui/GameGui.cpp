@@ -329,7 +329,7 @@ void cGameGui::AddCallback(const tString &asWidget, eGuiMessage aMessage, const 
 	tGameGuiCallbackMapIt it = m_mapCallbacks.find(pWidget);
 	if(it == m_mapCallbacks.end())
 	{
-		pCallback = hplNew( cGameGuiCallback, () );
+		pCallback = new cGameGuiCallback();
 		m_mapCallbacks.insert(tGameGuiCallbackMap::value_type(pWidget, pCallback));
 	}
 	else
@@ -361,7 +361,7 @@ void cGameGui::CreateTextViewer(const tWString &asLabel, const tString &asTextCa
 								bool abNewNote)
 {
 	// The close button queues deletion through the GUI set.
-	hplNew( cGameGuiTextView, (mpInit, this, asLabel, asTextCat, asTextEntry, asCallback, abNewNote) );
+	new cGameGuiTextView(mpInit, this, asLabel, asTextCat, asTextEntry, asCallback, abNewNote);
 }
 
 cGuiGfxElement* cGameGui::GetImage(const tString &asName)
@@ -446,7 +446,7 @@ void cGameGui::LoadFontsFromElement(TiXmlElement *apElement)
 		cColor color = cString::ToColor(pElem->Attribute("Color"), cColor(1,1));
 		eGuiMaterial material = ToGuiMaterial(pElem->Attribute("Material"));
 
-		cGuiSkinFont *pFont = hplNew( cGuiSkinFont, (mpGui) );
+		cGuiSkinFont *pFont = new cGuiSkinFont(mpGui);
 
 		pFont->mpFont = mpGui->GetResources()->GetFontManager()->CreateFontData(sFile);
 		pFont->mvSize = vSize;
@@ -455,7 +455,7 @@ void cGameGui::LoadFontsFromElement(TiXmlElement *apElement)
 
 		if(m_mapFonts.insert(tGameGuiFontMap::value_type(sName, pFont)).second == false)
 		{
-			hplDelete(pFont);
+			delete pFont;
 		}
 	}
 }
@@ -807,11 +807,11 @@ void cGameGuiHandler::OpenScreenGui(const tString &asFile)
 	// One screen at a time
 	if(mpScreenGui) DestroyScreenGui();
 
-	mpScreenGui = hplNew( cGameGui, (mpInit, "ScreenGui") );
+	mpScreenGui = new cGameGui(mpInit, "ScreenGui");
 
 	if(mpScreenGui->LoadFromFile(asFile) == false)
 	{
-		hplDelete(mpScreenGui);
+		delete mpScreenGui;
 		mpScreenGui = nullptr;
 		return;
 	}
@@ -892,7 +892,7 @@ void cGameGuiHandler::DestroyScreenGui()
 		pScene->SetUpdateMap(true);
 	}
 
-	hplDelete(mpScreenGui);
+	delete mpScreenGui;
 	mpScreenGui = nullptr;
 
 	mpGui->SetFocus(nullptr);

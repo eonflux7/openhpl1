@@ -102,7 +102,7 @@ namespace hpl {
 				if(pBmp==nullptr){
 					Error("Couldn't load bitmap '%s'!\n",vPaths[i].c_str());
 
-					for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
+					for(int j=0;j<(int)vBitmaps.size();j++) delete vBitmaps[j];
 
 					EndLoad();
 					return nullptr;
@@ -120,14 +120,14 @@ namespace hpl {
 			if(pTexture->CreateAnimFromBitmapVec(&vBitmaps)==false)
 			{
 				Error("Couldn't create animated texture '%s'!\n", asName.c_str());
-				hplDelete(pTexture);
-				for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
+				delete pTexture;
+				for(int j=0;j<(int)vBitmaps.size();j++) delete vBitmaps[j];
 				EndLoad();
 				return nullptr;
 			}
 
 			//Bitmaps no longer needed.
-			for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
+			for(int j=0;j<(int)vBitmaps.size();j++) delete vBitmaps[j];
 
 			AddResource(pTexture);
 		}
@@ -181,7 +181,7 @@ namespace hpl {
 				iBitmap2D* pBmp = mpResources->GetLowLevel()->LoadBitmap2D(vPaths[i]);
 				if(pBmp==nullptr){
 					Error("Couldn't load bitmap '%s'!\n",vPaths[i].c_str());
-					for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
+					for(int j=0;j<(int)vBitmaps.size();j++) delete vBitmaps[j];
 					EndLoad();
 					return nullptr;
 				}
@@ -197,14 +197,14 @@ namespace hpl {
 			if(pTexture->CreateCubeFromBitmapVec(&vBitmaps)==false)
 			{
 				Error("Couldn't create cubemap '%s'!\n", sName.c_str());
-				hplDelete(pTexture);
-				for(int j=0;j<(int)vBitmaps.size();j++) hplDelete(vBitmaps[j]);
+				delete pTexture;
+				for(int j=0;j<(int)vBitmaps.size();j++) delete vBitmaps[j];
 				EndLoad();
 				return nullptr;
 			}
 
 			//Bitmaps no longer needed.
-			for(int j=0;j<(int)vBitmaps.size();j++)	hplDelete(vBitmaps[j]);
+			for(int j=0;j<(int)vBitmaps.size();j++)	delete vBitmaps[j];
 
 			AddResource(pTexture);
 		}
@@ -233,7 +233,7 @@ namespace hpl {
 		if(apResource->HasUsers()==false)
 		{
 			RemoveResource(apResource);
-			hplDelete(apResource);
+			delete apResource;
 		}
 	}
 
@@ -278,14 +278,14 @@ namespace hpl {
 			pTexture->SetSizeLevel(alTextureSizeLevel);
 			if(pTexture->CreateFromBitmap(pBmp)==false)
 			{
-				hplDelete(pTexture);
-				hplDelete(pBmp);
+				delete pTexture;
+				delete pBmp;
 				EndLoad();
 				return nullptr;
 			}
 
 			//Bitmap is no longer needed so delete it.
-			hplDelete(pBmp);
+			delete pBmp;
 
 			AddResource(pTexture);
 		}

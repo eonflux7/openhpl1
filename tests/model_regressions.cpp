@@ -422,8 +422,8 @@ static void TestBlenderStyleGltf(const fs::path &aDir)
 	Check(pTrack && pTrack->GetKeyFrameNum() == 2, "animated bone keys");
 	cQuaternion qEnd = pTrack->GetKeyFrame(1)->rotation;
 	Check(Near(std::fabs(qEnd.v.z), 0.70710677f) && Near(pTrack->GetKeyFrame(1)->trans.y, 0), "bone keys relative to the bind pose");
-	hplDelete(pAnimation);
-	hplDelete(pSkeleton);
+	delete pAnimation;
+	delete pSkeleton;
 }
 
 void RunModelRegressions(const fs::path &aDir)

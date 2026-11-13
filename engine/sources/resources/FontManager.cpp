@@ -58,7 +58,7 @@ namespace hpl {
 			if(sExt == "ttf")
 			{
 				if(pFont->CreateFromFontFile(sPath,alSize,alFirstChar,alLastChar)==false){
-					hplDelete(pFont);
+					delete pFont;
 					EndLoad();
 					return nullptr;
 				}
@@ -67,7 +67,7 @@ namespace hpl {
 			else if(sExt == "fnt")
 			{
 				if(pFont->CreateFromBitmapFile(sPath)==false){
-					hplDelete(pFont);
+					delete pFont;
 					EndLoad();
 					return nullptr;
 				}
@@ -82,7 +82,7 @@ namespace hpl {
 			else
 			{
 				Error("Font '%s' has an unkown extension!\n",asName.c_str());
-				hplDelete(pFont);
+				delete pFont;
 				EndLoad();
 				return nullptr;
 			}
@@ -149,7 +149,7 @@ namespace hpl {
 
 		if(apResource->HasUsers()==false){
 			RemoveResource(apResource);
-			hplDelete(apResource);
+			delete apResource;
 		}
 	}
 }

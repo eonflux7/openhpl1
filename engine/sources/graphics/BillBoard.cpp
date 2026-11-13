@@ -69,8 +69,8 @@ namespace hpl {
 	cBillboard::~cBillboard()
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
-		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
-		if(mpShaftBuffer) hplDelete(mpShaftBuffer);
+		if(mpVtxBuffer) delete mpVtxBuffer;
+		if(mpShaftBuffer) delete mpShaftBuffer;
 
 		if(mpHaloProgram) mpProgramManager->Destroy(mpHaloProgram);
 		if(mpShaftProgram) mpProgramManager->Destroy(mpShaftProgram);
@@ -282,7 +282,7 @@ namespace hpl {
 				Warning("Billboard '%s': the picture '%s' could not be read for its halo\n",
 						msName.c_str(), sName.c_str());
 			}
-			if(pBmp) hplDelete(pBmp);
+			if(pBmp) delete pBmp;
 
 			it = mapProfiles.insert(std::make_pair(sPath, vProfile)).first;
 		}
@@ -316,7 +316,7 @@ namespace hpl {
 
 			if(mpShaftBuffer==nullptr || mvShaftBufferSize != mvSize)
 			{
-				if(mpShaftBuffer) hplDelete(mpShaftBuffer);
+				if(mpShaftBuffer) delete mpShaftBuffer;
 				mpShaftBuffer = mpMeshCreator->CreateBoxVertexBuffer(cVector3f(mvSize.x, mvSize.y, mvSize.x));
 				mvShaftBufferSize = mvSize;
 			}
@@ -421,7 +421,7 @@ namespace hpl {
 		tString sPath = mpFileSearcher->GetFilePath(sNewFile);
 		if(sPath != "")
 		{
-			TiXmlDocument *pDoc = hplNew( TiXmlDocument, (sPath.c_str()) );
+			TiXmlDocument *pDoc = new TiXmlDocument(sPath.c_str());
 			if(pDoc->LoadFile())
 			{
 				TiXmlElement *pRootElem = pDoc->RootElement();
@@ -473,7 +473,7 @@ namespace hpl {
 			{
 				Error("Couldn't load file '%s'\n",sNewFile.c_str());
 			}
-			hplDelete(pDoc);
+			delete pDoc;
 		}
 		else
 		{
@@ -549,7 +549,7 @@ namespace hpl {
 
 	iSaveData* cBillboard::CreateSaveData()
 	{
-		return hplNew( cSaveData_cBillboard, () );
+		return new cSaveData_cBillboard();
 	}
 
 	void cBillboard::SaveToSaveData(iSaveData *apSaveData)

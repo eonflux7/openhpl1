@@ -62,7 +62,7 @@ namespace hpl {
 
 	cCamera3D* cScene::CreateCamera3D(eCameraMoveMode aMoveMode)
 	{
-		cCamera3D *pCamera = hplNew( cCamera3D, () );
+		cCamera3D *pCamera = new cCamera3D();
 		pCamera->SetAspect(mpGraphics->GetLowLevel()->GetScreenSize().x /
 							mpGraphics->GetLowLevel()->GetScreenSize().y);
 
@@ -77,7 +77,7 @@ namespace hpl {
 		for(tCameraListIt it=mlstCamera.begin(); it!=mlstCamera.end();it++)
 		{
 			if(*it == apCam){
-				hplDelete(*it);
+				delete *it;
 				mlstCamera.erase(it);
 				break;
 			}
@@ -335,8 +335,8 @@ namespace hpl {
 
 	cWorld3D* cScene::CreateWorld3D(const tString& asName)
 	{
-		cWorld3D* pWorld = hplNew( cWorld3D, (asName,mpGraphics,mpResources,mpSound,mpPhysics,this,
-										mpSystem,mpAI) );
+		cWorld3D* pWorld = new cWorld3D(asName,mpGraphics,mpResources,mpSound,mpPhysics,this,
+										mpSystem,mpAI);
 
 		mlstWorld3D.push_back(pWorld);
 

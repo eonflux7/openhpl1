@@ -18,12 +18,12 @@ int hplMain(const tString& asCommandLine)
 	// Which game, and into its folder
 	if(cGameLauncher::Run(asCommandLine)==false) return 0;
 
-	cInit *pInit = hplNew( cInit, () );
+	cInit *pInit = new cInit();
 
 	bool bRet = pInit->Init(asCommandLine);
 	
 	if(bRet==false){
-		hplDelete( pInit->mpGame );
+		delete pInit->mpGame;
 		CreateMessageBoxW(_W("Error!"),pInit->msErrorMessage.c_str());
 		OpenBrowserWindow(_W("http://support.frictionalgames.com"));
 		return 1;
@@ -37,9 +37,7 @@ int hplMain(const tString& asCommandLine)
 
 	pInit->Exit();
 
-	hplDelete( pInit );
-	
-	cMemoryManager::LogResults();
+	delete pInit;
 
 	// Another game asked for in the menu: started in this process's place
 	if(bAutoRunFailed==false) cInit::RunRequestedGame();

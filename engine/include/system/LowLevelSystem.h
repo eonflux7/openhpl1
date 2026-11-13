@@ -3,7 +3,6 @@
 #ifndef HPL_LOWLEVELSYSTEM_H
 #define HPL_LOWLEVELSYSTEM_H
 
-#include "system/MemoryManager.h"
 #include "system/SystemTypes.h"
 
 
@@ -61,11 +60,8 @@ namespace hpl {
 	extern bool LinkFile(const tWString& asPointsTo, const tWString& asLink);
 	extern bool RenameFile(const tWString& asFrom, const tWString& asTo);
 	extern cDate FileModifiedDate(const tWString& asFilePath);
-	extern cDate FileCreationDate(const tWString& asFilePath);
 
 	extern void SetWindowCaption(const tString &asName);
-
-	extern bool HasWindowFocus(const tWString &asWindowCaption);
 
 	extern unsigned long GetApplicationTime();
 	/**

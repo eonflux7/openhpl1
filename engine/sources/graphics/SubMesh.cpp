@@ -10,7 +10,6 @@
 #include "graphics/Bone.h"
 #include "math/Math.h"
 
-#include "system/MemoryManager.h"
 
 #include <string.h>
 #include <cmath>
@@ -42,10 +41,10 @@ namespace hpl {
 	cSubMesh::~cSubMesh()
 	{
 		if(mpMaterial)mpMaterialManager->Destroy(mpMaterial);
-		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
+		if(mpVtxBuffer) delete mpVtxBuffer;
 
-		if(mpVertexBones) hplDeleteArray(mpVertexBones);
-		if(mpVertexWeights) hplDeleteArray(mpVertexWeights);
+		if(mpVertexBones) delete [] mpVertexBones;
+		if(mpVertexWeights) delete [] mpVertexWeights;
 	}
 
 	void cSubMesh::SetMaterial(iMaterial* apMaterial)
@@ -97,10 +96,10 @@ namespace hpl {
 
 	void cSubMesh::CompileBonePairs()
 	{
-		if(mpVertexWeights) hplDeleteArray(mpVertexWeights);
-		if(mpVertexBones) hplDeleteArray(mpVertexBones);
-		mpVertexWeights = hplNewArray( float, 4 * mpVtxBuffer->GetVertexNum());
-		mpVertexBones = hplNewArray( unsigned char, 4 * mpVtxBuffer->GetVertexNum()) ;
+		if(mpVertexWeights) delete [] mpVertexWeights;
+		if(mpVertexBones) delete [] mpVertexBones;
+		mpVertexWeights = new float[4 * mpVtxBuffer->GetVertexNum()];
+		mpVertexBones = new unsigned char[4 * mpVtxBuffer->GetVertexNum()] ;
 		memset(mpVertexWeights,0,4 * mpVtxBuffer->GetVertexNum()*sizeof(float));
 		memset(mpVertexBones,0,4 * mpVtxBuffer->GetVertexNum()*sizeof(unsigned char));
 

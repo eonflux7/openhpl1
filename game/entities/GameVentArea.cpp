@@ -23,7 +23,7 @@ cAreaLoader_GameVentArea::~cAreaLoader_GameVentArea()
 iEntity3D* cAreaLoader_GameVentArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
 {
-	cGameVentArea *pArea = hplNew( cGameVentArea, (mpInit,asName) );
+	cGameVentArea *pArea = new cGameVentArea(mpInit,asName);
 
 	pArea->m_mtxOnLoadTransform = a_mtxTransform;
 
@@ -150,7 +150,7 @@ iGameEntity* cGameVentArea_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameVentArea::CreateSaveData()
 {
-	return hplNew( cGameVentArea_SaveData, () );
+	return new cGameVentArea_SaveData();
 }
 
 void cGameVentArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)

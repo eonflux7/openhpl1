@@ -293,7 +293,7 @@ namespace hpl {
 
 		//Create Mesh
 		tString sMeshName = cString::GetFileName(asFile);
-		cMesh *pMesh = hplNew( cMesh, (sMeshName,mpMaterialManager,mpAnimationManager) );
+		cMesh *pMesh = new cMesh(sMeshName,mpMaterialManager,mpAnimationManager);
 
 		//Set the skeleton to the mesh
 		if(pSkeleton) pMesh->SetSkeleton(pSkeleton);
@@ -847,7 +847,7 @@ namespace hpl {
 		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
 		{
-			pAnimation = hplNew( cAnimation, (pMesh->GetName(),cString::GetFileName(asFile)) );
+			pAnimation = new cAnimation(pMesh->GetName(),cString::GetFileName(asFile));
 
 			pAnimation->SetAnimationName("Default");
 			pAnimation->SetLength(ColladaScene.mfDeltaTime);
@@ -921,7 +921,7 @@ namespace hpl {
 
 	cSkeleton *cMeshLoaderCollada::CreateSkeleton(tColladaControllerVec &avControllers, cColladaScene &aScene)
 	{
-		cSkeleton *pSkeleton = hplNew(cSkeleton, ());
+		cSkeleton *pSkeleton = new cSkeleton();
 
 		tColladaNodeListIt it = aScene.mRoot.mlstChildren.begin();
 		for(; it != aScene.mRoot.mlstChildren.end(); it++)
@@ -995,7 +995,7 @@ namespace hpl {
 		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
 		{
-			pAnimation = hplNew( cAnimation, ("Default",cString::GetFileName(asFile)) );
+			pAnimation = new cAnimation("Default",cString::GetFileName(asFile));
 
 			pAnimation->SetLength(ColladaScene.mfDeltaTime);
 			pAnimation->ResizeTracks((int)vColladaAnimations.size());
@@ -1018,7 +1018,7 @@ namespace hpl {
 			}
 		}
 
-		if(pSkeleton) hplDelete(pSkeleton);
+		if(pSkeleton) delete pSkeleton;
 
 		return pAnimation;
 	}
@@ -1259,7 +1259,7 @@ namespace hpl {
 			bDrawn = true;
 
 			//Create mesh and sub mesh
-			pMesh = hplNew( cMesh, (apNode->msName, mpMaterialManager,mpAnimationManager) );
+			pMesh = new cMesh(apNode->msName, mpMaterialManager,mpAnimationManager);
 			pSubMesh = pMesh->CreateSubMesh(apNode->msName+ "_Sub");
 
 			//Create vertex buffer
@@ -1286,7 +1286,7 @@ namespace hpl {
 			{
 				Error("Couldn't create material '%s' for object '%s'\n",sMatName.c_str(),
 					apNode->msName.c_str());
-				hplDelete(pMesh);
+				delete pMesh;
 				return nullptr;
 			}
 
@@ -1362,7 +1362,7 @@ namespace hpl {
 			}
 
 			if(bDrawn==false){
-				hplDelete(pVtxBuffer);
+				delete pVtxBuffer;
 			}
 
 		}
@@ -2078,7 +2078,7 @@ namespace hpl {
 				cColladaGeometry* pGeom = GetGeometry(apNode->msSource, avColladaGeometries);
 				if(pGeom)
 				{
-					cPortal *pPortal = hplNew( cPortal, (lNum, apWorld->GetPortalContainer()) );
+					cPortal *pPortal = new cPortal(lNum, apWorld->GetPortalContainer());
 
 					//Set target
 					pPortal->SetTargetSector(sTargetSector);

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/LowLevelResourcesSDL.h"
 #include "impl/SDLBitmap2D.h"
-#include "impl/MeshLoaderMSH.h"
 #include "impl/MeshLoaderCollada.h"
 #ifdef INCLUDE_THEORA
 #endif
@@ -12,7 +11,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include "resources/MeshLoaderHandler.h"
-#include "resources/VideoManager.h"
 
 namespace hpl {
 
@@ -81,14 +79,7 @@ namespace hpl {
 
 	void cLowLevelResourcesSDL::AddMeshLoaders(cMeshLoaderHandler* apHandler)
 	{
-		apHandler->AddLoader(hplNew( cMeshLoaderMSH,(mpLowLevelGraphics)));
-		apHandler->AddLoader(hplNew( cMeshLoaderCollada,(mpLowLevelGraphics)));
-	}
-
-	void cLowLevelResourcesSDL::AddVideoLoaders(cVideoManager* apManager)
-	{
-		//No video formats: Overture has no videos, and the Theora loader
-		//was compiled out upstream too.
+		apHandler->AddLoader(new cMeshLoaderCollada(mpLowLevelGraphics));
 	}
 
 	//This is a windows implementation of this...I think.

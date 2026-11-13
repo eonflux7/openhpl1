@@ -27,8 +27,8 @@ namespace hpl {
 		cGpuProgramManager* apProgramManager,
 		eMaterialPicture aPicture, cRenderer3D *apRenderer3D)
 	{
-		return hplNew( cMaterial_DiffuseSpec, (asName,apLowLevelGraphics,
+		return new cMaterial_DiffuseSpec(asName,apLowLevelGraphics,
 								apImageManager,apTextureManager,
-								apProgramManager,aPicture,apRenderer3D) );
+								apProgramManager,aPicture,apRenderer3D);
 	}
 }

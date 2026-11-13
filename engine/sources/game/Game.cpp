@@ -163,7 +163,7 @@ namespace hpl {
 		mpAI = mpGameSetup->CreateAI();
 
 		Log(" Creating gui module\n");
-		mpGui = hplNew(cGui,());
+		mpGui = new cGui();
 
 		Log(" Creating scene module\n");
 		mpScene = mpGameSetup->CreateScene(mpGraphics, mpResources, mpSound,mpPhysics,mpSystem,mpAI);
@@ -213,7 +213,7 @@ namespace hpl {
 		Log("--------------------------------------------------------\n");
 		//Create the updatehandler
 		Log(" Adding engine updates\n");
-		mpUpdater = hplNew( cUpdater,(mpSystem->GetLowLevel()));
+		mpUpdater = new cUpdater(mpSystem->GetLowLevel());
 
 		//Add some loaded modules to the updater
 		mpUpdater->AddGlobalUpdate(mpInput);
@@ -247,7 +247,7 @@ namespace hpl {
 		mbLimitFPS = true;
 		mlMaxFPS = 0;
 
-		mpFPSCounter = hplNew( cFPSCounter,(mpSystem->GetLowLevel()) );
+		mpFPSCounter = new cFPSCounter(mpSystem->GetLowLevel());
 		Log("--------------------------------------------------------\n\n");
 
 		Log("User Initialization\n");
@@ -258,23 +258,23 @@ namespace hpl {
 	{
 		Log("--------------------------------------------------------\n\n");
 
-		hplDelete(mpLogicTimer);
-		hplDelete(mpFPSCounter);
+		delete mpLogicTimer;
+		delete mpFPSCounter;
 
-		hplDelete(mpUpdater);
+		delete mpUpdater;
 
-		hplDelete(mpGui);
-		hplDelete(mpScene);
-		hplDelete(mpInput);
-		hplDelete(mpSound);
-		hplDelete(mpGraphics);
-		hplDelete(mpResources);
-		hplDelete(mpPhysics);
-		hplDelete(mpAI);
-		hplDelete(mpSystem);
+		delete mpGui;
+		delete mpScene;
+		delete mpInput;
+		delete mpSound;
+		delete mpGraphics;
+		delete mpResources;
+		delete mpPhysics;
+		delete mpAI;
+		delete mpSystem;
 
 		Log(" Deleting game setup provided by user\n");
-		hplDelete(mpGameSetup);
+		delete mpGameSetup;
 
 		Log("HPL Exit was successful!\n");
 	}

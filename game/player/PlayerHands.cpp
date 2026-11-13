@@ -431,10 +431,10 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	}
 	
 	//Load the document
-	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sPath.c_str()) );
+	TiXmlDocument *pXmlDoc = new TiXmlDocument(sPath.c_str());
 	if(pXmlDoc->LoadFile()==false){
 		Error("Couldn't load XML document '%s'\n",sPath.c_str());
-		hplDelete( pXmlDoc );
+		delete pXmlDoc;
 		return false;
 	}
 	
@@ -442,7 +442,7 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==nullptr){
 		Error("Couldn't load root from XML document '%s'\n",sPath.c_str());
-		hplDelete( pXmlDoc );
+		delete pXmlDoc;
 		return false;
 	}
 	
@@ -450,7 +450,7 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
 	if(pMainElem==nullptr){
 		Error("Couldn't load MAIN element from XML document '%s'\n",sPath.c_str());
-		hplDelete( pXmlDoc ); 
+		delete pXmlDoc; 
 		return false;
 	}
 
@@ -459,9 +459,9 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	
 	switch(handType)
 	{
-	case ePlayerHandType_Normal:		pHudModel = hplNew( cHudModel_Normal,() ); break;
-	case ePlayerHandType_WeaponMelee:	pHudModel = hplNew( cHudModel_WeaponMelee,() ); break;
-	case ePlayerHandType_Throw:			pHudModel = hplNew( cHudModel_Throw,() ); break;
+	case ePlayerHandType_Normal:		pHudModel = new cHudModel_Normal(); break;
+	case ePlayerHandType_WeaponMelee:	pHudModel = new cHudModel_WeaponMelee(); break;
+	case ePlayerHandType_Throw:			pHudModel = new cHudModel_Throw(); break;
 	}
 
 	pHudModel->msName = cString::ToString(pMainElem->Attribute("Name"),"");
@@ -481,7 +481,7 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 
 	AddHudModel(pHudModel);
 
-	hplDelete( pXmlDoc );
+	delete pXmlDoc;
 	return true;
 }
 

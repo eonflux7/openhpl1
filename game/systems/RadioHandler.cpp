@@ -41,7 +41,7 @@ void cRadioHandler::Add(const tWString& asText, const tString& asSound)
 {
 	if(mlstQueuedMessages.empty())msPrevText = _W("");
 
-	cRadioMessage *pMessage = hplNew( cRadioMessage, (asText, asSound) );
+	cRadioMessage *pMessage = new cRadioMessage(asText, asSound);
 	mlstQueuedMessages.push_back(pMessage);
 }
 
@@ -50,7 +50,7 @@ void cRadioHandler::Add(const tWString& asText, const tString& asSound, iGameEnt
 {
 	if(mlstQueuedMessages.empty())msPrevText = _W("");
 
-	cRadioMessage *pMessage = hplNew( cRadioMessage, (asText, asSound) );
+	cRadioMessage *pMessage = new cRadioMessage(asText, asSound);
 	pMessage->mpEntity = apEntity;
 	pMessage->mfFullVolumeDistance = afFullVolumeDistance;
 	pMessage->mfSilentDistance = afSilentDistance;
@@ -82,7 +82,7 @@ void cRadioHandler::StopAll(float afFadeSpeed)
 			pChannel->Stop();
 		}
 
-		hplDelete( mpCurrentMessage );
+		delete mpCurrentMessage;
 		mpCurrentMessage = nullptr;
 	}
 }
@@ -95,7 +95,7 @@ void cRadioHandler::OnWorldExit()
 		if(mpSoundHandler->IsValid(mpCurrentMessage->mpChannel))
 			mpCurrentMessage->mpChannel->Stop();
 
-		hplDelete( mpCurrentMessage );
+		delete mpCurrentMessage;
 		mpCurrentMessage = nullptr;
 
 		msCurrentText = _W("");
@@ -108,7 +108,7 @@ void cRadioHandler::OnWorldExit()
 		cRadioMessage *pMessage = *it;
 		if(pMessage->mpEntity)
 		{
-			hplDelete( pMessage );
+			delete pMessage;
 			it = mlstQueuedMessages.erase(it);
 		}
 		else
@@ -162,7 +162,7 @@ void cRadioHandler::NextMessage()
 		if(mpSoundHandler->IsValid(mpCurrentMessage->mpChannel)) mpCurrentMessage->mpChannel->Stop();
 
 		msPrevText = mpCurrentMessage->msText;
-		hplDelete( mpCurrentMessage );
+		delete mpCurrentMessage;
 		mpCurrentMessage = nullptr;
 		msCurrentText = _W("");
 	}
@@ -213,7 +213,7 @@ void cRadioHandler::Update(float afTimeStep)
 		{
 			msCurrentText = _W("");
 			msPrevText = mpCurrentMessage->msText;
-			hplDelete( mpCurrentMessage );
+			delete mpCurrentMessage;
 			mpCurrentMessage = nullptr;
 
 			if(mlstQueuedMessages.empty()) RunOnEndCallback();

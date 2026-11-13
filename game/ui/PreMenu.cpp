@@ -39,7 +39,7 @@ void cPreMenu::LoadConfig()
 {
 	//Load the document
 	tString sConfigFile = cInit::GetStartupConfigFile();
-	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sConfigFile.c_str()) );
+	TiXmlDocument *pXmlDoc = new TiXmlDocument(sConfigFile.c_str());
 	if(pXmlDoc->LoadFile()==false){
 		Error("Couldn't load XML document '%s'\n",sConfigFile.c_str());
 		
@@ -82,7 +82,7 @@ void cPreMenu::LoadConfig()
 	}
 
 
-	hplDelete( pXmlDoc );
+	delete pXmlDoc;
 }
 
 void cPreMenu::Reset()

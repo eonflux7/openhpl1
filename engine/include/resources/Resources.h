@@ -32,7 +32,6 @@ namespace hpl {
 	class cSoundEntityManager;
 	class cAnimationManager;
 	class cMeshManager;
-	class cVideoManager;
 	class cConfigFile;
 	class cSound;
 	class cMeshLoaderHandler;
@@ -133,7 +132,6 @@ namespace hpl {
 		cMeshLoaderHandler* GetMeshLoaderHandler(){ return mpMeshLoaderHandler;}
 		cSoundEntityManager* GetSoundEntityManager(){ return mpSoundEntityManager;}
 		cAnimationManager* GetAnimationManager(){ return mpAnimationManager;}
-		cVideoManager* GetVideoManager(){ return mpVideoManager;}
 
 		iLowLevelSystem* GetLowLevelSystem(){ return mpLowLevelSystem;}
 
@@ -154,7 +152,6 @@ namespace hpl {
 		cMaterialManager* mpMaterialManager;
 		cSoundEntityManager* mpSoundEntityManager;
 		cAnimationManager *mpAnimationManager;
-		cVideoManager *mpVideoManager;
 
 		cLanguageFile *mpLanguageFile;
 

@@ -4,18 +4,17 @@
 
 #include "ai/AINodeGenerator.h"
 #include "system/LowLevelSystem.h"
-#include "system/MemoryManager.h"
 
 namespace hpl {
 
 	cAI::cAI() : iUpdateable("HPL_AI")
 	{
-		mpAINodeGenerator = hplNew( cAINodeGenerator, () );
+		mpAINodeGenerator = new cAINodeGenerator();
 	}
 
 	cAI::~cAI()
 	{
-		hplDelete(mpAINodeGenerator);
+		delete mpAINodeGenerator;
 	}
 
 	void cAI::Reset()

@@ -212,13 +212,13 @@ namespace hpl {
 			for(size_t i=0; i< mvData.size(); ++i)
 			{
 				if(mpCreateFunc)	mvData[i] = mpCreateFunc();
-				else				mvData[i] = hplNew(T, () );
+				else				mvData[i] = new T();
 			}
 		}
 
 		~cMemoryPool()
 		{
-			for(size_t i=0; i< mvData.size(); ++i) hplDelete(mvData[i]);
+			for(size_t i=0; i< mvData.size(); ++i) delete mvData[i];
 		}
 
 		T* Create()
@@ -234,7 +234,7 @@ namespace hpl {
 				for(size_t i=lStart; i< mvData.size(); ++i)
 				{
 					if(mpCreateFunc)	mvData[i] = mpCreateFunc();
-					else				mvData[i] = hplNew(T,());
+					else				mvData[i] = new T();
 				}
 
 				++mlCurrentData;
@@ -259,7 +259,7 @@ namespace hpl {
 		{
 			for(size_t i=mlCurrentData+1; i< mvData.size(); ++i)
 			{
-				hplDelete(mvData[i]);
+				delete mvData[i];
 			}
 			mvData.resize(mlCurrentData+1);
 		}
@@ -297,7 +297,7 @@ namespace hpl {
 				break;
 			}
 		}
-		hplDelete(pObject);
+		delete pObject;
 	}
 
 	template <class CONT>
@@ -318,7 +318,7 @@ namespace hpl {
 		typename T::iterator it = aCont.begin();
 		for(;it != aCont.end();it++)
 		{
-			hplDelete(*it);
+			delete *it;
 		}
 		aCont.clear();
 	}
@@ -328,7 +328,7 @@ namespace hpl {
 		typename T::iterator it = aCont.begin();
 		for(;it != aCont.end();it++)
 		{
-			hplDelete(it->second);
+			delete it->second;
 		}
 		aCont.clear();
 	}

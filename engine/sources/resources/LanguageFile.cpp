@@ -23,10 +23,10 @@ namespace hpl {
 
 	bool cLanguageFile::LoadFromFile(const tString asFile)
 	{
-		TiXmlDocument *pDoc = hplNew(TiXmlDocument,(asFile.c_str()) );
+		TiXmlDocument *pDoc = new TiXmlDocument(asFile.c_str());
 		if(pDoc->LoadFile()==false)
 		{
-			hplDelete(pDoc);
+			delete pDoc;
 			Error("Couldn't find language file '%s'\n",asFile.c_str());
 			return false;
 		}
@@ -53,7 +53,7 @@ namespace hpl {
 		TiXmlElement *pCatElem = pRootElem->FirstChildElement("CATEGORY");
 		for(; pCatElem != nullptr; pCatElem = pCatElem->NextSiblingElement("CATEGORY"))
 		{
-			cLanguageCategory *pCategory = hplNew( cLanguageCategory, () );
+			cLanguageCategory *pCategory = new cLanguageCategory();
 			tString sCatName = pCatElem->Attribute("Name");
 
 			m_mapCategories.insert(tLanguageCategoryMap::value_type(sCatName, pCategory));
@@ -62,7 +62,7 @@ namespace hpl {
 			TiXmlElement *pEntryElem = pCatElem->FirstChildElement("Entry");
 			for(; pEntryElem != nullptr; pEntryElem = pEntryElem->NextSiblingElement("Entry"))
 			{
-				cLanguageEntry *pEntry = hplNew( cLanguageEntry, () );
+				cLanguageEntry *pEntry = new cLanguageEntry();
 				tString sEntryName = pEntryElem->Attribute("Name");
 
 				if(pEntryElem->FirstChild()==nullptr)
@@ -141,12 +141,12 @@ namespace hpl {
 				std::pair<tLanguageEntryMap::iterator,bool> ret = pCategory->m_mapEntries.insert(tLanguageEntryMap::value_type(sEntryName,pEntry));
 				if(ret.second==false){
 					Warning("Language entry '%s' in category '%s' already exists!\n",sEntryName.c_str(), sCatName.c_str());
-					hplDelete(pEntry);
+					delete pEntry;
 				}
 			}
 		}
 
-		hplDelete(pDoc);
+		delete pDoc;
 
 
 		return true;

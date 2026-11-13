@@ -223,7 +223,7 @@ namespace hpl {
 		tString sMapPath = pFileSearcher->GetFilePath(mpWorld->GetFileName());
 		tString sSaveFile = cString::SetFileExt(sMapPath,"ainodes");
 
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (sSaveFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(sSaveFile.c_str());
 
 		TiXmlElement *pRootElem = static_cast<TiXmlElement*>(pXmlDoc->InsertEndChild(TiXmlElement("AiNodes")));
 
@@ -244,7 +244,7 @@ namespace hpl {
 		{
 			Error("Couldn't save XML file %s\n",sSaveFile.c_str());
 		}
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 	}
 
 	void cAINodeGenerator::LoadFromFile()
@@ -258,11 +258,11 @@ namespace hpl {
 		tString sMapPath = pFileSearcher->GetFilePath(mpWorld->GetFileName());
 		tString sSaveFile = cString::SetFileExt(sMapPath,"ainodes");
 
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (sSaveFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(sSaveFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Warning("Couldn't open XML file %s\n",sSaveFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return;
 		}
 
@@ -277,6 +277,6 @@ namespace hpl {
 			mpNodeList->push_back(cTempAiNode(vPos,sName));
 		}
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 	}
 }

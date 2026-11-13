@@ -98,7 +98,7 @@ namespace hpl {
 	void iPhysicsBody::Destroy()
 	{
 
-		if(mpNode) hplDelete(mpNode);
+		if(mpNode) delete mpNode;
 		mpWorld->DestroyShape(mpShape);
 
 		for(int i=0; i<(int)mvJoints.size(); i++)
@@ -241,7 +241,7 @@ namespace hpl {
 	{
 		if(mpNode) return mpNode;
 
-		mpNode = hplNew( cNode3D, () );
+		mpNode = new cNode3D();
 		return mpNode;
 	}
 
@@ -419,7 +419,7 @@ namespace hpl {
 
 	iSaveData* iPhysicsBody::CreateSaveData()
 	{
-		return hplNew( cSaveData_iPhysicsBody, () );
+		return new cSaveData_iPhysicsBody();
 	}
 
 	void iPhysicsBody::SaveToSaveData(iSaveData *apSaveData)

@@ -27,7 +27,7 @@ void cSavedWorld::Reset()
 	while(it.HasNext())
 	{
 		iGameEntity_SaveData *pSaveEntity = it.Next();
-        hplDelete( pSaveEntity );
+        delete pSaveEntity;
 	}
 	mlstEntities.Clear();
 
@@ -125,7 +125,7 @@ void cSavedGame::ResetWorlds()
 	{
 		cSavedWorld* pWorld =it.Next();
 		
-		hplDelete( pWorld );
+		delete pWorld;
 	}
 	mlstWorlds.Clear();
 
@@ -164,7 +164,7 @@ cSavedWorld* cSavedGame::GetSavedWorld(const tString &asName)
 	}
 	
 	//Create newer world
-    cSavedWorld *pWorld = hplNew( cSavedWorld, () );
+    cSavedWorld *pWorld = new cSavedWorld();
 	pWorld->msName = asName;
 	mlstWorlds.Add(pWorld);
 
@@ -175,7 +175,7 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 {
 	mpInit = apInit;
 
-	mpSavedGame = hplNew( cSavedGame, () );
+	mpSavedGame = new cSavedGame();
 
 	Reset();
 
@@ -229,7 +229,7 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 
 cSaveHandler::~cSaveHandler(void)
 {
-	hplDelete( mpSavedGame );
+	delete mpSavedGame;
 }
 
 void cSaveHandler::SaveData(const tString &asName)

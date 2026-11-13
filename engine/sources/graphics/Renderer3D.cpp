@@ -92,7 +92,7 @@ namespace hpl {
 		//Fog Texture Init
 
 		Log("   Creating fog textures: ");
-		unsigned char* pFogArray = hplNewArray(unsigned char,256 *2);
+		unsigned char* pFogArray = new unsigned char[256 *2];
 
 
 		//Solid
@@ -140,7 +140,7 @@ namespace hpl {
 
 		mpFogLinearAlphaTexture = pTex;
 
-		hplDeleteArray(pFogArray);
+		delete [] pFogArray;
 
 		Log("\n");
 
@@ -174,15 +174,15 @@ namespace hpl {
 		if(mpRefractSpecialProgram)mpResources->GetGpuProgramManager()->Destroy(mpRefractSpecialProgram);
 
 
-		if(mpSkyBox) hplDelete(mpSkyBox);
+		if(mpSkyBox) delete mpSkyBox;
 		if(mpSkyBoxTexture && mbAutoDestroySkybox)
 		{
 			mpResources->GetTextureManager()->Destroy(mpSkyBoxTexture);
 		}
 
-		if(mpFogLinearSolidTexture) hplDelete(mpFogLinearSolidTexture);
-		if(mpFogLinearAddTexture) hplDelete(mpFogLinearAddTexture);
-		if(mpFogLinearAlphaTexture) hplDelete(mpFogLinearAlphaTexture);
+		if(mpFogLinearSolidTexture) delete mpFogLinearSolidTexture;
+		if(mpFogLinearAddTexture) delete mpFogLinearAddTexture;
+		if(mpFogLinearAlphaTexture) delete mpFogLinearAlphaTexture;
 	}
 
 	void cRenderSettings::Clear()

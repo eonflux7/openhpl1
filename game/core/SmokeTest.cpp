@@ -29,7 +29,7 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 	mStep = eStep_WaitForMap; // cInit loads the first map itself
 	mlFrame = 0;
 	mlFailures = 0;
-	mpChecks = cMapChecks::IsRequested() ? hplNew( cMapChecks,(apInit) ) : nullptr;
+	mpChecks = cMapChecks::IsRequested() ? new cMapChecks(apInit) : nullptr;
 
 	const char *pFrames = SDL_getenv("OPENHPL_SMOKE_FRAMES");
 	mlFramesPerStep = pFrames ? cString::ToInt(pFrames, 120) : 120;
@@ -75,7 +75,7 @@ cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("Smok
 
 cSmokeTest::~cSmokeTest()
 {
-	if(mpChecks) hplDelete( mpChecks );
+	if(mpChecks) delete mpChecks;
 }
 
 bool cSmokeTest::IsRequested()

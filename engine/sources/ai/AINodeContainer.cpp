@@ -184,7 +184,7 @@ namespace hpl {
 		msName = asName;
 		msNodeName = asNodeName;
 
-		mpRayCallback = hplNew( cAINodeRayCallback, () );
+		mpRayCallback = new cAINodeRayCallback();
 
 		mlMaxNodeEnds = 5;
 		mlMinNodeEnds = 2;
@@ -198,7 +198,7 @@ namespace hpl {
 
 	cAINodeContainer::~cAINodeContainer()
 	{
-		hplDelete(mpRayCallback);
+		delete mpRayCallback;
 
 		STLDeleteAll(mvNodes);
 	}
@@ -210,7 +210,7 @@ namespace hpl {
 
 	void cAINodeContainer::AddNode(const tString &asName, const cVector3f &avPosition, void *apUserData)
 	{
-		cAINode *pNode = hplNew( cAINode, () );
+		cAINode *pNode = new cAINode();
 		pNode->msName = asName;
 		pNode->mvPosition = avPosition;
 		pNode->mpUserData = apUserData;
@@ -429,7 +429,7 @@ namespace hpl {
 
 	void cAINodeContainer::SaveToFile(const tString &asFile)
 	{
-		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument,(asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 
 		TiXmlElement *pRootElem = static_cast<TiXmlElement*>(pXmlDoc->InsertEndChild(TiXmlElement("AINodes")));
 
@@ -455,7 +455,7 @@ namespace hpl {
 		{
 			Error("Couldn't save XML file %s\n",asFile.c_str());
 		}
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 	}
 
 	bool cAINodeContainer::LoadFromFile(const tString &asFile)

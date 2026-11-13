@@ -129,11 +129,11 @@ namespace hpl {
 
 		// LOAD THE DOCUMENT
 
-		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Error("Couldn't load Collada XML file '%s'!\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -308,7 +308,7 @@ namespace hpl {
 							apColladaAnimVec,
 							apColladaScene);
 		}
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 
@@ -337,7 +337,7 @@ namespace hpl {
 											tColladaAnimationVec *apColladaAnimVec,
 											cColladaScene *apColladaScene)
 	{
-		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 
 		TiXmlElement *pRootElem = CreateXMLChild(pXmlDoc,"ColladaCache");
 		pRootElem->SetAttribute("GeometryVersion", 2);
@@ -354,10 +354,10 @@ namespace hpl {
 		if(pXmlDoc->SaveFile()==false)
 		{
 			Error("Couldn't save XML file %s\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 
@@ -874,11 +874,11 @@ namespace hpl {
 		cColladaScene *apColladaScene)
 	{
 
-		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
+		TiXmlDocument* pXmlDoc = new TiXmlDocument(asFile.c_str());
 		if(pXmlDoc->LoadFile()==false)
 		{
 			Warning("Couldn't open XML file %s\n",asFile.c_str());
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
@@ -915,11 +915,11 @@ namespace hpl {
 			if(apColladaControllerVec) apColladaControllerVec->clear();
 			if(apColladaGeometryVec) apColladaGeometryVec->clear();
 			if(apColladaScene) apColladaScene->ResetNodes();
-			hplDelete(pXmlDoc);
+			delete pXmlDoc;
 			return false;
 		}
 
-		hplDelete(pXmlDoc);
+		delete pXmlDoc;
 		return true;
 	}
 

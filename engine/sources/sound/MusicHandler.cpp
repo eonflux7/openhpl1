@@ -30,16 +30,16 @@ namespace hpl {
 	cMusicHandler::~cMusicHandler()
 	{
 		if(mpMainSong){
-			hplDelete(mpMainSong->mpStream);
-			hplDelete(mpMainSong);
+			delete mpMainSong->mpStream;
+			delete mpMainSong;
 		}
 
 		tMusicEntryListIt it = mlstFadingSongs.begin();
 		while(it != mlstFadingSongs.end())
 		{
 			cMusicEntry* pSong = *it;
-			hplDelete(pSong->mpStream);
-			hplDelete(pSong);
+			delete pSong->mpStream;
+			delete pSong;
 
 			it = mlstFadingSongs.erase(it);
 		}
@@ -78,8 +78,8 @@ namespace hpl {
 				{
 					pSong->mfVolume= 0;
 					pSong->mpStream->Stop();
-					hplDelete(pSong->mpStream);
-					hplDelete(pSong);
+					delete pSong->mpStream;
+					delete pSong;
 
 					it = mlstFadingSongs.erase(it);
 				} else {
@@ -89,10 +89,10 @@ namespace hpl {
 
 
 			//add it and set its properties
-			mpMainSong = hplNew( cMusicEntry, () );
+			mpMainSong = new cMusicEntry();
 
 			if(LoadAndStart(asFileName, mpMainSong,0,abLoop)==false){
-				hplDelete(mpMainSong);
+				delete mpMainSong;
 				mpMainSong = nullptr;
 				return false;
 			}
@@ -204,8 +204,8 @@ namespace hpl {
 		{
 			if(mpMainSong->mpStream->IsPlaying()==false)
 			{
-				hplDelete(mpMainSong->mpStream);
-				hplDelete(mpMainSong);
+				delete mpMainSong->mpStream;
+				delete mpMainSong;
 				mpMainSong = nullptr;
 			}
 			else
@@ -245,8 +245,8 @@ namespace hpl {
 			{
 				pSong->mfVolume= 0;
 				pSong->mpStream->Stop();
-				hplDelete(pSong->mpStream);
-				hplDelete(pSong);
+				delete pSong->mpStream;
+				delete pSong;
 
 				it = mlstFadingSongs.erase(it);
 			}

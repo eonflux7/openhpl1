@@ -67,13 +67,13 @@ static void AddToTempStringText(const tWString &asText)
 	gwcTempStringKeyClose = 0;
 }
 
-static void __stdcall AddToTempString(std::string asString)
+static void AddToTempString(std::string asString)
 {
     AddToTempStringText(cString::To16Char(asString));
 }
 SCRIPT_DEFINE_FUNC_1(void, AddToTempString, string)
 
-static void __stdcall AddToTempStringTrans(std::string asCat,std::string asEntry)
+static void AddToTempStringTrans(std::string asCat,std::string asEntry)
 {
 	cInit *mpInit = gpInit;
 	AddToTempStringText(kTranslate(asCat,asEntry));
@@ -81,7 +81,7 @@ static void __stdcall AddToTempStringTrans(std::string asCat,std::string asEntry
 SCRIPT_DEFINE_FUNC_2(void, AddToTempStringTrans, string,string)
 
 // The key is drawn as a key cap, which needs no quotes or brackets around it
-static void __stdcall AddToTempStringAction(std::string asAction)
+static void AddToTempStringAction(std::string asAction)
 {
 	wchar_t lClose = 0;
 	if(gsTempString.size() > 0)
@@ -99,7 +99,7 @@ SCRIPT_DEFINE_FUNC_1(void, AddToTempStringAction,string)
 
 // GENERAL GAME
 
-static void __stdcall ResetGame()
+static void ResetGame()
 {
 	gpInit->mpGame->ResetLogicTimer();
 
@@ -108,25 +108,25 @@ static void __stdcall ResetGame()
 }
 SCRIPT_DEFINE_FUNC(void, ResetGame)
 
-static void __stdcall StartCredits()
+static void StartCredits()
 {
 	gpInit->mpCredits->SetActive(true);
 }
 SCRIPT_DEFINE_FUNC(void, StartCredits)
 
-static void __stdcall StartDemoEndText()
+static void StartDemoEndText()
 {
 	gpInit->mpDemoEndText->SetActive(true);
 }
 SCRIPT_DEFINE_FUNC(void, StartDemoEndText)
 
-static void __stdcall ClearSavedMaps()
+static void ClearSavedMaps()
 {
 	gpInit->mpSaveHandler->ClearSavedMaps();
 }
 SCRIPT_DEFINE_FUNC(void, ClearSavedMaps)
 
-static std::string __stdcall GetActionKeyString(std::string asAction)
+static std::string GetActionKeyString(std::string asAction)
 {
 	iAction *pAction = gpInit->mpGame->GetInput()->GetAction(asAction);
 	if(pAction)
@@ -139,7 +139,7 @@ static std::string __stdcall GetActionKeyString(std::string asAction)
 }
 SCRIPT_DEFINE_FUNC_1(string, GetActionKeyString, string)
 
-static void __stdcall AddMessageTrans(std::string asTransCat,
+static void AddMessageTrans(std::string asTransCat,
 									  std::string asTransName)
 {
 	cInit *mpInit = gpInit;
@@ -147,13 +147,13 @@ static void __stdcall AddMessageTrans(std::string asTransCat,
 }
 SCRIPT_DEFINE_FUNC_2(void, AddMessageTrans, string, string)
 
-static void __stdcall AddMessage(std::string asMessage)
+static void AddMessage(std::string asMessage)
 {
 	gpInit->mpGameMessageHandler->Add(cString::To16Char(asMessage));
 }
 SCRIPT_DEFINE_FUNC_1(void, AddMessage, string)
 
-static void __stdcall AddMessageTempString()
+static void AddMessageTempString()
 {
 	gpInit->mpGameMessageHandler->Add(gsTempString);
 	gsTempString = _W("");
@@ -161,7 +161,7 @@ static void __stdcall AddMessageTempString()
 }
 SCRIPT_DEFINE_FUNC(void, AddMessageTempString)
 
-static void __stdcall AddSubTitleTrans(std::string asTransCat,
+static void AddSubTitleTrans(std::string asTransCat,
 									  std::string asTransName, float afTime)
 {
 	cInit *mpInit = gpInit;
@@ -169,13 +169,13 @@ static void __stdcall AddSubTitleTrans(std::string asTransCat,
 }
 SCRIPT_DEFINE_FUNC_3(void, AddSubTitleTrans, string, string, float)
 
-static void __stdcall AddSubTitle(std::string asMessage, float afTime)
+static void AddSubTitle(std::string asMessage, float afTime)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->Add(cString::To16Char(asMessage),afTime,false);
 }
 SCRIPT_DEFINE_FUNC_2(void, AddSubTitle, string, float)
 
-static void __stdcall AddSubTitleTempString(float afTime)
+static void AddSubTitleTempString(float afTime)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->Add(gsTempString,afTime,false);
 	gsTempString = _W("");
@@ -183,7 +183,7 @@ static void __stdcall AddSubTitleTempString(float afTime)
 }
 SCRIPT_DEFINE_FUNC_1(void, AddSubTitleTempString, float)
 
-static void __stdcall AddRadioMessage(	std::string asTransCat,std::string asTransName, 
+static void AddRadioMessage(	std::string asTransCat,std::string asTransName, 
 												std::string asSound)
 {
 	cInit *mpInit = gpInit;
@@ -191,19 +191,19 @@ static void __stdcall AddRadioMessage(	std::string asTransCat,std::string asTran
 }
 SCRIPT_DEFINE_FUNC_3(void, AddRadioMessage, string, string, string)
 
-static void __stdcall SetRadioOnEndCallback(std::string asFunc)
+static void SetRadioOnEndCallback(std::string asFunc)
 {
 	gpInit->mpRadioHandler->SetOnEndCallback(asFunc);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetRadioOnEndCallback, string)
 
-static void __stdcall SetInventoryMessage(std::string asMessage)
+static void SetInventoryMessage(std::string asMessage)
 {
 	gpInit->mpInventory->SetMessage(cString::To16Char(asMessage));
 }
 SCRIPT_DEFINE_FUNC_1(void, SetInventoryMessage, string)
 
-static void __stdcall SetInventoryMessageTrans(std::string asTransCat,
+static void SetInventoryMessageTrans(std::string asTransCat,
 											   std::string asTransName)
 {
 	cInit *mpInit = gpInit;
@@ -211,13 +211,13 @@ static void __stdcall SetInventoryMessageTrans(std::string asTransCat,
 }
 SCRIPT_DEFINE_FUNC_2(void, SetInventoryMessageTrans, string, string)							
 
-static void __stdcall SetMessagesOverCallback(std::string asFunction)
+static void SetMessagesOverCallback(std::string asFunction)
 {
 	gpInit->mpGameMessageHandler->SetOnMessagesOverCallback(asFunction);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetMessagesOverCallback, string)
 
-static void __stdcall ChangeMap(std::string asMapFile, std::string asMapPos, 
+static void ChangeMap(std::string asMapFile, std::string asMapPos, 
 								std::string asStartSound, std::string asStopSound,
 								float afFadeOutTime, float afFadeInTime,
 								std::string asLoadTextCat, std::string asLoadTextEntry)
@@ -230,7 +230,7 @@ static void __stdcall ChangeMap(std::string asMapFile, std::string asMapPos,
 SCRIPT_DEFINE_FUNC_8(void, ChangeMap, string, string, string, string, float, float, string, string)
 
 // Black Plague: with the picture of the loading screen
-static void __stdcall ChangeMapLoadImage(std::string asMapFile, std::string asMapPos,
+static void ChangeMapLoadImage(std::string asMapFile, std::string asMapPos,
 								std::string asStartSound, std::string asStopSound,
 								float afFadeOutTime, float afFadeInTime,
 								std::string asLoadTextCat, std::string asLoadTextEntry,
@@ -241,26 +241,26 @@ static void __stdcall ChangeMapLoadImage(std::string asMapFile, std::string asMa
 }
 SCRIPT_DEFINE_FUNC_9(void, ChangeMapLoadImage, string, string, string, string, float, float, string, string, string)
 
-static void __stdcall SetMapGameName(std::string asName)
+static void SetMapGameName(std::string asName)
 {
 	gpInit->mpMapHandler->SetMapGameName(cString::To16Char(asName));
 }
 SCRIPT_DEFINE_FUNC_1(void, SetMapGameName, string)
 
-static void __stdcall SetMapGameNameTrans(std::string asTransCat,std::string asTransEntry)
+static void SetMapGameNameTrans(std::string asTransCat,std::string asTransEntry)
 {
 	cInit *mpInit = gpInit;
 	gpInit->mpMapHandler->SetMapGameName(kTranslate(asTransCat,asTransEntry));
 }
 SCRIPT_DEFINE_FUNC_2(void, SetMapGameNameTrans, string, string)
 
-static void __stdcall AddNotebookTaskText(std::string asName,std::string asText) 
+static void AddNotebookTaskText(std::string asName,std::string asText) 
 {
 	gpInit->mpNotebook->AddTask(asName, cString::To16Char(asText));
 }
 SCRIPT_DEFINE_FUNC_2(void, AddNotebookTaskText, string, string)
 
-static void __stdcall AddNotebookTask(std::string asName, std::string asTransCat,
+static void AddNotebookTask(std::string asName, std::string asTransCat,
 									  std::string asTransEntry)
 {
 	cInit *mpInit = gpInit;
@@ -268,13 +268,13 @@ static void __stdcall AddNotebookTask(std::string asName, std::string asTransCat
 }	
 SCRIPT_DEFINE_FUNC_3(void, AddNotebookTask, string, string, string)
 
-static void __stdcall RemoveNotebookTask(std::string asName)
+static void RemoveNotebookTask(std::string asName)
 {
 	gpInit->mpNotebook->RemoveTask(asName);
 }
 SCRIPT_DEFINE_FUNC_1(void, RemoveNotebookTask, string)
 
-static void __stdcall AddNotebookNote(std::string asNameCat, std::string asNameEntry,
+static void AddNotebookNote(std::string asNameCat, std::string asNameEntry,
 											 std::string asTextCat,	std::string asTextEntry)
 {
 	cInit *mpInit = gpInit;
@@ -282,7 +282,7 @@ static void __stdcall AddNotebookNote(std::string asNameCat, std::string asNameE
 }
 SCRIPT_DEFINE_FUNC_4(void, AddNotebookNote, string, string, string, string)
 
-static void __stdcall StartNumericalPanel(std::string asName,int alCode1,int alCode2,int alCode3,int alCode4,
+static void StartNumericalPanel(std::string asName,int alCode1,int alCode2,int alCode3,int alCode4,
 										  float afDifficulty, std::string asCallback)
 {
 	gpInit->mpNumericalPanel->SetActive(true);
@@ -294,37 +294,37 @@ static void __stdcall StartNumericalPanel(std::string asName,int alCode1,int alC
 }
 SCRIPT_DEFINE_FUNC_7(void, StartNumericalPanel, string, int, int, int, int, float, string)
 
-static void __stdcall SetInventoryActive(bool abActive)
+static void SetInventoryActive(bool abActive)
 {
 	gpInit->mpInventory->SetActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetInventoryActive,bool)
 
-static void __stdcall FadeIn(float afTime)
+static void FadeIn(float afTime)
 {
 	gpInit->mpFadeHandler->FadeIn(afTime);
 }
 SCRIPT_DEFINE_FUNC_1(void,FadeIn,float)
 
-static void __stdcall FadeOut(float afTime)
+static void FadeOut(float afTime)
 {
 	gpInit->mpFadeHandler->FadeOut(afTime);
 }
 SCRIPT_DEFINE_FUNC_1(void,FadeOut,float)
 
-static bool __stdcall IsFading()
+static bool IsFading()
 {
 	return gpInit->mpFadeHandler->IsActive();
 }
 SCRIPT_DEFINE_FUNC(bool,IsFading)
 
-static void __stdcall SetWideScreenActive(bool abActive)
+static void SetWideScreenActive(bool abActive)
 {
 	gpInit->mpFadeHandler->SetWideScreenActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetWideScreenActive,bool)
 
-static void __stdcall AutoSave()
+static void AutoSave()
 {
 	if(gpInit->mpPlayer->GetHealth()<=0) return;
 
@@ -333,19 +333,19 @@ static void __stdcall AutoSave()
 }
 SCRIPT_DEFINE_FUNC(void,AutoSave)
 
-static void __stdcall StartFlash(float afFadeIn, float afWhite, float afFadeOut)
+static void StartFlash(float afFadeIn, float afWhite, float afFadeOut)
 {
 	gpInit->mpEffectHandler->GetFlash()->Start(afFadeIn,afWhite,afFadeOut);
 }
 SCRIPT_DEFINE_FUNC_3(void,StartFlash,float,float,float)
 
-static void __stdcall SetWaveGravityActive(bool abActive)
+static void SetWaveGravityActive(bool abActive)
 {
 	gpInit->mpEffectHandler->GetWaveGravity()->SetActive(abActive);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetWaveGravityActive,bool)
 
-static void __stdcall SetupWaveGravity(float afMaxAngle, float afSwingLength, 
+static void SetupWaveGravity(float afMaxAngle, float afSwingLength, 
 									   float afGravitySize, std::string asAxis)
 {
 	int lDir = cString::ToLowerCase(asAxis) == "x" ? 0 : 1;
@@ -354,20 +354,20 @@ static void __stdcall SetupWaveGravity(float afMaxAngle, float afSwingLength,
 }
 SCRIPT_DEFINE_FUNC_4(void, SetupWaveGravity, float, float, float, string)
 
-static void __stdcall SetDepthOfFieldActive(bool abActive, float afFadeTime)
+static void SetDepthOfFieldActive(bool abActive, float afFadeTime)
 {
 	gpInit->mpEffectHandler->GetDepthOfField()->SetActive(abActive,afFadeTime);
 }
 SCRIPT_DEFINE_FUNC_2(void,SetDepthOfFieldActive,bool,float)
 
-static void __stdcall SetupDepthOfField(float afNearPlane, float afFocalPlane, float afFarPlane)
+static void SetupDepthOfField(float afNearPlane, float afFocalPlane, float afFarPlane)
 {
 	gpInit->mpEffectHandler->GetDepthOfField()->SetUp(afNearPlane,afFocalPlane,afFarPlane);
 	gpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
 }
 SCRIPT_DEFINE_FUNC_3(void,SetupDepthOfField,float,float,float)
 
-static void __stdcall FocusOnEntity(std::string asEntity)
+static void FocusOnEntity(std::string asEntity)
 {
 	GAME_ENTITY_BEGIN(asEntity);
 	
@@ -381,7 +381,7 @@ static void __stdcall FocusOnEntity(std::string asEntity)
 }
 SCRIPT_DEFINE_FUNC_1(void,FocusOnEntity,string)
 
-static void __stdcall SetConstantFocusOnEntity(std::string asEntity)
+static void SetConstantFocusOnEntity(std::string asEntity)
 {
 	if(asEntity=="")
 	{
@@ -400,26 +400,26 @@ static void __stdcall SetConstantFocusOnEntity(std::string asEntity)
 }
 SCRIPT_DEFINE_FUNC_1(void,SetConstantFocusOnEntity,string)
 
-static void __stdcall PlayGameMusic(	std::string asFile, float afVolume,float afFadeStep,
+static void PlayGameMusic(	std::string asFile, float afVolume,float afFadeStep,
 											bool abLoop, int alPrio)
 {
 	gpInit->mpMusicHandler->Play(asFile,abLoop,afVolume,afFadeStep,alPrio);
 }
 SCRIPT_DEFINE_FUNC_5(void, PlayGameMusic, string, float, float, bool, int)
 
-static void __stdcall StopGameMusic(float afFadeStep, int alPrio)
+static void StopGameMusic(float afFadeStep, int alPrio)
 {
 	gpInit->mpMusicHandler->Stop(afFadeStep,alPrio);
 }
 SCRIPT_DEFINE_FUNC_2(void,StopGameMusic,float,int)
 
-static void __stdcall StartScreenShake(float afAmount, float afTime,float afFadeInTime,float afFadeOutTime)
+static void StartScreenShake(float afAmount, float afTime,float afFadeInTime,float afFadeOutTime)
 {
 	gpInit->mpEffectHandler->GetShakeScreen()->Start(afAmount,afTime,afFadeInTime,afFadeOutTime);
 }
 SCRIPT_DEFINE_FUNC_4(void,StartScreenShake,float,float,float,float)
 
-static void __stdcall CreateLightFlashAtArea(std::string asArea, float afRadius,
+static void CreateLightFlashAtArea(std::string asArea, float afRadius,
 											 float afR,float afG, float afB, float afA,
 											 float afAddTime, float afNegTime)
 {
@@ -437,7 +437,7 @@ SCRIPT_DEFINE_FUNC_8(void, CreateLightFlashAtArea, string, float, float, float, 
 
 // ATTACK
 
-static void __stdcall CreateSplashDamage(std::string asAreaName, float afRadius, 
+static void CreateSplashDamage(std::string asAreaName, float afRadius, 
 										 float afMinDamage, float afMaxDamage,
 										 float afMinForce, float afMaxForce,
 										 float afMaxImpulse, int alStrength)
@@ -463,13 +463,13 @@ SCRIPT_DEFINE_FUNC_8(void, CreateSplashDamage, string, float, float, float, floa
 
 // GAME TIMER
 
-static void __stdcall  CreateTimer(std::string asName, float afTime, std::string asCallback, bool abGlobal)
+static void CreateTimer(std::string asName, float afTime, std::string asCallback, bool abGlobal)
 {
 	gpInit->mpMapHandler->CreateTimer(asName,afTime,asCallback,abGlobal);
 }
 SCRIPT_DEFINE_FUNC_4(void,CreateTimer,string,float,string,bool)
 
-static void __stdcall  DestroyTimer(std::string asName)
+static void DestroyTimer(std::string asName)
 {
 	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
 	if(pTimer==nullptr){
@@ -481,7 +481,7 @@ static void __stdcall  DestroyTimer(std::string asName)
 }
 SCRIPT_DEFINE_FUNC_1(void,DestroyTimer,string)
 
-static void __stdcall  SetTimerPaused(std::string asName, bool abPaused)
+static void SetTimerPaused(std::string asName, bool abPaused)
 {
 	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
 	if(pTimer==nullptr){
@@ -493,7 +493,7 @@ static void __stdcall  SetTimerPaused(std::string asName, bool abPaused)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetTimerPaused,string,bool)
 
-static void __stdcall SetTimerTime(std::string asName, float afTime)
+static void SetTimerTime(std::string asName, float afTime)
 {
 	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
 	if(pTimer==nullptr){
@@ -505,7 +505,7 @@ static void __stdcall SetTimerTime(std::string asName, float afTime)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetTimerTime,string,float)
 
-static void __stdcall  AddTimerTime(std::string asName, float afTime)
+static void AddTimerTime(std::string asName, float afTime)
 {
 	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
 	if(pTimer==nullptr){
@@ -517,7 +517,7 @@ static void __stdcall  AddTimerTime(std::string asName, float afTime)
 }
 SCRIPT_DEFINE_FUNC_2(void,AddTimerTime,string,float)
 
-static float __stdcall   GetTimerTime(std::string asName)
+static float GetTimerTime(std::string asName)
 {
 	cGameTimer *pTimer = gpInit->mpMapHandler->GetTimer(asName);
 	if(pTimer==nullptr){
@@ -531,7 +531,7 @@ SCRIPT_DEFINE_FUNC_1(float,GetTimerTime,string)
 
 // PLAYER
 
-static void __stdcall GivePlayerDamage(float afAmount, std::string asType)
+static void GivePlayerDamage(float afAmount, std::string asType)
 {
 	ePlayerDamageType type = ePlayerDamageType_BloodSplash;
 	tString sLowType = cString::ToLowerCase(asType);
@@ -547,19 +547,19 @@ static void __stdcall GivePlayerDamage(float afAmount, std::string asType)
 }
 SCRIPT_DEFINE_FUNC_2(void,GivePlayerDamage,float,string)
 
-static void __stdcall SetPlayerHealth(float afHealth)
+static void SetPlayerHealth(float afHealth)
 {
 	gpInit->mpPlayer->SetHealth(afHealth);
 }
 SCRIPT_DEFINE_FUNC_1(void,SetPlayerHealth,float)
 
-static float __stdcall GetPlayerHealth()
+static float GetPlayerHealth()
 {
 	return gpInit->mpPlayer->GetHealth();
 }
 SCRIPT_DEFINE_FUNC(float,GetPlayerHealth)
 
-static void __stdcall SetPlayerPose(std::string asPose,bool abChangeDirectly)
+static void SetPlayerPose(std::string asPose,bool abChangeDirectly)
 {
 	tString sPose = cString::ToLowerCase(asPose);
 
@@ -578,14 +578,14 @@ static void __stdcall SetPlayerPose(std::string asPose,bool abChangeDirectly)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetPlayerPose,string,bool)
 
-static void __stdcall SetPlayerActive(bool abActive)
+static void SetPlayerActive(bool abActive)
 {
 	gpInit->mpPlayer->SetActive(abActive);
 	if(cInit::IsOverture()==false) gpInit->mpGameMessageHandler->ClearMessages();
 }
 SCRIPT_DEFINE_FUNC_1(void,SetPlayerActive,bool)
 
-static void __stdcall StartPlayerLookAt(std::string asEntityName, float afSpeedMul, float afMaxSpeed)
+static void StartPlayerLookAt(std::string asEntityName, float afSpeedMul, float afMaxSpeed)
 {
 	//Get entity
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntityName);
@@ -605,25 +605,25 @@ static void __stdcall StartPlayerLookAt(std::string asEntityName, float afSpeedM
 }
 SCRIPT_DEFINE_FUNC_3(void,StartPlayerLookAt,string,float,float)
 
-static void __stdcall StopPlayerLookAt()
+static void StopPlayerLookAt()
 {
 	gpInit->mpPlayer->GetLookAt()->SetActive(false);
 }
 SCRIPT_DEFINE_FUNC(void,StopPlayerLookAt)
 
-static void __stdcall StartPlayerFearFilter(float afStrength)
+static void StartPlayerFearFilter(float afStrength)
 {
 	gpInit->mpPlayer->GetFearFilter()->SetActive(true);
 }
 SCRIPT_DEFINE_FUNC_1(void,StartPlayerFearFilter,float)
 
-static void __stdcall StopPlayerFearFilter()
+static void StopPlayerFearFilter()
 {
 	gpInit->mpPlayer->GetFearFilter()->SetActive(false);
 }
 SCRIPT_DEFINE_FUNC(void,StopPlayerFearFilter)
 
-static void __stdcall SetFlashlightDisabled(bool abDisabled)
+static void SetFlashlightDisabled(bool abDisabled)
 {
 	gpInit->mpPlayer->GetFlashLight()->SetDisabled(abDisabled);
 }
@@ -631,50 +631,50 @@ SCRIPT_DEFINE_FUNC_1(void,SetFlashlightDisabled,bool)
 
 // INVENTORY
 
-static void __stdcall AddPickupCallback(std::string asItem, std::string asFunction)
+static void AddPickupCallback(std::string asItem, std::string asFunction)
 {
 	gpInit->mpInventory->AddPickupCallback(asItem,asFunction);
 }
 SCRIPT_DEFINE_FUNC_2(void,AddPickupCallback,string,string)
 
-static void __stdcall AddUseCallback(std::string asItem, std::string asEntity, std::string asFunction)
+static void AddUseCallback(std::string asItem, std::string asEntity, std::string asFunction)
 {
 	gpInit->mpInventory->AddUseCallback(asItem,asEntity,asFunction);
 }
 SCRIPT_DEFINE_FUNC_3(void,AddUseCallback,string,string,string)
 
-static void __stdcall AddCombineCallback(std::string asItem1,std::string asItem2, std::string asFunction)
+static void AddCombineCallback(std::string asItem1,std::string asItem2, std::string asFunction)
 {
 	gpInit->mpInventory->AddCombineCallback(asItem1,asItem2,asFunction);
 }
 SCRIPT_DEFINE_FUNC_3(void,AddCombineCallback,string,string,string)
 
-static void __stdcall RemovePickupCallback(std::string asFunction)
+static void RemovePickupCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemovePickupCallback(asFunction);
 }
 SCRIPT_DEFINE_FUNC_1(void,RemovePickupCallback,string)
 
-static void __stdcall RemoveUseCallback(std::string asFunction)
+static void RemoveUseCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemoveUseCallback(asFunction);
 }
 SCRIPT_DEFINE_FUNC_1(void,RemoveUseCallback,string)
 
-static void __stdcall RemoveCombineCallback(std::string asFunction)
+static void RemoveCombineCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemoveCombineCallback(asFunction);
 }
 SCRIPT_DEFINE_FUNC_1(void,RemoveCombineCallback,string)
 
-static bool __stdcall HasItem(std::string asName)
+static bool HasItem(std::string asName)
 {
 
 	return gpInit->mpInventory->GetItem(asName) != nullptr;
 }
 SCRIPT_DEFINE_FUNC_1(bool,HasItem,string)
 
-static void __stdcall RemoveItem(std::string asName)
+static void RemoveItem(std::string asName)
 {
 	cInventoryItem *pItem = gpInit->mpInventory->GetItem(asName);
 	if(pItem)
@@ -688,7 +688,7 @@ static void __stdcall RemoveItem(std::string asName)
 }
 SCRIPT_DEFINE_FUNC_1(void,RemoveItem,string)
 
-static void __stdcall GiveItem(std::string asName,std::string asEntityFile,int alSlotIndex)
+static void GiveItem(std::string asName,std::string asEntityFile,int alSlotIndex)
 {
 	gpInit->mpInventory->AddItemFromFile(asName,asEntityFile, alSlotIndex);
 }
@@ -696,7 +696,7 @@ SCRIPT_DEFINE_FUNC_3(void,GiveItem,string,string,int)
 
 // GAME ENTITY PROPERTIES
 
-static void __stdcall ReplaceEntity(std::string asName, std::string asBodyName,
+static void ReplaceEntity(std::string asName, std::string asBodyName,
 											   std::string asNewName, std::string asNewFile)
 {
 	GAME_ENTITY_BEGIN(asName)
@@ -740,7 +740,7 @@ static void __stdcall ReplaceEntity(std::string asName, std::string asBodyName,
 }
 SCRIPT_DEFINE_FUNC_4(void, ReplaceEntity, string, string, string, string)
 
-static void __stdcall SetGameEntityActive(std::string asName, bool abActive)
+static void SetGameEntityActive(std::string asName, bool abActive)
 {
 	GAME_ENTITY_BEGIN(asName)
 
@@ -748,7 +748,7 @@ static void __stdcall SetGameEntityActive(std::string asName, bool abActive)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetGameEntityActive,string,bool)
 
-static bool __stdcall GetGameEntityActive(std::string asName)
+static bool GetGameEntityActive(std::string asName)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName); 
 	if(pEntity==nullptr){ 
@@ -760,7 +760,7 @@ static bool __stdcall GetGameEntityActive(std::string asName)
 }
 SCRIPT_DEFINE_FUNC_1(bool,GetGameEntityActive,string)
 
-static void __stdcall CreateGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
+static void CreateGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
 	GAME_ENTITY_BEGIN(asEntName);
 
@@ -768,7 +768,7 @@ static void __stdcall CreateGameEntityVar(std::string asEntName, std::string asV
 }
 SCRIPT_DEFINE_FUNC_3(void,CreateGameEntityVar,string,string,int)
 
-static void __stdcall SetGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
+static void SetGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
 	GAME_ENTITY_BEGIN(asEntName);
 
@@ -776,7 +776,7 @@ static void __stdcall SetGameEntityVar(std::string asEntName, std::string asVarN
 }
 SCRIPT_DEFINE_FUNC_3(void,SetGameEntityVar,string,string,int)
 
-static void __stdcall AddGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
+static void AddGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
 	GAME_ENTITY_BEGIN(asEntName);
 
@@ -784,7 +784,7 @@ static void __stdcall AddGameEntityVar(std::string asEntName, std::string asVarN
 }
 SCRIPT_DEFINE_FUNC_3(void,AddGameEntityVar,string,string,int)
 
-static int __stdcall GetGameEntityVar(std::string asEntName, std::string asVarName)
+static int GetGameEntityVar(std::string asEntName, std::string asVarName)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntName); 
 	if(pEntity==nullptr){ 
@@ -796,7 +796,7 @@ static int __stdcall GetGameEntityVar(std::string asEntName, std::string asVarNa
 }
 SCRIPT_DEFINE_FUNC_2(int,GetGameEntityVar,string,string)
 
-static void __stdcall SetGameEntityMaxExamineDist(std::string asName,float afDist)
+static void SetGameEntityMaxExamineDist(std::string asName,float afDist)
 {
 	GAME_ENTITY_BEGIN(asName)
 	
@@ -804,7 +804,7 @@ static void __stdcall SetGameEntityMaxExamineDist(std::string asName,float afDis
 }
 SCRIPT_DEFINE_FUNC_2(void,SetGameEntityMaxExamineDist,string,float)
 
-static void __stdcall SetGameEntityMaxInteractDist(std::string asName,float afDist)
+static void SetGameEntityMaxInteractDist(std::string asName,float afDist)
 {
 	GAME_ENTITY_BEGIN(asName)
 
@@ -812,7 +812,7 @@ static void __stdcall SetGameEntityMaxInteractDist(std::string asName,float afDi
 }
 SCRIPT_DEFINE_FUNC_2(void,SetGameEntityMaxInteractDist,string,float)
 
-static void __stdcall SetGameEntityDescriptionTrans(std::string asName, 
+static void SetGameEntityDescriptionTrans(std::string asName, 
 													std::string asTransCat,
 													std::string asTransName)
 {
@@ -824,7 +824,7 @@ static void __stdcall SetGameEntityDescriptionTrans(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_3(void, SetGameEntityDescriptionTrans, string, string, string)
 
-static void __stdcall SetGameEntityDescriptionOnceTrans(std::string asName, 
+static void SetGameEntityDescriptionOnceTrans(std::string asName, 
 														   std::string asTransCat,
 														   std::string asTransName)
 {
@@ -836,7 +836,7 @@ static void __stdcall SetGameEntityDescriptionOnceTrans(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_3(void, SetGameEntityDescriptionOnceTrans, string, string, string)
 
-static void __stdcall SetGameEntityDescription(std::string asName, std::string asMessage)
+static void SetGameEntityDescription(std::string asName, std::string asMessage)
 {
 	GAME_ENTITY_BEGIN(asName)
 
@@ -845,7 +845,7 @@ static void __stdcall SetGameEntityDescription(std::string asName, std::string a
 }
 SCRIPT_DEFINE_FUNC_2(void,SetGameEntityDescription,string,string)
 
-static void __stdcall SetGameEntityGameNameTrans(std::string asName, 
+static void SetGameEntityGameNameTrans(std::string asName, 
 												 std::string asTransCat,
 												 std::string asTransName)
 {
@@ -856,7 +856,7 @@ static void __stdcall SetGameEntityGameNameTrans(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_3(void, SetGameEntityGameNameTrans, string, string, string)
 
-static void __stdcall ChangeEntityAnimation(std::string asName,
+static void ChangeEntityAnimation(std::string asName,
 											std::string asAnimation,
 											bool abLoop)
 {
@@ -866,7 +866,7 @@ static void __stdcall ChangeEntityAnimation(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_3(void, ChangeEntityAnimation, string, string, bool)
 
-static void __stdcall SetEntityHealth(std::string asName, float afHealth)
+static void SetEntityHealth(std::string asName, float afHealth)
 {
 	GAME_ENTITY_BEGIN(asName)
 
@@ -874,7 +874,7 @@ static void __stdcall SetEntityHealth(std::string asName, float afHealth)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetEntityHealth,string,float)
 
-static void __stdcall DamageEntity(std::string asName, float afDamage, int alStrength)
+static void DamageEntity(std::string asName, float afDamage, int alStrength)
 {
 	GAME_ENTITY_BEGIN(asName)
 
@@ -882,13 +882,13 @@ static void __stdcall DamageEntity(std::string asName, float afDamage, int alStr
 }
 SCRIPT_DEFINE_FUNC_3(void,DamageEntity,string,float,int)
 
-static void __stdcall SetDoorState(std::string asName, 
+static void SetDoorState(std::string asName, 
 											std::string asState)
 {
 }
 SCRIPT_DEFINE_FUNC_2(void, SetDoorState, string, string)
 
-static void __stdcall SetObjectInteractMode(std::string asName,std::string asMode)
+static void SetObjectInteractMode(std::string asName,std::string asMode)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Object)
@@ -903,7 +903,7 @@ static void __stdcall SetObjectInteractMode(std::string asName,std::string asMod
 }
 SCRIPT_DEFINE_FUNC_2(void,SetObjectInteractMode,string,string)
 
-static void __stdcall SetupLink(std::string asName,
+static void SetupLink(std::string asName,
 								std::string asMapFile, std::string asMapPos, 
 								std::string asStartSound, std::string asStopSound,
 								float afFadeOutTime, float afFadeInTime)
@@ -929,7 +929,7 @@ static void __stdcall SetupLink(std::string asName,
 SCRIPT_DEFINE_FUNC_7(void, SetupLink, string, string, string, string, string, float, float)
 
 // Black Plague: with the picture of the loading screen
-static void __stdcall SetupLinkLoadImage(std::string asName,
+static void SetupLinkLoadImage(std::string asName,
 								std::string asMapFile, std::string asMapPos,
 								std::string asStartSound, std::string asStopSound,
 								float afFadeOutTime, float afFadeInTime,
@@ -943,7 +943,7 @@ static void __stdcall SetupLinkLoadImage(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_8(void, SetupLinkLoadImage, string, string, string, string, string, float, float, string)
 
-static void __stdcall SetupLinkLoadText(std::string asName,
+static void SetupLinkLoadText(std::string asName,
 										std::string asMapFile, std::string asMapPos, 
 										std::string asStartSound, std::string asStopSound,
 										float afFadeOutTime, float afFadeInTime,
@@ -969,7 +969,7 @@ static void __stdcall SetupLinkLoadText(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_9(void, SetupLinkLoadText, string, string, string, string, string, float, float, string, string)
 
-static void __stdcall SetupLinkLoadTextLoadImage(std::string asName,
+static void SetupLinkLoadTextLoadImage(std::string asName,
 										std::string asMapFile, std::string asMapPos,
 										std::string asStartSound, std::string asStopSound,
 										float afFadeOutTime, float afFadeInTime,
@@ -987,7 +987,7 @@ static void __stdcall SetupLinkLoadTextLoadImage(std::string asName,
 /**
  * Black Plague: a locked link does not change the map
  */
-static void __stdcall SetLinkLocked(std::string asName, bool abLocked)
+static void SetLinkLocked(std::string asName, bool abLocked)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Link)
@@ -1003,7 +1003,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetLinkLocked, string, bool)
 /**
  * Black Plague: the sound and the message of a locked link
  */
-static void __stdcall SetupLinkLockedProp(std::string asName, std::string asLockedSound,
+static void SetupLinkLockedProp(std::string asName, std::string asLockedSound,
 											std::string asLockedDescCat, std::string asLockedDescEntry)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
@@ -1022,7 +1022,7 @@ static void __stdcall SetupLinkLockedProp(std::string asName, std::string asLock
 SCRIPT_DEFINE_FUNC_4(void, SetupLinkLockedProp, string, string, string, string)
 SCRIPT_DEFINE_FUNC_10(void, SetupLinkLoadTextLoadImage, string, string, string, string, string, float, float, string, string, string)
 
-static void __stdcall SetAreaCustomIcon(std::string asName, std::string asIcon)
+static void SetAreaCustomIcon(std::string asName, std::string asIcon)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Area)
@@ -1053,7 +1053,7 @@ static void __stdcall SetAreaCustomIcon(std::string asName, std::string asIcon)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetAreaCustomIcon,string,string)
 
-static void __stdcall AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTime,
+static void AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTime,
 														std::string asAnimation)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
@@ -1072,7 +1072,7 @@ SCRIPT_DEFINE_FUNC_4(void, AddEnemyPatrolNode,string, string, float, string)
 * Clears all the patrol nodes for the enemy
 * \param asEnemy The Name of the enemy.
 */
-static void __stdcall ClearEnemyPatrolNodes(std::string asEnemy)
+static void ClearEnemyPatrolNodes(std::string asEnemy)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1086,7 +1086,7 @@ static void __stdcall ClearEnemyPatrolNodes(std::string asEnemy)
 }
 SCRIPT_DEFINE_FUNC_1(void,ClearEnemyPatrolNodes,string)
 
-static void __stdcall SetEnemyDeathCallback(std::string asEnemy,std::string asFunction)
+static void SetEnemyDeathCallback(std::string asEnemy,std::string asFunction)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1100,7 +1100,7 @@ static void __stdcall SetEnemyDeathCallback(std::string asEnemy,std::string asFu
 }
 SCRIPT_DEFINE_FUNC_2(void,SetEnemyDeathCallback,string,string)
 
-static void __stdcall SetEnemyAttackCallback(std::string asEnemy,std::string asFunction)
+static void SetEnemyAttackCallback(std::string asEnemy,std::string asFunction)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1114,7 +1114,7 @@ static void __stdcall SetEnemyAttackCallback(std::string asEnemy,std::string asF
 }
 SCRIPT_DEFINE_FUNC_2(void,SetEnemyAttackCallback,string,string)
 
-static float __stdcall GetEnemyHealth(std::string asEnemy)
+static float GetEnemyHealth(std::string asEnemy)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1128,7 +1128,7 @@ static float __stdcall GetEnemyHealth(std::string asEnemy)
 }
 SCRIPT_DEFINE_FUNC_1(float,GetEnemyHealth,string)
 
-static void __stdcall SetEnemyUseTriggers(std::string asEnemy, bool abUseTriggers)
+static void SetEnemyUseTriggers(std::string asEnemy, bool abUseTriggers)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1168,7 +1168,7 @@ static cGameEnemy_Infected* GetScriptInfected(const std::string &asEnemy)
 /**
  * Plays an animation in place of the enemy's moving ones.
  **/
-static void __stdcall PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
+static void PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
@@ -1180,7 +1180,7 @@ SCRIPT_DEFINE_FUNC_3(void, PlayEnemyAnim, string, string, bool)
 /**
  * Called once, as asFunc(string asEnemy), when the animation being played is over.
  **/
-static void __stdcall SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
+static void SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
@@ -1192,7 +1192,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetEnemyAnimOverCallback, string, string)
 /**
  * Called, as asFunc(string asEnemy), each time the enemy starts to hunt the player.
  **/
-static void __stdcall SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
+static void SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
@@ -1204,7 +1204,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetEnemyHuntCallback, string, string)
 /**
  * Called once, as asFunc(string asEnemy), when the enemy has been at its last patrol node.
  **/
-static void __stdcall SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
+static void SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
@@ -1216,7 +1216,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetEnemyPatrolOverCallback, string, string)
 /**
  * The patrol is over at its last node instead of starting again.
  **/
-static void __stdcall SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abStop)
+static void SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abStop)
 {
 	iGameEnemy *pEnemy = GetScriptEnemy(asEnemy);
 	if(pEnemy==nullptr) return;
@@ -1228,7 +1228,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetEnemyStopAtLastPatrolNode, string, bool)
 /**
  * Puts a weapon in an Infected's hand. The rotation is in degrees.
  **/
-static void __stdcall SetInfectedWeapon(std::string asEnemy, std::string asFile, float afDamage,
+static void SetInfectedWeapon(std::string asEnemy, std::string asFile, float afDamage,
 										float afRotX, float afRotY, float afRotZ,
 										float afPosX, float afPosY, float afPosZ)
 {
@@ -1246,7 +1246,7 @@ SCRIPT_DEFINE_FUNC_9(void, SetInfectedWeapon, string, string, float, float, floa
 /**
  * Gives an Infected a lit flashlight to carry.
  **/
-static void __stdcall AddInfectedFlashlight(std::string asEnemy)
+static void AddInfectedFlashlight(std::string asEnemy)
 {
 	cGameEnemy_Infected *pInfected = GetScriptInfected(asEnemy);
 	if(pInfected==nullptr) return;
@@ -1273,7 +1273,7 @@ static cGameCamera* GetScriptCamera(const std::string &asName)
  * at each end in seconds and the speed. asSpottedCallback(string asCamera) is
  * called when the player is seen, asAlertOverCallback when the alert is over.
  **/
-static void __stdcall SetupSecurityCamera(std::string asName, float afMinAngle, float afMaxAngle,
+static void SetupSecurityCamera(std::string asName, float afMinAngle, float afMaxAngle,
 											float afMinPause, float afMaxPause, float afSpeed,
 											std::string asSpottedCallback, std::string asAlertOverCallback)
 {
@@ -1285,7 +1285,7 @@ static void __stdcall SetupSecurityCamera(std::string asName, float afMinAngle, 
 }
 SCRIPT_DEFINE_FUNC_8(void, SetupSecurityCamera, string, float, float, float, float, float, string, string)
 
-static void __stdcall SetSecurityCameraAlerted(std::string asName, bool abAlerted)
+static void SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 {
 	cGameCamera *pCamera = GetScriptCamera(asName);
 	if(pCamera==nullptr) return;
@@ -1294,7 +1294,7 @@ static void __stdcall SetSecurityCameraAlerted(std::string asName, bool abAlerte
 }
 SCRIPT_DEFINE_FUNC_2(void, SetSecurityCameraAlerted, string, bool)
 
-static void __stdcall ShowEnemyPlayer(std::string asEnemy)
+static void ShowEnemyPlayer(std::string asEnemy)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEnemy);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Enemy)
@@ -1311,7 +1311,7 @@ static void __stdcall ShowEnemyPlayer(std::string asEnemy)
 }
 SCRIPT_DEFINE_FUNC_1(void,ShowEnemyPlayer,string)
 
-static void __stdcall SetDoorLocked(std::string asDoor, bool abLocked)
+static void SetDoorLocked(std::string asDoor, bool abLocked)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDoor);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_SwingDoor)
@@ -1326,7 +1326,7 @@ static void __stdcall SetDoorLocked(std::string asDoor, bool abLocked)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetDoorLocked,string,bool)
 
-static void __stdcall SetupStickArea(	std::string asArea, bool abCanDeatch,
+static void SetupStickArea(	std::string asArea, bool abCanDeatch,
 											bool abMoveBody,bool abRotateBody,
 											bool abCheckCenterInArea, float afPoseTime,
 									 std::string asAttachSound, std::string asDetachSound,
@@ -1362,13 +1362,13 @@ static void __stdcall SetupStickArea(	std::string asArea, bool abCanDeatch,
 SCRIPT_DEFINE_FUNC_12(void, SetupStickArea, string, bool, bool, bool, bool, float, 
 			string, string, string, string, string, string)
 
-static void __stdcall AllowAttachment()
+static void AllowAttachment()
 {
 	cGameStickArea::mbAllowAttachment = true;
 }
 SCRIPT_DEFINE_FUNC(void,AllowAttachment)
 
-static void __stdcall SetLampLit(std::string asName,bool abLit, bool abFade)
+static void SetLampLit(std::string asName,bool abLit, bool abFade)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
@@ -1382,7 +1382,7 @@ static void __stdcall SetLampLit(std::string asName,bool abLit, bool abFade)
 }
 SCRIPT_DEFINE_FUNC_3(void,SetLampLit,string,bool,bool)
 
-static void __stdcall SetLampFlicker(std::string asName,bool abFlicker)
+static void SetLampFlicker(std::string asName,bool abFlicker)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
@@ -1396,7 +1396,7 @@ static void __stdcall SetLampFlicker(std::string asName,bool abFlicker)
 }
 SCRIPT_DEFINE_FUNC_2(void,SetLampFlicker,string,bool)
 
-static void __stdcall SetLampLitChangeCallback(std::string asName,std::string asCallback)
+static void SetLampLitChangeCallback(std::string asName,std::string asCallback)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_Lamp)
@@ -1410,7 +1410,7 @@ static void __stdcall SetLampLitChangeCallback(std::string asName,std::string as
 }
 SCRIPT_DEFINE_FUNC_2(void,SetLampLitChangeCallback,string,string)
 
-static void __stdcall SetupLadder(	std::string asName,
+static void SetupLadder(	std::string asName,
 											std::string asAttachSound, 
 											std::string asClimbUpSound, 
 											std::string asClimbDownSound)
@@ -1429,7 +1429,7 @@ static void __stdcall SetupLadder(	std::string asName,
 }
 SCRIPT_DEFINE_FUNC_4(void, SetupLadder, string, string, string, string)
 
-static void __stdcall SetupDamageArea(std::string asName, float afDamage,
+static void SetupDamageArea(std::string asName, float afDamage,
 													 float afUpdatesPerSec, int alStrength,
 													 bool abDisableObjects, bool abDisableEnemies)
 {
@@ -1455,7 +1455,7 @@ SCRIPT_DEFINE_FUNC_6(void, SetupDamageArea, string, float, float, int, bool, boo
  * \param asDamageType "BloodSplash", "Ice" or "Poison"
  * \param asDamageSound played each time the player is hurt, "" = none
  */
-static void __stdcall SetupDamageAreaType(std::string asName, float afDamage,
+static void SetupDamageAreaType(std::string asName, float afDamage,
 													 float afUpdatesPerSec, int alStrength,
 													 bool abDisableObjects, bool abDisableEnemies,
 													 std::string asDamageType, std::string asDamageSound)
@@ -1482,7 +1482,7 @@ static void __stdcall SetupDamageAreaType(std::string asName, float afDamage,
 }
 SCRIPT_DEFINE_FUNC_8(void, SetupDamageAreaType, string, float, float, int, bool, bool, string, string)
 
-static void __stdcall SetupForceArea(std::string asName, 
+static void SetupForceArea(std::string asName, 
 									 float afMaxForce, float afConstant,
 									 float afDestSpeed, float afMaxMass,
 									 bool abMulWithMass, bool abForceAtPoint,
@@ -1507,7 +1507,7 @@ static void __stdcall SetupForceArea(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_9(void, SetupForceArea, string, float, float, float, float, bool, bool, bool, bool)
 
-static void __stdcall SetupLiquidArea(std::string asName,
+static void SetupLiquidArea(std::string asName,
 								  float afDensity, float afLinearViscosity,
 								  float afAngularViscosity,
 								  std::string asPhysicsMaterial,
@@ -1534,7 +1534,7 @@ static void __stdcall SetupLiquidArea(std::string asName,
 }
 SCRIPT_DEFINE_FUNC_9(void, SetupLiquidArea, string, float, float, float, string, float, float, float, bool)
 
-static void __stdcall SetupSaveArea(std::string asName,
+static void SetupSaveArea(std::string asName,
 											std::string asMessageCat,std::string asMessageEntry, 
 											std::string asSound)
 {
@@ -1567,7 +1567,7 @@ static eGameCollideScriptType GetGameCollideScriptType(const tString &asType)
 	return eGameCollideScriptType_LastEnum;
 }
 
-static void __stdcall AddEntityCollideCallback(std::string asType,
+static void AddEntityCollideCallback(std::string asType,
 											   std::string asDestName,
 											   std::string asEntityName,
 											   std::string asFuncName)
@@ -1597,7 +1597,7 @@ static void __stdcall AddEntityCollideCallback(std::string asType,
 }
 SCRIPT_DEFINE_FUNC_4(void, AddEntityCollideCallback, string, string, string, string)
 
-static void __stdcall RemoveEntityCollideCallback(std::string asType,
+static void RemoveEntityCollideCallback(std::string asType,
 											   std::string asDestName,
 											   std::string asEntityName)
 {
@@ -1642,7 +1642,7 @@ static eGameEntityScriptType GetGameScriptType(const tString &asType)
 	return eGameEntityScriptType_LastEnum;
 }
 
-static void __stdcall AddEntityCallback(std::string asType,
+static void AddEntityCallback(std::string asType,
 										std::string asDestName,
 										std::string asFuncName)
 {
@@ -1662,7 +1662,7 @@ static void __stdcall AddEntityCallback(std::string asType,
 }
 SCRIPT_DEFINE_FUNC_3(void, AddEntityCallback, string, string, string)
 
-static void __stdcall RemoveEntityCallback(std::string asType,
+static void RemoveEntityCallback(std::string asType,
 										   std::string asDestName)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDestName);
@@ -1683,7 +1683,7 @@ SCRIPT_DEFINE_FUNC_2(void, RemoveEntityCallback, string, string)
 
 // GAME SOUND
 
-static void __stdcall CreateSoundEntityAt(std::string asType,std::string asDestName, 
+static void CreateSoundEntityAt(std::string asType,std::string asDestName, 
 													 std::string asSoundName,  std::string asSoundFile)
 {
 	cWorld3D *pWorld = gpInit->mpGame->GetScene()->GetWorld3D();
@@ -1779,7 +1779,7 @@ static cGameWheel* GetWheel(const std::string &asName)
  * the action 0 = enter, 1 = leave, 2 = during; the state -1 = min, 0 = middle, 1 = max.
  * \param asType "Enter", "Leave" or "During"
  */
-static void __stdcall SetLeverCallback(std::string asName, std::string asType, std::string asFunc)
+static void SetLeverCallback(std::string asName, std::string asType, std::string asFunc)
 {
 	cGameLever *pLever = GetLever(asName);
 	if(pLever==nullptr) return;
@@ -1795,7 +1795,7 @@ SCRIPT_DEFINE_FUNC_3(void, SetLeverCallback, string, string, string)
 /**
  * \param alState -1 = stuck at min, 1 = stuck at max, 0 = not stuck
  */
-static void __stdcall SetLeverStuck(std::string asName, int alState)
+static void SetLeverStuck(std::string asName, int alState)
 {
 	cGameLever *pLever = GetLever(asName);
 	if(pLever==nullptr) return;
@@ -1809,7 +1809,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetLeverStuck, string, int)
 /**
  * \return -1 = min, 0 = middle, 1 = max
  */
-static int __stdcall GetLeverState(std::string asName)
+static int GetLeverState(std::string asName)
 {
 	cGameLever *pLever = GetLever(asName);
 	if(pLever==nullptr) return 0;
@@ -1823,7 +1823,7 @@ static int __stdcall GetLeverState(std::string asName)
 }
 SCRIPT_DEFINE_FUNC_1(int, GetLeverState, string)
 
-static void __stdcall SetWheelCallback(std::string asName, std::string asType, std::string asFunc)
+static void SetWheelCallback(std::string asName, std::string asType, std::string asFunc)
 {
 	cGameWheel *pWheel = GetWheel(asName);
 	if(pWheel==nullptr) return;
@@ -1836,7 +1836,7 @@ static void __stdcall SetWheelCallback(std::string asName, std::string asType, s
 }
 SCRIPT_DEFINE_FUNC_3(void, SetWheelCallback, string, string, string)
 
-static void __stdcall SetWheelStuck(std::string asName, int alState)
+static void SetWheelStuck(std::string asName, int alState)
 {
 	cGameWheel *pWheel = GetWheel(asName);
 	if(pWheel==nullptr) return;
@@ -1847,7 +1847,7 @@ static void __stdcall SetWheelStuck(std::string asName, int alState)
 }
 SCRIPT_DEFINE_FUNC_2(void, SetWheelStuck, string, int)
 
-static int __stdcall GetWheelState(std::string asName)
+static int GetWheelState(std::string asName)
 {
 	cGameWheel *pWheel = GetWheel(asName);
 	if(pWheel==nullptr) return 0;
@@ -1864,7 +1864,7 @@ SCRIPT_DEFINE_FUNC_1(int, GetWheelState, string)
 /**
  * The angle the wheel has been turned in all, in degrees
  */
-static float __stdcall GetWheelAngle(std::string asName)
+static float GetWheelAngle(std::string asName)
 {
 	cGameWheel *pWheel = GetWheel(asName);
 	if(pWheel==nullptr) return 0;
@@ -1873,7 +1873,7 @@ static float __stdcall GetWheelAngle(std::string asName)
 }
 SCRIPT_DEFINE_FUNC_1(float, GetWheelAngle, string)
 
-static float __stdcall GetWheelSpeed(std::string asName)
+static float GetWheelSpeed(std::string asName)
 {
 	cGameWheel *pWheel = GetWheel(asName);
 	if(pWheel==nullptr) return 0;
@@ -1886,7 +1886,7 @@ SCRIPT_DEFINE_FUNC_1(float, GetWheelSpeed, string)
  * The limits of a joint follow the wheel: afMin at the wheel's least angle,
  * afMax at its greatest, afRange between the two limits.
  */
-static void __stdcall ConnectWheelToJoint(std::string asName, std::string asJoint,
+static void ConnectWheelToJoint(std::string asName, std::string asJoint,
 											float afMin, float afMax, float afRange)
 {
 	cGameWheel *pWheel = GetWheel(asName);
@@ -1907,7 +1907,7 @@ SCRIPT_DEFINE_FUNC_5(void, ConnectWheelToJoint, string, string, float, float, fl
 /**
  * The same for the value a controller on one of the entity's joints aims at
  */
-static void __stdcall ConnectWheelToController(std::string asName, std::string asEntity, std::string asController,
+static void ConnectWheelToController(std::string asName, std::string asEntity, std::string asController,
 											float afMin, float afMax)
 {
 	cGameWheel *pWheel = GetWheel(asName);
@@ -1973,7 +1973,7 @@ static void TeleportBody(iPhysicsBody *apBody, cGameArea *apArea, bool abResetVe
  * \param afSlowDownDist the distance from the area inside which it slows down
  * \param asCallback called on arrival: Func(string asEntity). "" = none.
  */
-static void __stdcall MoveEntityToArea(std::string asName, std::string asArea, float afMaxSpeed,
+static void MoveEntityToArea(std::string asName, std::string asArea, float afMaxSpeed,
 										float afAcceleration, float afSlowDownDist, std::string asCallback)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
@@ -1996,7 +1996,7 @@ SCRIPT_DEFINE_FUNC_6(void, MoveEntityToArea, string, string, float, float, float
  * \param abResetVelocity the body is left without speed
  * \param abSetRotation the body gets the rotation given (radians), else it keeps its own
  */
-static void __stdcall TeleportBodyToArea(std::string asBody, std::string asArea, bool abResetVelocity,
+static void TeleportBodyToArea(std::string asBody, std::string asArea, bool abResetVelocity,
 										bool abSetRotation, float afRotX, float afRotY, float afRotZ)
 {
 	iPhysicsBody *pBody = GetBody(asBody);
@@ -2012,7 +2012,7 @@ SCRIPT_DEFINE_FUNC_7(void, TeleportBodyToArea, string, string, bool, bool, float
 /**
  * The same for the first body of an entity
  */
-static void __stdcall TeleportEntityToArea(std::string asName, std::string asArea, bool abResetVelocity,
+static void TeleportEntityToArea(std::string asName, std::string asArea, bool abResetVelocity,
 										bool abSetRotation, float afRotX, float afRotY, float afRotZ)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
@@ -2038,7 +2038,7 @@ SCRIPT_DEFINE_FUNC_7(void, TeleportEntityToArea, string, string, bool, bool, flo
 /**
  * The player stands at the centre of an area
  */
-static void __stdcall TeleportPlayerToArea(std::string asArea)
+static void TeleportPlayerToArea(std::string asArea)
 {
 	cGameArea *pArea = GetArea(asArea);
 	if(pArea==nullptr) return;
@@ -2050,7 +2050,7 @@ SCRIPT_DEFINE_FUNC_1(void, TeleportPlayerToArea, string)
 /**
  * Requiem: an entity is made from a file, placed and turned as the area is
  */
-static void __stdcall CreateEntityAtArea(std::string asName, std::string asFile, std::string asArea)
+static void CreateEntityAtArea(std::string asName, std::string asFile, std::string asArea)
 {
 	cWorld3D *pWorld = gpInit->mpGame->GetScene()->GetWorld3D();
 
@@ -2078,7 +2078,7 @@ static bool BodiesCollide(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB)
 /**
  * \return true if two bodies touch
  */
-static bool __stdcall CheckBodyCollision(std::string asBodyA, std::string asBodyB)
+static bool CheckBodyCollision(std::string asBodyA, std::string asBodyB)
 {
 	iPhysicsWorld *pPhysicsWorld = gpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
@@ -2093,7 +2093,7 @@ SCRIPT_DEFINE_FUNC_2(bool, CheckBodyCollision, string, string)
 /**
  * \return true if any body of an entity touches a body
  */
-static bool __stdcall CheckEntityBodyCollision(std::string asName, std::string asBody)
+static bool CheckEntityBodyCollision(std::string asName, std::string asBody)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
 	if(pEntity==nullptr) return false;
@@ -2115,7 +2115,7 @@ SCRIPT_DEFINE_FUNC_2(bool, CheckEntityBodyCollision, string, string)
  * (The game's own binary pairs the bodies by their number only, which is the
  * same thing for the entities of one body that its scripts ask about.)
  */
-static bool __stdcall CheckGameEntityCollision(std::string asNameA, std::string asNameB)
+static bool CheckGameEntityCollision(std::string asNameA, std::string asNameB)
 {
 	iGameEntity *pEntityA = gpInit->mpMapHandler->GetGameEntity(asNameA);
 	iGameEntity *pEntityB = gpInit->mpMapHandler->GetGameEntity(asNameB);
@@ -2144,7 +2144,7 @@ static cGameStickArea* GetStickArea(const std::string &asName)
 /**
  * A stick area takes hold of a body, wherever the body is
  */
-static void __stdcall AttachBodyToStickArea(std::string asBody, std::string asArea)
+static void AttachBodyToStickArea(std::string asBody, std::string asArea)
 {
 	cGameStickArea *pStickArea = GetStickArea(asArea);
 	if(pStickArea==nullptr) return;
@@ -2156,7 +2156,7 @@ static void __stdcall AttachBodyToStickArea(std::string asBody, std::string asAr
 }
 SCRIPT_DEFINE_FUNC_2(void, AttachBodyToStickArea, string, string)
 
-static void __stdcall DetachBodyFromStickArea(std::string asArea)
+static void DetachBodyFromStickArea(std::string asArea)
 {
 	cGameStickArea *pStickArea = GetStickArea(asArea);
 	if(pStickArea==nullptr) return;
@@ -2171,7 +2171,7 @@ SCRIPT_DEFINE_FUNC_1(void, DetachBodyFromStickArea, string)
  * What is said and heard when the player tries a locked swing door.
  * \param abX not used by the game
  */
-static void __stdcall SetDoorLockedProperties(std::string asDoor, std::string asDescCat, std::string asDescEntry,
+static void SetDoorLockedProperties(std::string asDoor, std::string asDescCat, std::string asDescEntry,
 												std::string asSound, bool abX)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asDoor);
@@ -2187,13 +2187,13 @@ static void __stdcall SetDoorLockedProperties(std::string asDoor, std::string as
 }
 SCRIPT_DEFINE_FUNC_5(void, SetDoorLockedProperties, string, string, string, string, bool)
 
-static void __stdcall SetNoFallDamage(bool abNoFallDamage)
+static void SetNoFallDamage(bool abNoFallDamage)
 {
 	gpInit->mpPlayer->SetNoFallDamage(abNoFallDamage);
 }
 SCRIPT_DEFINE_FUNC_1(void, SetNoFallDamage, bool)
 
-static void __stdcall TurnOffGlowStick()
+static void TurnOffGlowStick()
 {
 	if(gpInit->mpPlayer->GetGlowStick()->IsActive())
 		gpInit->mpPlayer->GetGlowStick()->SetActive(false);
@@ -2203,7 +2203,7 @@ SCRIPT_DEFINE_FUNC(void, TurnOffGlowStick)
 /**
  * Requiem: a lit flare is put out
  */
-static void __stdcall DropFlare()
+static void DropFlare()
 {
 	if(gpInit->mpPlayer->GetFlare()->IsActive())
 		gpInit->mpPlayer->GetFlare()->SetActive(false);
@@ -2213,7 +2213,7 @@ SCRIPT_DEFINE_FUNC(void, DropFlare)
 /**
  * The function is called, once, when the flashlight's power falls below the value: Func()
  */
-static void __stdcall SetLowPowerCallback(std::string asFunc, float afVal)
+static void SetLowPowerCallback(std::string asFunc, float afVal)
 {
 	gpInit->mpPlayer->SetLowPowerCallback(asFunc, afVal);
 }
@@ -2223,7 +2223,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetLowPowerCallback, string, float)
  * A radio message heard from an entity (an area as a rule): at full volume inside
  * afMinDist, fading to nothing at afMaxDist, where its text is not shown either.
  */
-static void __stdcall AddRadioMessageAtPos(std::string asTransCat, std::string asTransName, std::string asSound,
+static void AddRadioMessageAtPos(std::string asTransCat, std::string asTransName, std::string asSound,
 											std::string asEntity, float afMinDist, float afMaxDist)
 {
 	iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asEntity);
@@ -2238,7 +2238,7 @@ SCRIPT_DEFINE_FUNC_6(void, AddRadioMessageAtPos, string, string, string, string,
  * The waiting radio messages are dropped and the one playing fades out.
  * \param afFadeSpeed volume lost per second
  */
-static void __stdcall StopAllRadioMessages(float afFadeSpeed)
+static void StopAllRadioMessages(float afFadeSpeed)
 {
 	gpInit->mpRadioHandler->StopAll(afFadeSpeed);
 }
@@ -2264,7 +2264,7 @@ static iWidget* GetScreenWidget(const char *apFunc, const tString &asName)
 	return pGui->GetSet()->GetWidgetFromName(asName);
 }
 
-static void __stdcall OpenScreenGui(std::string asFile)
+static void OpenScreenGui(std::string asFile)
 {
 	gpInit->mpGameGuiHandler->OpenScreenGui(asFile);
 }
@@ -2273,7 +2273,7 @@ SCRIPT_DEFINE_FUNC_1(void, OpenScreenGui, string)
 /**
  * The screen is taken down at the next update, so its own script may call this.
  */
-static void __stdcall CloseScreenGui()
+static void CloseScreenGui()
 {
 	gpInit->mpGameGuiHandler->CloseScreenGui(true);
 }
@@ -2282,7 +2282,7 @@ SCRIPT_DEFINE_FUNC(void, CloseScreenGui)
 /**
  * Properties: Enabled, Visible
  */
-static void __stdcall SetWidgetBool(std::string asName, std::string asProp, bool abVal)
+static void SetWidgetBool(std::string asName, std::string asProp, bool abVal)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetBool", asName);
 	if(pWidget == nullptr) return;
@@ -2295,7 +2295,7 @@ static void __stdcall SetWidgetBool(std::string asName, std::string asProp, bool
 }
 SCRIPT_DEFINE_FUNC_3(void, SetWidgetBool, string, string, bool)
 
-static bool __stdcall GetWidgetBool(std::string asName, std::string asProp)
+static bool GetWidgetBool(std::string asName, std::string asProp)
 {
 	iWidget *pWidget = GetScreenWidget("GetWidgetBool", asName);
 	if(pWidget == nullptr) return false;
@@ -2314,7 +2314,7 @@ SCRIPT_DEFINE_FUNC_2(bool, GetWidgetBool, string, string)
  * Properties: SelectedItem (list and combo box), MaxTextLength (text box, label),
  * MaxShownItems (combo box), MaxValue, Value, BarValueSize, ButtonValueAdd (slider)
  */
-static void __stdcall SetWidgetInt(std::string asName, std::string asProp, int alVal)
+static void SetWidgetInt(std::string asName, std::string asProp, int alVal)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetInt", asName);
 	if(pWidget == nullptr) return;
@@ -2353,7 +2353,7 @@ static void __stdcall SetWidgetInt(std::string asName, std::string asProp, int a
 }
 SCRIPT_DEFINE_FUNC_3(void, SetWidgetInt, string, string, int)
 
-static int __stdcall GetWidgetInt(std::string asName, std::string asProp)
+static int GetWidgetInt(std::string asName, std::string asProp)
 {
 	iWidget *pWidget = GetScreenWidget("GetWidgetInt", asName);
 	if(pWidget == nullptr) return 0;
@@ -2389,7 +2389,7 @@ SCRIPT_DEFINE_FUNC_2(int, GetWidgetInt, string, string)
 /**
  * Properties: BackgroundZ (frame, list box)
  */
-static void __stdcall SetWidgetFloat(std::string asName, std::string asProp, float afVal)
+static void SetWidgetFloat(std::string asName, std::string asProp, float afVal)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetFloat", asName);
 	if(pWidget == nullptr) return;
@@ -2410,7 +2410,7 @@ SCRIPT_DEFINE_FUNC_3(void, SetWidgetFloat, string, string, float)
 /**
  * Properties: BackgroundColor (frame)
  */
-static void __stdcall SetWidgetColor(std::string asName, std::string asProp, float afR, float afG, float afB, float afA)
+static void SetWidgetColor(std::string asName, std::string asProp, float afR, float afG, float afB, float afA)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetColor", asName);
 	if(pWidget == nullptr) return;
@@ -2431,7 +2431,7 @@ SCRIPT_DEFINE_FUNC_6(void, SetWidgetColor, string, string, float, float, float, 
 /**
  * Properties: Size
  */
-static void __stdcall SetWidgetVec2(std::string asName, std::string asProp, float afX, float afY)
+static void SetWidgetVec2(std::string asName, std::string asProp, float afX, float afY)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetVec2", asName);
 	if(pWidget == nullptr) return;
@@ -2446,7 +2446,7 @@ SCRIPT_DEFINE_FUNC_4(void, SetWidgetVec2, string, string, float, float)
 /**
  * Properties: Position
  */
-static void __stdcall SetWidgetVec3(std::string asName, std::string asProp, float afX, float afY, float afZ)
+static void SetWidgetVec3(std::string asName, std::string asProp, float afX, float afY, float afZ)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetVec3", asName);
 	if(pWidget == nullptr) return;
@@ -2461,7 +2461,7 @@ SCRIPT_DEFINE_FUNC_5(void, SetWidgetVec3, string, string, float, float, float)
 /**
  * Properties: Text, Font (a font of the screen's file), Image (image and button; an image of the screen's file)
  */
-static void __stdcall SetWidgetString(std::string asName, std::string asProp, std::string asVal)
+static void SetWidgetString(std::string asName, std::string asProp, std::string asVal)
 {
 	cGameGui *pGui = GetScreenGui("SetWidgetString");
 	if(pGui == nullptr) return;
@@ -2497,7 +2497,7 @@ SCRIPT_DEFINE_FUNC_3(void, SetWidgetString, string, string, string)
 /**
  * Properties: Text
  */
-static void __stdcall SetWidgetStringTrans(std::string asName, std::string asProp, std::string asTransCat, std::string asTransName)
+static void SetWidgetStringTrans(std::string asName, std::string asProp, std::string asTransCat, std::string asTransName)
 {
 	iWidget *pWidget = GetScreenWidget("SetWidgetStringTrans", asName);
 	if(pWidget == nullptr) return;
@@ -2514,7 +2514,7 @@ SCRIPT_DEFINE_FUNC_4(void, SetWidgetStringTrans, string, string, string, string)
 /**
  * Properties: Text
  */
-static std::string __stdcall GetWidgetString(std::string asName, std::string asProp)
+static std::string GetWidgetString(std::string asName, std::string asProp)
 {
 	iWidget *pWidget = GetScreenWidget("GetWidgetString", asName);
 	if(pWidget == nullptr) return "";
@@ -2543,21 +2543,21 @@ static iWidgetItemContainer* GetScreenItemContainer(const char *apFunc, const tS
 /**
  * A line more in a list box or combo box
  */
-static void __stdcall AddWidgetItem(std::string asName, std::string asItem)
+static void AddWidgetItem(std::string asName, std::string asItem)
 {
 	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItem", asName);
 	if(pContainer) pContainer->AddItem(cString::To16Char(asItem));
 }
 SCRIPT_DEFINE_FUNC_2(void, AddWidgetItem, string, string)
 
-static void __stdcall AddWidgetItemTrans(std::string asName, std::string asTransCat, std::string asTransName)
+static void AddWidgetItemTrans(std::string asName, std::string asTransCat, std::string asTransName)
 {
 	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItemTrans", asName);
 	if(pContainer) pContainer->AddItem(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName));
 }
 SCRIPT_DEFINE_FUNC_3(void, AddWidgetItemTrans, string, string, string)
 
-static void __stdcall RemoveWidgetItem(std::string asName, int alIdx)
+static void RemoveWidgetItem(std::string asName, int alIdx)
 {
 	iWidgetItemContainer *pContainer = GetScreenItemContainer("RemoveWidgetItem", asName);
 	if(pContainer == nullptr) return;
@@ -2572,7 +2572,7 @@ SCRIPT_DEFINE_FUNC_2(void, RemoveWidgetItem, string, int)
 /**
  * Only this widget and those in it take the mouse; "" gives it back to all.
  */
-static void __stdcall SetAttentionWidget(std::string asName)
+static void SetAttentionWidget(std::string asName)
 {
 	cGameGui *pGui = GetScreenGui("SetAttentionWidget");
 	if(pGui == nullptr) return;
@@ -2589,7 +2589,7 @@ SCRIPT_DEFINE_FUNC_1(void, SetAttentionWidget, string)
  * Messages: MouseDown, MouseUp, MouseDoubleClick, MouseEnter, MouseLeave, ButtonPressed,
  * TextChange, CheckChange, KeyPress, SliderMove, SelectionChange
  */
-static void __stdcall SetWidgetCallback(std::string asName, std::string asMessage, std::string asFunc)
+static void SetWidgetCallback(std::string asName, std::string asMessage, std::string asFunc)
 {
 	cGameGui *pGui = GetScreenGui("SetWidgetCallback");
 	if(pGui == nullptr) return;
@@ -2601,7 +2601,7 @@ SCRIPT_DEFINE_FUNC_3(void, SetWidgetCallback, string, string, string)
 /**
  * A message box with one or two buttons ("" for none). The function is called with the button pressed: Func(int alButton)
  */
-static void __stdcall CreateGuiPopUp(std::string asLabel, std::string asText, std::string asButton1,
+static void CreateGuiPopUp(std::string asLabel, std::string asText, std::string asButton1,
 									std::string asButton2, std::string asCallback)
 {
 	cGameGui *pGui = GetScreenGui("CreateGuiPopUp");
@@ -2612,7 +2612,7 @@ static void __stdcall CreateGuiPopUp(std::string asLabel, std::string asText, st
 }
 SCRIPT_DEFINE_FUNC_5(void, CreateGuiPopUp, string, string, string, string, string)
 
-static void __stdcall CreateGuiPopUpTrans(std::string asLabelCat, std::string asLabelName,
+static void CreateGuiPopUpTrans(std::string asLabelCat, std::string asLabelName,
 										std::string asTextCat, std::string asTextName,
 										std::string asButton1Cat, std::string asButton1Name,
 										std::string asButton2Cat, std::string asButton2Name,
@@ -2634,7 +2634,7 @@ SCRIPT_DEFINE_FUNC_9(void, CreateGuiPopUpTrans, string, string, string, string, 
  * A text to read on the screen. It is put in the notebook, the first time it is opened.
  * The function is called when the text is closed: Func()
  */
-static void __stdcall CreateGuiTextView(std::string asLabelCat, std::string asLabelName,
+static void CreateGuiTextView(std::string asLabelCat, std::string asLabelName,
 										std::string asTextCat, std::string asTextName,
 										std::string asCallback)
 {
@@ -2657,7 +2657,7 @@ SCRIPT_DEFINE_FUNC_5(void, CreateGuiTextView, string, string, string, string, st
 /**
  * As SetRadioOnEndCallback, for a function in the script of the open computer screen.
  */
-static void __stdcall SetRadioOnEndCallbackGui(std::string asFunc)
+static void SetRadioOnEndCallbackGui(std::string asFunc)
 {
 	gpInit->mpRadioHandler->SetOnEndCallback(asFunc, true);
 }
@@ -2669,13 +2669,13 @@ SCRIPT_DEFINE_FUNC_1(void, SetRadioOnEndCallbackGui, string)
  * The view is laid over itself, a little larger, swelling and shrinking
  * afAlpha: how strong; afSpeed: how fast it comes, per second (0 = at once)
  */
-static void __stdcall StartDreamFilter(float afAlpha, float afSpeed)
+static void StartDreamFilter(float afAlpha, float afSpeed)
 {
 	gpInit->mpEffectHandler->GetDreamFilter()->Start(afAlpha, afSpeed);
 }
 SCRIPT_DEFINE_FUNC_2(void, StartDreamFilter, float, float)
 
-static void __stdcall StopDreamFilter(float afSpeed)
+static void StopDreamFilter(float afSpeed)
 {
 	gpInit->mpEffectHandler->GetDreamFilter()->Stop(afSpeed);
 }
@@ -2685,7 +2685,7 @@ SCRIPT_DEFINE_FUNC_1(void, StopDreamFilter, float)
  * A picture fades in over the view, stays and fades out
  * abStartFlash, abEndFlash: with a white flash as it comes and before it goes
  */
-static void __stdcall StartImageFlash(float afFadeIn, float afStay, float afFadeOut, std::string asFile,
+static void StartImageFlash(float afFadeIn, float afStay, float afFadeOut, std::string asFile,
 									bool abStartFlash, bool abEndFlash)
 {
 	gpInit->mpEffectHandler->GetImageFlash()->Start(afFadeIn, afStay, afFadeOut, asFile, abStartFlash, abEndFlash);
@@ -2695,7 +2695,7 @@ SCRIPT_DEFINE_FUNC_6(void, StartImageFlash, float, float, float, string, bool, b
 /**
  * Messages in black, for a bright view
  */
-static void __stdcall SetMessageBlackText(bool abBlackText)
+static void SetMessageBlackText(bool abBlackText)
 {
 	gpInit->mpGameMessageHandler->SetBlackText(abBlackText);
 }
@@ -2704,7 +2704,7 @@ SCRIPT_DEFINE_FUNC_1(void, SetMessageBlackText, bool)
 /**
  * Subtitles on black strips, for a bright view
  */
-static void __stdcall SetSubTitleBlackText(bool abBlackText)
+static void SetSubTitleBlackText(bool abBlackText)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->SetBlackText(abBlackText);
 }
@@ -2713,7 +2713,7 @@ SCRIPT_DEFINE_FUNC_1(void, SetSubTitleBlackText, bool)
 /**
  * True while the gas mask is on the player's face
  */
-static bool __stdcall GetPlayerHasGasMask()
+static bool GetPlayerHasGasMask()
 {
 	return gpInit->mpEffectHandler->GetGasMask()->IsActive();
 }
@@ -2722,7 +2722,7 @@ SCRIPT_DEFINE_FUNC(bool, GetPlayerHasGasMask)
 /**
  * Requiem: the effect of a save at the area (the look, the flash), without saving
  */
-static void __stdcall SaveEffectOnArea(std::string asArea)
+static void SaveEffectOnArea(std::string asArea)
 {
 	cAreaEntity *pArea = gpInit->mpGame->GetScene()->GetWorld3D()->GetAreaEntity(asArea);
 	if(pArea == nullptr)
@@ -2739,13 +2739,13 @@ SCRIPT_DEFINE_FUNC_1(void, SaveEffectOnArea, string)
  * Black Plague's endings: mails typed on a black screen. 1 goes back to the
  * map afterwards, 2 goes on to the credits.
  */
-static void __stdcall StartEnding1()
+static void StartEnding1()
 {
 	gpInit->mpEnding->SetActive(true, 0);
 }
 SCRIPT_DEFINE_FUNC(void, StartEnding1)
 
-static void __stdcall StartEnding2()
+static void StartEnding2()
 {
 	gpInit->mpEnding->SetActive(true, 3);
 }
@@ -2766,7 +2766,7 @@ static iSoundEnvironment* GetScriptSoundEnv(const tString &asFile)
  * The reverb heard in a sector: "soundenvs/x.snv"
  * afFadeTime: seconds to fade into it; alPrio: where sectors overlap the highest wins
  */
-static void __stdcall LinkSoundEnvToSector(std::string asSector, std::string asSoundEnv, float afFadeTime, int alPrio)
+static void LinkSoundEnvToSector(std::string asSector, std::string asSoundEnv, float afFadeTime, int alPrio)
 {
 	cSector *pSector = gpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer()->GetSector(asSector);
 	if(pSector == nullptr)
@@ -2782,7 +2782,7 @@ static void __stdcall LinkSoundEnvToSector(std::string asSector, std::string asS
 }
 SCRIPT_DEFINE_FUNC_4(void, LinkSoundEnvToSector, string, string, float, int)
 
-static void __stdcall LinkSoundEnvToAllSectors(std::string asSoundEnv, float afFadeTime)
+static void LinkSoundEnvToAllSectors(std::string asSoundEnv, float afFadeTime)
 {
 	iSoundEnvironment *pEnv = GetScriptSoundEnv(asSoundEnv);
 	if(pEnv == nullptr) return;
@@ -2798,7 +2798,7 @@ SCRIPT_DEFINE_FUNC_2(void, LinkSoundEnvToAllSectors, string, float)
 /**
  * The reverb heard outside the sectors that have one
  */
-static void __stdcall SetDefaultSoundEnv(std::string asSoundEnv, float afFadeTime)
+static void SetDefaultSoundEnv(std::string asSoundEnv, float afFadeTime)
 {
 	iSoundEnvironment *pEnv = GetScriptSoundEnv(asSoundEnv);
 	if(pEnv == nullptr) return;
@@ -2810,7 +2810,7 @@ SCRIPT_DEFINE_FUNC_2(void, SetDefaultSoundEnv, string, float)
 /**
  * The function is called, once, when the notebook is closed: Func()
  */
-static void __stdcall SetNotebookCloseCallback(std::string asFunc)
+static void SetNotebookCloseCallback(std::string asFunc)
 {
 	gpInit->mpNotebook->SetCloseCallback(asFunc);
 }

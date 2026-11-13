@@ -147,7 +147,7 @@ iGameEntity::~iGameEntity()
 	//Delete callbacks
 	for(int i=0; i< eGameEntityScriptType_LastEnum; ++i) 
 	{
-		if( mvCallbackScripts[i]) hplDelete( mvCallbackScripts[i] );
+		if( mvCallbackScripts[i]) delete mvCallbackScripts[i];
 	}
 	STLMapDeleteAll(m_mapCollideCallbacks);
 
@@ -681,7 +681,7 @@ void iGameEntity::OnUpdate(float afTimeStep)
 
 		if(pCallback->mbDeleteMe)
 		{
-			hplDelete( pCallback );
+			delete pCallback;
 			m_mapCollideCallbacks.erase(currentIt);
 		}
 	}
@@ -709,14 +709,14 @@ void iGameEntity::AddCollideScript(eGameCollideScriptType aType,const tString &a
 	}
 	else
 	{
-		pCallback = hplNew(  cGameCollideScript, () );
+		pCallback = new cGameCollideScript();
 		
 		//Get the entity
 		iGameEntity *pEntity = mpInit->mpMapHandler->GetGameEntity(asEntity);
 		if(pEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",asEntity.c_str());
-			hplDelete( pCallback );
+			delete pCallback;
 			return;
 		}
 		
@@ -747,7 +747,7 @@ void iGameEntity::RemoveCollideScriptWithChildEntity(iGameEntity *apEntity)
 			}
 			else
 			{
-				hplDelete( pCallback );
+				delete pCallback;
 				m_mapCollideCallbacks.erase(currentIt);
 			}
 		}
@@ -771,7 +771,7 @@ void iGameEntity::RemoveCollideScript(eGameCollideScriptType aType,const tString
 			}
 			else
 			{
-				hplDelete( pCallback );
+				delete pCallback;
 				m_mapCollideCallbacks.erase(it);
 			}
 		}
@@ -788,7 +788,7 @@ void iGameEntity::AddScript(eGameEntityScriptType aType,const tString &asFunc)
 	
 	if(pScript==nullptr)
 	{
-		pScript = hplNew( cGameEntityScript, () );
+		pScript = new cGameEntityScript();
 		mvCallbackScripts[aType] = pScript;
 	}
 	
@@ -799,7 +799,7 @@ void iGameEntity::RemoveScript(eGameEntityScriptType aType)
 {
     if(mvCallbackScripts[aType])
 	{
-		hplDelete( mvCallbackScripts[aType] );
+		delete mvCallbackScripts[aType];
 		mvCallbackScripts[aType] = nullptr;
 	}
 }
@@ -855,7 +855,7 @@ void iGameEntity::PreloadModel(const tString &asFile)
 
 	if(sPath!="")
 	{
-		TiXmlDocument *pEntityDoc = hplNew( TiXmlDocument, () );
+		TiXmlDocument *pEntityDoc = new TiXmlDocument();
 		if(pEntityDoc->LoadFile(sPath.c_str())==false)
 		{
 			Error("Couldn't load '%s'!\n",sPath.c_str());
@@ -877,7 +877,7 @@ void iGameEntity::PreloadModel(const tString &asFile)
 				PreloadModel(pRef->msFile);
 			}
 		}
-		hplDelete( pEntityDoc );
+		delete pEntityDoc;
 	}
 	else
 	{
@@ -1120,7 +1120,7 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	{
 		cGameEntityScript &script = scriptIt.Next();
 
-		mvCallbackScripts[script.mlNum] = hplNew( cGameEntityScript, () );
+		mvCallbackScripts[script.mlNum] = new cGameEntityScript();
 		mvCallbackScripts[script.mlNum]->msScriptFunc = script.msScriptFunc;
 	}
 	
@@ -1238,13 +1238,13 @@ void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 	while(colIt.HasNext())
 	{
 		cSaveGame_cGameCollideScript &savedScript = colIt.Next();
-		cGameCollideScript *pCallback = hplNew( cGameCollideScript, () );
+		cGameCollideScript *pCallback = new cGameCollideScript();
 
 		pCallback->mpEntity = mpInit->mpMapHandler->GetGameEntity(savedScript.msEntity);
 		if(pCallback->mpEntity==nullptr)
 		{
 			Warning("Couldn't find entity '%s'\n",savedScript.msEntity.c_str());
-			hplDelete( pCallback );
+			delete pCallback;
 			continue;
 		}
 		savedScript.SaveTo(pCallback);

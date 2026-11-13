@@ -297,10 +297,10 @@ static void CompareAnimation(cMeshLoaderCollada &aLoader, cColladaData &aA, cCol
 		}
 	}
 
-	if(pAnimA) hplDelete(pAnimA);
-	if(pAnimB) hplDelete(pAnimB);
-	if(pSkelA) hplDelete(pSkelA);
-	if(pSkelB) hplDelete(pSkelB);
+	if(pAnimA) delete pAnimA;
+	if(pAnimB) delete pAnimB;
+	if(pSkelA) delete pSkelA;
+	if(pSkelB) delete pSkelB;
 }
 
 // What a node's source is to the loader

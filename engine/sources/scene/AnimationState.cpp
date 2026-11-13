@@ -243,7 +243,7 @@ namespace hpl {
 
 	cAnimationEvent *cAnimationState::CreateEvent()
 	{
-		cAnimationEvent *pEvent = hplNew( cAnimationEvent, () );
+		cAnimationEvent *pEvent = new cAnimationEvent();
 		pEvent->mfTime =0;
 		pEvent->mType = eAnimationEventType_LastEnum;
 		pEvent->msValue = "";
@@ -293,7 +293,7 @@ namespace hpl {
 
 	iSaveData* cAnimationState::CreateSaveData()
 	{
-		return hplNew( cSaveData_cAnimationState, () );
+		return new cSaveData_cAnimationState();
 	}
 
 	void cAnimationState::SaveToSaveData(iSaveData *apSaveData)

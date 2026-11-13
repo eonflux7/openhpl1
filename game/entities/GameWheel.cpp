@@ -28,7 +28,7 @@ void cEntityLoader_GameWheel::BeforeLoad(TiXmlElement *apRootElem, const cMatrix
 void cEntityLoader_GameWheel::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
 {
-	cGameWheel *pObject = hplNew( cGameWheel, (mpInit,mpEntity->GetName()) );
+	cGameWheel *pObject = new cGameWheel(mpInit,mpEntity->GetName());
 
 	pObject->msFileName = msFileName;
 	pObject->m_mtxOnLoadTransform = a_mtxTransform;
@@ -529,7 +529,7 @@ iGameEntity* cGameWheel_SaveData::CreateEntity()
 
 iGameEntity_SaveData* cGameWheel::CreateSaveData()
 {
-	return hplNew( cGameWheel_SaveData, () );
+	return new cGameWheel_SaveData();
 }
 
 void cGameWheel::SaveToSaveData(iGameEntity_SaveData *apSaveData)
