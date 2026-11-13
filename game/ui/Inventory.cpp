@@ -11,7 +11,6 @@
 #include "systems/EffectHandler.h"
 #include "systems/RadioHandler.h"
 #include "ui/Notebook.h"
-#include "player/HapticGameCamera.h"
 
 #include "core/GlobalInit.h"
 #include "core/GraphicsHelper.h"
@@ -170,10 +169,7 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 	mvItemTypes[eGameItemType_GlowStick] = hplNew( cGameItemType_GlowStick,(mpInit) );
 	mvItemTypes[eGameItemType_Flare] = hplNew( cGameItemType_Flare,(mpInit) );
 	mvItemTypes[eGameItemType_Painkillers] = hplNew( cGameItemType_Painkillers,(mpInit) );
-	if(mpInit->mbHasHaptics)
-		mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMeleeHaptX,(mpInit) );
-	else
-		mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMelee,(mpInit) );
+	mvItemTypes[eGameItemType_WeaponMelee] = hplNew( cGameItemType_WeaponMelee,(mpInit) );
 	mvItemTypes[eGameItemType_Throw] = hplNew( cGameItemType_Throw,(mpInit) );
 	mvItemTypes[eGameItemType_GasMask] = hplNew( cGameItemType_GasMask,(mpInit) );
 	mvItemTypes[eGameItemType_Collectable] = hplNew( cGameItemType_Collectable,(mpInit) );
@@ -1380,9 +1376,6 @@ void cInventory::SetActive(bool abActive)
     
 	if(mbActive)
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
-
 		mLastCrossHairState = mpInit->mpPlayer->GetCrossHairState();
 		
 		mvMousePos = cVector2f(400,300);
@@ -1397,9 +1390,6 @@ void cInventory::SetActive(bool abActive)
 	}
 	else
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(true);
-
 		mpInit->mpPlayer->SetCrossHairState(mLastCrossHairState);
 		mbMessageActive = false;
 	}

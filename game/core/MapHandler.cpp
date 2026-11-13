@@ -357,10 +357,6 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpGame->GetSound()->GetSoundHandler()->StopAll(eSoundDest_World);
 		mpInit->mpGame->GetSound()->Update(1.0f/60.0f);
 
-		//Destroy Haptic shapes
-		if(mpInit->mbHasHaptics)
-			mpInit->mpGame->GetHaptic()->GetLowLevel()->DestroyAllShapes();
-
 		//Reloading: destroy the map and the resources only it used before
 		//loading it, so that they are read again from their files.
 		if(mbReloading && pLastMap)
@@ -561,10 +557,6 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
     mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetAmbientColor(cColor(0,1)); 
 	
 	cWorld3D *pOldWorld = mpScene->GetWorld3D();
-
-	//Haptic
-	if(mpInit->mbHasHaptics)
-		mpInit->mpGame->GetHaptic()->GetLowLevel()->DestroyAllShapes();
 
 	//Delete all sound entities
 	if(pOldWorld)
@@ -1635,13 +1627,6 @@ void cMapHandler::Reset()
 	STLDeleteAll(mlstTimers);
 
 	DestroyAll();
-
-	//Haptic
-	if(mpInit->mbHasHaptics)
-	{
-		mpInit->mpGame->GetHaptic()->GetLowLevel()->DestroyAllShapes();
-		mpInit->mpGame->GetHaptic()->GetLowLevel()->StopAllForces();
-	}
 
 	//World3D
 	if(mpScene->GetWorld3D()) mpScene->DestroyWorld3D(mpScene->GetWorld3D());

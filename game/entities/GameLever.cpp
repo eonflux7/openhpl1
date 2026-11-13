@@ -61,7 +61,6 @@ void cEntityLoader_GameLever::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	pObject->SetParticleSystems(mvParticleSystems);
 	pObject->SetBillboards(mvBillboards);
 	pObject->SetSoundEntities(mvSoundEntities);
-	pObject->SetHapticShapes(mvHapticShapes);
 
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");

@@ -19,7 +19,6 @@
 #include "input/Action.h"
 #include "input/ActionKeyboard.h"
 #include "input/ActionMouseButton.h"
-#include "input/ActionHaptic.h"
 #include "input/LowLevelInput.h"
 
 #include "game/Game.h"
@@ -147,12 +146,6 @@
 #include "gui/WidgetImage.h"
 #include "gui/WidgetListBox.h"
 #include "gui/WidgetComboBox.h"
-
-#include "haptic/Haptic.h"
-#include "haptic/LowLevelHaptic.h"
-#include "haptic/HapticShape.h"
-#include "haptic/HapticForce.h"
-#include "haptic/HapticSurface.h"
 
 #include "tinyxml.h"
 

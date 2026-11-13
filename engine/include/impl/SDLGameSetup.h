@@ -5,7 +5,6 @@
 
 #include "game/LowLevelGameSetup.h"
 #include "graphics/LowLevelGraphics.h"
-#include "haptic/LowLevelHaptic.h"
 #include "input/LowLevelInput.h"
 #include "physics/LowLevelPhysics.h"
 #include "resources/LowLevelResources.h"
@@ -25,11 +24,10 @@ namespace hpl {
 		cGraphics* CreateGraphics() override;
 		cResources* CreateResources(cGraphics* apGraphics) override;
 		cScene* CreateScene(cGraphics* apGraphics, cResources* apResources, cSound* apSound,
-							cPhysics *apPhysics, cSystem *apSystem,cAI *apAI,cHaptic *apHaptic) override;
+							cPhysics *apPhysics, cSystem *apSystem,cAI *apAI) override;
 		cSound* CreateSound() override;
 		cPhysics* CreatePhysics() override;
 		cAI* CreateAI() override;
-		cHaptic* CreateHaptic() override;
 
 	private:
 		iLowLevelSystem *mpLowLevelSystem;
@@ -38,7 +36,6 @@ namespace hpl {
 		iLowLevelResources *mpLowLevelResources;
 		iLowLevelSound*	mpLowLevelSound;
 		iLowLevelPhysics* mpLowLevelPhysics;
-		iLowLevelHaptic* mpLowLevelHaptic;
 	};
 };
 #endif // HPL_LOWLEVELGAMESETUP_SDL_H

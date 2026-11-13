@@ -663,7 +663,7 @@ static void TestSound()
 	lowLevel.mvListenerPosition = 0;
 	cSoundHandler handler(&lowLevel, nullptr);
 	Check(handler.mlIdCount == 0, "initialized sound channel ID");
-	cWorld3D world("test", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	cWorld3D world("test", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 	handler.SetWorld3D(&world);
 	TestChannel channel;
 	channel.SetMinDistance(2); channel.SetMaxDistance(10);

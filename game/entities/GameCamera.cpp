@@ -45,7 +45,6 @@ void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	pObject->SetParticleSystems(mvParticleSystems);
 	pObject->SetBillboards(mvBillboards);
 	pObject->SetSoundEntities(mvSoundEntities);
-	pObject->SetHapticShapes(mvHapticShapes);
 
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");

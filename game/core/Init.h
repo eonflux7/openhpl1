@@ -159,15 +159,6 @@ public:
 	int mlFSAA;
 	eGameDifficulty mDifficulty;
 	
-	bool mbHasHaptics;
-	bool mbHasHapticsOnRestart;
-	bool mbHapticsAvailable;
-	float mfHapticForceMul;
-	float mfHapticMoveScreenSpeedMul;
-	float mfHapticScale;
-	float mfHapticProxyRadius;
-	float mfHapticOffsetZ;
-	float mfHapticMaxInteractDist;
 		
 	int mlMaxSoundChannels;
     int mlStreamUpdateFreq;

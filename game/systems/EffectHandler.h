@@ -68,8 +68,6 @@ private:
 
 	cVector3f mvAdd;
 
-	iHapticForce *mpForce;
-	
 	std::list<cEffect_ShakeScreen_Shake> mlstShakes;
 };
 

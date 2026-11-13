@@ -150,7 +150,6 @@ void cGameEnemyState_Spider_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 
 	//Setup body
 	float fMul = 1.0f;
-	if(mpInit->mbHasHaptics) fMul = 0.6f;
 
 	mpEnemy->SetupBody();
 	if(mpInit->mDifficulty == eGameDifficulty_Easy)
@@ -391,8 +390,6 @@ void cGameEnemyState_Spider_Attack::OnUpdate(float afTimeStep)
 			
 			eAttackTargetFlag target = eAttackTargetFlag_Player | eAttackTargetFlag_Bodies;
 
-			mpInit->mpPlayer->mbDamageFromPos = true;
-			mpInit->mpPlayer->mvDamagePos = mpMover->GetCharBody()->GetPosition();
 			if(mpInit->mpAttackHandler->CreateShapeAttack(mpEnemySpider->GetAttackShape(),
 										mtxOffset,
 										mpMover->GetCharBody()->GetPosition(),
@@ -408,7 +405,6 @@ void cGameEnemyState_Spider_Attack::OnUpdate(float afTimeStep)
 			{
 				mpEnemySpider->PlaySound(mpEnemySpider->msAttackHitSound);
 			}
-			mpInit->mpPlayer->mbDamageFromPos = false;
 			mbAttacked = true;
 		}
 	}

@@ -8,7 +8,6 @@
 #include "game/Updateable.h"
 #include "system/SystemTypes.h"
 #include "physics/PhysicsMaterial.h"
-#include "haptic/HapticTypes.h"
 
 namespace hpl {
 
@@ -17,8 +16,6 @@ namespace hpl {
 	class cSurfaceData;
 	class cWorld3D;
 	class cResources;
-	class iHapticSurface;
-	class cHaptic;
 
 	typedef std::list<iPhysicsWorld*> tPhysicsWorldList;
 	typedef tPhysicsWorldList::iterator tPhysicsWorldListIt;
@@ -52,7 +49,7 @@ namespace hpl {
 
 		cSurfaceData *CreateSurfaceData(const tString& asName);
 		cSurfaceData *GetSurfaceData(const tString& asName);
-		bool LoadSurfaceData(const tString& asFile, cHaptic *apHaptic = nullptr);
+		bool LoadSurfaceData(const tString& asFile);
 
 		iLowLevelPhysics* GetLowLevel(){ return mpLowLevelPhysics;}
 
@@ -73,8 +70,6 @@ namespace hpl {
 		bool GetDebugLog(){ return mbLog;}
 
 	private:
-		eHapticSurfaceType GetHapticSurface(const char *apName);
-
 		ePhysicsMaterialCombMode GetCombMode(const char *apName);
 
 		void UpdateImpactCounts(float afTimeStep);

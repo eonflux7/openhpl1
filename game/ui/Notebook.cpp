@@ -7,7 +7,6 @@
 #include "ui/Inventory.h"
 #include "core/SaveHandler.h"
 #include "systems/EffectHandler.h"
-#include "player/HapticGameCamera.h"
 #include "core/GraphicsHelper.h"
 
 #include <algorithm>
@@ -1177,9 +1176,6 @@ void cNotebook::SetActive(bool abActive)
 	mbActive = abActive;
 	if(mbActive)
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
-
 		mLastCrossHairState = mpInit->mpPlayer->GetCrossHairState();
 
 		if(mpInit->mpInventory->IsActive())
@@ -1201,9 +1197,6 @@ void cNotebook::SetActive(bool abActive)
 	}
 	else
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(true);
-
 		if(mbInventoryWasActive)
 		{
 			mpInit->mpInventory->SetActive(true);

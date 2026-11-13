@@ -4,7 +4,6 @@
 
 #include "core/Init.h"
 #include "player/Player.h"
-#include "player/HapticGameCamera.h"
 #include "core/GraphicsHelper.h"
 
 // BUTTON
@@ -254,9 +253,6 @@ void cNumericalPanel::SetActive(bool abActive)
 
 	if(mbActive)
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
-
 		mpInit->mpGame->GetInput()->BecameTriggered("RightClick");
 		mpInit->mpGame->GetInput()->BecameTriggered("LeftClick");
 		
@@ -270,9 +266,6 @@ void cNumericalPanel::SetActive(bool abActive)
 	}
 	else
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(true);
-
 		mpInit->mpPlayer->SetCrossHairState(mLastCrossHairState);
 		mpInit->mpPlayer->SetCrossHairPos(cVector2f(400,300));
 	}

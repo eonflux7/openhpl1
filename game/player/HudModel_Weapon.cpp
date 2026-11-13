@@ -42,17 +42,6 @@ bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_WeaponMelee)
 {
 	ResetExtraData();
-
-	if(gpInit->mbHasHaptics)
-	{
-		mpLowLevelHaptic = gpInit->mpGame->GetHaptic()->GetLowLevel();
-		mpHHitForce = mpLowLevelHaptic->CreateSinusWaveForce(cVector3f(0,1,0),0.63f,5);
-		mpHHitForce->SetActive(false);
-	}
-	else
-	{
-		mpLowLevelHaptic = nullptr;
-	}
 }
 
 void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
@@ -64,15 +53,6 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 		return;
 	}
 
-	mvHapticSize = cString::ToVector3f(pMeleeElem->Attribute("HapticSize"),0);
-	mvHapticRot = cString::ToVector3f(pMeleeElem->Attribute("HapticRotate"),0);
-	mfHapticScale = cString::ToFloat(pMeleeElem->Attribute("HapticScale"),2);
-
-	mvHapticRot.x = cMath::ToRad(mvHapticRot.x);
-	mvHapticRot.y = cMath::ToRad(mvHapticRot.y);
-	mvHapticRot.z = cMath::ToRad(mvHapticRot.z);
-
-	
 	mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 
 	//Go through the ATTACK elements.
@@ -664,14 +644,6 @@ void cHudModel_WeaponMelee::Attack()
 	if(bHit)
 	{
 		PlaySound(mvAttacks[mlCurrentAttack].msHitSound);
-
-		if(mpInit->mbHasHaptics)
-		{
-			if(mpHHitForce->IsActive())	mpHHitForce->SetActive(false);
-			
-			mpHHitForce->SetActive(true);
-			mpHHitForce->SetTimeControl(false,0.3f, 0.2f, 0,0.1f);
-		}
 	}
 
 	mpInit->mbWeaponAttacking = false;

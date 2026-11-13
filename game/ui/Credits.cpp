@@ -11,7 +11,6 @@
 #include "player/PlayerHands.h"
 #include "systems/GameMusicHandler.h"
 #include "systems/GameMessageHandler.h"
-#include "player/HapticGameCamera.h"
 
 cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 {
@@ -105,12 +104,6 @@ void cCredits::OnDraw()
 
 void cCredits::Update(float afTimeStep)
 {
-	//Make sure haptics is off
-	if(mpInit->mbHasHaptics)
-	{
-		mpInit->mpGame->GetHaptic()->GetLowLevel()->StopAllForces();
-	}
-
 	if(mlPage > 0)
 	{
 		mfPageElapsedSeconds += afTimeStep;
@@ -371,12 +364,6 @@ void cCredits::SetActive(bool abActive)
 		mpInit->mpGame->GetUpdater()->SetContainer("Credits");
 		mpInit->mpGame->GetScene()->SetDrawScene(false);
 		mpInit->mpGame->GetScene()->SetUpdateMap(false);
-		if(mpInit->mbHasHaptics)
-		{
-			mpInit->mpGame->GetHaptic()->GetLowLevel()->SetUpdateShapes(false);
-			mpInit->mpGame->GetHaptic()->GetLowLevel()->StopAllForces();
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
-		}
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_Credits);
 
 		cMusicHandler *pMusic = mpInit->mpGame->GetSound()->GetMusicHandler();

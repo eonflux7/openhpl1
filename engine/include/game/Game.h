@@ -20,7 +20,6 @@ namespace hpl {
 	class cSound;
 	class cPhysics;
 	class cAI;
-	class cHaptic;
 	class cGui;
 
 	class cFPSCounter
@@ -139,12 +138,6 @@ namespace hpl {
 		*/
 		cGui* GetGui();
 
-		/**
-		*
-		* \return A pointer to the haptic
-		*/
-		cHaptic* GetHaptic();
-
 		void ResetLogicTimer();
 		void SetUpdatesPerSec(int alUpdatesPerSec);
 		int GetUpdatesPerSec();
@@ -209,7 +202,6 @@ namespace hpl {
 		cSound *mpSound;
 		cPhysics *mpPhysics;
 		cAI *mpAI;
-		cHaptic *mpHaptic;
 		cGui *mpGui;
 	};
 

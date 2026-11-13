@@ -30,6 +30,9 @@ in its commit message. The detailed log up to 2026-11-10 is archived in
 - Opens on the primary display (the largest on Wayland); display,
   resolution and fullscreen are options.
 - GLee/GLU → glad; FLTK dialogs → SDL message boxes; SDL_ttf dropped.
+- Haptic device (Novint Falcon/HaptX) support removed; its backend was
+  never part of the source. The `Haptics` settings are ignored, and
+  haptic button bindings in old settings load as mouse buttons.
 - Environment variables and CMake options use the `OPENHPL_` prefix.
 
 ## Rendering

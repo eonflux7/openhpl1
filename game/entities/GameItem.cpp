@@ -67,7 +67,6 @@ void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	// Set the engine objects to the object
 	pObject->SetBodies(mvBodies);
 	pObject->SetMeshEntity(mpEntity);
-	pObject->SetHapticShapes(mvHapticShapes);
 
 	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)

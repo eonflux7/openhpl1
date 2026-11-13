@@ -315,7 +315,6 @@ void cGameEnemyState_Dog_Attention::OnEnterState(iGameEnemyState *apPrevState)
 	
 #ifndef DEMO_VERSION
 	if(mpInit->mDifficulty == eGameDifficulty_Easy) mfTime *=1.7f;
-	if(mpInit->mbHasHaptics) mfTime *= 1.3f;
 
 #endif
 }
@@ -631,7 +630,6 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 
 #ifndef DEMO_VERSION
 	float fMul = 1.0f;
-	if(mpInit->mbHasHaptics) fMul = 0.6f;
 
 	if(mpInit->mDifficulty == eGameDifficulty_Easy)
 		mpMover->GetCharBody()->SetMaxPositiveMoveSpeed(eCharDir_Forward,mpEnemyDog->mfHuntSpeed*0.7f*fMul);
@@ -1098,8 +1096,6 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 			
 			eAttackTargetFlag target = eAttackTargetFlag_Player | eAttackTargetFlag_Bodies;
 			
-			mpInit->mpPlayer->mbDamageFromPos = true;
-			mpInit->mpPlayer->mvDamagePos = mpMover->GetCharBody()->GetPosition();
 			if(mpInit->mpAttackHandler->CreateShapeAttack(mpEnemyDog->GetAttackShape(),
 										mtxOffset,
 										mpMover->GetCharBody()->GetPosition(),
@@ -1115,7 +1111,6 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 			{
 				mpEnemyDog->PlaySound(mpEnemyDog->msAttackHitSound);
 			}
-			mpInit->mpPlayer->mbDamageFromPos = false;
 			mbAttacked = true;
 		}
 	}

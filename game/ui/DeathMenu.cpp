@@ -8,7 +8,6 @@
 #include "core/GraphicsHelper.h"
 #include "core/SaveHandler.h"
 #include "ui/MainMenu.h"
-#include "player/HapticGameCamera.h"
 
 // BUTTON
 
@@ -230,9 +229,6 @@ void cDeathMenu::SetActive(bool abActive)
 
 	if(mbActive)
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(false);
-
 		mLastCrossHairState = mpInit->mpPlayer->GetCrossHairState();
 
 		mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
@@ -253,9 +249,6 @@ void cDeathMenu::SetActive(bool abActive)
 	}
 	else
 	{
-		if(mpInit->mbHasHaptics)
-			mpInit->mpPlayer->GetHapticCamera()->SetActive(true);
-
 		mpInit->mpPlayer->SetCrossHairState(mLastCrossHairState);
 		mpInit->mpPlayer->SetCrossHairPos(cVector2f(400,300));
 	}

@@ -161,7 +161,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	pObject->SetParticleSystems(mvParticleSystems);
 	pObject->SetSoundEntities(mvSoundEntities);
 	pObject->SetLights(mvLights);
-	pObject->SetHapticShapes(mvHapticShapes);
 
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
@@ -197,7 +196,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		pObject->mbForceLightOffset = cString::ToBool(pGameElem->Attribute("ForceLightOffset"),false);
 		pObject->mvLightOffset = cString::ToVector3f(pGameElem->Attribute("LightOffset"),0);
 
-		pObject->mfHapticTorqueMul = cString::ToFloat(pGameElem->Attribute("HapticTorqueMul"),1.0f);
 		
 		//Disappear
 		pObject->mDisappearProps.mbActive = cString::ToBool(pGameElem->Attribute("Disappear"),false);
@@ -270,34 +268,19 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		//Push mode
 		if(pObject->mInteractMode == eObjectInteractMode_Push)
 		{
-			if(mpInit->mbHasHaptics==false)
-				pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxPushDist());
+			pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxPushDist());
 			pObject->mbHasInteraction = true;
 		}
 		//Move Mode
 		else if(pObject->mInteractMode == eObjectInteractMode_Move)
 		{
-			if(mpInit->mbHasHaptics)
-			{
-				pObject->mInteractMode = eObjectInteractMode_Grab;
-				pObject->mbPickAtPoint = true;
-				if(mpInit->mbHasHaptics==false)
-					pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxGrabDist());
-				pObject->mbHasInteraction = true;
-				pObject->mbIsMover = true;
-			}
-			else
-			{
-				if(mpInit->mbHasHaptics==false)
-					pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxMoveDist());
-				pObject->mbHasInteraction = true;
-			}
+			pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxMoveDist());
+			pObject->mbHasInteraction = true;
 		}
 		//Grab Mode
 		else if(pObject->mInteractMode == eObjectInteractMode_Grab)
 		{
-			if(mpInit->mbHasHaptics==false)
-				pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxGrabDist());
+			pObject->mfMaxInteractDist = cString::ToFloat(pGameElem->Attribute("MaxInteractDist"),mpInit->mpPlayer->GetMaxGrabDist());
 			pObject->mbHasInteraction = true;
 		}
 		
@@ -382,9 +365,11 @@ cGameObject::~cGameObject(void)
 
 void cGameObject::OnPlayerPick()
 {
+	// The original also required mbProxyTouching, which only the haptic
+	// player states set; with the mouse it was left uninitialised and
+	// read as true.
 	if(	mvCallbackScripts[eGameEntityScriptType_PlayerInteract] && 
-		mpInit->mpPlayer->GetPickedDist() < mfMaxInteractDist && 
-		mpInit->mpPlayer->mbProxyTouching)
+		mpInit->mpPlayer->GetPickedDist() < mfMaxInteractDist)
 	{
 		mpInit->mpPlayer->SetCrossHairState(eCrossHairState_Active);
 	}
@@ -410,8 +395,6 @@ void cGameObject::OnPlayerInteract()
 	{
 		return;
 	}
-
-	if(mpInit->mbHasHaptics && mpInit->mpPlayer->mbProxyTouching==false) return;
 
 	switch(mInteractMode)
 	{
@@ -732,7 +715,6 @@ void cGameObject::GrabObject()
 	
 	//Set some properties
 	mpInit->mpPlayer->mbGrabbingMoveBody = mbIsMover;
-	mpInit->mpPlayer->mfHapticTorqueMul = mfHapticTorqueMul;
 	
 	mpInit->mpPlayer->mbPickAtPoint = mbPickAtPoint;
 	mpInit->mpPlayer->mbRotateWithPlayer = mbRotateWithPlayer;

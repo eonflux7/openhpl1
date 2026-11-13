@@ -56,7 +56,6 @@
 #include "ui/PreMenu.h"
 #include "ui/Credits.h"
 #include "ui/DemoEndText.h"
-#include "player/HapticGameCamera.h"
 
 #include "ui/MainMenu.h"
 #include "core/SmokeTest.h"
@@ -279,8 +278,6 @@ cInit::cInit(void)  : iUpdateable("Init")
 	mbShowCrossHair = false;
 	mbDeveloperMode = false;
 	mbDeveloperModeForced = false;
-	mbHasHaptics = false;
-	mbHasHapticsOnRestart = false;
 
 	gpInit = this;
 }
@@ -472,26 +469,11 @@ bool cInit::Init(tString asCommandLine)
 	mbAskTutorial = mpConfig->GetBool("Game","AskTutorial",true);
 	mbImprovedDogAI = mpConfig->GetBool("AI","ImprovedDogAI",true);
 	
-	mbHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
-	if(mbHapticsAvailable)
-	{
-		mbHasHaptics = mpConfig->GetBool("Haptics","Active",false);
-		cHaptic::SetIsUsed(mbHasHaptics);
-		mbHasHapticsOnRestart = mbHasHaptics;
-	}
-	else
-	{
-		mbHasHaptics = false;
-	}
-	mfHapticForceMul = mpConfig->GetFloat("Haptics","ForceMul",1.0f);
-	mfHapticMoveScreenSpeedMul = mpConfig->GetFloat("Haptics","MoveScreenSpeedMul",1.0f);
-	mfHapticScale = mpConfig->GetFloat("Haptics","Scale",0.04f);
-	mfHapticProxyRadius = mpConfig->GetFloat("Haptics","ProxyRadius",0.019f);
-	mfHapticOffsetZ = mpConfig->GetFloat("Haptics","OffsetZ",1.9f);
-	mfHapticMaxInteractDist = mpConfig->GetFloat("Haptics","HapticMaxInteractDist",2);
-	
-
-	mbSimpleSwingInOptions = mpConfig->GetBool("Game","SimpleSwingInOptions",mbHapticsAvailable ? true:false); 
+	// Haptic devices are no longer supported and the rest of the Haptics
+	// section is ignored (the config file keeps it). Haptics/Available still
+	// sets the original default for showing the simple swing option.
+	bool bHapticsAvailable = mpConfig->GetBool("Haptics","Available",false);
+	mbSimpleSwingInOptions = mpConfig->GetBool("Game","SimpleSwingInOptions",bHapticsAvailable); 
 	
 	msGlobalScriptFile = mpConfig->GetString("Map","GlobalScript","global_script.hps");
 	msLanguageFile = mpConfig->GetString("Game","LanguageFile","english.lang");
@@ -578,13 +560,6 @@ bool cInit::Init(tString asCommandLine)
 #ifdef  TIMELIMIT
 	CheckTimeLimit();
 #endif
-
-	//Make sure there really is haptic support!
-	if(mbHasHaptics && cHaptic::GetIsUsed()==false)
-	{
-		CreateMessageBoxW(_W("Error!"),_W("No haptic support found. Mouse will be used instead!\n"));
-		mbHasHaptics = false;
-	}
 
 
 	//Make sure hardware is really used.
@@ -733,7 +708,7 @@ bool cInit::Init(tString asCommandLine)
 		mpGame->GetSound()->SetBusVolume((eSoundBus)i, mpConfig->GetFloat("Sound",gvSoundBusConfigNames[i],1));
 		
 	// PHYSICS INIT /////////////////////
-	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials, mpGame->GetHaptic());
+	mpGame->GetPhysics()->LoadSurfaceData(gameFiles.msMaterials);
 	
 	// EARLY GAME INIT /////////////////////
 	mpEffectHandler = hplNew( cEffectHandler, (this) );
@@ -914,16 +889,6 @@ bool cInit::Init(tString asCommandLine)
 	mpGame->SetLimitFPS( mpConfig->GetBool("Graphics","LimitFPS",true));
 	mpGame->SetMaxFPS( mpConfig->GetInt("Graphics","MaxFPS",0));
 
-	// HAPTIC INIT ////////////////////
-	if(mbHasHaptics)
-	{
-		mpGame->GetHaptic()->GetLowLevel()->SetWorldScale(mfHapticScale);
-		mpGame->GetHaptic()->GetLowLevel()->SetVirtualMousePosBounds(cVector2f(-60,-60),
-											cVector2f(25,25), cVector2f(800, 600));
-		mpGame->GetHaptic()->GetLowLevel()->SetProxyRadius(mfHapticProxyRadius);
-		
-	}
-	
 	// BASE GAME INIT /////////////////////
 	mpMusicHandler = hplNew( cGameMusicHandler,(this) );
 	mpPlayerHands = hplNew( cPlayerHands,(this) );
@@ -1181,22 +1146,6 @@ void cInit::Reset()
 void cInit::Exit()
 {
 	cGameScripts::LogNotPorted();
-
-	mpConfig->SetBool("Haptics","Active",mbHasHapticsOnRestart);
-	mpConfig->SetBool("Haptics","Available",mbHapticsAvailable);
-	mpConfig->SetFloat("Haptics","ForceMul",mfHapticForceMul);
-	mpConfig->SetFloat("Haptics","MoveScreenSpeedMul",mfHapticMoveScreenSpeedMul);
-	mpConfig->SetFloat("Haptics","Scale",mfHapticScale);
-	mpConfig->SetFloat("Haptics","ProxyRadius",mfHapticProxyRadius);
-	mpConfig->SetFloat("Haptics","OffsetZ",mfHapticOffsetZ);
-	mpConfig->SetFloat("Haptics","HapticMaxInteractDist",mfHapticMaxInteractDist);
-	mpConfig->SetFloat("Haptics","ProxyRadius",mfHapticProxyRadius);
-	mpConfig->SetFloat("Haptics","OffsetZ",mfHapticOffsetZ);
-	if(mbHasHaptics)
-	{
-		mpConfig->SetFloat("Haptics","InteractModeCameraSpeed",mpPlayer->GetHapticCamera()->GetInteractModeCameraSpeed());
-		mpConfig->SetFloat("Haptics","ActionModeCameraSpeed",mpPlayer->GetHapticCamera()->GetActionModeCameraSpeed());
-	}
 
 	// The player keeps the flashlight's settings: read before it goes
 	{

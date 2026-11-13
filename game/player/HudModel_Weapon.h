@@ -81,10 +81,6 @@ public:
 
 	bool IsAttacking();
 
-	cVector3f GetHapticSize(){ return mvHapticSize;}
-	float GetHapticScale(){ return mfHapticScale;}
-	cVector3f GetHapticRot(){ return mvHapticRot;}
-
 
 	cMeleeWeaponAttack* GetAttack(int alAttackIndex){return  &mvAttacks[alAttackIndex];}
 private:
@@ -105,10 +101,6 @@ private:
 	// Progress within the current attack pose transition, separate from equip progress.
 	float mfAttackProgress;
 
-	float mfHapticScale;
-	cVector3f mvHapticSize;
-	cVector3f mvHapticRot;
-
 	cMatrixf m_mtxPrevPose;
 	cMatrixf m_mtxNextPose;
 	
@@ -120,9 +112,6 @@ private:
 	cMeleeRayCallback mRayCallback;
 	
 	std::vector<cMeleeWeaponAttack> mvAttacks;
-
-	iLowLevelHaptic *mpLowLevelHaptic;
-	iHapticForce *mpHHitForce;
 };
 
 #endif // GAME_HUD_MODEL_WEAPON_H

@@ -208,7 +208,6 @@ private:
 	cVector3f mvLightOffset;
 	tMatrixfVec mvLightLocalOffsets;
 
-	float mfHapticTorqueMul;
 
 	float mfDuplicateCheckDelaySeconds;
 

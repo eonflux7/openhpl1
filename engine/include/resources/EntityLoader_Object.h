@@ -23,7 +23,6 @@ namespace hpl {
 	class cBeam;
 	class cSoundEntity;
 	class iLight3D;
-	class iHapticShape;
 
 	class cEntityLoader_Object : public iEntity3DLoader
 	{
@@ -52,8 +51,6 @@ namespace hpl {
 
 		std::vector<iPhysicsBody*> mvBodies;
 		std::vector<iPhysicsJoint*> mvJoints;
-
-		std::vector<iHapticShape*> mvHapticShapes;
 
 		std::vector<iLight3D*> mvLights;
 		std::vector<cParticleSystem3D*> mvParticleSystems;

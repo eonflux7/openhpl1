@@ -613,8 +613,6 @@ void cPreMenu::SetActive(bool abActive)
 		mpInit->mpGame->GetUpdater()->SetContainer("PreMenu");
 		mpInit->mpGame->GetScene()->SetDrawScene(false);
 		mpInit->mpGame->GetScene()->SetUpdateMap(false);
-		if(mpInit->mbHasHaptics)
-			mpInit->mpGame->GetHaptic()->GetLowLevel()->SetUpdateShapes(false);
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_PreMenu);
 
 		for(size_t i=0; i< mvTexNames.size(); ++i)
@@ -679,8 +677,6 @@ void cPreMenu::SetActive(bool abActive)
 			mpInit->mpGame->GetUpdater()->SetContainer("Default");
 			mpInit->mpGame->GetScene()->SetDrawScene(true);
 			mpInit->mpGame->GetScene()->SetUpdateMap(true);
-			if(mpInit->mbHasHaptics)
-				mpInit->mpGame->GetHaptic()->GetLowLevel()->SetUpdateShapes(true);
 			mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_Game);
 
 			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);

@@ -125,16 +125,6 @@ public:
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
-// WEAPON MELEE HAPTX
-
-class cGameItemType_WeaponMeleeHaptX : public cGameItemType
-{
-public:
-	cGameItemType_WeaponMeleeHaptX(cInit *apInit);
-
-	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
-};
-
 // THROW
 
 class cGameItemType_Throw : public cGameItemType
