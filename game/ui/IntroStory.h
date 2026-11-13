@@ -29,8 +29,6 @@ class cInit;
 
 #define INTRO_IMAGE_NUM (6)
 
-//----------------------------------------
-
 class cIntroImage
 {
 public:
@@ -48,7 +46,6 @@ public:
 
 	void Reset();
 	
-	//////////////
 	//Variables
     cVector3f mvCameraPosition;
 	cVector3f mvFinalPos;
@@ -78,9 +75,6 @@ public:
 	iLowLevelGraphics *mpLowGfx;
 	cTextureManager *mpTexManager;
 };
-
-
-//----------------------------------------
 
 class cIntroStory : public iUpdateable
 {
@@ -133,8 +127,5 @@ private:
 
 	eButtonHandlerState mLastButtonState;
 };
-
-//----------------------------------------
-
 
 #endif // GAME_INTRO_STORY_H

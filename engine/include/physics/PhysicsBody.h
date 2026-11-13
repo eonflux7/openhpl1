@@ -37,8 +37,6 @@ namespace hpl {
 	class iCharacterBody;
 	class iHapticShape;
 
-	//------------------------------------------
-
 	class iPhysicsBody;
 	class iPhysicsBodyCallback
 	{
@@ -52,8 +50,6 @@ namespace hpl {
 	typedef std::list<iPhysicsBodyCallback*> tPhysicsBodyCallbackList;
 	typedef tPhysicsBodyCallbackList::iterator tPhysicsBodyCallbackListIt;
 
-	//------------------------------------------
-
 	class cSaveData_iCollideShape : public iSerializable
 	{
 		kSerializableClassInit(cSaveData_iCollideShape)
@@ -62,8 +58,6 @@ namespace hpl {
 		cMatrixf m_mtxOffset;
 		cVector3f mvSize;
 	};
-
-	//------------------------------------------
 
 	kSaveData_ChildClass(iEntity3D,iPhysicsBody)
 	{
@@ -99,8 +93,6 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//------------------------------------------
-
 	struct cPhysicsBody_Buoyancy
 	{
 		cPhysicsBody_Buoyancy() : mbActive(false), mfDensity(1),
@@ -114,8 +106,6 @@ namespace hpl {
 
 		cPlanef mSurface;
 	};
-
-	//------------------------------------------
 
 	class iPhysicsBody : public iEntity3D
 	{

@@ -31,9 +31,6 @@ class cGameTrigger;
 class cCharacterMove;
 class iGameEntity;
 
-
-//-----------------------------------------
-
 #define STATE_IDLE 0
 #define STATE_HUNT 1
 #define STATE_ATTACK 2
@@ -49,8 +46,6 @@ class iGameEntity;
 #define STATE_ATTENTION 12
 #define	STATE_NUM 13
 
-//-----------------------------------------
-
 enum eEnemyMoveState
 {
 	eEnemyMoveState_Backward,
@@ -59,8 +54,6 @@ enum eEnemyMoveState
 	eEnemyMoveState_Running,
 	eEnemyMoveState_LastEnum
 };
-
-//-----------------------------------------
 
 class cEnemyPatrolNode : public iSerializable
 {
@@ -75,8 +68,6 @@ public:
 	tString msAnimation;
 };
 
-//-----------------------------------------
-
 class cLineOfSightRayCallback : public iPhysicsRayCallback
 {
 public:
@@ -88,8 +79,6 @@ private:
 	bool mbIntersected;
 	iPhysicsBody *mpGrabBody;
 };
-
-//------------------------------------------
 
 class cEnemyFindGround : public iPhysicsRayCallback
 {
@@ -108,8 +97,6 @@ private:
 	float mfMaxDistance;
 };
 
-//------------------------------------------
-
 class cEnemyCheckForDoor : public iPhysicsRayCallback
 {
 public:
@@ -121,8 +108,6 @@ public:
 private:
 	bool mbIntersected;
 };
-
-//------------------------------------------
 
 class iGameEnemy_SaveData : public iGameEntity_SaveData
 {
@@ -154,8 +139,6 @@ public:
 	
 	iGameEntity* CreateEntity() override;
 };
-
-//-----------------------------------------
 
 class iGameEnemyState
 {
@@ -192,9 +175,6 @@ protected:
 
 	int mlPreviousState;
 };
-
-//-----------------------------------------
-
 
 class iGameEnemy :	public iGameEntity
 {
@@ -438,7 +418,6 @@ protected:
 
 	bool mbUsesTriggers;
 
-	///////////////////////////////
 	//Variable Properties
 	cVector3f mvLastPlayerPos;
 	float mfCanSeePlayerCount;
@@ -469,7 +448,6 @@ protected:
 	
 	bool mbIsAttracted;
 		
-	/////////////////////////////////
 	//Properties to be implemented
 	bool mbDisappear;
 	float mfDisappearMinTime;
@@ -549,8 +527,6 @@ protected:
 	tString msHitPS;
 };
 
-//--------------------------------------
-
 class cEntityLoader_GameEnemy : public cEntityLoader_Object
 {
 
@@ -564,7 +540,5 @@ private:
 
 	cInit *mpInit;
 };
-
-//--------------------------------------
 
 #endif // GAME_GAME_ENEMY_H

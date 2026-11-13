@@ -23,8 +23,6 @@
 
 using namespace hpl;
 
-//------------------------------------------
-
 class cEngineBody_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineBody_SaveData)
@@ -40,8 +38,6 @@ public:
 	cMatrixf m_mtxTransform;
 };
 
-//------------------------------------------
-
 class cEngineJointController_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineJointController_SaveData)
@@ -51,8 +47,6 @@ public:
 	float mfDestValue;
 	bool mbActive;
 };
-
-//------------------------------------------
 
 class cEngineJoint_SaveData : public iSerializable
 {
@@ -70,8 +64,6 @@ public:
 
 	cContainerVec<cEngineJointController_SaveData> mvControllers;
 };
-
-//------------------------------------------
 
 class cEnginePSEmitter_SaveData : public iSerializable
 {
@@ -98,8 +90,6 @@ public:
 	cContainerVec<cEnginePSEmitter_SaveData> mvEmitterActive;
 };
 
-//------------------------------------------
-
 class cEngineBeam_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineBeam_SaveData)
@@ -114,8 +104,6 @@ public:
 	cVector3f mvEndPos;
 };
 
-//------------------------------------------
-
 class cEngineSound_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineSound_SaveData)
@@ -127,8 +115,6 @@ public:
 	bool mbActive;
 	bool mbStopped;
 };
-
-//------------------------------------------
 
 class cEngineLightAttachBB_SaveData : public iSerializable
 {
@@ -168,8 +154,5 @@ public:
 	float mfFlickerOnFadeLength;
 	float mfFlickerOffFadeLength;
 };
-
-//------------------------------------------
-
 
 #endif // GAME_SAVE_TYPES_H

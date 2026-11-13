@@ -37,12 +37,6 @@ namespace hpl {
 		return "auto";
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iLowLevelSound::iLowLevelSound()
 	{
 		mfVolume=1;
@@ -53,20 +47,10 @@ namespace hpl {
 		mHRTF = eSoundHRTF_Auto;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLowLevelSound::~iLowLevelSound()
 	{
 		STLDeleteAll(mlstSoundEnv);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundEnvironment* iLowLevelSound::GetSoundEnvironmentFromFileName (const tString& asName)
 	{
@@ -80,14 +64,10 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	/*void iLowLevelSound::DestroySoundEnvironment( iSoundEnvironment* apSoundEnv)
 	{
 		Log(" Destroy %d\n",apSoundEnv);
 
 		STLFindAndDelete(mlstSoundEnv,apSoundEnv);
 	}*/
-
-	//-----------------------------------------------------------------------
 }

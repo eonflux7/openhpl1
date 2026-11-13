@@ -20,12 +20,6 @@
 
 #include "entities/GameEntity.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameCollideScript::cGameCollideScript()
 {
 	msFuncName[0]=""; msFuncName[1]=""; msFuncName[2]="";
@@ -33,13 +27,7 @@ cGameCollideScript::cGameCollideScript()
 	mbDeleteMe = false;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SERIALIZE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cGameTimer)
 kSerializeVar(msName,eSerializeType_String)
@@ -52,15 +40,12 @@ kSerializeVar(mfTime,eSerializeType_Float32)
 kSerializeVar(mbDeleteMe,eSerializeType_Bool)
 kSerializeVar(mbPaused,eSerializeType_Bool)
 kEndSerialize()
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cSaveGame_cGameCollideScript)
 kSerializeVarArray(msFuncName,eSerializeType_String,3)
 kSerializeVar(msEntity, eSerializeType_String)
 kSerializeVar(mbCollides, eSerializeType_Bool)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 void cSaveGame_cGameCollideScript::LoadFrom(cGameCollideScript *apScript)
 {
@@ -69,12 +54,8 @@ void cSaveGame_cGameCollideScript::LoadFrom(cGameCollideScript *apScript)
 	for(int i=0;i<3;++i) msFuncName[i] = apScript->msFuncName[i];
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveGame_cGameCollideScript::SaveTo(cGameCollideScript *apScript)
 {
 	apScript->mbCollides = mbCollides;
 	for(int i=0;i<3;++i)  apScript->msFuncName[i] = msFuncName[i];
 }
-
-//-----------------------------------------------------------------------

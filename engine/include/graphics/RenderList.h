@@ -85,8 +85,6 @@ namespace hpl {
 	typedef cSTLIterator<iRenderable*, tFogObjectSet,
 							tFogObjectSetIt> cFogObjectIterator;
 
-	//-------------------------------------------------------------
-
 	// One see-through draw, in the order it is executed. The material state
 	// is captured when the object enters the list; object callbacks are
 	// still asked at execution time, as before. Matrices are copied so a
@@ -128,8 +126,6 @@ namespace hpl {
 
 	bool cTransparentDraw_Compare(const cTransparentDraw &aDrawA, const cTransparentDraw &aDrawB);
 
-	//-------------------------------------------------------------
-
 	typedef std::set<iRenderable*> tRenderableSet;
 	typedef tRenderableSet::iterator tRenderableSetIt;
 
@@ -139,8 +135,6 @@ namespace hpl {
 
 	typedef cSTLIterator<iLight3D*,tLight3DSet, tLight3DSetIt> cLight3DIterator;
 	typedef cSTLIterator<iRenderable*,tRenderableSet, tRenderableSetIt> cRenderableIterator;
-
-	//-------------------------------------------------------------
 
 	class cRenderList
 	{

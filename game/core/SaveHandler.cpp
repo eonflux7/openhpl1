@@ -29,11 +29,7 @@
 #include "systems/GameMusicHandler.h"
 #include "systems/RadioHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // SAVED WORLD
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cSavedWorld::~cSavedWorld()
 {
@@ -42,7 +38,6 @@ cSavedWorld::~cSavedWorld()
 
 void cSavedWorld::Reset()
 {
-	////////////////////////////////
 	//Delete saved entity records.
 	cContainerListIterator<iGameEntity_SaveData*> it = mlstEntities.GetIterator();
 	while(it.HasNext())
@@ -75,8 +70,6 @@ void cSavedWorld::Reset()
 	mlstSoundEnvs.Clear();
 }
 
-//-----------------------------------------------------------------------
-
 bool cSavedWorld::PSExists(cParticleSystem3D *apPS)
 {
 	cContainerListIterator<cEnginePS_SaveData> it = mlstPS.GetIterator();
@@ -89,7 +82,6 @@ bool cSavedWorld::PSExists(cParticleSystem3D *apPS)
 
 	return false;
 }
-//-----------------------------------------------------------------------
 
 bool cSavedWorld::BeamExists(cBeam *apBeam)
 {
@@ -104,8 +96,6 @@ bool cSavedWorld::BeamExists(cBeam *apBeam)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cSavedWorld::SoundExists(cSoundEntity *apSound)
 {
 	cContainerListIterator<cEngineSound_SaveData> it = mlstSounds.GetIterator();
@@ -118,8 +108,6 @@ bool cSavedWorld::SoundExists(cSoundEntity *apSound)
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cSavedWorld::JointExists(iPhysicsJoint *apJoint)
 {
@@ -134,21 +122,12 @@ bool cSavedWorld::JointExists(iPhysicsJoint *apJoint)
 	return false;
 }
 
-//-----------------------------------------------------------------------
- 
-
-//////////////////////////////////////////////////////////////////////////
 // SAVED GAME
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cSavedGame::~cSavedGame()
 {
 	Reset();
 }
-
-//-----------------------------------------------------------------------
 
 void cSavedGame::Reset()
 {
@@ -212,16 +191,6 @@ cSavedWorld* cSavedGame::GetSavedWorld(const tString &asName)
 	return pWorld;
 }
 
-//-----------------------------------------------------------------------
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 {
 	mpInit = apInit;
@@ -230,7 +199,6 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 
 	Reset();
 
-	//////////////////////////////////////////////
 	// Create directories
 	msSaveDir = _W("");
 	iLowLevelSystem *pLowLevelSystem = mpInit->mpGame->GetSystem()->GetLowLevel();
@@ -281,20 +249,10 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 	}
 }
 
-//-----------------------------------------------------------------------
-
 cSaveHandler::~cSaveHandler(void)
 {
 	hplDelete( mpSavedGame );
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cSaveHandler::SaveData(const tString &asName)
 {
@@ -302,7 +260,6 @@ void cSaveHandler::SaveData(const tString &asName)
 	
 	pSavedWorld->Reset();
 	
-	///////////////////////
 	//Map properties
 	cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
 
@@ -322,7 +279,6 @@ void cSaveHandler::SaveData(const tString &asName)
 	else
 		pSavedWorld->msSkyboxFile = "";
 
-	///////////////////////
 	//Sectors: ambient colour and the portals' state (Black Plague)
 	{
 		tSectorMap *pSectors = mpInit->mpGame->GetScene()->GetWorld3D()->GetPortalContainer()->GetSectorMap();
@@ -346,11 +302,9 @@ void cSaveHandler::SaveData(const tString &asName)
 		}
 	}
 
-	///////////////////////
 	//Inventory callbacks
 	cInventory *pInventory = mpInit->mpInventory;
 
-	//////////////////////
 	//Use callbacks
 	{
 		pSavedWorld->mlstUseCallbacks.Clear();
@@ -361,7 +315,6 @@ void cSaveHandler::SaveData(const tString &asName)
 		}
 	}
 
-	//////////////////////
 	//Pickup callbacks
 	{
 		pSavedWorld->mlstPickupCallbacks.Clear();
@@ -372,7 +325,6 @@ void cSaveHandler::SaveData(const tString &asName)
 		}
 	}
 
-	//////////////////////
 	//Combine callbacks
 	{
 		pSavedWorld->mlstCombineCallbacks.Clear();
@@ -383,11 +335,9 @@ void cSaveHandler::SaveData(const tString &asName)
 		}
 	}
 
-	//////////////////////
 	//Player world data
 	mpInit->mpPlayer->AddSaveData(pSavedWorld);
 
-	/////////////////////////
 	//Entities on map
 	mpInit->mpMapHandler->AddSaveData(pSavedWorld);
 
@@ -398,14 +348,11 @@ void cSaveHandler::SaveData(const tString &asName)
 	//cSerializeClass::SaveToFile(pSavedWorld,"TestSave.txt","SaveGame");
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::LoadData(const tString &asName)
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	cSavedWorld *pSavedWorld = mpSavedGame->GetSavedWorld(asName);
 
-	///////////////////////
 	//Map properties
 	cRenderer3D *pRenderer = mpInit->mpGame->GetGraphics()->GetRenderer3D();
 	cResources *pResources = mpInit->mpGame->GetResources();
@@ -429,7 +376,6 @@ void cSaveHandler::LoadData(const tString &asName)
 		pRenderer->SetSkyBox(nullptr,false);
 	}
 
-	///////////////////////
 	//Sectors (Black Plague)
 	{
 		cPortalContainer *pContainer = pWorld->GetPortalContainer();
@@ -452,11 +398,9 @@ void cSaveHandler::LoadData(const tString &asName)
 		}
 	}
 
-	///////////////////////
 	//Inventory callbacks
 	cInventory *pInventory = mpInit->mpInventory;
 	
-	///////////////////////
 	//Use callbacks
 	{
 		cContainerListIterator<cInventoryUseCallback> it =pSavedWorld->mlstUseCallbacks.GetIterator();
@@ -467,7 +411,6 @@ void cSaveHandler::LoadData(const tString &asName)
 		}
 	}
 
-	///////////////////////
 	//Pickup callbacks
 	{
 		cContainerListIterator<cInventoryPickupCallback> it = pSavedWorld->mlstPickupCallbacks.GetIterator();
@@ -477,7 +420,6 @@ void cSaveHandler::LoadData(const tString &asName)
 			mpInit->mpInventory->AddPickupCallback(temp.msItem,temp.msFunction);
 		}
 	}
-	///////////////////////
 	//Combine callbacks
 	{
 		cContainerListIterator<cInventoryCombineCallback> it = pSavedWorld->mlstCombineCallbacks.GetIterator();
@@ -488,12 +430,9 @@ void cSaveHandler::LoadData(const tString &asName)
 		}
 	}
 
-	/////////////////////////
 	//Entities on map
 	mpInit->mpMapHandler->LoadSaveData(pSavedWorld);
 
-
-	//////////////////////
 	//Player world data (do after entities are created)
 	mpInit->mpPlayer->LoadSaveData(pSavedWorld);
 
@@ -502,19 +441,14 @@ void cSaveHandler::LoadData(const tString &asName)
 	mpInit->mpMapHandler->FreeSlidersFromStaticBodies(pWorld);
 }
 
-
-//-----------------------------------------------------------------------
-
 void cSaveHandler::SaveGameToFile(const tWString& asFile)
 {
 	//Reset all global data
 	mpSavedGame->ResetGlobalData();
 	
-	//////////////////////////////
 	//Save the current map:
 	SaveData(mpInit->mpMapHandler->GetCurrentMapName());
 
-	//////////////////////////////
 	// Save Global variables
 	mpSavedGame->mlstScriptVars.Clear();
 	tScriptVarMap* pGlobalVarMap = mpInit->mpGame->GetScene()->GetGlobalVarMap();
@@ -524,20 +458,16 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 		mpSavedGame->mlstScriptVars.Add(VarIt->second);
 	}
 	
-	//////////////////////////////
 	//Save global properties
 	mpSavedGame->mDifficulty = mpInit->mDifficulty;
 	mpSavedGame->msOnRadioEndCallback = mpInit->mpRadioHandler->GetOnEndCallback();
 
-	//////////////////////////////
 	//Save player
 	mpInit->mpPlayer->SaveToGlobal(&mpSavedGame->mPlayer);
 
-	//////////////////////////////
 	//Save map handler
 	mpInit->mpMapHandler->SaveToGlobal(&mpSavedGame->mMapHandler);
 	
-	//////////////////////////////
 	//Save loaded maps in Scene
 	mpSavedGame->mvSceneLoadedMap.Clear();
 	tStringSet* pStringSet = mpInit->mpGame->GetScene()->GetLoadedMapsSet();
@@ -549,20 +479,15 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 		mpSavedGame->mvSceneLoadedMap.Add(loadedMap);
 	}
 	
-	//////////////////////////////
 	//Save inventory
 	mpInit->mpInventory->SaveToGlobal(&mpSavedGame->mInventory);
 
-	/////////////////////////////////
 	//Save notebook
 	mpInit->mpNotebook->SaveToGlobal(&mpSavedGame->mNotebook);
 
-	//////////////////////////////
 	//Save game music
 	mpInit->mpMusicHandler->SaveToGlobal(&mpSavedGame->mGameMusicHandler);
 
-	
-	//////////////////////////////
 	//Save current music
 	cMusicEntry *pMusic = mpInit->mpGame->GetSound()->GetMusicHandler()->GetCurrentSong();
 	if(pMusic)
@@ -576,7 +501,6 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 		mpSavedGame->mMusic.msName = "";
 	}
 
-	//////////////////////////////
 	//Write to file:
 	
 	//tWString sSavePath = mpInit->mpGame->GetSystem()->GetLowLevel()->GetSystemSpecialPath(eSystemPath_Personal);
@@ -591,11 +515,8 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 	cSerializeClass::SaveToFile(mpSavedGame,sSavePath, "SaveGame");
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 {
-	///////////////////////////////
 	//Draw loading screen.
 	mpInit->mpGraphicsHelper->DrawLoadingScreen("");
 
@@ -620,16 +541,13 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 	//tString sSaveFile = cString::To8Char(sSavePath);
 	cSerializeClass::LoadFromFile(mpSavedGame,sSavePath);
 	
-	//////////////////////////////
 	//Load global properties
 	mpInit->mDifficulty = mpSavedGame->mDifficulty;
 	mpInit->mpRadioHandler->SetOnEndCallback(mpSavedGame->msOnRadioEndCallback);
 
-	//////////////////////////////////////////
 	//Load the save map handler data
 	mpInit->mpMapHandler->LoadFromGlobal(&mpSavedGame->mMapHandler);
 
-	//////////////////////////////
 	// Load Global variables
 	cContainerListIterator<cScriptVar> VarIt = mpSavedGame->mlstScriptVars.GetIterator();
 	while(VarIt.HasNext())
@@ -641,7 +559,6 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 		//Log("Created global var: '%s' %d\n",pVar->msName.c_str(),pVar->mlVal);
 	}
 
-	////////////////////////////////
 	//Load loaded maps in Scene
 	tStringSet* pStringSet = mpInit->mpGame->GetScene()->GetLoadedMapsSet();
 	cContainerListIterator<cSceneLoadedMap_GlobalSave> it = mpSavedGame->mvSceneLoadedMap.GetIterator();
@@ -650,30 +567,24 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 		pStringSet->insert(it.Next().msName);
 	}
 
-	/////////////////////////////////
 	//Load inventory
 	mpInit->mpInventory->LoadFromGlobal(&mpSavedGame->mInventory);
 
-	/////////////////////////////////
 	//Load notebook
 	mpInit->mpNotebook->LoadFromGlobal(&mpSavedGame->mNotebook);
 
-	///////////////////////////////
 	//Load the map
 	//TOOD: Use the correct file!
     mpInit->mpMapHandler->LoadSimple(mpSavedGame->mMapHandler.msCurrentMap+".dae",false);    
 	//LoadData(mpSavedGame->mMapHandler.msCurrentMap);
 	//mpInit->mpMapHandler->Load(mpSavedGame->mMapHandler.msCurrentMap+".dae","link01");
 	
-	//////////////////////////////
 	//Load player properties.
 	mpInit->mpPlayer->LoadFromGlobal(&mpSavedGame->mPlayer);
 
-	//////////////////////////////
 	//Load game music
 	mpInit->mpMusicHandler->LoadFromGlobal(&mpSavedGame->mGameMusicHandler);
 
-	/////////////////////////////
 	//Start Music
 	if(mpSavedGame->mMusic.msName!="" && mpSavedGame->mMusic.mbLoop)
 	{
@@ -688,16 +599,11 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 	mpInit->mpPlayer->SetActive(true); 
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::AutoSave(const tWString &asDir, int alMaxSaves)
 {
-	//////////////////////
 	//Check the available autosaves
 	DeleteOldestIfMax(_W("save/")+asDir,_W("*.sav"),alMaxSaves);
 	
-	
-	//////////////////////
 	//Save the autosave
 	tWString sMapName = mpInit->mpMapHandler->GetMapGameName();
 	sMapName = cString::ReplaceCharToW(sMapName,_W("\n"),_W(" "));
@@ -719,8 +625,6 @@ void cSaveHandler::AutoSave(const tWString &asDir, int alMaxSaves)
 
 	mpInit->mpGame->ResetLogicTimer();
 }
-
-//-----------------------------------------------------------------------
 
 void cSaveHandler::AutoLoadLatestAutoOrSpot()
 {
@@ -753,8 +657,6 @@ void cSaveHandler::AutoLoadLatestAutoOrSpot()
 		LoadGameFromFile(sFile);
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::AutoLoad(const tWString &asDir)
 {
 	tWString sFile = GetLatest(_W("save/")+asDir,_W("*.sav"));
@@ -764,29 +666,21 @@ void cSaveHandler::AutoLoad(const tWString &asDir)
 	mpInit->mpGame->ResetLogicTimer();
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::ClearSavedMaps()
 {
 	Log("Clearing all previously saved maps...\n");
 	mpSavedGame->ResetWorlds();
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::OnWorldLoad()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cSaveHandler::OnStart()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cSaveHandler::Reset()
 {
@@ -797,14 +691,6 @@ void cSaveHandler::OnExit()
 {
 	//Log(" doing nothing...\n");
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cSaveHandler::DeleteOldestIfMax(const tWString &asDir,const tWString &asMask, int alMaxFiles)
 {
@@ -838,8 +724,6 @@ void cSaveHandler::DeleteOldestIfMax(const tWString &asDir,const tWString &asMas
 	}
 }
 
-//-----------------------------------------------------------------------
-
 tWString cSaveHandler::GetLatest(const tWString &asDir,const tWString &asMask)
 {
 	iLowLevelResources *pLowLevelResources = mpInit->mpGame->GetResources()->GetLowLevel();
@@ -868,21 +752,13 @@ tWString cSaveHandler::GetLatest(const tWString &asDir,const tWString &asMask)
 	return sNewest;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SERIALIZABLE
-//////////////////////////////////////////////////////////////////////////
 
-//-----------------------------------------------------------------------
 kBeginSerializeBase(cMusic_GlobalSave)
 kSerializeVar(msName,eSerializeType_String)
 kSerializeVar(mfVolume,eSerializeType_Float32)
 kSerializeVar(mbLoop,eSerializeType_Bool)
 kEndSerialize()
-
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cGameMusic_GlobalSave)
 kSerializeVar(msFile,eSerializeType_String)
@@ -897,8 +773,6 @@ kSerializeVar(mbAttackPlaying,eSerializeType_Bool)
 kSerializeVar(mbEnemyClosePlaying,eSerializeType_Bool)
 kSerializeClassContainer(mvGameMusic,cGameMusic_GlobalSave,eSerializeType_Class)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cNotebookTask_GlobalSave)
 kSerializeVar(msName,eSerializeType_String)
@@ -917,13 +791,9 @@ kSerializeClassContainer(mlstNotes,cNotebookNote_GlobalSave,eSerializeType_Class
 kSerializeClassContainer(mlstTasks,cNotebookTask_GlobalSave,eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cInventorySlot_GlobalSave)
 kSerializeVar(msItemName,eSerializeType_String)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cInventoryItem_GlobalSave)
 kSerializeVar(msName, eSerializeType_String)
@@ -945,8 +815,6 @@ kSerializeVar(mbHasCount, eSerializeType_Bool)
 kSerializeVar(mlCount, eSerializeType_Int32)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cInventory_GlobalSave)
 kSerializeVar(mbNoteBookActive, eSerializeType_Bool)
 kSerializeClassContainer(mlstSlots,cInventorySlot_GlobalSave,eSerializeType_Class)
@@ -954,20 +822,14 @@ kSerializeClassContainer(mvEquipSlots,cInventorySlot_GlobalSave,eSerializeType_C
 kSerializeClassContainer(mlstItems,cInventoryItem_GlobalSave,eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cSceneLoadedMap_GlobalSave)
 kSerializeVar(msName, eSerializeType_String)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cMapHandlerLoadedMap_GlobalSave)
 kSerializeVar(msName, eSerializeType_String)
 kSerializeVar(mfTime, eSerializeType_Float32)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cMapHandlerTimer_GlobalSave)
 kSerializeVar(msName, eSerializeType_String)
@@ -978,8 +840,6 @@ kSerializeVar(mbDeleteMe, eSerializeType_Bool)
 kSerializeVar(mbPaused, eSerializeType_Bool)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cMapHandler_GlobalSave)
 kSerializeVar(mfGameTime, eSerializeType_Float32)
 kSerializeVar(msCurrentMap, eSerializeType_String)
@@ -988,21 +848,15 @@ kSerializeClassContainer(mvLoadedMaps,cMapHandlerLoadedMap_GlobalSave,eSerialize
 kSerializeClassContainer(mlstTimers,cMapHandlerTimer_GlobalSave,eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cPlayer_GlobalSave_CameraPS)
 kSerializeVar(msName, eSerializeType_String)
 kSerializeVar(msFile, eSerializeType_String)
 kEndSerialize()
-//-----------------------------------------------------------------------
-
 
 kBeginSerializeBase(cPlayer_GlobalSave)
-/////////////////
 //Stats
 kSerializeVar(mlStat_NumOfSaves, eSerializeType_Int32)
 
-/////////////////
 //Global
 kSerializeVar(mfForwardUpMul, eSerializeType_Float32)
 kSerializeVar(mfForwardRightMul, eSerializeType_Float32)
@@ -1015,7 +869,6 @@ kSerializeVar(mbUseNormalMass, eSerializeType_Bool)
 
 kSerializeVar(mfGrabMassMul, eSerializeType_Float32)
 
-//////////////////////////////
 //Private
 kSerializeVar(mbActive, eSerializeType_Bool)
 
@@ -1046,7 +899,6 @@ kSerializeVar(mfMass, eSerializeType_Float32)
 
 kSerializeClassContainer(mvOnCameraPS,cPlayer_GlobalSave_CameraPS, eSerializeType_Class)
 
-//////////////////////////////
 // Lights
 kSerializeVar(mbFlashlightActive, eSerializeType_Bool)
 kSerializeVar(mbFlashlightDisabled, eSerializeType_Bool)
@@ -1054,15 +906,12 @@ kSerializeVar(mbGlowstickActive, eSerializeType_Bool)
 kSerializeVar(mbFlareActive, eSerializeType_Bool)
 kSerializeVar(mfFlareTime, eSerializeType_Float32)
 
-
-//////////////////////////////
 //Body and Camera Specific
 kSerializeVar(mvPosition, eSerializeType_Vector3f)
 kSerializeVar(mfYaw, eSerializeType_Float32)
 kSerializeVar(mfPitch, eSerializeType_Float32)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
 kBeginSerializeBase(cSavedWorld)
 kSerializeVar(msName, eSerializeType_String)
 kSerializeVar(msGameName, eSerializeType_WString)
@@ -1103,8 +952,6 @@ kSerializeVar(mfDefaultSoundEnvFadeTime,eSerializeType_Float32)
 kSerializeClassContainer(mlstSoundEnvs,cSaveWorldSoundEnv,eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cSaveWorldPortal)
 kSerializeVar(mlId,eSerializeType_Int32)
 kSerializeVar(mbActive,eSerializeType_Bool)
@@ -1123,9 +970,6 @@ kSerializeVar(mfFadeTime,eSerializeType_Float32)
 kSerializeVar(mlPrio,eSerializeType_Int32)
 kEndSerialize()
 
-
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cSavedGame)
 kSerializeVar(mDifficulty,eSerializeType_Int32)
 
@@ -1143,6 +987,3 @@ kSerializeClassContainer(mlstScriptVars, cScriptVar, eSerializeType_Class)
 
 kSerializeClassContainer(mlstWorlds,cSavedWorld,eSerializeType_ClassPointer)
 kEndSerialize()
-
-
-//-----------------------------------------------------------------------

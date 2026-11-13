@@ -20,12 +20,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_DiffuseAdditive2D::cMaterial_DiffuseAdditive2D(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -37,27 +31,15 @@ namespace hpl {
 		mbIsGlowing= true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_DiffuseAdditive2D::~cMaterial_DiffuseAdditive2D()
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cMaterial_DiffuseAdditive2D::Compile()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMaterial_DiffuseAdditive2D::UsesType(eMaterialRenderType aType)
 	{
@@ -65,7 +47,4 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -42,12 +42,6 @@ namespace hpl {
 												0,   0,   0,   1.0f
 												);
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLight3DSpot::cLight3DSpot(tString asName, cResources *apResources) : iLight3D(asName,apResources)
 	{
 		mbProjectionUpdated = true;
@@ -82,14 +76,6 @@ namespace hpl {
 		hplDelete(mpFrustum);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::SetTexture(iTexture *apTexture)
 	{
 		//Destroy any old texture.
@@ -100,14 +86,10 @@ namespace hpl {
 		mpTexture->SetWrapT(eTextureWrap_ClampToBorder);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cLight3DSpot::GetTexture()
 	{
 		return mpTexture;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SetFarAttenuation(float afX)
 	{
@@ -120,7 +102,6 @@ namespace hpl {
 		SetTransformUpdated();
 		mbProjectionUpdated = true;
 	}
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SetNearAttenuation(float afX)
 	{
@@ -128,8 +109,6 @@ namespace hpl {
 		if(mfNearAttenuation>mfFarAttenuation)
 			SetFarAttenuation(mfNearAttenuation);
 	}
-
-	//-----------------------------------------------------------------------
 
 	const cMatrixf& cLight3DSpot::GetViewMatrix()
 	{
@@ -141,9 +120,6 @@ namespace hpl {
 
 		return m_mtxView;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	const cMatrixf& cLight3DSpot::GetProjectionMatrix()
 	{
@@ -179,8 +155,6 @@ namespace hpl {
 		return m_mtxProjection;
 	}
 
-	//-----------------------------------------------------------------------
-
 	const cMatrixf& cLight3DSpot::GetViewProjMatrix()
 	{
 		if(mlViewProjMatrixCount != GetTransformUpdateCount() || mbViewProjUpdated || mbProjectionUpdated)
@@ -194,8 +168,6 @@ namespace hpl {
 
 		return m_mtxViewProj;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cFrustum* cLight3DSpot::GetFrustum()
 	{
@@ -212,8 +184,6 @@ namespace hpl {
 		return mpFrustum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cLight3DSpot::CollidesWithBV(cBoundingVolume *apBV)
 	{
 		if(cMath::CheckCollisionBV(*GetBoundingVolume(), *apBV)==false) return false;
@@ -221,20 +191,10 @@ namespace hpl {
 		return GetFrustum()->CollideBoundingVolume(apBV)!= eFrustumCollision_Outside;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSectorVisibilityContainer* cLight3DSpot::CreateSectorVisibility()
 	{
 		return mpWorld3D->GetPortalContainer()->CreateVisibilityFromFrustum(mpFrustum);
 	}
-	//-----------------------------------------------------------------------
-
 
 	static eTextureAnimMode GetAnimMode(const tString& asType)
 	{
@@ -275,14 +235,10 @@ namespace hpl {
 		mfNearClipPlane = cString::ToFloat(apMainElem->Attribute("NearClipPlane"),mfNearClipPlane);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::UpdateBoundingVolume()
 	{
 		mBoundingVolume = GetFrustum()->GetBoundingVolume();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cLight3DSpot::CreateClipRect(cRect2l &aClipRect, cRenderSettings *apRenderSettings,
 											iLowLevelGraphics *apLowLevelGraphics)
@@ -296,15 +252,6 @@ namespace hpl {
 		return bVisible;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_cLight3DSpot,cSaveData_iLight3D)
 	kSerializeVar(msTexture, eSerializeType_String)
 
@@ -312,8 +259,6 @@ namespace hpl {
 	kSerializeVar(mfAspect, eSerializeType_Float32)
 	kSerializeVar(mfNearClipPlane, eSerializeType_Float32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cLight3DSpot::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -329,21 +274,15 @@ namespace hpl {
 		return pLight;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cLight3DSpot::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cLight3DSpot::CreateSaveData()
 	{
 		return hplNew( cSaveData_cLight3DSpot, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -356,8 +295,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfNearClipPlane);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cLight3DSpot);
@@ -366,8 +303,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mfAspect);
 		kSaveData_LoadFrom(mfNearClipPlane);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -379,7 +314,4 @@ namespace hpl {
 		mbViewProjUpdated = true;
 		mbFrustumUpdated = true;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

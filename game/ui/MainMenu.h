@@ -65,8 +65,6 @@ enum eMainMenuState
 	eMainMenuState_LastEnum
 };
 
-//---------------------------
-
 class cMainMenuWidget
 {
 public:
@@ -111,8 +109,6 @@ protected:
 	bool mbActive;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_MainButton : public cMainMenuWidget
 {
 public:
@@ -145,8 +141,6 @@ protected:
 
 	float mfOverTimer;
 };
-
-//---------------------------------------------
 
 class cMainMenuWidget_Button : public cMainMenuWidget
 {
@@ -181,8 +175,6 @@ protected:
 	float mfOverTimer;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Text : public cMainMenuWidget
 {
 public:
@@ -214,8 +206,6 @@ protected:
 	cMainMenuWidget *mpExtra;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Image : public cMainMenuWidget
 {
 public:
@@ -232,9 +222,6 @@ protected:
 
 	cVector2f mvSize;
 };
-
-
-//---------------------------------------------
 
 class cMainMenuWidget_List : public cMainMenuWidget
 {
@@ -295,7 +282,6 @@ protected:
 
 	cVector2f mvLastMousePos;
 };
-//---------------------------------------------
 
 class cMainMenuWidget_NewGame : public cMainMenuWidget_Button
 {
@@ -310,8 +296,6 @@ private:
 	eGameDifficulty mDifficulty;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Continue : public cMainMenuWidget_Button
 {
 public:
@@ -319,8 +303,6 @@ public:
 
 	void OnMouseDown(eMButton aButton) override;
 };
-
-//---------------------------------------------
 
 class cMainMenuWidget_Quit : public cMainMenuWidget_Button
 {
@@ -330,8 +312,6 @@ public:
 	void OnMouseDown(eMButton aButton) override;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Resume : public cMainMenuWidget_MainButton
 {
 public:
@@ -340,12 +320,8 @@ public:
 	void OnMouseDown(eMButton aButton) override;
 };
 
-//---------------------------------------------
-
 typedef std::list<cMainMenuWidget*> tMainMenuWidgetList;
 typedef tMainMenuWidgetList::iterator tMainMenuWidgetListIt;
-
-//---------------------------------------------
 
 class cMainMenuParticle
 {
@@ -357,8 +333,6 @@ public:
 
 	cGfxObject *mpGfx;
 };
-
-//---------------------------------------------
 
 class cMainMenu : public iUpdateable
 {
@@ -463,8 +437,5 @@ private:
 	bool mvKeyPressed[eKey_LastEnum];
 	bool mvMousePressed[eMButton_LastEnum];
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_MAIN_MENU_H

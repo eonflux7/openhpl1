@@ -26,11 +26,9 @@ using namespace hpl;
 class cInit;
 class cSavedWorld;
 
-//////////////////////////////////////////////////////////////////////////
 // Black Plague: the reverb (EFX sound environment, soundenvs/*.snv) of the
 // sector the player is in. Where sectors overlap the highest priority wins;
 // outside all of them the map's default is heard. Written after the binary.
-//////////////////////////////////////////////////////////////////////////
 
 class cSectorSoundEnv
 {

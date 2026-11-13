@@ -45,7 +45,7 @@ namespace hpl {
 		eRenderStateType_Render = 9,
 		eRenderStateType_LastEnum  = 10
 	};
-	///////////// INTERFACE ////////////////////
+	// INTERFACE
 
 	class iRenderState
 	{

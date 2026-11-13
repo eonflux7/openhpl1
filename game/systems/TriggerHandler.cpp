@@ -22,11 +22,7 @@
 #include "core/MapHandler.h"
 #include "enemies/GameEnemy.h"
 
-//////////////////////////////////////////////////////////////////////////
 // TRIGGER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameTrigger::cGameTrigger() : iEntity3D("")
 {
@@ -34,41 +30,21 @@ cGameTrigger::cGameTrigger() : iEntity3D("")
 	SetRenderInterpolated(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameTrigger::SetRadius(float afRadius)
 {
 	mfRadius = afRadius;
 	mBoundingVolume.SetSize(mfRadius*2);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cTriggerHandler::cTriggerHandler(cInit *apInit)  : iUpdateable("TriggerHandler")
 {
 	mpInit = apInit;
 }
 
-//-----------------------------------------------------------------------
-
 cTriggerHandler::~cTriggerHandler(void)
 {
 	STLMapDeleteAll(m_mapTriggers);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameTrigger* cTriggerHandler::Add(cGameTrigger *apTrigger,eGameTriggerType aType ,
 								   const cVector3f &avLocalPos,
@@ -85,18 +61,13 @@ cGameTrigger* cTriggerHandler::Add(cGameTrigger *apTrigger,eGameTriggerType aTyp
 	return apTrigger;
 }
 
-//-----------------------------------------------------------------------
-
 void cTriggerHandler::OnStart()
 {
 	mpMapHandler = mpInit->mpMapHandler;
 }
 
-//-----------------------------------------------------------------------
-
 void cTriggerHandler::Update(float afTimeStep)
 {
-	//////////////////////////////////////////////
 	//Go through the enemies and hand them triggers
 	tGameEnemyIterator EnemyIt = mpMapHandler->GetGameEnemyIterator();
 	while(EnemyIt.HasNext())
@@ -104,7 +75,6 @@ void cTriggerHandler::Update(float afTimeStep)
 		iGameEnemy *pEnemy = EnemyIt.Next();
 		if(pEnemy->IsActive()==false || pEnemy->GetUsesTriggers()==false) continue;
 		
-		/////////////////////////////////////////
 		//Check if it is time to update triggers.
 		/*if(pEnemy->GetTriggerUpdateCount() >= pEnemy->GetTriggerUpdateRate())
 		{
@@ -116,7 +86,6 @@ void cTriggerHandler::Update(float afTimeStep)
 			continue;
 		}*/
 		
-		/////////////////////////////////////
 		//Go through triggers by priority
 		tGameTriggerMapIt TriggerIt = m_mapTriggers.begin();
 		for(; TriggerIt != m_mapTriggers.end(); ++TriggerIt)
@@ -143,7 +112,6 @@ void cTriggerHandler::Update(float afTimeStep)
 		}
 	}
 	
-	//////////////////////////////////
 	//Go through triggers and remove when timer is out.
 	tGameTriggerMapIt TriggerIt = m_mapTriggers.begin();
 	for(; TriggerIt != m_mapTriggers.end(); )
@@ -161,8 +129,6 @@ void cTriggerHandler::Update(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cTriggerHandler::Reset()
 {

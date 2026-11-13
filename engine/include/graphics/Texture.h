@@ -36,8 +36,6 @@ namespace hpl {
 		eTextureType_LastEnum
 	};
 
-	//-----------------------------------------
-
 	enum eTextureTarget
 	{
 		eTextureTarget_1D,
@@ -48,9 +46,6 @@ namespace hpl {
 		eTextureTarget_LastEnum
 	};
 
-	//-----------------------------------------
-
-
 	enum eTextureWrap
 	{
 		eTextureWrap_Repeat,
@@ -60,16 +55,12 @@ namespace hpl {
 		eTextureWrap_LastEnum
 	};
 
-	//-----------------------------------------
-
 	enum eTextureFilter
 	{
 		eTextureFilter_Bilinear,
 		eTextureFilter_Trilinear,
 		eTextureFilter_LastEnum
 	};
-
-	//-----------------------------------------
 
 	enum eTextureAnimMode
 	{
@@ -78,8 +69,6 @@ namespace hpl {
 		eTextureAnimMode_Oscillate,
 		eTextureAnimMode_LastEnum
 	};
-
-	//-----------------------------------------
 
 	class iLowLevelGraphics;
 

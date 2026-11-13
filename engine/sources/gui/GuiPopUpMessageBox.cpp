@@ -34,19 +34,12 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGuiPopUpMessageBox::cGuiPopUpMessageBox(cGuiSet *apSet,
 											const tWString& asLabel, const tWString& asText,
 											const tWString& asButton1, const tWString& asButton2,
 											void *apCallbackObject, tGuiCallbackFunc apCallback)
 						: iGuiPopUp(apSet)
 	{
-		//////////////////////////
 		// Set up variables
 		mpCallback = apCallback;
 		mpCallbackObject = apCallbackObject;
@@ -64,12 +57,10 @@ namespace hpl {
 
 		float fWindowHeight = 90 + pFont->mvSize.y;
 
-		//////////////////////////
 		// Window
 		cVector3f vPos = cVector3f(vVirtSize.x/2 - fWindowWidth/2,vVirtSize.y/2- fWindowHeight/2,18);
 		mpWindow = mpSet->CreateWidgetWindow(vPos,cVector2f(fWindowWidth,fWindowHeight),asLabel,nullptr);
 
-		//////////////////////////
 		// Buttons
 		if(asButton2 == _W(""))
 		{
@@ -91,19 +82,15 @@ namespace hpl {
 
 		}
 
-		//////////////////////////
 		// Label
 		vPos = cVector3f(20, 30,1);
 		mpLabel = mpSet->CreateWidgetLabel(vPos,cVector2f(fWindowWidth-10,pFont->mvSize.y),
 											asText,mpWindow);
 
-		//////////////////////////
 		// Attention
 		mpPrevAttention = mpSet->GetAttentionWidget();
 		mpSet->SetAttentionWidget(mpWindow);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGuiPopUpMessageBox::~cGuiPopUpMessageBox()
 	{
@@ -112,24 +99,6 @@ namespace hpl {
 		if(mvButtons[1]) mpSet->DestroyWidget(mvButtons[1]);
 		if(mpLabel) mpSet->DestroyWidget(mpLabel);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGuiPopUpMessageBox::ButtonPress(iWidget* apWidget,cGuiMessageData& aData)
 	{
@@ -147,9 +116,4 @@ namespace hpl {
 		return true;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cGuiPopUpMessageBox,ButtonPress)
-
-
-	//-----------------------------------------------------------------------
-
-
 }

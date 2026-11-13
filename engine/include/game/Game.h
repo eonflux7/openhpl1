@@ -55,8 +55,6 @@ namespace hpl {
 		float mfFrametime;
 	};
 
-	//---------------------------------------------------
-
 	class cSetupVarContainer
 	{
 	public:
@@ -77,8 +75,6 @@ namespace hpl {
 		std::map<tString, tString>  m_mapVars;
 		tString msBlank;
 	};
-
-	//---------------------------------------------------
 
 	class cGame
 	{

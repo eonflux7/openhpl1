@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLowLevelInputSDL::cLowLevelInputSDL(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
@@ -40,27 +34,15 @@ namespace hpl {
 		LockInput(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLowLevelInputSDL::~cLowLevelInputSDL()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::LockInput(bool abX)
 	{
 		mbLockInput = abX;
 		ApplyInputLock();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::BeginInputUpdate()
 	{
@@ -84,8 +66,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	// While the debug overlay has the input the game gets no mouse motion,
 	// wheel or presses. Releases still reach it, so that nothing held when
 	// the overlay took over stays down, and so do the function keys: they
@@ -105,14 +85,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelInputSDL::EndInputUpdate()
 	{
 		mlstEvents.clear();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::ApplyInputLock()
 	{
@@ -126,20 +102,13 @@ namespace hpl {
 			SDL_SetWindowRelativeMouseMode(pWindow, bLock);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMouse* cLowLevelInputSDL::CreateMouse()
 	{
 		return hplNew( cMouseSDL,(this,mpLowLevelGraphics));
 	}
 
-	//-----------------------------------------------------------------------
-
 	iKeyboard* cLowLevelInputSDL::CreateKeyboard()
 	{
 		return hplNew( cKeyboardSDL,(this) );
 	}
-
-	//-----------------------------------------------------------------------
-
 }

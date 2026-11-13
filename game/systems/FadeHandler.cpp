@@ -24,14 +24,6 @@
 #include "ui/Inventory.h"
 #include "core/GraphicsHelper.h"
 
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cFadeHandler::cFadeHandler(cInit *apInit)  : iUpdateable("FadeHandler")
 {
 	mpInit = apInit;
@@ -43,20 +35,10 @@ cFadeHandler::cFadeHandler(cInit *apInit)  : iUpdateable("FadeHandler")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cFadeHandler::~cFadeHandler(void)
 {
 	mpDrawer->DestroyGfxObject(mpBlackGfx);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::FadeOut(float afDurationSeconds)
 {
@@ -70,8 +52,6 @@ void cFadeHandler::FadeOut(float afDurationSeconds)
 	Update(1.0f/60.0f);
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::FadeIn(float afDurationSeconds)
 {
 	if(afDurationSeconds <= 0)
@@ -84,29 +64,20 @@ void cFadeHandler::FadeIn(float afDurationSeconds)
 	Update(1.0f/60.0f);
 }
 
-//-----------------------------------------------------------------------
-
 bool cFadeHandler::IsActive()
 {
 	return mbActive;
 }
-
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::OnStart()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::SetWideScreenActive(bool abActive)
 {
 	mbWideScreenActive = abActive;
 }
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::Update(float afTimeStep)
 {
@@ -132,7 +103,6 @@ void cFadeHandler::Update(float afTimeStep)
 		}
 	}
 
-	//////////////////////////////////
 	// Wide Screen
 	if(mbWideScreenActive)
 	{
@@ -146,8 +116,6 @@ void cFadeHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::Reset()
 {
 	mfWideScreenAlpha =0;
@@ -157,8 +125,6 @@ void cFadeHandler::Reset()
 	mfAlphaRatePerSecond = 0;
 	mbActive = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::OnDraw()
 {
@@ -176,5 +142,3 @@ void cFadeHandler::OnDraw()
 		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(vPos.x,525,40),cVector2f(vSize.x,fBarHeight),cColor(1,mfWideScreenAlpha));
 	}
 }
-
-//-----------------------------------------------------------------------

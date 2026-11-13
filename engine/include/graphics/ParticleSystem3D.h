@@ -29,8 +29,6 @@ namespace hpl {
 	class iParticleEmitterData;
 	class cParticleManager;
 
-	//----------------------------------------------------
-
 	class cParticleSystem3D;
 
 	class cParticleSystemData3D : public iResourceBase
@@ -58,8 +56,6 @@ namespace hpl {
 		std::vector<iParticleEmitterData*> mvEmitterData;
 	};
 
-	//----------------------------------------------------
-
 	class cSaveData_ParticleEmitter3D : public iSerializable
 	{
 		kSerializableClassInit(cSaveData_ParticleEmitter3D)
@@ -81,9 +77,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//----------------------------------------------------
-
 
 	class cParticleSystem3D : public iEntity3D
 	{

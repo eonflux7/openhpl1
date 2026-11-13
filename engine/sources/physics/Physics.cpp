@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysics::cPhysics(iLowLevelPhysics *apLowLevelPhysics)  : iUpdateable("HPL_Physics")
 	{
 		mpLowLevelPhysics = apLowLevelPhysics;
@@ -50,8 +44,6 @@ namespace hpl {
 		mbLog = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysics::~cPhysics()
 	{
 		Log("Exiting Physics Module\n");
@@ -63,27 +55,15 @@ namespace hpl {
 		Log("--------------------------------------------------------\n\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cPhysics::Init(cResources *apResources)
 	{
 		mpResources = apResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysics::Update(float afTimeStep)
 	{
 		UpdateImpactCounts(afTimeStep);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsWorld* cPhysics::CreateWorld(bool abAddSurfaceData)
 	{
@@ -103,14 +83,10 @@ namespace hpl {
 		return pWorld;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysics::DestroyWorld(iPhysicsWorld* apWorld)
 	{
 		STLFindAndDelete(mlstWorlds, apWorld);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cPhysics::CanPlayImpact()
 	{
@@ -122,8 +98,6 @@ namespace hpl {
 	{
 		mlstImpactCounts.push_back(cPhysicsImpactCount());
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSurfaceData *cPhysics::CreateSurfaceData(const tString& asName)
 	{
@@ -142,11 +116,8 @@ namespace hpl {
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cPhysics::LoadSurfaceData(const tString& asFile, cHaptic *apHaptic)
 	{
-		//////////////////////////////////
 		//Open document
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -156,11 +127,9 @@ namespace hpl {
 			return false;
 		}
 
-		/////////////////////////
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
-		//////////////////////////
 		//Iterate children
 		TiXmlElement* pChildElem = pRootElem->FirstChildElement("Material");
 		for(; pChildElem != nullptr; pChildElem = pChildElem->NextSiblingElement("Material"))
@@ -215,7 +184,6 @@ namespace hpl {
 			}
 			pData->SetRollAxisFlags(axisFlags);
 
-			/////////////////////////
 			//Get Impact data
 			TiXmlElement* pImpactElem = pChildElem->FirstChildElement("Impact");
 			for(; pImpactElem != nullptr; pImpactElem = pImpactElem->NextSiblingElement("Impact"))
@@ -229,7 +197,6 @@ namespace hpl {
 				pImpactData->SetPSPrio(cString::ToInt(pImpactElem->Attribute("PSPrio"),10));
 			}
 
-			/////////////////////////
 			//Get Hit data
 			TiXmlElement* pHitElem = pChildElem->FirstChildElement("Hit");
 			for(; pHitElem != nullptr; pHitElem = pHitElem->NextSiblingElement("Hit"))
@@ -243,7 +210,6 @@ namespace hpl {
 				pHitData->SetPSPrio(cString::ToInt(pHitElem->Attribute("PSPrio"),10));
 			}
 
-			/////////////////////////
 			//Get Haptic Data
 			if(cHaptic::GetIsUsed() && apHaptic)
 			{
@@ -303,13 +269,6 @@ namespace hpl {
 
 		return true;
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	eHapticSurfaceType cPhysics::GetHapticSurface(const char *apName)
 	{
@@ -326,8 +285,6 @@ namespace hpl {
 		return eHapticSurfaceType_Simple;
 	}
 
-	//-----------------------------------------------------------------------
-
 	ePhysicsMaterialCombMode cPhysics::GetCombMode(const char *apName)
 	{
 		if(apName == nullptr) return ePhysicsMaterialCombMode_Average;
@@ -341,8 +298,6 @@ namespace hpl {
 
 		return ePhysicsMaterialCombMode_Average;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysics::UpdateImpactCounts(float afTimeStep)
 	{
@@ -360,7 +315,4 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

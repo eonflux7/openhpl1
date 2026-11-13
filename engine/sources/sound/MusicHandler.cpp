@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMusicHandler::cMusicHandler(iLowLevelSound* apLowLevelSound, cResources* apResources)
 	{
 		mpLowLevelSound = apLowLevelSound;
@@ -48,8 +42,6 @@ namespace hpl {
 		mbIsPaused = false;
 		mfBusVolume = 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMusicHandler::~cMusicHandler()
 	{
@@ -69,14 +61,6 @@ namespace hpl {
 			//it++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cMusicHandler::Play(const tString& asFileName,float afVolume, float afVolumeRatePerSecond, bool abLoop)
 	{
@@ -154,8 +138,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::Stop(float afVolumeRatePerSecond)
 	{
 		if(mpMainSong==nullptr)return;
@@ -174,8 +156,6 @@ namespace hpl {
 		mpMainSong = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::Pause()
 	{
 		if(mpMainSong != nullptr)mpMainSong->mpStream->SetPaused(true);
@@ -188,8 +168,6 @@ namespace hpl {
 
 		mbIsPaused = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMusicHandler::Resume()
 	{
@@ -204,22 +182,15 @@ namespace hpl {
 		mbIsPaused = false;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cMusicHandler::Lock(cMusicLock* apLock)
 	{
 		mpLock = apLock;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::UnLock()
 	{
 		mpLock = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cMusicHandler::GetCurrentSongName()
 	{
@@ -229,8 +200,6 @@ namespace hpl {
 			return "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMusicHandler::GetCurrentSongVolume()
 	{
 		if(mpMainSong!=nullptr)
@@ -239,14 +208,10 @@ namespace hpl {
 			return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMusicEntry* cMusicHandler::GetCurrentSong()
 	{
 		return mpMainSong;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMusicHandler::Update(float afTimeStep)
 	{
@@ -310,20 +275,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::SetBusVolume(float afVolume)
 	{
 		mfBusVolume = cMath::Clamp(afVolume, 0.0f, 1.0f);
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMusicHandler::FadeGain(const cMusicEntry *apSong)
 	{
@@ -346,8 +301,6 @@ namespace hpl {
 		EndCurve(apSong);
 		apSong->mfCurveRef = apSong->mfVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMusicHandler::LoadAndStart(const tString& asFileName,cMusicEntry* apSong  ,float afVolume, bool abLoop)
 	{
@@ -372,6 +325,4 @@ namespace hpl {
 
 		return true;
 	}
-	//-----------------------------------------------------------------------
-
 }

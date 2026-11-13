@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//------------------------------------------
-
 class cGameStickArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameStickArea_SaveData);
@@ -57,8 +55,6 @@ public:
 	
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameStickArea : public iGameEntity
 {
@@ -139,8 +135,6 @@ private:
 	float mfSetMtxTime; // Pose interpolation progress; complete at >=1.
 	cMatrixf m_mtxAttachedStart;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameStickArea : public iArea3DLoader
 {

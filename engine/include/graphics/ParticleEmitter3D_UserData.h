@@ -66,14 +66,6 @@ namespace hpl {
 		ePEPartSpinType_LastEnum,
 	};
 
-
-
-	//------------------------------------
-
-
-
-	//------------------------------------
-
 	class cParticleEmitterData3D_UserData : public iParticleEmitterData, public iPhysicsRayCallback
 	{
 	friend class cParticleEmitter3D_UserData;
@@ -96,7 +88,7 @@ namespace hpl {
 		cVector3f *mpIntersectNormal;
 		cVector3f *mpIntersectPos;
 
-		///////// GENERAL /////////////
+		// GENERAL
 
 		// NEW
 		ePEType	mPEType;
@@ -121,12 +113,12 @@ namespace hpl {
 		float mfFrameStep;
 		float mfMaxFrameTime;
 
-		///////// MATERIAL //////////
+		// MATERIAL
 
 		cVector2l mvSubDiv;
 		ePESubDivType mSubDivType;
 
-		///////// START POS //////////
+		// START POS
 		ePEStartPosType mStartPosType;
 
 		cVector3f mvMinStartPos;
@@ -138,7 +130,7 @@ namespace hpl {
 		float mfMinStartRadius;
 		float mfMaxStartRadius;
 
-		/////////// MOVEMENT ////////
+		// MOVEMENT
 		ePEStartPosType mStartVelType;
 
 		cVector3f mvMinStartVel;
@@ -182,7 +174,7 @@ namespace hpl {
 
 		// ---
 
-		/////////// LIFESPAN ////////
+		// LIFESPAN
 		float mfMinLifeSpan;
 		float mfMaxLifeSpan;
 
@@ -190,7 +182,7 @@ namespace hpl {
 
 		tString msDeathPS;
 
-		/////////// RENDERING ////////
+		// RENDERING
 		eParticleEmitter3DType mDrawType;
 
 		cVector2f mvMinStartSize;
@@ -204,7 +196,7 @@ namespace hpl {
 
 		bool mbMultiplyRGBWithAlpha;
 
-		/////////// COLOR  ////////
+		// COLOR
 
 		cColor mMinStartColor;
 		cColor mMaxStartColor;
@@ -215,7 +207,7 @@ namespace hpl {
 		float mfMiddleRelColorLength;
 		cColor mEndRelColor;
 
-		/////////// COLLISION  ////////
+		// COLLISION
 		bool mbCollides;
 
 		float mfMinBounceAmount;
@@ -227,7 +219,7 @@ namespace hpl {
 		int  mlCollisionUpdateRate;
 
 		// NEW
-		/////// BEAM SPECIFIC ///////
+		// BEAM SPECIFIC
 
 		bool mbUseBeamNoise;
 
@@ -249,8 +241,6 @@ namespace hpl {
 
 
 };
-
-	//----------------------------------------------------------
 
 	class cParticleEmitter3D_UserData : public iParticleEmitter3D
 	{
@@ -288,4 +278,3 @@ namespace hpl {
 };
 
 #endif // HPL_PARTICLE_EMITTER_3D_USER_DATA_H
-

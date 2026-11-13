@@ -23,12 +23,6 @@
 #include "core/SaveHandler.h"
 #include "player/Player.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameSoundEnvHandler::cGameSoundEnvHandler(cInit *apInit) : iUpdateable("GameSoundEnvHandler")
 {
 	mpInit = apInit;
@@ -51,25 +45,14 @@ cGameSoundEnvHandler::~cGameSoundEnvHandler()
 	STLDeleteAll(mlstSectorEnvs);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameSoundEnvHandler::OnStart()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::Update(float afTimeStep)
 {
 	if(mpLowLevelSound->IsEnvAudioAvailable()==false) return;
 
-	////////////////////////////
 	// Fading to the new one
 	if(mbFading)
 	{
@@ -96,7 +79,6 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////
 	// The sector of highest priority the player is in
 	cVector3f vPos = mpInit->mpPlayer->GetCamera()->GetPosition();
 
@@ -125,7 +107,6 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 		mfFadeTime = pBest->mfFadeTime;
 		mlCurrentPrio = pBest->mlPrio;
 	}
-	////////////////////////////
 	// Outside all: the default
 	else if(mpCurrentEnv != mpDefaultEnv)
 	{
@@ -137,8 +118,6 @@ void cGameSoundEnvHandler::Update(float afTimeStep)
 		mlCurrentPrio = -1;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::Reset()
 {
@@ -158,8 +137,6 @@ void cGameSoundEnvHandler::Reset()
 	STLDeleteAll(mlstSectorEnvs);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSoundEnvHandler::OnWorldLoad()
 {
 	mpLowLevelSound->SetSoundEnvironment(nullptr);
@@ -167,8 +144,6 @@ void cGameSoundEnvHandler::OnWorldLoad()
 	// The fade under way when the last map was left is not lost
 	if(mbFading) mpLowLevelSound->SetSoundEnvironment(mpNewEnv);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::OnWorldExit()
 {
@@ -187,8 +162,6 @@ void cGameSoundEnvHandler::OnWorldExit()
 	mpCurrentSector = nullptr;
 	STLDeleteAll(mlstSectorEnvs);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::AddSectorSoundEnv(cSector *apSector, iSoundEnvironment *apSoundEnv, float afFadeTime, int alPrio)
 {
@@ -213,15 +186,11 @@ void cGameSoundEnvHandler::AddSectorSoundEnv(cSector *apSector, iSoundEnvironmen
 	mlstSectorEnvs.push_back(pEnv);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSoundEnvHandler::SetDefaultSoundEnv(iSoundEnvironment *apSoundEnv, float afFadeTime)
 {
 	mpDefaultEnv = apSoundEnv;
 	mfDefaultFadeTime = afFadeTime;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::AddSaveData(cSavedWorld *apSavedWorld)
 {
@@ -239,8 +208,6 @@ void cGameSoundEnvHandler::AddSaveData(cSavedWorld *apSavedWorld)
 		apSavedWorld->mlstSoundEnvs.Add(savedEnv);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSoundEnvHandler::LoadSaveData(cSavedWorld *apSavedWorld)
 {
@@ -263,8 +230,6 @@ void cGameSoundEnvHandler::LoadSaveData(cSavedWorld *apSavedWorld)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 iSoundEnvironment* cGameSoundEnvHandler::GetSoundEnv(const tString &asFile)
 {
 	if(mpLowLevelSound->IsEnvAudioAvailable()==false) return nullptr;
@@ -272,5 +237,3 @@ iSoundEnvironment* cGameSoundEnvHandler::GetSoundEnv(const tString &asFile)
 	// The scripts give the path from the game's folder: "soundenvs/x.snv"
 	return mpLowLevelSound->LoadSoundEnvironment(asFile);
 }
-
-//-----------------------------------------------------------------------

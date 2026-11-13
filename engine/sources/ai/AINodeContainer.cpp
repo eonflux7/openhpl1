@@ -32,23 +32,15 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// AI NODE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAINode::cAINode()
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAINode::~cAINode()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAINode::AddEdge(cAINode *pNode)
 	{
@@ -61,13 +53,7 @@ namespace hpl {
 		mvEdges.push_back(Edge);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// RAY INTERSECT
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeRayCallback::Reset()
 	{
@@ -75,14 +61,10 @@ namespace hpl {
 		mpCallback = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAINodeRayCallback::Intersected()
 	{
 		return mbIntersected;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAINodeRayCallback::BeforeIntersect(iPhysicsBody *pBody)
 	{
@@ -97,8 +79,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAINodeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 	{
@@ -120,14 +100,6 @@ namespace hpl {
 			return false;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAINodeIterator::cAINodeIterator(cAINodeContainer *apContainer, const cVector3f &avPos, float afRadius)
 	{
@@ -169,16 +141,12 @@ namespace hpl {
 		//										mvEndGridPos.x,mvEndGridPos.y);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAINodeIterator::HasNext()
 	{
 		if(mpNodeList==nullptr || mpNodeList->empty()) return false;
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAINode *cAINodeIterator::Next()
 	{
@@ -212,8 +180,6 @@ namespace hpl {
 		return pNode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAINodeIterator::IncGridPos()
 	{
 		mvGridPos.x++;
@@ -228,14 +194,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAINodeContainer::cAINodeContainer(	const tString& asName, const tString &asNodeName,
 										cWorld3D *apWorld, const cVector3f &avCollideSize)
@@ -257,8 +215,6 @@ namespace hpl {
 		mbNodeIsAtCenter = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAINodeContainer::~cAINodeContainer()
 	{
 		hplDelete(mpRayCallback);
@@ -266,20 +222,10 @@ namespace hpl {
 		STLDeleteAll(mvNodes);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cAINodeContainer::ReserveSpace(size_t alReserveSpace)
 	{
 		mvNodes.reserve(alReserveSpace);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeContainer::AddNode(const tString &asName, const cVector3f &avPosition, void *apUserData)
 	{
@@ -292,14 +238,10 @@ namespace hpl {
 		m_mapNodes.insert(tAINodeMap::value_type(asName,pNode));
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cAINodeContainer::GetNodeNum() const
 	{
 		return (int)mvNodes.size();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAINode* cAINodeContainer::GetNodeFromName(const tString &asName)
 	{
@@ -313,8 +255,6 @@ namespace hpl {
 
 		//return (cAINode*)STLFindByName(mvNodes,asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	class cSortEndNodes
 	{
@@ -334,7 +274,6 @@ namespace hpl {
 		{
 			cAINode *pNode = *CurrentNodeIt;
 
-			////////////////////////////////////////
 			//Add the ends that are connected to the node.
 			/*Log("Node %s checks: ",pNode->GetName().c_str());
 			tAINodeVecIt EndNodeIt = mvNodes.begin();
@@ -382,8 +321,6 @@ namespace hpl {
 			}
 			//Log("\n");
 
-
-			///////////////////////////////////////
 			//Sort nodes and remove unwanted ones.
 			std::sort(pNode->mvEdges.begin(), pNode->mvEdges.end(), cSortEndNodes());
 
@@ -407,8 +344,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAINodeContainer::BuildNodeGridMap()
 	{
 		mvGrids.clear();
@@ -424,7 +359,6 @@ namespace hpl {
 
 		if(bLog)Log("Nodes: %d\n",mvNodes.size());
 
-		////////////////////////////////////
 		// Calculate min and max
 		cVector2f vMin(mvNodes[0]->GetPosition().x,mvNodes[0]->GetPosition().z);
 		cVector2f vMax(mvNodes[0]->GetPosition().x,mvNodes[0]->GetPosition().z);
@@ -443,7 +377,6 @@ namespace hpl {
 		mvMinGridPos = vMin;
 		mvMaxGridPos = vMax;
 
-		////////////////////////////////////
 		// Determine size of grids
 		int lGridNum = (int)(sqrt((float)mvNodes.size() / (float)mlNodesPerGrid)+0.5f)+1;
 
@@ -463,7 +396,6 @@ namespace hpl {
 		if(bLog)Log("MinPos: %s\n",mvMinGridPos.ToString().c_str());
 		if(bLog)Log("MaxPos: %s\n",mvMaxGridPos.ToString().c_str());
 
-		////////////////////////////////////
 		// Add nodes to grid
 		for(size_t i=0; i< mvNodes.size(); ++i)
 		{
@@ -488,14 +420,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAINodeIterator cAINodeContainer::GetNodeIterator(const cVector3f &avPosition, float afRadius)
 	{
 		return cAINodeIterator(this,avPosition, afRadius);
 	}
-
-	//-----------------------------------------------------------------------
 
 	static const cVector2f gvPosAdds[] = {cVector2f(0,0),
 										cVector2f(1,0),
@@ -513,7 +441,6 @@ namespace hpl {
 
 		if(alRayNum<0 || alRayNum>5) alRayNum =5;
 
-		/////////////////////////////
 		//Calculate the right vector
 		const cVector3f vForward = cMath::Vector3Normalize(avEnd - avStart);
 		const cVector3f vUp = cVector3f(0,1.0f,0);
@@ -548,8 +475,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAINodeContainer::SaveToFile(const tString &asFile)
 	{
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument,(asFile.c_str()) );
@@ -580,8 +505,6 @@ namespace hpl {
 		}
 		hplDelete(pXmlDoc);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAINodeContainer::LoadFromFile(const tString &asFile)
 	{
@@ -616,14 +539,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVector2l cAINodeContainer::GetGridPosFromLocal(const cVector2f &avLocalPos)
 	{
 		cVector2l vGridPos(0);
@@ -640,8 +555,6 @@ namespace hpl {
 		return vGridPos;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAIGridNode* cAINodeContainer::GetGrid(const cVector2l& avPos)
 	{
 		int lIndex = avPos.y * (mvGridMapSize.x+1) + avPos.x;
@@ -649,6 +562,4 @@ namespace hpl {
 
 		return &mvGrids[lIndex];
 	}
-
-	//-----------------------------------------------------------------------
 }

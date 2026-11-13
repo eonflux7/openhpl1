@@ -34,8 +34,6 @@ namespace hpl {
 
 	typedef cSTLIterator<iNode*,tNodeList,tNodeListIt> cNodeIterator;
 
-	//------------------------------------
-
 	kSaveData_BaseClass(iNode)
 	{
 		kSaveData_ClassInit(iNode)
@@ -43,8 +41,6 @@ namespace hpl {
 		cContainerList<int> mlstEntities;
 		cContainerList<int> mlstNodes;
 	};
-
-	//------------------------------------
 
 	class iNode : public iSaveObject
 	{

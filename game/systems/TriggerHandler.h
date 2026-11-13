@@ -28,8 +28,6 @@ using namespace hpl;
 class cInit;
 class cMapHandler;
 
-//----------------------------------------
-
 class cGameTrigger : public iEntity3D
 {
 friend class cTriggerHandler;
@@ -58,8 +56,6 @@ private:
 
 typedef std::multimap<int, cGameTrigger*, std::greater<int> > tGameTriggerMap;
 typedef tGameTriggerMap::iterator tGameTriggerMapIt;
-
-//----------------------------------------
 
 class cTriggerHandler : public iUpdateable
 {

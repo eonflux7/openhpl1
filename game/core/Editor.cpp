@@ -20,12 +20,6 @@
 
 namespace fs = std::filesystem;
 
-//////////////////////////////////////////////////////////////////////////
-// HELPERS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 namespace
 {
 	enum eAction
@@ -117,14 +111,6 @@ namespace
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cEditor::cEditor(cInit *apInit) : iUpdateable("Editor")
 {
 	mpInit = apInit;
@@ -194,22 +180,12 @@ cEditor::~cEditor()
 	pLowLevel->SetDebugPanelInput(false);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 bool cEditor::IsRequested(const tString &asCommandLine)
 {
 	const char *pValue = SDL_getenv("OPENHPL_EDITOR");
 	if(pValue && pValue[0] && pValue[0] != '0') return true;
 	return (" " + asCommandLine + " ").find(" --editor ") != tString::npos;
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::SetPlaying(bool abX)
 {
@@ -244,8 +220,6 @@ void cEditor::SetPlaying(bool abX)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::Select(const tString &asNode)
 {
 	tString sError;
@@ -268,8 +242,6 @@ void cEditor::Redo()
 	tString sNode = mpLevel->Redo();
 	if(sNode != "") Select(sNode);
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::FocusSelected()
 {
@@ -312,8 +284,6 @@ void cEditor::FocusSelected()
 	mvOrbitCenter = vCenter;
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::Update(float afTimeStep)
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -355,27 +325,15 @@ void cEditor::Update(float afTimeStep)
 	if(mfMessageTime > 0) mfMessageTime -= afTimeStep;
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::Reset()
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cEditor::HoldCamera()
 {
 	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
 	mpInit->mpRefView->HoldCamera(pCamera->GetPosition(), pCamera->GetYaw(), pCamera->GetPitch());
 }
-
-//-----------------------------------------------------------------------
 
 bool cEditor::ToScreen(const cVector3f &avWorld, ImVec2 &avScreen)
 {
@@ -401,8 +359,6 @@ void cEditor::MouseRay(const ImVec2 &avMouse, cVector3f &avStart, cVector3f &avD
 	avDir.Normalise();
 	avStart = pCamera->GetPosition();
 }
-
-//-----------------------------------------------------------------------
 
 tString cEditor::PickAt(const ImVec2 &avMouse)
 {
@@ -431,8 +387,6 @@ tString cEditor::PickAt(const ImVec2 &avMouse)
 	return mpLevel->Pick(vStart, vStart + vDir * 200.0f);
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::UpdateNodeCache()
 {
 	if(mlNodeVersion == mpLevel->GetVersion() && msNodeMap == mpLevel->GetMap()) return;
@@ -454,8 +408,6 @@ void cEditor::UpdateNodeCache()
 		mvNodes.push_back(node);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::ReadLog()
 {
@@ -488,8 +440,6 @@ void cEditor::ReadLog()
 	}
 	if(mvLog.size() > 5000) mvLog.erase(mvLog.begin(), mvLog.begin() + (mvLog.size() - 5000));
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::LoadMap(const tString &asMap)
 {
@@ -541,8 +491,6 @@ void cEditor::DoAction(int alAction)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::Draw()
 {
 	ImGuiIO &io = ImGui::GetIO();
@@ -584,8 +532,6 @@ void cEditor::Draw()
 
 	if(mpInit->mpRefView->IsOpen()) mpInit->mpRefView->DrawWindows();
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawMenuBar()
 {
@@ -685,8 +631,6 @@ void cEditor::DrawMenuBar()
 	ImGui::EndMainMenuBar();
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawToolbar()
 {
 	ImGui::Separator();
@@ -714,8 +658,6 @@ void cEditor::DrawToolbar()
 	if(ImGui::MenuItem("Play")) SetPlaying(true);
 	if(ImGui::IsItemHovered()) ImGui::SetTooltip("F8: the player starts at the camera; F8 comes back");
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawScenePanel(const ImVec2 &avPos, const ImVec2 &avSize)
 {
@@ -749,8 +691,6 @@ void cEditor::DrawScenePanel(const ImVec2 &avPos, const ImVec2 &avSize)
 	}
 	ImGui::End();
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawOutliner()
 {
@@ -883,8 +823,6 @@ void cEditor::DrawOutlinerNode(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawMaps()
 {
 	ImGui::SetNextItemWidth(-1);
@@ -909,8 +847,6 @@ void cEditor::DrawMaps()
 	ImGui::EndChild();
 	ImGui::TextDisabled("Double-click opens a map");
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawInspector(const ImVec2 &avPos, const ImVec2 &avSize)
 {
@@ -1032,8 +968,6 @@ void cEditor::DrawInspector(const ImVec2 &avPos, const ImVec2 &avSize)
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawLog(const ImVec2 &avPos, const ImVec2 &avSize)
 {
 	ImGui::SetNextWindowPos(avPos, ImGuiCond_Always);
@@ -1108,8 +1042,6 @@ void cEditor::DrawLog(const ImVec2 &avPos, const ImVec2 &avSize)
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawPlayingNote()
 {
 	ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetFontSize() * 0.5f),
@@ -1121,8 +1053,6 @@ void cEditor::DrawPlayingNote()
 				mbReloadOnStop ? " (the map is reloaded)" : "");
 	ImGui::End();
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawConfirmPopup()
 {
@@ -1161,8 +1091,6 @@ void cEditor::DrawConfirmPopup()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::UpdateShortcuts()
 {
 	ImGuiIO &io = ImGui::GetIO();
@@ -1191,8 +1119,6 @@ void cEditor::UpdateShortcuts()
 	if(ImGui::IsKeyPressed(ImGuiKey_Escape, false)) Select("");
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawViewport()
 {
 	if(mpInit->mpGame->GetScene()->GetWorld3D() == nullptr ||
@@ -1207,8 +1133,6 @@ void cEditor::DrawViewport()
 	if(bGizmo == false) UpdateViewportInput();
 	DrawStatus();
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::UpdateCamera(float afTimeStep)
 {
@@ -1306,8 +1230,6 @@ void cEditor::UpdateCamera(float afTimeStep)
 	if(bChanged) mpInit->mpRefView->HoldCamera(vPos, fYaw, fPitch);
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::UpdateViewportInput()
 {
 	ImGuiIO &io = ImGui::GetIO();
@@ -1337,8 +1259,6 @@ void cEditor::UpdateViewportInput()
 	if(bOverView && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && GetSelected() != "") FocusSelected();
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawHelpers(ImDrawList *apList)
 {
 	cCamera3D *pCamera = mpInit->mpPlayer->GetCamera();
@@ -1358,8 +1278,6 @@ void cEditor::DrawHelpers(ImDrawList *apList)
 			apList->AddText(ImVec2(vScreen.x + 8, vScreen.y - 7), lColor, node.msLabel.c_str());
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cEditor::DrawSelection(ImDrawList *apList)
 {
@@ -1404,8 +1322,6 @@ void cEditor::DrawSelection(ImDrawList *apList)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawStatus()
 {
 	ImGuiIO &io = ImGui::GetIO();
@@ -1422,8 +1338,6 @@ void cEditor::DrawStatus()
 						 IM_COL32(0, 0, 0, 140));
 	pList->AddText(vText, IM_COL32(220, 220, 220, 255), sText);
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f cEditor::GizmoAxis(int alAxis)
 {
@@ -1499,8 +1413,6 @@ int cEditor::GizmoHit(const ImVec2 &avMouse)
 	return lBest;
 }
 
-//-----------------------------------------------------------------------
-
 void cEditor::DrawGizmo(ImDrawList *apList, int alHover)
 {
 	cMatrixf mtxWorld;
@@ -1557,8 +1469,6 @@ void cEditor::DrawGizmo(ImDrawList *apList, int alHover)
 		apList->AddCircle(vCenter, 7, lColor, 0, 2.0f);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cEditor::UpdateGizmo(ImDrawList *apList)
 {
@@ -1702,5 +1612,3 @@ bool cEditor::UpdateGizmo(ImDrawList *apList)
 	DrawGizmo(apList, lHover);
 	return mlGizmoDrag >= 0 || lHover >= 0;
 }
-
-//-----------------------------------------------------------------------

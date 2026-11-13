@@ -27,14 +27,6 @@
 #include "systems/EffectHandler.h"
 #include "entities/GameStickArea.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 {
 	mpInit = apInit;
@@ -96,13 +88,10 @@ iGameEntity::iGameEntity(cInit *apInit, const tString &asName)
 	mvLastImpulse = 0;
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity::~iGameEntity()
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
-	//////////////////////////////////////////////
 	// Remove collision-callback references from the player and other entities.
 	//Log("Deleting '%s'\n",msName.c_str());
 
@@ -121,7 +110,6 @@ iGameEntity::~iGameEntity()
 		}
 	}
 
-	////////////////////////////////////////////
 	// Destroy haptic
 	for(size_t i=0; i< mvHapticShapes.size(); ++i)
 	{
@@ -131,7 +119,6 @@ iGameEntity::~iGameEntity()
 		}
 	}
 	
-	//////////////////////////////////////////////
 	// Release world resources when entity-owned destruction is enabled.
     if(pWorld && mpInit->mbDestroyGraphics)
 	{
@@ -198,13 +185,6 @@ iGameEntity::~iGameEntity()
 		mpInit->mpGame->GetResources()->GetMeshManager()->Destroy(mvPreloadedBreakMeshes[i]);
 	}
 }
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool iGameEntity::AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &asBone)
 {
@@ -226,8 +206,6 @@ bool iGameEntity::AttachMeshEntityToBone(cMeshEntity *apEntity, const tString &a
 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::SetActive(bool abActive)
 {
@@ -302,20 +280,15 @@ void iGameEntity::SetActive(bool abActive)
 	OnSetActive(mbActive);
 }
 
-//-----------------------------------------------------------------------
-
 float iGameEntity::GetPickedDistance()
 {
 	return mpInit->mpPlayer->GetPickedDist();
 }
 
-//-----------------------------------------------------------------------
-
 eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 {	
 	float fDistance = GetPickedDistance();
 
-	//////////////////////////////////////////
 	//Interaction available
 	cGameStickArea *pStickArea = mpInit->mpMapHandler->GetBodyStickArea(apBody);
 	if(apBody->GetMass()!=0 || mType == eGameEntityType_Area || (pStickArea && pStickArea->CanDetachBody()) )
@@ -326,14 +299,12 @@ eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 		}
 	}
 
-	//////////////////////////////////////////
 	// Examine available
 	if(mvCallbackScripts[eGameEntityScriptType_PlayerExamine] || msDescription!=_W(""))
 	{
 		if(fDistance <= mfMaxExamineDist) return eCrossHairState_Examine;
 	}
 
-	//////////////////////////////////////////
 	// Too far
 	if(mvCallbackScripts[eGameEntityScriptType_PlayerInteract] || mbHasInteraction)
 	{
@@ -350,8 +321,6 @@ eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 
 	return eCrossHairState_None;
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::DestroyLight(iLight3D *apLight)
 {
@@ -374,11 +343,8 @@ void iGameEntity::DestroySoundEntity(cSoundEntity* apSound)
 	mpInit->mpGame->GetScene()->GetWorld3D()->DestroySoundEntity(apSound);
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::PlayerPick()
 {	
-	//////////////////////
 	// Script stuff
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	if(mvCallbackScripts[eGameEntityScriptType_PlayerPick])
@@ -392,7 +358,6 @@ void iGameEntity::PlayerPick()
 
 void iGameEntity::PlayerInteract()
 {
-	//////////////////////
 	// Script stuff
 	if(GetPickedDistance() <= mfMaxInteractDist &&
 		(mpInit->mbHasHaptics==false || mpInit->mpPlayer->mbProxyTouching || 
@@ -411,7 +376,6 @@ void iGameEntity::PlayerInteract()
 
 void iGameEntity::PlayerExamine()
 {
-	//////////////////////
 	// Script stuff
 	if(GetPickedDistance() <= mfMaxExamineDist)
 	{
@@ -426,8 +390,6 @@ void iGameEntity::PlayerExamine()
 	OnPlayerExamine();
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::OnPlayerExamine()
 {
 	if(mfMaxExamineDist >= mpInit->mpPlayer->GetPickedDist() && msDescription!=_W(""))
@@ -436,7 +398,6 @@ void iGameEntity::OnPlayerExamine()
 		//if(mbShowDescritionOnce) msDescription = _W("");
 		mbHasBeenExamined = true;
 		
-		//////////////////////////////
 		//Set focus on the object
 		mpInit->mpEffectHandler->GetDepthOfField()->FocusOnBody(mpInit->mpPlayer->GetPickedBody());
 		mpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
@@ -445,8 +406,6 @@ void iGameEntity::OnPlayerExamine()
 		mpInit->mpGameMessageHandler->SetDepthOfFieldUsed(true);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::Damage(float afDamage, int alStrength)
 {
@@ -498,8 +457,6 @@ void iGameEntity::SetHealth(float afHealth)
 		mfHealth = afHealth;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::SetUpTransMaterials()
 {
@@ -565,15 +522,11 @@ void iGameEntity::SetTransActive(bool abActive)
 
 }
 
-//-----------------------------------------------------------------------
-
 static inline tString GetCollideCommand(const tString &asFuncName,const tString &asParent, 
 										const tString &asChild)
 {
 	return asFuncName + "(\"" + asParent+"\", \""+asChild+"\")";
 }
-
-////////////////////////////
 
 void iGameEntity::MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float afAcceleration,
 								float afSlowDownDist, const tString& asCallback)
@@ -588,8 +541,6 @@ void iGameEntity::MoveToPosition(const cVector3f& avPos, float afMaxSpeed, float
 	mfMoveSlowDownDist = afSlowDownDist;
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::UpdateMove(float afTimeStep)
 {
 	if(mbMoving==false) return;
@@ -598,7 +549,6 @@ void iGameEntity::UpdateMove(float afTimeStep)
 												mvBodies[0]->GetWorldPosition();
 	cVector3f vPos = vStartPos;
 
-	////////////////////////////////////////////
 	// The next position
 	float fDist = cMath::Vector3Dist(mvMoveGoal, vPos);
 
@@ -632,7 +582,6 @@ void iGameEntity::UpdateMove(float afTimeStep)
 		vPos += vDir * mfMoveSpeed * afTimeStep;
 	}
 
-	////////////////////////////////////////////
 	// Entities without bodies
 	if(mvBodies.empty())
 	{
@@ -640,7 +589,6 @@ void iGameEntity::UpdateMove(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////////////////////
 	// Move the body, with the speed it has for what rests on it
 	iPhysicsBody *pBody = mvBodies[0];
 
@@ -649,7 +597,6 @@ void iGameEntity::UpdateMove(float afTimeStep)
 	if(mbMoving)	pBody->SetLinearVelocity((vPos - vStartPos) / afTimeStep);
 	else			pBody->SetLinearVelocity(0);
 
-	////////////////////////////////////////////
 	// Wake what is next to it
 	cBoundingVolume largeBV = *pBody->GetBV();
 	largeBV.SetLocalMinMax(largeBV.GetLocalMin() - cVector3f(0.1f), largeBV.GetLocalMax() + cVector3f(0.1f));
@@ -658,20 +605,16 @@ void iGameEntity::UpdateMove(float afTimeStep)
 	pPhysicsWorld->EnableBodiesInBV(&largeBV, true);
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::OnUpdate(float afTimeStep)
 {
 	if(mbActive==false) return;
 
 	UpdateMove(afTimeStep);
 
-	////////////////////////////////////////////
 	/// Script Collide test stuff
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
-	////////////////
 	// Temporarily use the character body for collision callback checks.
 	std::vector<iPhysicsBody*> vSavedBodies;
 	if(mpCharBody){
@@ -763,7 +706,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 	}
 	mbUpdatingCollisionCallbacks = false;
 
-	////////////////
 	// Restore the entity body list after character collision checks.
 	if(mpCharBody){
 		mvBodies.clear();
@@ -773,7 +715,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 	
 	//if(msName == "liftclose") Log("--- End collision test\n");
 
-	//////////////////////////////////////////////////
 	//Check if any callback should be deleted
 	CollideIt = m_mapCollideCallbacks.begin();
 	for(; CollideIt != m_mapCollideCallbacks.end(); )
@@ -789,7 +730,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////////////////
 	/// Script Update
 	if(mvCallbackScripts[eGameEntityScriptType_OnUpdate])
 	{
@@ -797,12 +737,9 @@ void iGameEntity::OnUpdate(float afTimeStep)
 		mpInit->RunScriptCommand(sCommand);
 	}
     
-	///////////////////////////////////////////
 	//update entity specific stuff.
 	Update(afTimeStep);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::AddCollideScript(eGameCollideScriptType aType,const tString &asFunc, const tString &asEntity)
 {
@@ -837,8 +774,6 @@ void iGameEntity::AddCollideScript(eGameCollideScriptType aType,const tString &a
 	pCallback->msFuncName[aType] = asFunc;	
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::RemoveCollideScriptWithChildEntity(iGameEntity *apEntity)
 {
 	tGameCollideScriptMapIt it = m_mapCollideCallbacks.begin();
@@ -862,9 +797,6 @@ void iGameEntity::RemoveCollideScriptWithChildEntity(iGameEntity *apEntity)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
-
 
 void iGameEntity::RemoveCollideScript(eGameCollideScriptType aType,const tString &asEntity)
 {
@@ -894,8 +826,6 @@ void iGameEntity::RemoveCollideScript(eGameCollideScriptType aType,const tString
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::AddScript(eGameEntityScriptType aType,const tString &asFunc)
 {
 	cGameEntityScript *pScript = mvCallbackScripts[aType];
@@ -909,8 +839,6 @@ void iGameEntity::AddScript(eGameEntityScriptType aType,const tString &asFunc)
 	pScript->msScriptFunc = asFunc;
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEntity::RemoveScript(eGameEntityScriptType aType)
 {
     if(mvCallbackScripts[aType])
@@ -919,8 +847,6 @@ void iGameEntity::RemoveScript(eGameEntityScriptType aType)
 		mvCallbackScripts[aType] = nullptr;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::CreateVar(const tString &asName, int alVal)
 {
@@ -961,22 +887,10 @@ int iGameEntity::GetVar(const tString &asName)
 	return it->second;
 }
 
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PROTECTED METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 tString iGameEntity::GetScriptCommand(eGameEntityScriptType aType)
 {
 	return mvCallbackScripts[aType]->msScriptFunc + "(\""+msName+"\")";
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::PreloadModel(const tString &asFile)
 {
@@ -1015,20 +929,12 @@ void iGameEntity::PreloadModel(const tString &asFile)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SAVE DATA STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEntity_SaveData::~iGameEntity_SaveData()
 {
 	//Log("Deleting save data %d\n",this);
 }	
-
-//-----------------------------------------------------------------------
 
 cEnginePS_SaveData* iGameEntity_SaveData::GetParticleSystem(cParticleSystem3D* apPS)
 {
@@ -1050,14 +956,10 @@ cEngineSound_SaveData* iGameEntity_SaveData::GetSoundEntity(cSoundEntity* apSoun
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cGameEntityScript)
 kSerializeVar(mlNum, eSerializeType_Int32)
 kSerializeVar(msScriptFunc, eSerializeType_String)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cGameEntityAnimation_SaveData)
 kSerializeVar(mbActive,eSerializeType_Bool)
@@ -1068,8 +970,6 @@ kSerializeVar(mfFadeStep,eSerializeType_Float32)
 kSerializeVar(mfTimePos,eSerializeType_Float32)
 kSerializeVar(mfSpeed,eSerializeType_Float32)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBaseVirtual(iGameEntity_SaveData)
 kSerializeVar(mbActive,eSerializeType_Bool)
@@ -1107,7 +1007,6 @@ kSerializeClassContainer(mvSounds,cEngineSound_SaveData,eSerializeType_Class)
 kSerializeClassContainer(mvAnimations,cGameEntityAnimation_SaveData,eSerializeType_Class)
 
 kEndSerialize()
-//-----------------------------------------------------------------------
 
 void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 {
@@ -1235,8 +1134,6 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 		}	
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 {
@@ -1387,7 +1284,6 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 		}
 	}
 }
-//-----------------------------------------------------------------------
 
 void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -1413,5 +1309,3 @@ void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 
 	//Log("Setup save data!\n");
 }
-
-//-----------------------------------------------------------------------

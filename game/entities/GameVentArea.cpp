@@ -23,11 +23,7 @@
 #include "core/MapHandler.h"
 #include "player/Player.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameVentArea::cAreaLoader_GameVentArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -39,8 +35,6 @@ cAreaLoader_GameVentArea::~cAreaLoader_GameVentArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameVentArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -67,14 +61,6 @@ iEntity3D* cAreaLoader_GameVentArea::Load(const tString &asName, const cVector3f
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameVentArea::cGameVentArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_VentArea;
@@ -88,32 +74,19 @@ cGameVentArea::cGameVentArea(cInit *apInit,const tString& asName) : iGameEntity(
 	mbPlayerInside = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameVentArea::~cGameVentArea(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameVentArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameVentArea::Update(float afTimeStep)
 {
 	cPlayer *pPlayer = mpInit->mpPlayer;
 	iCharacterBody *pCharBody = pPlayer->GetCharacterBody();
 
-	////////////////////////////////////////////
 	// The player is being carried in
 	if(mbMovingPlayer)
 	{
@@ -129,7 +102,6 @@ void cGameVentArea::Update(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////////////////////
 	// Is the player in the area, and not below its floor?
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	iPhysicsBody *pAreaBody = mvBodies[0];
@@ -145,7 +117,6 @@ void cGameVentArea::Update(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////////////////////
 	// Attempt entry once per visit, while the player is jumping.
 	if(mbPlayerInside || pPlayer->GetMoveState() != ePlayerMoveState_Jump) return;
 
@@ -162,7 +133,6 @@ void cGameVentArea::Update(float afTimeStep)
 
 	pPlayer->ChangeMoveState(ePlayerMoveState_Crouch);
 
-	////////////////////////////////////////////
 	// Is there room for the crouching player on the middle of the floor?
 	cVector3f vCrouchedCentre = vFloorCentre + cVector3f(0, pCharBody->GetSize().y * 0.5f, 0);
 	cVector3f vResolvedCentre(0);
@@ -174,7 +144,6 @@ void cGameVentArea::Update(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////////////////////
 	// Carry the player there in a second
 	mbMovingPlayer = true;
 	mfEntryRemainingSeconds = 1.0f;
@@ -185,34 +154,20 @@ void cGameVentArea::Update(float afTimeStep)
 	pCharBody->SetForceVelocity(0);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameVentArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(mbPlayerInside, eSerializeType_Bool)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 iGameEntity* cGameVentArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameVentArea::CreateSaveData()
 {
 	return hplNew( cGameVentArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameVentArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -224,8 +179,6 @@ void cGameVentArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mbPlayerInside);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameVentArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -233,5 +186,3 @@ void cGameVentArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	kCopyFromVar(pData,mbPlayerInside);
 }
-
-//-----------------------------------------------------------------------

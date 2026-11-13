@@ -66,8 +66,6 @@ public:
 	cBoundingVolume mBV;
 };
 
-//-------------------------------------------
-
 class cMeleeRayCallback : public iPhysicsRayCallback
 {
 public:
@@ -79,8 +77,6 @@ public:
 	cVector3f mvPosition;
 	cVector3f mvNormal;
 };
-
-//-------------------------------------------
 
 class cHudModel_WeaponMelee : public iHudModel
 {
@@ -144,7 +140,5 @@ private:
 	iLowLevelHaptic *mpLowLevelHaptic;
 	iHapticForce *mpHHitForce;
 };
-
-//-------------------------------------------
 
 #endif // GAME_HUD_MODEL_WEAPON_H

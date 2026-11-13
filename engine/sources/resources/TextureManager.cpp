@@ -30,12 +30,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cTextureManager::cTextureManager(cGraphics* apGraphics,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -59,29 +53,17 @@ namespace hpl {
 		Log(" Destroyed all textures\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iTexture* cTextureManager::Create1D(const tString& asName,bool abUseMipMaps, bool abCompress,
 									eTextureType aType, unsigned int alTextureSizeLevel)
 	{
 		return CreateFlatTexture(asName,abUseMipMaps,abCompress,aType, eTextureTarget_1D,alTextureSizeLevel);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cTextureManager::Create2D(const tString& asName,bool abUseMipMaps,bool abCompress,
 									eTextureType aType, unsigned int alTextureSizeLevel, eTextureTarget aTarget)
 	{
 		return CreateFlatTexture(asName,abUseMipMaps,abCompress,aType, aTarget,alTextureSizeLevel);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iTexture* cTextureManager::CreateAnim2D(const tString& asName,bool abUseMipMaps, bool abCompress,
 									eTextureType aType, unsigned int alTextureSizeLevel)
@@ -173,8 +155,6 @@ namespace hpl {
 		return pTexture;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cTextureManager::CreateCubeMap(const tString& asPathName,bool abUseMipMaps,
 											bool abCompress, eTextureType aType,
 											unsigned int alTextureSizeLevel)
@@ -252,20 +232,15 @@ namespace hpl {
 		return pTexture;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cTextureManager::Create(const tString& asName)
 	{
 		return Create2D(asName,true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cTextureManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cTextureManager::Destroy(iResourceBase* apResource)
 	{
@@ -282,8 +257,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cTextureManager::Update(float afTimeStep)
 	{
 		tResourceHandleMapIt it = m_mapHandleResources.begin();
@@ -295,14 +268,6 @@ namespace hpl {
 			pTexture->Update(afTimeStep);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iTexture* cTextureManager::CreateFlatTexture(const tString& asName,bool abUseMipMaps,
 										bool abCompress, eTextureType aType, eTextureTarget aTarget,
@@ -352,8 +317,6 @@ namespace hpl {
 		return pTexture;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cTextureManager::FindTexture2D(const tString &asName, tString &asFilePath)
 	{
 		iTexture *pTexture=nullptr;
@@ -376,7 +339,4 @@ namespace hpl {
 
 		return pTexture;
 	}
-
-
-	//-----------------------------------------------------------------------
 }

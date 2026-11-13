@@ -23,8 +23,6 @@
 
 namespace hpl {
 
-	//--------------------------------------
-
 	class iWidgetItemContainer
 	{
 	public:
@@ -42,8 +40,5 @@ namespace hpl {
 
 		tWStringVec mvItems;
 	};
-
-	//--------------------------------------
-
 };
 #endif // HPL_WIDGET_BASE_CLASSES_H

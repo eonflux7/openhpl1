@@ -31,10 +31,6 @@
 
 namespace hpl
 {
-
-
-	//-------------------------------------------------
-
 	// The matrix glOrtho multiplies by.
 	static cMatrixf OrthoMatrix(float afLeft, float afRight, float afBottom, float afTop,
 		float afNear, float afFar)
@@ -44,17 +40,6 @@ namespace hpl
 			0, 0, -2.0f / (afFar - afNear), -(afFar + afNear) / (afFar - afNear),
 			0, 0, 0, 1);
 	}
-
-	//-------------------------------------------------
-
-
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cLowLevelGraphicsSDL::cLowLevelGraphicsSDL()
 	: mTargets(mState), mStream(mState, mGpuProfiler),

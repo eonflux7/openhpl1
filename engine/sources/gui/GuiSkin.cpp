@@ -31,11 +31,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// FONT
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cGuiSkinFont::cGuiSkinFont(cGui *apGui)
 	{
@@ -48,15 +44,6 @@ namespace hpl {
 		//Skip deleting font...
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGuiSkin::cGuiSkin(const tString & asName,cGui *apGui)
 	{
 		mpGui = apGui;
@@ -67,8 +54,6 @@ namespace hpl {
 		mvAttributes.resize(eGuiSkinAttribute_LastEnum, 0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiSkin::~cGuiSkin()
 	{
 		for(size_t i=0; i< mvGfxElements.size(); ++i)
@@ -76,14 +61,6 @@ namespace hpl {
 
 		STLDeleteAll(mvFonts);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	static eGuiGfxAnimationType ToAnimType(const char* apString)
 	{
@@ -120,7 +97,6 @@ namespace hpl {
 
 	bool cGuiSkin::LoadFromFile(const tString &asFile)
 	{
-		//////////////////////////////////
 		//Open document
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -130,12 +106,9 @@ namespace hpl {
 			return false;
 		}
 
-		/////////////////////////
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
-
-		//////////////////////////////////////
 		// ATTRIBUTES
 		TiXmlElement* pAttributesElement = pRootElem->FirstChildElement("Attributes");
 
@@ -162,9 +135,6 @@ namespace hpl {
 			mvAttributes[type] = vVal;
 		}
 
-
-
-		//////////////////////////////////////
 		// FONTS
 		TiXmlElement* pFontsElement = pRootElem->FirstChildElement("Fonts");
 
@@ -190,8 +160,6 @@ namespace hpl {
 			mvFonts[type] = pFont;
 		}
 
-
-		//////////////////////////////////////
 		// GFX ELEMENTS
 
 		//Get gfx element
@@ -255,8 +223,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGuiSkin::GetGfx(eGuiSkinGfx aType)
 	{
 		return mvGfxElements[aType];
@@ -271,14 +237,4 @@ namespace hpl {
 	{
 		return mvAttributes[aType];
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

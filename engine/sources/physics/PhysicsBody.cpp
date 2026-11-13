@@ -39,12 +39,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iPhysicsBody::iPhysicsBody(const tString &asName,iPhysicsWorld *apWorld,iCollideShape *apShape)
 		: iEntity3D(asName)
 	{
@@ -115,15 +109,10 @@ namespace hpl {
 		//Log("Creating body %s\n",msName.c_str());
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsBody::~iPhysicsBody()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void iPhysicsBody::Destroy()
 	{
@@ -168,20 +157,10 @@ namespace hpl {
 		DeleteLowLevel();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVector3f iPhysicsBody::GetVelocityAtPosition(cVector3f avPos)
 	{
 		return GetLinearVelocity() + cMath::Vector3Cross(GetAngularVelocity(), avPos - GetLocalPosition());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::AddJoint(iPhysicsJoint *apJoint)
 	{
@@ -210,8 +189,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsBody::UpdateBeforeSimulate(float afTimeStep)
 	{
 		//if(msName == "headalive01_throat2") Log("headalive01_throat2 Active: %d\n", IsActive());
@@ -225,7 +202,6 @@ namespace hpl {
 
 	void iPhysicsBody::UpdateAfterSimulate(float afTimeStep)
 	{
-		//////////////////////////////////
 		//Check disabling from callback
 		if(mbDisableAfterSimulation)
 		{
@@ -233,7 +209,6 @@ namespace hpl {
 			SetEnabled(false);
 		}
 
-		//////////////////////////////////
 		//Check slide sound
 		if(HasSlide()==false)
 		{
@@ -264,12 +239,9 @@ namespace hpl {
 			mlSlideCount = 8;
 		}
 
-		//////////////////////////////////
 		//Update rolling sound
 		if(mpMaterial) mpMaterial->GetSurfaceData()->UpdateRollEffect(this);
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Further than this in one step is a teleport, not a movement.
 	static const float kMaxInterpolateDist = 2.0f;
@@ -300,8 +272,6 @@ namespace hpl {
 		mbInterpolated = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D* iPhysicsBody::GetNode()
 	{
 		return mpNode;
@@ -313,8 +283,6 @@ namespace hpl {
 		mpNode = hplNew( cNode3D, () );
 		return mpNode;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::AddBodyCallback(iPhysicsBodyCallback *apCallback)
 	{
@@ -333,8 +301,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iPhysicsBody::OnBeginCollision(iPhysicsBody *apBody)
 	{
@@ -359,8 +325,6 @@ namespace hpl {
 		return bReturn;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsBody::OnCollide(iPhysicsBody *apBody, cPhysicsContactData* apContactData)
 	{
 		mbHasCollision = true;
@@ -382,21 +346,15 @@ namespace hpl {
 		//Log(" END\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsMaterial* iPhysicsBody::GetMaterial()
 	{
 		return mpMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCollideShape* iPhysicsBody::GetShape()
 	{
 		return mpShape;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::AddAttachedCharacter(iCharacterBody *apChar)
 	{
@@ -418,21 +376,11 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeBase(cSaveData_iCollideShape)
 	kSerializeVar(mType,eSerializeType_Int32)
 	kSerializeVar(m_mtxOffset, eSerializeType_Matrixf)
 	kSerializeVar(mvSize, eSerializeType_Vector3f)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_iPhysicsBody,cSaveData_iEntity3D)
 	kSerializeClassContainer(mlstShapes,cSaveData_iCollideShape,eSerializeType_Class)
@@ -460,8 +408,6 @@ namespace hpl {
 
 	kSerializeVar(mbCollide, eSerializeType_Bool)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	static iCollideShape* _CreateShape(cSaveData_iCollideShape *apData, iPhysicsWorld *apWorld)
 	{
@@ -516,21 +462,15 @@ namespace hpl {
 		return pBody;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_iPhysicsBody::GetSaveCreatePrio()
 	{
 		return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsBody::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsBody, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -565,8 +505,6 @@ namespace hpl {
 
 		pData->mbCollide = GetCollide();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::LoadFromSaveData(iSaveData *apSaveData)
 	{
@@ -603,14 +541,10 @@ namespace hpl {
 		SetCollide(pData->mbCollide);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsBody::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsBody);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsBody::CreateSaveCollideShapes(cContainerList<cSaveData_iCollideShape> *apShapeList)
 	{
@@ -638,7 +572,4 @@ namespace hpl {
 			apShapeList->Add(Shape);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

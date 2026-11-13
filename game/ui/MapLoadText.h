@@ -28,8 +28,6 @@ using namespace hpl;
 
 class cInit;
 
-//-------------------------------------------------
-
 class cMapLoadText : public iUpdateable
 {
 public:
@@ -81,8 +79,5 @@ private:
 
 	bool mbActive;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_MAP_LOAD_TEXT_H

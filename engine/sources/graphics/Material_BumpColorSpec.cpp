@@ -22,12 +22,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_BumpColorSpec::cMaterial_BumpColorSpec(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -41,20 +35,10 @@ namespace hpl {
 		mbUseColorSpecular = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_BumpColorSpec::~cMaterial_BumpColorSpec()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iMaterial* cMaterialType_BumpColorSpec::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -65,6 +49,4 @@ namespace hpl {
 								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
-
-	//-----------------------------------------------------------------------
 }

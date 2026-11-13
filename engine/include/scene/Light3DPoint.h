@@ -23,8 +23,6 @@
 
 namespace hpl {
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iLight3D,cLight3DPoint)
 	{
 		kSaveData_ClassInit(cLight3DPoint)
@@ -33,8 +31,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//------------------------------------------
 
 	class cLight3DPoint : public iLight3D
 	{

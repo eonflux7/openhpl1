@@ -25,8 +25,6 @@
 
 namespace hpl {
 
-	//------------------------------------------------------
-
 	class cLogWriter
 	{
 	public:
@@ -45,8 +43,6 @@ namespace hpl {
 		tWString msFileName;
 	};
 
-	//------------------------------------------------------
-
 	class cScriptOutput// : public  asIOutputStream
 	{
 	public:
@@ -60,9 +56,6 @@ namespace hpl {
 	private:
 		tString msMessage;
 	};
-
-	//------------------------------------------------------
-
 
 	class cLowLevelSystemSDL : public iLowLevelSystem
 	{
@@ -88,8 +81,5 @@ namespace hpl {
 		cScriptOutput *mpScriptOutput;
 		int mlHandleCount;
 	};
-
-	//------------------------------------------------------
-
 };
 #endif // HPL_LOWLEVELSYSTEM_SDL_H

@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVideoManager::cVideoManager(cGraphics* apGraphics,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -45,20 +39,10 @@ namespace hpl {
 		STLDeleteAll(mlstVideoLoaders);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cVideoManager::Create(const tString& asName)
 	{
 		return CreateVideo(asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iVideoStream* cVideoManager::CreateVideo(const tString& asName)
 	{
@@ -95,20 +79,15 @@ namespace hpl {
 		return pVideo;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVideoManager::AddVideoLoader(iVideoStreamLoader *apLoader)
 	{
 		mlstVideoLoaders.push_back(apLoader);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVideoManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cVideoManager::Destroy(iResourceBase* apResource)
 	{
@@ -118,8 +97,6 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cVideoManager::Update(float afTimeStep)
 	{
@@ -133,14 +110,6 @@ namespace hpl {
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iVideoStreamLoader * cVideoManager::GetLoader(const tString& asFileName)
 	{
@@ -162,7 +131,4 @@ namespace hpl {
 
 		return nullptr;
 	}
-
-
-	//-----------------------------------------------------------------------
 }

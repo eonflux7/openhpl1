@@ -13,8 +13,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // Commands to the running game through files, for tools and agents
 // (tools/levelview.py): OPENHPL_CONTROL=<folder> turns it on, and
 // developer mode with it.
@@ -127,7 +125,5 @@ private:
 	bool mbFixedStep;
 	int mlSeededLoad;
 };
-
-//----------------------------------------
 
 #endif // GAME_LIVE_CONTROL_H

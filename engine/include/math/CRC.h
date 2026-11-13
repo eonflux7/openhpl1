@@ -20,11 +20,8 @@
 #define HPL_CRC_H
 
 namespace hpl {
-	//----------------------------------------
 
 	typedef unsigned long tCRCKey;
-
-	//----------------------------------------
 
 	class cCRCTable
 	{
@@ -39,8 +36,6 @@ namespace hpl {
 		tCRCKey mTable [256];
 		tCRCKey mKey;
 	};
-
-	//----------------------------------------
 
 	class cCRC
 	{
@@ -64,8 +59,6 @@ namespace hpl {
 		tCRCKey mKey;
 		tCRCKey mRegister;
 	};
-
-	//----------------------------------------
 }
 
 #endif // HPL_CRC_H

@@ -56,11 +56,7 @@ tString gvStateName[STATE_NUM] = {
 		"ATTENTION",
 };
 
-//////////////////////////////////////////////////////////////////////////
 // GAME ENEMY STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEnemyState::iGameEnemyState(int alId, cInit *apInit, iGameEnemy *apEnemy)
 {
@@ -71,13 +67,7 @@ iGameEnemyState::iGameEnemyState(int alId, cInit *apInit, iGameEnemy *apEnemy)
 	mpMover = mpEnemy->GetMover();
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // RAY INTERSECT
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cLineOfSightRayCallback::Reset()
 {
@@ -89,14 +79,10 @@ void cLineOfSightRayCallback::Reset()
 		mpGrabBody = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLineOfSightRayCallback::Intersected()
 {
 	return mbIntersected;
 }
-
-//-----------------------------------------------------------------------
 
 static bool BodyIsTransparent(iPhysicsBody *apBody)
 {
@@ -135,13 +121,7 @@ bool cLineOfSightRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams 
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GROUND FINDER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool cEnemyFindGround::GetGround(	const cVector3f &avStartPos,const cVector3f &avDir,
 									cVector3f *apDestPosition, cVector3f *apDestNormal,
@@ -181,13 +161,7 @@ bool cEnemyFindGround::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPara
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DOOR CHECKER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool cEnemyCheckForDoor::CheckDoor(const cVector3f &avStart, const cVector3f &avEnd)
 {
@@ -238,14 +212,6 @@ bool cEnemyCheckForDoor::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPa
 	}
 	return true;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameElem) : iGameEntity(apInit,asName)
 {
@@ -385,8 +351,6 @@ iGameEnemy::iGameEnemy(cInit *apInit,const tString& asName,TiXmlElement *apGameE
 	mbStopAtLastPatrolNode = false;
 }
 
-//-----------------------------------------------------------------------
-
 iGameEnemy::~iGameEnemy(void)
 {
 	hplDelete( mpMover );
@@ -399,15 +363,8 @@ iGameEnemy::~iGameEnemy(void)
 	mvStates.clear();
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
 void iGameEnemy::LoadBaseProperties(TiXmlElement *apGameElem)
 {
-	////////////////////////////////////////
 	// Load settings from XML
 	mbShowDebug = cString::ToBool(apGameElem->Attribute("ShowDebug"),false);
 
@@ -470,14 +427,10 @@ void iGameEnemy::LoadBaseProperties(TiXmlElement *apGameElem)
 	msHitPS = cString::ToString(apGameElem->Attribute("HitPS"),"");
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnPlayerInteract()
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::OnPlayerPick()
 {
@@ -491,11 +444,8 @@ void iGameEnemy::OnPlayerPick()
 	mpInit->mpPlayer->ChangeState(ePlayerState_Grab);*/
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::Setup(cWorld3D *apWorld)
 {
-	/////////////////////////////////////////////
 	//Create body
 	iCharacterBody *pBody = apWorld->GetPhysicsWorld()->CreateCharacterBody("Enemy",
 															mvBodySize);
@@ -516,11 +466,8 @@ void iGameEnemy::Setup(cWorld3D *apWorld)
 	SetupBody();
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnWorldLoad()
 {	
-	//////////////////////////////////
 	// Setup EnemyMove
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	
@@ -534,7 +481,6 @@ void iGameEnemy::OnWorldLoad()
 	else
 		mpAStarGround = nullptr;
 
-	//////////////////////////////////
 	//Set up the body
 	if(mbAttachMeshToBody && mfHealth > 0)
 		mpMover->GetCharBody()->SetEntity(mpMeshEntity);
@@ -546,12 +492,10 @@ void iGameEnemy::OnWorldLoad()
 	mpMover->SetAStar(mpAStarGround);
 	mpMover->SetNodeContainer(mpNodeContainerGround);
 	
-	//////////////////////////////////
 	//Stop all animations
     mpMeshEntity->Stop();
 	mpMeshEntity->UpdateLogic(0.005f);
 
-	//////////////////////////////////
 	//Preload data
 
 	//Sounds
@@ -563,11 +507,9 @@ void iGameEnemy::OnWorldLoad()
     //Particle system
 	mpInit->PreloadParticleSystem(msHitPS);
 	
-	//////////////////////////////////
 	//Implemented load
 	OnLoad();
 
-	//////////////////////////////////
 	//Check if dead
 	mbLoading = true;
 	if(mfHealth <= 0)
@@ -581,8 +523,6 @@ void iGameEnemy::OnWorldLoad()
 
 	mpMeshEntity->ResetGraphicsUpdated();
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::OnPostLoadScripts()
 {
@@ -601,8 +541,6 @@ void iGameEnemy::OnPostLoadScripts()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnWorldExit()
 {
 	if(mfHealth <=0)
@@ -612,8 +550,6 @@ void iGameEnemy::OnWorldExit()
 
 	mpInit->mpMusicHandler->RemoveAttacker(this);
 }
-
-//-----------------------------------------------------------------------
 
 float gfAngle=0;
 float gfCurrentViewDist=0;
@@ -659,8 +595,6 @@ void iGameEnemy::OnDraw()
 								"Pos: %s",mpMover->GetCharBody()->GetPosition().ToString().c_str());*/
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnPostSceneDraw()
 {
 	if(IsActive()==false) return;
@@ -671,7 +605,6 @@ void iGameEnemy::OnPostSceneDraw()
 
 	ExtraPostSceneDraw();
 
-	/////////////////////////////////////
 	// Begin debug pos
 
 	/*pLowLevelGfx->SetDepthTestActive(false);
@@ -710,7 +643,6 @@ void iGameEnemy::OnPostSceneDraw()
 	pLowLevelGfx->SetDepthWriteActive(true);*/
 
 	// End debug pose
-	//////////////////////////////
 
 	/*pLowLevelGfx->SetDepthTestActive(false);
 	pLowLevelGfx->SetDepthWriteActive(false);
@@ -733,8 +665,6 @@ void iGameEnemy::OnPostSceneDraw()
 
 	mvStates[mlCurrentState]->OnPostSceneDraw();
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::Update(float afTimeStep)
 {
@@ -801,7 +731,6 @@ void iGameEnemy::Update(float afTimeStep)
 
 	if(mfDoorBreakCount>0) mfDoorBreakCount -= afTimeStep;
 
-	//////////////////////////////////////////////
 	//Disappear
 	if(mbDisappear && GetHealth()<=0 && mbHasDisappeared==false)
 	{
@@ -857,7 +786,6 @@ void iGameEnemy::Update(float afTimeStep)
 		}
 	}
 
-	//////////////////////////////////////////////
 	//Outside of map
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cBoundingVolume worldBV;
@@ -871,8 +799,6 @@ void iGameEnemy::Update(float afTimeStep)
 	
 	STOP_TIMING(enemy);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::AddState(iGameEnemyState *apState)
 {
@@ -925,9 +851,6 @@ iGameEnemyState *iGameEnemy::GetState(int alId)
 	return mvStates[alId];
 }
 
-
-//-----------------------------------------------------------------------
-
 bool iGameEnemy::HandleTrigger(cGameTrigger *apTrigger)
 {
 	switch(apTrigger->GetType())
@@ -939,15 +862,12 @@ bool iGameEnemy::HandleTrigger(cGameTrigger *apTrigger)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool iGameEnemy::HandleSoundTrigger(cGameTrigger *apTrigger)
 {
 	if(mfSkipSoundTriggerCount>0) return false;
 
 	cGameTrigger_Sound *pSoundTrigger = static_cast<cGameTrigger_Sound*>(apTrigger);
 
-	//////////////////////////////////////
 	//Calculate volume of sound
 	float fDistance = cMath::Vector3Dist(GetPosition(), pSoundTrigger->GetWorldPosition());
 	float fMin = pSoundTrigger->mpSound->GetMinDistance();
@@ -965,14 +885,10 @@ bool iGameEnemy::HandleSoundTrigger(cGameTrigger *apTrigger)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 cVector3f iGameEnemy::GetPosition()
 {
 	return mpMover->GetCharBody()->GetPosition();	
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 							bool abDependsOnSpeed, float afSpeedMul,
@@ -1014,7 +930,6 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 	}
 	pNewAnim->SetLoop(abLoop);
 	
-	/////////////////////////////////////////
 	//Check if this animation should start at the same place as the previous
 	if(abSyncWithPrevFrame && mpCurrentAnimation)
 	{
@@ -1038,8 +953,6 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 	mbOverrideMoveState = abOverrideMoveState;
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::UseMoveStateAnimations()
 {
 	if(mbOverrideMoveState)
@@ -1048,8 +961,6 @@ void iGameEnemy::UseMoveStateAnimations()
 		mMoveState = eEnemyMoveState_LastEnum;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::PlaySound(const tString &asName)
 {
@@ -1084,14 +995,10 @@ void iGameEnemy::PlaySound(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::AddPatrolNode(const tString& asNode, float afWaitSeconds, const tString& asAnimation)
 {
 	mvPatrolNodes.push_back(cEnemyPatrolNode(asNode,afWaitSeconds,asAnimation));
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::IncCurrentPatrolNode()
 { 
@@ -1114,8 +1021,6 @@ void iGameEnemy::IncCurrentPatrolNode()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::ClearPatrolNodes()
 {
 	mvPatrolNodes.clear();
@@ -1123,8 +1028,6 @@ void iGameEnemy::ClearPatrolNodes()
 
 	if(mbActive && mfHealth >0) ChangeState(STATE_IDLE);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::OnDeath(float afDamage)
 {
@@ -1141,8 +1044,6 @@ void iGameEnemy::OnDeath(float afDamage)
 	mvStates[mlCurrentState]->OnDeath(afDamage);
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnDamage(float afDamage)
 {
 	if(mfDamageSoundTimer<=0)
@@ -1155,14 +1056,10 @@ void iGameEnemy::OnDamage(float afDamage)
 	mvStates[mlCurrentState]->OnTakeHit(afDamage);
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::OnFlashlight(const cVector3f &avPos)
 {
 	mvStates[mlCurrentState]->OnFlashlight(avPos);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::OnSetActive(bool abActive)
 {
@@ -1195,17 +1092,12 @@ void iGameEnemy::OnSetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 bool iGameEnemy::CanSeePlayer()
 {
 	if(mpInit->mpMapHandler->IsPreUpdating() || mpInit->mpPlayer->IsDead()) return false;
 
 	return mbCanSeePlayer;
 }
-
-//-----------------------------------------------------------------------
 
 bool iGameEnemy::CheckForDoor()
 {
@@ -1244,15 +1136,6 @@ bool iGameEnemy::CheckForTeamMate(float afMaxDist, bool abCheckIfFighting)
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PROTECTED METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 {
@@ -1303,7 +1186,6 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 			if(fDist > fLimit) vNormal = cVector3f(0,1,0);
 		}
 
-		///////////////////////////
 		//Get the offest
 		if(vNormal != cVector3f(0,1,0))
 		{
@@ -1328,8 +1210,6 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 	mfGroundPoseProgress+= 6.5f *afTimeStep;
 	if(mfGroundPoseProgress >1.0f) mfGroundPoseProgress =0;
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 {
@@ -1463,8 +1343,6 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void iGameEnemy::UpdateAnimations(float afTimeStep)
 {
 	iCharacterBody *pBody = mpMover->GetCharBody();
@@ -1478,7 +1356,6 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 	
 	float fTurnSpeed = mpMover->GetTurnSpeed();
 	
-	////////////////////////////////
 	// Override animation
 	if(mbOverrideMoveState && mpCurrentAnimation!=nullptr)
 	{
@@ -1508,7 +1385,6 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 				mpCurrentAnimation->SetSpeed(std::abs(fTurnSpeed) * mfAnimationSpeedMul * 2);
 		}
 	}
-	////////////////////////////////
 	// Move state animation
 	else
 	{
@@ -1558,7 +1434,6 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 			break;
 		}
 		
-		//////////////////////////////////////////////
 		//If move state has changed, change animation
         if(prevMoveState != mMoveState)
 		{
@@ -1588,7 +1463,6 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 			}
 		}
 		
-		/////////////////////////////////
 		//Update animation speed
 		if(mbAnimationIsSpeedDependant && mpCurrentAnimation)
 		{
@@ -1599,9 +1473,6 @@ void iGameEnemy::UpdateAnimations(float afTimeStep)
 		}
 	}
 }
-
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::SetupBody()
 {
@@ -1623,8 +1494,6 @@ void iGameEnemy::SetupBody()
 
 	mpMover->SetMaxPushMass(mfMaxPushMass);
 }
-
-//-----------------------------------------------------------------------
 
 static const cVector2f gvPosAdds[] = {cVector2f(0,0),
 										cVector2f(1,0),
@@ -1662,13 +1531,11 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	if(bOverture==false) vStartCenter.y += mpMover->GetCharBody()->GetSize().y*0.5f - 0.1f;
 	cVector3f vEndCenter = avPos;
 
-	/////////////////////////////
 	//Calculate the right vector
 	const cVector3f vForward = cMath::Vector3Normalize(vEndCenter - vStartCenter);
 	const cVector3f vUp = cVector3f(0,1.0f,0);
 	const cVector3f vRight = cMath::Vector3Cross(vForward, vUp);
 
-	////////////////////////////////////
 	//Check if the pos is within FOV
 	if(fFOV < k2Pif && abSkipFOV==false)
 	{
@@ -1715,13 +1582,7 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameEnemy::cEntityLoader_GameEnemy(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -1734,15 +1595,11 @@ cEntityLoader_GameEnemy::~cEntityLoader_GameEnemy()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameEnemy::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 											   cWorld3D *apWorld)
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 											  cWorld3D *apWorld)
@@ -1752,7 +1609,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	tString sSubtype="";
 	tString sName="";
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pMainElem = apRootElem->FirstChildElement("MAIN");
 	if(pMainElem)
@@ -1765,7 +1621,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 		Error("Couldn't find main element for entity '%s'\n",mpEntity->GetName().c_str());
 	}
 	
-	///////////////////////////////////
 	// Load the enemy type
 
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
@@ -1809,7 +1664,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	pEnemy->SetBodies(mvBodies);
 	pEnemy->Setup(apWorld);
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pEnemy);
 	mpInit->mpMapHandler->AddGameEnemy(pEnemy);
@@ -1825,14 +1679,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	
 	//Log("Loaded enemy!\n");
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cEnemyPatrolNode)
 kSerializeVar(msNodeName, eSerializeType_String)
@@ -1862,21 +1708,15 @@ kSerializeVar(mbStopAtLastPatrolNode, eSerializeType_Bool)
 kSerializeClassContainer(mvPatrolNodes,cEnemyPatrolNode,eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* iGameEnemy_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* iGameEnemy::CreateSaveData()
 {
 	return hplNew( iGameEnemy_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -1913,8 +1753,6 @@ void iGameEnemy::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 		pData->mvPatrolNodes[i].msAnimation = mvPatrolNodes[i].msAnimation;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemy::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -1954,4 +1792,3 @@ void iGameEnemy::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	//Log("Load Save Data!\n");
 }
-//-----------------------------------------------------------------------

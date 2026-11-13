@@ -31,12 +31,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cRendererPostEffects::cRendererPostEffects(iLowLevelGraphics *apLowLevelGraphics,cResources* apResources,
 												cRenderList *apRenderList,cRenderer3D *apRenderer3D)
 	{
@@ -59,12 +53,10 @@ namespace hpl {
 		mpBokehTexture[1] = nullptr;
 		CreateScreenBuffers();
 
-		///////////////////////////////////////////
 		// Create programs
 
 		Log(" Creating programs\n");
 
-		/////////////////
 		// Bloom programs
 
 		mpBloomPrefilterProgram = mpGpuManager->CreateProgram("PostEffect_BloomChain", "PREFILTER");
@@ -74,7 +66,6 @@ namespace hpl {
 		if(!mpBloomPrefilterProgram || !mpBloomDownProgram || !mpBloomUpProgram || !mpBloomCompositeProgram)
 			Error("Couldn't load the 'PostEffect_BloomChain' programs!\n");
 
-		/////////////////
 		// Ambient occlusion programs
 
 		mpAoDeinterleaveProgram = mpGpuManager->CreateProgram("PostEffect_AO", "DEINTERLEAVE");
@@ -91,13 +82,11 @@ namespace hpl {
 			mvAoQualityTried[i] = false;
 		}
 
-		/////////////////
 		// MotionBlur programs
 
 		mpMotionCameraProgram = mpGpuManager->CreateProgram("PostEffect_MotionCamera");
 		if(!mpMotionCameraProgram) Error("Couldn't load the 'PostEffect_MotionCamera' programs!\n");
 
-		/////////////////
 		// Depth of Field programs
 
 		mpBokehPrefilterProgram = mpGpuManager->CreateProgram("PostEffect_Bokeh", "PREFILTER");
@@ -109,7 +98,6 @@ namespace hpl {
 
 		Log("  RendererPostEffects created\n");
 
-		////////////////////////////////////
 		// Variable setup
 
 		//General
@@ -137,8 +125,6 @@ namespace hpl {
 		mfDofFarPlane = 3.0f;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cRendererPostEffects::~cRendererPostEffects()
 	{
 		if(mpScreenBuffer) hplDelete(mpScreenBuffer);
@@ -159,14 +145,6 @@ namespace hpl {
 		for(iGpuProgram *pProgram : vNewPrograms) if(pProgram) mpGpuManager->Destroy(pProgram);
 		for(iTexture *pTexture : mpBokehTexture) if(pTexture) hplDelete(pTexture);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cRendererPostEffects::CreateScreenBuffers()
 	{
@@ -236,22 +214,16 @@ namespace hpl {
 		mbMotionBlurFirstTime = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRendererPostEffects::SetBloomActive(bool abX)
 	{
 		mbBloomActive = abX;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRendererPostEffects::SetMotionBlurActive(bool abX)
 	{
 		mbMotionBlurActive = abX;
 		mbMotionBlurFirstTime = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRendererPostEffects::Render()
 	{
@@ -304,14 +276,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetDrawMatrices(previousMatrices);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	// One pass of the effects: a quad over apTarget (the scene when
 	// it is null) with apSource in unit 0. The fragment programs take their
 	// positions from the pixel drawn. Expects an orthographic projection of
@@ -328,8 +292,6 @@ namespace hpl {
 		mvTexRectVtx[3] = cVertex(cVector3f(0,vVirtSize.y,40),cVector2f(0,0),cColor(1,1.0f));
 		mpLowLevelGraphics->DrawTriangles({mvTexRectVtx[0], mvTexRectVtx[1], mvTexRectVtx[2], mvTexRectVtx[0], mvTexRectVtx[2], mvTexRectVtx[3]});
 	}
-
-	//-----------------------------------------------------------------------
 
 	// The textures of the depth of field, if they are not there yet.
 	bool cRendererPostEffects::CreateDepthOfFieldTextures()
@@ -357,8 +319,6 @@ namespace hpl {
 		}
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// See hpl1_PostEffect_Bokeh.fragment.
 	void cRendererPostEffects::RenderDepthOfField()
@@ -391,7 +351,6 @@ namespace hpl {
 
 		cVector3f vPlanes(mfDofNearPlane, mfDofFocalPlane, mfDofFarPlane);
 
-		///////////////////////////////////////////
 		// The scene at half size, with how far out of focus each pixel is
 		mpBokehPrefilterProgram->Bind();
 		mpBokehPrefilterProgram->SetVec3f(eProgramParam::planes, vPlanes);
@@ -399,7 +358,6 @@ namespace hpl {
 		DrawScreenPass(mpBokehTexture[0], pScreenTexture);
 		mpBokehPrefilterProgram->UnBind();
 
-		///////////////////////////////////////////
 		// Every pixel gathers what is spread over it
 		mpBokehGatherProgram->Bind();
 		mpBokehGatherProgram->SetVec3f(eProgramParam::disc, fRadius * 0.5f, (float)cMath::Clamp(mDofSettings.mlRings, 1, 5),
@@ -407,13 +365,11 @@ namespace hpl {
 		DrawScreenPass(mpBokehTexture[1], mpBokehTexture[0]);
 		mpBokehGatherProgram->UnBind();
 
-		///////////////////////////////////////////
 		// The gaps between the samples smoothed over
 		mpBokehFillProgram->Bind();
 		DrawScreenPass(mpBokehTexture[0], mpBokehTexture[1]);
 		mpBokehFillProgram->UnBind();
 
-		///////////////////////////////////////////
 		// Over the scene, where it is out of focus. The pass reads the
 		// scene's depth, so the scene is drawn into without it; destination
 		// alpha is the renderer's own.
@@ -434,15 +390,12 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthWriteActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	// See hpl1_PostEffect_MotionCamera.fragment.
 	void cRendererPostEffects::RenderMotionBlur()
 	{
 		if(mbMotionBlurActive==false) return;
 		if(!mpMotionCameraProgram) return;
 
-		///////////////////////////////////////////
 		// Where the camera was the frame before, and how long ago
 		cCamera3D *pCam = mpRenderList->GetCamera();
 		cMatrixf mtxViewProj = cMath::MatrixMul(pCam->GetProjectionMatrix(), pCam->GetViewMatrix());
@@ -496,8 +449,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthWriteActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	// One pass of the bloom: a quad over apTarget (the scene when it
 	// is null) with apSource in unit 0. The fragment programs take their
 	// positions from the pixel drawn. Expects an orthographic projection of
@@ -522,8 +473,6 @@ namespace hpl {
 		mpLowLevelGraphics->DrawTriangles({mvTexRectVtx[0], mvTexRectVtx[1], mvTexRectVtx[2], mvTexRectVtx[0], mvTexRectVtx[2], mvTexRectVtx[3]});
 	}
 
-	//-----------------------------------------------------------------------
-
 	// See hpl1_PostEffect_BloomChain.fragment.
 	void cRendererPostEffects::RenderBloom()
 	{
@@ -535,8 +484,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->SetBlendActive(false);
 
-
-		///////////////////////////////////////////
 		// The bright part of the scene, at half size. The threshold is set
 		// as a screen value and used on light.
 		float fThreshold = powf(cMath::Max(mBloomTuning.mfThreshold, 0.0f), 2.2f);
@@ -545,7 +492,6 @@ namespace hpl {
 		DrawBloomPass(mpBloomPrefilterProgram, mvBloomDown[0], pScreenTexture);
 		mpBloomPrefilterProgram->UnBind();
 
-		///////////////////////////////////////////
 		// Halved down to the last level
 		size_t lLevels = mvBloomDown.size();
 		mpBloomDownProgram->Bind();
@@ -553,7 +499,6 @@ namespace hpl {
 			DrawBloomPass(mpBloomDownProgram, mvBloomDown[i], mvBloomDown[i-1]);
 		mpBloomDownProgram->UnBind();
 
-		///////////////////////////////////////////
 		// And blended back up: each level with the wider ones below it
 		iTexture *pBelow = mvBloomDown[lLevels-1];
 		mpBloomUpProgram->Bind();
@@ -567,7 +512,6 @@ namespace hpl {
 		mpBloomUpProgram->UnBind();
 		mpLowLevelGraphics->SetTexture(1,nullptr);
 
-		///////////////////////////////////////////
 		// Added to the scene
 		mpLowLevelGraphics->SetBlendActive(true);
 		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
@@ -579,8 +523,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->SetTexture(0,nullptr);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRendererPostEffects::DestroyAmbientOcclusionTextures()
 	{
@@ -633,8 +575,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	// One pass of the ambient occlusion: a quad over apTarget (the scene
 	// when it is null) with apSource in unit 0. The fragment programs take
 	// their positions from the pixel drawn. Expects an orthographic
@@ -665,8 +605,6 @@ namespace hpl {
 		mpLowLevelGraphics->DrawTriangles({mvTexRectVtx[0], mvTexRectVtx[1], mvTexRectVtx[2], mvTexRectVtx[0], mvTexRectVtx[2], mvTexRectVtx[3]});
 	}
 
-	//-----------------------------------------------------------------------
-
 	// See hpl1_PostEffect_AO.fragment.
 	bool cRendererPostEffects::RenderAmbientOcclusion()
 	{
@@ -681,7 +619,6 @@ namespace hpl {
 		cVector2l vSize((int)mvScreenSize.x, (int)mvScreenSize.y);
 		cVector2f vTileSize((float)mvAoTileSize.x, (float)mvAoTileSize.y);
 
-		///////////////////////////////////////////
 		// What is brightly lit is told from the scene itself where it can
 		// be read while it is drawn over, or else from a copy of it
 		float fLightFade = cMath::Clamp(settings.mfLightFade, 0.0f, 1.0f);
@@ -711,8 +648,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetDrawMatrices(cMatrixf::Identity, cMatrixf::Identity,
 			mpLowLevelGraphics->CreateOrthoProjection(mpLowLevelGraphics->GetVirtualSize(), -1000, 1000));
 
-
-		///////////////////////////////////////////
 		// The depth buffer as distances and normals in tiles, a row of
 		// four tiles at once
 		mpLowLevelGraphics->BeginGpuSection("Depth tiles");
@@ -733,7 +668,6 @@ namespace hpl {
 		mpAoDeinterleaveProgram->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
-		///////////////////////////////////////////
 		// The occlusion, tile by tile
 		mpLowLevelGraphics->BeginGpuSection("Search");
 		int lSlices = cMath::Clamp(settings.mlSlices, 1, 16);
@@ -797,7 +731,6 @@ namespace hpl {
 		pOcclusionProgram->UnBind();
 		mpLowLevelGraphics->EndGpuSection();
 
-		///////////////////////////////////////////
 		// Back to the picture's layout, with the pattern filtered out. The
 		// last pass of the filter is the blend's.
 		int lFilter = cMath::Clamp(settings.mlFilter, 0, 2);
@@ -822,7 +755,6 @@ namespace hpl {
 		}
 		mpLowLevelGraphics->EndGpuSection();
 
-		///////////////////////////////////////////
 		// The scene multiplied by it, or replaced by it to show it alone.
 		// Destination alpha is the renderer's own.
 		mpLowLevelGraphics->BeginGpuSection("Blend");
@@ -855,15 +787,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	// The scene into apTarget, a screen buffer, to be read while the scene
 	// is drawn over.
 	bool cRendererPostEffects::DrawSceneCopy(iTexture *apTarget)
 	{
 		return mpLowLevelGraphics->DrawSceneCopy(apTarget, 0, cVector2l((int)mvScreenSize.x,(int)mvScreenSize.y));
 	}
-
-	//-----------------------------------------------------------------------
-
 }

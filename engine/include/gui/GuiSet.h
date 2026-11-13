@@ -25,8 +25,6 @@
 
 namespace hpl {
 
-	//---------------------------------------------
-
 	class cResources;
 	class cGraphics;
 	class cSound;
@@ -51,12 +49,8 @@ namespace hpl {
 	class cWidgetListBox;
 	class cWidgetComboBox;
 
-	//---------------------------------------------
-
 	typedef std::list<iGuiPopUp*> tGuiPopUpList;
 	typedef tGuiPopUpList::iterator tGuiPopUpListIt;
-
-	//---------------------------------------------
 
 	class cGuiClipRegion;
 	class cGuiRenderObject
@@ -79,8 +73,6 @@ namespace hpl {
 	typedef std::multiset<cGuiRenderObject,cGuiRenderObjectCompare> tGuiRenderObjectSet;
 	typedef tGuiRenderObjectSet::iterator tGuiRenderObjectSetIt;
 
-	//-----------------------------------------------
-
 	typedef std::list<cGuiClipRegion*> tGuiClipRegionList;
 	typedef tGuiClipRegionList::iterator tGuiClipRegionListIt;
 
@@ -99,8 +91,6 @@ namespace hpl {
 		tGuiClipRegionList mlstChildren;
 	};
 
-	//-----------------------------------------------
-
 	class cGuiSet
 	{
 	public:
@@ -109,7 +99,6 @@ namespace hpl {
 				cSound *apSound, cScene *apScene);
 		~cGuiSet();
 
-		////////////////////////////////////
 		// General
 
 		void Update(float afTimeStep);
@@ -118,7 +107,6 @@ namespace hpl {
 
 		bool SendMessage(eGuiMessage aMessage, cGuiMessageData &aData);
 
-		////////////////////////////////////
 		// Rendering
 		void Render();
 
@@ -136,7 +124,6 @@ namespace hpl {
 						eFontAlign aAlign = eFontAlign_Left,
 						eGuiMaterial aMaterial = eGuiMaterial_FontNormal);
 
-		////////////////////////////////////
 		// Widget Creation
 		cWidgetWindow* CreateWidgetWindow(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
@@ -204,7 +191,6 @@ namespace hpl {
 
 		void DestroyWidget(iWidget *apWidget);
 
-		////////////////////////////////////
 		// Popup
 		void CreatePopUpMessageBox(	const tWString& asLabel, const tWString& asText,
 									const tWString& asButton1, const tWString& asButton2,
@@ -212,8 +198,6 @@ namespace hpl {
 
 		void DestroyPopUp(iGuiPopUp *apPopUp);
 
-
-		////////////////////////////////////
 		// Properties
 		void SetActive(bool abX);
 		bool IsActive(){return mbActive;}

@@ -28,8 +28,6 @@ using namespace hpl;
 
 class cInventoryItem;
 
-//-------------------------------------------
-
 class cHudModel_Throw : public iHudModel
 {
 	friend class cPlayerHands;
@@ -71,7 +69,5 @@ private:
 
 	cInventoryItem *mpItem;
 };
-
-//-------------------------------------------
 
 #endif // GAME_HUD_MODEL_THROW_H

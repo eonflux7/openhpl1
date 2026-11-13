@@ -31,14 +31,12 @@ namespace hpl {
 	public:
 		iLight();
 
-		//////////////////////////
 		//Fading
 		void FadeTo(const cColor& aCol, float afRadius, float afTime);
 		bool IsFading();
 		cColor GetDestColor(){ return mDestCol;}
 		float GetDestRadius(){ return mfDestRadius;}
 
-		//////////////////////////
 		//FLickering
 		void SetFlickerActive(bool abX);
 		bool GetFlickerActive(){return mbFlickering;}
@@ -65,7 +63,6 @@ namespace hpl {
 		cColor GetFlickerOnColor(){ return mFlickerOnColor;}
 		float GetFlickerOnRadius(){ return mfFlickerOnRadius;}
 
-		//////////////////////////
 		//Properties
 		const cColor& GetDiffuseColor(){ return mDiffuseColor; }
 		void SetDiffuseColor(cColor aColor);
@@ -119,7 +116,6 @@ namespace hpl {
 
 		cWorld3D *mpWorld3D;
 
-		///////////////////////////
 		//Fading.
 		cColor mColAdd;
 		float mfRadiusAdd;
@@ -127,7 +123,6 @@ namespace hpl {
 		float mfDestRadius;
 		float mfFadeTime;
 
-		///////////////////////////
 		//Flicker
 		bool mbFlickering;
 		tString msFlickerOffSound;

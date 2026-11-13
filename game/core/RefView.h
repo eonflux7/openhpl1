@@ -12,8 +12,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // The Dear ImGui debug panel: F2, or OPENHPL_REFVIEW=1 to start with it
 // open. A menu bar along the top switches its windows on and off (in the
 // level editor they are in its View menu instead):
@@ -298,7 +296,5 @@ private:
 	bool mbDeleteViewpoint;
 	tString msViewpointMessage;
 };
-
-//----------------------------------------
 
 #endif // GAME_REF_VIEW_H

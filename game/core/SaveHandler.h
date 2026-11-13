@@ -31,8 +31,6 @@ class cInit;
 
 class iGameEntity_SaveData;
 
-//---------------------------------------------
-
 class cMusic_GlobalSave : public iSerializable
 {
 	kSerializableClassInit(cMusic_GlobalSave)
@@ -41,8 +39,6 @@ public:
 	float mfVolume;
 	bool mbLoop;
 };
-
-//---------------------------------------------
 
 class cGameMusic_GlobalSave : public iSerializable
 {
@@ -63,8 +59,6 @@ public:
 
 	cContainerVec<cGameMusic_GlobalSave> mvGameMusic;
 };
-
-//---------------------------------------------
 
 class cNotebookTask_GlobalSave : public iSerializable
 {
@@ -92,8 +86,6 @@ public:
 	cContainerList<cNotebookNote_GlobalSave> mlstNotes;
 	cContainerList<cNotebookTask_GlobalSave> mlstTasks;
 };
-
-//---------------------------------------------
 
 class cInventorySlot_GlobalSave : public iSerializable
 {
@@ -137,16 +129,12 @@ public:
 	cContainerList<cInventoryItem_GlobalSave> mlstItems;
 };
 
-//---------------------------------------------
-
 class cSceneLoadedMap_GlobalSave : public iSerializable
 {
 	kSerializableClassInit(cSceneLoadedMap_GlobalSave)
 public:
 	tString msName;
 };
-
-//---------------------------------------------
 
 class cMapHandlerLoadedMap_GlobalSave : public iSerializable
 {
@@ -155,8 +143,6 @@ public:
 	tString msName;
 	double mfTime;
 };
-
-/////////////
 
 class cMapHandlerTimer_GlobalSave : public iSerializable
 {
@@ -173,8 +159,6 @@ public:
 	bool mbPaused;
 };
 
-/////////////
-
 class cMapHandler_GlobalSave : public iSerializable
 {
 	kSerializableClassInit(cMapHandler_GlobalSave);
@@ -185,8 +169,6 @@ public:
 	cContainerVec<cMapHandlerLoadedMap_GlobalSave> mvLoadedMaps;
 	cContainerList<cMapHandlerTimer_GlobalSave> mlstTimers;
 };
-
-//---------------------------------------------
 
 class cPlayer_GlobalSave_CameraPS : public iSerializable
 {
@@ -200,12 +182,9 @@ class cPlayer_GlobalSave : public iSerializable
 {
 	kSerializableClassInit(cPlayer_GlobalSave);
 public:
-
-	//////////////////////////////
 	//Stats
 	int mlStat_NumOfSaves;
 
-	//////////////////////////////
 	//Global vars
 	float mfForwardUpMul;
 	float mfForwardRightMul;
@@ -219,7 +198,6 @@ public:
 
 	float mfGrabMassMul;
 
-	//////////////////////////////
 	//Private
 	bool mbActive;
 
@@ -257,7 +235,6 @@ public:
 
 	cContainerVec<cPlayer_GlobalSave_CameraPS> mvOnCameraPS;
 
-	//////////////////////////////
 	// Lights
 	bool mbFlashlightActive;
 	bool mbFlashlightDisabled;
@@ -265,16 +242,11 @@ public:
 	bool mbFlareActive;
 	float mfFlareTime;
 
-
-	//////////////////////////////
 	//Body and Camera Specific
 	cVector3f mvPosition;
 	float mfYaw;
 	float mfPitch;
 };
-
-//---------------------------------------------
-
 
 //Black Plague: what the scripts change in sectors and portals
 class cSaveWorldPortal : public iSerializable
@@ -304,8 +276,6 @@ public:
 	float mfFadeTime;
 	int mlPrio;
 };
-
-//---------------------------------------------
 
 class cSavedWorld  : public iSerializable
 {
@@ -371,8 +341,6 @@ public:
 	bool JointExists(iPhysicsJoint *apJoint);
 };
 
-//----------------------------
-
 class cSavedGame : public iSerializable
 {
 	kSerializableClassInit(cSavedGame)
@@ -401,8 +369,6 @@ public:
 
 	cContainerList<cSavedWorld*> mlstWorlds;
 };
-
-//----------------------------
 
 class cSaveHandler : public iUpdateable
 {

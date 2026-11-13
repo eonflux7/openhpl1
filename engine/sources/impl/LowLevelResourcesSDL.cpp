@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLowLevelResourcesSDL::cLowLevelResourcesSDL(cLowLevelGraphicsSDL *apLowLevelGraphics)
 	{
 		mvImageFormats[0] = "BMP";mvImageFormats[1] = "LBM";mvImageFormats[2] = "PCX";
@@ -49,20 +43,10 @@ namespace hpl {
 		mpLowLevelGraphics = apLowLevelGraphics;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLowLevelResourcesSDL::~cLowLevelResourcesSDL()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iBitmap2D* cLowLevelResourcesSDL::LoadBitmap2D(tString asFilePath, tString asType)
 	{
@@ -100,8 +84,6 @@ namespace hpl {
 		return pBmp;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelResourcesSDL::GetSupportedImageFormats(tStringList &alstFormats)
 	{
 		int lPos = 0;
@@ -112,7 +94,6 @@ namespace hpl {
 			lPos++;
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cLowLevelResourcesSDL::AddMeshLoaders(cMeshLoaderHandler* apHandler)
 	{
@@ -121,22 +102,15 @@ namespace hpl {
 		apHandler->AddLoader(hplNew( cMeshLoaderCollada,(mpLowLevelGraphics)));
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelResourcesSDL::AddVideoLoaders(cVideoManager* apManager)
 	{
 		//No video formats: Overture has no videos, and the Theora loader
 		//was compiled out upstream too.
 	}
 
-	//-----------------------------------------------------------------------
-
 	//This is a windows implementation of this...I think.
 	void cLowLevelResourcesSDL::FindFilesInDir(tWStringList &alstStrings,tWString asDir, tWString asMask)
 	{
 		Platform::FindFileInDir(alstStrings, asDir,asMask);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

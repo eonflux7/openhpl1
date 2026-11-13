@@ -30,8 +30,6 @@ namespace hpl {
 	class cAnimation;
 	class cAnimationManager;
 
-	//---------------------------------------------
-
 	class cSaveData_cAnimationState : public iSaveData
 	{
 		kSaveData_ClassInit(cAnimationState)
@@ -60,8 +58,6 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//---------------------------------------------
-
 	class cAnimationEvent
 	{
 	public:
@@ -69,8 +65,6 @@ namespace hpl {
 		eAnimationEventType mType;
 		tString msValue;
 	};
-
-	//---------------------------------------------
 
 	class cAnimationState : public iSaveObject
 	{

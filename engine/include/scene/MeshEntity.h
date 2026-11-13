@@ -50,8 +50,6 @@ namespace hpl {
 	class iPhysicsWorld;
 	class cWorld3D;
 
-	//-----------------------------------------------------------------------
-
 	class cMeshEntityRootNodeUpdate : public iEntityCallback
 	{
 	public:
@@ -59,15 +57,11 @@ namespace hpl {
 		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
 
-	//------------------------------------------
-
 	class cMeshEntityCallback
 	{
 	public:
 		virtual void AfterAnimationUpdate(cMeshEntity *apMeshEntity, float afTimeStep)=0;
 	};
-
-	//------------------------------------------
 
 	kSaveData_ChildClass(iRenderable,cMeshEntity)
 	{
@@ -86,8 +80,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//------------------------------------------
 
 	class cMeshEntity : public iRenderable
 	{
@@ -295,9 +287,5 @@ namespace hpl {
 		//Properies:
 		bool mbCastShadows;
 	};
-
-	//-----------------------------------------------------------------------
-
-
 };
 #endif // HPL_MESH_ENTITY_H

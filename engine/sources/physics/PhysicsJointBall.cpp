@@ -29,19 +29,11 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_iPhysicsJointBall, cSaveData_iPhysicsJoint)
 	kSerializeVar(mfMaxConeAngle, eSerializeType_Float32)
 	kSerializeVar(mfMaxTwistAngle, eSerializeType_Float32)
 	kSerializeVar(mvConePin, eSerializeType_Vector3f)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_iPhysicsJointBall::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -70,21 +62,15 @@ namespace hpl {
 		return pJoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_iPhysicsJointBall::GetSaveCreatePrio()
 	{
 		return 1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsJointBall::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsJointBall, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJointBall::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -95,8 +81,6 @@ namespace hpl {
 		kSaveData_SaveTo(mvConePin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointBall::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsJointBall);
@@ -106,12 +90,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mvConePin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointBall::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsJointBall);
 	}
-
-	//-----------------------------------------------------------------------
 }

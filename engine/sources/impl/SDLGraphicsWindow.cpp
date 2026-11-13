@@ -45,8 +45,6 @@ namespace hpl
 		Log("GL DEBUG [type 0x%x id %u sev 0x%x]: %s\n", aType, alId, aSeverity, apMessage);
 	}
 
-	//-------------------------------------------------
-
 	cSDLGraphicsWindow::~cSDLGraphicsWindow()
 	{
 		if(mGLContext) SDL_GL_DestroyContext(mGLContext);

@@ -25,8 +25,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // Appearance settings for world lamps, the glow stick and flares.
 class cLampSettings
 {
@@ -48,8 +46,6 @@ public:
 	/// The lights that are part of the maps get the falloff too, and the flames among them waver.
 	bool mbMapLights = true;
 };
-
-//----------------------------------------
 
 // Updates cLightLook from the lamp kind inferred from entity filenames.
 // Also handles held glow sticks/flares and map-light falloff; other entities are unchanged.
@@ -83,7 +79,5 @@ private:
 	double mfTime;
 	int mlLampCount;
 };
-
-//----------------------------------------
 
 #endif // GAME_LAMP_APPEARANCE_CONTROLLER_H

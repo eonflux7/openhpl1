@@ -34,23 +34,14 @@ template <class T> 	class cMatrix {
 		T v[16];
 	};
 
-	//////////////////////////////////////////
-	// Constructors
-	/////////////////////////////////////////
-
 	inline cMatrix()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	inline cMatrix(T* pA)
 	{
 		FromVec(pA);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	inline cMatrix(double* pA)
 	{
@@ -71,9 +62,6 @@ template <class T> 	class cMatrix {
 		m[3][2] = (T)pA[14];
 		m[3][3] = (T)pA[15];
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	inline cMatrix(
 		T a00, T a01, T a02, T a03,
@@ -102,8 +90,6 @@ template <class T> 	class cMatrix {
 	static const cMatrix<T> Identity;
 	static const cMatrix<T> Zero;
 
-	//-----------------------------------------------------------------------
-
 	inline bool operator==(const cMatrix<T>& aMtx) const
 	{
 		if(	m[0][0] == aMtx.m[0][0] &&
@@ -129,14 +115,10 @@ template <class T> 	class cMatrix {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	inline bool operator!=(const cMatrix<T>& aMtx)
 	{
 		return !(*this == aMtx);
 	}
-
-	//-----------------------------------------------------------------------
 
 	inline void FromVec(const T* pA)
 	{
@@ -157,8 +139,6 @@ template <class T> 	class cMatrix {
 		m[3][2] = pA[14];
 		m[3][3] = pA[15];
 	}
-
-	//-----------------------------------------------------------------------
 
 	inline void FromTranspose(const T* pA)
 	{
@@ -183,9 +163,6 @@ template <class T> 	class cMatrix {
 		m[3][3] = pA[15];
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	inline cVector3<T> GetRight() const
 	{
 		/* @todo ??? */
@@ -198,8 +175,6 @@ template <class T> 	class cMatrix {
 		m[0][1] = avVec.y;
 		m[0][2] = avVec.z;
 	}
-
-	//-----------------------------------------------------------------------
 
 	inline cVector3<T> GetUp() const
 	{
@@ -214,8 +189,6 @@ template <class T> 	class cMatrix {
 		m[1][2] = avVec.z;
 	}
 
-	//-----------------------------------------------------------------------
-
 	inline cVector3<T> GetForward() const
 	{
 		/* @todo ??? */
@@ -228,8 +201,6 @@ template <class T> 	class cMatrix {
 		m[2][1] = avVec.y;
 		m[2][2] = avVec.z;
 	}
-
-	//-----------------------------------------------------------------------
 
 	inline cVector3<T> GetTranslation() const
 	{
@@ -244,8 +215,6 @@ template <class T> 	class cMatrix {
 		m[2][3] = avTrans.z;
 	}
 
-	//-----------------------------------------------------------------------
-
 	inline cMatrix<T> GetRotation() const
 	{
 		return cMatrix<T>(  m[0][0], m[0][1], m[0][2] ,0,
@@ -254,9 +223,6 @@ template <class T> 	class cMatrix {
 							0,		 0,		  0		  ,1);
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	inline cMatrix<T> GetTranspose() const
 	{
 		return cMatrix<T>(m[0][0], m[1][0], m[2][0] ,m[3][0],
@@ -264,8 +230,6 @@ template <class T> 	class cMatrix {
 						m[0][2], m[1][2], m[2][2] ,m[3][2],
 						m[0][3], m[1][3], m[2][3] ,m[3][3]);
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString ToString()
 	{

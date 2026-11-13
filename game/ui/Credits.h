@@ -27,8 +27,6 @@ using namespace hpl;
 
 class cInit;
 
-//-------------------------------------------------
-
 class cCredits : public iUpdateable
 {
 public:
@@ -90,8 +88,5 @@ private:
 		
 	bool mbActive;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_CREDITS_H

@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cNode3D::cNode3D(const tString &asName, bool abAutoDeleteChildren) : iNode()
 	{
 		m_mtxLocalTransform = cMatrixf::Identity;
@@ -49,8 +43,6 @@ namespace hpl {
 		mvTranslation = cVector3f(0,0,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D::~cNode3D()
 	{
 		if(mbAutoDeleteChildren)
@@ -59,20 +51,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iNode* cNode3D::CreateChild()
 	{
 		return CreateChild3D();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cNode3D* cNode3D::CreateChild3D(const tString &asName, bool abAutoDeleteChildren)
 	{
@@ -84,21 +66,15 @@ namespace hpl {
 		return pNode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cNode3D::GetLocalPosition()
 	{
 		return m_mtxLocalTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& cNode3D::GetLocalMatrix()
 	{
 		return m_mtxLocalTransform;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cNode3D::GetWorldPosition()
 	{
@@ -107,17 +83,12 @@ namespace hpl {
 		return m_mtxWorldTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& cNode3D::GetWorldMatrix()
 	{
 		UpdateWorldTransform();
 
 		return m_mtxWorldTransform;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SetPosition(const cVector3f& avPos)
 	{
@@ -138,8 +109,6 @@ namespace hpl {
 			mbTransformUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::SetWorldPosition(const cVector3f& avWorldPos)
 	{
 		if(mpParent)
@@ -151,9 +120,6 @@ namespace hpl {
 			SetPosition(avWorldPos);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SetWorldMatrix(const cMatrixf& a_mtxWorldTransform)
 	{
@@ -168,21 +134,15 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	const char* cNode3D::GetName()
 	{
 		return msName.c_str();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D* cNode3D::GetParent()
 	{
 		return mpParent;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cNode3D::SetParent(cNode3D* apNode)
 	{
@@ -195,8 +155,6 @@ namespace hpl {
 	{
 		mlstNode.push_back(apChild);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cNode3D::AddRotation(const cVector3f& avRot, eEulerRotationOrder aOrder)
 	{
@@ -249,8 +207,6 @@ namespace hpl {
 		mvTranslation = cVector3f(0,0,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::SetSource(const tString &asSource)
 	{
 		msSource = asSource;
@@ -261,13 +217,6 @@ namespace hpl {
 		return msSource.c_str();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	void cNode3D::UpdateWorldTransform()
 	{
 		if(mbTransformUpdated)
@@ -286,7 +235,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cNode3D::SetWorldTransformUpdated()
 	{
@@ -313,14 +261,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_cNode3D,cSaveData_iNode)
 	kSerializeVar(msName,eSerializeType_String)
 	kSerializeVar(msSource,eSerializeType_String)
@@ -328,8 +268,6 @@ namespace hpl {
 	kSerializeVar(m_mtxLocalTransform,eSerializeType_Matrixf)
 	kSerializeVar(mlParentId,eSerializeType_Int32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cNode3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -341,15 +279,10 @@ namespace hpl {
 		return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cNode3D::CreateSaveData()
 	{
 		return hplNew( cSaveData_cNode3D,() );
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -363,8 +296,6 @@ namespace hpl {
 		kSaveData_SaveObject(mpParent,mlParentId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cNode3D);
@@ -375,8 +306,6 @@ namespace hpl {
 		kSaveData_LoadFrom(m_mtxLocalTransform);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cNode3D);
@@ -384,8 +313,4 @@ namespace hpl {
 		kSaveData_LoadObject(mpParent,mlParentId,cNode3D*);
 
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

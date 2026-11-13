@@ -26,8 +26,6 @@ namespace hpl {
 
 	class cResources;
 
-	//--------------------------------
-
 	class cLanguageEntry
 	{
 	public:
@@ -36,8 +34,6 @@ namespace hpl {
 
 	typedef std::map<tString, cLanguageEntry*> tLanguageEntryMap;
 	typedef tLanguageEntryMap::iterator tLanguageEntryMapIt;
-
-	//--------------------------------
 
 	class cLanguageCategory
 	{
@@ -51,8 +47,6 @@ namespace hpl {
 
 	typedef std::map<tString, cLanguageCategory*> tLanguageCategoryMap;
 	typedef tLanguageCategoryMap::iterator tLanguageCategoryMapIt;
-
-	//--------------------------------
 
 	class cLanguageFile
 	{

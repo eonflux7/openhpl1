@@ -29,8 +29,6 @@ namespace hpl {
 
 	class cWorld3D;
 
-	//-------------------------------
-
 	class cAINodeGeneratorParams
 	{
 	public:
@@ -46,8 +44,6 @@ namespace hpl {
 
 		float mfGridSize;
 	};
-
-	//-------------------------------
 
 	class cAINodeGenerator : public iPhysicsRayCallback
 	{

@@ -30,9 +30,6 @@ namespace hpl {
 		float k;
 		float b;
 
-		//////////////////////////////////////////
-		// Constructors
-		/////////////////////////////////////////
 		cSpring(){}
 
 		cSpring(float afK, float afB)
@@ -40,17 +37,13 @@ namespace hpl {
 			k = afK; b = afB;
 		}
 
-		//////////////////////////////////////////
 		// Public
-		/////////////////////////////////////////
 
 		T Output(T aError, T aV)
 		{
 			return aError * k - aV * b;
 		}
 	};
-
-	//---------------------------------
 
 	typedef cSpring<float> cSpringf;
 	typedef cSpring<cVector3f> cSpringVec3;

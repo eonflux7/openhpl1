@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cParticleManager::cParticleManager(cGraphics* apGraphics,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -56,20 +50,10 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cParticleManager::Create(const tString& asName)
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iParticleSystem2D* cParticleManager::CreatePS2D(const tString& asName, cVector3f avSize)
 	{
@@ -93,8 +77,6 @@ namespace hpl {
 
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cParticleSystem3D* cParticleManager::CreatePS3D(const tString& asName,const tString& asType,
 												cVector3f avSize,const cMatrixf& a_mtxTransform)
@@ -144,16 +126,12 @@ namespace hpl {
 		return pPS;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleManager::AddData3D(cParticleSystemData3D *apData)
 	{
 		AddResource(apData);
 		//m.insert(tParticleSystemData3DMap::value_type(cString::ToLowerCase(apData->GetName()),
 		//														apData));
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cParticleManager::Preload(const tString& asFile)
 	{
@@ -186,13 +164,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cParticleManager::Destroy(iResourceBase* apResource)
 	{
@@ -201,15 +176,4 @@ namespace hpl {
 			apResource->DecUserCount();
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
 }

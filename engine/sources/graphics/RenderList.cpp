@@ -35,9 +35,7 @@ namespace hpl {
 	int cRenderList::mlGlobalRenderCount = 0;
 
 
-	//////////////////////////////////////////////////////////////////////////
 	// FOG OBJECT COMPARE
-	//////////////////////////////////////////////////////////////////////////
 
 	bool cFogObject_Compare::operator()(	iRenderable* pObjectA,
 												iRenderable* pObjectB) const
@@ -47,9 +45,7 @@ namespace hpl {
 		return pObjectA->GetVertexBuffer() < pObjectB->GetVertexBuffer();
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// TRANSPERANT OBJECT COMPARE
-	//////////////////////////////////////////////////////////////////////////
 
 	iRenderState cTransparentDraw::GetState()
 	{
@@ -83,9 +79,7 @@ namespace hpl {
 	}
 
 
-	//////////////////////////////////////////////////////////////////////////
 	// DRAW QUEUES
-	//////////////////////////////////////////////////////////////////////////
 
 	void cRenderQueue::Sort()
 	{
@@ -124,12 +118,6 @@ namespace hpl {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cRenderList::cRenderList(cGraphics *apGraphics)
 	{
 		mfFrameTime = 0;
@@ -142,22 +130,10 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	cRenderList::~cRenderList()
 	{
 		Clear();
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
 
 	void cRenderList::Clear()
 	{
@@ -183,35 +159,25 @@ namespace hpl {
 		mlRenderCount++;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFogObjectIterator cRenderList::GetFogIterator()
 	{
 		return cFogObjectIterator(&m_setFogObjects);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cLight3DIterator cRenderList::GetLightIt()
 	{
 		return cLight3DIterator(&m_setLights);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cRenderableIterator cRenderList::GetObjectIt()
 	{
 		return cRenderableIterator(&m_setObjects);
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cRenderList::GetObjectNum()
 	{
 		return (int)m_setObjects.size();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cRenderQueue* cRenderList::GetQueue(eMaterialRenderType aPassType, int alLightNum)
 	{
@@ -220,8 +186,6 @@ namespace hpl {
 		if(aPassType == eMaterialRenderType_Light) return &mvLights[alLightNum].mQueue;
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderList::Compile()
 	{
@@ -300,8 +264,6 @@ namespace hpl {
 		for(int i = 0; i < mlLightNum; ++i) mvLights[i].mQueue.Sort();
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cRenderList::Add(iRenderable* apObject)
 	{
@@ -423,15 +385,6 @@ namespace hpl {
 
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cRenderList::AddDraw(iRenderable* apObject, eMaterialRenderType aPassType,
 								int alLightNum,iLight3D* apLight, int alPass)
 	{
@@ -477,10 +430,4 @@ namespace hpl {
 		key[k++] = ~reinterpret_cast<uintptr_t>(apObject);
 
 	}
-
-	//----------------------------------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
 }

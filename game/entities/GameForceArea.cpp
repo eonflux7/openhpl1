@@ -27,11 +27,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameForceArea::cAreaLoader_GameForceArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -43,8 +39,6 @@ cAreaLoader_GameForceArea::~cAreaLoader_GameForceArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameForceArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -74,14 +68,6 @@ iEntity3D* cAreaLoader_GameForceArea::Load(const tString &asName, const cVector3
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 cGameForceArea::cGameForceArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_ForceArea;
@@ -97,27 +83,15 @@ cGameForceArea::cGameForceArea(cInit *apInit,const tString& asName) : iGameEntit
 	mbForceAtPoint = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameForceArea::~cGameForceArea(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameForceArea::Setup()
 {
 	mvForceDirection = cMath::MatrixInverse(mvBodies[0]->GetWorldMatrix()).GetUp();
 	mvForceDirection.Normalise();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameForceArea::Update(float afTimeStep)
 {
@@ -130,7 +104,6 @@ void cGameForceArea::Update(float afTimeStep)
 
 	//Log("---------- UPDATE -------------\n");
 
-	////////////////////////////////////////////////////////
 	// Check candidate bodies overlapping the area bounds.
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																pAreaBody->GetBoundingVolume());
@@ -155,11 +128,9 @@ void cGameForceArea::Update(float afTimeStep)
 				continue;
 			}
 
-			/////////////////////////
 			//Bounding volume check
 			if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 				
-			///////////////////////////////
 			//Check for collision
 			int lCollideNum = mbForceAtPoint ? 4: 1;
 
@@ -169,7 +140,6 @@ void cGameForceArea::Update(float afTimeStep)
 				continue;
 			}
 
-			///////////////////////////////
 			//Add Character Force
 			if(pBody->IsCharacter() && mbAffectCharacters)
 			{
@@ -192,7 +162,6 @@ void cGameForceArea::Update(float afTimeStep)
 
                 pCharBody->AddForce(mvForceDirection * fForce);
 			}
-			///////////////////////////////
 			//Add Body Force
 			else if(mbAffectBodies)
 			{
@@ -233,8 +202,6 @@ void cGameForceArea::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameForceArea::OnPostSceneDraw()
 {
 	return;
@@ -242,23 +209,6 @@ void cGameForceArea::OnPostSceneDraw()
 
 	mvBodies[0]->RenderDebugGeometry(pLowGfx,cColor(1,1,1,1));
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameForceArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
@@ -274,21 +224,15 @@ kSerializeVar(mbAffectBodies,eSerializeType_Bool)
 kSerializeVar(mbForceAtPoint,eSerializeType_Bool)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameForceArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameForceArea::CreateSaveData()
 {
 	return hplNew( cGameForceArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameForceArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -308,8 +252,6 @@ void cGameForceArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameForceArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -326,12 +268,8 @@ void cGameForceArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mbForceAtPoint);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameForceArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
 	cGameForceArea_SaveData *pData = static_cast<cGameForceArea_SaveData*>(apSaveData);
 }
-
-//-----------------------------------------------------------------------

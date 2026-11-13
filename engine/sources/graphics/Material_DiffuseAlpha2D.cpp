@@ -20,12 +20,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_DiffuseAlpha2D::cMaterial_DiffuseAlpha2D(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -37,26 +31,13 @@ namespace hpl {
 		mbIsGlowing= true;//Set to false later on
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_DiffuseAlpha2D::~cMaterial_DiffuseAlpha2D()
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cMaterial_DiffuseAlpha2D::Compile()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
 }

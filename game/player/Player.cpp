@@ -46,12 +46,6 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 {
 	mpInit = apInit;
@@ -218,8 +212,6 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	mvMoveStates[ePlayerMoveState_Crouch] = hplNew( cPlayerMoveState_Crouch,(this,mpInit) );
 	mvMoveStates[ePlayerMoveState_Swim] = hplNew( cPlayerMoveState_Swim,(this,mpInit) );
 
-
-	/////////////////////////
 	//Create player gui stuff
 
 	//Cross hair
@@ -241,7 +233,6 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	mvCrossHairs[eCrossHairState_Ladder] = mpGfxDrawer->CreateGfxObject("player_crosshair_ladder","diffalpha2d");
 	mvCrossHairs[eCrossHairState_Cross] = mpGfxDrawer->CreateGfxObject("player_crosshair_cross","diffalpha2d");
 
-	///////////////////////////////
 	//Haptic Init
 	if(mpInit->mbHasHaptics)
 	{
@@ -265,8 +256,6 @@ cPlayer::cPlayer(cInit *apInit)  : iUpdateable("Player")
 	//Set up variable values
 	Reset();
 }
-
-//-----------------------------------------------------------------------
 
 cPlayer::~cPlayer(void)
 {
@@ -306,11 +295,7 @@ cPlayer::~cPlayer(void)
 	STLMapDeleteAll(m_mapCollideCallbacks);
 }
 
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC METHODS - PROPERTIES
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetMass(float afMass)
 {
@@ -318,13 +303,7 @@ void cPlayer::SetMass(float afMass)
 	if(mpCharBody)mpCharBody->SetMass(afMass);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC METHODS - ACTION
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetActive(bool abActive)
 {
@@ -335,8 +314,6 @@ void cPlayer::SetActive(bool abActive)
 		ChangeState(ePlayerState_Normal);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetPower(float afPower)
 {
@@ -358,14 +335,10 @@ void cPlayer::AddPower(float afAmount)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::SetPrevMoveState(ePlayerMoveState aState)
 {
 	mvMoveStates[mMoveState]->mPrevMoveState = aState;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetStartPos(const tString& asName)
 {
@@ -402,9 +375,6 @@ void cPlayer::SetStartPos(const tString& asName)
 	}
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayer::ChangeMoveState(ePlayerMoveState aState, bool abSetHeadHeightDirectly)
 {
 	if(mMoveState == aState) return;
@@ -421,8 +391,6 @@ void cPlayer::ChangeMoveState(ePlayerMoveState aState, bool abSetHeadHeightDirec
 		SetHeightAdd(mvMoveStates[aState]->mfHeightAdd);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::FootStep(float afMul, const tString &asType, bool abSkipCount)
 {
@@ -474,8 +442,6 @@ void cPlayer::FootStep(float afMul, const tString &asType, bool abSkipCount)
 	}*/
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::ChangeState(ePlayerState aState)
 {
 	if(aState == mState) return;
@@ -486,8 +452,6 @@ void cPlayer::ChangeState(ePlayerState aState)
 
 	mState = aState;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayer::AddCrossHairPos(const cVector2f& avPos)
 { 
@@ -513,8 +477,6 @@ bool cPlayer::AddCrossHairPos(const cVector2f& avPos)
 
 	return abEdge;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::AddCollideScript(eGameCollideScriptType aType,const tString &asFunc, const tString &asEntity)
 {
@@ -549,8 +511,6 @@ void cPlayer::AddCollideScript(eGameCollideScriptType aType,const tString &asFun
 	pCallback->msFuncName[aType] = asFunc;	
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::RemoveCollideScriptWithChildEntity(iGameEntity *apEntity)
 {
 	tGameCollideScriptMapIt it = m_mapCollideCallbacks.begin();
@@ -574,8 +534,6 @@ void cPlayer::RemoveCollideScriptWithChildEntity(iGameEntity *apEntity)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::RemoveCollideScript(eGameCollideScriptType aType,const tString &asEntity)
 {
@@ -606,14 +564,10 @@ void cPlayer::RemoveCollideScript(eGameCollideScriptType aType,const tString &as
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::ClearCollideScripts()
 {
 	STLMapDeleteAll(m_mapCollideCallbacks);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetSpeedMul(float afSpeedMul)
 {
@@ -622,17 +576,12 @@ void cPlayer::SetSpeedMul(float afSpeedMul)
 	mvMoveStates[mMoveState]->SetupBody();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::SetHealthSpeedMul(float afHealthSpeedMul)
 {
 	mfHealthSpeedMul = afHealthSpeedMul;
 
 	mvMoveStates[mMoveState]->SetupBody();
 }
-
-
-//-----------------------------------------------------------------------
 
 void cPlayer::SetHealth(float afHealth)
 {
@@ -704,14 +653,10 @@ void cPlayer::Damage(float afDamage, ePlayerDamageType aType)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayer::IsDead()
 {
 	return mpDeath->IsActive();
 }
-
-//-----------------------------------------------------------------------
 
 iPhysicsBody* cPlayer::GetPickedBody()
 { 
@@ -721,8 +666,6 @@ void cPlayer::SetPickedBody(iPhysicsBody* apBody)
 {
 	mpPickRayCallback->mpPickedBody = apBody;
 }
-
-//-----------------------------------------------------------------------
 
 float cPlayer::GetPickedDist()
 { 
@@ -739,9 +682,6 @@ cPlayerPickRayCallback* cPlayer::GetPickRay()
 	return mpPickRayCallback;
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayer::DestroyWorldObjects()
 {
 	//Body
@@ -751,13 +691,7 @@ void cPlayer::DestroyWorldObjects()
 	//mpGlowStick->Destroy();
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC METHODS - INTERACTIONS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cPlayer::MoveForwards(float afMul,float afTimeStep)
 {
@@ -775,9 +709,6 @@ void cPlayer::MoveForwards(float afMul,float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayer::MoveSideways(float afMul,float afTimeStep)
 {
 	if(mvStates[mState]->OnMoveSideways(afMul,afTimeStep))
@@ -793,16 +724,10 @@ void cPlayer::MoveSideways(float afMul,float afTimeStep)
 	}
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayer::Lean(float afMul, float afTimeStep)
 {
 	mpLean->Lean(afMul,afTimeStep);
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayer::AddYaw(float afVal)
 {
@@ -813,9 +738,6 @@ void cPlayer::AddYaw(float afVal)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayer::AddPitch(float afVal)
 {
 	if(mvStates[mState]->OnAddPitch(afVal))
@@ -824,8 +746,6 @@ void cPlayer::AddPitch(float afVal)
 		mpCamera->AddPitch(-afVal * mfLookSpeed * fInvert);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StartInteract()
 {
@@ -837,9 +757,6 @@ void cPlayer::StopInteract()
 	mvStates[mState]->OnStopInteract();
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayer::StartExamine()
 {
 	mvStates[mState]->OnStartExamine();
@@ -849,9 +766,6 @@ void cPlayer::StopExamine()
 {
 	mvStates[mState]->OnStopExamine();
 }
-
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StartHolster()
 {
@@ -867,8 +781,6 @@ void cPlayer::StopRotate()
 {
 	mvStates[mState]->OnStopRotate();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::Jump()
 {
@@ -909,16 +821,11 @@ void cPlayer::SetJumpButtonDown(bool abDown)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayer::StartRun()
 {
 	if(mbUnderWater) return;
 	mvStates[mState]->OnStartRun();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StopRun()
 {
@@ -926,15 +833,11 @@ void cPlayer::StopRun()
 	mvStates[mState]->OnStopRun();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::StartCrouch()
 {
 	if(mbUnderWater) return;
 	mvStates[mState]->OnStartCrouch();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StopCrouch()
 {
@@ -942,14 +845,10 @@ void cPlayer::StopCrouch()
 	mvStates[mState]->OnStopCrouch();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::StartInteractMode()
 {
 	mvStates[mState]->OnStartInteractMode();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StartInventory()
 {
@@ -959,8 +858,6 @@ void cPlayer::StartInventory()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::StartInventoryShortCut(int alNum)
 {
 	if(mvStates[mState]->OnStartInventoryShortCut(alNum))
@@ -968,8 +865,6 @@ void cPlayer::StartInventoryShortCut(int alNum)
 		mpInit->mpInventory->OnShortcutDown(alNum);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::StartFlashLightButton()
 {
@@ -1000,18 +895,10 @@ void cPlayer::StartGlowStickButton()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC METHODS - EVENTS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cPlayer::OnWorldLoad()
 {	
-	/////////////////////////////////////////////////////////
 	// Create body
 	mpCharBody = mpScene->GetWorld3D()->GetPhysicsWorld()->CreateCharacterBody("Player", mvSize);
 	
@@ -1058,8 +945,6 @@ void cPlayer::OnWorldLoad()
 	if(mpInit->mbHasHaptics) mpHapticCamera->OnWorldLoad();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::OnWorldExit()
 {
 	if(mbUnderWater)
@@ -1077,15 +962,10 @@ void cPlayer::OnWorldExit()
 	if(mpInit->mbHasHaptics) mpHapticCamera->OnWorldExit();
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayer::OnStart()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 static inline tString GetCollideCommand(const tString &asFuncName,const tString &asParent, 
 										const tString &asChild)
@@ -1117,7 +997,6 @@ void cPlayer::Update(float afTimeStep)
 	unsigned int lTime = pSystem->GetLowLevel()->GetTime();	
 	iPhysicsWorld *pPhysicsWorld = mpScene->GetWorld3D()->GetPhysicsWorld();
 
-	/////////////////////////////////////
 	// HaptX camera
 	if(cHaptic::GetIsUsed())
 	{
@@ -1126,15 +1005,12 @@ void cPlayer::Update(float afTimeStep)
 
 	
 	//LogUpdate("  Death\n");
-	////////////////////////////////////////
 	// Make sure player is dead if he should be
 	if(mfHealth <=0 && mpDeath->IsActive()==false)
 	{
 		mpDeath->Start();
 	}
 
-	
-	////////////////////////////////////////
 	// Update Node and Footstep sounds
 	/*//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();			
@@ -1158,71 +1034,57 @@ void cPlayer::Update(float afTimeStep)
 	
 	lTime = pSystem->GetLowLevel()->GetTime();			
 	//LogUpdate("  misc\n");
-	//////////////////////
 	//Reset roll
 	mpInit->mpPlayer->GetCamera()->SetRoll(0);
 
-	/////////////////////////////////////////////////
 	// Misc
 	mItemFlash.Update(afTimeStep);
 
-	/////////////////////////////////////////////////
 	// Damage
 	mpDamage->Update(afTimeStep);
 
-	/////////////////////////////////////////////////
 	// Death
 	mpDeath->Update(afTimeStep);
 	
-	/////////////////////////////////////////////////
 	// Flashlight
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();			
 	//LogUpdate("  flashlight");
 	mpFlashLight->Update(afTimeStep);
 	
-	/////////////////////////////////////////////////
 	//Glowstick
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();			
 	//LogUpdate("  glowstick\n");
 	mpGlowStick->Update(afTimeStep);
 
-	/////////////////////////////////////////////////
 	//Flare
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();			
 	//LogUpdate("  flare\n");
 	mpFlare->Update(afTimeStep);
 
-	/////////////////////////////////////////////////
 	// Lean
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
 	//LogUpdate("  more misc\n");
 	mpLean->Update(afTimeStep);
 
-	/////////////////////////////////////////////////
 	// Ear ring
 	mpEarRing->Update(afTimeStep);
 	
-	//////////////////////////////////////////////////
 	// health
 	mpHealth->Update(afTimeStep);
 	
-	////////////////////////////////////////
 	// Noise filter
 	mpNoiseFilter->Update(afTimeStep);
 
-	////////////////////////////////////////
 	// Fear filter
 	mpFearFilter->Update(afTimeStep);
 	
-	////////////////////////////////////////
 	// Look at
 	mpLookAt->Update(afTimeStep);
 
-	////////////////////////////////////////
 	// Hidden
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
@@ -1232,7 +1094,6 @@ void cPlayer::Update(float afTimeStep)
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
 	//LogUpdate("  collide scripts\n");
-	/////////////////////////////////////////////////
 	// Collide script
 	pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -1317,7 +1178,6 @@ void cPlayer::Update(float afTimeStep)
 	}
 	mbUpdatingCollisionCallbacks = false;
 
-	//////////////////////////////////////////////////
 	//Check if any collide script should be deleted.
 	//LogUpdate("  Check collide script deleting\n");
 
@@ -1334,7 +1194,6 @@ void cPlayer::Update(float afTimeStep)
 		}
 	}
 	
-	/////////////////////////////////////////////////
 	// Update ground count, this is so that a little air born time still counts as on ground
 	if(mpCharBody->IsOnGround()) 
 		mlGroundCount = 25;
@@ -1345,7 +1204,6 @@ void cPlayer::Update(float afTimeStep)
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
 	//LogUpdate("  Check For ground\n");
-	//////////////////////////////
 	//Cast ray and check for ground.
 	cVector3f vStart,vEnd;
 	
@@ -1356,8 +1214,6 @@ void cPlayer::Update(float afTimeStep)
 	mpGroundRayCallback->Clear();
 	pPhysicsWorld->CastRay(mpGroundRayCallback,vStart,vEnd,true,false,false);
 
-
-	//////////////////////////////
 	//Update movement
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
@@ -1371,7 +1227,6 @@ void cPlayer::Update(float afTimeStep)
 
 	mbMoving = false;
 
-	//////////////////////////////
 	//Update camera pos add
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 	lTime = pSystem->GetLowLevel()->GetTime();
@@ -1393,7 +1248,6 @@ void cPlayer::Update(float afTimeStep)
 		mpCharBody->SetCameraPosAdd(cVector3f(fXAdd,fYAdd,fZAdd));
 	}
 	
-	///////////////////////////
 	//Update state
 	
 	//Clear picked body
@@ -1411,8 +1265,6 @@ void cPlayer::Update(float afTimeStep)
 	//LogUpdate("  took %d ms\n",pSystem->GetLowLevel()->GetTime() - lTime);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::SetViewFOV(float afDegrees)
 {
 	mfViewFOV = cMath::Clamp(afDegrees, 30.0f, 140.0f);
@@ -1421,8 +1273,6 @@ void cPlayer::SetViewFOV(float afDegrees)
 	// enemies getting close, the save effect).
 	mpCamera->SetFOVScale(tan(cMath::ToRad(mfViewFOV)*0.5f) / tan(cMath::ToRad(70.0f)*0.5f));
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayer::Reset()
 {
@@ -1503,8 +1353,6 @@ void cPlayer::Reset()
 	if(mpInit->mbHasHaptics) mpHapticCamera->Reset();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayer::OnDraw()
 {
 	iLowLevelGraphics *pLowLevel = mpInit->mpGame->GetGraphics()->GetLowLevel();
@@ -1525,29 +1373,23 @@ void cPlayer::OnDraw()
 		state.mfDeathBlack = mpDeath->GetBlackAmount();
 		pLowLevel->SetPlayerEffectState(state);
 	}
-	/////////////////////////////////
 	// Damage
 	mpDamage->Draw();
 
-	/////////////////////////////////
 	// Death
 	mpDeath->Draw();
 
-	////////////////////////////////////////
 	// Noise filter
 	mpNoiseFilter->Draw();
 
-	////////////////////////////////////////
 	// Fear filter
 	mpFearFilter->Draw();
 
-	////////////////////////////////////////
 	// Hidden
 	mpHidden->Draw();
 	
 	mpHealth->Draw();
 	
-	////////////////////////////////
 	//Cross hair
 	cVector2f vCrossHairPos = mvCrossHairPos + mpInit->mpButtonHandler->GetCursorDrawOffset(false);
 	mvStates[mState]->GetFrameCrossHairPos(vCrossHairPos);
@@ -1738,7 +1580,6 @@ mpInit->mpGraphicsHelper->ClampToScreen(vCrossHairPos);
 		tStringVec vSoundNames;
 		std::vector<cSoundEntry*> vEntries;
 
-		//////////////////////////////
 		//Sound channels
 		tSoundEntryList *pEntryList = mpInit->mpGame->GetSound()->GetSoundHandler()->GetWorldEntryList();
 		for(tSoundEntryListIt it = pEntryList->begin(); it != pEntryList->end();++it)
@@ -1793,7 +1634,6 @@ mpInit->mpGraphicsHelper->ClampToScreen(vCrossHairPos);
 			}
 		}
 		
-		//////////////////////////////
 		//Music
         cMusicEntry *pMusic = mpInit->mpGame->GetSound()->GetMusicHandler()->GetCurrentSong();
 		if(pMusic){
@@ -1844,7 +1684,6 @@ void cPlayer::OnPostSceneDraw()
 
 	mvStates[mState]->OnPostSceneDraw();
 
-	///////////////////////////////
 	//Gui Hand effects
 	if(mpInit->mbHasHaptics)
 	{
@@ -1852,11 +1691,7 @@ void cPlayer::OnPostSceneDraw()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
 // SAVING
-//////////////////////////////////////////////////////////////////////////
-
-//-------------------------------------------------------------------
 
 void cPlayer::AddSaveData(cSavedWorld* apSavedWorld)
 {
@@ -1871,8 +1706,6 @@ void cPlayer::AddSaveData(cSavedWorld* apSavedWorld)
 		apSavedWorld->mlstCollideCallbacks.Add(savedScript);
 	}
 }
-
-//-------------------------------------------------------------------
 
 void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 {
@@ -1898,8 +1731,6 @@ void cPlayer::LoadSaveData(cSavedWorld* apSavedWorld)
 	}
 }
 
-//-------------------------------------------------------------------
-
 void cPlayer::SetIsUnderWater(bool abUnderWater)
 {
 	if(mbUnderWater == abUnderWater) return;
@@ -1918,8 +1749,6 @@ void cPlayer::SetIsUnderWater(bool abUnderWater)
 	mbUnderWater = abUnderWater;
 }
 
-//-------------------------------------------------------------------
-
 void cPlayer::SetOxygen(float afOxygen)
 {
 	mfOxygen = afOxygen;
@@ -1932,17 +1761,13 @@ void cPlayer::AddOxygen(float afAmount)
 	SetOxygen(mfOxygen + afAmount);
 }
 
-//-------------------------------------------------------------------
-
 void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 {
 	cPlayer_GlobalSave *pData = apSave;
 	
-	//////////////////////////////
 	//Stats
 	kSaveData_SaveTo(mlStat_NumOfSaves);
 
-	//////////////////////////////
 	//Global
 	kSaveData_SaveTo(mfForwardUpMul);
 	kSaveData_SaveTo(mfForwardRightMul);
@@ -1956,7 +1781,6 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 
 	kSaveData_SaveTo(mfGrabMassMul);
 
-	//////////////////////////////
 	//Private
 	kSaveData_SaveTo(mbActive);
 
@@ -1984,7 +1808,6 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_SaveTo(mfOxygen);
 	kSaveData_SaveTo(mfMass);
 
-	///////////////////////////////////////
 	//Particles on camera
 	cNode3D *pNode = mpCamera->GetAttachmentNode();
 
@@ -2004,7 +1827,6 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 		}
 	}
 
-	//////////////////////////////
 	// Lights
 	apSave->mbFlashlightActive = mpFlashLight->IsActive();
 	apSave->mbFlashlightDisabled = mpFlashLight->IsDisabled();
@@ -2012,24 +1834,19 @@ void cPlayer::SaveToGlobal(cPlayer_GlobalSave *apSave)
 	apSave->mbFlareActive = mpFlare->IsActive();
 	apSave->mfFlareTime = mpFlare->GetTime();
 
-	//////////////////////////////
 	//Body and Camera Specific
 	pData->mvPosition = mpCharBody->GetPosition();
 	pData->mfYaw = mpCharBody->GetYaw();
 	pData->mfPitch =mpCamera->GetPitch();
 }
 
-//-------------------------------------------------------------------
-
 void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 {
 	cPlayer_GlobalSave *pData = apSave;
 
-	//////////////////////////////
 	//Stats
 	kSaveData_LoadFrom(mlStat_NumOfSaves);
 	
-	//////////////////////////////
 	//Global
 	kSaveData_LoadFrom(mfForwardUpMul);
 	kSaveData_LoadFrom(mfForwardRightMul);
@@ -2043,7 +1860,6 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 
 	kSaveData_LoadFrom(mfGrabMassMul);
 
-	//////////////////////////////
 	//Private
 	SetActive(pData->mbActive);
 
@@ -2074,7 +1890,6 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 	kSaveData_LoadFrom(mfOxygen);
 	//kSaveData_LoadFrom(mfMass); //Skip this
 
-	///////////////////////////////////////
 	//Particles on camera
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	for(size_t i=0;i<pData->mvOnCameraPS.Size(); ++i)
@@ -2089,7 +1904,6 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 		}
 	}
 
-	//////////////////////////////
 	// Lights
 	if(apSave->mbFlashlightActive) mpFlashLight->SetActive(true);
 	if(apSave->mbFlashlightDisabled) mpFlashLight->SetDisabled(true);
@@ -2099,8 +1913,6 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 		mpFlare->SetTime(apSave->mfFlareTime);
 	}
 
-
-	//////////////////////////////
 	//Body and Camera Specific
 	mpCharBody->SetPosition(pData->mvPosition);
 	
@@ -2109,20 +1921,10 @@ void cPlayer::LoadFromGlobal(cPlayer_GlobalSave *apSave)
 	mpCamera->SetPitch(pData->mfPitch);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-------------------------------------------------------------------
-
 kBeginSerializeBase(cSaveData_cPlayer)
 kSerializeVar(mlStat_NumOfSaves,eSerializeType_Int32)
 kSerializeClassContainer(mlstCollideCallbacks,cSaveGame_cGameCollideScript, eSerializeType_Class)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 iSaveObject* cSaveData_cPlayer::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 {
@@ -2147,15 +1949,10 @@ iSaveObject* cSaveData_cPlayer::CreateSaveObject(cSaveObjectHandler *apSaveObjec
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 int cSaveData_cPlayer::GetSaveCreatePrio()
 {
 	return 10;
 }
-
-
-//-----------------------------------------------------------------------
 
 iSaveData* cPlayer::CreateSaveData()
 {
@@ -2175,5 +1972,3 @@ iSaveData* cPlayer::CreateSaveData()
 	
 	return pData;
 }
-
-//-----------------------------------------------------------------------

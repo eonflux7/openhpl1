@@ -28,22 +28,16 @@ using namespace hpl;
 class cInit;
 class cNotebook_GlobalSave;
 
-//---------------------------
-
 #define eNotebookState_Front		0
 #define eNotebookState_TaskList		1
 #define eNotebookState_NoteList		2
 #define eNotebookState_Note			3
-
-//---------------------------
 
 enum eNotebookType
 {
 	eNotebookType_Front,
 	eNotebookType_Open,
 };
-
-//---------------------------
 
 class cNotebook_Note
 {
@@ -66,8 +60,6 @@ typedef tNotebook_NoteList::iterator tNotebook_NoteListIt;
 
 typedef cSTLIterator<cNotebook_Note*,tNotebook_NoteList,tNotebook_NoteListIt> tNotebook_NoteList_Iterator;
 
-//--------------------------------------------------------
-
 class cNotebook;
 
 class iNotebookState : public iAIState
@@ -85,8 +77,6 @@ protected:
 	cInit *mpInit;
 	cNotebook *mpNotebook;
 };
-
-//---------------------------------------------------
 
 class cNoteBook_Option
 {
@@ -126,16 +116,12 @@ public:
 	cVector2f mvFontSize;
 };
 
-//-----------------------------------------------------
-
 class cNotebook_TaskPage
 {
 public:
 	int mlStartTask;
 	int mlEndTask;
 };
-
-//-----------------------------------------------------
 
 class cNotebookState_TaskList : public iNotebookState
 {
@@ -165,8 +151,6 @@ public:
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpOptionsImage[2];
 };
-
-//--------------------------------------------------------
 
 class cNotebookState_NoteList : public iNotebookState
 {
@@ -204,8 +188,6 @@ public:
 	std::vector<cNoteBook_Option> mvOptions;
 	cGfxObject *mpOptionsImage[2];
 };
-
-//--------------------------------------------------------
 
 class cNotePage
 {
@@ -245,8 +227,6 @@ public:
 
 };
 
-//--------------------------------------------------------
-
 class cNotebook_BookType
 {
 public:
@@ -254,8 +234,6 @@ public:
 	float mfAlpha;
 	eNotebookType mType;
 };
-
-//--------------------------------------------------------
 
 class cNotebook_BookTask
 {
@@ -268,8 +246,6 @@ typedef std::list<cNotebook_BookTask*> tNotebook_BookTaskList;
 typedef tNotebook_BookTaskList::iterator tNotebook_BookTaskListIt;
 
 typedef cSTLIterator<cNotebook_BookTask*,tNotebook_BookTaskList,tNotebook_BookTaskListIt> tNotebook_BookTaskList_Iterator;
-
-//--------------------------------------------------------
 
 class cNotebook : public iUpdateable
 {
@@ -318,7 +294,6 @@ public:
 
 	cStateMachine* GetStateMachine(){return &mStateMachine;}
 
-	/////////////////////////////////////////
 	//Saving
 	void SaveToGlobal(cNotebook_GlobalSave *apSave);
 	void LoadFromGlobal(cNotebook_GlobalSave *apSave);

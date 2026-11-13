@@ -30,8 +30,6 @@ class cMapHandler;
 class cGameMusicHandler_GlobalSave;
 class iGameEnemy;
 
-//----------------------------------------
-
 class cGameMusic
 {
 friend class cGameMusicHandler;
@@ -46,8 +44,6 @@ private:
 	bool mbLoop;
 	float mfVolume;
 };
-
-//----------------------------------------
 
 typedef std::set<iGameEnemy*> tAttackerSet;
 typedef tAttackerSet::iterator tAttackerSetIt;

@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameEnemy_Spider;
 
 // BASE STATE
@@ -49,8 +47,6 @@ protected:
 	cGameEnemy_Spider *mpEnemySpider;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Spider_Idle : public iGameEnemyState_Spider_Base
 {
@@ -70,8 +66,6 @@ private:
 	bool mbStopped;
 	float mfNextWalkTime;
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Spider_Hunt : public iGameEnemyState_Spider_Base
@@ -97,8 +91,6 @@ private:
 	float mfLostPlayerRemainingSeconds;
 	float mfLostPlayerDurationSeconds;
 };
-
-//-----------------------------------------
 
 // ATTACK STATE
 class cGameEnemyState_Spider_Attack : public iGameEnemyState_Spider_Base
@@ -126,8 +118,6 @@ private:
 	bool mbAttacked;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Spider_Flee : public iGameEnemyState_Spider_Base
 {
@@ -147,8 +137,6 @@ private:
 	float mfBackAngle;
 	bool mbBackwards;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Spider_KnockDown : public iGameEnemyState_Spider_Base
@@ -173,8 +161,6 @@ private:
 	bool mbCheckAnim;
 };
 
-//-----------------------------------------
-
 // DEAD STATE
 class cGameEnemyState_Spider_Dead : public iGameEnemyState_Spider_Base
 {
@@ -193,8 +179,6 @@ public:
 	void OnTakeHit(float afDamage) override{}
 	void OnDeath(float afDamage) override{}
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Spider : public iGameEnemy
 {
@@ -257,7 +241,5 @@ public:
 private:
     iCollideShape *mpAttackShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_SPIDER_H

@@ -29,12 +29,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetFrame::cWidgetFrame(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Frame,apSet, apSkin)
 	{
 		mbClipsGraphics = true;
@@ -46,29 +40,9 @@ namespace hpl {
 		mBackGroundColor = cColor(1,1);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetFrame::~cWidgetFrame()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetFrame::OnLoadGraphics()
 	{
@@ -85,11 +59,8 @@ namespace hpl {
 		mvGfxCorners[3] = mpSkin->GetGfx(eGuiSkinGfx_FrameCornerLD);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetFrame::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Borders
 		if(mbDrawFrame)
 		{
@@ -103,11 +74,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetFrame::OnDrawAfterClip(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Background
 		if(mbDrawBackground)
 		{
@@ -116,42 +84,28 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetFrame::OnMouseMove(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetFrame::OnMouseDown(cGuiMessageData &aData)
 	{
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetFrame::OnMouseUp(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetFrame::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetFrame::OnMouseLeave(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

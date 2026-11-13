@@ -23,19 +23,16 @@
 #include "core/MapHandler.h"
 #include "core/GraphicsHelper.h"
 
-/////////////////////////
 //Image 00
 #define kIntro_Image00_Start 0
 #define kIntro_Image00_Mess2 1
 
-/////////////////////////
 //Image 01
 #define kIntro_Image01_Start 100
 #define kIntro_Image01_Mess2 101
 #define kIntro_Image01_Mess3 102
 #define kIntro_Image01_Mess4 103
 
-/////////////////////////
 //Image 02
 #define kIntro_Image02_Start 200
 #define kIntro_Image02_Mess2 201
@@ -43,7 +40,6 @@
 #define kIntro_Image02_Mess4 203
 #define kIntro_Image02_Mess5 204
 
-/////////////////////////
 //Image 03
 #define kIntro_Image03_Start 300
 #define kIntro_Image03_Mess2 301
@@ -51,12 +47,10 @@
 #define kIntro_Image03_Mess4 303
 #define kIntro_Image03_Mess5 304
 
-/////////////////////////
 //Image 04
 #define kIntro_Image04_Start 400
 #define kIntro_Image04_Mess2 401
 
-////////////////////////
 //Image 05
 #define kIntro_Image05_Start 500
 #define kIntro_Image05_Mess2 501
@@ -64,11 +58,7 @@
 #define kIntro_Image05_Mess4 503
 
 
-//////////////////////////////////////////////////////////////////////////
 // INTRO IMAGE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cIntroImage::cIntroImage()
 {
@@ -88,9 +78,6 @@ cIntroImage::~cIntroImage()
 
 }
 
-
-//-----------------------------------------------------------------------
-
 void cIntroImage::MoveTo(const cVector3f &avPos,float afDurationSeconds)
 {
 	if(afDurationSeconds==0)
@@ -107,8 +94,6 @@ void cIntroImage::MoveTo(const cVector3f &avPos,float afDurationSeconds)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroImage::FadeBrightnessTo(float afBrightness,float afDurationSeconds)
 {
 	if(afDurationSeconds==0)
@@ -123,8 +108,6 @@ void cIntroImage::FadeBrightnessTo(float afBrightness,float afDurationSeconds)
 		mfBrightnessRatePerSecond = (mfFinalBrightness - mfBrightness)/afDurationSeconds;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroImage::FadeAlphaTo(float afAlpha,float afDurationSeconds)
 {
@@ -141,8 +124,6 @@ void cIntroImage::FadeAlphaTo(float afAlpha,float afDurationSeconds)
 		mfAlphaRatePerSecond = (mfFinalAlpha - mfAlpha)/afDurationSeconds;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroImage::Reset()
 {
@@ -166,11 +147,8 @@ void cIntroImage::Reset()
 	mlstPrevPos .clear();
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroImage::Update(float afTimeStep)
 {
-	/////////////////////////////////
 	//Position
 	if(mvCameraPosition != mvFinalPos)
 	{
@@ -202,8 +180,6 @@ void cIntroImage::Update(float afTimeStep)
 		}
 	}
 
-	
-	/////////////////////////////////
 	//Brightness
 	if(mfBrightness != mfFinalBrightness)
 	{
@@ -218,8 +194,6 @@ void cIntroImage::Update(float afTimeStep)
 		}
 	}
 	
-	
-	/////////////////////////////////
 	//Alpha
 	if(mfAlpha != mfFinalAlpha)
 	{
@@ -235,8 +209,6 @@ void cIntroImage::Update(float afTimeStep)
 	}
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroImage::OnDraw()
 {
@@ -258,7 +230,6 @@ void cIntroImage::OnDraw()
 		vCamDrawPos = vCamDrawPos / (float)mlstPrevPos.size();
 	}
 
-	/////////////////////////////////
 	// Set up position variables
 	cVector3f vPos =	cVector3f(-vCamDrawPos.x, -vCamDrawPos.y,0); 
 						
@@ -268,7 +239,6 @@ void cIntroImage::OnDraw()
 	vSize  = vSize * (1/vCamDrawPos.z);
 	vPos = vPos * (1/vCamDrawPos.z) + cVector3f(400, 300,0);;
 	
-	///////////////////////////
 	//Set up vertexes
 	mvVtxVec[0] = cVertex(vPos + cVector3f(0,0,0),
 								cVector2f(0,0),cColor(fBrightness,fAlpha) );
@@ -282,7 +252,6 @@ void cIntroImage::OnDraw()
 	mvVtxVec[3] = cVertex(vPos +  cVector3f(0,vSize.y,40),
 									cVector2f(0,1),cColor(fBrightness,fAlpha));
 
-	//////////////////////////
 	///Draw
 	cSpriteBatch batch;
 	batch.Add(mpTexture, cSpriteBlend(eBlendFunc_SrcAlpha,eBlendFunc_OneMinusSrcAlpha), mvVtxVec);
@@ -306,15 +275,6 @@ void cIntroImage::OnDraw()
 	mpLowGfx->SetBlendActive(false);
 
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cIntroStory::cIntroStory(cInit *apInit)  : iUpdateable("StoryIntro")
 {
@@ -341,21 +301,10 @@ cIntroStory::cIntroStory(cInit *apInit)  : iUpdateable("StoryIntro")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cIntroStory::~cIntroStory(void)
 {
 	
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 void cIntroStory::SetActive(bool abActive)
 {
@@ -373,7 +322,6 @@ void cIntroStory::SetActive(bool abActive)
 		mLastButtonState = mpInit->mpButtonHandler->GetState();
 		mpInit->mpButtonHandler->ChangeState(eButtonHandlerState_Intro);
 		
-		//////////////////////////////
 		//LoadImages
 		for(int i=0; i<INTRO_IMAGE_NUM; ++i)
 		{
@@ -413,11 +361,8 @@ void cIntroStory::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::Update(float afTimeStep)
 {
-	//////////////////////////////////////
 	/// Update Timer
 	if(mfCueRemainingSeconds >0)
 	{
@@ -435,7 +380,6 @@ void cIntroStory::Update(float afTimeStep)
 		}
 	}
 
-	//////////////////////////////////////
 	/// Update the image specific stuff
 	for(int i=0; i< INTRO_IMAGE_NUM; ++i)
 	{
@@ -443,8 +387,6 @@ void cIntroStory::Update(float afTimeStep)
 	}
 
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroStory::Reset()
 {
@@ -454,8 +396,6 @@ void cIntroStory::Reset()
 
 	for(int i=0; i<INTRO_IMAGE_NUM; ++i) mvImages[i].Reset();
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroStory::OnDraw()
 {
@@ -480,8 +420,6 @@ void cIntroStory::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::OnPostSceneDraw()
 {
 	mpLowGfx->SetClearColor(cColor(0,0,0,0));
@@ -505,14 +443,10 @@ void cIntroStory::OnPostSceneDraw()
 	mpLowGfx->SetDrawMatrices(previousMatrices);
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::SetMessage(const tWString &asMess)
 {
 	msMessage = asMess;
 }
-
-//-----------------------------------------------------------------------
 
 void cIntroStory::Exit()
 {
@@ -533,20 +467,12 @@ void cIntroStory::Exit()
 	mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 void cIntroStory::Image00()
 {
 	mbSearchNext = false;
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
 	case kIntro_Image00_Start:
 		{
@@ -584,7 +510,6 @@ void cIntroStory::Image01()
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
 	case kIntro_Image01_Start:
 		{
@@ -653,15 +578,12 @@ void cIntroStory::Image01()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::Image02()
 {
 	mbSearchNext = false;
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
 	case kIntro_Image02_Start:
 		{
@@ -721,17 +643,13 @@ void cIntroStory::Image02()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::Image03()
 {
 	mbSearchNext = false;
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
-		//////////////////////
 	case kIntro_Image03_Start:
 		{
 			mvImages[2].mbActive = true;
@@ -789,15 +707,12 @@ void cIntroStory::Image03()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::Image04()
 {
 	mbSearchNext = false;
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
 	case kIntro_Image04_Start:
 		{
@@ -834,15 +749,12 @@ void cIntroStory::Image04()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cIntroStory::Image05()
 {
 	mbSearchNext = false;
 
 	switch(mlNextStop)
 	{
-		//////////////////////
 		// Start
 	case kIntro_Image05_Start:
 		{
@@ -886,5 +798,3 @@ void cIntroStory::Image05()
 		break;
 	}
 }
-
-//-----------------------------------------------------------------------

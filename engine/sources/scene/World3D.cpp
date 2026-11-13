@@ -76,12 +76,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWorld3D::cWorld3D(tString asName,cGraphics *apGraphics,cResources *apResources,cSound* apSound,
 						cPhysics *apPhysics, cScene *apScene,cSystem *apSystem, cAI *apAI,
 						cHaptic *apHaptic)
@@ -110,8 +104,6 @@ namespace hpl {
 
 		msFileName = "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	cWorld3D::~cWorld3D()
 	{
@@ -149,15 +141,6 @@ namespace hpl {
 		hplDelete(mpRootNode);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::Update(float afTimeStep)
 	{
 		START_TIMING(Physics);
@@ -186,8 +169,6 @@ namespace hpl {
 		STOP_TIMING(SoundEntities);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::PreUpdate(float afTotalTime, float afTimeStep)
 	{
 		mpSound->GetSoundHandler()->SetSilent(true);
@@ -203,8 +184,6 @@ namespace hpl {
 		mpSound->GetSoundHandler()->SetSilent(false);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iRenderableContainer* cWorld3D::GetRenderContainer()
 	{
 		return mpPortalContainer;
@@ -214,8 +193,6 @@ namespace hpl {
 	{
 		return mpPortalContainer;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::SetPhysicsWorld(iPhysicsWorld *apWorld, bool abAutoDelete)
 	{
@@ -229,8 +206,6 @@ namespace hpl {
 	{
 		return mpPhysicsWorld;
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void CheckMinMaxUpdate(cVector3f &avMin,cVector3f &avMax,
 							const cVector3f &avLocalMin,const cVector3f &avLocalMax)
@@ -251,7 +226,6 @@ namespace hpl {
 
 		tSectorMap *pSectorMap = mpPortalContainer->GetSectorMap();
 
-		//////////////////////////////////////////////
 		// Get world size by getting sector BV
 		if(pSectorMap->size()>0)
 		{
@@ -279,7 +253,6 @@ namespace hpl {
 
 			if(mpPhysicsWorld) mpPhysicsWorld->SetWorldSize(vMin, vMax);
 		}
-		//////////////////////////////////////////////
 		// Get world size by getting global objects BV
 		else
 		{
@@ -318,11 +291,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::AddSaveData(cSaveDataHandler* apHandler)
 	{
-		///////////////////////////////
 		// Save mesh entities
 		tMeshEntityListIt MeshIt = mlstMeshEntities.begin();
 		for(;MeshIt != mlstMeshEntities.end();MeshIt++)
@@ -337,7 +307,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////
 		// Save billboards
 		tBillboardListIt BillIt = mlstBillboards.begin();
 		for(;BillIt != mlstBillboards.end();BillIt++)
@@ -352,7 +321,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////
 		// Save lights
 		tLight3DListIt LightIt = mlstLights.begin();
 		for(;LightIt != mlstLights.end();LightIt++)
@@ -367,7 +335,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////
 		// Save sounds entities
 		tSoundEntityListIt SoundIt = mlstSoundEntities.begin();
 		for(;SoundIt !=  mlstSoundEntities.end();SoundIt++)
@@ -382,7 +349,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////
 		// Save particle systems
 		tParticleSystem3DListIt PSIt = mlstParticleSystems.begin();
 		for(;PSIt !=  mlstParticleSystems.end();PSIt++)
@@ -397,11 +363,9 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////
 		// Add world 3d data
 		apHandler->Add(CreateSaveData());
 	}
-	//-----------------------------------------------------------------------
 
 	cAreaEntity* cWorld3D::CreateAreaEntity(const tString &asName)
 	{
@@ -418,8 +382,6 @@ namespace hpl {
 
 		return it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iEntity3D* cWorld3D::CreateEntity(const tString& asName, const cMatrixf &a_mtxTransform,
 										const tString& asFile, bool abLoadReferences)
@@ -465,8 +427,6 @@ namespace hpl {
 		return pEntity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshEntity* cWorld3D::CreateMeshEntity(const tString &asName,cMesh *apMesh, bool abAddToContainer)
 	{
 		cMeshEntity* pMesh = hplNew( cMeshEntity, (asName,apMesh,mpResources->GetMaterialManager(),
@@ -480,8 +440,6 @@ namespace hpl {
 
 		return pMesh;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::DestroyMeshEntity(cMeshEntity* apMesh)
 	{
@@ -501,8 +459,6 @@ namespace hpl {
 		hplDelete(apMesh);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshEntity* cWorld3D::GetMeshEntity(const tString& asName)
 	{
 		tMeshEntityListIt It=mlstMeshEntities.begin();
@@ -515,14 +471,10 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshEntityIterator cWorld3D::GetMeshEntityIterator()
 	{
 		return cMeshEntityIterator(&mlstMeshEntities);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::DrawMeshBoundingBoxes(const cColor &aColor, bool abStatic)
 	{
@@ -538,9 +490,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	cLight3DPoint* cWorld3D::CreateLightPoint(const tString &asName,bool abAddToContainer)
 	{
 		cLight3DPoint* pLight = hplNew( cLight3DPoint, (asName,mpResources) );
@@ -553,8 +502,6 @@ namespace hpl {
 
 		return pLight;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cLight3DSpot* cWorld3D::CreateLightSpot(const tString &asName, const tString &asGobo,
 									bool abAddToContainer)
@@ -579,15 +526,11 @@ namespace hpl {
 		return pLight;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::DestroyLight(iLight3D* apLight)
 	{
 		mpPortalContainer->Remove(apLight);
 		STLFindAndDelete(mlstLights, apLight);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iLight3D* cWorld3D::GetLight(const tString& asName)
 	{
@@ -600,8 +543,6 @@ namespace hpl {
 		}
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cBillboard* cWorld3D::CreateBillboard(const tString& asName, const cVector2f& avSize,
 										const tString& asMaterial,
@@ -621,7 +562,6 @@ namespace hpl {
 
 		return pBillboard;
 	}
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::DestroyBillboard(cBillboard* apObject)
 	{
@@ -630,22 +570,15 @@ namespace hpl {
 		STLFindAndDelete(mlstBillboards, apObject);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBillboard* cWorld3D::GetBillboard(const tString& asName)
 	{
 		return (cBillboard*)STLFindByName(mlstBillboards,asName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBillboardIterator cWorld3D::GetBillboardIterator()
 	{
 		return cBillboardIterator(&mlstBillboards);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	cBeam* cWorld3D::CreateBeam(const tString& asName)
 	{
@@ -656,7 +589,6 @@ namespace hpl {
 
 		return pBeam;
 	}
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::DestroyBeam(cBeam* apObject)
 	{
@@ -666,22 +598,15 @@ namespace hpl {
 		STLFindAndDelete(mlstBeams, apObject);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBeam* cWorld3D::GetBeam(const tString& asName)
 	{
 		return (cBeam*)STLFindByName(mlstBeams,asName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBeamIterator cWorld3D::GetBeamIterator()
 	{
 		return cBeamIterator(&mlstBeams);
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	cParticleSystem3D* cWorld3D::CreateParticleSystem(const tString& asName,const tString& asType,
 													const cVector3f& avSize,const cMatrixf& a_mtxTransform)
@@ -712,8 +637,6 @@ namespace hpl {
 		return pPS;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::DestroyParticleSystem(cParticleSystem3D* apPS)
 	{
 		if(apPS==nullptr)return;
@@ -728,14 +651,10 @@ namespace hpl {
 		STLFindAndDelete(mlstParticleSystems, apPS);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cParticleSystem3D* cWorld3D::GetParticleSystem(const tString& asName)
 	{
 		return (cParticleSystem3D*)STLFindByName(mlstParticleSystems,asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWorld3D::ParticleSystemExists(cParticleSystem3D* apPS)
 	{
@@ -746,8 +665,6 @@ namespace hpl {
 		}
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cColliderEntity* cWorld3D::CreateColliderEntity(const tString &asName,iPhysicsBody *apBody)
 	{
@@ -765,8 +682,6 @@ namespace hpl {
 	{
 		return (cColliderEntity*)STLFindByName(mlstColliders,asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSoundEntity* cWorld3D::CreateSoundEntity(const tString &asName,const tString &asSoundEntity,
 											bool abRemoveWhenOver)
@@ -847,8 +762,6 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cStartPosEntity* cWorld3D::CreateStartPos(const tString &asName)
 	{
 		cStartPosEntity *pStartPos = hplNew( cStartPosEntity, (asName) );
@@ -870,15 +783,10 @@ namespace hpl {
 		return mlstStartPosEntities.front();
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void  cWorld3D::GenerateAINodes(cAINodeGeneratorParams *apParams)
 	{
 		mpAI->GetNodeGenerator()->Generate(this, apParams);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAINodeContainer* cWorld3D::CreateAINodeContainer(const tString &asName,
 								const tString &asNodeName,
@@ -890,7 +798,6 @@ namespace hpl {
 
 		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
-		//////////////////////////////////
 		//See if the container is allready loaded.
 		tAINodeContainerListIt it = mlstAINodeContainers.begin();
 		for(; it != mlstAINodeContainers.end(); ++it)
@@ -902,8 +809,6 @@ namespace hpl {
 			}
 		}
 
-
-		//////////////////////////////////
 		//Get file name
 		cFileSearcher *pFileSearcher = mpResources->GetFileSearcher();
 		tString sMapPath = pFileSearcher->GetFilePath(GetFileName());
@@ -912,7 +817,6 @@ namespace hpl {
 		sAiFileName += "_"+asName;
 		sAiFileName = cString::SetFileExt(sAiFileName,"nodes");
 
-		//////////////////////////////////
 		//If there is no container created, create it.
 		if(pContainer == nullptr)
 		{
@@ -987,8 +891,6 @@ namespace hpl {
 		return pContainer;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAStarHandler* cWorld3D::CreateAStarHandler(cAINodeContainer* apContainer)
 	{
 		cAStarHandler *pAStar = hplNew( cAStarHandler, (apContainer) );
@@ -997,8 +899,6 @@ namespace hpl {
 
 		return pAStar;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::AddAINode(const tString &asName, const tString &asType, const cVector3f &avPosition)
 	{
@@ -1016,8 +916,6 @@ namespace hpl {
 		pContainer->mlstNodes.push_back(cTempAiNode(avPosition,asName));
 	}
 
-	//-----------------------------------------------------------------------
-
 	tTempAiNodeList* cWorld3D::GetAINodeList(const tString &asType)
 	{
 		cTempNodeContainer *pContainer = nullptr;
@@ -1034,20 +932,10 @@ namespace hpl {
 		return &pContainer->mlstNodes;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWorld3D::CreateFromFile(tString asFile)
 	{
 		return false;
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::UpdateParticles(float afTimeStep)
 	{
@@ -1079,8 +967,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
-
 
 	void cWorld3D::UpdateEntities(float afTimeStep)
 	{
@@ -1102,14 +988,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWorld3D::UpdateBodies(float afTimeStep)
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::UpdateLights(float afTimeStep)
 	{
@@ -1124,8 +1006,6 @@ namespace hpl {
 			++it;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWorld3D::UpdateSoundEntities(float afTimeStep)
 	{
@@ -1155,14 +1035,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-------------------------------------------------------------------
-
 	kBeginSerializeBase(cAreaEntity)
 	kSerializeVar(msName, eSerializeType_String)
 	kSerializeVar(msType, eSerializeType_String)
@@ -1170,14 +1042,10 @@ namespace hpl {
 	kSerializeVar(mvSize, eSerializeType_Vector3f)
 	kEndSerialize()
 
-	//-------------------------------------------------------------------
-
 	kBeginSerializeBase(cStartPosEntity)
 	kSerializeVar(msName, eSerializeType_String)
 	kSerializeVar(m_mtxTransform, eSerializeType_Matrixf)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeBase(cSaveData_cWorld3D)
 	kSerializeClassContainer(mlstStartpos, cStartPosEntity,eSerializeType_Class)
@@ -1185,13 +1053,10 @@ namespace hpl {
 	kSerializeClassContainer(mlstScriptVars, cScriptVar,eSerializeType_Class)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveObject* cSaveData_cWorld3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
 		cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
 
-		///////////////////////
 		//Start pos
 		cContainerListIterator<cStartPosEntity> StartIt = mlstStartpos.GetIterator();
 		while(StartIt.HasNext())
@@ -1201,7 +1066,6 @@ namespace hpl {
 			pStart->SetMatrix(tempStart.GetWorldMatrix());
 		}
 
-		///////////////////////
 		//Area entities
 		cContainerListIterator<cAreaEntity> AreaIt = mlstAreaEntities.GetIterator();
 		while(AreaIt.HasNext())
@@ -1213,7 +1077,6 @@ namespace hpl {
 			pArea->mvSize = tempArea.mvSize;
 		}
 
-		///////////////////////
 		//Script vars
 		cContainerListIterator<cScriptVar> VarIt = mlstScriptVars.GetIterator();
 		while(VarIt.HasNext())
@@ -1226,15 +1089,10 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cWorld3D::GetSaveCreatePrio()
 	{
 		return 4;
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	iSaveData* cWorld3D::CreateSaveData()
 	{
@@ -1264,8 +1122,4 @@ namespace hpl {
 
 		return pData;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

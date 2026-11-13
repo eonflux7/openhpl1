@@ -39,17 +39,11 @@ namespace hpl {
 
 	class iGuiMaterial;
 
-	//------------------------------------------------
-
 	typedef std::map<tString, cGuiSet*> tGuiSetMap;
 	typedef tGuiSetMap::iterator tGuiSetMapIt;
 
-	//-------------------------------------
-
 	typedef std::map<tString, cGuiSkin*> tGuiSkinMap;
 	typedef tGuiSkinMap::iterator tGuiSkinMapIt;
-
-	//-------------------------------------
 
 	typedef std::map<tString, eGuiSkinGfx> tGuiSkinGfxMap;
 	typedef tGuiSkinGfxMap::iterator tGuiSkinGfxMapIt;
@@ -60,16 +54,12 @@ namespace hpl {
 	typedef std::map<tString, eGuiSkinAttribute> tGuiSkinAttributeMap;
 	typedef tGuiSkinAttributeMap::iterator tGuiSkinAttributeMapIt;
 
-
-	//------------------------------------------------
-
 	class cGui : public iUpdateable
 	{
 	public:
 		cGui();
 		~cGui() override;
 
-		///////////////////////////////
 		// General
 
 		void Init(	cResources *apResources, cGraphics* apGraphics,
@@ -82,7 +72,6 @@ namespace hpl {
 
 		iGuiMaterial* GetMaterial(eGuiMaterial aType);
 
-		///////////////////////////////
 		// Skins
 		cGuiSkin* CreateSkin(const tString& asFile);
 
@@ -90,7 +79,6 @@ namespace hpl {
 		eGuiSkinFont GetSkinFontFromString(const tString& asType);
 		eGuiSkinAttribute GetSkinAttributeFromString(const tString& asType);
 
-		///////////////////////////////
 		// Sets
 		cGuiSet* CreateSet(const tString& asName, cGuiSkin *apSkin);
 		cGuiSet* GetSetFromName(const tString& asName);
@@ -99,7 +87,6 @@ namespace hpl {
 		cGuiSet* GetFocusedSet(){return mpSetInFocus;}
 		void DestroySet(cGuiSet *apSet);
 
-		///////////////////////////////
 		// Graphics creation
 		cGuiGfxElement* CreateGfxFilledRect(const cColor& aColor, eGuiMaterial aMaterial, bool abAddToList=true);
 		cGuiGfxElement* CreateGfxImage(	const tString &asFile,eGuiMaterial aMaterial,
@@ -115,7 +102,6 @@ namespace hpl {
 
 		void DestroyGfx(cGuiGfxElement* apGfx);
 
-		///////////////////////////////
 		// Input sending
 		bool SendMousePos(const cVector2f &avPos, const cVector2f &avRel);
 		bool SendMouseClickDown(eGuiMouseButton aButton);
@@ -126,8 +112,6 @@ namespace hpl {
 
 		//bool SentArrowKey(eGuiArrowKey aDir);
 
-
-		///////////////////////////////
 		// Properties
 		cResources* GetResources(){ return mpResources;}
 

@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//----------------------------------------------
-
 class cGameLamp_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameLamp_SaveData);
@@ -38,8 +36,6 @@ public:
 	iGameEntity* CreateEntity() override;
 };
 
-//----------------------------------------------
-
 class cGameLamp_PS
 {
 public:
@@ -47,9 +43,6 @@ public:
 	tString msDataName;
 	cMatrixf m_mtxTransform;
 };
-
-//----------------------------------------------
-
 
 class cGameLamp :	public iGameEntity
 {
@@ -129,8 +122,6 @@ private:
 	std::vector<cGameLamp_PS> mvParticleSystemNames;
 
 };
-
-//--------------------------------------
 
 class cEntityLoader_GameLamp : public cEntityLoader_Object
 {

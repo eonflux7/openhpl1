@@ -22,12 +22,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_Bump::cMaterial_Bump(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -40,20 +34,10 @@ namespace hpl {
 		mbUseNormalMap = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Bump::~cMaterial_Bump()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iMaterial* cMaterialType_Bump::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 						cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -64,6 +48,4 @@ namespace hpl {
 								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
-
-	//-----------------------------------------------------------------------
 }

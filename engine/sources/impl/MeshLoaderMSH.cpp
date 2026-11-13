@@ -34,30 +34,14 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMeshLoaderMSH::cMeshLoaderMSH(iLowLevelGraphics *apLowLevelGraphics) : iMeshLoader(apLowLevelGraphics)
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshLoaderMSH::~cMeshLoaderMSH()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	//Definition to make the error exit not so bloated.
 	#define ExitLoad() hplDelete(pMesh); hplDelete(pXmlDoc); return NULL;
@@ -67,8 +51,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMesh* cMeshLoaderMSH::LoadMesh(const tString& asFile,tMeshLoadFlag aFlags)
 	{
 		cMesh* pMesh = hplNew( cMesh, (cString::GetFileName(asFile),mpMaterialManager,mpAnimationManager) );
@@ -76,7 +58,6 @@ namespace hpl {
 		//Must be Stream instead of static for example.
 		bool bIsAnimated = false;
 
-		/////////////////////////////////////////////////
 		// LOAD THE DOCUMENT
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -88,8 +69,6 @@ namespace hpl {
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
-
-		/////////////////////////////////////////////////
 		// LOAD SUBMESHES
 		//Load the root
 		TiXmlElement* pSubMeshesRootElem = pRootElem->FirstChildElement("SubMeshes");
@@ -103,11 +82,9 @@ namespace hpl {
 		TiXmlElement* pSubMeshElem = pSubMeshesRootElem->FirstChildElement();
 		while(pSubMeshElem)
 		{
-			//////////////////
 			//Create sub mesh
 			cSubMesh *pSubMesh = pMesh->CreateSubMesh(pSubMeshElem->Attribute("name"));
 
-			//////////////////
 			//Set material
 			const char *pMatName = pSubMeshElem->Attribute("material");
 			if(pMatName==nullptr){
@@ -118,8 +95,6 @@ namespace hpl {
 			iMaterial *pMaterial = mpMaterialManager->CreateMaterial(pMatName);
 			pSubMesh->SetMaterial(pMaterial);
 
-
-			////////////////////
 			//Get the vertices
 			TiXmlElement* pVtxElem = pSubMeshElem->FirstChildElement("Vertices");
 			int lVtxSize = cString::ToInt(pVtxElem->Attribute("size"),0);
@@ -168,7 +143,6 @@ namespace hpl {
 				}
 			}
 
-			////////////////////
 			//Get Indices
 
 			TiXmlElement* pIdxElem = pSubMeshElem->FirstChildElement("Indices");
@@ -178,19 +152,15 @@ namespace hpl {
 			pVtxBuff->ResizeIndices(lIdxSize);
 			FillIdxArray(pVtxBuff->GetIndices(), pIdxElem->Attribute("data"),lIdxSize);
 
-			///////////////////
 			//Compile vertex buffer
 			pVtxBuff->Compile(0);
 
 			pSubMesh->SetVertexBuffer(pVtxBuff);
 
-
-			/////////////////
 			//Next element
 			pSubMeshElem = pSubMeshesRootElem->NextSiblingElement();
 		}
 
-		/////////////////////////////////////////////////
 		// LOAD SKELETON
 
 
@@ -201,8 +171,6 @@ namespace hpl {
 
 		return pMesh;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMeshLoaderMSH::SaveMesh(cMesh* apMesh, const tString& asFile)
 	{
@@ -271,8 +239,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderMSH::IsSupported(const tString asFileType)
 	{
 		if(asFileType == "msh") return true;
@@ -280,20 +246,10 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderMSH::AddSupportedTypes(tStringVec* avFileTypes)
 	{
 		avFileTypes->push_back("msh");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderMSH::SaveFloatData(TiXmlElement* apRoot, int alSize, const char *asName, float* apData)
 	{
@@ -338,8 +294,6 @@ namespace hpl {
 		pElem->SetAttribute("data",sData.c_str());
 	}
 
-	//-----------------------------------------------------------------------
-
 	const char* cMeshLoaderMSH::GetVertexName(tVertexFlag aFlag)
 	{
 		switch(aFlag)
@@ -352,8 +306,6 @@ namespace hpl {
 		}
 		return "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderMSH::SaveIntData(TiXmlElement* apElem,int alSize, unsigned int* apData)
 	{
@@ -371,8 +323,6 @@ namespace hpl {
 
 		apElem->SetAttribute("data",sData.c_str());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderMSH::FillVtxArray(float *apArray, const char* apString,int alSize)
 	{
@@ -413,8 +363,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderMSH::FillIdxArray(unsigned int *apArray, const char* apString,int alSize)
 	{
 		char vTempChar[20];
@@ -450,8 +398,4 @@ namespace hpl {
 			lStringCount++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

@@ -29,9 +29,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////
-	///////// TYPES //////////////////////////////////
-	//////////////////////////////////////////////////
+	// TYPES
 
 	#define eFlagBit_None	(0x00000000)
 	#define eFlagBit_All	(0xFFFFFFFF)
@@ -55,16 +53,11 @@ namespace hpl {
 
 	#define _W(t) L ## t
 
-	//--------------------------------------------------------
-
 	enum eSystemPath
 	{
 		eSystemPath_Personal,
 		eSystemPath_LastEnum
 	};
-
-	//--------------------------------------------------------
-
 
 	typedef unsigned int tFlag;
 
@@ -79,9 +72,6 @@ namespace hpl {
 	typedef std::set<tString> tStringSet;
 	typedef tStringSet::iterator tStringSetIt;
 
-
-	//--------------------------------------------------------
-
 	typedef std::wstring tWString;
 	typedef std::list<tWString> tWStringList;
 	typedef tWStringList::iterator tWStringListIt;
@@ -91,9 +81,6 @@ namespace hpl {
 
 	typedef std::set<tWString> tWStringSet;
 	typedef tWStringSet::iterator tWStringSetIt;
-
-	//--------------------------------------------------------
-
 
 	typedef std::vector<unsigned char> tByteVec;
 	typedef tByteVec::iterator tByteVecIt;
@@ -129,11 +116,7 @@ namespace hpl {
 	} eMsgBoxType;
 
 
-	//////////////////////////////////////////////////
-	///////// DEFINES ///////////////////////////////
-	//////////////////////////////////////////////////
-
-	//--------------------------------------------------------
+	// DEFINES
 
 	#define STLCallInAll( ContType, aCont, aFunc )				\
 	{															\
@@ -141,14 +124,7 @@ namespace hpl {
 		for(; it != ##aCont##.end(); ++it) (*it)->##aFunc##;	\
 	}
 
-
-	//--------------------------------------------------------
-
-	//////////////////////////////////////////////////
-	///////// CLASS //////////////////////////////
-	//////////////////////////////////////////////////
-
-	//--------------------------------------------------------
+	// CLASS
 
 	class cDate
 	{
@@ -238,14 +214,10 @@ namespace hpl {
 		}
 	};
 
-	//--------------------------------------------------------
-
 	template <class T>
 	class cMemoryPool
 	{
 	public:
-		//---------------------------------
-
 		cMemoryPool(size_t alSize, T* (*apCreateFunc)())
 		{
 			mvData.resize(alSize,nullptr);
@@ -260,14 +232,10 @@ namespace hpl {
 			}
 		}
 
-		//---------------------------------
-
 		~cMemoryPool()
 		{
 			for(size_t i=0; i< mvData.size(); ++i) hplDelete(mvData[i]);
 		}
-
-		//---------------------------------
 
 		T* Create()
 		{
@@ -295,8 +263,6 @@ namespace hpl {
 			return pData;
 		}
 
-		//---------------------------------
-
 		void Release(T *apData)
 		{
 			if(mlCurrentData==0) return;
@@ -304,8 +270,6 @@ namespace hpl {
 			--mlCurrentData;
 			mvData[mlCurrentData] = apData;
 		}
-
-		//---------------------------------
 
 		void ClearUnused()
 		{
@@ -316,8 +280,6 @@ namespace hpl {
 			mvData.resize(mlCurrentData+1);
 		}
 
-		//---------------------------------
-
 	private:
 		std::vector<T*> mvData;
 
@@ -326,14 +288,7 @@ namespace hpl {
 		T* (*mpCreateFunc)();
 	};
 
-	//----------------------------------------------------------
-
-
-	//////////////////////////////////////////////////
-	///////// TEMPLATES //////////////////////////////
-	//////////////////////////////////////////////////
-
-	//--------------------------------------------------------
+	// TEMPLATES
 
 	template <class CONT,class T>
 	void STLFindAndRemove(CONT &aCont, T* pObject)
@@ -346,8 +301,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//--------------------------------------------------------
 
 	template <class CONT,class T>
 	void STLFindAndDelete(CONT &aCont, T* pObject)
@@ -363,8 +316,6 @@ namespace hpl {
 		hplDelete(pObject);
 	}
 
-	//--------------------------------------------------------
-
 	template <class CONT>
 	void* STLFindByName(CONT &aCont,const tString& asName )
 	{
@@ -378,8 +329,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//--------------------------------------------------------
-
 	template <class T>
 	void STLDeleteAll(T &aCont){
 		typename T::iterator it = aCont.begin();
@@ -389,8 +338,6 @@ namespace hpl {
 		}
 		aCont.clear();
 	}
-
-	//--------------------------------------------------------
 
 	template <class T>
 	void STLMapDeleteAll(T &aCont){
@@ -402,21 +349,16 @@ namespace hpl {
 		aCont.clear();
 	}
 
-	//--------------------------------------------------------
-
 	template <class T, class CONT, class IT>
 	class cSTLIterator : public iContainerIterator
 	{
 	public:
-		///////////////////////////
 		cSTLIterator(CONT *apCont)
 		{
 			mpCont = apCont;
 			mIt = mpCont->begin();
 
 		}
-
-		///////////////////////////
 
 		bool HasNext() override
 		{
@@ -435,8 +377,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////
-
 		T Next()
 		{
 			if(mIt == mpCont->end())
@@ -449,8 +389,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////
-
 		T PeekNext()
 		{
 			if(mIt == mpCont->end())
@@ -460,29 +398,22 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////
-
 	private:
 		IT mIt;
 		CONT* mpCont;
 
 	};
 
-	//--------------------------------------------------------
-
 	template <class T, class CONT, class IT>
 	class cSTLMapIterator : public iContainerIterator
 	{
 	public:
-		///////////////////////////
 		cSTLMapIterator(CONT *apCont)
 		{
 			mpCont = apCont;
 			mIt = mpCont->begin();
 
 		}
-
-		///////////////////////////
 
 		bool HasNext() override
 		{
@@ -501,8 +432,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////
-
 		T Next()
 		{
 			if(mIt == mpCont->end())
@@ -515,8 +444,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////
-
 		T PeekNext()
 		{
 			if(mIt == mpCont->end())
@@ -525,8 +452,6 @@ namespace hpl {
 				return mIt->second;
 			}
 		}
-
-		///////////////////////////
 
 	private:
 		IT mIt;

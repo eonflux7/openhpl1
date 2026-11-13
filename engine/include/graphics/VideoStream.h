@@ -24,13 +24,9 @@
 
 namespace hpl {
 
-	//-----------------------------------------
-
 	class iTexture;
 
 	class iVideoStream;
-
-	//-----------------------------------------
 
 	class iVideoStreamLoader
 	{
@@ -43,8 +39,6 @@ namespace hpl {
 	protected:
 		tStringVec mvExtensions;
 	};
-
-	//-----------------------------------------
 
 	class iVideoStream : public iResourceBase
 	{
@@ -71,7 +65,6 @@ namespace hpl {
 		const tString& GetFileName(){return msFilePath;}
 		const cVector2l& GetSize(){return mvSize;}
 
-		//////////////////////////////////
 		// ResourceBase implementation
 		bool Reload() override{ return false;}
 		void Unload() override{}

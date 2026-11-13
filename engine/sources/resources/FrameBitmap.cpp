@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cFrameBitmap::cFrameBitmap(iBitmap2D *apBitmap,  cFrameTexture *apFrmTex, int alHandle) : iFrameBase()
 	{
 		mpBitmap = apBitmap;
@@ -52,14 +46,6 @@ namespace hpl {
 		hplDelete(mpBitmap);
 		mpBitmap = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	#define DEBUG_BTREE (false)
 
@@ -221,8 +207,6 @@ namespace hpl {
 		return pImage;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::MinimumFit(cRect2l aSrc,cRect2l aDest)
 	{
 		if(aDest.w-aSrc.w<mlMinHole && aDest.h-aSrc.h<mlMinHole) return true;
@@ -230,21 +214,15 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::IsUpdated()
 	{
 		return mbIsUpdated;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::IsFull()
 	{
 		return mbIsFull;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cFrameBitmap::FlushToTexture()
 	{
@@ -263,6 +241,4 @@ namespace hpl {
 			return false;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameItem_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameItem_SaveData);
@@ -38,8 +36,6 @@ public:
 	iGameEntity* CreateEntity() override;
 };
 
-//------------------------------------------
-
 class cGameItem_InViewRay : public iPhysicsRayCallback
 {
 public:
@@ -49,8 +45,6 @@ public:
 	bool mbIntersected;
 	iPhysicsBody *mpSkipBody;
 };
-
-//------------------------------------------
 
 class cGameItem :	public iGameEntity
 {
@@ -119,8 +113,6 @@ private:
 
 	tString msPickUpSound;
 };
-
-//--------------------------------------
 
 class cEntityLoader_GameItem : public cEntityLoader_Object
 {

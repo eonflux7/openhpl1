@@ -27,16 +27,10 @@ using namespace hpl;
 
 #include "systems/TriggerHandler.h"
 
-
-//----------------------------------------
-
 class cGameTrigger_Sound : public cGameTrigger
 {
 public:
 	cSoundEntityData *mpSound;
 };
-
-//----------------------------------------
-
 
 #endif // GAME_TRIGGERS_H

@@ -35,11 +35,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// PARAMS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAINodeGeneratorParams::cAINodeGeneratorParams()
 	{
@@ -53,10 +49,6 @@ namespace hpl {
 
 		mfGridSize = 0.4f;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 
 	class cCollideRayCallback : public iPhysicsRayCallback
 	{
@@ -77,14 +69,6 @@ namespace hpl {
 		float mfDist;
 	};
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cAINodeGenerator::cAINodeGenerator()
 	{
 
@@ -95,17 +79,7 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	static cCollideRayCallback gCollideRayCallback;
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeGenerator::Generate(cWorld3D* apWorld,cAINodeGeneratorParams *apParams)
 	{
@@ -141,8 +115,6 @@ namespace hpl {
 			}
 		}
 
-
-		/////////////////////////////////
 		// Get the size of the world
 		cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
 		cVector3f vWorldMax(-100000,-100000,-100000);
@@ -174,7 +146,6 @@ namespace hpl {
 		vWorldMax.x -= mpParams->mfGridSize;
 		vWorldMax.z -= mpParams->mfGridSize;
 
-		/////////////////////////////////////////
 		//Check against the user set min and max
 		if(vWorldMin.x < mpParams->mvMinPos.x) vWorldMin.x = mpParams->mvMinPos.x;
 		if(vWorldMax.x > mpParams->mvMaxPos.x) vWorldMax.x = mpParams->mvMaxPos.x;
@@ -185,8 +156,6 @@ namespace hpl {
 		if(vWorldMin.z < mpParams->mvMinPos.z) vWorldMin.z = mpParams->mvMinPos.z;
 		if(vWorldMax.z > mpParams->mvMaxPos.z) vWorldMax.z = mpParams->mvMaxPos.z;
 
-
-		/////////////////////////////////////////
 		//Place the nodes in the world
 		cVector3f vPos(vWorldMin.x,0,vWorldMin.z);
 
@@ -209,7 +178,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////
 		//Check so that the nodes are not too close to walls
 		cVector3f vEnds[4] = {	cVector3f(mpParams->mfMinWallDist,0,0),
 									cVector3f(-mpParams->mfMinWallDist,0,0),
@@ -248,17 +216,12 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		// Save to file
 
 		SaveToFile();
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// PRIVATE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cAINodeGenerator::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 	{
@@ -272,8 +235,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeGenerator::SaveToFile()
 	{
@@ -310,8 +271,6 @@ namespace hpl {
 		hplDelete(pXmlDoc);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAINodeGenerator::LoadFromFile()
 	{
 		if(mpWorld->GetFileName() == "") return;
@@ -344,6 +303,4 @@ namespace hpl {
 
 		hplDelete(pXmlDoc);
 	}
-
-	//-----------------------------------------------------------------------
 }

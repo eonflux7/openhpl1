@@ -42,9 +42,6 @@
 #include <string.h>
 
 namespace hpl {
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
 
 	cSubMeshEntity::cSubMeshEntity(const tString &asName, cMeshEntity *apMeshEntity, cSubMesh * apSubMesh,
 								cMaterialManager* apMaterialManager) : iRenderable(asName)
@@ -90,13 +87,7 @@ namespace hpl {
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// BODY CALLBACK
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntityBodyUpdate::OnTransformUpdate(iEntity3D* apEntity)
 	{
@@ -115,14 +106,6 @@ namespace hpl {
 		}*/
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cSubMeshEntity::UpdateLogic(float afTimeStep)
 	{
 		if(mbUpdateBody && mpBody)
@@ -130,9 +113,6 @@ namespace hpl {
 			mpBody->SetMatrix(GetWorldMatrix());
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	iMaterial* cSubMeshEntity::GetMaterial()
 	{
@@ -146,8 +126,6 @@ namespace hpl {
 		else
 			return mpSubMesh->GetMaterial();
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Set Src as private variable to give this a little boost! Or?
 	static inline void MatrixFloatTransformSet(float *pDest, const cMatrixf &a_mtxA, const float* pSrc, const float fWeight)
@@ -164,8 +142,6 @@ namespace hpl {
 		pDest[2] = ( a_mtxA.m[2][0] * pSrc[0] + a_mtxA.m[2][1] * pSrc[1] + a_mtxA.m[2][2] * pSrc[2] ) * fWeight;
 	}
 
-	////////////////////////////////////////////////////////////
-
 	// Set Src as private variable to give this a little boost!Or?
 	static inline void MatrixFloatTransformAdd(float *pDest, const cMatrixf &a_mtxA, const float* pSrc, const float fWeight)
 	{
@@ -180,8 +156,6 @@ namespace hpl {
 		pDest[1] += ( a_mtxA.m[1][0] * pSrc[0] + a_mtxA.m[1][1] * pSrc[1] + a_mtxA.m[1][2] * pSrc[2] ) * fWeight;
 		pDest[2] += ( a_mtxA.m[2][0] * pSrc[0] + a_mtxA.m[2][1] * pSrc[1] + a_mtxA.m[2][2] * pSrc[2] ) * fWeight;
 	}
-
-	////////////////////////////////////////////////////////////
 
 	void cSubMeshEntity::UpdateGraphics(cCamera3D *apCamera, float afFrameTime, cRenderList *apRenderList)
 	{
@@ -325,8 +299,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMeshEntity::SetLocalNode(cNode3D *apNode)
 	{
 		mpLocalNode = apNode;
@@ -334,22 +306,16 @@ namespace hpl {
 		mpLocalNode->AddEntity(this);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D* cSubMeshEntity::GetLocalNode()
 	{
 		return mpLocalNode;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tRenderContainerDataList* cSubMeshEntity::GetRenderContainerDataList()
 	{
 		//Log("Get from parent %s\n",mpMeshEntity->GetName().c_str());
 		return mpMeshEntity->GetRenderContainerDataList();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SetUpdateBody(bool abX)
 	{
@@ -370,8 +336,6 @@ namespace hpl {
 		return mbUpdateBody;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMeshEntity::SetCustomMaterial(iMaterial *apMaterial, bool abDestroyOldCustom)
 	{
 		if(abDestroyOldCustom)
@@ -382,20 +346,10 @@ namespace hpl {
 		mpMaterial = apMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSector* cSubMeshEntity::GetCurrentSector() const
 	{
 		return mpMeshEntity->GetCurrentSector();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cSubMeshEntity,cSaveData_iRenderable)
 	kSerializeVar(msMaterial, eSerializeType_String)
@@ -404,15 +358,10 @@ namespace hpl {
 	kSerializeVar(mbUpdateBody, eSerializeType_Bool)
 	kEndSerialize()
 
-
-	//-----------------------------------------------------------------------
-
 	iSaveData* cSubMeshEntity::CreateSaveData()
 	{
 		return hplNew( cSaveData_cSubMeshEntity, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -425,8 +374,6 @@ namespace hpl {
 
 		kSaveData_SaveObject(mpBody, mlBodyId);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
@@ -442,8 +389,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMeshEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cSubMeshEntity);
@@ -455,6 +400,4 @@ namespace hpl {
 			mpBody->CreateNode()->AddEntity(this);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

@@ -25,8 +25,6 @@
 
 namespace hpl {
 
-	//------------------------------------
-
 	kSaveData_ChildClass(iNode,cNode3D)
 	{
 		kSaveData_ClassInit(cNode3D)
@@ -40,8 +38,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//------------------------------------
 
 	class cNode3D : public iNode
 	{

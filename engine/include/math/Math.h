@@ -30,9 +30,7 @@ namespace hpl {
 	class cMath
 	{
 	public:
-		 //////////////////////////////////////////////////////
-		////////// RANDOM GENERATION ////////////////////////
-		//////////////////////////////////////////////////////
+		// RANDOM GENERATION
 		/**
 		 * Generates a random integer from min to max
 		 * \param alMin
@@ -80,9 +78,7 @@ namespace hpl {
 		static int SoundRandRectl(int alMin, int alMax);
 		static float SoundRandRectf(float afMin, float afMax);
 
-		//////////////////////////////////////////////////////
-		////////// COLLSION //////////////////////////////////
-		//////////////////////////////////////////////////////
+		// COLLSION
 
 		static bool BoxCollision(cRect2l aRect1, cRect2l aRect2);
 		static bool BoxCollision(cRect2f aRect1, cRect2f aRect2);
@@ -119,9 +115,7 @@ namespace hpl {
 		static bool CheckSphereInPlanes(const cVector3f &avCenter, float afRadius,
 									const cPlanef* apPlanes, int alPlaneCount);
 
-		//////////////////////////////////////////////////////
-		////////// FLOAT OPERATIONS ////////////////////////
-		//////////////////////////////////////////////////////
+		// FLOAT OPERATIONS
 
 		/**
 		 * Get fraction part of a float
@@ -193,9 +187,7 @@ namespace hpl {
 
 		static float InterpolateFloat(float afA,float afB,float afT);
 
-		//////////////////////////////////////////////////////
-		////////// VECTOR 2D ///////////////////////////////
-		//////////////////////////////////////////////////////
+		// VECTOR 2D
 		/**
 		 * Get the angle a vector at aStartPos has to have to look at aGoalPos
 		 * \param &aStartPos
@@ -226,9 +218,7 @@ namespace hpl {
 		 */
 		static cVector2f ProjectVector2D(const cVector2f &avSrcVec, const cVector2f &avDestVec);
 
-		//////////////////////////////////////////////////////
-		////////// VECTOR 3D ///////////////////////////////
-		//////////////////////////////////////////////////////
+		// VECTOR 3D
 
 		static inline cVector3f Vector3ToRad(const cVector3f &avVec)
 		{
@@ -336,9 +326,7 @@ namespace hpl {
 
 
 
-		//////////////////////////////////////////////////////
-		////////// QUATERNIONS ///////////////////////////////
-		//////////////////////////////////////////////////////
+		// QUATERNIONS
 
 		/**
 		 * Spherical Linear Interpolation between quaternions A and B
@@ -352,9 +340,7 @@ namespace hpl {
 		static float QuaternionDot(const cQuaternion& aqA,const cQuaternion& aqB);
 
 
-		//////////////////////////////////////////////////////
-		////////// MATRIX ////////////////////////////////////
-		//////////////////////////////////////////////////////
+		// MATRIX
 
 		/**
 		* Spherical Linear Interpolation between matrix A and B
@@ -448,9 +434,7 @@ namespace hpl {
 		 */
 		static const char* MatrixToChar(const cMatrixf &a_mtxA);
 
-		//////////////////////////////////////////////////////
-		////////// POLYGONS //////////////////////////////////
-		//////////////////////////////////////////////////////
+		// POLYGONS
 
 		/**
 		 * Creates an array with 4d tangent vectors for triangles. alIndexNum % 3 must be 0.

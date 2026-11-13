@@ -24,8 +24,6 @@
 
 namespace hpl {
 
-	//------------------------------------
-
 	class cAllocatedPointer
 	{
 	public:
@@ -37,12 +35,8 @@ namespace hpl {
 		void *mpData;
 	};
 
-	//------------------------------------
-
 	typedef std::map<void*, cAllocatedPointer> tAllocatedPointerMap;
 	typedef tAllocatedPointerMap::iterator tAllocatedPointerMapIt;
-
-	//------------------------------------
 
 	class cMemoryManager
 	{
@@ -90,8 +84,6 @@ namespace hpl {
 		static int mlCreationCount;
 	};
 
-	//------------------------------------
-
 //#define MEMORY_MANAGER_ACTIVE
 #ifdef MEMORY_MANAGER_ACTIVE
 
@@ -138,9 +130,5 @@ namespace hpl {
 		free(data);
 
 #endif
-
-	//------------------------------------
-
-
 };
 #endif // HPL_MEMORY_MANAGER_H

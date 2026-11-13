@@ -60,8 +60,6 @@ namespace hpl {
 	class cLanguageFile;
 	class cGui;
 
-	//-------------------------------------------------------
-
 	class iEntity3DLoader
 	{
 	public:
@@ -79,8 +77,6 @@ namespace hpl {
 
 	typedef std::map<tString,iEntity3DLoader*> tEntity3DLoaderMap;
 	typedef tEntity3DLoaderMap::iterator tEntity3DLoaderMapIt;
-
-	//-------------------------------------------------------
 
 	class iArea3DLoader
 	{
@@ -107,17 +103,12 @@ namespace hpl {
 	typedef std::map<tString,iArea3DLoader*> tArea3DLoaderMap;
 	typedef tArea3DLoaderMap::iterator tArea3DLoaderMapIt;
 
-	//-------------------------------------------------------
-
 	// Should this be made a map so you can do
 	// GetManager(tString) when getting a manager?
 	// This way you would be able to add your own resource types
 	// easily.
 	typedef std::list<iResourceManager*> tResourceManagerList;
 	typedef tResourceManagerList::iterator tResourceManagerListIt;
-
-	//-------------------------------------------------------
-
 
 	class cResources : public iUpdateable
 	{

@@ -33,17 +33,9 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZEABLE
-	//////////////////////////////////////////////////////////////////////////
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZE SAVED CLASS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSerializeSavedClass::cSerializeSavedClass(const char* asName,const char *asParent,
 							cSerializeMemberField* apMemberFields, size_t alSize,
@@ -56,13 +48,7 @@ namespace hpl {
 		mpCreateFunc = apCreateFunc;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZE MEMBER FIELD ITERATOR
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSerializeMemberFieldIterator::cSerializeMemberFieldIterator(cSerializeSavedClass *apTopClass)
 	{
@@ -83,8 +69,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSerializeMemberFieldIterator::HasNext()
 	{
 		if(mpSavedClass == nullptr ||
@@ -95,8 +79,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSerializeMemberField* cSerializeMemberFieldIterator::GetNext()
 	{
@@ -118,13 +100,7 @@ namespace hpl {
 		return pField;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZE CLASS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSerializeSavedClass gvSerializeTempClasses[kMaxSerializeClasses];
 	int glSerializeTempClassesNum =0;
@@ -134,12 +110,6 @@ namespace hpl {
 	bool cSerializeClass::mbDataSetup = false;
 	tString cSerializeClass::msTempString = "";
 	char cSerializeClass::msTempCharArray[2048];
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC SERIALIZE CLASS METHODS
-	//////////////////////////////////////////////////////////////////////////
 
 	static bool gbLog=false;
 	static int glTabs=0;
@@ -162,8 +132,6 @@ namespace hpl {
 		glSerializeTempClassesNum++;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSerializeClass::SetLog(bool abX)
 	{
 		gbLog = abX;
@@ -173,8 +141,6 @@ namespace hpl {
 	{
 		return gbLog;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::PrintMembers(iSerializable* apData)
 	{
@@ -192,8 +158,6 @@ namespace hpl {
 				pField->mType, pField->mlOffset);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cSerializeClass::SaveToFile(iSerializable* apData, const tWString &asFile,const tString &asRoot)
 	{
@@ -225,9 +189,6 @@ namespace hpl {
 		hplDelete(pXmlDoc);
 		return bRet;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cSerializeClass::SaveToElement(iSerializable* apData,const tString &asName, TiXmlElement *apParent,
 										bool abIsPointer)
@@ -290,8 +251,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSerializeClass::LoadFromFile(iSerializable* apData, const tWString &asFile)
 	{
 		SetUpData();
@@ -328,8 +287,6 @@ namespace hpl {
 		hplDelete(pXmlDoc);
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::LoadFromElement(iSerializable* apData, TiXmlElement *apElement,
 											bool abIsPointer)
@@ -379,8 +336,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSerializeSavedClass * cSerializeClass::GetClass(const tString &asName)
 	{
 		SetUpData();
@@ -394,16 +349,12 @@ namespace hpl {
 		return &it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSerializeMemberFieldIterator cSerializeClass::GetMemberFieldIterator(iSerializable* apData)
 	{
 		cSerializeSavedClass *pClass = GetClass(apData->Serialize_GetTopClass());
 
 		return cSerializeMemberFieldIterator(pClass);
 	}
-
-	//-----------------------------------------------------------------------
 
 	#define ValueTypePointer(aObject, aOffset, aType)	(aType*)(((char*)aObject)+aOffset)
 	#define ValuePointer(aObject, aOffset)				(((char*)aObject)+aOffset)
@@ -415,7 +366,7 @@ namespace hpl {
 
 		switch(aType)
 		{
-			/////////// BOOL ////////////////////////////////
+			// BOOL
 			case eSerializeType_Bool:
 			{
 				if(PointerValue(pVal,bool)==0) return "false";
@@ -423,28 +374,28 @@ namespace hpl {
 				break;
 			}
 
-			/////////// INT 32 ////////////////////////////////
+			// INT 32
 			case eSerializeType_Int32:
 			{
 				sprintf(msTempCharArray, "%d", PointerValue(pVal,int));
 				return msTempCharArray; break;
 			}
 
-			/////////// FLOAT 32 ////////////////////////////////
+			// FLOAT 32
 			case eSerializeType_Float32:
 			{
 				sprintf(msTempCharArray, "%f", PointerValue(pVal,float));
 				return msTempCharArray; break;
 			}
 
-			/////////// STRING ////////////////////////////////
+			// STRING
 			case eSerializeType_String:
 			{
 				tString &sVal = PointerValue(pVal,tString);
 				return sVal.c_str(); break;
 			}
 
-			/////////// VECTOR 2L ////////////////////////////////
+			// VECTOR 2L
 			case eSerializeType_Vector2l:
 			{
 				cVector2l &vVec = PointerValue(pVal,cVector2l);
@@ -452,7 +403,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// VECTOR 2F ////////////////////////////////
+			// VECTOR 2F
 			case eSerializeType_Vector2f:
 			{
 				cVector2f &vVec = PointerValue(pVal,cVector2f);
@@ -460,7 +411,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// VECTOR 3L ////////////////////////////////
+			// VECTOR 3L
 			case eSerializeType_Vector3l:
 			{
 				cVector3l &vVec = PointerValue(pVal,cVector3l);
@@ -468,7 +419,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// VECTOR 3F ////////////////////////////////
+			// VECTOR 3F
 			case eSerializeType_Vector3f:
 			{
 				cVector3f &vVec = PointerValue(pVal,cVector3f);
@@ -476,7 +427,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// MATRIX F ////////////////////////////////
+			// MATRIX F
 			case eSerializeType_Matrixf:
 			{
 				cMatrixf &Mtx = PointerValue(pVal,cMatrixf);
@@ -491,7 +442,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// COLOR ////////////////////////////////
+			// COLOR
 			case eSerializeType_Color:
 			{
 				cColor Col = PointerValue(pVal,cColor);
@@ -499,7 +450,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// RECT 2L ////////////////////////////////
+			// RECT 2L
 			case eSerializeType_Rect2l:
 			{
 				cRect2l &vR = PointerValue(pVal,cRect2l);
@@ -507,7 +458,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// RECT 2F ////////////////////////////////
+			// RECT 2F
 			case eSerializeType_Rect2f:
 				{
 					cRect2f &vR = PointerValue(pVal,cRect2f);
@@ -515,7 +466,7 @@ namespace hpl {
 					return msTempCharArray; break;
 				}
 
-			/////////// PLANE F ////////////////////////////////
+			// PLANE F
 			case eSerializeType_Planef:
 			{
 				cPlanef &vP = PointerValue(pVal,cPlanef);
@@ -523,7 +474,7 @@ namespace hpl {
 				return msTempCharArray; break;
 			}
 
-			/////////// WSTRING ////////////////////////////////
+			// WSTRING
 			case eSerializeType_WString:
 			{
 				msTempString = "";
@@ -541,8 +492,6 @@ namespace hpl {
 		return "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSerializeClass::StringToValue(void* apData, size_t alOffset, eSerializeType aType,
 										const char* asVal)
 	{
@@ -550,33 +499,33 @@ namespace hpl {
 
 		switch(aType)
 		{
-			/////////// BOOL ////////////////////////////////
+			// BOOL
 			case eSerializeType_Bool:
 			{
 				PointerValue(pVal,bool) = cString::ToBool(asVal,false);
 				break;
 			}
 
-			////////// INT 32 ////////////////////////////////
+			// INT 32
 			case eSerializeType_Int32:
 			{
 				PointerValue(pVal,int) = cString::ToInt(asVal,0);
 				break;
 			}
-			////////// FLOAT 32 ////////////////////////////////
+			// FLOAT 32
 			case eSerializeType_Float32:
 			{
 				PointerValue(pVal,float) = cString::ToFloat(asVal,0);
 				break;
 			}
-			////////// STRING ////////////////////////////////
+			// STRING
 			case eSerializeType_String:
 			{
 				PointerValue(pVal,tString) = cString::ToString(asVal,"");
 				break;
 			}
 
-			/////////// VECTOR 2L ////////////////////////////////
+			// VECTOR 2L
 			case eSerializeType_Vector2l:
 			{
 				tIntVec vVals; vVals.reserve(2);
@@ -587,7 +536,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// VECTOR 2F ////////////////////////////////
+			// VECTOR 2F
 			case eSerializeType_Vector2f:
 			{
 				tFloatVec vVals; vVals.reserve(2);
@@ -598,7 +547,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// VECTOR 3L ////////////////////////////////
+			// VECTOR 3L
 			case eSerializeType_Vector3l:
 			{
 				tIntVec vVals; vVals.reserve(3);
@@ -609,7 +558,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// VECTOR 3F ////////////////////////////////
+			// VECTOR 3F
 			case eSerializeType_Vector3f:
 			{
 				tFloatVec vVals; vVals.reserve(3);
@@ -620,7 +569,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// MATRIX F ////////////////////////////////
+			// MATRIX F
 			case eSerializeType_Matrixf:
 			{
 				tFloatVec vVals; vVals.reserve(16);
@@ -631,7 +580,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// COLOR ////////////////////////////////
+			// COLOR
 			case eSerializeType_Color:
 			{
 				tFloatVec vVals; vVals.reserve(4);
@@ -642,7 +591,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// RECT 2L ////////////////////////////////
+			// RECT 2L
 			case eSerializeType_Rect2l:
 			{
 				tIntVec vVals; vVals.reserve(4);
@@ -653,7 +602,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// RECT 2F ////////////////////////////////
+			// RECT 2F
 			case eSerializeType_Rect2f:
 			{
 				tFloatVec vVals; vVals.reserve(4);
@@ -664,7 +613,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// PLANE 2F ////////////////////////////////
+			// PLANE 2F
 			case eSerializeType_Planef:
 			{
 				tFloatVec vVals; vVals.reserve(4);
@@ -675,7 +624,7 @@ namespace hpl {
 				break;
 			}
 
-			/////////// WSTRING ////////////////////////////////
+			// WSTRING
 			case eSerializeType_WString:
 			{
 				PointerValue(pVal,tWString) = cString::Get16BitFromArray(asVal);
@@ -684,14 +633,6 @@ namespace hpl {
 
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC SERIALIZE CLASS METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::SaveVariable(TiXmlElement *apElement, cSerializeMemberField *apField,
 										iSerializable* apData)
@@ -721,8 +662,6 @@ namespace hpl {
 			pVarElem->SetAttribute("val",ValueToString(apData,apField->mlOffset,apField->mType));
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::SaveArray(TiXmlElement *apElement, cSerializeMemberField *apField,
 									iSerializable* apData)
@@ -785,8 +724,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSerializeClass::SaveContainer(TiXmlElement *apElement, cSerializeMemberField *apField,
 		iSerializable* apData)
 	{
@@ -839,10 +776,6 @@ namespace hpl {
 		hplDelete(pContIt);
 	}
 
-
-	//-----------------------------------------------------------------------
-
-
 	void cSerializeClass::LoadVariable(TiXmlElement *apElement, iSerializable* apData,
 										cSerializeSavedClass *apClass)
 	{
@@ -857,8 +790,6 @@ namespace hpl {
 
 		StringToValue(apData, pField->mlOffset,type,sVal);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::LoadArray(TiXmlElement *apElement, iSerializable* apData,cSerializeSavedClass *apClass)
 	{
@@ -942,8 +873,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSerializeClass::LoadClass(TiXmlElement *apElement, iSerializable* apData,cSerializeSavedClass *apClass)
 	{
 		tString sName = cString::ToString(apElement->Attribute("name"),"");
@@ -957,8 +886,6 @@ namespace hpl {
 
 		LoadFromElement(pClassData,apElement);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::LoadClassPointer(TiXmlElement *apElement, iSerializable* apData,cSerializeSavedClass *apClass)
 	{
@@ -990,8 +917,6 @@ namespace hpl {
 
 		LoadFromElement(*pClassDataPtr,apElement);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSerializeClass::LoadContainer(TiXmlElement *apElement, iSerializable* apData,cSerializeSavedClass *apClass)
 	{
@@ -1086,8 +1011,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSerializeMemberField * cSerializeClass::GetMemberField(const tString &asName,cSerializeSavedClass* apClass)
 	{
 		cSerializeMemberFieldIterator classIt = cSerializeMemberFieldIterator(apClass);
@@ -1102,8 +1025,6 @@ namespace hpl {
 		Warning("Couldn't find member field '%s' in class '%s'\n",asName.c_str(), apClass->msName);
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	size_t cSerializeClass::SizeOfType(eSerializeType aType)
 	{
@@ -1128,9 +1049,6 @@ namespace hpl {
 		return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cSerializeClass::SetUpData()
 	{
 		if(mbDataSetup) return;
@@ -1145,16 +1063,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSerializeClass::FillSaveClassMembersList(tSerializeSavedClassList *apList, cSerializeSavedClass* apClass)
 	{
 		if(apClass==nullptr) return;
 		apList->push_back(apClass);
 		FillSaveClassMembersList(apList, GetClass(apClass->msParentName));
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

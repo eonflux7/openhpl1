@@ -30,18 +30,12 @@
 #include "core/GlobalInit.h"
 
 
-//////////////////////////////////////////////////////////////////////////
 // MELEE RAY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cMeleeRayCallback::Reset()
 {
 	mpClosestBody = nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
@@ -59,14 +53,7 @@ bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // HUD MODEL MELEE WEAPON
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_WeaponMelee)
 {
@@ -84,11 +71,8 @@ cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_Weapo
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 {
-	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("MELEE");
 	if(pMeleeElem==nullptr){
@@ -107,7 +91,6 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	
 	mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 
-	////////////////////////////////////////////////
 	//Go through the ATTACK elements.
 	TiXmlElement *pAttackElem = apRootElem->FirstChildElement("ATTACK");
 	for(; pAttackElem != nullptr; pAttackElem = pAttackElem->NextSiblingElement("ATTACK"))
@@ -155,17 +138,13 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 {
-	////////////////////////
 	//Idle and waiting for movement
 	if(mlAttackState<=1)
 	{
 		return false;
 	}
-	////////////////////
 	//Movement
 	else
 	{
@@ -220,8 +199,6 @@ bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeSte
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::OnAttackDown()
 {
 	if(mState == eHudModelState_Idle && mlAttackState ==0)
@@ -232,8 +209,6 @@ void cHudModel_WeaponMelee::OnAttackDown()
 		mbButtonDown = true;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::OnAttackUp()
 {
@@ -258,8 +233,6 @@ void cHudModel_WeaponMelee::OnAttackUp()
 	mbButtonDown = false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 {
 	float fMinMovement = 0.015f;
@@ -270,7 +243,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 	}
 	else
 	{
-		/////////////////////////////
 		//Check for charge
 		if(mlAttackState == 1)
 		{
@@ -386,16 +358,12 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::PlaySound(const tString &asSound)
 {
 	cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
 
 	pSoundHandler->PlayGui(asSound,false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::LoadExtraEntities()
 {
@@ -418,8 +386,6 @@ void cHudModel_WeaponMelee::LoadExtraEntities()
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::DestroyExtraEntities()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -430,8 +396,6 @@ void cHudModel_WeaponMelee::DestroyExtraEntities()
 			pWorld->DestroyShape(mvAttacks[i].mpCollider);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::PostSceneDraw()
 {
@@ -474,16 +438,12 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 																cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::IsAttacking()
 {
 	if(mlAttackState >1) return true;
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::ResetExtraData()
 {
@@ -501,14 +461,11 @@ void cHudModel_WeaponMelee::ResetExtraData()
 	mfPoseProgressRate = 1.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::Attack()
 {
 	mpInit->mbWeaponAttacking = true;
 	//Log("----------------- BEGIN ATTACK WITH WEAPON ------------ \n");
 
-	////////////////////////////////
 	//Set up
 	float fDamageRange = mvAttacks[mlCurrentAttack].mfDamageRange;	
 
@@ -545,7 +502,6 @@ void cHudModel_WeaponMelee::Attack()
 
 	tVector3fList lstPostions;
 
-	////////////////////////////////
 	//Iterate Enemies
 	tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
 	while(enemyIt.HasNext())
@@ -630,7 +586,6 @@ void cHudModel_WeaponMelee::Attack()
 	
 	std::set<iPhysicsBody*> m_setHitBodies;
 
-	////////////////////////////////
 	//Iterate bodies
 	float fClosestHitDist = 9999.0f;
 	cVector3f vClosestHitPos;
@@ -692,7 +647,6 @@ void cHudModel_WeaponMelee::Attack()
 		}
 	}
 
-	////////////////////////////////////////////
 	//Check with ray and see a closer material can be found.
 	{
 		float fAttackRange = mvAttacks[mlCurrentAttack].mfAttackRange;
@@ -722,7 +676,6 @@ void cHudModel_WeaponMelee::Attack()
 		}
 	}
 		
-	////////////////////////////////////////////
 	//Check the closest material and play sounds and effects depending on it.
 	if(pClosestHitMat)
 	{
@@ -751,7 +704,6 @@ void cHudModel_WeaponMelee::Attack()
 	}
 	//Log("----------------- END ATTACK WITH WEAPON ------------ \n");
 	
-	/////////////////////////
 	//Play hit sound
 	if(bHit)
 	{
@@ -768,8 +720,6 @@ void cHudModel_WeaponMelee::Attack()
 
 	mpInit->mbWeaponAttacking = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 {
@@ -827,5 +777,3 @@ void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 		pEntity->Damage(fDamage,mvAttacks[mlCurrentAttack].mlAttackStrength);
 	}
 }
-
-//-----------------------------------------------------------------------

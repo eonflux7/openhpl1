@@ -28,11 +28,7 @@
 #include "ui/Inventory.h"
 
 
-/////////////////////////////////////////////////////////////////////////
 // HUD MODEL THROW
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cHudModel_Throw::cHudModel_Throw() : iHudModel(ePlayerHandType_Throw)
 {
@@ -41,11 +37,8 @@ cHudModel_Throw::cHudModel_Throw() : iHudModel(ePlayerHandType_Throw)
 	mfChargeProgress = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 {
-	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("THROW");
 	if(pMeleeElem==nullptr){
@@ -70,23 +63,17 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 	msThrowSound = cString::ToString(pMeleeElem->Attribute("ThrowSound"),"");
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnStart()
 {
 	mbButtonDown = false;
 	mfChargeProgress = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::ResetExtraData()
 {
 	mbButtonDown = false;
 	mfChargeProgress = 0;
 }
-
-//-----------------------------------------------------------------------
 
 bool cHudModel_Throw::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 {
@@ -108,8 +95,6 @@ bool cHudModel_Throw::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnAttackDown()
 {
 	if(mState == eHudModelState_Idle)
@@ -124,8 +109,6 @@ void cHudModel_Throw::OnAttackDown()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnAttackUp()
 {
 	if(mbButtonDown == false) return;
@@ -139,7 +122,6 @@ void cHudModel_Throw::OnAttackUp()
 		pSoundHandler->PlayGui(msThrowSound,false,1.0f);
 	}
 
-	///////////////////////////////
 	//Create entity
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	
@@ -167,7 +149,6 @@ void cHudModel_Throw::OnAttackUp()
 
 	mpInit->mpPlayer->GetHidden()->UnHide();
 
-	//////////////////////
 	//Reset animations
 
 	mfChargeProgress = 0;
@@ -175,7 +156,6 @@ void cHudModel_Throw::OnAttackUp()
 	mfEquipProgress = -mfReloadTime;
 	mState = eHudModelState_Equip;
 
-	//////////////////////
 	//Decrease item amount
 	mpItem->AddCount(-1);
 	if(mpItem->GetCount()<=0)
@@ -188,11 +168,7 @@ void cHudModel_Throw::OnAttackUp()
 
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_Throw::OnMouseMove(const cVector2f &avMovement)
 {
 	return false;
 }
-
-//-----------------------------------------------------------------------

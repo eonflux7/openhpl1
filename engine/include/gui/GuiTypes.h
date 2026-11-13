@@ -25,8 +25,6 @@
 
 namespace hpl {
 
-	//--------------------------------
-
 	enum eGuiMouseButton
 	{
 		eGuiMouseButton_Left =		0x00000001,
@@ -34,8 +32,6 @@ namespace hpl {
 		eGuiMouseButton_Right	=	0x00000004,
 		eGuiMouseButton_LastEnum = 4
 	};
-
-	//--------------------------------
 
 	enum eGuiArrowKey
 	{
@@ -46,8 +42,6 @@ namespace hpl {
 		eGuiArrowKey_LastEnum
 	};
 
-	//--------------------------------
-
 	enum eGuiMaterial
 	{
 		eGuiMaterial_Diffuse,
@@ -57,8 +51,6 @@ namespace hpl {
 		eGuiMaterial_Modulative,
 		eGuiMaterial_LastEnum,
 	};
-
-	//--------------------------------
 
 	enum eWidgetType
 	{
@@ -78,8 +70,6 @@ namespace hpl {
 		eWidgetType_LastEnum,
 	};
 
-	//--------------------------------
-
 	enum eGuiSkinFont
 	{
 		eGuiSkinFont_Default,
@@ -88,9 +78,6 @@ namespace hpl {
 
 		eGuiSkinFont_LastEnum
 	};
-
-	//--------------------------------
-
 
 	enum eGuiSkinAttribute
 	{
@@ -107,16 +94,13 @@ namespace hpl {
 
 		eGuiSkinAttribute_LastEnum
 	};
-	//--------------------------------
 
 	enum eGuiSkinGfx
 	{
-		///////////////////////////////////
 		// Pointer
 		eGuiSkinGfx_PointerNormal,
 		eGuiSkinGfx_PointerText,
 
-		///////////////////////////////////
 		// Window
 		eGuiSkinGfx_WindowBorderRight,
 		eGuiSkinGfx_WindowBorderLeft,
@@ -131,7 +115,6 @@ namespace hpl {
 		eGuiSkinGfx_WindowLabel,
 		eGuiSkinGfx_WindowBackground,
 
-		///////////////////////////////////
 		// Frame
 		eGuiSkinGfx_FrameBorderRight,
 		eGuiSkinGfx_FrameBorderLeft,
@@ -145,25 +128,20 @@ namespace hpl {
 
 		eGuiSkinGfx_FrameBackground,
 
-		///////////////////////////////////
 		// Check Box
 		eGuiSkinGfx_CheckBoxEnabledUnchecked,
 		eGuiSkinGfx_CheckBoxEnabledChecked,
 		eGuiSkinGfx_CheckBoxDisabledUnchecked,
 		eGuiSkinGfx_CheckBoxDisabledChecked,
 
-
-		///////////////////////////////////
 		// Text Box
 		eGuiSkinGfx_TextBoxBackground,
 		eGuiSkinGfx_TextBoxSelectedTextBack,
 		eGuiSkinGfx_TextBoxMarker,
 
-		///////////////////////////////////
 		// List Box
 		eGuiSkinGfx_ListBoxBackground,
 
-		///////////////////////////////////
 		// Combo Box
 		eGuiSkinGfx_ComboBoxButtonIcon,
 
@@ -179,8 +157,6 @@ namespace hpl {
 
 		eGuiSkinGfx_ComboBoxBackground,
 
-
-		///////////////////////////////////
 		// Slider
 		eGuiSkinGfx_SliderVertArrowUp,
 		eGuiSkinGfx_SliderVertArrowDown,
@@ -190,7 +166,6 @@ namespace hpl {
 		eGuiSkinGfx_SliderHoriArrowDown,
 		eGuiSkinGfx_SliderHoriBackground,
 
-		///////////////////////////////////
 		// Button
 		eGuiSkinGfx_ButtonUpBorderRight,
 		eGuiSkinGfx_ButtonUpBorderLeft,
@@ -219,17 +194,12 @@ namespace hpl {
 		eGuiSkinGfx_LastEnum,
 	};
 
-	//---------------------------------------------
-
 	enum eWidgetSliderOrientation
 	{
 		eWidgetSliderOrientation_Horisontal,
 		eWidgetSliderOrientation_Vertical,
 		eWidgetSliderOrientation_LastEnum
 	};
-
-
-	//--------------------------------
 
 	enum eGuiMessage
 	{
@@ -259,10 +229,6 @@ namespace hpl {
 
 		eGuiMessage_LastEnum,
 	};
-
-
-	//--------------------------------
-
 
 	struct cGuiMessageData
 	{
@@ -295,9 +261,6 @@ namespace hpl {
 		eGuiMessage mMessage;
 	};
 
-	//--------------------------------
-
-
 	class iWidget;
 
 	typedef bool (*tGuiCallbackFunc)(void *,iWidget*,cGuiMessageData&);
@@ -319,21 +282,13 @@ namespace hpl {
 
 	#define kGuiCallback(FuncName) &FuncName##_static_gui
 
-	//--------------------------------
-
 	typedef std::list<iWidget*> tWidgetList;
 	typedef tWidgetList::iterator tWidgetListIt;
-
-	//--------------------------------
 
 	class cGuiGfxElement;
 
 	typedef std::list<cGuiGfxElement*> tGuiGfxElementList;
 	typedef tGuiGfxElementList::iterator tGuiGfxElementListIt;
-
-	//--------------------------------
-
-
 };
 
 #endif // HPL_GAME_TYPES_H

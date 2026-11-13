@@ -8,8 +8,6 @@
 
 namespace hpl {
 
-	//-----------------------------------------------------------------------
-
 	cGpuProfiler::cGpuProfiler()
 	{
 		mbInitialized = false;
@@ -28,8 +26,6 @@ namespace hpl {
 	cGpuProfiler::~cGpuProfiler()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGpuProfiler::Init()
 	{
@@ -51,8 +47,6 @@ namespace hpl {
 		mpLog = nullptr;
 		mbInitialized = false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGpuProfiler::BeginFrame()
 	{
@@ -99,8 +93,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGpuProfiler::Begin(const char *asName)
 	{
 		if(!mbInitialized) return;
@@ -135,8 +127,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGpuProfiler::CountDraw(GLenum aMode, int alVertices)
 	{
 		++mlDrawCalls;
@@ -144,14 +134,10 @@ namespace hpl {
 		else if(aMode == GL_TRIANGLE_FAN && alVertices > 2)	mlTriangles += alVertices - 2;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGpuProfiler::Mark(const std::string& asText)
 	{
 		mvFrames[mlFrame].msMark = asText;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGpuProfiler::Label(GLenum aIdentifier, GLuint alName, const std::string& asLabel)
 	{
@@ -160,8 +146,6 @@ namespace hpl {
 		std::string sLabel = asLabel.size() > 255 ? asLabel.substr(asLabel.size() - 255) : asLabel;
 		glObjectLabel(aIdentifier, alName, (GLsizei)sLabel.size(), sLabel.c_str());
 	}
-
-	//-----------------------------------------------------------------------
 
 	GLuint cGpuProfiler::NewQuery(cFrame &aFrame)
 	{
@@ -173,8 +157,6 @@ namespace hpl {
 		}
 		return aFrame.mvQueries[aFrame.mlQueriesUsed++];
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGpuProfiler::Collect(cFrame &aFrame)
 	{
@@ -245,7 +227,4 @@ namespace hpl {
 			fflush(mpLog);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

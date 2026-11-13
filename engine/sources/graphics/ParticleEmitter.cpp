@@ -27,11 +27,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// DATA LOADER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitterData::iParticleEmitterData(const tString &asName,cResources* apResources,
 											cGraphics *apGraphics)
@@ -44,8 +40,6 @@ namespace hpl {
 		mfWarmUpStepsPerSec = 20;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitterData::~iParticleEmitterData()
 	{
 		for(int i=0;i<(int)mvMaterials.size();i++)
@@ -53,20 +47,11 @@ namespace hpl {
 			if(mvMaterials[i]) mpResources->GetMaterialManager()->Destroy(mvMaterials[i]);
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitterData::AddMaterial(iMaterial *apMaterial)
 	{
 		mvMaterials.push_back(apMaterial);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitter::iParticleEmitter(tMaterialVec *avMaterials,
 									unsigned int alMaxParticles, cVector3f avSize,
@@ -94,22 +79,12 @@ namespace hpl {
 		mbUpdateBV = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitter::~iParticleEmitter()
 	{
 		for(int i=0;i<(int)mvParticles.size();i++){
 			hplDelete(mvParticles[i]);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter::Update(float afTimeStep)
 	{
@@ -120,8 +95,6 @@ namespace hpl {
 		mbUpdateBV = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter::KillInstantly()
 	{
 		mlMaxParticles = 0;
@@ -129,23 +102,12 @@ namespace hpl {
 		mbDying = true;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cParticle* iParticleEmitter::CreateParticle()
 	{
 		if(mlNumOfParticles == mlMaxParticles) return nullptr;
 		++mlNumOfParticles;
 		return mvParticles[mlNumOfParticles-1];
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter::SwapRemove(unsigned int alIndex)
 	{
@@ -157,7 +119,4 @@ namespace hpl {
 		}
 		mlNumOfParticles--;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -28,8 +28,6 @@ using namespace hpl;
 // moves by hand, with a state at each end of its travel. Written after the
 // games' binaries; the source was not released.
 
-//----------------------------------------------
-
 enum eGameLeverState
 {
 	eGameLeverState_Middle,
@@ -56,8 +54,6 @@ enum eGameLeverMovement
 	eGameLeverMovement_LastEnum
 };
 
-//----------------------------------------------
-
 class cGameLever_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameLever_SaveData);
@@ -71,8 +67,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//----------------------------------------------
 
 class cGameLever : public iGameEntity
 {
@@ -133,8 +127,6 @@ private:
 	eGameLeverMovement mMovementType;
 	float mfMovementValue;
 };
-
-//-----------------------------------------------------------------------
 
 class cEntityLoader_GameLever : public cEntityLoader_Object
 {

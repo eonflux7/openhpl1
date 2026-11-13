@@ -28,9 +28,6 @@ namespace hpl {
 	{
 	public:
 		float p, i ,d;
-		//////////////////////////////////////////
-		// Constructors
-		/////////////////////////////////////////
 		cPidController()
 		{
 			p = i = d = 0;
@@ -43,11 +40,8 @@ namespace hpl {
 			Reset();
 		}
 
-		//////////////////////////////////////////
 		// Public
-		/////////////////////////////////////////
 
-		//------------------------------------
 		T Output(T aError, float afTimeStep)
 		{
 			if(afTimeStep <= 0) return aError * p;
@@ -73,8 +67,6 @@ namespace hpl {
 			return mvErrors[mlLastNum]*p + integral*i + derivative*d;
 		}
 
-		//------------------------------------
-
 		void SetErrorNum(int alErrorNum)
 		{
 			if(alErrorNum < 1) alErrorNum = 1;
@@ -82,8 +74,6 @@ namespace hpl {
 			mvTimeSteps.resize(alErrorNum,0);
 			Reset();
 		}
-
-		//------------------------------------
 
 		void Reset()
 		{
@@ -94,8 +84,6 @@ namespace hpl {
 			integral = 0;
 			derivative = 0;
 		}
-
-		//------------------------------------
 
 		T GetLastError()
 		{
@@ -113,8 +101,6 @@ namespace hpl {
 			return integral;
 		}
 
-		//------------------------------------
-
 	private:
 		std::vector<T> mvErrors;
 		std::vector<float> mvTimeSteps;
@@ -124,8 +110,6 @@ namespace hpl {
 		int mlErrorNum;
 		int mlLastNum;
 	};
-
-	//---------------------------------
 
 	typedef cPidController<float> cPidControllerf;
 	typedef cPidController<cVector3f> cPidControllerVec3;

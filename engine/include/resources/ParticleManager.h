@@ -31,13 +31,8 @@ namespace hpl {
 	class cParticleSystem3D;
 	class cParticleSystemData3D;
 
-	//----------------------------------------------------
-
 	typedef std::map<tString, cParticleSystemData3D*> tParticleSystemData3DMap;
 	typedef tParticleSystemData3DMap::iterator tParticleSystemData3DMapIt;
-
-
-	//----------------------------------------------------
 
 	class cParticleManager : public iResourceManager
 	{

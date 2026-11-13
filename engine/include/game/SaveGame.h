@@ -44,7 +44,6 @@ class TiXmlElement;
 
 #define kSaveData_ClassInit(aClass) kSerializableClassInit(cSaveData_##aClass)
 
-//////////////////////////////////////////////
 //Helpers to copy data.
 #define kSaveData_SaveTo(aVar) pData->aVar = aVar;
 #define kSaveData_LoadFrom(aVar) aVar = pData->aVar;
@@ -63,9 +62,6 @@ class TiXmlElement;
 								aObject = static_cast<aClass>(apSaveObjectHandler->Get(pData->aId)); \
 							}
 
-
-
-//////////////////////////////////////////////
 //Helpers to copy containers with SaveDataId
 #define kSaveData_SaveIdList(aSrcList,aSrcIt,aDestList) \
 							pData->aDestList.Clear(); \
@@ -94,9 +90,6 @@ class TiXmlElement;
 
 namespace hpl {
 
-	//--------------------------------------------------------
-
-
 	class cSaveObjectHandler;
 	class iSaveObject;
 	class cGame;
@@ -120,10 +113,6 @@ namespace hpl {
 		  */
 		virtual int GetSaveCreatePrio()=0;
 	};
-
-
-
-	//--------------------------------------------------------
 
 	/**
 	* This is class is inherited by object that are to be saved.
@@ -170,8 +159,6 @@ namespace hpl {
 		static int _mlGlobalIdCount;
 	};
 
-	//---------------------------------------------------------
-
 	typedef std::multimap<int, iSaveObject*> tSaveObjectMap;
 	typedef tSaveObjectMap::iterator tSaveObjectMapIt;
 
@@ -203,8 +190,6 @@ namespace hpl {
 		tSaveObjectMap m_mapSaveObjects;
 	};
 
-	//---------------------------------------------------------
-
 	typedef std::multimap<int, iSaveData*> tSaveDataMap;
 	typedef tSaveDataMap::iterator tSaveDataMapIt;
 
@@ -234,8 +219,5 @@ namespace hpl {
 
 		tSaveDataMap m_mapSaveData;
 	};
-
-	//---------------------------------------------------------
-
 };
 #endif // HPL_SAVE_GAME_H

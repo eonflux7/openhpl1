@@ -31,9 +31,7 @@
 
 namespace hpl{
 
-	//////////////////////////////////////////////////////////////////////////
 	// STATIC DATA
-	//////////////////////////////////////////////////////////////////////////
 
 	tString cGLSLProgram::msShaderDir = "shaders/";
 	iLowLevelGraphics* cGLSLProgram::mpLowLevelGraphics = nullptr;
@@ -170,8 +168,6 @@ namespace hpl{
 
 	static const int kMaxSamplers = 8;
 
-	//-----------------------------------------------------------------------
-
 	static bool ReadTextFile(const tString& asPath, tString& asOut)
 	{
 		FILE *pFile = fopen(asPath.c_str(), "rb");
@@ -187,8 +183,6 @@ namespace hpl{
 
 		return lRead == (size_t)lSize;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Appends asFile with its #include "name" lines replaced by the named
 	// files from the shader directory, each file once. Every file gets its
@@ -258,12 +252,6 @@ namespace hpl{
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGLSLProgram::cGLSLProgram(tString asName, bool abState)
 	: iGpuProgram(asName)
 	{
@@ -288,14 +276,6 @@ namespace hpl{
 
 		if(mlMaterialBuffer) glDeleteBuffers(1, &mlMaterialBuffer);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGLSLProgram::InitPrograms(iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -360,8 +340,6 @@ namespace hpl{
 		return bChanged;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLSLProgram::Reload()
 	{
 		return CompileProgram();
@@ -374,8 +352,6 @@ namespace hpl{
 	void cGLSLProgram::Destroy()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asDefines)
 	{
@@ -394,8 +370,6 @@ namespace hpl{
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Compiles msBase with msDefines. On failure the current version, if
 	// any, is kept.
@@ -496,8 +470,6 @@ namespace hpl{
 		return bChanged;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLSLProgram::Bind(){ mpBoundProgram = this; }
 	void cGLSLProgram::UnBind(){ if(mpBoundProgram == this) mpBoundProgram = nullptr; }
 
@@ -528,8 +500,6 @@ namespace hpl{
 		return SetTextureToUnit(lUnit, apTexture);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLSLProgram::SetTextureToUnit(int alUnit, iTexture* apTexture)
 	{
 		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
@@ -539,14 +509,6 @@ namespace hpl{
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileShader(GLenum aStage, const tString& asFile, const tString& asDefines,
 										bool abState, std::vector<tString> *apFiles)
@@ -572,8 +534,6 @@ namespace hpl{
 
 		return CompileSource(aStage, sSource, sName, vFiles);
 	}
-
-	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileSource(GLenum aStage, tString asSource, const tString& asName,
 									const std::vector<tString>& avFiles)
@@ -676,6 +636,4 @@ namespace hpl{
 		glUseProgram(previous);
 		return lProgram;
 	}
-
-	//-----------------------------------------------------------------------
 }

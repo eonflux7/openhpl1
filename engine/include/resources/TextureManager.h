@@ -28,9 +28,6 @@ namespace hpl {
 	class cResources;
 	class iTexture;
 
-	//------------------------------------------------------
-
-
 	class cTextureManager : public iResourceManager
 	{
 	public:

@@ -25,12 +25,6 @@
 #include "systems/FadeHandler.h"
 #include "ui/Credits.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cEnding::cEnding(cInit *apInit)  : iUpdateable("Ending")
 {
 	mpInit = apInit;
@@ -41,19 +35,9 @@ cEnding::cEnding(cInit *apInit)  : iUpdateable("Ending")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cEnding::~cEnding()
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cEnding::Reset()
 {
@@ -78,16 +62,12 @@ void cEnding::Reset()
 	mfBlinkSpeed = 1;
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::OnPostSceneDraw()
 {
 	if(mbActive==false) return;
 
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::OnDraw()
 {
@@ -101,8 +81,6 @@ void cEnding::OnDraw()
 					_W("%ls"),kTranslate("Ending","MessageSent").c_str());
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::Update(float afTimeStep)
 {
@@ -218,13 +196,9 @@ void cEnding::Update(float afTimeStep)
 	UpdateText(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::OnExit()
 {
 }
-
-//-----------------------------------------------------------------------
 
 // A key or click shows the whole text, or skips the wait after it
 void cEnding::OnMouseDown(eMButton aButton)
@@ -251,8 +225,6 @@ void cEnding::OnButtonDown()
 	else
 		mfWaitElapsedSeconds = 1000;
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::SetActive(bool abActive, int alType)
 {
@@ -295,14 +267,6 @@ void cEnding::SetActive(bool abActive, int alType)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cEnding::SetCurrentText(const tString &asEntry)
 {
 	mvRows.clear();
@@ -317,8 +281,6 @@ void cEnding::SetCurrentText(const tString &asEntry)
 	mfTypeSoundDelaySeconds = 0;
 	mfCharacterDelaySeconds = 0;
 }
-
-//-----------------------------------------------------------------------
 
 // Type a character every 1/19 s, pausing before an empty row, with occasional key sounds.
 void cEnding::UpdateText(float afTimeStep)
@@ -353,8 +315,6 @@ void cEnding::UpdateText(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::DrawText()
 {
 	if(mbTextActive==false) return;
@@ -378,5 +338,3 @@ void cEnding::DrawText()
 		lCount += lRowLength;
 	}
 }
-
-//-----------------------------------------------------------------------

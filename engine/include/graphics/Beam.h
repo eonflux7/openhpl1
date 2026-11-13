@@ -36,8 +36,6 @@ namespace hpl {
 	class iMaterial;
 	class iVertexBuffer;
 
-	//------------------------------------------
-
 	class cBeam;
 	class cBeamEnd : public iEntity3D
 	{
@@ -50,7 +48,6 @@ namespace hpl {
 		void SetColor(const cColor &aColor);
 		const cColor& GetColor(){ return mColor;}
 
-		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "BeamEnd";}
 	private:
@@ -58,15 +55,11 @@ namespace hpl {
 		cBeam *mpBeam;
 	};
 
-	//------------------------------------------
-
 	class cBeamEnd_UpdateCallback : public iEntityCallback
 	{
 	public:
 		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
-
-	//------------------------------------------
 
 	class cBeam : public iRenderable
 	{
@@ -105,7 +98,6 @@ namespace hpl {
 		cVector3f GetAxis(){ return mvAxis;}
 		cVector3f GetMidPosition(){ return mvMidPosition;}
 
-		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "Beam";}
 

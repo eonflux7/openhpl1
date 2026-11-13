@@ -22,12 +22,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSDLBitmap2D::cSDLBitmap2D(iPixelFormat *apPxlFmt) : iBitmap2D("SDL",apPxlFmt)
 	{
 		mpSurface = nullptr;
@@ -55,20 +49,10 @@ namespace hpl {
 		SDL_DestroySurface(mpSurface);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cSDLBitmap2D::SaveToFile(const tString& asFile)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSDLBitmap2D::DrawToBitmap(iBitmap2D *apDest, const cVector2l &avDestPos)
 	{
@@ -102,8 +86,6 @@ namespace hpl {
 			}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSDLBitmap2D::FillRect(const cRect2l &aRect, const cColor &aColor)
 	{
 		SDL_Rect rect;
@@ -118,14 +100,10 @@ namespace hpl {
 		SDL_FillSurfaceRect(mpSurface, &rect,col);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSDLBitmap2D::HasAlpha()
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cSDLBitmap2D::Create(cVector2l avSize, unsigned int alBpp)
 	{
@@ -139,14 +117,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	SDL_Surface* cSDLBitmap2D::GetSurface()
 	{
 		return mpSurface;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void* cSDLBitmap2D::GetRawData()
 	{
@@ -157,7 +131,4 @@ namespace hpl {
 	{
 		return SDL_BYTESPERPIXEL(mpSurface->format);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -29,11 +29,7 @@ namespace hpl {
 	bool cMemoryManager::mbLogCreation = false;
 	int cMemoryManager::mlCreationCount =0;
 
-	//////////////////////////////////////////////////////////////////////////
 	// ALLOCATED POINTER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAllocatedPointer::cAllocatedPointer(void *apData,const std::string &asFile, int alLine, size_t alMemory)
 	{
@@ -42,15 +38,6 @@ namespace hpl {
 		mlLine = alLine;
 		mlMemory = alMemory;
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void* cMemoryManager::AddPointer(const cAllocatedPointer& aAllocatedPointer)
 	{
@@ -65,7 +52,6 @@ namespace hpl {
 
 		return aAllocatedPointer.mpData;
 	}
-	//-----------------------------------------------------------------------
 
 	bool cMemoryManager::RemovePointer(void *apData)
 	{
@@ -93,8 +79,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMemoryManager::LogResults()
 	{
@@ -143,14 +127,8 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMemoryManager::SetLogCreation(bool abX)
 	{
 		mbLogCreation = abX;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

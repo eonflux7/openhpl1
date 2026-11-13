@@ -27,11 +27,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // RAY CAST
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameItem_InViewRay::SetUp(iPhysicsBody *apSkipBody)
 {
@@ -55,13 +51,7 @@ bool cGameItem_InViewRay::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *ap
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameItem::cEntityLoader_GameItem(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -75,15 +65,11 @@ cEntityLoader_GameItem::~cEntityLoader_GameItem()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameItem::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -99,13 +85,11 @@ void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	pObject->SetMeshEntity(mpEntity);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
 		mvBodies[i]->SetUserData((void*)pObject);
 	}
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -140,13 +124,10 @@ void cEntityLoader_GameItem::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 		Error("Couldn't find game element for entity '%s'\n",mpEntity->GetName().c_str());
 	}
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 	mpInit->mpMapHandler->AddGameItem(pObject);
 }
-
-//-----------------------------------------------------------------------
 
 eGameItemType cEntityLoader_GameItem::ToItemType(const char* apString)
 {
@@ -172,16 +153,6 @@ eGameItemType cEntityLoader_GameItem::ToItemType(const char* apString)
 	return  eGameItemType_Normal;
 }
 
-//-----------------------------------------------------------------------
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameItem::cGameItem(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Item;
@@ -201,27 +172,15 @@ cGameItem::cGameItem(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mfExitFlashDist = 5;
 }
 
-//-----------------------------------------------------------------------
-
 cGameItem::~cGameItem(void)
 {
 	mpInit->mpMapHandler->RemoveGameItem(this);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameItem::OnWorldLoad()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cGameItem::OnPlayerPick()
 {
@@ -230,8 +189,6 @@ void cGameItem::OnPlayerPick()
 		mpInit->mpPlayer->SetCrossHairState(eCrossHairState_PickUp);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameItem::OnPlayerInteract()
 {
@@ -246,8 +203,6 @@ void cGameItem::TakeIntoInventory()
 
 	mbDestroyMe = true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameItem::IsInView(float afMaxDistance)
 {
@@ -284,15 +239,11 @@ bool cGameItem::IsInView(float afMaxDistance)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cGameItem::Update(float afTimeStep)
 {
 	if(mbActive==false) return;
 	if(mpInit->mbFlashItems == false) return;
 
-	//////////////////////////////////////
 	// Update flash
 	if(mfFlashDirection > 0 || mfFlashAlpha > 0)
 	{
@@ -315,7 +266,6 @@ void cGameItem::Update(float afTimeStep)
 			}
 		}
 	}
-	//////////////////////////////////////
 	// Check if player is near
 	else if(mbHasBeenFlashed == false)
 	{
@@ -343,7 +293,6 @@ void cGameItem::Update(float afTimeStep)
 			mfFlashDirection = 1;
 		}
 	}
-	//////////////////////////////////////
 	// Check if player is out of flash area.
 	else
 	{
@@ -369,8 +318,6 @@ void cGameItem::Update(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameItem::OnPostSceneDraw()
 {
@@ -401,43 +348,21 @@ void cGameItem::OnPostSceneDraw()
 	pLowGfx->SetDepthWriteActive(true);*/
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameItem_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbHasBeenFlashed,eSerializeType_Bool)
 kSerializeVar(mfEnterFlashDist, eSerializeType_Float32)
 kSerializeVar(mfExitFlashDist, eSerializeType_Float32)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameItem_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameItem::CreateSaveData()
 {
 	return hplNew( cGameItem_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameItem::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -449,8 +374,6 @@ void cGameItem::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mfExitFlashDist);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameItem::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -460,4 +383,3 @@ void cGameItem::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mfEnterFlashDist);
 	kCopyFromVar(pData,mfExitFlashDist);
 }
-//-----------------------------------------------------------------------

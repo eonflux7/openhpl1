@@ -28,12 +28,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iMaterial::iMaterial(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -89,17 +83,6 @@ namespace hpl {
 			if(program) mpProgramManager->Destroy(program);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
 	iTexture* iMaterial::GetTexture(eMaterialTexture aType)
 	{
 		if(mPicture==eMaterialPicture_Image){
@@ -113,8 +96,6 @@ namespace hpl {
 			return mvTexture[aType];
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	cRect2f iMaterial::GetTextureOffset(eMaterialTexture aType)
 	{
@@ -138,7 +119,4 @@ namespace hpl {
 
 		return SizeRect;
 	}
-
-
-	//-----------------------------------------------------------------------
 }

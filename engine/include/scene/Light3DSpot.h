@@ -27,8 +27,6 @@ namespace hpl {
 	class iTexture;
 	class cFrustum;
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iLight3D,cLight3DSpot)
 	{
 		kSaveData_ClassInit(cLight3DSpot)
@@ -42,8 +40,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//------------------------------------------
 
 	class cLight3DSpot : public iLight3D
 	{

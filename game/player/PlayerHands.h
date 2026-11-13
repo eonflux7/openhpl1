@@ -26,8 +26,6 @@ using namespace hpl;
 
 class cInit;
 
-//------------------------------------------------
-
 class cHudModelPose
 {
 public:
@@ -49,8 +47,6 @@ public:
 	cVector3f mvRot;
 };
 
-//------------------------------------------------
-
 enum eHudModelState
 {
 	eHudModelState_Idle,
@@ -58,13 +54,9 @@ enum eHudModelState
 	eHudModelState_Unequip
 };
 
-//------------------------------------------------
-
 cHudModelPose GetPoseFromElem(const tString &asName, TiXmlElement *apElem);
 
 cMatrixf InterpolatePosesToMatrix(float afT, const cHudModelPose& aPoseA, const cHudModelPose& aPoseB);
-
-//------------------------------------------------
 
 class iHudModel
 {
@@ -131,8 +123,6 @@ protected:
 	tString msNextModel;
 };
 
-//------------------------------------------------
-
 class cHudModel_Normal : iHudModel
 {
 	friend class cPlayerHands;
@@ -144,12 +134,8 @@ public:
 	void ResetExtraData() override{}
 };
 
-//------------------------------------------------
-
 typedef std::map<tString,iHudModel*> tHudModelMap;
 typedef tHudModelMap::iterator tHudModelMapIt;
-
-//------------------------------------------------
 
 class cPlayerHands : public iUpdateable
 {

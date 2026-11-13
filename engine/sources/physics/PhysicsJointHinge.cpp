@@ -27,18 +27,10 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_iPhysicsJointHinge, cSaveData_iPhysicsJoint)
 	kSerializeVar(mfMaxAngle, eSerializeType_Float32)
 	kSerializeVar(mfMinAngle, eSerializeType_Float32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_iPhysicsJointHinge::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -66,21 +58,15 @@ namespace hpl {
 		return pJoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_iPhysicsJointHinge::GetSaveCreatePrio()
 	{
 		return 1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsJointHinge::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsJointHinge, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJointHinge::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -90,8 +76,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfMinAngle);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointHinge::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsJointHinge);
@@ -100,12 +84,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mfMinAngle);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointHinge::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsJointHinge);
 	}
-
-	//-----------------------------------------------------------------------
 }

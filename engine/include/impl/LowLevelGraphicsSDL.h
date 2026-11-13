@@ -115,7 +115,7 @@ namespace hpl
 		void SaveNextFrameToPNG(const tString &asFile) override { mWindow.SaveNextFrameToPNG(asFile); }
 		void CaptureNextFrame(tFrameCapture aCapture) override { mWindow.CaptureNextFrame(std::move(aCapture)); }
 
-		/////////// MATRIX METHODS /////////////////////////
+		// MATRIX METHODS
 
 		using iLowLevelGraphics::SetDrawMatrices;
 		void SetDrawMatrices(const cDrawMatrices &aMatrices) override;
@@ -160,7 +160,7 @@ namespace hpl
 		cMatrixf CreateOrthoProjection(const cVector2f &avSize, float afMin, float afMax) override;
 		cMatrixf CreateVirtualOrthoProjection(float afMin, float afMax) override;
 
-		/////////// DRAWING METHODS /////////////////////////
+		// DRAWING METHODS
 
 		// OCCLUSION
 
@@ -257,7 +257,7 @@ namespace hpl
 		void FlushRendering() override;
 		void SwapBuffers() override;
 
-		///// SDL Specific ////////////////////////////
+		// SDL Specific
 
 		iBitmap2D *CreateBitmap2DFromSurface(SDL_Surface *apSurface, const tString &asType);
 

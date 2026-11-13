@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cCollideShapeNewton::cCollideShapeNewton(eCollideShapeType aType, const cVector3f &avSize,
 											cMatrixf* apOffsetMtx, NewtonWorld* apNewtonWorld,
 											iPhysicsWorld *apWorld)
@@ -56,7 +50,6 @@ namespace hpl {
 		else
 			m_mtxOffset = cMatrixf::Identity;
 
-		////////////////////////////////////////////
 		// Create Newton collision
 
 		switch(aType)
@@ -90,7 +83,6 @@ namespace hpl {
 		}
 		}
 
-		////////////////////////////////////////////
 		// Calculate Bounding volume and volume.
 		if(mType == eCollideShapeType_Box)
 		{
@@ -130,8 +122,6 @@ namespace hpl {
 		mBoundingVolume.SetTransform(m_mtxOffset);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cCollideShapeNewton::~cCollideShapeNewton()
 	{
 		//Release Newton Collision
@@ -144,14 +134,6 @@ namespace hpl {
 			mpWorld->DestroyShape(mvSubShapes[i]);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iCollideShape* cCollideShapeNewton::GetSubShape(int alIdx)
 	{
@@ -168,8 +150,6 @@ namespace hpl {
 		else
 			return 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cCollideShapeNewton::GetInertia(float afMass)
 	{
@@ -227,8 +207,6 @@ namespace hpl {
 		return vInertia;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCollideShapeNewton::CreateFromShapeVec(tCollideShapeVec &avShapes)
 	{
 		std::vector<NewtonCollision*> vNewtonColliders;
@@ -273,8 +251,6 @@ namespace hpl {
 		mBoundingVolume.SetLocalMinMax(vFinalMin, vFinalMax);
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCollideShapeNewton::CreateFromVertices(const unsigned int* apIndexArray, int alIndexNum,
 										const float *apVertexArray, int alVtxStride, int alVtxNum)
@@ -339,8 +315,4 @@ namespace hpl {
 		mBoundingVolume.AddArrayPoints(apVertexArray, alVtxNum);
 		mBoundingVolume.CreateFromPoints(alVtxStride);
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

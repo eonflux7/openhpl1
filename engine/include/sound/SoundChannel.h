@@ -34,9 +34,6 @@ namespace hpl {
 		virtual void OnPriorityRelease()=0;
 	};
 
-
-	//--------------------------------------------
-
 	class iSoundChannel
 	{
 	public:

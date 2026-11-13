@@ -65,13 +65,6 @@
 
 namespace hpl
 {
-
-	//////////////////////////////////////////////////////////////////////////
-	// HELPERS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	// Reads a string, number, boolean or array (its contents) of a glTF
 	// element's extras object.
 	static bool GetGltfExtra(const cgltf_extras &aExtras, const char *asKey, tString &asValue)
@@ -139,8 +132,6 @@ namespace hpl
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static bool GetGltfFloats(const cgltf_extras &aExtras, const char *asKey, tFloatVec &avValues)
 	{
 		tString sValue;
@@ -167,16 +158,12 @@ namespace hpl
 		return std::fabs(afA - afB) <= 1e-4f * std::max(1.0f, std::max(std::fabs(afA), std::fabs(afB)));
 	}
 
-	//-----------------------------------------------------------------------
-
 	static cQuaternion GltfQuaternion(const float *apXYZW)
 	{
 		cQuaternion q(apXYZW[3], apXYZW[0], apXYZW[1], apXYZW[2]);
 		q.Normalise();
 		return q;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// A rotation matrix (with possibly scaled axes) as a quaternion.
 	static cQuaternion RotationOf(const cMatrixf &a_mtxA)
@@ -194,8 +181,6 @@ namespace hpl
 		q.Normalise();
 		return q;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// The local transform of a glTF node as translation, rotation and scale
 	class cGltfTrs
@@ -243,8 +228,6 @@ namespace hpl
 		return trs;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static cMatrixf TrMatrix(const cVector3f &avTrans, const cQuaternion &aqRot)
 	{
 		cMatrixf mtx = cMath::MatrixQuaternion(aqRot);
@@ -252,15 +235,11 @@ namespace hpl
 		return mtx;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static tString GltfName(const char *asName, const char *asDefault, size_t alIndex)
 	{
 		if(asName && asName[0]) return asName;
 		return asDefault + cString::ToString((int)alIndex);
 	}
-
-	//-----------------------------------------------------------------------
 
 	static const cgltf_accessor *GetAttribute(const cgltf_primitive &aPrim, cgltf_attribute_type aType, int alIndex)
 	{
@@ -271,8 +250,6 @@ namespace hpl
 		}
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// The values of an animation sampler, read once.
 	class cGltfSamplerData
@@ -377,13 +354,7 @@ namespace hpl
 		return data;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// READER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cGltfSkinUse
 	{
@@ -423,8 +394,6 @@ namespace hpl
 
 		size_t Index(const cgltf_node *apNode) const { return (size_t)(apNode - mpData->nodes); }
 
-		//////////////////////////////
-
 		bool IsArmature(const cgltf_node *apNode) const
 		{
 			if(m_setJoints.count(apNode) || apNode->mesh || apNode->light) return false;
@@ -435,8 +404,6 @@ namespace hpl
 				if(m_setJoints.count(apNode->children[i])) return true;
 			return false;
 		}
-
-		//////////////////////////////
 
 		tString GetMaterial(const cgltf_material *apMaterial)
 		{
@@ -497,8 +464,6 @@ namespace hpl
 			m_mapMaterials[lIndex] = sId;
 			return sId;
 		}
-
-		//////////////////////////////
 
 		// Creates the geometry of a mesh primitive. Returns its id, "" if it
 		// cannot be used.
@@ -645,8 +610,6 @@ namespace hpl
 			return geom.msId;
 		}
 
-		//////////////////////////////
-
 		// A geometry without data, so special nodes made as empties (Blender)
 		// are found like Collada's _ref, _bb, _ps and _sound geometries.
 		tString AddEmptyGeometry(const tString &asId, const tString &asName)
@@ -657,8 +620,6 @@ namespace hpl
 			mpGeometries->push_back(geom);
 			return asId;
 		}
-
-		//////////////////////////////
 
 		// The id of the controller of a skinned geometry. The controllers are
 		// made once all nodes are there (CreateControllers).
@@ -738,8 +699,6 @@ namespace hpl
 			if(mpControllers) mpControllers->push_back(ctrl);
 		}
 
-		//////////////////////////////
-
 		tString GetLight(const cgltf_light *apLight)
 		{
 			size_t lIndex = (size_t)(apLight - mpData->lights);
@@ -783,8 +742,6 @@ namespace hpl
 			m_mapLights[lIndex] = light.msId;
 			return light.msId;
 		}
-
-		//////////////////////////////
 
 		// Sets a node's transform from its glTF transform, with the
 		// transform of a left out parent (armature) put in front.
@@ -830,8 +787,6 @@ namespace hpl
 			apNode->m_mtxTransform = mtx;
 			apNode->m_mtxWorldTransform = cMath::MatrixMul(apNode->pParent->m_mtxWorldTransform, mtx);
 		}
-
-		//////////////////////////////
 
 		void AddNode(const cgltf_node *apGltfNode, cColladaNode *apParent, const cMatrixf *apPre)
 		{
@@ -925,8 +880,6 @@ namespace hpl
 				AddNode(apGltfNode->children[i], pNode, nullptr);
 			}
 		}
-
-		//////////////////////////////
 
 		void AddAnimation(tColladaAnimationVec &avAnimations)
 		{
@@ -1077,13 +1030,7 @@ namespace hpl
 		}
 	};
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// LOADER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cMeshLoaderCollada::FillStructuresFromGltf(const tString &asFile,
 		tColladaImageVec *apColladaImageVec,
@@ -1175,8 +1122,6 @@ namespace hpl
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString cMeshLoaderCollada::GltfKeyHash(const tFloatVec &avTimes, const tFloatVec &avTrans, const tFloatVec &avRot)
 	{
 		uint64_t lHash = 14695981039346656037ull;
@@ -1198,8 +1143,6 @@ namespace hpl
 		return sBuf;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMeshLoaderCollada::GltfTransform(const float *apTrans, const float *apRotation, const float *apScale,
 		bool abScaleIsSeparate)
 	{
@@ -1207,8 +1150,6 @@ namespace hpl
 		if(abScaleIsSeparate == false) mtx = cMath::MatrixMul(mtx, cMath::MatrixScale(cVector3f(apScale[0], apScale[1], apScale[2])));
 		return mtx;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cColor cMeshLoaderCollada::GltfLightColor(const float *apColor, float afIntensity)
 	{
@@ -1222,8 +1163,6 @@ namespace hpl
 	{
 		return cMath::ToDeg(afOuterConeAngle * 2);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAnimationTrack *cMeshLoaderCollada::CreateBakedAnimTrack(cAnimation *apAnimation, cSkeleton *apSkeleton,
 		cColladaAnimation &aAnim)
@@ -1278,7 +1217,4 @@ namespace hpl
 
 		return pTrack;
 	}
-
-	//-----------------------------------------------------------------------
-
 } // namespace hpl

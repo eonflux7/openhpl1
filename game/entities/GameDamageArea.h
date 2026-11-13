@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//------------------------------------------
-
 class cGameDamageArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameDamageArea_SaveData);
@@ -43,8 +41,6 @@ public:
 		
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameDamageArea : public iGameEntity
 {
@@ -86,8 +82,6 @@ private:
 
 	float mfDamageDelaySeconds;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameDamageArea : public iArea3DLoader
 {

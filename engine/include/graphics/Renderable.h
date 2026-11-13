@@ -67,8 +67,6 @@ namespace hpl {
 		eRenderableType_LastEnum
 	};
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iEntity3D, iRenderable)
 	{
 		kSerializableClassInit(iRenderable)
@@ -77,8 +75,6 @@ namespace hpl {
 		bool mbRendered;
 		float mfZ;
 	};
-
-	//------------------------------------------
 
 	class iRenderable : public iEntity3D
 	{

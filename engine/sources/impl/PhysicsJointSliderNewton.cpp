@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointSliderNewton::cPhysicsJointSliderNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 		iPhysicsWorld *apWorld,const cVector3f &avPivotPoint, const cVector3f avPinDir)
@@ -53,20 +47,10 @@ namespace hpl {
 		mvPivotPoint = avPivotPoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointSliderNewton::~cPhysicsJointSliderNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointSliderNewton::SetMaxDistance(float afX)
 	{
@@ -87,8 +71,6 @@ namespace hpl {
 		return mfMinDistance;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointSliderNewton::GetVelocity()
 	{
 		float fSpeed = NewtonSliderGetJointVeloc(mpNewtonJoint);
@@ -105,8 +87,6 @@ namespace hpl {
 		return vForce;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsJointSliderNewton::GetDistance()
 	{
 		return NewtonSliderGetJointPosit(mpNewtonJoint);
@@ -115,14 +95,6 @@ namespace hpl {
 	{
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// How near a limit its stop holds, and how much of the way back to it
 	// that stop pulls in one step
@@ -213,6 +185,4 @@ namespace hpl {
 
 		return 0;
 	}
-	//-----------------------------------------------------------------------
-
 }

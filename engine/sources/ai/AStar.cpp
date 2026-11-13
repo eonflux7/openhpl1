@@ -29,11 +29,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// NODE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAStarNode::cAStarNode(cAINode *apAINode)
 	{
@@ -42,22 +38,11 @@ namespace hpl {
 		mpAINode = apAINode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAStarNodeCompare::operator()(cAStarNode* apNodeA,cAStarNode* apNodeB) const
 	{
 		if(apNodeA->mfCost != apNodeB->mfCost) return apNodeA->mfCost < apNodeB->mfCost;
 		return std::less<cAINode*>()(apNodeA->mpAINode, apNodeB->mpAINode);
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAStarHandler::cAStarHandler(cAINodeContainer *apContainer)
 	{
@@ -69,17 +54,7 @@ namespace hpl {
 		mpGoalNode = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAStarHandler::~cAStarHandler() = default;
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cAStarHandler::GetPath(const cVector3f& avStart, const cVector3f& avGoal,tAINodeList *apNodeList)
 	{
@@ -95,11 +70,9 @@ namespace hpl {
 
 		float fMaxHeight = mpContainer->GetMaxHeight()*1.5f;
 
-		////////////////////////////////////////////////
 		//Find nodes reachable from the start and goal position (use double 2*2 distance)
 		float fMaxDist = mpContainer->GetMaxEdgeDistance()*2; //float fMaxDist = mpContainer->GetMaxEdgeDistance()*mpContainer->GetMaxEdgeDistance()*4;
 
-		/////////////////////
 		//Check with Start
 		//Log(" Get Start\n");
 		cAINodeIterator startNodeIt =  mpContainer->GetNodeIterator(avStart,fMaxDist);
@@ -122,7 +95,6 @@ namespace hpl {
 		}
 		//Log(" Found start\n");
 
-		////////////////////////////////
 		//Check with Goal
 		//Log(" Get Goal\n");
 		cAINodeIterator goalNodeIt =  mpContainer->GetNodeIterator(avGoal,fMaxDist);
@@ -144,12 +116,9 @@ namespace hpl {
 		}
 		//Log(" Found goal\n");
 
-
-		////////////////////////////////////////////////
 		//Iterate the algorithm
 		IterateAlgorithm();
 
-		////////////////////////////////////////////////
 		//Check if goal was found, if so build path.
 		if(mpGoalNode)
 		{
@@ -171,14 +140,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cAStarHandler::IterateAlgorithm()
 	{
 		int lIterationCount=0;
@@ -187,7 +148,6 @@ namespace hpl {
 			cAStarNode *pNode = GetBestNode();
 			cAINode *pAINode = pNode->mpAINode;
 
-			//////////////////////
 			// Check if current node can reach goal
 			if(IsGoalNode(pAINode))
 			{
@@ -195,7 +155,6 @@ namespace hpl {
 				break;
 			}
 
-			/////////////////////
 			//Add nodes connected to current
 			int lEdgeCount = pAINode->GetEdgeNum();
 			for(int i=0; i< lEdgeCount; ++i)
@@ -211,9 +170,6 @@ namespace hpl {
 			++lIterationCount;
 		}
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cAStarHandler::AddOpenNode(cAINode *apAINode, cAStarNode *apParent, float afDistance)
 	{
@@ -232,8 +188,6 @@ namespace hpl {
 		m_setOpenList.insert(pNode);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAStarNode* cAStarHandler::GetBestNode()
 	{
 		auto it = m_setOpenList.begin();
@@ -241,8 +195,6 @@ namespace hpl {
 		m_setOpenList.erase(it);
 		return pNode;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cAStarHandler::Cost(float afDistance, cAINode *apAINode, cAStarNode *apParent)
 	{
@@ -256,15 +208,11 @@ namespace hpl {
 			return afDistance;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cAStarHandler::Heuristic(const cVector3f& avStart, const cVector3f& avGoal)
 	{
 		//return cMath::Vector3DistSqr(avStart, avGoal);
 		return cMath::Vector3Dist(avStart, avGoal);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAStarHandler::IsGoalNode(cAINode *apAINode)
 	{
@@ -273,6 +221,4 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 }

@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cUpdater::cUpdater(iLowLevelSystem *apLowLevelSystem)
 	{
 		mpCurrentUpdates = nullptr;
@@ -36,19 +30,9 @@ namespace hpl {
 		mpLowLevelSystem = apLowLevelSystem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cUpdater::~cUpdater()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnInterpolate(float afT)
 	{
@@ -65,7 +49,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnDraw()
 	{
@@ -82,7 +65,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnPostSceneDraw()
 	{
@@ -116,8 +98,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cUpdater::OnPostBufferSwap()
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
@@ -133,8 +113,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnStart()
 	{
@@ -156,8 +134,6 @@ namespace hpl {
 			ContIt++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::Reset()
 	{
@@ -185,8 +161,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cUpdater::OnExit()
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
@@ -210,8 +184,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cUpdater::Update(float afTimeStep)
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
@@ -232,9 +204,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	bool cUpdater::SetContainer(tString asContainer)
 	{
@@ -262,8 +231,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cUpdater::AddContainer(tString asName)
 	{
 		//Create the value for the map with key and Updateable
@@ -274,8 +241,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cUpdater::AddUpdate(tString asContainer, iUpdateable* apUpdate)
 	{
@@ -294,23 +259,9 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cUpdater::AddGlobalUpdate(iUpdateable* apUpdate)
 	{
 		mlstGlobalUpdateableList.push_back(apUpdate);
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-
-	//-----------------------------------------------------------------------
 }

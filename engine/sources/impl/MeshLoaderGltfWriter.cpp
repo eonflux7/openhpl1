@@ -50,11 +50,7 @@
 namespace hpl
 {
 
-	//////////////////////////////////////////////////////////////////////////
 	// JSON AND BUFFER HELPERS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	static tString JsonString(const tString &asText)
 	{
@@ -156,8 +152,6 @@ namespace hpl
 		return sOut + "]";
 	}
 
-	//-----------------------------------------------------------------------
-
 #define kGltfFloat 5126
 #define kGltfUInt 5125
 #define kGltfUShort 5123
@@ -218,8 +212,6 @@ namespace hpl
 		}
 	};
 
-	//-----------------------------------------------------------------------
-
 	// glTF stores matrices column by column
 	static void MatrixToGltf(const cMatrixf &a_mtxA, float *apOut)
 	{
@@ -263,14 +255,6 @@ namespace hpl
 		return QuaternionOf(mtx);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderCollada::LoadData(const tString &asFile, cColladaData &aData)
 	{
 		return FillStructures(asFile, &aData.mvImages, &aData.mvTextures, &aData.mvMaterials,
@@ -278,15 +262,11 @@ namespace hpl
 			&aData.mvAnimations, &aData.mScene, false);
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString cMeshLoaderCollada::GetGeometryMaterialFile(cColladaData &aData, const cColladaGeometry &aGeometry)
 	{
 		if(aGeometry.msMaterial == "") return "";
 		return GetMaterialTextureFile(aGeometry.msMaterial, aData.mvMaterials, aData.mvTextures, aData.mvImages);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAnimation *cMeshLoaderCollada::CreateAnimation(cColladaData &aData, bool abRestPoses, cSkeleton **apSkeleton)
 	{
@@ -314,8 +294,6 @@ namespace hpl
 		return pAnimation;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderCollada::SaveGltf(cColladaData &aData, const tString &asFile, const tString &asSourceName,
 		tStringVec *apWarnings)
 	{
@@ -324,7 +302,6 @@ namespace hpl
 
 		cGltfBuffer buffer;
 
-		////////////////////////////////////
 		// Nodes, in the order of the scene
 		std::vector<cColladaNode *> vNodes;
 		std::map<cColladaNode *, int> mapNodeIndex;
@@ -359,7 +336,6 @@ namespace hpl
 			}
 		}
 
-		////////////////////////////////////
 		// Materials
 		tStringVec vMaterials, vTextures, vImages;
 		std::map<tString, int> mapMaterialIndex, mapImageIndex;
@@ -412,7 +388,6 @@ namespace hpl
 			return lIndex;
 		};
 
-		////////////////////////////////////
 		// Meshes (one per geometry and bind shape)
 		tStringVec vMeshes;
 		std::map<std::pair<tString, const cColladaController *>, int> mapMeshIndex;
@@ -536,7 +511,6 @@ namespace hpl
 			return lIndex;
 		};
 
-		////////////////////////////////////
 		// Skins
 		tStringVec vSkins;
 		std::map<const cColladaController *, int> mapSkinIndex;
@@ -568,7 +542,6 @@ namespace hpl
 			return lIndex;
 		};
 
-		////////////////////////////////////
 		// Lights
 		tStringVec vLights;
 		std::map<tString, int> mapLightIndex;
@@ -625,7 +598,6 @@ namespace hpl
 			return lIndex;
 		};
 
-		////////////////////////////////////
 		// Meshes, lights and skins in the order of the loader's data: the
 		// reader makes them in the order of the file, and the loader makes sub
 		// meshes, lights and bind poses in that order.
@@ -656,7 +628,6 @@ namespace hpl
 				}
 		}
 
-		////////////////////////////////////
 		// The nodes
 		tStringVec vNodeJson;
 		std::vector<int> vRoots;
@@ -779,7 +750,6 @@ namespace hpl
 			vNodeJson.push_back(JsonObject(vMembers));
 		}
 
-		////////////////////////////////////
 		// The animation, as the engine's keys
 		tStringVec vAnimations;
 		{
@@ -873,7 +843,6 @@ namespace hpl
 			if(pSkeleton) hplDelete(pSkeleton);
 		}
 
-		////////////////////////////////////
 		// The document
 		const tString sType = cString::ToLowerCase(cString::GetFileExt(asFile));
 		const bool bBinary = sType != "gltf";
@@ -945,6 +914,4 @@ namespace hpl
 		if(bOk == false) Error("Couldn't write '%s'\n", asFile.c_str());
 		return bOk;
 	}
-
-	//-----------------------------------------------------------------------
 } // namespace hpl

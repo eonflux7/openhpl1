@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMouseSDL::cMouseSDL(cLowLevelInputSDL *apLowLevelInputSDL,iLowLevelGraphics *apLowLevelGraphics) : iMouse("SDL Portable Mouse")
 	{
 		mfMaxPercent = 0.7f;
@@ -50,14 +44,6 @@ namespace hpl {
 		mbWheelUpMoved = false;
 		mbWheelDownMoved = false;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cMouseSDL::Update()
 	{
@@ -115,14 +101,10 @@ namespace hpl {
 		mvMouseRelPos += vRelMotion*fVirtualScale;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMouseSDL::ButtonIsDown(eMButton mButton)
 	{
 		return mvMButtonArray[mButton];
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f cMouseSDL::GetAbsPosition()
 	{
@@ -131,8 +113,6 @@ namespace hpl {
 
 		return vPos;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f cMouseSDL::GetRelPosition()
 	{
@@ -172,8 +152,6 @@ namespace hpl {
 		return vNew;*/
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f cMouseSDL::GetPendingRelPosition()
 	{
 		// The motion is the debug overlay's
@@ -199,8 +177,6 @@ namespace hpl {
 		return vRelMotion*fVirtualScale;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMouseSDL::Reset()
 	{
 		mlstMouseCoord.clear();
@@ -212,8 +188,6 @@ namespace hpl {
 		SDL_GetRelativeMouseState(&fX, &fY);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMouseSDL::SetSmoothProperties(float afMinPercent,
 		float afMaxPercent,unsigned int alBufferSize)
 	{
@@ -221,15 +195,4 @@ namespace hpl {
 		mfMinPercent = afMinPercent;
 		mlBufferSize = alBufferSize;
 	}
-
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

@@ -23,16 +23,12 @@
 
 namespace hpl {
 
-	//----------------------------------------------------
-
 	class cEnvMapReflect_SetUp : public iMaterialProgramSetup
 	{
 	public:
 		void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings) override;
 		void SetupMatrix(cMatrixf *apModelMatrix, cRenderSettings* apRenderSettings) override;
 	};
-
-	//----------------------------------------------------
 
 	class cMaterial_EnvMap_Reflect : public iMaterial
 	{

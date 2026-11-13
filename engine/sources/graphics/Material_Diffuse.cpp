@@ -21,12 +21,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_Diffuse::cMaterial_Diffuse(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -39,25 +33,15 @@ namespace hpl {
 		mbUseNormalMap = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Diffuse::~cMaterial_Diffuse()
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 	cMaterialType_Diffuse::cMaterialType_Diffuse()
 	{
 		mlTechLevel =0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iMaterial* cMaterialType_Diffuse::Create(const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 										cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -68,6 +52,4 @@ namespace hpl {
 								apImageManager,apTextureManager,
 								apProgramManager,aPicture,apRenderer3D) );
 	}
-
-	//-----------------------------------------------------------------------
 }

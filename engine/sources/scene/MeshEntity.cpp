@@ -53,12 +53,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMeshEntity::cMeshEntity(const tString asName,cMesh* apMesh, cMaterialManager* apMaterialManager,
 							cMeshManager* apMeshManager, cAnimationManager *apAnimationManager) :
 	iRenderable(asName)
@@ -100,7 +94,6 @@ namespace hpl {
 		mbInterpolateCut = false;
 		mbInterpolatePoseApplied = false;
 
-		////////////////////////////////////////////////
 		//Create sub entities
 		for(int i=0;i<mpMesh->GetSubMeshNum();i++)
 		{
@@ -135,7 +128,6 @@ namespace hpl {
 			//									mBoundingVolume.GetMax().ToString().c_str());
 		}
 
-		////////////////////////////////////////////////
 		//Create animation states
 		mvAnimationStates.reserve( mpMesh->GetAnimationNum());
 		for(int i=0; i<  mpMesh->GetAnimationNum(); i++)
@@ -150,7 +142,6 @@ namespace hpl {
 			m_mapAnimationStateIndices.insert(value);
 		}
 
-		////////////////////////////////////////////////
 		// Create Nodes
 		mbHasNodes = false;
 		if(	mpMesh->GetNodeNum()>0 &&
@@ -228,7 +219,6 @@ namespace hpl {
 			UpdateBVFromSubs();
 		}
 
-		////////////////////////////////////////////////
 		// Create Joint Nodes
 		// These are created to support joints.
 		else if(mpMesh->GetPhysicsJointNum()>0 || mpMesh->HasSeveralBodies())
@@ -260,7 +250,6 @@ namespace hpl {
 			UpdateBVFromSubs();
 		}
 
-		////////////////////////////////////////////////
 		// Create Skeleton
 
 		//Create the node states from skeleton
@@ -361,7 +350,6 @@ namespace hpl {
 			}
 		}
 
-		////////////////////////////////////////////////////
 		//If it has no nodes, attach the sub entities to the
 		//main mesh
 		if(mbHasNodes == false)
@@ -372,8 +360,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshEntity::~cMeshEntity()
 	{
@@ -401,11 +387,7 @@ namespace hpl {
 		STLDeleteAll(mvAnimationStates);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// ROOT NODE UDPATE CALLBACK
-	//////////////////////////////////////////////////////////////////////////
 
 	void cMeshEntityRootNodeUpdate::OnTransformUpdate(iEntity3D * apEntity)
 	{
@@ -413,13 +395,6 @@ namespace hpl {
 
 		pMeshEntity->mpRootNode->SetMatrix(apEntity->GetWorldMatrix());
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
 
 	//Ths functions sets the matrices of the bones according the matrices of
 	//the body that is attached to each bone.
@@ -458,8 +433,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	//int glDebugTabs=0;
 	void cMeshEntity::UpdateNodeMatrixRec(const cMatrixf& a_mtxParentWorld,cNode3D *apNode)
 	{
@@ -485,15 +458,12 @@ namespace hpl {
 		//glDebugTabs--;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshEntity::UpdateLogic(float afTimeStep)
 	{
 		//LogUpdate("---- Start mesh update ----------------------\n");
 
 		//if(!IsStatic()){START_TIMING_TAB(Skeleton);}
 
-		/////////////////////////////////////////////////////
 		//If not rendered the previous frame then we do not update as often.
 		bool bRegularUpdate = GetGlobalRenderCount() == cRenderList::GetGlobalRenderCount();
 
@@ -550,7 +520,6 @@ namespace hpl {
 		}
 		//if(cString::GetLastStringPos(msName, "infected")>=0) LogUpdate("   do stuff\n");
 
-		/////////////////////////////////////////////
 		//Keep the pose before this step for frames drawn until the next one.
 		//An update with the time of several steps is not blended.
 		mlInterpolateStep = 0;
@@ -559,7 +528,6 @@ namespace hpl {
 			StoreInterpolationPose();
 		}
 
-		/////////////////////////////////////////////
 		//Update the skeleton physics fade
 		if(mbSkeletonPhysicsFading && mbSkeletonPhysics)
 		{
@@ -573,7 +541,6 @@ namespace hpl {
 		}
 
 		//LogUpdate(" -skeleton physics\n");
-		/////////////////////////////////////////////
 		//Check if all bodies connected to the skeleton is at rest,
 		//If so we can skip skinning the body and simply just use the mesh as is.
 		//(has some problems so turned off at the moment)
@@ -598,11 +565,8 @@ namespace hpl {
 
 		//if(!IsStatic()){STOP_TIMING_TAB(Skeleton);}
 
-
-		/////////////////////////////////////////////
 		//Update animations
 
-		//////////////////////////////////////
 		// Check if it has nodes, then use special animation update,
 		// else it as skepetn which needs another update.
 		if(mbHasNodes)
@@ -617,7 +581,6 @@ namespace hpl {
 				}
 			}
 
-			/////////////////////////
 			//Go through all animations states and set the node's
 			//temporary states
 			bool bAnimated = false;
@@ -649,7 +612,6 @@ namespace hpl {
 
 			}
 
-			//////////////////////
 			//Go through all states and update the matrices (and thereby adding the animations together).
 			if(mvAnimationStates.size()>0 && bAnimated)
 			{
@@ -662,7 +624,6 @@ namespace hpl {
 				}
 			}
 
-			//////////////////////
 			//Call callback to be run after animation
 			if(mpCallback)mpCallback->AfterAnimationUpdate(this,afTimeStep);
 
@@ -671,13 +632,11 @@ namespace hpl {
 			//Update the entity transform, this so that the portal info, attached entities, callbacks and stuff is updated.
 			SetTransformUpdated(true);
 		}
-		//////////////////////////////////////
 		// If the entity has a skeleton:
 		else if(mpMesh->GetSkeleton())
 		{
 			//if(!IsStatic()){START_TIMING_TAB(Animation);}
 
-			////////////////////////
 			//Check if it is animated
 			bool bAnimationActive = false;
 			for(size_t i=0; i< mvAnimationStates.size(); i++)
@@ -688,7 +647,6 @@ namespace hpl {
 				}
 			}
 
-			//////////
 			//Reset all bones states
 			//LogUpdate(" -reset bones\n");
 			if(	bAnimationActive || mbUpdatedBones == false || (mbSkeletonPhysics && !mbSkeletonPhysicsSleeping))
@@ -712,7 +670,6 @@ namespace hpl {
 				}
 			}
 
-			///////////////////////////
 			// Update skeleton physics
 			//LogUpdate(" -reset physics again\n");
 			if(	mbSkeletonPhysics && (!mbSkeletonPhysicsSleeping || mbUpdatedBones==false))
@@ -744,7 +701,6 @@ namespace hpl {
 			//if(!IsStatic()){STOP_TIMING_TAB(Animation);}
 
 			//if(!IsStatic()){START_TIMING_TAB(Bones);}
-			//////////////////////////////////
 			//Go through all animations states and update the bones
 			//LogUpdate(" -animation states\n");
 			for(size_t i=0; i< mvAnimationStates.size(); i++)
@@ -777,7 +733,6 @@ namespace hpl {
 			//if(!IsStatic()){STOP_TIMING_TAB(Bones);}
 
 			//if(!IsStatic()){START_TIMING_TAB(States);}
-			//////////////////////////////////
 			//Go through all states and update the matrices (and thereby adding the animations together).
 			//LogUpdate(" -Bone update\n");
 			if(bAnimationActive)
@@ -795,7 +750,6 @@ namespace hpl {
 			//if(!IsStatic()){STOP_TIMING_TAB(States);}
 
 			//if(!IsStatic()){START_TIMING_TAB(Colliders);}
-			//////////////////////////////////
 			//Update the colliders if they are active
 			//Note this must be done after all bone states are updated.
 			//LogUpdate(" -Colliders\n");
@@ -818,7 +772,6 @@ namespace hpl {
 			//Call callback
 			if(mpCallback)mpCallback->AfterAnimationUpdate(this,afTimeStep);
 
-			///////////////////////////
 			//Update bounding volume
 			//LogUpdate(" -BV update\n");
 			UpdateBVFromSubs();
@@ -828,7 +781,6 @@ namespace hpl {
 		}
 
 		//if(!IsStatic()){START_TIMING_TAB(SubEntities);}
-		/////////////////////////////////////////
 		/// Update sub entities
 		//LogUpdate(" -Subs\n");
 		for(size_t i=0; i<mvSubMeshes.size(); ++i)
@@ -839,8 +791,6 @@ namespace hpl {
 		}
 		//if(!IsStatic()){STOP_TIMING_TAB(SubEntities);}
 
-
-		/////////////////////////////////////////
 		/// Update animation events
 		for(size_t i=0; i< mvAnimationStates.size(); ++i)
 		{
@@ -862,8 +812,6 @@ namespace hpl {
 		//LogUpdate("---- End mesh update ----------------------\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAnimationState* cMeshEntity::AddAnimation(cAnimation *apAnimation,const tString &asName, float afBaseSpeed)
 	{
 		cAnimationState* pAnimState = hplNew( cAnimationState, (apAnimation,asName,mpAnimationManager) );
@@ -882,8 +830,6 @@ namespace hpl {
 	{
 		STLDeleteAll(mvAnimationStates);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAnimationState* cMeshEntity::GetAnimationState(int alIndex)
 	{
@@ -917,8 +863,6 @@ namespace hpl {
 	{
 		return (int)mvAnimationStates.size();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshEntity::Play(int alIndex,bool abLoop, bool bStopPrev)
 	{
@@ -954,8 +898,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBoneState* cMeshEntity::GetBoneState(int alIndex)
 	{
 		return mvBoneStates[alIndex];
@@ -990,8 +932,6 @@ namespace hpl {
 	{
 		return (int)mvBoneStates.size();
 	}
-
-	//----------------------------------------------------------------------
 
 	void cMeshEntity::SetSkeletonPhysicsActive(bool abX)
 	{
@@ -1034,8 +974,6 @@ namespace hpl {
 		return mbSkeletonPhysics;
 	}
 
-	//----------------------------------------------------------------------
-
 	void cMeshEntity::FadeSkeletonPhysicsWeight(float afTime)
 	{
 		if(mbSkeletonPhysics)
@@ -1054,9 +992,6 @@ namespace hpl {
 		}
 	}
 
-	//----------------------------------------------------------------------
-
-
 	float cMeshEntity::GetSkeletonPhysicsWeight()
 	{
 		return mfSkeletonPhysicsWeight;
@@ -1065,8 +1000,6 @@ namespace hpl {
 	{
 		mfSkeletonPhysicsWeight = afX;
 	}
-
-	//----------------------------------------------------------------------
 
 	void cMeshEntity::SetSkeletonCollidersActive(bool abX)
 	{
@@ -1090,8 +1023,6 @@ namespace hpl {
 		return mbSkeletonColliders;
 	}
 
-	//----------------------------------------------------------------------
-
 	void cMeshEntity::AlignBodiesToSkeleton(bool abCalculateSpeed)
 	{
 		for(int bone =0; bone< GetBoneStateNum(); ++bone)
@@ -1111,8 +1042,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//----------------------------------------------------------------------
 
 	cMatrixf cMeshEntity::CalculateTransformFromSkeleton(cVector3f *apPosition,cVector3f *apAngles)
 	{
@@ -1147,8 +1076,6 @@ namespace hpl {
 
 		return mtxTransform;
 	}
-
-	//----------------------------------------------------------------------
 
 	bool cMeshEntity::CheckColliderShapeCollision(iPhysicsWorld *apWorld,
 						iCollideShape *apShape, const cMatrixf &a_mtxShape,
@@ -1185,8 +1112,6 @@ namespace hpl {
 		return bCollision;
 	}
 
-	//----------------------------------------------------------------------
-
 	void cMeshEntity::ResetGraphicsUpdated()
 	{
 		for(size_t i=0; i< mvSubMeshes.size(); ++i)
@@ -1195,8 +1120,6 @@ namespace hpl {
 		}
 		mbUpdatedBones = false;
 	}
-
-	//----------------------------------------------------------------------
 
 	cNode3D* cMeshEntity::GetNodeState(int alIndex)
 	{
@@ -1233,9 +1156,6 @@ namespace hpl {
 		return (int)mvNodeStates.size();
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cMeshEntity::SetCastsShadows(bool abX)
 	{
 		if(abX == mbCastShadows)return;
@@ -1246,8 +1166,6 @@ namespace hpl {
 			mvSubMeshes[i]->SetCastsShadows(abX);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSubMeshEntity* cMeshEntity::GetSubMeshEntity(unsigned int alIdx)
 	{
@@ -1268,8 +1186,6 @@ namespace hpl {
 	{
 		return (int)mvSubMeshes.size();
 	}
-
-	//-----------------------------------------------------------------------
 
 	// A node moving further than this relative to its parent in one step
 	// jumps there; the pose is not blended.
@@ -1400,8 +1316,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshEntity::AttachEntityToParent(iEntity3D *apEntity, const tString& asParent)
 	{
 		mlstAttachedEntities.push_back(apEntity);
@@ -1448,8 +1362,6 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshEntity::SetRendered(bool abX)
 	{
 		if(abX == mbRendered) return;
@@ -1464,35 +1376,25 @@ namespace hpl {
 		mlStartSleepCount = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMaterial *cMeshEntity::GetMaterial()
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iVertexBuffer* cMeshEntity::GetVertexBuffer()
 	{
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshEntity::IsShadowCaster()
 	{
 		return mbCastShadows;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBoundingVolume* cMeshEntity::GetBoundingVolume()
 	{
 		return &mBoundingVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf*  cMeshEntity::GetModelMatrix(cCamera3D *apCamera)
 	{
@@ -1500,27 +1402,15 @@ namespace hpl {
 		return &mtxTemp;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cMeshEntity::GetMatrixUpdateCount()
 	{
 		return GetTransformUpdateCount();
 	}
 
-	//-----------------------------------------------------------------------
-
 	eRenderableType cMeshEntity::GetRenderType()
 	{
 		return eRenderableType_Mesh;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIAVTE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cMeshEntity::HandleAnimationEvent(cAnimationEvent *apEvent)
 	{
@@ -1549,17 +1439,13 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshEntity::UpdateBVFromSubs()
 	{
-		/////////////////////////////////////
 		//Skeleton
 		if(mpMesh->GetSkeleton())
 		{
 			if(mvBoneStates.empty())
 			{
-				////////////////////////////////
 				//Using vertices
 
 				//Go through all the sub meshes and build BV from vertices.
@@ -1576,7 +1462,6 @@ namespace hpl {
 			}
 			else
 			{
-				////////////////////////////////
 				//Using bones
 				cVector3f vMin = mvBoneStates[0]->GetWorldPosition();
 				cVector3f vMax = vMin;
@@ -1604,7 +1489,6 @@ namespace hpl {
 			}
 
 		}
-		////////////////////////////////////
 		// Nodes
 		else
 		{
@@ -1645,13 +1529,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cMeshEntity,cSaveData_iRenderable)
 	kSerializeVar(msMeshName, eSerializeType_String)
@@ -1664,8 +1541,6 @@ namespace hpl {
 	kSerializeClassContainer(mvAnimStates, cSaveData_cAnimationState, eSerializeType_Class)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveObject* cSaveData_cMeshEntity::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
 		cResources *pResources = apGame->GetResources();
@@ -1674,13 +1549,10 @@ namespace hpl {
 		cMeshLoaderHandler *pMeshLoadHandler = pResources->GetMeshLoaderHandler();
 		cFileSearcher *pFileSearcher = pResources->GetFileSearcher();
 
-		///////////////////////////////////
 		//Load mesh
 		cMesh *pMesh = pResources->GetMeshManager()->CreateMesh(msMeshName);
 		if(pMesh==nullptr) return nullptr;
 
-
-		///////////////////////
 		//Load Animations
 		//TODO: bad, bad bad...redo animation storing.
 		/*if(pMesh->GetAnimationNum()<=1 && mvAnimStates.Size()>1)
@@ -1698,11 +1570,9 @@ namespace hpl {
 			}
 		}*/
 
-		///////////////////////
 		///Create entity
 		cMeshEntity* pEntity = pWorld->CreateMeshEntity(msName,pMesh);
 
-		///////////////////////
 		///Add sub meshes to the save object handler.
 		for(int sub=0; sub <pEntity->GetSubMeshEntityNum(); ++sub)
 		{
@@ -1716,31 +1586,23 @@ namespace hpl {
 		return pEntity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cMeshEntity::GetSaveCreatePrio()
 	{
 		return 2;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iSaveData* cMeshEntity::CreateSaveData()
 	{
 		return hplNew( cSaveData_cMeshEntity, () );
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_SaveToBegin(cMeshEntity);
 
-		////////////////////////////
 		//Set the name of the data
 		pData->msMeshName = mpMesh->GetName();
 
-		////////////////////////////
 		//Sub Entities
 		pData->mvSubEntities.Resize(GetSubMeshEntityNum());
 		for(int i=0; i<GetSubMeshEntityNum(); i++)
@@ -1750,7 +1612,6 @@ namespace hpl {
 			pSubEntity->SaveToSaveData(&pData->mvSubEntities[i]);
 		}
 
-		////////////////////////////
 		//Animation states
 		pData->mvAnimStates.Resize(GetAnimationStateNum());
 		for(int i=0; i<GetAnimationStateNum(); i++)
@@ -1761,22 +1622,17 @@ namespace hpl {
 		}
 		//Log("MeshEntity %s has %d animation states saved\n",GetName().c_str(),pData->mvAnimStates.Size());
 
-		////////////////////////////
 		//Variables
 		kSaveData_SaveTo(mbCastShadows);
 
-		////////////////////////////
 		//Pointers
 		kSaveData_SaveObject(mpBody, mlBodyId);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cMeshEntity);
 
-		///////////////////////
 		//Sub entities
 		//This is done on creation instead.
 		/*for(size_t i=0; i<pData->mvSubEntities.Size(); i++)
@@ -1786,7 +1642,6 @@ namespace hpl {
 			pSubEntity->LoadFromSaveData(&pData->mvSubEntities[i]);
 		}*/
 
-		///////////////////////
 		//Set Animation states data
 		for(size_t i=0; i< pData->mvAnimStates.Size(); ++i)
 		{
@@ -1797,19 +1652,14 @@ namespace hpl {
 		//Log("LOADED: MeshEntity %s has %d animation states, in entity: %d\n",GetName().c_str(),
 		//			pData->mvAnimStates.Size(),GetAnimationStateNum());
 
-
-		//////////////////////
 		//Variables
 		kSaveData_LoadFrom(mbCastShadows);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cMeshEntity);
 
-		///////////////////////
 		//Sub entities
 		//Should not be needed since they are added to the save object handler.
 		for(int i=0; i<GetSubMeshEntityNum(); i++)
@@ -1818,8 +1668,6 @@ namespace hpl {
 			pSubEntity->SaveDataSetup(apSaveObjectHandler, apGame);
 		}
 
-
-		///////////////////////
 		//Body
 		kSaveData_LoadObject(mpBody, mlBodyId,iPhysicsBody*);
 		if(mpBody)
@@ -1827,6 +1675,4 @@ namespace hpl {
 			mpBody->CreateNode()->AddEntity(this);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

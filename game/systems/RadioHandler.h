@@ -50,8 +50,6 @@ public:
 typedef std::list<cRadioMessage*> tRadioMessageList;
 typedef tRadioMessageList::iterator tRadioMessageListIt;
 
-//---------------------------------------
-
 class cRadioHandler : public iUpdateable
 {
 public:

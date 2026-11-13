@@ -80,8 +80,6 @@ namespace hpl {
 		ePhysicsAccuracy_LastEnum
 	};
 
-	//----------------------------------------------------
-
 	class cPhysicsRayParams
 	{
 	public:
@@ -106,17 +104,13 @@ namespace hpl {
 		virtual void OnCollision(iPhysicsBody *apBody, cCollideData *apCollideData)=0;
 	};
 
-	//----------------------------------------------------
-
 	class iPhysicsWorld
 	{
 	public:
 		iPhysicsWorld();
 		virtual ~iPhysicsWorld();
 
-		//########################################################################################
 		//! \name General
-		//########################################################################################
 		//! @{
 
 		void Update(float afTimeStep);
@@ -136,9 +130,7 @@ namespace hpl {
 		virtual ePhysicsAccuracy GetAccuracyLevel()=0;
 		//! @}
 
-		//########################################################################################
 		//! \name Shapes
-		//########################################################################################
 		//! @{
 
 		virtual iCollideShape* CreateNullShape()=0;
@@ -152,9 +144,7 @@ namespace hpl {
 
 		//! @}
 
-		//########################################################################################
 		//! \name Joints
-		//########################################################################################
 		//! @{
 
 		virtual iPhysicsJointBall* CreateJointBall(const tString &asName,
@@ -175,9 +165,7 @@ namespace hpl {
 
 		//! @}
 
-		//########################################################################################
 		//! \name Materials
-		//########################################################################################
 		//! @{
 
 		virtual iPhysicsMaterial* CreateMaterial(const tString &asName)=0;
@@ -186,9 +174,7 @@ namespace hpl {
 
 		//! @}
 
-		//########################################################################################
 		//! \name Bodies
-		//########################################################################################
 		//! @{
 
 		virtual iPhysicsBody* CreateBody(const tString &asName,iCollideShape *apShape)=0;
@@ -215,9 +201,7 @@ namespace hpl {
 		//! @}
 
 
-		//########################################################################################
 		//! \name Tools
-		//########################################################################################
 		//! @{
 
 		void SetLogDebug(bool abX){ mbLogDebug = abX;}
@@ -298,4 +282,3 @@ namespace hpl {
 	};
 };
 #endif // HPL_PHYSICS_WORLD_H
-

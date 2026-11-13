@@ -38,8 +38,6 @@ public:
 
 class cInit;
 
-//-------------------------------------------------
-
 class cPreMenu : public iUpdateable
 {
 public:
@@ -128,8 +126,5 @@ private:
 	cGfxObject*		mpFlashGfx;
 
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_PRE_MENU_H

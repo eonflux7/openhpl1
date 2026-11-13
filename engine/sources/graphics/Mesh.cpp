@@ -49,12 +49,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMesh::cMesh(const tString asName, cMaterialManager* apMaterialManager,
 				cAnimationManager * apAnimationManager) :
 		iResourceBase(asName,0)
@@ -65,8 +59,6 @@ namespace hpl {
 
 		mpRootNode = hplNew( cNode3D, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMesh::~cMesh()
 	{
@@ -93,20 +85,10 @@ namespace hpl {
 		STLDeleteAll(mvSoundEntities);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cMesh::CreateFromFile(const tString asFile)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSubMesh* cMesh::CreateSubMesh(const tString &asName)
 	{
@@ -119,8 +101,6 @@ namespace hpl {
 
 		return pSubMesh;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSubMesh* cMesh::GetSubMesh(unsigned int alIdx)
 	{
@@ -142,8 +122,6 @@ namespace hpl {
 		return (int)mvSubMeshes.size();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMesh::SetSkeleton(cSkeleton* apSkeleton)
 	{
 		mpSkeleton = apSkeleton;
@@ -153,7 +131,6 @@ namespace hpl {
 	{
 		return mpSkeleton;
 	}
-	//-----------------------------------------------------------------------
 
 	void cMesh::AddAnimation(cAnimation *apAnimation)
 	{
@@ -213,16 +190,12 @@ namespace hpl {
 		return (int)mvAnimations.size();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMesh::SetupBones()
 	{
 		if(mpSkeleton == nullptr) return;
 
 		//Here is the place to add more hardware friendly stuffs.
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshJoint* cMesh::CreatePhysicsJoint(ePhysicsJointType aType)
 	{
@@ -242,9 +215,6 @@ namespace hpl {
 		return (int)mvPhysicJoints.size();
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	iPhysicsJoint* cMesh::CreateJointInWorld(	const tString& sNamePrefix, cMeshJoint* apMeshJoint,
 												iPhysicsBody *apParentBody,iPhysicsBody *apChildBody,
 												const cMatrixf &a_mtxOffset,iPhysicsWorld *apWorld)
@@ -252,7 +222,6 @@ namespace hpl {
 		cVector3f vPivot = cMath::MatrixMul(a_mtxOffset,apMeshJoint->mvPivot);
 		cVector3f vPinDir = cMath::MatrixMul(a_mtxOffset.GetRotation(),apMeshJoint->mvPinDir);
 
-		///////////////////////////
 		// Hinge
 		if(apMeshJoint->mType == ePhysicsJointType_Hinge)
 		{
@@ -267,7 +236,6 @@ namespace hpl {
 
 			return pJoint;
 		}
-		///////////////////////////
 		// Ball
 		else if(apMeshJoint->mType == ePhysicsJointType_Ball)
 		{
@@ -280,7 +248,6 @@ namespace hpl {
 
 			return pJoint;
 		}
-		///////////////////////////
 		// Slider
 		else if(apMeshJoint->mType == ePhysicsJointType_Slider)
 		{
@@ -294,7 +261,6 @@ namespace hpl {
 
 			return pJoint;
 		}
-		///////////////////////////
 		// Screw
 		else if(apMeshJoint->mType == ePhysicsJointType_Screw)
 		{
@@ -313,16 +279,12 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMesh::CreateNodeBodies(iPhysicsBody** apRootBodyPtr,std::vector<iPhysicsBody*> *apBodyVec,
 									cMeshEntity *apEntity,iPhysicsWorld *apPhysicsWorld,
 									const cMatrixf &a_mtxTransform)
 	{
 		cMatrixf mtxOldOffset;
 
-
-		///////////////////////////////////
 		// Create bodies for the sub meshes (if available
 		for(int sub=0; sub< GetSubMeshNum(); sub++)
 		{
@@ -384,7 +346,6 @@ namespace hpl {
 			apBodyVec->push_back(pBody);
 		}
 
-		///////////////////////////////////
 		// Create bodies for root
 		tCollideShapeVec vShapes;
 		for(int shape=0; shape < GetColliderNum(); shape++)
@@ -433,15 +394,12 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMesh::CreateJointsAndBodies(std::vector<iPhysicsBody*> *apBodyVec,cMeshEntity *apEntity,
 												std::vector<iPhysicsJoint*> *apJointVec,
 												const cMatrixf &a_mtxOffset,iPhysicsWorld *apPhysicsWorld)
 	{
 		std::vector<iPhysicsBody*> vBodies;
 
-		//////////////////////////////////
 		//If the mesh has a skeleton, attach the bodies to the bones
 		//in the skeleton.
 		if(mpSkeleton)
@@ -452,7 +410,6 @@ namespace hpl {
 			{
 				cBoneState *pBoneState = apEntity->GetBoneState(bone);
 
-				/////////////////////////////////////////////////////
 				//Iterate the colliders and get the sum of offsets.
 				cVector3f vShapeWorldCenter(0,0,0);
 				float fColliderNum=0;
@@ -476,7 +433,6 @@ namespace hpl {
 
 				cMatrixf mtxBoneToBody = cMath::MatrixMul(mtxInvBone, mtxBodyWorld);
 
-				///////////////////////////////////////////////////////////
 				//Iterate the colliders and search for the colliders for each object.
 				cMatrixf mtxOldOffset;
 				tCollideShapeVec vShapes;
@@ -498,7 +454,6 @@ namespace hpl {
 					}
 				}
 
-				////////////////////////////////
 				//Create body
 				if(vShapes.size() > 0)
 				{
@@ -512,7 +467,6 @@ namespace hpl {
 						pShape = vShapes[0];
 					}
 
-					//////////////////////////////////////////
 					//Create normal body and set mass to 1 for now.
 					iPhysicsBody *pBody = apPhysicsWorld->CreateBody(apEntity->GetName()+"_"+pBoneState->GetName(),
 																		pShape);
@@ -542,7 +496,6 @@ namespace hpl {
 						apBodyVec->push_back(pBody);
 					vBodies.push_back(pBody);
 
-					/////////////////////////////////////
 					//Create collider body
 					iPhysicsBody *pColliderBody = apPhysicsWorld->CreateBody(apEntity->GetName()+"_collider_"+pBoneState->GetName(),
 																		pShape);
@@ -558,7 +511,6 @@ namespace hpl {
 
 			//TODO: Reset root node matrix
 		}
-		///////////////////////////////////
 		// Create bodies for the sub meshes.
 		else
 		{
@@ -666,7 +618,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////////////////
 		// Iterate the mesh joints and create physics joints
 		for(int joint=0; joint < GetPhysicsJointNum(); joint++)
 		{
@@ -710,8 +661,6 @@ namespace hpl {
 		if(GetSkeleton()) apEntity->SetMatrix(a_mtxOffset);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMesh::HasSeveralBodies()
 	{
 		if(GetColliderNum()<=0) return false;
@@ -726,8 +675,6 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshCollider* cMesh::CreateCollider(eCollideShapeType aType)
 	{
@@ -790,8 +737,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshLight* cMesh::CreateLight(eLight3DType aType)
 	{
 		cMeshLight* pLight = hplNew( cMeshLight, () );
@@ -816,7 +761,6 @@ namespace hpl {
 	{
 		iLight3D *pLight = nullptr;
 
-		////////////////////////////////
 		//Spot
 		if(apMeshLight->mType == eLight3DType_Spot)
 		{
@@ -829,7 +773,6 @@ namespace hpl {
 
 			pLight = pLightSpot;
 		}
-		////////////////////////////////
 		//Point
 		else if(apMeshLight->mType == eLight3DType_Point)
 		{
@@ -853,8 +796,6 @@ namespace hpl {
 
 		return pLight;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshBillboard* cMesh::CreateBillboard()
 	{
@@ -889,8 +830,6 @@ namespace hpl {
 		return pBillboard;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshBeam* cMesh::CreateBeam()
 	{
 		cMeshBeam *pBeam = hplNew( cMeshBeam, () );
@@ -923,8 +862,6 @@ namespace hpl {
 
 		return pBeam;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshReference* cMesh::CreateReference()
 	{
@@ -971,8 +908,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshParticleSystem* cMesh::CreateParticleSystem()
 	{
 		cMeshParticleSystem *pPS = hplNew( cMeshParticleSystem, () );
@@ -1007,8 +942,6 @@ namespace hpl {
 		return pPS;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshSoundEntity* cMesh::CreateSoundEntity()
 	{
 		cMeshSoundEntity *pSound = hplNew( cMeshSoundEntity, () );
@@ -1040,9 +973,6 @@ namespace hpl {
 		return pSound;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	cNode3D* cMesh::GetRootNode()
 	{
 		return mpRootNode;
@@ -1062,15 +992,4 @@ namespace hpl {
 	{
 		return mvNodes[alIdx];
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIAVTE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 }

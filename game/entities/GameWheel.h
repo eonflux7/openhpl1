@@ -29,8 +29,6 @@ using namespace hpl;
 // joint's limits or a controller elsewhere in the map. Written after the
 // games' binaries; the source was not released.
 
-//----------------------------------------------
-
 enum eGameWheelState
 {
 	eGameWheelState_Middle,
@@ -46,8 +44,6 @@ enum eGameWheelAction
 	eGameWheelAction_During,
 	eGameWheelAction_LastEnum
 };
-
-//----------------------------------------------
 
 class cGameWheel_SaveData : public iGameEntity_SaveData
 {
@@ -78,8 +74,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//----------------------------------------------
 
 class cGameWheel : public iGameEntity
 {
@@ -173,8 +167,6 @@ private:
 	float mfControllerScale;
 	float mfControllerOffset;
 };
-
-//-----------------------------------------------------------------------
 
 class cEntityLoader_GameWheel : public cEntityLoader_Object
 {

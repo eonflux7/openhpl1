@@ -22,12 +22,6 @@
 #include "core/GraphicsHelper.h"
 #include "core/ButtonHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cMapLoadText::cMapLoadText(cInit *apInit)  : iUpdateable("MapLoadText")
 {
 	mpInit = apInit;
@@ -43,20 +37,9 @@ cMapLoadText::cMapLoadText(cInit *apInit)  : iUpdateable("MapLoadText")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cMapLoadText::~cMapLoadText(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 void cMapLoadText::Reset()
 {
@@ -66,23 +49,16 @@ void cMapLoadText::Reset()
 	mfPulseRatePerSecond = 1;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapLoadText::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 	mpInit->mpGraphicsHelper->DrawFullScreenImage(mBackground);
 }
 
-//-----------------------------------------------------------------------
-
-
 void cMapLoadText::OnDraw()
 {
 	DrawText(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cMapLoadText::DrawText(bool abLoading)
 {
@@ -119,8 +95,6 @@ void cMapLoadText::DrawText(bool abLoading)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cMapLoadText::Update(float afTimeStep)
 {
 	mfPulsePhase += mfPulseRatePerSecond*afTimeStep;
@@ -140,19 +114,13 @@ void cMapLoadText::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cMapLoadText::OnMouseDown(eMButton aButton)
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cMapLoadText::OnMouseUp(eMButton aButton)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cMapLoadText::SetActive(bool abActive)
 {
@@ -196,21 +164,7 @@ void cMapLoadText::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cMapLoadText::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-

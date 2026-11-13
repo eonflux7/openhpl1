@@ -37,8 +37,6 @@ enum eHapticGameCameraType
 	eHapticGameCameraType_LastEnum
 };
 
-//----------------------------------------
-
 class cHapticGameCamera
 {
 public:
@@ -137,7 +135,5 @@ private:
 
 	std::list<cVector3f> mlstProxyPos;
 };
-//----------------------------------------
-
 
 #endif //GAME_HAPTIC_GAME_CAMERA_H

@@ -26,19 +26,13 @@
 #include "entities/GameSwingDoor.h"
 #include "core/MapHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEnemyState_Worm_Base::iGameEnemyState_Worm_Base(int alId, cInit *apInit, iGameEnemy *apEnemy)
 							: iGameEnemyState(alId,apInit,apEnemy)
 {	
 	mpEnemyWorm = static_cast<cGameEnemy_Worm*>(mpEnemy);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemyState_Worm_Base::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
@@ -81,13 +75,7 @@ void iGameEnemyState_Worm_Base::OnDeath(float afDamage)
 	mpEnemy->ChangeState(STATE_DEAD);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // IDLE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Idle::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -103,13 +91,9 @@ void cGameEnemyState_Worm_Idle::OnEnterState(iGameEnemyState *apPrevState)
 	//mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Worm_Idle::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Idle::OnUpdate(float afTimeStep)
 {
@@ -168,13 +152,7 @@ void cGameEnemyState_Worm_Idle::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // HUNT STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -217,13 +195,9 @@ void cGameEnemyState_Worm_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 									mpEnemyWorm->mfHuntSoundMaxInteraval);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Worm_Hunt::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 {
@@ -237,7 +211,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	////////////////////////////////
 	//Check if stuck
 	if(mpMover->GetStuckCounter() > 2.1f)
 	{
@@ -246,7 +219,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	//////////////////////////////
 	//Hunt sound count
 	if(mfHuntSoundDelaySeconds <=0)
 	{
@@ -260,7 +232,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mfHuntSoundDelaySeconds -= afTimeStep;
 	}
 
-	//////////////////////////////
 	//Black Plague: the script hears of the player being in reach
 	if(	mpMover->DistanceToChar2D(mpPlayer->GetCharacterBody()) < 1.5f &&
 		mpEnemy->GetOnAttackCallback() != "")
@@ -269,15 +240,12 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mpInit->RunScriptCommand(sCommand);
 	}
 
-
-	//////////////////////////////
 	//Attack sound count
 	if(mfAttackSoundCooldownSeconds >0)
 	{
 		mfAttackSoundCooldownSeconds -= afTimeStep;
 	}
 
-	////////////////////////////////
 	//Check if attack should begin
 	if(mfAttackCooldownSeconds <=0)
 	{
@@ -319,8 +287,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mfAttackCooldownSeconds -= afTimeStep;
 	}
 
-	
-	////////////////////////////////
 	//Update the path
 	if(mfPathUpdateDelaySeconds <=0)
 	{
@@ -353,15 +319,12 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 		mfPathUpdateDelaySeconds -= afTimeStep;
 	}
 	
-	
-	////////////////////////////////
 	//Go directly towards the player
 	if(mbFreePlayerPath)
 	{
 		//Go towards player
 		mpMover->MoveDirectToPos(mpPlayer->GetCharacterBody()->GetFeetPosition(),afTimeStep);
 	}
-	////////////////////////////////
 	//Update path search
 	else
 	{
@@ -383,8 +346,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Worm_Hunt::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
 	if(mbLostPlayer && afChance >= mpEnemyWorm->mfHuntMinSeeChance)
@@ -394,11 +355,8 @@ void cGameEnemyState_Worm_Hunt::OnSeePlayer(const cVector3f &avPosition, float a
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemyState_Worm_Hunt::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	//////////////////////////////////
 	//If player is lost the sound might be of help
 	if(mbLostPlayer)
 	{
@@ -422,15 +380,11 @@ bool cGameEnemyState_Worm_Hunt::OnHearNoise(const cVector3f &avPosition, float a
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Worm_Hunt::OnDraw()
 {
 	//mpInit->mpDefaultFont->Draw(cVector3f(230,10,100),14,cColor(1,1,1,1),eFontAlign_Left,
 	//							"Freepath: %d",mbFreePlayerPath);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Hunt::OnPostSceneDraw()
 {
@@ -451,13 +405,7 @@ void cGameEnemyState_Worm_Hunt::OnPostSceneDraw()
 		cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DEAD STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Worm_Dead::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -472,20 +420,9 @@ void cGameEnemyState_Worm_Dead::OnEnterState(iGameEnemyState *apPrevState)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Worm_Dead::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameEnemy_Worm::cGameEnemy_Worm(cInit *apInit,const tString& asName,TiXmlElement *apGameElem) : iGameEnemy(apInit,asName,apGameElem)
 {
@@ -497,7 +434,6 @@ cGameEnemy_Worm::cGameEnemy_Worm(cInit *apInit,const tString& asName,TiXmlElemen
 	mbAttachMeshToBody = false;
 	mbRemoveAttackerOnDisable = false;
 	
-	//////////////////////////////
 	//State properties
 	msMoveSound = cString::ToString(apGameElem->Attribute("MoveSound"),"");
 
@@ -527,22 +463,17 @@ cGameEnemy_Worm::cGameEnemy_Worm(cInit *apInit,const tString& asName,TiXmlElemen
 
 	mvAttackDamageSize = cString::ToVector3f(apGameElem->Attribute("AttackDamageSize"),0);
 	
-
-	//////////////////////////////
 	//Set up states
 	AddState(hplNew( cGameEnemyState_Worm_Idle,(STATE_IDLE,mpInit,this)) );
 	AddState(hplNew( cGameEnemyState_Worm_Hunt,(STATE_HUNT,mpInit,this)) );
 	AddState(hplNew( cGameEnemyState_Worm_Dead,(STATE_DEAD,mpInit,this)) );
 
-	/////////////////////////////
 	//Internal variables
 	mvLastForward = cVector3f(0,0,1);
 
 	mlMaxSegmentPostions = 20;
 	mfTurnSpeed = cMath::ToRad(160.0f);
 }
-
-//-----------------------------------------------------------------------
 
 cGameEnemy_Worm::~cGameEnemy_Worm()
 {
@@ -551,19 +482,12 @@ cGameEnemy_Worm::~cGameEnemy_Worm()
 	STLDeleteAll(mvTailSegments);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // MESH ENTITY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameEnemy_Worm_MeshCallback::cGameEnemy_Worm_MeshCallback(cGameEnemy_Worm *apWorm)
 {
 	mpWorm = apWorm;
 }
-//-----------------------------------------------------------------------
 
 /*OLD CALC MATRIX VERSION:
 cMatrixf mtxRot = cMatrixf::Identity;
@@ -614,7 +538,6 @@ void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntit
 	{
 		cWormTailSegment *pSegment = mpWorm->mvTailSegments[i];
 		
-		//////////////////////////////////////////////////
 		//Change orientation according to forward
 		cMatrixf mtxTrans = cMatrixf::Identity;
 		{
@@ -630,20 +553,11 @@ void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntit
 			mtxTrans = cMath::MatrixMul(mtxTrans, pSegment->m_mtxBaseRot);
 		}
 
-		////////////////////////////////////////
 		//Set world matrix of bone
 		mtxTrans.SetTranslation(pSegment->mvPostion);
 		pSegment->mpBone->SetWorldMatrix(mtxTrans);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cVector3Smoother::cVector3Smoother()
 {
@@ -668,14 +582,6 @@ cVector3f cVector3Smoother::GetAverage()
 	return vAverage / (float)mlstVecs.size();
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameEnemy_Worm::OnLoad()
 {
 	mbFirstUpdate = true;
@@ -697,8 +603,6 @@ void cGameEnemy_Worm::OnLoad()
 	SetupTail();
 }
 
-//-----------------------------------------------------------------------
-
 cVector3f gvBackPos, gvPrevBackPos;
 
 void cGameEnemy_Worm::OnUpdate(float afTimeStep)
@@ -707,7 +611,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 	iCharacterBody *pCharBody = mpMover->GetCharBody();
 	cVector3f vMovement;
 
-	////////////////////////////////////////
 	//Update movesound
 
 	if(mlCurrentState == STATE_HUNT)
@@ -740,9 +643,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		}
 	}
 	
-
-
-	////////////////////////////////////////
 	//Check so the body is moving
 	if(pCharBody->GetForceVelocity().Length() < 0.0001f &&
 		pCharBody->GetMoveSpeed(eCharDir_Forward) < 0.001f)
@@ -750,7 +650,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	/////////////////////////////////////////
 	// Get the position of the worm
 	
 	cVector3f vPrevRootPos = mvRootPosition;
@@ -773,7 +672,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 	//Get movement this update
 	vMovement = mvRootPosition - vPrevRootPos;
 		
-	/////////////////////////////////////////
 	// Calculate direction vectors 
 	if(vMovement.SqrLength()>0.00001f)
 		mvRootGoalForward = cMath::Vector3Normalize(vMovement);
@@ -810,19 +708,16 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////////////
 	// Get the ass position and direction
 	cVector3f vSegForward = mvRootForward;
 	cVector3f vSegBackPos = mpRootBone->GetWorldPosition() + vSegForward * -mvTailSegments[0]->mfDistToFront;
 	gvBackPos = vSegBackPos;
 	
-	/////////////////////////////////////////
 	// Iterate the segments.
 	for(size_t i=0; i< mvTailSegments.size();++i)
 	{
 		cWormTailSegment *pSegment = mvTailSegments[i];
 
-		//////////////////////////////////
 		//Change postion of segment
 
 		//Get add newer pos and smooth all the previuos
@@ -839,16 +734,12 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		}
 		pSegment->mvPostion = pSegment->mvPostion / (float)pSegment->mlstPositions.size();
 
-		/////////////////////////////////////////////
 		//Get the movement vector
 		cVector3f vSegMovement = pSegment->mvPostion - vPrevPos;
 
-		/////////////////////////////////////////////
 		//Update body position
 		pSegment->mpBody->SetPosition(pSegment->mvPostion);
 
-
-		//////////////////////////////////////////////
 		//Get the direction vector of the segment
 		{
 			if(vSegMovement.SqrLength() > 0.00001f)
@@ -883,7 +774,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		}
 		vSegForward = pSegment->mvForward;
 		
-		////////////////////////////////////////
 		//Set the New back pos
 		if(i < mvTailSegments.size()-1)
 		{
@@ -892,8 +782,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemy_Worm::ExtraPostSceneDraw()
 {
@@ -938,8 +826,6 @@ void cGameEnemy_Worm::ExtraPostSceneDraw()
 	pLowLevelGfx->SetDepthTestActive(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemy_Worm::ShowPlayer(const cVector3f& avPlayerFeetPos)
 {
 	if(	mlCurrentState == STATE_IDLE || mlCurrentState == STATE_PATROL || 
@@ -949,8 +835,6 @@ void cGameEnemy_Worm::ShowPlayer(const cVector3f& avPlayerFeetPos)
 		ChangeState(STATE_HUNT);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameEnemy_Worm::MoveToPos(const cVector3f& avFeetPos)
 {
@@ -966,8 +850,6 @@ bool cGameEnemy_Worm::MoveToPos(const cVector3f& avFeetPos)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemy_Worm::IsFighting()
 {
 	if( mfHealth <= 0 || IsActive()==false) return false;
@@ -976,7 +858,6 @@ bool cGameEnemy_Worm::IsFighting()
 
 	return true;
 }
-//-----------------------------------------------------------------------
 
 void cGameEnemy_Worm::SetupTail()
 {
@@ -1017,7 +898,6 @@ void cGameEnemy_Worm::SetupTail()
 		else {
 			mvTailSegments[i-1]->mpChildSegment = pSegment;
 		}
-		/////////////////////////////////////////
 		//Set up
 
 		//Get bones
@@ -1064,5 +944,3 @@ void cGameEnemy_Worm::SetupTail()
 		//Log("%d Dist: %f Fwd: %s\n",i,pSegment->mfDistToFront,pSegment->mvForward.ToString().c_str());
 	}
 }
-
-//-----------------------------------------------------------------------

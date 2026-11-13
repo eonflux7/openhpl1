@@ -46,8 +46,6 @@ namespace hpl
 		memcpy(apDest, mtxTranspose.v, sizeof(float) * 16);
 	}
 
-	//-------------------------------------------------
-
 	// An extension until OpenGL 4.6, with the same values
 	static bool HasAnisotropicFiltering()
 	{

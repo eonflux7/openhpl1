@@ -27,8 +27,6 @@ using namespace hpl;
 
 class cInit;
 
-//-------------------------------------------------
-
 // Black Plague's endings: e-mails typed out on a black screen (the "Ending"
 // texts of the language file). Ending 1 shows two and goes back to the
 // game; ending 2 three, then "message sent" blinks and the credits come.
@@ -88,7 +86,5 @@ private:
 
 	bool mbActive;
 };
-
-//---------------------------------------------
 
 #endif // GAME_ENDING_H

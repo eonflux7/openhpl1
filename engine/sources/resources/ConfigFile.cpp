@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cConfigFile::cConfigFile(tWString asFile)
 	{
 		msFile = asFile;
@@ -43,14 +37,6 @@ namespace hpl {
 	{
 		hplDelete(mpXmlDoc);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cConfigFile::Load()
 	{
@@ -67,8 +53,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cConfigFile::Save()
 	{
 		#ifdef WIN32
@@ -84,8 +68,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cConfigFile::SetString(tString asLevel, tString asName, tString asVal)
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
@@ -98,7 +80,6 @@ namespace hpl {
 
 		pLevelElem->SetAttribute(asName.c_str(),asVal.c_str());
 	}
-	//-----------------------------------------------------------------------
 
 	void cConfigFile::SetInt(tString asLevel, tString asName, int alVal)
 	{
@@ -108,8 +89,6 @@ namespace hpl {
 		SetString(asLevel,asName,sBuffer);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cConfigFile::SetFloat(tString asLevel, tString asName, float afVal)
 	{
 		char sBuffer[40];
@@ -117,8 +96,6 @@ namespace hpl {
 
 		SetString(asLevel,asName,sBuffer);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cConfigFile::SetBool(tString asLevel, tString asName, bool abVal)
 	{
@@ -159,14 +136,6 @@ namespace hpl {
 		return cString::ToBool(sVal,abDefault);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	const char* cConfigFile::GetCharArray(tString asLevel, tString asName)
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
@@ -176,6 +145,4 @@ namespace hpl {
 
 		return pLevelElem->Attribute(asName.c_str());
 	}
-
-	//-----------------------------------------------------------------------
 }

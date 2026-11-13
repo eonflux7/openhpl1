@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//------------------------------------------
-
 class cGameForceArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameForceArea_SaveData);
@@ -44,8 +42,6 @@ public:
 		
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameForceArea : public iGameEntity
 {
@@ -92,8 +88,6 @@ private:
 
 	cVector3f mvForceDirection;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameForceArea : public iArea3DLoader
 {

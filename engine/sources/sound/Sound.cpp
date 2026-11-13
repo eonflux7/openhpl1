@@ -26,18 +26,10 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSound::cSound(iLowLevelSound *apLowLevelSound) : iUpdateable("HPL_Sound")
 	{
 		mpLowLevelSound = apLowLevelSound;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSound::~cSound()
 	{
@@ -50,14 +42,6 @@ namespace hpl {
 		Log("--------------------------------------------------------\n\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cSound::Update(float afTimeStep)
 	{
 		mpSoundHandler->Update(afTimeStep);
@@ -65,8 +49,6 @@ namespace hpl {
 
 		mpLowLevelSound->UpdateSound(afTimeStep);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSound::SetBusVolume(eSoundBus aBus, float afVolume)
 	{
@@ -78,8 +60,6 @@ namespace hpl {
 	{
 		return mpSoundHandler->GetBusVolume(aBus);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSound::Init(	cResources *apResources, bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 						int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
@@ -100,7 +80,4 @@ namespace hpl {
 
 		Log("--------------------------------------------------------\n\n");
 	}
-
-	//-----------------------------------------------------------------------
-
 }

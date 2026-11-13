@@ -28,11 +28,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// VERTEX PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cFogProgramSetup : public iMaterialProgramSetup
 	{
@@ -45,12 +41,6 @@ namespace hpl {
 	};
 
 	static cFogProgramSetup gFogProgramSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterial_ModulativeX2::cMaterial_ModulativeX2(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -67,20 +57,10 @@ namespace hpl {
 		mpFogProgram = mpProgramManager->CreateProgram("Fog_Trans", "MODX2");
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_ModulativeX2::~cMaterial_ModulativeX2()
 	{
 		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_ModulativeX2::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -125,8 +105,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_ModulativeX2::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
@@ -145,15 +123,11 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_ModulativeX2::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return true;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList cMaterial_ModulativeX2::GetTextureTypes()
 	{
@@ -164,6 +138,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

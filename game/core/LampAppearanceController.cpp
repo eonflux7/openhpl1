@@ -23,11 +23,7 @@
 #include "entities/GameEntity.h"
 #include "player/PlayerHands.h"
 
-//////////////////////////////////////////////////////////////////////////
 // KINDS OF LAMP
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 enum eLampKind
 {
@@ -105,8 +101,6 @@ static eLampKind GetLampKind(const tString& asFile)
 	return eLampKind_None;
 }
 
-//-----------------------------------------------------------------------
-
 // Smooth noise between -1 and 1 over time, the same in every run: a
 // number for each whole step of afT, eased from one to the next.
 static float StepValue(int alStep, unsigned int alSeed)
@@ -140,14 +134,6 @@ static unsigned int NameSeed(const tString& asName)
 	return lSeed;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cLampAppearanceController::cLampAppearanceController(cInit *apInit) : iUpdateable("LampLooks")
 {
 	mpInit = apInit;
@@ -157,27 +143,15 @@ cLampAppearanceController::cLampAppearanceController(cInit *apInit) : iUpdateabl
 	mlLampCount = 0;
 }
 
-//-----------------------------------------------------------------------
-
 cLampAppearanceController::~cLampAppearanceController()
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cLampAppearanceController::Reset()
 {
 	// The lights go with the map
 	mlLampCount = 0;
 }
-
-//-----------------------------------------------------------------------
 
 void cLampAppearanceController::Update(float afTimeStep)
 {
@@ -186,7 +160,6 @@ void cLampAppearanceController::Update(float afTimeStep)
 
 	if(mpInit->mpGame->GetScene()->GetWorld3D()==nullptr) return;
 
-	///////////////////////////////////////
 	// The lamps of the world, and the flare once thrown
 	tGameEntityIterator entityIt = mpInit->mpMapHandler->GetGameEntityIterator();
 	while(entityIt.HasNext())
@@ -202,7 +175,6 @@ void cLampAppearanceController::Update(float afTimeStep)
 			SetLook(pEntity->GetLight(i), kind, pEntityMtx, true);
 	}
 
-	///////////////////////////////////////
 	// The lights that are part of the map
 	cLight3DListIterator lightIt = mpInit->mpGame->GetScene()->GetWorld3D()->GetLightIterator();
 	while(lightIt.HasNext())
@@ -211,7 +183,6 @@ void cLampAppearanceController::Update(float afTimeStep)
 		if(pLight->IsPartOfMap()) SetMapLightLook(pLight);
 	}
 
-	///////////////////////////////////////
 	// In the hand
 	const struct { const char *msModel; eLampKind mKind; } vHandLights[] = {
 		{"Glowstick", eLampKind_GlowStick}, {"Flare", eLampKind_Flare}};
@@ -222,14 +193,6 @@ void cLampAppearanceController::Update(float afTimeStep)
 		for(iLight3D *pLight : pModel->mvLights) SetLook(pLight, hand.mKind, nullptr, true);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 // Nothing in a map says what a light of its own stands for: a lamp of the
 // static geometry, light from a window, a fill for a dark corner. They
@@ -257,8 +220,6 @@ void cLampAppearanceController::SetMapLightLook(iLight3D *apLight)
 	SetLook(apLight, sName.find("furn") != tString::npos ? eLampKind_Flame : eLampKind_MapLight, nullptr, bFalloff);
 }
 
-//-----------------------------------------------------------------------
-
 void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMatrixf *apEntityMtx, bool abFalloff)
 {
 	cLightLook look;
@@ -266,14 +227,12 @@ void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMa
 
 	const cLampKind &kind = gvLampKinds[alKind];
 
-	///////////////////////////////////////
 	// Colour
 	float fColour = cMath::Clamp(mSettings.mfColour, 0.0f, 1.0f);
 	look.mTint = cColor(1.0f + (kind.mvTint[0] - 1.0f) * fColour,
 						1.0f + (kind.mvTint[1] - 1.0f) * fColour,
 						1.0f + (kind.mvTint[2] - 1.0f) * fColour, 1.0f);
 
-	///////////////////////////////////////
 	// Falloff
 	if(mSettings.mbFalloff && abFalloff)
 	{
@@ -282,7 +241,6 @@ void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMa
 		look.mfNearBoost = mSettings.mfNearBoost;
 	}
 
-	///////////////////////////////////////
 	// A flame: every light wavers and wanders on its own
 	if(mbStill==false && (kind.mfFlicker > 0 || kind.mfSway > 0))
 	{
@@ -299,7 +257,6 @@ void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMa
 									FlameNoise(fT * 0.37, lSeed + 30)) * fSway;
 	}
 
-	///////////////////////////////////////
 	// A tube lies along its entity
 	if(kind.mfTubeHalfLength > 0 && mSettings.mfTube > 0 && apEntityMtx)
 	{
@@ -313,5 +270,3 @@ void cLampAppearanceController::SetLook(iLight3D *apLight, int alKind, const cMa
 
 	apLight->SetLook(look);
 }
-
-//-----------------------------------------------------------------------

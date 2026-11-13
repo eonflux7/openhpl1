@@ -23,11 +23,7 @@
 #include "player/HapticGameCamera.h"
 #include "core/GraphicsHelper.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BUTTON
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNumericalButton::cNumericalButton(cInit *apInit, cNumericalPanel* apPanel, cVector2f avPos, 
 								cVector2f avSize, int alNum)
@@ -57,8 +53,6 @@ cNumericalButton::~cNumericalButton()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalButton::OnUpdate(float afTimeStep)
 {
 	if(mbOver)
@@ -72,8 +66,6 @@ void cNumericalButton::OnUpdate(float afTimeStep)
 		if(mfAlpha < 0)mfAlpha = 0;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cNumericalButton::OnDraw()
 {
@@ -102,8 +94,6 @@ void cNumericalButton::OnDraw()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalButton::OnMouseDown()
 {
 	mpPanel->AddDigit(mlNum);
@@ -111,26 +101,14 @@ void cNumericalButton::OnMouseDown()
 	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_numpanel_button",false,1);
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalButton::OnMouseUp()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cNumericalButton::OnMouseOver(bool abOver)
 {
 	mbOver = abOver;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNumericalPanel::cNumericalPanel(cInit *apInit)  : iUpdateable("NumericalPanel")
 {
@@ -167,21 +145,10 @@ cNumericalPanel::cNumericalPanel(cInit *apInit)  : iUpdateable("NumericalPanel")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cNumericalPanel::~cNumericalPanel(void)
 {
 	STLDeleteAll(mlstButtons);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 void cNumericalPanel::Reset()
 {
@@ -189,8 +156,6 @@ void cNumericalPanel::Reset()
 	mfAlpha =0;
 	mbMouseIsDown = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cNumericalPanel::OnDraw()
 {
@@ -201,7 +166,6 @@ void cNumericalPanel::OnDraw()
 	
 	mpDrawer->DrawGfxObject(mpGfxPanel,cVector3f(280,170,10),cVector2f(270,300),cColor(1,mfAlpha));
 
-	////////////////////////////////
 	// Draw buttons
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -212,11 +176,8 @@ void cNumericalPanel::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalPanel::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Check active and fade
 	if(mbActive==false)
 	{
@@ -233,7 +194,6 @@ void cNumericalPanel::Update(float afTimeStep)
 		if(mfAlpha >1)mfAlpha =1;
 	}
 	
-	////////////////////////////////
 	// Update buttons
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -253,8 +213,6 @@ void cNumericalPanel::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalPanel::SetMousePos(const cVector2f &avPos)
 {
 	mvMousePos = avPos;
@@ -270,11 +228,8 @@ void cNumericalPanel::AddMousePos(const cVector2f &avRel)
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalPanel::OnMouseDown(eMButton aButton)
 {
-	////////////////////////////////
 	// Dispatch button presses
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -292,7 +247,6 @@ void cNumericalPanel::OnMouseDown(eMButton aButton)
 
 void cNumericalPanel::OnMouseUp(eMButton aButton)
 {
-	////////////////////////////////
 	// Dispatch button releases
 	tNumericalButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -307,8 +261,6 @@ void cNumericalPanel::OnMouseUp(eMButton aButton)
 
 	mbMouseIsDown = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cNumericalPanel::SetActive(bool abActive)
 {
@@ -342,14 +294,10 @@ void cNumericalPanel::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalPanel::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cNumericalPanel::AddDigit(int alNum)
 {
@@ -376,8 +324,6 @@ void cNumericalPanel::AddDigit(int alNum)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNumericalPanel::SetUp(const tString& asName, const tString& asCallback)
 {
 	msName = asName;
@@ -388,5 +334,3 @@ void cNumericalPanel::SetCode(tIntVec &avCode)
 {
 	mvCode = avCode;
 }
-
-//-----------------------------------------------------------------------

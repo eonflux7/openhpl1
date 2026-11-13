@@ -85,8 +85,6 @@ class cDogTestMap;
 // saves and logs. Separate from the original games so theirs are untouched.
 #define PERSONAL_RELATIVEGAME (tWString(PERSONAL_RELATIVEROOT) + cInit::GetPersonalGameDir())
 
-//--------------------------------------------------------
-
 // The three games share the engine and most of the game code; which one is
 // played is picked at startup (OPENHPL_GAME, or by the data in the working
 // directory).
@@ -98,11 +96,7 @@ enum eGameId
 	eGameId_LastEnum
 };
 
-//--------------------------------------------------------
-
 //#define DEMO_VERSION
-
-//--------------------------------------------------------
 
 class cInit : public iUpdateable
 {

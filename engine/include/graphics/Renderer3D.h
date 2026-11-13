@@ -56,8 +56,6 @@ namespace hpl {
 
 	class cResources;
 
-	//---------------------------------------------
-
 	enum eRendererShowShadows
 	{
 		eRendererShowShadows_All,
@@ -65,8 +63,6 @@ namespace hpl {
 		eRendererShowShadows_None,
 		eRendererShowShadows_LastEnum
 	};
-
-	//---------------------------------------------
 
 	enum eShadowMapFilter
 	{
@@ -146,8 +142,6 @@ namespace hpl {
 		int mlCachedMaps = 0;
 	};
 
-	//---------------------------------------------
-
 	class cRenderSettings
 	{
 	public:
@@ -199,8 +193,6 @@ namespace hpl {
 
 		iVertexBuffer* mpVtxBuffer;
 	};
-
-	//---------------------------------------------
 
 	class cRenderer3D
 	{

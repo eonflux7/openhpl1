@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterialManager::cMaterialManager(cGraphics* apGraphics,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -59,14 +53,6 @@ namespace hpl {
 
 		Log(" Done with materials\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iMaterial* cMaterialManager::CreateMaterial(const tString& asName)
 	{
@@ -100,14 +86,10 @@ namespace hpl {
 		return pMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cMaterialManager::Create(const tString& asName)
 	{
 		return CreateMaterial(asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::Update(float afTimeStep)
 	{
@@ -121,13 +103,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMaterialManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::Destroy(iResourceBase* apResource)
 	{
@@ -139,8 +118,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	// The filter is the same for every texture with mipmaps, those of the
 	// materials and all others: iLowLevelGraphics::SetTextureFilter().
 	void cMaterialManager::SetTextureFilter(eTextureFilter aFilter)
@@ -150,8 +127,6 @@ namespace hpl {
 
 		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::SetTextureAnisotropy(float afX)
 	{
@@ -164,8 +139,6 @@ namespace hpl {
 
 		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cMaterialManager::GetPhysicsMaterialName(const tString& asName)
 	{
@@ -206,13 +179,6 @@ namespace hpl {
 			return "";
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	iMaterial* cMaterialManager::LoadFromFile(const tString& asName,const tString& asPath)
 	{
 		TiXmlDocument *pDoc = hplNew( TiXmlDocument, (asPath.c_str()) );
@@ -223,7 +189,6 @@ namespace hpl {
 
 		TiXmlElement *pRoot = pDoc->RootElement();
 
-		///////////////////////////
 		//Main
 		TiXmlElement *pMain = pRoot->FirstChildElement("Main");
 		if(pMain==nullptr){
@@ -256,8 +221,6 @@ namespace hpl {
 		pMat->SetValue(fValue);
 		pMat->SetPhysicsMaterial(sPhysicsMatName);
 
-
-		///////////////////////////
 		//Textures
 		TiXmlElement *pTexRoot = pRoot->FirstChildElement("TextureUnits");
 		if(pTexRoot==nullptr){
@@ -345,7 +308,6 @@ namespace hpl {
 			pMat->SetTexture(pTex,it->mType);
 		}
 
-		///////////////////////////
 		//Custom
 		pMat->LoadData(pRoot);
 
@@ -356,8 +318,6 @@ namespace hpl {
 		return pMat;
 	}
 
-	//-----------------------------------------------------------------------
-
 	eTextureTarget cMaterialManager::GetTarget(const tString& asType)
 	{
 		if(cString::ToLowerCase(asType) == "cube") return eTextureTarget_CubeMap;
@@ -367,7 +327,6 @@ namespace hpl {
 
 		return eTextureTarget_2D;
 	}
-	//-----------------------------------------------------------------------
 
 	tString cMaterialManager::GetTextureString(eMaterialTexture aType)
 	{
@@ -384,8 +343,6 @@ namespace hpl {
 
 		return "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	eTextureWrap cMaterialManager::GetWrap(const tString& asType)
 	{
@@ -404,6 +361,4 @@ namespace hpl {
 
 		return eTextureAnimMode_None;
 	}
-
-	//-----------------------------------------------------------------------
 }

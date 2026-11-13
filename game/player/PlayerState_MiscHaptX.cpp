@@ -27,16 +27,12 @@
 #include "player/HapticGameCamera.h"
 
 
-//////////////////////////////////////////////////////////////////////////
 // NORMAL STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_NormalHaptX::cPlayerState_NormalHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Normal)
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f gvStart,gvEnd;
 cVector3f gvFinalStart=0,gvFinalEnd=0;
@@ -50,7 +46,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		mpPlayer->ResetCrossHairPos();
 	}
 
-	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
 	if(	pInput->IsTriggered("Run") &&
@@ -59,7 +54,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
 	}
 
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	mpPlayer->mbProxyTouching = false;
 	mpPlayer->GetPickRay()->mpPickedBody = nullptr;
@@ -89,7 +83,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 		eGameEntityType type = pEntity->GetType();
 
-		//////////////////////////////////////
 		//TODO: Sort out more unwanted entites here (areas etc?)
 		
 		//If Item is picked, skip all else
@@ -105,7 +98,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		}
 		//more checks...
 
-		////////////////////////////////////
 		// Collision check
 		if(pPhysicsWorld->CheckShapeCollision(	mpPlayer->GetHapticCamera()->GetHandShape(),
 												cMath::MatrixTranslate(vProxyPos),
@@ -120,7 +112,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////////
 	// Cross hair and pick check
 	if(mpPlayer->GetPickRay()->mpPickedBody)
 	{
@@ -143,7 +134,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		pEntity->PlayerPick();
 	}
 
-	/////////////////////////////////////////////////
 	// Ray Check, if a body is not yet picked
 	if(mpPlayer->GetPickRay()->mpPickedBody==nullptr)
 	{
@@ -197,8 +187,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_NormalHaptX::OnStartInteract()
 {
 	//gvFinalEnd = gvEnd;
@@ -211,8 +199,6 @@ void cPlayerState_NormalHaptX::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_NormalHaptX::OnStartExamine()
 {
 	//Log("Picked body: %d\n",(size_t)mpPlayer->GetPickedBody());
@@ -223,8 +209,6 @@ void cPlayerState_NormalHaptX::OnStartExamine()
 		pEntity->PlayerExamine();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_NormalHaptX::OnStartRun()
 {
@@ -245,8 +229,6 @@ void cPlayerState_NormalHaptX::OnStopRun()
 	else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_NormalHaptX::OnStartCrouch()
 {
@@ -274,21 +256,15 @@ void cPlayerState_NormalHaptX::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_NormalHaptX::OnStartInteractMode()
 {
 	mpPlayer->ChangeState(ePlayerState_InteractMode);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_NormalHaptX::EnterState(iPlayerState* apPrevState)
 {
 	mpPlayer->ResetCrossHairPos();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_NormalHaptX::LeaveState(iPlayerState* apNextState)
 {
@@ -304,11 +280,7 @@ void cPlayerState_NormalHaptX::OnPostSceneDraw()
 	pLowGfx->DrawSphere(gvFinalEnd,0.1f,cColor(0,1,0,1));*/
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // INTERACT MODE STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_InteractModeHaptX::cPlayerState_InteractModeHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_InteractMode)
 {
@@ -316,11 +288,8 @@ cPlayerState_InteractModeHaptX::cPlayerState_InteractModeHaptX(cInit *apInit,cPl
 	mfRange = 15.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractModeHaptX::OnUpdate(float afTimeStep)
 {
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -357,8 +326,6 @@ void cPlayerState_InteractModeHaptX::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractModeHaptX::OnStartInteract()
 {
 	if(mpPlayer->GetPickedBody())
@@ -369,8 +336,6 @@ void cPlayerState_InteractModeHaptX::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractModeHaptX::OnStartExamine()
 {
 	if(mpPlayer->GetPickedBody())
@@ -380,8 +345,6 @@ void cPlayerState_InteractModeHaptX::OnStartExamine()
 		pEntity->PlayerExamine();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_InteractModeHaptX::OnAddYaw(float afVal)
 {
@@ -470,14 +433,10 @@ bool cPlayerState_InteractModeHaptX::OnAddPitch(float afVal)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractModeHaptX::OnStartInteractMode()
 {
 	mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_InteractModeHaptX::EnterState(iPlayerState* apPrevState)
 {
@@ -488,8 +447,6 @@ void cPlayerState_InteractModeHaptX::EnterState(iPlayerState* apPrevState)
 
 	mvLookSpeed =0;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_InteractModeHaptX::LeaveState(iPlayerState* apNextState)
 {
@@ -504,8 +461,6 @@ void cPlayerState_InteractModeHaptX::LeaveState(iPlayerState* apNextState)
 	//Can cause crashes!!
 	//mpPlayer->GetPickRay()->mpPickedBody = NULL;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_InteractModeHaptX::OnStartCrouch()
 {
@@ -533,28 +488,20 @@ void cPlayerState_InteractModeHaptX::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // USE ITEM STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_UseItemHaptX::cPlayerState_UseItemHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_UseItem)
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItemHaptX::OnUpdate(float afTimeStep)
 {
 	iLowLevelHaptic *pLowLevelHaptic = mpInit->mpGame->GetHaptic()->GetLowLevel();
 
-	/////////////////////////////////////////////////
 	// Move cross hair
 	cVector2f vCrossPos = pLowLevelHaptic->GetProxyScreenPos(cVector2f(800,600));
 	mpPlayer->SetCrossHairPos(vCrossPos);
 
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -582,8 +529,6 @@ void cPlayerState_UseItemHaptX::OnUpdate(float afTimeStep)
 		mpInit->mpPlayer->SetItemFlash(false);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_UseItemHaptX::OnStartInteract()
 {
@@ -630,8 +575,6 @@ void cPlayerState_UseItemHaptX::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItemHaptX::OnStartExamine()
 {
 	if(mpPlayer->GetPickedBody())
@@ -657,8 +600,6 @@ void cPlayerState_UseItemHaptX::OnStartExamine()
 		
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_UseItemHaptX::OnAddYaw(float afVal)
 { 
@@ -695,8 +636,6 @@ bool cPlayerState_UseItemHaptX::OnAddPitch(float afVal)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItemHaptX::EnterState(iPlayerState* apPrevState)
 {
 	mPrevMoveState = mpPlayer->GetMoveState();
@@ -707,16 +646,12 @@ void cPlayerState_UseItemHaptX::EnterState(iPlayerState* apPrevState)
 	mpPlayer->GetHapticCamera()->SetHandVisible(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItemHaptX::LeaveState(iPlayerState* apNextState)
 {
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
 
 	mpPlayer->GetHapticCamera()->SetHandVisible(true);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_UseItemHaptX::OnStartCrouch()
 {
@@ -744,39 +679,26 @@ void cPlayerState_UseItemHaptX::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_UseItemHaptX::OnStartInventory()
 {
 	mpPlayer->ChangeState(mPrevState);
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // MESSAGE STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_MessageHaptX::cPlayerState_MessageHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Message)
 {
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerState_MessageHaptX::OnUpdate(float afTimeStep)
 {	
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_MessageHaptX::OnJump()
 { 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_MessageHaptX::OnStartInteract()
 {
@@ -787,24 +709,16 @@ void cPlayerState_MessageHaptX::OnStopInteract()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_MessageHaptX::OnStartExamine()
 {
 	mpInit->mpGameMessageHandler->ShowNext();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_MessageHaptX::OnMoveForwards(float afMul, float afTimeStep){	return false;}
 bool cPlayerState_MessageHaptX::OnMoveSideways(float afMul, float afTimeStep){	return false;}
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_MessageHaptX::OnAddYaw(float afVal){ return false;}
 bool cPlayerState_MessageHaptX::OnAddPitch(float afVal){return false;}
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_MessageHaptX::EnterState(iPlayerState* apPrevState)
 {
@@ -817,8 +731,6 @@ void cPlayerState_MessageHaptX::EnterState(iPlayerState* apPrevState)
 	mpPlayer->GetHapticCamera()->SetRenderActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_MessageHaptX::LeaveState(iPlayerState* apNextState)
 {
 	if(mPrevMoveState != ePlayerMoveState_Run && mPrevMoveState !=ePlayerMoveState_Jump)
@@ -829,24 +741,17 @@ void cPlayerState_MessageHaptX::LeaveState(iPlayerState* apNextState)
 	mpPlayer->GetHapticCamera()->SetRenderActive(true);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_MessageHaptX::OnStartInventory()
 {
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_MessageHaptX::OnStartInventoryShortCut(int alNum)
 { 
 	return false;
 }
-//-----------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////
 // CLIMB STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_ClimbHaptX::cPlayerState_ClimbHaptX(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Climb)
 {
@@ -862,8 +767,6 @@ cPlayerState_ClimbHaptX::cPlayerState_ClimbHaptX(cInit *apInit,cPlayer *apPlayer
 	mlState =0;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::PlaySound(const tString &asSound)
 {
 	if(asSound=="") return;
@@ -874,8 +777,6 @@ void cPlayerState_ClimbHaptX::PlaySound(const tString &asSound)
 	cSoundEntity *pSound = pWorld->CreateSoundEntity("LadderStep",asSound,true);
 	if(pSound) pSound->SetPosition(pCharBody->GetPosition());
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_ClimbHaptX::EnterState(iPlayerState* apPrevState)
 {
@@ -921,8 +822,6 @@ void cPlayerState_ClimbHaptX::EnterState(iPlayerState* apPrevState)
 	mpPlayer->GetHapticCamera()->SetHandVisible(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::LeaveState(iPlayerState* apNextState)
 {
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
@@ -938,15 +837,11 @@ void cPlayerState_ClimbHaptX::LeaveState(iPlayerState* apNextState)
 	mpPlayer->GetHapticCamera()->SetHandVisible(true);
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 {
 	iCharacterBody *pCharBody = mpPlayer->GetCharacterBody();
 	cCamera3D *pCam = mpPlayer->GetCamera();
 
-	//////////////////////////////////
 	// Attach To Ladder
 	if(mlState ==0)
 	{
@@ -964,7 +859,6 @@ void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 		{
 			mpPlayer->GetCharacterBody()->SetTestCollision(true);
 			
-			////////////////////////////
 			//Set turn head limits
 			cVector2f vMaxHeadLimits = cVector2f(cMath::ToRad(120),cMath::ToRad(79));
 			cVector2f vMinHeadLimits = cVector2f(cMath::ToRad(-120),cMath::ToRad(-60));
@@ -980,13 +874,11 @@ void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 			mlState++;
 		}
 	}
-	//////////////////////////////////
 	// Move On Ladder
 	else if(mlState == 1)
 	{
 
 	}
-	//////////////////////////////////
 	// On the top of the ladder
 	else if(mlState == 2)
 	{
@@ -1006,23 +898,17 @@ void cPlayerState_ClimbHaptX::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::OnStartInteract()
 {
 	if(mlState!=0)
 		mpPlayer->ChangeState(ePlayerState_Normal);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::OnStartExamine()
 {
 	if(mlState!=0)
 		mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_ClimbHaptX::OnAddYaw(float afVal)
 { 
@@ -1041,8 +927,6 @@ bool cPlayerState_ClimbHaptX::OnAddPitch(float afVal)
 	else
 		return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 {
@@ -1136,8 +1020,6 @@ bool cPlayerState_ClimbHaptX::OnMoveSideways(float afMul, float afTimeStep)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_ClimbHaptX::OnStartCrouch()
 {
 }
@@ -1147,20 +1029,13 @@ void cPlayerState_ClimbHaptX::OnStopCrouch()
 	
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_ClimbHaptX::OnJump()
 {
 	mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_ClimbHaptX::OnStartInventory()
 {
 	return false;
 }
-
-//-----------------------------------------------------------------------
-

@@ -27,8 +27,6 @@ using namespace hpl;
 // Black Plague/Requiem vent entry: crouch a jumping player, then carry them
 // toward the floor centre if clearance permits. Written after the game's binary.
 
-//------------------------------------------
-
 class cGameVentArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameVentArea_SaveData);
@@ -39,8 +37,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameVentArea : public iGameEntity
 {
@@ -69,8 +65,6 @@ private:
 	// Entry-attempt latch; cleared outside the bounds or below the floor.
 	bool mbPlayerInside;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameVentArea : public iArea3DLoader
 {

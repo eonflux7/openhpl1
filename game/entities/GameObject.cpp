@@ -30,13 +30,6 @@
 
 #include "core/GlobalInit.h"
 
-
-//////////////////////////////////////////////////////////////////////////
-// CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameObjectBodyCallback::cGameObjectBodyCallback(cInit *apInit, cGameObject *apObject)
 {
 	mpInit = apInit;
@@ -44,21 +37,16 @@ cGameObjectBodyCallback::cGameObjectBodyCallback(cInit *apInit, cGameObject *apO
 	mpObject = apObject;
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameObjectBodyCallback::OnBeginCollision(iPhysicsBody *apBody, iPhysicsBody *apCollideBody)
 {
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,
 										cPhysicsContactData* apContactData)
 {
 	//Log("OnCollide %s vs %s\n",apBody->GetName().c_str(),apCollideBody->GetName().c_str());
 	
-	/////////////////////////////////////////
 	// Damage on enemies
 	if(apCollideBody->IsCharacter())
 	{
@@ -77,8 +65,6 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 		}
 	}
 
-
-	/////////////////////////////////////////
 	// Check if the object breaks
 	if(mpObject->mBreakProps.mbActive)
 	{
@@ -103,7 +89,6 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 		}
 	}
 
-	////////////////////////////////////////////
 	// Do Some Damage
 	if(mpObject->mDamageProps.mbActive)
 	{
@@ -135,7 +120,6 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 			if(fTempDamage > fDamage) fDamage = fTempDamage;
 		}
 		
-		//////////////////////////
 		//Do the damage
 		if(fDamage>0)
 		{
@@ -167,7 +151,6 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 	pEnemy = (iGameEnemy*)apCollideBody->GetUserData();
 	}
 
-	////////////////////////////////////////////
 	// Stun
 	if(pEnemy && mpObject->GetInteractMode() != eObjectInteractMode_Push)
 	{
@@ -183,13 +166,7 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 	}*/
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameObject::cEntityLoader_GameObject(const tString &asName, cInit *apInit)
 	: cEntityLoader_Object(asName)
@@ -202,15 +179,11 @@ cEntityLoader_GameObject::~cEntityLoader_GameObject()
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameObject::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										cWorld3D *apWorld)
@@ -229,12 +202,10 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	pObject->SetLights(mvLights);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
 	{
-		////////////////////////////////////////////
 		//General
 		pObject->mInteractMode = ToInteractMode(pGameElem->Attribute("InteractMode"));
 		
@@ -267,7 +238,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 
 		pObject->mfHapticTorqueMul = cString::ToFloat(pGameElem->Attribute("HapticTorqueMul"),1.0f);
 		
-		////////////////////////////////////////////
 		//Disappear
 		pObject->mDisappearProps.mbActive = cString::ToBool(pGameElem->Attribute("Disappear"),false);
 		if(pObject->mDisappearProps.mbActive)
@@ -282,7 +252,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 																pObject->mDisappearProps.mfMaxTime);
 		}
 
-		////////////////////////////////////////////
 		//Breakable
 		pObject->mBreakProps.mbActive = cString::ToBool(pGameElem->Attribute("Breakable"),false);
 		if(pObject->mBreakProps.mbActive || pObject->mDisappearProps.mbActive)
@@ -323,7 +292,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 				mvBodies[i]->SetVolatile(true);
 			}
 		}
-		////////////////////////////////////////////
 		//Attracts Enemies
 		pObject->mAttractProps.mbActive = cString::ToBool(pGameElem->Attribute("AttractEnemies"),false);
 		if(pObject->mAttractProps.mbActive)
@@ -336,8 +304,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 			pObject->mAttractProps.mfEatLength = cString::ToFloat(pGameElem->Attribute("AttractEatLength"),0);
 		}
 		
-		
-		////////////////////////////////////////////
 		//Mode specific
 
 		//Push mode
@@ -374,7 +340,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 			pObject->mbHasInteraction = true;
 		}
 		
-		/////////////////////////////////////
 		//Damage
 		pObject->mDamageProps.mbActive = cString::ToBool(pGameElem->Attribute("DamageCharacter"),false);
 		if(pObject->mDamageProps.mbActive)
@@ -398,7 +363,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		Error("Couldn't find game element for entity '%s'\n",mpEntity->GetName().c_str());
 	}
 
-	///////////////////////////////////
 	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
@@ -408,8 +372,6 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 		}
 	}
 
-	
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 
@@ -417,11 +379,8 @@ void cEntityLoader_GameObject::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	pObject->SetupBreakObject();
 	pObject->SetupForceOffset();
 
-	/////////////////////////////////
 	// Add to map handler
 }
-
-//-----------------------------------------------------------------------
 
 eObjectInteractMode cEntityLoader_GameObject::ToInteractMode(const char* apString)
 {
@@ -439,15 +398,6 @@ eObjectInteractMode cEntityLoader_GameObject::ToInteractMode(const char* apStrin
 	return eObjectInteractMode_Static;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Object;
@@ -464,20 +414,10 @@ cGameObject::cGameObject(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mfDuplicateCheckDelaySeconds = cMath::RandRectf(0, 5.5f);
 }
 
-//-----------------------------------------------------------------------
-
 cGameObject::~cGameObject(void)
 {
 	if(mpBodyCallback) hplDelete( mpBodyCallback );
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameObject::OnPlayerPick()
 {
@@ -500,8 +440,6 @@ void cGameObject::OnPlayerPick()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::OnPlayerInteract()
 {
 	iPhysicsBody *pBody = mpInit->mpPlayer->GetPickedBody();
@@ -523,13 +461,10 @@ void cGameObject::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::Update(float afTimeStep)
 {
 	UpdateAttraction(afTimeStep);
 
-	////////////////////////////////
 	// Disappear
 	if(mDisappearProps.mbActive)
 	{
@@ -590,7 +525,6 @@ void cGameObject::Update(float afTimeStep)
 		}
 	}
 
-	///////////////////////////////
 	// Force offset
 	if(mbForceLightOffset)
 	{
@@ -606,13 +540,10 @@ void cGameObject::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::OnPlayerGravityCollide(iCharacterBody *apCharBody, cCollideData *apCollideData)
 {
 	if(mBreakProps.mbActive)
 	{
-		///////////////////////////////////////////////
 		// Check so that the player is really on top of the 
 		// object and not just sliding
 		bool bPushDown = false;
@@ -629,7 +560,6 @@ void cGameObject::OnPlayerGravityCollide(iCharacterBody *apCharBody, cCollideDat
 
 		if(bPushDown)
 		{
-			////////////////////////////////////
 			// Check the impulse created by the player
 			float fImpulse = apCharBody->GetMass() * std::abs(apCharBody->GetForceVelocity().y);
 
@@ -651,8 +581,6 @@ void cGameObject::OnPlayerGravityCollide(iCharacterBody *apCharBody, cCollideDat
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::SetInteractMode(eObjectInteractMode aInteractMode)
 { 
 	mInteractMode = aInteractMode;
@@ -666,8 +594,6 @@ void cGameObject::SetInteractMode(eObjectInteractMode aInteractMode)
 		mbHasInteraction = true;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameObject::BreakAction()
 {
@@ -684,8 +610,6 @@ void cGameObject::BreakAction()
 		}
 	}
 
-
-	//////////////////
 	//Script
 	if(mvCallbackScripts[eGameEntityScriptType_OnBreak])
 	{
@@ -695,7 +619,6 @@ void cGameObject::BreakAction()
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	
-	//////////////////
 	// Release the object if the player is holding it.
 	if( (mpInit->mpPlayer->GetState()==ePlayerState_Grab ||
 		 mpInit->mpPlayer->GetState()==ePlayerState_Move ||
@@ -710,7 +633,6 @@ void cGameObject::BreakAction()
 	const bool bFromCenter = cInit::IsOverture()==false;
 	cVector3f vCenter = pParentBody->GetBV()->GetWorldCenter();
 
-	//////////////////
     //Sound
 	if(mBreakProps.msSound != "")
 	{
@@ -718,7 +640,6 @@ void cGameObject::BreakAction()
 		if(pSound) pSound->SetPosition(bFromCenter ? vCenter : mpMeshEntity->GetWorldPosition());
 	}
 
-	//////////////////
 	//Particle System
     if(mBreakProps.msPS != "")
 	{
@@ -726,7 +647,6 @@ void cGameObject::BreakAction()
 										bFromCenter ? cMath::MatrixTranslate(vCenter) : pParentBody->GetWorldMatrix());
 	}
 
-	//////////////////
 	//Entity
 	if(mBreakProps.msEntity != "")
 	{
@@ -759,7 +679,6 @@ void cGameObject::BreakAction()
 		}
 	}
 
-	//////////////////
 	//Explosion
 	if(mBreakProps.mbExplosion)
 	{
@@ -774,7 +693,6 @@ void cGameObject::BreakAction()
 								mBreakProps.mlExpl_Strength);
 	}
 
-	//////////////////
 	//Light flash
 	if(mBreakProps.mbLightFlash)
 	{	
@@ -785,7 +703,6 @@ void cGameObject::BreakAction()
 											mBreakProps.mfLight_NegTime);
 	}
 
-	//////////////////
 	//Ear ring
 	if(mBreakProps.mbEarRing)
 	{
@@ -804,8 +721,6 @@ void cGameObject::BreakAction()
 	mpInit->mpGame->ResetLogicTimer();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::OnDeath(float afDamage)
 {
 	if(mBreakProps.mbActive)
@@ -813,9 +728,6 @@ void cGameObject::OnDeath(float afDamage)
 		Break();
 	}
 }
-
-
-//-----------------------------------------------------------------------
 
 void cGameObject::SetupBreakObject()
 {	
@@ -834,8 +746,6 @@ void cGameObject::SetupBreakObject()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::SetupForceOffset()
 {
 	if(mbForceLightOffset==false) return;
@@ -851,14 +761,6 @@ void cGameObject::SetupForceOffset()
 			mvLights[i]->GetEntityParent()->RemoveChild(mvLights[i]);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameObject::GrabObject()
 {
@@ -886,8 +788,6 @@ void cGameObject::GrabObject()
 	mpInit->mpPlayer->SetPushBody(mpInit->mpPlayer->GetPickedBody());
 	mpInit->mpPlayer->ChangeState(ePlayerState_Grab);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameObject::MoveObject()
 {
@@ -927,8 +827,6 @@ float cGameObject::GetMoveDist()
 	return mpInit->mpPlayer->GetPickedDist();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::PushObject()
 {
 	float fDist = GetPushDist();
@@ -962,18 +860,13 @@ float cGameObject::GetPushDist()
 	return mpInit->mpPlayer->GetPickedDist();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::UpdateAttraction(float afTimeStep)
 {
 	if(mAttractProps.mbActive==false) return;
 	
-
-	///////////////////////////////////////////////
 	//Check if the current attraction is near enough
 	if(mpAttractedEnemy)
 	{
-		////////////////////////////////////////
 		//Check for the attracted enemy
 		iCharacterBody *pBody =  mpAttractedEnemy->GetMover()->GetCharBody();
 		float fDist = cMath::Vector3Dist(	pBody->GetFeetPosition(),
@@ -1004,7 +897,6 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 			return;
 		}
 	}
-	///////////////////////////////////////////////
 	//Check if any enemy is near enough to be attracted
 	else
 	{
@@ -1065,34 +957,20 @@ void cGameObject::UpdateAttraction(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameObject_SaveData,iGameEntity_SaveData)
 kSerializeVar(mInteractMode, eSerializeType_Int32)
 kSerializeVar(mfMaxInteractDist, eSerializeType_Float32)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 iGameEntity* cGameObject_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameObject::CreateSaveData()
 {
 	return hplNew( cGameObject_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameObject::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -1102,8 +980,6 @@ void cGameObject::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mInteractMode);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameObject::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -1111,4 +987,3 @@ void cGameObject::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	kCopyFromVar(pData,mInteractMode);
 }
-//-----------------------------------------------------------------------

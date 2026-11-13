@@ -24,26 +24,16 @@ namespace hpl {
 
 
 
-	//////////////////////////////////////////////////////////////////////////
 	// SAVE GAME DATA
-	//////////////////////////////////////////////////////////////////////////
-
-	//------------------------------------------------------------------------
 
 	//Serialize iSaveGame
 	kBeginSerializeBaseVirtual(iSaveData)
 	kSerializeVar(mlSaveDataId, eSerializeType_Int32)
 	kEndSerialize()
 
-	//------------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SAVE GAME OBJECT
-	//////////////////////////////////////////////////////////////////////////
 
 	int iSaveObject::_mlGlobalIdCount =0;
-
-	//------------------------------------------------------------------------
 
 	iSaveObject::iSaveObject()
 	{
@@ -58,14 +48,10 @@ namespace hpl {
 
 	}
 
-	//------------------------------------------------------------------------
-
 	void iSaveObject::SaveToSaveData(iSaveData *apSaveData)
 	{
 		apSaveData->mlSaveDataId = mlSaveObjectId;
 	}
-
-	//------------------------------------------------------------------------
 
 	void iSaveObject::LoadFromSaveData(iSaveData *apSaveData)
 	{
@@ -73,20 +59,12 @@ namespace hpl {
 		mpSaveData = apSaveData;
 	}
 
-	//------------------------------------------------------------------------
-
 	void iSaveObject::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 
 	}
 
-	//------------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SAVE GAME CONTAINER
-	//////////////////////////////////////////////////////////////////////////
-
-	//------------------------------------------------------------------------
 
 	cSaveObjectHandler::cSaveObjectHandler()
 	{
@@ -98,14 +76,10 @@ namespace hpl {
 
 	}
 
-	//------------------------------------------------------------------------
-
 	void cSaveObjectHandler::Add(iSaveObject *pObject)
 	{
 		m_mapSaveObjects.insert(tSaveObjectMap::value_type(pObject->GetSaveObjectId(),pObject));
 	}
-
-	//------------------------------------------------------------------------
 
 	iSaveObject* cSaveObjectHandler::Get(int alId)
 	{
@@ -118,14 +92,10 @@ namespace hpl {
 		return it->second;
 	}
 
-	//------------------------------------------------------------------------
-
 	cSaveObjectIterator cSaveObjectHandler::GetIterator()
 	{
 		return cSaveObjectIterator(&m_mapSaveObjects);
 	}
-
-	//------------------------------------------------------------------------
 
 	void cSaveObjectHandler::SetUpAll(cGame *apGame)
 	{
@@ -144,28 +114,17 @@ namespace hpl {
 		iSaveObject::_mlGlobalIdCount = lMaxId;
 	}
 
-	//------------------------------------------------------------------------
-
 	void cSaveObjectHandler::Clear()
 	{
 		m_mapSaveObjects.clear();
 	}
-
-	//------------------------------------------------------------------------
 
 	size_t cSaveObjectHandler::Size()
 	{
 		return m_mapSaveObjects.size();
 	}
 
-	//------------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
 	// SAVE DATA CONTAINER
-	//////////////////////////////////////////////////////////////////////////
-
-	//------------------------------------------------------------------------
 
 	cSaveDataHandler::cSaveDataHandler()
 	{
@@ -176,8 +135,6 @@ namespace hpl {
 	{
 
 	}
-
-	//------------------------------------------------------------------------
 
 	void cSaveDataHandler::Add(iSaveData *pData)
 	{
@@ -199,8 +156,6 @@ namespace hpl {
 		return m_mapSaveData.size();
 	}
 
-	//------------------------------------------------------------------------
-
 	void cSaveDataHandler::AddVoidPtr(void **apPtr)
 	{
 		iSaveData** pDataPtr = (iSaveData**)apPtr;
@@ -216,8 +171,4 @@ namespace hpl {
 	{
 		return hplNew( cSaveDataIterator, (&m_mapSaveData) );
 	}
-
-	//------------------------------------------------------------------------
-
-
 }

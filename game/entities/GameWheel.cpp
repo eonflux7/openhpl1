@@ -24,13 +24,7 @@
 #include "player/Player.h"
 #include "entities/GameStickArea.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameWheel::cEntityLoader_GameWheel(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -42,14 +36,10 @@ cEntityLoader_GameWheel::~cEntityLoader_GameWheel()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameWheel::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameWheel::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -75,7 +65,6 @@ void cEntityLoader_GameWheel::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	pObject->SetSoundEntities(mvSoundEntities);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -102,18 +91,9 @@ void cEntityLoader_GameWheel::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 
 	pObject->Init();
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameWheel::cGameWheel(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -161,19 +141,9 @@ cGameWheel::cGameWheel(cInit *apInit,const tString& asName) : iGameEntity(apInit
 	mfConnectedRange = 0;
 }
 
-//-----------------------------------------------------------------------
-
 cGameWheel::~cGameWheel(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::Init()
 {
@@ -201,8 +171,6 @@ void cGameWheel::Init()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameWheel::OnPlayerPick()
 {
 	float fDist = mpInit->mpPlayer->GetPickedDist();
@@ -217,8 +185,6 @@ void cGameWheel::OnPlayerPick()
 			mpInit->mpPlayer->SetCrossHairState(eCrossHairState_None);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::OnPlayerInteract()
 {
@@ -248,8 +214,6 @@ void cGameWheel::OnPlayerInteract()
 	mpInit->mpPlayer->ChangeState(ePlayerState_Move);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameWheel::Update(float afTimeStep)
 {
 	if(mvJoints.empty() || mpJoint==nullptr) return;
@@ -257,7 +221,6 @@ void cGameWheel::Update(float afTimeStep)
 	UpdateController(afTimeStep);
 	UpdateConnectedJoint(afTimeStep);
 
-	////////////////////////////////////
 	// Add what the hinge turned to the angle
 	mfJointAngle = mpJoint->GetAngle();
 	float fTurned = cMath::GetAngleDistanceRad(mfPrevJointAngle, mfJointAngle);
@@ -266,7 +229,6 @@ void cGameWheel::Update(float afTimeStep)
 	mfPrevJointAngle = mfJointAngle;
 	mfAngle += fTurned;
 
-	////////////////////////////////////
 	// A wheel that turns one way only: remember how far it got
 	if(mlSpinDir == 1)
 	{
@@ -285,7 +247,6 @@ void cGameWheel::Update(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////////
 	// The hinge's limits for the next step
 	if(mbStuck==false)
 	{
@@ -306,7 +267,6 @@ void cGameWheel::Update(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////////
 	// The state by the angle
 	eGameWheelState prevState = mState;
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -320,7 +280,6 @@ void cGameWheel::Update(float afTimeStep)
 		else										mState = eGameWheelState_Middle;
 	}
 
-	////////////////////////////////////
 	// Dispatch enter before leave, then apply endpoint effects.
 	if(mState != prevState)
 	{
@@ -357,14 +316,10 @@ void cGameWheel::Update(float afTimeStep)
 	RunCallback(mState, eGameWheelAction_During);
 }
 
-//-----------------------------------------------------------------------
-
 float cGameWheel::GetSpeed()
 {
 	return (mfAngle - mfPrevAngle) / mpInit->mpGame->GetStepSize();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::SetStuck(eGameWheelState aState)
 {
@@ -390,8 +345,6 @@ void cGameWheel::SetStuck(eGameWheelState aState)
 	mpBody->SetEnabled(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameWheel::SetIsStuck(bool abStuck)
 {
 	if(mbStuck == abStuck) return;
@@ -412,8 +365,6 @@ void cGameWheel::SetIsStuck(bool abStuck)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameWheel::ConnectToJointLimit(iPhysicsJoint *apJoint, float afMin, float afMax, float afRange)
 {
 	mpConnectedJoint = apJoint;
@@ -425,8 +376,6 @@ void cGameWheel::ConnectToJointLimit(iPhysicsJoint *apJoint, float afMin, float 
 
 	mfConnectedRange = afRange;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::ConnectToController(iGameEntity *apEntity, const tString& asController, float afMin, float afMax)
 {
@@ -454,14 +403,6 @@ void cGameWheel::ConnectToController(iGameEntity *apEntity, const tString& asCon
 	mfControllerScale = (afMax - afMin) / (mfMaxLimit - mfMinLimit);
 	mfControllerOffset = afMin - mfControllerScale * mfMinLimit;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 // The hinge stops within a turn, the wheel's limit may be turns away: the
 // hinge gets the limit only when it is less than half a turn off, and on
@@ -504,16 +445,12 @@ void cGameWheel::SetMinJointAngle(float afAngle)
 	mpJoint->SetMinAngle(-k2Pif);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameWheel::UpdateController(float afTimeStep)
 {
 	if(mpController==nullptr) return;
 
 	mpController->SetDestValue(mfAngle * mfControllerScale + mfControllerOffset);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::UpdateConnectedJoint(float afTimeStep)
 {
@@ -554,8 +491,6 @@ void cGameWheel::UpdateConnectedJoint(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // Callback("name", action, state): action 0 enter, 1 leave, 2 during;
 // state -1 min, 0 middle, 1 max
 void cGameWheel::RunCallback(eGameWheelState aState, eGameWheelAction aAction)
@@ -584,14 +519,6 @@ void cGameWheel::RunCallback(eGameWheelState aState, eGameWheelAction aAction)
 	mpInit->RunScriptCommand(sCommand);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameWheel_SaveData,iGameEntity_SaveData)
 kSerializeVar(mlState, eSerializeType_Int32)
 kSerializeVar(mbStuck, eSerializeType_Bool)
@@ -613,21 +540,15 @@ kSerializeVar(msLeaveCallback, eSerializeType_String)
 kSerializeVar(msDuringCallback, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameWheel_SaveData::CreateEntity()
 {
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameWheel::CreateSaveData()
 {
 	return hplNew( cGameWheel_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -657,8 +578,6 @@ void cGameWheel::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->msLeaveCallback = mvCallbacks[eGameWheelAction_Leave];
 	pData->msDuringCallback = mvCallbacks[eGameWheelAction_During];
 }
-
-//-----------------------------------------------------------------------
 
 void cGameWheel::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -697,5 +616,3 @@ void cGameWheel::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	mvCallbacks[eGameWheelAction_Leave] = pData->msLeaveCallback;
 	mvCallbacks[eGameWheelAction_During] = pData->msDuringCallback;
 }
-
-//-----------------------------------------------------------------------

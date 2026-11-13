@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iEntity::~iEntity()
 	{
 		if(mpParentNode)
@@ -37,14 +31,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeVirtual(cSaveData_iEntity, iSaveData)
 	kSerializeVar(mlParentNodeId, eSerializeType_Int32)
 	kSerializeVar(msName, eSerializeType_String)
@@ -52,14 +38,10 @@ namespace hpl {
 	kSerializeVar(mbIsActive, eSerializeType_Bool)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iEntity::CreateSaveData()
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -72,8 +54,6 @@ namespace hpl {
 		kSaveData_SaveObject(mpParentNode,mlParentNodeId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iEntity);
@@ -83,14 +63,10 @@ namespace hpl {
 		kSaveData_LoadFrom(msName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iEntity);
 
 		//kSaveData_LoadObject(mpParentNode,mlParentNodeId,iNode*);
 	}
-
-	//-----------------------------------------------------------------------
 }

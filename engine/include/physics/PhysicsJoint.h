@@ -41,8 +41,6 @@ namespace hpl {
 
 	typedef cSTLMapIterator<iPhysicsController*, tPhysicsControllerMap, tPhysicsControllerMapIt> cPhysicsControllerIterator;
 
-	//-----------------------------------
-
 	enum ePhysicsJointType
 	{
 		ePhysicsJointType_Ball,
@@ -52,17 +50,12 @@ namespace hpl {
 		ePhysicsJointType_LastEnum
 	};
 
-	//-----------------------------------
-
 	enum ePhysicsJointSpeed
 	{
 		ePhysicsJointSpeed_Linear,
 		ePhysicsJointSpeed_Angular,
 		ePhysicsJointSpeed_LastEnum
 	};
-
-	//-----------------------------------
-
 
 	class cJointLimitEffect : public iSerializable
 	{
@@ -72,8 +65,6 @@ namespace hpl {
 		float mfMinSpeed;
 		float mfMaxSpeed;
 	};
-
-	//-----------------------------------
 
 	class iPhysicsJointCallback
 	{
@@ -86,8 +77,6 @@ namespace hpl {
 		//Ugly trick to support joint script callback.
 		virtual bool IsScript(){ return false;}
 	};
-
-	//-----------------------------------
 
 	kSaveData_BaseClass(iPhysicsJoint)
 	{
@@ -131,8 +120,6 @@ namespace hpl {
 		tString msCallbackMinFunc;
 		bool mbAutoDeleteCallback;
 	};
-
-	//-----------------------------------
 
 	class iPhysicsJoint : public iSaveObject
 	{

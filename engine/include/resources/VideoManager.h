@@ -28,18 +28,11 @@ namespace hpl {
 	class iVideoStream;
 	class iVideoStreamLoader;
 
-
-	//----------------------------------------------------
-
 	typedef std::list<iVideoStreamLoader*> tVideoStreamLoaderList;
 	typedef tVideoStreamLoaderList::iterator tVideoStreamLoaderListIt;
 
-	//----------------------------------------------------
-
 	typedef std::list<iVideoStream*> tVideoStreamList;
 	typedef tVideoStreamList::iterator tVideoStreamListIt;
-
-	//----------------------------------------------------
 
 	class cVideoManager : public iResourceManager
 	{

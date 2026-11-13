@@ -597,7 +597,7 @@ namespace hpl {
 		using tFrameCapture = std::function<void(const std::vector<unsigned char>&, const cVector2l&)>;
 		virtual void CaptureNextFrame(tFrameCapture aCapture)=0;
 
-		/////////// MATRIX METHODS //////////////////////////
+		// MATRIX METHODS
 
 		/// Supply model, view and projection together before drawing.
 		virtual void SetDrawMatrices(const cDrawMatrices &aMatrices) = 0;
@@ -616,7 +616,7 @@ namespace hpl {
 									const cVector3f& avEyePos, float afNear, float afFar,
 									float afTime)=0;
 
-		/////////// DEBUGGING //////////////////////////
+		// DEBUGGING
 
 		/**
 		 * Starts a named section of the frame: a GL debug group (RenderDoc
@@ -662,7 +662,7 @@ namespace hpl {
 		 */
 		virtual cMatrixf CreateVirtualOrthoProjection(float afMin, float afMax) = 0;
 
-		/////////// DRAWING METHODS /////////////////////////
+		// DRAWING METHODS
 
 		// CLEARING THE FRAMEBUFFER
 		virtual void ClearScreen()=0;

@@ -47,8 +47,6 @@ namespace hpl {
 	class cGpuProgramManager;
 	class cResources;
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iRenderable,cBillboard)
 	{
 		kSaveData_ClassInit(cBillboard)
@@ -69,8 +67,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//------------------------------------------
 
 	class cBillboard : public iRenderable
 	{
@@ -101,7 +97,6 @@ namespace hpl {
 
 		void LoadXMLProperties(const tString asFile);
 
-		/////////////////////////////////
 		//Halo stuff
 		void SetIsHalo(bool abX);
 		bool IsHalo(){ return mbIsHalo;}
@@ -112,7 +107,6 @@ namespace hpl {
 		void SetHaloSourceIsParent(bool abX);
 		bool GetHaloSourceIsParent(){ return mbHaloSourceIsParent;}
 
-		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "Billboard";}
 

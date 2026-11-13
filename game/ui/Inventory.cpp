@@ -66,12 +66,6 @@ static cColor MixColor(const cColor &aA, const cColor &aB, float afT)
 	return cColor(aA.r + (aB.r-aA.r)*afT, aA.g + (aB.g-aA.g)*afT, aA.b + (aB.b-aA.b)*afT, 1);
 }
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 {
 	mpInit = apInit;
@@ -101,7 +95,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	mpMessageBackground = mpDrawer->CreateGfxObject("effect_black.bmp","diffalpha2d");
 
-	///////////////////////////////////
 	//Init normal slots
 	cInventorySlot *pSlot = nullptr;
 	int lCount=0;
@@ -115,7 +108,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 		mlstSlots.push_back(pSlot);
 	}
 
-	///////////////////////////////////
 	//Init equip slots
 	int lEquipSlot = 0;
 	//cVector2f vEquipSlotBegin = cVector2f(400 - 77*5,10);
@@ -129,7 +121,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 		mvEquipSlots.push_back(pSlot);
 	}
 
-	///////////////////////////////////
 	//Init other widgests
 	mpBattery = hplNew( cInventoryBattery,(mpInit,
 														cRect2f(400 - 77*3.5f, 15 + 69 + 5,77,135),
@@ -142,7 +133,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 														nullptr,30.0f) );
 	AddWidget(mpHealth);
 
-	///////////////////////////////////
 	//Remastered drawer
 	mbDrawer = mpInit->mbHighResHud;
 	const char *pLook = SDL_getenv("OPENHPL_INVENTORY_LOOK");
@@ -198,7 +188,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 		}
 	}
 
-	///////////////////////////////////
 	//Init items types
 	mvItemTypes.resize(eGameItemType_LastEnum, nullptr);
 
@@ -236,13 +225,7 @@ cInventory::~cInventory(void)
 	STLMapDeleteAll(m_mapItems);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC WIDGET METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iInventoryWidget::iInventoryWidget(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, float afZ)
 {
@@ -264,14 +247,7 @@ void iInventoryWidget::Draw()
 							cColor(1, mpInit->mpInventory->GetAlpha()));
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // INVENTORY SLOT METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cInventorySlot::cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEquip, int alIndex)
 : iInventoryWidget(apInit, cRect2f(avPos.x, avPos.y,77, 66),nullptr, 10.0f)
@@ -285,8 +261,6 @@ cInventorySlot::cInventorySlot(cInit *apInit, const cVector2f &avPos, bool abEqu
 
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 }
-
-//-----------------------------------------------------------------------
 
 void cInventorySlot::Draw()
 {
@@ -392,11 +366,8 @@ void cInventorySlot::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnMouseOver()
 {	
-	/////////////////////////////
 	//Moving item
 	if(mpInit->mpInventory->GetCurrentItem())
 	{
@@ -429,7 +400,6 @@ void cInventorySlot::OnMouseOver()
 			mpInit->mpInventory->SetItemName(sDesc);
 		}
 	}
-	/////////////////////////////
 	//Not moving item
 	else
 	{
@@ -455,11 +425,8 @@ void cInventorySlot::OnMouseOver()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnMouseDown(eMButton aButton)
 {
-	/////////////////////////////////
 	//Left button
 	if(aButton == eMButton_Left)
 	{
@@ -479,7 +446,6 @@ void cInventorySlot::OnMouseDown(eMButton aButton)
             mpInit->mpInventory->SetCurrentItemOffset(vOffset);			
 		}
 	}
-	/////////////////////////////////
 	//Right button
 	else if(aButton == eMButton_Right)
 	{
@@ -491,11 +457,8 @@ void cInventorySlot::OnMouseDown(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnMouseUp(eMButton aButton)
 {
-	/////////////////////////////////
 	//Left mouse
 	if(aButton == eMButton_Left)
 	{
@@ -552,11 +515,8 @@ void cInventorySlot::OnMouseUp(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnDoubleClick(eMButton aButton)
 {
-	/////////////////////////////////
 	//Left mouse
 	if(aButton == eMButton_Left)
 	{
@@ -595,8 +555,6 @@ void cInventorySlot::OnDoubleClick(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnShortcutDown(int alNum)
 {
 	if(mpItem)
@@ -614,20 +572,12 @@ void cInventorySlot::OnShortcutDown(int alNum)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventorySlot::OnUpdate(float afTimeStep)
 {
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PUBLIC ITEM METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cInventoryItem::cInventoryItem(cInit *apInit)
 {
@@ -642,8 +592,6 @@ cInventoryItem::~cInventoryItem()
 	if(mpGfxObject) mpDrawer->DestroyGfxObject(mpGfxObject);
 	if(mpGfxObjectAdditive) mpDrawer->DestroyGfxObject(mpGfxObjectAdditive);
 }
-
-//-----------------------------------------------------------------------
 
 bool cInventoryItem::Init(cGameItem *apGameItem)
 {
@@ -676,8 +624,6 @@ bool cInventoryItem::Init(cGameItem *apGameItem)
 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cInventoryItem::InitFromFile(const tString &asFile)
 {
@@ -739,8 +685,6 @@ bool cInventoryItem::InitFromFile(const tString &asFile)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cInventoryItem::Drop()
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -761,13 +705,7 @@ void cInventoryItem::Drop()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // INVENTORY BATTERY
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cInventoryBattery::cInventoryBattery(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, 
 									   float afZ)
@@ -877,13 +815,7 @@ void cInventoryBattery::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // INVENTORY HEALTH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cInventoryHealth::cInventoryHealth(cInit *apInit, const cRect2f &aRect, cGfxObject* apGfxObject, 
 									 float afZ)
@@ -974,15 +906,7 @@ void cInventoryHealth::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-
-
-//////////////////////////////////////////////////////////////////////////
 // INVENTORY CONTEXT METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cInventoryContext::cInventoryContext(cInit *apInit)
 {
@@ -1017,14 +941,10 @@ cInventoryContext::cInventoryContext(cInit *apInit)
 	mpActionVec = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 cInventoryContext::~cInventoryContext()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cInventoryContext::SetActive(bool abActive)
 {
@@ -1039,8 +959,6 @@ void cInventoryContext::SetActive(bool abActive)
 
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cInventoryContext::Draw()
 {
@@ -1080,11 +998,8 @@ void cInventoryContext::Draw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventoryContext::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Change alpha
 	if(mbActive==false)
 	{
@@ -1102,7 +1017,6 @@ void cInventoryContext::Update(float afTimeStep)
     mpInit->mpInventory->SetItemDesc(mpItem->GetDescription());
 	mpInit->mpInventory->SetItemName(mpItem->GetGameName());
 	
-	///////////////////////////////////////
 	//Check if the mouse is over any row
 	cVector2f vMousePos = mpInit->mpInventory->GetMousePos();
 	mlSelectedRow = -1;
@@ -1119,11 +1033,8 @@ void cInventoryContext::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventoryContext::OnMouseDown(eMButton aButton)
 {
-	/////////////////////////////////
 	//Left button
 	if(aButton == eMButton_Left)
 	{
@@ -1138,7 +1049,6 @@ void cInventoryContext::OnMouseDown(eMButton aButton)
 		}
 		mbActive = false;
 	}
-	/////////////////////////////////
 	//Right button
 	else if(aButton == eMButton_Right)
 	{
@@ -1146,15 +1056,10 @@ void cInventoryContext::OnMouseDown(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventoryContext::OnMouseUp(eMButton aButton)
 {
 
 }
-
-
-//-----------------------------------------------------------------------
 
 void cInventoryContext::Setup(cInventoryItem *apItem, const cVector2f& avPos)
 {
@@ -1169,15 +1074,7 @@ void cInventoryContext::Setup(cInventoryItem *apItem, const cVector2f& avPos)
 	mRect = cRect2f(mvPos.x, mvPos.y, mvSize.x, mvSize.y);
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // REMASTERED DRAWER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 // Items whose type does nothing of its own: keys, parts and the like, which
 // scripts use on the world or combine. They are the ones the story needs.
@@ -1239,8 +1136,6 @@ void cInventory::DrawMeter(const cRect2f &aRect, float afZ, bool abHealth, const
 	mpDrawer->DrawGfxObject(mpGfxMeterTicks, cVector3f(vBar.x, vBar.y, afZ+0.7f), kvMeterSize, cColor(1,fAlpha));
 }
 
-//-----------------------------------------------------------------------
-
 // The drawer slides in from the right edge of the screen (also past the
 // 4:3 area on a wide screen), the hotkey row up from the bottom.
 void cInventory::UpdateDrawerLayout()
@@ -1293,14 +1188,11 @@ bool cInventory::IsOverDrawer(const cVector2f &avPos)
 													mHotkeyRect.w + kfHotkeyGap*2, mHotkeyRect.h + kfHotkeyGap*2));
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::DrawDrawer()
 {
 	mpDrawer->DrawGfxObject(mpGfxDrawer, cVector3f(mDrawerRect.x, mDrawerRect.y, 2),
 							cVector2f(mDrawerRect.w, mDrawerRect.h), cColor(1,mfAlpha));
 
-	///////////////////////////////
 	//Name and description of what the mouse is over
 	bool bRadioText = cInit::IsOverture() ?	mpInit->mpRadioHandler->IsActive() && mpInit->mbSubtitles :
 											mpInit->mpRadioHandler->IsShowingText();
@@ -1324,23 +1216,12 @@ void cInventory::DrawDrawer()
 								eFontAlign_Left, msItemDesc);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cInventory::OnStart()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Change alpha
 	if(mbActive==false)
 	{
@@ -1361,7 +1242,6 @@ void cInventory::Update(float afTimeStep)
 	if(mbDrawer) UpdateDrawerLayout();
 	mfMeterTime += afTimeStep;
 	
-	///////////////////////////////
 	//Iterate widgets
 	if(mpContext->IsActive()==false)
 	{
@@ -1380,11 +1260,9 @@ void cInventory::Update(float afTimeStep)
 			}
 		}
 	}
-	/////////////////////
 	// Context Menu
 	mpContext->Update(afTimeStep);
 
-	/////////////////////
 	// Inventory message
 	if(mbMessageActive)
 	{
@@ -1397,7 +1275,6 @@ void cInventory::Update(float afTimeStep)
 		if(mfMessageAlpha<0) mfMessageAlpha =0;
 	}
 
-	/////////////////////
 	// Text alpha
 	if(mbDrawText)
 	{
@@ -1410,8 +1287,6 @@ void cInventory::Update(float afTimeStep)
 		if(mfTextAlpha<0.0f) mfTextAlpha = 0.0f;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::Reset()
 {
@@ -1455,13 +1330,10 @@ void cInventory::Reset()
 	STLMapDeleteAll(m_mapItems);
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::OnDraw()
 {
 	if(mfAlpha<=0.0f) return;
 
-	///////////////////////////////
 	//Draw background
 	mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 
@@ -1474,10 +1346,8 @@ void cInventory::OnDraw()
 	//Draw backpack and hands
 	//mpDrawer->DrawGfxObject(mpBagpack,cVector3f(0,600 - (160*sqrt(mfAlpha)),-1),cVector2f(800,160),cColor(1,mfAlpha));
 
-	///////////////////////////////
 	//Draw power remaining:
 	
-	///////////////////////////////
 	//Draw health
 	/*fPercent = mpInit->mpPlayer->GetHealth()/100.0f;
 	cVector2f vManPos(640,120);
@@ -1503,9 +1373,6 @@ void cInventory::OnDraw()
 	mpFont->Draw(cVector3f(vManPos.x+75,vManPos.y+266+10+4,10),20,cColor(0.91f,1,0.91f,mfAlpha),eFontAlign_Center,
 					wsText.c_str());*/
 
-	
-	
-	///////////////////////////////
 	//Draw Widgets
 	tInventoryWidgetListIt it = mlstWidgets.begin();
 	for(; it != mlstWidgets.end(); ++it)
@@ -1516,7 +1383,6 @@ void cInventory::OnDraw()
 		pWidget->OnDraw();
 	}
 
-	//////////////////////////////
 	//Draw Selected item
 	if(mpCurrentItem)
 	{
@@ -1540,11 +1406,9 @@ void cInventory::OnDraw()
 		}
 	}
 
-	//////////////////////////
 	//Draw context
     mpContext->Draw();
 
-	//////////////////////////
 	//Draw message
 	if(mfMessageAlpha>0)
 	{
@@ -1562,7 +1426,6 @@ void cInventory::OnDraw()
 								msMessage.c_str());
 	}
 	
-	//////////////////////////
 	//Draw text
 	//Black Plague: hidden only while radio text is shown (a far message has none)
 	bool bRadioText = cInit::IsOverture() ?	mpInit->mpRadioHandler->IsActive() && mpInit->mbSubtitles :
@@ -1581,8 +1444,6 @@ void cInventory::OnDraw()
 							msItemDesc.c_str());
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::SetActive(bool abActive)
 {
@@ -1616,14 +1477,10 @@ void cInventory::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cInventory::IsActive()
 {
 	return mbActive;
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::OnInventoryDown()
 {
@@ -1639,21 +1496,16 @@ void cInventory::OnInventoryDown()
 	mvMousePos = cVector2f(400,300);
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::AddWidget(iInventoryWidget* apWidget)
 {
 	mlstWidgets.push_back(apWidget);
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::AddItem(cGameItem *apGameItem)
 {
 	tWString sMessage = apGameItem->GetGameName();//kTranslate("Inventory","YouPickedUp") + _W(" ")+apGameItem->GetGameName();
 	mpInit->mpEffectHandler->GetSubTitle()->Add(sMessage,2.0f,true);
 
-	//////////////////////////
 	//If the item has a count, check if it exists
 	if(apGameItem->HasCount())
 	{
@@ -1681,7 +1533,6 @@ void cInventory::AddItem(cGameItem *apGameItem)
 		}
 	}
 
-	//////////////////////////
 	//Create item
 	cInventoryItem *pItem = hplNew( cInventoryItem, (mpInit) );
 	pItem->Init(apGameItem);
@@ -1712,11 +1563,8 @@ void cInventory::AddItem(cGameItem *apGameItem)
 	//TODO: Show message that there is no room for the item.
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, int alSlotIndex)
 {
-	/////////////////////////////////
 	//Create Item	
 	cInventoryItem *pItem = hplNew( cInventoryItem, (mpInit) );
 	pItem->SetName(asName);
@@ -1738,7 +1586,6 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 		return;
 	}
 
-	//////////////////////////
 	//If the item has a count, check if it exists
 	if(pItem->HasCount())
 	{
@@ -1765,7 +1612,6 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 		}
 	}
 	
-	//////////////////////////
 	//Add to inventory
 	m_mapItems.insert(tInventoryItemMap::value_type(pItem->GetName(),pItem));
 
@@ -1788,8 +1634,6 @@ void cInventory::AddItemFromFile(const tString &asName,const tString &asFile, in
 		lCount++;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::RemoveItem(cInventoryItem *apItem)
 {
@@ -1821,8 +1665,6 @@ void cInventory::RemoveItem(cInventoryItem *apItem)
 	hplDelete( apItem );
 }
 
-//-----------------------------------------------------------------------
-
 cInventoryItem *cInventory::GetItem(const tString &asName)
 {
 	tInventoryItemMapIt it = m_mapItems.find(asName);
@@ -1833,8 +1675,6 @@ cInventoryItem *cInventory::GetItem(const tString &asName)
 
 	return nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::OnMouseDown(eMButton aButton)
 {
@@ -1848,13 +1688,11 @@ void cInventory::OnMouseDown(eMButton aButton)
 	// Right-click context menus are disabled here.
 	if(aButton == eMButton_Right) return;
 	
-	/////////////////////////////////
 	// Context is active
 	if(mpContext->IsActive())
 	{
 		mpContext->OnMouseDown(aButton);
 	}
-	/////////////////////////////////
 	// Normal
 	else
 	{
@@ -1873,13 +1711,11 @@ void cInventory::OnMouseDown(eMButton aButton)
 
 void cInventory::OnMouseUp(eMButton aButton)
 {
-	/////////////////////////////////
 	// Context is active
 	if(mpContext->IsActive())
 	{
 		mpContext->OnMouseUp(aButton);
 	}
-	/////////////////////////////////
 	// Normal
 	else
 	{
@@ -1896,7 +1732,6 @@ void cInventory::OnMouseUp(eMButton aButton)
 			}
 		}
 		
-		/////////////////////////////////////////
 		// Item is dropped outside of slots or returned to its previous slot.
 		if(mpCurrentItem && mbDroppedInSlot == false && aButton == eMButton_Left)
 		{
@@ -1918,8 +1753,6 @@ void cInventory::OnMouseUp(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::OnDoubleClick(eMButton aButton)
 {
 	if(mbMessageActive) return;
@@ -1938,8 +1771,6 @@ void cInventory::OnDoubleClick(eMButton aButton)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::AddMousePos(const cVector2f &avRel)
 {
@@ -1960,9 +1791,6 @@ void cInventory::SetMousePos(const cVector2f &avPos)
 
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }
-
-
-//-----------------------------------------------------------------------
 
 void cInventory::OnShortcutDown(int alNum)
 {	
@@ -1999,8 +1827,6 @@ void cInventory::OnShortcutDown(int alNum)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::SetMessage(const tWString &asMessage)
 {
 	mbMessageActive = true;
@@ -2008,8 +1834,6 @@ void cInventory::SetMessage(const tWString &asMessage)
 
 	mpInit->mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::AddPickupCallback(const tString &asItem, const tString &asFunction)
 {
@@ -2021,8 +1845,6 @@ void cInventory::AddPickupCallback(const tString &asItem, const tString &asFunct
 
 	m_mapPickupCallbacks.insert(tInventoryPickupCallbackMap::value_type(asItem,pCallback));
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::AddUseCallback(const tString &asItem, const tString &asObject, const tString &asFunction)
 {
@@ -2051,8 +1873,6 @@ void cInventory::AddUseCallback(const tString &asItem, const tString &asObject, 
 	m_mapUseCallbacks.insert(tInventoryUseCallbackMap::value_type(asItem,pCallback));
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::AddCombineCallback(const tString &asItem1,const tString &asItem2, const tString &asFunction)
 {
 	cInventoryCombineCallback *pCallback = hplNew( cInventoryCombineCallback, () );
@@ -2063,8 +1883,6 @@ void cInventory::AddCombineCallback(const tString &asItem1,const tString &asItem
 
 	mlstCombineCallbacks.push_back(pCallback);
 }
-
-//-----------------------------------------------------------------------
 
 void cInventory::RemovePickupCallback(const tString &asFunction)
 {
@@ -2124,8 +1942,6 @@ void cInventory::RemoveCombineCallback(const tString &asFunction)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::CheckPickupCallback(const tString &asItem)
 {
 	tInventoryPickupCallbackMapIt it = m_mapPickupCallbacks.find(asItem);
@@ -2135,8 +1951,6 @@ void cInventory::CheckPickupCallback(const tString &asItem)
 	tString sCommand = pCallback->msFunction + "(\""+asItem+"\")";
 	mpInit->RunScriptCommand(sCommand);
 }
-
-//-----------------------------------------------------------------------
 
 bool cInventory::CheckUseCallback(const tString &asItem, const tString &asObject)
 {
@@ -2165,8 +1979,6 @@ bool cInventory::CheckUseCallback(const tString &asItem, const tString &asObject
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asItem2, int alSlotIndex,
 										bool abShowMessage)
@@ -2225,9 +2037,6 @@ bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asIt
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cInventory::ClearCallbacks()
 {
 	STLMapDeleteAll(m_mapPickupCallbacks);
@@ -2235,13 +2044,10 @@ void cInventory::ClearCallbacks()
 	STLDeleteAll(mlstCombineCallbacks);
 }
 
-//-----------------------------------------------------------------------
-
 void cInventory::SaveToGlobal(cInventory_GlobalSave *apSave)
 {
 	apSave->mbNoteBookActive = mbNoteBookIsActive;
 
-	////////////////////////////
 	//Items
     tInventoryItemMapIt ItemIt = m_mapItems.begin();
 	for(; ItemIt != m_mapItems.end(); ++ItemIt)
@@ -2270,7 +2076,6 @@ void cInventory::SaveToGlobal(cInventory_GlobalSave *apSave)
 		apSave->mlstItems.Add(saveItem);
 	}
 	
-	////////////////////////////
 	//Equip slots
 	apSave->mvEquipSlots.Resize(mvEquipSlots.size());
 	for(size_t i=0; i<mvEquipSlots.size(); i++)
@@ -2281,7 +2086,6 @@ void cInventory::SaveToGlobal(cInventory_GlobalSave *apSave)
 			apSave->mvEquipSlots[i].msItemName = "";
 	}
 
-	////////////////////////////
 	//Normal slots
 	tInventorySlotListIt SlotIt = mlstSlots.begin();
 	for(; SlotIt != mlstSlots.end(); ++SlotIt)
@@ -2298,14 +2102,10 @@ void cInventory::SaveToGlobal(cInventory_GlobalSave *apSave)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 {
 	mbNoteBookIsActive = apSave->mbNoteBookActive;
 
-	////////////////////////////
 	//Items
 	cContainerListIterator<cInventoryItem_GlobalSave> ItemIt = apSave->mlstItems.GetIterator();
 	while(ItemIt.HasNext())
@@ -2335,7 +2135,6 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 		m_mapItems.insert(tInventoryItemMap::value_type(pItem->msName,pItem));
 	}
 
-	////////////////////////////
 	//Equip slots
 	for(size_t i=0; i<mvEquipSlots.size(); i++)
 	{	
@@ -2345,7 +2144,6 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 			mvEquipSlots[i]->mpItem = nullptr;
 	}
 
-	////////////////////////////
 	//Normal slots
 	cContainerListIterator<cInventorySlot_GlobalSave> SlotIt = apSave->mlstSlots.GetIterator();
 	tInventorySlotListIt SlotListIt = mlstSlots.begin();
@@ -2363,28 +2161,16 @@ void cInventory::LoadFromGlobal(cInventory_GlobalSave *apSave)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-------------------------------------------------------------------
-
 kBeginSerializeBase(cInventoryUseCallback)
 kSerializeVar(msItem, eSerializeType_String)
 kSerializeVar(msObject, eSerializeType_String)
 kSerializeVar(msFunction, eSerializeType_String)
 kEndSerialize()
 
-//-------------------------------------------------------------------
-
 kBeginSerializeBase(cInventoryPickupCallback)
 kSerializeVar(msItem, eSerializeType_String)
 kSerializeVar(msFunction, eSerializeType_String)
 kEndSerialize()
-
-//-----------------------------------------------------------------------
 
 kBeginSerializeBase(cInventoryCombineCallback)
 kSerializeVar(msItem1, eSerializeType_String)
@@ -2393,19 +2179,14 @@ kSerializeVar(msFunction, eSerializeType_String)
 kSerializeVar(bKillMe, eSerializeType_Bool)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 kBeginSerializeBase(cSaveData_cInventory)
 kSerializeClassContainer(mlstUseCallbacks,cInventoryUseCallback, eSerializeType_Class)
 kSerializeClassContainer(mlstPickupCallbacks,cInventoryPickupCallback, eSerializeType_Class)
 kSerializeClassContainer(mlstCombineCallbacks, cInventoryCombineCallback, eSerializeType_Class)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 {
-	///////////////////////
 	//Use callbacks
 	{
 		cContainerListIterator<cInventoryUseCallback> it = mlstUseCallbacks.GetIterator();
@@ -2416,7 +2197,6 @@ iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveOb
 		}
 	}
 
-	///////////////////////
 	//Pickup callbacks
 	{
 		cContainerListIterator<cInventoryPickupCallback> it = mlstPickupCallbacks.GetIterator();
@@ -2426,7 +2206,6 @@ iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveOb
 			gpInit->mpInventory->AddPickupCallback(temp.msItem,temp.msFunction);
 		}
 	}
-	///////////////////////
 	//Combine callbacks
 	{
 		cContainerListIterator<cInventoryCombineCallback> it = mlstCombineCallbacks.GetIterator();
@@ -2440,21 +2219,15 @@ iSaveObject* cSaveData_cInventory::CreateSaveObject(cSaveObjectHandler *apSaveOb
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 int cSaveData_cInventory::GetSaveCreatePrio()
 {
 	return 4;
 }
 
-
-//-----------------------------------------------------------------------
-
 iSaveData* cInventory::CreateSaveData()
 {
 	cSaveData_cInventory *pData = hplNew( cSaveData_cInventory, () );
 	
-	//////////////////////
 	//Use callbacks
 	{
 		tInventoryUseCallbackMapIt it = m_mapUseCallbacks.begin();
@@ -2464,7 +2237,6 @@ iSaveData* cInventory::CreateSaveData()
 		}
 	}
 	
-	//////////////////////
 	//Pickup callbacks
 	{
 		tInventoryPickupCallbackMapIt it = m_mapPickupCallbacks.begin();
@@ -2474,7 +2246,6 @@ iSaveData* cInventory::CreateSaveData()
 		}
 	}
 	
-	//////////////////////
 	//Combine callbacks
 	{
 		tInventoryCombineCallbackListIt it = mlstCombineCallbacks.begin();
@@ -2487,5 +2258,3 @@ iSaveData* cInventory::CreateSaveData()
 
 	return pData;
 }
-
-//-----------------------------------------------------------------------

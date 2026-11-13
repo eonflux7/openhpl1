@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cFontManager::cFontManager(cGraphics* apGraphics,cGui *apGui,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -52,14 +46,6 @@ namespace hpl {
 		DestroyAll();
 		Log(" Done with fonts\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iFontData* cFontManager::CreateFontData(const tString& asName, int alSize,unsigned short alFirstChar,
 											unsigned short alLastChar)
@@ -130,8 +116,6 @@ namespace hpl {
 		return pFont;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFontManager::LoadVectorFonts(const tString& asDir)
 	{
 		tString sFile = asDir + "fonts.cfg";
@@ -163,27 +147,20 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFontManager::HasVectorFont(const tString& asName) const
 	{
 		return m_mapVectorFonts.count(cString::ToLowerCase(cString::GetFileName(asName))) > 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* cFontManager::Create(const tString& asName)
 	{
 		return CreateFontData(asName, 16, 32, 255);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cFontManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cFontManager::Destroy(iResourceBase* apResource)
 	{
@@ -194,17 +171,4 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
 }

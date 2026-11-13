@@ -31,16 +31,12 @@ namespace hpl {
 	class iSoundChannel;
 	class cWorld3D;
 
-	//----------------------------------------
-
 	enum eSoundDest
 	{
 		eSoundDest_World = eFlagBit_0,
 		eSoundDest_Gui = eFlagBit_1,
 		eSoundDest_All = eFlagBit_All
 	};
-
-	//----------------------------------------
 
 	class cSoundRayCallback :public iPhysicsRayCallback
 	{
@@ -56,12 +52,7 @@ namespace hpl {
 		int mlCount;
 	};
 
-	//----------------------------------------
-
-
-	////////////////////////////////////////////////////
-	//////////// SOUND ENTRY ///////////////////////////
-	////////////////////////////////////////////////////
+	// SOUND ENTRY
 
 	class cSoundEntry
 	{
@@ -106,20 +97,12 @@ namespace hpl {
 	typedef cSTLIterator<cSoundEntry,tSoundEntryList,tSoundEntryListIt> tSoundEntryIterator;
 
 
-	////////////////////////////////////////////////////
-	//////////// SOUND HANDLER ///////////////////////
-	////////////////////////////////////////////////////
-
-	//----------------------------------------
+	// SOUND HANDLER
 
 	typedef std::map<tString, int> tPlayedSoundNumMap;
 	typedef tPlayedSoundNumMap::iterator tPlayedSoundNumMapIt;
 
-	//----------------------------------------
-
 	class cResources;
-
-	//----------------------------------------
 
 	class cSoundHandler
 	{

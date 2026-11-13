@@ -48,8 +48,6 @@ namespace hpl {
 		cSoundEntity *mpEntity;
 	};
 
-	//----------------------------------------
-
 	kSaveData_ChildClass(iEntity3D, cSoundEntity)
 	{
 		kSaveData_ClassInit(cSoundEntity)
@@ -65,8 +63,6 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//------------------------------------------
-
 	class iSoundEntityGlobalCallback
 	{
 	public:
@@ -76,8 +72,6 @@ namespace hpl {
 
 	typedef std::list<iSoundEntityGlobalCallback*> tSoundEntityGlobalCallbackList;
 	typedef tSoundEntityGlobalCallbackList::iterator tSoundEntityGlobalCallbackListIt;
-
-	//------------------------------------------
 
 	class cSoundEntity : public iEntity3D
 	{

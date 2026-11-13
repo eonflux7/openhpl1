@@ -22,12 +22,6 @@
 
 namespace fs = std::filesystem;
 
-//////////////////////////////////////////////////////////////////////////
-// HELPERS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 // The rotation of a matrix without its scale, and the scale
 static void SplitMatrix(const cMatrixf &a_mtx, cMatrixf &a_mtxRot, cVector3f &avScale)
 {
@@ -95,14 +89,6 @@ static void QuaternionOf(const cMatrixf &a_mtxRot, float avQuat[4])
 	avQuat[3] = qRot.w;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cLevelEditor::cLevelEditor(cInit *apInit)
 {
 	mpInit = apInit;
@@ -125,14 +111,6 @@ cLevelEditor::~cLevelEditor()
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cLevelEditor::PrepareEditDir(const tString &asDir)
 {
 	std::error_code err;
@@ -144,8 +122,6 @@ void cLevelEditor::PrepareEditDir(const tString &asDir)
 	file << "<Addon Name=\"Level editor\" Priority=\"1000\" />\n";
 	if(file.good() == false) Warning("Couldn't make the level editor's folder '%s'\n", asDir.c_str());
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::Update()
 {
@@ -214,8 +190,6 @@ void cLevelEditor::Update()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::Prepare(tString &asError)
 {
 	if(mpData) return true;
@@ -247,8 +221,6 @@ bool cLevelEditor::Prepare(tString &asError)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 tString cLevelEditor::GetEditedMapFile()
 {
 	if(mpInit->msEditDir == "" || msMap == "") return "";
@@ -256,8 +228,6 @@ tString cLevelEditor::GetEditedMapFile()
 	fs::path file = fs::u8path(mpInit->msEditDir) / fs::u8path(msMap + ".glb");
 	return fs::exists(file, err) ? file.u8string() : "";
 }
-
-//-----------------------------------------------------------------------
 
 tString cLevelEditor::GetKind(const cColladaNode *apNode, const cColladaData &aData)
 {
@@ -286,8 +256,6 @@ tString cLevelEditor::GetKind(const cColladaNode *apNode, const cColladaData &aD
 	return "group";
 }
 
-//-----------------------------------------------------------------------
-
 tString cLevelEditor::GetObjectName(const cColladaNode *apNode)
 {
 	tString sName = cString::ToLowerCase(apNode->msName);
@@ -299,8 +267,6 @@ tString cLevelEditor::GetObjectName(const cColladaNode *apNode)
 	}
 	return apNode->msName;
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::FindNodes(const tString &asFilter, std::vector<cNodeInfo> &avNodes)
 {
@@ -321,8 +287,6 @@ void cLevelEditor::FindNodes(const tString &asFilter, std::vector<cNodeInfo> &av
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::GetNode(const tString &asName, cNodeInfo &aInfo)
 {
 	cColladaNode *pNode = FindNode(asName);
@@ -330,8 +294,6 @@ bool cLevelEditor::GetNode(const tString &asName, cNodeInfo &aInfo)
 	FillInfo(pNode, aInfo);
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cLevelEditor::SetTransform(const tString &asName, const cVector3f *apPos, const cVector3f *apRot,
 								const cVector3f *apScale, tString &asError)
@@ -365,8 +327,6 @@ bool cLevelEditor::SetTransform(const tString &asName, const cVector3f *apPos, c
 	mtxRot.SetTranslation(vPos);
 	return SetWorld(pNode->msName, mtxRot, vScale, asError);
 }
-
-//-----------------------------------------------------------------------
 
 bool cLevelEditor::GetWorld(const tString &asName, cMatrixf &a_mtxRotPos, cVector3f &avScale)
 {
@@ -404,8 +364,6 @@ bool cLevelEditor::SetWorld(const tString &asName, const cMatrixf &a_mtxRotPos, 
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::GetState(const tString &asName, cState &aState)
 {
 	cColladaNode *pNode = FindNode(asName);
@@ -423,8 +381,6 @@ bool cLevelEditor::SetState(const tString &asName, const cState &aState)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cLevelEditor::GetChildren(const tString &asName, tStringVec &avChildren)
 {
 	avChildren.clear();
@@ -440,8 +396,6 @@ tString cLevelEditor::GetNodeKind(const tString &asName)
 	cColladaNode *pNode = FindNode(asName);
 	return pNode ? GetKind(pNode, *mpData) : "";
 }
-
-//-----------------------------------------------------------------------
 
 bool cLevelEditor::GetNodeBox(const tString &asName, cVector3f &avMin, cVector3f &avMax)
 {
@@ -511,8 +465,6 @@ iLight3D* cLevelEditor::GetNodeLight(const tString &asName)
 	return pWorld->GetLight(GetLightName(pNode->msName));
 }
 
-//-----------------------------------------------------------------------
-
 void cLevelEditor::ResetNode(const tString &asName)
 {
 	cColladaNode *pNamed = asName != "" ? FindNode(asName) : nullptr;
@@ -530,8 +482,6 @@ void cLevelEditor::ResetNode(const tString &asName)
 	}
 	EndUndo();
 }
-
-//-----------------------------------------------------------------------
 
 bool cLevelEditor::Save(tString &asMessage)
 {
@@ -616,8 +566,6 @@ bool cLevelEditor::Save(tString &asMessage)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::Revert(tString &asMessage)
 {
 	tString sFile = GetEditedMapFile();
@@ -644,8 +592,6 @@ bool cLevelEditor::Revert(tString &asMessage)
 	mpInit->mpMapHandler->RequestReload();
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 namespace
 {
@@ -737,8 +683,6 @@ tString cLevelEditor::Pick(const cVector3f &vStart, const cVector3f &vEnd)
 	return sBest;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::GetNodeBounds(const tString &asName, cVector3f &avCenter, float &afRadius)
 {
 	cColladaNode *pNode = FindNode(asName);
@@ -762,8 +706,6 @@ bool cLevelEditor::GetNodeBounds(const tString &asName, cVector3f &avCenter, flo
 	afRadius = 0.5f;
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f cLevelEditor::GetClearView(const tString &asName, const cVector3f &avTarget, const cVector3f &avFrom)
 {
@@ -800,8 +742,6 @@ cVector3f cLevelEditor::GetClearView(const tString &asName, const cVector3f &avT
 	if(fLength < 1e-4f) return avFrom;
 	return avTarget + vDir * (cMath::Max(0.05f, hit.mfDist - 0.15f) / fLength);
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::Draw()
 {
@@ -886,14 +826,6 @@ void cLevelEditor::Draw()
 						"reloads it.");
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cLevelEditor::Clear()
 {
 	mpData.reset();
@@ -904,8 +836,6 @@ void cLevelEditor::Clear()
 	mbStaticMoved = false;
 	++mlVersion;
 }
-
-//-----------------------------------------------------------------------
 
 cColladaNode* cLevelEditor::FindNode(const tString &asName)
 {
@@ -922,14 +852,10 @@ cColladaNode* cLevelEditor::FindNode(const tString &asName)
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::IsScaleSeparate(cColladaNode *apNode)
 {
 	return cMeshLoaderCollada::ScaleIsSeparate(apNode, &mpData->mvLights);
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::FillInfo(cColladaNode *apNode, cNodeInfo &aInfo)
 {
@@ -952,8 +878,6 @@ void cLevelEditor::FillInfo(cColladaNode *apNode, cNodeInfo &aInfo)
 	aInfo.mbEdited = m_mapOriginal.find(apNode->msName) != m_mapOriginal.end();
 }
 
-//-----------------------------------------------------------------------
-
 tString cLevelEditor::GetWorldText(cColladaNode *apNode)
 {
 	cMatrixf mtxRot;
@@ -970,16 +894,12 @@ tString cLevelEditor::GetWorldText(cColladaNode *apNode)
 	return sText;
 }
 
-//-----------------------------------------------------------------------
-
 void cLevelEditor::UpdateWorldTransforms(cColladaNode *apNode)
 {
 	cMatrixf mtxParent = apNode->pParent ? apNode->pParent->m_mtxWorldTransform : cMatrixf::Identity;
 	apNode->m_mtxWorldTransform = cMath::MatrixMul(mtxParent, apNode->m_mtxTransform);
 	for(cColladaNode *pChild : apNode->mlstChildren) UpdateWorldTransforms(pChild);
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::ChangeNode(cColladaNode *apNode, const cMatrixf &a_mtxTransform, const cVector3f &avScale)
 {
@@ -1001,16 +921,12 @@ void cLevelEditor::ChangeNode(cColladaNode *apNode, const cMatrixf &a_mtxTransfo
 		m_mapOriginal.erase(apNode->msName);
 }
 
-//-----------------------------------------------------------------------
-
 bool cLevelEditor::LiveWorldValid()
 {
 	return mpData && mpInit->mpGame->GetScene()->GetWorld3D() &&
 		   mpInit->mpMapHandler->GetLoadCount() == mlMapLoad && mpInit->mpMapHandler->GetCurrentMapName() == msMap &&
 		   mpInit->mpMapHandler->IsChangingMap() == false;
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::CaptureLive(cColladaNode *apNode)
 {
@@ -1024,8 +940,6 @@ void cLevelEditor::CaptureLive(cColladaNode *apNode)
 	}
 	for(cColladaNode *pChild : apNode->mlstChildren) CaptureLive(pChild);
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::SyncLive(cColladaNode *apNode)
 {
@@ -1102,16 +1016,12 @@ void cLevelEditor::SyncLive(cColladaNode *apNode)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cLevelEditor::GetGameEntity(cColladaNode *apNode)
 {
 	iGameEntity *pEntity = mpInit->mpMapHandler->GetGameEntity(GetObjectName(apNode), false);
 	if(pEntity == nullptr) pEntity = mpInit->mpMapHandler->GetGameEntity(apNode->msName, false);
 	return pEntity;
 }
-
-//-----------------------------------------------------------------------
 
 tString cLevelEditor::GetLightName(const tString &asNodeName)
 {
@@ -1124,8 +1034,6 @@ tString cLevelEditor::GetLightName(const tString &asNodeName)
 	if(vParams.size() >= 2 + lFirst) return vParams.back();
 	return lFirst < vParams.size() ? vParams[lFirst] : asNodeName;
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::FindTargets(cColladaNode *apNode, std::vector<cLiveTarget> &avTargets)
 {
@@ -1205,8 +1113,6 @@ void cLevelEditor::FindTargets(cColladaNode *apNode, std::vector<cLiveTarget> &a
 	}
 }
 
-//-----------------------------------------------------------------------
-
 iEntity3D* cLevelEditor::GetTargetEntity(const cLiveTarget &aTarget)
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -1232,8 +1138,6 @@ iEntity3D* cLevelEditor::GetTargetEntity(const cLiveTarget &aTarget)
 	default: return nullptr;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cLevelEditor::BeginUndo(const tString &asLabel)
 {
@@ -1317,5 +1221,3 @@ void cLevelEditor::ClearUndo()
 	mlUndoDepth = 0;
 	mOpenStep.mvNodes.clear();
 }
-
-//-----------------------------------------------------------------------

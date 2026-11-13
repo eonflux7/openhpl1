@@ -63,8 +63,6 @@ class cInventoryItem;
 class cPlayer_GlobalSave;
 class cSavedWorld;
 
-//---------------------------------------------
-
 kSaveData_BaseClass(cPlayer)
 {
 	kSaveData_ClassInit(cPlayer)
@@ -77,8 +75,6 @@ public:
 	iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 	int GetSaveCreatePrio() override;
 };
-
-//---------------------------------------------
 
 class iPlayerMoveState
 {
@@ -143,7 +139,6 @@ public:
 	ePlayerMoveState mType;
 
 };
-//---------------------------------------------
 
 class cPlayer : public iUpdateable
 {
@@ -152,7 +147,6 @@ public:
 	cPlayer(cInit *apInit);
 	~cPlayer() override;
 	
-	////////////////////////////////////////
 	//Interaction
 	
 	void MoveForwards(float afMul, float afTimeStep);
@@ -187,7 +181,6 @@ public:
 
 	void StartGlowStickButton();
 		
-	////////////////////////////////
 	// Actions
 	void SetStartPos(const tString& asName);
 
@@ -214,7 +207,6 @@ public:
 
 	iSaveData* CreateSaveData();
 	
-	/////////////////////////////////////////
 	// Events
 	void OnWorldLoad();
 	void OnWorldExit();
@@ -224,7 +216,6 @@ public:
 	void OnDraw() override;
 	void OnPostSceneDraw() override;
 
-	/////////////////////////////////////////
 	//Saving
 
 	void AddSaveData(cSavedWorld* apSavedWorld);
@@ -233,7 +224,6 @@ public:
 	void SaveToGlobal(cPlayer_GlobalSave *apSave);
 	void LoadFromGlobal(cPlayer_GlobalSave *apSave);
 	
-	/////////////////////////////////////////
 	//Properties
 	bool IsDead();
 
@@ -377,7 +367,6 @@ public:
 	void JumpOffLadder();
 	float GetMaxJumpCount(){ return mfMaxJumpCount;}
 
-	/////////////////////////////////////////
 	//Stats
 	int mlStat_NumOfSaves;
 	// Black Plague: shown on the statistics page after the credits
@@ -388,8 +377,6 @@ public:
 	int mlStat_MaxNotes;		//game.cfg's totals
 	int mlStat_MaxCollectables;
 
-
-	/////////////////////////////////////////
 	//State properties
 	float mfForwardUpMul;
 	float mfForwardRightMul;

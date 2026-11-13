@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//------------------------------------------
-
 class cGameLiquidArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameLiquidArea_SaveData);
@@ -45,8 +43,6 @@ public:
 		
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameLiquidArea : public iGameEntity
 {
@@ -97,8 +93,6 @@ private:
 
 	cPlanef mSurfacePlane;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameLiquidArea : public iArea3DLoader
 {

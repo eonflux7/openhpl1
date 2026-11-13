@@ -46,7 +46,6 @@ namespace hpl {
 		int GetMaxShownItems(){ return mlMaxItems;}
 
 	protected:
-		/////////////////////////
 		// Own functions
 		void UpdateProperties() override;
 
@@ -65,7 +64,6 @@ namespace hpl {
 		bool SliderLostFocus(iWidget* apWidget,cGuiMessageData& aData);
 		kGuiCalllbackDeclarationEnd(SliderLostFocus);
 
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 		void OnChangeSize() override;
@@ -82,8 +80,6 @@ namespace hpl {
 
 		bool OnLostFocus(cGuiMessageData &aData) override;
 
-
-		/////////////////////////
 		// Data
 		cWidgetTextBox *mpText;
 		cWidgetButton *mpButton;

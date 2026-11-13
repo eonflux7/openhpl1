@@ -44,8 +44,6 @@ namespace hpl {
 	class iMaterial;
 	class cBoneState;
 
-	//-----------------------------------------------------------------------
-
 	typedef std::vector<cAnimationState*> tAnimationStateVec;
 	typedef tAnimationStateVec::iterator tAnimationStateVecIt;
 
@@ -58,16 +56,11 @@ namespace hpl {
 	typedef std::map<tString, int> tNodeStateIndexMap;
 	typedef tNodeStateIndexMap::iterator tNodeStateIndexMapIt;
 
-
-	//-----------------------------------------------------------------------
-
 	class cSubMeshEntityBodyUpdate : public iEntityCallback
 	{
 	public:
 		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
-
-	//-----------------------------------------------------------------------
 
 	kSaveData_ChildClass(iRenderable,cSubMeshEntity)
 	{
@@ -84,8 +77,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override{return nullptr;}
 		int GetSaveCreatePrio() override{return 0;}
 	};
-
-	//-----------------------------------------------------------------------
 
 	class cSubMeshEntity : public iRenderable
 	{

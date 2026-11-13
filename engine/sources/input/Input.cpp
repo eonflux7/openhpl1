@@ -28,12 +28,6 @@
 
 namespace hpl
 {
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cInput::cInput(iLowLevelInput *apLowLevelInput) : iUpdateable("HPL_Input")
 	{
 		mpLowLevelInput = apLowLevelInput;
@@ -44,8 +38,6 @@ namespace hpl
 		mlstInputDevices.push_back(mpMouse);
 		mlstInputDevices.push_back(mpKeyboard);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cInput::~cInput()
 	{
@@ -59,14 +51,6 @@ namespace hpl
 
 		Log("--------------------------------------------------------\n\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cInput::Update(float afTimeStep)
 	{
@@ -85,16 +69,12 @@ namespace hpl
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cInput::AddAction(iAction *apAction)
 	{
 		tString sName = apAction->GetName();
 		tActionMap::value_type val = tActionMap::value_type(sName,apAction);
 		m_mapActions.insert(val);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cInput::IsTriggered(tString asName)
 	{
@@ -104,8 +84,6 @@ namespace hpl
 		return pAction->IsTriggered();
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cInput::WasTriggered(tString asName)
 	{
 		iAction *pAction = GetAction(asName);
@@ -113,8 +91,6 @@ namespace hpl
 
 		return pAction->WasTriggered();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cInput::BecameTriggered(tString asName)
 	{
@@ -124,8 +100,6 @@ namespace hpl
 		return pAction->BecameTriggered();
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cInput::DoubleTriggered(tString asName, float afMaxIntervalSeconds)
 	{
 		iAction *pAction = GetAction(asName);
@@ -134,21 +108,15 @@ namespace hpl
 		return pAction->DoubleTriggered(afMaxIntervalSeconds);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iKeyboard* cInput::GetKeyboard()
 	{
 		return mpKeyboard;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMouse* cInput::GetMouse()
 	{
 		return mpMouse;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iAction* cInput::GetAction(tString asName)
 	{
@@ -158,8 +126,6 @@ namespace hpl
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cInput::DestroyAction(tString asName)
 	{
 		iAction *pOldAction = GetAction(asName);
@@ -167,18 +133,14 @@ namespace hpl
 		m_mapActions.erase(asName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cInput::CheckForInput()
 	{
-		//////////////////////
 		//Keyboard
 		for(int i=0; i< eKey_LastEnum; ++i)
 		{
 			if(mpKeyboard->KeyIsDown((eKey)i)) return true;
 		}
 
-		//////////////////////
 		//Mouse
 		for(int i=0; i< eMButton_LastEnum; ++i)
 		{
@@ -188,13 +150,10 @@ namespace hpl
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iAction* cInput::InputToAction(const tString &asName)
 	{
 		iAction *pAction=nullptr;
 
-		//////////////////////
 		//Keyboard
 		for(int i=0; i< eKey_LastEnum; ++i)
 		{
@@ -205,7 +164,6 @@ namespace hpl
 			}
 		}
 
-		//////////////////////
 		//Mouse
 		if(pAction==nullptr)
 		{
@@ -231,7 +189,4 @@ namespace hpl
 
 		return pAction;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

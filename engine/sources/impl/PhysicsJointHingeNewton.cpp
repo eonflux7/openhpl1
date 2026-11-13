@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointHingeNewton::cPhysicsJointHingeNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 		iPhysicsWorld *apWorld,const cVector3f &avPivotPoint, const cVector3f avPinDir)
@@ -54,20 +48,10 @@ namespace hpl {
 		mfPreviousAngle =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointHingeNewton::~cPhysicsJointHingeNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointHingeNewton::SetMaxAngle(float afAngle)
 	{
@@ -88,8 +72,6 @@ namespace hpl {
 		return mfMinAngle;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointHingeNewton::GetVelocity()
 	{
 		return cVector3f(0,0,0);
@@ -106,8 +88,6 @@ namespace hpl {
 		return vForce;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsJointHingeNewton::GetDistance()
 	{
 		return 0;
@@ -116,15 +96,6 @@ namespace hpl {
 	{
 		return NewtonHingeGetJointAngle(mpNewtonJoint);
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// How near a limit its stop holds, and how much of the way back to it
 	// that stop pulls in one step
@@ -224,7 +195,4 @@ namespace hpl {
 		pHingeJoint->mfPreviousAngle = fAngle;
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

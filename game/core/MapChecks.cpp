@@ -23,8 +23,6 @@ static const int klJointFrames = 120;
 // Frames the player stands at each start position
 static const int klLinkFrames = 60;
 
-//-----------------------------------------------------------------------
-
 // Every body a ray hits, in the order Newton reports them
 class cCheckRayCollector : public iPhysicsRayCallback
 {
@@ -69,8 +67,6 @@ static float AxisAngle(cVector3f avA, cVector3f avB)
 	return cMath::ToDeg(acosf(cMath::Clamp(fDot, -1.0f, 1.0f)));
 }
 
-//-----------------------------------------------------------------------
-
 cMapChecks::cMapChecks(cInit *apInit)
 {
 	mpInit = apInit;
@@ -96,8 +92,6 @@ bool cMapChecks::IsRequested()
 	return pSpec && pSpec[0] && tString(pSpec) != "0";
 }
 
-//-----------------------------------------------------------------------
-
 void cMapChecks::Report(const char *asKind, const char *asFormat, ...)
 {
 	char sMess[1024];
@@ -110,8 +104,6 @@ void cMapChecks::Report(const char *asKind, const char *asFormat, ...)
 	mlFindings++;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapChecks::Start(const tString &asMap, const tString &asFile)
 {
 	msMap = asMap;
@@ -121,8 +113,6 @@ void cMapChecks::Start(const tString &asMap, const tString &asFile)
 	mStep = eStep_Settle;
 	StartSettle();
 }
-
-//-----------------------------------------------------------------------
 
 bool cMapChecks::Update(float afTimeStep)
 {
@@ -208,8 +198,6 @@ bool cMapChecks::Update(float afTimeStep)
 	return mStep == eStep_Done;
 }
 
-//-----------------------------------------------------------------------
-
 static bool IsSettleTracked(iPhysicsBody *apBody)
 {
 	if(apBody->GetMass() <= 0 || apBody->IsCharacter() || apBody->IsRagDoll()) return false;
@@ -246,8 +234,6 @@ void cMapChecks::StartSettle()
 		start.mfDist = pJoint->GetDistance();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cMapChecks::FinishSettle()
 {
@@ -326,8 +312,6 @@ void cMapChecks::FinishSettle()
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 static bool IsUsable(iGameEntity *apEntity, iPhysicsBody *apBody)
 {
@@ -433,8 +417,6 @@ void cMapChecks::CheckPicks()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cMapChecks::CheckAreas()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -476,8 +458,6 @@ void cMapChecks::CheckAreas()
 	}
 	Log("CHECK: %s: tried %d player collide callbacks\n", msMap.c_str(), lCount);
 }
-
-//-----------------------------------------------------------------------
 
 static float JointValue(iPhysicsJoint *apJoint)
 {
@@ -592,8 +572,6 @@ bool cMapChecks::UpdateJoints()
 	mvPushes.clear();
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cMapChecks::UpdateLinks()
 {

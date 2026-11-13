@@ -25,12 +25,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGpuProgramManager::cGpuProgramManager(cFileSearcher *apFileSearcher,iLowLevelGraphics *apLowLevelGraphics,
 		iLowLevelResources *apLowLevelResources,iLowLevelSystem *apLowLevelSystem)
 		: iResourceManager(apFileSearcher, apLowLevelResources,apLowLevelSystem)
@@ -45,14 +39,6 @@ namespace hpl {
 		Log(" Done with Gpu programs\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	/**
 	 * Since further parameters are needed for the gpu prog this does not work...
 	 * For now at least.
@@ -63,9 +49,6 @@ namespace hpl {
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	iGpuProgram* cGpuProgramManager::CreateProgram(const tString& asName, const tString& asDefines, const tString& asVertex)
 	{
@@ -94,13 +77,10 @@ namespace hpl {
 		return program;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGpuProgramManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cGpuProgramManager::Destroy(iResourceBase* apResource)
 	{
@@ -111,17 +91,4 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
 }

@@ -46,7 +46,6 @@ namespace hpl {
 	class cMeshJoint;
 	class cSystem;
 
-	//////////////////////////////////////////////
 	// HELP CLASSES
 
 	class cColladaImage
@@ -60,8 +59,6 @@ namespace hpl {
 
 	typedef std::vector<cColladaImage> tColladaImageVec;
 
-	//------------------------------------------------
-
 	class cColladaTexture
 	{
 	public:
@@ -72,8 +69,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaTexture> tColladaTextureVec;
-
-	//------------------------------------------------
 
 	class cColladaMaterial
 	{
@@ -87,8 +82,6 @@ namespace hpl {
 
 	typedef std::vector<cColladaMaterial> tColladaMaterialVec;
 
-	//------------------------------------------------
-
 	class cColladaLight
 	{
 	public:
@@ -101,9 +94,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaLight> tColladaLightVec;
-
-
-	//------------------------------------------------
 
 	class cColladaVtxArray
 	{
@@ -128,9 +118,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaVtxIndex> tColladaVtxIndexVec;
-
-	//------------------------------------------------
-
 
 	class cColladaExtraVtx
 	{
@@ -166,8 +153,6 @@ namespace hpl {
 	typedef tColladaExtraVtxList::iterator tColladaExtraVtxListIt;
 
 	typedef std::vector<tColladaExtraVtxList> tColladaExtraVtxListVec;
-
-	//------------------------------------------------
 
 	class cColladaGeometry
 	{
@@ -214,8 +199,6 @@ namespace hpl {
 
 	typedef std::vector<cColladaGeometry> tColladaGeometryVec;
 
-	//------------------------------------------------
-
 	class cColladaJointPair
 	{
 	public:
@@ -256,8 +239,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaController> tColladaControllerVec;
-
-	//------------------------------------------------
 
 	class cColladaChannel
 	{
@@ -340,9 +321,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaAnimation> tColladaAnimationVec;
-
-
-	//------------------------------------------------
 
 	class cColladaTransform
 	{
@@ -475,8 +453,6 @@ namespace hpl {
 		tColladaNodeList mlstNodes;
 	};
 
-	//------------------------------------------------
-
 	// Everything the loader reads from a model file before it creates meshes,
 	// worlds and animations (the contents of a Collada cache).
 	class cColladaData
@@ -492,8 +468,6 @@ namespace hpl {
 		cColladaScene mScene;
 	};
 
-	//------------------------------------------------
-
 	// Loads Collada (.dae) and glTF 2.0 (.glb, .gltf) models. Both are read
 	// into the same intermediate data, which the meshes, worlds and
 	// animations are created from, so the naming conventions of the original
@@ -505,7 +479,6 @@ namespace hpl {
 		cMeshLoaderCollada(iLowLevelGraphics *apLowLevelGraphics);
 		~cMeshLoaderCollada() override;
 
-		/////////////////////////////////
 		// Model conversion (tools/model_tool.cpp). These do not need graphics
 		// and neither read nor write caches.
 

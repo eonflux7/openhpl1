@@ -36,8 +36,6 @@ namespace hpl {
 		eSectorVisibilityType_Frustum,
 	};
 
-	//----------------------------------------------------
-
 	/**
 	 * Represent the visibility for one portal
 	 */
@@ -51,8 +49,6 @@ namespace hpl {
 		cPortal *mpPortal;
 		bool mbNullShadow;
 	};
-
-	//----------------------------------------------------
 
 	/**
 	* Represent the visibility from one sector to another
@@ -80,8 +76,6 @@ namespace hpl {
 
 		cSectorVisibilityContainer *mpContainer;
 	};
-
-	//----------------------------------------------------
 
 	/**
 	* Represent the visibility of one sector.
@@ -113,8 +107,6 @@ namespace hpl {
 
 	typedef std::map<cSector*,cSectorVisibility*> tSectorVisibilityMap;
 	typedef tSectorVisibilityMap::iterator tSectorVisibilityMapIt;
-
-	//----------------------------------------------------
 
 	typedef std::list<cPortalVisibilitySet*> tPortalVisibilitySetList;
 	typedef tPortalVisibilitySetList::iterator tPortalVisibilitySetListIt;
@@ -170,8 +162,5 @@ namespace hpl {
 
 		int mlTabs;
 	};
-
-	//----------------------------------------------------
-
 };
 #endif // HPL_SECTOR_VISIBILTY_H

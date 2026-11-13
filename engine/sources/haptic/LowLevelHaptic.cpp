@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iLowLevelHaptic::iLowLevelHaptic()
 	{
 		mpCamera = nullptr;
@@ -50,20 +44,10 @@ namespace hpl {
 		mbUpdateShapes = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLowLevelHaptic::~iLowLevelHaptic()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iHapticSurface* iLowLevelHaptic::GetSurfaceFromName(const tString &asName)
 	{
@@ -77,21 +61,12 @@ namespace hpl {
 		return pSurface;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool iLowLevelHaptic::Init(cResources *apResources)
 	{
 		mpResources = apResources;
 
 		if(InitLowLevel()==false) return false;
 
-		/////////////////////////////////////
 		//Init variables
 		mvCurrentHardwarePos = GetHardwarePosition();
 		mvPreviousHardwarePos = mvCurrentHardwarePos;
@@ -100,13 +75,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::Update(float afTimeStep)
 	{
 		UpdateLowLevel(afTimeStep);
 
-		/////////////////////////////////////
 		//Hardware position calculations
 		static bool bHardwareSet = false;
 
@@ -117,8 +89,6 @@ namespace hpl {
 			bHardwareSet = true;
 		}
 
-
-		/////////////////////////////////////
 		//Proxy screen postion calculations
 		if(mpCamera)
 		{
@@ -138,7 +108,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////
 		//Update shape transforms
 		if(mbUpdateShapes)
 		{
@@ -170,14 +139,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f iLowLevelHaptic::GetHardwarePosDelta()
 	{
 		return mvCurrentHardwarePos - mvPreviousHardwarePos;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f iLowLevelHaptic::GetProxyScreenPos(const cVector2f& avScreenSize)
 	{
@@ -189,8 +154,6 @@ namespace hpl {
 		return (mvCurrentScreenPos - mvPreviousScreenPos) * avScreenSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f iLowLevelHaptic::GetRelativeVirtualMousePos()
 	{
 		cVector3f vRel = GetHardwarePosDelta();
@@ -199,8 +162,6 @@ namespace hpl {
 		vPos = vPos * mvScreenSize;
 		return vPos;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f iLowLevelHaptic::GetVirtualMousePos()
 	{
@@ -219,9 +180,6 @@ namespace hpl {
 		mvScreenSize = avScreenSize;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::DestroyShape(iHapticShape* apShape)
 	{
 		STLFindAndDelete(mlstShapes, apShape);
@@ -237,21 +195,15 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cHapticShapeIterator iLowLevelHaptic::GetShapeIterator()
 	{
 		return cHapticShapeIterator(&mlstShapes);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::DestroyForce(iHapticForce* apForce)
 	{
 		STLFindAndDelete(mlstForces, apForce);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLowLevelHaptic::StopAllForces()
 	{
@@ -262,8 +214,6 @@ namespace hpl {
 			pForce->SetActive(false);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLowLevelHaptic::DestroyAllShapes()
 	{
@@ -278,7 +228,4 @@ namespace hpl {
 		STLDeleteAll(mlstForces);
 		STLDeleteAll(mlstShapes);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

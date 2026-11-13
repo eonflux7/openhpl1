@@ -32,8 +32,6 @@ class cGameItemType;
 typedef std::vector<cGameItemType*> tGameItemTypeVec;
 typedef tGameItemTypeVec::iterator tGameItemTypeVecIt;
 
-//--------------------------------------------
-
 class iInventoryWidget
 {
 public:
@@ -67,8 +65,6 @@ protected:
 
 typedef std::list<iInventoryWidget*> tInventoryWidgetList;
 typedef tInventoryWidgetList::iterator tInventoryWidgetListIt;
-
-//-----------------------------------------
 
 class cInventoryItem;
 
@@ -112,8 +108,6 @@ private:
 
 typedef std::list<cInventorySlot*> tInventorySlotList;
 typedef tInventorySlotList::iterator tInventorySlotListIt;
-
-//-----------------------------------------
 
 class cGameItem;
 class cInventoryItem
@@ -182,8 +176,6 @@ private:
 typedef std::multimap<tString,cInventoryItem*> tInventoryItemMap;
 typedef tInventoryItemMap::iterator tInventoryItemMapIt;
 
-//-----------------------------------------
-
 class cInventoryBattery : public iInventoryWidget
 {
 public:
@@ -205,8 +197,6 @@ private:
 	cGfxObject* mpGfxBatteryMeterBar;
 };
 
-//-----------------------------------------
-
 class cInventoryHealth : public iInventoryWidget
 {
 public:
@@ -225,8 +215,6 @@ private:
 	cGfxObject* mpGfxCaution;
 	cGfxObject* mpGfxDanger;
 };
-
-//-----------------------------------------
 
 class cInventoryContext
 {
@@ -279,8 +267,6 @@ private:
 	cRect2f mRect;
 };
 
-//-----------------------------------------
-
 kSaveData_BaseClass(cInventory)
 {
 	kSaveData_ClassInit(cInventory)
@@ -294,9 +280,6 @@ public:
 	iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 	int GetSaveCreatePrio() override;
 };
-
-//--------------------------------------------
-
 
 class cInventory  : public iUpdateable
 {

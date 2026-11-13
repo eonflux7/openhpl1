@@ -27,9 +27,6 @@ using namespace hpl;
 
 class cInit;
 
-
-//---------------------------
-
 // A full-screen image: a menu's logo or background, or a loading screen
 struct cScreenImage
 {
@@ -40,7 +37,6 @@ struct cScreenImage
 	bool mbWide = false;
 };
 
-//---------------------------
 class cGraphicsHelper
 {
 public:
@@ -92,8 +88,5 @@ private:
 	/// The key drawn behind key names in text (iFontData::SetKeyCapGfx)
 	cGfxObject *mpKeyCap;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_GRAPHICS_HELPER_H

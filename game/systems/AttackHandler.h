@@ -29,17 +29,12 @@ class cInit;
 class cMapHandler;
 class cGameSwingDoor;
 
-//---------------------------
-
 #define eAttackTargetFlag_None 0
 #define eAttackTargetFlag_Player (1 << 0)
 #define eAttackTargetFlag_Enemy (1 << 1)
 #define eAttackTargetFlag_Bodies (1 << 2)
 
 typedef tFlag eAttackTargetFlag;
-
-
-//---------------------------
 
 class cAttackRayCallback : public iPhysicsRayCallback
 {
@@ -57,8 +52,6 @@ public:
 	bool mbSkipCharacter;
 };
 
-//---------------------------
-
 class cSplashDamageBlockCheck : public iPhysicsRayCallback
 {
 public:
@@ -73,8 +66,6 @@ private:
 	cInit *mpInit;
 	bool mbIntersected;
 };
-
-//---------------------------
 
 class cAttackHandler : public iUpdateable
 {

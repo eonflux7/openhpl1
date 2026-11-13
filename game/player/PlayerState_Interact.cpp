@@ -44,9 +44,7 @@ static iPhysicsBody* FindEmbeddingBody(iPhysicsWorld *apWorld, iPhysicsBody *apB
 	return nullptr;
 }
 
-//////////////////////////////////////////////////////////////////////////
 // GRAB STATE
-//////////////////////////////////////////////////////////////////////////
 
 float cPlayerState_Grab::mfMassDiv = 5.0f;
 
@@ -75,9 +73,6 @@ cPlayerState_Grab::cPlayerState_Grab(cInit *apInit,cPlayer *apPlayer) : iPlayerS
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerState_Grab::OnUpdate(float afTimeStep)
 {	
 	cCamera3D *pCamera = mpPlayer->GetCamera();
@@ -101,8 +96,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		}
 	}
 
-
-	///////////////////////////////////
 	//Get the current position.
 	float fAngleDist = cMath::GetAngleDistanceRad(mfStartYaw,mpPlayer->GetCamera()->GetYaw());
 
@@ -119,8 +112,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 						+ vCurrentPoint;
 	}
 
-
-	//////////////////////////////////////
 	// Check if player is close enough
 	cVector3f vEnd = vCurrentPoint;
 	cVector3f vStart = mpPlayer->GetCamera()->GetPosition();
@@ -132,7 +123,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	//////////////////////////////////////
 	// Move the object into position.
 
 	//Setup PID
@@ -149,13 +139,11 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		mGrabPid.d = 40.0f;
 	}
 
-	///////////////////////////////////////
 	//Get the desired position
 	cVector3f vForward = pCamera->UnProject(mpPlayer->GetCrossHairPos(),
 											mpInit->mpGame->GetGraphics()->GetLowLevel());
 	cVector3f vDesired = pCamera->GetPosition() + vForward * mfGrabDist;
 
-	///////////////////////////////////////
 	//Calculate the force to add.
 	cVector3f vForce(0,0,0);
 
@@ -198,7 +186,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		mpFreeingBody = nullptr;
 	}
 
-	////////////////////////////
 	//The rotation
 	cVector3f vOmega = mpPushBody->GetAngularVelocity();
 
@@ -239,8 +226,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		mvRotation.y -= vOmega.y * afTimeStep;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // Black Plague: the object turns about all three axes, by what the player
 // turned and what the mouse moved with Rotate held, at most half a turn
@@ -300,15 +285,10 @@ void cPlayerState_Grab::UpdateRotation(float afTimeStep, const cVector3f &avOmeg
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Grab::OnDraw()
 {
 	//mpFont->Draw(cVector3f(5,30,0),12,cColor(1,1),eFontAlign_Left,"YRotate: %f",mfYRotation);
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerState_Grab::OnPostSceneDraw()
 {
@@ -320,14 +300,10 @@ void cPlayerState_Grab::OnPostSceneDraw()
 	//pLowGfx->DrawSphere(mvCurrentDisered, 0.2f, cColor(1,1,1,1));
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Grab::OnJump()
 { 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Grab::OnStartInteractMode()
 {
@@ -342,8 +318,6 @@ void cPlayerState_Grab::OnStartInteractMode()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Grab::OnStartInteract()
 {
 }
@@ -352,9 +326,6 @@ void cPlayerState_Grab::OnStopInteract()
 {
 	mpPlayer->ChangeState(mPrevState);
 }
-
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Grab::OnStartExamine()
 {
@@ -396,8 +367,6 @@ void cPlayerState_Grab::OnStartExamine()
 		mpPushBody->AddImpulse(vForward * fImpulse);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Grab::OnAddYaw(float afVal)
 { 
@@ -463,21 +432,15 @@ bool cPlayerState_Grab::OnAddPitch(float afVal)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Grab::OnMoveForwards(float afMul, float afTimeStep)
 {
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Grab::OnMoveSideways(float afMul, float afTimeStep)
 {
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 {
@@ -586,8 +549,6 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 	mfStartYaw = pCamera->GetYaw();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Grab::LeaveState(iPlayerState* apNextState)
 {
 	mpPushBody->SetPassThroughBody(nullptr);
@@ -606,8 +567,6 @@ void cPlayerState_Grab::LeaveState(iPlayerState* apNextState)
 
 	mpPlayer->SetSpeedMul(1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Grab::OnStartCrouch()
 {
@@ -635,21 +594,15 @@ void cPlayerState_Grab::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Grab::OnStartInventory()
 {
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Grab::OnStartInventoryShortCut(int alNum)
 { 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Grab::OnStartRotate()
 {
@@ -660,8 +613,6 @@ void cPlayerState_Grab::OnStopRotate()
 {
 	mbRotating = false;
 }
-
-//-----------------------------------------------------------------------
 
 // Black Plague: running with the object held, or going back to it after a
 // jump or crouch
@@ -690,8 +641,6 @@ void cPlayerState_Grab::OnStopRun()
 		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Grab::OnStartHolster()
 {
 	if(cInit::IsOverture()) return;
@@ -699,13 +648,7 @@ void cPlayerState_Grab::OnStartHolster()
 	if(mpPlayer->GetFlare()->IsActive()) mpPlayer->GetFlare()->SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // MOVE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerState_Move_BodyCallback::cPlayerState_Move_BodyCallback(cPlayer *apPlayer, float afTimeStep)
 {
@@ -728,8 +671,6 @@ void cPlayerState_Move_BodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBod
 	}
 }
 
-//-----------------------------------------------------------------------
-
 cPlayerState_Move::cPlayerState_Move(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Move)
 {
 	mpPushBody = nullptr;
@@ -741,12 +682,8 @@ cPlayerState_Move::~cPlayerState_Move()
 	hplDelete( mpCallback );
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerState_Move::OnUpdate(float afTimeStep)
 {
-	//////////////////////////////////////
 	//Check if the player is supposed to back
 	if(mpCallback->mlBackoffUpdatesRemaining > 0)
 	{
@@ -754,12 +691,9 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 		mpPlayer->GetCharacterBody()->Move(eCharDir_Forward,-1,afTimeStep);
 	}
 
-	//////////////////////////////////////
 	//Calculate the pick position
 	mvPickPoint = cMath::MatrixMul(mpPushBody->GetLocalMatrix(),mvRelPickPoint);
 
-
-	//////////////////////////////////////
 	// Check if player is close enough
 	cVector3f vEnd = mvPickPoint;
 	cVector3f vStart = mpPlayer->GetCamera()->GetPosition();
@@ -772,7 +706,6 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	/////////////////////////////////////////	
 	//Check if the body should be stopped
 	if(mlMoveInputGraceCount <= 0)
 	{
@@ -780,11 +713,9 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 		mpPushBody->SetLinearVelocity(0);
 	}
 
-	///////////////////////////////////////////////////////////////////////
 	// Project the position of the pick point and set is as crosshair pos
 	mpPlayer->SetCrossHairPos(ProjectToScreen(mvPickPoint));
 
-	/////////////////////////////////////////////////
 	// Check if the camera should be turned
 	cVector2f vCrossPos = mpPlayer->GetCrossHairPos();
 	cVector2f vBorder = mpPlayer->GetInteractMoveBorder();
@@ -800,8 +731,6 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 	if(vCrossPos.y > (599 - vBorder.y))
 		mpPlayer->GetCamera()->AddPitch( -(vCrossPos.y - (599 - vBorder.y))/600 * mpPlayer->GetLookSpeed());
 }
-
-//-----------------------------------------------------------------------
 
 cVector2f cPlayerState_Move::ProjectToScreen(const cVector3f &avWorldPos)
 {
@@ -824,8 +753,6 @@ bool cPlayerState_Move::GetFrameCrossHairPos(cVector2f &avPos)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Move::OnStartInteract()
 {
 	//mpPlayer->ChangeState(ePlayerState_Normal);
@@ -836,14 +763,10 @@ void cPlayerState_Move::OnStopInteract()
 	mpPlayer->ChangeState(mPrevState);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Move::OnJump()
 { 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Move::OnStartExamine()
 {
@@ -860,8 +783,6 @@ void cPlayerState_Move::OnStartExamine()
 	mpPlayer->ChangeState(mPrevState);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Move::OnMoveForwards(float afMul, float afTimeStep)
 {
 	cVector3f vForce = (mvForward * (afMul * 4.0f));
@@ -871,8 +792,6 @@ bool cPlayerState_Move::OnMoveForwards(float afMul, float afTimeStep)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Move::OnMoveSideways(float afMul, float afTimeStep)
 {
 	cVector3f vForce = (mvRight * (afMul * 4.0f));
@@ -881,8 +800,6 @@ bool cPlayerState_Move::OnMoveSideways(float afMul, float afTimeStep)
 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Move::OnAddYaw(float afVal)
 { 
@@ -900,8 +817,6 @@ bool cPlayerState_Move::OnAddYaw(float afVal)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Move::OnAddPitch(float afVal)
 {
 	if(std::abs(afVal) > kEpsilonf)
@@ -918,8 +833,6 @@ bool cPlayerState_Move::OnAddPitch(float afVal)
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 {
@@ -968,7 +881,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 	//The pick point relative to the body
 	mvPickPoint = mpPlayer->GetPickedPos();
 
-	/////////////////////////////////////////
 	//Check if all controllers should be paused.
 	iGameEntity *pEntity = (iGameEntity*)mpPushBody->GetUserData();
 	if(pEntity->GetPauseControllers())
@@ -978,7 +890,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 			mpPushBody->GetJoint(i)->SetAllControllersPaused(true);
 		}
 	}
-	/////////////////////////////////////////
 	//Check if gravtty should be paused.
 	if(mpPushBody->GetGravity() && pEntity->GetPauseGravity())
 	{
@@ -1007,8 +918,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 	mlMoveInputGraceCount = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 {
 	mpPushBody->SetStaticFriction(true);
@@ -1019,7 +928,6 @@ void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 	mpPushBody->RemoveBodyCallback(mpCallback);
 	}*/
 
-	////////////////////////////
 	//Pause controllers
 	iGameEntity *pObject = (iGameEntity*)mpPushBody->GetUserData();
 	if(pObject->GetPauseControllers())
@@ -1030,7 +938,6 @@ void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 		}
 	}
 
-	////////////////////////////
 	//Restore gravity if this state paused it.
 	if(mbPausedGravity)
 	{
@@ -1053,44 +960,30 @@ void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 		mpPlayer->ResetCrossHairPos();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Move::OnPostSceneDraw()
 {
 	//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(mvPickPoint,0.1f,cColor(1,1,1,1));
 }
 
-//-----------------------------------------------------------------------
 bool cPlayerState_Move::OnStartInventory()
 {
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Move::OnStartInventoryShortCut(int alNum)
 { 
 	return false;
 }
-//-----------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////
 // PUSH STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerState_Push::cPlayerState_Push(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Push)
 {
 	mpPushBody = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerState_Push::OnUpdate(float afTimeStep)
 {	
-	//////////////////////////////////////
 	// Check if player is close enough
 	cVector3f vEnd = mpPushBody->GetLocalPosition() + mvRelPickPoint;
 	cVector3f vStart = mpPlayer->GetCamera()->GetPosition();
@@ -1103,7 +996,6 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	//////////////////////////////////////
 	// Black Plague: the player is kept where he was beside the body, at his
 	// own height; where something is in the way, from where he ends up.
 	if(cInit::IsOverture()==false)
@@ -1128,7 +1020,6 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 		return;
 	}
 
-	//////////////////////////////////////
 	// Update player movement
 	cVector3f vPosAdd = mpPushBody->GetLocalPosition() - mvLastBodyPos;
 	//No need for the y value.
@@ -1152,14 +1043,10 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 	mvLastBodyPos = mpPushBody->GetLocalPosition();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Push::OnJump()
 { 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Push::OnStartInteract()
 {
@@ -1170,8 +1057,6 @@ void cPlayerState_Push::OnStopInteract()
 {
 	mpPlayer->ChangeState(mPrevState);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Push::OnStartExamine()
 {
@@ -1185,8 +1070,6 @@ void cPlayerState_Push::OnStartExamine()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 {
 	if(afMul<0){
@@ -1196,7 +1079,6 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 
 	float fSpeed = mpPushBody->GetLinearVelocity().Length();
 
-	///////////////////////////////////
 	// Set the direction and if it is newer add extra force	
 	if(afMul>0)
 	{
@@ -1256,7 +1138,6 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 
 	//Log("Mul: %f\n",afMul);
 
-	/////////////////////////////////////
 	//If the velocity is not to high add force.		
 
 	if(fSpeed < mfMaxSpeed)
@@ -1287,8 +1168,6 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Push::OnMoveSideways(float afMul, float afTimeStep)
 {
 	cVector3f vVel = mpPushBody->GetLinearVelocity();
@@ -1307,8 +1186,6 @@ bool cPlayerState_Push::OnMoveSideways(float afMul, float afTimeStep)
 	//returning true calls move state as well.
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 {
@@ -1393,8 +1270,6 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 	mvLocalPickPoint = cMath::MatrixMul(mtxInvWorld,mpPlayer->GetPickedPos());
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Push::LeaveState(iPlayerState* apNextState)
 {
 	mpPushBody->SetPushedByCharacterGravity(mbHasPlayerGravityPush);
@@ -1413,9 +1288,6 @@ void cPlayerState_Push::LeaveState(iPlayerState* apNextState)
 	//mpPushBody->AddForce(cVector3f(0,-1,0) *60.0f *mpPushBody->GetMass());
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayerState_Push::OnPostSceneDraw()
 {
 	return;
@@ -1425,14 +1297,10 @@ void cPlayerState_Push::OnPostSceneDraw()
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(vPos,0.3f,cColor(1,0,1));
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Push::OnStartInventory()
 {
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Push::OnStartInventoryShortCut(int alNum)
 { 

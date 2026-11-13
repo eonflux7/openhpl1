@@ -40,18 +40,11 @@ namespace hpl {
 	typedef std::set<iEntity3D*> tEntity3DSet;
 	typedef std::set<iEntity3D*>::iterator tEntity3DSetIt;
 
-	//----------------------------------------------------
-
 	class cPortalContainer;
 	class cSector;
 
-	//----------------------------------------------------
-
 	typedef std::map<tString,cSector*> tSectorMap;
 	typedef std::map<tString,cSector*>::iterator tSectorMapIt;
-
-	//----------------------------------------------------
-
 
 	class cPortalContainerEntityIterator
 	{
@@ -80,9 +73,6 @@ namespace hpl {
 		bool mbGlobal;
 	};
 
-
-	//----------------------------------------------------
-
 	class cPortalContainerCallback : public iEntityCallback
 	{
 	public:
@@ -94,8 +84,6 @@ namespace hpl {
 		cPortalContainer *mpContainer;
 	};
 
-	//----------------------------------------------------
-
 	class cPortalContainerEntityCallback : public iEntityCallback
 	{
 	public:
@@ -106,9 +94,6 @@ namespace hpl {
 	private:
 		cPortalContainer *mpContainer;
 	};
-
-	//----------------------------------------------------
-
 
 	class cSector;
 	class cPortal;
@@ -174,8 +159,6 @@ namespace hpl {
 		tVector3fList mlstPoints;
 	};
 
-	//----------------------------------------------------
-
 	class cSector : public iRenderContainerData
 	{
 	friend class cPortalContainer;
@@ -221,8 +204,6 @@ namespace hpl {
 
 		cColor mAmbient;
 	};
-
-	//----------------------------------------------------
 
 	class cPortalContainer : public iRenderableContainer
 	{

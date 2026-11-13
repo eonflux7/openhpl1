@@ -36,8 +36,6 @@ namespace hpl {
 
 	class iFontData;
 
-	//--------------------------------
-
 	struct cWidgetCallback
 	{
 		cWidgetCallback(void *apObject, tGuiCallbackFunc apFunc)
@@ -53,8 +51,6 @@ namespace hpl {
 	typedef std::list<cWidgetCallback> tWidgetCallbackList;
 	typedef tWidgetCallbackList::iterator tWidgetCallbackListIt;
 
-	//--------------------------------
-
 	class iWidget
 	{
 	friend class cGuiSet;
@@ -62,7 +58,6 @@ namespace hpl {
 		iWidget(eWidgetType aType,cGuiSet *apSet, cGuiSkin *apSkin);
 		virtual ~iWidget();
 
-		/////////////////////////
 		//General
 		void Update(float afTimeStep);
 
@@ -76,16 +71,13 @@ namespace hpl {
 
 		void Init();
 
-		/////////////////////////
 		// Public Helper functions
 		bool PointIsInside(const cVector2f& avPoint, bool abOnlyClipped);
 
-		/////////////////////////
 		//Hierarchy
 		void AttachChild(iWidget *apChild);
 		void RemoveChild(iWidget *apChild);
 
-		/////////////////////////
 		//Properties
 		cGuiSet* GetSet(){ return mpSet; }
 
@@ -135,7 +127,6 @@ namespace hpl {
 		cGuiGfxElement* GetPointerGfx();
 
 	protected:
-		/////////////////////////
 		// Upper Widget functions
 		virtual void OnLoadGraphics(){}
 
@@ -163,8 +154,6 @@ namespace hpl {
 
 		virtual bool OnKeyPress(cGuiMessageData &aData){return false;}
 
-
-		/////////////////////////
 		// Private Helper functions
 		cVector3f WorldToLocalPosition(const cVector3f &avPos);
 		cVector2f GetPosRelativeToMouse(cGuiMessageData &aData);
@@ -186,7 +175,6 @@ namespace hpl {
 
 		void LoadGraphics();
 
-		/////////////////////////
 		// Variables
 		cGuiSet *mpSet;
 		cGuiSkin *mpSkin;

@@ -52,5 +52,3 @@ namespace hpl {
 
 };
 #endif // HPL_MESHCREATOR_H
-
-

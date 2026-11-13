@@ -42,8 +42,6 @@ namespace hpl {
 	typedef std::list<iEntityCallback*> tEntityCallbackList;
 	typedef tEntityCallbackList::iterator tEntityCallbackListIt;
 
-	//------------------------------------
-
 	//Used for the render container to add specific data to
 	//the object.
 	class iRenderContainerData
@@ -53,9 +51,6 @@ namespace hpl {
 
 	typedef std::list<iRenderContainerData*> tRenderContainerDataList;
 	typedef tRenderContainerDataList::iterator tRenderContainerDataListIt;
-
-
-	//------------------------------------
 
 	kSaveData_ChildClass(iEntity,iEntity3D)
 	{
@@ -68,8 +63,6 @@ namespace hpl {
 		int mlParentId;
 		cContainerList<int> mlstChildren;
 	};
-
-	//-----------------------------------------
 
 	class iEntity3D;
 

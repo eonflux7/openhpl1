@@ -41,9 +41,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// FPS COUNTER
-	//////////////////////////////////////////////////////////////////////////
 
 	cFPSCounter::cFPSCounter(iLowLevelSystem* apLowLevelSystem)
 	{
@@ -75,19 +73,12 @@ namespace hpl {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// SETUP VAR CONTAINER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSetupVarContainer::cSetupVarContainer()
 	{
 		msBlank = "";
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cSetupVarContainer::AddString(const tString& asName, const tString& asValue)
 	{
@@ -107,9 +98,6 @@ namespace hpl {
 	{
 		AddString(asName, abValue ? "true" : "false");
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	const tString& cSetupVarContainer::GetString(const tString& asName)
 	{
@@ -143,21 +131,10 @@ namespace hpl {
 			return cString::ToBool(sVal.c_str(),abDefault);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGame::cGame(iLowLevelGameSetup *apGameSetup, cSetupVarContainer &aVars)
 	{
 		GameInit(apGameSetup,aVars);
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	cGame::cGame(iLowLevelGameSetup *apGameSetup,int alWidth, int alHeight, int alBpp, bool abFullscreen,
 					unsigned int alUpdateRate,int alMultisampling)
@@ -171,8 +148,6 @@ namespace hpl {
 		Vars.AddInt("LogicUpdateRate",alUpdateRate);
 		GameInit(apGameSetup,Vars);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGame::GameInit(iLowLevelGameSetup *apGameSetup, cSetupVarContainer &aVars)
 	{
@@ -307,8 +282,6 @@ namespace hpl {
 		Log("--------------------------------------------------------\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGame::~cGame()
 	{
 		Log("--------------------------------------------------------\n\n");
@@ -334,14 +307,6 @@ namespace hpl {
 
 		Log("HPL Exit was successful!\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	int glClearUpdateCheck=0;
 	void cGame::Run()
@@ -400,7 +365,6 @@ namespace hpl {
 			}
 
 			//Log("-----------------\n");
-			//////////////////////////
 			//Update logic.
 			while(mpLogicTimer->WantUpdate() && !mbGameIsDone)
 			{
@@ -533,13 +497,11 @@ namespace hpl {
 
 		mpUpdater->OnExit();
 	}
-	//-----------------------------------------------------------------------
 
 	void cGame::Exit()
 	{
 		mbGameIsDone = true;
 	}
-	//-----------------------------------------------------------------------
 
 	void cGame::ResetLogicTimer()
 	{
@@ -561,80 +523,55 @@ namespace hpl {
 		return mpLogicTimer->GetStepSize();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cScene* cGame::GetScene()
 	{
 		return mpScene;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cResources* cGame::GetResources()
 	{
 		return mpResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGraphics* cGame::GetGraphics()
 	{
 		return mpGraphics;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSystem* cGame::GetSystem()
 	{
 		return mpSystem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cInput* cGame::GetInput()
 	{
 		return mpInput;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSound* cGame::GetSound()
 	{
 		return mpSound;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysics* cGame::GetPhysics()
 	{
 		return mpPhysics;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAI* cGame::GetAI()
 	{
 		return mpAI;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	cGui* cGame::GetGui()
 	{
 		return mpGui;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	cHaptic* cGame::GetHaptic()
 	{
 		return mpHaptic;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	cUpdater* cGame::GetUpdater()
 	{
@@ -646,8 +583,6 @@ namespace hpl {
 		return mpFPSCounter->mfFPS;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGame::SetFPSUpdateRate(float afSec)
 	{
 		mpFPSCounter->mfUpdateRate = afSec;
@@ -656,6 +591,4 @@ namespace hpl {
 	{
 		return mpFPSCounter->mfUpdateRate;
 	}
-
-	//-----------------------------------------------------------------------
 }

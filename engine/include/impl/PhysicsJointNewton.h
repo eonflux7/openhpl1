@@ -61,8 +61,6 @@ namespace hpl {
 				NewtonDestroyJoint(mpNewtonWorld,mpNewtonJoint);
 		}
 
-		///////////////////////
-
 		void SetCollideBodies(bool abX) override
 		{
 			NewtonJointSetCollisionState(mpNewtonJoint,abX ? 1: 0);
@@ -73,8 +71,6 @@ namespace hpl {
 			return NewtonJointGetCollisionState(mpNewtonJoint)==0 ? false : true;
 		}
 
-		///////////////////////
-
 		void SetStiffness(float afX) override
 		{
 			NewtonJointSetStiffness(mpNewtonJoint, afX);
@@ -83,8 +79,6 @@ namespace hpl {
 		{
 			return NewtonJointGetStiffness(mpNewtonJoint);
 		}
-
-		///////////////////////
 
 	protected:
 		// Newton 2 does not run the joints of a sleeping island, so a limit

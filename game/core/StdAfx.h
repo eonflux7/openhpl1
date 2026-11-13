@@ -22,5 +22,3 @@
 #include <hpl.h>
 
 #endif // GAME_STDAFX_H
-
-

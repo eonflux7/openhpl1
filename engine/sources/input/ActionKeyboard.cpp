@@ -23,12 +23,6 @@
 #include "system/LowLevelSystem.h"
 namespace hpl
 {
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cActionKeyboard::cActionKeyboard(tString asName,cInput *apInput, int aKey) : iAction(asName)
 	{
 		// Split key and modifier
@@ -37,28 +31,17 @@ namespace hpl
 		mpInput = apInput;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cActionKeyboard::IsTriggered()
 	{
 		return mpInput->GetKeyboard()->KeyIsDown(mKey) &&
 			( (mpInput->GetKeyboard()->GetModifier() & mMod) > 0 || mMod == eKeyModifier_NONE);
 	}
-	//-----------------------------------------------------------------------
 
 	float cActionKeyboard::GetValue()
 	{
 		if(IsTriggered())return 1.0;
 		else return 0.0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cActionKeyboard::GetInputName()
 	{
@@ -223,6 +206,4 @@ namespace hpl
 			return "Unknown";
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

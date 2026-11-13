@@ -130,12 +130,6 @@ static cButtonHandlerAction gvDefaultActions[] = {
 {"","",0}
 };
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 float cButtonHandler::mfTestForward = 0;
 float cButtonHandler::mfTestSideways = 0;
 
@@ -204,34 +198,20 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 	mbToggleCrouch = mpInit->mpConfig->GetBool("Controls","ToggleCrouch",true);
 }
 
-//-----------------------------------------------------------------------
-
 cButtonHandler::~cButtonHandler(void)
 {
 	
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::ChangeState(eButtonHandlerState aState)
 {
 	mState = aState;
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::OnStart()
 {
 	mpPlayer = mpInit->mpPlayer;
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::OnPostSceneDraw()
 {
@@ -241,8 +221,6 @@ void cButtonHandler::OnPostSceneDraw()
 		mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(0);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // The short way from one angle to another
 static float InterpolateAngle(float afA, float afB, float afT)
@@ -280,8 +258,6 @@ void cButtonHandler::OnInterpolate(float afT)
 	pCam->SetYaw(fYaw);
 	pCam->SetPitch(fPitch);
 }
-
-//-----------------------------------------------------------------------
 
 cVector2f cButtonHandler::ReadMouseRel()
 {
@@ -338,8 +314,6 @@ cVector2f cButtonHandler::GetCursorDrawOffset(bool abMenu)
 	return mpInput->GetMouse()->GetPendingRelPosition() * mvCursorPerRel[abMenu ? 0 : 1];
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::Update(float afTimeStep)
 {
 	BeginCursorStep();
@@ -350,9 +324,7 @@ void cButtonHandler::Update(float afTimeStep)
 	} cursorStepEnd = { this };
 
 	static bool bLockState = true;
-	///////////////////////////////////
 	// GLOBAL Key Strokes
-	///////////////////////////////////
 	if(mpInput->BecameTriggered("QuitGame"))
 	{
 		mpInit->mpGame->Exit();
@@ -394,9 +366,7 @@ void cButtonHandler::Update(float afTimeStep)
 		mpInit->mpGame->GetInput()->GetLowLevel()->LockInput(bLockState);
 #endif
 	}
-	///////////////////////////////////
 	// DEMO END TEXT
-	///////////////////////////////////
 	if(mState == eButtonHandlerState_DemoEndText)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -406,9 +376,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpDemoEndText->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// CREDITS STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Credits)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -418,9 +386,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpCredits->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// ENDING STATE (Black Plague)
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Ending)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -430,9 +396,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpEnding->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// PRE MENU STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_PreMenu)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -442,9 +406,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpPreMenu->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// MAP LOAD TEXT STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MapLoadText)
 	{
 		if(	mpInput->BecameTriggered("Escape") ||
@@ -454,9 +416,7 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->mpMapLoadText->SetActive(false);
 		}
 	}
-	///////////////////////////////////
 	// MAIN MENU BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MainMenu)
 	{
 		if(mpInput->BecameTriggered("Escape"))
@@ -509,9 +469,7 @@ void cButtonHandler::Update(float afTimeStep)
 		}
 		
 	}
-	///////////////////////////////////
 	// INTRO BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Intro)
 	{
 		if(mpInput->BecameTriggered("Escape"))
@@ -519,12 +477,9 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->mpIntroStory->Exit();
 		}
 	}
-	///////////////////////////////////
 	// GAME BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Game)
 	{
-		///////////////////////////////////////
 		// Global ////////////////////
 		/*if(mpInput->BecameTriggered("ResetGame"))
 		{
@@ -550,7 +505,6 @@ void cButtonHandler::Update(float afTimeStep)
 		}
 		//Check if no jump is pressed always.
 		bool bPlayerStateIsActive = false;
-		///////////////////////////////////////
 		// Computer terminal (Black Plague) ////////////////////
 		if(mpInit->mpGameGuiHandler->HasOpenScreenGui())
 		{
@@ -602,7 +556,6 @@ void cButtonHandler::Update(float afTimeStep)
 					mpInit->mpGameGuiHandler->CloseScreenGui(false);
 			}
 		}
-		///////////////////////////////////////
 		// Death menu ////////////////////
 		else if(mpInit->mpDeathMenu->IsActive())
 		{
@@ -639,7 +592,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpDeathMenu->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Death ////////////////////
 		else if(mpPlayer->IsDead())
 		{
@@ -648,7 +600,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpMainMenu->SetActive(true);
 			}
 		}
-		///////////////////////////////////////
 		// Numerical panel ////////////////////
 		else if(mpInit->mpNumericalPanel->IsActive())
 		{
@@ -682,7 +633,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpNumericalPanel->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Notebook ////////////////////
 		else if(mpInit->mpNotebook->IsActive())
 		{
@@ -727,11 +677,9 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpNotebook->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Inventory ////////////////////
 		else if(mpInit->mpInventory->IsActive())
 		{
-			////////////////////////////
 			//Normal Input
 			if(mpInput->BecameTriggered("Inventory") || mpInput->BecameTriggered("Escape"))
 			{
@@ -766,7 +714,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpInventory->OnMouseUp(eMButton_Right);
 			}
 			
-			//////////////////////////////
 			//Short cut keys
 			if(mpInput->BecameTriggered("One")) mpInit->mpInventory->OnShortcutDown(0);
 			if(mpInput->BecameTriggered("Two")) mpInit->mpInventory->OnShortcutDown(1);
@@ -858,7 +805,6 @@ void cButtonHandler::Update(float afTimeStep)
 						mpPlayer->StartGlowStickButton();
 					}
 
-					///////////////////////////////////////
 					// Player Movement ////////////////////
 					if(mpInput->IsTriggered("Forward"))
 					{
@@ -980,7 +926,6 @@ void cButtonHandler::Update(float afTimeStep)
 					}
 				}
 
-				///////////////////////////////////////
 				// Player Interaction /////////////////
 				if(	mpInput->BecameTriggered("Interact"))
 				{
@@ -1030,14 +975,10 @@ void cButtonHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::Reset()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::OnExit()
 {
@@ -1064,8 +1005,6 @@ void cButtonHandler::OnExit()
 		mpInit->mpConfig->SetString("Keys",gvDefaultActions[i].msName+"_Val",sVal);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::SetDefaultKeys()
 {
@@ -1097,8 +1036,6 @@ void cButtonHandler::SetDefaultKeys()
 		++pBHAction;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // Short names of keys whose input name is long or a word for a sign
 static const char *gvKeyLabels[][2] = {
@@ -1156,8 +1093,6 @@ tWString cButtonHandler::GetKeyLabel(const tString &asInputName)
 	return sLabel;
 }
 
-//-----------------------------------------------------------------------
-
 tWString cButtonHandler::GetActionKeyCap(const tString &asAction)
 {
 	iAction *pAction = mpInput->GetAction(asAction);
@@ -1169,8 +1104,6 @@ tWString cButtonHandler::GetActionKeyCap(const tString &asAction)
 
 	return tWString(1, kwcKeyCapStart) + sLabel + tWString(1, kwcKeyCapEnd);
 }
-
-//-----------------------------------------------------------------------
 
 tString cButtonHandler::GetActionName(const tString &asInputName,const tString &asSkipAction)
 {
@@ -1193,14 +1126,6 @@ tString cButtonHandler::GetActionName(const tString &asInputName,const tString &
 
 	return "";
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tString& asType, const tString& asVal)
 {
@@ -1227,8 +1152,6 @@ iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tStrin
 
 	return nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::TypeAndValFromAction(iAction *apAction, tString *apType, tString *apVal)
 {
@@ -1264,5 +1187,3 @@ void cButtonHandler::TypeAndValFromAction(iAction *apAction, tString *apType, tS
 		*apType = "";
 	}
 }
-
-//-----------------------------------------------------------------------

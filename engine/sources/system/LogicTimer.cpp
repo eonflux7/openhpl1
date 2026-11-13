@@ -21,12 +21,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLogicTimer::cLogicTimer(int alUpdatesPerSec, iLowLevelSystem *apLowLevelSystem)
 	{
 		mlMaxUpdates = alUpdatesPerSec;
@@ -40,25 +34,14 @@ namespace hpl {
 		SetUpdatesPerSec(alUpdatesPerSec);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLogicTimer::~cLogicTimer()
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	void cLogicTimer::Reset()
 	{
 		mfNextUpdateTimeMs = GetApplicationTimeExact();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cLogicTimer::WantUpdate()
 	{
@@ -88,16 +71,12 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	double cLogicTimer::GetMillisecsToUpdate()
 	{
 		if(mbFixedStep) return 0;
 		double fMs = mfNextUpdateTimeMs - GetApplicationTimeExact();
 		return fMs > 0 ? fMs : 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLogicTimer::EndUpdateLoop()
 	{
@@ -108,36 +87,26 @@ namespace hpl {
 		mlUpdateCount=0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLogicTimer::SetUpdatesPerSec(int alUpdatesPerSec)
 	{
 		mfStepMilliseconds = 1000.0/((double)alUpdatesPerSec);
 		Reset();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLogicTimer::SetMaxUpdates(int alMaxUpdates)
 	{
 		mlMaxUpdates = alMaxUpdates;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cLogicTimer::GetUpdatesPerSec()
 	{
 		return (int)(1000.0 / ((double)mfStepMilliseconds));
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cLogicTimer::GetStepSize()
 	{
 		return ((float)mfStepMilliseconds)/1000.0f;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cLogicTimer::GetInterpolation()
 	{
@@ -150,19 +119,8 @@ namespace hpl {
 		return (float)fT;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cLogicTimer::Update()
 	{
 		mfNextUpdateTimeMs+=mfStepMilliseconds;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

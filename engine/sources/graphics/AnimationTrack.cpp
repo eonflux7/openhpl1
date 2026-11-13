@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cAnimationTrack::cAnimationTrack(const tString &asName, tAnimTransformFlag aTransformFlags,
 									cAnimation *apParent)
 	{
@@ -44,27 +38,15 @@ namespace hpl {
 		mlNodeIdx = -1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAnimationTrack::~cAnimationTrack()
 	{
 		STLDeleteAll(mvKeyFrames);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cAnimationTrack::ResizeKeyFrames(int alSize)
 	{
 		mvKeyFrames.reserve(alSize);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cKeyFrame* cAnimationTrack::CreateKeyFrame(float afTime)
 	{
@@ -93,8 +75,6 @@ namespace hpl {
 		return pFrame;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationTrack::ApplyToNode(cNode3D* apNode, float afTime, float afWeight)
 	{
 		cKeyFrame Frame = GetInterpolatedKeyFrame(afTime);
@@ -110,8 +90,6 @@ namespace hpl {
 		cVector3f vTrans = Frame.trans * afWeight;
 		apNode->AddTranslation(vTrans);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cKeyFrame cAnimationTrack::GetInterpolatedKeyFrame(float afTime)
 	{
@@ -151,8 +129,6 @@ namespace hpl {
 
 		return ResultKeyFrame;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cAnimationTrack::GetKeyFramesAtTime(float afTime, cKeyFrame** apKeyFrameA,cKeyFrame** apKeyFrameB)
 	{
@@ -206,15 +182,4 @@ namespace hpl {
 
 		return fDeltaT > 0 ? (afTime - (*apKeyFrameA)->time) / fDeltaT : 0;
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 }

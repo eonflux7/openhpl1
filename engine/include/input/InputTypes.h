@@ -21,16 +21,12 @@
 
 namespace hpl {
 
-	//-------------------------------------------------
-
 	enum eInputDeviceType {
 		eInputDeviceType_Keyboard,
 		eInputDeviceType_Mouse,
 		eInputDeviceType_Gamepad,
 		eInputDeviceType_LastEnum
 	};
-
-	//-------------------------------------------------
 
 	enum eMButton {
 		eMButton_Left,
@@ -44,8 +40,6 @@ namespace hpl {
 		eMButton_9,
 		eMButton_LastEnum
 	};
-
-	//-------------------------------------------------
 
 	enum eKey {
 		eKey_BACKSPACE,
@@ -185,7 +179,6 @@ namespace hpl {
 		eKey_LastEnum
 	};
 	#define eKey_MASK 0x000ff
-	//-------------------------------------------------
 
 	typedef unsigned int eKeyModifier;
 
@@ -198,8 +191,6 @@ namespace hpl {
 		eKeyModifier_LastEnum = 5
 	};
 	#define eKeyModifier_MASK 0x00f00
-
-	//-------------------------------------------------
 
 	struct cKeyPress
 	{

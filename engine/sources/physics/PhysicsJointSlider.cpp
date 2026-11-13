@@ -27,19 +27,11 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_iPhysicsJointSlider, cSaveData_iPhysicsJoint)
 		kSerializeVar(mfMaxDistance, eSerializeType_Float32)
 		kSerializeVar(mfMinDistance, eSerializeType_Float32)
 		kSerializeVar(mvPin, eSerializeType_Vector3f)
 		kEndSerialize()
-
-		//-----------------------------------------------------------------------
 
 		iSaveObject* cSaveData_iPhysicsJointSlider::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -67,21 +59,15 @@ namespace hpl {
 		return pJoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_iPhysicsJointSlider::GetSaveCreatePrio()
 	{
 		return 1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsJointSlider::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsJointSlider, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJointSlider::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -92,8 +78,6 @@ namespace hpl {
 		kSaveData_SaveTo(mvPin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointSlider::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsJointSlider);
@@ -103,12 +87,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mvPin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointSlider::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsJointSlider);
 	}
-
-	//-----------------------------------------------------------------------
 }

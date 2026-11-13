@@ -25,11 +25,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameArea::cAreaLoader_GameArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -41,8 +37,6 @@ cAreaLoader_GameArea::~cAreaLoader_GameArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameArea::Load(const tString &asName, const cVector3f &avSize, 
 									const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -72,16 +66,6 @@ iEntity3D* cAreaLoader_GameArea::Load(const tString &asName, const cVector3f &av
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameArea::cGameArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Area;
@@ -90,19 +74,9 @@ cGameArea::cGameArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mCustomIcon = eCrossHairState_Inactive;
 }
 
-//-----------------------------------------------------------------------
-
 cGameArea::~cGameArea(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameArea::OnPlayerPick()
 {
@@ -112,31 +86,11 @@ void cGameArea::OnPlayerPick()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameArea::SetCustomIcon(eCrossHairState aIcon)
 {
 	mbUseCustomIcon = true;
 	mCustomIcon = aIcon;
 }
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbUseCustomIcon,eSerializeType_Bool)
@@ -144,21 +98,15 @@ kSerializeVar(mCustomIcon,eSerializeType_Int32)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameArea::CreateSaveData()
 {
 	return hplNew( cGameArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -171,8 +119,6 @@ void cGameArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -181,4 +127,3 @@ void cGameArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mbUseCustomIcon);
 	kCopyFromVar(pData,mCustomIcon);
 }
-//-----------------------------------------------------------------------

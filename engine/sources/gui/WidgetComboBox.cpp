@@ -33,12 +33,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetComboBox::cWidgetComboBox(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_ComboBox,apSet, apSkin)
 	{
 		mfButtonWidth = mpSkin->GetAttribute(eGuiSkinAttribute_ComboBoxButtonWidth).x;
@@ -62,8 +56,6 @@ namespace hpl {
 		mlItemsShown = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetComboBox::~cWidgetComboBox()
 	{
 		if(mpSet->IsDestroyingSet()==false)
@@ -73,14 +65,6 @@ namespace hpl {
 			mpSet->DestroyWidget(mpSlider);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetComboBox::SetSelectedItem(int alX, bool abMoveList)
 	{
@@ -113,8 +97,6 @@ namespace hpl {
 		ProcessMessage(eGuiMessage_SelectionChange,data);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::SetCanEdit(bool abX)
 	{
 		mpText->SetCanEdit(abX);
@@ -125,23 +107,12 @@ namespace hpl {
 		return mpText->GetCanEdit();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::SetMaxShownItems(int alX)
 	{
 		mlMaxItems = alX;
 
 		UpdateProperties();
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetComboBox::UpdateProperties()
 	{
@@ -154,8 +125,6 @@ namespace hpl {
 
 		OnChangeSize();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetComboBox::OpenMenu()
 	{
@@ -193,8 +162,6 @@ namespace hpl {
 		mbClipsGraphics = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::CloseMenu()
 	{
 		if(mbMenuOpen==false) return;
@@ -211,8 +178,6 @@ namespace hpl {
 		mbClipsGraphics = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetComboBox::ButtonPress(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		if(mbMenuOpen)	CloseMenu();
@@ -221,8 +186,6 @@ namespace hpl {
 		return true;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetComboBox,ButtonPress)
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetComboBox::SliderMove(iWidget* apWidget,cGuiMessageData& aData)
 	{
@@ -242,8 +205,6 @@ namespace hpl {
 		return false;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetComboBox,SliderLostFocus)
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetComboBox::OnInit()
 	{
@@ -267,8 +228,6 @@ namespace hpl {
 		OnChangeSize();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::OnChangeSize()
 	{
 		if(mpText && mpButton && mpSlider)
@@ -287,14 +246,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::OnChangeText()
 	{
 		if(mpText) mpText->SetText(msText);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetComboBox::OnLoadGraphics()
 	{
@@ -313,8 +268,6 @@ namespace hpl {
 		mvGfxCorners[3] = mpSkin->GetGfx(eGuiSkinGfx_ComboBoxCornerLD);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetComboBox::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
 		if(mbMenuOpen)
@@ -322,15 +275,12 @@ namespace hpl {
 			mpSet->DrawGfx(mpGfxBackground,GetGlobalPosition() + cVector3f(0,mvSize.y-mfMenuHeight,1),
 							cVector2f(mvSize.x, mfMenuHeight));
 
-			////////////////////////////////
 			// Background and borders
 			DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 									GetGlobalPosition() + cVector3f(0,mvSize.y-mfMenuHeight,1.4f),
 									cVector2f(mvSize.x, mfMenuHeight));
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetComboBox::DrawText(iWidget* apWidget,cGuiMessageData& aData)
 	{
@@ -357,8 +307,6 @@ namespace hpl {
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetComboBox,DrawText)
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetComboBox::OnMouseMove(cGuiMessageData &aData)
 	{
 		if(mbMenuOpen==false) return false;
@@ -383,8 +331,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetComboBox::OnMouseDown(cGuiMessageData &aData)
 	{
 		if(mbMenuOpen == false) return false;
@@ -398,8 +344,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetComboBox::OnMouseUp(cGuiMessageData &aData)
 	{
@@ -416,21 +360,15 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetComboBox::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetComboBox::OnMouseLeave(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetComboBox::OnLostFocus(cGuiMessageData &aData)
 	{
@@ -442,8 +380,4 @@ namespace hpl {
 		}
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

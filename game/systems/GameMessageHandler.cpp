@@ -26,12 +26,6 @@
 #include "ui/Notebook.h"
 #include "ui/NumericalPanel.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameMessageHandler::cGameMessageHandler(cInit *apInit)  : iUpdateable("GameMessageHandler")
 {
 	mpInit = apInit;
@@ -45,18 +39,12 @@ cGameMessageHandler::cGameMessageHandler(cInit *apInit)  : iUpdateable("GameMess
 	mbBlackText = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameMessageHandler::~cGameMessageHandler(void)
 {
 	STLDeleteAll(mlstMessages);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GAME MESSAGE
-//////////////////////////////////////////////////////////////////////////
 
 cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessageHandler)
 {
@@ -67,8 +55,6 @@ cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessag
 	mbActive =false;
 	mfTextAlphaRatePerSecond =1.3f;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessage::Update(float afTimeStep)
 {
@@ -94,8 +80,6 @@ void cGameMessage::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessage::Draw(iFontData *apFont)
 {
 	if(mbActive == false) return;
@@ -114,15 +98,6 @@ void cGameMessage::Draw(iFontData *apFont)
 							eFontAlign_Left,msText,eFontEffect_Outline,1);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Add(const tWString& asText)
 {
@@ -143,8 +118,6 @@ void cGameMessageHandler::Add(const tWString& asText)
 		pMessage->mbActive = true;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::ShowNext()
 {
@@ -211,8 +184,6 @@ void cGameMessageHandler::ShowNext()
 
 }
 
-//-----------------------------------------------------------------------
-
 /**
  * Black Plague and Requiem: SetPlayerActive drops queued messages and fades
  * out the depth of field, ending blur that a scripted sequence left on.
@@ -224,8 +195,6 @@ void cGameMessageHandler::ClearMessages()
 
 	mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Update(float afTimeStep)
 {
@@ -256,22 +225,16 @@ void cGameMessageHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessageHandler::OnWorldLoad()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::OnWorldExit()
 {
 	Reset();
 	mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::OnDraw()
 {
@@ -283,14 +246,10 @@ void cGameMessageHandler::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessageHandler::SetOnMessagesOverCallback(const tString& asFunction)
 {
 	msOverCallback = asFunction;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Reset()
 {
@@ -299,5 +258,3 @@ void cGameMessageHandler::Reset()
 
 	mbDepthOfFieldUsed = false;
 }
-
-//-----------------------------------------------------------------------

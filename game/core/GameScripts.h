@@ -25,7 +25,6 @@
 
 using namespace hpl;
 
-//------------------------------------
 class cGameScripts
 {
 public:

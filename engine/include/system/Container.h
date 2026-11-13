@@ -27,8 +27,6 @@
 
 namespace hpl {
 
-	//---------------------------------
-
 	class iContainerIterator
 	{
 	friend class cSerializeClass;
@@ -39,8 +37,6 @@ namespace hpl {
 
 		virtual void* NextPtr()=0;
 	};
-
-	//---------------------------------
 
 	class iContainer
 	{
@@ -56,8 +52,6 @@ namespace hpl {
 		virtual iContainerIterator* CreateIteratorPtr()=0;
 	};
 
-	//---------------------------------
-
 	class iContainerKeyPair
 	{
 	public:
@@ -66,9 +60,6 @@ namespace hpl {
 		virtual void AddVoidPtr(void *apKey, void **apClass)=0;
 		virtual void AddVoidClass(void *apKey, void *apClass)=0;
 	};
-
-	//---------------------------------
-
 
 	template<class T>
 	class cContainerVecIterator : public iContainerIterator
@@ -112,8 +103,6 @@ namespace hpl {
 		typename std::vector<T>::iterator mIt;
 	};
 
-	////////////////////////////
-
 	template<class T>
 	class cContainerVec : public iContainer
 	{
@@ -134,7 +123,6 @@ namespace hpl {
 	public:
 		cContainerVec(){}
 
-		//////////////////////
 		size_t Size() override
 		{
 			return mvVector.size();
@@ -144,8 +132,6 @@ namespace hpl {
 		{
 			mvVector.clear();
 		}
-
-		//////////////////////
 
 		void Reserve(size_t alSize)
 		{
@@ -162,26 +148,18 @@ namespace hpl {
 			mvVector.push_back(aVal);
 		}
 
-		//////////////////////
-
 		cContainerVecIterator<T> GetIterator()
 		{
 			return cContainerVecIterator<T>(&mvVector);
 		}
-
-		//////////////////////
 
 		T& operator [](size_t alX)
 		{
 			return mvVector[alX];
 		}
 
-		//////////////////////
-
 		std::vector<T> mvVector;
 	};
-
-	//---------------------------------
 
 	template<class T>
 	class cContainerListIterator : public iContainerIterator
@@ -225,8 +203,6 @@ namespace hpl {
 		typename std::list<T>::iterator mIt;
 	};
 
-	////////////////////////////
-
 	template<class T>
 	class cContainerList : public iContainer
 	{
@@ -247,7 +223,6 @@ namespace hpl {
 	public:
 		cContainerList(){}
 
-		//////////////////////
 		size_t Size() override
 		{
 			return mvVector.size();
@@ -257,26 +232,18 @@ namespace hpl {
 		{
 			mvVector.clear();
 		}
-		//////////////////////
 
 		void Add(T aVal)
 		{
 			mvVector.push_back(aVal);
 		}
 
-		//////////////////////
-
 		cContainerListIterator<T> GetIterator()
 		{
 			return cContainerListIterator<T>(&mvVector);
 		}
 
-		//////////////////////
-
 		std::list<T> mvVector;
 	};
-
-	//---------------------------------
-
 };
 #endif // HPL_CONTAINER_H

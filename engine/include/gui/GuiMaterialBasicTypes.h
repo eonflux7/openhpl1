@@ -23,8 +23,6 @@
 
 namespace hpl {
 
-	//-----------------------------------------
-
 	class cGuiMaterial_Diffuse : public iGuiMaterial
 	{
 	public:
@@ -33,8 +31,6 @@ namespace hpl {
 
 		cSpriteBlend GetBlend() const override;
 	};
-
-	//-----------------------------------------
 
 	class cGuiMaterial_Alpha : public iGuiMaterial
 	{
@@ -45,8 +41,6 @@ namespace hpl {
 		cSpriteBlend GetBlend() const override;
 	};
 
-	//-----------------------------------------
-
 	class cGuiMaterial_FontNormal : public iGuiMaterial
 	{
 	public:
@@ -55,8 +49,6 @@ namespace hpl {
 
 		cSpriteBlend GetBlend() const override;
 	};
-
-	//-----------------------------------------
 
 	class cGuiMaterial_Additive : public iGuiMaterial
 	{
@@ -67,8 +59,6 @@ namespace hpl {
 		cSpriteBlend GetBlend() const override;
 	};
 
-	//-----------------------------------------
-
 	class cGuiMaterial_Modulative : public iGuiMaterial
 	{
 	public:
@@ -77,8 +67,5 @@ namespace hpl {
 
 		cSpriteBlend GetBlend() const override;
 	};
-
-	//-----------------------------------------
-
 };
 #endif // HPL_GUI_MATERIAL_BASIC_TYPES_H

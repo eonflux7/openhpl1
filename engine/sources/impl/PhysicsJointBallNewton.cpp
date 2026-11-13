@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointBallNewton::cPhysicsJointBallNewton(const tString &asName,
 						iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 						iPhysicsWorld *apWorld, const cVector3f &avPivotPoint)
@@ -45,19 +39,9 @@ namespace hpl {
 		mvConePin = mvPinDir;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointBallNewton::~cPhysicsJointBallNewton()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointBallNewton::SetConeLimits(const cVector3f& avPin, float afMaxConeAngle, float afMaxTwistAngle)
 	{
@@ -74,8 +58,6 @@ namespace hpl {
 		NewtonBallGetJointAngle(mpNewtonJoint,&vAngles.v[0]);
 		return vAngles;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cPhysicsJointBallNewton::GetVelocity()
 	{
@@ -94,8 +76,6 @@ namespace hpl {
 		return vForce;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsJointBallNewton::GetDistance()
 	{
 		return 0;
@@ -104,7 +84,4 @@ namespace hpl {
 	{
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -21,9 +21,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// AUDIO DATA
-	//////////////////////////////////////////////////////////////////////////
 
 	/** A sound decoded completely into one OpenAL buffer. */
 	class cOpenALSample
@@ -90,9 +88,7 @@ namespace hpl {
 		int mlBoundSource = -1;
 	};
 
-	//////////////////////////////////////////////////////////////////////////
 	// DEVICE
-	//////////////////////////////////////////////////////////////////////////
 
 	/** HRTF request. Auto lets OpenAL Soft decide (on for headphones it can detect). */
 	enum class eOpenALHRTF { Auto, Off, On };
@@ -180,7 +176,6 @@ namespace hpl {
 		 */
 		void Update();
 
-		//////////////
 		// Output
 		/** Applies an HRTF request now (device reset); stored for the next Open otherwise. */
 		bool SetHRTF(eOpenALHRTF aMode);
@@ -195,12 +190,10 @@ namespace hpl {
 		bool IsConnected() const { return mbConnected; }
 		bool CanReopen() const { return mpReopenDevice != nullptr; }
 
-		//////////////
 		// Listener
 		void SetListener(const float *apPos, const float *apVel, const float *apForward, const float *apUp);
 		void SetListenerGain(float afGain);
 
-		//////////////
 		// Sources
 		int PlaySample(cOpenALSample *apSample, int alPriority, float afGain, bool abStartPaused);
 		int PlayStream(cOpenALStream *apStream, float afGain, bool abStartPaused);
@@ -229,7 +222,6 @@ namespace hpl {
 		void ReleaseSample(cOpenALSample *apSample);
 		void ReleaseStream(cOpenALStream *apStream);
 
-		//////////////
 		// Reverb
 		/** Each slot holds one reverb. Every source sending to reverb feeds
 		 * every slot (send i to slot i); a slot's gain is its weight times

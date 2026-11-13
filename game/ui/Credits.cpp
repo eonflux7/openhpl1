@@ -29,12 +29,6 @@
 #include "systems/GameMessageHandler.h"
 #include "player/HapticGameCamera.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 {
 	mpInit = apInit;
@@ -51,19 +45,9 @@ cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cCredits::~cCredits(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cCredits::Reset()
 {
@@ -83,16 +67,11 @@ void cCredits::Reset()
 	mfTypeSoundDelaySeconds = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 	
 }
-
-//-----------------------------------------------------------------------
-
 
 void cCredits::OnDraw()
 {
@@ -140,8 +119,6 @@ void cCredits::OnDraw()
 	mpFont->SetVerticalPixelSnap(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::Update(float afTimeStep)
 {
 	//Make sure haptics is off
@@ -188,14 +165,10 @@ void cCredits::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnMouseDown(eMButton aButton)
 {
 	OnButtonDown();
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::OnButtonDown()
 {
@@ -224,8 +197,6 @@ void cCredits::OnButtonDown()
 
 	NextPage();
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::NextPage()
 {
@@ -261,8 +232,6 @@ void cCredits::NextPage()
 	if(mlPage == 4) SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::SetSecretText(int alTextIndex)
 {
 	mlSecretTextIndex = alTextIndex;
@@ -278,8 +247,6 @@ void cCredits::SetSecretText(int alTextIndex)
 	mfCharacterDelaySeconds = 0;
 	mfTypeSoundDelaySeconds = 0;
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::UpdateRequiemSecret(float afTimeStep)
 {
@@ -328,8 +295,6 @@ void cCredits::UpdateRequiemSecret(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::DrawSecretText()
 {
 	int lCount = 0;
@@ -347,8 +312,6 @@ void cCredits::DrawSecretText()
 		lCount += lRowSize;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::DrawStatRow(float afY, const tString &asLabel, const tWString &asValue)
 {
@@ -411,8 +374,6 @@ void cCredits::DrawStatistics()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::SetActive(bool abActive)
 {
 	if(mbActive == abActive) return;
@@ -455,21 +416,7 @@ void cCredits::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-

@@ -23,14 +23,12 @@
 
 #include <map>
 
-//////////////////////////////////////////////////////////////////////////
 // Script functions of Black Plague and Requiem that are not ported yet.
 //
 // The names and argument types are those of the games' own binaries, so
 // their scripts compile. Each does nothing but count its calls: the log
 // says at exit which were called and how often. A function moves out of
 // this file, to GameScripts.cpp, when it is written.
-//////////////////////////////////////////////////////////////////////////
 
 static std::map<tString, int> gmNotPortedCalls;
 
@@ -41,12 +39,7 @@ static void NotPorted(const char *apFunc)
 	++lCount;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // BUTTONS
-
-//-----------------------------------------------------------------------
 
 static void __stdcall SetButtonOn(std::string asArg0, bool abArg1, bool abArg2)
 {
@@ -54,28 +47,19 @@ static void __stdcall SetButtonOn(std::string asArg0, bool abArg1, bool abArg2)
 }
 SCRIPT_DEFINE_FUNC_3(void, SetButtonOn, string, bool, bool)
 
-//-----------------------------------------------------------------------
-
 static void __stdcall SetupButton(std::string asArg0, std::string asArg1, std::string asArg2)
 {
 	NotPorted("SetupButton");
 }
 SCRIPT_DEFINE_FUNC_3(void, SetupButton, string, string, string)
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // OTHER
-
-//-----------------------------------------------------------------------
 
 static void __stdcall StartRecordDump(std::string asArg0)
 {
 	NotPorted("StartRecordDump");
 }
 SCRIPT_DEFINE_FUNC_1(void, StartRecordDump, string)
-
-//-----------------------------------------------------------------------
 
 // The password of the game on the terminal of level 18; false: wrong password
 static bool __stdcall StartSchmup(std::string asArg0)
@@ -84,8 +68,6 @@ static bool __stdcall StartSchmup(std::string asArg0)
 	return false;
 }
 SCRIPT_DEFINE_FUNC_1(bool, StartSchmup, string)
-
-//-----------------------------------------------------------------------
 
 void cGameScripts::InitNotPorted(iLowLevelSystem *apLowLevelSystem)
 {
@@ -98,8 +80,6 @@ void cGameScripts::InitNotPorted(iLowLevelSystem *apLowLevelSystem)
 	apLowLevelSystem->AddScriptFunc(SCRIPT_REGISTER_FUNC(StartSchmup));
 }
 
-//-----------------------------------------------------------------------
-
 void cGameScripts::LogNotPorted()
 {
 	if(gmNotPortedCalls.empty()) return;
@@ -108,5 +88,3 @@ void cGameScripts::LogNotPorted()
 	for(auto &call : gmNotPortedCalls)
 		Log("  %s: %d\n", call.first.c_str(), call.second);
 }
-
-//-----------------------------------------------------------------------

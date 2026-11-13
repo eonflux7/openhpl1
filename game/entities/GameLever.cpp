@@ -24,13 +24,7 @@
 #include "player/Player.h"
 #include "entities/GameStickArea.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameLever::cEntityLoader_GameLever(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -42,14 +36,10 @@ cEntityLoader_GameLever::~cEntityLoader_GameLever()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameLever::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 }
-
-//-----------------------------------------------------------------------
 
 static eGameLeverMovement ToMovementType(const char *apString)
 {
@@ -64,8 +54,6 @@ static eGameLeverMovement ToMovementType(const char *apString)
 
 	return eGameLeverMovement_None;
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameLever::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -91,7 +79,6 @@ void cEntityLoader_GameLever::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 	pObject->SetSoundEntities(mvSoundEntities);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -117,18 +104,9 @@ void cEntityLoader_GameLever::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 
 	pObject->Init();
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameLever::cGameLever(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -164,19 +142,9 @@ cGameLever::cGameLever(cInit *apInit,const tString& asName) : iGameEntity(apInit
 	mbStuck = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameLever::~cGameLever(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLever::Init()
 {
@@ -198,8 +166,6 @@ void cGameLever::Init()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLever::OnPlayerPick()
 {
 	float fDist = mpInit->mpPlayer->GetPickedDist();
@@ -214,8 +180,6 @@ void cGameLever::OnPlayerPick()
 			mpInit->mpPlayer->SetCrossHairState(eCrossHairState_None);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLever::OnPlayerInteract()
 {
@@ -245,8 +209,6 @@ void cGameLever::OnPlayerInteract()
 	mpInit->mpPlayer->ChangeState(ePlayerState_Move);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLever::Update(float afTimeStep)
 {
 	if(mvJoints.empty()) return;
@@ -256,7 +218,6 @@ void cGameLever::Update(float afTimeStep)
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
-	////////////////////////////////////
 	// The state by the angle
 	if(mbStuck==false)
 	{
@@ -265,7 +226,6 @@ void cGameLever::Update(float afTimeStep)
 		else							mState = eGameLeverState_Middle;
 	}
 
-	////////////////////////////////////
 	// Dispatch enter before leave, then apply endpoint effects.
 	if(mState != prevState)
 	{
@@ -301,7 +261,6 @@ void cGameLever::Update(float afTimeStep)
 
 	RunCallback(mState, eGameLeverAction_During);
 
-	////////////////////////////////////
 	// Let go, it turns back to where it rests
 	if(mbStuck) return;
 	if(mMovementType == eGameLeverMovement_None) return;
@@ -326,8 +285,6 @@ void cGameLever::Update(float afTimeStep)
 
 	mpBody->AddTorque(mpJoint->GetPinDir() * fTorque);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLever::SetStuck(eGameLeverState aState)
 {
@@ -356,8 +313,6 @@ void cGameLever::SetStuck(eGameLeverState aState)
 	mpBody->SetEnabled(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLever::SetIsStuck(bool abStuck)
 {
 	if(mbStuck == abStuck) return;
@@ -374,14 +329,6 @@ void cGameLever::SetIsStuck(bool abStuck)
 		mpJoint->SetMinAngle(mfJointMinLimit);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 // Callback("name", action, state): action 0 enter, 1 leave, 2 during;
 // state -1 min, 0 middle, 1 max
@@ -411,14 +358,6 @@ void cGameLever::RunCallback(eGameLeverState aState, eGameLeverAction aAction)
 	mpInit->RunScriptCommand(sCommand);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLever_SaveData,iGameEntity_SaveData)
 kSerializeVar(mlState, eSerializeType_Int32)
 kSerializeVar(mbStuck, eSerializeType_Bool)
@@ -427,21 +366,15 @@ kSerializeVar(msLeaveCallback, eSerializeType_String)
 kSerializeVar(msDuringCallback, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLever_SaveData::CreateEntity()
 {
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLever::CreateSaveData()
 {
 	return hplNew( cGameLever_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLever::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -456,8 +389,6 @@ void cGameLever::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->msDuringCallback = mvCallbacks[eGameLeverAction_During];
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLever::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -471,5 +402,3 @@ void cGameLever::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	mvCallbacks[eGameLeverAction_Leave] = pData->msLeaveCallback;
 	mvCallbacks[eGameLeverAction_During] = pData->msDuringCallback;
 }
-
-//-----------------------------------------------------------------------

@@ -28,11 +28,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// VERTEX PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cFogWaterProgramSetup : public iMaterialProgramSetup
 	{
@@ -47,8 +43,6 @@ namespace hpl {
 
 	static cFogWaterProgramSetup gFogWaterProgramSetup;
 
-	//-----------------------------------------------------------------------
-
 	class cWaterProgramSetup : public iMaterialProgramSetup
 	{
 	public:
@@ -61,12 +55,6 @@ namespace hpl {
 	};
 
 	static cWaterProgramSetup gWaterProgramSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterial_Water::cMaterial_Water(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -89,21 +77,11 @@ namespace hpl {
 		mfTime = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Water::~cMaterial_Water()
 	{
 		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
 		if(mpRefractProgram) mpProgramManager->Destroy(mpRefractProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cMaterial_Water::Update(float afTimeStep)
 	{
@@ -111,8 +89,6 @@ namespace hpl {
 		gWaterProgramSetup.mfTime = mfTime;
 		gFogWaterProgramSetup.mfTime = mfTime;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_Water::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -157,8 +133,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_Water::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
@@ -177,15 +151,11 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_Water::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return true;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList cMaterial_Water::GetTextureTypes()
 	{
@@ -198,6 +168,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

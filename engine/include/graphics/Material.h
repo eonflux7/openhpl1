@@ -91,8 +91,6 @@ namespace hpl {
 		eMaterialChannelMode_LastEnum,
 	};
 
-	//---------------------------------------------------
-
 	class cRenderer3D;
 	class cRenderSettings;
 	class cTextureManager;
@@ -102,16 +100,12 @@ namespace hpl {
 	class iCamera;
 	class iLight3D;
 
-	//---------------------------------------------------
-
 	class iMaterialProgramSetup
 	{
 	public:
 		virtual void Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)=0;
 		virtual void SetupMatrix(cMatrixf *apModelMatrix, cRenderSettings* apRenderSettings){}
 	};
-
-	//---------------------------------------------------
 
 	class cTextureType
 	{
@@ -124,8 +118,6 @@ namespace hpl {
 
 	typedef std::list<cTextureType> tTextureTypeList;
 	typedef tTextureTypeList::iterator tTextureTypeListIt;
-
-	//---------------------------------------------------
 
 	class iMaterial : public iResourceBase
 	{

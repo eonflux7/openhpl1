@@ -27,8 +27,6 @@ namespace hpl {
 
 	class iNode;
 
-	//------------------------------------
-
 	kSaveData_BaseClass(iEntity)
 	{
 		kSaveData_ClassInit(iEntity)
@@ -38,8 +36,6 @@ namespace hpl {
 		bool mbIsVisible;
 		bool mbIsActive;
 	};
-
-	//------------------------------------
 
 	class iEntity : public iSaveObject
 	{

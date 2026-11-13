@@ -30,8 +30,6 @@ namespace hpl {
 	class iFontData;
 	class iGuiMaterial;
 
-	//-------------------------------------
-
 	class cGuiSkinFont
 	{
 	public:
@@ -45,8 +43,6 @@ namespace hpl {
 	private:
 		cGui *mpGui;
 	};
-
-	//-------------------------------------
 
 	class cGuiSkin
 	{

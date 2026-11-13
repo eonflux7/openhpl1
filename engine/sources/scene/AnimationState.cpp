@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cAnimationState::cAnimationState(cAnimation* apAnimation, const tString &asName,
 									cAnimationManager *apAnimationManager)
 	{
@@ -62,8 +56,6 @@ namespace hpl {
 		mfFadeStep=0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAnimationState::~cAnimationState()
 	{
 		STLDeleteAll(mvEvents);
@@ -71,14 +63,6 @@ namespace hpl {
 		if(mpAnimationManager)
 			mpAnimationManager->Destroy(mpAnimation);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::Update(float afTimeStep)
 	{
@@ -104,15 +88,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAnimationState::IsFading()
 	{
 		return mfFadeStep!=0;
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	bool cAnimationState::IsOver()
 	{
@@ -120,8 +99,6 @@ namespace hpl {
 
 		return mfTimePos >= mfLength;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::FadeIn(float afTime)
 	{
@@ -133,8 +110,6 @@ namespace hpl {
 		mfFadeStep = -1.0f / std::abs(afTime);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationState::SetLength(float afLength)
 	{
 		mfLength = afLength;
@@ -145,9 +120,6 @@ namespace hpl {
 		return mfLength;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cAnimationState::SetWeight(float afWeight)
 	{
 		mfWeight = afWeight;
@@ -156,8 +128,6 @@ namespace hpl {
 	{
 		return mfWeight;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::SetSpeed(float afSpeed)
 	{
@@ -168,8 +138,6 @@ namespace hpl {
 		return mfSpeed;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationState::SetBaseSpeed(float afSpeed)
 	{
 		mfBaseSpeed = afSpeed;
@@ -178,8 +146,6 @@ namespace hpl {
 	{
 		return mfBaseSpeed;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::SetTimePosition(float afPosition)
 	{
@@ -217,8 +183,6 @@ namespace hpl {
 		return fDistance >= 0 && fDistance < fabs(mfTimeDelta);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationState::SetRelativeTimePosition(float afPosition)
 	{
 		SetTimePosition(afPosition * mfLength);
@@ -228,8 +192,6 @@ namespace hpl {
 	{
 		return mfTimePos / mfLength;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAnimationState::IsActive()
 	{
@@ -247,8 +209,6 @@ namespace hpl {
 		mfFadeStep =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAnimationState::IsLooping()
 	{
 		return mbLoop;
@@ -257,8 +217,6 @@ namespace hpl {
 	{
 		mbLoop = abLoop;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAnimationState::IsPaused()
 	{
@@ -270,8 +228,6 @@ namespace hpl {
 		mbPaused = abPaused;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAnimationState::IsAfterSpecialEvent()
 	{
 		return mfTimePos > mfSpecialEventTime;
@@ -281,8 +237,6 @@ namespace hpl {
 	{
 		return mfTimePos < mfSpecialEventTime;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::AddTimePosition(float afAdd)
 	{
@@ -298,14 +252,10 @@ namespace hpl {
 		mfTimeDelta = mbLoop ? fDelta : mfTimePos - mfPrevTimePos;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAnimation* cAnimationState::GetAnimation()
 	{
 		return mpAnimation;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAnimationEvent *cAnimationState::CreateEvent()
 	{
@@ -328,14 +278,6 @@ namespace hpl {
 		return (int)mvEvents.size();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeBase(cSaveData_cAnimationState)
 	kSerializeVar(msName, eSerializeType_String)
 
@@ -355,28 +297,20 @@ namespace hpl {
 	kSerializeVar(mfFadeStep, eSerializeType_Float32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveObject* cSaveData_cAnimationState::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cSaveData_cAnimationState::GetSaveCreatePrio()
 	{
 		return 2;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cAnimationState::CreateSaveData()
 	{
 		return hplNew( cSaveData_cAnimationState, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAnimationState::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -400,8 +334,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfFadeStep);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationState::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cAnimationState);
@@ -424,13 +356,8 @@ namespace hpl {
 		mfTimeDelta = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAnimationState::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cAnimationState);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

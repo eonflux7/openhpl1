@@ -21,12 +21,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iNode::~iNode()
 	{
 		for(tEntityListIt it = mlstEntity.begin();it != mlstEntity.end();it++)
@@ -36,14 +30,6 @@ namespace hpl {
 		}
 		mlstEntity.clear();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	int iNode::SetVisible(bool abX, bool abCascade)
 	{
@@ -64,8 +50,6 @@ namespace hpl {
 		return lNum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iNode::AddEntity(iEntity* apEntity)
 	{
 		if(apEntity->HasParent())return false;
@@ -75,8 +59,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iNode::RemoveEntity(iEntity* apEntity)
 	{
@@ -92,14 +74,10 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iNode::ClearEntities()
 	{
 		mlstEntity.clear();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cNodeIterator iNode::GetChildIterator()
 	{
@@ -110,20 +88,11 @@ namespace hpl {
 	{
 		return cEntityIterator(&mlstEntity);
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iNode, iSaveData)
 	kSerializeVarContainer(mlstEntities, eSerializeType_Int32)
 	kSerializeVarContainer(mlstNodes, eSerializeType_Int32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	void iNode::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -133,14 +102,10 @@ namespace hpl {
 		kSaveData_SaveIdList(mlstNode,tNodeListIt,mlstNodes);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iNode::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iNode);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iNode::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -149,7 +114,4 @@ namespace hpl {
 		kSaveData_LoadIdList(mlstEntity,mlstEntities, iEntity*);
 		kSaveData_LoadIdList(mlstNode,mlstNodes, iNode*);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

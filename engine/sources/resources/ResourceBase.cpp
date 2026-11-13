@@ -25,12 +25,6 @@ namespace hpl {
 
 	bool iResourceBase::mbLogCreateAndDelete=false;
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	iResourceBase::iResourceBase(tString asName,unsigned long alPrio){
 		mlTime = (unsigned long)time(nullptr);
 		mlPrio = alPrio;
@@ -45,14 +39,10 @@ namespace hpl {
 		if(mbLogDestruction && mbLogCreateAndDelete)
 			Log("  Destroyed resource '%s'\n",msName.c_str());
 	}
-	//-----------------------------------------------------------------------
 
 	void iResourceBase::IncUserCount()
 	{
 		mlUserCount++;
 		mlTime = (unsigned long)time(nullptr);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

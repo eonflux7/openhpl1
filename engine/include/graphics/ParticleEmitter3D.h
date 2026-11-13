@@ -31,8 +31,6 @@ namespace hpl {
 	class cWorld3D;
 	class cParticleSystem3D;
 
-	//---------------------------------------------
-
 	// NEW
 	enum ePEType
 	{
@@ -60,8 +58,6 @@ namespace hpl {
 		eParticleEmitter3DCoordSystem_LastEnum,
 	};
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iRenderable,iParticleEmitter3D)
 	{
 		kSaveData_ClassInit(iParticleEmitter3D)
@@ -77,19 +73,13 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//------------------------------------------
-
 	class cPESubDivision
 	{
 	public:
 		cVector3f mvUV[4];
 	};
 
-	//------------------------------------------
-
-	//////////////////////////////////////////////////////
-	/////////////// PARTICLE SYSTEM //////////////////////
-	//////////////////////////////////////////////////////
+	// PARTICLE SYSTEM
 
 	class iParticleEmitter3D : public iParticleEmitter, public iRenderable
 	{
@@ -187,4 +177,3 @@ namespace hpl {
 };
 
 #endif // HPL_PARTICLE_EMITTER_3D_H
-

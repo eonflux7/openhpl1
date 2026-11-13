@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 #define kContractSize (0.001f)
 
 	cResourceImage::cResourceImage(tString asName,cFrameTexture *apFrameTex,
@@ -64,8 +58,6 @@ namespace hpl {
 						cColor(1)));
 	}
 
-	//-----------------------------------------------------------------------
-
 	cResourceImage::~cResourceImage()
 	{
 		mvVtx.clear();
@@ -73,14 +65,6 @@ namespace hpl {
 		mpFrameTexture = nullptr;
 		mlHandle = -1;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cResourceImage::SetLogicalSize(const cVector2l &avSize, const cVector2l &avMargin)
 	{
@@ -94,8 +78,6 @@ namespace hpl {
 		mvVtx[3].pos = cVector3f(rect.x,rect.y+rect.h,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cRect2f cResourceImage::GetDrawRect(const cVector2f &avSize)const
 	{
 		cVector2f vMargin(avSize.x * (float)mvMargin.x / (float)mvLogicalSize.x,
@@ -103,11 +85,7 @@ namespace hpl {
 		return cRect2f(-vMargin.x, -vMargin.y, avSize.x + vMargin.x*2, avSize.y + vMargin.y*2);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture *cResourceImage::GetTexture()const{return mpFrameTexture->GetTexture();}
-
-	//-----------------------------------------------------------------------
 
 	tVertexVec cResourceImage::GetVertexVecCopy(const cVector2f &avPos, const cVector2f &avSize)
 	{
@@ -126,25 +104,16 @@ namespace hpl {
 		return vTmpVtx;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cResourceImage::Reload()
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cResourceImage::Unload()
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cResourceImage::Destroy()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
 }

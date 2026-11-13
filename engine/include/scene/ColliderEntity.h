@@ -57,9 +57,5 @@ namespace hpl {
 		iPhysicsWorld* mpPhysicsWorld;
 		iPhysicsBody* mpBody;
 	};
-
-	//-----------------------------------------------------------------------
-
-
 };
 #endif // HPL_COLLIDER_ENTITY_H

@@ -18,8 +18,6 @@
  */
 #include "math/CRC.h"
 
-//----------------------------------------
-
 namespace hpl {
 
 	cCRCTable cCRC::mTable;
@@ -46,15 +44,10 @@ namespace hpl {
 		}
 	}
 
-	//----------------------------------------
-
 	void cCRC::PutByte (unsigned aByte)
 	{
 		unsigned top = mRegister >> 24;
 		top ^= aByte;
 		mRegister = (mRegister << 8) ^ mTable [top];
 	}
-
-
-	//----------------------------------------
 }

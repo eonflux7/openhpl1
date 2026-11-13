@@ -30,13 +30,9 @@ class TiXmlElement;
 class cInit;
 class cGameGui;
 
-//////////////////////////////////////////////////////////////////////////
 // Black Plague's computer terminals: a screen described by a file in
 // interfaces/ (.gui), built from the engine's widgets and run by a script
 // of its own. Written after the game's binary.
-//////////////////////////////////////////////////////////////////////////
-
-//---------------------------------------
 
 // The script function a widget calls for each kind of message.
 class cGameGuiCallback
@@ -53,8 +49,6 @@ typedef tGameGuiImageMap::iterator tGameGuiImageMapIt;
 
 typedef std::map<tString, cGuiSkinFont*> tGameGuiFontMap;
 typedef tGameGuiFontMap::iterator tGameGuiFontMapIt;
-
-//---------------------------------------
 
 // A note opened on the screen, with a button that closes it.
 class cGameGuiTextView : public iGuiPopUp
@@ -99,8 +93,6 @@ private:
 	cWidgetSlider *mpSlider;
 	cWidgetButton *mpButton;
 };
-
-//---------------------------------------
 
 class cGameGui
 {
@@ -167,8 +159,6 @@ private:
 	iScript *mpScript;
 };
 
-//---------------------------------------
-
 class cGameGuiHandler : public iUpdateable
 {
 public:
@@ -209,7 +199,5 @@ private:
 
 	cVector2f mvMousePos;
 };
-
-//---------------------------------------
 
 #endif // GAME_GAME_GUI_H

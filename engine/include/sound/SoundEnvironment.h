@@ -46,4 +46,3 @@ namespace hpl
 
 
 #endif	// HPL_SOUNDENVIRONMENT_H
-

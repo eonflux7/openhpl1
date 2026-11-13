@@ -41,8 +41,6 @@
 using namespace hpl;
 namespace fs = std::filesystem;
 
-//-----------------------------------------------------------------------
-
 static bool gbQuiet = false;
 
 static bool PrintDiff(const tString &asName, const cModelDiff &aDiff, size_t alMax)
@@ -59,8 +57,6 @@ static bool PrintDiff(const tString &asName, const cModelDiff &aDiff, size_t alM
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 static bool Convert(cMeshLoaderCollada &aLoader, const tString &asIn, const tString &asOut, tStringVec &avWarnings)
 {
 	cColladaData data;
@@ -76,8 +72,6 @@ static void PrintWarnings(const tString &asName, const tStringVec &avWarnings)
 {
 	for(const tString &sWarning : avWarnings) printf("WARNING %s: %s\n", asName.c_str(), sWarning.c_str());
 }
-
-//-----------------------------------------------------------------------
 
 static int Info(cMeshLoaderCollada &aLoader, const tString &asFile)
 {
@@ -107,8 +101,6 @@ static int Info(cMeshLoaderCollada &aLoader, const tString &asFile)
 	}
 	return 0;
 }
-
-//-----------------------------------------------------------------------
 
 static bool IsImage(const fs::path &aPath)
 {
@@ -183,8 +175,6 @@ static int ConvertDir(cMeshLoaderCollada &aLoader, const fs::path &aIn, const fs
 		abVerify ? (", " + cString::ToString(lDiffer) + " differ").c_str() : "");
 	return lFailed || lDiffer ? 1 : 0;
 }
-
-//-----------------------------------------------------------------------
 
 static int Usage()
 {

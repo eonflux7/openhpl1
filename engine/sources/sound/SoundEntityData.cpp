@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSoundEntityData::cSoundEntityData(tString asName) : iResourceBase(asName,0)
 	{
 		msMainSound = "";
@@ -54,20 +48,10 @@ namespace hpl {
 		mfInterval =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSoundEntityData::~cSoundEntityData()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cSoundEntityData::CreateFromFile(const tString &asFile)
 	{
@@ -81,7 +65,6 @@ namespace hpl {
 
 		TiXmlElement *pRootElem = pDoc->FirstChildElement();
 
-		////////////////////////////////////////////////
 		// MAIN
 		TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
 		if(pMainElem==nullptr){
@@ -94,7 +77,6 @@ namespace hpl {
 		msStartSound = cString::ToString(pMainElem->Attribute("StartSound"),"");
 		msStopSound = cString::ToString(pMainElem->Attribute("StopSound"),"");
 
-		////////////////////////////////////////////////
 		// PROPERTIES
 		TiXmlElement *pPropElem = pRootElem->FirstChildElement("PROPERTIES");
 		if(pPropElem==nullptr){
@@ -126,8 +108,4 @@ namespace hpl {
 
 		return true;
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

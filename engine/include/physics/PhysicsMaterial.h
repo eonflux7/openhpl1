@@ -28,8 +28,6 @@ namespace hpl {
 	class iPhysicsWorld;
 	class cSurfaceData;
 
-	//----------------------------------------------------
-
 	//! Enum the different combination modes
 	//! This decides how two material properties are combined when colliding.
 	//! If the two differ the enum with the highest num.
@@ -46,8 +44,6 @@ namespace hpl {
 		//! Internal.
 		ePhysicsMaterialCombMode_LastEnum
 	};
-
-	//----------------------------------------------------
 
 	class cPhysicsContactData
 	{
@@ -66,10 +62,6 @@ namespace hpl {
 		cVector3f mvContactPosition;
 		cVector3f mvForce;
 	};
-
-
-	//----------------------------------------------------
-
 
 	class iPhysicsMaterial
 	{

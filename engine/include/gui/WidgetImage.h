@@ -35,7 +35,6 @@ namespace hpl {
 		cGuiGfxElement* GetImage(){ return mpGfxImage;}
 
 	protected:
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 		void OnChangeSize() override;
@@ -48,7 +47,6 @@ namespace hpl {
 		bool OnMouseEnter(cGuiMessageData &aData) override;
 		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		cGuiGfxElement *mpGfxImage;
 		cColor mColor;

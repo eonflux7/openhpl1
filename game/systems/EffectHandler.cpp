@@ -29,11 +29,7 @@
 #include "entities/GameSaveArea.h"
 #include "core/GraphicsHelper.h"
 
-//////////////////////////////////////////////////////////////////////////
 // UNDERWATER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_Underwater::cEffect_Underwater(cInit *apInit, cGraphicsDrawer *apDrawer)
 {
@@ -46,14 +42,11 @@ cEffect_Underwater::cEffect_Underwater(cInit *apInit, cGraphicsDrawer *apDrawer)
 
 	Reset();
 }
-//-----------------------------------------------------------------------
 
 cEffect_Underwater::~cEffect_Underwater()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_Underwater::SetActive(bool abActive)
 {
@@ -84,8 +77,6 @@ void cEffect_Underwater::SetActive(bool abActive)
 	}
 	mfDiveSoundCooldownSeconds = 1;
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_Underwater::Update(float afTimeStep)
 {
@@ -128,13 +119,11 @@ void cEffect_Underwater::Update(float afTimeStep)
 		mpLoopChannel = nullptr;
 	}
 }
-//-----------------------------------------------------------------------
 
 // The low level tints the view (cPlayerEffectState)
 void cEffect_Underwater::OnDraw()
 {
 }
-//-----------------------------------------------------------------------
 
 void cEffect_Underwater::Reset()
 {
@@ -143,14 +132,7 @@ void cEffect_Underwater::Reset()
 	mfDiveSoundCooldownSeconds = 0;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // SHAKE SCREEN
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_ShakeScreen::cEffect_ShakeScreen(cInit *apInit)
 {
@@ -251,14 +233,7 @@ void cEffect_ShakeScreen::Reset()
 	mlstShakes.clear();
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // SAVE EFFECT
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_SaveEffect::cEffect_SaveEffect(cInit *apInit, cGraphicsDrawer *apDrawer)
 {
@@ -359,13 +334,10 @@ void cEffect_SaveEffect::Reset()
 	// The save owns the general trail; player resets only clear their own.
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 {
 	switch(mlState)
 	{
-		///////////////////////
 		//State 0
 	case 0:
 		{
@@ -384,7 +356,6 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			}
 			break;
 		}
-		///////////////////////
 		//State 1
 	case 1:
 		{
@@ -396,7 +367,6 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			mlState++;
 			break;
 		}
-		///////////////////////
 		//State 2
 	case 2:
 		{
@@ -406,7 +376,6 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 			}
 			break;
 		}
-		///////////////////////
 		//State3
 	case 3:
 		{
@@ -420,17 +389,14 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 
 			break;
 		}
-		///////////////////////
 		//State4
 	case 4:
 		{
-			/////////////
 			//Reset all
 			mbActive = false;
 			mpInit->mpPlayer->SetActive(true);
 			mpInit->mpPlayer->GetLookAt()->SetActive(false);
 
-			/////////////
 			//Display message
 			int lLevel = 0;
 			int lMaxRand = 3;
@@ -463,13 +429,10 @@ void cEffect_SaveEffect::NormalSaveUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_SaveEffect::AutoSaveUpdate(float afTimeStep)
 {
 	switch(mlState)
 	{
-		///////////////////////
 		//State 0
 	case 0:
 		{
@@ -485,7 +448,6 @@ void cEffect_SaveEffect::AutoSaveUpdate(float afTimeStep)
 			}
 			break;
 		}
-		///////////////////////
 		//State 1
 	case 1:
 		{
@@ -499,11 +461,9 @@ void cEffect_SaveEffect::AutoSaveUpdate(float afTimeStep)
 
 			break;
 		}
-		///////////////////////
 		//State2
 	case 2:
 		{
-			/////////////
 			//Reset all
 			mbActive = false;
 			break;
@@ -511,14 +471,7 @@ void cEffect_SaveEffect::AutoSaveUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // DEPTH OF FIELD
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_DepthOfField::cEffect_DepthOfField(cInit *apInit)
 {
@@ -581,14 +534,12 @@ void cEffect_DepthOfField::SetUp(float afNearPlane, float afFocalPlane, float af
 
 void cEffect_DepthOfField::Update(float afTimeStep)
 {
-	/////////////////////////////////
 	// Update focus to body
 	if(mpFocusBody && mfMaxBlur >0)
 	{
 		FocusOnBody(mpFocusBody);
 	}
 	
-	///////////////////////////
 	//Update max blur
 	if(mbActive)
 	{
@@ -606,9 +557,6 @@ void cEffect_DepthOfField::Update(float afTimeStep)
 
 	mpPostEffects->SetDepthOfFieldMaxBlur(mfMaxBlur);
 }
-
-
-//-----------------------------------------------------------------------
 
 void cEffect_DepthOfField::FocusOnBody(iPhysicsBody *apBody)
 {
@@ -632,14 +580,7 @@ void cEffect_DepthOfField::FocusOnBody(iPhysicsBody *apBody)
 	SetUp(fNearPlane,fFocalPlane,fFarPlane);
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // FLASH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_Flash::cEffect_Flash(cInit *apInit, cGraphicsDrawer *apDrawer)
 {
@@ -655,8 +596,6 @@ cEffect_Flash::~cEffect_Flash()
 	mpDrawer->DestroyGfxObject(mpWhiteGfx);	
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_Flash::Start(float afFadeInSeconds, float afWhiteSeconds, float afFadeOutSeconds)
 {
 	mbActive = true;
@@ -668,8 +607,6 @@ void cEffect_Flash::Start(float afFadeInSeconds, float afWhiteSeconds, float afF
 	mfWhiteSpeed = afWhiteSeconds > 0 ? 1 / afWhiteSeconds : 1000000.0f;
 	mfFadeOutSpeed = afFadeOutSeconds > 0 ? 1 / afFadeOutSeconds : 1000000.0f;
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_Flash::Update(float afTimeStep)
 {
@@ -705,8 +642,6 @@ void cEffect_Flash::Update(float afTimeStep)
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_Flash::OnDraw()
 {
 	if(mbActive==false) return;
@@ -717,8 +652,6 @@ void cEffect_Flash::OnDraw()
 		mpDrawer->DrawGfxObject(mpWhiteGfx, mpInit->mpGraphicsHelper->GetScreenPos(), mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, fAlpha));
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_Flash::Reset()
 {
 	mbActive = false;
@@ -726,11 +659,7 @@ void cEffect_Flash::Reset()
 	mfCount = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////
 // IMAGE FLASH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_ImageFlash::cEffect_ImageFlash(cInit *apInit, cGraphicsDrawer *apDrawer)
 {
@@ -746,8 +675,6 @@ cEffect_ImageFlash::~cEffect_ImageFlash()
 {
 	if(mpImageGfx) mpDrawer->DestroyGfxObject(mpImageGfx);
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_ImageFlash::Start(float afFadeInSeconds, float afStaySeconds, float afFadeOutSeconds, const tString &asFile,
 								bool abStartFlash, bool abEndFlash)
@@ -784,8 +711,6 @@ void cEffect_ImageFlash::Start(float afFadeInSeconds, float afStaySeconds, float
 		mpInit->mpEffectHandler->GetFlash()->Start(afFadeInSeconds*0.5f, 0, afFadeInSeconds*0.5f);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_ImageFlash::Update(float afTimeStep)
 {
@@ -826,8 +751,6 @@ void cEffect_ImageFlash::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_ImageFlash::OnDraw()
 {
 	if(mbActive==false) return;
@@ -842,8 +765,6 @@ void cEffect_ImageFlash::OnDraw()
 	mpDrawer->DrawGfxObject(mpImageGfx,cVector3f(400 - vSize.x*0.5f, 300 - vSize.y*0.5f,3.1f),vSize,cColor(1,mfAlpha));
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_ImageFlash::Reset()
 {
 	if(mpImageGfx)
@@ -856,11 +777,7 @@ void cEffect_ImageFlash::Reset()
 	mbActive = false;
 }
 
-//////////////////////////////////////////////////////////////////////////
 // GAS MASK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_GasMask::cEffect_GasMask(cInit *apInit)
 {
@@ -879,8 +796,6 @@ cEffect_GasMask::~cEffect_GasMask()
 {
 	if(mpGfx) mpDrawer->DestroyGfxObject(mpGfx);
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_GasMask::SetActive(bool abActive)
 {
@@ -921,8 +836,6 @@ void cEffect_GasMask::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_GasMask::Update(float afTimeStep)
 {
 	if(mbActive)
@@ -958,8 +871,6 @@ void cEffect_GasMask::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_GasMask::OnDraw()
 {
 	if(mfAlpha <= 0 || mpGfx == nullptr) return;
@@ -968,8 +879,6 @@ void cEffect_GasMask::OnDraw()
 	mpDrawer->DrawGfxObject(mpGfx, mpInit->mpGraphicsHelper->GetScreenPos(-1),
 							mpInit->mpGraphicsHelper->GetScreenSize(), cColor(1, mfAlpha));
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_GasMask::Reset()
 {
@@ -990,11 +899,7 @@ void cEffect_GasMask::Reset()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
 // DREAM FILTER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_DreamFilter::cEffect_DreamFilter(cInit *apInit)
 {
@@ -1012,8 +917,6 @@ cEffect_DreamFilter::~cEffect_DreamFilter()
 	if(mpProgram) pProgramManager->Destroy(mpProgram);
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_DreamFilter::Start(float afAlpha, float afSpeed)
 {
 	mfTargetAlpha = afAlpha;
@@ -1030,8 +933,6 @@ void cEffect_DreamFilter::Stop(float afSpeed)
 
 	if(afSpeed == 0) mfAlpha = 0;
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_DreamFilter::Update(float afTimeStep)
 {
@@ -1051,8 +952,6 @@ void cEffect_DreamFilter::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_DreamFilter::OnPostSceneDraw()
 {
 	cGraphics *pGraphics = mpInit->mpGame->GetGraphics();
@@ -1066,12 +965,10 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	iTexture *pScreenTexture = pPostEffects->GetFreeScreenTexture();
 	if(pScreenTexture == nullptr) return;
 
-	///////////////////////////////
 	// The view as it is now
 	cVector2f vSize = pLowLevel->GetRenderSize();
 	if(!pLowLevel->DrawSceneCopy(pScreenTexture, 0, cVector2l((int)vSize.x, (int)vSize.y))) return;
 
-	///////////////////////////////
 	// Added to itself, larger by an amount that goes up and down
 	float fT = (sinf(mfTime*2) + 1) * 0.5f * 1.3f + 0.9f;
 
@@ -1109,8 +1006,6 @@ void cEffect_DreamFilter::OnPostSceneDraw()
 	pLowLevel->SetDrawMatrices(previousMatrices);
 }
 
-//-----------------------------------------------------------------------
-
 void cEffect_DreamFilter::Reset()
 {
 	mfAlpha = 0;
@@ -1119,11 +1014,8 @@ void cEffect_DreamFilter::Reset()
 	mfTime = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////
 // SUB TITLE
-//////////////////////////////////////////////////////////////////////////
 
-//-----------------------------------------------------------------------
 cEffect_SubTitle::cEffect_SubTitle(cInit *apInit, cGraphicsDrawer *apDrawer)
 {
 	mpInit = apInit;
@@ -1266,15 +1158,7 @@ void cEffect_SubTitle::Reset()
 	mlstSubTitles.clear();
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // WAVE GRAVITY
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffect_WaveGravity::cEffect_WaveGravity(cInit *apInit)
 {
@@ -1285,8 +1169,6 @@ cEffect_WaveGravity::cEffect_WaveGravity(cInit *apInit)
 cEffect_WaveGravity::~cEffect_WaveGravity()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cEffect_WaveGravity::SetActive(bool abActive)
 {
@@ -1307,7 +1189,6 @@ void cEffect_WaveGravity::Update(float afTimeStep)
 
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
-	//////////////////////////////////
 	// Wake dynamic bodies for the changing gravity.
 	
 	cPhysicsBodyIterator it = pWorld->GetBodyIterator();
@@ -1324,8 +1205,6 @@ void cEffect_WaveGravity::Update(float afTimeStep)
 		}
 	}
 
-	
-	/////////////////////////////////
 	// Update gravity
 	mfTime += (k2Pif / mfSwingLength) * afTimeStep;
 
@@ -1352,15 +1231,6 @@ void cEffect_WaveGravity::Reset()
 	mfTime = 0;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cEffectHandler::cEffectHandler(cInit *apInit)  : iUpdateable("EffectHandler")
 {
 	mpInit = apInit;
@@ -1380,8 +1250,6 @@ cEffectHandler::cEffectHandler(cInit *apInit)  : iUpdateable("EffectHandler")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cEffectHandler::~cEffectHandler(void)
 {
 	hplDelete( mpFlash );
@@ -1396,20 +1264,10 @@ cEffectHandler::~cEffectHandler(void)
 	hplDelete( mpGasMask );
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cEffectHandler::OnStart()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cEffectHandler::Update(float afTimeStep)
 {
@@ -1425,8 +1283,6 @@ void cEffectHandler::Update(float afTimeStep)
 	mpGasMask->Update(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 void cEffectHandler::Reset()
 {
 	mpFlash->Reset();
@@ -1440,8 +1296,6 @@ void cEffectHandler::Reset()
 	mpDreamFilter->Reset();
 	mpGasMask->Reset();
 }
-
-//-----------------------------------------------------------------------
 
 void cEffectHandler::OnDraw()
 {
@@ -1463,11 +1317,7 @@ void cEffectHandler::OnDraw()
 	mpGasMask->OnDraw();
 }
 
-//-----------------------------------------------------------------------
-
 void cEffectHandler::OnPostSceneDraw()
 {
 	mpDreamFilter->OnPostSceneDraw();
 }
-
-//-----------------------------------------------------------------------

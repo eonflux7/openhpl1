@@ -221,7 +221,6 @@ namespace hpl
 		glClearStencil(0);
 		glStencilMask(0xff);
 
-		///////////////////////////////////////////
 		// The picture
 		mTargets.BindFramebuffer(mvSmaaFramebuffers[0], vSize);
 		SetPassUniform(mEncodePass, eProgramParam::tonemap, 1.0f, mState.GetLinearLightingTuning().mfExposure,
@@ -229,7 +228,6 @@ namespace hpl
 			cMath::Max(mState.GetLinearLightingTuning().mfWhite, 1.0f));
 		DrawFullscreenPass(mEncodePass, alColor, vSize);
 
-		///////////////////////////////////////////
 		// Edges: the stencil buffer is set where there is one
 		for(cFullscreenPass *pPass : {&mSmaaEdgesPass, &weightsPass, &mSmaaBlendPass})
 		{
@@ -248,7 +246,6 @@ namespace hpl
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		DrawFullscreenPass(mSmaaEdgesPass, mlSmaaColor, vSize, 0, 0, true);
 
-		///////////////////////////////////////////
 		// Blend weights, only where there are edges
 		mTargets.BindFramebuffer(mvSmaaFramebuffers[2], vSize);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -256,7 +253,6 @@ namespace hpl
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 		DrawFullscreenPass(weightsPass, mlSmaaEdges, vSize, mlSmaaAreaTexture, mlSmaaSearchTexture, true);
 
-		///////////////////////////////////////////
 		// The blend, back into the scene
 		mTargets.BindFramebuffer(alColorFramebuffer, vSize);
 		DrawFullscreenPass(mSmaaBlendPass, mlSmaaColor, vSize, mlSmaaWeights, mlSmaaEdges);

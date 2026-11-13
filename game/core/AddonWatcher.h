@@ -14,8 +14,6 @@
 
 using namespace hpl;
 
-//----------------------------------------
-
 // Watches the files in addon folders (not .zip addons) from a thread of
 // its own while it is active, so that the map can be reloaded when an
 // edited model or map is saved into one (developer mode, docs/modding.md).
@@ -55,7 +53,5 @@ private:
 	bool mbAccept;
 	std::atomic<bool> mbChanged;
 };
-
-//----------------------------------------
 
 #endif // GAME_ADDON_WATCHER_H

@@ -31,8 +31,6 @@ class cInventoryItem;
 class iGameEntity;
 class cGameItem;
 
-//----------------------------------------------
-
 class cGameItemType
 {
 public:
@@ -69,7 +67,6 @@ protected:
 	tWStringVec mvNonDropActions;
 };
 
-//----------------------------------------------
 // NORMAL
 
 class cGameItemType_Normal : public cGameItemType
@@ -82,7 +79,6 @@ public:
 	void OnUse(cInventoryItem *apItem, iGameEntity *apEntity) override;
 };
 
-//----------------------------------------------
 // NOTEBOOK
 
 class cGameItemType_Notebook : public cGameItemType
@@ -96,7 +92,6 @@ public:
 	tString GetShortCutAction(cInventoryItem *apItem) override{return "NoteBook";}
 };
 
-//----------------------------------------------
 // NOTE
 
 class cGameItemType_Note : public cGameItemType
@@ -107,8 +102,6 @@ public:
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
 
 };
-
-//----------------------------------------------
 
 // BATTERY
 
@@ -122,7 +115,6 @@ public:
 	bool OnCombine(cInventoryItem *apItem, cInventoryItem *apWithItem, int alSlotIndex) override;
 
 };
-//----------------------------------------------
 
 // FLASHLIGHT
 
@@ -139,8 +131,6 @@ public:
 	tString GetShortCutAction(cInventoryItem *apItem) override{return "Flashlight";}
 };
 
-//----------------------------------------------
-
 // WEAPON MELEE
 
 class cGameItemType_WeaponMelee : public cGameItemType
@@ -150,8 +140,6 @@ public:
 
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
-
-//----------------------------------------------
 
 // WEAPON MELEE HAPTX
 
@@ -163,9 +151,6 @@ public:
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
 
-//----------------------------------------------
-
-
 // THROW
 
 class cGameItemType_Throw : public cGameItemType
@@ -175,9 +160,6 @@ public:
 
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
-
-
-//----------------------------------------------
 
 // GAS MASK (Black Plague)
 
@@ -191,8 +173,6 @@ public:
 	tWString GetString(cInventoryItem *apItem) override;
 };
 
-//----------------------------------------------
-
 // COLLECTABLE (Black Plague): the artefacts, counted when picked up
 
 class cGameItemType_Collectable : public cGameItemType
@@ -203,8 +183,6 @@ public:
 	bool OnPickUp(cInventoryItem *apItem, bool abInGame) override;
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
-
-//----------------------------------------------
 
 // GLOW STICK
 
@@ -220,8 +198,6 @@ public:
 	tString GetShortCutAction(cInventoryItem *apItem) override{return "GlowStick";}
 };
 
-//----------------------------------------------
-
 // FLARE
 
 class cGameItemType_Flare : public cGameItemType
@@ -231,8 +207,6 @@ public:
 
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 };
-
-//----------------------------------------------
 
 // PAINKILLERS
 
@@ -244,8 +218,5 @@ public:
 	bool OnAction(cInventoryItem *apItem, int alActionIndex) override;
 
 };
-
-//----------------------------------------------
-
 
 #endif // GAME_GAME_ITEM_TYPE_H

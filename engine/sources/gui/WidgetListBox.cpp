@@ -31,12 +31,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetListBox::cWidgetListBox(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_ListBox,apSet, apSkin)
 	{
 		mbClipsGraphics = true;
@@ -53,8 +47,6 @@ namespace hpl {
 		mpSlider = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetListBox::~cWidgetListBox()
 	{
 		if(mpSet->IsDestroyingSet()==false)
@@ -62,13 +54,6 @@ namespace hpl {
 			mpSet->DestroyWidget(mpSlider);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 
 	void cWidgetListBox::SetSelectedItem(int alX, bool abMoveList)
 	{
@@ -98,13 +83,6 @@ namespace hpl {
 		ProcessMessage(eGuiMessage_SelectionChange,data);
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 	bool cWidgetListBox::DrawText(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		cVector3f vPosition = GetGlobalPosition() + cVector3f(3,2,0);
@@ -126,8 +104,6 @@ namespace hpl {
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetListBox,DrawText)
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::MoveSlider(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		mlFirstItem = aData.mlVal;
@@ -135,8 +111,6 @@ namespace hpl {
 		return true;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetListBox,MoveSlider)
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::UpdateProperties()
 	{
@@ -154,8 +128,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetListBox::OnInit()
 	{
 		mpSlider = mpSet->CreateWidgetSlider(eWidgetSliderOrientation_Vertical,0,0,0,this);
@@ -165,8 +137,6 @@ namespace hpl {
 
 		OnChangeSize();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::OnChangeSize()
 	{
@@ -178,8 +148,6 @@ namespace hpl {
 			UpdateProperties();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::OnLoadGraphics()
 	{
@@ -198,17 +166,12 @@ namespace hpl {
 		mvGfxCorners[3] = mpSkin->GetGfx(eGuiSkinGfx_FrameCornerLD);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetListBox::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Background
 		mpSet->DrawGfx(	mpGfxBackground,GetGlobalPosition() +cVector3f(0,0,mfBackgroundZ),
 						mvSize);
 
-
-		////////////////////////////////
 		// Borders
 		DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 								GetGlobalPosition() -
@@ -218,14 +181,10 @@ namespace hpl {
 												mvGfxCorners[2]->GetActiveSize());
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseMove(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnMouseDown(cGuiMessageData &aData)
 	{
@@ -243,28 +202,20 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseUp(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseLeave(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnKeyPress(cGuiMessageData &aData)
 	{
@@ -281,8 +232,4 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

@@ -24,8 +24,6 @@
 
 namespace hpl {
 
-	//----------------------------------------------
-
 	enum eHapticShapeType
 	{
 		eHapticShapeType_Box,
@@ -37,8 +35,6 @@ namespace hpl {
 		eHapticShapeType_LastEnum
 	};
 
-	//----------------------------------------------
-
 	enum eHapticForceType
 	{
 		eHapticForceType_Impulse,
@@ -49,8 +45,6 @@ namespace hpl {
 		eHapticForceType_LastEnum
 	};
 
-	//----------------------------------------------
-
 	enum eHapticSurfaceType
 	{
 		eHapticSurfaceType_Simple,
@@ -60,13 +54,9 @@ namespace hpl {
 		eHapticSurfaceType_LastEnum
 	};
 
-	//----------------------------------------------
-
 	class iHapticShape;
 	class iHapticForce;
 	class iHapticSurface;
-
-	//----------------------------------------------
 
 	typedef std::vector<iHapticShape*> tHapticShapeVec;
 	typedef tHapticShapeVec::iterator tHapticShapeVecIt;
@@ -84,9 +74,5 @@ namespace hpl {
 	typedef tHapticSurfaceMap::iterator tHapticSurfaceMapIt;
 
 	typedef cSTLIterator<iHapticShape*, tHapticShapeList, tHapticShapeListIt> cHapticShapeIterator;
-
-	//----------------------------------------------
-
-
 };
 #endif // HPL_HAPTIC_TYPES_H

@@ -41,7 +41,6 @@ namespace hpl {
 		int GetSelectedItem(){ return mlSelectedItem;}
 
 	protected:
-		/////////////////////////
 		// Own functions
 		void UpdateProperties() override;
 
@@ -51,7 +50,6 @@ namespace hpl {
 		bool MoveSlider(iWidget* apWidget,cGuiMessageData& aData);
 		kGuiCalllbackDeclarationEnd(MoveSlider);
 
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 		void OnInit() override;
@@ -67,7 +65,6 @@ namespace hpl {
 
 		bool OnKeyPress(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		float mfBackgroundZ;
 		float mfSliderWidth;

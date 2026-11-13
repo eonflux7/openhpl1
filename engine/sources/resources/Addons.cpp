@@ -37,12 +37,6 @@ namespace hpl
 
 	namespace fs = std::filesystem;
 
-	//////////////////////////////////////////////////////////////////////////
-	// HELPERS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	static fs::path ToPath(const tString &asPath)
 	{
 		return fs::u8path(asPath);
@@ -58,8 +52,6 @@ namespace hpl
 		return sName.empty() || sName[0] == '.';
 	}
 
-	//-----------------------------------------------------------------------
-
 	// A path inside a .zip file that stays inside the folder it is unpacked to
 	static bool IsSafeZipPath(const tString &asPath)
 	{
@@ -71,8 +63,6 @@ namespace hpl
 			if(sPart == "..") return false;
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Unpacks a .zip file into a folder of asUnpackDir named after the file,
 	// its size and its time, unless that is already there. Returns the folder,
@@ -163,8 +153,6 @@ namespace hpl
 		return FromPath(dest);
 	}
 
-	//-----------------------------------------------------------------------
-
 	// A .zip file with one folder in it: the addon is that folder.
 	static fs::path ContentFolder(const fs::path &aPath)
 	{
@@ -180,8 +168,6 @@ namespace hpl
 		}
 		return lCount == 1 && single.empty() == false ? single : aPath;
 	}
-
-	//-----------------------------------------------------------------------
 
 	static bool ReadAddon(cAddon &aAddon)
 	{
@@ -204,14 +190,6 @@ namespace hpl
 		cString::GetStringVec(cString::ToLowerCase(config.GetString("Addon", "Games", "")), aAddon.mvGames, &sSeparators);
 		return config.GetBool("Addon", "Enabled", true);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	tAddonVec cAddons::Find(const tStringVec &avRoots, const tString &asGame,
 		const tString &asUnpackDir, const tString &asOnly)
@@ -284,8 +262,6 @@ namespace hpl
 		return vAddons;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAddons::AddToResources(cResources *apResources, const tAddonVec &avAddons)
 	{
 		for(const cAddon &addon : avAddons)
@@ -295,8 +271,6 @@ namespace hpl
 			apResources->GetFileSearcher()->AddDirectoryTree(addon.msPath, "*.*");
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAddons::LogReplacedFiles(cResources *apResources, const tAddonVec &avAddons)
 	{
@@ -339,6 +313,4 @@ namespace hpl
 			Log(" Addon '%s': %d files, %d replace game files\n", addon.msName.c_str(), lFiles, lReplaced);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 } // namespace hpl

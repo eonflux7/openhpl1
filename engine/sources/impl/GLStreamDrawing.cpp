@@ -42,8 +42,6 @@ namespace hpl
 		return lStart;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLStreamDrawing::Init()
 	{
 		glGenVertexArrays(1, &mlStreamVertexArray);

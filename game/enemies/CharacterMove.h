@@ -27,8 +27,6 @@ class iGameEnemy;
 
 #include "core/Init.h"
 
-//------------------------------------------
-
 class cCharacterMove;
 
 class cCharacterAStarCallback : public iAStarCallback, public iAIFreePathCallback
@@ -45,8 +43,6 @@ public:
 	cCharacterMove *mpMove;
 };
 
-//------------------------------------------
-
 class cMoverRayCallback : public iPhysicsRayCallback
 {
 public:
@@ -56,8 +52,6 @@ public:
 
 	bool mbIntersection;
 };
-
-//------------------------------------------
 
 class cCharacterMove
 {
@@ -71,7 +65,6 @@ public:
 	void OnDraw(cInit *apInit);
 	void OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx);
 	
-	///////////////////////////////////
 	// Actions 
 	/**
 	 * returns false if no path could be found.
@@ -84,7 +77,6 @@ public:
 
 	void Stop();
 
-	///////////////////////////////////
 	// Helpers
 	
 	bool FreeDirectPathToChar(iCharacterBody *apBody);
@@ -98,8 +90,6 @@ public:
 	cAINode* GetAINodeAtPosInRange(const cVector3f &avPos,float afMinDistance,float afMaxDistance,
 									bool abRayCheck, float afEndOffset);
 
-	
-	//////////////////////////////////////////
 	// Properties
 	bool IsMoving(){ return mbMoving;}
 
@@ -183,7 +173,5 @@ private:
 
 	cCharacterAStarCallback *mpAStarCallback;
 };
-
-//--------------------------------------
 
 #endif // GAME_CHARACTER_MOVE_H

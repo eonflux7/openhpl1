@@ -27,31 +27,15 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLanguageFile::cLanguageFile(cResources *apResources)
 	{
 		mpResources = apResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLanguageFile::~cLanguageFile()
 	{
 		STLMapDeleteAll(m_mapCategories);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cLanguageFile::LoadFromFile(const tString asFile)
 	{
@@ -65,7 +49,6 @@ namespace hpl {
 
 		TiXmlElement *pRootElem = pDoc->FirstChildElement();
 
-		///////////////////////////
 		//Iterate the resources
 		TiXmlElement *pResourceElem = pRootElem->FirstChildElement("RESOURCES");
 		if(pResourceElem)
@@ -82,8 +65,6 @@ namespace hpl {
 			Warning("No resources element found in '%s'\n",asFile.c_str());
 		}
 
-
-		///////////////////////////
 		//Iterate the categories
 		TiXmlElement *pCatElem = pRootElem->FirstChildElement("CATEGORY");
 		for(; pCatElem != nullptr; pCatElem = pCatElem->NextSiblingElement("CATEGORY"))
@@ -93,7 +74,6 @@ namespace hpl {
 
 			m_mapCategories.insert(tLanguageCategoryMap::value_type(sCatName, pCategory));
 
-			///////////////////////////
 			//Iterate the entries
 			TiXmlElement *pEntryElem = pCatElem->FirstChildElement("Entry");
 			for(; pEntryElem != nullptr; pEntryElem = pEntryElem->NextSiblingElement("Entry"))
@@ -219,8 +199,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	const tWString& cLanguageFile::Translate(const tString& asCat, const tString& asName)
 	{
 		tLanguageCategoryMapIt CatIt = m_mapCategories.find(asCat);
@@ -242,15 +220,4 @@ namespace hpl {
 
 		return pEntry->mwsText;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
 }

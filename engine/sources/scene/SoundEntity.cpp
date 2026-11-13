@@ -34,12 +34,6 @@ namespace hpl {
 
 	tSoundEntityGlobalCallbackList cSoundEntity::mlstGobalCallbacks;
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSoundEntity::cSoundEntity(const tString& asName,cSoundEntityData *apData,
 								cSoundEntityManager *apSoundEntityManager,
 								cWorld3D *apWorld,
@@ -120,22 +114,12 @@ namespace hpl {
 		//mpSoundEntityManager->Destroy(mpData);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cSoundEntityChannelCallback::OnPriorityRelease()
 	{
 		if(mpEntity->mbStopped || mpEntity->mbFadingOut) return;
 
 		mpEntity->mbPrioRemove = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSoundEntry* cSoundEntity::GetSoundEntry(eSoundEntityType aType)
 	{
@@ -152,7 +136,6 @@ namespace hpl {
 		return mpSoundHandler->GetEntryFromSound(mvSounds[aType]);
 	}
 
-	//-----------------------------------------------------------------------
 	void cSoundEntity::Play(bool abPlayStart)
 	{
 		if(mpSoundHandler->GetSilent())	return;
@@ -190,8 +173,6 @@ namespace hpl {
 
 		if(mbLog)Log("end\n");
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::Stop(bool abPlayEnd)
 	{
@@ -231,8 +212,6 @@ namespace hpl {
 
 		if(mbLog)Log("End\n");
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::FadeIn(float afSpeed)
 	{
@@ -285,9 +264,6 @@ namespace hpl {
 		if(mbLog)Log("end\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	bool cSoundEntity::IsStopped()
 	{
 		if(mbStopped && mvSounds[eSoundEntityType_Stop]==nullptr)
@@ -303,15 +279,10 @@ namespace hpl {
 		return mbFadingOut;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	bool cSoundEntity::GetRemoveWhenOver()
 	{
 		return mbRemoveWhenOver;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::UpdateLogic(float afTimeStep)
 	{
@@ -325,7 +296,6 @@ namespace hpl {
 			return;
 		}
 
-		//////////////////////////////////////////////
 		//If out of range check if it is inside range.
 		if(mbOutOfRange && mbStopped==false)
 		{
@@ -346,7 +316,6 @@ namespace hpl {
 
 		if(mbLog)Log("Update entity start...");
 
-		/////////////////////////////////////////////////
 		//Go through all sounds and check if they are playing,
 		//if so update their positions else remove.
 		for(int i=0; i<3; i++)
@@ -394,11 +363,9 @@ namespace hpl {
 			}
 		}
 
-		//////////////////////////////////////////////
 		//Check if sound is playing, and if so update it.
 		if(mbStopped==false)
 		{
-			/////////////////////////////////////////////////////////////////////////
 			//Sound is not playing, start it and since it has not been invoked by Play
 			//no need to play start sound. Only do this if interval is 0 else it might
 			//be a deliberate pause.
@@ -425,7 +392,6 @@ namespace hpl {
 
 			}
 
-			///////////////////////////////////////////////////////////
 			//Check if looping and interval is not 0.
 			//then there needs to be some updating.
 			if(mpData->GetLoop() && mpData->GetInterval()>0 && mvSounds[eSoundEntityType_Start]==nullptr
@@ -446,7 +412,6 @@ namespace hpl {
 				}
 			}
 
-			//////////////////////////////////////////////
 			// If the sound is looped and out of range, stop it
 			if(mvSounds[eSoundEntityType_Start]==nullptr && mpData->GetLoop() && mpData->GetUse3D())
 			{
@@ -474,14 +439,10 @@ namespace hpl {
 		if(mbLog)Log("end\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundEntity::AddGlobalCallback(iSoundEntityGlobalCallback *apCallback)
 	{
 		mlstGobalCallbacks.push_back(apCallback);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::RemoveGlobalCallback(iSoundEntityGlobalCallback *apCallback)
 	{
@@ -494,15 +455,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cSoundEntity::PlaySound(const tString &asName,bool abLoop,eSoundEntityType aType)
 	{
@@ -554,22 +506,11 @@ namespace hpl {
 		//for(int i=0; i<3; ++i) mvSoundEntries[i] = NULL;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cSoundEntity::GetListenerSqrLength()
 	{
 		cVector3f vListenerPos = mpWorld->GetSound()->GetLowLevel()->GetListenerPosition();
 		return cMath::Vector3DistSqr(vListenerPos,GetWorldPosition());
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cSoundEntity,cSaveData_iEntity3D)
 	kSerializeVar(msData, eSerializeType_String)
@@ -579,8 +520,6 @@ namespace hpl {
 	kSerializeVar(mbFadingOut, eSerializeType_Bool)
 	kSerializeVar(mfVolume, eSerializeType_Float32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cSoundEntity::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -596,21 +535,15 @@ namespace hpl {
 		return pEntity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cSoundEntity::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cSoundEntity::CreateSaveData()
 	{
 		return hplNew( cSaveData_cSoundEntity, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -625,8 +558,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfVolume);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cSoundEntity);
@@ -636,8 +567,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mbRemoveWhenOver);
 		//kSaveData_LoadFrom(mbStarted);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -652,7 +581,4 @@ namespace hpl {
 			mbStopped ? 1 : 0,
 			mbStarted ? 1 : 0);*/
 	}
-
-	//-----------------------------------------------------------------------
-
 }

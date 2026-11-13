@@ -32,12 +32,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetWindow::cWidgetWindow(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Window,apSet, apSkin)
 	{
 		mvRelMousePos =0;
@@ -45,19 +39,9 @@ namespace hpl {
 		mbStatic = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetWindow::~cWidgetWindow()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetWindow::SetStatic(bool abX)
 	{
@@ -68,15 +52,6 @@ namespace hpl {
 			mbMoving = false;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetWindow::OnLoadGraphics()
 	{
@@ -99,34 +74,26 @@ namespace hpl {
 		mvLabelTextOffset = mpSkin->GetAttribute(eGuiSkinAttribute_WindowLabelTextOffset);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetWindow::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Calc label size
 		cVector2f vLabelSize;
 		vLabelSize.x = mvSize.x - (mvGfxCorners[0]->GetActiveSize().x + mvGfxCorners[1]->GetActiveSize().x);
 		vLabelSize.y = mpLabelFont->mvSize.y + mvLabelTextOffset.y*2;
 
-		////////////////////////////////
 		// Label
 		mpSet->DrawGfx(	mpGfxLabel,GetGlobalPosition() +
 						cVector3f(mvGfxCorners[0]->GetActiveSize().x,mvGfxCorners[0]->GetActiveSize().y,0.2f),
 						vLabelSize);
 
-		////////////////////////////////
 		// Label text
 		DrawSkinText(	msText,eGuiSkinFont_WindowLabel,GetGlobalPosition()+
 						cVector3f(	mvGfxCorners[0]->GetActiveSize().x+mvLabelTextOffset.x,
 									mvGfxCorners[0]->GetActiveSize().y+mvLabelTextOffset.y,0.4f));
 
-		////////////////////////////////
 		// Borders and background
 		DrawBordersAndCorners(	mpGfxBackground, mvGfxBorders, mvGfxCorners, GetGlobalPosition(), mvSize);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetWindow::OnMouseMove(cGuiMessageData &aData)
 	{
@@ -134,13 +101,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetWindow::OnMouseDown(cGuiMessageData &aData)
 	{
 		if(mbStatic) return false;
 
-		////////////////////////////////
 		// Calculate label rectangle
 		cRect2f labelRect;
 		labelRect.w = mvSize.x - (mvGfxCorners[0]->GetActiveSize().x + mvGfxCorners[1]->GetActiveSize().x);
@@ -148,7 +112,6 @@ namespace hpl {
 		labelRect.x = GetGlobalPosition().x + mvGfxCorners[0]->GetActiveSize().x;
 		labelRect.y = GetGlobalPosition().y + mvGfxCorners[0]->GetActiveSize().y;
 
-		////////////////////////////////
 		// Check for collision
 		if(cMath::PointBoxCollision(aData.mvPos,labelRect) && aData.mlVal & eGuiMouseButton_Left)
 		{
@@ -160,8 +123,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetWindow::OnMouseUp(cGuiMessageData &aData)
 	{
 		if(aData.mlVal & eGuiMouseButton_Left) mbMoving = false;
@@ -169,14 +130,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetWindow::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetWindow::OnMouseLeave(cGuiMessageData &aData)
 	{
@@ -193,8 +150,4 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

@@ -27,8 +27,6 @@ using namespace hpl;
 
 class cInit;
 
-
-//---------------------------
 class cNumericalPanel;
 
 class cNumericalButton
@@ -66,8 +64,6 @@ private:
 
 typedef std::list<cNumericalButton*> tNumericalButtonList;
 typedef tNumericalButtonList::iterator tNumericalButtonListIt;
-
-//---------------------------------------------
 
 class cNumericalPanel : public iUpdateable
 {
@@ -124,8 +120,5 @@ private:
 	tIntVec mvDigits;
 	tIntVec mvCode;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_NUMERICAL_PANEL_H

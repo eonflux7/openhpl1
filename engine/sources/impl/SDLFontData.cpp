@@ -40,11 +40,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// VECTOR FONT ATLAS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	static FT_Library gpFTLibrary = nullptr;
 	static int glVectorFontCount = 0;
@@ -63,8 +59,6 @@ namespace hpl {
 	};
 
 	static std::vector<cFontAtlasPage> gvAtlasPages;
-
-	//-----------------------------------------------------------------------
 
 	// Glyphs are rendered while the frame is being drawn, so the texture
 	// state the engine keeps track of must be left as it was.
@@ -89,8 +83,6 @@ namespace hpl {
 		GLint mlBinding;
 		GLint mlAlignment;
 	};
-
-	//-----------------------------------------------------------------------
 
 	/**
 	 * Puts a bitmap of coverage values in the atlas, as white with the
@@ -156,8 +148,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void BoxBlurRows(std::vector<float> &avSrc, std::vector<float> &avDest,
 							int alW, int alH, int alRadius)
 	{
@@ -214,8 +204,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSDLFontSizedGlyphKey::operator<(const cSDLFontSizedGlyphKey &aKey) const
 	{
 		if(mlChar != aKey.mlChar) return mlChar < aKey.mlChar;
@@ -225,15 +213,6 @@ namespace hpl {
 		return mlEffectWidth < aKey.mlEffectWidth;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSDLFontData::cSDLFontData(const tString &asName,iLowLevelGraphics* apLowLevelGraphics)
 		: iFontData(asName,apLowLevelGraphics)
 	{
@@ -242,8 +221,6 @@ namespace hpl {
 		mfVectorWidth = 1;
 		mfVectorPixels = 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSDLFontData::~cSDLFontData()
 	{
@@ -276,19 +253,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cSDLFontData::CreateFromBitmapFile(const tString &asFileName)
 	{
 		tString sPath = cString::GetFilePath(asFileName);
 
-		////////////////////////////////////////////
 		// Load xml file
 		TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument,(asFileName.c_str()) );
 
@@ -301,7 +269,6 @@ namespace hpl {
 
 		TiXmlElement *pRootElem = pXmlDoc->RootElement();
 
-		////////////////////////////////////////////
 		// Load Common info
 		TiXmlElement *pCommonElem = pRootElem->FirstChildElement("common");
 
@@ -320,7 +287,6 @@ namespace hpl {
 
 		mfBaseLine = (float)lBase / (float)lLineHeight;
 
-		////////////////////////////////////////////
 		// Load bitmaps
 		std::vector<cSDLBitmap2D *> vBitmaps;
 
@@ -343,7 +309,6 @@ namespace hpl {
 			vBitmaps.push_back(pBitmap);
 		}
 
-		////////////////////////////////////////////
 		// Load glyphs
 		TiXmlElement *pCharsRootElem = pRootElem->FirstChildElement("chars");
 
@@ -407,8 +372,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSDLFontData::CreateFromFontFile(const tString &asFileName, int alSize, unsigned short alFirstChar,
 		unsigned short alLastChar)
 	{
@@ -416,8 +379,6 @@ namespace hpl {
 		Error("TrueType fonts are not supported: '%s'\n",asFileName.c_str());
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cSDLFontData::SetVectorFont(const tString &asFileName, float afSize, float afWidth, float afPixels)
 	{
@@ -457,7 +418,6 @@ namespace hpl {
 		mfVectorPixels = afPixels > 0 ? afPixels : 0;
 		mfVectorPixel = mfVectorPixels > 0 ? afSize * afWidth / mfVectorPixels : 0;
 
-		////////////////////////////////////////////
 		// Advances, unhinted so that they are the same at every size.
 		mvVectorAdvance.assign(mvGlyphs.size(), -1.0f);
 		for(size_t lChar=32; lChar<mvVectorAdvance.size(); lChar++)
@@ -474,14 +434,6 @@ namespace hpl {
 		mbVectorFont = true;
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cFontSizedGlyph* cSDLFontData::GetSizedGlyph(wchar_t alChar, int alLineHeight, float afStretch,
 												eFontEffect aEffect, int alEffectWidth)
@@ -505,14 +457,6 @@ namespace hpl {
 		m_mapSizedGlyphs.insert(tSDLFontSizedGlyphMap::value_type(key,pGlyph));
 		return pGlyph;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// Copies a rendered glyph into a coverage bitmap, keeping the highest value.
 	static void AddGlyphCoverage(FT_BitmapGlyph apBitmap, std::vector<unsigned char> &avCoverage,
@@ -538,14 +482,11 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFontSizedGlyph* cSDLFontData::CreateSizedGlyph(const cSDLFontSizedGlyphKey &aKey)
 	{
 		FT_UInt lIndex = FT_Get_Char_Index(mpFace,(FT_ULong)aKey.mlChar);
 		if(lIndex == 0) return nullptr;
 
-		////////////////////////////////////////////
 		// Render the glyph. Light hinting only fits it to the pixels
 		// vertically, the widths stay as designed.
 		float fEm = (float)aKey.mlLineHeight * mfVectorSize;
@@ -607,7 +548,6 @@ namespace hpl {
 		FT_BitmapGlyph pFillBitmap = (FT_BitmapGlyph)pFill;
 		FT_BitmapGlyph pStrokeBitmap = (FT_BitmapGlyph)pStroke;
 
-		////////////////////////////////////////////
 		// The area the glyph and its effect cover, in pixels with y going
 		// down and the pen position on the baseline at 0,0.
 		int lLeft = pFillBitmap->left;
@@ -672,7 +612,4 @@ namespace hpl {
 
 		return pGlyph;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

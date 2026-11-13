@@ -44,7 +44,6 @@ namespace hpl {
 		const cColor& GetBackGroundColor(){ return mBackGroundColor;}
 
 	protected:
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 
@@ -57,7 +56,6 @@ namespace hpl {
 		bool OnMouseEnter(cGuiMessageData &aData) override;
 		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		bool mbDrawFrame;
 		bool mbDrawBackground;

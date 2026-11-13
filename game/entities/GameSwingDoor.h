@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//----------------------------------------------
-
 class cGameSwingDoor_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameSwingDoor_SaveData);
@@ -41,16 +39,12 @@ public:
 	iGameEntity* CreateEntity() override;
 };
 
-//----------------------------------------------
-
 class cGameSwingJointDefault
 {
 public:
 	float mfMin;
 	float mfMax;
 };
-//----------------------------------------------
-
 
 class cGameSwingDoor :	public iGameEntity
 {
@@ -99,8 +93,6 @@ private:
 	tString msBreakEntity;
 	tString msBreakPS;
 };
-
-//--------------------------------------
 
 class cEntityLoader_GameSwingDoor : public cEntityLoader_Object
 {

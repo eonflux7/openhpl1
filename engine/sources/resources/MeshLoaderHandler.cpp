@@ -32,19 +32,11 @@ namespace hpl {
 	tString iMeshLoader::msCacheDir = "core/cache/";
 	tString iMeshLoader::msCacheWriteDir = "";
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMeshLoaderHandler::cMeshLoaderHandler(cResources* apResources, cScene *apScene)
 	{
 		mpResources = apResources;
 		mpScene = apScene;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshLoaderHandler::~cMeshLoaderHandler()
 	{
@@ -56,14 +48,6 @@ namespace hpl {
 
 		mlstLoaders.clear();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMesh* cMeshLoaderHandler::LoadMesh(const tString& asFile,tMeshLoadFlag aFlags)
 	{
@@ -84,8 +68,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderHandler::SaveMesh(cMesh* apMesh,const tString& asFile)
 	{
 		tString sType = cString::ToLowerCase(cString::GetFileExt(asFile));
@@ -104,8 +86,6 @@ namespace hpl {
 		Log("No loader for '%s' found!\n", sType.c_str());
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cWorld3D* cMeshLoaderHandler::LoadWorld(const tString& asFile, tWorldLoadFlag aFlags)
 	{
@@ -126,8 +106,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cAnimation* cMeshLoaderHandler::LoadAnimation(const tString& asFile)
 	{
 		tString sType = cString::ToLowerCase(cString::GetFileExt(asFile));
@@ -147,9 +125,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderHandler::AddLoader(iMeshLoader *apLoader)
 	{
 		mlstLoaders.push_back(apLoader);
@@ -161,6 +136,4 @@ namespace hpl {
 
 		apLoader->AddSupportedTypes(&mvSupportedTypes);
 	}
-
-	//-----------------------------------------------------------------------
 }

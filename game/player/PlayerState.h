@@ -29,9 +29,7 @@
 #include "ui/DeathMenu.h"
 #include "player/PlayerHands.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE STATE
-//////////////////////////////////////////////////////////////////////////
 
 class iPlayerState
 {
@@ -51,8 +49,6 @@ public:
 
 	virtual ~iPlayerState(){}
 
-	//-------------------------------------
-
 	void InitState(iPlayerState* apPrevState)
 	{
 		if(apPrevState){
@@ -63,8 +59,6 @@ public:
 		mPreviousState = apPrevState->mType;
 	}
 
-	//-------------------------------------
-	
 	virtual void OnUpdate(float afTimeStep){}
 	virtual void OnPostSceneDraw(){}
 	virtual void OnDraw(){}
@@ -108,8 +102,6 @@ public:
 
 	virtual void EnterState(iPlayerState* apPrevState){}
 	virtual void LeaveState(iPlayerState* apNextState){}
-
-	//-------------------------------------
 
 protected:
 	cInit *mpInit;

@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameArea_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameArea_SaveData);
@@ -37,8 +35,6 @@ public:
 	
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameArea : public iGameEntity
 {
@@ -67,8 +63,6 @@ private:
 	bool mbUseCustomIcon;
 	eCrossHairState mCustomIcon;
 };
-
-//------------------------------------------
 
 class cAreaLoader_GameArea : public iArea3DLoader
 {

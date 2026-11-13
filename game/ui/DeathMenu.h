@@ -27,8 +27,6 @@ using namespace hpl;
 
 class cInit;
 
-
-//---------------------------
 class cDeathMenuButton
 {
 public:
@@ -63,8 +61,6 @@ protected:
 	bool mbOver;
 };
 
-//---------------------------------------------
-
 class cDeathMenuButton_Continue : public cDeathMenuButton
 {
 public:
@@ -74,8 +70,6 @@ public:
 	void OnMouseDown() override;
 	void OnMouseUp() override;
 };
-
-//---------------------------------------------
 
 class cDeathMenuButton_BackToMain : public cDeathMenuButton
 {
@@ -87,12 +81,8 @@ public:
 	void OnMouseUp() override;
 };
 
-//---------------------------------------------
-
 typedef std::list<cDeathMenuButton*> tDeathMenuButtonList;
 typedef tDeathMenuButtonList::iterator tDeathMenuButtonListIt;
-
-//---------------------------------------------
 
 class cDeathMenu : public iUpdateable
 {
@@ -137,8 +127,5 @@ private:
 
 	tDeathMenuButtonList mlstButtons;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_DEATH_MENU_H

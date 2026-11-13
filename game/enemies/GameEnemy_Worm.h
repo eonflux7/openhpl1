@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameEnemy_Worm;
 
 // BASE STATE
@@ -49,8 +47,6 @@ protected:
 	cGameEnemy_Worm *mpEnemyWorm;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Worm_Idle : public iGameEnemyState_Worm_Base
 {
@@ -70,8 +66,6 @@ private:
 	bool mbStopped;
 	float mfNextWalkTime;
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Worm_Hunt : public iGameEnemyState_Worm_Base
@@ -104,8 +98,6 @@ private:
 	float mfHuntSoundDelaySeconds;
 };
 
-//-----------------------------------------
-
 // DEAD STATE
 class cGameEnemyState_Worm_Dead : public iGameEnemyState_Worm_Base
 {
@@ -123,8 +115,6 @@ public:
 
 private:
 };
-
-//-----------------------------------------
 
 class cWormTailSegment
 {
@@ -154,8 +144,6 @@ public:
 	cWormTailSegment *mpChildSegment;
 };
 
-//-----------------------------------------
-
 class cGameEnemy_Worm_MeshCallback : public cMeshEntityCallback
 {
 public:
@@ -166,8 +154,6 @@ public:
 private:
 	cGameEnemy_Worm *mpWorm;
 };
-
-//-----------------------------------------
 
 class cVector3Smoother
 {
@@ -183,9 +169,6 @@ private:
 	int mlMaxVecs;
 	std::list<cVector3f> mlstVecs;
 };
-
-//-----------------------------------------
-
 
 class cGameEnemy_Worm : public iGameEnemy
 {
@@ -272,7 +255,5 @@ private:
 	cWormTailSegment *mpRootSegment;
 	std::vector<cWormTailSegment*> mvTailSegments;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_WORM_H

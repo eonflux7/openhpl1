@@ -45,11 +45,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// RENDER SETTINGS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cRenderSettings::cRenderSettings()
 	{
@@ -59,14 +55,6 @@ namespace hpl {
 		mFogColor = cColor(1,1);
 		mbFogCulling = false;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cRenderer3D::cRenderer3D(iLowLevelGraphics *apLowLevelGraphics,cResources* apResources,
 							cMeshCreator* apMeshCreator, cRenderList *apRenderList)
@@ -117,8 +105,6 @@ namespace hpl {
 		if(!mpDiffuseProgram || !mpSolidFogProgram)
 			Error("Couldn't load the renderer's diffuse/fog programs\n");
 
-
-		///////////////////////////////////
 		//Fog Texture Init
 
 		Log("   Creating fog textures: ");
@@ -174,7 +160,6 @@ namespace hpl {
 
 		Log("\n");
 
-		/////////////////////////////////////////////
 		//Create Refraction programs
 		mbRefractionAvailable = true;
 
@@ -187,8 +172,6 @@ namespace hpl {
 			Log("   Refraction will not be supported!\n");
 		}
 
-
-		/////////////////////////////////////////////
 		//Create sky box graphics.
 
 		Log("   init sky box\n");
@@ -196,8 +179,6 @@ namespace hpl {
 
 		Log("  Renderer3D created\n");
 	}
-
-	//-----------------------------------------------------------------------
 
 	cRenderer3D::~cRenderer3D()
 	{
@@ -219,14 +200,6 @@ namespace hpl {
 		if(mpFogLinearAddTexture) hplDelete(mpFogLinearAddTexture);
 		if(mpFogLinearAlphaTexture) hplDelete(mpFogLinearAlphaTexture);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cRenderSettings::Clear()
 	{
@@ -271,8 +244,6 @@ namespace hpl {
 		Clear();
 	}
 
-	//-----------------------------------------------------------------------
-
 	eRendererShowShadows cRenderer3D::GetShowShadows()
 	{
 		return mRenderSettings.mShowShadows;
@@ -281,9 +252,6 @@ namespace hpl {
 	{
 		mRenderSettings.mShowShadows = aState;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cRenderer3D::UpdateRenderList(cWorld3D* apWorld, cCamera3D* apCamera, float afFrameTime)
 	{
@@ -319,13 +287,10 @@ namespace hpl {
 		mpRenderList->Compile();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::RenderWorld(cWorld3D* apWorld, cCamera3D* apCamera, float afFrameTime)
 	{
 		mfAccumulatedFrameTime += afFrameTime;
 
-		//////////////////////////////
 		//Setup render settings and logging
 		if(mDebugFlags & eRendererDebugFlag_LogRendering){
 			mbLog = true;
@@ -338,13 +303,11 @@ namespace hpl {
 		}
 		mRenderSettings.mDebugFlags = mDebugFlags;
 
-		/////////////////////////////////
 		//Set up rendering
 		BeginRendering(apCamera);
 
 		mRenderSettings.Clear();
 
-		////////////////////////////
 		// Render Z
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true,true);
 		mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
@@ -354,7 +317,6 @@ namespace hpl {
 		RenderAmbientAndDepth(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
-		////////////////////////////
 		//Render lighting
 		mRenderSettings.mChannelMode = eMaterialChannelMode_RGBA;
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true,true);
@@ -367,7 +329,6 @@ namespace hpl {
 		RenderLights(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
-		////////////////////////////
 		//Ambient occlusion: darkens what is lit, before what glows by
 		//itself, the fog and what is see-through are drawn
 		if(mbLog) Log("Rendering Ambient occlusion:\n");
@@ -375,26 +336,21 @@ namespace hpl {
 		bool bOcclusionOnly = RenderAmbientOcclusion(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
-		////////////////////////////
 		//Render Diffuse
 		if(mbLog) Log("Rendering Diffuse:\n");
 		mpLowLevelGraphics->BeginGpuSection("Diffuse");
 		if(bOcclusionOnly==false) RenderDiffuse(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
-		////////////////////////////
 		//Render fog
 		if(mbLog) Log("Rendering fog:\n");
 		mpLowLevelGraphics->BeginGpuSection("Fog");
 		if(bOcclusionOnly==false) RenderFog(apCamera);
 		mpLowLevelGraphics->EndGpuSection();
 
-
-		////////////////////////////
 		//Render sky box
 		mpLowLevelGraphics->SetDepthTestFunc(eDepthTestFunc_LessOrEqual);
 
-		////////////////////////////
 		if(mbLog) Log("Rendering Skybox:\n");
 		mpLowLevelGraphics->BeginGpuSection("Sky box");
 		if(bOcclusionOnly==false) RenderSkyBox(apCamera);
@@ -411,7 +367,6 @@ namespace hpl {
 
 		mRenderSettings.Reset(mpLowLevelGraphics);
 
-		////////////////////////////
 		//Render debug
 		mpLowLevelGraphics->BeginGpuSection("Debug");
 		RenderDebug(apCamera);
@@ -419,8 +374,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->SetDepthWriteActive(true);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::SetSkyBox(iTexture *apTexture, bool abAutoDestroy)
 	{
@@ -464,8 +417,6 @@ namespace hpl {
 		mpSkyBox->UpdateData(eVertexFlag_Color0,false);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::SetFogActive(bool abX)
 	{
 		if(mpSolidFogProgram)
@@ -481,17 +432,8 @@ namespace hpl {
 		mRenderSettings.mfFogEnd = afX;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::BeginRendering(cCamera3D* apCamera)
 	{
-		//////////////////////////////////////////////////
 		/////Setup for clearing the screen
 		//turn of scissor test.
 		mpLowLevelGraphics->SetScissorActive(false);
@@ -505,7 +447,6 @@ namespace hpl {
 
 		mpLowLevelGraphics->ClearScreen();
 
-		//////////////////////////////////////////////////
 		// Cull and depth mode.
 		mpLowLevelGraphics->SetCullActive(true);
 
@@ -521,20 +462,15 @@ namespace hpl {
 			mpLowLevelGraphics->SetTexture(i,nullptr);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::InitSkyBox()
 	{
 		mpSkyBox = mpMeshCreator->CreateSkyBoxVertexBuffer(1);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::RenderFog(cCamera3D *apCamera)
 	{
 		if(mRenderSettings.mbFogActive==false || mpSolidFogProgram==nullptr) return;
 		int i;
-		//////////////////////////////////
 		//Set textures to NULL
 		for(i=0; i<MAX_TEXTUREUNITS; ++i)
 		{
@@ -545,8 +481,6 @@ namespace hpl {
 			}
 		}
 
-
-		//////////////////////////////////
 		//Set program
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 		mRenderSettings.mpProgram = nullptr;
@@ -555,27 +489,20 @@ namespace hpl {
 		mpSolidFogProgram->SetFloat(eProgramParam::fogStart,mRenderSettings.mfFogStart);
 		mpSolidFogProgram->SetFloat(eProgramParam::fogEnd,mRenderSettings.mfFogEnd);
 
-
-		//////////////////////////////////
 		//Set fragment program
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 		if(mpSolidFogProgram) mpSolidFogProgram->Bind();
 		mRenderSettings.mpProgram = nullptr;
 
-
-		//////////////////////////////////
 		// Blend mode
 		mpLowLevelGraphics->SetBlendActive(true);
 		mpLowLevelGraphics->SetBlendFunc(eBlendFunc_SrcAlpha, eBlendFunc_OneMinusSrcAlpha);
 		mRenderSettings.mBlendMode = eMaterialBlendMode_LastEnum;
 
-		//////////////////////////////////////
 		// Texture
 		mpLowLevelGraphics->SetTexture(0,mpFogLinearSolidTexture);
 		mRenderSettings.mpTexture[0] = mpFogLinearSolidTexture;
 
-
-		//////////////////////////////////
 		// Render objects
 		cFogObjectIterator it = mpRenderList->GetFogIterator();
 
@@ -584,7 +511,6 @@ namespace hpl {
 			iRenderable *pObject = it.Next();
 			cMatrixf *pMtx = pObject->GetModelMatrix(apCamera);
 
-			//////////////////
 			//Non static models
 			if(pMtx)
 			{
@@ -592,7 +518,6 @@ namespace hpl {
 
 				mpSolidFogProgram->SetMatrixf(eProgramParam::worldViewProj, mpLowLevelGraphics->GetDrawMatrices().GetModelViewProjection());
 			}
-			//////////////////
 			//NULL Model view matrix (static)
 			else
 			{
@@ -608,8 +533,6 @@ namespace hpl {
 
 		if(mpSolidFogProgram) mpSolidFogProgram->UnBind();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderSkyBox(cCamera3D *apCamera)
 	{
@@ -672,7 +595,6 @@ namespace hpl {
 		mpSkyBox->Draw();
 		mpSkyBox->UnBind();
 	}
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderAmbientAndDepth(cCamera3D *apCamera)
 	{
@@ -690,8 +612,6 @@ namespace hpl {
 			mRenderSettings.mpTexture[i] = nullptr;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderLights(cCamera3D *apCamera)
 	{
@@ -734,8 +654,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetShadowMapParams(cShadowMapParams());
 	}
 
-	//-----------------------------------------------------------------------
-
 	/**
 	 * Brings the moving things that cast a shadow into the picture without
 	 * being in it themselves to the pose they have now. The render list does
@@ -773,8 +691,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	// The directions the faces of a cube map look in, and what is up in them.
 	static const cVector3f gvCubeFaceDir[6] = {
@@ -823,8 +739,6 @@ namespace hpl {
 		}
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	static bool CanCastShadow(iRenderable *apObject)
 	{
@@ -959,7 +873,6 @@ namespace hpl {
 		mpLowLevelGraphics->BeginGpuSection("Shadow maps");
 		if(mbLog) Log("Rendering shadow map:\n");
 
-		///////////////////////////////
 		// The maps
 		mShadowMapStats.mlLights++;
 
@@ -1027,7 +940,6 @@ namespace hpl {
 		{
 			mpLowLevelGraphics->EndShadowMap();
 
-			///////////////////////////////
 			// Back to how the light passes are drawn
 			mRenderSettings.mbMatrixWasNULL = false;
 
@@ -1051,8 +963,6 @@ namespace hpl {
 		mpLowLevelGraphics->EndGpuSection();
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// What casts shadows from the light, as seen in a_mtxView with
 	// a_mtxProjection; alFace is the face of a cube map, or -1.
@@ -1120,8 +1030,6 @@ namespace hpl {
 		return lDrawn;
 	}
 
-	//-----------------------------------------------------------------------
-
 	/**
 	 * Darkens the lit scene by the ambient occlusion
 	 * (cRendererPostEffects::RenderAmbientOcclusion) and leaves the render
@@ -1132,7 +1040,6 @@ namespace hpl {
 	{
 		if(mpPostEffects==nullptr || mpPostEffects->GetAmbientOcclusionActive()==false) return false;
 
-		///////////////////////////////
 		// Let go of what the light passes left set
 		if(mRenderSettings.mpVtxBuffer) mRenderSettings.mpVtxBuffer->UnBind();
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
@@ -1147,7 +1054,6 @@ namespace hpl {
 
 		if(mpPostEffects->RenderAmbientOcclusion()==false) return false;
 
-		///////////////////////////////
 		// Back to how the passes after the lights are drawn
 		mRenderSettings.mbMatrixWasNULL = false;
 
@@ -1160,17 +1066,12 @@ namespace hpl {
 		return mpPostEffects->GetAmbientOcclusionSettings().mbShowOnly;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cRenderer3D::RenderDiffuse(cCamera3D *apCamera)
 	{
 		cRenderQueue* pNode = mpRenderList->GetQueue(eMaterialRenderType_Diffuse, 0);
 		mRenderSettings.mpLight = nullptr;
 		pNode->Render(&mRenderSettings);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cRenderer3D::RenderTransparent(cCamera3D *apCamera)
 	{
@@ -1214,8 +1115,6 @@ namespace hpl {
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cRenderer3D::RenderTransparentRefraction(cCamera3D *apCamera,
 		const cTransparentDraw &draw, const iRenderState &aState)
 	{
@@ -1233,7 +1132,6 @@ namespace hpl {
 		if(mRenderSettings.mpVtxBuffer)			mRenderSettings.mpVtxBuffer->UnBind();
 		if(mRenderSettings.mpProgram) mRenderSettings.mpProgram->UnBind();
 
-		/////////////////////////////////////
 		//Alpha and blend mode
 		mRenderSettings.mAlphaMode = eMaterialAlphaMode_Solid;
 		mpLowLevelGraphics->SetAlphaCutoff(0);
@@ -1241,7 +1139,6 @@ namespace hpl {
 		mRenderSettings.mBlendMode = eMaterialBlendMode_None;
 		mpLowLevelGraphics->SetBlendActive(false);
 
-		//////////////////////////////
 		//Get Screen Clip space
 		cVector2l vScreenSize(	(int)mpLowLevelGraphics->GetRenderSize().x,
 								(int)mpLowLevelGraphics->GetRenderSize().y);
@@ -1275,14 +1172,11 @@ namespace hpl {
 				clipRect.h = vScreenSize.y-clipRect.y;
 		}
 
-
-		//////////////////////////////
 		// Water first marks its coverage in destination alpha.
 		if(draw.mbRefractionSkipsStandardTrans)
 			RenderRefractionMask(apCamera, aState, bHasClipRect ? clipRect :
 				cRect2l(0, 0, vScreenSize.x, vScreenSize.y));
 
-		//////////////////////////////
 		//The scene, to read while it is drawn over
 		if(bHasClipRect)
 		{
@@ -1298,7 +1192,6 @@ namespace hpl {
 			if(bLog) Log("   Copy full screen screen texture\n");
 		}
 
-		//////////////////////////////
 		//Set up programs
 		bool bSpecial = false;
 		if(	draw.mpSpecular != nullptr &&
@@ -1311,8 +1204,6 @@ namespace hpl {
 		iGpuProgram *pRefractProgram = draw.mpRefractionProgram;
 		if(!pRefractProgram) pRefractProgram = bSpecial ? mpRefractSpecialProgram : mpRefractProgram;
 
-
-		/////////////////////////////////////
 		//Program
 		mRenderSettings.mpProgram = pRefractProgram;
 		pRefractProgram->Bind();
@@ -1360,7 +1251,6 @@ namespace hpl {
 
 		pRefractProgram->SetFloat(eProgramParam::scale, draw.mfValue);
 
-		////////////////////////////////////
 		//Textures
 		for(int i=0;i<MAX_TEXTUREUNITS;i++)
 		{
@@ -1391,7 +1281,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////
 		//Draw
 		if(bLog) Log("   Drawing vtx buffer %d\n",pVtxBuffer);
 
@@ -1410,8 +1299,6 @@ namespace hpl {
 		}
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderRefractionMask(cCamera3D *apCamera,
 		const iRenderState &aState, const cRect2l &rect)
@@ -1442,8 +1329,6 @@ namespace hpl {
 		aState.mpVtxBuffer->UnBind();
 		mpLowLevelGraphics->SetColorWriteActive(true, true, true, true);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderDebug(cCamera3D *apCamera)
 	{
@@ -1486,8 +1371,6 @@ namespace hpl {
 			mpLowLevelGraphics->SetDepthWriteActive(true);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderer3D::RenderDebugObject(cCamera3D *apCamera,iRenderable* &apObject, iMaterial* apPrevMat,
 		int alPrevMatId,iVertexBuffer* apPrevVtxBuff,
@@ -1536,8 +1419,4 @@ namespace hpl {
 			}
 		}
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

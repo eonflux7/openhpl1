@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSoundManager::cSoundManager(cSound* apSound,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -47,14 +41,6 @@ namespace hpl {
 		DestroyAll();
 		Log(" Done with sounds\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundData* cSoundManager::CreateSoundData(const tString& asName, bool abStream,bool abLoopStream)
 	{
@@ -88,20 +74,15 @@ namespace hpl {
 		return pSound;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cSoundManager::Create(const tString& asName)
 	{
 		return	CreateSoundData(asName,false);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cSoundManager::Destroy(iResourceBase* apResource)
 	{
@@ -120,8 +101,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundManager::DestroyAll()
 	{
 		//FIX FIX FIX
@@ -136,14 +115,6 @@ namespace hpl {
 			it= m_mapHandleResources.begin();
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundData *cSoundManager::FindData(const tString &asName, tString &asFilePath)
 	{
@@ -166,6 +137,4 @@ namespace hpl {
 
 		return pData;
 	}
-
-	//-----------------------------------------------------------------------
 }

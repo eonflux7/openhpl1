@@ -29,8 +29,6 @@ using namespace hpl;
 // goes into alert (the light changes colour, a sound, a script callback)
 // for a time. Written after the game's binary; the source was not released.
 
-//----------------------------------------------
-
 class cGameCamera_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameCamera_SaveData);
@@ -49,8 +47,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//----------------------------------------------
 
 class cGameCamera : public iGameEntity, public iPhysicsRayCallback
 {
@@ -123,8 +119,6 @@ private:
 
 	cSoundEntity *mpTurnSound;
 };
-
-//----------------------------------------------
 
 class cEntityLoader_GameCamera : public cEntityLoader_Object
 {

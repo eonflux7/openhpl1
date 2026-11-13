@@ -23,9 +23,7 @@
 #include "player/PlayerState_Interact.h"
 #include "player/Player.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BODY
-//////////////////////////////////////////////////////////////////////////
 
 void cEngineBody_SaveData::FromBody(iPhysicsBody *pBody)
 {
@@ -76,16 +74,12 @@ kSerializeVar(mvAngularVelocity,eSerializeType_Vector3f)
 kSerializeVar(m_mtxTransform,eSerializeType_Matrixf)
 kEndSerialize()
 
-//////////////////////////////////////////////////////////////////////////
 // JOINT
-//////////////////////////////////////////////////////////////////////////
 
-//------------------------------------------------------------------------
 void cEngineJoint_SaveData::FromJoint(iPhysicsJoint *apJoint)
 {
 	msName = apJoint->GetName();
 
-	///////////////////////////////
 	//Callback
 	cScriptJointCallback *pCallback = static_cast<cScriptJointCallback*>(apJoint->GetCallback());
 	if(pCallback)
@@ -99,7 +93,6 @@ void cEngineJoint_SaveData::FromJoint(iPhysicsJoint *apJoint)
 		msOnMinCallback = "";
 	}
 	
-	///////////////////////////////
 	//Controllers
 	cPhysicsControllerIterator ctrlIt = apJoint->GetControllerIterator();
 	while(ctrlIt.HasNext())
@@ -114,7 +107,6 @@ void cEngineJoint_SaveData::FromJoint(iPhysicsJoint *apJoint)
 		mvControllers.Add(saveCtrl);
 	}
 
-	///////////////////////////////
     //Type specific
 	switch(apJoint->GetType())
 	{
@@ -149,11 +141,8 @@ void cEngineJoint_SaveData::FromJoint(iPhysicsJoint *apJoint)
 	}
 }
 
-//------------------------------------------------------------------------
-
 void cEngineJoint_SaveData::ToJoint(iPhysicsJoint *apJoint)
 {
-	///////////////////////////////
 	//Callback
 	cScriptJointCallback *pCallback = static_cast<cScriptJointCallback*>(apJoint->GetCallback());
 	if(pCallback==nullptr)
@@ -173,8 +162,6 @@ void cEngineJoint_SaveData::ToJoint(iPhysicsJoint *apJoint)
 		pCallback->msMinFunc = msOnMinCallback;
 	}
 
-	
-	///////////////////////////////
 	//Controllers
 	for(int i =0; i< (int)mvControllers.Size(); ++i)
 	{
@@ -184,7 +171,6 @@ void cEngineJoint_SaveData::ToJoint(iPhysicsJoint *apJoint)
 		pCtrl->SetActive(mvControllers[i].mbActive);
 	}
 	
-	///////////////////////////////
 	//Type specific
 	switch(apJoint->GetType())
 	{
@@ -218,8 +204,6 @@ void cEngineJoint_SaveData::ToJoint(iPhysicsJoint *apJoint)
 	}
 }
 
-//------------------------------------------------------------------------
-
 kBeginSerializeBase(cEngineJointController_SaveData)
 kSerializeVar(msName,eSerializeType_String)
 kSerializeVar(mfDestValue,eSerializeType_Float32)
@@ -234,13 +218,9 @@ kSerializeVar(msOnMinCallback,eSerializeType_String)
 kSerializeVar(msOnMaxCallback,eSerializeType_String)
 kSerializeClassContainer(mvControllers,cEngineJointController_SaveData,eSerializeType_Class)
 kEndSerialize()
-//------------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////
 // PS
-//////////////////////////////////////////////////////////////////////////
 
-//----------------------------------------------------------
 void cEnginePS_SaveData::FromPS(cParticleSystem3D *apPS)
 {
 	if(apPS)
@@ -291,8 +271,6 @@ void cEnginePS_SaveData::ToPS(cParticleSystem3D *apPS)
 	}
 }
 
-//----------------------------------------------------------
-
 kBeginSerializeBase(cEnginePSEmitter_SaveData)
 kSerializeVar(mbActive,eSerializeType_Bool)
 kEndSerialize()
@@ -306,13 +284,8 @@ kSerializeVar(mbActive,eSerializeType_Bool)
 kSerializeClassContainer(mvEmitterActive,cEnginePSEmitter_SaveData,eSerializeType_Class)
 kEndSerialize()
 
-//----------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // BEAM
-//////////////////////////////////////////////////////////////////////////
 
-//----------------------------------------------------------
 void cEngineBeam_SaveData::FromBeam(cBeam *apBeam)
 {
 	msName = apBeam->GetName();
@@ -330,8 +303,6 @@ void cEngineBeam_SaveData::ToBeam(cBeam *apBeam)
 	apBeam->GetEnd()->SetPosition(mvEndPos);
 }
 
-//----------------------------------------------------------
-
 kBeginSerializeBase(cEngineBeam_SaveData)
 kSerializeVar(msName,eSerializeType_String)
 kSerializeVar(msFile,eSerializeType_String)
@@ -340,11 +311,7 @@ kSerializeVar(mvStartPos,eSerializeType_Vector3f)
 kSerializeVar(mvEndPos,eSerializeType_Vector3f)
 kEndSerialize()
 
-//----------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SOUND
-//////////////////////////////////////////////////////////////////////////
 
 void cEngineSound_SaveData::FromSound(cSoundEntity* apSound)
 {
@@ -368,9 +335,7 @@ kSerializeVar(mbActive,eSerializeType_Bool)
 kSerializeVar(mbStopped,eSerializeType_Bool)
 kEndSerialize()
 
-//////////////////////////////////////////////////////////////////////////
 // LIGHT
-//////////////////////////////////////////////////////////////////////////
 
 kBeginSerializeBase(cEngineLightAttachBB_SaveData)
 kSerializeVar(msName,eSerializeType_String)
@@ -478,4 +443,3 @@ kSerializeVar(mbFlickerFade,eSerializeType_Bool)
 kSerializeVar(mfFlickerOnFadeLength, eSerializeType_Float32)
 kSerializeVar(mfFlickerOffFadeLength, eSerializeType_Float32)
 kEndSerialize()
-

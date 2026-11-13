@@ -22,12 +22,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cOpenALSoundChannel::cOpenALSoundChannel(iSoundData* apData, cOpenALDevice* apDevice, int alHandle,
 											 cSoundManager* apSoundManger)
 	: iSoundChannel(apData, apSoundManger), mpDevice(apDevice), mlHandle(alHandle)
@@ -37,8 +31,6 @@ namespace hpl {
 		mpDevice->SetLowPassFilter(mlHandle, true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cOpenALSoundChannel::~cOpenALSoundChannel()
 	{
 		if(mlHandle>=0)
@@ -47,22 +39,12 @@ namespace hpl {
 		if(mpSoundManger)mpSoundManger->Destroy(mpData);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::Play()
 	{
 		SetPaused(false);
 
 		mbStopUsed = false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::Stop()
 	{
@@ -72,15 +54,11 @@ namespace hpl {
 		mbStopUsed = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetPaused(bool abX)
 	{
 		mbPaused = abX;
 		mpDevice->SetPaused(mlHandle, abX);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetSpeed(float afSpeed)
 	{
@@ -88,15 +66,11 @@ namespace hpl {
 		mpDevice->SetPitch(mlHandle, afSpeed);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetVolume(float afVolume)
 	{
 		mfVolume = afVolume;
 		mpDevice->SetGain(mlHandle, mfVolume);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetLooping (bool abLoop)
 	{
@@ -104,21 +78,15 @@ namespace hpl {
 		mpDevice->SetLoop(mlHandle, abLoop);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetPan (float afPan)
 	{
 		mfPan = afPan;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::Set3D(bool ab3D)
 	{
 		mb3D = ab3D;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetPositionRelative(bool abRelative)
 	{
@@ -126,15 +94,11 @@ namespace hpl {
 		mbPositionRelative = abRelative;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetPosition(const cVector3f &avPos)
 	{
 		mvPosition = avPos;
 		mpDevice->SetPositionVelocity(mlHandle, mvPosition.v, mvVelocity.v);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetVelocity(const cVector3f &avVel)
 	{
@@ -142,28 +106,20 @@ namespace hpl {
 		mpDevice->SetPositionVelocity(mlHandle, mvPosition.v, mvVelocity.v);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetMinDistance(float afMin)
 	{
 		mfMinDistance = afMin;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetMaxDistance(float afMax)
 	{
 		mfMaxDistance = afMax;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cOpenALSoundChannel::IsPlaying()
 	{
 		return mpDevice->IsPlaying(mlHandle);
 	}
-
-	//-----------------------------------------------------------------------
 
 	double cOpenALSoundChannel::GetElapsedTime()
 	{
@@ -175,8 +131,6 @@ namespace hpl {
 		return mpDevice->GetTotalTime(mlHandle);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALSoundChannel::SetPriority(int alX)
 	{
 		int lPrio = alX+mlPriorityModifier;
@@ -185,14 +139,10 @@ namespace hpl {
 		mpDevice->SetPriority(mlHandle, lPrio);
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cOpenALSoundChannel::GetPriority()
 	{
 		return mpDevice->GetPriority(mlHandle);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALSoundChannel::SetAffectedByEnv(bool abAffected)
 	{

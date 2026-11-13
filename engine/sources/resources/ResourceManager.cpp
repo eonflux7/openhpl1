@@ -31,12 +31,6 @@ namespace hpl {
 
 	int iResourceManager::mlTabCount=0;
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceManager::iResourceManager(cFileSearcher *apFileSearcher,
 										iLowLevelResources *apLowLevelResources,
 										iLowLevelSystem *apLowLevelSystem)
@@ -46,14 +40,6 @@ namespace hpl {
 		mpLowLevelSystem = apLowLevelSystem;
 		mlHandleCount=0;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* iResourceManager::GetByName(const tString& asName)
 	{
@@ -66,8 +52,6 @@ namespace hpl {
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* iResourceManager::GetByHandle(unsigned long alHandle)
 	{
 		tResourceHandleMapIt it = m_mapHandleResources.find(alHandle);
@@ -76,14 +60,10 @@ namespace hpl {
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cResourceBaseIterator iResourceManager::GetResourceBaseIterator()
 	{
 		return cResourceBaseIterator(&m_mapNameResources);
 	}
-
-	//-----------------------------------------------------------------------
 
 	/*void iResourceManager::Destroy(iResourceBase* apResource)
 	{
@@ -94,8 +74,6 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}*/
-
-	//-----------------------------------------------------------------------
 
 	class cSortResources
 	{
@@ -110,8 +88,6 @@ namespace hpl {
 			return apResourceA->GetTime() > apResourceB->GetTime();
 		}
 	};
-
-	//-----------------------------------------------------------------------
 
 	void iResourceManager::DestroyUnused(int alMaxToKeep)
 	{
@@ -151,8 +127,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iResourceManager::DestroyAll()
 	{
 		tResourceHandleMapIt it = m_mapHandleResources.begin();
@@ -174,14 +148,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void iResourceManager::BeginLoad(const tString& asFile)
 	{
 		mlTimeStart = GetApplicationTime();
@@ -191,14 +157,10 @@ namespace hpl {
 		mlTabCount++;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iResourceManager::EndLoad()
 	{
 		mlTabCount--;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* iResourceManager::FindLoadedResource(const tString &asName, tString &asFilePath)
 	{
@@ -213,8 +175,6 @@ namespace hpl {
 		return pResource;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString iResourceManager::LoadedFileName(const tString &asRequested, const tString &asPath)
 	{
 		tString sFile = cString::GetFileName(asPath);
@@ -223,8 +183,6 @@ namespace hpl {
 			sFile = cString::SetFileExt(sFile, sExt);
 		return sFile;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString iResourceManager::GetTabs()
 	{
@@ -254,8 +212,6 @@ namespace hpl {
 		//Log("End resource: %s\n",apResource->GetName().c_str());
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iResourceManager::RemoveResource(iResourceBase* apResource)
 	{
 		m_mapHandleResources.erase(apResource->GetHandle());
@@ -264,14 +220,8 @@ namespace hpl {
 		//Log("Removing %s %d %d!\n", apResource->GetName().c_str(),x,y);
 	}
 
-	//-----------------------------------------------------------------------
-
 	unsigned long iResourceManager::GetHandle()
 	{
 		return mlHandleCount++;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

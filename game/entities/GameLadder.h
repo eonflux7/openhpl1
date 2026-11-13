@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameLadder_SaveData : public iGameEntity_SaveData
 {
 	kSerializableClassInit(cGameLadder_SaveData);
@@ -38,8 +36,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//------------------------------------------
 
 class cGameLadder :	public iGameEntity
 {
@@ -91,8 +87,6 @@ private:
 	tString msClimbUpSound;
 	tString msClimbDownSound;
 };
-
-//--------------------------------------
 
 class cAreaLoader_GameLadder : public iArea3DLoader
 {

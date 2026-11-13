@@ -28,12 +28,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cImageManager::cImageManager(cFileSearcher *apFileSearcher,iLowLevelGraphics *apLowLevelGraphics,
 								iLowLevelResources *apLowLevelResources,iLowLevelSystem *apLowLevelSystem)
 	: iResourceManager(apFileSearcher, apLowLevelResources,apLowLevelSystem)
@@ -54,19 +48,10 @@ namespace hpl {
 		Log(" Done with images\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cImageManager::Create(const tString& asName)
 	{
 		return CreateInFrame(asName, -1);
 	}
-	//-----------------------------------------------------------------------
 
 	iResourceBase* cImageManager::CreateInFrame(const tString& asName, int alFrameHandle)
 	{
@@ -125,8 +110,6 @@ namespace hpl {
 		return pImage;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cResourceImage* cImageManager::CreateImage(const tString& asName, int alFrameHandle)
 	{
 		iResourceBase* pRes = CreateInFrame(asName, alFrameHandle);
@@ -134,8 +117,6 @@ namespace hpl {
 
 		return pImage;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cResourceImage* cImageManager::CreateFromBitmap(const tString &asName,iBitmap2D* apBmp, int alFrameHandle)
 	{
@@ -150,8 +131,6 @@ namespace hpl {
 
 		return pImage;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cImageManager::Unload(iResourceBase* apResource)
 	{
@@ -216,8 +195,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cImageManager::DeleteAllBitmapFrames()
 	{
 		FlushAll();
@@ -227,8 +204,6 @@ namespace hpl {
 			it = mlstBitmapFrames.erase(it);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cImageManager::FlushAll()
 	{
@@ -255,8 +230,6 @@ namespace hpl {
 		return lNum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cImageManager::CreateFrame(cVector2l avSize)
 	{
 		cFrameBitmap *pBFrame = CreateBitmapFrame(avSize);
@@ -265,8 +238,6 @@ namespace hpl {
 
 		return pBFrame->GetHandle();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cImageManager::SetFrameLocked(int alHandle, bool abLocked)
 	{
@@ -280,14 +251,6 @@ namespace hpl {
 			it++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cResourceImage *cImageManager::FindImage(const tString &asName, tString &asFilePath)
 	{
@@ -310,8 +273,6 @@ namespace hpl {
 
 		return pImage;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cResourceImage *cImageManager::LoadHighRes(const tString &asName, const tString &asOriginalPath)
 	{
@@ -379,8 +340,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cResourceImage *cImageManager::AddToFrame(iBitmap2D *apBmp,int alFrameHandle)
 	{
 		bool bFound = false;
@@ -443,8 +402,6 @@ namespace hpl {
 		return pImage;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFrameBitmap *cImageManager::CreateBitmapFrame(cVector2l avSize, bool abMipMaps)
 	{
 		iTexture *pTex = mpLowLevelGraphics->CreateTexture(abMipMaps,eTextureType_Normal,eTextureTarget_2D);
@@ -467,7 +424,4 @@ namespace hpl {
 		mlFrameHandle++;
 		return pBFrame;
 	}
-
-
-	//-----------------------------------------------------------------------
 }

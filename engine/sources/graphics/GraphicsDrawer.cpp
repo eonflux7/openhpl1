@@ -35,13 +35,6 @@
 
 namespace hpl {
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGraphicsDrawer::cGraphicsDrawer(iLowLevelGraphics *apLowLevelGraphics, cMaterialHandler* apMaterialHandler,
 		cResources* apResources)
 	{
@@ -50,27 +43,15 @@ namespace hpl {
 		mpResources = apResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGraphicsDrawer::~cGraphicsDrawer()
 	{
 		STLDeleteAll(mlstGfxObjects);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iMaterial* cGfxBufferObject::GetMaterial() const
 	{
 		return mpObject->GetMaterial();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGfxBufferCompare::operator()(const cGfxBufferObject& aObjectA,const cGfxBufferObject& aObjectB) const
 	{
@@ -78,8 +59,6 @@ namespace hpl {
 		// decide which of two overlapping translucent sprites covers the other.
 		return aObjectA.GetZ() < aObjectB.GetZ();
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void FlushImage(cGfxObject* apObject)
 	{
@@ -110,8 +89,6 @@ namespace hpl {
 		m_setGfxBuffer.insert(BuffObj);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DrawGfxObjectPart(cGfxObject* apObject, const cVector3f& avPos,
 											const cVector2f& avSize, const cColor& aColor, const cRect2f& aPart)
 	{
@@ -130,8 +107,6 @@ namespace hpl {
 		m_setGfxBuffer.insert(BuffObj);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DrawGfxObject(cGfxObject* apObject, const cVector3f& avPos)
 	{
 		FlushImage(apObject);
@@ -143,7 +118,6 @@ namespace hpl {
 
 		m_setGfxBuffer.insert(BuffObj);
 	}
-	//-----------------------------------------------------------------------
 
 	void cGraphicsDrawer::DrawAll()
 	{
@@ -213,8 +187,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(const tString &asFileName, const tString &asMaterialName,
 												bool abAddToList)
 	{
@@ -239,8 +211,6 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(iBitmap2D *apBmp, const tString &asMaterialName,
 												bool abAddToList)
 	{
@@ -264,8 +234,6 @@ namespace hpl {
 
 		return pObject;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGfxObject* cGraphicsDrawer::CreateGfxObjectFromTexture(	const tString &asFileName, const tString &asMaterialName,
 																bool abAddToList)
@@ -292,8 +260,6 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(iTexture *apTexture, const cVector2f &avUVStart,
 												const cVector2f &avUVEnd, const tString &asMaterialName)
 	{
@@ -315,13 +281,8 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DestroyGfxObject(cGfxObject* apObject)
 	{
 		STLFindAndDelete(mlstGfxObjects,apObject);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

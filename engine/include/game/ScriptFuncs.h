@@ -31,10 +31,6 @@ namespace hpl {
 	class cInput;
 	class cGame;
 
-
-
-	//---------------------------------------
-
 	class cScriptJointCallback : public iPhysicsJointCallback
 	{
 	public:
@@ -50,8 +46,6 @@ namespace hpl {
 
 		cScene *mpScene;
 	};
-
-	//---------------------------------------
 
 	class cScriptFuncs
 	{

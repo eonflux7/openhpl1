@@ -27,11 +27,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameDamageArea::cAreaLoader_GameDamageArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -43,8 +39,6 @@ cAreaLoader_GameDamageArea::~cAreaLoader_GameDamageArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -72,14 +66,6 @@ iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 cGameDamageArea::cGameDamageArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_DamageArea;
@@ -95,25 +81,13 @@ cGameDamageArea::cGameDamageArea(cInit *apInit,const tString& asName) : iGameEnt
 	mfDamageDelaySeconds =0;
 }
 
-//-----------------------------------------------------------------------
-
 cGameDamageArea::~cGameDamageArea(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameDamageArea::Update(float afTimeStep)
 {
@@ -138,7 +112,6 @@ void cGameDamageArea::Update(float afTimeStep)
 			lstBodies.push_back(pBody);
 		}
 
-		////////////////////////////////////////////////////////
 		// Check candidate bodies overlapping the area bounds.
 		std::list<iPhysicsBody*>::iterator it = lstBodies.begin();
         for(; it != lstBodies.end(); ++it)
@@ -157,11 +130,9 @@ void cGameDamageArea::Update(float afTimeStep)
 					continue;
 				}
 
-				/////////////////////////
 				//Bounding volume check
 				if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 				
-				///////////////////////////////
 				//Check for collision
 				if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
 					pAreaBody->GetShape(), pAreaBody->GetLocalMatrix(),collideData,1)==false)
@@ -169,7 +140,6 @@ void cGameDamageArea::Update(float afTimeStep)
 					continue;
 				}
 
-				////////////////////
 				//Player
 				if(mpInit->mpPlayer->GetCharacterBody()->GetBody() == pBody)
 				{
@@ -206,23 +176,6 @@ void cGameDamageArea::Update(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameDamageArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(mfDamage, eSerializeType_Float32)
@@ -234,21 +187,15 @@ kSerializeVar(mDamageType, eSerializeType_Int32)
 kSerializeVar(msDamageSound, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameDamageArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameDamageArea::CreateSaveData()
 {
 	return hplNew( cGameDamageArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -266,8 +213,6 @@ void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -283,11 +228,8 @@ void cGameDamageArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
 	cGameDamageArea_SaveData *pData = static_cast<cGameDamageArea_SaveData*>(apSaveData);
 }
-//-----------------------------------------------------------------------

@@ -21,14 +21,6 @@
 #include "core/Init.h"
 #include <SDL3/SDL.h>
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGraphicsHelper::cGraphicsHelper(cInit *apInit)
 {
 	mpInit = apInit;
@@ -61,21 +53,11 @@ cGraphicsHelper::~cGraphicsHelper()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGraphicsHelper::ClearScreen(const cColor &aColor)
 {
 	mpLowLevelGfx->SetClearColor(aColor);
 	mpLowLevelGfx->ClearScreen();
 }
-
-//-----------------------------------------------------------------------
 
 void cGraphicsHelper::DrawTexture(iTexture *apTex, const cVector3f& avPos, const cVector3f& avSize,
 								  const cColor &aColor)
@@ -119,8 +101,6 @@ void cGraphicsHelper::DrawTextureRect(iTexture *apTex, const cVector3f& avPos, c
 
 	mpLowLevelGfx->SetDrawMatrices(previousMatrices);
 }
-
-//-----------------------------------------------------------------------
 
 cScreenImage cGraphicsHelper::LoadScreenImage(const tString &asFile)
 {
@@ -208,8 +188,6 @@ void cGraphicsHelper::DrawFullScreenImage(const cScreenImage &aImage, float afZ)
 	else if(aImage.mpTexture) DrawTexture(aImage.mpTexture,GetScreenPos(afZ),GetScreenSize(),cColor(1,1));
 }
 
-//-----------------------------------------------------------------------
-
 void cGraphicsHelper::DrawLoadingScreen(const tString &asFile, bool abDrawLoadingText)
 {
 	cScreenImage image = LoadScreenImage(asFile);
@@ -231,8 +209,6 @@ void cGraphicsHelper::DrawLoadingScreen(const tString &asFile, bool abDrawLoadin
 	
 	DestroyScreenImage(image);
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f cGraphicsHelper::GetScreenPos(float afZ)
 {
@@ -261,12 +237,7 @@ void cGraphicsHelper::ClampToScreen(cVector2f &avPos)
 	if(avPos.y > vSize.y + vOffset.y) avPos.y = vSize.y + vOffset.y;
 }
 
-//-----------------------------------------------------------------------
-
 void cGraphicsHelper::SwapBuffers()
 {
 	mpLowLevelGfx->SwapBuffers();
 }
-
-
-//-----------------------------------------------------------------------

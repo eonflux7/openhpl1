@@ -74,7 +74,7 @@ namespace hpl {
 		void SetDrawScene(bool abX);
 		bool GetDrawScene(){ return mbDrawScene;}
 
-		///// SCRIPT VAR METHODS ////////////////////
+		// SCRIPT VAR METHODS
 
 		cScriptVar* CreateLocalVar(const tString& asName);
 		cScriptVar* GetLocalVar(const tString& asName);
@@ -83,7 +83,7 @@ namespace hpl {
 		cScriptVar* GetGlobalVar(const tString& asName);
 		tScriptVarMap* GetGlobalVarMap();
 
-		///// CAMERA METHODS ////////////////////
+		// CAMERA METHODS
 
 		cCamera3D* CreateCamera3D(eCameraMoveMode aMoveMode);
 
@@ -106,7 +106,7 @@ namespace hpl {
 		void ApplyInterpolation(float afT);
 		void RestoreInterpolation();
 
-		///// WORLD METHODS ////////////////////
+		// WORLD METHODS
 
 		cWorld3D* LoadWorld3D(const tString& asFile, bool abLoadScript, tWorldLoadFlag aFlags);
 		cWorld3D* CreateWorld3D(const tString& asName);

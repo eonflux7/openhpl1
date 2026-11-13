@@ -55,8 +55,6 @@ namespace hpl {
 	typedef std::set<iRenderable*> tCasterCacheSet;
 	typedef tCasterCacheSet::iterator tCasterCacheSetIt;
 
-	//------------------------------------------
-
 	kSaveData_ChildClass(iRenderable,iLight3D)
 	{
 		kSaveData_ClassInit(iLight3D)
@@ -102,8 +100,6 @@ namespace hpl {
 		float mfFlickerTime;
 		float mfFlickerStateLength;
 	};
-
-	//------------------------------------------
 
 	class iLight3D : public iLight, public iRenderable
 	{

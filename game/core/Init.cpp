@@ -95,7 +95,6 @@
 //Global init...
 cInit* gpInit;
 
-///////////////////////////////////////////////
 // BEGIN TIME LIMIT
 
 //#define TIMELIMIT
@@ -130,12 +129,6 @@ cInit* gpInit;
 #endif
 
 // END TIME LIMIT
-///////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
 
 tWString gsUserSettingsPath = _W("");
 tWString gsDefaultSettingsPath = _W("config/default_settings.cfg");
@@ -143,8 +136,6 @@ bool gbUsingUserSettings=false;
 
 eGameId cInit::mGameId = eGameId_Overture;
 eGameId cInit::mRequestedGameId = eGameId_LastEnum;
-
-//-----------------------------------------------------------------------
 
 // What differs between the games' data folders. Black Plague and Requiem are
 // installed into the same folder, Requiem's own files under other names.
@@ -185,8 +176,6 @@ static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
 		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae",
 		"Penumbra_Requiem_M.ogg"},
 };
-
-//-----------------------------------------------------------------------
 
 // CHANGING GAME
 
@@ -266,8 +255,6 @@ void cInit::RunRequestedGame()
 #endif
 }
 
-//-----------------------------------------------------------------------
-
 tWString cInit::GetPersonalGameDir()
 {
 	return gvGameFiles[mGameId].msPersonalDir;
@@ -287,8 +274,6 @@ tString cInit::GetMenuMusic()
 {
 	return gvGameFiles[mGameId].msMenuMusic;
 }
-
-//-----------------------------------------------------------------------
 
 cInit::cInit(void)  : iUpdateable("Init")
 {
@@ -316,19 +301,9 @@ cInit::cInit(void)  : iUpdateable("Init")
 	gpInit = this;
 }
 
-//-----------------------------------------------------------------------
-
 cInit::~cInit(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 {
@@ -336,8 +311,6 @@ void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 	pPS->AddEmitterData(apPE);
 	mpGame->GetResources()->GetParticleManager()->AddData3D(pPS);
 }
-
-//-----------------------------------------------------------------------
 
 tWString cInit::GetPersonalDir()
 {
@@ -1191,7 +1164,6 @@ bool cInit::Init(tString asCommandLine)
 		mpConfig->Save();
 	}
 
-	//////////////////////////////////////////////////////////
 	// Create newer settings file, if using default.
 	if(gbUsingUserSettings == false)
 	{
@@ -1204,8 +1176,6 @@ bool cInit::Init(tString asCommandLine)
 	
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::ResetGame(bool abRunInitScript)
 {
@@ -1223,21 +1193,15 @@ void cInit::ResetGame(bool abRunInitScript)
 	mpGame->GetSound()->GetSoundHandler()->StopAll(eSoundDest_All);
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::Run()
 {
 	mpGame->Run();
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::OnStart()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::Update(float afTimeStep)
 {
@@ -1247,14 +1211,10 @@ void cInit::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::Reset()
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::Exit()
 {
@@ -1581,8 +1541,6 @@ void cInit::Exit()
 #endif
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::RunScriptCommand(const tString& asCommand)
 {
 	if(asCommand[0]=='@')
@@ -1602,7 +1560,6 @@ void cInit::RunScriptCommand(const tString& asCommand)
 	}
 }
 
-//-----------------------------------------------------------------------
 void cInit::PreloadSoundEntityData(const tString &asFile)
 {
 	if(asFile=="") return;
@@ -1616,8 +1573,6 @@ void cInit::PreloadSoundEntityData(const tString &asFile)
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::PreloadParticleSystem(const tString &asFile)
 {
 	if(asFile=="") return;
@@ -1625,5 +1580,3 @@ void cInit::PreloadParticleSystem(const tString &asFile)
 																"",asFile,1,cMatrixf::Identity);
 	hplDelete( pPS );
 }
-
-//-----------------------------------------------------------------------

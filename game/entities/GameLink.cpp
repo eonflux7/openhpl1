@@ -27,11 +27,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameLink::cAreaLoader_GameLink(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -43,8 +39,6 @@ cAreaLoader_GameLink::~cAreaLoader_GameLink()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameLink::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -71,16 +65,6 @@ iEntity3D* cAreaLoader_GameLink::Load(const tString &asName, const cVector3f &av
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameLink::cGameLink(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Link;
@@ -88,19 +72,9 @@ cGameLink::cGameLink(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mbLocked = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameLink::~cGameLink(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLink::OnPlayerPick()
 {
@@ -134,23 +108,6 @@ void cGameLink::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLink_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(msMapFile, eSerializeType_String)
@@ -167,21 +124,15 @@ kSerializeVar(msLockedSound, eSerializeType_String)
 kSerializeVar(msLockedDesc, eSerializeType_WString)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLink_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLink::CreateSaveData()
 {
 	return hplNew( cGameLink_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLink::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -204,8 +155,6 @@ void cGameLink::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLink::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -225,4 +174,3 @@ void cGameLink::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,msLockedDesc);
 
 }
-//-----------------------------------------------------------------------

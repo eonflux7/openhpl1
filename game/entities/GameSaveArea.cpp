@@ -26,11 +26,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameSaveArea::cAreaLoader_GameSaveArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -42,8 +38,6 @@ cAreaLoader_GameSaveArea::~cAreaLoader_GameSaveArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameSaveArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -70,16 +64,6 @@ iEntity3D* cAreaLoader_GameSaveArea::Load(const tString &asName, const cVector3f
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameSaveArea::cGameSaveArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_SaveArea;
@@ -94,19 +78,9 @@ cGameSaveArea::cGameSaveArea(cInit *apInit,const tString& asName) : iGameEntity(
 	mbHasBeenUsed = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameSaveArea::~cGameSaveArea(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameSaveArea::OnPlayerPick()
 {
@@ -124,23 +98,6 @@ void cGameSaveArea::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameSaveArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(msMessageCat, eSerializeType_String)
@@ -151,21 +108,15 @@ kSerializeVar(msSound, eSerializeType_String)
 kSerializeVar(mbHasBeenUsed, eSerializeType_Bool)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameSaveArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameSaveArea::CreateSaveData()
 {
 	return hplNew( cGameSaveArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSaveArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -182,8 +133,6 @@ void cGameSaveArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,mbHasBeenUsed);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSaveArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -196,4 +145,3 @@ void cGameSaveArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	kCopyFromVar(pData,mbHasBeenUsed);
 }
-//-----------------------------------------------------------------------

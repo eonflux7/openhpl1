@@ -42,7 +42,6 @@ namespace hpl {
 		bool GetCanEdit(){return mbCanEdit;}
 
 	protected:
-		/////////////////////////
 		// Own functions
 		int WorldToCharPos(const cVector2f &avWorldPos);
 		float CharToLocalPos(int alChar);
@@ -50,7 +49,6 @@ namespace hpl {
 		int GetLastCharInSize(int alStartPos, float afMaxSize, float afLengthAdd);
 		int GetFirstCharInSize(int alStartPos, float afMaxSize, float afLengthAdd);
 
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 		void OnChangeSize() override;
@@ -69,7 +67,6 @@ namespace hpl {
 
 		bool OnKeyPress(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		bool mbPressed;
 		int mlMarkerCharPos;

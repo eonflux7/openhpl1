@@ -26,19 +26,13 @@
 #include "entities/GameSwingDoor.h"
 #include "core/MapHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEnemyState_Spider_Base::iGameEnemyState_Spider_Base(int alId, cInit *apInit, iGameEnemy *apEnemy)
 							: iGameEnemyState(alId,apInit,apEnemy)
 {	
 	mpEnemySpider = static_cast<cGameEnemy_Spider*>(mpEnemy);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemyState_Spider_Base::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
@@ -88,13 +82,7 @@ void iGameEnemyState_Spider_Base::OnDeath(float afDamage)
 	//mpEnemy->ChangeState(STATE_DEAD);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // IDLE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Idle::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -115,13 +103,9 @@ void cGameEnemyState_Spider_Idle::OnEnterState(iGameEnemyState *apPrevState)
 										mpEnemySpider->mfIdleMaxWaitLength);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Idle::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Idle::OnUpdate(float afTimeStep)
 {
@@ -178,13 +162,7 @@ void cGameEnemyState_Spider_Idle::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // HUNT STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -219,14 +197,10 @@ void cGameEnemyState_Spider_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 	if(mpEnemySpider->mbPathFind==false) mpMover->Stop();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Hunt::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpMover->SetMaxDoorToughness(-1);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 {
@@ -300,14 +274,12 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 		}
 	}
 	
-	////////////////////////////////
 	//Go directly towards the player
 	if(mbFreePlayerPath)
 	{
 		//Go towards player
 		mpMover->MoveDirectToPos(mpPlayer->GetCharacterBody()->GetFeetPosition(),afTimeStep);
 	}
-	////////////////////////////////
 	//Update path search
 	else
 	{
@@ -330,8 +302,6 @@ void cGameEnemyState_Spider_Hunt::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Hunt::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
 	if(mbLostPlayer && afChance >= mpEnemySpider->mfHuntMinSeeChance)
@@ -341,11 +311,8 @@ void cGameEnemyState_Spider_Hunt::OnSeePlayer(const cVector3f &avPosition, float
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemyState_Spider_Hunt::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	//////////////////////////////////
 	//If player is lost the sound might be of help
 	if(mbLostPlayer)
 	{
@@ -369,22 +336,13 @@ bool cGameEnemyState_Spider_Hunt::OnHearNoise(const cVector3f &avPosition, float
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Hunt::OnDraw()
 {
 	//mpInit->mpDefaultFont->Draw(cVector3f(230,10,100),14,cColor(1,1,1,1),eFontAlign_Left,
 	//							"Freepath: %d",mbFreePlayerPath);
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // ATTACK STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Attack::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -410,16 +368,12 @@ void cGameEnemyState_Spider_Attack::OnEnterState(iGameEnemyState *apPrevState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Attack::OnLeaveState(iGameEnemyState *apNextState)
 {
 	//mpMover->GetCharBody()->SetForce(0);
 	mpEnemySpider->SetSkipSoundTriggerCount(2.0f);
 	mpMover->ResetStuckCounter();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Attack::OnUpdate(float afTimeStep)
 {
@@ -494,14 +448,10 @@ void cGameEnemyState_Spider_Attack::OnFlashlight(const cVector3f &avPosition)
 	if(mfJumpTimer >0 && mpEnemySpider->mbFleeFromFlashlight) mpEnemy->ChangeState(STATE_FLEE);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Attack::OnAnimationOver(const tString &asName)
 {
 	mpEnemy->ChangeState(STATE_HUNT);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Attack::OnPostSceneDraw()
 {
@@ -522,14 +472,7 @@ void cGameEnemyState_Spider_Attack::OnPostSceneDraw()
 		cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // FLEE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Flee::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -559,13 +502,9 @@ void cGameEnemyState_Spider_Flee::OnEnterState(iGameEnemyState *apPrevState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Flee::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Flee::OnUpdate(float afTimeStep)
 {
@@ -581,13 +520,7 @@ void cGameEnemyState_Spider_Flee::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // KNOCK DOWN STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_KnockDown::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -614,16 +547,12 @@ void cGameEnemyState_Spider_KnockDown::OnEnterState(iGameEnemyState *apPrevState
 	mbCheckAnim = false;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_KnockDown::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpEnemy->GetMover()->GetCharBody()->SetEntity(mpEnemy->GetMeshEntity());
 	mpEnemy->GetMover()->GetCharBody()->SetActive(true);
 	mpMover->ResetStuckCounter();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_KnockDown::OnUpdate(float afTimeStep)
 {
@@ -686,8 +615,6 @@ void cGameEnemyState_Spider_KnockDown::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_KnockDown::OnAnimationOver(const tString &asName)
 {
 	if(mpEnemy->GetHealth() >0)
@@ -696,13 +623,7 @@ void cGameEnemyState_Spider_KnockDown::OnAnimationOver(const tString &asName)
 		mpEnemy->ChangeState(STATE_DEAD);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DEAD STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Dead::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -724,33 +645,19 @@ void cGameEnemyState_Spider_Dead::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->GetMover()->Stop();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Spider_Dead::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Spider_Dead::OnUpdate(float afTimeStep)
 {
 
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameEnemy_Spider::cGameEnemy_Spider(cInit *apInit,const tString& asName,TiXmlElement *apGameElem) : iGameEnemy(apInit,asName,apGameElem)
 {
 	LoadBaseProperties(apGameElem);
 	
-	//////////////////////////////
 	//State properties
 	mbPathFind = cString::ToBool(apGameElem->Attribute("PathFind"),true);
 
@@ -795,9 +702,6 @@ cGameEnemy_Spider::cGameEnemy_Spider(cInit *apInit,const tString& asName,TiXmlEl
 	msDeathSound = cString::ToString(apGameElem->Attribute("DeathSound"),"");
 	mvPreloadSounds.push_back(msDeathSound);
 	
-
-
-	//////////////////////////////
 	//Set up states
 	AddState(hplNew( cGameEnemyState_Spider_Idle,(STATE_IDLE,mpInit,this)) );
 	AddState(hplNew( cGameEnemyState_Spider_Hunt,(STATE_HUNT,mpInit,this)) );
@@ -807,20 +711,10 @@ cGameEnemy_Spider::cGameEnemy_Spider(cInit *apInit,const tString& asName,TiXmlEl
 	AddState(hplNew( cGameEnemyState_Spider_Dead,(STATE_DEAD,mpInit,this)) );
 }
 
-//-----------------------------------------------------------------------
-
 cGameEnemy_Spider::~cGameEnemy_Spider()
 {
 
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemy_Spider::OnLoad()
 {
@@ -832,14 +726,10 @@ void cGameEnemy_Spider::OnLoad()
 	ChangeState(STATE_IDLE);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemy_Spider::OnUpdate(float afTimeStep)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemy_Spider::ShowPlayer(const cVector3f& avPlayerFeetPos)
 {
@@ -850,8 +740,6 @@ void cGameEnemy_Spider::ShowPlayer(const cVector3f& avPlayerFeetPos)
 		ChangeState(STATE_HUNT);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameEnemy_Spider::MoveToPos(const cVector3f& avFeetPos)
 {
@@ -869,8 +757,6 @@ bool cGameEnemy_Spider::MoveToPos(const cVector3f& avFeetPos)
 	
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemy_Spider::IsFighting()
 {
 	if( mfHealth <= 0 || IsActive()==false) return false;
@@ -879,5 +765,3 @@ bool cGameEnemy_Spider::IsFighting()
 
 	return true;
 }
-
-//-----------------------------------------------------------------------

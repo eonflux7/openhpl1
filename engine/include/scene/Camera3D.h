@@ -134,9 +134,7 @@ namespace hpl {
 		cNode3D* GetAttachmentNode(){ return &mNode;}
 		void ClearAttachedEntities();
 
-		//////////////////////////////////////////////////
-		////////// EULER ANGLES ROTATION /////////////////
-		//////////////////////////////////////////////////
+		// EULER ANGLES ROTATION
 
 		void SetPitch(float afAngle);
 		void SetYaw(float afAngle);
@@ -185,9 +183,7 @@ namespace hpl {
 		void SetYawLimits(cVector2f avLimits){ mvYawLimits = avLimits;}
 		const cVector2f& GetYawLimits(){return mvYawLimits;}
 
-		//////////////////////////////////////////////////
-		////////// EULER ANGLES ROTATION /////////////////
-		//////////////////////////////////////////////////
+		// EULER ANGLES ROTATION
 
 		const cMatrixf& GetViewMatrix();
 		const cMatrixf& GetProjectionMatrix();

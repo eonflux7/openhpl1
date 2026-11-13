@@ -29,31 +29,15 @@ namespace fs = std::filesystem;
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cFileSearcher::cFileSearcher(iLowLevelResources *apLowLevelResources)
 	{
 		mpLowLevelResources = apLowLevelResources;
 		mlDirectoryCount = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFileSearcher::~cFileSearcher()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cFileSearcher::AddDirectory(tString asPath, tString asMask)
 	{
@@ -64,16 +48,12 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cFileSearcher::AddDirectoryTree(const tString &asPath, const tString &asMask)
 	{
 		cAddedDirectory dir = {asPath, asMask, true};
 		mvAddedDirectories.push_back(dir);
 		ScanDirectoryTree(asPath, asMask);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cFileSearcher::Rescan()
 	{
@@ -88,8 +68,6 @@ namespace hpl {
 				AddDirectory(dir.msPath, dir.msMask);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cFileSearcher::ScanDirectoryTree(const tString &asPath, const tString &asMask)
 	{
@@ -112,8 +90,6 @@ namespace hpl {
 		ScanDirectory(asPath, asMask);
 		for(const fs::path &dir : vDirs) ScanDirectory(dir.u8string(), asMask);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cFileSearcher::ScanDirectory(tString asPath, const tString &asMask)
 	{
@@ -164,23 +140,17 @@ namespace hpl {
 		mlDirectoryCount = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString cFileSearcher::GetExactFilePath(const tString &asName)
 	{
 		cFileSearcherEntry *pEntry = FindEntry(cString::ToLowerCase(asName));
 		return pEntry ? pEntry->msPath : "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString cFileSearcher::GetHiddenFilePath(const tString &asName)
 	{
 		std::map<tString, tString>::iterator it = m_mapHidden.find(cString::ToLowerCase(asName));
 		return it == m_mapHidden.end() ? "" : it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cFileSearcher::SetAlternativeExtensions(const tString &asExt, const tStringVec &avAlternatives)
 	{
@@ -189,15 +159,11 @@ namespace hpl {
 		m_mapAlternatives[cString::ToLowerCase(asExt)] = vLower;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFileSearcherEntry *cFileSearcher::FindEntry(const tString &asLowerName)
 	{
 		tFilePathMapIt it = m_mapFiles.find(asLowerName);
 		return it == m_mapFiles.end() ? nullptr : &it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cFileSearcher::GetFilePath(tString asName)
 	{
@@ -219,7 +185,4 @@ namespace hpl {
 
 		return pBest ? pBest->msPath : "";
 	}
-
-	//-----------------------------------------------------------------------
-
 }

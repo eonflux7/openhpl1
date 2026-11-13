@@ -28,11 +28,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// VERTEX PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cFogProgramSetup : public iMaterialProgramSetup
 	{
@@ -45,12 +41,6 @@ namespace hpl {
 	};
 
 	static cFogProgramSetup gFogProgramSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterial_Alpha::cMaterial_Alpha(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -67,20 +57,10 @@ namespace hpl {
 		mpFogProgram = mpProgramManager->CreateProgram("Fog_Trans");
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Alpha::~cMaterial_Alpha()
 	{
 		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_Alpha::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -125,8 +105,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_Alpha::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(alUnit == 0)
@@ -140,15 +118,11 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_Alpha::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return true;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList cMaterial_Alpha::GetTextureTypes()
 	{
@@ -159,6 +133,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

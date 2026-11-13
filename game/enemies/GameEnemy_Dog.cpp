@@ -26,19 +26,13 @@
 #include "entities/GameSwingDoor.h"
 #include "core/MapHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iGameEnemyState_Dog_Base::iGameEnemyState_Dog_Base(int alId, cInit *apInit, iGameEnemy *apEnemy)
 							: iGameEnemyState(alId,apInit,apEnemy)
 {	
 	mpEnemyDog = static_cast<cGameEnemy_Dog*>(mpEnemy);
 }
-
-//-----------------------------------------------------------------------
 
 void iGameEnemyState_Dog_Base::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
@@ -136,13 +130,7 @@ void iGameEnemyState_Dog_Base::OnDeath(float afDamage)
 	mpEnemy->ChangeState(STATE_DEAD);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // IDLE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Idle::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -158,13 +146,9 @@ void cGameEnemyState_Dog_Idle::OnEnterState(iGameEnemyState *apPrevState)
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Idle::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Idle::OnUpdate(float afTimeStep)
 {
@@ -174,13 +158,7 @@ void cGameEnemyState_Dog_Idle::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PATROL STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Patrol::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -232,21 +210,15 @@ void cGameEnemyState_Dog_Patrol::OnEnterState(iGameEnemyState *apPrevState)
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Patrol::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 {	
-	/////////////////////////////////
 	//Waiting for timer or animation to end
 	if(mbWaiting)
 	{
-		//////////////////////////////
 		//Play idle sound
 		if(mfIdleSoundTime<=0)
 		{
@@ -260,7 +232,6 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			mfIdleSoundTime -= afTimeStep;
 		}
 
-		//////////////////////////////
 		// Timer is up
 		if(mpEnemy->GetWaitTimeCount() >= mpEnemy->GetWaitTime())
 		{
@@ -298,11 +269,9 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			mpEnemy->AddWaitTimeCount(afTimeStep);
 		}
 	}
-	/////////////////////////////////
 	//Check if path is over
 	else
 	{
-		//////////////////////////////
 		//Play idle sound
 		if(mfIdleSoundTime<=0)
 		{
@@ -316,7 +285,6 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			mfIdleSoundTime -= afTimeStep;
 		}
 
-		//////////////////////////////
 		//Stuck counter
 		if(mpMover->GetStuckCounter() > 1.7f)
 		{
@@ -340,7 +308,6 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 			mpMover->ResetStuckCounter();
 		}
 
-		//////////////////////////////
 		//Got to ned of path
 		if(mpMover->IsMoving()==false)
 		{
@@ -363,18 +330,12 @@ void cGameEnemyState_Dog_Patrol::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Patrol::OnAnimationOver(const tString &asName)
 {
 	mbAnimation = false;
 }
 
-//////////////////////////////////////////////////////////////////////////
 // ATTENTION STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Attention::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -401,13 +362,9 @@ void cGameEnemyState_Dog_Attention::OnEnterState(iGameEnemyState *apPrevState)
 #endif
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Attention::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Attention::OnUpdate(float afTimeStep)
 {
@@ -432,9 +389,6 @@ void cGameEnemyState_Dog_Attention::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-
 void cGameEnemyState_Dog_Attention::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
 
@@ -448,20 +402,12 @@ void cGameEnemyState_Dog_Attention::OnFlashlight(const cVector3f &avPosition)
 	mpEnemy->ChangeState(STATE_HUNT);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Attention::OnDraw()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // EAT STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Eat::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -480,13 +426,9 @@ void cGameEnemyState_Dog_Eat::OnEnterState(iGameEnemyState *apPrevState)
 	mpMover->Stop();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Eat::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Eat::OnUpdate(float afTimeStep)
 {	
@@ -496,8 +438,6 @@ void cGameEnemyState_Dog_Eat::OnUpdate(float afTimeStep)
 		mpEnemy->ChangeState(mlPreviousState);//STATE_IDLE);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameEnemyState_Dog_Eat::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
@@ -524,13 +464,7 @@ void cGameEnemyState_Dog_Eat::OnSeePlayer(const cVector3f &avPosition, float afC
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // INVESTIGATE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Investigate::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -581,13 +515,9 @@ void cGameEnemyState_Dog_Investigate::OnEnterState(iGameEnemyState *apPrevState)
 	mfNoiseRetargetDelaySeconds = 5.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Investigate::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 {	
@@ -596,7 +526,6 @@ void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 		if(mfNoiseRetargetDelaySeconds<=0)mfNoiseRetargetDelaySeconds=0;
 	}
 
-	////////////////////////////////
 	//Play idle sound
 	if(mfIdleSoundTime<=0)
 	{
@@ -610,7 +539,6 @@ void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 		mfIdleSoundTime -= afTimeStep;
 	}
 
-	////////////////////////////////
 	//Stuck counter
 	if(mpMover->GetStuckCounter() > 1.5f)
 	{
@@ -640,8 +568,6 @@ void cGameEnemyState_Dog_Investigate::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemyState_Dog_Investigate::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
 	if(	mfNoiseRetargetDelaySeconds<=0 && mfHighestVolume < afVolume &&
@@ -657,14 +583,7 @@ bool cGameEnemyState_Dog_Investigate::OnHearNoise(const cVector3f &avPosition, f
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // MOVE TO STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_MoveTo::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -699,17 +618,12 @@ void cGameEnemyState_Dog_MoveTo::OnEnterState(iGameEnemyState *apPrevState)
 	mlBreakCount = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_MoveTo::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_MoveTo::OnUpdate(float afTimeStep)
 {	
-	////////////////////////////////
 	//Play idle sound
 	if(mfIdleSoundTime<=0)
 	{
@@ -723,7 +637,6 @@ void cGameEnemyState_Dog_MoveTo::OnUpdate(float afTimeStep)
 		mfIdleSoundTime -= afTimeStep;
 	}
 
-	////////////////////////////////
 	//Stuck counter
 	if(mpMover->GetStuckCounter() > 1.5f)
 	{
@@ -752,14 +665,7 @@ void cGameEnemyState_Dog_MoveTo::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // HUNT STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -818,14 +724,10 @@ void cGameEnemyState_Dog_Hunt::OnEnterState(iGameEnemyState *apPrevState)
     mpInit->mpMusicHandler->AddAttacker(mpEnemy);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Hunt::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpMover->SetMaxDoorToughness(-1);
 }
-
-//-----------------------------------------------------------------------
 
 // Original pursuit/search decisions, retained for in-game comparison.
 void cGameEnemyState_Dog_Hunt::UpdateOriginal(float afTimeStep)
@@ -1094,8 +996,6 @@ void cGameEnemyState_Dog_Hunt::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Hunt::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
 	if(mbLostPlayer && afChance >= mpEnemyDog->GetHuntMinSeeChance())
@@ -1105,8 +1005,6 @@ void cGameEnemyState_Dog_Hunt::OnSeePlayer(const cVector3f &avPosition, float af
 		mpEnemy->UseMoveStateAnimations();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameEnemyState_Dog_Hunt::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
@@ -1139,8 +1037,6 @@ bool cGameEnemyState_Dog_Hunt::OnHearNoise(const cVector3f &avPosition, float af
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Hunt::OnDraw()
 {
 	float fWantedSpeed = mpMover->GetCharBody()->GetMoveSpeed(eCharDir_Forward);
@@ -1159,19 +1055,11 @@ void cGameEnemyState_Dog_Hunt::OnDraw()
 															mpEnemyDog->mfAttackDistance);
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // ATTACK STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Attack::OnEnterState(iGameEnemyState *apPrevState)
 {
 	mvTargetPosition = mpEnemyDog->GetPursuitPosition();
-	///////////////
 	//Setup body
 	mpEnemy->SetupBody();
 	if(mpEnemyDog->mfAttackSpeed>0)
@@ -1182,7 +1070,6 @@ void cGameEnemyState_Dog_Attack::OnEnterState(iGameEnemyState *apPrevState)
 		//mpMover->SetMinBreakAngle(cMath::ToRad(140));
 	}
 	
-	///////////////
 	//Animation
 	float fHeight = mvTargetPosition.y + mpPlayer->GetCharacterBody()->GetSize().y / 2.0f -
 					mpMover->GetCharBody()->GetPosition().y;
@@ -1193,7 +1080,6 @@ void cGameEnemyState_Dog_Attack::OnEnterState(iGameEnemyState *apPrevState)
 	else
 		mpEnemy->PlayAnim("AttackLow",false,0.2f);
 
-	///////////////
 	//Other
 	mpEnemyDog->PlaySound(mpEnemyDog->msAttackStartSound);
 
@@ -1208,8 +1094,6 @@ void cGameEnemyState_Dog_Attack::OnEnterState(iGameEnemyState *apPrevState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Attack::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpEnemyDog->SetSkipSoundTriggerCount(2.0f);
@@ -1217,8 +1101,6 @@ void cGameEnemyState_Dog_Attack::OnLeaveState(iGameEnemyState *apNextState)
 
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 {
@@ -1240,7 +1122,6 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 
 	if(mbAttacked) return;
 
-	//////////////////////////////////////
 	//Get the 2D distance to the player
 	cVector3f vStart = mpPlayer->GetCharacterBody()->GetPosition();
 	vStart.y =0;
@@ -1249,7 +1130,6 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 	float fDist2D = cMath::Vector3DistSqr(vStart,vEnd);
 	float fMinRange = mpEnemyDog->mfAttackDamageRange;
 
-	////////////////////////////////////////
 	// Check if dog is in range of player
 	if(fDist2D <=  fMinRange*fMinRange && mfDamageTimer <=0 )
 	{
@@ -1293,8 +1173,6 @@ void cGameEnemyState_Dog_Attack::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Attack::OnAnimationOver(const tString &asName)
 {
 	if(mpPlayer->GetHealth() <=0)
@@ -1316,8 +1194,6 @@ void cGameEnemyState_Dog_Attack::OnAnimationOver(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Attack::OnPostSceneDraw()
 {
 	cCamera3D *pCamera = static_cast<cCamera3D*>(mpInit->mpGame->GetScene()->GetCamera());
@@ -1337,14 +1213,7 @@ void cGameEnemyState_Dog_Attack::OnPostSceneDraw()
 		cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // FLEE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Flee::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -1363,7 +1232,6 @@ void cGameEnemyState_Dog_Flee::OnEnterState(iGameEnemyState *apPrevState)
 	if(apPrevState->GetId() == STATE_BREAKDOOR)
 		mbBackingFromBreakDoor = true;
 
-	///////////////////////////////////////
 	// The dog has just broken a door
 	if(mbBackingFromBreakDoor)
 	{
@@ -1373,7 +1241,6 @@ void cGameEnemyState_Dog_Flee::OnEnterState(iGameEnemyState *apPrevState)
 		mfTimer = mpEnemyDog->mfFleeBackTime;
 		mfCheckBehindTime = 1.0f / 10.0f;
 	}
-	///////////////////////////////////////
 	// Normal flee
 	else
 	{
@@ -1410,14 +1277,10 @@ void cGameEnemyState_Dog_Flee::OnEnterState(iGameEnemyState *apPrevState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Flee::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpMover->ResetStuckCounter();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Flee::OnUpdate(float afTimeStep)
 {
@@ -1501,13 +1364,7 @@ void cGameEnemyState_Dog_Flee::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // CALL BACKUP STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_CallBackup::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -1543,33 +1400,21 @@ void cGameEnemyState_Dog_CallBackup::OnEnterState(iGameEnemyState *apPrevState)
 	mpMover->GetCharBody()->SetMoveSpeed(eCharDir_Forward,0);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_CallBackup::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpMover->ResetStuckCounter();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_CallBackup::OnUpdate(float afTimeStep)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_CallBackup::OnAnimationOver(const tString &asName)
 {
 	mpEnemy->ChangeState(STATE_HUNT);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // BREAK DOOR STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_BreakDoor::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -1592,15 +1437,11 @@ void cGameEnemyState_Dog_BreakDoor::OnEnterState(iGameEnemyState *apPrevState)
 	mlCount =0;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_BreakDoor::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpEnemyDog->SetSkipSoundTriggerCount(2.0f);
 	mpMover->ResetStuckCounter();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_BreakDoor::OnUpdate(float afTimeStep)
 {
@@ -1656,7 +1497,6 @@ void cGameEnemyState_Dog_BreakDoor::OnUpdate(float afTimeStep)
 				cGameSwingDoor *pDoor = mpInit->mpAttackHandler->GetLastSwingDoor();
 				if(pDoor)
 				{
-					/////////////////////////////
 					//The door is unbreakable
 					if(pDoor->GetToughness() - mpEnemyDog->mlBreakDoorStrength >= 4)
 					{
@@ -1678,7 +1518,6 @@ void cGameEnemyState_Dog_BreakDoor::OnUpdate(float afTimeStep)
 							//mpInit->mpEffectHandler->GetSubTitle()->Add("Cannot break this door! On GOOD side",4);
 						}
 					}
-					/////////////////////////////
 					//The door is breakable
 					else
 					{
@@ -1692,8 +1531,6 @@ void cGameEnemyState_Dog_BreakDoor::OnUpdate(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_BreakDoor::OnAnimationOver(const tString &asName)
 {
@@ -1719,8 +1556,6 @@ void cGameEnemyState_Dog_BreakDoor::OnAnimationOver(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_BreakDoor::OnPostSceneDraw()
 {
 	cCamera3D *pCamera = static_cast<cCamera3D*>(mpInit->mpGame->GetScene()->GetCamera());
@@ -1740,15 +1575,7 @@ void cGameEnemyState_Dog_BreakDoor::OnPostSceneDraw()
 		cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
-
-
-//////////////////////////////////////////////////////////////////////////
 // KNOCK DOWN STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_KnockDown::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -1778,8 +1605,6 @@ void cGameEnemyState_Dog_KnockDown::OnEnterState(iGameEnemyState *apPrevState)
 	mpEnemy->SetToughness(12);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_KnockDown::OnLeaveState(iGameEnemyState *apNextState)
 {
 	mpEnemy->SetToughness(mlPrevToughness);
@@ -1789,8 +1614,6 @@ void cGameEnemyState_Dog_KnockDown::OnLeaveState(iGameEnemyState *apNextState)
 	mpMover->ResetStuckCounter();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 {
 	if(mbCheckAnim)
@@ -1798,7 +1621,6 @@ void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 		iCharacterBody *pCharBody = mpEnemy->GetMover()->GetCharBody();
 		cBoundingVolume *pBV = pCharBody->GetBody()->GetBoundingVolume();
 		
-		////////////////////////////////////////////////
 		//Add a force to all objects around dog.
 		iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
@@ -1809,7 +1631,6 @@ void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 			lstBodies.push_back(bodyIt.Next());
 		}
 
-		//////////////////////////
 		//Force Iteration
 		std::list<iPhysicsBody*>::iterator it = lstBodies.begin();
 		for(; it != lstBodies.end(); ++it)
@@ -1913,8 +1734,6 @@ void cGameEnemyState_Dog_KnockDown::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_KnockDown::OnAnimationOver(const tString &asName)
 {
 	iCharacterBody *pCharBody = mpEnemy->GetMover()->GetCharBody();
@@ -1933,13 +1752,7 @@ void cGameEnemyState_Dog_KnockDown::OnAnimationOver(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DEAD STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Dead::OnEnterState(iGameEnemyState *apPrevState)
 {
@@ -1968,32 +1781,18 @@ void cGameEnemyState_Dog_Dead::OnEnterState(iGameEnemyState *apPrevState)
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemyState_Dog_Dead::OnLeaveState(iGameEnemyState *apNextState)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameEnemyState_Dog_Dead::OnUpdate(float afTimeStep)
 {
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameEnemy_Dog::cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement *apGameElem) : iGameEnemy(apInit,asName,apGameElem)
 {
 	LoadBaseProperties(apGameElem);
 	
-	//////////////////////////////
 	//Special properties 
 
 	mfLengthBodyToAss = cString::ToFloat(apGameElem->Attribute("LengthBodyToAss"),1.5f);
@@ -2002,8 +1801,6 @@ cGameEnemy_Dog::cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement 
 	mfMinKnockDamage = cString::ToFloat(apGameElem->Attribute("MinKnockDamage"),0);
 	mfCertainKnockDamage = cString::ToFloat(apGameElem->Attribute("CertainKnockDamage"),0);
 
-		
-	//////////////////////////////
 	//State properties
 	mfIdleFOV = cMath::ToRad(cString::ToFloat(apGameElem->Attribute("IdleFOV"),0));
 	msIdleFoundPlayerSound = cString::ToString(apGameElem->Attribute("IdleFoundPlayerSound"),"");
@@ -2088,8 +1885,6 @@ cGameEnemy_Dog::cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement 
 	mfEatMinSeeChance = cString::ToFloat(apGameElem->Attribute("EatMinSeeChance"),0);
 	mfEatMinHearVolume = cString::ToFloat(apGameElem->Attribute("EatMinHearVolume"),0);
 
-
-	//////////////////////////////
 	//Set up states
 	AddState(hplNew( cGameEnemyState_Dog_Idle,(STATE_IDLE,mpInit,this)) );
 	AddState(hplNew( cGameEnemyState_Dog_Hunt,(STATE_HUNT,mpInit,this)) );
@@ -2106,20 +1901,10 @@ cGameEnemy_Dog::cGameEnemy_Dog(cInit *apInit,const tString& asName,TiXmlElement 
 	AddState(hplNew( cGameEnemyState_Dog_Attention,(STATE_ATTENTION,mpInit,this)) );
 }
 
-//-----------------------------------------------------------------------
-
 cGameEnemy_Dog::~cGameEnemy_Dog()
 {
 
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameEnemy_Dog::OnLoad()
 {
@@ -2133,8 +1918,6 @@ void cGameEnemy_Dog::OnLoad()
 	//Set up shape
 	ChangeState(STATE_IDLE);
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f cGameEnemy_Dog::GetPursuitPosition()
 {
@@ -2152,8 +1935,6 @@ float cGameEnemy_Dog::GetHuntMinHearVolume() const
 	return UseImprovedAI() ? mfHuntMinHearVolume : mfIdleMinHearVolume;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemy_Dog::OnUpdate(float afTimeStep)
 {
 	if(IsActive()==false) return;
@@ -2170,7 +1951,6 @@ void cGameEnemy_Dog::OnUpdate(float afTimeStep)
 		}
 	}
 	
-	///////////////////////////////////
 	//Regenerate health:
 	if(mfHealth > 0)
 	{
@@ -2181,7 +1961,6 @@ void cGameEnemy_Dog::OnUpdate(float afTimeStep)
 		}
 	}
 
-	///////////////////////////////////
 	//Check for ass in wall
 	if(mfHealth >0 && mpMover->GetCharBody()->IsActive())
 	{
@@ -2207,8 +1986,6 @@ void cGameEnemy_Dog::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameEnemy_Dog::ShowPlayer(const cVector3f& avPlayerFeetPos)
 {
 	if(	mlCurrentState == STATE_IDLE || mlCurrentState == STATE_PATROL || 
@@ -2218,8 +1995,6 @@ void cGameEnemy_Dog::ShowPlayer(const cVector3f& avPlayerFeetPos)
 		ChangeState(STATE_HUNT);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameEnemy_Dog::MoveToPos(const cVector3f& avFeetPos)
 {
@@ -2235,8 +2010,6 @@ bool cGameEnemy_Dog::MoveToPos(const cVector3f& avFeetPos)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameEnemy_Dog::IsFighting()
 {
 	if( mfHealth <= 0 || IsActive()==false) return false;
@@ -2245,5 +2018,3 @@ bool cGameEnemy_Dog::IsFighting()
 
 	return true;
 }
-
-//-----------------------------------------------------------------------

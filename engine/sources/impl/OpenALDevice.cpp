@@ -25,10 +25,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// HELPERS
-	//////////////////////////////////////////////////////////////////////////
-
 	namespace {
 
 		const int kHandleIndexBits = 12;
@@ -78,7 +74,6 @@ namespace hpl {
 			return bOk;
 		}
 
-		//////////////////////
 		// Vorbis file callbacks: the decoder never uses another runtime's FILE*.
 
 		size_t VorbisRead(void *apDest, size_t alSize, size_t alCount, void *apFile)
@@ -129,9 +124,7 @@ namespace hpl {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// EFX ENTRY POINTS
-	//////////////////////////////////////////////////////////////////////////
 
 	struct cOpenALDevice::sEFX
 	{
@@ -174,9 +167,7 @@ namespace hpl {
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// SAMPLE
-	//////////////////////////////////////////////////////////////////////////
 
 	cOpenALSample::~cOpenALSample()
 	{
@@ -292,9 +283,7 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// STREAM
-	//////////////////////////////////////////////////////////////////////////
 
 	struct cOpenALStream::sDecoder
 	{
@@ -388,9 +377,7 @@ namespace hpl {
 		mbEOF = false;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// DEVICE
-	//////////////////////////////////////////////////////////////////////////
 
 	cOpenALDevice::cOpenALDevice()
 	{
@@ -400,8 +387,6 @@ namespace hpl {
 	{
 		Close();
 	}
-
-	//-----------------------------------------------------------------------
 
 	std::vector<std::string> cOpenALDevice::GetOutputDevices()
 	{
@@ -425,8 +410,6 @@ namespace hpl {
 		const ALchar *pString = mpContext ? alGetString(aParam) : nullptr;
 		return pString ? pString : "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cOpenALDevice::Open(const cOpenALDeviceParams &aParams)
 	{
@@ -475,7 +458,6 @@ namespace hpl {
 		else if(alIsExtensionPresent("AL_SOFT_direct_channels") == AL_TRUE)
 			mlDirectChannels = AL_TRUE;
 
-		//////////////
 		// Reverb slots and effects: one per send, up to two, so environments
 		// can crossfade. Slots start silent (weight 0).
 		mbEFX = false;
@@ -509,7 +491,6 @@ namespace hpl {
 			if(!mbEFX) DeleteReverb();
 		}
 
-		//////////////
 		// Source pool
 		alGetError();
 		mvSources.reserve(lSources);
@@ -534,8 +515,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALDevice::Close()
 	{
@@ -575,8 +554,6 @@ namespace hpl {
 		mbConnected = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	std::vector<ALCint> cOpenALDevice::Attributes() const
 	{
 		int lSources = std::max(1, std::min(mParams.mlSources, kHandleIndexMask));
@@ -611,8 +588,6 @@ namespace hpl {
 		msDeviceName = pName ? pName : "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cOpenALDevice::SetHRTF(eOpenALHRTF aMode)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
@@ -645,8 +620,6 @@ namespace hpl {
 		const ALCchar *pName = alcGetString(mpDevice, ALC_HRTF_SPECIFIER_SOFT);
 		return pName ? pName : "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cOpenALDevice::Reopen(const std::string &asDeviceName)
 	{
@@ -692,8 +665,6 @@ namespace hpl {
 		if(mlDirectChannels == 0) return;
 		alSourcei(aSource.mlId, AL_DIRECT_CHANNELS_SOFT, alChannels > 1 ? mlDirectChannels : AL_FALSE);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALDevice::WorkerLoop()
 	{
@@ -750,8 +721,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALDevice::UpdateStream(sSource &aSource)
 	{
 		cOpenALStream *pStream = aSource.mpStream;
@@ -789,8 +758,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cOpenALDevice::IsStreamDrained(sSource &aSource)
 	{
 		cOpenALStream *pStream = aSource.mpStream;
@@ -816,8 +783,6 @@ namespace hpl {
 		if(aSource.mbPlaying && aSource.mpStream && !IsStreamDrained(aSource)) return false;
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALDevice::StopSource(sSource &aSource)
 	{
@@ -848,8 +813,6 @@ namespace hpl {
 		mlFreeVoices += aSource.mlVoices;
 		aSource.mlVoices = 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cOpenALDevice::MakeHandle(int alIndex) const
 	{
@@ -910,8 +873,6 @@ namespace hpl {
 		}
 		return -1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cOpenALDevice::PlaySample(cOpenALSample *apSample, int alPriority, float afGain, bool abStartPaused)
 	{
@@ -974,8 +935,6 @@ namespace hpl {
 
 		return MakeHandle(lIndex);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALDevice::Stop(int alHandle)
 	{
@@ -1088,8 +1047,6 @@ namespace hpl {
 		return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALDevice::ApplyFilters(sSource &aSource)
 	{
 		if(!mbEFX || aSource.mlFilter == 0) return;
@@ -1169,8 +1126,6 @@ namespace hpl {
 		ApplyFilters(*pSource);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALDevice::ReleaseSample(cOpenALSample *apSample)
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
@@ -1197,8 +1152,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cOpenALDevice::SetListener(const float *apPos, const float *apVel, const float *apForward,
 									const float *apUp)
 	{
@@ -1213,8 +1166,6 @@ namespace hpl {
 	{
 		if(mpContext) alListenerf(AL_GAIN, Clamp(afGain, 0, 1));
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cOpenALDevice::DeleteReverb()
 	{

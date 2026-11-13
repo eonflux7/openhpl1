@@ -28,12 +28,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMaterial_Flat::cMaterial_Flat(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
 		cGpuProgramManager* apProgramManager,
@@ -45,25 +39,14 @@ namespace hpl {
 		mbIsGlowing= false;
 		mbUsesLights = false;
 
-		///////////////////////////////////////////
 		//Load the Z pass vertex program
 		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color");
 		SetProgram(pVtxProg,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Flat::~cMaterial_Flat()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_Flat::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -103,8 +86,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_Flat::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Z)
@@ -122,8 +103,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_Flat::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse || aType == eMaterialRenderType_Z) return true;
@@ -136,8 +115,6 @@ namespace hpl {
 		return 1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tTextureTypeList cMaterial_Flat::GetTextureTypes()
 	{
 		tTextureTypeList vTypes;
@@ -146,6 +123,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

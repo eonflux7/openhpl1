@@ -53,12 +53,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGraphics::cGraphics(iLowLevelGraphics *apLowLevelGraphics, iLowLevelResources *apLowLevelResources)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
@@ -71,8 +65,6 @@ namespace hpl {
 		mpRendererPostEffects = nullptr;
 		mpRenderList = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGraphics::~cGraphics()
 	{
@@ -88,14 +80,6 @@ namespace hpl {
 
 		Log("--------------------------------------------------------\n\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGraphics::Init(	int alWidth, int alHeight, int alBpp, int abFullscreen,
 							int alMultisampling,const tString &asWindowCaption,
@@ -152,8 +136,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphics::SetRenderScale(float afScale)
 	{
 		cVector2f vOldSize = mpLowLevelGraphics->GetRenderSize();
@@ -174,20 +156,13 @@ namespace hpl {
 		return mpLowLevelGraphics->GetRenderScale();
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLowLevelGraphics* cGraphics::GetLowLevel()
 	{
 		return mpLowLevelGraphics;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGraphicsDrawer* cGraphics::GetDrawer()
 	{
 		return mpDrawer;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

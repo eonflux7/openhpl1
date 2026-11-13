@@ -30,8 +30,6 @@ class cInit;
 class iGameEntity;
 class cInventoryItem;
 
-//-----------------------------------------
-
 class cGameEntityScript : public iSerializable
 {
 	kSerializableClassInit(cGameEntityScript)
@@ -45,16 +43,10 @@ public:
 typedef std::map<tString, cGameEntityScript*> tGameEntityScriptMap;
 typedef tGameEntityScriptMap::iterator tGameEntityScriptMapIt;
 
-//-----------------------------------------
-
 typedef std::map<tString, int> tGameEntityVarMap;
 typedef tGameEntityVarMap::iterator tGameEntityVarMapIt;
 
-//------------------------------------------
-
 class iGameEntity;
-
-//------------------------------------------
 
 class cGameEntityAnimation_SaveData : public iSerializable
 {
@@ -68,7 +60,6 @@ public:
 	float mfTimePos;
 	float mfSpeed;
 };
-//------------------------------------------
 
 class iGameEntity_SaveData : public iSerializable
 {
@@ -135,8 +126,6 @@ public:
 	//Creation
 	virtual iGameEntity* CreateEntity()=0;
 };
-
-//------------------------------------------
 
 class iGameEntity
 {

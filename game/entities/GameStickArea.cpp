@@ -29,11 +29,7 @@
 #include <algorithm>
 #include <cmath>
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameStickArea::cAreaLoader_GameStickArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -45,8 +41,6 @@ cAreaLoader_GameStickArea::~cAreaLoader_GameStickArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -75,17 +69,7 @@ iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 bool cGameStickArea::mbAllowAttachment = false;
-
-//-----------------------------------------------------------------------
 
 cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -117,26 +101,14 @@ cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntit
 	mfSetMtxTime = 1.0f;
 }
 
-//-----------------------------------------------------------------------
-
 cGameStickArea::~cGameStickArea(void)
 {
 	mpInit->mpMapHandler->RemoveStickArea(this);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameStickArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::Update(float afTimeStep)
 {
@@ -213,7 +185,6 @@ void cGameStickArea::Update(float afTimeStep)
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	iPhysicsBody *pAttachBody = nullptr;
 	
-	////////////////////////////////////////////////////////
 	//Iterate all bodies in world and check for intersection
     cPhysicsBodyIterator bodyIt = pPhysicsWorld->GetBodyIterator();
 	while(bodyIt.HasNext())
@@ -286,15 +257,12 @@ void cGameStickArea::Update(float afTimeStep)
 	if(pAttachBody) AttachBody(pAttachBody);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 {
 	if(mpAttachedBody) return;
 
 	//Log("Attaching body %s\n", apBody->GetName().c_str());
 
-	/////////////////////////
 	//If in an interact state, set the previous state		
 	if(	mpInit->mpPlayer->GetPushBody() == apBody &&
 	(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
@@ -312,7 +280,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	}
 	
-	/////////////////////////
 	// Capture the starting pose before interpolation into the area.
 	m_mtxAttachedStart = apBody->GetLocalMatrix();
 
@@ -330,8 +297,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 	mpAttachedBody = apBody;
 	mpLastAttachedBody = mpAttachedBody;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::DetachBody()
 {
@@ -373,8 +338,6 @@ void cGameStickArea::DetachBody()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameStickArea::CanDetachBody()
 { 
 	if(mfSetMtxTime < 1) return false;
@@ -382,14 +345,10 @@ bool cGameStickArea::CanDetachBody()
 	return mbCanDeatch;
 }
 
-//-----------------------------------------------------------------------
-
 tString cGameStickArea::BuildBodyCallbackCommand(const tString &asFunc,iPhysicsBody *apBody)
 {
 	return asFunc + "(\"" + msName + "\",\"" + apBody->GetName() + "\")"; 
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::OnPostSceneDraw()
 {
@@ -397,23 +356,6 @@ void cGameStickArea::OnPostSceneDraw()
 
 	//pAreaBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,1));
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameStickArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
@@ -440,21 +382,15 @@ kSerializeVar(mfPoseTime,eSerializeType_Float32)
 kSerializeVar(mfBodyMass,eSerializeType_Float32)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameStickArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameStickArea::CreateSaveData()
 {
 	return hplNew( cGameStickArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -488,8 +424,6 @@ void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -515,8 +449,6 @@ void cGameStickArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mfBodyMass);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
@@ -540,4 +472,3 @@ void cGameStickArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 		}
 	}
 }
-//-----------------------------------------------------------------------

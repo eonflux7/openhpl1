@@ -18,8 +18,6 @@
 
 #include <algorithm>
 
-//-----------------------------------------------------------------------
-
 static const char *ItemTypeName(eGameItemType aType)
 {
 	static const char *vNames[] = {"Quest", "Notebook", "Note", "Battery", "Flashlight", "Food", "Map",
@@ -41,8 +39,6 @@ static tString ItemNameFromFile(const tString &asFile)
 	}
 	return sName;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawMoveWindow()
 {
@@ -97,8 +93,6 @@ void cRefView::DrawMoveWindow()
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawStartPositions()
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -127,8 +121,6 @@ void cRefView::DrawStartPositions()
 		ImGui::EndListBox();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawBookmarks()
 {
@@ -177,8 +169,6 @@ void cRefView::DrawBookmarks()
 		else if(mlGoToBookmark > lDelete) --mlGoToBookmark;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawGodWindow()
 {
@@ -261,15 +251,11 @@ void cRefView::DrawGodWindow()
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 // The line under the God window's tabs that says what was last given
 float cRefView::ItemMessageHeight()
 {
 	return msItemMessage != "" ? ImGui::GetTextLineHeightWithSpacing() : 0.0f;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::FindItemFiles()
 {
@@ -312,8 +298,6 @@ void cRefView::FindItemFiles()
 	});
 	mlSpawnItem = -1;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawItems(bool abQuest)
 {
@@ -390,8 +374,6 @@ void cRefView::DrawItems(bool abQuest)
 	ImGui::EndDisabled();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawMapItems()
 {
 	bool bInGame = msViewsMap != "" && msWaitMap == "" &&
@@ -450,8 +432,6 @@ void cRefView::DrawMapItems()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // The camera (the player's eyes) at a place, looking that way; the player
 // goes on from there, or flies on.
 void cRefView::MoveCameraTo(const cVector3f &avPos, float afYaw, float afPitch)
@@ -472,8 +452,6 @@ void cRefView::MoveCameraTo(const cVector3f &avPos, float afYaw, float afPitch)
 		PutPlayerAtCamera();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // What the Move and God windows asked for, on a step of the game with a
 // map loaded

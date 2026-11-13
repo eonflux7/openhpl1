@@ -23,12 +23,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointScrewNewton::cPhysicsJointScrewNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 		iPhysicsWorld *apWorld,const cVector3f &avPivotPoint, const cVector3f avPinDir)
@@ -50,20 +44,10 @@ namespace hpl {
 		mvPivotPoint = avPivotPoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointScrewNewton::~cPhysicsJointScrewNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointScrewNewton::SetMaxDistance(float afX)
 	{
@@ -84,8 +68,6 @@ namespace hpl {
 		return mfMinDistance;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointScrewNewton::GetVelocity()
 	{
 		float fSpeed = NewtonCorkscrewGetJointVeloc(mpNewtonJoint);
@@ -101,7 +83,6 @@ namespace hpl {
 		NewtonCorkscrewGetJointForce(mpNewtonJoint,&vForce.v[0]);
 		return vForce;
 	}
-	//-----------------------------------------------------------------------
 
 	float cPhysicsJointScrewNewton::GetDistance()
 	{
@@ -111,15 +92,6 @@ namespace hpl {
 	{
 		return NewtonCorkscrewGetJointAngle(mpNewtonJoint);
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	unsigned cPhysicsJointScrewNewton::LimitCallback(const NewtonJoint* pScrew, NewtonHingeSliderUpdateDesc* pDesc)
 	{
@@ -173,6 +145,4 @@ namespace hpl {
 
 		return 0;
 	}
-	//-----------------------------------------------------------------------
-
 }

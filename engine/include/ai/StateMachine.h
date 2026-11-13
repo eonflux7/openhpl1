@@ -26,7 +26,6 @@
 
 namespace hpl {
 
-	//-----------------------------------------
 	class cStateMachine;
 
 	class iAIState
@@ -63,8 +62,6 @@ namespace hpl {
 
 	typedef std::map<int, iAIState*> tAIStateMap;
 	typedef tAIStateMap::iterator tAIStateMapIt;
-
-	//-----------------------------------------
 
 	class cStateMachine
 	{

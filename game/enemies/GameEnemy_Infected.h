@@ -28,8 +28,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameEnemy_Infected;
 
 // BASE STATE
@@ -53,8 +51,6 @@ protected:
 	cGameEnemy_Infected *mpEnemyInfected;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Infected_Idle : public iGameEnemyState_Infected_Base
 {
@@ -67,8 +63,6 @@ public:
 
 	void OnUpdate(float afTimeStep) override;
 };
-
-//-----------------------------------------
 
 // ATTENTION STATE
 class cGameEnemyState_Infected_Attention : public iGameEnemyState_Infected_Base
@@ -91,8 +85,6 @@ private:
 	float mfTime;
 
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Infected_Hunt : public iGameEnemyState_Infected_Base
@@ -132,8 +124,6 @@ private:
 	bool mbBreakingDoor;
 };
 
-//-----------------------------------------
-
 // ATTACK STATE
 class cGameEnemyState_Infected_Attack : public iGameEnemyState_Infected_Base
 {
@@ -165,8 +155,6 @@ private:
 	cAnimationState *mpAttackAnim = nullptr;
 };
 
-//-----------------------------------------
-
 // BREAK DOOR STATE
 class cGameEnemyState_Infected_BreakDoor : public iGameEnemyState_Infected_Base
 {
@@ -194,8 +182,6 @@ private:
 	int mlCount;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Infected_Flee : public iGameEnemyState_Infected_Base
 {
@@ -219,8 +205,6 @@ private:
 	bool mbBackingFromBreakDoor;
 };
 
-//-----------------------------------------
-
 // CALL BACKUP STATE
 class cGameEnemyState_Infected_CallBackup : public iGameEnemyState_Infected_Base
 {
@@ -243,8 +227,6 @@ public:
 private:
 	bool mbCheckAnim;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Infected_KnockDown : public iGameEnemyState_Infected_Base
@@ -273,9 +255,6 @@ private:
 	int mlStuckAtMaxCount;
 };
 
-//-----------------------------------------
-
-
 // DEAD STATE
 class cGameEnemyState_Infected_Dead : public iGameEnemyState_Infected_Base
 {
@@ -299,8 +278,6 @@ private:
 	int mlAnimCount = 0;
 };
 
-//-----------------------------------------
-
 // PATROL STATE
 class cGameEnemyState_Infected_Patrol : public iGameEnemyState_Infected_Base
 {
@@ -322,8 +299,6 @@ private:
 
 	int mlStuckAtMaxCount;
 };
-
-//-----------------------------------------
 
 // INVESTIGATE STATE
 class cGameEnemyState_Infected_Investigate : public iGameEnemyState_Infected_Base
@@ -348,8 +323,6 @@ public:
 	  int mlKnockCount;
 };
 
-//-----------------------------------------
-
 // MOVETO STATE
 class cGameEnemyState_Infected_MoveTo : public iGameEnemyState_Infected_Base
 {
@@ -365,8 +338,6 @@ public:
 	  float mfIdleSoundTime;
 	  int mlBreakCount;
 };
-
-//-----------------------------------------
 
 // EAT STATE
 class cGameEnemyState_Infected_Eat : public iGameEnemyState_Infected_Base
@@ -386,8 +357,6 @@ public:
 	 float mfTime;
 };
 
-//-----------------------------------------
-
 class cGameEnemy_Infected_SaveData : public iGameEnemy_SaveData
 {
 	kSerializableClassInit(cGameEnemy_Infected_SaveData);
@@ -400,8 +369,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Infected : public iGameEnemy
 {
@@ -543,7 +510,5 @@ private:
     iCollideShape *mpAttackShape;
 	iCollideShape *mpBreakDoorShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_INFECTED_H

@@ -25,12 +25,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iRenderable::iRenderable(const tString &asName) : iEntity3D(asName)
 	{
 		mbRendered = true;
@@ -49,14 +43,6 @@ namespace hpl {
 		mvOneSidedNormal =0;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMatrixf* iRenderable::GetInvModelMatrix()
 	{
 		cMatrixf *pModelMatrix = GetModelMatrix(nullptr);
@@ -71,8 +57,6 @@ namespace hpl {
 
 		return &m_mtxInvModel;
 	}
-
-	//-----------------------------------------------------------------------
 
 	const cVector3f& iRenderable::GetCalcScale()
 	{
@@ -89,27 +73,15 @@ namespace hpl {
 		return mvCalcScale;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iRenderable::CollidesWithBV(cBoundingVolume *apBV)
 	{
 		return cMath::CheckCollisionBV(*GetBoundingVolume(), *apBV);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iRenderable::CollidesWithFrustum(cFrustum *apFrustum)
 	{
 		return apFrustum->CollideBoundingVolume(GetBoundingVolume()) != eFrustumCollision_Outside;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iRenderable,cSaveData_iEntity3D)
 	kSerializeVar(mbStatic, eSerializeType_Bool)
@@ -117,14 +89,10 @@ namespace hpl {
 	kSerializeVar(mfZ, eSerializeType_Float32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iRenderable::CreateSaveData()
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iRenderable::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -135,8 +103,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfZ);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iRenderable::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iRenderable);
@@ -146,12 +112,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mfZ);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iRenderable::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iRenderable);
 	}
-
-	//-----------------------------------------------------------------------
 }

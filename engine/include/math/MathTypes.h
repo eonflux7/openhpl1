@@ -50,8 +50,6 @@ namespace hpl {
 		eEulerRotationOrder_LastEnum,
 	};
 
-	//-------------------------------------------
-
 	class cLinearOscillation
 	{
 	public:
@@ -98,14 +96,10 @@ namespace hpl {
 		float add;
 	};
 
-	//-------------------------------------------
-
 	template <class T> class cPlane {
 	public:
 		T a,b,c,d;
 		cVector3<T> normal;
-
-		/////////////////
 
 		cPlane(T aA, T aB, T aC, T aD){
 			a = aA; b = aB; c = aC; d = aD;
@@ -115,22 +109,16 @@ namespace hpl {
 			a = 0; b = 0; c = 0; d = 0;
 		}
 
-		/////////////////
-
 		cPlane(const cVector3<T> &avNormal, const cVector3<T> &avPoint)
 		{
 			FromNormalPoint(avNormal, avPoint);
 		}
-
-		/////////////////
 
 		cPlane(const cVector3<T> &avPoint0,const cVector3<T> &avPoint1,
 				const cVector3<T> &avPoint2)
 		{
 			FromPoints(avPoint0,avPoint1,avPoint2);
 		}
-
-		/////////////////
 
 		inline void FromNormalPoint(const cVector3<T> &avNormal, const cVector3<T> &avPoint)
 		{
@@ -141,8 +129,6 @@ namespace hpl {
 			//Dot product
 			d = -(avNormal.x*avPoint.x + avNormal.y*avPoint.y + avNormal.z*avPoint.z);
 		}
-
-		/////////////////
 
 		inline void FromPoints(const cVector3<T> &avPoint0,const cVector3<T> &avPoint1,
 								const cVector3<T> &avPoint2)
@@ -165,8 +151,6 @@ namespace hpl {
 			d = -(normal.x*avPoint0.x + normal.y*avPoint0.y + normal.z*avPoint0.z);
 		}
 
-		/////////////////
-
 		inline void Normalise()
 		{
 			T fMag = sqrt(a*a + b*b + c*c);
@@ -176,15 +160,11 @@ namespace hpl {
 			d = d / fMag;
 		}
 
-		/////////////////
-
 		inline void CalcNormal()
 		{
 			normal = cVector3<T>(a,b,c);
 			normal.Normalise();
 		}
-
-		/////////////////
 
 		void FromVec(T *apV)
 		{
@@ -201,8 +181,6 @@ namespace hpl {
 	typedef std::vector<cPlanef> tPlanefVec;
 	typedef tPlanefVec tPlanefVecIt;
 
-	//-------------------------------------------
-
 	template <class T> class cSphere {
 	public:
 		T r;
@@ -217,8 +195,6 @@ namespace hpl {
 	};
 
 	typedef cSphere<float> cSpheref;
-
-	//-------------------------------------------
 
 	template <class T> class cRect2 {
 	public:
@@ -250,8 +226,6 @@ namespace hpl {
 	typedef std::list<cRect2f> tRect2lList;
 	typedef tRect2lList tRect2lListIt;
 
-	//-------------------------------------------
-
 	typedef cVector2<float> cVector2f;
 	typedef cVector2<int> cVector2l;
 
@@ -277,8 +251,6 @@ namespace hpl {
 
 	typedef std::vector<cVector3f> tVector3fVec;
 	typedef tVector3fList::iterator tVector3fVecIt;
-
-	//-------------------------------------------
 }
 
 #include "math/Quaternion.h"

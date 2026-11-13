@@ -24,12 +24,7 @@
 
 using namespace hpl;
 
-
-//-----------------------------------------
-
 class iGameEnemy;
-
-//-----------------------------------------
 
 class cGameObject_SaveData : public iGameEntity_SaveData
 {
@@ -40,7 +35,6 @@ public:
 	iGameEntity* CreateEntity() override;
 };
 
-//------------------------------------------
 class cGameObject;
 
 class cGameObjectBodyCallback : public iPhysicsBodyCallback
@@ -55,8 +49,6 @@ public:
 
 	cGameObject *mpObject;
 };
-
-//--------------------------------------
 
 class cObjectDisappearProperties
 {
@@ -75,8 +67,6 @@ public:
 
 	float mfMinCloseDistance;
 };
-
-//--------------------------------------
 
 class cObjectBreakProperties
 {
@@ -117,8 +107,6 @@ public:
 	float mfEarRing_Time;
 };
 
-//--------------------------------------
-
 class cObjectAttractProperties
 {
 public:
@@ -133,8 +121,6 @@ public:
     bool mbIsEaten;
 	float mfEatLength;
 };
-
-//--------------------------------------
 
 class cObjectDamageProperties
 {
@@ -152,8 +138,6 @@ public:
 	float mfMaxDamage;
 	int mlDamageStrength;
 };
-
-//--------------------------------------
 
 class cGameObject :	public iGameEntity
 {
@@ -254,8 +238,6 @@ private:
 
 	cGameObjectBodyCallback *mpBodyCallback;
 };
-
-//--------------------------------------
 
 class cEntityLoader_GameObject : public cEntityLoader_Object
 {

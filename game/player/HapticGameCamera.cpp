@@ -25,12 +25,6 @@
 #include "entities/GameLiquidArea.h"
 #include "core/ButtonHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cHapticGameCamera::cHapticGameCamera(cInit *apInit, cPlayer *apPlayer)
 {
 	mpInit = apInit;
@@ -64,19 +58,9 @@ cHapticGameCamera::cHapticGameCamera(cInit *apInit, cPlayer *apPlayer)
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cHapticGameCamera::~cHapticGameCamera()
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::OnWorldLoad()
 {
@@ -107,8 +91,6 @@ void cHapticGameCamera::OnWorldExit()
 	mpHandEntity = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cHapticGameCamera::Reset()
 {	
 	mpHandShape = nullptr;
@@ -130,8 +112,6 @@ void cHapticGameCamera::Reset()
 	mType = eHapticGameCameraType_Frame;
 }
 
-//-----------------------------------------------------------------------
-
 void cHapticGameCamera::SetActive(bool abActive)
 {
 	if(mbActive == abActive) return;
@@ -151,14 +131,10 @@ void cHapticGameCamera::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHapticGameCamera::SetType(eHapticGameCameraType aType)
 {
 	mType = aType;
 }
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::Update(float afTimeStep)
 {	
@@ -195,9 +171,6 @@ void cHapticGameCamera::Update(float afTimeStep)
 		mpLowLevelHaptic->SetRenderingActive(false);
 	}
 }
-
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::OnPostSceneDraw()
 {
@@ -239,8 +212,6 @@ void cHapticGameCamera::OnPostSceneDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cHapticGameCamera::ShowCrosshair()
 {
 	if(mbActive==false) return true;
@@ -249,8 +220,6 @@ bool cHapticGameCamera::ShowCrosshair()
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::SetHandVisible(bool abVisible)
 {
@@ -278,8 +247,6 @@ float cHapticGameCamera::GetHandReachRadius()
 	return mpLowLevelHaptic->GetProxyRadius()*7.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cHapticGameCamera::SetRenderActive(bool abActive)
 {
 	if(mbRenderActive == abActive) return;
@@ -288,8 +255,6 @@ void cHapticGameCamera::SetRenderActive(bool abActive)
 
     if(mbActive) mpLowLevelHaptic->SetRenderingActive(mbRenderActive);
 }
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::SetInteractModeCameraSpeed(float afSpeed)
 {
@@ -301,16 +266,6 @@ void cHapticGameCamera::SetActionModeCameraSpeed(float afSpeed)
 {
 	mfActionModeCameraSpeed = afSpeed;
 }
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 {
@@ -325,7 +280,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 
 	mbAtEdge = false;
 
-    ///////////////////////////
 	// Frame Type
 	cVector3f vForce(0);
 	cVector2f vSpeed(0);
@@ -333,7 +287,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 	{
 		if(mbUseFrame==false) return;
 
-		///////////////////////////////////
 		//Get force and movement
 		cVector2f vPos = mpLowLevelHaptic->GetProxyScreenPos(cVector2f(800,600));
 		if(vPos.x < mfFrameW){ 
@@ -353,7 +306,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 			vForce.y = (vPos.y - (600-mfFrameW))*mfFrameForceStrength;
 		}
 
-		///////////////////////////////////
 		//Set Max speed
 		if(vSpeed.x > mfFrameMaxMoveSpeed)	vSpeed.x = mfFrameMaxMoveSpeed;
 		if(vSpeed.x < -mfFrameMaxMoveSpeed)	vSpeed.x = -mfFrameMaxMoveSpeed;
@@ -366,15 +318,12 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 			mpPlayer->AddPitch(vSpeed.y * mpInit->mfHapticMoveScreenSpeedMul);
 		}
 
-
-		///////////////////////////////////
 		//Set Max Force
 		if(vForce.x > mfFrameMaxForce)	vForce.x = mfFrameMaxForce;
 		if(vForce.x < -mfFrameMaxForce)	vForce.x = -mfFrameMaxForce;
 		if(vForce.y > mfFrameMaxForce)	vForce.y = mfFrameMaxForce;
 		if(vForce.y < -mfFrameMaxForce)	vForce.y = -mfFrameMaxForce;
 
-		////////////////////////////////////
 		//Turn on Force
 		if(vForce != 0)
 		{
@@ -392,7 +341,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 			mbIsTurning = false;
 		}
 
-		//////////////////////////////////////////
 		//Turn off rendering
 		bool bAtEdge = false;
 		if(vPos.x < mfFrameW*.1f){ 
@@ -419,7 +367,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 			mpLowLevelHaptic->SetRenderingActive(mbRenderActive);
 		}*/
 	}
-	///////////////////////////
 	// Centre Type
 	else if(mType == eHapticGameCameraType_Centre)
 	{
@@ -452,11 +399,9 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 		}
 	}
 }
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::UpdateHand(float afTimeStep)
 {
-	///////////////////////////
 	// GUI Hand
 	cVector3f vProxyPos = mpLowLevelHaptic->GetProxyPosition();
 		
@@ -474,11 +419,9 @@ void cHapticGameCamera::UpdateHand(float afTimeStep)
 	mpHandEntity->SetPosition(vProxyPos);
 
 }
-//-----------------------------------------------------------------------
 
 void cHapticGameCamera::UpdateProxyCovered(float afTimeStep)
 {
-	/////////////////////////////////////
 	// Check if proxy is covered
 	/*if(false)//cHaptic::GetIsUsed())
 	{
@@ -505,8 +448,6 @@ void cHapticGameCamera::UpdateProxyCovered(float afTimeStep)
 	}*/
 }
 
-//-----------------------------------------------------------------------
-
 void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 {
 	cVector3f vProxyPos = mpLowLevelHaptic->GetProxyPosition();
@@ -516,7 +457,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 
 	bool bHadContact = false;
 
-	/////////////////////////////////
 	//Disable previously enabled 
 	cHapticShapeIterator shapeIt = mpLowLevelHaptic->GetShapeIterator();
 	while(shapeIt.HasNext())
@@ -525,7 +465,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		pShape->SetEnabled(false);
 	}
 
-	//////////////////////////////////
 	// Iterate physics bodies
 	cBoundingVolume bv;
 	bv.SetSize(GetHandReachRadius()*2);
@@ -543,7 +482,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		{
 			if(cMath::PointBVCollision(vProxyPos,*pBody->GetBV())==false) continue;
 
-			/////////////////////////////////
 			//Special case for water
 			iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 			if(pEntity==nullptr || pEntity->GetType() != eGameEntityType_LiquidArea) continue;
@@ -579,14 +517,12 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 			continue;
 		}
 		
-		/////////////////////////////////////
 		//Get Shape
 		iHapticShape *pContactShape = pBody->GetHapticShape();
 
 		pContactShape->SetEnabled(true);
 		//mlstActiveShapes.push_back(pContactShape);
 
-		//////////////////////////////////////
 		//Check if any of the haptic shapes are touched.
 		if(mpLowLevelHaptic->ShapeIsInContact(pContactShape))
 		{
@@ -597,7 +533,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 			continue;
 		}
 
-		/////////////////////////////////////////
 		// Add force to body and play material effects
 
 		//Log("Body: %s Force: %s\n",	pBody->GetName().c_str(), 
@@ -626,7 +561,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		}
 	}
 	
-	////////////////////////////
 	//Update contact count
 	if(bHadContact)
 	{
@@ -640,6 +574,3 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 
 	mvPrevProxyPos = vProxyPos;
 }
-
-//-----------------------------------------------------------------------
-

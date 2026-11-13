@@ -71,31 +71,15 @@ namespace hpl {
 
 #define GetAdress(sStr) if(sStr[0]=='#') sStr = cString::Sub(sStr,1);
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMeshLoaderCollada::cMeshLoaderCollada(iLowLevelGraphics *apLowLevelGraphics)
 		: iMeshLoader(apLowLevelGraphics)
 	{
 		mFlags =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshLoaderCollada::~cMeshLoaderCollada()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cWorld3D* cMeshLoaderCollada::LoadWorld(const tString& asFile, cScene* apScene, tWorldLoadFlag aFlags)
 	{
@@ -133,12 +117,10 @@ namespace hpl {
 
 		cPortalContainer *pPortalContainer = pWorld->GetPortalContainer();
 
-		/////////////////////////////////////
 		//Create the physics world
 		iPhysicsWorld *pPhysiscsWorld = pWorld->GetPhysics()->CreateWorld(true);
 		pWorld->SetPhysicsWorld(pPhysiscsWorld,true);
 
-		//////////////////////////////////////////////////////////////
 		//Find the rooms and and add them as sectors in the world.
 		//Log("FIND ROOMS:\n");
 		tColladaNodeListIt it = ColladaScene.mlstNodes.begin();
@@ -175,7 +157,6 @@ namespace hpl {
 			}
 		}
 
-		//////////////////////////////////////////////////////////////
 		//Iterate the nodes and add remaining objects to the scene.
 		//Log("ADD OBJECTS:\n");
 		it = ColladaScene.mRoot.mlstChildren.begin();
@@ -189,8 +170,6 @@ namespace hpl {
 
 		return pWorld;
 	}
-
-	//-----------------------------------------------------------------------
 
 	static cColladaNode* GetNodeFromController(const tString& asGeomId,
 												tColladaControllerVec &avColladaControllers,
@@ -228,8 +207,6 @@ namespace hpl {
 		return pNode;
 	}
 
-	//-------------------------------------------------
-
 	static void FixLocalTransform(cMatrixf *apMatrix, cColladaNode *apNode,
 								tColladaAnimationVec &avColladaAnimations, cSkeleton *apSkeleton, bool abHasSeveralBodies)
 	{
@@ -246,8 +223,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-------------------------------------------------
 
 	static void FixLocalPosition(cVector3f *apPos, cColladaNode *apNode,
 		tColladaAnimationVec &avColladaAnimations, cSkeleton *apSkeleton, bool abHasSeveralBodies)
@@ -266,11 +241,8 @@ namespace hpl {
 		}
 	}
 
-	//-------------------------------------------------
-
 	cMesh* cMeshLoaderCollada::LoadMesh(const tString& asFile,tMeshLoadFlag aFlags)
 	{
-		/////////////////////////////////////////////////
 		// SETUP TEMP DATA STRUCTURES
 		//Images
 		tColladaImageVec vColladaImages;
@@ -302,7 +274,6 @@ namespace hpl {
 
 		if(bRet==false) return nullptr;
 
-		////////////////////////
 		//Create Skeleton
 		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
@@ -310,7 +281,6 @@ namespace hpl {
 			pSkeleton = CreateSkeleton(vColladaControllers, ColladaScene);
 		}
 
-		////////////////////////////////////
 		//Check for joints or several bodies.
 		bool bHasSeveralBodies = false;
 
@@ -347,8 +317,6 @@ namespace hpl {
 			}
 		}
 
-
-		////////////////////////////////////
 		//Create Mesh
 		tString sMeshName = cString::GetFileName(asFile);
 		cMesh *pMesh = hplNew( cMesh, (sMeshName,mpMaterialManager,mpAnimationManager) );
@@ -372,7 +340,6 @@ namespace hpl {
 			}
 			tString sNodeName = pGeomNode->msName;
 
-			/////////////////////////////////////////////////////
 			//If the name starts with '_' it is a special object.
 			if(sNodeName[0] == '_')
 			{
@@ -380,8 +347,6 @@ namespace hpl {
 				tString sSepp = "_";
 				cString::GetStringVec(sNodeName,vStrings,&sSepp);
 
-
-				/////////////////////////////////////
 				//JOINT
 				if(cString::ToLowerCase(vStrings[0]) == "joint" && vStrings.size()>1)
 				{
@@ -417,7 +382,6 @@ namespace hpl {
 					CreateMeshJoint(pJoint, JointType, TempBV, vStrings, pNode,ColladaScene,vColladaGeometries);
 				}
 
-				/////////////////////////////////////
 				//COLLIDER
 				else if(cString::ToLowerCase(vStrings[0]) == "collider" && vStrings.size()>1)
 				{
@@ -520,7 +484,7 @@ namespace hpl {
 					//									pCollider->m_mtxOffset.ToString().c_str());
 				}
 
-				///// BILLBOARD /////////////////////////////
+				// BILLBOARD
 				else if(cString::ToLowerCase(vStrings[0])=="bb")
 				{
 					if(vStrings.size() < 3){
@@ -549,7 +513,7 @@ namespace hpl {
 						FixLocalPosition(&pBillboard->mvPosition,pGeomNode,vColladaAnimations,pSkeleton,bHasSeveralBodies);
 					}
 				}
-				///// BEAM /////////////////////////////
+				// BEAM
 				else if(cString::ToLowerCase(vStrings[0])=="beam")
 				{
 					if(vStrings.size() < 3){
@@ -587,7 +551,7 @@ namespace hpl {
 						}
 					}
 				}
-				///// PARTICLE SYSTEM /////////////////////////////
+				// PARTICLE SYSTEM
 				else if(cString::ToLowerCase(vStrings[0])=="ps")
 				{
 					if(vStrings.size() < 3){
@@ -613,7 +577,7 @@ namespace hpl {
 						FixLocalTransform(&pPS->m_mtxTransform,pGeomNode,vColladaAnimations,pSkeleton,bHasSeveralBodies);
 					}
 				}
-				///// REFERENCE /////////////////////////////
+				// REFERENCE
 				else if(cString::ToLowerCase(vStrings[0])=="ref")
 				{
 					if(vStrings.size() < 3){
@@ -638,7 +602,7 @@ namespace hpl {
 						FixLocalTransform(&pRef->m_mtxTransform,pGeomNode,vColladaAnimations,pSkeleton,bHasSeveralBodies);
 					}
 				}
-				///// SOUND ENTITY /////////////////////////////
+				// SOUND ENTITY
 				else if(cString::ToLowerCase(vStrings[0])=="sound")
 				{
 					if(vStrings.size() < 3){
@@ -696,7 +660,6 @@ namespace hpl {
 			//To be filled by extra vertex positions (not used, use the one in Geometry)
 			tColladaExtraVtxListVec &vExtraVtxVec = Geom.mvExtraVtxVec;
 
-			//////////////////////////////
 			// Create Vertex buffer
 			eVertexBufferUsageType UsageType = eVertexBufferUsageType_Static;
 			//The streams will be the entity copies.
@@ -705,7 +668,6 @@ namespace hpl {
 			iVertexBuffer *pVtxBuffer = CreateVertexBuffer(Geom, UsageType);//, vExtraVtxVec);
 			pSubMesh->SetVertexBuffer(pVtxBuffer);
 
-			/////////////////////////////
 			//Add material
 			tString sMatName = GetMaterialTextureFile(Geom.msMaterial,vColladaMaterials,vColladaTextures,
 														vColladaImages);
@@ -727,7 +689,6 @@ namespace hpl {
 			}
 			pSubMesh->SetMaterial(pMaterial);
 
-			/////////////////////////////
 			//If there is a controller for the mesh, get vertex-bone pairs.
 			//First find the controller.
 			cColladaController *pCtrl =nullptr;
@@ -788,7 +749,6 @@ namespace hpl {
 				//Transform the mesh according to the bind transform.
 				pVtxBuffer->Transform(pCtrl->m_mtxBindShapeMatrix);
 			}
-			//////////////////////////////////////////////////
 			//No controller, we have a non skinned mesh!
 			else
 			{
@@ -825,7 +785,6 @@ namespace hpl {
 			pSubMesh->Compile();
 		}
 
-		///////////////////////////////////////////////
 		// Add Node Hierarchy
 		// only add if there are animations and no skeleton.
 		if((vColladaAnimations.empty() == false || bHasSeveralBodies) && !pSkeleton)
@@ -868,11 +827,9 @@ namespace hpl {
 		//Shouldn't be needed any more.
 		//vColladaGeometries[i].Clear();
 
-		///////////////////////////////////////////////
 		// Create Lights
 		for(int i=0; i< (int)vColladaLights.size(); i++)
 		{
-			////////////////////////////////////////
 			//Get the Light and Node
 			cColladaLight &ColladaLight = vColladaLights[i];
 
@@ -889,8 +846,6 @@ namespace hpl {
 			tString sLightName = "";
 			tString sLightFile ="";
 
-
-			/////////////////////////////////////
 			//Check if there is any light entity file and get name.
 
 			//file parameter
@@ -935,12 +890,10 @@ namespace hpl {
 			pMeshLight->msName = sLightName;
 			pMeshLight->msFile = sLightFile;
 
-			//////////////////////////////////
 			//Fix the transform
 			FixLocalTransform(&pMeshLight->m_mtxTransform,pLightNode,vColladaAnimations,pSkeleton,bHasSeveralBodies);
 		}
 
-		///////////////////////////////////////////////
 		// Create Animations
 		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
@@ -953,7 +906,6 @@ namespace hpl {
 
 			pMesh->AddAnimation(pAnimation);
 
-			///////////////////////////////////////////////////
 			// Go through all tracks and add them to the animation
 			for(size_t i=0; i < vColladaAnimations.size(); i++)
 			{
@@ -972,16 +924,13 @@ namespace hpl {
 				}
 			}
 
-			/////////////////////////////////////////////////////
 			// Go through all bones and check if they have an animation
 			// If not create single frame with the node pose.
 			if(pSkeleton) AddRestPoseTracks(pAnimation, pSkeleton, ColladaScene);
 		}
 
 
-		///////////////////////////////////
-		///////// DEBUG ///////////////////
-		///////////////////////////////////
+		// DEBUG
 		// Test anim data
 		/*Log("ANIMATIONS:\n");
 		for(size_t i=0; i < vColladaAnimations.size(); i++)
@@ -1017,8 +966,6 @@ namespace hpl {
 
 		return pMesh;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderCollada::AddRestPoseTracks(cAnimation *apAnimation, cSkeleton *apSkeleton, cColladaScene &aScene)
 	{
@@ -1058,8 +1005,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSkeleton *cMeshLoaderCollada::CreateSkeleton(tColladaControllerVec &avControllers, cColladaScene &aScene)
 	{
 		cSkeleton *pSkeleton = hplNew(cSkeleton, ());
@@ -1072,7 +1017,6 @@ namespace hpl {
 			CreateSkeletonBone(pNode, pSkeleton->GetRootBone());
 		}
 
-		////////////////////////////////////
 		//Set the bind position of the bones
 		//(This will set the local matrix as the global bind)
 		for(size_t i = 0; i < avControllers.size(); i++)
@@ -1095,7 +1039,6 @@ namespace hpl {
 			}
 		}
 
-		////////////////////////////////////////////////
 		//Do another pass and calculate the local matrix
 		cBoneIterator BoneIt = pSkeleton->GetRootBone()->GetChildIterator();
 		while(BoneIt.HasNext())
@@ -1106,8 +1049,6 @@ namespace hpl {
 
 		return pSkeleton;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cAnimation* cMeshLoaderCollada::LoadAnimation(const tString& asFile)
 	{
@@ -1129,7 +1070,6 @@ namespace hpl {
 
 		if(bRet==false) return nullptr;
 
-		////////////////////////
 		//Create Skeleton
 		cSkeleton * pSkeleton = nullptr;
 		if(vColladaControllers.empty() == false)
@@ -1137,8 +1077,6 @@ namespace hpl {
 			pSkeleton = CreateSkeleton(vColladaControllers, ColladaScene);
 		}
 
-
-		///////////////////////////////////////////////
 		// Create Animations
 		cAnimation *pAnimation = nullptr;
 		if(vColladaAnimations.empty() == false)
@@ -1171,8 +1109,6 @@ namespace hpl {
 		return pAnimation;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderCollada::IsSupported(const tString asFileType)
 	{
 		if(asFileType == "dae" || asFileType == "glb" || asFileType == "gltf") return true;
@@ -1180,23 +1116,12 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderCollada::AddSupportedTypes(tStringVec* avFileTypes)
 	{
 		avFileTypes->push_back("dae");
 		avFileTypes->push_back("glb");
 		avFileTypes->push_back("gltf");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 
 	tString cMeshLoaderCollada::GetParentName(cColladaNode *apNode, tColladaGeometryVec *apColladaGeometries)
 	{
@@ -1218,8 +1143,6 @@ namespace hpl {
 		return sParent;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static bool HasParam(const tStringVec & avVec, const tString &asParam)
 	{
 		for(int i=0; i< (int)avVec.size(); i++)
@@ -1231,7 +1154,6 @@ namespace hpl {
 
 		return false;
 	}
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderCollada::CreateMeshJoint(cMeshJoint* apJoint,ePhysicsJointType aJointType,
 												cBoundingVolume &aBV,
@@ -1239,8 +1161,6 @@ namespace hpl {
 												cColladaScene &aColladaScene,
 												tColladaGeometryVec &avColladaVec)
 	{
-
-		//////////////////////////////////////////////
 		// GENERAL
 
 		if(avStrings.size()<5){
@@ -1249,7 +1169,6 @@ namespace hpl {
 
 		apJoint->msName = avStrings[avStrings.size()-1];
 
-		//////////////////////////////////////
 		// Get if the joint bodies should collide
 		if(HasParam(avStrings,"nocollide")){
 			apJoint->mbCollide = false;
@@ -1258,7 +1177,6 @@ namespace hpl {
 			apJoint->mbCollide = true;
 		}
 
-		//////////////////////////////////////
 		//Get parent and child body
 		apJoint->mvPivot = apNode->m_mtxWorldTransform.GetTranslation();
 		apJoint->mvPinDir = cMath::Vector3Normalize(apNode->m_mtxWorldTransform.GetUp());
@@ -1294,8 +1212,6 @@ namespace hpl {
 			}
 		}
 
-
-		//////////////////////////////////////
 		//Get min and max values.
 
 		if((aJointType == ePhysicsJointType_Slider || aJointType== ePhysicsJointType_Screw)
@@ -1330,9 +1246,6 @@ namespace hpl {
 		}
 
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cMeshLoaderCollada::CreateHierarchyNodes(cMesh *apMesh, cNode3D* mpParentNode,
 													cColladaNode* apColladaNode,
@@ -1371,10 +1284,6 @@ namespace hpl {
 		}
 	}
 
-
-
-	//-----------------------------------------------------------------------
-
 	cColladaGeometry* cMeshLoaderCollada::GetGeometry(const tString& asId, tColladaGeometryVec &avGeomVec)
 	{
 		for(size_t i=0; i<avGeomVec.size(); i++)
@@ -1387,8 +1296,6 @@ namespace hpl {
 
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cColladaLight* cMeshLoaderCollada::GetLight(const tString& asId, tColladaLightVec &avLightVec)
 	{
@@ -1403,8 +1310,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderCollada::ScaleIsSeparate(const cColladaNode *apNode, const tColladaLightVec *apLights)
 	{
 		//If this node is a light, do not apply scale.
@@ -1417,8 +1322,6 @@ namespace hpl {
 		//Colliders do not use scale.
 		return cString::ToLowerCase(cString::Sub(apNode->msName, 1, 8)) == "collider" || cString::ToLowerCase(cString::Sub(apNode->msName, 1, 12)) == "charcollider" || cString::ToLowerCase(cString::Sub(apNode->msName, 1, 4)) == "area";
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMeshEntity* cMeshLoaderCollada::CreateStaticMeshEntity(cColladaNode* apNode, cWorld3D *apWorld,
 												cColladaGeometry *apGeom, bool abInRoomGroup,
@@ -1443,7 +1346,6 @@ namespace hpl {
 
 		bool bDrawn = false;
 
-		////////////////////////////////////////////
 		// Check if the mesh is drawn
 		if(HasParam(vParams, "nodraw")==false)
 		{
@@ -1582,8 +1484,6 @@ namespace hpl {
 		return pEntity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static iCollideShape* CreatePhysicsCollider(iPhysicsWorld* pPhysicsWorld,const cVector3f& avSize,
 												eCollideShapeType aShapeType)
 	{
@@ -1717,9 +1617,6 @@ namespace hpl {
 		return apWorld->CreateColliderEntity(apNode->msName,pBody);
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderCollada::AddSceneObjects(cColladaNode* apNode, cWorld3D *apWorld,
 							tColladaGeometryVec &avColladaGeometries,
 							tColladaLightVec &avColladaLights,
@@ -1728,7 +1625,6 @@ namespace hpl {
 							tColladaImageVec &avColladaImages,
 							cColladaScene *apColladaScene)
 	{
-		//////////////////////////////////////////////////
 		//Check if we are dealing with a special type.
 		if(apNode->msName.size() > 1 && apNode->msName[0] == '_')
 		{
@@ -1744,8 +1640,7 @@ namespace hpl {
 
 			cString::GetStringVec(apNode->msName,vParams,&sSepp);
 
-			////////////////////////////////////////
-			///// COLLIDER /////////////////////////////
+			// COLLIDER
 			if(cString::ToLowerCase(vParams[0])=="collider")
 			{
 				cColladaGeometry* pGeom = GetGeometry(apNode->msSource, avColladaGeometries);
@@ -1762,8 +1657,7 @@ namespace hpl {
 					Error("Node '%s' does not have any geometry! Could not create collider!\n",apNode->msName.c_str());
 				}
 			}
-			////////////////////////////////////////
-			///// CHARACTER COLLIDER ///////////////
+			// CHARACTER COLLIDER
 			else if(cString::ToLowerCase(vParams[0])=="charcollider")
 			{
 				cColladaGeometry* pGeom = GetGeometry(apNode->msSource, avColladaGeometries);
@@ -1780,8 +1674,7 @@ namespace hpl {
 					Error("Node '%s' does not have any geometry!C ould not create charcollider!\n",apNode->msName.c_str());
 				}
 			}
-			////////////////////////////////////////
-			///// SOUND /////////////////////////////
+			// SOUND
 			else if(cString::ToLowerCase(vParams[0])=="sound" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 3){
@@ -1809,8 +1702,7 @@ namespace hpl {
 					if(pEntity) pEntity->SetMatrix(apNode->m_mtxWorldTransform);
 				}
 			}
-			////////////////////////////////////////
-			///// START /////////////////////////////
+			// START
 			else if(cString::ToLowerCase(vParams[0])=="start" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 2){
@@ -1826,8 +1718,7 @@ namespace hpl {
 					}
 				}
 			}
-			////////////////////////////////////////
-			///// REF /////////////////////////////
+			// REF
 			else if(cString::ToLowerCase(vParams[0])=="ref")
 			{
 				if((mFlags & eWorldLoadFlag_NoGameEntities)) return;
@@ -1861,8 +1752,7 @@ namespace hpl {
 				//Skip the children of the ref!
 				return;
 			}
-			////////////////////////////////////////
-			///// AI NODE //////////////////////////
+			// AI NODE
 			else if(cString::ToLowerCase(vParams[0])=="node")
 			{
 				if(vParams.size() < 3){
@@ -1879,8 +1769,7 @@ namespace hpl {
 				//Skip the children of the ref!
 				return;
 			}
-			////////////////////////////////////////
-			///// BILLBOARD /////////////////////////////
+			// BILLBOARD
 			else if(cString::ToLowerCase(vParams[0])=="bb" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 3){
@@ -1930,8 +1819,7 @@ namespace hpl {
 					}
 				}
 			}
-			////////////////////////////////////////
-			///// BEAM /////////////////////////////
+			// BEAM
 			else if(cString::ToLowerCase(vParams[0])=="beam" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 3){
@@ -1974,8 +1862,7 @@ namespace hpl {
 				}
 
 			}
-			////////////////////////////////////////
-			///// PARTICLE SYSTEM //////////////////
+			// PARTICLE SYSTEM
 			else if(cString::ToLowerCase(vParams[0])=="ps" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 3){
@@ -2010,8 +1897,7 @@ namespace hpl {
 
 				}
 			}
-			////////////////////////////////////////
-			///// AREA /////////////////////////////
+			// AREA
 			if(cString::ToLowerCase(vParams[0])=="area" && !(mFlags & eWorldLoadFlag_NoEntities))
 			{
 				if(vParams.size() < 2){
@@ -2074,7 +1960,6 @@ namespace hpl {
 			}
 
 		}
-		//////////////////////////////////////////////////
 		//Load light or geometry
 		else
 		{
@@ -2092,7 +1977,6 @@ namespace hpl {
 				//Get prefix
 				tString sPrefix = cString::ToLowerCase(cString::Sub(apNode->msName,0,lPrefixChars));
 
-				/////////////////////////////////////////////////
 				// Load source from external file
 				if(apNode->mbSourceIsFile)
 				{
@@ -2136,7 +2020,6 @@ namespace hpl {
 					}
 
 				}
-				///////////////////////////////////////
 				// Load source from collada data
 				else
 				{
@@ -2195,8 +2078,6 @@ namespace hpl {
 								sLightName = vParams[lParamAdd];
 							}
 
-
-							/////////////////////////////////////
 							//Load the specific light type
 							if(pColladaLight->msType =="point")
 							{
@@ -2269,8 +2150,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMeshLoaderCollada::AddSectorChildren(cColladaNode* apNode, tString asSector, cWorld3D *apWorld,
 												tColladaGeometryVec &avColladaGeometries,
 												tColladaLightVec &avColladaLights,
@@ -2280,7 +2159,6 @@ namespace hpl {
 	{
 		//Log("--- Node: %s\n",apNode->msName.c_str());
 
-		//////////////////////////////////////////////////
 		//Check if we are dealing with a special type.
 		if(apNode->msName[0] == '_')
 		{
@@ -2288,7 +2166,6 @@ namespace hpl {
 			tString sType = cString::Sub(apNode->msName,0,7);
 			if(cString::ToLowerCase(sType) == "_portal")
 			{
-				////////////////////////////////
 				//Get portal number
 
 				//Get digits in num:
@@ -2302,7 +2179,6 @@ namespace hpl {
 					Warning("Bad portal name: '%s'!\n",apNode->msName.c_str());
 				}
 
-				///////////////////////////////////////////
 				// Get target room
 
 				//Get the char pos for the target room
@@ -2327,7 +2203,6 @@ namespace hpl {
 				//int lTargetSector = cString::ToInt(sNum.c_str(),-1);
 				tString sTargetSector = sNum;
 
-				////////////////////////////////////////////
 				// Get the portals in the target room it can see.
 
 				lStartChar = lStartChar+4+lDigits;
@@ -2352,7 +2227,6 @@ namespace hpl {
 						//Log("Seeing: %d\n", vPortalIds[i]);
 					}
 
-					/////////////////////////////////////
 					//Calculate the normal of the portal
 					cVector3f vNormal = cVector3f(0,0,0);
 					for(size_t i=0; i < pGeom->mvVertexVec.size(); i++)
@@ -2363,7 +2237,6 @@ namespace hpl {
 					vNormal.Normalise();
 					pPortal->SetNormal(vNormal);
 
-					/////////////////////////////////
 					//Add the points
 					for(size_t i=0; i < pGeom->mvVertexVec.size(); i++)
 					{
@@ -2372,21 +2245,17 @@ namespace hpl {
 						pPortal->AddPoint(vPos);
 					}
 
-					//////////////////////////
 					//Set the world transform.
 					pPortal->SetTransform(cMatrixf::Identity);//apNode->m_mtxWorldTransform);
 
-					/////////////////////
 					//Compile the portal
 					pPortal->Compile();
 
-					////////////////////////
 					//Add portal to sector.
 					apWorld->GetPortalContainer()->AddPortal(pPortal, asSector);
 				}
 			}
 		}
-		////////////////////////////////////////////
 		// Add normal geometry or light
 		else
 		{
@@ -2432,7 +2301,6 @@ namespace hpl {
 
 		//Log("---\n");
 
-		//////////////////////////////////////////////////
 		//Iterate children.
 		tColladaNodeListIt ChildIt = apNode->mlstChildren.begin();
 		for(; ChildIt != apNode->mlstChildren.end();ChildIt++)
@@ -2441,7 +2309,4 @@ namespace hpl {
 				avColladaMaterials,avColladaTextures,avColladaImages);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

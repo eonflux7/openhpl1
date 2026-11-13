@@ -22,11 +22,7 @@
 #include "entities/GameEntity.h"
 #include "systems/EffectHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // A STAR CALLBHCK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cCharacterAStarCallback::cCharacterAStarCallback(cCharacterMove *apMove)
 {
@@ -34,8 +30,6 @@ cCharacterAStarCallback::cCharacterAStarCallback(cCharacterMove *apMove)
 
 	mpMove = apMove;
 }
-
-//-----------------------------------------------------------------------
 
 bool cCharacterAStarCallback::CanAddNode(cAINode *apParentNode,cAINode *apChildNode)
 {
@@ -48,8 +42,6 @@ bool cCharacterAStarCallback::CanAddNode(cAINode *apParentNode,cAINode *apChildN
 
 	return bRet;
 }
-
-//-----------------------------------------------------------------------
 
 bool cCharacterAStarCallback::Intersects(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
@@ -82,13 +74,7 @@ bool cCharacterAStarCallback::Intersects(iPhysicsBody *pBody,cPhysicsRayParams *
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // RAY CALLBHCK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cMoverRayCallback::Reset()
 {
@@ -118,16 +104,6 @@ bool cMoverRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 
 	return false;
 }
-
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cCharacterMove::cCharacterMove(cInit *apInit)
 {
@@ -167,27 +143,15 @@ cCharacterMove::cCharacterMove(cInit *apInit)
 	mfNodeDistanceChangeSum =0;
 }
 
-//-----------------------------------------------------------------------
-
 cCharacterMove::~cCharacterMove()
 {
 	if(mpAStarCallback) hplDelete( mpAStarCallback );
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cCharacterMove::Update(float afTimeStep)
 {
 	if(mpCharBody->IsActive()==false || afTimeStep <= 0) return;
 
-	////////////////////////////////////
 	//Update Movement
 	if(mbMoving)
 	{
@@ -195,7 +159,6 @@ void cCharacterMove::Update(float afTimeStep)
 		cVector3f vGoal;
 		cVector3f vPos = mpCharBody->GetPosition(); 
 		
-		/////////////////////////////////////////
 		//Get the postion to move towards and current node if there is any.
 		if(mlstNodes.empty())
 		{
@@ -206,7 +169,6 @@ void cCharacterMove::Update(float afTimeStep)
 			vGoal = pCurrentNode->GetPosition();
 		}
 	
-		/////////////////////////////////////////
 		//Check if the newer node is reachable
 		if(mbMoveToNewNode)
 		{
@@ -219,7 +181,6 @@ void cCharacterMove::Update(float afTimeStep)
 			{
 				//Do nothing here right now, might wanna remove the path from the two connected
 				//Nodes, but that might turn out pretty hard, leave for now, this takes too much cpu.
-				//------------------------
 				//mpInit->mpEffectHandler->GetSubTitle()->Add("Path was blocked!\n",2.0f,true);
 				mbMoving = false;
 				mlstNodes.clear();
@@ -256,7 +217,6 @@ void cCharacterMove::Update(float afTimeStep)
 		
 		mpCharBody->Move(eCharDir_Forward,1.0f, afTimeStep);
 
-		////////////////////////////////
 		//Update bounding volume
 		mBoundingVolume.SetPosition(vPos);
 		mBoundingVolume.UpdateSize();
@@ -285,7 +245,6 @@ void cCharacterMove::Update(float afTimeStep)
 			}
 		}
 				
-		////////////////////////////////
 		//Check if node is reached:
 		if(bStuckAtNode || cMath::PointBVCollision(vGoal, mBoundingVolume))
 		{
@@ -302,14 +261,11 @@ void cCharacterMove::Update(float afTimeStep)
 		}
 	}
 
-
-	////////////////////////////////////
 	//Update turning
 	if(mbTurning)
 	{
 		float fAngleDist = cMath::GetAngleDistanceRad(mpCharBody->GetYaw(), mfGoalAngle);
 		
-		/////////////////
 		//Rotate the body
 		if(std::abs(fAngleDist) < 0.001f){
 			mbTurning = false;
@@ -324,7 +280,6 @@ void cCharacterMove::Update(float afTimeStep)
 			if(fAngleDist < 0)	mpCharBody->AddYaw(-mfTurnSpeed * afTimeStep);
 			else				mpCharBody->AddYaw(mfTurnSpeed * afTimeStep);
 
-			//////////////////////
 			//Brake when the heading error exceeds the threshold
 			if(std::abs(fAngleDist) >= mfMinBreakAngle && mpCharBody->GetMoveSpeed(eCharDir_Forward)>0.15f)
 			{
@@ -340,7 +295,6 @@ void cCharacterMove::Update(float afTimeStep)
 		}
 	}
 
-	//////////////////////////////////////
 	/// Update stuck counter
 	float fWantedSpeed = mpCharBody->GetMoveSpeed(eCharDir_Forward);
 	float fRealSpeed = cMath::Vector3Dist(mpCharBody->GetPosition(), mpCharBody->GetLastPosition());
@@ -365,9 +319,6 @@ void cCharacterMove::Update(float afTimeStep)
 		if(mfStuckCounter<0)mfStuckCounter =0;
 	}
 }
-
-
-//-----------------------------------------------------------------------
 
 bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 {
@@ -407,15 +358,11 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 	return bRet;
 }
 
-//-----------------------------------------------------------------------
-
 void cCharacterMove::MoveDirectToPos(const cVector3f &avFeetPos, float afTimeStep)
 {
 	TurnToPos(avFeetPos);
 	GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 }
-
-//-----------------------------------------------------------------------
 
 void cCharacterMove::TurnToAngle(float afAngle)
 {
@@ -433,16 +380,12 @@ void cCharacterMove::TurnToPos(const cVector3f &avPos)
 	TurnToAngle(fGoalAngle);
 }
 
-//-----------------------------------------------------------------------
-
 void cCharacterMove::Stop()
 {
 	mbMoving = false;
 	mlstNodes.clear();
 	mlstNodeSquaredDistances.clear();
 }
-
-//-----------------------------------------------------------------------
 
 bool cCharacterMove::FreeDirectPathToChar(iCharacterBody *apBody)
 {
@@ -479,8 +422,6 @@ bool cCharacterMove::FreeDirectPathToPos(const cVector3f &avFeetPos)
 		avFeetPos + cVector3f(0,0.05f,0), -1, 0, &callback);
 }
 
-//-----------------------------------------------------------------------
-
 float cCharacterMove::DistanceToChar(iCharacterBody *apBody)
 {
 	return cMath::Vector3Dist(mpCharBody->GetFeetPosition(), apBody->GetFeetPosition());
@@ -495,9 +436,6 @@ float cCharacterMove::DistanceToChar2D(iCharacterBody *apBody)
 
 	return cMath::Vector3Dist(vStart,vEnd);
 }
-
-
-//-----------------------------------------------------------------------
 
 cAINode* cCharacterMove::GetAINodeInRange(float afMinDistance, float afMaxDistance)
 {
@@ -535,8 +473,6 @@ cAINode* cCharacterMove::GetAINodeInRange(float afMinDistance, float afMaxDistan
 	}
 	return NULL;*/
 }
-
-//-----------------------------------------------------------------------
 
 cAINode* cCharacterMove::GetAINodeAtPosInRange(const cVector3f &avPos,float afMinDistance,float afMaxDistance,
 												bool abRayCheck, float afEndOffset)
@@ -594,8 +530,6 @@ cAINode* cCharacterMove::GetAINodeAtPosInRange(const cVector3f &avPos,float afMi
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cCharacterMove::SetCharBody(iCharacterBody *apCharBody)
 {
 	mpCharBody = apCharBody;
@@ -615,8 +549,6 @@ void cCharacterMove::SetAStar(cAStarHandler *apAStar)
 	mpAStar = apAStar;
 	mpAStar->SetCallback(mpAStarCallback);
 }
-
-//-----------------------------------------------------------------------
 
 void cCharacterMove::OnDraw(cInit *apInit)
 {
@@ -647,8 +579,6 @@ void cCharacterMove::OnDraw(cInit *apInit)
 		"Moving: %d",mbMoving?1:0);*/
 }
 
-//-----------------------------------------------------------------------
-
 void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 {
 	apLowLevelGfx->SetDepthTestActive(true);
@@ -672,8 +602,6 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 	//return;
 	if(mbMoving==false) return;
 
-
-	//////////////////////////////
 	//GoalPos
 	cVector3f vGoalPos = mvGoalPos;
 	if(mpContainer->GetNodeIsAtCenter()==false){
@@ -683,7 +611,6 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 	apLowLevelGfx->DrawSphere(vGoalPos,0.2f, cColor(1,0,1));
 	cVector3f vLastVec = vGoalPos;
 
-	//////////////////////////////
 	//Nodes
 	tAINodeListIt it = mlstNodes.begin();
 	for(; it != mlstNodes.end(); ++it)
@@ -701,7 +628,6 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 		vLastVec = vNodePos;
 	}
 
-	//////////////////////////////
 	//Start pos
 	cVector3f vStartPos = mpCharBody->GetPosition();
 	//if(mpContainer->GetNodeIsAtCenter()==false){
@@ -714,13 +640,3 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 	apLowLevelGfx->DrawSphere(mvTempEnd,0.2f,cColor(0,1,1));
 	apLowLevelGfx->DrawLine(mvTempStart, mvTempEnd,cColor(0,1,1));
 }
-
-//-----------------------------------------------------------------------
-
-///////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-//-----------------------------------------------------------------------

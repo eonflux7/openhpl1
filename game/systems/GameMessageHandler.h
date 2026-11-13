@@ -48,8 +48,6 @@ public:
 typedef std::list<cGameMessage*> tGameMessageList;
 typedef tGameMessageList::iterator tGameMessageListIt;
 
-//---------------------------------------
-
 class cGameMessageHandler : public iUpdateable
 {
 friend class cGameMessage;

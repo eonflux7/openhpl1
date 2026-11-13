@@ -37,8 +37,6 @@ namespace hpl {
 	class cGuiGfxElement;
 	class cGui;
 
-	//------------------------------------------------
-
 	class cGlyph
 	{
 	public:
@@ -55,8 +53,6 @@ namespace hpl {
 
 	typedef std::vector<cGlyph*> tGlyphVec;
 	typedef tGlyphVec::iterator tGlyphVecIt;
-
-	//------------------------------------------------
 
 	enum eFontEffect
 	{

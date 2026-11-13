@@ -28,17 +28,11 @@ namespace hpl {
 	class cAINodeContainer;
 	class cAINode;
 
-	//--------------------------------------
-
 	typedef std::set<cAINode*> tAINodeSet;
 	typedef tAINodeSet::iterator tAINodeSetIt;
 
-	//--------------------------------------
-
 	typedef std::list<cAINode*> tAINodeList;
 	typedef tAINodeList::iterator tAINodeListIt;
-
-	//--------------------------------------
 
 	class cAStarNode
 	{
@@ -62,7 +56,6 @@ namespace hpl {
 	typedef std::set<cAStarNode*,cAStarNodeCompare> tAStarNodeSet;
 	typedef tAStarNodeSet::iterator tAStarNodeSetIt;
 
-	//--------------------------------------
 	class cAStarHandler;
 
 	class iAStarCallback
@@ -72,8 +65,6 @@ namespace hpl {
 
 		virtual bool CanAddNode(cAINode *apParentNode,cAINode *apChildNode)=0;
 	};
-
-	//--------------------------------------
 
 	class cAStarHandler
 	{

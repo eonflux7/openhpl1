@@ -72,8 +72,6 @@ namespace hpl {
 	const tAnimTransformFlag kvAnimTransformFlags[] = {eAnimTransformFlag_Translate,
 					eAnimTransformFlag_Scale, eAnimTransformFlag_Rotate};
 
-	//-----------------------------------------
-
 	enum eColorDataFormat
 	{
 		eColorDataFormat_RGB,
@@ -84,8 +82,6 @@ namespace hpl {
 		eColorDataFormat_LastEnum
 	};
 
-	//---------------------------------------
-
 	enum eFontAlign
 	{
 		eFontAlign_Left,
@@ -93,8 +89,6 @@ namespace hpl {
 		eFontAlign_Center,
 		eFontAlign_LastEnum
 	};
-
-	//---------------------------------------
 
 	class cKeyFrame
 	{
@@ -111,15 +105,11 @@ namespace hpl {
 	typedef std::vector<cKeyFrame> tKeyFrameVec;
 	typedef tKeyFrameVec::iterator tKeyFrameVecIt;
 
-	//---------------------------------------
-
 	enum eAnimationEventType
 	{
 		eAnimationEventType_PlaySound,
 		eAnimationEventType_LastEnum
 	};
-
-	//---------------------------------------
 
 	class cVertexBonePair
 	{
@@ -141,8 +131,6 @@ namespace hpl {
 
 	typedef std::vector<cVertexBonePair> tVertexBonePairVec;
 	typedef tVertexBonePairVec::iterator tVertexBonePairVecIt;
-
-	//---------------------------------------
 
 	class cVertex
 	{

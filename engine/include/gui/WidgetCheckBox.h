@@ -35,7 +35,6 @@ namespace hpl {
 		bool IsChecked(){return mbChecked;}
 
 	protected:
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 		void OnChangeSize() override;
@@ -48,7 +47,6 @@ namespace hpl {
 		bool OnMouseEnter(cGuiMessageData &aData) override;
 		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		bool mbChecked;
 		bool mbPressed;

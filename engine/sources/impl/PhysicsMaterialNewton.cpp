@@ -27,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsMaterialNewton::cPhysicsMaterialNewton(const tString &asName, iPhysicsWorld *apWorld,int alMatId)
 		: iPhysicsMaterial(asName,apWorld)
 	{
@@ -60,20 +54,10 @@ namespace hpl {
 		//Log(" Created physics material '%s' with Newton id %d\n",asName.c_str(),mlMaterialId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsMaterialNewton::~cPhysicsMaterialNewton()
 	{
 		/*Might be just as well to let newton handle this*/
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsMaterialNewton::SetElasticity(float afElasticity)
 	{
@@ -87,8 +71,6 @@ namespace hpl {
 		return mfElasticity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsMaterialNewton::SetStaticFriction(float afElasticity)
 	{
 		mfStaticFriction = afElasticity;
@@ -100,8 +82,6 @@ namespace hpl {
 	{
 		return mfStaticFriction;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsMaterialNewton::SetKineticFriction(float afElasticity)
 	{
@@ -115,8 +95,6 @@ namespace hpl {
 		return mfKineticFriction;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsMaterialNewton::SetFrictionCombMode(ePhysicsMaterialCombMode aMode)
 	{
 		mFrictionMode = aMode;
@@ -129,8 +107,6 @@ namespace hpl {
 		return mFrictionMode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsMaterialNewton::SetElasticityCombMode(ePhysicsMaterialCombMode aMode)
 	{
 		mElasticityMode = aMode;
@@ -138,20 +114,10 @@ namespace hpl {
 		UpdateMaterials();
 	}
 
-	//-----------------------------------------------------------------------
-
 	ePhysicsMaterialCombMode cPhysicsMaterialNewton::GetElasticityCombMode() const
 	{
 		return mElasticityMode;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsMaterialNewton::UpdateMaterials()
 	{
@@ -189,8 +155,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsMaterialNewton::Combine(ePhysicsMaterialCombMode aMode, float afX, float afY)
 	{
 		switch(aMode)
@@ -204,16 +168,11 @@ namespace hpl {
 		return (afX + afY) /2;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC NEWTON CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
 	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody1 = nullptr;
 	iPhysicsBody *cPhysicsMaterialNewton::mpContactBody2 = nullptr;
 	int cPhysicsMaterialNewton::mlContactNum =0;
 	cPhysicsContactData cPhysicsMaterialNewton::mContactData;
 
-	//-----------------------------------------------------------------------
 	int cPhysicsMaterialNewton::BeginContactCallback(const NewtonMaterial* material,
 									const NewtonBody* apBody1, const NewtonBody* apBody2, int alThreadIndex)
 	{
@@ -249,8 +208,6 @@ namespace hpl {
 
 		return 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Newton 2 reports every contact of a body pair in one callback, so this
 	// does the work of Newton 1's per-contact ProcessContactCallback followed
@@ -395,7 +352,4 @@ namespace hpl {
 		mContactData.mvContactNormal = cVector3f(0,0,0);
 		mContactData.mvForce = cVector3f(0,0,0);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

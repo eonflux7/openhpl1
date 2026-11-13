@@ -25,12 +25,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cAngelScriptScript::cAngelScriptScript(const tString& asName,asIScriptEngine *apScriptEngine,
 							cScriptOutput *apScriptOutput, int alHandle)
 		: iScript(asName)
@@ -59,14 +53,6 @@ namespace hpl {
 		mpContext->Release();
 		if(mpModule) mpModule->Discard();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cAngelScriptScript::CreateFromFile(const tString& asFileName)
 	{
@@ -105,8 +91,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cAngelScriptScript::GetFuncHandle(const tString& asFunc)
 	{
 		if(mpModule==nullptr) return -1;
@@ -115,14 +99,10 @@ namespace hpl {
 		return pFunc ? pFunc->GetId() : -1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAngelScriptScript::AddArg(const tString& asArg)
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAngelScriptScript::Run(const tString& asFuncLine)
 	{
@@ -167,8 +147,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAngelScriptScript::Run(int alHandle)
 	{
 		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
@@ -178,8 +156,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAngelScriptScript::GetTestCalls(tStringVec &avCalls)
 	{
@@ -203,8 +179,6 @@ namespace hpl {
 			if(bOk) avCalls.push_back(sCall + ")");
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	// A script function can make the game run another one before it returns
 	// (SetLampLit runs the lamp's callback). AngelScript 2.7 ran each in a
@@ -230,14 +204,6 @@ namespace hpl {
 		if(bNested) mpContext->PopState();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	char* cAngelScriptScript::LoadCharBuffer(const tString& asFileName, int& alLength)
 	{
 		FILE *pFile = fopen(asFileName.c_str(), "rb");
@@ -261,15 +227,4 @@ namespace hpl {
 
 		return pBuffer;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

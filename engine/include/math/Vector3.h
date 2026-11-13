@@ -34,9 +34,6 @@ namespace hpl {
 			T v[3];
 		};
 
-		//////////////////////////////////////////
-		// Constructors
-		/////////////////////////////////////////
 		cVector3()
 		{
 			x=0;y=0;z=0;
@@ -60,9 +57,7 @@ namespace hpl {
 			x = aVec.x; y = aVec.y;z=0;
 		}
 
-		//////////////////////////////////////////
 		// Copy
-		/////////////////////////////////////////
 
 		inline cVector3<T>& operator=(const cVector3<T> &aVec)
 		{
@@ -87,9 +82,7 @@ namespace hpl {
 			return *this;
 		}
 
-		//////////////////////////////////////////
 		// Boolean
-		/////////////////////////////////////////
 
 		inline bool operator==(const cVector3<T> &aVec) const
 		{
@@ -117,9 +110,7 @@ namespace hpl {
 			return z > aVec.z;
 		}
 
-		//////////////////////////////////////////
 		// Vector3 Arithmetic
-		/////////////////////////////////////////
 
 		inline cVector3<T> operator+(const cVector3<T> &aVec) const
 		{
@@ -189,9 +180,7 @@ namespace hpl {
 			return *this;
 		}
 
-		//////////////////////////////////////////
 		// Vector2 Arithmetic
-		/////////////////////////////////////////
 
 		inline cVector3<T> operator+(const cVector2<T> &aVec) const
 		{
@@ -257,9 +246,7 @@ namespace hpl {
 			return *this;
 		}
 
-		//////////////////////////////////////////
 		// Single Float Arithmetic
-		/////////////////////////////////////////
 
 		inline cVector3<T> operator/(const T &aVal) const
 		{
@@ -296,10 +283,6 @@ namespace hpl {
 			vec.z = z - aVal;
 			return vec;
 		}
-
-		//////////////////////////////////////////
-		// Methods
-		/////////////////////////////////////////
 
 		inline void FromVec(const T *apVec)
 		{
@@ -338,9 +321,7 @@ namespace hpl {
 			return length;
 		}
 
-		//////////////////////////////////////////
 		// Printing
-		/////////////////////////////////////////
 
 		tString ToString() const{
 			char buf[512];

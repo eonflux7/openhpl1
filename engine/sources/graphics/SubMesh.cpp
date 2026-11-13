@@ -34,12 +34,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSubMesh::cSubMesh(const tString &asName, cMaterialManager* apMaterialManager)
 	{
 		mpMaterialManager = apMaterialManager;
@@ -61,8 +55,6 @@ namespace hpl {
 		mvOneSidedNormal =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSubMesh::~cSubMesh()
 	{
 		if(mpMaterial)mpMaterialManager->Destroy(mpMaterial);
@@ -72,21 +64,11 @@ namespace hpl {
 		if(mpVertexWeights) hplDeleteArray(mpVertexWeights);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cSubMesh::SetMaterial(iMaterial* apMaterial)
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		mpMaterial = apMaterial;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::SetVertexBuffer(iVertexBuffer* apVtxBuffer)
 	{
@@ -95,21 +77,15 @@ namespace hpl {
 		mpVtxBuffer = apVtxBuffer;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMaterial *cSubMesh::GetMaterial()
 	{
 		return mpMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iVertexBuffer* cSubMesh::GetVertexBuffer()
 	{
 		return mpVtxBuffer;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::ResizeVertexBonePairs(int alSize)
 	{
@@ -134,9 +110,6 @@ namespace hpl {
 	{
 		mvVtxBonePairs.clear();
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::CompileBonePairs()
 	{
@@ -221,20 +194,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMesh::Compile()
 	{
 		CheckOneSided();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIAVTE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::CheckOneSided()
 	{
@@ -290,6 +253,4 @@ namespace hpl {
 		mbIsOneSided = true;
 		mvOneSidedNormal = cMath::Vector3Normalize(vNormalSum / fCount);
 	}
-
-	//-----------------------------------------------------------------------
 }

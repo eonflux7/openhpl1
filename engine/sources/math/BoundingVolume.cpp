@@ -55,11 +55,7 @@ namespace hpl {
 
 	static const int kvFacePoints[6] = {0,5,5,6,4,7};
 
-	//////////////////////////////////////////////////////////////////////////
 	// SHADOW VOLUME
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBoundingVolume(cBoundingVolume* aBV)
 	{
@@ -68,8 +64,6 @@ namespace hpl {
 
 		return 	CollideBVAABB(aBV);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBVSphere(cBoundingVolume* aBV)
 	{
@@ -84,8 +78,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBVAABB(cBoundingVolume* aBV)
 	{
@@ -130,14 +122,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cBoundingVolume::cBoundingVolume()
 	{
 		m_mtxTransform = cMatrixf::Identity;
@@ -157,14 +141,6 @@ namespace hpl {
 		mbShadowPlanesNeedUpdate = true;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetMax()
 	{
 		UpdateSize();
@@ -177,8 +153,6 @@ namespace hpl {
 		return mvWorldMin;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetLocalMax()
 	{
 		return mvLocalMax;
@@ -189,8 +163,6 @@ namespace hpl {
 		return mvLocalMin;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetLocalMinMax(const cVector3f& avMin,const cVector3f& avMax)
 	{
 		mvLocalMax = avMax;
@@ -199,14 +171,10 @@ namespace hpl {
 		mbSizeUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetLocalCenter()
 	{
 		return mvPivot;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cBoundingVolume::GetWorldCenter()
 	{
@@ -215,8 +183,6 @@ namespace hpl {
 		return m_mtxTransform.GetTranslation() + mvPivot;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetPosition(const cVector3f& avPos)
 	{
 		m_mtxTransform.SetTranslation(avPos);
@@ -224,14 +190,10 @@ namespace hpl {
 		mbPositionUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetPosition()
 	{
 		return m_mtxTransform.GetTranslation();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::SetTransform(const cMatrixf &a_mtxTransform)
 	{
@@ -245,8 +207,6 @@ namespace hpl {
 		return m_mtxTransform;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetSize(const cVector3f& avSize)
 	{
 		mvLocalMax = avSize * 0.5;
@@ -255,8 +215,6 @@ namespace hpl {
 		mbSizeUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetSize()
 	{
 		UpdateSize();
@@ -264,16 +222,12 @@ namespace hpl {
 		return mvSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cBoundingVolume::GetRadius()
 	{
 		UpdateSize();
 
 		return mfRadius;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cShadowVolumeBV* cBoundingVolume::GetShadowVolume(const cVector3f& avLightPos,
 														float afLightRange,bool abForceUpdate)
@@ -299,7 +253,6 @@ namespace hpl {
 		vCorners[6] = cVector3f(vMin.x,vMin.y,vMax.z);
 		vCorners[7] = cVector3f(vMin.x,vMin.y,vMin.z);
 
-		/////////////////////////////////////////////////////////////////////
 		//Iterate the faces and check which ones are facing the light.
 		int lNearPoint =-1;
 		mShadowVolume.mlPlaneCount=0;
@@ -325,7 +278,6 @@ namespace hpl {
 		//The length to push the shadow points.
 		float fPushLength = afLightRange*kSqrt2f;
 
-		//////////////////////////////////////////////////////////
 		//Iterate the edges and build quads from the silhouette
 		for(int edge=0; edge< 12;edge++)
 		{
@@ -361,7 +313,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////
 		//Create the side planes:
 
 		for(int i=0; i< (int)mShadowVolume.mvPoints.size(); i+=4)
@@ -379,8 +330,6 @@ namespace hpl {
 
 		return &mShadowVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::DrawEdges(const cVector3f& avLightPos,float afLightRange, iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -419,8 +368,6 @@ namespace hpl {
 		apLowLevelGraphics->SetDepthWriteActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::AddArrayPoints(const float *apArray, int alNumOfVectors)
 	{
 		cBVTempArray temp;
@@ -429,8 +376,6 @@ namespace hpl {
 
 		mlstArrays.push_back(temp);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::CreateFromPoints(int alStride)
 	{
@@ -466,15 +411,6 @@ namespace hpl {
 		mbPositionUpdated = true;
 		mbSizeUpdated = true;
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::UpdateSize()
 	{
@@ -537,13 +473,7 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZE CLASS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeBase(cBoundingVolume)
 	kSerializeVar(m_mtxTransform, eSerializeType_Matrixf)
@@ -558,10 +488,6 @@ namespace hpl {
 	kSerializeVar(mvSize, eSerializeType_Vector3f)
 	kSerializeVar(mfRadius, eSerializeType_Float32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
-
-
 
 	/* OLD "NEAR PLANE CODE"
 	int lNearPoint =-1;

@@ -93,11 +93,7 @@ int main(int argc, char *argv[])
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// LOG WRITER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// Created on first use and never destroyed: static destructors elsewhere
 	// (e.g. GL state objects) still log during exit. Every write is flushed.
@@ -112,8 +108,6 @@ namespace hpl {
 		static cLogWriter *pWriter = new cLogWriter(_W("hpl_update.log"));
 		return *pWriter;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cLogWriter::cLogWriter(const tWString& asFileName)
 	{
@@ -143,9 +137,6 @@ namespace hpl {
 		if(mpFile) fflush(mpFile);
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cLogWriter::SetFileName(const tWString& asFile)
 	{
 		if(msFileName == asFile) return;
@@ -153,9 +144,6 @@ namespace hpl {
 		msFileName = asFile;
 		ReopenFile();
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cLogWriter::ReopenFile()
 	{
@@ -168,16 +156,6 @@ namespace hpl {
 			mpFile = fopen(cString::To8Char(msFileName).c_str(),"w");
 		#endif
 	}
-
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cLowLevelSystemSDL::cLowLevelSystemSDL()
 	{
@@ -195,8 +173,6 @@ namespace hpl {
 		Log("-------- THE HPL ENGINE LOG ------------\n\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLowLevelSystemSDL::~cLowLevelSystemSDL()
 	{
 		/*Release all runnings contexts */
@@ -209,20 +185,10 @@ namespace hpl {
 		//gpLogWriter = NULL;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void SetLogFile(const tWString &asFile)
 	{
 		LogWriter().SetFileName(asFile);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void FatalError(const char* fmt,... )
 	{
@@ -307,8 +273,6 @@ namespace hpl {
 		LogWriter().Write(sMess);
 	}
 
-	//-----------------------------------------------------------------------
-
 	static bool gbUpdateLogIsActive;
 	void SetUpdateLogFile(const tWString &asFile)
 	{
@@ -343,8 +307,6 @@ namespace hpl {
 		sMess += text;
 		UpdateLogWriter().Write(sMess);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void CopyTextToClipboard(const tWString &asText)
 	{
@@ -389,9 +351,6 @@ namespace hpl {
 		return _W("");
 #endif
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void CreateMessageBox ( eMsgBoxType eType, const char* asCaption, const char *fmt, ...)
 	{
@@ -516,8 +475,6 @@ namespace hpl {
 		va_end(ap);
 	}
 
-	//-----------------------------------------------------------------------
-
 	static cDate DateFromGMTIme(struct tm* apClock)
 	{
 		cDate date;
@@ -534,16 +491,12 @@ namespace hpl {
 		return date;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void OpenBrowserWindow ( const tWString& asURL )
 	{
 		// SDL passes the URL to the platform's opener without a shell.
 		if(!SDL_OpenURL(cString::To8Char(asURL).c_str()))
 			Warning("Could not open '%s': %s\n", cString::To8Char(asURL).c_str(), SDL_GetError());
 	}
-
-	//-----------------------------------------------------------------------
 
 	tWString GetSystemSpecialPath(eSystemPath aPathType)
 	{
@@ -580,8 +533,6 @@ namespace hpl {
 	#endif
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool FileExists(const tWString& asFileName)
 	{
 	#ifdef WIN32
@@ -598,8 +549,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void RemoveFile(const tWString& asFilePath)
 	{
 	#ifdef WIN32
@@ -608,8 +557,6 @@ namespace hpl {
 		remove(cString::To8Char(asFilePath).c_str());
 	#endif
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool CloneFile(const tWString& asSrcFileName,const tWString& asDestFileName,
 		bool abFailIfExists)
@@ -627,8 +574,6 @@ namespace hpl {
 		return true;
 	#endif
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool CreateFolder(const tWString& asPath)
 	{
@@ -684,8 +629,6 @@ namespace hpl {
 	#endif
 	}
 
-	//-----------------------------------------------------------------------
-
 	cDate FileModifiedDate(const tWString& asFilePath)
 	{
 		struct tm* pClock;
@@ -703,8 +646,6 @@ namespace hpl {
 
 		return date;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cDate FileCreationDate(const tWString& asFilePath)
 	{
@@ -724,15 +665,11 @@ namespace hpl {
 		return date;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void SetWindowCaption(const tString &asName)
 	{
 		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
 		if(pWindow) SDL_SetWindowTitle(pWindow, asName.c_str());
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool HasWindowFocus(const tWString &asWindowCaption)
 	{
@@ -743,8 +680,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	unsigned long GetApplicationTime()
 	{
 		return SDL_GetTicks();
@@ -754,8 +689,6 @@ namespace hpl {
 	{
 		return (double)SDL_GetTicksNS() / 1000000.0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScriptOutput::AddMessage(const asSMessageInfo *msg)
 	{
@@ -793,14 +726,10 @@ namespace hpl {
 		msMessage = "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	unsigned long cLowLevelSystemSDL::GetTime()
 	{
 		return SDL_GetTicks();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cDate cLowLevelSystemSDL::GetDate()
 	{
@@ -813,14 +742,10 @@ namespace hpl {
 		return DateFromGMTIme(pClock);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iScript* cLowLevelSystemSDL::CreateScript(const tString& asName)
 	{
 		return hplNew( cAngelScriptScript, (asName,mpScriptEngine,mpScriptOutput,mlHandleCount++) );
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cLowLevelSystemSDL::AddScriptFunc(const tString& asFuncDecl, void* pFunc, int callConv)
 	{
@@ -842,8 +767,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cLowLevelSystemSDL::AddScriptVar(const tString& asVarDecl, void *pVar)
 	{
 		if(mpScriptEngine->RegisterGlobalProperty(asVarDecl.c_str(),pVar)<0)
@@ -854,8 +777,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSystemSDL::Sleep ( const unsigned int alMillisecs )
 	{
@@ -872,23 +793,4 @@ namespace hpl {
 		if(lEnd > lNow + lSpinNs) SDL_DelayNS(lEnd - lNow - lSpinNs);
 		while(SDL_GetTicksNS() < lEnd) SDL_CPUPauseInstruction();
 	}
-
-	//-----------------------------------------------------------------------
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

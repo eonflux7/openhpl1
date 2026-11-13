@@ -36,15 +36,11 @@ namespace hpl {
 	class iHapticSurface;
 	class cHaptic;
 
-	//------------------------------------------------
-
 	typedef std::list<iPhysicsWorld*> tPhysicsWorldList;
 	typedef tPhysicsWorldList::iterator tPhysicsWorldListIt;
 
 	typedef std::map<tString, cSurfaceData*> tSurfaceDataMap;
 	typedef tSurfaceDataMap::iterator tSurfaceDataMapIt;
-
-	//------------------------------------------------
 
 	class cPhysicsImpactCount
 	{
@@ -56,8 +52,6 @@ namespace hpl {
 
 	typedef std::list<cPhysicsImpactCount> tPhysicsImpactCountList;
 	typedef tPhysicsImpactCountList::iterator tPhysicsImpactCountListIt;
-
-	//------------------------------------------------
 
 	class cPhysics : public iUpdateable
 	{

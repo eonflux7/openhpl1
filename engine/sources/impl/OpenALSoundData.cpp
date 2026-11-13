@@ -23,18 +23,10 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cOpenALSoundData::cOpenALSoundData(tString asName, bool abStream, cOpenALDevice* apDevice)
 		: iSoundData(asName,abStream), mpDevice(apDevice)
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	cOpenALSoundData::~cOpenALSoundData()
 	{
@@ -42,14 +34,6 @@ namespace hpl {
 		if(mpSample) mpDevice->ReleaseSample(mpSample.get());
 		if(mpStream) mpDevice->ReleaseStream(mpStream.get());
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cOpenALSoundData::CreateFromFile(const tString &asFile)
 	{
@@ -77,8 +61,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSoundChannel* cOpenALSoundData::CreateChannel(int alPriority)
 	{
 		int lHandle;
@@ -96,15 +78,10 @@ namespace hpl {
 		return pSoundChannel;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cOpenALSoundData::IsStereo()
 	{
 		if(mpStream) return mpStream->GetChannels() == 2;
 		if(mpSample) return mpSample->GetChannels() == 2;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

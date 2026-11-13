@@ -31,8 +31,6 @@ namespace hpl {
 
 	#define kMaxGuiTextures (4)
 
-	//------------------------------------------
-
 	enum eGuiGfxAnimationType
 	{
 		eGuiGfxAnimationType_Loop,
@@ -58,8 +56,6 @@ namespace hpl {
 		float mfFrameLength;
 		eGuiGfxAnimationType mType;
 	};
-
-	//------------------------------------------
 
 	class cGuiGfxElement
 	{

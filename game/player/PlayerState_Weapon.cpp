@@ -26,9 +26,7 @@
 #include "player/HudModel_Throw.h"
 
 
-//////////////////////////////////////////////////////////////////////////
 // THROW STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_Throw::cPlayerState_Throw(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Throw)
 {
@@ -37,9 +35,6 @@ cPlayerState_Throw::cPlayerState_Throw(cInit *apInit,cPlayer *apPlayer) : iPlaye
 
 	mpHudObject = nullptr;
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerState_Throw::OnUpdate(float afTimeStep)
 {	
@@ -51,7 +46,6 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 		mpPlayer->ResetCrossHairPos();
 	}
 
-	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
 	if(	pInput->IsTriggered("Run") &&
@@ -60,7 +54,6 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
 	}
 
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -101,49 +94,34 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Throw::OnDraw()
 {
 
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerState_Throw::OnPostSceneDraw()
 {
 	//mpHudObject->PostSceneDraw();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Throw::OnJump()
 { 
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Throw::OnStartInteractMode()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Throw::OnStartInteract()
 {
 	mpHudObject->OnAttackDown();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Throw::OnStopInteract()
 {
 	mpHudObject->OnAttackUp();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Throw::OnStartExamine()
 {
@@ -157,15 +135,11 @@ void cPlayerState_Throw::OnStartExamine()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Throw::OnStartHolster()
 {
 	mpInit->mpPlayerHands->SetCurrentModel(1,"");
 	mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Throw::OnAddYaw(float afVal)
 { 
@@ -177,8 +151,6 @@ bool cPlayerState_Throw::OnAddPitch(float afVal)
 	return true;//return mpHudObject->OnMouseMove(cVector2f(0,afVal));
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Throw::OnMoveForwards(float afMul, float afTimeStep)
 {	
 	mfLastForward = afMul;
@@ -186,22 +158,16 @@ bool cPlayerState_Throw::OnMoveForwards(float afMul, float afTimeStep)
 	
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Throw::OnMoveSideways(float afMul, float afTimeStep)
 {
 	mfLastSideways = afMul;
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Throw::EnterState(iPlayerState* apPrevState)
 {
 	mpHudObject->OnStart();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Throw::LeaveState(iPlayerState* apNextState)
 {
@@ -212,8 +178,6 @@ void cPlayerState_Throw::LeaveState(iPlayerState* apNextState)
 		mpInit->mpPlayerHands->SetCurrentModel(1,"");
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Throw::OnStartRun()
 {
@@ -231,7 +195,6 @@ void cPlayerState_Throw::OnStopRun()
 	else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
-//-----------------------------------------------------------------------
 
 void cPlayerState_Throw::OnStartCrouch()
 {
@@ -259,35 +222,24 @@ void cPlayerState_Throw::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Throw::OnStartInventory()
 {
 	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Throw::OnStartInventoryShortCut(int alNum)
 { 
 	return true;
 }
-//-----------------------------------------------------------------------
 
-
-//////////////////////////////////////////////////////////////////////////
 // WEAPON MELEE STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_WeaponMelee::cPlayerState_WeaponMelee(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_WeaponMelee)
 {
 	mfLastForward = 1.0f;
 	mfLastSideways = 1.0f;
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 {	
@@ -299,7 +251,6 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 		mpPlayer->ResetCrossHairPos();
 	}
 
-	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
 	if(	pInput->IsTriggered("Run") &&
@@ -308,7 +259,6 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
 	}
 
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -351,49 +301,34 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_WeaponMelee::OnDraw()
 {
 
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerState_WeaponMelee::OnPostSceneDraw()
 {
 	mpHudWeapon->PostSceneDraw();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_WeaponMelee::OnJump()
 { 
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_WeaponMelee::OnStartInteractMode()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_WeaponMelee::OnStartInteract()
 {
 	mpHudWeapon->OnAttackDown();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_WeaponMelee::OnStopInteract()
 {
 	mpHudWeapon->OnAttackUp();
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_WeaponMelee::OnStartExamine()
 {
@@ -406,14 +341,10 @@ void cPlayerState_WeaponMelee::OnStartExamine()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_WeaponMelee::OnStartHolster()
 {
 	mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_WeaponMelee::OnAddYaw(float afVal)
 { 
@@ -424,8 +355,6 @@ bool cPlayerState_WeaponMelee::OnAddPitch(float afVal)
 {
 	return mpHudWeapon->OnMouseMove(cVector2f(0,afVal));
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 {	
@@ -451,8 +380,6 @@ bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_WeaponMelee::OnMoveSideways(float afMul, float afTimeStep)
 {
 	/*cInput *pInput = mpInit->mpGame->GetInput();
@@ -477,8 +404,6 @@ bool cPlayerState_WeaponMelee::OnMoveSideways(float afMul, float afTimeStep)
 
 
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_WeaponMelee::EnterState(iPlayerState* apPrevState)
 {
@@ -515,8 +440,6 @@ void cPlayerState_WeaponMelee::EnterState(iPlayerState* apPrevState)
 	//mpPlayer->GetGlowStick()->SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_WeaponMelee::LeaveState(iPlayerState* apNextState)
 {
 	if(	apNextState->mType != ePlayerState_Message &&
@@ -526,8 +449,6 @@ void cPlayerState_WeaponMelee::LeaveState(iPlayerState* apNextState)
 		mpInit->mpPlayerHands->SetCurrentModel(1,"");
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_WeaponMelee::OnStartRun()
 {
@@ -545,7 +466,6 @@ void cPlayerState_WeaponMelee::OnStopRun()
 	else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
-//-----------------------------------------------------------------------
 
 void cPlayerState_WeaponMelee::OnStartCrouch()
 {
@@ -573,26 +493,18 @@ void cPlayerState_WeaponMelee::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_WeaponMelee::OnStartInventory()
 {
 	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_WeaponMelee::OnStartInventoryShortCut(int alNum)
 { 
 	return true;
 }
-	//-----------------------------------------------------------------------
 
-
-//////////////////////////////////////////////////////////////////////////
 // WEAPON STATE
-//////////////////////////////////////////////////////////////////////////
 
 /*class cPlayerState_Weapon : public iPlayerState
 {
@@ -607,9 +519,6 @@ cPlayerState_Weapon(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPla
 {
 mvPosition = cVector3f(0.13f, -0.16f, 0.2f);
 }
-
-//-----------------------------------------------------------------------
-
 
 void OnUpdate(float afTimeStep)
 {	
@@ -630,56 +539,39 @@ pCamera->GetRight() * vLocalPos.x;
 mpMeshEntity->SetPosition(pCamera->GetPosition() + vPos);
 }
 
-//-----------------------------------------------------------------------
-
 void OnDraw()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
-
 void OnPostSceneDraw()
 {
 }
-
-//-----------------------------------------------------------------------
 
 bool OnJump()
 { 
 return true;
 }
 
-//-----------------------------------------------------------------------
-
 void OnStartInteractMode()
 {
 //Do nothing
 }
-
-//-----------------------------------------------------------------------
 
 void OnStartInteract()
 {
 mpWeaponCallback->OnAttackDown();
 }
 
-//-----------------------------------------------------------------------
-
 void OnStopInteract()
 {
 mpWeaponCallback->OnAttackUp();
 }
 
-//-----------------------------------------------------------------------
-
 void OnStartExamine()
 {
 mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 bool OnAddYaw(float afVal)
 { 
@@ -691,21 +583,15 @@ bool OnAddPitch(float afVal)
 return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool OnMoveForwards(float afMul, float afTimeStep)
 {
 return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool OnMoveSideways(float afMul, float afTimeStep)
 {
 return true;
 }
-
-//-----------------------------------------------------------------------
 
 void EnterState(iPlayerState* apPrevState)
 {
@@ -742,8 +628,6 @@ mpPlayer->SetCrossHairState(eCrossHairState_None);
 //mpPlayer->GetGlowStick()->SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void LeaveState(iPlayerState* apNextState)
 {
 cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -753,8 +637,6 @@ pWorld->DestroyMeshEntity(mpMeshEntity);
 //Skipping this...
 //mpPlayer->SetWeaponCallback(NULL);
 }
-
-//-----------------------------------------------------------------------
 
 void OnStartRun()
 {
@@ -768,7 +650,6 @@ void OnStopRun()
 //else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 //	mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
-//-----------------------------------------------------------------------
 
 void OnStartCrouch()
 {
@@ -795,19 +676,14 @@ mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 }
 }
 
-//-----------------------------------------------------------------------
-
 bool OnStartInventory()
 {
 mpPlayer->ChangeState(ePlayerState_Normal);
 return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool OnStartInventoryShortCut(int alNum)
 { 
 return false;
 }
-//-----------------------------------------------------------------------
 };*/

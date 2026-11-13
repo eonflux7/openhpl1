@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cCamera3D::cCamera3D()
 	{
 		mvPosition = cVector3f(0);
@@ -67,19 +61,9 @@ namespace hpl {
 		mvYawLimits = cVector2f(0,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cCamera3D::~cCamera3D()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::SetPosition(const cVector3f &avPos)
 	{
@@ -88,8 +72,6 @@ namespace hpl {
 
 		mNode.SetPosition(mvPosition);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::SetPitch(float afAngle)
 	{
@@ -121,8 +103,6 @@ namespace hpl {
 		mbViewUpdated = true; mbMoveUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::AddPitch(float afAngle)
 	{
 		mfPitch += afAngle;
@@ -153,8 +133,6 @@ namespace hpl {
 		mbViewUpdated = true; mbMoveUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::MoveForward(float afDist)
 	{
 		UpdateMoveMatrix();
@@ -165,8 +143,6 @@ namespace hpl {
 
 		mNode.SetPosition(mvPosition);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::MoveRight(float afDist)
 	{
@@ -179,8 +155,6 @@ namespace hpl {
 		mNode.SetPosition(mvPosition);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::MoveUp(float afDist)
 	{
 		UpdateMoveMatrix();
@@ -192,23 +166,17 @@ namespace hpl {
 		mNode.SetPosition(mvPosition);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::SetRotateMode(eCameraRotateMode aMode)
 	{
 		mRotateMode = aMode;
 		mbViewUpdated = true; mbMoveUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::SetMoveMode(eCameraMoveMode aMode)
 	{
 		mMoveMode = aMode;
 		mbMoveUpdated = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::ResetRotation()
 	{
@@ -221,8 +189,6 @@ namespace hpl {
 		mfYaw =0;
 		mfPitch =0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::StoreInterpolation()
 	{
@@ -282,14 +248,10 @@ namespace hpl {
 		mbViewUpdated = true; mbMoveUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cCamera3D::GetScaledFOV()
 	{
 		return 2.0f * atan(tan(mfFOV*0.5f) * mfFOVScale);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cFrustum* cCamera3D::GetFrustum()
 	{
@@ -311,8 +273,6 @@ namespace hpl {
 		return &mFrustum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	const cMatrixf& cCamera3D::GetViewMatrix()
 	{
 		if(mbViewUpdated)
@@ -331,8 +291,6 @@ namespace hpl {
 		}
 		return m_mtxView;
 	}
-
-	//-----------------------------------------------------------------------
 
 	const cMatrixf& cCamera3D::GetProjectionMatrix()
 	{
@@ -374,8 +332,6 @@ namespace hpl {
 		return m_mtxProjection;
 	}
 
-	//-----------------------------------------------------------------------
-
 	const cMatrixf& cCamera3D::GetMoveMatrix()
 	{
 		UpdateMoveMatrix();
@@ -383,29 +339,20 @@ namespace hpl {
 		return m_mtxMove;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	cVector3f cCamera3D::GetEyePosition()
 	{
 		return mvPosition;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::SetModelViewMatrix(iLowLevelGraphics* apLowLevel)
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::SetProjectionMatrix(iLowLevelGraphics* apLowLevel)
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cCamera3D::UnProject(const cVector2f& avScreenPos, iLowLevelGraphics *apLowLevel)
 	{
@@ -447,8 +394,6 @@ namespace hpl {
 		return vDir;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCamera3D::AttachEntity(iEntity3D *apEntity)
 	{
 		mNode.AddEntity(apEntity);
@@ -464,8 +409,6 @@ namespace hpl {
 		mNode.ClearEntities();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cCamera3D::GetForward()
 	{
 		return GetViewMatrix().GetForward()*-1.0f;
@@ -478,14 +421,6 @@ namespace hpl {
 	{
 		return GetViewMatrix().GetUp();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cCamera3D::UpdateMoveMatrix()
 	{
@@ -503,7 +438,4 @@ namespace hpl {
 			mbMoveUpdated = false;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

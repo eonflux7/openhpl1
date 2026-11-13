@@ -34,8 +34,6 @@ namespace hpl {
 	class cResources;
 	class iHapticSurface;
 
-	//----------------------------------------
-
 	class cSurfaceImpactData
 	{
 	friend class cSurfaceData;
@@ -61,8 +59,6 @@ namespace hpl {
 
 	typedef std::vector<cSurfaceImpactData*> tSurfaceImpactDataVec;
 	typedef tSurfaceImpactDataVec::iterator tSurfaceImpactDataVecIt;
-
-	//----------------------------------------
 
 	class cSurfaceData
 	{

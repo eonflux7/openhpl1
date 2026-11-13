@@ -27,9 +27,7 @@ class TiXmlElement;
 
 namespace hpl {
 
-	/////////////////////////////////////////////////
-	//// ENGINE VALUE TYPES ///////////////////////////////
-	/////////////////////////////////////////////////
+	// ENGINE VALUE TYPES
 
 	typedef unsigned int eSerializeType;
 
@@ -72,9 +70,7 @@ namespace hpl {
 
 	#define eSerializeType_NULL			(0xFFFF)
 
-	/////////////////////////////////////////////////
-	//// ENGINE MAIN TYPES //////////////////////////
-	/////////////////////////////////////////////////
+	// ENGINE MAIN TYPES
 
 	typedef unsigned int eSerializeMainType;
 
@@ -86,9 +82,7 @@ namespace hpl {
 
 
 
-	/////////////////////////////////////////////////
-	//// HELPER DEFINES /////////////////////////////
-	/////////////////////////////////////////////////
+	// HELPER DEFINES
 
 	#define kMaxSerializeClasses 1000
 
@@ -197,11 +191,7 @@ namespace hpl {
 	cSerializeMemberField(#aVar, ClassMemberOffset(tVarClass,aVar),ClassMemberSize(tVarClass,aVar),aType,eSerializeMainType_Container,#aClass),
 
 
-	/////////////////////////////////////////////////
-	//// CLASSES ////////////////////////////////////
-	/////////////////////////////////////////////////
-
-	//-------------------------------------------------
+	// CLASSES
 
 	class cSerializeMemberField
 	{
@@ -247,8 +237,6 @@ namespace hpl {
 		size_t mlArraySize;
 	};
 
-	//-------------------------------------------------
-
 	class iSerializable
 	{
 	public:
@@ -256,16 +244,12 @@ namespace hpl {
 		virtual tString Serialize_GetTopClass(){ return "";}
 	};
 
-	//-------------------------------------------------
-
 	class iSerializableType
 	{
 	public:
 		virtual char* ValueToString(void *apVal)=0;
 		virtual void ValueFromString(char* apString, void *apVal)=0;
 	};
-
-	//-------------------------------------------------
 
 	typedef struct cSerializeSavedClass
 	{
@@ -283,9 +267,6 @@ namespace hpl {
 
 	} cSerializeSavedClass;
 
-
-	//-------------------------------------------------
-
 	class cSerializeMemberFieldIterator
 	{
 	public:
@@ -298,8 +279,6 @@ namespace hpl {
 		cSerializeSavedClass *mpSavedClass;
 		int mlFieldNum;
 	};
-
-	//-------------------------------------------------
 
 	typedef std::map<tString, cSerializeSavedClass> tSerializeSavedClassMap;
 	typedef tSerializeSavedClassMap::iterator tSerializeSavedClassMapIt;
@@ -359,9 +338,5 @@ namespace hpl {
 		static tSerializeSavedClassMap m_mapSavedClasses;
 		static std::vector<iSerializableType*> mvValueTypes;
 	};
-
-	//-------------------------------------------------
-
-
 };
 #endif // HPL_SERIALIZE_CLASS_H

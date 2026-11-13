@@ -24,8 +24,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------
-
 class cGameEnemy_Dog;
 
 // BASE STATE
@@ -49,8 +47,6 @@ protected:
 	cGameEnemy_Dog *mpEnemyDog;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Dog_Idle : public iGameEnemyState_Dog_Base
 {
@@ -63,8 +59,6 @@ public:
 
 	void OnUpdate(float afTimeStep) override;
 };
-
-//-----------------------------------------
 
 // ATTENTION STATE
 class cGameEnemyState_Dog_Attention : public iGameEnemyState_Dog_Base
@@ -87,8 +81,6 @@ private:
 	float mfTime;
 
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Dog_Hunt : public iGameEnemyState_Dog_Base
@@ -131,8 +123,6 @@ private:
 	bool mbBreakingDoor;
 };
 
-//-----------------------------------------
-
 // ATTACK STATE
 class cGameEnemyState_Dog_Attack : public iGameEnemyState_Dog_Base
 {
@@ -158,8 +148,6 @@ private:
 	bool mbAttacked;
 	cVector3f mvTargetPosition;
 };
-
-//-----------------------------------------
 
 // BREAK DOOR STATE
 class cGameEnemyState_Dog_BreakDoor : public iGameEnemyState_Dog_Base
@@ -188,8 +176,6 @@ private:
 	int mlCount;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Dog_Flee : public iGameEnemyState_Dog_Base
 {
@@ -213,8 +199,6 @@ private:
 	bool mbBackingFromBreakDoor;
 };
 
-//-----------------------------------------
-
 // CALL BACKUP STATE
 class cGameEnemyState_Dog_CallBackup : public iGameEnemyState_Dog_Base
 {
@@ -237,8 +221,6 @@ public:
 private:
 	bool mbCheckAnim;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Dog_KnockDown : public iGameEnemyState_Dog_Base
@@ -267,9 +249,6 @@ private:
 	int mlStuckAtMaxCount;
 };
 
-//-----------------------------------------
-
-
 // DEAD STATE
 class cGameEnemyState_Dog_Dead : public iGameEnemyState_Dog_Base
 {
@@ -287,8 +266,6 @@ public:
 	void OnTakeHit(float afDamage) override{}
 	void OnFlashlight(const cVector3f &avPosition) override{}
 };
-
-//-----------------------------------------
 
 // PATROL STATE
 class cGameEnemyState_Dog_Patrol : public iGameEnemyState_Dog_Base
@@ -311,8 +288,6 @@ private:
 
 	int mlStuckAtMaxCount;
 };
-
-//-----------------------------------------
 
 // INVESTIGATE STATE
 class cGameEnemyState_Dog_Investigate : public iGameEnemyState_Dog_Base
@@ -337,8 +312,6 @@ public:
 	  int mlKnockCount;
 };
 
-//-----------------------------------------
-
 // MOVETO STATE
 class cGameEnemyState_Dog_MoveTo : public iGameEnemyState_Dog_Base
 {
@@ -354,8 +327,6 @@ public:
 	  float mfIdleSoundTime;
 	  int mlBreakCount;
 };
-
-//-----------------------------------------
 
 // EAT STATE
 class cGameEnemyState_Dog_Eat : public iGameEnemyState_Dog_Base
@@ -374,8 +345,6 @@ public:
 
 	 float mfTime;
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Dog : public iGameEnemy
 {
@@ -486,7 +455,5 @@ private:
     iCollideShape *mpAttackShape;
 	iCollideShape *mpBreakDoorShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_DOG_H

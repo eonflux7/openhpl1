@@ -25,9 +25,6 @@ using namespace hpl;
 
 class cInit;
 
-
-//-----------------------------------------
-
 class cEffect_Underwater
 {
 public:
@@ -57,9 +54,6 @@ private:
 	iSoundChannel *mpLoopChannel;
 	float mfDiveSoundCooldownSeconds;
 };
-
-
-//-----------------------------------------
 
 class cEffect_ShakeScreen_Shake
 {
@@ -95,7 +89,6 @@ private:
 	std::list<cEffect_ShakeScreen_Shake> mlstShakes;
 };
 
-//-----------------------------------------
 class cGameSaveArea;
 class cEffect_SaveEffect
 {
@@ -144,8 +137,6 @@ private:
 	float mfStartFov;
 };
 
-//-----------------------------------------
-
 class cEffect_DepthOfField
 {
 public:
@@ -179,7 +170,6 @@ private:
 	
 	float mfMaxBlur;
 };
-//-----------------------------------------
 
 class cEffect_Flash
 {
@@ -211,8 +201,6 @@ private:
 	float mfWhiteSpeed;
 	float mfFadeOutSpeed;
 };
-
-//-----------------------------------------
 
 // Black Plague: a picture fades in over the view, stays and fades out
 class cEffect_ImageFlash
@@ -249,8 +237,6 @@ private:
 	float mfFadeOutSpeed;
 };
 
-//-----------------------------------------
-
 // Black Plague: the view laid over itself, a little larger and swelling
 class cEffect_DreamFilter
 {
@@ -279,8 +265,6 @@ private:
 	iGpuProgram *mpProgram;
 };
 
-//-----------------------------------------
-
 // Black Plague: the gas mask on the player's face
 class cEffect_GasMask
 {
@@ -306,8 +290,6 @@ private:
 	bool mbActive;
 	float mfBreathElapsedSeconds;
 };
-
-//-----------------------------------------
 
 class cSubTitle
 {
@@ -351,8 +333,6 @@ private:
     tSubTitleList mlstSubTitles;	
 };
 
-//-----------------------------------------
-
 class cEffect_WaveGravity
 {
 public:
@@ -379,8 +359,6 @@ private:
 
 	float mfTime;
 };
-
-//-----------------------------------------
 
 class cEffectHandler : public iUpdateable
 {

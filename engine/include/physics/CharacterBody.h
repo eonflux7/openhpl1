@@ -47,8 +47,6 @@ namespace hpl {
 									cCollideData *apCollideData)=0;
 	};
 
-	//------------------------------------------------
-
 	class cCharacterBodyRay : public iPhysicsRayCallback
 	{
 	public:
@@ -61,8 +59,6 @@ namespace hpl {
 		bool mbCollide;
 	};
 
-	//------------------------------------------------
-
 	class cCharacterBodyCollideGravity : public iPhysicsWorldCollisionCallback
 	{
 	public:
@@ -73,8 +69,6 @@ namespace hpl {
 		iCharacterBody *mpCharBody;
 	};
 
-	//------------------------------------------------
-
 	class cCharacterBodyCollidePush : public iPhysicsWorldCollisionCallback
 	{
 	public:
@@ -84,8 +78,6 @@ namespace hpl {
 
 		iCharacterBody *mpCharBody;
 	};
-
-	//-----------------------------------
 
 	kSaveData_BaseClass(iCharacterBody)
 	{
@@ -147,8 +139,6 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//------------------------------------------------
-
 	class iCharacterBody : public iSaveObject
 	{
 	#ifdef __GNUC__
@@ -162,7 +152,6 @@ namespace hpl {
 
 		const tString& GetName(){ return msName;}
 
-		///////////////////////////////////////
 		//Properties
 
 		float GetMass();
@@ -238,7 +227,6 @@ namespace hpl {
 		int AddExtraSize(const cVector3f& avSize);
 		void SetActiveSize(int alNum);
 
-		///////////////////////////////////////
 		//Actions
 		void SetForce(const cVector3f &avForce);
 		void AddForce(const cVector3f &avForce);
@@ -248,7 +236,6 @@ namespace hpl {
 
 		void Update(float afTimeStep);
 
-		///////////////////////////////////////
 		//Other
 		void SetCamera(cCamera3D *apCam);
 		cCamera3D* GetCamera();

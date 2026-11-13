@@ -37,9 +37,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// KEY CAPS
-	//////////////////////////////////////////////////////////////////////////
 
 	static cGfxObject *gpKeyCapGfx = nullptr;
 	static float gfKeyCapEdge = 0.25f;
@@ -77,14 +75,6 @@ namespace hpl {
 		gfKeyCapAspect = afAspect;
 	}
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
-
 	cGlyph::cGlyph(	cGfxObject *apObject, cGuiGfxElement *apGuiGfx,const cVector2f &avOffset,
 					const cVector2f &avSize, float afAdvance)
 	{
@@ -103,8 +93,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	iFontData::iFontData(const tString &asName,iLowLevelGraphics* apLowLevelGraphics)
 	: iResourceBase(asName,0)
 	{
@@ -116,8 +104,6 @@ namespace hpl {
 		mbVerticalPixelSnap = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iFontData::~iFontData()
 	{
 		for(int i=0;i<(int)mvGlyphs.size();i++)
@@ -125,15 +111,6 @@ namespace hpl {
 			if(mvGlyphs[i]) hplDelete(mvGlyphs[i]);
 		}
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iFontData::Draw(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 						eFontAlign aAlign,	const wchar_t* fmt,...)
@@ -149,8 +126,6 @@ namespace hpl {
 		DrawString(avPos,avSize,aCol,aAlign,sText,eFontEffect_None,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iFontData::DrawPlain(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 							eFontAlign aAlign, const wchar_t* apText)
 	{
@@ -158,16 +133,12 @@ namespace hpl {
 		DrawString(avPos,avSize,aCol,aAlign,apText,eFontEffect_None,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iFontData::DrawEffect(eFontEffect aEffect, float afEffectWidth,
 								const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								eFontAlign aAlign, const tWString &asString)
 	{
 		DrawString(avPos,avSize,aCol,aAlign,asString.c_str(),aEffect,afEffectWidth);
 	}
-
-	//-----------------------------------------------------------------------
 
 	int iFontData::DrawWordWrap(cVector3f avPos,float afLength,float afFontHeight,cVector2f avSize,const cColor& aCol,
 								eFontAlign aAlign,	const tWString &asString,
@@ -245,8 +216,6 @@ namespace hpl {
 		return rows;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iFontData::GetWordWrapRows(float afLength,float afFontHeight,cVector2f avSize,
 							const tWString& asString,tWStringVec *apRowVec)
 	{
@@ -318,8 +287,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float iFontData::GetLength(const cVector2f& avSize,const wchar_t* sText)
 	{
 		float fLength =0;
@@ -350,9 +317,6 @@ namespace hpl {
 		return fLength;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	float iFontData::GetLengthFmt(const cVector2f& avSize,const wchar_t* fmt,...)
 	{
 		wchar_t sText[256];
@@ -364,13 +328,6 @@ namespace hpl {
 
 		return GetLength(avSize, sText);
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cGlyph* iFontData::GetBitmapGlyph(wchar_t alChar)
 	{
@@ -382,15 +339,11 @@ namespace hpl {
 		return mvGlyphs[lGlyphNum];
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iFontData::HasVectorGlyph(wchar_t alChar)
 	{
 		return mbVectorFont && alChar>=0 && (size_t)alChar < mvVectorAdvance.size() &&
 				mvVectorAdvance[alChar] >= 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int iFontData::GetVectorPixelScale(int alLineHeight, float afStretch)
 	{
@@ -399,8 +352,6 @@ namespace hpl {
 		int lScale = (int)floorf((float)alLineHeight * mfVectorPixel * afStretch + 0.001f);
 		return lScale < 1 ? 1 : lScale;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iFontData::DrawBitmapString(cVector3f avPos,const cVector2f& avSize, const cColor& aCol,
 									const wchar_t* apText)
@@ -419,8 +370,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iFontData::DrawString(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								eFontAlign aAlign, const wchar_t* apText,
 								eFontEffect aEffect, float afEffectWidth)
@@ -431,7 +380,6 @@ namespace hpl {
 			return;
 		}
 
-		////////////////////////////////////
 		// Text with key caps: the runs of text between them are drawn from
 		// the left, each where the one before it ends.
 		cVector3f vPos = avPos;
@@ -458,8 +406,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float iFontData::GetKeyCapLength(const cVector2f& avSize, const tWString& asName)
 	{
 		if(gpKeyCapGfx == nullptr) return GetLength(avSize, asName.c_str());
@@ -470,8 +416,6 @@ namespace hpl {
 		float fKey = cMath::Max(fName + 2*kfKeyCapPadding*avSize.y, fHeight);
 		return fKey + 2*kfKeyCapGap*avSize.y;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float iFontData::DrawKeyCap(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								const tWString& asName, eFontEffect aEffect, float afEffectWidth)
@@ -498,7 +442,6 @@ namespace hpl {
 			fH += 2*afEffectWidth;
 		}
 
-		////////////////////////////////////
 		// The ends at their own shape, the middle stretched between them
 		float fEnd = fH * gfKeyCapAspect * gfKeyCapEdge;
 		if(fW < 2*fEnd) fW = 2*fEnd;
@@ -517,7 +460,6 @@ namespace hpl {
 											cRect2f(gfKeyCapEdge,0,1-2*gfKeyCapEdge,1));
 		}
 
-		////////////////////////////////////
 		// The name, smaller, centred on the key
 		cVector2f vNameSize = avSize * kfKeyCapName;
 		float fName = GetLength(vNameSize, asName.c_str());
@@ -529,8 +471,6 @@ namespace hpl {
 
 		return fLength;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iFontData::DrawStringRun(const cVector3f& avPos,const cVector2f& avSize, const cColor& aCol,
 								eFontAlign aAlign, const wchar_t* apText,
@@ -546,7 +486,6 @@ namespace hpl {
 			vPos.x -= GetLength(avSize, apText);
 		}
 
-		////////////////////////////////////
 		// Bitmap font: the glyphs are scaled to the size.
 		// Effects are made of copies of the text, moved to each side.
 		if(mbVectorFont==false)
@@ -577,7 +516,6 @@ namespace hpl {
 			return;
 		}
 
-		////////////////////////////////////
 		// Vector font: the glyphs are rendered for the size they get in
 		// pixels and placed on whole pixels. The advances do not depend on
 		// the resolution, so the layout is the same at any screen size.
@@ -673,25 +611,20 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGlyph* iFontData::CreateGlyph(iBitmap2D* apBmp, const cVector2l &avOffset,const cVector2l &avSize,
 								const cVector2l& avFontSize, int alAdvance)
 	{
 		//Here the bitmap should be saved to diskk for faster loading.
 
-		//////////////////////////
 		//Gfx object
 		cGfxObject* pObject = mpGraphicsDrawer->CreateGfxObject(apBmp,"fontnormal",false);
 
-		//////////////////////////
 		//Gui gfx
 		cGuiGfxElement* pGuiGfx = mpGui->CreateGfxFilledRect(cColor(1,1),eGuiMaterial_FontNormal,false);
 		cResourceImage *pImage = pObject->GetMaterial()->GetImage(eMaterialTexture_Diffuse);
 		pImage->IncUserCount();
 		pGuiGfx->AddImage(pImage);
 
-		//////////////////////////
 		//Sizes
 		cVector2f vSize;
 		vSize.x = ((float)avSize.x)/((float)avFontSize.x) * mvSizeRatio.x;
@@ -708,14 +641,8 @@ namespace hpl {
 		return pGlyph;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iFontData::AddGlyph(cGlyph *apGlyph)
 	{
 		mvGlyphs.push_back(apGlyph);
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

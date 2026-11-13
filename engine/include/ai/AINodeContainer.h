@@ -28,16 +28,12 @@ namespace hpl {
 
 	class cWorld3D;
 
-	//--------------------------------
-
 	typedef tFlag tAIFreePathFlag;
 
 	#define eAIFreePathFlag_SkipStatic	 (0x00000001)
 	#define eAIFreePathFlag_SkipDynamic	 (0x00000002)
 	#define eAIFreePathFlag_SkipVolatile (0x00000004)
 
-
-	//--------------------------------
 	class cAINode;
 
 	class cAINodeEdge
@@ -50,8 +46,6 @@ namespace hpl {
 
 	typedef std::vector<cAINodeEdge> tAINodeEdgeVec;
 	typedef tAINodeEdgeVec::iterator tAINodeEdgeVecIt;
-
-	//--------------------------------
 
 	class cAINode
 	{
@@ -86,15 +80,11 @@ namespace hpl {
 	typedef std::map<tString,cAINode*> tAINodeMap;
 	typedef tAINodeMap::iterator tAINodeMapIt;
 
-	//--------------------------------
-
 	class iAIFreePathCallback
 	{
 	public:
 		virtual bool Intersects(iPhysicsBody *pBody,cPhysicsRayParams *apParams)=0;
 	};
-
-	//--------------------------------
 
 	class cAINodeRayCallback : public iPhysicsRayCallback
 	{
@@ -114,15 +104,12 @@ namespace hpl {
 		tAIFreePathFlag mFlags;
 	};
 
-	//--------------------------------
-
 	class cAIGridNode
 	{
 	public:
 		tAINodeList mlstNodes;
 	};
 
-	//--------------------------------
 	class cAINodeContainer;
 
 	class cAINodeIterator
@@ -146,8 +133,6 @@ namespace hpl {
 		tAINodeList *mpNodeList;
 		tAINodeListIt mNodeIt;
 	};
-
-	//--------------------------------
 
 	class cAINodeContainer
 	{

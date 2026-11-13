@@ -26,7 +26,6 @@
 using namespace hpl;
 
 class cInit;
-//-------------------------------------------------
 
 class cDemoEndText : public iUpdateable
 {
@@ -63,8 +62,5 @@ private:
 
 	std::vector<iTexture*> mvTextures;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_DEMO_END_TEXT_H

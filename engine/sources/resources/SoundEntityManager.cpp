@@ -28,12 +28,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSoundEntityManager::cSoundEntityManager(cSound* apSound,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -48,14 +42,6 @@ namespace hpl {
 
 		Log(" Done with sound entities\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSoundEntityManager::Preload(const tString& asFile)
 	{
@@ -78,8 +64,6 @@ namespace hpl {
 			if(pChannel) hplDelete(pChannel);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSoundEntityData* cSoundEntityManager::CreateSoundEntity(const tString& asName)
 	{
@@ -115,20 +99,15 @@ namespace hpl {
 		return pSoundEntity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cSoundEntityManager::Create(const tString& asName)
 	{
 		return CreateSoundEntity(asName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundEntityManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cSoundEntityManager::Destroy(iResourceBase* apResource)
 	{
@@ -139,6 +118,4 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

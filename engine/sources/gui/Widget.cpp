@@ -26,12 +26,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iWidget::iWidget(eWidgetType aType,cGuiSet *apSet, cGuiSkin *apSkin)
 	{
 		mpSet = apSet;
@@ -66,11 +60,8 @@ namespace hpl {
 		else		mpPointerGfx = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iWidget::~iWidget()
 	{
-		////////////////////////
 		//Remove all children
 		tWidgetListIt it = mlstChildren.begin();
 		while(it != mlstChildren.end())
@@ -79,25 +70,14 @@ namespace hpl {
 			it = mlstChildren.begin();
 		}
 
-		////////////////////////////
 		//Remove from parent
 		if(mpParent) mpParent->RemoveChild(this);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::Update(float afTimeStep)
 	{
 		OnUpdate(afTimeStep);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::Draw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
@@ -114,14 +94,12 @@ namespace hpl {
 
 		OnDrawAfterClip(afTimeStep,apClipRegion);
 
-		/////////////////////////////////
 		//Draw callbacks
 		cGuiMessageData data;
 		data.mfVal = afTimeStep;
 		data.mpData = apClipRegion;
 		ProcessMessage(eGuiMessage_OnDraw, data);
 
-		/////////////////////////////////
 		//Draw children
 		tWidgetListIt it = mlstChildren.begin();
 		for(; it != mlstChildren.end(); ++it)
@@ -134,15 +112,11 @@ namespace hpl {
 		if(mbClipsGraphics) mpSet->SetCurrentClipRegion(apClipRegion);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::Init()
 	{
 		OnInit();
 		LoadGraphics();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iWidget::ProcessMessage(eGuiMessage aMessage, cGuiMessageData &aData)
 	{
@@ -153,7 +127,6 @@ namespace hpl {
 		bool bRet = false;
 		bRet = OnMessage(aMessage,aData); //This can override any message.
 
-		/////////////////////////////////////////
 		//Call the correct virtual function
 		if(bRet==false)
 		{
@@ -171,21 +144,16 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////
 		//Process user callbacks for the event.
 		if(ProcessCallbacks(aMessage,aData)) bRet = true;
 
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::AddCallback(eGuiMessage aMessage,void *apObject,tGuiCallbackFunc apFunc)
 	{
 		mvCallbackLists[aMessage].push_back(cWidgetCallback(apObject, apFunc));
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iWidget::PointIsInside(const cVector2f& avPoint, bool abOnlyClipped)
 	{
@@ -211,8 +179,6 @@ namespace hpl {
 			return true;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::AttachChild(iWidget *apChild)
 	{
@@ -248,8 +214,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::SetEnabled(bool abX)
 	{
 		if(mbEnabled == abX) return;
@@ -269,8 +233,6 @@ namespace hpl {
 		return mbEnabled;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::SetVisible(bool abX)
 	{
 		if(mbVisible == abX) return;
@@ -289,14 +251,10 @@ namespace hpl {
 		return mbVisible;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iWidget::HasFocus()
 	{
 		return mpSet->GetFocusedWidget() == this;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::SetText(const tWString& asText)
 	{
@@ -308,8 +266,6 @@ namespace hpl {
 		cGuiMessageData data = cGuiMessageData();
 		ProcessMessage(eGuiMessage_TextChange,data);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::SetPosition(const cVector3f &avPos)
 	{
@@ -345,8 +301,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::SetSize(const cVector2f &avSize)
 	{
 		mvSize = avSize;
@@ -354,16 +308,12 @@ namespace hpl {
 		OnChangeSize();
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iWidget::ClipsGraphics()
 	{
 		if(mpParent && mpParent->ClipsGraphics()) return true;
 
 		return mbClipsGraphics;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iWidget::IsConnectedTo(iWidget *apWidget, bool abIsStartWidget)
 	{
@@ -377,35 +327,20 @@ namespace hpl {
 		return false;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* iWidget::GetPointerGfx()
 	{
 		return mpPointerGfx;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool iWidget::OnGotFocus(cGuiMessageData &aData)
 	{
 		return mbEnabled;
 	}
-	//-----------------------------------------------------------------------
 
 	cVector3f iWidget::WorldToLocalPosition(const cVector3f &avPos)
 	{
 		return avPos - GetGlobalPosition();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f iWidget::GetPosRelativeToMouse(cGuiMessageData &aData)
 	{
@@ -413,15 +348,12 @@ namespace hpl {
 		return cVector2f(vTemp.x, vTemp.y);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::DrawBordersAndCorners(cGuiGfxElement *apBackground,
 										cGuiGfxElement **apBorderVec,cGuiGfxElement **apCornerVec,
 										const cVector3f &avPosition, const cVector2f &avSize)
 	{
 		mpSet->SetDrawOffset(avPosition);
 
-		///////////////////////
 		// Background
 		if(apBackground)
 		{
@@ -432,9 +364,6 @@ namespace hpl {
 							cColor(1,1));
 		}
 
-
-
-		///////////////////////
 		// Borders
 		//Right
 		mpSet->DrawGfx(	apBorderVec[0],
@@ -465,8 +394,6 @@ namespace hpl {
 			apCornerVec[3]->GetActiveSize().x),
 			apBorderVec[3]->GetImageSize().y));
 
-
-		///////////////////////
 		// Corners
 		//Left Up
 		mpSet->DrawGfx(apCornerVec[0], cVector3f(0,0,0));
@@ -483,8 +410,6 @@ namespace hpl {
 		mpSet->SetDrawOffset(0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::DrawSkinText(	const tWString& asText,eGuiSkinFont aFont,
 								const cVector3f& avPosition,eFontAlign aAlign)
 	{
@@ -492,8 +417,6 @@ namespace hpl {
 		mpSet->DrawFont(asText,pFont->mpFont,avPosition,pFont->mvSize,pFont->mColor,
 						aAlign);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iWidget::DrawDefaultText(	const tWString& asText,
 									const cVector3f& avPosition,eFontAlign aAlign)
@@ -503,14 +426,6 @@ namespace hpl {
 		mpSet->DrawFont(asText,mpDefaultFontType,avPosition,mvDefaultFontSize,
 						mDefaultFontColor, aAlign);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool iWidget::ProcessCallbacks(eGuiMessage aMessage, cGuiMessageData &aData)
 	{
@@ -531,8 +446,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iWidget::LoadGraphics()
 	{
 		if(mpSkin)
@@ -551,7 +464,6 @@ namespace hpl {
 		OnLoadGraphics();
 	}
 
-	//-----------------------------------------------------------------------
 	void iWidget::SetPositionUpdated()
 	{
 		mbPositionIsUpdated = true;
@@ -566,8 +478,4 @@ namespace hpl {
 			pChild->SetPositionUpdated();
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

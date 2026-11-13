@@ -30,18 +30,12 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// MATERIAL SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cEnvMapReflect_SetUp::Setup(iGpuProgram *apProgram,cRenderSettings* apRenderSettings)
 	{
 		apProgram->SetVec3f(eProgramParam::eyeWorldPos,apRenderSettings->mpCamera->GetPosition());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cEnvMapReflect_SetUp::SetupMatrix(cMatrixf *apModelMatrix, cRenderSettings* apRenderSettings)
 	{
@@ -54,15 +48,7 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static cEnvMapReflect_SetUp gEnvMaterialSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterial_EnvMap_Reflect::cMaterial_EnvMap_Reflect(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -75,31 +61,18 @@ namespace hpl {
 		mbIsGlowing= false;
 		mbUsesLights = false;
 
-		///////////////////////////////////////////
 		//Load the Z pass vertex program
 		iGpuProgram *pVtxProg = mpProgramManager->CreateProgram("Diffuse_Color");
 		SetProgram(pVtxProg,0);
 
-
-		///////////////////////////////////////////
 		//Load the Z pass vertex program
 		pVtxProg = mpProgramManager->CreateProgram("Diffuse_EnvMap_Reflect");
 		SetProgram(pVtxProg,1);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_EnvMap_Reflect::~cMaterial_EnvMap_Reflect()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_EnvMap_Reflect::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -148,8 +121,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_EnvMap_Reflect::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Z) return nullptr;
@@ -162,15 +133,11 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_EnvMap_Reflect::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse || aType == eMaterialRenderType_Z) return true;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList cMaterial_EnvMap_Reflect::GetTextureTypes()
 	{
@@ -180,6 +147,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

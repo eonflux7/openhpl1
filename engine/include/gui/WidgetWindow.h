@@ -39,7 +39,6 @@ namespace hpl {
 
 
 	protected:
-		/////////////////////////
 		// Implemented functions
 		void OnLoadGraphics() override;
 
@@ -51,7 +50,6 @@ namespace hpl {
 		bool OnMouseEnter(cGuiMessageData &aData) override;
 		bool OnMouseLeave(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		cGuiSkinFont *mpLabelFont;
 

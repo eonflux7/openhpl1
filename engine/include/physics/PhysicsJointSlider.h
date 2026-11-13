@@ -23,8 +23,6 @@
 
 namespace hpl {
 
-	//-----------------------------------
-
 	kSaveData_ChildClass(iPhysicsJoint, iPhysicsJointSlider)
 	{
 		kSaveData_ClassInit(iPhysicsJointSlider)
@@ -36,8 +34,6 @@ namespace hpl {
 		iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 		int GetSaveCreatePrio() override;
 	};
-
-	//-----------------------------------
 
 	class iPhysicsJointSlider : public iPhysicsJoint
 	{

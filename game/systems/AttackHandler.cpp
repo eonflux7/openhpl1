@@ -25,11 +25,7 @@
 #include "entities/GameObject.h"
 #include "entities/GameSwingDoor.h"
 
-//////////////////////////////////////////////////////////////////////////
 // RAY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAttackRayCallback::cAttackRayCallback()
 {
@@ -37,16 +33,12 @@ cAttackRayCallback::cAttackRayCallback()
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 void cAttackRayCallback::Reset()
 {
 	mpClosestBody = nullptr;
 	mfShortestDist = 0;
 	mbSkipCharacter = false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cAttackRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
@@ -65,21 +57,13 @@ bool cAttackRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPa
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SPLASH DAMAGE BLOCK CHECK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cSplashDamageBlockCheck::cSplashDamageBlockCheck(cInit *apInit)
 {
 	mpInit = apInit;
 	mbIntersected = false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cSplashDamageBlockCheck::CheckBlock(const cVector3f& avStart, const cVector3f&avEnd)
 {
@@ -91,8 +75,6 @@ bool cSplashDamageBlockCheck::CheckBlock(const cVector3f& avStart, const cVector
 	return mbIntersected;
 }
 
-//-----------------------------------------------------------------------
-
 bool cSplashDamageBlockCheck::BeforeIntersect(iPhysicsBody *pBody)
 {
 	if(pBody->IsCharacter() || pBody->GetMass() != 0 || pBody->GetBlocksSound()==false)
@@ -103,22 +85,11 @@ bool cSplashDamageBlockCheck::BeforeIntersect(iPhysicsBody *pBody)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cSplashDamageBlockCheck::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
 	mbIntersected = true;
 	return false;
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAttackHandler::cAttackHandler(cInit *apInit) : iUpdateable("AttackHandler")
 {
@@ -127,20 +98,10 @@ cAttackHandler::cAttackHandler(cInit *apInit) : iUpdateable("AttackHandler")
 	mpSplashBlockCheck = hplNew( cSplashDamageBlockCheck,(apInit) ); 
 }
 
-//-----------------------------------------------------------------------
-
 cAttackHandler::~cAttackHandler(void)
 {
 	hplDelete( mpSplashBlockCheck );
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool cAttackHandler::CreateLineAttack(const cVector3f& avStart, const cVector3f& avEnd, float afDamage, 
 										eAttackTargetFlag aTarget, iPhysicsBody *apSkipBody,
@@ -177,8 +138,6 @@ bool cAttackHandler::CreateLineAttack(const cVector3f& avStart, const cVector3f&
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cAttackHandler::HasFreePathToPlayer(const cVector3f &avOrigin, iPhysicsBody *apSkipBody)
 {
 	mRayCallback.Reset();
@@ -203,14 +162,12 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 
 	mpLastSwingDoor = nullptr;
 
-	///////////////////////////////
 	//Set up bounding box
     cBoundingVolume tempBV = apShape->GetBoundingVolume();
 	//Black Plague: a shape set off in its own volume keeps that offset
 	if(cInit::IsOverture())	tempBV.SetTransform(a_mtxShapeOffset);
 	else					tempBV.SetTransform(cMath::MatrixMul(a_mtxShapeOffset, tempBV.GetTransform()));
 		
-	///////////////////////////////
 	//Iterate bodies
 	cCollideData collideData;
 	collideData.SetMaxSize(1);
@@ -244,7 +201,6 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 		{
 			iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 			
-			///////////////////////////////
 			//Check for collision
 			if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
 				apShape, a_mtxShapeOffset,collideData,1)==false)
@@ -252,7 +208,6 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 				continue;
 			}
 			
-			///////////////////////////
 			//Player
 			if(aTarget & eAttackTargetFlag_Player)
 			{
@@ -285,14 +240,12 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 				}
 			}
 			
-			///////////////////////////
 			//Enemy
 			if(aTarget & eAttackTargetFlag_Enemy)
 			{
 
 			}
 			
-			///////////////////////////
 			//Bodies
 			if(aTarget & eAttackTargetFlag_Bodies)
 			{
@@ -316,7 +269,6 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 		}
 	}
 	
-	////////////////////////////////
 	//Iterate bodies hit, this to
 	//spread out the impulse.
 	float fAmount = (float)lstBodies.size();
@@ -347,8 +299,6 @@ bool cAttackHandler::CreateShapeAttack(	iCollideShape *apShape, const cMatrixf& 
 	
 	return bHit;
 }
-
-//-----------------------------------------------------------------------
 
 bool cAttackHandler::CreateLineDestroyBody(const cVector3f& avStart, const cVector3f& avEnd, 
 											float afStrength,float afForce,iPhysicsBody *apSkipBody, 
@@ -406,8 +356,6 @@ bool cAttackHandler::CreateLineDestroyBody(const cVector3f& avStart, const cVect
 	return false;
 }
 
-//----------------------------------------------------------------------
-
 static float CalculateRadialFalloff(float afDist, float afMaxDist, float afMinVal,float afMaxVal)
 {
 	float fMul = 1  - (afDist / afMaxDist);
@@ -415,8 +363,6 @@ static float CalculateRadialFalloff(float afDist, float afMaxDist, float afMinVa
 
 	return afMinVal + (afMaxVal - afMinVal)*fMul;
 }
-
-//----------------------------------------------------------------------
 
 void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadius, float afMinDamage, 
 										float afMaxDamage,float afMinForce, float afMaxForce,
@@ -472,7 +418,6 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 			lstBodies.push_back(bodyIt.Next());
 		}
 		
-		//////////////////////////
 		//Damage Iteration
 		std::list<iPhysicsBody*>::iterator it = lstBodies.begin();
 		for(; it != lstBodies.end(); ++it)
@@ -519,7 +464,6 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 		//Update map handler so all stuff that should be broken is.
 		//mpInit->mpMapHandler->Update(1.0f/60.0f);
 
-		//////////////////////////
 		//Force Iteration
 		it = lstBodies.begin();
 		for(; it != lstBodies.end(); ++it)
@@ -562,21 +506,14 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 	}
 }
 
-
-//-----------------------------------------------------------------------
-
 void cAttackHandler::OnStart()
 {
 	mpMapHandler = mpInit->mpMapHandler;
 }
 
-//-----------------------------------------------------------------------
-
 void cAttackHandler::Update(float afTimeStep)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cAttackHandler::Reset()
 {

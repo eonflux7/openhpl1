@@ -27,8 +27,6 @@ namespace hpl {
 
 	class cWidgetButton;
 
-	//---------------------------------------------
-
 	class cWidgetSlider : public iWidget
 	{
 	public:
@@ -50,14 +48,12 @@ namespace hpl {
 		float GetButtonSize() const{return mfButtonSize;}
 
 	protected:
-		/////////////////////////
 		// Own functions
 		void UpdateBarProperties();
 
 		bool ArrowButtonDown(iWidget* apWidget,cGuiMessageData& aData);
 		kGuiCalllbackDeclarationEnd(ArrowButtonDown);
 
-		/////////////////////////
 		// Implemented functions
 		void OnInit() override;
 		void OnLoadGraphics() override;
@@ -75,7 +71,6 @@ namespace hpl {
 
 		bool OnLostFocus(cGuiMessageData &aData) override;
 
-		/////////////////////////
 		// Data
 		eWidgetSliderOrientation mOrientation;
 

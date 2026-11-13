@@ -24,12 +24,6 @@
 #include "ui/MainMenu.h"
 #include "core/MapHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cPreMenu::cPreMenu(cInit *apInit)  : iUpdateable("PreMenu")
 {
 	mpInit = apInit;
@@ -53,21 +47,12 @@ cPreMenu::cPreMenu(cInit *apInit)  : iUpdateable("PreMenu")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cPreMenu::~cPreMenu(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
 void cPreMenu::LoadConfig()
 {
-	////////////////////////////////////////////////
 	//Load the document
 	tString sConfigFile = cInit::GetStartupConfigFile();
 	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sConfigFile.c_str()) );
@@ -77,7 +62,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-	////////////////////////////////////////////////
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==nullptr){
@@ -86,7 +70,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-	////////////////////////////////////////////////
 	//Load the Main element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
 	if(pMainElem==nullptr){
@@ -97,7 +80,6 @@ void cPreMenu::LoadConfig()
 
 	mbShowText = cString::ToBool(pMainElem->Attribute("ShowText"),false);
 
-	////////////////////////////////////////////////
 	//Load the Logos element.
 	TiXmlElement *pLogosParentElem = pRootElem->FirstChildElement("Logos");
 	if(pLogosParentElem==nullptr){
@@ -106,8 +88,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-
-	////////////////////////////////////////////////
 	//Get logos
 	TiXmlElement *pLogoElem = pLogosParentElem->FirstChildElement("Logo");
 	for(; pLogoElem != nullptr; pLogoElem = pLogoElem->NextSiblingElement("Logo"))
@@ -121,8 +101,6 @@ void cPreMenu::LoadConfig()
 
 	hplDelete( pXmlDoc );
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::Reset()
 {
@@ -186,8 +164,6 @@ void cPreMenu::Reset()
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
@@ -220,12 +196,8 @@ void cPreMenu::OnPostSceneDraw()
 
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPreMenu::OnDraw()
 {
-	//////////////////////////////////
 	// STATE 1 (TEXT)
 	if(mlState == 0 || mlState == 3 || mlState == 5)
 	{
@@ -267,8 +239,6 @@ void cPreMenu::OnDraw()
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::Update(float afTimeStep)
 {
@@ -378,10 +348,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 	}
 
-
-	
-	
-	//////////////////////////////////
 	// STATE 0 (Premenu Text)
 	if(mlState ==0)
 	{
@@ -448,7 +414,6 @@ void cPreMenu::Update(float afTimeStep)
 			}
 		}
 	}
-	/////////////////////
 	// STATE 1 (Logos)
 	else if (mlState == 1) 
 	{
@@ -510,7 +475,6 @@ void cPreMenu::Update(float afTimeStep)
 			}
 		}
 	}
-	//////////////////////////////////
 	// STATE 2 (FAST FADE LOGO)
 	else if(mlState ==2)
 	{
@@ -524,7 +488,6 @@ void cPreMenu::Update(float afTimeStep)
 				mlState = 4;
 		}
 	}
-	//////////////////////////////////
 	// STATE 3 (Text Pause)
 	else if(mlState ==3)
 	{
@@ -552,7 +515,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 		
 	}
-	///////////////////
 	// STATE 5 (Text Vanishing)
 	else if(mlState ==5)
 	{
@@ -593,7 +555,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 
 	}
-	/////////////////////////////////
 	// STATE 4 (PENUMBRA TITLES)
 	else if(mlState == 4)
 	{
@@ -642,14 +603,10 @@ void cPreMenu::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnMouseDown(eMButton aButton)
 {
 	OnButtonDown();
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::OnButtonDown()
 {
@@ -670,8 +627,6 @@ void cPreMenu::OnButtonDown()
 	}
 	if (mlState == 4)SetActive(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::SetActive(bool abActive)
 {
@@ -763,21 +718,7 @@ void cPreMenu::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-

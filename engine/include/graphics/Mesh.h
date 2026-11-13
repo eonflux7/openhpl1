@@ -51,8 +51,6 @@ namespace hpl {
 	class cSoundEntity;
 	class cWorld3D;
 
-	//--------------------------------------------------
-
 	typedef std::vector<cAnimation*> tAnimationVec;
 	typedef tAnimationVec::iterator tAnimationVecIt;
 
@@ -68,8 +66,6 @@ namespace hpl {
 	typedef std::vector<cNode3D*> tNode3DVec;
 	typedef tNode3DVec::iterator tNode3DVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshCollider
 	{
 	public:
@@ -82,8 +78,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshCollider*> tMeshColliderVec;
 	typedef tMeshColliderVec::iterator tMeshColliderVecIt;
-
-	//--------------------------------------------------
 
 	class cMeshJoint
 	{
@@ -107,8 +101,6 @@ namespace hpl {
 	typedef std::vector<cMeshJoint*> tMeshJointVec;
 	typedef tMeshJointVec::iterator tMeshJointVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshLight
 	{
 	public:
@@ -127,9 +119,6 @@ namespace hpl {
 	typedef std::vector<cMeshLight*> tMeshLightVec;
 	typedef tMeshLightVec::iterator tMeshLightVecIt;
 
-	//--------------------------------------------------
-
-
 	class cMeshBeam
 	{
 	public:
@@ -145,8 +134,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshBeam*> tMeshBeamVec;
 	typedef tMeshBeamVec::iterator tMeshBeamVecIt;
-
-	//--------------------------------------------------
 
 	class cMeshBillboard
 	{
@@ -164,8 +151,6 @@ namespace hpl {
 	typedef std::vector<cMeshBillboard*> tMeshBillboardVec;
 	typedef tMeshBillboardVec::iterator tMeshBillboardVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshParticleSystem
 	{
 	public:
@@ -180,8 +165,6 @@ namespace hpl {
 	typedef std::vector<cMeshParticleSystem*> tMeshParticleSystemVec;
 	typedef tMeshParticleSystemVec::iterator tMeshParticleSystemVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshSoundEntity
 	{
 	public:
@@ -195,8 +178,6 @@ namespace hpl {
 	typedef std::vector<cMeshSoundEntity*> tMeshSoundEntityVec;
 	typedef tMeshSoundEntityVec::iterator tMeshSoundEntityVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshReference
 	{
 	public:
@@ -209,8 +190,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshReference*> tMeshReferenceVec;
 	typedef tMeshReferenceVec::iterator tMeshReferenceVecIt;
-
-	//--------------------------------------------------
 
 	class cMesh : public iResourceBase
 	{

@@ -28,8 +28,6 @@
 
 using namespace hpl;
 
-//-----------------------------------------------------------------------
-
 // Differences between what the engine reads from two files
 
 static bool gbExact = false;
@@ -70,8 +68,6 @@ static tString Str(const cVector3f &avV)
 	return avV.ToString();
 }
 
-//-----------------------------------------------------------------------
-
 std::vector<cColladaNode *> ModelSceneNodes(cColladaScene &aScene)
 {
 	std::vector<cColladaNode *> vNodes;
@@ -106,8 +102,6 @@ static cColladaLight *FindLight(cColladaData &aData, const tString &asId)
 		if(light.msId == asId) return &light;
 	return nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 // A geometry as the engine uses it: vertices with the bind shape applied
 // (as cVertexBufferVBO::Transform), and the bone influences of each vertex.
@@ -234,8 +228,6 @@ static void CompareGeometry(const tString &asNode, const cEffectiveGeometry &aA,
 	if(lInf) aDiff.Error(sWhere + cString::ToString(lInf) + " vertices have other bone weights" + sFirstInf);
 }
 
-//-----------------------------------------------------------------------
-
 static void CompareAnimation(cMeshLoaderCollada &aLoader, cColladaData &aA, cColladaData &aB, cModelDiff &aDiff)
 {
 	cSkeleton *pSkelA = nullptr, *pSkelB = nullptr;
@@ -326,8 +318,6 @@ static void CompareAnimation(cMeshLoaderCollada &aLoader, cColladaData &aA, cCol
 	if(pSkelA) hplDelete(pSkelA);
 	if(pSkelB) hplDelete(pSkelB);
 }
-
-//-----------------------------------------------------------------------
 
 // What a node's source is to the loader
 tString ModelSourceKind(cColladaData &aData, cColladaNode *apNode)
@@ -477,8 +467,6 @@ void CompareModelData(cMeshLoaderCollada &aLoader, cColladaData &aA, cColladaDat
 
 	CompareAnimation(aLoader, aA, aB, aDiff);
 }
-
-//-----------------------------------------------------------------------
 
 bool CompareModelFiles(cMeshLoaderCollada &aLoader, const tString &asA, const tString &asB, cModelDiff &aDiff)
 {

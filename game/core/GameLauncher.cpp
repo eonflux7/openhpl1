@@ -30,8 +30,6 @@
 	#include <shellapi.h>
 #endif
 
-//-----------------------------------------------------------------------
-
 static const char *gvGameKeys[eGameId_LastEnum] = {"overture", "blackplague", "requiem"};
 
 const char* cGameLauncher::GetGameKey(eGameId aId)
@@ -46,8 +44,6 @@ static eGameId GameFromKey(const tString& asKey)
 		if(sKey == gvGameKeys[i]) return (eGameId)i;
 	return eGameId_LastEnum;
 }
-
-//-----------------------------------------------------------------------
 
 // GAMES.CFG: one "key=value" a line
 
@@ -112,8 +108,6 @@ void cGameLauncher::SetAskAtStart(bool abX)
 {
 	WriteValue("ask", abX ? "1" : "0");
 }
-
-//-----------------------------------------------------------------------
 
 // FINDING THE GAMES
 
@@ -247,8 +241,6 @@ tString cGameLauncher::FindGameFolder(eGameId aId)
 	}
 	return "";
 }
-
-//-----------------------------------------------------------------------
 
 // THE CHOOSER
 
@@ -543,8 +535,6 @@ static eGameId Choose(eGameId aPreferred, const std::string& asProblem)
 	return chosen;
 }
 
-//-----------------------------------------------------------------------
-
 // Smoke tests, captures and checks set the game and folder themselves: they
 // never wait for a chooser
 static bool IsAutomated()
@@ -642,8 +632,6 @@ bool cGameLauncher::Run(const tString& asCommandLine)
 	cInit::SetGameId(game);
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 #if defined(WIN32)
 void cGameLauncher::StartAgain(eGameId aId)
