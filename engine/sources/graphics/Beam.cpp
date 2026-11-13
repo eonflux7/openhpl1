@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/Beam.h"
 
 #include "tinyxml.h"
@@ -40,13 +24,6 @@ namespace hpl {
 	{
 		return multiplyAlpha ? cColor(color.r * color.a, color.g * color.a, color.b * color.a, color.a) : color;
 	}
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cBeam::cBeam(const tString asName, cResources *apResources,cGraphics *apGraphics) :
 	iRenderable(asName)
@@ -83,22 +60,12 @@ namespace hpl {
 		mbApplyTransformToBV = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBeam::~cBeam()
 	{
 		hplDelete(mpEnd);
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		if(mpVtxBuffer) hplDelete(mpVtxBuffer);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBeam::SetSize(const cVector2f& avSize)
 	{
@@ -107,8 +74,6 @@ namespace hpl {
 
 		SetTransformUpdated();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBeam::SetTileHeight(bool abX)
 	{
@@ -119,16 +84,12 @@ namespace hpl {
 		SetTransformUpdated();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBeam::SetMultiplyAlphaWithColor(bool abX)
 	{
 		if(mbMultiplyAlphaWithColor == abX) return;
 
 		mbMultiplyAlphaWithColor = abX;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBeam::SetColor(const cColor &aColor)
 	{
@@ -138,14 +99,10 @@ namespace hpl {
 		mpVtxBuffer->UpdateQuadInstances(1)[0].mColor = BeamVertexColor(mColor, mbMultiplyAlphaWithColor);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBeam::SetMaterial(iMaterial * apMaterial)
 	{
 		mpMaterial = apMaterial;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cBoundingVolume* cBeam::GetBoundingVolume()
 	{
@@ -174,8 +131,6 @@ namespace hpl {
 		return &mBoundingVolume;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBeam::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
 		UpdateInstance();
@@ -195,8 +150,6 @@ namespace hpl {
 		sheet.mvUV[1] = 1;
 		sheet.mvUV[3] = mbTileHeight ? -distance / mvSize.y : 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf* cBeam::GetModelMatrix(cCamera3D *apCamera)
 	{
@@ -241,15 +194,10 @@ namespace hpl {
 		return &m_mtxTempTransform;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cBeam::GetMatrixUpdateCount()
 	{
 		return GetTransformUpdateCount();
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	bool cBeam::LoadXMLProperties(const tString asFile)
 	{
@@ -283,7 +231,6 @@ namespace hpl {
 					SetColor(StartColor);
 					mpEnd->SetColor(EndColor);
 
-					/////////////////
 					//Load material
 					iMaterial *pMat = mpMaterialManager->CreateMaterial(sMaterial);
 					if(pMat)	{
@@ -316,8 +263,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cBeam::IsVisible()
 	{
 		if(mColor.r <= 0 && mColor.g <= 0 && mColor.b <= 0) return false;
@@ -325,13 +270,7 @@ namespace hpl {
 		return IsRendered();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// BEAM END TRANSFORM UPDATE CALLBACK
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBeamEnd_UpdateCallback::OnTransformUpdate(iEntity3D * apEntity)
 	{
@@ -340,14 +279,7 @@ namespace hpl {
 		pEnd->mpBeam->SetTransformUpdated(true);
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
 	// BEAM END
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBeamEnd::SetColor(const cColor &aColor)
 	{
@@ -357,24 +289,4 @@ namespace hpl {
 
 		mpBeam->mpVtxBuffer->UpdateQuadInstances(1)[0].mEndColor = BeamVertexColor(mColor, mpBeam->mbMultiplyAlphaWithColor);
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

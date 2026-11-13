@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2026 - OpenHPL1 contributors
- *
- * This file is part of OpenHPL1.
- *
- * OpenHPL1 is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * OpenHPL1 is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenHPL1.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2026 - OpenHPL1 contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "model_compare.h"
 
@@ -27,8 +11,6 @@
 #include <set>
 
 using namespace hpl;
-
-//-----------------------------------------------------------------------
 
 // Differences between what the engine reads from two files
 
@@ -70,8 +52,6 @@ static tString Str(const cVector3f &avV)
 	return avV.ToString();
 }
 
-//-----------------------------------------------------------------------
-
 std::vector<cColladaNode *> ModelSceneNodes(cColladaScene &aScene)
 {
 	std::vector<cColladaNode *> vNodes;
@@ -106,8 +86,6 @@ static cColladaLight *FindLight(cColladaData &aData, const tString &asId)
 		if(light.msId == asId) return &light;
 	return nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 // A geometry as the engine uses it: vertices with the bind shape applied
 // (as cVertexBufferVBO::Transform), and the bone influences of each vertex.
@@ -234,8 +212,6 @@ static void CompareGeometry(const tString &asNode, const cEffectiveGeometry &aA,
 	if(lInf) aDiff.Error(sWhere + cString::ToString(lInf) + " vertices have other bone weights" + sFirstInf);
 }
 
-//-----------------------------------------------------------------------
-
 static void CompareAnimation(cMeshLoaderCollada &aLoader, cColladaData &aA, cColladaData &aB, cModelDiff &aDiff)
 {
 	cSkeleton *pSkelA = nullptr, *pSkelB = nullptr;
@@ -326,8 +302,6 @@ static void CompareAnimation(cMeshLoaderCollada &aLoader, cColladaData &aA, cCol
 	if(pSkelA) hplDelete(pSkelA);
 	if(pSkelB) hplDelete(pSkelB);
 }
-
-//-----------------------------------------------------------------------
 
 // What a node's source is to the loader
 tString ModelSourceKind(cColladaData &aData, cColladaNode *apNode)
@@ -477,8 +451,6 @@ void CompareModelData(cMeshLoaderCollada &aLoader, cColladaData &aA, cColladaDat
 
 	CompareAnimation(aLoader, aA, aB, aDiff);
 }
-
-//-----------------------------------------------------------------------
 
 bool CompareModelFiles(cMeshLoaderCollada &aLoader, const tString &asA, const tString &asB, cModelDiff &aDiff)
 {

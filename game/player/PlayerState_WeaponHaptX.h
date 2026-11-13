@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_PLAYER_STATE_WEAPON_HAPTX_H
 #define GAME_PLAYER_STATE_WEAPON_HAPTX_H
 
@@ -24,11 +8,7 @@
 
 using namespace hpl;
 
-//-----------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // THROW STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cHudModel_Throw;
 
@@ -77,11 +57,7 @@ private:
 	float mfLastSideways;
 };
 
-//-----------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // WEAPON MELEE STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cHudModel_WeaponMelee;
 
@@ -140,7 +116,6 @@ private:
 	float mfLastSideways;
 
 	iCollideShape *mpCollider;
-	//iPhysicsBody *mpBody;
 
 	iHapticForce *mpSlowdownForce;
 	iHapticForce *mpFeedbackForce;
@@ -159,8 +134,5 @@ private:
 	cVector3f mvRotation;
 	cVector3f mvGoalRotation;
 };
-
-//-----------------------------------------------------------------
-
 
 #endif // GAME_PLAYER_STATE_WEAPON_H

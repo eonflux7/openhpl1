@@ -12,8 +12,6 @@ using namespace hpl;
 class cInit;
 class cMapChecks;
 
-//----------------------------------------
-
 // Automated run through the game, enabled with OPENHPL_SMOKE:
 //   OPENHPL_SMOKE=1            every map in maps/ and the test map
 //   OPENHPL_SMOKE=office,worm  maps whose name contains one of these
@@ -66,7 +64,5 @@ private:
 	int mlFramesPerStep;
 	int mlFailures;
 };
-
-//----------------------------------------
 
 #endif // GAME_SMOKE_TEST_H

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_CAMERA_H
 #define GAME_GAME_CAMERA_H
 
@@ -28,8 +12,6 @@ using namespace hpl;
 // pause at each end, and when the player stands in its light, in sight, it
 // goes into alert (the light changes colour, a sound, a script callback)
 // for a time. Written after the game's binary; the source was not released.
-
-//----------------------------------------------
 
 class cGameCamera_SaveData : public iGameEntity_SaveData
 {
@@ -49,8 +31,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//----------------------------------------------
 
 class cGameCamera : public iGameEntity, public iPhysicsRayCallback
 {
@@ -123,8 +103,6 @@ private:
 
 	cSoundEntity *mpTurnSound;
 };
-
-//----------------------------------------------
 
 class cEntityLoader_GameCamera : public cEntityLoader_Object
 {

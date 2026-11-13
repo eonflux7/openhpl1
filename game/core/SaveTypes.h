@@ -1,29 +1,11 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_SAVE_TYPES_H
 #define GAME_SAVE_TYPES_H
 
 #include "core/StdAfx.h"
 
 using namespace hpl;
-
-//------------------------------------------
 
 class cEngineBody_SaveData : public iSerializable
 {
@@ -40,8 +22,6 @@ public:
 	cMatrixf m_mtxTransform;
 };
 
-//------------------------------------------
-
 class cEngineJointController_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineJointController_SaveData)
@@ -51,8 +31,6 @@ public:
 	float mfDestValue;
 	bool mbActive;
 };
-
-//------------------------------------------
 
 class cEngineJoint_SaveData : public iSerializable
 {
@@ -70,8 +48,6 @@ public:
 
 	cContainerVec<cEngineJointController_SaveData> mvControllers;
 };
-
-//------------------------------------------
 
 class cEnginePSEmitter_SaveData : public iSerializable
 {
@@ -98,8 +74,6 @@ public:
 	cContainerVec<cEnginePSEmitter_SaveData> mvEmitterActive;
 };
 
-//------------------------------------------
-
 class cEngineBeam_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineBeam_SaveData)
@@ -114,8 +88,6 @@ public:
 	cVector3f mvEndPos;
 };
 
-//------------------------------------------
-
 class cEngineSound_SaveData : public iSerializable
 {
 	kSerializableClassInit(cEngineSound_SaveData)
@@ -127,8 +99,6 @@ public:
 	bool mbActive;
 	bool mbStopped;
 };
-
-//------------------------------------------
 
 class cEngineLightAttachBB_SaveData : public iSerializable
 {
@@ -168,8 +138,5 @@ public:
 	float mfFlickerOnFadeLength;
 	float mfFlickerOffFadeLength;
 };
-
-//------------------------------------------
-
 
 #endif // GAME_SAVE_TYPES_H

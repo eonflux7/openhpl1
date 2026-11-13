@@ -1,32 +1,10 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/SDLBitmap2D.h"
 
 
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSDLBitmap2D::cSDLBitmap2D(iPixelFormat *apPxlFmt) : iBitmap2D("SDL",apPxlFmt)
 	{
@@ -55,20 +33,10 @@ namespace hpl {
 		SDL_DestroySurface(mpSurface);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cSDLBitmap2D::SaveToFile(const tString& asFile)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSDLBitmap2D::DrawToBitmap(iBitmap2D *apDest, const cVector2l &avDestPos)
 	{
@@ -102,8 +70,6 @@ namespace hpl {
 			}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSDLBitmap2D::FillRect(const cRect2l &aRect, const cColor &aColor)
 	{
 		SDL_Rect rect;
@@ -118,14 +84,10 @@ namespace hpl {
 		SDL_FillSurfaceRect(mpSurface, &rect,col);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSDLBitmap2D::HasAlpha()
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cSDLBitmap2D::Create(cVector2l avSize, unsigned int alBpp)
 	{
@@ -139,14 +101,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	SDL_Surface* cSDLBitmap2D::GetSurface()
 	{
 		return mpSurface;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void* cSDLBitmap2D::GetRawData()
 	{
@@ -157,7 +115,4 @@ namespace hpl {
 	{
 		return SDL_BYTESPERPIXEL(mpSurface->format);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

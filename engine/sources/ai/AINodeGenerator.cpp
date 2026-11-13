@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ai/AINodeGenerator.h"
 
 #include "scene/World3D.h"
@@ -35,11 +19,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// PARAMS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAINodeGeneratorParams::cAINodeGeneratorParams()
 	{
@@ -53,10 +33,6 @@ namespace hpl {
 
 		mfGridSize = 0.4f;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 
 	class cCollideRayCallback : public iPhysicsRayCallback
 	{
@@ -77,14 +53,6 @@ namespace hpl {
 		float mfDist;
 	};
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cAINodeGenerator::cAINodeGenerator()
 	{
 
@@ -95,17 +63,7 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	static cCollideRayCallback gCollideRayCallback;
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeGenerator::Generate(cWorld3D* apWorld,cAINodeGeneratorParams *apParams)
 	{
@@ -141,8 +99,6 @@ namespace hpl {
 			}
 		}
 
-
-		/////////////////////////////////
 		// Get the size of the world
 		cPhysicsBodyIterator it = pPhysicsWorld->GetBodyIterator();
 		cVector3f vWorldMax(-100000,-100000,-100000);
@@ -174,7 +130,6 @@ namespace hpl {
 		vWorldMax.x -= mpParams->mfGridSize;
 		vWorldMax.z -= mpParams->mfGridSize;
 
-		/////////////////////////////////////////
 		//Check against the user set min and max
 		if(vWorldMin.x < mpParams->mvMinPos.x) vWorldMin.x = mpParams->mvMinPos.x;
 		if(vWorldMax.x > mpParams->mvMaxPos.x) vWorldMax.x = mpParams->mvMaxPos.x;
@@ -185,8 +140,6 @@ namespace hpl {
 		if(vWorldMin.z < mpParams->mvMinPos.z) vWorldMin.z = mpParams->mvMinPos.z;
 		if(vWorldMax.z > mpParams->mvMaxPos.z) vWorldMax.z = mpParams->mvMaxPos.z;
 
-
-		/////////////////////////////////////////
 		//Place the nodes in the world
 		cVector3f vPos(vWorldMin.x,0,vWorldMin.z);
 
@@ -197,10 +150,6 @@ namespace hpl {
 
 			pPhysicsWorld->CastRay(this,vStart,vEnd,false,false,true);
 
-			//Log("Pos: %s Min: %s Max: %s\n",vPos.ToString().c_str(),
-			//								vWorldMin.ToString().c_str(),
-			//								vWorldMax.ToString().c_str());
-
 			vPos.x += apParams->mfGridSize;
 			if(vPos.x > vWorldMax.x)
 			{
@@ -209,7 +158,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////
 		//Check so that the nodes are not too close to walls
 		cVector3f vEnds[4] = {	cVector3f(mpParams->mfMinWallDist,0,0),
 									cVector3f(-mpParams->mfMinWallDist,0,0),
@@ -236,10 +184,6 @@ namespace hpl {
 
 				if(gCollideRayCallback.mbIntersected)
 				{
-					//Log("Walldistance %f : Add: (%s) Push (%s) Min: %f\n",gCollideRayCallback.mfDist,
-					//											vEnds[i].ToString().c_str(),
-					//											vPushBackDirs[i].ToString().c_str(),
-					//											mpParams->mfMinWallDist);
 					if(gCollideRayCallback.mfDist < mpParams->mfMinWallDist)
 					{
 						Node.mvPos += vPushBackDirs[i] * (mpParams->mfMinWallDist - gCollideRayCallback.mfDist);
@@ -248,17 +192,12 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		// Save to file
 
 		SaveToFile();
 	}
 
-	//////////////////////////////////////////////////////////////////////////
 	// PRIVATE
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cAINodeGenerator::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 	{
@@ -272,8 +211,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAINodeGenerator::SaveToFile()
 	{
@@ -310,8 +247,6 @@ namespace hpl {
 		hplDelete(pXmlDoc);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAINodeGenerator::LoadFromFile()
 	{
 		if(mpWorld->GetFileName() == "") return;
@@ -344,6 +279,4 @@ namespace hpl {
 
 		hplDelete(pXmlDoc);
 	}
-
-	//-----------------------------------------------------------------------
 }

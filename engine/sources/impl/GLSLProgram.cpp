@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/GLSLProgram.h"
 #include "impl/GLTexture.h"
 #include "impl/GpuProfiler.h"
@@ -31,9 +15,7 @@
 
 namespace hpl{
 
-	//////////////////////////////////////////////////////////////////////////
 	// STATIC DATA
-	//////////////////////////////////////////////////////////////////////////
 
 	tString cGLSLProgram::msShaderDir = "shaders/";
 	iLowLevelGraphics* cGLSLProgram::mpLowLevelGraphics = nullptr;
@@ -170,8 +152,6 @@ namespace hpl{
 
 	static const int kMaxSamplers = 8;
 
-	//-----------------------------------------------------------------------
-
 	static bool ReadTextFile(const tString& asPath, tString& asOut)
 	{
 		FILE *pFile = fopen(asPath.c_str(), "rb");
@@ -187,8 +167,6 @@ namespace hpl{
 
 		return lRead == (size_t)lSize;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Appends asFile with its #include "name" lines replaced by the named
 	// files from the shader directory, each file once. Every file gets its
@@ -258,12 +236,6 @@ namespace hpl{
 		return true;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGLSLProgram::cGLSLProgram(tString asName, bool abState)
 	: iGpuProgram(asName)
 	{
@@ -288,14 +260,6 @@ namespace hpl{
 
 		if(mlMaterialBuffer) glDeleteBuffers(1, &mlMaterialBuffer);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGLSLProgram::InitPrograms(iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -360,8 +324,6 @@ namespace hpl{
 		return bChanged;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLSLProgram::Reload()
 	{
 		return CompileProgram();
@@ -374,8 +336,6 @@ namespace hpl{
 	void cGLSLProgram::Destroy()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLSLProgram::CreateFromFile(const tString &asFile, const tString &asDefines)
 	{
@@ -394,8 +354,6 @@ namespace hpl{
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Compiles msBase with msDefines. On failure the current version, if
 	// any, is kept.
@@ -496,8 +454,6 @@ namespace hpl{
 		return bChanged;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLSLProgram::Bind(){ mpBoundProgram = this; }
 	void cGLSLProgram::UnBind(){ if(mpBoundProgram == this) mpBoundProgram = nullptr; }
 
@@ -528,8 +484,6 @@ namespace hpl{
 		return SetTextureToUnit(lUnit, apTexture);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLSLProgram::SetTextureToUnit(int alUnit, iTexture* apTexture)
 	{
 		if(alUnit < 0 || alUnit >= kMaxSamplers) return false;
@@ -539,14 +493,6 @@ namespace hpl{
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileShader(GLenum aStage, const tString& asFile, const tString& asDefines,
 										bool abState, std::vector<tString> *apFiles)
@@ -572,8 +518,6 @@ namespace hpl{
 
 		return CompileSource(aStage, sSource, sName, vFiles);
 	}
-
-	//-----------------------------------------------------------------------
 
 	GLuint cGLSLProgram::CompileSource(GLenum aStage, tString asSource, const tString& asName,
 									const std::vector<tString>& avFiles)
@@ -676,6 +620,4 @@ namespace hpl{
 		glUseProgram(previous);
 		return lProgram;
 	}
-
-	//-----------------------------------------------------------------------
 }

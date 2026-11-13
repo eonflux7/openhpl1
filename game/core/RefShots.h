@@ -11,8 +11,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // Reference images for checking renderer changes, enabled with
 // OPENHPL_REFSHOTS:
 //   OPENHPL_REFSHOTS=1            every map in maps/ and the test map
@@ -129,7 +127,5 @@ private:
 	bool mbPrevLimitFPS;
 	bool mbPrevSubtitles;
 };
-
-//----------------------------------------
 
 #endif // GAME_REF_SHOTS_H

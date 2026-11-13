@@ -1,3 +1,7 @@
-# Mechanical clang-tidy rewrites; git config blame.ignoreRevsFile .git-blame-ignore-revs
-b1f4f5c2325200d49a522252dbb49169b5d195a1
-b653fe7d619d0d67be4a0a91d50bbcc9dcbd05c1
+# Mechanical comment cleanup; use: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Remove separator and section-banner comments
+45b973744a247ecb4aa0acf513c7496eb86ce927
+# Shorten GPL headers to a copyright line and SPDX tag
+3841fc162ab7fec50ddba4f9603241d8e6908370
+# Remove commented-out code
+f3cfb4fdd45018d98531a77fb81d670a4fa92242

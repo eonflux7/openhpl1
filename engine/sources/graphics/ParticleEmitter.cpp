@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/ParticleEmitter.h"
 #include "system/LowLevelSystem.h"
 #include "resources/Resources.h"
@@ -27,11 +11,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// DATA LOADER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitterData::iParticleEmitterData(const tString &asName,cResources* apResources,
 											cGraphics *apGraphics)
@@ -44,8 +24,6 @@ namespace hpl {
 		mfWarmUpStepsPerSec = 20;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitterData::~iParticleEmitterData()
 	{
 		for(int i=0;i<(int)mvMaterials.size();i++)
@@ -53,20 +31,11 @@ namespace hpl {
 			if(mvMaterials[i]) mpResources->GetMaterialManager()->Destroy(mvMaterials[i]);
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitterData::AddMaterial(iMaterial *apMaterial)
 	{
 		mvMaterials.push_back(apMaterial);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitter::iParticleEmitter(tMaterialVec *avMaterials,
 									unsigned int alMaxParticles, cVector3f avSize,
@@ -94,22 +63,12 @@ namespace hpl {
 		mbUpdateBV = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitter::~iParticleEmitter()
 	{
 		for(int i=0;i<(int)mvParticles.size();i++){
 			hplDelete(mvParticles[i]);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter::Update(float afTimeStep)
 	{
@@ -120,8 +79,6 @@ namespace hpl {
 		mbUpdateBV = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter::KillInstantly()
 	{
 		mlMaxParticles = 0;
@@ -129,23 +86,12 @@ namespace hpl {
 		mbDying = true;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cParticle* iParticleEmitter::CreateParticle()
 	{
 		if(mlNumOfParticles == mlMaxParticles) return nullptr;
 		++mlNumOfParticles;
 		return mvParticles[mlNumOfParticles-1];
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter::SwapRemove(unsigned int alIndex)
 	{
@@ -157,7 +103,4 @@ namespace hpl {
 		}
 		mlNumOfParticles--;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

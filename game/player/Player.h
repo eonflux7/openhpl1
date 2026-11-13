@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_PLAYER_H
 #define GAME_PLAYER_H
 
@@ -63,8 +47,6 @@ class cInventoryItem;
 class cPlayer_GlobalSave;
 class cSavedWorld;
 
-//---------------------------------------------
-
 kSaveData_BaseClass(cPlayer)
 {
 	kSaveData_ClassInit(cPlayer)
@@ -77,8 +59,6 @@ public:
 	iSaveObject* CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame) override;
 	int GetSaveCreatePrio() override;
 };
-
-//---------------------------------------------
 
 class iPlayerMoveState
 {
@@ -143,7 +123,6 @@ public:
 	ePlayerMoveState mType;
 
 };
-//---------------------------------------------
 
 class cPlayer : public iUpdateable
 {
@@ -152,7 +131,6 @@ public:
 	cPlayer(cInit *apInit);
 	~cPlayer() override;
 	
-	////////////////////////////////////////
 	//Interaction
 	
 	void MoveForwards(float afMul, float afTimeStep);
@@ -187,7 +165,6 @@ public:
 
 	void StartGlowStickButton();
 		
-	////////////////////////////////
 	// Actions
 	void SetStartPos(const tString& asName);
 
@@ -214,7 +191,6 @@ public:
 
 	iSaveData* CreateSaveData();
 	
-	/////////////////////////////////////////
 	// Events
 	void OnWorldLoad();
 	void OnWorldExit();
@@ -224,7 +200,6 @@ public:
 	void OnDraw() override;
 	void OnPostSceneDraw() override;
 
-	/////////////////////////////////////////
 	//Saving
 
 	void AddSaveData(cSavedWorld* apSavedWorld);
@@ -233,7 +208,6 @@ public:
 	void SaveToGlobal(cPlayer_GlobalSave *apSave);
 	void LoadFromGlobal(cPlayer_GlobalSave *apSave);
 	
-	/////////////////////////////////////////
 	//Properties
 	bool IsDead();
 
@@ -377,7 +351,6 @@ public:
 	void JumpOffLadder();
 	float GetMaxJumpCount(){ return mfMaxJumpCount;}
 
-	/////////////////////////////////////////
 	//Stats
 	int mlStat_NumOfSaves;
 	// Black Plague: shown on the statistics page after the credits
@@ -388,8 +361,6 @@ public:
 	int mlStat_MaxNotes;		//game.cfg's totals
 	int mlStat_MaxCollectables;
 
-
-	/////////////////////////////////////////
 	//State properties
 	float mfForwardUpMul;
 	float mfForwardRightMul;

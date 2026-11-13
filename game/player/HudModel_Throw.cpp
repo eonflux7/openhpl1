@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "player/HudModel_Throw.h"
 
 #include "core/Init.h"
@@ -28,11 +12,7 @@
 #include "ui/Inventory.h"
 
 
-/////////////////////////////////////////////////////////////////////////
 // HUD MODEL THROW
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cHudModel_Throw::cHudModel_Throw() : iHudModel(ePlayerHandType_Throw)
 {
@@ -41,11 +21,8 @@ cHudModel_Throw::cHudModel_Throw() : iHudModel(ePlayerHandType_Throw)
 	mfChargeProgress = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 {
-	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("THROW");
 	if(pMeleeElem==nullptr){
@@ -53,7 +30,6 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 		return;
 	}
 	
-	//mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 	mChargePose = GetPoseFromElem("ChargePose",pMeleeElem);
 
 	mfChargeDurationSeconds = cString::ToFloat(pMeleeElem->Attribute("ChargeTime"),0);
@@ -70,23 +46,17 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 	msThrowSound = cString::ToString(pMeleeElem->Attribute("ThrowSound"),"");
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnStart()
 {
 	mbButtonDown = false;
 	mfChargeProgress = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::ResetExtraData()
 {
 	mbButtonDown = false;
 	mfChargeProgress = 0;
 }
-
-//-----------------------------------------------------------------------
 
 bool cHudModel_Throw::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 {
@@ -108,8 +78,6 @@ bool cHudModel_Throw::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnAttackDown()
 {
 	if(mState == eHudModelState_Idle)
@@ -124,8 +92,6 @@ void cHudModel_Throw::OnAttackDown()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_Throw::OnAttackUp()
 {
 	if(mbButtonDown == false) return;
@@ -139,7 +105,6 @@ void cHudModel_Throw::OnAttackUp()
 		pSoundHandler->PlayGui(msThrowSound,false,1.0f);
 	}
 
-	///////////////////////////////
 	//Create entity
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	
@@ -167,7 +132,6 @@ void cHudModel_Throw::OnAttackUp()
 
 	mpInit->mpPlayer->GetHidden()->UnHide();
 
-	//////////////////////
 	//Reset animations
 
 	mfChargeProgress = 0;
@@ -175,7 +139,6 @@ void cHudModel_Throw::OnAttackUp()
 	mfEquipProgress = -mfReloadTime;
 	mState = eHudModelState_Equip;
 
-	//////////////////////
 	//Decrease item amount
 	mpItem->AddCount(-1);
 	if(mpItem->GetCount()<=0)
@@ -188,11 +151,7 @@ void cHudModel_Throw::OnAttackUp()
 
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_Throw::OnMouseMove(const cVector2f &avMovement)
 {
 	return false;
 }
-
-//-----------------------------------------------------------------------

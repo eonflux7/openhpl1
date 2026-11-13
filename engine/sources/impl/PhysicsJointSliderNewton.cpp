@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/PhysicsJointSliderNewton.h"
 
 #include <algorithm>
@@ -26,12 +10,6 @@
 #include "system/LowLevelSystem.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPhysicsJointSliderNewton::cPhysicsJointSliderNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
@@ -53,20 +31,10 @@ namespace hpl {
 		mvPivotPoint = avPivotPoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointSliderNewton::~cPhysicsJointSliderNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointSliderNewton::SetMaxDistance(float afX)
 	{
@@ -87,8 +55,6 @@ namespace hpl {
 		return mfMinDistance;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointSliderNewton::GetVelocity()
 	{
 		float fSpeed = NewtonSliderGetJointVeloc(mpNewtonJoint);
@@ -105,8 +71,6 @@ namespace hpl {
 		return vForce;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsJointSliderNewton::GetDistance()
 	{
 		return NewtonSliderGetJointPosit(mpNewtonJoint);
@@ -115,14 +79,6 @@ namespace hpl {
 	{
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// How near a limit its stop holds, and how much of the way back to it
 	// that stop pulls in one step
@@ -133,10 +89,7 @@ namespace hpl {
 	{
 		cPhysicsJointSliderNewton* pSliderJoint = (cPhysicsJointSliderNewton*)NewtonJointGetUserData(pSlider);
 
-		//pSliderJoint->OnPhysicsUpdate();
-
 		float fDistance = NewtonSliderGetJointPosit (pSlider);
-		//Log("Dist: %f\n",fDistance);
 
 		if(pSliderJoint->mfMinDistance == 0 && pSliderJoint->mfMaxDistance == 0) return 0;
 
@@ -152,8 +105,6 @@ namespace hpl {
 			pDesc->m_accel = NewtonSliderCalculateStopAccel (pSlider, pDesc, pSliderJoint->mfMinDistance);
 			pDesc->m_minFriction =0;
 
-			//Log("Under Min. Acc: %f Dist %f\n",pDesc->m_accel,fDistance);
-
 			return 1;
 		}
 		else if (fDistance > pSliderJoint->mfMaxDistance)
@@ -163,7 +114,6 @@ namespace hpl {
 			pDesc->m_accel = NewtonSliderCalculateStopAccel (pSlider, pDesc, pSliderJoint->mfMaxDistance);
 			pDesc->m_maxFriction =0;
 
-			//Log("Over Max. Acc: %f Dist %f\n",pDesc->m_accel,fDistance);
 			return 1;
 		}
 		// Within a few millimetres of a limit the stop already holds, pushing
@@ -209,10 +159,6 @@ namespace hpl {
 			pSliderJoint->OnNoLimit();
 		}
 
-		//Log("Nothing, Dist %f\n",fDistance);
-
 		return 0;
 	}
-	//-----------------------------------------------------------------------
-
 }

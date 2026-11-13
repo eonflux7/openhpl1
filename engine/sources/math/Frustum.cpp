@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "math/Frustum.h"
 
 #include "math/Math.h"
@@ -25,23 +9,9 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cFrustum::cFrustum()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cFrustum::SetViewProjMatrix(const cMatrixf& a_mtxProj, const cMatrixf& a_mtxView,
 									float afFarPlane, float afNearPlane,float afFOV,float afAspect,
@@ -69,14 +39,10 @@ namespace hpl {
 		UpdateBV();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPlanef cFrustum::GetPlane(eFrustumPlane aType)
 	{
 		return mPlane[aType];
 	}
-
-	//-----------------------------------------------------------------------
 
 	eFrustumCollision cFrustum::CollideBoundingVolume(cBoundingVolume* aBV)
 	{
@@ -98,21 +64,15 @@ namespace hpl {
 		return ret;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrustum::CheckLineIntersection(const cVector3f& avPoint1,const cVector3f& avPoint2)
 	{
 		return cMath::CheckFrustumLineIntersection(&mPlane[0],avPoint1,avPoint2,3);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrustum::CheckQuadMeshIntersection(tVector3fVec *apPoints)
 	{
 		return cMath::CheckFrustumQuadMeshIntersection(&mPlane[0],apPoints,3);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cFrustum::CheckVolumeIntersection(cShadowVolumeBV *apVolume)
 	{
@@ -136,14 +96,6 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	eFrustumCollision cFrustum::CollideFrustumSphere(cBoundingVolume* aBV)
 	{
 		float fRadiusSum = mBoundingSphere.r + aBV->GetRadius();
@@ -155,8 +107,6 @@ namespace hpl {
 
 		return eFrustumCollision_Intersect;
 	}
-
-	//-----------------------------------------------------------------------
 
 	eFrustumCollision cFrustum::CollideBVSphere(cBoundingVolume* aBV)
 	{
@@ -178,8 +128,6 @@ namespace hpl {
 
 		return eFrustumCollision_Inside;
 	}
-	//-----------------------------------------------------------------------
-
 
 	eFrustumCollision cFrustum::CollideBVAABB(cBoundingVolume* aBV)
 	{
@@ -232,8 +180,6 @@ namespace hpl {
 		return eFrustumCollision_Intersect;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cFrustum::UpdateSphere()
 	{
 		// calculate the radius of the frustum sphere
@@ -262,8 +208,6 @@ namespace hpl {
 
 		mBoundingSphere = cSpheref(vCenter,fRadius);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cFrustum::UpdatePlanes()
 	{
@@ -309,8 +253,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cFrustum::UpdateEndPoints()
 	{
 		float fXAngle = mfFOV*0.5f;
@@ -324,23 +266,14 @@ namespace hpl {
 		cVector3f vUpDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(fXAngle,vRight)), vForward);
 		cVector3f vDownDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(-fXAngle,vRight)), vForward);
 
-		//cVector3f vRightDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(fYAngle,vUp)), vForward);
-		//cVector3f vLeftDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(-fYAngle,vUp)), vForward);
-
 		vForward = vForward *-1;
 
 		float fRightAdd = sin(fYAngle);
-		//float fUpAdd = sin(fXAngle);
 
 		cVector3f vVec0 = vUpDir + vRight * fRightAdd;
 		cVector3f vVec2 = vDownDir + vRight * fRightAdd;
 		cVector3f vVec3 = vDownDir + vRight * -fRightAdd;
 		cVector3f vVec1 = vUpDir + vRight * -fRightAdd;
-
-		/*cVector3f vVec0 = vUpDir;//cMath::Vector3Normalize(vUpDir+vRightDir);
-		cVector3f vVec1 = vRightDir;//cMath::Vector3Normalize(vUpDir+vLeftDir);
-		cVector3f vVec2 = vDownDir;//cMath::Vector3Normalize(vDownDir+vLeftDir);
-		cVector3f vVec3 = vLeftDir;//cMath::Vector3Normalize(vDownDir+vRightDir);*/
 
 		//angles between forward and the vectors
 		float fAngle0 = cMath::Vector3Angle(vVec0, vForward);
@@ -354,13 +287,7 @@ namespace hpl {
 		mvEndPoints[2] = mvOrigin + vVec2 * (mfFarPlane/cos(fAngle2));
 		mvEndPoints[3] = mvOrigin + vVec3 * (mfFarPlane/cos(fAngle3));
 
-		/*mvEndPoints[0] = mvOrigin + (vUpDir+vRightDir)	 * mfFarPlane *-1;
-		mvEndPoints[1] = mvOrigin + (vUpDir+vLeftDir)	 * mfFarPlane*-1;
-		mvEndPoints[2] = mvOrigin + (vDownDir+vRightDir)* mfFarPlane*-1;
-		mvEndPoints[3] = mvOrigin + (vDownDir+vLeftDir) * mfFarPlane*-1;*/
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cFrustum::UpdateBV()
 	{
@@ -382,27 +309,20 @@ namespace hpl {
 		mBoundingVolume.SetLocalMinMax(vMin, vMax);
 	}
 
-	//-----------------------------------------------------------------------
-
 	const cVector3f& cFrustum::GetOrigin()
 	{
 		return mvOrigin;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cBoundingVolume* cFrustum::GetOriginBV()
 	{
 		return &mOriginBV;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cFrustum::GetForward()
 	{
 		return m_mtxModelView.GetForward();
 	}
-	//-----------------------------------------------------------------------
 
 	void cFrustum::Draw(iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -419,6 +339,4 @@ namespace hpl {
 		apLowLevelGraphics->DrawLine(mvEndPoints[0], mvEndPoints[2],cColor(1,1,1,1));
 		apLowLevelGraphics->DrawLine(mvEndPoints[1], mvEndPoints[3],cColor(1,1,1,1));
 	}
-
-	//-----------------------------------------------------------------------
 }

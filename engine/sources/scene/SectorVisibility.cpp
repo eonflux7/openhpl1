@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/SectorVisibility.h"
 
 #include "math/Math.h"
@@ -25,31 +9,18 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// PORTAL VISIBILTY SET
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPortalVisibility::cPortalVisibility()
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPortalVisibility::~cPortalVisibility()
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
 	// PORTAL VISIBILTY SET
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPortalVisibilitySet::cPortalVisibilitySet(cSectorVisibilityContainer *apContainer,
 												cPortalVisibilitySet *apParent)
@@ -62,8 +33,6 @@ namespace hpl {
 	{
 		STLDeleteAll(mvVisibility);
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cPortalVisibilitySet::AddPortalVisibility(cPortal *apPortal)
 	{
@@ -88,8 +57,6 @@ namespace hpl {
 		return (int)lIdx;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cPortalVisibilitySet::PortalExists(cPortal *apPortal)
 	{
 		for(size_t i=0; i< mvVisibility.size(); ++i)
@@ -100,13 +67,7 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SECTOR VISIBILTY
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSectorVisibility::cSectorVisibility(cSectorVisibilityContainer *apContainer)
 	{
@@ -121,8 +82,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPortalVisibilitySet* cSectorVisibility::GetSetConnectingFromSector(cSector *apSector)
 	{
 		for(size_t i=0; i< mvVisibilitySets.size(); ++i)
@@ -136,14 +95,10 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSectorVisibility::AddVisibilitySet(cPortalVisibilitySet* apSet)
 	{
 		mvVisibilitySets.push_back(apSet);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cSectorVisibility::PortalExists(cPortal *apPortal)
 	{
@@ -155,18 +110,14 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSectorVisibility::IntersectionBV(cBoundingVolume *apBV)
 	{
 		if(mvVisibilitySets.empty())
 		{
-			//Log("Checking start sector %s\n",mpSector->GetId().c_str());
 			return mpContainer->IntersectionBV(apBV,nullptr);
 		}
 		else
 		{
-			//Log("Checking sector %s with %d sets\n", mpSector->GetId().c_str(), mvVisibilitySets.size());
 
 			for(size_t i=0; i< mvVisibilitySets.size(); ++i)
 			{
@@ -179,13 +130,7 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SECTOR VISIBILTY CONTAINER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSectorVisibilityContainer::cSectorVisibilityContainer(eSectorVisibilityType aType)
 	{
@@ -201,8 +146,6 @@ namespace hpl {
 		STLDeleteAll(mlstPortalVisibility);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPortalVisibilitySet* cSectorVisibilityContainer::CreatePortalVisibilitySet(cPortalVisibilitySet* apParent)
 	{
 		cPortalVisibilitySet *pSet = hplNew( cPortalVisibilitySet, (this,apParent) );
@@ -213,8 +156,6 @@ namespace hpl {
 
 		return pSet;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSectorVisibility* cSectorVisibilityContainer::GetSectorVisibility(cSector *apSector)
 	{
@@ -241,11 +182,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSectorVisibilityContainer::Compute(cPortalContainer *apContainer)
 	{
-		/////////////////////////////////////
 		//Check what sectors the type starts in
 		//Check the portals in these
 		tSectorMap *pSectorMap = apContainer->GetSectorMap();
@@ -259,7 +197,6 @@ namespace hpl {
 		if(mType == eSectorVisibilityType_BV)			mvOrigin = mBoundingVolume.GetPosition();
 		else if(mType == eSectorVisibilityType_Frustum) mvOrigin = mFrustum.GetOrigin();
 
-		///////////////////////////////////
 		//Check what start start sectors are
 		tSectorMapIt it = pSectorMap->begin();
 		for(; it != pSectorMap->end(); ++it)
@@ -274,7 +211,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////
 		// Iterate the start sectors
 		tSectorSetIt startIt = m_setStartSectors.begin();
 		for(; startIt != m_setStartSectors.end(); ++startIt)
@@ -292,8 +228,6 @@ namespace hpl {
 		return tSectorVisibilityIterator(&m_mapSectors);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSectorVisibilityContainer::SearchSector(cSector *apSector, cPortalVisibilitySet *apParentSet,
 													int alPortalIndex)
 	{
@@ -310,7 +244,6 @@ namespace hpl {
 		//Save all portals encountered here.
 		tPortalList lstNewPortals;
 
-		//////////////////////////////////
 		//Go through all portals and see which
 		tPortalList *pPortalList = nullptr;
 
@@ -339,7 +272,6 @@ namespace hpl {
 				continue;
 			}
 
-			/////////////////////////////////////////
 			//Check that the portal that it is intersected and does not already exist
 			if(	pVisSector->PortalExists(pPortal)==false &&
 				IntersectionBV(pPortal->GetBV(), apParentSet) &&
@@ -348,7 +280,6 @@ namespace hpl {
 			{
 				if(mbLog) Log("%sFound new valid portal %d\n",GetTabs().c_str(),pPortal->GetId());
 
-				///////////////////////////////////////////////////////
 				//Check if the portal is facing the right direction
 				if(cMath::PlaneToPointDist(pPortal->GetPlane(),mvOrigin) < 0.0f)
 				{
@@ -357,7 +288,6 @@ namespace hpl {
 
 				cSectorVisibility *pTargetVisSector = GetSectorVisibility(pTargetSector);
 
-				////////////////////////////////////////
 				//Check if there is another visibility set connecting to the same room
 				cPortalVisibilitySet *pSet = pTargetVisSector->GetSetConnectingFromSector(pTargetSector);
 
@@ -394,11 +324,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cSectorVisibilityContainer::IntersectionBV(cBoundingVolume *apBV,cPortalVisibilitySet *pVisibilitySet)
 	{
-		///////////////////////////////////////////
 		//First check with the portal visibility
 		if(pVisibilitySet)
 		{
@@ -425,7 +352,6 @@ namespace hpl {
 			}
 		}
 
-		//////////////////////////////////////////
 		// Check with the type
 		// BV:
 		if(mType== eSectorVisibilityType_BV)
@@ -439,8 +365,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString cSectorVisibilityContainer::GetTabs()
 	{
 		tString sTabs = "";
@@ -448,7 +372,4 @@ namespace hpl {
 
 		return sTabs;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

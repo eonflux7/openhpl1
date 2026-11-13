@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_PID_CONTROLLER_H
 #define HPL_PID_CONTROLLER_H
 
@@ -28,9 +12,6 @@ namespace hpl {
 	{
 	public:
 		float p, i ,d;
-		//////////////////////////////////////////
-		// Constructors
-		/////////////////////////////////////////
 		cPidController()
 		{
 			p = i = d = 0;
@@ -43,11 +24,8 @@ namespace hpl {
 			Reset();
 		}
 
-		//////////////////////////////////////////
 		// Public
-		/////////////////////////////////////////
 
-		//------------------------------------
 		T Output(T aError, float afTimeStep)
 		{
 			if(afTimeStep <= 0) return aError * p;
@@ -73,8 +51,6 @@ namespace hpl {
 			return mvErrors[mlLastNum]*p + integral*i + derivative*d;
 		}
 
-		//------------------------------------
-
 		void SetErrorNum(int alErrorNum)
 		{
 			if(alErrorNum < 1) alErrorNum = 1;
@@ -82,8 +58,6 @@ namespace hpl {
 			mvTimeSteps.resize(alErrorNum,0);
 			Reset();
 		}
-
-		//------------------------------------
 
 		void Reset()
 		{
@@ -94,8 +68,6 @@ namespace hpl {
 			integral = 0;
 			derivative = 0;
 		}
-
-		//------------------------------------
 
 		T GetLastError()
 		{
@@ -113,8 +85,6 @@ namespace hpl {
 			return integral;
 		}
 
-		//------------------------------------
-
 	private:
 		std::vector<T> mvErrors;
 		std::vector<float> mvTimeSteps;
@@ -124,8 +94,6 @@ namespace hpl {
 		int mlErrorNum;
 		int mlLastNum;
 	};
-
-	//---------------------------------
 
 	typedef cPidController<float> cPidControllerf;
 	typedef cPidController<cVector3f> cPidControllerVec3;

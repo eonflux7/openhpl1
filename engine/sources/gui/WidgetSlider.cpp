@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/WidgetSlider.h"
 
 #include "system/LowLevelSystem.h"
@@ -34,12 +18,6 @@
 #include "graphics/FontData.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cWidgetSlider::cWidgetSlider(cGuiSet *apSet, cGuiSkin *apSkin,
 								eWidgetSliderOrientation aOrientation)
@@ -61,8 +39,6 @@ namespace hpl {
 		LoadGraphics();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetSlider::~cWidgetSlider()
 	{
 		if(mpSet->IsDestroyingSet()==false)
@@ -70,14 +46,6 @@ namespace hpl {
 			for(int i=0; i<2; ++i) mpSet->DestroyWidget(mvButtons[i]);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetSlider::SetValue(int alValue)
 	{
@@ -119,18 +87,8 @@ namespace hpl {
 		UpdateBarProperties();
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::UpdateBarProperties()
 	{
-		//////////////////////////
 		// Vertical
 		if(mOrientation == eWidgetSliderOrientation_Vertical)
 		{
@@ -150,7 +108,6 @@ namespace hpl {
 
 			mvBarPos = cVector3f(0, mfButtonSize + mfValueStep*(float)mlValue,0.2f);
 		}
-		//////////////////////////
 		// Horizontal
 		else
 		{
@@ -181,8 +138,6 @@ namespace hpl {
 		mfMinPos = mfButtonSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetSlider::ArrowButtonDown(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		int i;
@@ -199,8 +154,6 @@ namespace hpl {
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetSlider,ArrowButtonDown)
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::OnInit()
 	{
 		mvButtons[0] = mpSet->CreateWidgetButton(0,0,_W(""), this);
@@ -216,11 +169,8 @@ namespace hpl {
 		OnChangeSize();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::OnLoadGraphics()
 	{
-		/////////////////////////
 		//Background, corners and borders
 		mpGfxButtonBackground = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpBackground);
 
@@ -234,7 +184,6 @@ namespace hpl {
 		mvGfxCorners[2] = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpCornerRD);
 		mvGfxCorners[3] = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpCornerLD);
 
-		//////////////////////////
 		// Vertical
 		if(mOrientation == eWidgetSliderOrientation_Vertical)
 		{
@@ -242,7 +191,6 @@ namespace hpl {
 			mvGfxArrow[1] = mpSkin->GetGfx(eGuiSkinGfx_SliderVertArrowDown);
 			mpGfxBackground = mpSkin->GetGfx(eGuiSkinGfx_SliderVertBackground);
 		}
-		//////////////////////////
 		// Horizontal
 		else
 		{
@@ -254,13 +202,10 @@ namespace hpl {
 		mfButtonSize = mpSkin->GetAttribute(eGuiSkinAttribute_SliderButtonSize).x;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::OnChangeSize()
 	{
 		if(mvButtons[0] == nullptr || mvButtons[1] == nullptr) return;
 
-		//////////////////////////
 		// Vertical
 		if(mOrientation == eWidgetSliderOrientation_Vertical)
 		{
@@ -270,7 +215,6 @@ namespace hpl {
 			mvButtons[1]->SetPosition(cVector3f(0,mvSize.y-mfButtonSize,0.2f));
 			mvButtons[1]->SetSize(cVector2f(mvSize.x, mfButtonSize));
 		}
-		//////////////////////////
 		// Horizontal
 		else
 		{
@@ -284,18 +228,13 @@ namespace hpl {
 		UpdateBarProperties();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::OnChangePosition()
 	{
 		UpdateBarProperties();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetSlider::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Background
 
 		// Vertical
@@ -313,13 +252,10 @@ namespace hpl {
 				cVector2f(mvSize.x - mfButtonSize*2,mvSize.y));
 		}
 
-		////////////////////////////////
 		// Borders and button background
 		DrawBordersAndCorners(	mpGfxButtonBackground, mvGfxBorders, mvGfxCorners,
 								GetGlobalPosition() + mvBarPos, mvBarSize);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetSlider::OnMouseMove(cGuiMessageData &aData)
 	{
@@ -362,15 +298,8 @@ namespace hpl {
 			}
 		}
 
-		/*if(mbPressed && cMath::PointBoxCollision(aData.mvPos,mBarRect)==false)
-		{
-			mbPressed = false;
-		}*/
-
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetSlider::OnMouseDown(cGuiMessageData &aData)
 	{
@@ -385,8 +314,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetSlider::OnMouseUp(cGuiMessageData &aData)
 	{
 		if(mbPressed)
@@ -398,14 +325,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetSlider::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetSlider::OnMouseLeave(cGuiMessageData &aData)
 	{
@@ -424,8 +347,4 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

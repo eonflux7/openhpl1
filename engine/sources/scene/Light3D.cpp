@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Light3D.h"
 
 #include "tinyxml.h"
@@ -40,12 +24,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iLight3D::iLight3D(tString asName, cResources *apResources) : iLight(), iRenderable(asName)
 	{
 		mbStaticCasterAdded = false;
@@ -68,22 +46,12 @@ namespace hpl {
 		for(int i=0; i<3;++i)mvTempTextures[i]=nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLight3D::~iLight3D()
 	{
 		mpTextureManager->Destroy(mpFalloffMap);
 
 		if(mpVisSectorCont) hplDelete(mpVisSectorCont);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::SetVisible(bool abVisible)
 	{
@@ -95,12 +63,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void iLight3D::AddShadowCaster(iRenderable* apObject, cFrustum* apFrustum, bool abStatic,cRenderList *apRenderList)
 	{
-		/////////////////////////////////////////////////////
 		// Check if the object should be added
 		eRenderableType renderType = apObject->GetRenderType();
 
@@ -143,8 +107,6 @@ namespace hpl {
 
 		if(CheckObjectIntersection(apObject)==false) return;
 
-
-		////////////////////////////////////////////////////
 		// All checks passed, add the object!
 		if(renderType == eRenderableType_Mesh)
 		{
@@ -215,16 +177,11 @@ namespace hpl {
 		mbStaticCasterAdded = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iLight3D::CheckObjectIntersection(iRenderable *apObject)
 	{
-
-		//////////////////////////////////////////////////////////////
 		// If the lights cast shadows, cull objects that are in shadow
 		if(mbCastShadows)
 		{
-			/////////////////////////////////////
 			//Check if the visibility needs update
 			if(mlSectorVisibilityCount != GetMatrixUpdateCount())
 			{
@@ -268,7 +225,6 @@ namespace hpl {
 
 
 		}
-		/////////////////////////////////////////////////
 		//Light is not in shadow, do not do any culling
 		else
 		{
@@ -277,8 +233,6 @@ namespace hpl {
 
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iLight3D::BeginDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -305,14 +259,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLight3D::EndDraw(cRenderSettings *apRenderSettings,iLowLevelGraphics *apLowLevelGraphics)
 	{
 		apLowLevelGraphics->SetScissorActive(false);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::SetFarAttenuation(float afX)
 	{
@@ -324,7 +274,6 @@ namespace hpl {
 		//This is so that the render container is updated.
 		SetTransformUpdated();
 	}
-	//-----------------------------------------------------------------------
 
 	void iLight3D::SetNearAttenuation(float afX)
 	{
@@ -332,14 +281,11 @@ namespace hpl {
 		if(mfNearAttenuation>mfFarAttenuation)
 			SetFarAttenuation(mfNearAttenuation);
 	}
-	//-----------------------------------------------------------------------
 
 	cVector3f iLight3D::GetLightPosition()
 	{
 		return GetWorldPosition() + mLook.mvOffset;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::UpdateLogic(float afTimeStep)
 	{
@@ -357,8 +303,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBoundingVolume* iLight3D::GetBoundingVolume()
 	{
 		if(mbUpdateBoundingVolume)
@@ -370,15 +314,11 @@ namespace hpl {
 		return &mBoundingVolume;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf* iLight3D::GetModelMatrix(cCamera3D* apCamera)
 	{
 		mtxTemp = GetWorldMatrix();
 		return &mtxTemp;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iLight3D::IsVisible()
 	{
@@ -388,8 +328,6 @@ namespace hpl {
 
 		return IsRendered();
 	}
-
-	//-----------------------------------------------------------------------
 
 	iTexture *iLight3D::GetFalloffMap()
 	{
@@ -407,8 +345,6 @@ namespace hpl {
 		//reset temp textures.
 		for(int i=0; i<3;++i)mvTempTextures[i]=nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::LoadXMLProperties(const tString asFile)
 	{
@@ -451,9 +387,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void iLight3D::AttachBillboard(cBillboard *apBillboard)
 	{
 		mvBillboards.push_back(apBillboard);
@@ -473,18 +406,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void iLight3D::OnFlickerOff()
 	{
 		//Particle system
@@ -493,8 +414,6 @@ namespace hpl {
 									msFlickerOffPS, cVector3f(1,1,1),GetWorldMatrix());
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::OnFlickerOn()
 	{
@@ -505,8 +424,6 @@ namespace hpl {
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight3D::OnSetDiffuse()
 	{
@@ -522,12 +439,6 @@ namespace hpl {
 									mDiffuseColor.b * mLook.mTint.b * fScale,1));
 		}
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iLight3D,cSaveData_iRenderable)
 	kSerializeVar(msFalloffMap, eSerializeType_String)
@@ -572,20 +483,15 @@ namespace hpl {
 	kSerializeVar(mfFlickerStateLength, eSerializeType_Float32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iLight3D::CreateSaveData()
 	{
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLight3D::SaveToSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_SaveToBegin(iLight3D);
 
-		//////////////////////////
 		// Data
 		pData->msFalloffMap = mpFalloffMap==nullptr ? "" : mpFalloffMap->GetName();
 
@@ -595,7 +501,6 @@ namespace hpl {
 			pData->mlstBillboardIds.Add(mvBillboards[i]->GetSaveObjectId());
 		}
 
-		//////////////////////////
 		// Variables
 		kSaveData_SaveTo(mDiffuseColor);
 		kSaveData_SaveTo(mSpecularColor);
@@ -636,20 +541,16 @@ namespace hpl {
 		kSaveData_SaveTo(mfFlickerStateLength);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLight3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iLight3D);
 
-		//////////////////////////
 		// Data
 		if(pData->msFalloffMap != ""){
 			iTexture *pTex = mpTextureManager->Create1D(pData->msFalloffMap,false);
 			if(pTex) SetFalloffMap(pTex);
 		}
 
-		//////////////////////////
 		// Variables
 		kSaveData_LoadFrom(mDiffuseColor);
 		kSaveData_LoadFrom(mSpecularColor);
@@ -690,8 +591,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mfFlickerStateLength);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLight3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iLight3D);
@@ -712,7 +611,4 @@ namespace hpl {
 			AttachBillboard(pBill);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/MapHandler.h"
 #include "core/ButtonHandler.h"
 
@@ -54,11 +38,7 @@
 #include "ui/Inventory.h"
 #include "ui/MapLoadText.h"
 
-//////////////////////////////////////////////////////////////////////////
 // WORLD CACHE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cWorldCache::cWorldCache(cInit *apInit)
 {
@@ -73,11 +53,8 @@ cWorldCache::~cWorldCache()
 	DecResources();
 }
 
-//-----------------------------------------------------------------------
-
 void cWorldCache::AddResources()
 {
-	////////////////////////////
 	// Materials
 	{
 		cResourceBaseIterator it = mpResources->GetMaterialManager()->GetResourceBaseIterator();
@@ -88,7 +65,6 @@ void cWorldCache::AddResources()
 			mlstMaterials.push_back(pResource);
 		}
 	}
-	////////////////////////////
 	// Meshes
 	{
 		cResourceBaseIterator it = mpResources->GetMeshManager()->GetResourceBaseIterator();
@@ -99,7 +75,6 @@ void cWorldCache::AddResources()
 			mlstMeshes.push_back(pResource);
 		}
 	}
-	////////////////////////////
 	// Animations
 	{
 		cResourceBaseIterator it = mpResources->GetAnimationManager()->GetResourceBaseIterator();
@@ -111,14 +86,10 @@ void cWorldCache::AddResources()
 		}
 	}
 
-	//mlCount++;
 }
-
-//-----------------------------------------------------------------------
 
 void cWorldCache::DecResources()
 {
-	////////////////////////////
 	// Materials
 	{
 		tResourceBaseListIt it = mlstMaterials.begin();
@@ -129,7 +100,6 @@ void cWorldCache::DecResources()
 		}
 		mlstMaterials.clear();
 	}
-	////////////////////////////
 	// Meshes
 	{
 		tResourceBaseListIt it = mlstMeshes.begin();
@@ -140,7 +110,6 @@ void cWorldCache::DecResources()
 		}
 		mlstMeshes.clear();
 	}
-	////////////////////////////
 	// Animations
 	{
 		tResourceBaseListIt it = mlstAnimations.begin();
@@ -152,22 +121,14 @@ void cWorldCache::DecResources()
 		mlstAnimations.clear();
 	}
 
-	//mlCount--;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // SOUND CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cMapHandlerSoundCallback::cMapHandlerSoundCallback(cInit *apInit)
 {
 	mpInit = apInit;
 	
-	///////////////////////////////////////////
 	//Load all sounds that can heard by enemies
 	tString sFile = "sounds/EnemySounds.dat";
 	TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (sFile.c_str()) );
@@ -189,11 +150,8 @@ cMapHandlerSoundCallback::cMapHandlerSoundCallback(cInit *apInit)
 	hplDelete( pXmlDoc );
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandlerSoundCallback::OnStart(cSoundEntity *apSoundEntity)
 {
-	///////////////////////////
 	//Check if the sound is something to worry bout
 	tString sTypeName = apSoundEntity->GetData()->GetName();
 	
@@ -216,13 +174,7 @@ void cMapHandlerSoundCallback::OnStart(cSoundEntity *apSoundEntity)
 									10, 1.0f/60.0f, apSoundEntity->GetData()->GetMaxDistance());
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LIGHT FLASH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEffectLightFlash::cEffectLightFlash(cInit *apInit,const cVector3f& avPos,
 									float afRadius, const cColor &aColor, 
@@ -242,7 +194,6 @@ cEffectLightFlash::cEffectLightFlash(cInit *apInit,const cVector3f& avPos,
 	mfRadius = afRadius;
 	mfFadeOutSeconds = afFadeOutSeconds;
 	
-	//Log("Fade to %s : %f in time %f\n",aColor.ToString().c_str(),mfRadius,afFadeInSeconds);
 	mpLight->FadeTo(aColor,mfRadius,afFadeInSeconds);
 
 	mbIsDying = false;
@@ -256,17 +207,13 @@ cEffectLightFlash::~cEffectLightFlash()
 	pWorld->DestroyLight(mpLight);
 }
 
-//-----------------------------------------------------------------------
-
 void cEffectLightFlash::Update(float afTimeStep)
 {
 	cColor Col = mpLight->GetDiffuseColor();
-	//Log("Update...\n");
 	if(mbIsDying==false)
 	{
 		if(mpLight->IsFading()==false)
 		{
-			//Log("Fade to black\n");
 			mpLight->FadeTo(cColor(0,0),mfRadius,mfFadeOutSeconds);
 			mbIsDying = true;
 		}
@@ -275,19 +222,10 @@ void cEffectLightFlash::Update(float afTimeStep)
 	{
 		if(mpLight->IsFading()==false)
 		{
-			//Log("Kill\n");
 			mbDead = true;
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 {
@@ -321,8 +259,6 @@ cMapHandler::cMapHandler(cInit *apInit) : iUpdateable("MapHandler")
 	mpFlashProgram = pProgramManager->CreateProgram("Ambient_Color", "", "Diffuse_Color");
 }
 
-//-----------------------------------------------------------------------
-
 cMapHandler::~cMapHandler(void)
 {
 	if(mpMapChangeTexture)mpInit->mpGame->GetResources()->GetTextureManager()->Destroy(mpMapChangeTexture);
@@ -331,15 +267,6 @@ cMapHandler::~cMapHandler(void)
 	hplDelete(mpSoundCallback );
 	hplDelete( mpWorldCache );
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
 
 #ifdef DEMO_VERSION
 	static int glNumOfLoads = 0;
@@ -366,11 +293,7 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 
 	if(sMapName != msCurrentMap || mbReloading)
 	{
-		////////////////////////////////////////
 		// DESTRUCTION OF STUFF NOT SAVED //////
-
-		//remove all local timer
-		//RemoveLocalTimers();
 
 		//Exit script
 		if(mpScene->GetWorld3D())
@@ -398,7 +321,6 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		mpInit->mpRadioHandler->OnWorldExit();
 		mpInit->mpSoundEnvHandler->OnWorldExit();
 
-		////////////////////////////////////////
 		// SAVING /////////////////////////////
 
 		//Save the map (a reloaded map starts anew)
@@ -409,7 +331,6 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		
 		msCurrentMap = sMapName;
 
-		////////////////////////////////////////
 		// DESTRUCTION OF SAVED STUFF //////////
 
 		mpInit->mpInventory->ClearCallbacks();
@@ -450,18 +371,13 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 			mpWorldCache->DecResources();
 		}
 
-		////////////////////////////////////////
 		// LOAD THE MAP ////////////////////////
 
 		//Load
 		if(mbReloading == false && mpScene->HasLoadedWorld(asFile))
 		{
-			//Log("-------- Loaded NOT first time! ----------------\n");
 			pWorld = mpScene->LoadWorld3D(asFile,true,	eWorldLoadFlag_NoGameEntities);
-														//eWorldLoadFlag_NoLights | 
-														//eWorldLoadFlag_NoEntities |
 			
-			//eWorldLoadFlag_NoGameEntities);
 			if(pWorld)
 				mpScene->SetWorld3D(pWorld);
 			else {
@@ -474,7 +390,6 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		}
 		else
 		{
-			//Log("-------- FIRST TIME first time! ----------------\n");
 			pWorld = mpScene->LoadWorld3D(asFile,true,0);
 			mpInit->mpGame->GetResources()->GetSoundManager()->DestroyUnused(mpInit->mlMaxSoundDataNum);
 			mpInit->mpGame->GetResources()->GetParticleManager()->DestroyUnused(mpInit->mlMaxPSDataNum);
@@ -488,12 +403,10 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 			bFirstTime = true;
 		}
 
-		///////////////////////////
 		//Add to cache
 		mpWorldCache->DecResources();
         mpWorldCache->AddResources();
 		
-		///////////////////////////
 		//Destroy old map
 		if(pLastMap)
 		{
@@ -572,8 +485,6 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 		pEntity->OnPostLoadScripts();
 	}
 
-	//Log("After load and before preupdate:\n");
-
 	unsigned long lTime = mpInit->mpGame->GetSystem()->GetLowLevel()->GetTime() - lStartTime;
 	Log("Loading map '%s' took: %d ms\n",pWorld->GetFileName().c_str(),lTime);
 	
@@ -581,18 +492,12 @@ bool cMapHandler::Load(const tString &asFile,const tString& asStartPos)
 
 	mpInit->mpGame->ResetLogicTimer();
 
-	//mpInit->mpGame->GetSound()->GetSoundHandler()->ResumeAll(eSoundDest_World | eSoundDest_Gui);
-	
-	//Log("After load and preupdate:\n");
-
 	//Set physics accuracy
 	pWorld->GetPhysicsWorld()->SetAccuracyLevel(mpInit->mPhysicsAccuracy);
 
 	mlLoadCount++;
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::Reload()
 {
@@ -644,8 +549,6 @@ void cMapHandler::Reload()
 	pCamera->SetPitch(fPitch);
 }
 
-//-----------------------------------------------------------------------
-
 bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 {	
 	tString sMapName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
@@ -675,9 +578,6 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 	if(abLoadEntities==false)
 	{
 		pWorld = mpScene->LoadWorld3D(asFile,true,	eWorldLoadFlag_NoGameEntities);
-													//eWorldLoadFlag_NoLights | 
-													//eWorldLoadFlag_NoEntities |
-													//eWorldLoadFlag_NoGameEntities);
 		if(pWorld==nullptr){
 			Error("Couldn't load map '%s'\n",asFile.c_str());	
 			return false;
@@ -728,8 +628,6 @@ bool cMapHandler::LoadSimple(const tString &asFile, bool abLoadEntities)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::ChangeMap(const tString &asMap, const tString &asPos, const tString &asStartSound, 
 							const tString &asStopSound, float afFadeOutTime, float afFadeInTime,
 							tString asLoadTextCat, tString asLoadTextEntry,
@@ -752,17 +650,13 @@ void cMapHandler::ChangeMap(const tString &asMap, const tString &asPos, const tS
 	mpInit->mpPlayer->SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 {	
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	
-	/////////////////////////
 	//Properties
 	apSavedWorld->msGameName = msMapGameName;
 
-	/////////////////////////
 	//Local timers
 	for(tGameTimerListIt it = mlstTimers.begin(); it != mlstTimers.end(); ++it)
 	{
@@ -774,7 +668,6 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 		}
 	}
 
-	/////////////////////////
 	//Map script vars
 	tScriptVarMap *pVarMap = mpScene->GetLocalVarMap();
 	tScriptVarMapIt varIt = pVarMap->begin();
@@ -786,7 +679,6 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 		apSavedWorld->mlstVars.Add(scriptVar);
 	}
 
-	//////////////////
 	//Engine data
 	
 	//Lights
@@ -876,7 +768,6 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 		}
 	}
 
-	//////////////////
 	//Map handler
 	tGameEntityMapIt GIt = m_mapGameEntities.begin();
 	for(; GIt != m_mapGameEntities.end(); ++GIt)
@@ -885,21 +776,16 @@ void cMapHandler::AddSaveData(cSavedWorld* apSavedWorld)
 		
 		if(pEntity->IsSaved())
 		{
-			//Log("Saving entity: '%s'\n",pEntity->GetName().c_str());
 
 			iGameEntity_SaveData *pSaveData = pEntity->CreateSaveData();
 			pEntity->SaveToSaveData(pSaveData);
 			apSavedWorld->mlstEntities.Add(pSaveData);			
-			//Log("Adding save data: %d\n", pSaveData);
 		}
 		else
 		{
-			//Log("Skipping entity: '%s'\n",pEntity->GetName().c_str());
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // Black Plague finds entities by name whatever the case of the letters
 static tString EntityKey(const tString &asName)
@@ -913,12 +799,9 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
 	std::list<iGameEntity*> lstEntities;
 	
-	/////////////////////////
 	//Properties
 	msMapGameName = apSavedWorld->msGameName;
 
-
-	////////////////////////////////
 	//Script variables
 	cContainerListIterator<cScriptVar> scriptVar = apSavedWorld->mlstVars.GetIterator();
 	while(scriptVar.HasNext())
@@ -928,7 +811,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		pVar->mlVal = var.mlVal;
 	}
 
-	/////////////////////////
 	//Local timers
 	cContainerListIterator<cGameTimer> timerIt = apSavedWorld->mlstTimers.GetIterator();
 	while(timerIt.HasNext())
@@ -941,11 +823,9 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		mlstTimers.push_back(pTimer);
 	}
 
-	////////////////////////////////
 	//Engine data
 	
 	{
-		///////////////////////
 		//Lights
 		cContainerListIterator<cEngineLight_SaveData> it = apSavedWorld->mlstLights.GetIterator();
 		while(it.HasNext())
@@ -967,7 +847,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 
 	
 	{
-		//////////////////////////
 		//Particle systems
 
 		//Go through particle systems and throw away those not present.
@@ -1000,7 +879,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		}
 	}
 
-	//////////////////////////
 	//Beams
 	{
 		//Go through beams and throw away those not present.
@@ -1033,7 +911,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	}
 
 	{
-		//////////////////////////
 		//Sounds
 
 		//Go through sound entities and throw away those not present.
@@ -1060,7 +937,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		}
 	}
 	
-	////////////////////////////////
 	//Create Entities
 	std::set<tString> setSavedNames;
 	{
@@ -1073,7 +949,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	{
 		iGameEntity_SaveData *pSaveEntity = it.Next();
 
-		//////////////////////////////////
 		//The entity is loaded from file
 		if(pSaveEntity->msFileName!="")
 		{
@@ -1106,7 +981,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 				lstEntities.push_back(pGameEntity);
 			}
 		}
-		//////////////////////////////////
 		//The entity is an area.
 		else
 		{
@@ -1175,7 +1049,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 		}
 	}
 
-	////////////////////////////////
 	//Setup Entities
 	std::list<iGameEntity*>::iterator entIt = lstEntities.begin();
 	for(; entIt != lstEntities.end(); ++entIt)
@@ -1186,7 +1059,6 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	}
 
 	{
-		//////////////////////////
 		//Joints
 		// this need to be done after entity creation so all joints are created.
 
@@ -1215,21 +1087,16 @@ void cMapHandler::LoadSaveData(cSavedWorld* apSavedWorld)
 	}
 
 }
-//-----------------------------------------------------------------------
 
 void cMapHandler::OnStart()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::OnWorldLoad()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::OnDraw()
 {
@@ -1311,11 +1178,9 @@ void cMapHandler::RenderItemEffect()
 	pLowGfx->SetDepthWriteActive(true);
 
 }
-//-----------------------------------------------------------------------
 
 void cMapHandler::OnPostSceneDraw()
 {
-	////////////////////////////////////
 	// Draw effect on items
 	RenderItemEffect();
 
@@ -1323,37 +1188,6 @@ void cMapHandler::OnPostSceneDraw()
 	cCamera3D *pCam = static_cast<cCamera3D*>(mpScene->GetCamera());
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(cMatrixf::Identity, pCam->GetViewMatrix(), pCam->GetProjectionMatrix());
 
-	//mpScene->GetWorld3D()->GetPhysicsWorld()->RenderDebugGeometry(
-	//	mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1));
-
-	
-	/*mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(false);
-	cParticleSystem3DIterator PIt = mpScene->GetWorld3D()->GetParticleSystemIterator();
-	while(PIt.HasNext())
-	{
-		cParticleSystem3D*pPS = PIt.Next();
-
-		//if(pPS->GetName() == "tripod01_tripodflame")
-		//{
-		//	static bool bStatic = true;
-		//	if(bStatic){//pPS->SetTransformUpdated(true);
-		//		Log("Once!!!\n");
-		//	}
-		//	bStatic =false;
-
-			//pPS->SetPosition(pPS->GetLocalPosition());
-			mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(pPS->GetWorldPosition(),
-																0.3f,cColor(1,0,1));	
-
-			mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(
-												pPS->GetEmitter(0)->GetBoundingVolume()->GetMax(),
-												pPS->GetEmitter(0)->GetBoundingVolume()->GetMin(),
-												cColor(0,1,1));
-		
-	}
-	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(true);*/
-	
-	////////////////////////////////////
 	// Let Entities post draw
 	tGameEntityMapIt GIt = m_mapGameEntities.begin();
 	for(; GIt != m_mapGameEntities.end(); ++GIt)
@@ -1372,15 +1206,6 @@ void cMapHandler::OnPostSceneDraw()
 	cVector3f vMin = mpScene->GetWorld3D()->GetPhysicsWorld()->GetWorldSizeMin();
 	cVector3f vMax = mpScene->GetWorld3D()->GetPhysicsWorld()->GetWorldSizeMax();
 
-	//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(vMax,vMin,cColor(1,0,1));
-
-	//mpScene->GetWorld3D()->DrawMeshBoundingBoxes(cColor(1,0.5f,1),false);
-	//mpScene->GetWorld3D()->GetPhysicsWorld()->RenderDebugGeometry(
-	//						mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1));
-	//mpScene->GetWorld3D()->GetPhysicsWorld()->SetSaveContactPoints(true);
-	//mpScene->GetWorld3D()->GetPhysicsWorld()->RenderContactPoints(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1),
-	//											cColor(1,1,0.5f));
-	
 	cLight3DListIterator lightIt = mpScene->GetWorld3D()->GetLightIterator();
 	while(lightIt.HasNext())
 	{
@@ -1395,47 +1220,16 @@ void cMapHandler::OnPostSceneDraw()
 	}
 
 	
-	/*mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(false);
-	cBillboardIterator billIt = mpScene->GetWorld3D()->GetBillboardIterator();
-	while(billIt.HasNext())
-	{
-		cBillboard *pBillboard = billIt.Next();
-
-		mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(
-								pBillboard->GetBoundingVolume()->GetMax(),
-								pBillboard->GetBoundingVolume()->GetMin(),cColor(1,0,1));
-	}*/
-
 	GIt = m_mapGameEntities.begin();
 	for(; GIt != m_mapGameEntities.end(); ++GIt)
 	{
 		iGameEntity *pEntity = GIt->second;
 
-		//if(pEntity->GetBodyNum()<=0) continue;
-		
-		//mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(false);
-
-		//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(
-		//						pEntity->GetMeshEntity()->GetBoundingVolume()->GetMax(),
-		//						pEntity->GetMeshEntity()->GetBoundingVolume()->GetMin(),cColor(1,0,1));
-
-		/*for(int i=0; i < pEntity->GetBodyNum(); ++i)
-		{
-			iPhysicsBody* pBody = pEntity->GetBody(i);
-			if(pBody){
-				cBoundingVolume *pBV = pBody->GetBV();
-				mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawBoxMaxMin(pBV->GetMax(),pBV->GetMin(),
-																cColor(1,0.5f,1));
-				//pBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,0.5f,1));
-			}
-		}*/
 	}
 	
 
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDepthTestActive(true);
 }
-
-//-----------------------------------------------------------------------
 
 // For the "rays" test command: logs every body a ray hits
 class cLogRayCallback : public iPhysicsRayCallback
@@ -1686,23 +1480,16 @@ static bool UpdateTestScript(cInit *apInit, float afTimeStep)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::Update(float afTimeStep)
 {
 	mfGameTime += (double)afTimeStep;
 
 	if(UpdateTestScript(mpInit, afTimeStep)) return;
 
-	//iLowLevelSystem *pLowLevelSystem =mpInit->mpGame->GetSystem()->GetLowLevel();
-	
-	//LogUpdate(" Flashes!\n");
-	
 	// The level editor holds the map still: no timers, no entities. Reloads
 	// and map changes go on.
 	if(mbPaused==false)
 	{
-		////////////////////////////
 		//Update light flashes
 		tEffectLightFlashListIt FlashIt = mlstLightFlashes.begin();
 		for(; FlashIt != mlstLightFlashes.end(); )
@@ -1721,22 +1508,15 @@ void cMapHandler::Update(float afTimeStep)
 			}
 		}
 	
-		//LogUpdate(" Timers\n");
-		////////////////////////////
 		//Update timers
 		UpdateTimers(afTimeStep);
 
-		//LogUpdate(" Entities!\n");
-		////////////////////////////
 		//Update entities.
 		const bool bOverture = cInit::IsOverture();
 		tGameEntityMapIt GIt = m_mapGameEntities.begin();
 		for(; GIt != m_mapGameEntities.end();)
 		{
 			iGameEntity *pEntity = GIt->second;
-
-			//unsigned int lTime = pLowLevelSystem->GetTime();
-			//LogUpdate("  %s\n",pEntity->GetName().c_str());
 
 			if(pEntity->IsActive()){
 				pEntity->OnUpdate(afTimeStep);
@@ -1745,17 +1525,13 @@ void cMapHandler::Update(float afTimeStep)
 			// Black Plague destroys entities only after all have been updated
 			if(bOverture && (pEntity->GetDestroyMe() || pEntity->GetBreakMe()))
 			{
-				//LogUpdate("    destroying\n");
 				if(pEntity->GetBreakMe()) pEntity->BreakAction();
 
 				m_mapGameEntities.erase(GIt++);
 				hplDelete( pEntity );
-				//LogUpdate("    done destroying\n");
 			}
 			else
 			{
-				////LogUpdate("  updating %s took %d ms\n",	pEntity->GetName().c_str(),
-				//										pLowLevelSystem->GetTime() - lTime);
 				++GIt;
 			}
 		}
@@ -1795,15 +1571,11 @@ void cMapHandler::Update(float afTimeStep)
 		if(mMapChanger.mbActive == false) Reload();
 	}
 
-	////////////////////////////
 	//Check for map change
-	//LogUpdate("  Map change\n");
 	if(mMapChanger.mbActive && mpInit->mpFadeHandler->IsActive()==false)
 	{
 		mMapChanger.mbActive = false;
 
-		//Log("---------- CHANGING TO MAP: '%s' ------------------\n",mMapChanger.msNewMap.c_str());
-		
 		//Make sure that the graphics are not destroyed at the end of the map so
 		//That the next map doesn't have to reload em.
 		mpInit->mbDestroyGraphics = false;
@@ -1842,12 +1614,9 @@ void cMapHandler::Update(float afTimeStep)
 		
 		mpInit->mpPlayer->SetActive(true);
 
-		//Log("Map change over...\n");
 	}
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::Reset()
 {
@@ -1881,8 +1650,6 @@ void cMapHandler::Reset()
 	//Make sure no occulssion queries are left.
 	mpInit->mpGame->GetGraphics()->GetRenderer3D()->GetRenderList()->Clear();
 }
-
-//-----------------------------------------------------------------------
 
 // Hits of world geometry and other bodies that do not move, with normals
 class cStaticRayCallback : public iPhysicsRayCallback
@@ -1951,8 +1718,6 @@ void cMapHandler::LiftBodiesOutOfFloors(cWorld3D *apWorld)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // Some sliders are placed partly inside the level (level 17's vertical door).
 // Newton 2 pushes such a body out sideways against its joint, and it jams
 // there. The joint keeps it on its track, so static bodies no longer stop it.
@@ -2006,8 +1771,6 @@ void cMapHandler::DestroyAll()
 	mbDestroyingAll = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameTimer * cMapHandler::CreateTimer(const tString& asName,float afTime, const tString& asCallback, bool abGlobal)
 {
 	cGameTimer *pTimer = hplNew( cGameTimer, () );
@@ -2027,8 +1790,6 @@ cGameTimer * cMapHandler::GetTimer(const tString& asName)
 	return (cGameTimer*)STLFindByName(mlstTimers,asName);
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::AddLightFlash(const cVector3f& avPos,float afRadius, const cColor &aColor, float afFadeInSeconds, float afFadeOutSeconds)
 {
 	cEffectLightFlash *pFlash = hplNew( cEffectLightFlash, (mpInit,avPos,afRadius,aColor,afFadeInSeconds,afFadeOutSeconds) );
@@ -2036,14 +1797,10 @@ void cMapHandler::AddLightFlash(const cVector3f& avPos,float afRadius, const cCo
 	mlstLightFlashes.push_back(pFlash);
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::AddStickArea(cGameStickArea *apArea)
 {
 	mlstGameStickAreas.push_back(apArea);
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::RemoveStickArea(cGameStickArea *apArea)
 {
@@ -2057,8 +1814,6 @@ void cMapHandler::RemoveStickArea(cGameStickArea *apArea)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 cGameStickArea* cMapHandler::GetBodyStickArea(iPhysicsBody *apBody)
 {
@@ -2077,8 +1832,6 @@ cGameStickArea* cMapHandler::GetBodyStickArea(iPhysicsBody *apBody)
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::AddGameEnemy(iGameEnemy *apEnemy)
 {
 	mlstGameEnemies.push_back(apEnemy);
@@ -2088,8 +1841,6 @@ tGameEnemyIterator cMapHandler::GetGameEnemyIterator()
 {
 	return tGameEnemyIterator(&mlstGameEnemies);
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::AddGameItem(cGameItem *apItem)
 {
@@ -2108,8 +1859,6 @@ void cMapHandler::RemoveGameItem(cGameItem *apItem)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cMapHandler::AddGameEntity(iGameEntity *apEntity)
 {
@@ -2179,32 +1928,24 @@ iGameEntity* cMapHandler::GetGameEntity(const tString &asName, bool abErrorMessa
 	return it->second;
 }
 
-//-----------------------------------------------------------------------
-
 tGameEntityIterator cMapHandler::GetGameEntityIterator()
 {
 	return tGameEntityIterator(&m_mapGameEntities);
 }
-
-//-----------------------------------------------------------------------
 
 iGameEntity* cMapHandler::GetLatestEntity()
 {
 	return mpLatestEntity;
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::SaveToGlobal(cMapHandler_GlobalSave *apSave)
 {
 	cMapHandler_GlobalSave *pData = apSave;
 	
-	/////////////////
 	//Variables
 	kSaveData_SaveTo(mfGameTime);
 	kSaveData_SaveTo(msCurrentMap);
 	
-	/////////////////
 	//Containers
 
 	//Loaded maps
@@ -2242,13 +1983,10 @@ void cMapHandler::LoadFromGlobal(cMapHandler_GlobalSave *apSave)
 {
 	cMapHandler_GlobalSave *pData = apSave;
 	
-	/////////////////
 	//Variables
 	kSaveData_LoadFrom(mfGameTime);
 	//Should not be loadead so that current map is ""
-	//kSaveData_LoadFrom(msCurrentMap);
 	
-	/////////////////
 	//Containers
 	
 	//Loaded maps
@@ -2279,12 +2017,6 @@ void cMapHandler::LoadFromGlobal(cMapHandler_GlobalSave *apSave)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
 void cMapHandler::PrintSoundsPlaying()
 {
 	Log("Sounds: ");
@@ -2298,7 +2030,6 @@ void cMapHandler::PrintSoundsPlaying()
 	
     Log("\n");
 }
-//-----------------------------------------------------------------------
 
 void cMapHandler::UpdateTimers(float afTimeStep)
 {
@@ -2340,8 +2071,6 @@ void cMapHandler::SetLocalTimersPaused(bool abPaused)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cMapHandler::RemoveLocalTimers()
 {
 	for(tGameTimerListIt it=mlstTimers.begin(); it != mlstTimers.end(); )
@@ -2360,9 +2089,6 @@ void cMapHandler::RemoveLocalTimers()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 {
 	cWorld3D* pWorld = mpScene->GetWorld3D();
@@ -2380,7 +2106,6 @@ void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 		pBody->SetEnabled(true);
 	}
 	
-	//////////////////////////////////////
 	//Pre update game stuff
 	if(afSecondsSinceVisit ==0)
 	{
@@ -2396,8 +2121,6 @@ void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 
 		while(fTime>0)
 		{
-			//if(pWorld->GetPhysicsWorld()) pWorld->GetPhysicsWorld()->Update(fStepSize);
-			//pWorld->UpdateParticles(fStepSize);
 			pWorld->Update(fStepSize);
 
 			tGameEnemyListIt it = mlstGameEnemies.begin();
@@ -2415,12 +2138,8 @@ void cMapHandler::PreUpdate(double afSecondsSinceVisit)
 
 	unsigned long lTime = mpInit->mpGame->GetSystem()->GetLowLevel()->GetTime() - lStart;
 
-	//Log("PREUPDATE time: %d\n",lTime);
-	
 	mbPreUpdating = false;
 }
-
-//-----------------------------------------------------------------------
 
 double cMapHandler::AddLoadedMap(cWorld3D *apWorld)
 {
@@ -2443,15 +2162,4 @@ double cMapHandler::AddLoadedMap(cWorld3D *apWorld)
 	return 0;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // SAVE DATA
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-
-//-----------------------------------------------------------------------

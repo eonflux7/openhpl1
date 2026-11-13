@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Scene.h"
 #include "resources/ResourceManager.h"
 #include "game/Updater.h"
@@ -43,12 +27,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cScene::cScene(cGraphics *apGraphics,cResources *apResources, cSound* apSound,cPhysics *apPhysics,
 					cSystem *apSystem, cAI *apAI, cHaptic *apHaptic)
 		: iUpdateable("HPL_Scene")
@@ -71,8 +49,6 @@ namespace hpl {
 		mpActiveCamera = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cScene::~cScene()
 	{
 		Log("Exiting Scene Module\n");
@@ -84,14 +60,6 @@ namespace hpl {
 		Log("--------------------------------------------------------\n\n");
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cCamera3D* cScene::CreateCamera3D(eCameraMoveMode aMoveMode)
 	{
@@ -105,9 +73,6 @@ namespace hpl {
 		return pCamera;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cScene::DestroyCamera(iCamera* apCam)
 	{
 		for(tCameraListIt it=mlstCamera.begin(); it!=mlstCamera.end();it++)
@@ -120,13 +85,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
 	void cScene::SetCamera(iCamera* pCam)
 	{
 		mpActiveCamera = pCam;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cScriptVar* cScene::CreateLocalVar(const tString& asName)
 	{
@@ -143,8 +105,6 @@ namespace hpl {
 		return pVar;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cScriptVar* cScene::GetLocalVar(const tString& asName)
 	{
 		tScriptVarMapIt it = m_mapLocalVars.find(cString::ToLowerCase(asName));
@@ -153,14 +113,10 @@ namespace hpl {
 		return &it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tScriptVarMap* cScene::GetLocalVarMap()
 	{
 		return &m_mapLocalVars;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cScriptVar* cScene::CreateGlobalVar(const tString& asName)
 	{
@@ -177,8 +133,6 @@ namespace hpl {
 		return pVar;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cScriptVar* cScene::GetGlobalVar(const tString& asName)
 	{
 		tScriptVarMapIt it = m_mapGlobalVars.find(cString::ToLowerCase(asName));
@@ -187,14 +141,10 @@ namespace hpl {
 		return &it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tScriptVarMap* cScene::GetGlobalVarMap()
 	{
 		return &m_mapGlobalVars;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScene::UpdateRenderList(float afFrameTime)
 	{
@@ -209,8 +159,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScene::StoreInterpolation()
 	{
@@ -257,15 +205,11 @@ namespace hpl {
 		cRenderInterpolation::EndFrame();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cScene::SetDrawScene(bool abX)
 	{
 		mbDrawScene = abX;
 		mpGraphics->GetRenderer3D()->GetRenderList()->Clear();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScene::Render(cUpdater* apUpdater, float afFrameTime)
 	{
@@ -302,9 +246,6 @@ namespace hpl {
 		else
 		{
 			apUpdater->OnPostSceneDraw();
-			//S
-			//mpGraphics->GetLowLevel()->SetClearColor(cColor(0,1));
-			//mpGraphics->GetLowLevel()->ClearScreen();
 		}
 		{
 			cGpuSection section(mpGraphics->GetLowLevel(), "GUI");
@@ -312,8 +253,6 @@ namespace hpl {
 			apUpdater->OnPostGUIDraw();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScene::Update(float afTimeStep)
 	{
@@ -340,8 +279,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cScene::Reset()
 	{
 		m_mapLocalVars.clear();
@@ -349,14 +286,11 @@ namespace hpl {
 		m_setLoadedMaps.clear();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWorld3D* cScene::LoadWorld3D(const tString& asFile, bool abLoadScript, tWorldLoadFlag aFlags)
 	{
 		//Clear the local script
 		m_mapLocalVars.clear();
 
-		///////////////////////////////////
 		// Load the map file
 		tString asPath = mpResources->GetFileSearcher()->GetFilePath(asFile);
 		if(asPath == ""){
@@ -372,7 +306,6 @@ namespace hpl {
 		//A .glb map used for a .dae keeps the .dae name
 		pWorld->SetFileName(iResourceManager::LoadedFileName(asFile, asPath));
 
-		////////////////////////////////////////////////////////////
 		//Load the script
 		iScript* pScript = nullptr;
 		if(abLoadScript)
@@ -390,7 +323,6 @@ namespace hpl {
 
 		SetWorld3D(pWorld);
 
-		////////////////////////////
 		//Add to loaded maps
 		tString sName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
 		tStringSetIt it = m_setLoadedMaps.find(sName);
@@ -399,24 +331,8 @@ namespace hpl {
 			m_setLoadedMaps.insert(sName);
 		}
 
-		////////////////////////////////////////////////////////////
-		//Run script start functions
-		/*if(pScript)
-		{
-			//Check if the map has been loaded before, if not run OnStart script.
-			tString sName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
-			tStringSetIt it = m_setLoadedMaps.find(sName);
-			if(it == m_setLoadedMaps.end())
-			{
-				m_setLoadedMaps.insert(sName);
-				pScript->Run("OnStart()");
-			}
-		}*/
-
 		return pWorld;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cWorld3D* cScene::CreateWorld3D(const tString& asName)
 	{
@@ -428,14 +344,10 @@ namespace hpl {
 		return pWorld;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cScene::DestroyWorld3D(cWorld3D* apWorld)
 	{
 		STLFindAndDelete(mlstWorld3D,apWorld);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cScene::SetWorld3D(cWorld3D* apWorld)
 	{
@@ -448,8 +360,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cScene::HasLoadedWorld(const tString &asFile)
 	{
 		tString sName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
@@ -460,6 +370,4 @@ namespace hpl {
 		else
 			return true;
 	}
-
-	//-----------------------------------------------------------------------
 }

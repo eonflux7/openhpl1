@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_PHYSICS_BODY_H
 #define HPL_PHYSICS_BODY_H
 
@@ -37,8 +21,6 @@ namespace hpl {
 	class iCharacterBody;
 	class iHapticShape;
 
-	//------------------------------------------
-
 	class iPhysicsBody;
 	class iPhysicsBodyCallback
 	{
@@ -52,8 +34,6 @@ namespace hpl {
 	typedef std::list<iPhysicsBodyCallback*> tPhysicsBodyCallbackList;
 	typedef tPhysicsBodyCallbackList::iterator tPhysicsBodyCallbackListIt;
 
-	//------------------------------------------
-
 	class cSaveData_iCollideShape : public iSerializable
 	{
 		kSerializableClassInit(cSaveData_iCollideShape)
@@ -62,8 +42,6 @@ namespace hpl {
 		cMatrixf m_mtxOffset;
 		cVector3f mvSize;
 	};
-
-	//------------------------------------------
 
 	kSaveData_ChildClass(iEntity3D,iPhysicsBody)
 	{
@@ -99,8 +77,6 @@ namespace hpl {
 		int GetSaveCreatePrio() override;
 	};
 
-	//------------------------------------------
-
 	struct cPhysicsBody_Buoyancy
 	{
 		cPhysicsBody_Buoyancy() : mbActive(false), mfDensity(1),
@@ -114,8 +90,6 @@ namespace hpl {
 
 		cPlanef mSurface;
 	};
-
-	//------------------------------------------
 
 	class iPhysicsBody : public iEntity3D
 	{

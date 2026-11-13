@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameLink.h"
 
@@ -27,11 +11,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameLink::cAreaLoader_GameLink(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -43,8 +23,6 @@ cAreaLoader_GameLink::~cAreaLoader_GameLink()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameLink::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -71,16 +49,6 @@ iEntity3D* cAreaLoader_GameLink::Load(const tString &asName, const cVector3f &av
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameLink::cGameLink(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Link;
@@ -88,19 +56,9 @@ cGameLink::cGameLink(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mbLocked = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameLink::~cGameLink(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLink::OnPlayerPick()
 {
@@ -112,7 +70,6 @@ void cGameLink::OnPlayerPick()
 
 void cGameLink::OnPlayerInteract()
 {
-	//if(mpInit->mpRadioHandler->IsActive()) return;
 
 	if(mbLocked)
 	{
@@ -134,23 +91,6 @@ void cGameLink::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLink_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(msMapFile, eSerializeType_String)
@@ -167,21 +107,15 @@ kSerializeVar(msLockedSound, eSerializeType_String)
 kSerializeVar(msLockedDesc, eSerializeType_WString)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLink_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLink::CreateSaveData()
 {
 	return hplNew( cGameLink_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLink::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -204,8 +138,6 @@ void cGameLink::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLink::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -225,4 +157,3 @@ void cGameLink::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,msLockedDesc);
 
 }
-//-----------------------------------------------------------------------

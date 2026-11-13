@@ -22,8 +22,6 @@ int RunDogRegressions(cInit *apInit);
 int RunDogArenaRegressions(cInit *apInit);
 #endif
 
-//-----------------------------------------------------------------------
-
 cSmokeTest::cSmokeTest(cInit *apInit, const tString &asSpec) : iUpdateable("SmokeTest")
 {
 	mpInit = apInit;
@@ -80,8 +78,6 @@ cSmokeTest::~cSmokeTest()
 	if(mpChecks) hplDelete( mpChecks );
 }
 
-//-----------------------------------------------------------------------
-
 bool cSmokeTest::IsRequested()
 {
 	return GetSpec() != "";
@@ -93,15 +89,11 @@ tString cSmokeTest::GetSpec()
 	return pSpec ? tString(pSpec) : tString("");
 }
 
-//-----------------------------------------------------------------------
-
 const tString& cSmokeTest::GetFirstMap()
 {
 	static const tString sNone = "";
 	return mvMaps.empty() ? sNone : mvMaps[0];
 }
-
-//-----------------------------------------------------------------------
 
 void cSmokeTest::Update(float afTimeStep)
 {
@@ -224,14 +216,10 @@ void cSmokeTest::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cSmokeTest::Reset()
 {
 	// Loading a save resets every updateable; the test keeps its place.
 }
-
-//-----------------------------------------------------------------------
 
 void cSmokeTest::Fail(const char *asFormat, ...)
 {
@@ -244,8 +232,6 @@ void cSmokeTest::Fail(const char *asFormat, ...)
 	Error("SMOKE: FAIL %s\n", sMess);
 	mlFailures++;
 }
-
-//-----------------------------------------------------------------------
 
 void cSmokeTest::NextMap()
 {
@@ -264,11 +250,7 @@ void cSmokeTest::NextMap()
 	mpInit->mpGame->Exit();
 }
 
-//-----------------------------------------------------------------------
-
 tWString cSmokeTest::SaveFile()
 {
 	return _W("save/smoke_test.sav");
 }
-
-//-----------------------------------------------------------------------

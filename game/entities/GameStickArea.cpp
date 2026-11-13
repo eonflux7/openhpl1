@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameStickArea.h"
 
@@ -29,11 +13,7 @@
 #include <algorithm>
 #include <cmath>
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameStickArea::cAreaLoader_GameStickArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -45,8 +25,6 @@ cAreaLoader_GameStickArea::~cAreaLoader_GameStickArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -75,17 +53,7 @@ iEntity3D* cAreaLoader_GameStickArea::Load(const tString &asName, const cVector3
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 bool cGameStickArea::mbAllowAttachment = false;
-
-//-----------------------------------------------------------------------
 
 cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -117,26 +85,14 @@ cGameStickArea::cGameStickArea(cInit *apInit,const tString& asName) : iGameEntit
 	mfSetMtxTime = 1.0f;
 }
 
-//-----------------------------------------------------------------------
-
 cGameStickArea::~cGameStickArea(void)
 {
 	mpInit->mpMapHandler->RemoveStickArea(this);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameStickArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::Update(float afTimeStep)
 {
@@ -213,27 +169,16 @@ void cGameStickArea::Update(float afTimeStep)
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	iPhysicsBody *pAttachBody = nullptr;
 	
-	////////////////////////////////////////////////////////
 	//Iterate all bodies in world and check for intersection
     cPhysicsBodyIterator bodyIt = pPhysicsWorld->GetBodyIterator();
 	while(bodyIt.HasNext())
 	{
 		iPhysicsBody *pBody = bodyIt.Next();
 
-		/*if(	mpInit->mpPlayer->GetPickedBody() == pBody &&
-			(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
-				mpInit->mpPlayer->GetState() == ePlayerState_Move ||
-				mpInit->mpPlayer->GetState() == ePlayerState_Push)
-		  )
-		{
-			continue;
-		}*/
-
 		if(	pBody->IsActive() && pBody->GetCollide() && pBody->GetMass()>0 &&
 			pBody->IsCharacter()==false)
 		{
 			//Bounding volume check
-			//if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 
             bool bPassesBoundsCheck = false;
 			if(mbCheckCenterInArea)
@@ -286,15 +231,10 @@ void cGameStickArea::Update(float afTimeStep)
 	if(pAttachBody) AttachBody(pAttachBody);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 {
 	if(mpAttachedBody) return;
 
-	//Log("Attaching body %s\n", apBody->GetName().c_str());
-
-	/////////////////////////
 	//If in an interact state, set the previous state		
 	if(	mpInit->mpPlayer->GetPushBody() == apBody &&
 	(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
@@ -302,7 +242,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 		mpInit->mpPlayer->GetState() == ePlayerState_Push)
 	)
 	{
-		//Log(" Setting a prev state\n");
 
 		ePlayerState state =  mpInit->mpPlayer->GetState();
 		ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviousState;
@@ -312,7 +251,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	}
 	
-	/////////////////////////
 	// Capture the starting pose before interpolation into the area.
 	m_mtxAttachedStart = apBody->GetLocalMatrix();
 
@@ -331,13 +269,10 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 	mpLastAttachedBody = mpAttachedBody;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::DetachBody()
 {
 	if(mpAttachedBody)
 	{
-		//Log("Dettached body %s\n", mpAttachedBody->GetName().c_str());
 
 
 		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -367,13 +302,9 @@ void cGameStickArea::DetachBody()
 		mpAttachedBody->SetMass(mfBodyMass);
 		mpAttachedBody->SetEnabled(true);
 
-		//Log("Body mass: %f\n",mpAttachedBody->GetMass());
-
 		mpAttachedBody = nullptr;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameStickArea::CanDetachBody()
 { 
@@ -382,38 +313,14 @@ bool cGameStickArea::CanDetachBody()
 	return mbCanDeatch;
 }
 
-//-----------------------------------------------------------------------
-
 tString cGameStickArea::BuildBodyCallbackCommand(const tString &asFunc,iPhysicsBody *apBody)
 {
 	return asFunc + "(\"" + msName + "\",\"" + apBody->GetName() + "\")"; 
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::OnPostSceneDraw()
 {
-	//iPhysicsBody *pAreaBody = mvBodies[0];
-
-	//pAreaBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,1));
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameStickArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
@@ -440,21 +347,15 @@ kSerializeVar(mfPoseTime,eSerializeType_Float32)
 kSerializeVar(mfBodyMass,eSerializeType_Float32)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameStickArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameStickArea::CreateSaveData()
 {
 	return hplNew( cGameStickArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -488,8 +389,6 @@ void cGameStickArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -515,8 +414,6 @@ void cGameStickArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mfBodyMass);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameStickArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
@@ -540,4 +437,3 @@ void cGameStickArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 		}
 	}
 }
-//-----------------------------------------------------------------------

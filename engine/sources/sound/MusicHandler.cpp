@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "sound/MusicHandler.h"
 
 #include <cmath>
@@ -32,12 +16,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMusicHandler::cMusicHandler(iLowLevelSound* apLowLevelSound, cResources* apResources)
 	{
 		mpLowLevelSound = apLowLevelSound;
@@ -48,8 +26,6 @@ namespace hpl {
 		mbIsPaused = false;
 		mfBusVolume = 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMusicHandler::~cMusicHandler()
 	{
@@ -66,17 +42,8 @@ namespace hpl {
 			hplDelete(pSong);
 
 			it = mlstFadingSongs.erase(it);
-			//it++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cMusicHandler::Play(const tString& asFileName,float afVolume, float afVolumeRatePerSecond, bool abLoop)
 	{
@@ -154,8 +121,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::Stop(float afVolumeRatePerSecond)
 	{
 		if(mpMainSong==nullptr)return;
@@ -174,8 +139,6 @@ namespace hpl {
 		mpMainSong = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::Pause()
 	{
 		if(mpMainSong != nullptr)mpMainSong->mpStream->SetPaused(true);
@@ -188,8 +151,6 @@ namespace hpl {
 
 		mbIsPaused = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMusicHandler::Resume()
 	{
@@ -204,22 +165,15 @@ namespace hpl {
 		mbIsPaused = false;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cMusicHandler::Lock(cMusicLock* apLock)
 	{
 		mpLock = apLock;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::UnLock()
 	{
 		mpLock = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cMusicHandler::GetCurrentSongName()
 	{
@@ -229,8 +183,6 @@ namespace hpl {
 			return "";
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMusicHandler::GetCurrentSongVolume()
 	{
 		if(mpMainSong!=nullptr)
@@ -239,14 +191,10 @@ namespace hpl {
 			return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMusicEntry* cMusicHandler::GetCurrentSong()
 	{
 		return mpMainSong;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMusicHandler::Update(float afTimeStep)
 	{
@@ -310,20 +258,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cMusicHandler::SetBusVolume(float afVolume)
 	{
 		mfBusVolume = cMath::Clamp(afVolume, 0.0f, 1.0f);
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMusicHandler::FadeGain(const cMusicEntry *apSong)
 	{
@@ -346,8 +284,6 @@ namespace hpl {
 		EndCurve(apSong);
 		apSong->mfCurveRef = apSong->mfVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMusicHandler::LoadAndStart(const tString& asFileName,cMusicEntry* apSong  ,float afVolume, bool abLoop)
 	{
@@ -372,6 +308,4 @@ namespace hpl {
 
 		return true;
 	}
-	//-----------------------------------------------------------------------
-
 }

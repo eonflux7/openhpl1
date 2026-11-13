@@ -15,8 +15,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // Physics event log for debugging, enabled with OPENHPL_PHYSLOG=1.
 // Writes "PHYS:" lines to hpl.log, stamped with seconds since the map loaded:
 //   wake / rest   a dynamic body starts moving / the engine puts it to sleep,
@@ -77,7 +75,5 @@ private:
 	float mfPlayerAirTime;
 	float mfPlayerFallSpeed; // largest downward speed since leaving the ground
 };
-
-//----------------------------------------
 
 #endif // GAME_PHYSICS_LOG_H

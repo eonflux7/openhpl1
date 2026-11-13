@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameArea.h"
 
@@ -25,11 +9,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameArea::cAreaLoader_GameArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -41,8 +21,6 @@ cAreaLoader_GameArea::~cAreaLoader_GameArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameArea::Load(const tString &asName, const cVector3f &avSize, 
 									const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -66,21 +44,9 @@ iEntity3D* cAreaLoader_GameArea::Load(const tString &asName, const cVector3f &av
 
 	mpInit->mpMapHandler->AddGameEntity(pArea);
 
-	//Log("Loaded area %s\n",asName.c_str());
-	
 	// The map handler owns the game entity; no scene entity is returned.
 	return nullptr;
 }
-
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameArea::cGameArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -90,19 +56,9 @@ cGameArea::cGameArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mCustomIcon = eCrossHairState_Inactive;
 }
 
-//-----------------------------------------------------------------------
-
 cGameArea::~cGameArea(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameArea::OnPlayerPick()
 {
@@ -112,31 +68,11 @@ void cGameArea::OnPlayerPick()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameArea::SetCustomIcon(eCrossHairState aIcon)
 {
 	mbUseCustomIcon = true;
 	mCustomIcon = aIcon;
 }
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbUseCustomIcon,eSerializeType_Bool)
@@ -144,21 +80,15 @@ kSerializeVar(mCustomIcon,eSerializeType_Int32)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameArea::CreateSaveData()
 {
 	return hplNew( cGameArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -171,8 +101,6 @@ void cGameArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -181,4 +109,3 @@ void cGameArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,mbUseCustomIcon);
 	kCopyFromVar(pData,mCustomIcon);
 }
-//-----------------------------------------------------------------------

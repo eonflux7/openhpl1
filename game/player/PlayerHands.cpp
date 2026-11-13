@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "player/PlayerHands.h"
 
 #include "core/Init.h"
@@ -25,11 +9,7 @@
 #include "player/HudModel_Weapon.h"
 #include "player/HudModel_Throw.h"
 
-//////////////////////////////////////////////////////////////////////////
 // HELP FUNCTIONS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cHudModelPose GetPoseFromElem(const tString &asName, TiXmlElement *apElem)
 {
@@ -44,8 +24,6 @@ cHudModelPose GetPoseFromElem(const tString &asName, TiXmlElement *apElem)
 
 	return hudPose;
 }
-
-//-----------------------------------------------------------------------
 
 cMatrixf InterpolatePosesToMatrix(float afT, const cHudModelPose& aPoseA, 
 										   const cHudModelPose& aPoseB)
@@ -66,21 +44,13 @@ cMatrixf InterpolatePosesToMatrix(float afT, const cHudModelPose& aPoseA,
 	return mtxFinal;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // HUD MODEL
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 iHudModel::iHudModel(ePlayerHandType aType)
 {
 	mType = aType;
 	mState = eHudModelState_Idle;
 }
-
-//-----------------------------------------------------------------------
 
 void iHudModel::LoadEntities()
 {
@@ -127,8 +97,6 @@ void iHudModel::LoadEntities()
 	LoadExtraEntities();
 }
 
-//-----------------------------------------------------------------------
-
 void iHudModel::DestroyEntities()
 {
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -169,15 +137,11 @@ void iHudModel::DestroyEntities()
 	DestroyExtraEntities();
 }
 
-//-----------------------------------------------------------------------
-
 void iHudModel::Reset()
 {
 	mfEquipProgress =0;
 	ResetExtraData();
 }
-
-//-----------------------------------------------------------------------
 
 void iHudModel::EquipEffect(bool abJustCreated)
 {
@@ -208,12 +172,6 @@ void iHudModel::UnequipEffect()
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cPlayerHands::cPlayerHands(cInit *apInit)  : iUpdateable("FadeHandler")
 {
 	mpInit = apInit;
@@ -231,11 +189,8 @@ cPlayerHands::cPlayerHands(cInit *apInit)  : iUpdateable("FadeHandler")
 	}
 }
 
-//-----------------------------------------------------------------------
-
 cPlayerHands::~cPlayerHands(void)
 {
-	///////////////////////////////////////////
 	//Replace this and use some cache instead
 	tHudModelMapIt it = m_mapHudModels.begin();
 	for(; it != m_mapHudModels.end(); ++it)
@@ -248,26 +203,15 @@ cPlayerHands::~cPlayerHands(void)
 	STLMapDeleteAll(m_mapHudModels);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cPlayerHands::OnStart()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::Update(float afTimeStep)
 {
 	UpdatePreviousCameraSamples();
 	
-	///////////////////////////////////
 	//Get the camera properties
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	
@@ -277,7 +221,6 @@ void cPlayerHands::Update(float afTimeStep)
 	cVector3f vRight = mtxSmoothCam.GetRight();//pCam->GetRight();
 	cVector3f vForward = mtxSmoothCam.GetForward()*-1.0f;//pCam->GetForward();
 	
-	/////////////////////////////////////
 	// Update the current model
 	for(int i=0; i< mlCurrentModelNum; ++i)
 	{
@@ -286,7 +229,6 @@ void cPlayerHands::Update(float afTimeStep)
 		
 		cMatrixf mtxPose;
 
-		////////////////////
 		//Update state
 		switch(pHudModel->mState)
 		{
@@ -323,7 +265,6 @@ void cPlayerHands::Update(float afTimeStep)
 					pHudModel->mfEquipProgress += afTimeStep/pHudModel->mfUnequipTime;
 					if(pHudModel->mfEquipProgress >= 1)
 					{
-						//Log("Creating next model and destroying current!\n");
 
                         pHudModel->mState = eHudModelState_Idle;
 						pHudModel->mfEquipProgress =0;
@@ -343,17 +284,12 @@ void cPlayerHands::Update(float afTimeStep)
 				}
 		}
 
-		
-		////////////////////
 		//Set rotation
 		cMatrixf mtxTransform = cMath::MatrixMul( 
 								cMath::MatrixRotate(mvSmoothCameraRot, eEulerRotationOrder_XYZ),
 								mtxPose.GetRotation()
 											);
 
-		//pHudModel->mpEntity->SetMatrix(mtxRot);
-		
-		/////////////////////////
 		//Set position
 		const cVector3f &vLocalPos = mtxPose.GetTranslation();
 		cVector3f vRealLocalPos =	vUp *		vLocalPos.y + 
@@ -379,8 +315,6 @@ void cPlayerHands::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::Reset()
 {
 	for(int i=0; i< mlCurrentModelNum; ++i)
@@ -402,14 +336,10 @@ void cPlayerHands::Reset()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::OnDraw()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 /**
  * The hud models are placed relative to the camera in Update(). A frame
@@ -468,8 +398,6 @@ void cPlayerHands::OnPostBufferSwap()
 	mvInterpolatedModels.clear();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::AddHudModel(iHudModel* apHudModel)
 {
 	apHudModel->mpMesh = mpMeshManager->CreateMesh(apHudModel->msModelFile);
@@ -478,8 +406,6 @@ void cPlayerHands::AddHudModel(iHudModel* apHudModel)
 	m_mapHudModels.insert(tHudModelMap::value_type(cString::ToLowerCase(apHudModel->msName),
 													apHudModel));
 }
-
-//-----------------------------------------------------------------------
 
 static ePlayerHandType ToHandType(const char* apString)
 {
@@ -494,8 +420,6 @@ static ePlayerHandType ToHandType(const char* apString)
 	return ePlayerHandType_Normal;
 }
 
-////////////////////////////////////
-
 bool cPlayerHands::AddModelFromFile(const tString &asFile)
 {
 	tString sFileName = cString::SetFileExt(asFile,"hud");
@@ -506,7 +430,6 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 		return false;
 	}
 	
-	////////////////////////////////////////////////
 	//Load the document
 	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sPath.c_str()) );
 	if(pXmlDoc->LoadFile()==false){
@@ -515,7 +438,6 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 		return false;
 	}
 	
-	////////////////////////////////////////////////
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==nullptr){
@@ -524,7 +446,6 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 		return false;
 	}
 	
-	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("MAIN");
 	if(pMainElem==nullptr){
@@ -564,23 +485,17 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 {
-	//Log("Setting current %d to '%s'\n",alNum,asName.c_str());
 	
-	//////////////////////////////////////////////
 	//Check so that it is not already equipped
 	if(mvCurrentHudModels[alNum] &&
 		cString::ToLowerCase(asName) == cString::ToLowerCase(mvCurrentHudModels[alNum]->msName) &&
 		mvCurrentHudModels[alNum]->mState == eHudModelState_Idle)
 	{
-		//Log(" model already active!\n");
 		return;
 	}
 	
-	///////////////////////////
 	//Add a newer hud model
 	if(asName != "")
 	{
@@ -607,8 +522,6 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 					mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 				}
 				mvCurrentHudModels[alNum]->msNextModel = asName;
-				//Log(" Unequipping %s, time: %f\n",mvCurrentHudModels[alNum]->msName.c_str(),
-				//							mvCurrentHudModels[alNum]->mfTime);
 			}
 			else
 			{
@@ -636,7 +549,6 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 			mvCurrentHudModels[alNum] = pHandModel;
 		}
 	}
-	///////////////////////////
 	//Only remove old
 	else
 	{
@@ -647,16 +559,12 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 			mvCurrentHudModels[alNum]->mState = eHudModelState_Unequip;
 			mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 			mvCurrentHudModels[alNum]->msNextModel = asName;
-			//Log(" Destroying old\n");
 		}
 		else
 		{
-			//Log("No old to destroy!!!\n");
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 iHudModel* cPlayerHands::GetModel(const tString& asName)
 {
@@ -669,8 +577,6 @@ iHudModel* cPlayerHands::GetModel(const tString& asName)
 	return it->second;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHands::OnWorldExit()
 {
 	for(int i=0; i< mlCurrentModelNum; ++i)
@@ -682,8 +588,6 @@ void cPlayerHands::OnWorldExit()
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerHands::OnWorldLoad()
 {
@@ -700,16 +604,8 @@ void cPlayerHands::OnWorldLoad()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 void cPlayerHands::UpdatePreviousCameraSamples()
 {
-	///////////////////////////////////
 	//Get current position
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	cVector3f vCamRotation(pCam->GetPitch(),pCam->GetYaw(),0);
@@ -722,7 +618,6 @@ void cPlayerHands::UpdatePreviousCameraSamples()
 	if((int)mlstPositions.size()> mlMaxPositions) mlstPositions.pop_front();
 	if((int)mlstRotations.size()> mlMaxRotations) mlstRotations.pop_front();
 	
-	///////////////////////////////////////
 	//Get the current camera postion and rotation
 	cVector3f vRotation(0,0,0);
 	cVector3f vPosition(0,0,0);
@@ -732,13 +627,11 @@ void cPlayerHands::UpdatePreviousCameraSamples()
 	float fRotMulStart = 1.0f;
 	float fRotMulEnd = 0.1f;
 	float fSize = (float) mlstRotations.size();
-	//float fD = (fRotMulStart - fRotMulEnd) / fSize;
 	float fMul = 1.0f;//fRotMulEnd;
 
 	for(tVector3fListIt it = mlstRotations.begin(); it != mlstRotations.end(); ++it)
 	{
 		vRotation += *it * fMul; fRotNum+=fMul;
-		//fMul += fD;
 	}
 
 	for(tVector3fListIt it = mlstPositions.begin(); it != mlstPositions.end(); ++it)
@@ -749,5 +642,3 @@ void cPlayerHands::UpdatePreviousCameraSamples()
 	mvSmoothCameraPos = vCamPosition;//vPosition / fPosNum;
 	mvSmoothCameraRot = vRotation / fRotNum;
 }
-
-//-----------------------------------------------------------------------

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_ATTACK_HANDLER_H
 #define GAME_ATTACK_HANDLER_H
 
@@ -29,17 +13,12 @@ class cInit;
 class cMapHandler;
 class cGameSwingDoor;
 
-//---------------------------
-
 #define eAttackTargetFlag_None 0
 #define eAttackTargetFlag_Player (1 << 0)
 #define eAttackTargetFlag_Enemy (1 << 1)
 #define eAttackTargetFlag_Bodies (1 << 2)
 
 typedef tFlag eAttackTargetFlag;
-
-
-//---------------------------
 
 class cAttackRayCallback : public iPhysicsRayCallback
 {
@@ -57,8 +36,6 @@ public:
 	bool mbSkipCharacter;
 };
 
-//---------------------------
-
 class cSplashDamageBlockCheck : public iPhysicsRayCallback
 {
 public:
@@ -73,8 +50,6 @@ private:
 	cInit *mpInit;
 	bool mbIntersected;
 };
-
-//---------------------------
 
 class cAttackHandler : public iUpdateable
 {

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "math/BoundingVolume.h"
 
 #include "math/Math.h"
@@ -55,11 +39,7 @@ namespace hpl {
 
 	static const int kvFacePoints[6] = {0,5,5,6,4,7};
 
-	//////////////////////////////////////////////////////////////////////////
 	// SHADOW VOLUME
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBoundingVolume(cBoundingVolume* aBV)
 	{
@@ -68,8 +48,6 @@ namespace hpl {
 
 		return 	CollideBVAABB(aBV);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBVSphere(cBoundingVolume* aBV)
 	{
@@ -84,8 +62,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cShadowVolumeBV::CollideBVAABB(cBoundingVolume* aBV)
 	{
@@ -130,14 +106,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cBoundingVolume::cBoundingVolume()
 	{
 		m_mtxTransform = cMatrixf::Identity;
@@ -157,14 +125,6 @@ namespace hpl {
 		mbShadowPlanesNeedUpdate = true;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetMax()
 	{
 		UpdateSize();
@@ -177,8 +137,6 @@ namespace hpl {
 		return mvWorldMin;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetLocalMax()
 	{
 		return mvLocalMax;
@@ -189,8 +147,6 @@ namespace hpl {
 		return mvLocalMin;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetLocalMinMax(const cVector3f& avMin,const cVector3f& avMax)
 	{
 		mvLocalMax = avMax;
@@ -199,14 +155,10 @@ namespace hpl {
 		mbSizeUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetLocalCenter()
 	{
 		return mvPivot;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cBoundingVolume::GetWorldCenter()
 	{
@@ -215,8 +167,6 @@ namespace hpl {
 		return m_mtxTransform.GetTranslation() + mvPivot;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetPosition(const cVector3f& avPos)
 	{
 		m_mtxTransform.SetTranslation(avPos);
@@ -224,14 +174,10 @@ namespace hpl {
 		mbPositionUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetPosition()
 	{
 		return m_mtxTransform.GetTranslation();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::SetTransform(const cMatrixf &a_mtxTransform)
 	{
@@ -245,8 +191,6 @@ namespace hpl {
 		return m_mtxTransform;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::SetSize(const cVector3f& avSize)
 	{
 		mvLocalMax = avSize * 0.5;
@@ -255,8 +199,6 @@ namespace hpl {
 		mbSizeUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cBoundingVolume::GetSize()
 	{
 		UpdateSize();
@@ -264,16 +206,12 @@ namespace hpl {
 		return mvSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cBoundingVolume::GetRadius()
 	{
 		UpdateSize();
 
 		return mfRadius;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cShadowVolumeBV* cBoundingVolume::GetShadowVolume(const cVector3f& avLightPos,
 														float afLightRange,bool abForceUpdate)
@@ -299,7 +237,6 @@ namespace hpl {
 		vCorners[6] = cVector3f(vMin.x,vMin.y,vMax.z);
 		vCorners[7] = cVector3f(vMin.x,vMin.y,vMin.z);
 
-		/////////////////////////////////////////////////////////////////////
 		//Iterate the faces and check which ones are facing the light.
 		int lNearPoint =-1;
 		mShadowVolume.mlPlaneCount=0;
@@ -325,7 +262,6 @@ namespace hpl {
 		//The length to push the shadow points.
 		float fPushLength = afLightRange*kSqrt2f;
 
-		//////////////////////////////////////////////////////////
 		//Iterate the edges and build quads from the silhouette
 		for(int edge=0; edge< 12;edge++)
 		{
@@ -361,7 +297,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////
 		//Create the side planes:
 
 		for(int i=0; i< (int)mShadowVolume.mvPoints.size(); i+=4)
@@ -379,8 +314,6 @@ namespace hpl {
 
 		return &mShadowVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::DrawEdges(const cVector3f& avLightPos,float afLightRange, iLowLevelGraphics *apLowLevelGraphics)
 	{
@@ -419,8 +352,6 @@ namespace hpl {
 		apLowLevelGraphics->SetDepthWriteActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBoundingVolume::AddArrayPoints(const float *apArray, int alNumOfVectors)
 	{
 		cBVTempArray temp;
@@ -429,8 +360,6 @@ namespace hpl {
 
 		mlstArrays.push_back(temp);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::CreateFromPoints(int alStride)
 	{
@@ -466,15 +395,6 @@ namespace hpl {
 		mbPositionUpdated = true;
 		mbSizeUpdated = true;
 	}
-
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBoundingVolume::UpdateSize()
 	{
@@ -537,13 +457,7 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SERIALIZE CLASS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeBase(cBoundingVolume)
 	kSerializeVar(m_mtxTransform, eSerializeType_Matrixf)
@@ -559,35 +473,4 @@ namespace hpl {
 	kSerializeVar(mfRadius, eSerializeType_Float32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
-
-
-	/* OLD "NEAR PLANE CODE"
-	int lNearPoint =-1;
-	for(int face=0; face< 6; face++)
-	{
-	gvFaces[face].facingLight = cMath::Vector3Dot(gvFaces[face].normal,
-	vCorners[kvFacePoints[face]] - avLightPos)<0;
-
-	//Get a point for the near plane. (any edge point will do)
-	if(gvFaces[face].facingLight && lNearPoint<0)
-	{
-	lNearPoint = kvFacePoints[face];
-	}
-	}
-
-	//Build the near plane for the shadow.
-	cVector3f vLightNormal = GetWorldCenter() - avLightPos;
-	mShadowVolume.mvPlanes[0] = cPlanef(vLightNormal,vCorners[lNearPoint]);
-	mShadowVolume.mvPlanes[0].Normalise();
-
-
-	//The direction a point is pushed away in
-	cVector3f vDir;
-
-	float fPushLength = afLightRange*kSqrt2f;
-
-	//The number of planes created.
-	mShadowVolume.mlPlaneCount =1;*/
 }

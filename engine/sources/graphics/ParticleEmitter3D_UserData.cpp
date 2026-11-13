@@ -1,27 +1,9 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 // NEW
 #include "graphics/Graphics.h"
 // ---
 #include "graphics/ParticleEmitter3D_UserData.h"
-//#include "graphics/Mesh.h"
-//#include "graphics/SubMesh.h"
 #include "graphics/ParticleSystem3D.h"
 #include "graphics/RenderList.h"
 
@@ -29,7 +11,6 @@
 
 #include "resources/Resources.h"
 #include "resources/MaterialManager.h"
-//#include "resources/MeshManager.h"
 
 #include "physics/PhysicsWorld.h"
 #include "physics/PhysicsBody.h"
@@ -42,19 +23,13 @@
 namespace hpl {
 
 
-	//////////////////////////////////////////////////////////////////////////
 	// LOADER
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cParticleEmitterData3D_UserData::cParticleEmitterData3D_UserData(
 		const tString &asName,cResources* apResources,cGraphics *apGraphics)
 		: iParticleEmitterData(asName,apResources,apGraphics)
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitter* cParticleEmitterData3D_UserData::Create(tString asName, cVector3f avSize)
 	{
@@ -67,8 +42,6 @@ namespace hpl {
 
 		return pPE;
 	}
-
-	//////////////////////////
 
 	// NEW
 	static ePEType GetPEType(const char *apString)
@@ -84,8 +57,6 @@ namespace hpl {
 
 	// ---
 
-	/////////////////////////
-
 	static ePEStartPosType GetStartPosType(const char *apString)
 	{
 		if(apString==nullptr) return ePEStartPosType_Box;
@@ -97,8 +68,6 @@ namespace hpl {
 
 		return ePEStartPosType_Box;
 	}
-
-	/////////////////////////
 
 	static eParticleEmitter3DCoordSystem GetCoordSystem(const char *apString)
 	{
@@ -112,8 +81,6 @@ namespace hpl {
 		return eParticleEmitter3DCoordSystem_World;
 	}
 
-	/////////////////////////
-
 	static ePEDeathType GetDeathType(const char *apString)
 	{
 		if(apString==nullptr) return ePEDeathType_Age;
@@ -124,8 +91,6 @@ namespace hpl {
 
 		return ePEDeathType_Age;
 	}
-
-	/////////////////////////
 
 	static eParticleEmitter3DType GetDrawType(const char *apString)
 	{
@@ -140,8 +105,6 @@ namespace hpl {
 		return eParticleEmitter3DType_DynamicPoint;
 	}
 
-	/////////////////////////
-
 	static ePEGravityType GetGravityType(const char *apString)
 	{
 		if(apString==nullptr) return ePEGravityType_None;
@@ -155,8 +118,6 @@ namespace hpl {
 		return ePEGravityType_None;
 	}
 
-	/////////////////////////
-
 	static ePESubDivType GetSubDivType(const char *apString)
 	{
 		if(apString==nullptr) return ePESubDivType_Random;
@@ -169,7 +130,6 @@ namespace hpl {
 		return ePESubDivType_Random;
 	}
 
-	////////////////////////
 	/// NEW
 
 	static ePEPartSpinType GetPartSpinType(const char *apString)
@@ -186,11 +146,9 @@ namespace hpl {
 
 	/// ---
 
-	/////////////////////////
-
 	void cParticleEmitterData3D_UserData::LoadFromElement(TiXmlElement *apElement)
 	{
-		///////// GENERAL /////////////
+		// GENERAL
 		msName =  cString::ToString(apElement->Attribute("Name"),"");
 
 		// NEW
@@ -221,7 +179,7 @@ namespace hpl {
 		mvAngleOffset.y = cMath::ToRad(mvAngleOffset.y);
 		mvAngleOffset.z = cMath::ToRad(mvAngleOffset.z);
 
-		/////////// MATERIAL  ////////
+		// MATERIAL
 		int lMaterialNum = cString::ToInt(apElement->Attribute("MaterialNum"),1);
 		float fAnimationLength = cString::ToFloat(apElement->Attribute("AnimationLength"),1);
 		tString sMaterial = cString::ToString(apElement->Attribute("Material"),"");
@@ -254,7 +212,7 @@ namespace hpl {
 		mfFrameStep = 1/(fAnimationLength/(float)mvMaterials.size());
 		mfMaxFrameTime = ((float)mvMaterials.size())-0.0001f;
 
-		///////// START POS //////////
+		// START POS
 		mStartPosType = GetStartPosType(apElement->Attribute("StartPosType"));
 
 		mvMinStartPos = cString::ToVector3f(apElement->Attribute("MinStartPos"),0);
@@ -276,7 +234,7 @@ namespace hpl {
 // ---
 
 
-		/////////// MOVEMENT ////////
+		// MOVEMENT
 		mStartVelType = GetStartPosType(apElement->Attribute("StartVelType"));
 
 		mvMinStartVel = cString::ToVector3f(apElement->Attribute("MinStartVel"),0);
@@ -323,7 +281,7 @@ namespace hpl {
 		// ---
 
 
-		/////////// LIFESPAN ////////
+		// LIFESPAN
 		mfMinLifeSpan = cString::ToFloat(apElement->Attribute("MinLifeSpan"),0);
 		mfMaxLifeSpan = cString::ToFloat(apElement->Attribute("MaxLifeSpan"),0);
 
@@ -331,7 +289,7 @@ namespace hpl {
 
 		msDeathPS = cString::ToString(apElement->Attribute("DeathPS"),"");
 
-		/////////// RENDERING ////////
+		// RENDERING
 		mDrawType = GetDrawType(apElement->Attribute("DrawType"));
 
 		//eParticleEmitter3DType Heading
@@ -348,7 +306,7 @@ namespace hpl {
 
 		mbMultiplyRGBWithAlpha = cString::ToBool(apElement->Attribute("MultiplyRGBWithAlpha"),false);
 
-		/////////// COLOR  ////////
+		// COLOR
 
 		mMinStartColor = cString::ToColor(apElement->Attribute("MinStartColor"),cColor(1,1));
 		mMaxStartColor = cString::ToColor(apElement->Attribute("MaxStartColor"),cColor(1,1));
@@ -359,7 +317,7 @@ namespace hpl {
 		mfMiddleRelColorLength = cString::ToFloat(apElement->Attribute("MiddleRelColorLength"),0);
 		mEndRelColor = cString::ToColor(apElement->Attribute("EndRelColor"),cColor(1,1));
 
-		/////////// COLLISION  ////////
+		// COLLISION
 		mbCollides = cString::ToBool(apElement->Attribute("Collides"),false);
 
 		mfMinBounceAmount = cString::ToFloat(apElement->Attribute("MinBounceAmount"),0);
@@ -372,7 +330,7 @@ namespace hpl {
 
 
 		// NEW
-		////////// BEAM SPECIFIC //////////
+		// BEAM SPECIFIC
 
 		mbUseBeamNoise = cString::ToBool(apElement->Attribute("UseBeamNoise"),false);
 
@@ -387,8 +345,6 @@ namespace hpl {
 
 		// ---
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cParticleEmitterData3D_UserData::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 	{
@@ -425,14 +381,6 @@ namespace hpl {
 
 		return mbIntersected;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cParticleEmitter3D_UserData::cParticleEmitter3D_UserData(
 									tString asName,tMaterialVec* apMaterials,
@@ -483,20 +431,10 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	cParticleEmitter3D_UserData::~cParticleEmitter3D_UserData()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cParticleEmitter3D_UserData::IsDying()
 	{
@@ -505,31 +443,17 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	void cParticleEmitter3D_UserData::Kill()
 	{
 		mbRespawn = false;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cParticleEmitter3D_UserData::SetParticleDefaults(cParticle *apParticle)
 	{
-		///////////////////////////////////
 		//Start Color
 		apParticle->mStartColor = cMath::RandRectColor(mpData->mMinStartColor,mpData->mMaxStartColor);
 		apParticle->mColor = apParticle->mStartColor * mpData->mStartRelColor;
 
-
-		///////////////////////////////////
 		//Start Size
 		if(mpData->mvMinStartSize.y == 0 && mpData->mvMaxStartSize.y==0)
 			apParticle->mvStartSize = cMath::RandRectf(mpData->mvMinStartSize.x,mpData->mvMaxStartSize.x);
@@ -537,7 +461,6 @@ namespace hpl {
 			apParticle->mvStartSize = cMath::RandRectVector2f(mpData->mvMinStartSize,mpData->mvMaxStartSize);
 		apParticle->mvSize = apParticle->mvStartSize * mpData->mfStartRelSize;
 
-		////////////////////////////////////
 		//Start sub division
 		if(mvSubDivUV.size() > 1)
 		{
@@ -551,13 +474,10 @@ namespace hpl {
 			}
 		}
 
-		////////////////////////////////////
 		//Start collision
 		apParticle->mfBounceAmount = cMath::RandRectf(mpData->mfMinBounceAmount, mpData->mfMaxBounceAmount);
 		apParticle->mlBounceCount = cMath::RandRectl(mpData->mlMinCollisionMax, mpData->mlMaxCollisionMax);
 
-
-		////////////////////////////////////
 		//Start Position
 
 		//Matrix to start from
@@ -595,8 +515,6 @@ namespace hpl {
 		apParticle->mvLastPos = apParticle->mvPos;
 		apParticle->mvLastCollidePos = apParticle->mvPos;
 
-
-		////////////////////////////////////
 		//Start Velocity
 
 		//Sphere or box start
@@ -624,12 +542,10 @@ namespace hpl {
 
 		apParticle->mfSpeedMul = cMath::RandRectf(mpData->mfMinSpeedMultiply,mpData->mfMaxSpeedMultiply);
 
-		////////////////////////////////////
 		//Start Acceleration
 		apParticle->mvAcc = cMath::RandRectVector3f(mpData->mvMinStartAcc,mpData->mvMaxStartAcc);
 
 		// NEW
-		////////////////////////////////////
 		//Start Spin Velocity
 		if ( mpData->mPartSpinType == ePEPartSpinType_Constant )
 		{
@@ -642,14 +558,11 @@ namespace hpl {
 		}
 		apParticle->mfSpin = cMath::RandRectf ( 0.0f, k2Pif );
 
-		////////////////////////////////////
 		//Start Revolution Velocity
 		apParticle->mvRevolutionVel = cMath::RandRectVector3f ( mpData->mvMinRevVel, mpData->mvMaxRevVel );
 
 		// ---
 
-
-		///////////////////////////////////
 		//Life Span
 		apParticle->mfStartLife = cMath::RandRectf(mpData->mfMinLifeSpan,mpData->mfMaxLifeSpan );
 		apParticle->mfLife = apParticle->mfStartLife;
@@ -672,7 +585,6 @@ namespace hpl {
 					apParticle->mfLifeSize_MiddleStart,
 					apParticle->mfLifeSize_MiddleEnd);*/
 		// NEW
-		/////////////////////////////////////
 		//Beam Specific
 		if (mPEType == ePEType_Beam )
 		{
@@ -682,11 +594,8 @@ namespace hpl {
 		// ---
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleEmitter3D_UserData::UpdateMotion(float afTimeStep)
 	{
-		///////////////////////////////////////////////
 		//If not rendered this previous frame check if it should be paused.
 		//To be safe skip systems that has a parent...
 		if(mbDying == false && mbRespawn && mpParentSystem->GetParent()==nullptr)
@@ -704,8 +613,6 @@ namespace hpl {
 			}
 		}
 
-
-		///////////////////////////////////////////
 		//Check if the emitter is ready to start.
 		if(mfTime < mpData->mfStartTimeOffset)
 		{
@@ -713,7 +620,6 @@ namespace hpl {
 			return;
 		}
 
-		///////////////////////////////////////////
 		//Delay check
 		if(mbPaused)
 		{
@@ -735,7 +641,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		//Particle creation
 		if(mbPaused==false && mlNumOfParticles < mlMaxParticles)
 		{
@@ -748,7 +653,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		//Collision Update
 		bool bColliding=false;
 		if(mpData->mbCollides)
@@ -761,20 +665,17 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		//Particle update
 		mlInterpolateStep = cRenderInterpolation::GetStep();
 		for(unsigned int i=0; i< mlNumOfParticles; ++i)
 		{
 			cParticle *pParticle = mvParticles[i];
 
-			////////////
 			//Position Update
 			pParticle->mvLastPos = pParticle->mvPos;
 
 			pParticle->mvPos += pParticle->mvVel * afTimeStep;
 
-			////////////
 			//Speed Update
 			pParticle->mvVel += pParticle->mvAcc * afTimeStep;
 
@@ -826,7 +727,6 @@ namespace hpl {
 			}
 
 			// NEW
-			///////////
 			//Spin Update
 			if (mpData->mbUsePartSpin)
 			{
@@ -855,8 +755,6 @@ namespace hpl {
 
 			// ---
 
-
-			////////////
 			//Collison update
 			if(bColliding)
 			{
@@ -887,7 +785,6 @@ namespace hpl {
 				pParticle->mvLastCollidePos = pParticle->mvPos;
 			}
 
-			////////////
 			//Life Update
 			pParticle->mfLife -= afTimeStep;
 
@@ -912,7 +809,6 @@ namespace hpl {
 				}
 			}
 
-			////////////
 			//Subdiv Update
 
 			if(mpData->mSubDivType == ePESubDivType_Animation)
@@ -921,7 +817,6 @@ namespace hpl {
 				pParticle->mlSubDivNum = (int)(fLifePercent * (float)mvSubDivUV.size() - 0.0001f);
 			}
 
-			////////////
 			//Color Update
 
 			//Start
@@ -954,7 +849,6 @@ namespace hpl {
 				pParticle->mColor.b *= pParticle->mColor.a;
 			}
 
-			////////////
 			//Size Update
 
 			//Start
@@ -981,7 +875,6 @@ namespace hpl {
 			}
 		}
 
-		///////////////////////////////////////////
 		//Frame Update
 		if(mvMaterials->size()> 1)
 		{
@@ -992,6 +885,4 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

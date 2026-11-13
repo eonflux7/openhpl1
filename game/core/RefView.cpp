@@ -39,8 +39,6 @@ void cRefView::Tip(const char *apText)
 // Real time a map may take to load before the panel stops waiting for it
 static const float kfMapTimeout = 30.0f;
 
-//-----------------------------------------------------------------------
-
 cRefView::cRefView(cInit *apInit) : iUpdateable("RefView")
 {
 	mpInit = apInit;
@@ -106,8 +104,6 @@ cRefView::~cRefView()
 	SetOpen(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::SetOpen(bool abOpen)
 {
 	if(mbOpen == abOpen) return;
@@ -135,8 +131,6 @@ void cRefView::SetOpen(bool abOpen)
 	}
 	pLowLevel->SetDebugPanelInput(mbOpen);
 }
-
-//-----------------------------------------------------------------------
 
 bool cRefView::IsMapPending()
 {
@@ -191,8 +185,6 @@ bool cRefView::SetOption(const tString &asName, bool abValue)
 	else return false;
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::Update(float afTimeStep)
 {
@@ -288,8 +280,6 @@ void cRefView::Update(float afTimeStep)
 	ApplyOptions();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::UpdateFly(float afTimeStep)
 {
 	iCharacterBody *pBody = mpInit->mpPlayer->GetCharacterBody();
@@ -361,8 +351,6 @@ void cRefView::UpdateFly(float afTimeStep)
 	pCamera->SetPosition(mvFlyPos);
 }
 
-//-----------------------------------------------------------------------
-
 // The player's body under the camera, so that the eyes are where the camera
 // is, facing the same way. From there the view is the player's again.
 void cRefView::PutPlayerAtCamera()
@@ -379,8 +367,6 @@ void cRefView::PutPlayerAtCamera()
 	mbAtView = false;
 	mbHoldDirection = false;
 }
-
-//-----------------------------------------------------------------------
 
 static const char *gsTestLightName = "RefViewTestLight";
 
@@ -414,8 +400,6 @@ void cRefView::UpdateTestLight()
 	if(!(pLight->GetDiffuseColor() == col)) pLight->SetDiffuseColor(col);
 	if(pLight->GetFarAttenuation() != mfTestLightRadius) pLight->SetFarAttenuation(mfTestLightRadius);
 }
-
-//-----------------------------------------------------------------------
 
 // The camera as it is becomes a viewpoint of the map, or replaces the one
 // of the same name.
@@ -474,8 +458,6 @@ void cRefView::AddViewpoint()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DeleteViewpoint()
 {
 	if(mbAtView==false || mlView >= mvViews.size() || mvViews[mlView].mbManual==false) return;
@@ -501,8 +483,6 @@ void cRefView::DeleteViewpoint()
 	mbAtView = false;
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::Reset()
 {
 	// Changing map resets every updateable; the panel keeps its state.
@@ -513,8 +493,6 @@ void cRefView::Reset()
 	mfEffectBlackFade = 0;
 }
 
-//-----------------------------------------------------------------------
-
 bool cRefView::CanLoadMap()
 {
 	if(msWaitMap != "" || mpInit->mpMapHandler->IsChangingMap()) return false;
@@ -523,8 +501,6 @@ bool cRefView::CanLoadMap()
 	const tString &sContainer = mpInit->mpGame->GetUpdater()->GetCurrentContainerName();
 	return sContainer == "Default" || sContainer == "MainMenu";
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::LoadMap(const tString &asMap)
 {
@@ -555,8 +531,6 @@ void cRefView::LoadMap(const tString &asMap)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::GoTo(size_t alView, int alAngle)
 {
 	mbUsed = true;
@@ -586,8 +560,6 @@ void cRefView::GoTo(size_t alView, int alAngle)
 	mbHoldDirection = bHold;
 }
 
-//-----------------------------------------------------------------------
-
 // The player goes on from the place: the camera does not jump back to
 // wherever the body was left.
 void cRefView::Release()
@@ -608,8 +580,6 @@ void cRefView::ReleaseForDogTest()
 	mlGoToView = -1;
 	SetOpen(false);
 }
-
-//-----------------------------------------------------------------------
 
 // As cRefShots::SetView(), but the direction is the player's once the panel
 // has been closed.
@@ -634,8 +604,6 @@ void cRefView::SetView()
 	// flying the camera is moved from the place, not kept at it.
 	if(view.mbStartPos==false && mbFlying==false) pCamera->SetPosition(view.mvPos);
 }
-
-//-----------------------------------------------------------------------
 
 // What cRefShots does on every step of its run
 void cRefView::ApplyOptions()
@@ -698,8 +666,6 @@ void cRefView::ApplyOptions()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // A window of the panel, under the menu bar. The first time it is shown it
 // is put with its corner or middle at the same fraction of the screen (0:
 // left or top, 1: right or bottom), at the size asked for (a height of 0
@@ -731,8 +697,6 @@ bool cRefView::BeginWindow(const char *asName, bool *apShow, float afX, float af
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::Draw()
 {
 	if(mbOpen==false) return;
@@ -755,8 +719,6 @@ void cRefView::Draw()
 	DrawEditorWindow();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawWindowMenuItems()
 {
 	struct { const char *msName; bool *mpShow; } vWindows[] = {
@@ -769,8 +731,6 @@ void cRefView::DrawWindowMenuItems()
 			SetOpen(true);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawMenuBar()
 {
@@ -805,8 +765,6 @@ void cRefView::DrawMenuBar()
 
 	ImGui::EndMainMenuBar();
 }
-
-//-----------------------------------------------------------------------
 
 // The renderer's settings, a tab for each part. All of them are kept in
 // settings.cfg.
@@ -851,8 +809,6 @@ void cRefView::DrawRenderWindow()
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 // The reference images' places and the viewpoints they are taken from
 void cRefView::DrawViewsWindow()
 {
@@ -879,16 +835,12 @@ void cRefView::DrawViewsWindow()
 	ImGui::End();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawEditorWindow()
 {
 	if(BeginWindow("Level editor", &mbShowEditor, 0.5f, 1, 30, 0)==false) return;
 	mpInit->mpLevelEditor->Draw();
 	ImGui::End();
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawMaps()
 {
@@ -914,8 +866,6 @@ void cRefView::DrawMaps()
 	}
 	ImGui::EndDisabled();
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawViews()
 {
@@ -992,8 +942,6 @@ void cRefView::DrawViews()
 	ImGui::EndDisabled();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawViewpoints()
 {
 	bool bEnabled = msViewsMap != "" && msWaitMap == "" &&
@@ -1020,8 +968,6 @@ void cRefView::DrawViewpoints()
 
 	ImGui::EndDisabled();
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawRenderer()
 {
@@ -1091,8 +1037,6 @@ void cRefView::DrawRenderer()
 	ImGui::EndDisabled();
 	if(bChanged) pPostEffects->SetBloomTuning(bloom);
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawShadows()
 {
@@ -1260,8 +1204,6 @@ void cRefView::DrawShadows()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawAmbientOcclusion()
 {
 	const float fEm = ImGui::GetFontSize();
@@ -1361,8 +1303,6 @@ void cRefView::DrawAmbientOcclusion()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cRefView::DrawLensAndFilm()
 {
 	const float fEm = ImGui::GetFontSize();
@@ -1371,7 +1311,6 @@ void cRefView::DrawLensAndFilm()
 	cRendererPostEffects *pPostEffects = mpInit->mpGame->GetGraphics()->GetRendererPostEffects();
 	ImGui::PushItemWidth(fEm * 12);
 
-	///////////////////////////////////////////
 	// Depth of field
 	if(ImGui::CollapsingHeader("Depth of field##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1424,7 +1363,6 @@ void cRefView::DrawLensAndFilm()
 		if(bChanged) pPostEffects->SetDepthOfFieldSettings(settings);
 	}
 
-	///////////////////////////////////////////
 	// Motion blur
 	if(ImGui::CollapsingHeader("Motion blur##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1472,7 +1410,6 @@ void cRefView::DrawLensAndFilm()
 		if(bChanged) pPostEffects->SetMotionBlurSettings(settings);
 	}
 
-	///////////////////////////////////////////
 	// Grain
 	if(ImGui::CollapsingHeader("Noise filter##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1529,8 +1466,6 @@ void cRefView::DrawLensAndFilm()
 
 	ImGui::PopItemWidth();
 }
-
-//-----------------------------------------------------------------------
 
 // Multisampling, the texture filter and SMAA. Kept in settings.cfg, like
 // the renderer's other options.
@@ -1592,7 +1527,6 @@ void cRefView::DrawShading()
 
 	if(bChanged) pLowLevel->SetShading(shading);
 
-	///////////////////////////////////////////
 	// Flashlight
 	if(ImGui::CollapsingHeader("Flashlight##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1645,7 +1579,6 @@ void cRefView::DrawShading()
 		if(bChanged) pFlashLight->SetSettings(flashlight);
 	}
 
-	///////////////////////////////////////////
 	// Lamps
 	if(ImGui::CollapsingHeader("Lamps##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1704,7 +1637,6 @@ void cRefView::DrawShading()
 		if(bChanged) pLampAppearanceController->SetSettings(lamps);
 	}
 
-	///////////////////////////////////////////
 	// Halos, shafts of light
 	if(ImGui::CollapsingHeader("Halos, light shafts and particles##section", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -1763,8 +1695,6 @@ void cRefView::DrawShading()
 	}
 
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawAntiAliasing()
 {
@@ -1875,8 +1805,6 @@ void cRefView::DrawAntiAliasing()
 
 	ImGui::PopItemWidth();
 }
-
-//-----------------------------------------------------------------------
 
 void cRefView::DrawShadowLights()
 {
@@ -1989,5 +1917,3 @@ void cRefView::DrawShadowLights()
 	ImGui::SliderFloat("Brightness", &mfTestLightBrightness, 0.1f, 1.0f, "%.2f");
 	ImGui::PopItemWidth();
 }
-
-//-----------------------------------------------------------------------

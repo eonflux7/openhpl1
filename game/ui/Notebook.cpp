@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui/Notebook.h"
 
 #include "core/Init.h"
@@ -28,9 +12,7 @@
 
 #include <algorithm>
 
-//////////////////////////////////////////////////////////////////////////
 // REMASTERED LOOK
-//////////////////////////////////////////////////////////////////////////
 
 // With the high-resolution HUD, a hovered entry gets a pencil underline,
 // drawn in from left to right, in place of the original's dark smudge, and
@@ -96,11 +78,7 @@ static tWString FitText(iFontData *apFont, const cVector2f &avSize, const tWStri
 	return sText + _W("...");
 }
 
-//////////////////////////////////////////////////////////////////////////
 // FRONT STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNotebookState_Front::cNotebookState_Front(cInit *apInit, cNotebook *apNotebook) : iNotebookState(apInit, apNotebook)
 {
@@ -140,8 +118,6 @@ cNotebookState_Front::cNotebookState_Front(cInit *apInit, cNotebook *apNotebook)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Front::OnEnterState(int alLastState)
 {
 	mvOptions[0].msText = kTranslate("Notebook", "TaskList");
@@ -150,14 +126,10 @@ void cNotebookState_Front::OnEnterState(int alLastState)
 	mpNotebook->SetBookType(eNotebookType_Front);
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Front::OnLeaveState(int alNextState)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebookState_Front::OnUpdate(float afTime)
 {
@@ -187,8 +159,6 @@ void cNotebookState_Front::OnUpdate(float afTime)
 
 	if(bFound ==false) mlSelected = -1;
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebookState_Front::OnDraw()
 {
@@ -220,8 +190,6 @@ void cNotebookState_Front::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Front::OnMouseDown(eMButton aButton)
 {
 	if(mlSelected ==0)
@@ -235,21 +203,13 @@ void cNotebookState_Front::OnMouseDown(eMButton aButton)
 		mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_open",false,1);
 	}
 }
-//-----------------------------------------------------------------------
 
 void cNotebookState_Front::OnExit()
 {
 	mpNotebook->SetActive(false);
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // TASK LIST STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNotebookState_TaskList::cNotebookState_TaskList(cInit *apInit, cNotebook *apNotebook) : iNotebookState(apInit, apNotebook)
 {
@@ -258,7 +218,6 @@ cNotebookState_TaskList::cNotebookState_TaskList(cInit *apInit, cNotebook *apNot
 
 	mfFontSize = 15;
 	
-	//////////////////
 	//Options
 	mlSelected = -1;
 	mpOptionsImage[0] = mpDrawer->CreateGfxObject("notebook_nextpage.bmp","diffalpha2d");
@@ -288,8 +247,6 @@ cNotebookState_TaskList::cNotebookState_TaskList(cInit *apInit, cNotebook *apNot
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_TaskList::OnEnterState(int alLastState)
 {
 	mvTaskPages.clear();
@@ -312,8 +269,6 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 
 		fYPos += ((float)vTempStrings.size()) * mfFontSize;
 
-		//Log("%d pos: %f\n",lCount,fYPos);
-
 		if(fYPos > 360.0f)
 		{
 			cNotebook_TaskPage taskPage;
@@ -321,8 +276,6 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 			taskPage.mlStartTask = lStart;
 			taskPage.mlEndTask = lCount-1;
 			lStart = lCount;
-
-			//Log("Too far! page: %d - %d\n",taskPage.mlStartTask,taskPage.mlEndTask);
 
 			mvTaskPages.push_back(taskPage);
 
@@ -348,18 +301,13 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_TaskList::OnLeaveState(int alNextState)
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_TaskList::OnUpdate(float afTime)
 {
-	//////////////////////////////////
 	// Next/Prev Page
 	bool bFound=false;
 	for(size_t i=0; i< mvOptions.size(); ++i)
@@ -385,8 +333,6 @@ void cNotebookState_TaskList::OnUpdate(float afTime)
 
 	if(bFound ==false) mlSelected = -1;
 }	
-
-//-----------------------------------------------------------------------
 
 void cNotebookState_TaskList::OnDraw()
 {
@@ -415,7 +361,6 @@ void cNotebookState_TaskList::OnDraw()
 		++lCount;
 	}
 
-	//////////////////////////////////
 	// Page number
 	if(mpInit->mbHighResHud)
 		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.12f,0.1f,0.08f,0.85f*mpNotebook->GetAlpha()),
@@ -424,7 +369,6 @@ void cNotebookState_TaskList::OnDraw()
 		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
 			_W("%d"),mlCurrentPage+1);
 
-	//////////////////////////////////
 	// Draw arrows back and forward
 	for(size_t i=0; i< mvOptions.size(); ++i)
 	{
@@ -437,9 +381,6 @@ void cNotebookState_TaskList::OnDraw()
 			cColor(1,mpNotebook->GetAlpha()));
 	}
 }
-
-//-----------------------------------------------------------------------
-
 
 void cNotebookState_TaskList::OnMouseDown(eMButton aButton)
 {
@@ -463,7 +404,6 @@ void cNotebookState_TaskList::OnMouseDown(eMButton aButton)
 		}
 	}
 }
-//-----------------------------------------------------------------------
 
 void cNotebookState_TaskList::OnExit()
 {
@@ -471,15 +411,7 @@ void cNotebookState_TaskList::OnExit()
 	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_close",false,1);
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // NOTE LIST STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNotebookState_NoteList::cNotebookState_NoteList(cInit *apInit, cNotebook *apNotebook) : iNotebookState(apInit, apNotebook)
 {
@@ -543,8 +475,6 @@ cNotebookState_NoteList::cNotebookState_NoteList(cInit *apInit, cNotebook *apNot
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_NoteList::OnEnterState(int alLastState)
 {
 	mpNotebook->SetBookType(eNotebookType_Open);
@@ -557,7 +487,6 @@ void cNotebookState_NoteList::OnEnterState(int alLastState)
 	
 	mlSelected = -1;
     
-	//////////////////////////////////////////
 	//Setup pos and size of all entries
 	const bool bRemastered = mpRule != nullptr;
 	const cVector3f vFirstPos = bRemastered ? cVector3f(kfListTitleX, kfListTop, 70) : cVector3f(242, 111, 70);
@@ -585,20 +514,15 @@ void cNotebookState_NoteList::OnEnterState(int alLastState)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_NoteList::OnLeaveState(int alNextState)
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_NoteList::OnUpdate(float afTime)
 {
 	mpSelectedNote = nullptr;
 	
-	//////////////////////////////////
 	// Notes
 	int lCount=0;
 	tNotebook_NoteList_Iterator it = mpNotebook->GetNoteIterator();
@@ -631,7 +555,6 @@ void cNotebookState_NoteList::OnUpdate(float afTime)
 		lCount++;
 	}
 	
-	//////////////////////////////////
 	// Next/Prev Page
 	bool bFound=false;
 	for(size_t i=0; i< mvOptions.size(); ++i)
@@ -657,8 +580,6 @@ void cNotebookState_NoteList::OnUpdate(float afTime)
 
 	if(bFound ==false) mlSelected = -1;
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebookState_NoteList::OnDraw()
 {
@@ -743,7 +664,6 @@ void cNotebookState_NoteList::OnDraw()
 		lCount++;
 	}
 
-	//////////////////////////////////
 	// Page number
 	if(bRemastered)
 	{
@@ -757,7 +677,6 @@ void cNotebookState_NoteList::OnDraw()
 						_W("%d"),(mlFirstNote/11)+1);
 	}
 
-	//////////////////////////////////
 	// Draw arrows back and forward
 	for(size_t i=0; i< mvOptions.size(); ++i)
 	{
@@ -771,9 +690,6 @@ void cNotebookState_NoteList::OnDraw()
 
 	}
 }
-
-//-----------------------------------------------------------------------
-
 
 void cNotebookState_NoteList::OnMouseDown(eMButton aButton)
 {
@@ -805,7 +721,6 @@ void cNotebookState_NoteList::OnMouseDown(eMButton aButton)
 		}
 	}
 }
-//-----------------------------------------------------------------------
 
 void cNotebookState_NoteList::OnExit()
 {
@@ -813,14 +728,7 @@ void cNotebookState_NoteList::OnExit()
 	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_close",false,1);
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // NOTE STATE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNotebookState_Note::cNotebookState_Note(cInit *apInit, cNotebook *apNotebook) : iNotebookState(apInit, apNotebook)
 {
@@ -871,8 +779,6 @@ cNotebookState_Note::cNotebookState_Note(cInit *apInit, cNotebook *apNotebook) :
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Note::OnEnterState(int alLastState)
 {
 	mpNotebook->SetBookType(eNotebookType_Open);
@@ -886,11 +792,9 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 	int lRowCount =0;
 	for(size_t i=0; i< mvRows.size(); ++i)
 	{
-		//Log("Row%d: %s\n",i, mvRows[i].c_str());
 
 		lRowCount++;
 		
-		//Log("Row: %d\n",lRowCount);
 		if(	cString::GetLastStringPosW(mvRows[i],_W("[new_page]"))>=0)
 		{
 			//There some text on this page, make a newer one
@@ -908,7 +812,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 				lStartRow++;
 			}
 			lRowCount =0;
-			//Log("NEWPAGE Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 		else if(lRowCount >= mlMaxRows)
 		{
@@ -918,7 +821,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 			lStartRow = page.mlEndRow;
 			mvPages.push_back(page);
 			lRowCount =0;
-			//Log("MAX ROW Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 	}
 	if(lStartRow < (int)mvRows.size())
@@ -927,7 +829,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 		page.mlFirstRow = lStartRow;
 		page.mlEndRow = (int)mvRows.size();
 		mvPages.push_back(page);
-		//Log("Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 	}
 
 	mlCurrentPage =0;
@@ -935,14 +836,10 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 	mlSelected = -1;
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Note::OnLeaveState(int alNextState)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebookState_Note::OnUpdate(float afTime)
 {
@@ -971,11 +868,8 @@ void cNotebookState_Note::OnUpdate(float afTime)
 	if(bFound ==false) mlSelected = -1;
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebookState_Note::OnDraw()
 {
-	//////////////////////////////////
 	// Draw page text
 	cVector3f vPos(235, 107, 70);
 	for(int i=mvPages[mlCurrentPage].mlFirstRow; i<mvPages[mlCurrentPage].mlEndRow; ++i)
@@ -986,7 +880,6 @@ void cNotebookState_Note::OnDraw()
 		vPos.y += mvSize.y+2;
 	}
 
-	//////////////////////////////////
 	// Page number
 	if(mpInit->mbHighResHud)
 		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.12f,0.1f,0.08f,0.85f*mpNotebook->GetAlpha()),
@@ -995,7 +888,6 @@ void cNotebookState_Note::OnDraw()
 		mpTextFont->Draw(cVector3f(400,490,16),15,cColor(0.05f,mpNotebook->GetAlpha()),eFontAlign_Center,
 			_W("%d"),mlCurrentPage+1);
 	
-	//////////////////////////////////
 	// Draw arrows back and forward
 	for(size_t i=0; i< mvOptions.size(); ++i)
 	{
@@ -1011,9 +903,6 @@ void cNotebookState_Note::OnDraw()
 
 	
 }
-
-//-----------------------------------------------------------------------
-
 
 void cNotebookState_Note::OnMouseDown(eMButton aButton)
 {	
@@ -1036,22 +925,12 @@ void cNotebookState_Note::OnMouseDown(eMButton aButton)
 		}
 	}
 }
-//-----------------------------------------------------------------------
 
 void cNotebookState_Note::OnExit()
 {
 	mpStateMachine->ChangeState(eNotebookState_NoteList);
 	mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_open",false,1);
 }
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cNotebook::cNotebook(cInit *apInit)  : iUpdateable("Notebook")
 {
@@ -1070,7 +949,6 @@ cNotebook::cNotebook(cInit *apInit)  : iUpdateable("Notebook")
 	mStateMachine.AddState(hplNew( cNotebookState_NoteList,(mpInit,this) ),"NoteList",eNotebookState_NoteList,mpInit->mpGame->GetStepSize());
 	mStateMachine.AddState(hplNew( cNotebookState_Note,(mpInit,this) ),"Note",eNotebookState_Note,mpInit->mpGame->GetStepSize());
 
-	///////////////////////
 	//Book types
 	mvBookTypes.resize(2);
 	
@@ -1085,32 +963,19 @@ cNotebook::cNotebook(cInit *apInit)  : iUpdateable("Notebook")
 	mvBookTypes[1].mType = eNotebookType_Open;
 }
 
-//-----------------------------------------------------------------------
-
 cNotebook::~cNotebook(void)
 {
 	STLDeleteAll(mlstTasks);
 	STLDeleteAll(mlstNotes);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cNotebook::OnStart()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Check active and fade
 	if(mbActive==false)
 	{
@@ -1124,7 +989,6 @@ void cNotebook::Update(float afTimeStep)
 		if(mfAlpha >1)mfAlpha =1;
 	}
 
-	////////////////////////////////
 	// Book types
 	for(size_t i=0; i< mvBookTypes.size(); ++i)
 	{
@@ -1141,12 +1005,9 @@ void cNotebook::Update(float afTimeStep)
 
 	}
 	
-	//////////////////////////////
 	//Update state machine
 	mStateMachine.Update(afTimeStep);
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebook::Reset()
 {
@@ -1158,15 +1019,12 @@ void cNotebook::Reset()
 	STLDeleteAll(mlstNotes);
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::OnDraw()
 {
 	if(mfAlpha == 0) return;
 	
     mpDrawer->DrawGfxObject(mpGfxBackground,mpInit->mpGraphicsHelper->GetScreenPos(),mpInit->mpGraphicsHelper->GetScreenSize(),cColor(1,mfAlpha));
 	
-	////////////////////////////////////
 	//Book types
 	cVector2f vBookSize(350,460);
 	cVector3f vBookPos(400 - vBookSize.x/2, 300 - vBookSize.y/2, 10);
@@ -1177,12 +1035,9 @@ void cNotebook::OnDraw()
 								mfAlpha * mvBookTypes[i].mfAlpha));
 	}
 	
-	////////////////////////////////////
 	//Current state
 	static_cast<iNotebookState*>(mStateMachine.CurrentState())->OnDraw();	
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebook::SetMousePos(const cVector2f &avPos)
 {
@@ -1198,8 +1053,6 @@ void cNotebook::AddMousePos(const cVector2f &avRel)
 
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebook::OnMouseDown(eMButton aButton)
 {
@@ -1219,21 +1072,15 @@ void cNotebook::OnMouseDown(eMButton aButton)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::OnMouseUp(eMButton aButton)
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::OnExit()
 {
 	static_cast<iNotebookState*>(mStateMachine.CurrentState())->OnExit();
 }
-
-//-----------------------------------------------------------------------
 
 tNotebook_NoteList_Iterator cNotebook::GetNoteIterator()
 {
@@ -1269,19 +1116,7 @@ bool cNotebook::NoteExists(const tString &asTextCat, const tString &asTextEntry)
 
 void cNotebook::RemoveNote(const tString &asName)
 {	
-	/*tNotebook_NoteListIt it = mlstNotes.begin();
-	for(; it != mlstNotes.end(); ){
-		cNotebook_Note *pNote = *it;
-		if(pNote->msName == asName)	{
-			it = mlstNotes.erase(it);
-			hplDelete( pNote );
-		}
-		else{
-			++it;
-		}
-	}*/
 }
-//-----------------------------------------------------------------------
 
 tNotebook_BookTaskList_Iterator cNotebook::GetTaskIterator()
 {
@@ -1330,16 +1165,12 @@ void cNotebook::RemoveTask(const tString &asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::SetBookType(eNotebookType aType)
 {
 	if(mBookType == aType) return;
 
 	mBookType = aType;
 }
-
-//-----------------------------------------------------------------------
 
 void cNotebook::SetActive(bool abActive)
 {
@@ -1393,11 +1224,8 @@ void cNotebook::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::SaveToGlobal(cNotebook_GlobalSave *apSave)
 {
-	//////////////////////
 	// Tasks
 	{
 		tNotebook_BookTaskListIt it = mlstTasks.begin();
@@ -1413,7 +1241,6 @@ void cNotebook::SaveToGlobal(cNotebook_GlobalSave *apSave)
 		}
 	}
 
-	//////////////////////
 	// Notes
 	{
 		tNotebook_NoteListIt it = mlstNotes.begin();
@@ -1432,11 +1259,8 @@ void cNotebook::SaveToGlobal(cNotebook_GlobalSave *apSave)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cNotebook::LoadFromGlobal(cNotebook_GlobalSave *apSave)
 {
-	//////////////////////
 	// Tasks
 	{
 		cContainerListIterator<cNotebookTask_GlobalSave> it = apSave->mlstTasks.GetIterator();
@@ -1452,7 +1276,6 @@ void cNotebook::LoadFromGlobal(cNotebook_GlobalSave *apSave)
 		}
 	}
 
-	//////////////////////
 	// Notes
 	{
 		cContainerListIterator<cNotebookNote_GlobalSave> it = apSave->mlstNotes.GetIterator();
@@ -1472,5 +1295,3 @@ void cNotebook::LoadFromGlobal(cNotebook_GlobalSave *apSave)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------

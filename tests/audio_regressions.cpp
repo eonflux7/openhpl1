@@ -108,8 +108,6 @@ static void WriteWav(const fs::path &aPath, int alChannels, int alBits, bool abF
 	WriteFile(aPath, sWav);
 }
 
-//-----------------------------------------------------------------------
-
 // Opening and closing with streams and samples playing, alternating the
 // stream worker. Closing joins the worker before sources are destroyed.
 static void TestLifecycle()
@@ -159,8 +157,6 @@ static void TestLifecycle()
 		device.Close();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 static void TestVoiceStealing()
 {
@@ -220,8 +216,6 @@ static void TestVoiceStealing()
 	device.Close();
 }
 
-//-----------------------------------------------------------------------
-
 static void TestHandlesAndPause()
 {
 	cOpenALDevice device;
@@ -269,8 +263,6 @@ static void TestHandlesAndPause()
 	device.Close();
 	Check(!device.IsPlaying(lSecond), "closed device has no playing handles");
 }
-
-//-----------------------------------------------------------------------
 
 static bool FilterIs(cOpenALDevice &aDevice, int alHandle, bool abOn, float afGainHF)
 {
@@ -322,8 +314,6 @@ static void TestOcclusionFilter()
 
 	device.Close();
 }
-
-//-----------------------------------------------------------------------
 
 static void TestBusRules()
 {
@@ -393,8 +383,6 @@ static void TestBusRouting()
 	device.Close();
 }
 
-//-----------------------------------------------------------------------
-
 static void TestStreaming(bool abThread)
 {
 	cOpenALDevice device;
@@ -432,8 +420,6 @@ static void TestStreaming(bool abThread)
 	device.Close();
 }
 
-//-----------------------------------------------------------------------
-
 static void TestLoaders(const fs::path &aDir)
 {
 	cOpenALDevice device;
@@ -463,8 +449,6 @@ static void TestLoaders(const fs::path &aDir)
 	device.Close();
 }
 
-//-----------------------------------------------------------------------
-
 static void TestEnvironmentFiles(const fs::path &aDir)
 {
 	struct sCase { const char *mpName; const char *mpXml; bool mbValid; };
@@ -491,8 +475,6 @@ static void TestEnvironmentFiles(const fs::path &aDir)
 	Check(hall.GetName() == "Hall" && hall.mfDecayTime == 2.5f && hall.mbDecayHFLimit == 1, "parameters are read");
 
 }
-
-//-----------------------------------------------------------------------
 
 static bool Near(float a, float b) { return std::fabs(a - b) < 1e-4f; }
 
@@ -611,8 +593,6 @@ static void TestMusicFades()
 	Check(Near(cMusicHandler::FadeGain(&steady), 0.6f), "a finished fade in plays at its volume");
 }
 
-//-----------------------------------------------------------------------
-
 static void TestSettings()
 {
 	Check(cLowLevelSoundOpenAL::StreamBlockBytes(64) == 64 * 1024, "StreamBufferSize=64 means 64 KiB");
@@ -629,8 +609,6 @@ static void TestSettings()
 	cOpenALDevice missing;
 	Check(!missing.Open(params), "unknown device fails to open");
 }
-
-//-----------------------------------------------------------------------
 
 static void TestHRTFSetting()
 {
@@ -699,8 +677,6 @@ static void TestOutput()
 	device.Close();
 	Check(!device.Reopen(""), "a closed device cannot reopen");
 }
-
-//-----------------------------------------------------------------------
 
 int hplMain(const hpl::tString&)
 {

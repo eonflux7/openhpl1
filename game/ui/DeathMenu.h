@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_DEATH_MENU_H
 #define GAME_DEATH_MENU_H
 
@@ -27,8 +11,6 @@ using namespace hpl;
 
 class cInit;
 
-
-//---------------------------
 class cDeathMenuButton
 {
 public:
@@ -63,8 +45,6 @@ protected:
 	bool mbOver;
 };
 
-//---------------------------------------------
-
 class cDeathMenuButton_Continue : public cDeathMenuButton
 {
 public:
@@ -74,8 +54,6 @@ public:
 	void OnMouseDown() override;
 	void OnMouseUp() override;
 };
-
-//---------------------------------------------
 
 class cDeathMenuButton_BackToMain : public cDeathMenuButton
 {
@@ -87,12 +65,8 @@ public:
 	void OnMouseUp() override;
 };
 
-//---------------------------------------------
-
 typedef std::list<cDeathMenuButton*> tDeathMenuButtonList;
 typedef tDeathMenuButtonList::iterator tDeathMenuButtonListIt;
-
-//---------------------------------------------
 
 class cDeathMenu : public iUpdateable
 {
@@ -137,8 +111,5 @@ private:
 
 	tDeathMenuButtonList mlstButtons;
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_DEATH_MENU_H

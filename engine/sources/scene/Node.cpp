@@ -1,31 +1,9 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Node.h"
 #include "system/LowLevelSystem.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iNode::~iNode()
 	{
@@ -36,14 +14,6 @@ namespace hpl {
 		}
 		mlstEntity.clear();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	int iNode::SetVisible(bool abX, bool abCascade)
 	{
@@ -64,8 +34,6 @@ namespace hpl {
 		return lNum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iNode::AddEntity(iEntity* apEntity)
 	{
 		if(apEntity->HasParent())return false;
@@ -75,8 +43,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iNode::RemoveEntity(iEntity* apEntity)
 	{
@@ -92,14 +58,10 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iNode::ClearEntities()
 	{
 		mlstEntity.clear();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cNodeIterator iNode::GetChildIterator()
 	{
@@ -110,20 +72,11 @@ namespace hpl {
 	{
 		return cEntityIterator(&mlstEntity);
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iNode, iSaveData)
 	kSerializeVarContainer(mlstEntities, eSerializeType_Int32)
 	kSerializeVarContainer(mlstNodes, eSerializeType_Int32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	void iNode::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -133,14 +86,10 @@ namespace hpl {
 		kSaveData_SaveIdList(mlstNode,tNodeListIt,mlstNodes);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iNode::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iNode);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iNode::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -149,7 +98,4 @@ namespace hpl {
 		kSaveData_LoadIdList(mlstEntity,mlstEntities, iEntity*);
 		kSaveData_LoadIdList(mlstNode,mlstNodes, iNode*);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

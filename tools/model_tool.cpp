@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2026 - OpenHPL1 contributors
- *
- * This file is part of OpenHPL1.
- *
- * OpenHPL1 is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * OpenHPL1 is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenHPL1.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2026 - OpenHPL1 contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // openhpl1-model: converts the games' Collada models and maps to glTF 2.0
 // and checks that the engine reads the same from both. See docs/modding.md.
@@ -41,8 +25,6 @@
 using namespace hpl;
 namespace fs = std::filesystem;
 
-//-----------------------------------------------------------------------
-
 static bool gbQuiet = false;
 
 static bool PrintDiff(const tString &asName, const cModelDiff &aDiff, size_t alMax)
@@ -59,8 +41,6 @@ static bool PrintDiff(const tString &asName, const cModelDiff &aDiff, size_t alM
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 static bool Convert(cMeshLoaderCollada &aLoader, const tString &asIn, const tString &asOut, tStringVec &avWarnings)
 {
 	cColladaData data;
@@ -76,8 +56,6 @@ static void PrintWarnings(const tString &asName, const tStringVec &avWarnings)
 {
 	for(const tString &sWarning : avWarnings) printf("WARNING %s: %s\n", asName.c_str(), sWarning.c_str());
 }
-
-//-----------------------------------------------------------------------
 
 static int Info(cMeshLoaderCollada &aLoader, const tString &asFile)
 {
@@ -107,8 +85,6 @@ static int Info(cMeshLoaderCollada &aLoader, const tString &asFile)
 	}
 	return 0;
 }
-
-//-----------------------------------------------------------------------
 
 static bool IsImage(const fs::path &aPath)
 {
@@ -183,8 +159,6 @@ static int ConvertDir(cMeshLoaderCollada &aLoader, const fs::path &aIn, const fs
 		abVerify ? (", " + cString::ToString(lDiffer) + " differ").c_str() : "");
 	return lFailed || lDiffer ? 1 : 0;
 }
-
-//-----------------------------------------------------------------------
 
 static int Usage()
 {

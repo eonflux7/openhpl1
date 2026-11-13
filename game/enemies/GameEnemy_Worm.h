@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_ENEMY_WORM_H
 #define GAME_GAME_ENEMY_WORM_H
 
@@ -23,8 +7,6 @@
 #include "enemies/GameEnemy.h"
 
 using namespace hpl;
-
-//-----------------------------------------
 
 class cGameEnemy_Worm;
 
@@ -49,8 +31,6 @@ protected:
 	cGameEnemy_Worm *mpEnemyWorm;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Worm_Idle : public iGameEnemyState_Worm_Base
 {
@@ -70,8 +50,6 @@ private:
 	bool mbStopped;
 	float mfNextWalkTime;
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Worm_Hunt : public iGameEnemyState_Worm_Base
@@ -104,8 +82,6 @@ private:
 	float mfHuntSoundDelaySeconds;
 };
 
-//-----------------------------------------
-
 // DEAD STATE
 class cGameEnemyState_Worm_Dead : public iGameEnemyState_Worm_Base
 {
@@ -123,8 +99,6 @@ public:
 
 private:
 };
-
-//-----------------------------------------
 
 class cWormTailSegment
 {
@@ -154,8 +128,6 @@ public:
 	cWormTailSegment *mpChildSegment;
 };
 
-//-----------------------------------------
-
 class cGameEnemy_Worm_MeshCallback : public cMeshEntityCallback
 {
 public:
@@ -166,8 +138,6 @@ public:
 private:
 	cGameEnemy_Worm *mpWorm;
 };
-
-//-----------------------------------------
 
 class cVector3Smoother
 {
@@ -183,9 +153,6 @@ private:
 	int mlMaxVecs;
 	std::list<cVector3f> mlstVecs;
 };
-
-//-----------------------------------------
-
 
 class cGameEnemy_Worm : public iGameEnemy
 {
@@ -272,7 +239,5 @@ private:
 	cWormTailSegment *mpRootSegment;
 	std::vector<cWormTailSegment*> mvTailSegments;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_WORM_H

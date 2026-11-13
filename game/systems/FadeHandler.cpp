@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "systems/FadeHandler.h"
 
 #include "core/Init.h"
@@ -23,14 +7,6 @@
 #include "entities/GameEntity.h"
 #include "ui/Inventory.h"
 #include "core/GraphicsHelper.h"
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cFadeHandler::cFadeHandler(cInit *apInit)  : iUpdateable("FadeHandler")
 {
@@ -43,20 +19,10 @@ cFadeHandler::cFadeHandler(cInit *apInit)  : iUpdateable("FadeHandler")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cFadeHandler::~cFadeHandler(void)
 {
 	mpDrawer->DestroyGfxObject(mpBlackGfx);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::FadeOut(float afDurationSeconds)
 {
@@ -70,8 +36,6 @@ void cFadeHandler::FadeOut(float afDurationSeconds)
 	Update(1.0f/60.0f);
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::FadeIn(float afDurationSeconds)
 {
 	if(afDurationSeconds <= 0)
@@ -84,29 +48,20 @@ void cFadeHandler::FadeIn(float afDurationSeconds)
 	Update(1.0f/60.0f);
 }
 
-//-----------------------------------------------------------------------
-
 bool cFadeHandler::IsActive()
 {
 	return mbActive;
 }
-
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::OnStart()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::SetWideScreenActive(bool abActive)
 {
 	mbWideScreenActive = abActive;
 }
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::Update(float afTimeStep)
 {
@@ -132,7 +87,6 @@ void cFadeHandler::Update(float afTimeStep)
 		}
 	}
 
-	//////////////////////////////////
 	// Wide Screen
 	if(mbWideScreenActive)
 	{
@@ -146,8 +100,6 @@ void cFadeHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cFadeHandler::Reset()
 {
 	mfWideScreenAlpha =0;
@@ -157,8 +109,6 @@ void cFadeHandler::Reset()
 	mfAlphaRatePerSecond = 0;
 	mbActive = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cFadeHandler::OnDraw()
 {
@@ -176,5 +126,3 @@ void cFadeHandler::OnDraw()
 		mpDrawer->DrawGfxObject(mpBlackGfx,cVector3f(vPos.x,525,40),cVector2f(vSize.x,fBarHeight),cColor(1,mfWideScreenAlpha));
 	}
 }
-
-//-----------------------------------------------------------------------

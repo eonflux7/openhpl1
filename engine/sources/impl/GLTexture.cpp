@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/GLTexture.h"
 
 #include <cstring>
@@ -29,11 +13,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// FORMATS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// Textures of one and two channels are luminance and luminance-alpha:
 	// stored as red and red-green, and read back as (r,r,r,1) and (r,r,r,g)
@@ -99,13 +79,6 @@ namespace hpl {
 		GLint mlAlignment;
 	};
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGLTexture::cGLTexture(const tString &asName, iPixelFormat *apPxlFmt, iLowLevelGraphics *apLowLevelGraphics,
 		eTextureType aType, bool abUseMipMaps, eTextureTarget aTarget,
 		bool abCompress)
@@ -135,21 +108,10 @@ namespace hpl {
 		glDeleteTextures(1, &mlTextureHandle);
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cGLTexture::CreateFromBitmap(iBitmap2D *apBitmap)
 	{
 		return UploadBitmap(apBitmap, 0);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLTexture::CreateAnimFromBitmapVec(tBitmap2DVec *avBitmaps)
 	{
@@ -173,8 +135,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLTexture::CreateCubeFromBitmapVec(tBitmap2DVec *avBitmaps)
 	{
@@ -233,9 +193,6 @@ namespace hpl {
 		return true;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	bool cGLTexture::Create(unsigned int alWidth, unsigned int alHeight, cColor aCol)
 	{
 
@@ -272,8 +229,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLTexture::CreateFromArray(unsigned char *apPixelData, int alChannels, const cVector3l &avSize)
 	{
 		GLenum GLTarget = TextureTargetToGL(mTarget);
@@ -309,9 +264,6 @@ namespace hpl {
 		return true;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cGLTexture::SetPixels2D(int alLevel, const cVector2l &avOffset, const cVector2l &avSize,
 		eColorDataFormat aDataFormat, void *apPixelData)
 	{
@@ -325,8 +277,6 @@ namespace hpl {
 		if(HasMipMaps() && alLevel == 0) glGenerateMipmap(GL_TEXTURE_2D);
 		mpGfxSDL->RestoreSetTexture();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGLTexture::Update(float afTimeStep)
 	{
@@ -360,8 +310,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGLTexture::HasAnimation()
 	{
@@ -446,8 +394,6 @@ namespace hpl {
 		return GetTextureHandle();
 	}
 
-	//-----------------------------------------------------------------------
-
 	// Thin things lose alpha as they are averaged into smaller mipmaps, and
 	// with it the share of their texels that pass the test. For each mipmap
 	// the alpha is found that this share of its texels reaches, and all of
@@ -511,8 +457,6 @@ namespace hpl {
 		mpGfxSDL->RestoreSetTexture();
 	}
 
-	//-----------------------------------------------------------------------
-
 	// How the texture is read (filter, wrap) is not kept in the texture
 	// but in a sampler object, shared with every texture that is read the
 	// same way.
@@ -540,16 +484,12 @@ namespace hpl {
 		return mbUseMipMaps && mTarget != eTextureTarget_3D;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLTexture::SetWrapS(eTextureWrap aMode)
 	{
 		if(mWrapS == aMode) return;
 		mWrapS = aMode;
 		SamplerChanged();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGLTexture::SetWrapT(eTextureWrap aMode)
 	{
@@ -558,16 +498,12 @@ namespace hpl {
 		SamplerChanged();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLTexture::SetWrapR(eTextureWrap aMode)
 	{
 		if(mWrapR == aMode) return;
 		mWrapR = aMode;
 		SamplerChanged();
 	}
-
-	//-----------------------------------------------------------------------
 
 	unsigned int cGLTexture::GetTextureHandle()
 	{
@@ -580,14 +516,6 @@ namespace hpl {
 		// out-of-range input without changing the legacy loop/oscillate timing.
 		return cMath::Clamp((int)mfAnimationFramePosition, 0, mlFrameCount-1);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGLTexture::UploadBitmap(iBitmap2D *apBitmap, int alLayer)
 	{
@@ -687,8 +615,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cGLTexture::EnsureStorage(GLenum aTarget, GLenum aFormat, int alWidth, int alHeight, int alDepth)
 	{
 		if(alWidth <= 0 || alHeight <= 0 || alDepth <= 0) return false;
@@ -755,8 +681,6 @@ namespace hpl {
 		mpGfxSDL->RestoreSetTexture();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGLTexture::GetBitmapFormat(cSDLBitmap2D *apSrc, int &alChannels, GLenum &aFormat)
 	{
 		SDL_Surface *pSurface =  apSrc->GetSurface();
@@ -769,8 +693,6 @@ namespace hpl {
 		else if(alChannels==2) aFormat = GL_RG;
 		else					aFormat = GL_RGBA;
 	}
-
-	//-----------------------------------------------------------------------
 
 	GLenum cGLTexture::ToGLWrapMode(eTextureWrap aMode)
 	{
@@ -785,8 +707,4 @@ namespace hpl {
 
 		return GL_REPEAT;
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

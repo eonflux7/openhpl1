@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_BEAM_H
 #define HPL_BEAM_H
 
@@ -36,8 +20,6 @@ namespace hpl {
 	class iMaterial;
 	class iVertexBuffer;
 
-	//------------------------------------------
-
 	class cBeam;
 	class cBeamEnd : public iEntity3D
 	{
@@ -50,7 +32,6 @@ namespace hpl {
 		void SetColor(const cColor &aColor);
 		const cColor& GetColor(){ return mColor;}
 
-		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "BeamEnd";}
 	private:
@@ -58,15 +39,11 @@ namespace hpl {
 		cBeam *mpBeam;
 	};
 
-	//------------------------------------------
-
 	class cBeamEnd_UpdateCallback : public iEntityCallback
 	{
 	public:
 		void OnTransformUpdate(iEntity3D * apEntity) override;
 	};
-
-	//------------------------------------------
 
 	class cBeam : public iRenderable
 	{
@@ -105,7 +82,6 @@ namespace hpl {
 		cVector3f GetAxis(){ return mvAxis;}
 		cVector3f GetMidPosition(){ return mvMidPosition;}
 
-		/////////////////////////////////
 		//Entity implementation
 		tString GetEntityType() override{ return "Beam";}
 

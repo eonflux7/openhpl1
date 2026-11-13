@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/PhysicsBodyNewton.h"
 
 #include <algorithm>
@@ -31,12 +15,6 @@
 namespace hpl {
 
 	bool cPhysicsBodyNewton::mbUseCallback = true;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPhysicsBodyNewton::cPhysicsBodyNewton(const tString &asName,iPhysicsWorld *apWorld,iCollideShape *apShape)
 	: iPhysicsBody(asName,apWorld, apShape)
@@ -71,33 +49,19 @@ namespace hpl {
 		mfAutoDisableAngularThreshold = 0.01f;
 		mlAutoDisableNumSteps = 10;
 
-		//Log("Creating newton body '%s' %d\n",msName.c_str(),(size_t)this);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cPhysicsBodyNewton::~cPhysicsBodyNewton()
 	{
-		//Log(" Destroying newton body '%s' %d\n",msName.c_str(),(size_t)this);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::DeleteLowLevel()
 	{
-		//Log(" Newton body %d\n", (size_t)mpNewtonBody);
 		NewtonDestroyBody(mpNewtonWorld,mpNewtonBody);
-		//Log(" Callback\n");
 		hplDelete(mpCallback);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// CALLBACK METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewtonCallback::OnTransformUpdate(iEntity3D * apEntity)
 	{
@@ -138,14 +102,6 @@ namespace hpl {
 		if(pRigidBody->mpNode) pRigidBody->mpNode->SetMatrix(apEntity->GetLocalMatrix());
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetMaterial(iPhysicsMaterial* apMaterial)
 	{
 		mpMaterial = apMaterial;
@@ -156,8 +112,6 @@ namespace hpl {
 
 		NewtonBodySetMaterialGroupID(mpNewtonBody, pNewtonMat->GetId());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetLinearVelocity(const cVector3f &avVel)
 	{
@@ -170,8 +124,6 @@ namespace hpl {
 		return vVel;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetAngularVelocity(const cVector3f &avVel)
 	{
 		NewtonBodySetOmega(mpNewtonBody, avVel.v);
@@ -183,8 +135,6 @@ namespace hpl {
 		return vVel;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetLinearDamping(float afDamping)
 	{
 		NewtonBodySetLinearDamping(mpNewtonBody,afDamping);
@@ -193,8 +143,6 @@ namespace hpl {
 	{
 		return NewtonBodyGetLinearDamping(mpNewtonBody);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetAngularDamping(float afDamping)
 	{
@@ -208,8 +156,6 @@ namespace hpl {
 		return fDamp[0];
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetMaxLinearSpeed(float afSpeed)
 	{
 		mfMaxLinearSpeed = afSpeed;
@@ -219,8 +165,6 @@ namespace hpl {
 		return mfMaxLinearSpeed;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetMaxAngularSpeed(float afDamping)
 	{
 		mfMaxAngularSpeed = afDamping;
@@ -229,8 +173,6 @@ namespace hpl {
 	{
 		return mfMaxAngularSpeed;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cPhysicsBodyNewton::GetInertiaMatrix()
 	{
@@ -247,8 +189,6 @@ namespace hpl {
 
 		return cMath::MatrixMul(cMath::MatrixMul(mtxRot,mtxI), mtxTransRot);
 	}
-
-	//-----------------------------------------------------------------------
 
 	namespace
 	{
@@ -392,14 +332,11 @@ namespace hpl {
 		return vCentre;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::AddForce(const cVector3f &avForce)
 	{
 		mvTotalForce += avForce;
 		SetEnabled(true);
 
-		//Log("Added force %s\n",avForce.ToString().c_str());
 	}
 
 	void cPhysicsBodyNewton::AddForceAtPosition(const cVector3f &avForce, const cVector3f &avPos)
@@ -419,18 +356,13 @@ namespace hpl {
 		mvTotalTorque += vTorque;
 		SetEnabled(true);
 
-		//Log("Added force %s\n",avForce.ToString().c_str());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::AddTorque(const cVector3f &avTorque)
 	{
 		mvTotalTorque += avTorque;
 		SetEnabled(true);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::AddImpulse(const cVector3f &avImpulse)
 	{
@@ -452,8 +384,6 @@ namespace hpl {
 	{
 		NewtonBodyAddImpulse(mpNewtonBody, avImpulse.v, avPos.v);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetEnabled(bool abEnabled)
 	{
@@ -482,8 +412,6 @@ namespace hpl {
 		return NewtonBodyGetFreezeState(mpNewtonBody) != 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetAutoDisable(bool abEnabled)
 	{
 		NewtonBodySetAutoSleep(mpNewtonBody, abEnabled ? 1 : 0);
@@ -492,8 +420,6 @@ namespace hpl {
 	{
 		return NewtonBodyGetAutoSleep(mpNewtonBody) == 0 ? false : true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetAutoDisableLinearThreshold(float afThresold)
 	{
@@ -505,8 +431,6 @@ namespace hpl {
 		return mfAutoDisableLinearThreshold;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetAutoDisableAngularThreshold(float afThresold)
 	{
 		mfAutoDisableAngularThreshold = afThresold;
@@ -516,8 +440,6 @@ namespace hpl {
 	{
 		return mfAutoDisableAngularThreshold;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsBodyNewton::SetAutoDisableNumSteps(int anNum)
 	{
@@ -530,8 +452,6 @@ namespace hpl {
 		return mlAutoDisableNumSteps;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetContinuousCollision(bool abOn)
 	{
 		NewtonBodySetContinuousCollisionMode(mpNewtonBody,abOn ? 1 : 0);
@@ -542,8 +462,6 @@ namespace hpl {
 		return NewtonBodyGetContinuousCollisionMode(mpNewtonBody)==1 ? true : false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::SetGravity(bool abEnabled)
 	{
 		mbGravity = abEnabled;
@@ -553,13 +471,8 @@ namespace hpl {
 		return mbGravity;
 	}
 
-	//-----------------------------------------------------------------------
-
-
 	static iLowLevelGraphics *gpLowLevelGraphics;
 	static cColor gDebugColor;
-
-	////////////////////////////////////////////
 
 	static void RenderDebugPolygon(void* apUserData,
 		int alVertexCount, const dFloat* apFaceVertex, int alId)
@@ -578,8 +491,6 @@ namespace hpl {
 		}
 	}
 
-	////////////////////////////////////////////
-
 	void cPhysicsBodyNewton::RenderDebugGeometry(iLowLevelGraphics *apLowLevel,const cColor &aColor)
 	{
 		gpLowLevelGraphics = apLowLevel;
@@ -589,23 +500,11 @@ namespace hpl {
 										RenderDebugPolygon, nullptr);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsBodyNewton::ClearForces()
 	{
 		mvTotalForce = cVector3f(0,0,0);
 		mvTotalTorque = cVector3f(0,0,0);
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC NEWTON CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 
 	void cPhysicsBodyNewton::OnTransformCallback(const NewtonBody* apBody, const dFloat* apMatrix, int alThreadIndex)
 	{
@@ -619,8 +518,6 @@ namespace hpl {
 
 		if(pRigidBody->mpNode)pRigidBody->mpNode->SetMatrix(pRigidBody->m_mtxLocalTransform);
 	}
-
-	//-----------------------------------------------------------------------
 
 	//callback for buoyancy
 	static cPlanef gSurfacePlane;
@@ -695,13 +592,5 @@ namespace hpl {
 			}
 		}
 
-		//cVector3f vForce;
-		//NewtonBodyGetForce(apBody,vForce.v);
-		//Log("Engine force %s\n",pRigidBody->mvTotalForce.ToString().c_str());
-		//Log("Engine force %s, body force: %s \n",pRigidBody->mvTotalForce.ToString().c_str(),
-		//										vForce.ToString().c_str());
 	}
-
-	//-----------------------------------------------------------------------
-
 }

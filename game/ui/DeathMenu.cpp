@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui/DeathMenu.h"
 
 #include "core/Init.h"
@@ -26,11 +10,7 @@
 #include "ui/MainMenu.h"
 #include "player/HapticGameCamera.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BUTTON
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cDeathMenuButton::cDeathMenuButton(cInit *apInit, cVector2f avPos, const tWString& asText)
 {
@@ -58,8 +38,6 @@ cDeathMenuButton::~cDeathMenuButton()
 	mpInit->mpGame->GetResources()->GetFontManager()->Destroy(mpFont);
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenuButton::OnUpdate(float afTimeStep)
 {
 	if(mbOver)
@@ -74,8 +52,6 @@ void cDeathMenuButton::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenuButton::OnDraw()
 {
 	float fAlpha = mpInit->mpDeathMenu->mfAlpha;
@@ -85,40 +61,24 @@ void cDeathMenuButton::OnDraw()
 	mpFont->DrawPlain(mvPosition+cVector3f(0,0,1),mvFontSize,cColor(1,0,0,fAlpha*mfAlpha),eFontAlign_Center,msText.c_str());
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenuButton::OnMouseOver(bool abOver)
 {
 	mbOver = abOver;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // CONTINUE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cDeathMenuButton_Continue::OnMouseDown()
 {
 	mpInit->mpSaveHandler->AutoLoadLatestAutoOrSpot();
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenuButton_Continue::OnMouseUp()
 {
 
 }
-//-----------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////
 // BACK TO MAIN
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cDeathMenuButton_BackToMain::OnMouseDown()
 {
@@ -126,19 +86,10 @@ void cDeathMenuButton_BackToMain::OnMouseDown()
 	mpInit->mpMainMenu->SetActive(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenuButton_BackToMain::OnMouseUp()
 {
 
 }
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cDeathMenu::cDeathMenu(cInit *apInit)  : iUpdateable("NumericalPanel")
 {
@@ -153,8 +104,6 @@ cDeathMenu::cDeathMenu(cInit *apInit)  : iUpdateable("NumericalPanel")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cDeathMenu::~cDeathMenu(void)
 {
 	STLDeleteAll(mlstButtons);
@@ -162,23 +111,12 @@ cDeathMenu::~cDeathMenu(void)
 	mpDrawer->DestroyGfxObject(mpGfxBackground);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-
-//-----------------------------------------------------------------------
-
 void cDeathMenu::Reset()
 {
 	mbActive = false;
 	mfAlpha =0;
 	mbMouseIsDown = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cDeathMenu::OnDraw()
 {
@@ -189,7 +127,6 @@ void cDeathMenu::OnDraw()
 	mpFont->DrawWordWrap(	cVector3f(400,210,40),500,25,24,cColor(0.7f,0.3f,0.3f),eFontAlign_Center,
 							kTranslate("DeathMenu","YouAreDead").c_str());
 
-	////////////////////////////////
 	// Draw buttons
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -200,11 +137,8 @@ void cDeathMenu::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenu::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Check active and fade
 	if(mbActive==false)
 	{
@@ -221,7 +155,6 @@ void cDeathMenu::Update(float afTimeStep)
 		if(mfAlpha >1)mfAlpha =1;
 	}
 
-	////////////////////////////////
 	// Update buttons
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -241,8 +174,6 @@ void cDeathMenu::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenu::SetMousePos(const cVector2f &avPos)
 {
 	mvMousePos = avPos;
@@ -257,11 +188,8 @@ void cDeathMenu::AddMousePos(const cVector2f &avRel)
 	mpInit->mpPlayer->SetCrossHairPos(mvMousePos);
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenu::OnMouseDown(eMButton aButton)
 {
-	////////////////////////////////
 	// Dispatch button presses
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -279,7 +207,6 @@ void cDeathMenu::OnMouseDown(eMButton aButton)
 
 void cDeathMenu::OnMouseUp(eMButton aButton)
 {
-	////////////////////////////////
 	// Dispatch button releases
 	tDeathMenuButtonListIt it = mlstButtons.begin();
 	for(; it != mlstButtons.end(); ++it)
@@ -294,8 +221,6 @@ void cDeathMenu::OnMouseUp(eMButton aButton)
 
 	mbMouseIsDown = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cDeathMenu::SetActive(bool abActive)
 {
@@ -336,11 +261,7 @@ void cDeathMenu::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cDeathMenu::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------

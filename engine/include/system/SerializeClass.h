@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_SERIALIZE_CLASS_H
 #define HPL_SERIALIZE_CLASS_H
 
@@ -27,9 +11,7 @@ class TiXmlElement;
 
 namespace hpl {
 
-	/////////////////////////////////////////////////
-	//// ENGINE VALUE TYPES ///////////////////////////////
-	/////////////////////////////////////////////////
+	// ENGINE VALUE TYPES
 
 	typedef unsigned int eSerializeType;
 
@@ -72,9 +54,7 @@ namespace hpl {
 
 	#define eSerializeType_NULL			(0xFFFF)
 
-	/////////////////////////////////////////////////
-	//// ENGINE MAIN TYPES //////////////////////////
-	/////////////////////////////////////////////////
+	// ENGINE MAIN TYPES
 
 	typedef unsigned int eSerializeMainType;
 
@@ -86,9 +66,7 @@ namespace hpl {
 
 
 
-	/////////////////////////////////////////////////
-	//// HELPER DEFINES /////////////////////////////
-	/////////////////////////////////////////////////
+	// HELPER DEFINES
 
 	#define kMaxSerializeClasses 1000
 
@@ -197,11 +175,7 @@ namespace hpl {
 	cSerializeMemberField(#aVar, ClassMemberOffset(tVarClass,aVar),ClassMemberSize(tVarClass,aVar),aType,eSerializeMainType_Container,#aClass),
 
 
-	/////////////////////////////////////////////////
-	//// CLASSES ////////////////////////////////////
-	/////////////////////////////////////////////////
-
-	//-------------------------------------------------
+	// CLASSES
 
 	class cSerializeMemberField
 	{
@@ -247,8 +221,6 @@ namespace hpl {
 		size_t mlArraySize;
 	};
 
-	//-------------------------------------------------
-
 	class iSerializable
 	{
 	public:
@@ -256,16 +228,12 @@ namespace hpl {
 		virtual tString Serialize_GetTopClass(){ return "";}
 	};
 
-	//-------------------------------------------------
-
 	class iSerializableType
 	{
 	public:
 		virtual char* ValueToString(void *apVal)=0;
 		virtual void ValueFromString(char* apString, void *apVal)=0;
 	};
-
-	//-------------------------------------------------
 
 	typedef struct cSerializeSavedClass
 	{
@@ -283,9 +251,6 @@ namespace hpl {
 
 	} cSerializeSavedClass;
 
-
-	//-------------------------------------------------
-
 	class cSerializeMemberFieldIterator
 	{
 	public:
@@ -298,8 +263,6 @@ namespace hpl {
 		cSerializeSavedClass *mpSavedClass;
 		int mlFieldNum;
 	};
-
-	//-------------------------------------------------
 
 	typedef std::map<tString, cSerializeSavedClass> tSerializeSavedClassMap;
 	typedef tSerializeSavedClassMap::iterator tSerializeSavedClassMapIt;
@@ -359,9 +322,5 @@ namespace hpl {
 		static tSerializeSavedClassMap m_mapSavedClasses;
 		static std::vector<iSerializableType*> mvValueTypes;
 	};
-
-	//-------------------------------------------------
-
-
 };
 #endif // HPL_SERIALIZE_CLASS_H

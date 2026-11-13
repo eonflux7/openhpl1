@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_GUI_TYPES_H
 #define HPL_GUI_TYPES_H
 
@@ -25,8 +9,6 @@
 
 namespace hpl {
 
-	//--------------------------------
-
 	enum eGuiMouseButton
 	{
 		eGuiMouseButton_Left =		0x00000001,
@@ -34,8 +16,6 @@ namespace hpl {
 		eGuiMouseButton_Right	=	0x00000004,
 		eGuiMouseButton_LastEnum = 4
 	};
-
-	//--------------------------------
 
 	enum eGuiArrowKey
 	{
@@ -46,8 +26,6 @@ namespace hpl {
 		eGuiArrowKey_LastEnum
 	};
 
-	//--------------------------------
-
 	enum eGuiMaterial
 	{
 		eGuiMaterial_Diffuse,
@@ -57,8 +35,6 @@ namespace hpl {
 		eGuiMaterial_Modulative,
 		eGuiMaterial_LastEnum,
 	};
-
-	//--------------------------------
 
 	enum eWidgetType
 	{
@@ -78,8 +54,6 @@ namespace hpl {
 		eWidgetType_LastEnum,
 	};
 
-	//--------------------------------
-
 	enum eGuiSkinFont
 	{
 		eGuiSkinFont_Default,
@@ -88,9 +62,6 @@ namespace hpl {
 
 		eGuiSkinFont_LastEnum
 	};
-
-	//--------------------------------
-
 
 	enum eGuiSkinAttribute
 	{
@@ -107,16 +78,13 @@ namespace hpl {
 
 		eGuiSkinAttribute_LastEnum
 	};
-	//--------------------------------
 
 	enum eGuiSkinGfx
 	{
-		///////////////////////////////////
 		// Pointer
 		eGuiSkinGfx_PointerNormal,
 		eGuiSkinGfx_PointerText,
 
-		///////////////////////////////////
 		// Window
 		eGuiSkinGfx_WindowBorderRight,
 		eGuiSkinGfx_WindowBorderLeft,
@@ -131,7 +99,6 @@ namespace hpl {
 		eGuiSkinGfx_WindowLabel,
 		eGuiSkinGfx_WindowBackground,
 
-		///////////////////////////////////
 		// Frame
 		eGuiSkinGfx_FrameBorderRight,
 		eGuiSkinGfx_FrameBorderLeft,
@@ -145,25 +112,20 @@ namespace hpl {
 
 		eGuiSkinGfx_FrameBackground,
 
-		///////////////////////////////////
 		// Check Box
 		eGuiSkinGfx_CheckBoxEnabledUnchecked,
 		eGuiSkinGfx_CheckBoxEnabledChecked,
 		eGuiSkinGfx_CheckBoxDisabledUnchecked,
 		eGuiSkinGfx_CheckBoxDisabledChecked,
 
-
-		///////////////////////////////////
 		// Text Box
 		eGuiSkinGfx_TextBoxBackground,
 		eGuiSkinGfx_TextBoxSelectedTextBack,
 		eGuiSkinGfx_TextBoxMarker,
 
-		///////////////////////////////////
 		// List Box
 		eGuiSkinGfx_ListBoxBackground,
 
-		///////////////////////////////////
 		// Combo Box
 		eGuiSkinGfx_ComboBoxButtonIcon,
 
@@ -179,8 +141,6 @@ namespace hpl {
 
 		eGuiSkinGfx_ComboBoxBackground,
 
-
-		///////////////////////////////////
 		// Slider
 		eGuiSkinGfx_SliderVertArrowUp,
 		eGuiSkinGfx_SliderVertArrowDown,
@@ -190,7 +150,6 @@ namespace hpl {
 		eGuiSkinGfx_SliderHoriArrowDown,
 		eGuiSkinGfx_SliderHoriBackground,
 
-		///////////////////////////////////
 		// Button
 		eGuiSkinGfx_ButtonUpBorderRight,
 		eGuiSkinGfx_ButtonUpBorderLeft,
@@ -219,17 +178,12 @@ namespace hpl {
 		eGuiSkinGfx_LastEnum,
 	};
 
-	//---------------------------------------------
-
 	enum eWidgetSliderOrientation
 	{
 		eWidgetSliderOrientation_Horisontal,
 		eWidgetSliderOrientation_Vertical,
 		eWidgetSliderOrientation_LastEnum
 	};
-
-
-	//--------------------------------
 
 	enum eGuiMessage
 	{
@@ -259,10 +213,6 @@ namespace hpl {
 
 		eGuiMessage_LastEnum,
 	};
-
-
-	//--------------------------------
-
 
 	struct cGuiMessageData
 	{
@@ -295,9 +245,6 @@ namespace hpl {
 		eGuiMessage mMessage;
 	};
 
-	//--------------------------------
-
-
 	class iWidget;
 
 	typedef bool (*tGuiCallbackFunc)(void *,iWidget*,cGuiMessageData&);
@@ -319,21 +266,13 @@ namespace hpl {
 
 	#define kGuiCallback(FuncName) &FuncName##_static_gui
 
-	//--------------------------------
-
 	typedef std::list<iWidget*> tWidgetList;
 	typedef tWidgetList::iterator tWidgetListIt;
-
-	//--------------------------------
 
 	class cGuiGfxElement;
 
 	typedef std::list<cGuiGfxElement*> tGuiGfxElementList;
 	typedef tGuiGfxElementList::iterator tGuiGfxElementListIt;
-
-	//--------------------------------
-
-
 };
 
 #endif // HPL_GAME_TYPES_H

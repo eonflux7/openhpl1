@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/FontManager.h"
 #include "resources/FileSearcher.h"
 #include "system/String.h"
@@ -32,12 +16,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cFontManager::cFontManager(cGraphics* apGraphics,cGui *apGui,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
 							apResources->GetLowLevelSystem())
@@ -53,14 +31,6 @@ namespace hpl {
 		Log(" Done with fonts\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iFontData* cFontManager::CreateFontData(const tString& asName, int alSize,unsigned short alFirstChar,
 											unsigned short alLastChar)
 	{
@@ -69,8 +39,6 @@ namespace hpl {
 		tString asNewName = cString::ToLowerCase(asName);
 
 		BeginLoad(asName);
-
-		//asNewName = cString::SetFileExt(asName,"ttf");
 
 		pFont = static_cast<iFontData*>(this->FindLoadedResource(asNewName,sPath));
 
@@ -119,7 +87,6 @@ namespace hpl {
 				return nullptr;
 			}
 
-			//mpResources->GetImageManager()->FlushAll();
 			AddResource(pFont);
 		}
 
@@ -129,8 +96,6 @@ namespace hpl {
 		EndLoad();
 		return pFont;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cFontManager::LoadVectorFonts(const tString& asDir)
 	{
@@ -163,27 +128,20 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFontManager::HasVectorFont(const tString& asName) const
 	{
 		return m_mapVectorFonts.count(cString::ToLowerCase(cString::GetFileName(asName))) > 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* cFontManager::Create(const tString& asName)
 	{
 		return CreateFontData(asName, 16, 32, 255);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cFontManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cFontManager::Destroy(iResourceBase* apResource)
 	{
@@ -194,17 +152,4 @@ namespace hpl {
 			hplDelete(apResource);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
 }

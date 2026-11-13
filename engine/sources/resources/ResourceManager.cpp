@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/ResourceManager.h"
 #include "system/String.h"
 
@@ -31,12 +15,6 @@ namespace hpl {
 
 	int iResourceManager::mlTabCount=0;
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceManager::iResourceManager(cFileSearcher *apFileSearcher,
 										iLowLevelResources *apLowLevelResources,
 										iLowLevelSystem *apLowLevelSystem)
@@ -47,26 +25,15 @@ namespace hpl {
 		mlHandleCount=0;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iResourceBase* iResourceManager::GetByName(const tString& asName)
 	{
 		tString sName = cString::ToLowerCase(asName);
-		//Log("Looking for '%s' \n", sName.c_str());
 
 		tResourceNameMapIt it = m_mapNameResources.find(sName);
 		if(it == m_mapNameResources.end())return nullptr;
 
 		return it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* iResourceManager::GetByHandle(unsigned long alHandle)
 	{
@@ -76,26 +43,10 @@ namespace hpl {
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cResourceBaseIterator iResourceManager::GetResourceBaseIterator()
 	{
 		return cResourceBaseIterator(&m_mapNameResources);
 	}
-
-	//-----------------------------------------------------------------------
-
-	/*void iResourceManager::Destroy(iResourceBase* apResource)
-	{
-		apResource->DecUserCount();
-		if(apResource->HasUsers()==false){
-			m_mapHandleResources.erase(apResource->GetHandle());
-			m_mapNameResources.erase(apResource->GetName());
-			hplDelete(apResource);
-		}
-	}*/
-
-	//-----------------------------------------------------------------------
 
 	class cSortResources
 	{
@@ -111,11 +62,8 @@ namespace hpl {
 		}
 	};
 
-	//-----------------------------------------------------------------------
-
 	void iResourceManager::DestroyUnused(int alMaxToKeep)
 	{
-		//Log("Start Num Of: %d\n",m_mapHandleResources.size());
 		//Check if there are too many resources.
 		if((int)m_mapHandleResources.size() <= alMaxToKeep) return;
 
@@ -132,13 +80,9 @@ namespace hpl {
 		//Sort the sounds according to num of users and then time.
 		std::sort(vResources.begin(), vResources.end(), cSortResources());
 
-		//Log("-------------Num: %d-----------------\n",vResources.size());
 		for(size_t i=alMaxToKeep; i<vResources.size(); ++i)
 		{
 			iResourceBase *pRes = vResources[i];
-			//Log("%s count:%d time:%d\n",pRes->GetName().c_str(),
-			//							pRes->GetUserCount(),
-			//							pRes->GetTime());
 
 			if(pRes->HasUsers()==false)
 			{
@@ -146,23 +90,16 @@ namespace hpl {
 				hplDelete(pRes);
 			}
 		}
-		//Log("--------------------------------------\n");
-		//Log("End Num Of: %d\n",m_mapHandleResources.size());
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iResourceManager::DestroyAll()
 	{
 		tResourceHandleMapIt it = m_mapHandleResources.begin();
 		while(it != m_mapHandleResources.end())
 		{
-			//Log("Start destroy...");
 
 			iResourceBase* pResource = it->second;
-
-			//Log(" res: : %d ...",pResource->GetName().c_str(),pResource->GetUserCount());
 
 			while(pResource->HasUsers()) pResource->DecUserCount();
 
@@ -170,35 +107,20 @@ namespace hpl {
 
 			it = m_mapHandleResources.begin();
 
-			//Log(" Done!\n");
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iResourceManager::BeginLoad(const tString& asFile)
 	{
 		mlTimeStart = GetApplicationTime();
 
-		//Log("Begin resource: %s\n",asFile.c_str());
-
 		mlTabCount++;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iResourceManager::EndLoad()
 	{
 		mlTabCount--;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* iResourceManager::FindLoadedResource(const tString &asName, tString &asFilePath)
 	{
@@ -213,8 +135,6 @@ namespace hpl {
 		return pResource;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tString iResourceManager::LoadedFileName(const tString &asRequested, const tString &asPath)
 	{
 		tString sFile = cString::GetFileName(asPath);
@@ -223,8 +143,6 @@ namespace hpl {
 			sFile = cString::SetFileExt(sFile, sExt);
 		return sFile;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString iResourceManager::GetTabs()
 	{
@@ -251,27 +169,17 @@ namespace hpl {
 			apResource->SetLogDestruction(true);
 		}
 
-		//Log("End resource: %s\n",apResource->GetName().c_str());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iResourceManager::RemoveResource(iResourceBase* apResource)
 	{
 		m_mapHandleResources.erase(apResource->GetHandle());
 		m_mapNameResources.erase(cString::ToLowerCase(apResource->GetName()));
 
-		//Log("Removing %s %d %d!\n", apResource->GetName().c_str(),x,y);
 	}
-
-	//-----------------------------------------------------------------------
 
 	unsigned long iResourceManager::GetHandle()
 	{
 		return mlHandleCount++;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

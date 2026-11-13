@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Light.h"
 
 #include "system/LowLevelSystem.h"
@@ -26,12 +10,6 @@
 
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iLight::iLight() : mDiffuseColor(0), mSpecularColor(0),mfIntensity(1),
 		mbCastShadows(false), mfFarAttenuation(0), mfNearAttenuation(0),
@@ -51,14 +29,6 @@ namespace hpl {
 		mfFadeTime =0;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void iLight::SetDiffuseColor(cColor aColor)
 	{
 		mDiffuseColor = aColor;
@@ -66,15 +36,11 @@ namespace hpl {
 		OnSetDiffuse();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLight::UpdateLight(float afTimeStep)
 	{
-		/////////////////////////////////////////////
 		// Fade
 		if(mfFadeTime>0)
 		{
-			//Log("Fading: %f / %f\n",afTimeStep,mfFadeTime);
 
 			mfFarAttenuation += mfRadiusAdd*afTimeStep;
 			mDiffuseColor.r += mColAdd.r*afTimeStep;
@@ -94,11 +60,9 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////////
 		// Flickering
 		if(mbFlickering && mfFadeTime<=0)
 		{
-			//////////////////////
 			//On
 			if(mbFlickerOn)
 			{
@@ -127,7 +91,6 @@ namespace hpl {
 					mfFlickerStateLength = cMath::RandRectf(mfFlickerOffMinLength,mfFlickerOffMaxLength);
 				}
 			}
-			//////////////////////
 			//Off
 			else
 			{
@@ -159,13 +122,7 @@ namespace hpl {
 			mfFlickerTime += afTimeStep;
 		}
 
-		/*Log("Time: %f Length: %f FadeTime: %f Color: (%f %f %f %f)\n",mfFlickerTime, mfFlickerStateLength,
-											mfFadeTime,
-											mDiffuseColor.r,mDiffuseColor.g,
-											mDiffuseColor.b,mDiffuseColor.a);*/
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight::FadeTo(const cColor& aCol, float afRadius, float afTime)
 	{
@@ -188,8 +145,6 @@ namespace hpl {
 	{
 		return mfFadeTime != 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLight::SetFlickerActive(bool abX)
 	{
@@ -229,7 +184,4 @@ namespace hpl {
 
 		mfFlickerStateLength = cMath::RandRectf(mfFlickerOnMinLength,mfFlickerOnMaxLength);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

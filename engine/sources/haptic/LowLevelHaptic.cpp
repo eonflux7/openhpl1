@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "haptic/LowLevelHaptic.h"
 
 #include "haptic/HapticSurface.h"
@@ -32,12 +16,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iLowLevelHaptic::iLowLevelHaptic()
 	{
 		mpCamera = nullptr;
@@ -50,20 +28,10 @@ namespace hpl {
 		mbUpdateShapes = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLowLevelHaptic::~iLowLevelHaptic()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iHapticSurface* iLowLevelHaptic::GetSurfaceFromName(const tString &asName)
 	{
@@ -77,21 +45,12 @@ namespace hpl {
 		return pSurface;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool iLowLevelHaptic::Init(cResources *apResources)
 	{
 		mpResources = apResources;
 
 		if(InitLowLevel()==false) return false;
 
-		/////////////////////////////////////
 		//Init variables
 		mvCurrentHardwarePos = GetHardwarePosition();
 		mvPreviousHardwarePos = mvCurrentHardwarePos;
@@ -100,13 +59,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::Update(float afTimeStep)
 	{
 		UpdateLowLevel(afTimeStep);
 
-		/////////////////////////////////////
 		//Hardware position calculations
 		static bool bHardwareSet = false;
 
@@ -117,8 +73,6 @@ namespace hpl {
 			bHardwareSet = true;
 		}
 
-
-		/////////////////////////////////////
 		//Proxy screen postion calculations
 		if(mpCamera)
 		{
@@ -138,7 +92,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////
 		//Update shape transforms
 		if(mbUpdateShapes)
 		{
@@ -170,14 +123,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f iLowLevelHaptic::GetHardwarePosDelta()
 	{
 		return mvCurrentHardwarePos - mvPreviousHardwarePos;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f iLowLevelHaptic::GetProxyScreenPos(const cVector2f& avScreenSize)
 	{
@@ -189,8 +138,6 @@ namespace hpl {
 		return (mvCurrentScreenPos - mvPreviousScreenPos) * avScreenSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f iLowLevelHaptic::GetRelativeVirtualMousePos()
 	{
 		cVector3f vRel = GetHardwarePosDelta();
@@ -200,11 +147,8 @@ namespace hpl {
 		return vPos;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f iLowLevelHaptic::GetVirtualMousePos()
 	{
-		//Log("Pos: %f %f\n", mvCurrentHardwarePos.x,mvCurrentHardwarePos.y);
 		cVector2f vPos =	(cVector2f(mvCurrentHardwarePos.x,mvCurrentHardwarePos.y) - mvMinMousePos) /
 							(mvMaxMousePos - mvMinMousePos);
 		vPos.y = 1 - vPos.y;
@@ -218,9 +162,6 @@ namespace hpl {
 		mvMaxMousePos = avMax;
 		mvScreenSize = avScreenSize;
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void iLowLevelHaptic::DestroyShape(iHapticShape* apShape)
 	{
@@ -237,21 +178,15 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cHapticShapeIterator iLowLevelHaptic::GetShapeIterator()
 	{
 		return cHapticShapeIterator(&mlstShapes);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::DestroyForce(iHapticForce* apForce)
 	{
 		STLFindAndDelete(mlstForces, apForce);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iLowLevelHaptic::StopAllForces()
 	{
@@ -263,13 +198,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iLowLevelHaptic::DestroyAllShapes()
 	{
 		STLDeleteAll(mlstShapes);
 
-		//Log("Destroying all shapes!\n");
 	}
 
 	void iLowLevelHaptic::DestroyAll()
@@ -278,7 +210,4 @@ namespace hpl {
 		STLDeleteAll(mlstForces);
 		STLDeleteAll(mlstShapes);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/PhysicsWorldNewton.h"
 
 #include "impl/CollideShapeNewton.h"
@@ -40,12 +24,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cPhysicsWorldNewton::cPhysicsWorldNewton()
 		: iPhysicsWorld()
 	{
@@ -55,7 +33,6 @@ namespace hpl {
 			Warning("Couldn't create newton world!\n");
 		}
 
-		/////////////////////////////////
 		//Set default values to properties
 		mvWorldSizeMin = cVector3f(0,0,0);
 		mvWorldSizeMax = cVector3f(0,0,0);
@@ -63,7 +40,6 @@ namespace hpl {
 		mvGravity = cVector3f(0,-9.81f,0);
 		mfMaxTimeStep = 1.0f/60.0f;
 
-		/////////////////////////////////
 		//Create default material.
 		int lDefaultMatId = 0;//NewtonMaterialGetDefaultGroupID(mpNewtonWorld);
 		cPhysicsMaterialNewton *pMaterial = hplNew( cPhysicsMaterialNewton, ("Default",this,lDefaultMatId) );
@@ -76,8 +52,6 @@ namespace hpl {
 		mpTempPoints = hplNewArray( float,500 * 3);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsWorldNewton::~cPhysicsWorldNewton()
 	{
 		DestroyAll();
@@ -88,20 +62,9 @@ namespace hpl {
 		hplDeleteArray(mpTempPoints);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cPhysicsWorldNewton::Simulate(float afTimeStep)
 	{
-		//cPhysicsBodyNewton::SetUseCallback(false);
-		//static lUpdate =0;
 
-		//if(lUpdate % 30==0)
 		{
 			while(afTimeStep>mfMaxTimeStep)
 			{
@@ -110,8 +73,6 @@ namespace hpl {
 			}
 			NewtonUpdate(mpNewtonWorld, afTimeStep);
 		}
-		//lUpdate++;
-		//cPhysicsBodyNewton::SetUseCallback(true);
 
 		tPhysicsBodyListIt it = mlstBodies.begin();
 		for(;it != mlstBodies.end(); ++it)
@@ -120,8 +81,6 @@ namespace hpl {
 			pBody->ClearForces();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsWorldNewton::SetMaxTimeStep(float afTimeStep)
 	{
@@ -132,8 +91,6 @@ namespace hpl {
 	{
 		return mfMaxTimeStep;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsWorldNewton::SetWorldSize(const cVector3f &avMin,const cVector3f &avMax)
 	{
@@ -153,22 +110,15 @@ namespace hpl {
 		return mvWorldSizeMax;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cPhysicsWorldNewton::SetGravity(const cVector3f& avGravity)
 	{
 		mvGravity = avGravity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsWorldNewton::GetGravity()
 	{
 		return mvGravity;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsWorldNewton::SetAccuracyLevel(ePhysicsAccuracy aAccuracy)
 	{
@@ -192,14 +142,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	ePhysicsAccuracy cPhysicsWorldNewton::GetAccuracyLevel()
 	{
 		return mAccuracy;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iCollideShape* cPhysicsWorldNewton::CreateNullShape()
 	{
@@ -210,8 +156,6 @@ namespace hpl {
 		return pShape;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCollideShape* cPhysicsWorldNewton::CreateBoxShape(const cVector3f &avSize, cMatrixf* apOffsetMtx)
 	{
 		iCollideShape *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Box, avSize, apOffsetMtx,
@@ -221,8 +165,6 @@ namespace hpl {
 		return pShape;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCollideShape* cPhysicsWorldNewton::CreateSphereShape(const cVector3f &avRadii, cMatrixf* apOffsetMtx)
 	{
 		iCollideShape *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Sphere, avRadii, apOffsetMtx,
@@ -231,8 +173,6 @@ namespace hpl {
 
 		return pShape;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iCollideShape* cPhysicsWorldNewton::CreateCylinderShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx)
 	{
@@ -245,8 +185,6 @@ namespace hpl {
 		return pShape;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCollideShape* cPhysicsWorldNewton::CreateCapsuleShape(float afRadius, float afHeight, cMatrixf* apOffsetMtx)
 	{
 		iCollideShape *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Capsule,
@@ -257,8 +195,6 @@ namespace hpl {
 
 		return pShape;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iCollideShape* cPhysicsWorldNewton::CreateMeshShape(iVertexBuffer *apVtxBuffer)
 	{
@@ -274,8 +210,6 @@ namespace hpl {
 		return pShape;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCollideShape* cPhysicsWorldNewton::CreateCompoundShape(tCollideShapeVec &avShapes)
 	{
 		cCollideShapeNewton *pShape = hplNew( cCollideShapeNewton, (eCollideShapeType_Compound,
@@ -285,8 +219,6 @@ namespace hpl {
 
 		return pShape;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsJointBall* cPhysicsWorldNewton::CreateJointBall(const tString &asName,
 										const cVector3f& avPivotPoint,
@@ -328,8 +260,6 @@ namespace hpl {
 		return pJoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsBody* cPhysicsWorldNewton::CreateBody(const tString &asName,iCollideShape *apShape)
 	{
 		cPhysicsBodyNewton *pBody = hplNew( cPhysicsBodyNewton, (asName,this, apShape) );
@@ -341,8 +271,6 @@ namespace hpl {
 		return pBody;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iCharacterBody* cPhysicsWorldNewton::CreateCharacterBody(const tString &asName, const cVector3f &avSize)
 	{
 		cCharacterBodyNewton *pChar = hplNew( cCharacterBodyNewton, (asName,this,avSize) );
@@ -351,8 +279,6 @@ namespace hpl {
 
 		return pChar;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsMaterial* cPhysicsWorldNewton::CreateMaterial(const tString &asName)
 	{
@@ -366,8 +292,6 @@ namespace hpl {
 		return pMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsController* cPhysicsWorldNewton::CreateController(const tString &asName)
 	{
 		iPhysicsController* pController = hplNew( cPhysicsControllerNewton, (asName, this) );
@@ -376,8 +300,6 @@ namespace hpl {
 
 		return pController;
 	}
-
-	//-----------------------------------------------------------------------
 
 	static bool gbRayCalcDist;
 	static bool gbRayCalcNormal;
@@ -389,8 +311,6 @@ namespace hpl {
 	static float gfRayLength;
 
 	static cPhysicsRayParams gRayParams;
-
-	//////////////////////////////////////
 
 	static unsigned RayCastPrefilterFunc (const NewtonBody* apNewtonBody,const NewtonCollision* collision, void* userData)
 	{
@@ -437,8 +357,6 @@ namespace hpl {
 		else return 0;
 	}
 
-	//////////////////////////////////////
-
 	void cPhysicsWorldNewton::CastRay(iPhysicsRayCallback *apCallback,
 								const cVector3f &avOrigin, const cVector3f& avEnd,
 								bool abCalcDist, bool abCalcNormal,bool abCalcPoint,
@@ -461,8 +379,6 @@ namespace hpl {
 		else
 			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, nullptr, nullptr);
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Newton 2 finds no contact between two convex shapes whose centres are
 	// exactly in the same place (the search starts along the line between
@@ -498,9 +414,7 @@ namespace hpl {
 		cMatrixf mtxTransposeB = a_mtxB.GetTranspose();
 
 		bool bLog = false;
-		//if(alMaxPoints== 1) bLog = true;
 
-		//////////////////////////////
 		//Check compound collision
 		if(pNewtonShapeA->GetType() == eCollideShapeType_Compound ||
 			pNewtonShapeB->GetType() == eCollideShapeType_Compound)
@@ -527,8 +441,6 @@ namespace hpl {
 					if(lNum > alMaxPoints )lNum = alMaxPoints;
 
 					bCollision = true;
-
-					//Log("Collided %d vs %d. Num: %d\n",a,b,lNum);
 
 					//Negate for each iteration.
 					alMaxPoints -= lNum;
@@ -559,7 +471,6 @@ namespace hpl {
 
 			return bCollision;
 		}
-		//////////////////////////////
 		//Check NON compound collision
 		else
 		{
@@ -593,8 +504,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cPhysicsWorldNewton::RenderDebugGeometry(iLowLevelGraphics *apLowLevel,const cColor &aColor)
 	{
 		tPhysicsBodyListIt it = mlstBodies.begin();
@@ -604,6 +513,4 @@ namespace hpl {
 			pBody->RenderDebugGeometry(apLowLevel,aColor);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

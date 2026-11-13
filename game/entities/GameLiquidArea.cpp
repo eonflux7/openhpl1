@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameLiquidArea.h"
 
@@ -26,11 +10,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameLiquidArea::cAreaLoader_GameLiquidArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -42,8 +22,6 @@ cAreaLoader_GameLiquidArea::~cAreaLoader_GameLiquidArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameLiquidArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -73,14 +51,6 @@ iEntity3D* cAreaLoader_GameLiquidArea::Load(const tString &asName, const cVector
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 cGameLiquidArea::cGameLiquidArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_LiquidArea;
@@ -100,19 +70,9 @@ cGameLiquidArea::cGameLiquidArea(cInit *apInit,const tString& asName) : iGameEnt
 	mfWaveElapsedSeconds =0;
 }
 
-//-----------------------------------------------------------------------
-
 cGameLiquidArea::~cGameLiquidArea(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLiquidArea::SetPhysicsMaterial(const tString asName)
 {
@@ -127,13 +87,9 @@ void cGameLiquidArea::SetPhysicsMaterial(const tString asName)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLiquidArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLiquidArea::Update(float afTimeStep)
 {
@@ -151,7 +107,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 
 	mfWaveElapsedSeconds += afTimeStep;
 
-	////////////////////////////////////////////////////////
 	//Check if player camera is in water.
 	if(cMath::PointBVCollision(pCam->GetPosition(),*pAreaBody->GetBV()))
 	{
@@ -172,7 +127,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 	bool bPlayerTouches = false;
 	bool bPlayerDeep = false;
 
-	////////////////////////////////////////////////////////
 	// Check candidate bodies overlapping the area bounds.
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																	pAreaBody->GetBoundingVolume());
@@ -186,7 +140,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 		{
 			if(pBody->GetMass()==0 && pBody->IsCharacter()==false) continue;
 
-			/////////////////////////
 			//Bounding volume check
 			if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false)
 			{
@@ -197,7 +150,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 				continue;
 			}
 
-			///////////////////////////////
 			//Check for collision
 			if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
 				pAreaBody->GetShape(), pAreaBody->GetLocalMatrix(),collideData,1)==false)
@@ -239,8 +191,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 				float fWaterWeight = fVolume * mfDensity;
 				cVector3f vForce = pPhysicsWorld->GetGravity() * -fWaterWeight;
 
-				//Log("Tosurface: %f Vol: %f\n",fToSurface,fVolume);
-                				
 				pCharBody->AddForce(vForce);
 				
 				if(pBody->GetBuoyancyActive()==false)
@@ -259,7 +209,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 					pBody->SetBuoyancyAngularViscosity(mfAngularViscosity);
 	
 					SplashEffect(pBody);
-					//Log("Splash body: %s\n",pBody->GetName().c_str());
 
 					pBody->SetBuoyancyActive(true);
 				}
@@ -270,12 +219,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 					float fWaveOffsetX = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.x * 15)*mfWaveAmplitude;
 					float fWaveOffsetZ = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.z * 15)*mfWaveAmplitude;
 					
-					//pBody->AddForce(cVector3f(0, 9.8f * (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()*2, 0));
-					//pBody->AddForce(cVector3f(0, 9.8f * cMath::RandRectf(-0.1, 0.1f)*pBody->GetMass()*2, 0));
-					//Log("F:%f Amp %f\n",fWaveOffsetZ+fWaveOffsetX,mfWaveAmplitude);
-					//pBody->AddTorque(cVector3f((fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(), (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(),
-					//							(fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()));
-
 					cPlanef waveSurfacePlane;
 					waveSurfacePlane.FromNormalPoint(	cVector3f(0,1,0),
 													cVector3f(0,fSurfaceY + fWaveOffsetX + fWaveOffsetZ,0));
@@ -291,24 +234,13 @@ void cGameLiquidArea::Update(float afTimeStep)
 	if(bPlayerTouches) mpInit->mpPlayer->SetIsUnderWater(bPlayerDeep);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLiquidArea::Setup()
 {
-	//Log("SETUP!\n");
 	float fHeight = mvBodies[0]->GetShape()->GetSize().y;
 	cVector3f vPos = mvBodies[0]->GetWorldPosition();
 	mSurfacePlane.FromNormalPoint(	cVector3f(0,1,0),
 									cVector3f(0,vPos.y,0) + cVector3f(0,fHeight/2,0));
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLiquidArea::SplashEffect(iPhysicsBody *apBody)
 {
@@ -350,14 +282,6 @@ void cGameLiquidArea::SplashEffect(iPhysicsBody *apBody)
 	
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLiquidArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 
@@ -374,21 +298,15 @@ kSerializeVar(mbHasWaves, eSerializeType_Bool)
 kSerializeVar(mSurfacePlane,eSerializeType_Planef)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLiquidArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLiquidArea::CreateSaveData()
 {
 	return hplNew( cGameLiquidArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLiquidArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -410,8 +328,6 @@ void cGameLiquidArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLiquidArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -426,11 +342,8 @@ void cGameLiquidArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	SetPhysicsMaterial(pData->msPhysicsMaterial);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLiquidArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
 	cGameLiquidArea_SaveData *pData = static_cast<cGameLiquidArea_SaveData*>(apSaveData);
 }
-//-----------------------------------------------------------------------

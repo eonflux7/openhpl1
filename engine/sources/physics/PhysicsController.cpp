@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "physics/PhysicsController.h"
 
 #include "physics/PhysicsWorld.h"
@@ -29,12 +13,6 @@
 namespace hpl {
 
 	bool iPhysicsController::mbUseInputMatrixFix = false;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsController::iPhysicsController(const tString &asName, iPhysicsWorld *apWorld)
 	{
@@ -60,28 +38,15 @@ namespace hpl {
 		mEndType = ePhysicsControllerEnd_Null;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsController::~iPhysicsController()
 	{
 
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void iPhysicsController::SetPidIntegralSize(int alSize)
 	{
 		mPidController.SetErrorNum(alSize);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void iPhysicsController::Update(float afTimeStep)
 	{
@@ -114,7 +79,6 @@ namespace hpl {
 
 		AddOutputValue(mOutputType,mOutputAxis,fOutput);
 
-		////////////////////////////////////////
 		//Check if dest vale is reached
 		if(mEndType == ePhysicsControllerEnd_OnDest && mpJoint)
 		{
@@ -127,8 +91,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsController::SetActive(bool abX)
 	{
 		if(abX == mbActive) return;
@@ -137,12 +99,6 @@ namespace hpl {
 
 		mbActive = abX;
 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cVector3f iPhysicsController::GetInputValue(ePhysicsControllerInput aInput)
 	{
@@ -155,8 +111,6 @@ namespace hpl {
 		}
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float iPhysicsController::GetOutputValue(float afError,float afInput, float afTimeStep)
 	{
@@ -175,8 +129,6 @@ namespace hpl {
 
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsController::AddOutputValue(ePhysicsControllerOutput aOutput,
 									ePhysicsControllerAxis aAxis,
@@ -204,8 +156,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float iPhysicsController::GetAxisValue(ePhysicsControllerAxis aAxis, const cVector3f &avVec)
 	{
 		switch(aAxis)
@@ -216,14 +166,6 @@ namespace hpl {
 		}
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeBase(cSaveData_iPhysicsController)
 	kSerializeVar(msName, eSerializeType_String)
@@ -256,14 +198,10 @@ namespace hpl {
 	kSerializeVar(mbPaused, eSerializeType_Bool)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsController::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsController, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsController::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -295,8 +233,6 @@ namespace hpl {
 		kSaveData_SaveObject(mpJoint,mlJointId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsController::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsController);
@@ -324,8 +260,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mbPaused);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsController::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsController);
@@ -333,8 +267,4 @@ namespace hpl {
 		kSaveData_LoadObject(mpBody,mlBodyId,iPhysicsBody*);
 		kSaveData_LoadObject(mpJoint,mlJointId, iPhysicsJoint*);
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

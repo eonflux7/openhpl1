@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameSwingDoor.h"
 
@@ -25,13 +9,7 @@
 #include "systems/EffectHandler.h"
 #include "entities/GameStickArea.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameSwingDoor::cEntityLoader_GameSwingDoor(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -45,15 +23,11 @@ cEntityLoader_GameSwingDoor::~cEntityLoader_GameSwingDoor()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameSwingDoor::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameSwingDoor::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -69,7 +43,6 @@ void cEntityLoader_GameSwingDoor::AfterLoad(TiXmlElement *apRootElem, const cMat
 	pObject->SetMeshEntity(mpEntity);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -87,7 +60,6 @@ void cEntityLoader_GameSwingDoor::AfterLoad(TiXmlElement *apRootElem, const cMat
 		Error("Couldn't find game element for entity '%s'\n",mpEntity->GetName().c_str());
 	}
 
-	///////////////////////////////////
 	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
@@ -100,19 +72,9 @@ void cEntityLoader_GameSwingDoor::AfterLoad(TiXmlElement *apRootElem, const cMat
 	pObject->SetupPhysics(apWorld);
 	pObject->SetupBreakObject();
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameSwingDoor::cGameSwingDoor(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -127,25 +89,11 @@ cGameSwingDoor::cGameSwingDoor(cInit *apInit,const tString& asName) : iGameEntit
 	mfHealth = 100.0f;
 }
 
-//-----------------------------------------------------------------------
-
 cGameSwingDoor::~cGameSwingDoor(void)
 {
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
-	//for(size_t i=0; i<mvStopControllers.size(); ++i)
-	//{
-	//	pPhysicsWorld->DestroyController(mvStopControllers[i]);
-	//}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
 {
@@ -157,12 +105,8 @@ void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
 	{
 		iPhysicsJoint *pJoint = mvJoints[i];
 		
-		///////////////////////////////////
 		//Create Stop controller
 		iPhysicsController *pController = pPhysicsWorld->CreateController("Stop");
-		
-		//pController->SetBody(pJoint->GetChildBody());
-		//pController->SetJoint(pJoint);
 		
 		pController->SetActive(true);
 		pController->SetType(ePhysicsControllerType_Pid); 
@@ -182,7 +126,6 @@ void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
 
 		mvStopControllers.push_back(pController);
 
-		///////////////////////////////////
 		//Set defaults
 		iPhysicsJointHinge *pHingeJoint = static_cast<iPhysicsJointHinge*>(pJoint);
 
@@ -191,13 +134,9 @@ void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSwingDoor::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::OnPlayerInteract()
 {
@@ -262,13 +201,9 @@ void cGameSwingDoor::OnPlayerInteract()
 		
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSwingDoor::Update(float afTimeStep)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::SetLocked(bool abLocked)
 {
@@ -302,13 +237,9 @@ void cGameSwingDoor::SetLocked(bool abLocked)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSwingDoor::OnDamage(float afDamage)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::OnDeath(float afDamage)
 {
@@ -321,7 +252,6 @@ void cGameSwingDoor::OnDeath(float afDamage)
 	
 	if(msBreakEntity == "")
 	{
-		///////////////////////////
 		//Break all joints.
 		for(size_t i=0; i< mvJoints.size();++i)
 		{
@@ -334,8 +264,6 @@ void cGameSwingDoor::OnDeath(float afDamage)
 		Break();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::BreakAction()
 {
@@ -352,7 +280,6 @@ void cGameSwingDoor::BreakAction()
 
 	if(pDynBody==nullptr && pStaticBody==nullptr) return;
 
-	//////////////////
 	//Script
 	if(mvCallbackScripts[eGameEntityScriptType_OnBreak])
 	{
@@ -362,7 +289,6 @@ void cGameSwingDoor::BreakAction()
 
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
-	//////////////////
 	// Release the object if the player is holding it.
 	if( (mpInit->mpPlayer->GetState()==ePlayerState_Grab ||
 		mpInit->mpPlayer->GetState()==ePlayerState_Move ||
@@ -376,7 +302,6 @@ void cGameSwingDoor::BreakAction()
 
 	cBoundingVolume *pBV = mpMeshEntity->GetBoundingVolume();
 
-	//////////////////
 	//Particle System
 	if(msBreakPS!="")
 	{
@@ -384,7 +309,6 @@ void cGameSwingDoor::BreakAction()
 													pDynBody->GetWorldMatrix());
 	}
 	
-	//////////////////
 	//Entity
 	if(msBreakEntity != "")
 	{
@@ -407,7 +331,6 @@ void cGameSwingDoor::BreakAction()
 					pNewBody->SetMatrix(pStaticBody->GetWorldMatrix());
 				}
 
-				//pNewBody->SetLinearVelocity(pBody->GetLinearVelocity());
 				pNewBody->AddImpulse(vImpulse);
 			}
 		}
@@ -415,8 +338,6 @@ void cGameSwingDoor::BreakAction()
 
 	mpInit->mpGame->ResetLogicTimer();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::SetupBreakObject()
 {	
@@ -433,17 +354,6 @@ void cGameSwingDoor::SetupBreakObject()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameSwingDoor_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbLocked, eSerializeType_Bool)
 kSerializeVar(msLockedDesc, eSerializeType_WString)
@@ -454,21 +364,15 @@ kSerializeVar(msBreakEntity, eSerializeType_String)
 kSerializeVar(msBreakPS, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameSwingDoor_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameSwingDoor::CreateSaveData()
 {
 	return hplNew( cGameSwingDoor_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameSwingDoor::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -484,8 +388,6 @@ void cGameSwingDoor::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,msBreakPS);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameSwingDoor::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -499,7 +401,3 @@ void cGameSwingDoor::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	SetLocked(pData->mbLocked);
 }
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------

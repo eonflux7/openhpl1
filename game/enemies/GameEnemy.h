@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_ENEMY_H
 #define GAME_GAME_ENEMY_H
 
@@ -30,9 +14,6 @@ using namespace hpl;
 class cGameTrigger;
 class cCharacterMove;
 class iGameEntity;
-
-
-//-----------------------------------------
 
 #define STATE_IDLE 0
 #define STATE_HUNT 1
@@ -49,8 +30,6 @@ class iGameEntity;
 #define STATE_ATTENTION 12
 #define	STATE_NUM 13
 
-//-----------------------------------------
-
 enum eEnemyMoveState
 {
 	eEnemyMoveState_Backward,
@@ -59,8 +38,6 @@ enum eEnemyMoveState
 	eEnemyMoveState_Running,
 	eEnemyMoveState_LastEnum
 };
-
-//-----------------------------------------
 
 class cEnemyPatrolNode : public iSerializable
 {
@@ -75,8 +52,6 @@ public:
 	tString msAnimation;
 };
 
-//-----------------------------------------
-
 class cLineOfSightRayCallback : public iPhysicsRayCallback
 {
 public:
@@ -88,8 +63,6 @@ private:
 	bool mbIntersected;
 	iPhysicsBody *mpGrabBody;
 };
-
-//------------------------------------------
 
 class cEnemyFindGround : public iPhysicsRayCallback
 {
@@ -108,8 +81,6 @@ private:
 	float mfMaxDistance;
 };
 
-//------------------------------------------
-
 class cEnemyCheckForDoor : public iPhysicsRayCallback
 {
 public:
@@ -121,8 +92,6 @@ public:
 private:
 	bool mbIntersected;
 };
-
-//------------------------------------------
 
 class iGameEnemy_SaveData : public iGameEntity_SaveData
 {
@@ -154,8 +123,6 @@ public:
 	
 	iGameEntity* CreateEntity() override;
 };
-
-//-----------------------------------------
 
 class iGameEnemyState
 {
@@ -192,9 +159,6 @@ protected:
 
 	int mlPreviousState;
 };
-
-//-----------------------------------------
-
 
 class iGameEnemy :	public iGameEntity
 {
@@ -438,7 +402,6 @@ protected:
 
 	bool mbUsesTriggers;
 
-	///////////////////////////////
 	//Variable Properties
 	cVector3f mvLastPlayerPos;
 	float mfCanSeePlayerCount;
@@ -469,7 +432,6 @@ protected:
 	
 	bool mbIsAttracted;
 		
-	/////////////////////////////////
 	//Properties to be implemented
 	bool mbDisappear;
 	float mfDisappearMinTime;
@@ -549,8 +511,6 @@ protected:
 	tString msHitPS;
 };
 
-//--------------------------------------
-
 class cEntityLoader_GameEnemy : public cEntityLoader_Object
 {
 
@@ -564,7 +524,5 @@ private:
 
 	cInit *mpInit;
 };
-
-//--------------------------------------
 
 #endif // GAME_GAME_ENEMY_H

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/GLFinalPasses.h"
 #include "impl/GLGraphicsHelpers.h"
 #include "impl/GpuProfiler.h"
@@ -221,7 +205,6 @@ namespace hpl
 		glClearStencil(0);
 		glStencilMask(0xff);
 
-		///////////////////////////////////////////
 		// The picture
 		mTargets.BindFramebuffer(mvSmaaFramebuffers[0], vSize);
 		SetPassUniform(mEncodePass, eProgramParam::tonemap, 1.0f, mState.GetLinearLightingTuning().mfExposure,
@@ -229,7 +212,6 @@ namespace hpl
 			cMath::Max(mState.GetLinearLightingTuning().mfWhite, 1.0f));
 		DrawFullscreenPass(mEncodePass, alColor, vSize);
 
-		///////////////////////////////////////////
 		// Edges: the stencil buffer is set where there is one
 		for(cFullscreenPass *pPass : {&mSmaaEdgesPass, &weightsPass, &mSmaaBlendPass})
 		{
@@ -248,7 +230,6 @@ namespace hpl
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		DrawFullscreenPass(mSmaaEdgesPass, mlSmaaColor, vSize, 0, 0, true);
 
-		///////////////////////////////////////////
 		// Blend weights, only where there are edges
 		mTargets.BindFramebuffer(mvSmaaFramebuffers[2], vSize);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -256,7 +237,6 @@ namespace hpl
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 		DrawFullscreenPass(weightsPass, mlSmaaEdges, vSize, mlSmaaAreaTexture, mlSmaaSearchTexture, true);
 
-		///////////////////////////////////////////
 		// The blend, back into the scene
 		mTargets.BindFramebuffer(alColorFramebuffer, vSize);
 		DrawFullscreenPass(mSmaaBlendPass, mlSmaaColor, vSize, mlSmaaWeights, mlSmaaEdges);

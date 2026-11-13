@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/ParticleEmitter3D.h"
 #include "scene/RenderInterpolation.h"
 #include "system/LowLevelSystem.h"
@@ -40,12 +24,6 @@
 
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iParticleEmitter3D::iParticleEmitter3D(tString asName,tMaterialVec *avMaterials,
 									unsigned int alMaxParticles, cVector3f avSize,
@@ -82,8 +60,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitter3D::~iParticleEmitter3D()
 	{
 		hplDelete(mpVtxBuffer);
@@ -91,14 +67,6 @@ namespace hpl {
 		cGpuProgramManager *pProgramManager = mpResources->GetGpuProgramManager();
 		if(mpSoftProgram) pProgramManager->Destroy(mpSoftProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter3D::SetSubDivUV(const cVector2l &avSubDiv)
 	{
@@ -132,8 +100,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter3D::UpdateLogic(float afTimeStep)
 	{
 		if(IsActive()==false) return;
@@ -143,14 +109,10 @@ namespace hpl {
 		Update(afTimeStep);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMaterial* iParticleEmitter3D::GetMaterial()
 	{
 		return (*mvMaterials)[(int)mfFrame];
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter3D::UpdateGraphics(cCamera3D *apCamera,float afFrameTime, cRenderList *apRenderList)
 	{
@@ -244,8 +206,6 @@ namespace hpl {
 		mbUpdateGfx = bFrame;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iParticleEmitter3D::GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw)
 	{
 		iMaterial *pMaterial = GetMaterial();
@@ -264,8 +224,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter3D::SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw)
 	{
 		static const int kLights = 6;
@@ -281,7 +239,6 @@ namespace hpl {
 		float fSoft = cMath::Clamp(cMath::Max(mvMaxDrawSize.x, mvMaxDrawSize.y), 0.03f, 0.6f) * effects.mfParticleSoft;
 		mpSoftProgram->SetVec4f(eProgramParam::partLook, fSoft, apSettings->mbFogActive ? 1.0f : 0.0f, bAdded ? 1.0f : 0.0f, 0);
 
-		/////////////////////////////////////
 		// The lights that reach the particles: the strongest few
 		int lCount = 0;
 		if(bAdded==false && effects.mfParticleLight > 0 && mpWorld)
@@ -347,22 +304,16 @@ namespace hpl {
 		mpSoftProgram->SetVec4f(eProgramParam::partLight, (float)lCount, bAdded ? 0.0f : effects.mfParticleLight, fDark, 0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iVertexBuffer* iParticleEmitter3D::GetVertexBuffer()
 	{
 		return mpVtxBuffer;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iParticleEmitter3D::IsVisible()
 	{
 		if(IsActive()==false) return false;
 		return IsRendered();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cBoundingVolume* iParticleEmitter3D::GetBoundingVolume()
 	{
@@ -405,8 +356,6 @@ namespace hpl {
 		return &mBoundingVolume;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf* iParticleEmitter3D::GetModelMatrix(cCamera3D *apCamera)
 	{
 		if(apCamera)
@@ -435,22 +384,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_iParticleEmitter3D,cSaveData_iRenderable)
 	/*kSerializeVar(msDataName, eSerializeType_String)
 	kSerializeVar(mvDataSize, eSerializeType_Vector3f)
@@ -459,44 +392,30 @@ namespace hpl {
 	kSerializeVar(mfFrame, eSerializeType_Float32)*/
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveObject* cSaveData_iParticleEmitter3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cSaveData_iParticleEmitter3D::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iParticleEmitter3D::CreateSaveData()
 	{
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter3D::SaveToSaveData(iSaveData *apSaveData)
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iParticleEmitter3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iParticleEmitter3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 	}
-
-	//-----------------------------------------------------------------------
 }

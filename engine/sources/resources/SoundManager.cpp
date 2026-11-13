@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/SoundManager.h"
 #include "system/String.h"
 #include "system/LowLevelSystem.h"
@@ -25,12 +9,6 @@
 #include "sound/LowLevelSound.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSoundManager::cSoundManager(cSound* apSound,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
@@ -47,14 +25,6 @@ namespace hpl {
 		DestroyAll();
 		Log(" Done with sounds\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundData* cSoundManager::CreateSoundData(const tString& asName, bool abStream,bool abLoopStream)
 	{
@@ -83,30 +53,22 @@ namespace hpl {
 		}
 
 
-		//if(!pSound) Error("Couldn't load sound data '%s'\n",asName.c_str());
 		EndLoad();
 		return pSound;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iResourceBase* cSoundManager::Create(const tString& asName)
 	{
 		return	CreateSoundData(asName,false);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSoundManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cSoundManager::Destroy(iResourceBase* apResource)
 	{
-		//Log("Destroying %s users: %d\n",apResource->GetName().c_str(),
-		//								apResource->GetUserCount());
 		if(apResource->HasUsers())
 		{
 			apResource->DecUserCount();
@@ -119,8 +81,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSoundManager::DestroyAll()
 	{
@@ -136,14 +96,6 @@ namespace hpl {
 			it= m_mapHandleResources.begin();
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundData *cSoundManager::FindData(const tString &asName, tString &asFilePath)
 	{
@@ -166,6 +118,4 @@ namespace hpl {
 
 		return pData;
 	}
-
-	//-----------------------------------------------------------------------
 }

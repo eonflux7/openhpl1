@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_WIDGET_H
 #define HPL_WIDGET_H
 
@@ -36,8 +20,6 @@ namespace hpl {
 
 	class iFontData;
 
-	//--------------------------------
-
 	struct cWidgetCallback
 	{
 		cWidgetCallback(void *apObject, tGuiCallbackFunc apFunc)
@@ -53,8 +35,6 @@ namespace hpl {
 	typedef std::list<cWidgetCallback> tWidgetCallbackList;
 	typedef tWidgetCallbackList::iterator tWidgetCallbackListIt;
 
-	//--------------------------------
-
 	class iWidget
 	{
 	friend class cGuiSet;
@@ -62,7 +42,6 @@ namespace hpl {
 		iWidget(eWidgetType aType,cGuiSet *apSet, cGuiSkin *apSkin);
 		virtual ~iWidget();
 
-		/////////////////////////
 		//General
 		void Update(float afTimeStep);
 
@@ -76,16 +55,13 @@ namespace hpl {
 
 		void Init();
 
-		/////////////////////////
 		// Public Helper functions
 		bool PointIsInside(const cVector2f& avPoint, bool abOnlyClipped);
 
-		/////////////////////////
 		//Hierarchy
 		void AttachChild(iWidget *apChild);
 		void RemoveChild(iWidget *apChild);
 
-		/////////////////////////
 		//Properties
 		cGuiSet* GetSet(){ return mpSet; }
 
@@ -135,7 +111,6 @@ namespace hpl {
 		cGuiGfxElement* GetPointerGfx();
 
 	protected:
-		/////////////////////////
 		// Upper Widget functions
 		virtual void OnLoadGraphics(){}
 
@@ -163,8 +138,6 @@ namespace hpl {
 
 		virtual bool OnKeyPress(cGuiMessageData &aData){return false;}
 
-
-		/////////////////////////
 		// Private Helper functions
 		cVector3f WorldToLocalPosition(const cVector3f &avPos);
 		cVector2f GetPosRelativeToMouse(cGuiMessageData &aData);
@@ -186,7 +159,6 @@ namespace hpl {
 
 		void LoadGraphics();
 
-		/////////////////////////
 		// Variables
 		cGuiSet *mpSet;
 		cGuiSkin *mpSkin;

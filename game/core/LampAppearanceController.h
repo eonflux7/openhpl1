@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_LAMP_APPEARANCE_CONTROLLER_H
 #define GAME_LAMP_APPEARANCE_CONTROLLER_H
 
@@ -24,8 +8,6 @@
 using namespace hpl;
 
 class cInit;
-
-//----------------------------------------
 
 // Appearance settings for world lamps, the glow stick and flares.
 class cLampSettings
@@ -48,8 +30,6 @@ public:
 	/// The lights that are part of the maps get the falloff too, and the flames among them waver.
 	bool mbMapLights = true;
 };
-
-//----------------------------------------
 
 // Updates cLightLook from the lamp kind inferred from entity filenames.
 // Also handles held glow sticks/flares and map-light falloff; other entities are unchanged.
@@ -83,7 +63,5 @@ private:
 	double mfTime;
 	int mlLampCount;
 };
-
-//----------------------------------------
 
 #endif // GAME_LAMP_APPEARANCE_CONTROLLER_H

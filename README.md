@@ -587,7 +587,9 @@ run.sh     launcher
 - **Arimo, Cousine and Recursive** fonts (SIL OFL 1.1; see
   [fonts/README.md](fonts/README.md))
 
-OpenHPL1 is licensed under the GNU GPL v3; see [COPYING](COPYING).
+OpenHPL1 is licensed under the GNU GPL v3 or later; see [COPYING](COPYING).
+Source files carry their copyright line and an
+`SPDX-License-Identifier: GPL-3.0-or-later` tag in place of the full notice.
 Bundled third-party code keeps its own licence: see
 [engine/NOTICE](engine/NOTICE), each directory under `vendor/`,
 `engine/LICENSE-shaders` and the head of `shaders/SMAA.hlsl`. Penumbra game

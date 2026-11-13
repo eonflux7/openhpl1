@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/GraphicsDrawer.h"
 
 #include "system/LowLevelSystem.h"
@@ -35,13 +19,6 @@
 
 namespace hpl {
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGraphicsDrawer::cGraphicsDrawer(iLowLevelGraphics *apLowLevelGraphics, cMaterialHandler* apMaterialHandler,
 		cResources* apResources)
 	{
@@ -50,27 +27,15 @@ namespace hpl {
 		mpResources = apResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGraphicsDrawer::~cGraphicsDrawer()
 	{
 		STLDeleteAll(mlstGfxObjects);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iMaterial* cGfxBufferObject::GetMaterial() const
 	{
 		return mpObject->GetMaterial();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cGfxBufferCompare::operator()(const cGfxBufferObject& aObjectA,const cGfxBufferObject& aObjectB) const
 	{
@@ -78,8 +43,6 @@ namespace hpl {
 		// decide which of two overlapping translucent sprites covers the other.
 		return aObjectA.GetZ() < aObjectB.GetZ();
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void FlushImage(cGfxObject* apObject)
 	{
@@ -110,8 +73,6 @@ namespace hpl {
 		m_setGfxBuffer.insert(BuffObj);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DrawGfxObjectPart(cGfxObject* apObject, const cVector3f& avPos,
 											const cVector2f& avSize, const cColor& aColor, const cRect2f& aPart)
 	{
@@ -130,8 +91,6 @@ namespace hpl {
 		m_setGfxBuffer.insert(BuffObj);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DrawGfxObject(cGfxObject* apObject, const cVector3f& avPos)
 	{
 		FlushImage(apObject);
@@ -143,7 +102,6 @@ namespace hpl {
 
 		m_setGfxBuffer.insert(BuffObj);
 	}
-	//-----------------------------------------------------------------------
 
 	void cGraphicsDrawer::DrawAll()
 	{
@@ -213,8 +171,6 @@ namespace hpl {
 		mpLowLevelGraphics->SetDepthTestActive(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(const tString &asFileName, const tString &asMaterialName,
 												bool abAddToList)
 	{
@@ -239,8 +195,6 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(iBitmap2D *apBmp, const tString &asMaterialName,
 												bool abAddToList)
 	{
@@ -264,8 +218,6 @@ namespace hpl {
 
 		return pObject;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGfxObject* cGraphicsDrawer::CreateGfxObjectFromTexture(	const tString &asFileName, const tString &asMaterialName,
 																bool abAddToList)
@@ -292,8 +244,6 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGfxObject* cGraphicsDrawer::CreateGfxObject(iTexture *apTexture, const cVector2f &avUVStart,
 												const cVector2f &avUVEnd, const tString &asMaterialName)
 	{
@@ -315,13 +265,8 @@ namespace hpl {
 		return pObject;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGraphicsDrawer::DestroyGfxObject(cGfxObject* apObject)
 	{
 		STLFindAndDelete(mlstGfxObjects,apObject);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/CollideShapeNewton.h"
 
 #include <algorithm>
@@ -25,12 +9,6 @@
 #include "system/LowLevelSystem.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cCollideShapeNewton::cCollideShapeNewton(eCollideShapeType aType, const cVector3f &avSize,
 											cMatrixf* apOffsetMtx, NewtonWorld* apNewtonWorld,
@@ -56,7 +34,6 @@ namespace hpl {
 		else
 			m_mtxOffset = cMatrixf::Identity;
 
-		////////////////////////////////////////////
 		// Create Newton collision
 
 		switch(aType)
@@ -90,7 +67,6 @@ namespace hpl {
 		}
 		}
 
-		////////////////////////////////////////////
 		// Calculate Bounding volume and volume.
 		if(mType == eCollideShapeType_Box)
 		{
@@ -130,8 +106,6 @@ namespace hpl {
 		mBoundingVolume.SetTransform(m_mtxOffset);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cCollideShapeNewton::~cCollideShapeNewton()
 	{
 		//Release Newton Collision
@@ -144,14 +118,6 @@ namespace hpl {
 			mpWorld->DestroyShape(mvSubShapes[i]);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iCollideShape* cCollideShapeNewton::GetSubShape(int alIdx)
 	{
@@ -168,8 +134,6 @@ namespace hpl {
 		else
 			return 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cCollideShapeNewton::GetInertia(float afMass)
 	{
@@ -227,8 +191,6 @@ namespace hpl {
 		return vInertia;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCollideShapeNewton::CreateFromShapeVec(tCollideShapeVec &avShapes)
 	{
 		std::vector<NewtonCollision*> vNewtonColliders;
@@ -274,8 +236,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cCollideShapeNewton::CreateFromVertices(const unsigned int* apIndexArray, int alIndexNum,
 										const float *apVertexArray, int alVtxStride, int alVtxNum)
 	{
@@ -286,11 +246,9 @@ namespace hpl {
 		cPlanef plane;
 
 		mpNewtonCollision = NewtonCreateTreeCollision(mpNewtonWorld, 0);
-		//Log("-- Creating mesh collision.:\n");
 		NewtonTreeCollisionBeginBuild(mpNewtonCollision);
 		for(int tri = 0; tri < alIndexNum; tri+=3)
 		{
-			//Log("tri: %d:\n", tri/3);
 			for(int idx =0; idx < 3; idx++)
 			{
 				int lVtx = apIndexArray[tri + 2-idx]*alVtxStride;
@@ -308,9 +266,6 @@ namespace hpl {
 				cVector3f vP3(vTriVec[2*3+0],vTriVec[2*3+1],vTriVec[2*3+2]);
 
 				tempPlane.FromPoints(vP1, vP2, vP3);
-
-				//Log("P1: %s P2: %s P3: %s\n",vP1.ToString().c_str(),vP2.ToString().c_str(),vP3.ToString().c_str());
-				//Log("Plane: a: %f b: %f c: %f d: %f\n",tempPlane.a,tempPlane.b,tempPlane.c,tempPlane.d);
 
 				if(bCreatedPlane==false){
 					plane = tempPlane;
@@ -339,8 +294,4 @@ namespace hpl {
 		mBoundingVolume.AddArrayPoints(apVertexArray, alVtxNum);
 		mBoundingVolume.CreateFromPoints(alVtxStride);
 	}
-
-
-	//-----------------------------------------------------------------------
-
 }

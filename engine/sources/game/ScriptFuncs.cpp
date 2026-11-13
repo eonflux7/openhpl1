@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "game/ScriptFuncs.h"
 
 #include <stdlib.h>
@@ -60,9 +44,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// JOINT CALLBACK
-	//////////////////////////////////////////////////////////////////////////
 
 	cScriptJointCallback::cScriptJointCallback(cScene *apScene)
 	{
@@ -99,10 +81,6 @@ namespace hpl {
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 	static cResources *gpResources=nullptr;
 	static cSystem *gpSystem=nullptr;
 	static cInput *gpInput=nullptr;
@@ -110,8 +88,6 @@ namespace hpl {
 	static cScene *gpScene=nullptr;
 	static cSound *gpSound=nullptr;
 	static cGame *gpGame=nullptr;
-
-	//-----------------------------------------------------------------------
 
 	static void __stdcall Print(std::string asText)
 	{
@@ -159,11 +135,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC(void, ResetLogicTimer)
 
-	/////////////////////////////////////////////////////////////////////////
-	/////// RENDERER //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
+	// RENDERER
 
 	/**
 	* Sets ambient light color-
@@ -174,8 +146,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetAmbientColor, float, float, float)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Sets if the skybox should be active
 	**/
@@ -185,8 +155,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(void, SetSkyboxActive, bool)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Sets the skybox color.
 	**/
@@ -195,9 +163,6 @@ namespace hpl {
 		gpGraphics->GetRenderer3D()->SetSkyBoxColor(cColor(afR,afG,afB,afA));
 	}
 	SCRIPT_DEFINE_FUNC_4(void, SetSkyboxColor, float, float, float, float)
-
-	//-----------------------------------------------------------------------
-
 
 	/**
 	* Sets the skybox
@@ -217,8 +182,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(void, SetSkybox, string)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Creates a particle system and attaches it to the camera.
 	* \param asName Name of particle system
@@ -235,8 +198,6 @@ namespace hpl {
 		}
 	}
 	SCRIPT_DEFINE_FUNC_2(void, CreateParticleSystemOnCamera, string, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Sets if fog should be active
@@ -272,8 +233,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_5(void, SetFogProperties, float, float, float, float, float)
 
-	//-----------------------------------------------------------------------
-
 	static void __stdcall SetSectorProperties(std::string asSector, float afAmbR,float afAmbG, float afAmbB)
 	{
 		cPortalContainer *pContainer = gpScene->GetWorld3D()->GetPortalContainer();
@@ -287,8 +246,6 @@ namespace hpl {
 		pSector->SetAmbientColor(cColor(afAmbR, afAmbG, afAmbB,1));
 	}
 	SCRIPT_DEFINE_FUNC_4(void, SetSectorProperties, string, float, float, float)
-
-	//-----------------------------------------------------------------------
 
 	static void __stdcall SetSectorPortalActive(std::string asSector, int alPortal, bool abActive)
 	{
@@ -311,11 +268,8 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetSectorPortalActive, string, int, bool)
 
-	/////////////////////////////////////////////////////////////////////////
-	/////// RESOURCES //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
+	// RESOURCES
 
-	//-----------------------------------------------------------------------
 	/**
 	 * Gets a string in the current language.
 	 * \param asCat The translation category
@@ -327,8 +281,6 @@ namespace hpl {
 		return cString::To8Char(wsText);
 	}
 	SCRIPT_DEFINE_FUNC_2(string, Translate, string, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Preloads the data for a sound.
@@ -368,13 +320,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(void, PreloadSound, string)
 
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// MESH ENTITY //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
+	// MESH ENTITY
 
 	static void __stdcall SetMeshActive(std::string asName, bool abActive)
 	{
@@ -389,13 +335,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetMeshActive, string, bool)
 
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// PARTICLE SYSTEM //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
+	// PARTICLE SYSTEM
 
 	/**
 	* Create a particle system at the position of an area
@@ -414,8 +354,6 @@ namespace hpl {
 		pPS->SetVisible(abActive);
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetParticleSystemActive, string, bool)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Create a particle system at the position of an area
@@ -442,20 +380,12 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_6(void, CreateParticleSystem, string, string, string, float, float, float)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Kill a particle system
 	* \param asName The name of the particle system.
 	**/
 	static void __stdcall KillParticleSystem(std::string asName)
 	{
-		/*cParticleSystem3D *pPS = gpScene->GetWorld3D()->GetParticleSystem(asName);
-		if(pPS==NULL){
-			Warning("Didn't find particle system '%s'\n",asName.c_str());
-			return;
-		}
-		pPS->Kill();*/
 
 		bool bFound = false;
 		cParticleSystem3DIterator it = gpScene->GetWorld3D()->GetParticleSystemIterator();
@@ -474,14 +404,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(void, KillParticleSystem, string)
 
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// BEAM //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
+	// BEAM
 
 	/**
 	 * Creates an a beam between two areas
@@ -519,8 +442,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_4(void, CreateBeam, string, string, string, string)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	 * Destroys a beam
 	 * \param asName
@@ -538,15 +459,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(void, DestroyBeam, string)
 
-	//-----------------------------------------------------------------------
-
-
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// LIGHT //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
+	// LIGHT
 
 	/**
 	* Fades a sound to a color and a radius
@@ -573,8 +486,6 @@ namespace hpl {
 		pLight->UpdateLight(2.0f/60.0f);
 	}
 	SCRIPT_DEFINE_FUNC_7(void, FadeLight3D, string, float, float, float, float, float, float)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Attaches a billboard to a light
@@ -605,9 +516,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, AttachBillboardToLight3D, string, string, bool)
 
-	//-----------------------------------------------------------------------
-
-
 	/**
 	* Sets on/off a light
 	* \param asName The light name
@@ -625,8 +533,6 @@ namespace hpl {
 		pLight->SetVisible(abX);
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetLight3DVisible, string, bool)
-
-		//-----------------------------------------------------------------------
 
 	/**
 	* Sets on/off for affect only in sector where centre is.
@@ -646,8 +552,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetLight3DOnlyAffectInSector, string, bool)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Sets flickering on/off a light
 	* \param asName The light name
@@ -665,8 +569,6 @@ namespace hpl {
 		pLight->SetFlickerActive(abX);
 	}
 	SCRIPT_DEFINE_FUNC_2(void, SetLight3DFlickerActive, string, bool)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Sets flickering parameters
@@ -714,14 +616,7 @@ namespace hpl {
 			float, float, float, float,
 			float, float, float, string, string, float, float, string, string, bool, float, float)
 
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// SOUND //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-
-	//-----------------------------------------------------------------------
+	// SOUND
 
 	/**
 	 * Creates a sound entity at the postion of an area.
@@ -748,7 +643,6 @@ namespace hpl {
 		pSound->SetPosition(pArea->m_mtxTransform.GetTranslation());
 	}
 	SCRIPT_DEFINE_FUNC_3(void, CreateSoundEntity, string, string, string)
-	//-----------------------------------------------------------------------
 
 	/**
 	* Play a sound entity
@@ -786,8 +680,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, StopSoundEntity, string, bool)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Play a sound entity fading it
 	* \param asName The entity name
@@ -824,23 +716,17 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, FadeOutSoundEntity, string, float)
 
-	//-----------------------------------------------------------------------
-
 	static void __stdcall PlayMusic(std::string asName, float afVol, float afStepSize, bool abLoop)
 	{
 		gpSound->GetMusicHandler()->Play(asName,afVol,afStepSize,abLoop);
 	}
 	SCRIPT_DEFINE_FUNC_4(void, PlayMusic, string, float, float, bool)
 
-	//-----------------------------------------------------------------------
-
 	static void __stdcall StopMusic(float afStepSize)
 	{
 		gpSound->GetMusicHandler()->Stop(afStepSize);
 	}
 	SCRIPT_DEFINE_FUNC_1(void, StopMusic, float)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Play a sound gui sound, with out any position.
@@ -853,11 +739,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_2(void, PlayGuiSound, string, float)
 
-	/////////////////////////////////////////////////////////////////////////
-	/////// PHYSICS //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
+	// PHYSICS
 
 	/**
 	* Sets a callback for a joint.
@@ -895,8 +777,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetJointCallback, string, string, string)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Breaks a joint.
 	* \param asJointName The joint name
@@ -911,8 +791,6 @@ namespace hpl {
 		pJoint->Break();
 	}
 	SCRIPT_DEFINE_FUNC_1(void, BreakJoint, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Sets if a joint controller is active or not.
@@ -936,8 +814,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetJointControllerActive, string, string, bool)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Change the active controller. All other controllers are set to false.
 	* \param asJointName The joint name
@@ -957,8 +833,6 @@ namespace hpl {
 		}
 	}
 	SCRIPT_DEFINE_FUNC_2(void, ChangeJointController, string, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Sets if a joint controller is active or not.
@@ -986,9 +860,6 @@ namespace hpl {
 		}
 	}
 	SCRIPT_DEFINE_FUNC_4(void, SetJointControllerPropertyFloat, string, string, string, float)
-
-	//-----------------------------------------------------------------------
-
 
 	/**
 	* Gets a property from the joint.
@@ -1032,7 +903,6 @@ namespace hpl {
 		{
 			return pJoint->GetForce().Length();
 		}
-		/////////////////////////////
 		// Min Limit
 		else if(sLowProp == "minlimit")
 		{
@@ -1055,7 +925,6 @@ namespace hpl {
 				}
 			}
 		}
-		/////////////////////////////
 		// Max Limit
 		else if(sLowProp == "maxlimit")
 		{
@@ -1084,8 +953,6 @@ namespace hpl {
 		return 0;
 	}
 	SCRIPT_DEFINE_FUNC_2(float, GetJointProperty, string, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Gets a property from the body.
@@ -1122,8 +989,6 @@ namespace hpl {
 		return 0;
 	}
 	SCRIPT_DEFINE_FUNC_2(float, GetBodyProperty, string, string)
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Sets a property to the body.
@@ -1190,8 +1055,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetBodyPropertyBool, string, string, bool)
 
-	//-----------------------------------------------------------------------
-
 	static void __stdcall AttachBodiesWithJoint(std::string asParentName, std::string asChildName, std::string asJointName)
 	{
 		iPhysicsBody *pParent = gpScene->GetWorld3D()->GetPhysicsWorld()->GetBody(asParentName);
@@ -1216,8 +1079,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_3(void, AttachBodiesWithJoint, string, string, string)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Sets a property to the joint.
 	* Valid properties are:
@@ -1239,7 +1100,6 @@ namespace hpl {
 		if(pJoint->GetChildBody()) pJoint->GetChildBody()->SetEnabled(true);
 		if(pJoint->GetParentBody()) pJoint->GetParentBody()->SetEnabled(true);
 
-		/////////////////////////////
 		// Min Limit
 		if(sLowProp == "minlimit")
 		{
@@ -1265,7 +1125,6 @@ namespace hpl {
 				}
 			}
 		}
-		/////////////////////////////
 		// Max Limit
 		else if(sLowProp == "maxlimit")
 		{
@@ -1298,9 +1157,6 @@ namespace hpl {
 		}
 	}
 	SCRIPT_DEFINE_FUNC_3(void, SetJointProperty, string, string, float)
-
-
-	//-----------------------------------------------------------------------
 
 	/**
 	* Adds a force to the body. This can either be in the bodies local coord system or the world's.
@@ -1342,8 +1198,6 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_5(void, AddBodyForce, string, string, float, float, float)
 
-	//-----------------------------------------------------------------------
-
 	/**
 	* Adds an impule (a change in velocity) to the body. This can either be in the bodies local coord system or the world's.
 	* \param asBodyName The body name
@@ -1384,12 +1238,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_5(void, AddBodyImpulse, string, string, float, float, float)
 
-	//-----------------------------------------------------------------------
-
-
-	/////////////////////////////////////////////////////////////////////////
-	/////// LOCAL VARS //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
+	// LOCAL VARS
 
 	static void __stdcall CreateLocalVar(std::string asName, int alVal)
 	{
@@ -1439,10 +1288,7 @@ namespace hpl {
 	}
 	SCRIPT_DEFINE_FUNC_1(int, GetLocalVar, string)
 
-	//-----------------------------------------------------------------------
-	/////////////////////////////////////////////////////////////////////////
-	/////// GLOBAL VARS //////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
+	// GLOBAL VARS
 
 	static void __stdcall CreateGlobalVar(std::string asName, int alVal)
 	{
@@ -1493,10 +1339,6 @@ namespace hpl {
 		return pVar->mlVal;
 	}
 	SCRIPT_DEFINE_FUNC_1(int, GetGlobalVar, string)
-
-	//-----------------------------------------------------------------------
-
-
 
 	void cScriptFuncs::Init(	cGraphics* apGraphics,
 				cResources *apResources,
@@ -1612,17 +1454,4 @@ namespace hpl {
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(AddGlobalVar));
 		gpSystem->GetLowLevel()->AddScriptFunc(SCRIPT_REGISTER_FUNC(GetGlobalVar));
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-
-	//-----------------------------------------------------------------------
-
 }

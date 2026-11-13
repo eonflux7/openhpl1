@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_PORTAL_CONTAINER_H
 #define HPL_PORTAL_CONTAINER_H
 
@@ -40,18 +24,11 @@ namespace hpl {
 	typedef std::set<iEntity3D*> tEntity3DSet;
 	typedef std::set<iEntity3D*>::iterator tEntity3DSetIt;
 
-	//----------------------------------------------------
-
 	class cPortalContainer;
 	class cSector;
 
-	//----------------------------------------------------
-
 	typedef std::map<tString,cSector*> tSectorMap;
 	typedef std::map<tString,cSector*>::iterator tSectorMapIt;
-
-	//----------------------------------------------------
-
 
 	class cPortalContainerEntityIterator
 	{
@@ -80,9 +57,6 @@ namespace hpl {
 		bool mbGlobal;
 	};
 
-
-	//----------------------------------------------------
-
 	class cPortalContainerCallback : public iEntityCallback
 	{
 	public:
@@ -94,8 +68,6 @@ namespace hpl {
 		cPortalContainer *mpContainer;
 	};
 
-	//----------------------------------------------------
-
 	class cPortalContainerEntityCallback : public iEntityCallback
 	{
 	public:
@@ -106,9 +78,6 @@ namespace hpl {
 	private:
 		cPortalContainer *mpContainer;
 	};
-
-	//----------------------------------------------------
-
 
 	class cSector;
 	class cPortal;
@@ -174,8 +143,6 @@ namespace hpl {
 		tVector3fList mlstPoints;
 	};
 
-	//----------------------------------------------------
-
 	class cSector : public iRenderContainerData
 	{
 	friend class cPortalContainer;
@@ -221,8 +188,6 @@ namespace hpl {
 
 		cColor mAmbient;
 	};
-
-	//----------------------------------------------------
 
 	class cPortalContainer : public iRenderableContainer
 	{

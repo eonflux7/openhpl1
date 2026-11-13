@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_NOTE_BOOK_H
 #define GAME_NOTE_BOOK_H
 
@@ -28,22 +12,16 @@ using namespace hpl;
 class cInit;
 class cNotebook_GlobalSave;
 
-//---------------------------
-
 #define eNotebookState_Front		0
 #define eNotebookState_TaskList		1
 #define eNotebookState_NoteList		2
 #define eNotebookState_Note			3
-
-//---------------------------
 
 enum eNotebookType
 {
 	eNotebookType_Front,
 	eNotebookType_Open,
 };
-
-//---------------------------
 
 class cNotebook_Note
 {
@@ -66,8 +44,6 @@ typedef tNotebook_NoteList::iterator tNotebook_NoteListIt;
 
 typedef cSTLIterator<cNotebook_Note*,tNotebook_NoteList,tNotebook_NoteListIt> tNotebook_NoteList_Iterator;
 
-//--------------------------------------------------------
-
 class cNotebook;
 
 class iNotebookState : public iAIState
@@ -85,8 +61,6 @@ protected:
 	cInit *mpInit;
 	cNotebook *mpNotebook;
 };
-
-//---------------------------------------------------
 
 class cNoteBook_Option
 {
@@ -126,16 +100,12 @@ public:
 	cVector2f mvFontSize;
 };
 
-//-----------------------------------------------------
-
 class cNotebook_TaskPage
 {
 public:
 	int mlStartTask;
 	int mlEndTask;
 };
-
-//-----------------------------------------------------
 
 class cNotebookState_TaskList : public iNotebookState
 {
@@ -165,8 +135,6 @@ public:
 	cGraphicsDrawer *mpDrawer;
 	cGfxObject *mpOptionsImage[2];
 };
-
-//--------------------------------------------------------
 
 class cNotebookState_NoteList : public iNotebookState
 {
@@ -204,8 +172,6 @@ public:
 	std::vector<cNoteBook_Option> mvOptions;
 	cGfxObject *mpOptionsImage[2];
 };
-
-//--------------------------------------------------------
 
 class cNotePage
 {
@@ -245,8 +211,6 @@ public:
 
 };
 
-//--------------------------------------------------------
-
 class cNotebook_BookType
 {
 public:
@@ -254,8 +218,6 @@ public:
 	float mfAlpha;
 	eNotebookType mType;
 };
-
-//--------------------------------------------------------
 
 class cNotebook_BookTask
 {
@@ -268,8 +230,6 @@ typedef std::list<cNotebook_BookTask*> tNotebook_BookTaskList;
 typedef tNotebook_BookTaskList::iterator tNotebook_BookTaskListIt;
 
 typedef cSTLIterator<cNotebook_BookTask*,tNotebook_BookTaskList,tNotebook_BookTaskListIt> tNotebook_BookTaskList_Iterator;
-
-//--------------------------------------------------------
 
 class cNotebook : public iUpdateable
 {
@@ -318,7 +278,6 @@ public:
 
 	cStateMachine* GetStateMachine(){return &mStateMachine;}
 
-	/////////////////////////////////////////
 	//Saving
 	void SaveToGlobal(cNotebook_GlobalSave *apSave);
 	void LoadFromGlobal(cNotebook_GlobalSave *apSave);

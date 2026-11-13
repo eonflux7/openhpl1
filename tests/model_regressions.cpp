@@ -46,8 +46,6 @@ static bool SamePath(const tString &asA, const fs::path &aB)
 	return asA != "" && fs::equivalent(fs::u8path(asA), aB, err);
 }
 
-//-----------------------------------------------------------------------
-
 static void TestFileSearcher(const fs::path &aDir)
 {
 	cLowLevelResourcesSDL lowLevel(nullptr);
@@ -95,8 +93,6 @@ static void TestFileSearcher(const fs::path &aDir)
 		"a model used for another keeps the requested type in its name");
 	Check(iResourceManager::LoadedFileName("crate.DAE", "models/Crate.dae") == "Crate.dae", "same type: the file's name");
 }
-
-//-----------------------------------------------------------------------
 
 static void TestAddons(const fs::path &aDir)
 {
@@ -154,8 +150,6 @@ static void TestAddons(const fs::path &aDir)
 	cAddons::LogReplacedFiles(&resources, vAddons);
 }
 
-//-----------------------------------------------------------------------
-
 static void TestAddonCaches(const fs::path &aDir)
 {
 	//A Collada file outside the game's folder: its cache goes to its own folder
@@ -176,8 +170,6 @@ static void TestAddonCaches(const fs::path &aDir)
 		if(entry.path().filename() == "thing.collcach") bFound = true;
 	Check(bFound, "addon cache in its own folder");
 }
-
-//-----------------------------------------------------------------------
 
 // A Collada file with what the loader's naming conventions and data cover
 static const char *kColladaFixture = R"(<?xml version="1.0" encoding="utf-8"?>
@@ -303,8 +295,6 @@ static void TestGltfRoundTrip(const fs::path &aDir)
 	Check(pSkinGeom && pSkinGeom->mvVertexVec.size() == 3 && Near(pSkinGeom->mvVertexVec[1].pos.y, 2.5f),
 		"bind shape applied to the vertices");
 }
-
-//-----------------------------------------------------------------------
 
 // A glTF file made like Blender's: an armature node, a mesh with two
 // materials, an empty, a light in watts and a mesh without normals.
@@ -435,8 +425,6 @@ static void TestBlenderStyleGltf(const fs::path &aDir)
 	hplDelete(pAnimation);
 	hplDelete(pSkeleton);
 }
-
-//-----------------------------------------------------------------------
 
 void RunModelRegressions(const fs::path &aDir)
 {

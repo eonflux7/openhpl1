@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "systems/RadioHandler.h"
 
@@ -24,12 +8,6 @@
 #include "entities/GameEntity.h"
 #include "systems/EffectHandler.h"
 #include "ui/GameGui.h"
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cRadioHandler::cRadioHandler(cInit *apInit)  : iUpdateable("RadioHandler")
 {
@@ -41,20 +19,12 @@ cRadioHandler::cRadioHandler(cInit *apInit)  : iUpdateable("RadioHandler")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cRadioHandler::~cRadioHandler(void)
 {
 	STLDeleteAll(mlstQueuedMessages);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GAME MESSAGE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cRadioMessage::cRadioMessage(const tWString &asText, const tString &asSound)
 {
@@ -67,15 +37,6 @@ cRadioMessage::cRadioMessage(const tWString &asText, const tString &asSound)
 	mfSilentDistance = 0;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cRadioHandler::Add(const tWString& asText, const tString& asSound)
 {
 	if(mlstQueuedMessages.empty())msPrevText = _W("");
@@ -83,8 +44,6 @@ void cRadioHandler::Add(const tWString& asText, const tString& asSound)
 	cRadioMessage *pMessage = hplNew( cRadioMessage, (asText, asSound) );
 	mlstQueuedMessages.push_back(pMessage);
 }
-
-//-----------------------------------------------------------------------
 
 void cRadioHandler::Add(const tWString& asText, const tString& asSound, iGameEntity *apEntity,
 						float afFullVolumeDistance, float afSilentDistance)
@@ -97,8 +56,6 @@ void cRadioHandler::Add(const tWString& asText, const tString& asSound, iGameEnt
 	pMessage->mfSilentDistance = afSilentDistance;
 	mlstQueuedMessages.push_back(pMessage);
 }
-
-//-----------------------------------------------------------------------
 
 void cRadioHandler::StopAll(float afFadeSpeed)
 {
@@ -129,8 +86,6 @@ void cRadioHandler::StopAll(float afFadeSpeed)
 		mpCurrentMessage = nullptr;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cRadioHandler::OnWorldExit()
 {
@@ -163,8 +118,6 @@ void cRadioHandler::OnWorldExit()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cRadioHandler::StartNextMessage()
 {
 	mpCurrentMessage = mlstQueuedMessages.front();
@@ -182,8 +135,6 @@ void cRadioHandler::StartNextMessage()
 		if(pEntry) pEntry->mfNormalVolume = GetVolumeAtPlayer(mpCurrentMessage);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cRadioHandler::RunOnEndCallback()
 {
@@ -204,8 +155,6 @@ void cRadioHandler::RunOnEndCallback()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cRadioHandler::NextMessage()
 {
 	if(mpCurrentMessage)
@@ -224,14 +173,10 @@ void cRadioHandler::NextMessage()
 		RunOnEndCallback();
 }
 
-//-----------------------------------------------------------------------
-
 bool cRadioHandler::IsShowingText()
 {
 	return IsActive() && mpInit->mbSubtitles && mbShowText;
 }
-
-//-----------------------------------------------------------------------
 
 float cRadioHandler::GetVolumeAtPlayer(cRadioMessage *apMessage)
 {
@@ -244,8 +189,6 @@ float cRadioHandler::GetVolumeAtPlayer(cRadioMessage *apMessage)
 	return 1 - (fDistanceToPlayer - apMessage->mfFullVolumeDistance) / (apMessage->mfSilentDistance - apMessage->mfFullVolumeDistance);
 }
 
-//-----------------------------------------------------------------------
-
 void cRadioHandler::Update(float afTimeStep)
 {
 	if(mpInit->mpPlayer->IsDead()) {
@@ -254,7 +197,6 @@ void cRadioHandler::Update(float afTimeStep)
 		return;
 	}
 	
-	/////////////////////////////
 	//Update current message
 	mbShowText = true;
 	if(mpCurrentMessage)
@@ -278,14 +220,12 @@ void cRadioHandler::Update(float afTimeStep)
 		}
 	}
 
-	////////////////////////////
 	// Get next message
     if(mpCurrentMessage==nullptr && mlstQueuedMessages.empty()==false)
 	{
 		StartNextMessage();
 	}
 	
-	////////////////////////
 	//Alpha
 	if(mfTextCrossfadeAlpha <1)
 	{
@@ -297,8 +237,6 @@ void cRadioHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cRadioHandler::IsActive()
 {
 	if(mpCurrentMessage) return true;
@@ -306,8 +244,6 @@ bool cRadioHandler::IsActive()
 	//Black Plague: also while messages wait
 	return cInit::IsOverture()==false && mlstQueuedMessages.empty()==false;
 }
-
-//-----------------------------------------------------------------------
 
 void cRadioHandler::OnDraw()
 {
@@ -343,9 +279,6 @@ void cRadioHandler::OnDraw()
 	}
 }
 
-
-//-----------------------------------------------------------------------
-
 void cRadioHandler::Reset()
 {
 	STLDeleteAll(mlstQueuedMessages);
@@ -362,5 +295,3 @@ void cRadioHandler::Reset()
 	msOnEndCallback = "";
 	mbOnEndCallbackInGui = false;
 }
-
-//-----------------------------------------------------------------------

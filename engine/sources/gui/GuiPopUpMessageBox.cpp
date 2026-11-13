@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/GuiPopUpMessageBox.h"
 
 #include "system/LowLevelSystem.h"
@@ -34,19 +18,12 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGuiPopUpMessageBox::cGuiPopUpMessageBox(cGuiSet *apSet,
 											const tWString& asLabel, const tWString& asText,
 											const tWString& asButton1, const tWString& asButton2,
 											void *apCallbackObject, tGuiCallbackFunc apCallback)
 						: iGuiPopUp(apSet)
 	{
-		//////////////////////////
 		// Set up variables
 		mpCallback = apCallback;
 		mpCallbackObject = apCallbackObject;
@@ -64,12 +41,10 @@ namespace hpl {
 
 		float fWindowHeight = 90 + pFont->mvSize.y;
 
-		//////////////////////////
 		// Window
 		cVector3f vPos = cVector3f(vVirtSize.x/2 - fWindowWidth/2,vVirtSize.y/2- fWindowHeight/2,18);
 		mpWindow = mpSet->CreateWidgetWindow(vPos,cVector2f(fWindowWidth,fWindowHeight),asLabel,nullptr);
 
-		//////////////////////////
 		// Buttons
 		if(asButton2 == _W(""))
 		{
@@ -91,19 +66,15 @@ namespace hpl {
 
 		}
 
-		//////////////////////////
 		// Label
 		vPos = cVector3f(20, 30,1);
 		mpLabel = mpSet->CreateWidgetLabel(vPos,cVector2f(fWindowWidth-10,pFont->mvSize.y),
 											asText,mpWindow);
 
-		//////////////////////////
 		// Attention
 		mpPrevAttention = mpSet->GetAttentionWidget();
 		mpSet->SetAttentionWidget(mpWindow);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGuiPopUpMessageBox::~cGuiPopUpMessageBox()
 	{
@@ -112,24 +83,6 @@ namespace hpl {
 		if(mvButtons[1]) mpSet->DestroyWidget(mvButtons[1]);
 		if(mpLabel) mpSet->DestroyWidget(mpLabel);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cGuiPopUpMessageBox::ButtonPress(iWidget* apWidget,cGuiMessageData& aData)
 	{
@@ -147,9 +100,4 @@ namespace hpl {
 		return true;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cGuiPopUpMessageBox,ButtonPress)
-
-
-	//-----------------------------------------------------------------------
-
-
 }

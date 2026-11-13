@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "impl/LowLevelSoundOpenAL.h"
 
@@ -32,12 +16,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLowLevelSoundOpenAL::cLowLevelSoundOpenAL()
 		: mpDevice(new cOpenALDevice)
 	{
@@ -48,20 +26,10 @@ namespace hpl {
 		mbEnvAudioEnabled = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLowLevelSoundOpenAL::~cLowLevelSoundOpenAL()
 	{
 		mpDevice->Close();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iSoundData* cLowLevelSoundOpenAL::LoadSoundData(const tString& asName, const tString& asFilePath,
 												const tString& asType, bool abStream,bool abLoopStream)
@@ -79,21 +47,16 @@ namespace hpl {
 		return pSoundData;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::GetSupportedFormats(tStringList &alstFormats)
 	{
 		for(int i = 0; mvFormats[i] != ""; ++i)
 			alstFormats.push_back(mvFormats[i]);
 	}
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::UpdateSound(float afTimeStep)
 	{
 		mpDevice->Update();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::SetListenerAttributes(const cVector3f &avPos,const cVector3f &avVel,
 							const cVector3f &avForward,const cVector3f &avUp)
@@ -116,8 +79,6 @@ namespace hpl {
 		mpDevice->SetListener(avPos.v, avVel.v, vForward.v, avUp.v);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::SetListenerPosition(const cVector3f &avPos)
 	{
 		mvListenerPosition = avPos;
@@ -126,21 +87,15 @@ namespace hpl {
 		mpDevice->SetListener(avPos.v, mvListenerVelocity.v, vForward.v, mvListenerUp.v);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::SetListenerAttenuation (bool abEnabled)
 	{
 		mbListenerAttenuation = abEnabled;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::SetRolloffFactor(float afFactor)
 	{
 		// OpenAL distance attenuation is off; the sound handler computes gains.
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::SetVolume(float afVolume)
 	{
@@ -148,8 +103,6 @@ namespace hpl {
 
 		mpDevice->SetListenerGain(afVolume);
 	}
-
-	//-----------------------------------------------------------------------
 
 	size_t cLowLevelSoundOpenAL::StreamBlockBytes(int alConfigured)
 	{
@@ -159,8 +112,6 @@ namespace hpl {
 		const size_t lMax = 1024 * 1024;
 		return lBytes < lMin ? lMin : (lBytes > lMax ? lMax : lBytes);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::Init(bool abUseHardware, bool abForceGeneric, bool abUseEnvAudio, int alMaxChannels,
 									int alStreamUpdateFreq, bool abUseThreading, bool abUseVoiceManagement,
@@ -234,8 +185,6 @@ namespace hpl {
 		SetVolume(1.0f);
 	}
 
-	//-----------------------------------------------------------------------
-
 	tStringVec cLowLevelSoundOpenAL::GetOutputDevices()
 	{
 		return cOpenALDevice::GetOutputDevices();
@@ -245,8 +194,6 @@ namespace hpl {
 	{
 		return mpDevice->GetDeviceName();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cLowLevelSoundOpenAL::SetOutputDevice(const tString& asDeviceName)
 	{
@@ -260,8 +207,6 @@ namespace hpl {
 		Log("Audio output moved to: %s (HRTF %s)\n", mpDevice->GetDeviceName().c_str(), GetHRTFStatus().c_str());
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	eOpenALHRTF cLowLevelSoundOpenAL::ToDeviceHRTF(eSoundHRTF aMode)
 	{
@@ -297,8 +242,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::SetEnvVolume( float afEnvVolume )
 	{
 		if (!mbEnvAudioEnabled)
@@ -312,19 +255,15 @@ namespace hpl {
 		mpDevice->SetReverbGain(mfEnvVolume);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSoundEnvironment* cLowLevelSoundOpenAL::LoadSoundEnvironment(const tString &asFilePath)
 	{
 		if (!mbEnvAudioEnabled)
 			return nullptr;
 
-		/////////////////////////////////////////////
 		///Check if sound already exist
 		iSoundEnvironment *pSE = GetSoundEnvironmentFromFileName(asFilePath);
 		if(pSE) return pSE;
 
-		/////////////////////////////////////////////
 		///Create new and load from file
 		cOpenALSoundEnvironment* pSoundEnv = hplNew(cOpenALSoundEnvironment,());
 
@@ -340,8 +279,6 @@ namespace hpl {
 
 		return pSoundEnv;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::ApplyEnvironment(int alSlot, const cOpenALSoundEnvironment &e)
 	{
@@ -375,8 +312,6 @@ namespace hpl {
 		mpDevice->SetReverb(alSlot, r);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSoundEnvironment* cLowLevelSoundOpenAL::GetSlotEnvironment(int alSlot) const
 	{
 		static_assert(kReverbSlots == cOpenALDevice::kMaxReverbSlots, "one environment per reverb slot");
@@ -403,8 +338,6 @@ namespace hpl {
 		return -1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelSoundOpenAL::SetSoundEnvironment ( iSoundEnvironment* apSoundEnv )
 	{
 		if (!mbEnvAudioEnabled)
@@ -416,8 +349,6 @@ namespace hpl {
 		for(int i = 0; i < mpDevice->GetReverbSlotCount(); ++i)
 			mpDevice->SetReverbWeight(i, i == lSlot ? 1.0f : 0.0f);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelSoundOpenAL::FadeSoundEnvironment( iSoundEnvironment* apSourceSoundEnv, iSoundEnvironment* apDestSoundEnv, float afT )
 	{

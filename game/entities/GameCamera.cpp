@@ -1,34 +1,12 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "entities/GameCamera.h"
 
 #include "core/Init.h"
 #include "core/MapHandler.h"
 #include "player/Player.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameCamera::cEntityLoader_GameCamera(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -40,14 +18,10 @@ cEntityLoader_GameCamera::~cEntityLoader_GameCamera()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameCamera::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -73,7 +47,6 @@ void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 	pObject->SetSoundEntities(mvSoundEntities);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -91,18 +64,9 @@ void cEntityLoader_GameCamera::AfterLoad(TiXmlElement *apRootElem, const cMatrix
 
 	pObject->Init();
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameCamera::cGameCamera(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -131,19 +95,9 @@ cGameCamera::cGameCamera(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	mpTurnSound = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 cGameCamera::~cGameCamera(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameCamera::Init()
 {
@@ -159,8 +113,6 @@ void cGameCamera::Init()
 	mNormalColor = mvLights[0]->GetDiffuseColor();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameCamera::Setup(float afMinAngle, float afMaxAngle, float afMinPauseSeconds, float afMaxPauseSeconds, float afRadiansPerSecond,
 						const tString &asSpottedCallback, const tString &asAlertOverCallback)
 {
@@ -173,13 +125,10 @@ void cGameCamera::Setup(float afMinAngle, float afMaxAngle, float afMinPauseSeco
 	msAlertOverCallback = asAlertOverCallback;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameCamera::Update(float afTimeStep)
 {
 	if(mvBodies.empty() || mvLights.empty()) return;
 
-	//////////////////////////////////////
 	// In alert: still, until the time is up
 	if(mfAlertRemainingSeconds > 0)
 	{
@@ -199,7 +148,6 @@ void cGameCamera::Update(float afTimeStep)
 		return;
 	}
 
-	//////////////////////////////////////
 	// Turning, with a pause at each end
 	if(mfPauseCount > 0)
 	{
@@ -230,7 +178,6 @@ void cGameCamera::Update(float afTimeStep)
 		mvBodies[0]->SetMatrix(mtxTransform);
 	}
 
-	//////////////////////////////////////
 	// Look for the player, four times a second
 	if(mfVisibilityCheckDelaySeconds > 0)
 	{
@@ -264,14 +211,10 @@ void cGameCamera::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameCamera::OnSetActive(bool abActive)
 {
 	if(abActive==false) StopTurnSound();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameCamera::SetAlerted(bool abAlerted)
 {
@@ -300,8 +243,6 @@ void cGameCamera::SetAlerted(bool abAlerted)
 		mfAlertRemainingSeconds = 0;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameCamera::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams)
 {
@@ -334,14 +275,6 @@ bool cGameCamera::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams)
 	mbRayHit = true;
 	return false;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool cGameCamera::HasLineOfSight(iLight3D *apLight, iPhysicsWorld *apPhysicsWorld)
 {
@@ -392,8 +325,6 @@ bool cGameCamera::HasLineOfSight(iLight3D *apLight, iPhysicsWorld *apPhysicsWorl
 	return lBlockedRayCount <= 2;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameCamera::PlayerIsSpotted()
 {
 	SetAlerted(true);
@@ -404,8 +335,6 @@ void cGameCamera::PlayerIsSpotted()
 		mpInit->RunScriptCommand(sCommand);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameCamera::PlayTurnSound()
 {
@@ -422,8 +351,6 @@ void cGameCamera::PlayTurnSound()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameCamera::StopTurnSound()
 {
 	if(mpTurnSound==nullptr) return;
@@ -433,14 +360,6 @@ void cGameCamera::StopTurnSound()
 
 	mpTurnSound = nullptr;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 kBeginSerialize(cGameCamera_SaveData,iGameEntity_SaveData)
 kSerializeVar(mfMinAngle, eSerializeType_Float32)
@@ -456,21 +375,15 @@ kSerializeVar(msSpottedCallback, eSerializeType_String)
 kSerializeVar(msAlertOverCallback, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameCamera_SaveData::CreateEntity()
 {
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameCamera::CreateSaveData()
 {
 	return hplNew( cGameCamera_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameCamera::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -489,8 +402,6 @@ void cGameCamera::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,msSpottedCallback);
 	kCopyToVar(pData,msAlertOverCallback);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameCamera::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -511,5 +422,3 @@ void cGameCamera::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 	SetAlerted(pData->mbAlerted);
 }
-
-//-----------------------------------------------------------------------

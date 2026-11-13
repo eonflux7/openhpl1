@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/MaterialManager.h"
 #include "system/String.h"
 #include "system/System.h"
@@ -31,12 +15,6 @@
 
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterialManager::cMaterialManager(cGraphics* apGraphics,cResources *apResources)
 		: iResourceManager(apResources->GetFileSearcher(), apResources->GetLowLevel(),
@@ -59,14 +37,6 @@ namespace hpl {
 
 		Log(" Done with materials\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iMaterial* cMaterialManager::CreateMaterial(const tString& asName)
 	{
@@ -100,14 +70,10 @@ namespace hpl {
 		return pMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iResourceBase* cMaterialManager::Create(const tString& asName)
 	{
 		return CreateMaterial(asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::Update(float afTimeStep)
 	{
@@ -121,13 +87,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMaterialManager::Unload(iResourceBase* apResource)
 	{
 
 	}
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::Destroy(iResourceBase* apResource)
 	{
@@ -139,8 +102,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	// The filter is the same for every texture with mipmaps, those of the
 	// materials and all others: iLowLevelGraphics::SetTextureFilter().
 	void cMaterialManager::SetTextureFilter(eTextureFilter aFilter)
@@ -150,8 +111,6 @@ namespace hpl {
 
 		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cMaterialManager::SetTextureAnisotropy(float afX)
 	{
@@ -164,8 +123,6 @@ namespace hpl {
 
 		mpGraphics->GetLowLevel()->SetTextureFilter(mTextureFilter, mfTextureAnisotropy);
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cMaterialManager::GetPhysicsMaterialName(const tString& asName)
 	{
@@ -206,13 +163,6 @@ namespace hpl {
 			return "";
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	iMaterial* cMaterialManager::LoadFromFile(const tString& asName,const tString& asPath)
 	{
 		TiXmlDocument *pDoc = hplNew( TiXmlDocument, (asPath.c_str()) );
@@ -223,7 +173,6 @@ namespace hpl {
 
 		TiXmlElement *pRoot = pDoc->RootElement();
 
-		///////////////////////////
 		//Main
 		TiXmlElement *pMain = pRoot->FirstChildElement("Main");
 		if(pMain==nullptr){
@@ -256,8 +205,6 @@ namespace hpl {
 		pMat->SetValue(fValue);
 		pMat->SetPhysicsMaterial(sPhysicsMatName);
 
-
-		///////////////////////////
 		//Textures
 		TiXmlElement *pTexRoot = pRoot->FirstChildElement("TextureUnits");
 		if(pTexRoot==nullptr){
@@ -274,9 +221,6 @@ namespace hpl {
 
 			TiXmlElement *pTexChild = pTexRoot->FirstChildElement(GetTextureString(it->mType).c_str());
 			if(pTexChild==nullptr){
-				/*Error("Texture unit missing!");
-				hplDelete(pMat);
-				return NULL;*/
 				continue;
 			}
 
@@ -345,7 +289,6 @@ namespace hpl {
 			pMat->SetTexture(pTex,it->mType);
 		}
 
-		///////////////////////////
 		//Custom
 		pMat->LoadData(pRoot);
 
@@ -356,8 +299,6 @@ namespace hpl {
 		return pMat;
 	}
 
-	//-----------------------------------------------------------------------
-
 	eTextureTarget cMaterialManager::GetTarget(const tString& asType)
 	{
 		if(cString::ToLowerCase(asType) == "cube") return eTextureTarget_CubeMap;
@@ -367,7 +308,6 @@ namespace hpl {
 
 		return eTextureTarget_2D;
 	}
-	//-----------------------------------------------------------------------
 
 	tString cMaterialManager::GetTextureString(eMaterialTexture aType)
 	{
@@ -384,8 +324,6 @@ namespace hpl {
 
 		return "";
 	}
-
-	//-----------------------------------------------------------------------
 
 	eTextureWrap cMaterialManager::GetWrap(const tString& asType)
 	{
@@ -404,6 +342,4 @@ namespace hpl {
 
 		return eTextureAnimMode_None;
 	}
-
-	//-----------------------------------------------------------------------
 }

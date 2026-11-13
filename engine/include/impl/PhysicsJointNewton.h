@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_PHYSICS_JOINT_NEWTON_H
 #define HPL_PHYSICS_JOINT_NEWTON_H
 
@@ -56,12 +40,9 @@ namespace hpl {
 		~iPhysicsJointNewton() override
 		{
 			//Skip this for now and let newton handle it..
-			//Log("Destroying newton joint!\n");
 			if(this->mpChildBody || this->mpParentBody)
 				NewtonDestroyJoint(mpNewtonWorld,mpNewtonJoint);
 		}
-
-		///////////////////////
 
 		void SetCollideBodies(bool abX) override
 		{
@@ -73,8 +54,6 @@ namespace hpl {
 			return NewtonJointGetCollisionState(mpNewtonJoint)==0 ? false : true;
 		}
 
-		///////////////////////
-
 		void SetStiffness(float afX) override
 		{
 			NewtonJointSetStiffness(mpNewtonJoint, afX);
@@ -83,8 +62,6 @@ namespace hpl {
 		{
 			return NewtonJointGetStiffness(mpNewtonJoint);
 		}
-
-		///////////////////////
 
 	protected:
 		// Newton 2 does not run the joints of a sleeping island, so a limit

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/PhysicsJointHingeNewton.h"
 
 #include "system/LowLevelSystem.h"
@@ -26,12 +10,6 @@
 #include "math/Math.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPhysicsJointHingeNewton::cPhysicsJointHingeNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
@@ -54,20 +32,10 @@ namespace hpl {
 		mfPreviousAngle =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointHingeNewton::~cPhysicsJointHingeNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointHingeNewton::SetMaxAngle(float afAngle)
 	{
@@ -88,8 +56,6 @@ namespace hpl {
 		return mfMinAngle;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointHingeNewton::GetVelocity()
 	{
 		return cVector3f(0,0,0);
@@ -106,8 +72,6 @@ namespace hpl {
 		return vForce;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cPhysicsJointHingeNewton::GetDistance()
 	{
 		return 0;
@@ -117,15 +81,6 @@ namespace hpl {
 		return NewtonHingeGetJointAngle(mpNewtonJoint);
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	// How near a limit its stop holds, and how much of the way back to it
 	// that stop pulls in one step
 	static const float kfLimitBand = 0.0087f; // half a degree
@@ -134,8 +89,6 @@ namespace hpl {
 	unsigned cPhysicsJointHingeNewton::LimitCallback(const NewtonJoint* pHinge, NewtonHingeSliderUpdateDesc* pDesc)
 	{
 		cPhysicsJointHingeNewton* pHingeJoint = (cPhysicsJointHingeNewton*)NewtonJointGetUserData(pHinge);
-
-		//pHingeJoint->OnPhysicsUpdate();
 
 		if(pHingeJoint->mfMaxAngle == 0 && pHingeJoint->mfMinAngle == 0) return 0;
 
@@ -224,7 +177,4 @@ namespace hpl {
 		pHingeJoint->mfPreviousAngle = fAngle;
 		return 0;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

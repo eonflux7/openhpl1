@@ -5,9 +5,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE-shaders
 //
 
-///////////////////////////////////////////////////////
-/// LIGHT PASS VARYINGS ////////////////////////////////
-///////////////////////////////////////////////////////
+// LIGHT PASS VARYINGS
 
 // Shared by hpl1_light.vertex and hpl1_light.fragment.
 // SPOT: the light is a spotlight. SPECULAR: specular term.

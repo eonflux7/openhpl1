@@ -9,12 +9,6 @@
 
 namespace fs = std::filesystem;
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cAddonWatcher::cAddonWatcher(const tStringVec &avFolders)
 {
 	mvFolders = avFolders;
@@ -24,8 +18,6 @@ cAddonWatcher::cAddonWatcher(const tStringVec &avFolders)
 	mbChanged = false;
 	mThread = std::thread(&cAddonWatcher::Run, this);
 }
-
-//-----------------------------------------------------------------------
 
 cAddonWatcher::~cAddonWatcher()
 {
@@ -37,14 +29,6 @@ cAddonWatcher::~cAddonWatcher()
 	mThread.join();
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cAddonWatcher::SetActive(bool abActive)
 {
 	{
@@ -55,14 +39,10 @@ void cAddonWatcher::SetActive(bool abActive)
 	mCondition.notify_all();
 }
 
-//-----------------------------------------------------------------------
-
 bool cAddonWatcher::HasChanged()
 {
 	return mbChanged.exchange(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cAddonWatcher::Accept()
 {
@@ -73,14 +53,6 @@ void cAddonWatcher::Accept()
 	}
 	mCondition.notify_all();
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 // Path, size and time of every file, hashed (FNV-1a)
 uint64_t cAddonWatcher::Signature()
@@ -108,8 +80,6 @@ uint64_t cAddonWatcher::Signature()
 	}
 	return lHash;
 }
-
-//-----------------------------------------------------------------------
 
 void cAddonWatcher::Run()
 {
@@ -151,5 +121,3 @@ void cAddonWatcher::Run()
 		mCondition.wait_for(lock, std::chrono::milliseconds(500));
 	}
 }
-
-//-----------------------------------------------------------------------

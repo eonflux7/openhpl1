@@ -1,33 +1,11 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/PhysicsJointScrewNewton.h"
 
 #include "impl/PhysicsBodyNewton.h"
 #include "impl/PhysicsWorldNewton.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cPhysicsJointScrewNewton::cPhysicsJointScrewNewton(const tString &asName,
 		iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
@@ -50,20 +28,10 @@ namespace hpl {
 		mvPivotPoint = avPivotPoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsJointScrewNewton::~cPhysicsJointScrewNewton()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cPhysicsJointScrewNewton::SetMaxDistance(float afX)
 	{
@@ -84,8 +52,6 @@ namespace hpl {
 		return mfMinDistance;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cPhysicsJointScrewNewton::GetVelocity()
 	{
 		float fSpeed = NewtonCorkscrewGetJointVeloc(mpNewtonJoint);
@@ -101,7 +67,6 @@ namespace hpl {
 		NewtonCorkscrewGetJointForce(mpNewtonJoint,&vForce.v[0]);
 		return vForce;
 	}
-	//-----------------------------------------------------------------------
 
 	float cPhysicsJointScrewNewton::GetDistance()
 	{
@@ -112,23 +77,11 @@ namespace hpl {
 		return NewtonCorkscrewGetJointAngle(mpNewtonJoint);
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC CALLBACKS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	unsigned cPhysicsJointScrewNewton::LimitCallback(const NewtonJoint* pScrew, NewtonHingeSliderUpdateDesc* pDesc)
 	{
 		cPhysicsJointScrewNewton* pScrewJoint = (cPhysicsJointScrewNewton*)NewtonJointGetUserData(pScrew);
 
-		//pScrewJoint->OnPhysicsUpdate();
-
 		float fDistance = NewtonCorkscrewGetJointPosit (pScrew);
-		//Log("Dist: %f\n",fDistance);
 
 		if(pScrewJoint->mfMinDistance == 0 && pScrewJoint->mfMaxDistance == 0) return 0;
 
@@ -173,6 +126,4 @@ namespace hpl {
 
 		return 0;
 	}
-	//-----------------------------------------------------------------------
-
 }

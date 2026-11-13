@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/ButtonHandler.h"
 
 #include "core/Init.h"
@@ -130,12 +114,6 @@ static cButtonHandlerAction gvDefaultActions[] = {
 {"","",0}
 };
 
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 float cButtonHandler::mfTestForward = 0;
 float cButtonHandler::mfTestSideways = 0;
 
@@ -204,34 +182,20 @@ cButtonHandler::cButtonHandler(cInit *apInit)  : iUpdateable("ButtonHandler")
 	mbToggleCrouch = mpInit->mpConfig->GetBool("Controls","ToggleCrouch",true);
 }
 
-//-----------------------------------------------------------------------
-
 cButtonHandler::~cButtonHandler(void)
 {
 	
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::ChangeState(eButtonHandlerState aState)
 {
 	mState = aState;
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::OnStart()
 {
 	mpPlayer = mpInit->mpPlayer;
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::OnPostSceneDraw()
 {
@@ -241,8 +205,6 @@ void cButtonHandler::OnPostSceneDraw()
 		mpInit->mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(0);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // The short way from one angle to another
 static float InterpolateAngle(float afA, float afB, float afT)
@@ -280,8 +242,6 @@ void cButtonHandler::OnInterpolate(float afT)
 	pCam->SetYaw(fYaw);
 	pCam->SetPitch(fPitch);
 }
-
-//-----------------------------------------------------------------------
 
 cVector2f cButtonHandler::ReadMouseRel()
 {
@@ -338,8 +298,6 @@ cVector2f cButtonHandler::GetCursorDrawOffset(bool abMenu)
 	return mpInput->GetMouse()->GetPendingRelPosition() * mvCursorPerRel[abMenu ? 0 : 1];
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::Update(float afTimeStep)
 {
 	BeginCursorStep();
@@ -350,9 +308,7 @@ void cButtonHandler::Update(float afTimeStep)
 	} cursorStepEnd = { this };
 
 	static bool bLockState = true;
-	///////////////////////////////////
 	// GLOBAL Key Strokes
-	///////////////////////////////////
 	if(mpInput->BecameTriggered("QuitGame"))
 	{
 		mpInit->mpGame->Exit();
@@ -394,9 +350,7 @@ void cButtonHandler::Update(float afTimeStep)
 		mpInit->mpGame->GetInput()->GetLowLevel()->LockInput(bLockState);
 #endif
 	}
-	///////////////////////////////////
 	// DEMO END TEXT
-	///////////////////////////////////
 	if(mState == eButtonHandlerState_DemoEndText)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -406,9 +360,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpDemoEndText->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// CREDITS STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Credits)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -418,9 +370,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpCredits->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// ENDING STATE (Black Plague)
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Ending)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -430,9 +380,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpEnding->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// PRE MENU STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_PreMenu)
 	{
 		if(	mpInput->BecameTriggered("Escape"))
@@ -442,9 +390,7 @@ void cButtonHandler::Update(float afTimeStep)
 		if(mpInput->BecameTriggered("RightClick"))
 			mpInit->mpPreMenu->OnMouseDown(eMButton_Right);
 	}
-	///////////////////////////////////
 	// MAP LOAD TEXT STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MapLoadText)
 	{
 		if(	mpInput->BecameTriggered("Escape") ||
@@ -454,9 +400,7 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->mpMapLoadText->SetActive(false);
 		}
 	}
-	///////////////////////////////////
 	// MAIN MENU BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_MainMenu)
 	{
 		if(mpInput->BecameTriggered("Escape"))
@@ -509,9 +453,7 @@ void cButtonHandler::Update(float afTimeStep)
 		}
 		
 	}
-	///////////////////////////////////
 	// INTRO BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Intro)
 	{
 		if(mpInput->BecameTriggered("Escape"))
@@ -519,18 +461,10 @@ void cButtonHandler::Update(float afTimeStep)
 			mpInit->mpIntroStory->Exit();
 		}
 	}
-	///////////////////////////////////
 	// GAME BUTTON STATE
-	///////////////////////////////////
 	else if(mState == eButtonHandlerState_Game)
 	{
-		///////////////////////////////////////
 		// Global ////////////////////
-		/*if(mpInput->BecameTriggered("ResetGame"))
-		{
-			mpInit->ResetGame(true);
-			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
-		}*/
 		// Requiem's quicksave and quickload are player keys, handled below
 		if(mpInit->mbAllowQuickSave && cInit::GetGameId() != eGameId_Requiem)
 		{
@@ -550,7 +484,6 @@ void cButtonHandler::Update(float afTimeStep)
 		}
 		//Check if no jump is pressed always.
 		bool bPlayerStateIsActive = false;
-		///////////////////////////////////////
 		// Computer terminal (Black Plague) ////////////////////
 		if(mpInit->mpGameGuiHandler->HasOpenScreenGui())
 		{
@@ -602,7 +535,6 @@ void cButtonHandler::Update(float afTimeStep)
 					mpInit->mpGameGuiHandler->CloseScreenGui(false);
 			}
 		}
-		///////////////////////////////////////
 		// Death menu ////////////////////
 		else if(mpInit->mpDeathMenu->IsActive())
 		{
@@ -639,7 +571,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpDeathMenu->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Death ////////////////////
 		else if(mpPlayer->IsDead())
 		{
@@ -648,7 +579,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpMainMenu->SetActive(true);
 			}
 		}
-		///////////////////////////////////////
 		// Numerical panel ////////////////////
 		else if(mpInit->mpNumericalPanel->IsActive())
 		{
@@ -682,7 +612,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpNumericalPanel->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Notebook ////////////////////
 		else if(mpInit->mpNotebook->IsActive())
 		{
@@ -727,11 +656,9 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpNotebook->AddMousePos(vRel * mfMouseSensitivity);
 			}
 		}
-		///////////////////////////////////////
 		// Inventory ////////////////////
 		else if(mpInit->mpInventory->IsActive())
 		{
-			////////////////////////////
 			//Normal Input
 			if(mpInput->BecameTriggered("Inventory") || mpInput->BecameTriggered("Escape"))
 			{
@@ -766,7 +693,6 @@ void cButtonHandler::Update(float afTimeStep)
 				mpInit->mpInventory->OnMouseUp(eMButton_Right);
 			}
 			
-			//////////////////////////////
 			//Short cut keys
 			if(mpInput->BecameTriggered("One")) mpInit->mpInventory->OnShortcutDown(0);
 			if(mpInput->BecameTriggered("Two")) mpInit->mpInventory->OnShortcutDown(1);
@@ -802,21 +728,11 @@ void cButtonHandler::Update(float afTimeStep)
 			{
 				mpInit->mpPlayer->Damage(20,ePlayerDamageType_BloodSplash);
 			}
-			/*if(mpInput->BecameTriggered("Log"))
-			{
-				mpInit->mpGame->GetPhysics()->SetDebugLog(!mpInit->mpGame->GetPhysics()->GetDebugLog());
-			}*/
 			if(mpInput->BecameTriggered("Taunt"))
 			{
 				for(int i=0;i<10; ++i)
 					mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_add_note1",
 																		false,0.01f);
-				/*cVector3f vPos = mpInit->mpPlayer->GetCharacterBody()->GetPosition();
-				cSoundEntity *pSound = mpInit->mpGame->GetScene()->GetWorld3D()->CreateSoundEntity("Taunt","interact_homer",true);
-                if(pSound)
-				{
-					pSound->SetPosition(vPos);
-				}*/
 			}
 			
 			if(mpPlayer->IsActive() || mpPlayer->GetState() == ePlayerState_Message)
@@ -858,7 +774,6 @@ void cButtonHandler::Update(float afTimeStep)
 						mpPlayer->StartGlowStickButton();
 					}
 
-					///////////////////////////////////////
 					// Player Movement ////////////////////
 					if(mpInput->IsTriggered("Forward"))
 					{
@@ -980,7 +895,6 @@ void cButtonHandler::Update(float afTimeStep)
 					}
 				}
 
-				///////////////////////////////////////
 				// Player Interaction /////////////////
 				if(	mpInput->BecameTriggered("Interact"))
 				{
@@ -1030,14 +944,10 @@ void cButtonHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cButtonHandler::Reset()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::OnExit()
 {
@@ -1051,21 +961,16 @@ void cButtonHandler::OnExit()
 	Log("  Saving keys\n");
 	for(int i=0; i< mlNumOfActions; ++i)
 	{
-		//Log(" Action %s\n",gvDefaultActions[i].msName.c_str());
 		if(!IsActionInGame(&gvDefaultActions[i])) continue;
 		
 		iAction *pAction = mpInput->GetAction(gvDefaultActions[i].msName);
 		tString sType="", sVal="";
 		TypeAndValFromAction(pAction,&sType,&sVal);
 
-		//Log(" type %s val: %s\n",sType.c_str(),sVal.c_str());
-		
 		mpInit->mpConfig->SetString("Keys",gvDefaultActions[i].msName+"_Type",sType);
 		mpInit->mpConfig->SetString("Keys",gvDefaultActions[i].msName+"_Val",sVal);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::SetDefaultKeys()
 {
@@ -1097,8 +1002,6 @@ void cButtonHandler::SetDefaultKeys()
 		++pBHAction;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 // Short names of keys whose input name is long or a word for a sign
 static const char *gvKeyLabels[][2] = {
@@ -1156,8 +1059,6 @@ tWString cButtonHandler::GetKeyLabel(const tString &asInputName)
 	return sLabel;
 }
 
-//-----------------------------------------------------------------------
-
 tWString cButtonHandler::GetActionKeyCap(const tString &asAction)
 {
 	iAction *pAction = mpInput->GetAction(asAction);
@@ -1169,8 +1070,6 @@ tWString cButtonHandler::GetActionKeyCap(const tString &asAction)
 
 	return tWString(1, kwcKeyCapStart) + sLabel + tWString(1, kwcKeyCapEnd);
 }
-
-//-----------------------------------------------------------------------
 
 tString cButtonHandler::GetActionName(const tString &asInputName,const tString &asSkipAction)
 {
@@ -1194,17 +1093,8 @@ tString cButtonHandler::GetActionName(const tString &asInputName,const tString &
 	return "";
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tString& asType, const tString& asVal)
 {
-	//Log("Action %s from %s\n",asName.c_str(),asType.c_str());
 
 	if(asType == "Keyboard")
 	{
@@ -1227,8 +1117,6 @@ iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tStrin
 
 	return nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 void cButtonHandler::TypeAndValFromAction(iAction *apAction, tString *apType, tString *apVal)
 {
@@ -1264,5 +1152,3 @@ void cButtonHandler::TypeAndValFromAction(iAction *apAction, tString *apType, tS
 		*apType = "";
 	}
 }
-
-//-----------------------------------------------------------------------

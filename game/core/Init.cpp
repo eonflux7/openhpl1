@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/Init.h"
 #include "ui/GraphicsPresets.h"
 #include "core/DogTestMap.h"
@@ -95,7 +79,6 @@
 //Global init...
 cInit* gpInit;
 
-///////////////////////////////////////////////
 // BEGIN TIME LIMIT
 
 //#define TIMELIMIT
@@ -130,12 +113,6 @@ cInit* gpInit;
 #endif
 
 // END TIME LIMIT
-///////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
 
 tWString gsUserSettingsPath = _W("");
 tWString gsDefaultSettingsPath = _W("config/default_settings.cfg");
@@ -143,8 +120,6 @@ bool gbUsingUserSettings=false;
 
 eGameId cInit::mGameId = eGameId_Overture;
 eGameId cInit::mRequestedGameId = eGameId_LastEnum;
-
-//-----------------------------------------------------------------------
 
 // What differs between the games' data folders. Black Plague and Requiem are
 // installed into the same folder, Requiem's own files under other names.
@@ -185,8 +160,6 @@ static const cGameFiles gvGameFiles[eGameId_LastEnum] = {
 		"requiem_resources.cfg", "requiem_materials.cfg", "core/requiem_cache/", _W("expansion01/maps"), "level00.dae",
 		"Penumbra_Requiem_M.ogg"},
 };
-
-//-----------------------------------------------------------------------
 
 // CHANGING GAME
 
@@ -266,8 +239,6 @@ void cInit::RunRequestedGame()
 #endif
 }
 
-//-----------------------------------------------------------------------
-
 tWString cInit::GetPersonalGameDir()
 {
 	return gvGameFiles[mGameId].msPersonalDir;
@@ -287,8 +258,6 @@ tString cInit::GetMenuMusic()
 {
 	return gvGameFiles[mGameId].msMenuMusic;
 }
-
-//-----------------------------------------------------------------------
 
 cInit::cInit(void)  : iUpdateable("Init")
 {
@@ -316,19 +285,9 @@ cInit::cInit(void)  : iUpdateable("Init")
 	gpInit = this;
 }
 
-//-----------------------------------------------------------------------
-
 cInit::~cInit(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 {
@@ -336,8 +295,6 @@ void cInit::CreateHardCodedPS(iParticleEmitterData *apPE)
 	pPS->AddEmitterData(apPE);
 	mpGame->GetResources()->GetParticleManager()->AddData3D(pPS);
 }
-
-//-----------------------------------------------------------------------
 
 tWString cInit::GetPersonalDir()
 {
@@ -348,16 +305,7 @@ tWString cInit::GetPersonalDir()
 
 bool cInit::Init(tString asCommandLine)
 {
-	/*if(asCommandLine != "")
-	{
-		Log("CommandLine: %s\n",asCommandLine.c_str());
-		if(cSerialChecker::Validate(asCommandLine)<=0)
-		{
-			FatalError("Invalid serial number!\n");
-		}
-	}*/
 
-	//iResourceBase::SetLogCreateAndDelete(true);
 	SetWindowCaption("Penumbra Loading...");
 
 	// Black Plague: resting bodies are kept 2 mm apart. With Newton 2 a heavy
@@ -581,14 +529,10 @@ bool cInit::Init(tString asCommandLine)
 	mbUseEnvAudio = mpConfig->GetBool("Sound","UseEnvironmentalAudio",true);
 	// Black Plague's and Requiem's default_settings.cfg turn it off
 	if(!gbUsingUserSettings) mbUseEnvAudio = true;
-	//mbForceGenericSoundDevice = mpConfig->GetBool("Sound", "ForceGeneric", false);
 	mlStreamUpdateFreq = mpConfig->GetInt("Sound","StreamUpdateFreq",10);
 	mbUseSoundThreading = mpConfig->GetBool("Sound","UseThreading",true);
-	//mbUseVoiceManagement = mpConfig->GetBool("Sound","UseVoiceManagement", true);
 	mlMaxMonoChannelsHint = mpConfig->GetInt("Sound","MaxMonoChannelsHint",0);
 	mlMaxStereoChannelsHint = mpConfig->GetInt("Sound","MaxStereoChannelsHint",0);
-	//mlStreamBufferSize = mpConfig->GetInt("Sound", "StreamBufferSize", 64);
-	//mlStreamBufferCount = mpConfig->GetInt("Sound", "StreamBufferCount", 4);
 	msDeviceName = mpConfig->GetString("Sound","DeviceName","NULL");
 
 	iGpuProgram::SetLogDebugInformation(true);
@@ -1150,15 +1094,6 @@ bool cInit::Init(tString asCommandLine)
 		mpGlobalScript->Run("OnInit()");
 	}
 	
-	//mpGraphicsHelper->DrawLoadingScreen("");
-
-	//mpIntroStory->SetActive(true);
-	//mpCredits->SetActive(true);
-	//mpDemoEndText->SetActive(true);
-
-	//mpGame->SetRenderOnce(true);
-	//mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(eRendererDebugFlag_LogRendering);
-	
 	if(mpSmokeTest)
 	{
 		if(mpSmokeTest->GetFirstMap() != "")
@@ -1191,7 +1126,6 @@ bool cInit::Init(tString asCommandLine)
 		mpConfig->Save();
 	}
 
-	//////////////////////////////////////////////////////////
 	// Create newer settings file, if using default.
 	if(gbUsingUserSettings == false)
 	{
@@ -1204,8 +1138,6 @@ bool cInit::Init(tString asCommandLine)
 	
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::ResetGame(bool abRunInitScript)
 {
@@ -1223,21 +1155,15 @@ void cInit::ResetGame(bool abRunInitScript)
 	mpGame->GetSound()->GetSoundHandler()->StopAll(eSoundDest_All);
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::Run()
 {
 	mpGame->Run();
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::OnStart()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::Update(float afTimeStep)
 {
@@ -1247,14 +1173,10 @@ void cInit::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::Reset()
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::Exit()
 {
@@ -1303,8 +1225,6 @@ void cInit::Exit()
 	}
 
 	// PLAYER EXIT /////////////////////
-	//Log(" Exit Save Handler\n");
-	//hplDelete( mpSaveHandler );
 
 	Log(" Reset maphandler\n");
 	mpMapHandler->Reset();
@@ -1320,8 +1240,6 @@ void cInit::Exit()
 	hplDelete( mpButtonHandler );
 	Log(" Exit Map Handler\n");
 	hplDelete( mpMapHandler );
-	//Log(" Exit Game Scripts\n");
-	//hplDelete( mpGameScripts );
 	Log(" Exit Game Message Handler\n");
 	hplDelete( mpGameMessageHandler );
 	Log(" Exit Ending\n");
@@ -1581,8 +1499,6 @@ void cInit::Exit()
 #endif
 }
 
-//-----------------------------------------------------------------------
-
 void cInit::RunScriptCommand(const tString& asCommand)
 {
 	if(asCommand[0]=='@')
@@ -1602,21 +1518,13 @@ void cInit::RunScriptCommand(const tString& asCommand)
 	}
 }
 
-//-----------------------------------------------------------------------
 void cInit::PreloadSoundEntityData(const tString &asFile)
 {
 	if(asFile=="") return;
 	
 	mpGame->GetResources()->GetSoundEntityManager()->Preload(asFile);
 		
-	/*iSoundData *pSound = mpGame->GetResources()->GetSoundManager()->CreateSoundData(asFile,false);
-	if(pSound){
-		Warning("Couldn't preload sound '%s'\n",asFile.c_str());
-	}*/
-	
 }
-
-//-----------------------------------------------------------------------
 
 void cInit::PreloadParticleSystem(const tString &asFile)
 {
@@ -1625,5 +1533,3 @@ void cInit::PreloadParticleSystem(const tString &asFile)
 																"",asFile,1,cMatrixf::Identity);
 	hplDelete( pPS );
 }
-
-//-----------------------------------------------------------------------

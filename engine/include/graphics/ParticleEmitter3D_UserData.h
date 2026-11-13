@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_PARTICLE_EMITTER_3D_USER_DATA_H
 #define HPL_PARTICLE_EMITTER_3D_USER_DATA_H
 
@@ -66,14 +50,6 @@ namespace hpl {
 		ePEPartSpinType_LastEnum,
 	};
 
-
-
-	//------------------------------------
-
-
-
-	//------------------------------------
-
 	class cParticleEmitterData3D_UserData : public iParticleEmitterData, public iPhysicsRayCallback
 	{
 	friend class cParticleEmitter3D_UserData;
@@ -96,7 +72,7 @@ namespace hpl {
 		cVector3f *mpIntersectNormal;
 		cVector3f *mpIntersectPos;
 
-		///////// GENERAL /////////////
+		// GENERAL
 
 		// NEW
 		ePEType	mPEType;
@@ -121,12 +97,12 @@ namespace hpl {
 		float mfFrameStep;
 		float mfMaxFrameTime;
 
-		///////// MATERIAL //////////
+		// MATERIAL
 
 		cVector2l mvSubDiv;
 		ePESubDivType mSubDivType;
 
-		///////// START POS //////////
+		// START POS
 		ePEStartPosType mStartPosType;
 
 		cVector3f mvMinStartPos;
@@ -138,7 +114,7 @@ namespace hpl {
 		float mfMinStartRadius;
 		float mfMaxStartRadius;
 
-		/////////// MOVEMENT ////////
+		// MOVEMENT
 		ePEStartPosType mStartVelType;
 
 		cVector3f mvMinStartVel;
@@ -177,12 +153,9 @@ namespace hpl {
 		cVector3f	mvMinRevVel;
 		cVector3f	mvMaxRevVel;
 
-//		iVertexBuffer *mVBMeshData;
-//		float *mpfMeshVtxData;
-
 		// ---
 
-		/////////// LIFESPAN ////////
+		// LIFESPAN
 		float mfMinLifeSpan;
 		float mfMaxLifeSpan;
 
@@ -190,7 +163,7 @@ namespace hpl {
 
 		tString msDeathPS;
 
-		/////////// RENDERING ////////
+		// RENDERING
 		eParticleEmitter3DType mDrawType;
 
 		cVector2f mvMinStartSize;
@@ -204,7 +177,7 @@ namespace hpl {
 
 		bool mbMultiplyRGBWithAlpha;
 
-		/////////// COLOR  ////////
+		// COLOR
 
 		cColor mMinStartColor;
 		cColor mMaxStartColor;
@@ -215,7 +188,7 @@ namespace hpl {
 		float mfMiddleRelColorLength;
 		cColor mEndRelColor;
 
-		/////////// COLLISION  ////////
+		// COLLISION
 		bool mbCollides;
 
 		float mfMinBounceAmount;
@@ -227,7 +200,7 @@ namespace hpl {
 		int  mlCollisionUpdateRate;
 
 		// NEW
-		/////// BEAM SPECIFIC ///////
+		// BEAM SPECIFIC
 
 		bool mbUseBeamNoise;
 
@@ -249,8 +222,6 @@ namespace hpl {
 
 
 };
-
-	//----------------------------------------------------------
 
 	class cParticleEmitter3D_UserData : public iParticleEmitter3D
 	{
@@ -288,4 +259,3 @@ namespace hpl {
 };
 
 #endif // HPL_PARTICLE_EMITTER_3D_USER_DATA_H
-

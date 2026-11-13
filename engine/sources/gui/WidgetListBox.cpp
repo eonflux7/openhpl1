@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/WidgetListBox.h"
 
 #include "system/LowLevelSystem.h"
@@ -30,12 +14,6 @@
 #include "gui/WidgetSlider.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cWidgetListBox::cWidgetListBox(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_ListBox,apSet, apSkin)
 	{
@@ -53,8 +31,6 @@ namespace hpl {
 		mpSlider = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetListBox::~cWidgetListBox()
 	{
 		if(mpSet->IsDestroyingSet()==false)
@@ -62,13 +38,6 @@ namespace hpl {
 			mpSet->DestroyWidget(mpSlider);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 
 	void cWidgetListBox::SetSelectedItem(int alX, bool abMoveList)
 	{
@@ -98,13 +67,6 @@ namespace hpl {
 		ProcessMessage(eGuiMessage_SelectionChange,data);
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
 	bool cWidgetListBox::DrawText(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		cVector3f vPosition = GetGlobalPosition() + cVector3f(3,2,0);
@@ -126,8 +88,6 @@ namespace hpl {
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetListBox,DrawText)
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::MoveSlider(iWidget* apWidget,cGuiMessageData& aData)
 	{
 		mlFirstItem = aData.mlVal;
@@ -135,8 +95,6 @@ namespace hpl {
 		return true;
 	}
 	kGuiCalllbackDeclaredFuncEnd(cWidgetListBox,MoveSlider)
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::UpdateProperties()
 	{
@@ -154,8 +112,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetListBox::OnInit()
 	{
 		mpSlider = mpSet->CreateWidgetSlider(eWidgetSliderOrientation_Vertical,0,0,0,this);
@@ -165,8 +121,6 @@ namespace hpl {
 
 		OnChangeSize();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::OnChangeSize()
 	{
@@ -178,8 +132,6 @@ namespace hpl {
 			UpdateProperties();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetListBox::OnLoadGraphics()
 	{
@@ -198,17 +150,12 @@ namespace hpl {
 		mvGfxCorners[3] = mpSkin->GetGfx(eGuiSkinGfx_FrameCornerLD);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetListBox::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Background
 		mpSet->DrawGfx(	mpGfxBackground,GetGlobalPosition() +cVector3f(0,0,mfBackgroundZ),
 						mvSize);
 
-
-		////////////////////////////////
 		// Borders
 		DrawBordersAndCorners(	nullptr, mvGfxBorders, mvGfxCorners,
 								GetGlobalPosition() -
@@ -218,14 +165,10 @@ namespace hpl {
 												mvGfxCorners[2]->GetActiveSize());
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseMove(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnMouseDown(cGuiMessageData &aData)
 	{
@@ -243,28 +186,20 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseUp(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetListBox::OnMouseLeave(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetListBox::OnKeyPress(cGuiMessageData &aData)
 	{
@@ -281,8 +216,4 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

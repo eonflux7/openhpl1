@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/FrameBitmap.h"
 #include "math/Math.h"
 #include "system/LowLevelSystem.h"
@@ -26,12 +10,6 @@
 
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cFrameBitmap::cFrameBitmap(iBitmap2D *apBitmap,  cFrameTexture *apFrmTex, int alHandle) : iFrameBase()
 	{
@@ -52,14 +30,6 @@ namespace hpl {
 		hplDelete(mpBitmap);
 		mpBitmap = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	#define DEBUG_BTREE (false)
 
@@ -221,8 +191,6 @@ namespace hpl {
 		return pImage;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::MinimumFit(cRect2l aSrc,cRect2l aDest)
 	{
 		if(aDest.w-aSrc.w<mlMinHole && aDest.h-aSrc.h<mlMinHole) return true;
@@ -230,21 +198,15 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::IsUpdated()
 	{
 		return mbIsUpdated;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cFrameBitmap::IsFull()
 	{
 		return mbIsFull;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cFrameBitmap::FlushToTexture()
 	{
@@ -254,7 +216,6 @@ namespace hpl {
 			mpFrameTexture->GetTexture()->SetWrapS(eTextureWrap_ClampToEdge);
 			mpFrameTexture->GetTexture()->SetWrapT(eTextureWrap_ClampToEdge);
 
-			//mpFrameTexture->SetPicCount(mlPicCount);
 			mbIsUpdated = false;
 			return true;
 		}
@@ -263,6 +224,4 @@ namespace hpl {
 			return false;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

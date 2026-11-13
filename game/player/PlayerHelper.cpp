@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "player/PlayerHelper.h"
 
 #include "core/Init.h"
@@ -34,11 +18,7 @@
 #include "systems/GameMusicHandler.h"
 #include "core/GraphicsHelper.h"
 
-//////////////////////////////////////////////////////////////////////////
 // HIT GROUND CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerBodyCallback::cPlayerBodyCallback(cPlayer *apPlayer)
 {
@@ -59,12 +39,8 @@ cPlayerBodyCallback::cPlayerBodyCallback(cPlayer *apPlayer)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f &avVel)
 {
-	//if(avVel.y < -5.5f)
-	//	mpPlayer->FootStep(1.0f,"run",true);
 
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 	{
@@ -85,8 +61,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 	tString sSound = "";
 	float fVol = 1.0f;
 	cSoundHandler *pSoundHandler = mpPlayer->GetInit()->mpGame->GetSound()->GetSoundHandler();
-	//Log("Speed: %f\n",avVel.y);
-	/////////////////////
 	//Fall damage
 	//Hard
 	if(avVel.y < mfFallSpeed_Min && !mpPlayer->GetNoFallDamage())
@@ -105,7 +79,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Max,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,1);
-		//Log("Hard\n");
 	}
 	//Medium
 	else if(avVel.y < mfFallSpeed_Med)
@@ -114,7 +87,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Med,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,0.75f);
-		//Log("Medium\n");
 	}
 	//Light
 	else if(avVel.y < mfFallSpeed_Min)
@@ -123,7 +95,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Min,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,0.5f);
-		//Log("Light\n");
 	}
 	
 	
@@ -141,13 +112,7 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // GROUND RAY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------
 
 cPlayerGroundRayCallback::cPlayerGroundRayCallback()
 {
@@ -155,15 +120,11 @@ cPlayerGroundRayCallback::cPlayerGroundRayCallback()
 	mbOnGround = false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerGroundRayCallback::Clear()
 {
 	mfMinDist = 1000;
 	mpMaterial = nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerGroundRayCallback::OnWorldExit()
 {
@@ -174,8 +135,6 @@ void cPlayerGroundRayCallback::Reset()
 {
 	mpMaterial = nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerGroundRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
@@ -191,11 +150,7 @@ bool cPlayerGroundRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams
 	return true;
 }
 
-//-----------------------------------------------------------------------
-//////////////////////////////////////////////////////////////////////////
 // PICK RAY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------------------------
 
 cPlayerPickRayCallback::cPlayerPickRayCallback()
 {
@@ -204,8 +159,6 @@ cPlayerPickRayCallback::cPlayerPickRayCallback()
 
 	mLastEntityType = eGameEntityType_LastEnum;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerPickRayCallback::Clear()
 {
@@ -218,14 +171,10 @@ void cPlayerPickRayCallback::Clear()
 	mfMinStaticDist = mfMaxDistance+10.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerPickRayCallback::OnWorldExit()
 {
 	mpPickedBody = nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams *apParams)
 {
@@ -249,7 +198,6 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 	iGameEntity *pEntity = nullptr;
 	if(apBody->GetUserData()) pEntity = (iGameEntity*)apBody->GetUserData();
 	
-	//////////////////////////////
 	// Entity
 	if(pEntity)
 	{
@@ -289,7 +237,6 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 			}
 		}
 	}
-	///////////////////////////////
 	// Non Entity
 	else
 	{
@@ -308,71 +255,6 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 
 	return true;
 	
-	/*float &fDist = apParams->mfDist;
-	
-	iGameEntity *pEntity = NULL;
-	if(apBody->GetUserData()) pEntity = (iGameEntity*)apBody->GetUserData();
-
-	//Don't wanna pick characters
-	if(apBody->IsCharacter() && apBody->GetUserData()==NULL) return true;
-
-	if(pEntity && pEntity->IsActive()==false) return true;
-	
-	//If it is outside of the examine distance skip
-	if(pEntity && pEntity->GetMaxExamineDist() < fDist) return true;
-    
-	////////////////////////////
-	//Not picked
-	bool bStatic = false;
-	if(pEntity && pEntity->GetType()== eGameEntityType_Object)
-	{
-		cGameObject* pObject = static_cast<cGameObject*>(pEntity);
-		if(pObject->GetInteractMode() == eObjectInteractMode_Static)
-		{
-			bStatic = true;
-		}
-	}
-
-	if(	 pEntity==NULL || bStatic)
-	{
-		if(fDist < mfPickedDist)
-		{
-			mfMinStaticDist = fDist;
-			mfPickedDist = fDist;
-			mpPickedBody = NULL;
-			mvPickedPos = apParams->mvPoint;
-			mLastEntityType = eGameEntityType_LastEnum;
-		}
-	}
-	////////////////////////////
-	//Picked
-	else
-	{
-		if(pEntity->GetType() == eGameEntityType_Area)
-		{
-			if(fDist < mfPickedDist)
-			{
-				mpPickedBody = apBody;
-				mLastEntityType = pEntity->GetType();
-				mvPickedPos = apParams->mvPoint;
-				mfPickedDist = fDist;
-			}
-		}
-		else
-		{
-			if	(fDist < mfPickedDist || 
-				(mLastEntityType == eGameEntityType_Area))
-			{
-				mpPickedBody = apBody;
-				mLastEntityType = pEntity->GetType();
-				mvPickedPos = apParams->mvPoint;
-				mfPickedDist = fDist;
-			}
-		}
-
-	}
-
-	return true;*/
 }
 
 void cPlayerPickRayCallback::CalculateResults()
@@ -425,12 +307,7 @@ void cPlayerPickRayCallback::CalculateResults()
 	}
 }
 
-//-----------------------------------------------------------------------
-//////////////////////////////////////////////////////////////////////////
 // HEAD MOVE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerHeadMove::cPlayerHeadMove(cPlayer *apPlayer)
 {
@@ -446,14 +323,10 @@ cPlayerHeadMove::cPlayerHeadMove(cPlayer *apPlayer)
 	mfClimbPos = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHeadMove::Update(float afTimeStep)
 {
-	///////////////////////////////
 	//Climb count
 	iCharacterBody *pBody = mpPlayer->GetCharacterBody();
-	/*float fUpVel = (pBody->GetPosition().y - pBody->GetLastPosition().y) / afTimeStep;*/
 
     if(pBody->IsClimbing() && mfClimbCount==0)
 	{
@@ -471,7 +344,6 @@ void cPlayerHeadMove::Update(float afTimeStep)
 		}
 	}
 	
-	///////////////////////////////
 	//Head movement
 	if(mbActive)
 	{
@@ -532,8 +404,6 @@ void cPlayerHeadMove::Update(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHeadMove::Start()
 {
 	if(mbActive==false)
@@ -551,7 +421,6 @@ void cPlayerHeadMove::Stop()
 {
 	mbActive = false;
 }
-//-----------------------------------------------------------------------
 
 float cPlayerHeadMove::GetPos()
 {
@@ -560,14 +429,7 @@ float cPlayerHeadMove::GetPos()
 	return mfPos;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // HEALTH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerHealth::cPlayerHealth(cInit *apInit)
 {
@@ -590,8 +452,6 @@ cPlayerHealth::cPlayerHealth(cInit *apInit)
 	mpSoundEntry = nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHealth::Reset()
 {
 	mfHeartbeatDelaySeconds = 0;
@@ -609,8 +469,6 @@ void cPlayerHealth::Reset()
 	mfOxygenPulseSpeed = 0;
 	mfOxygenAlphaAdd = 1;
 }
-
-//-----------------------------------------------------------------------
 
 // Black Plague: the air runs out under water, about a third of a minute of
 // it. Below half of it a picture pulses on the screen, faster below a quarter
@@ -683,7 +541,6 @@ void cPlayerHealth::Update(float afTimeStep)
 		return;
 	}
 	
-	////////////////////////////
 	//ALpha
 	mfGfxAlpha += mfGfxAlphaAdd * afTimeStep;
 	if(mfGfxAlphaAdd < 0 && mfGfxAlpha < 0) mfGfxAlpha = 0;
@@ -693,7 +550,6 @@ void cPlayerHealth::Update(float afTimeStep)
 		mfGfxAlphaAdd = -1.5;
 	}
 	
-	////////////////////////////
 	//Heart timer
 	if(mfHeartbeatDelaySeconds<=0)
 	{
@@ -735,7 +591,6 @@ void cPlayerHealth::Update(float afTimeStep)
 		mfHeartbeatDelaySeconds -= afTimeStep;
 	}
 	
-	////////////////////////////
 	//Increase health over time:
 	switch(mpInit->mDifficulty)
 	{
@@ -747,91 +602,6 @@ void cPlayerHealth::Update(float afTimeStep)
 		pPlayer->AddHealth(afTimeStep * 0.14f); break;
 	}
 	
-
-	////////////////////////////
-	//Check for enemies.
-	/*if(mfTerrorCheckCount <=0)
-	{
-		//Check the current terror level.
-		int lTerrorLevel =0;
-		tGameEnemyIterator it = mpInit->mpMapHandler->GetGameEnemyIterator();
-		while(it.HasNext())
-		{
-			iGameEnemy *pEnemy = it.Next();
-			
-			if(pEnemy->IsActive()==false || pEnemy->GetHealth() <=0) continue;
-
-			int lState = pEnemy->GetStateMachine()->CurrentState()->GetId();
-
-			if(lState == eGameEnemyState_Hunt || lState == eGameEnemyState_Attack)
-			{
-				lTerrorLevel = 3;	
-			}
-			else if(lTerrorLevel < 2 && lState == eGameEnemyState_Investigate)
-			{
-				lTerrorLevel = 2;
-			}
-			else if(lTerrorLevel < 1)
-			{
-				lTerrorLevel = 1;
-			}
-		}
-		
-        if(mlTerrorLevel != lTerrorLevel)
-		{
-			mlTerrorLevel = lTerrorLevel;
-
-			cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
-			
-			//Fade out the current sound if there is any.
-			if(mpSoundEntry)
-			{
-				mpSoundEntry->mfNormalVolumeFadeDest = 0;
-				mpSoundEntry->mfNormalVolumeFadeSpeed = -0.25f;
-				mpSoundEntry = NULL;
-			}
-			mpSoundEntry = NULL;
-
-			tString sSound="";
-			float fVolume;
-			
-			if(mlTerrorLevel==0)
-			{
-			}
-			else if(mlTerrorLevel==1)
-			{
-				sSound = "horror_roach_idle";
-				fVolume = 0.3f;
-			}
-			else if(mlTerrorLevel==2)
-			{
-				sSound = "horror_roach_notice";
-				fVolume = 0.45f;
-			}
-			else if(mlTerrorLevel==3)
-			{
-				sSound = "horror_roach_attack";
-				fVolume = 0.6f;
-			}
-		
-			if(sSound != "")
-			{
-				iSoundChannel *pChannel = pSoundHandler->PlayGui(sSound, true, fVolume);
-				pChannel->SetPriority(200);
-				mpSoundEntry = pSoundHandler->GetEntryFromSound(pChannel);
-
-				mpSoundEntry->mfNormalVolumeMul =0;
-				mpSoundEntry->mfNormalVolumeFadeDest =1;
-				mpSoundEntry->mfNormalVolumeFadeSpeed = 0.55f;
-			}
-		}
-
-		mfTerrorCheckCount = 0.2f;
-	}
-	else
-	{
-		mfTerrorCheckCount -= afTimeStep;
-	}*/
 }
 
 void cPlayerHealth::Draw()
@@ -844,13 +614,7 @@ void cPlayerHealth::Draw()
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // EAR RING
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerEarRing::cPlayerEarRing(cInit *apInit,cPlayer *apPlayer)
 {
@@ -862,8 +626,6 @@ cPlayerEarRing::cPlayerEarRing(cInit *apInit,cPlayer *apPlayer)
 
 	mbDeaf = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerEarRing::Reset()
 {
@@ -877,8 +639,6 @@ void cPlayerEarRing::Reset()
 
 	mbDeaf = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerEarRing::Update(float afTimeStep)
 {
@@ -910,8 +670,6 @@ void cPlayerEarRing::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerEarRing::Start(float afTime)
 {
 	if(mpInit->mpPlayer->GetHealth() <=0) return;
@@ -940,8 +698,6 @@ void cPlayerEarRing::Start(float afTime)
 	mfDeafTime = afTime *0.3f;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerEarRing::Stop(bool abStopDirectly)
 {
 	cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
@@ -967,14 +723,7 @@ void cPlayerEarRing::Stop(bool abStopDirectly)
 	}
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LEAN
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerLean::cPlayerLean(cInit *apInit, cPlayer *apPlayer)
 {
@@ -999,8 +748,6 @@ void cPlayerLean::Reset()
 	mbPressed = false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerLean::OnWorldLoad()
 {
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -1012,11 +759,8 @@ void cPlayerLean::OnWorldLoad()
 	mpHeadShape = pPhysicsWorld->CreateCylinderShape(fRadius,fHeight,&mtxOffset);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerLean::Update(float afTimeStep)
 {
-	////////////////////////////////
 	//If pressed move in direction
 	if(mbPressed)
 	{
@@ -1025,7 +769,6 @@ void cPlayerLean::Update(float afTimeStep)
 		float fGoalPos = mfMaxMovement * mfDir;
 		float fGoalRot = mfMaxRotation * -mfDir;
         
-		//////////////
 		//Position
 		float fPrevMovement = mfMovement;
 		float fMoveSpeed = (fGoalPos - mfMovement);
@@ -1035,7 +778,6 @@ void cPlayerLean::Update(float afTimeStep)
 		if(fGoalPos < 0 && mfMovement < fGoalPos) mfMovement =fGoalPos;
         if(fGoalPos > 0 && mfMovement > fGoalPos) mfMovement =fGoalPos;
 
-		//////////////
 		//Rotation
 		float fPrevRotation = mfRotation;
 		float fRotSpeed = fGoalRot - mfRotation;
@@ -1046,7 +788,6 @@ void cPlayerLean::Update(float afTimeStep)
 		if(fGoalRot < 0 && mfRotation < fGoalRot) mfRotation = fGoalRot;
 		if(fGoalRot > 0 && mfRotation > fGoalRot) mfRotation = fGoalRot;
 
-		////////////////////
 		//Check collision
 		cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 		iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -1087,7 +828,6 @@ void cPlayerLean::Update(float afTimeStep)
 			}
 		}
 	}
-	////////////////////////////
 	// Not pressed move back
 	else
 	{
@@ -1101,8 +841,6 @@ void cPlayerLean::Update(float afTimeStep)
 	mpPlayer->GetCamera()->AddRoll(mfRotation);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerLean::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
 	if(pBody == mpPlayer->GetCharacterBody()->GetBody())return true;
@@ -1111,22 +849,13 @@ bool cPlayerLean::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerLean::Lean(float afMul, float afTimeStep)
 {
 	mbPressed = true;
 	mfDir = afMul;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DAMAGE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerDamage::cPlayerDamage(cInit *apInit)
 {
@@ -1150,8 +879,6 @@ cPlayerDamage::~cPlayerDamage()
 	for(int i=0; i<ePlayerDamageType_LastEnum; ++i)
 		if(mvHitGfx[i]) mpDrawer->DestroyGfxObject(mvHitGfx[i]);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerDamage::Start(float afSize, ePlayerDamageType aType)
 {
@@ -1177,8 +904,6 @@ void cPlayerDamage::Start(float afSize, ePlayerDamageType aType)
 	mpInit->mpPlayer->GetCharacterBody()->SetMoveSpeed(eCharDir_Forward,0);
 	mpInit->mpPlayer->GetCharacterBody()->SetMoveSpeed(eCharDir_Right,0);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerDamage::Update(float afTimeStep)
 {
@@ -1228,14 +953,10 @@ void cPlayerDamage::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // The low level draws it (cPlayerEffectState)
 void cPlayerDamage::Draw()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerDamage::Reset()
 {
@@ -1246,13 +967,7 @@ void cPlayerDamage::Reset()
 	mvHeadSwingSpeed = cVector2f(0, 0);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // DEATH
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerDeath::cPlayerDeath(cInit *apInit)
 {
@@ -1268,8 +983,6 @@ cPlayerDeath::~cPlayerDeath()
 	mpDrawer->DestroyGfxObject(mpFadeGfx);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerDeath::Reset()
 {
 	mbActive = false;
@@ -1278,8 +991,6 @@ void cPlayerDeath::Reset()
 	mfRoll =0;
 
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerDeath::Start()
 {
@@ -1321,8 +1032,6 @@ void cPlayerDeath::Start()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerDeath::Update(float afTimeStep)
 {
 	if(mbActive==false) return;
@@ -1351,23 +1060,12 @@ void cPlayerDeath::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 // The low level draws it (cPlayerEffectState)
 void cPlayerDeath::Draw()
 {
 }
 
-
-//-----------------------------------------------------------------------
-
-
-/////////////////////////////////////////////////////////////////////////
 // FLASHLIGHT
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerFlashLight::cPlayerFlashLight(cInit *apInit)
 {
@@ -1378,15 +1076,9 @@ cPlayerFlashLight::cPlayerFlashLight(cInit *apInit)
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerFlashLight::~cPlayerFlashLight()
 {
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerFlashLight::Reset()
 {
@@ -1406,8 +1098,6 @@ void cPlayerFlashLight::Reset()
 	mfSetReach = 0;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerFlashLight::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
 	if(pBody->GetCollide()==false) return true;
@@ -1422,14 +1112,9 @@ bool cPlayerFlashLight::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerFlashLight::OnWorldLoad()
 {
 }
-
-//-----------------------------------------------------------------------
 
 static const char *gsBounceLightName = "FlashlightBounce";
 
@@ -1464,7 +1149,6 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 		}
 	}
 
-	///////////////////////////////////////
 	// The beam
 	if(pSpot)
 	{
@@ -1483,7 +1167,6 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 		pSpot->SetLook(look);
 	}
 
-	///////////////////////////////////////
 	// The bounce
 	iLight3D *pBounce = pWorld->GetLight(gsBounceLightName);
 	bool bLit =	mSettings.mfBounce > 0 && pSpot && pSpot->IsVisible() &&
@@ -1551,15 +1234,12 @@ void cPlayerFlashLight::UpdateLook(float afTimeStep)
 									beamColor.b * fAmount * 0.83f, 0));
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFlashLight::Update(float afTimeStep)
 {
 	UpdateLook(afTimeStep);
 
 	if(mbActive)
 	{
-		//////////////////////////
 		//Hits enemy
 		if(mfEnemyRayElapsedSeconds >= 1)//1.0f/20.0f)
 		{
@@ -1618,49 +1298,6 @@ void cPlayerFlashLight::Update(float afTimeStep)
 					}
 				}
 				
-				//////////////////////////////
-				//Get forward
-				//cVector3f vForward = pCam->GetForward();
-				
-				/*float fAngleX = cMath::RandRectf(cMath::ToRad(-3),cMath::ToRad(3));
-				float fAngleY = cMath::RandRectf(0,k2Pif);
-				cVector3f vForward = cMath::MatrixMul(
-									cMath::MatrixRotate(cVector3f(fAngleX,fAngleY,0),eEulerRotationOrder_XYZ),
-									cVector3f(0,1,0));
-				
-				vForward =	cMath::MatrixMul(
-							pHudModel->GetEntity()->GetWorldMatrix().GetRotation(),
-							//cMath::MatrixInverse(pCam->GetViewMatrix().GetRotation()),
-							//cMath::MatrixRotate(cVector3f(pCam->GetPitch(),pCam->GetYaw(),pCam->GetRoll()),
-							//					eEulerRotationOrder_YXZ),
-											vForward*-1);
-
-				//////////////////////////////
-				//Get start and end
-				cVector3f vStart = pCam->GetPosition();
-				cVector3f vEnd = pCam->GetPosition() +  vForward* 20.0f;
-
-				mvStart =vStart;
-				mvEnd = vEnd;
-				
-				mpClosestBody = NULL; mfClosestDist = 10000.0f;
-				pPhysicsWorld->CastRay(this,vStart,vEnd,true,false,false,false);
-
-				if(mpClosestBody)
-				{
-					iGameEntity *pEntity = (iGameEntity*)mpClosestBody->GetUserData();
-
-					if( pEntity && pEntity->GetType() == eGameEntityType_Enemy &&
-						pEntity->IsActive() && pEntity->GetHealth() >0)
-					{
-						iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
-
-						if(pEnemy->GetUsesTriggers())
-							pEnemy->OnFlashlight(vStart);
-					}
-				}*/
-
-				//mpInit->mpEffectHandler->GetSubTitle()->Add("Cast rays!\n",0.5f);
 			}
 		}
 		else
@@ -1672,7 +1309,6 @@ void cPlayerFlashLight::Update(float afTimeStep)
 	
 	iHudModel *pHudModel = mpInit->mpPlayerHands->GetCurrentModel(0);
 	
-	//////////////////////////
 	//Player power
 	if(	mbActive &&	
 		mpInit->mpInventory->IsActive()==false && 
@@ -1686,7 +1322,6 @@ void cPlayerFlashLight::Update(float afTimeStep)
 		}
 	}
 	
-	//////////////////////////
 	//Flicker at low energy
 	if(mbActive && mpInit->mpInventory->IsActive()==false &&
 		pHudModel->msName == "Flashlight")
@@ -1721,9 +1356,6 @@ void cPlayerFlashLight::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerFlashLight::SetActive(bool abActive)
 {
 	cSoundHandler *pSoundHanlder = mpInit->mpGame->GetSound()->GetSoundHandler();
@@ -1736,15 +1368,12 @@ void cPlayerFlashLight::SetActive(bool abActive)
 	if(mbActive == abActive) return;
 	mbActive = abActive;
 	
-	/////////////////////////////
 	//Active
 	if(mbActive)
 	{
 		mpInit->mpPlayerHands->SetCurrentModel(0,"Flashlight");
 		
-		//pSoundHanlder->PlayGui("item_flashlight_on",false,1);
 	}
-	/////////////////////////////
 	//Not active
 	else if(mpInit->mpPlayerHands->GetCurrentModel(0) &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->msName == "Flashlight" &&
@@ -1754,12 +1383,8 @@ void cPlayerFlashLight::SetActive(bool abActive)
 		
 		if(mpInit->mpPlayer->GetPower()==0)
 			pSoundHanlder->PlayGui("item_flashlight_nopower",false,1);
-		//else
-		//	pSoundHanlder->PlayGui("item_flashlight_off",false,1);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerFlashLight::SetDisabled(bool abDisabled)
 {
@@ -1768,23 +1393,11 @@ void cPlayerFlashLight::SetDisabled(bool abDisabled)
 	mbDisabled = abDisabled;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFlashLight::OnPostSceneDraw()
 {
-	/*iLowLevelGraphics *mpLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-
-	mpLowGfx->DrawLine(mvStart,mvEnd,cColor(1,0,1));*/
 }
 
-//-----------------------------------------------------------------------
-
-/////////////////////////////////////////////////////////////////////////
 // GLOW STICK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerGlowStick::cPlayerGlowStick(cInit *apInit)
 {
@@ -1795,43 +1408,26 @@ cPlayerGlowStick::cPlayerGlowStick(cInit *apInit)
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerGlowStick::~cPlayerGlowStick()
 {
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerGlowStick::Reset()
 {
 	mbActive = false;
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerGlowStick::OnWorldLoad()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerGlowStick::Destroy()
 {
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerGlowStick::Update(float afTimeStep)
 {
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerGlowStick::SetActive(bool abActive)
 {
@@ -1842,28 +1438,17 @@ void cPlayerGlowStick::SetActive(bool abActive)
 
 	if(mbActive)
 	{
-		//Log("Setting the glowstick to TRUE\n");
 		mpInit->mpPlayerHands->SetCurrentModel(0,"Glowstick");
-		//pSoundHanlder->PlayGui("item_glowstick_on",false,1);
 	}
 	else if(mpInit->mpPlayerHands->GetCurrentModel(0) &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->msName == "Glowstick" &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->GetState() != eHudModelState_Unequip)
 	{
-		//Log("Setting the glowstick to FALSE\n");
 		mpInit->mpPlayerHands->SetCurrentModel(0,"");
-		//pSoundHanlder->PlayGui("item_glowstick_off",false,1);
 	}
 }
 
-//-----------------------------------------------------------------------
-
-/////////////////////////////////////////////////////////////////////////
 // FLARE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerFlare::cPlayerFlare(cInit *apInit)
 {
@@ -1881,15 +1466,9 @@ cPlayerFlare::cPlayerFlare(cInit *apInit)
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerFlare::~cPlayerFlare()
 {
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerFlare::Reset()
 {
@@ -1897,24 +1476,18 @@ void cPlayerFlare::Reset()
 	mpLight =nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFlare::OnWorldLoad()
 {
 	mpLight =nullptr;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFlare::Update(float afTimeStep)
 {
 	if(mbActive)
 	{
-		//////////////////////////////////////
 		// Model entities are loaded and light gotten
 		if(mpLight)
 		{
-			//////////////////////
 			// Fade at end
 			if(mfTime <=30)
 			{
@@ -1923,7 +1496,6 @@ void cPlayerFlare::Update(float afTimeStep)
 
 			float fRadius = mfLightRadius;
 
-			//////////////////////
 			// Pulse
 			mfLightPulse += mfLightPulseAdd*afTimeStep;
 			if(mfLightPulseAdd >0 && mfLightPulse >= 1.0f)
@@ -1941,7 +1513,6 @@ void cPlayerFlare::Update(float afTimeStep)
 
 			if(mpLight) mpLight->SetFarAttenuation(fRadius);
 
-			//////////////////////
 			// Time 
 			if(	mpInit->mpInventory->IsActive()==false && 
 				mpInit->mpNotebook->IsActive() == false &&
@@ -1954,7 +1525,6 @@ void cPlayerFlare::Update(float afTimeStep)
 				}
 			}
 		}
-		//////////////////////////////////////
 		// Model entities not loaded yet
 		else
 		{
@@ -1974,9 +1544,6 @@ void cPlayerFlare::Update(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
-
 
 void cPlayerFlare::SetActive(bool abActive)
 {
@@ -2001,7 +1568,6 @@ void cPlayerFlare::SetActive(bool abActive)
 	}
 	else
 	{
-		///////////////////////////////
 		//Check if hud model should be put down.
 		if(mpInit->mpPlayerHands->GetCurrentModel(0) &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->msName == "Flare" &&
@@ -2010,7 +1576,6 @@ void cPlayerFlare::SetActive(bool abActive)
 			mpInit->mpPlayerHands->SetCurrentModel(0,"");
 		}
 
-		///////////////////////////////
 		//Create entity
 		cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 
@@ -2049,14 +1614,7 @@ void cPlayerFlare::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-/////////////////////////////////////////////////////////////////////////
 // NOISE FILTER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 {
@@ -2089,9 +1647,6 @@ cPlayerNoiseFilter::cPlayerNoiseFilter(cInit *apInit)
 	UpdateGrain();
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerNoiseFilter::~cPlayerNoiseFilter()
 {
 	mpInit->mpConfig->SetBool("Graphics", "NoiseFilter",mbActive);	
@@ -2102,8 +1657,6 @@ cPlayerNoiseFilter::~cPlayerNoiseFilter()
 		mpDrawer->DestroyGfxObject(mvGfxNoise[i]);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerNoiseFilter::Draw()
 {
@@ -2122,11 +1675,8 @@ void cPlayerNoiseFilter::Draw()
 		int lTile = ((x+20)%20) * ((y+15)%15);
 		
         mpDrawer->DrawGfxObject(mvGfxNoise[mvCurrentGfx[lTile]],vPos,40,cColor(mfAlpha,0));        
-		//mpDrawer->DrawGfxObject(mvGfxNoise[0],vPos,40,cColor(mfAlpha,mfAlpha));        
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerNoiseFilter::Update(float afTimeStep)
 {
@@ -2154,23 +1704,17 @@ void cPlayerNoiseFilter::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerNoiseFilter::SetActive(bool abActive)
 {
 	mbActive = abActive;
 	UpdateGrain();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerNoiseFilter::SetType(eNoiseFilterType aType)
 {
 	mType = aType;
 	UpdateGrain();
 }
-
-//-----------------------------------------------------------------------
 
 // The shader's grain is on when the filter is, and of one of its kinds.
 void cPlayerNoiseFilter::UpdateGrain()
@@ -2183,14 +1727,7 @@ void cPlayerNoiseFilter::UpdateGrain()
 	pLowLevel->SetFilmGrain(grain);
 }
 
-//-----------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////
 // FEAR FILTER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerFearFilter::cPlayerFearFilter(cInit *apInit)
 {
@@ -2199,21 +1736,14 @@ cPlayerFearFilter::cPlayerFearFilter(cInit *apInit)
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerFearFilter::~cPlayerFearFilter()
 {
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFearFilter::Draw()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerFearFilter::Update(float afTimeStep)
 {
@@ -2231,16 +1761,12 @@ void cPlayerFearFilter::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerFearFilter::Reset()
 {
 	mbActive = false;
 	mfAlpha =0;
 	mfMaxAlpha = 0.58f;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerFearFilter::SetActive(bool abActive)
 {
@@ -2251,14 +1777,7 @@ void cPlayerFearFilter::SetActive(bool abActive)
 	mfAlpha =0;
 }
 
-//-----------------------------------------------------------------------
-
-/////////////////////////////////////////////////////////////////////////
 // LOOK AT
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 
 cPlayerLookAt::cPlayerLookAt(cPlayer *apPlayer)
 {
@@ -2267,14 +1786,9 @@ cPlayerLookAt::cPlayerLookAt(cPlayer *apPlayer)
 	Reset();	
 }
 
-//-----------------------------------------------------------------------
-
-
 cPlayerLookAt::~cPlayerLookAt()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerLookAt::Update(float afTimeStep)
 {
@@ -2358,13 +1872,7 @@ void cPlayerLookAt::SetActive(bool abActive)
 	if(mbActive==false) mfDestFovMul = 1.0f;
 }
 
-//-----------------------------------------------------------------------
-
-/////////////////////////////////////////////////////////////////////////
 // HIDDEN
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPlayerHidden::cPlayerHidden(cInit *apInit)
 {
@@ -2404,14 +1912,10 @@ cPlayerHidden::cPlayerHidden(cInit *apInit)
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 }
 
-//-----------------------------------------------------------------------
-
 cPlayerHidden::~cPlayerHidden()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerHidden::OnWorldLoad()
 {
@@ -2429,15 +1933,10 @@ void cPlayerHidden::OnWorldExit()
 
 }
 
-//-----------------------------------------------------------------------
-
-
 // The low level draws it (cPlayerEffectState)
 void cPlayerHidden::Draw()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerHidden::UnHide()
 {
@@ -2455,16 +1954,12 @@ void cPlayerHidden::UnHide()
 	mbEnemyTooClose = false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerHidden::InShadows()
 {
 	if(mfLight <= mfMaxLight) return true;
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 static float GetMaxRGB(const cColor &aCol)
 {
@@ -2493,7 +1988,6 @@ void cPlayerHidden::Update(float afTimeStep)
 	bool bIsCrouching = false;
 	if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) bIsCrouching = true;
 
-	///////////////////////////////////
 	// Update Hidden effect
 	if(mbHidden)
 	{
@@ -2546,7 +2040,6 @@ void cPlayerHidden::Update(float afTimeStep)
 		}
 	}
 
-	///////////////////////////////////
 	// Update In Shadow effect
 
 	//Alpha
@@ -2577,7 +2070,6 @@ void cPlayerHidden::Update(float afTimeStep)
 	if(mbInShadows)
 		mpLight->SetPosition(mpInit->mpPlayer->GetCamera()->GetPosition());
 
-	//////////////////////////////////////////
 	// Check if the player is hidden
 	if(	mfLight <= mfMaxLight && bIsCrouching && mpInit->mpPlayer->GetHealth()>0)
 	{
@@ -2682,20 +2174,15 @@ void cPlayerHidden::Update(float afTimeStep)
 		mfUpdateCount -= afTimeStep;
 	}
 
-	////////////////////////////////////////////////////
 	//Check if enemy is too close and act accordingly.
 	UpdateEnemyTooClose(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerHidden::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
-	//bool bDebug = pBody->GetName() == "polySurface76";
 
 	if(pBody->IsCharacter() || pBody->GetCollide()==false || pBody->GetBlocksLight()==false)
 	{
-		//if(bDebug)Log("Out on first!\n");
 		return true;
 	}
 
@@ -2717,17 +2204,13 @@ bool cPlayerHidden::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 			}
 		}
 		if(bFoundSolid==false){
-			//if(bDebug)Log("Out on non solid!\n");
 			return true;
 		}
 	}
 
 	mbIntersected = true;
-	//if(bDebug)Log("Intersection!!\n");
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerHidden::HasLineOfSight(iLight3D *pLight,iPhysicsWorld *pPhysicsWorld)
 {
@@ -2787,16 +2270,12 @@ bool cPlayerHidden::HasLineOfSight(iLight3D *pLight,iPhysicsWorld *pPhysicsWorld
 	return lCount < lPosAddNum;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 {
 	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 	if(pWorld==nullptr) return;
 
-
-	/////////////////////////////
 	// Update too close effect
 	if(mbEnemyTooClose && mfEnemyTooCloseCount >1.2f)
 	{
@@ -2822,10 +2301,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				mfCloseEffectFovAdd = -mfCloseEffectFovAdd;
 				mfCloseEffectFov = mfCloseEffectFovMin;
 				
-				//if(mfEnemyTooCloseCount > mfEnemyTooCloseMax*0.6f)
-				//	mpSoundHandler->PlayGui("player_scare_mid",false,1);
-				//else
-				//	mpSoundHandler->PlayGui("player_scare_low",false,1);
 			}
 		}
 	}
@@ -2844,7 +2319,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 		}
 	}
 
-	/////////////////////////////
 	//Update the count
 	if(InShadows())//mbHidden)
 	{
@@ -2902,7 +2376,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 			mfEnemyProximityCheckDelaySeconds -= afTimeStep;
 		}
 
-		////////////////////////////////
 		// Update the count if enemy is near
 		if(mbEnemyTooClose)
 		{
@@ -2955,9 +2428,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerHidden::Reset()
 {
 	mpLight = nullptr;
@@ -2993,8 +2463,6 @@ void cPlayerHidden::Reset()
 	mfCloseEffectFovAdd = cMath::ToRad(15);
 	mfCloseEffectFov = 0;
 }
-
-//-----------------------------------------------------------------------
 
 float cPlayerHidden::GetPanicPulse() const
 {

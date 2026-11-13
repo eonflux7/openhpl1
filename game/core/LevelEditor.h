@@ -21,8 +21,6 @@ namespace hpl
 	class cColladaNode;
 }
 
-//----------------------------------------
-
 // Moves, turns and scales the nodes of the loaded map's file (entities,
 // static meshes, lights, areas, start positions...) and saves the map with
 // the changes, so that it is seen in the game straight away.
@@ -246,7 +244,5 @@ private:
 	bool mbShowRequested;
 	tString msMessage;
 };
-
-//----------------------------------------
 
 #endif // GAME_LEVEL_EDITOR_H

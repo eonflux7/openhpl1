@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "math/Quaternion.h"
 
 #include "math/Math.h"
@@ -24,17 +8,9 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cQuaternion::cQuaternion()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	cQuaternion::cQuaternion(float afAngle, const cVector3f & avAxis)
 	{
@@ -49,17 +25,7 @@ namespace hpl {
 		v.z = afZ;
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-
 	const cQuaternion cQuaternion::Identity = cQuaternion(1.0f,0.0f,0.0f,0.0f);
-
-	//-----------------------------------------------------------------------
 
 	void cQuaternion::Normalise()
 	{
@@ -68,8 +34,6 @@ namespace hpl {
 		v = v * fFactor;
 		w = w * fFactor;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cQuaternion::ToRotationMatrix(cMatrixf &a_mtxDest) const
 	{
@@ -98,9 +62,6 @@ namespace hpl {
 		a_mtxDest.m[2][1] = fTyz+fTwx;
 		a_mtxDest.m[2][2] = 1.0f-(fTxx+fTyy);
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cQuaternion::FromRotationMatrix(const cMatrix<float> &a_mtxRot)
 	{
@@ -139,8 +100,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cQuaternion::FromAngleAxis(float afAngle, const cVector3f &avAxis)
 	{
 		// assert:  axis[] is unit length
@@ -156,8 +115,6 @@ namespace hpl {
 		v.z = fSin*avAxis.z;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cQuaternion cQuaternion::operator+(const cQuaternion &aqB) const
 	{
 		cQuaternion qOut;
@@ -166,7 +123,6 @@ namespace hpl {
 
 		return qOut;
 	}
-	//-----------------------------------------------------------------------
 
 	cQuaternion cQuaternion::operator-(const cQuaternion &aqB) const
 	{
@@ -176,7 +132,6 @@ namespace hpl {
 
 		return qOut;
 	}
-	//-----------------------------------------------------------------------
 	cQuaternion cQuaternion::operator*(const cQuaternion &aqB) const
 	{
 		cQuaternion qOut;
@@ -188,7 +143,6 @@ namespace hpl {
 
 		return qOut;
 	}
-	//-----------------------------------------------------------------------
 	cQuaternion cQuaternion::operator*(float afScalar) const
 	{
 		cQuaternion qOut;
@@ -197,6 +151,4 @@ namespace hpl {
 
 		return qOut;
 	}
-
-	//-----------------------------------------------------------------------
 }

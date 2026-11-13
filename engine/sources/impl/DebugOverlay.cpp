@@ -22,8 +22,6 @@ namespace hpl {
 	bool cDebugOverlay::mbMouseCapture = false;
 	cVector2f cDebugOverlay::mvMouseMotion = cVector2f(0,0);
 
-	//-----------------------------------------------------------------------
-
 	cDebugOverlay::cDebugOverlay()
 	{
 		const char *pActive = getenv("OPENHPL_DEBUG_OVERLAY");
@@ -35,8 +33,6 @@ namespace hpl {
 	cDebugOverlay::~cDebugOverlay()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cDebugOverlay::Init(SDL_Window *apWindow)
 	{
@@ -82,16 +78,12 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cDebugOverlay::SetIniFile(const std::string &asFile)
 	{
 		// Before the context is made: it reads the file on its first frame
 		if(mbInitialized) return;
 		msIniFile = asFile;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cDebugOverlay::Exit()
 	{
@@ -101,8 +93,6 @@ namespace hpl {
 		ImGui::DestroyContext();
 		mbInitialized = false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cDebugOverlay::ProcessEvent(const SDL_Event *apEvent)
 	{
@@ -115,8 +105,6 @@ namespace hpl {
 		}
 		ImGui_ImplSDL3_ProcessEvent(apEvent);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cDebugOverlay::Draw(SDL_Window *apWindow, cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
 							float afRenderScale)
@@ -149,8 +137,6 @@ namespace hpl {
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cDebugOverlay::DrawRenderer(cGpuProfiler *apProfiler, const cVector2l& avRenderSize,
 									float afRenderScale)
@@ -188,7 +174,4 @@ namespace hpl {
 
 		ImGui::End();
 	}
-
-	//-----------------------------------------------------------------------
-
 }

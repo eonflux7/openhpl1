@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "systems/GameMusicHandler.h"
 
 #include "core/Init.h"
@@ -25,18 +9,12 @@
 #include "player/Player.h"
 #include "enemies/CharacterMove.h"
 
-//////////////////////////////////////////////////////////////////////////
 // TRIGGER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameMusic::cGameMusic()
 {
 	Reset();
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMusic::Reset()
 {
@@ -44,14 +22,6 @@ void cGameMusic::Reset()
 	mbLoop = false;
 	mfVolume = 0;
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameMusicHandler::cGameMusicHandler(cInit *apInit)  : iUpdateable("GameMusicHandler")
 {
@@ -65,30 +35,16 @@ cGameMusicHandler::cGameMusicHandler(cInit *apInit)  : iUpdateable("GameMusicHan
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cGameMusicHandler::~cGameMusicHandler(void)
 {
 }
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::OnStart()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMusicHandler::Update(float afTimeStep)
 {
-	///////////////////////////////////
 	//Check if close by music should be played.
 	
 	//Music not playing
@@ -162,9 +118,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 		}
 	}
 	
-	
-	
-	///////////////////////////////////
 	//Check if attack music should be played.
 	if(mbAttackPlaying==false && m_setAttackers.empty()==false)
 	{
@@ -173,7 +126,6 @@ void cGameMusicHandler::Update(float afTimeStep)
         
 		if(mfAttackStartElapsedSeconds > 1.5f)
 		{
-			//////////////////////
 			// Go through attackers and get music with highest priority
 			tString sMusic = "";
 			int lMaxPrio = -9999;
@@ -190,7 +142,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 				}
 			}
 
-			//////////////////////
 			// Play music if found
 			if(sMusic != "")
 			{
@@ -201,7 +152,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 
 				Play(sMusic,true,1,1.3f,9);
 				mbAttackPlaying = true;
-				//Log("Play!");
 				mfAttackStartElapsedSeconds =0;
 			}
 		}
@@ -215,13 +165,10 @@ void cGameMusicHandler::Update(float afTimeStep)
 		{
 			mbAttackPlaying = false;
 			Stop(0.2f,9);
-			//Log("Stop!");
 			mfAttackStopElapsedSeconds =0;
 		}
 	}
 
-	
-	///////////////////////////////////
 	//Check if current song is over
 	if(mlCurrentMaxPrio >=0)
 	{
@@ -233,8 +180,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::Reset()
 {
@@ -256,8 +201,6 @@ void cGameMusicHandler::Reset()
 	mfEnemyGoneElapsedSeconds =0;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMusicHandler::Play(const tString &asFile, bool abLoop,float afVolume, float afFade, int alPrio)
 {
 	if(alPrio> mlMaxPrio) alPrio = mlMaxPrio;
@@ -276,8 +219,6 @@ void cGameMusicHandler::Play(const tString &asFile, bool abLoop,float afVolume, 
 	mvGameMusic[alPrio].mfVolume = afVolume;
 	mvGameMusic[alPrio].msFile = asFile;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::Stop(float afFade, int alPrio)
 {
@@ -300,14 +241,10 @@ void cGameMusicHandler::Stop(float afFade, int alPrio)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMusicHandler::AddAttacker(iGameEnemy *apEntity)
 {
 	m_setAttackers.insert(apEntity);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::RemoveAttacker(iGameEnemy *apEntity)
 {
@@ -322,13 +259,10 @@ bool cGameMusicHandler::AttackerExist(iGameEnemy *apEntity)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMusicHandler::OnWorldLoad()
 {
 	m_setAttackers.clear();
 
-	//Update(2.0f);
 }
 
 void cGameMusicHandler::OnWorldExit()
@@ -337,8 +271,6 @@ void cGameMusicHandler::OnWorldExit()
 	
 	for(int i=0; i<60; ++i)Update(0.1f);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::LoadFromGlobal(cGameMusicHandler_GlobalSave *apSave)
 {
@@ -354,8 +286,6 @@ void cGameMusicHandler::LoadFromGlobal(cGameMusicHandler_GlobalSave *apSave)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMusicHandler::SaveToGlobal(cGameMusicHandler_GlobalSave *apSave)
 {
 	apSave->mlCurrentMaxPrio = mlCurrentMaxPrio;
@@ -370,14 +300,6 @@ void cGameMusicHandler::SaveToGlobal(cGameMusicHandler_GlobalSave *apSave)
 		apSave->mvGameMusic[i].mbLoop = mvGameMusic[i].mbLoop; 
 	}
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameMusicHandler::PlayHighestPriority()
 {
@@ -402,6 +324,3 @@ void cGameMusicHandler::PlayHighestPriority()
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
-

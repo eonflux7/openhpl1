@@ -157,8 +157,6 @@ static const c2DScreen kv2DScreens[] = {
 	}},
 };
 
-//-----------------------------------------------------------------------
-
 cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefShots")
 {
 	mpInit = apInit;
@@ -216,8 +214,6 @@ cRefShots::cRefShots(cInit *apInit, const tString &asSpec) : iUpdateable("RefSho
 	if(mvMaps.empty()) Fail("no maps matched '%s'", asSpec.c_str());
 }
 
-//-----------------------------------------------------------------------
-
 void cRefShots::FindMaps(cInit *apInit, tStringVec &avMaps)
 {
 	tWStringList lstFiles;
@@ -228,16 +224,12 @@ void cRefShots::FindMaps(cInit *apInit, tStringVec &avMaps)
 	std::sort(avMaps.begin(), avMaps.end());
 }
 
-//-----------------------------------------------------------------------
-
 tString cRefShots::GetViewsFile()
 {
 	const char *pFile = SDL_getenv("OPENHPL_REFVIEWS_FILE");
 	if(pFile && pFile[0]) return pFile;
 	return OPENHPL_REFVIEWS_FILE;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::LoadViewsFile(tViewMap &aViews)
 {
@@ -265,8 +257,6 @@ void cRefShots::LoadViewsFile(tViewMap &aViews)
 	fclose(pFile);
 }
 
-//-----------------------------------------------------------------------
-
 bool cRefShots::SaveViewsFile(const tViewMap &aViews)
 {
 	FILE *pFile = fopen(GetViewsFile().c_str(), "w");
@@ -286,8 +276,6 @@ bool cRefShots::SaveViewsFile(const tViewMap &aViews)
 	fclose(pFile);
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 size_t cRefShots::FindViews(cWorld3D *apWorld, const tString &asMap, std::vector<cView> &avViews,
 							size_t &alStarts)
@@ -335,8 +323,6 @@ size_t cRefShots::FindViews(cWorld3D *apWorld, const tString &asMap, std::vector
 	return vLights.size();
 }
 
-//-----------------------------------------------------------------------
-
 tString cRefShots::GetFrameName(const tString &asMap, const cView &aView, int alAngle)
 {
 	tString sName = cString::ToLowerCase(cString::SetFileExt(asMap, "")) + "-" + aView.msName;
@@ -346,8 +332,6 @@ tString cRefShots::GetFrameName(const tString &asMap, const cView &aView, int al
 	snprintf(sAngle, sizeof(sAngle), "%03d", alAngle * (360 / klAngles));
 	return sName + "-" + sAngle;
 }
-
-//-----------------------------------------------------------------------
 
 bool cRefShots::IsRequested()
 {
@@ -360,15 +344,11 @@ tString cRefShots::GetSpec()
 	return pSpec ? tString(pSpec) : tString("");
 }
 
-//-----------------------------------------------------------------------
-
 const tString& cRefShots::GetFirstMap()
 {
 	static const tString sNone = "";
 	return mvMaps.empty() ? sNone : mvMaps[0];
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::Update(float afTimeStep)
 {
@@ -540,14 +520,10 @@ void cRefShots::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cRefShots::Reset()
 {
 	// Changing map resets every updateable; the run keeps its place.
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::Fail(const char *asFormat, ...)
 {
@@ -560,8 +536,6 @@ void cRefShots::Fail(const char *asFormat, ...)
 	Error("REFSHOTS: FAIL %s\n", sMess);
 	mlFailures++;
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::SetView()
 {
@@ -582,8 +556,6 @@ void cRefShots::SetView()
 		// The player has put the camera on its head earlier in this step.
 		pCamera->SetPosition(mvViews[mlView].mvPos);
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::Update2D()
 {
@@ -606,8 +578,6 @@ void cRefShots::Update2D()
 	Finish();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefShots::NextView()
 {
 	mlFrame = 0;
@@ -621,8 +591,6 @@ void cRefShots::NextView()
 	}
 	NextMap();
 }
-
-//-----------------------------------------------------------------------
 
 void cRefShots::NextMap()
 {
@@ -646,8 +614,6 @@ void cRefShots::NextMap()
 	Finish();
 }
 
-//-----------------------------------------------------------------------
-
 void cRefShots::Finish()
 {
 	mStep = eStep_Done;
@@ -657,5 +623,3 @@ void cRefShots::Finish()
 	mpInit->mpGame->GetGraphics()->GetDrawer()->SetSkipDrawing(false);
 	mpInit->mpGame->Exit();
 }
-
-//-----------------------------------------------------------------------

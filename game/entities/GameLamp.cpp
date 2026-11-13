@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameLamp.h"
 
@@ -25,13 +9,7 @@
 #include "systems/EffectHandler.h"
 #include "ui/Inventory.h"
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEntityLoader_GameLamp::cEntityLoader_GameLamp(const tString &asName, cInit *apInit)
 : cEntityLoader_Object(asName)
@@ -45,15 +23,11 @@ cEntityLoader_GameLamp::~cEntityLoader_GameLamp()
 
 }
 
-//-----------------------------------------------------------------------
-
 void cEntityLoader_GameLamp::BeforeLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										  cWorld3D *apWorld)
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf &a_mtxTransform,
 										 cWorld3D *apWorld)
@@ -72,7 +46,6 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 	pObject->SetSoundEntities(mvSoundEntities);
 	pObject->SetHapticShapes(mvHapticShapes);
 
-	///////////////////////////////////
 	// Load game properties
 	TiXmlElement *pGameElem = apRootElem->FirstChildElement("GAME");
 	if(pGameElem)
@@ -95,8 +68,6 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 		pObject->msOffMaterialName = cString::ToString(pGameElem->Attribute("OffMaterial"),"");
 		pObject->msOffSubMesh = cString::ToString(pGameElem->Attribute("OffSubMesh"),"");
 		
-
-		////////////////////////////////////
 		//Flickering
 		pObject->mbFlickering = cString::ToBool(pGameElem->Attribute("Flickering"),false);
 		pObject->msFlickerOffSound = cString::ToString(pGameElem->Attribute("FlickerOffSound"),"");
@@ -119,7 +90,6 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 		Error("Couldn't find game element for entity '%s'\n",mpEntity->GetName().c_str());
 	}
 
-	///////////////////////////////////
 	// Link each physics body back to its game entity for picking.
 	for(size_t i=0; i<mvBodies.size(); ++i)
 	{
@@ -131,19 +101,9 @@ void cEntityLoader_GameLamp::AfterLoad(TiXmlElement *apRootElem, const cMatrixf 
 
 	pObject->Init();
 
-	/////////////////////////////////
 	// Add to map handler
 	mpInit->mpMapHandler->AddGameEntity(pObject);
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameLamp::cGameLamp(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
@@ -174,22 +134,12 @@ cGameLamp::cGameLamp(cInit *apInit,const tString& asName) : iGameEntity(apInit,a
 	mbSaveLights = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameLamp::~cGameLamp(void)
 {
 	mpSubMesh->SetCustomMaterial(nullptr,false);
 	if(mpOffMaterial)	mpInit->mpGame->GetResources()->GetMaterialManager()->Destroy(mpOffMaterial);
 	if(mpOnMaterial)	mpInit->mpGame->GetResources()->GetMaterialManager()->Destroy(mpOnMaterial);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLamp::OnPlayerPick()
 {
@@ -216,8 +166,6 @@ void cGameLamp::OnPlayerPick()
 			mpInit->mpPlayer->SetCrossHairState(eCrossHairState_None);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLamp::OnPlayerInteract()
 {
@@ -251,8 +199,6 @@ void cGameLamp::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameLamp::OnUseItem(cInventoryItem *apItem)
 {
 	if(mbLit && mbInteractOff && msOffItem==apItem->GetName())
@@ -269,11 +215,8 @@ bool cGameLamp::OnUseItem(cInventoryItem *apItem)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLamp::Update(float afTimeStep)
 {
-	////////////////////////////////
 	// Enable flickering after the light fade finishes.
 	if(mbFlickering && mbLit)
 	{
@@ -288,7 +231,6 @@ void cGameLamp::Update(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////
 	//Check if material should be off because of flickering
 	if(mbLit && mbFlickering && mpSubMesh && mpOffMaterial)
 	{
@@ -317,7 +259,6 @@ void cGameLamp::Update(float afTimeStep)
 		}
 	}
 
-	////////////////////////////////
 	// Update billboard fade.
 	bool bChanged = false;
 	if(mbLit && mfBillboardFade < 1)
@@ -338,7 +279,6 @@ void cGameLamp::Update(float afTimeStep)
 		bChanged = true;
 	}
 	
-	////////////////////////////////
 	//Update billboards
     if(bChanged)
 	{
@@ -354,8 +294,6 @@ void cGameLamp::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 {
 	if(mbLit == abLit) return;
@@ -364,7 +302,6 @@ void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 
 	cWorld3D *pWorld= mpInit->mpGame->GetScene()->GetWorld3D();
 
-	//////////////////////////////////////////////
 	//Turn On
 	if(mbLit)
 	{
@@ -389,11 +326,6 @@ void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 										mvParticleSystemNames[i].msDataName,
 										1,mvParticleSystemNames[i].m_mtxTransform);
 			mpMeshEntity->AddChild(mvParticleSystems[i]);
-			
-			/*Log("Creating ps %s at pos (%s) meshpos: (%s)\n",
-				mvParticleSystems[i]->GetName().c_str(),
-				mvParticleSystems[i]->GetWorldPosition().ToString().c_str(),
-				mpMeshEntity->GetWorldPosition().ToString().c_str());*/
 			
 			mvParticleSystems[i]->SetTransformUpdated(true);
 			
@@ -429,7 +361,6 @@ void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 			if(pSound) pSound->SetPosition(mpMeshEntity->GetBoundingVolume()->GetWorldCenter());
 		}
 	}
-	//////////////////////////////////////////////
 	//Turn Off
 	else
 	{
@@ -487,8 +418,6 @@ void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLamp::SetFlicker(bool abFlickering)
 {
 	mbFlickering = abFlickering;
@@ -499,17 +428,12 @@ void cGameLamp::SetFlicker(bool abFlickering)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLamp::Init()
 {	
-	//////////////////////
 	//Set up lights
 	for(size_t i=0; i<mvLights.size(); ++i) 
 	{
 		mvLightColors.push_back(mvLights[i]->GetDiffuseColor());
-
-		//Log("Setting lamp %s color to: %s\n",msName.c_str(),mvLights[i]->GetDiffuseColor().ToString().c_str());
 
 		mvLights[i]->SetFlickerActive(mbFlickering);
 		if(mbFlickering)
@@ -519,14 +443,12 @@ void cGameLamp::Init()
 
 	}
 	
-	//////////////////////
 	//Billboards
 	for(size_t i=0; i<mvBillboards.size(); ++i) 
 	{
 		mvBBColors.push_back(mvBillboards[i]->GetColor());
 	}
 	
-	//////////////////////
 	//Set up Particle Systems
 	mvParticleSystemNames.resize(mvParticleSystems.size());
 	for(size_t i=0; i<mvParticleSystems.size(); ++i) 
@@ -536,7 +458,6 @@ void cGameLamp::Init()
 		mvParticleSystemNames[i].m_mtxTransform = mvParticleSystems[i]->GetLocalMatrix();
 	}
 	
-	//////////////////////
 	//Set up Materials
 	if(msOffSubMesh == "" || mpMeshEntity->GetSubMeshEntityNum()==1)
 	{
@@ -562,14 +483,6 @@ void cGameLamp::Init()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameLamp::SetUpFlicker(int alLightIndex)
 {
 	mvLights[alLightIndex]->SetFlicker( mFlickerOffColor, mfFlickerOffRadius,
@@ -580,35 +493,21 @@ void cGameLamp::SetUpFlicker(int alLightIndex)
 		mbFlickerFade, mfFlickerOnFadeLength, mfFlickerOffFadeLength);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLamp_SaveData,iGameEntity_SaveData)
 kSerializeVar(mbLit, eSerializeType_Bool)
 kSerializeVar(mbFlickering, eSerializeType_Bool)
 kSerializeVar(msLitChangeCallback, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLamp_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLamp::CreateSaveData()
 {
 	return hplNew( cGameLamp_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLamp::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -619,8 +518,6 @@ void cGameLamp::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,msLitChangeCallback);
 	kCopyToVar(pData,mbFlickering);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLamp::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -633,4 +530,3 @@ void cGameLamp::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	SetLit(pData->mbLit,false,cInit::IsOverture());
 	SetFlicker(pData->mbFlickering);
 }
-//-----------------------------------------------------------------------

@@ -14,8 +14,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // The level editor's window: the game started with --editor (or
 // OPENHPL_EDITOR=1) opens a map in an editor instead of the menus.
 //
@@ -188,7 +186,5 @@ private:
 	tString msMessage;
 	float mfMessageTime;
 };
-
-//----------------------------------------
 
 #endif // GAME_EDITOR_H

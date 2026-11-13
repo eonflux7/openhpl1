@@ -1,33 +1,11 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Entity.h"
 
 #include "scene/Node.h"
 #include "system/LowLevelSystem.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iEntity::~iEntity()
 	{
@@ -37,14 +15,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeVirtual(cSaveData_iEntity, iSaveData)
 	kSerializeVar(mlParentNodeId, eSerializeType_Int32)
 	kSerializeVar(msName, eSerializeType_String)
@@ -52,14 +22,10 @@ namespace hpl {
 	kSerializeVar(mbIsActive, eSerializeType_Bool)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iEntity::CreateSaveData()
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -72,8 +38,6 @@ namespace hpl {
 		kSaveData_SaveObject(mpParentNode,mlParentNodeId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iEntity);
@@ -83,14 +47,9 @@ namespace hpl {
 		kSaveData_LoadFrom(msName);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iEntity);
 
-		//kSaveData_LoadObject(mpParentNode,mlParentNodeId,iNode*);
 	}
-
-	//-----------------------------------------------------------------------
 }

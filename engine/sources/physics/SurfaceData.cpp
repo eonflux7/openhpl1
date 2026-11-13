@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "physics/SurfaceData.h"
 
 #include "physics/Physics.h"
@@ -35,12 +19,6 @@
 #include "resources/ParticleManager.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSurfaceData::cSurfaceData(const tString &asName, cPhysics *apPhysics,cResources *apResources)
 	{
@@ -69,21 +47,11 @@ namespace hpl {
 		mpHapticSurface = nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSurfaceData::~cSurfaceData()
 	{
 		STLDeleteAll(mvImpactData);
 		STLDeleteAll(mvHitData);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::OnImpact(float afSpeed,const cVector3f &avPos,int alContacts, iPhysicsBody *apBody)
 	{
@@ -125,8 +93,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::OnSlide(float afSpeed,const cVector3f &avPos,int alContacts, iPhysicsBody *apBody,
 								iPhysicsBody *apSlideAgainstBody)
@@ -172,9 +138,6 @@ namespace hpl {
 				apBody->GetScrapeSoundEntity()->FadeOut(4.3f);
 				apBody->SetScrapeSoundEntity(nullptr);
 				apBody->SetScrapeBody(nullptr);
-				//Log("Stopped scrape '%s' %d on body '%s' IN SURFACEDATA!\n",msScrapeSoundName.c_str(),
-				//	(size_t)apBody->GetScrapeSoundEntity(),
-				//	apBody->GetName().c_str());
 			}
 			else
 			{
@@ -217,7 +180,6 @@ namespace hpl {
 					}
 				}
 
-				//Log("Speed: %f Freq: %f\n",fAbsSpeed,fFreq);
 				cSoundEntry *pEntry = apBody->GetScrapeSoundEntity()->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
@@ -244,16 +206,11 @@ namespace hpl {
 					apBody->SetScrapeSoundEntity(pEntity);
 					apBody->SetScrapeBody(apSlideAgainstBody);
 
-					//Log("Starting scrape '%s' %d on body '%s'\n",msScrapeSoundName.c_str(),
-					//											(size_t)pEntity,
-					//											apBody->GetName().c_str());
 				}
 			}
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::CreateImpactEffect(float afSpeed,const cVector3f &avPos,int alContacts,
 								cSurfaceData *apSecondSurface)
@@ -271,7 +228,6 @@ namespace hpl {
 		cSoundHandler *pSoundHandler = pWorld->GetSound()->GetSoundHandler();
 		if(pSoundHandler->GetSilent()) return;
 
-		/////////////////////////////
 		//Get first surface
 		for(size_t i=0; i< mvImpactData.size(); i++)
 		{
@@ -282,7 +238,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////
 		//Get second surface
 		if(apSecondSurface != this && apSecondSurface != nullptr)
 		{
@@ -319,22 +274,13 @@ namespace hpl {
 			cMatrixf mtxPos = cMath::MatrixTranslate(avPos);
 			pWorld->CreateParticleSystem("ImpactPS",sPS,1,mtxPos);
 
-			//Log("Mat1: '%s' Mat2: '%s' Speed %f particle system '%s' pos: %s\n",
-			//	GetName().c_str(),
-			//	apSecondSurface->GetName().c_str(),
-			//	afSpeed,sPS.c_str(),
-			//	mtxPos.GetTranslation().ToString().c_str());
 		}
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::UpdateRollEffect(iPhysicsBody *apBody)
 	{
 		if(msRollSoundName == "" || mRollAxisFlags ==0) return;
 
-		/////////////////////////////////
 		//Get the max angular speed
 		cVector3f vAngularSpeed = cMath::MatrixMul(apBody->GetLocalMatrix().GetRotation(),
 												apBody->GetAngularVelocity());
@@ -349,11 +295,8 @@ namespace hpl {
 		if(mRollAxisFlags & eRollAxisFlag_Z)
 			if(fRollingSpeed < std::abs(vAngularSpeed.z)) fRollingSpeed = std::abs(vAngularSpeed.z);
 
-		//Log("Rollspeed: %f\n",fRollingSpeed);
-
 		if(fRollingSpeed==0 && apBody->GetRollSoundEntity()==nullptr) return;
 
-		/////////////////////////////////
 		//Update roll sound
 		cWorld3D *pWorld = mpPhysics->GetGameWorld();
 		if(pWorld==nullptr) return;
@@ -377,8 +320,6 @@ namespace hpl {
 			{
 				apBody->GetRollSoundEntity()->FadeOut(4.3f);
 				apBody->SetRollSoundEntity(nullptr);
-				//Log("Stopped Roll '%s' on body '%s'\n",msRollSoundName.c_str(),
-				//														apBody->GetName().c_str());
 			}
 			else
 			{
@@ -424,21 +365,17 @@ namespace hpl {
 					}
 				}
 
-				//Log("Speed: %f Freq: %f\n",fAbsSpeed,fFreq);
 				cSoundEntity *pSound = apBody->GetRollSoundEntity();
 				cSoundEntry *pEntry = pSound->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
 					pEntry->mfNormalSpeed = fFreq;
 
-					//pEntry->mfNormalVolume = cMath::Max(fVolume * pSound->GetVolume(),1.0f);
 					pEntry->mfNormalVolumeFadeDest = cMath::Min(fVolume * pSound->GetVolume(),1.0f);
 					pEntry->mfNormalVolumeFadeSpeed = 4.0f;
 
 					apBody->GetRollSoundEntity()->SetPosition(apBody->GetWorldPosition());
 
-					//Log("Updated Roll on body '%s' w speed %f to f: %f v: %f\n",apBody->GetName().c_str(),
-					//						fRollingSpeed,fFreq,fVolume);
 				}
 				else
 				{
@@ -461,15 +398,11 @@ namespace hpl {
 
 					apBody->SetRollSoundEntity(pEntity);
 
-					//Log("Starting Roll '%s' on body '%s'\n",msRollSoundName.c_str(),
-					//											apBody->GetName().c_str());
 				}
 			}
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::SetElasticity(float afElasticity)
 	{
@@ -481,8 +414,6 @@ namespace hpl {
 		return mfElasticity;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSurfaceData::SetStaticFriction(float afElasticity)
 	{
 		mfStaticFriction = afElasticity;
@@ -492,8 +423,6 @@ namespace hpl {
 	{
 		return mfStaticFriction;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::SetKineticFriction(float afElasticity)
 	{
@@ -505,8 +434,6 @@ namespace hpl {
 		return mfKineticFriction;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSurfaceData::SetPriority(int alPriority)
 	{
 		mlPriority = alPriority;
@@ -516,8 +443,6 @@ namespace hpl {
 	{
 		return mlPriority;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::SetFrictionCombMode(ePhysicsMaterialCombMode aMode)
 	{
@@ -529,21 +454,15 @@ namespace hpl {
 		return mFrictionMode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSurfaceData::SetElasticityCombMode(ePhysicsMaterialCombMode aMode)
 	{
 		mElasticityMode = aMode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	ePhysicsMaterialCombMode cSurfaceData::GetElasticityCombMode() const
 	{
 		return mElasticityMode;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSurfaceData::PreloadData()
 	{
@@ -570,8 +489,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsMaterial* cSurfaceData::ToMaterial(iPhysicsWorld *apWorld)
 	{
 		iPhysicsMaterial *pMat=nullptr;
@@ -594,8 +511,6 @@ namespace hpl {
 
 		return pMat;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cSurfaceImpactData* cSurfaceData::CreateImpactData(float afMinSpeed)
 	{
@@ -629,8 +544,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSurfaceImpactData* cSurfaceData::CreateHitData(float afMinSpeed)
 	{
 		cSurfaceImpactData *pData = hplNew( cSurfaceImpactData, () );
@@ -662,15 +575,4 @@ namespace hpl {
 		}
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 }

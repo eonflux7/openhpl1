@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/AngelScriptScript.h"
 #include "system/LowLevelSystem.h"
 #include "system/String.h"
@@ -24,12 +8,6 @@
 #include <stdio.h>
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cAngelScriptScript::cAngelScriptScript(const tString& asName,asIScriptEngine *apScriptEngine,
 							cScriptOutput *apScriptOutput, int alHandle)
@@ -59,14 +37,6 @@ namespace hpl {
 		mpContext->Release();
 		if(mpModule) mpModule->Discard();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cAngelScriptScript::CreateFromFile(const tString& asFileName)
 	{
@@ -105,8 +75,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cAngelScriptScript::GetFuncHandle(const tString& asFunc)
 	{
 		if(mpModule==nullptr) return -1;
@@ -115,14 +83,10 @@ namespace hpl {
 		return pFunc ? pFunc->GetId() : -1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cAngelScriptScript::AddArg(const tString& asArg)
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cAngelScriptScript::Run(const tString& asFuncLine)
 	{
@@ -167,8 +131,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cAngelScriptScript::Run(int alHandle)
 	{
 		asIScriptFunction *pFunc = mpScriptEngine->GetFunctionById(alHandle);
@@ -178,8 +140,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cAngelScriptScript::GetTestCalls(tStringVec &avCalls)
 	{
@@ -203,8 +163,6 @@ namespace hpl {
 			if(bOk) avCalls.push_back(sCall + ")");
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	// A script function can make the game run another one before it returns
 	// (SetLampLit runs the lamp's callback). AngelScript 2.7 ran each in a
@@ -230,14 +188,6 @@ namespace hpl {
 		if(bNested) mpContext->PopState();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	char* cAngelScriptScript::LoadCharBuffer(const tString& asFileName, int& alLength)
 	{
 		FILE *pFile = fopen(asFileName.c_str(), "rb");
@@ -261,15 +211,4 @@ namespace hpl {
 
 		return pBuffer;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// STATIC PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

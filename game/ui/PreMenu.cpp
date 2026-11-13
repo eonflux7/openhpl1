@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui/PreMenu.h"
 
 #include "core/Init.h"
@@ -23,12 +7,6 @@
 #include "core/ButtonHandler.h"
 #include "ui/MainMenu.h"
 #include "core/MapHandler.h"
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cPreMenu::cPreMenu(cInit *apInit)  : iUpdateable("PreMenu")
 {
@@ -53,21 +31,12 @@ cPreMenu::cPreMenu(cInit *apInit)  : iUpdateable("PreMenu")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cPreMenu::~cPreMenu(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
 void cPreMenu::LoadConfig()
 {
-	////////////////////////////////////////////////
 	//Load the document
 	tString sConfigFile = cInit::GetStartupConfigFile();
 	TiXmlDocument *pXmlDoc = hplNew( TiXmlDocument, (sConfigFile.c_str()) );
@@ -77,7 +46,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-	////////////////////////////////////////////////
 	//Load the root
 	TiXmlElement *pRootElem = pXmlDoc->FirstChildElement();
 	if(pRootElem==nullptr){
@@ -86,7 +54,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-	////////////////////////////////////////////////
 	//Load the Main element.
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
 	if(pMainElem==nullptr){
@@ -97,7 +64,6 @@ void cPreMenu::LoadConfig()
 
 	mbShowText = cString::ToBool(pMainElem->Attribute("ShowText"),false);
 
-	////////////////////////////////////////////////
 	//Load the Logos element.
 	TiXmlElement *pLogosParentElem = pRootElem->FirstChildElement("Logos");
 	if(pLogosParentElem==nullptr){
@@ -106,8 +72,6 @@ void cPreMenu::LoadConfig()
 		return;
 	}
 
-
-	////////////////////////////////////////////////
 	//Get logos
 	TiXmlElement *pLogoElem = pLogosParentElem->FirstChildElement("Logo");
 	for(; pLogoElem != nullptr; pLogoElem = pLogoElem->NextSiblingElement("Logo"))
@@ -115,14 +79,11 @@ void cPreMenu::LoadConfig()
 		tString sFile = cString::ToString(pLogoElem->Attribute("File"),"");
 		mvTexNames.push_back(sFile);
 
-		//Log("Texture %s\n",sFile.c_str());
 	}
 
 
 	hplDelete( pXmlDoc );
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::Reset()
 {
@@ -186,8 +147,6 @@ void cPreMenu::Reset()
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
@@ -213,19 +172,14 @@ void cPreMenu::OnPostSceneDraw()
 			if (pRaindrop->fColor >= 0)
 			{
 				mpInit->mpGame->GetGraphics()->GetDrawer()->DrawGfxObject( pRaindrop->mpGfx, cVector3f(pRaindrop->vPos) + cVector3f(0,0,5), cVector2f(20,6*pRaindrop->fLength), cColor(pRaindrop->fColor,1),false,false);//, -0.2f - 1.5f*pRaindrop->fAngle );
-				//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawLine2D(pRaindrop->vPos, pRaindrop->vPos+(pRaindrop->vDir*pRaindrop->fLength),0,cColor(pRaindrop->fColor,pRaindrop->fColor));
 			}
 		}
 	}
 
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPreMenu::OnDraw()
 {
-	//////////////////////////////////
 	// STATE 1 (TEXT)
 	if(mlState == 0 || mlState == 3 || mlState == 5)
 	{
@@ -253,8 +207,6 @@ void cPreMenu::OnDraw()
 					mpTextFont->DrawPlain(cVector3f(25 + 5*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.1f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
 					
-					//mpTextFont->Draw(cVector3f(25-mfLastTextPos,90+19*(float)i-mfLastTextPos,0),cVector2f(17,17+(mfLastTextSize)),cColor(mfLastTextColor,mfFontColor,mfFontColor,0.25f),//cColor(0.7f,1,0.7f,1),
-					//				eFontAlign_Left,sText.c_str());
 				}
 								
 				break;
@@ -267,8 +219,6 @@ void cPreMenu::OnDraw()
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::Update(float afTimeStep)
 {
@@ -286,7 +236,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume < pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -300,7 +249,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume > pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -324,7 +272,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume < pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -338,7 +285,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume > pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -378,10 +324,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 	}
 
-
-	
-	
-	//////////////////////////////////
 	// STATE 0 (Premenu Text)
 	if(mlState ==0)
 	{
@@ -448,7 +390,6 @@ void cPreMenu::Update(float afTimeStep)
 			}
 		}
 	}
-	/////////////////////
 	// STATE 1 (Logos)
 	else if (mlState == 1) 
 	{
@@ -510,7 +451,6 @@ void cPreMenu::Update(float afTimeStep)
 			}
 		}
 	}
-	//////////////////////////////////
 	// STATE 2 (FAST FADE LOGO)
 	else if(mlState ==2)
 	{
@@ -524,7 +464,6 @@ void cPreMenu::Update(float afTimeStep)
 				mlState = 4;
 		}
 	}
-	//////////////////////////////////
 	// STATE 3 (Text Pause)
 	else if(mlState ==3)
 	{
@@ -533,10 +472,8 @@ void cPreMenu::Update(float afTimeStep)
 			cSoundEntry* pEntry = mpInit->mpGame->GetSound()->GetSoundHandler()->GetEntryFromSound(mpWindSound);
 			if (pEntry)
 			{
-				//pEntry->mfNormalVolumeMul= 0;
 				pEntry->mfNormalVolumeFadeDest = 0;
 				pEntry->mfNormalVolumeFadeSpeed = -0.2f;
-				//mpWindSound->Stop();
 				mbFadeWindSound = true;
 			}
 			mbPlayingWindSound = false;
@@ -552,7 +489,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 		
 	}
-	///////////////////
 	// STATE 5 (Text Vanishing)
 	else if(mlState ==5)
 	{
@@ -593,7 +529,6 @@ void cPreMenu::Update(float afTimeStep)
 		}
 
 	}
-	/////////////////////////////////
 	// STATE 4 (PENUMBRA TITLES)
 	else if(mlState == 4)
 	{
@@ -642,14 +577,10 @@ void cPreMenu::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnMouseDown(eMButton aButton)
 {
 	OnButtonDown();
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::OnButtonDown()
 {
@@ -670,8 +601,6 @@ void cPreMenu::OnButtonDown()
 	}
 	if (mlState == 4)SetActive(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cPreMenu::SetActive(bool abActive)
 {
@@ -763,21 +692,7 @@ void cPreMenu::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPreMenu::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui/Credits.h"
 
 #include "core/Init.h"
@@ -28,12 +12,6 @@
 #include "systems/GameMusicHandler.h"
 #include "systems/GameMessageHandler.h"
 #include "player/HapticGameCamera.h"
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 {
@@ -51,19 +29,9 @@ cCredits::cCredits(cInit *apInit)  : iUpdateable("Credits")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cCredits::~cCredits(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cCredits::Reset()
 {
@@ -83,16 +51,11 @@ void cCredits::Reset()
 	mfTypeSoundDelaySeconds = 0;
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnPostSceneDraw()
 {
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 	
 }
-
-//-----------------------------------------------------------------------
-
 
 void cCredits::OnDraw()
 {
@@ -140,8 +103,6 @@ void cCredits::OnDraw()
 	mpFont->SetVerticalPixelSnap(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::Update(float afTimeStep)
 {
 	//Make sure haptics is off
@@ -188,14 +149,10 @@ void cCredits::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnMouseDown(eMButton aButton)
 {
 	OnButtonDown();
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::OnButtonDown()
 {
@@ -224,8 +181,6 @@ void cCredits::OnButtonDown()
 
 	NextPage();
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::NextPage()
 {
@@ -261,8 +216,6 @@ void cCredits::NextPage()
 	if(mlPage == 4) SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::SetSecretText(int alTextIndex)
 {
 	mlSecretTextIndex = alTextIndex;
@@ -278,8 +231,6 @@ void cCredits::SetSecretText(int alTextIndex)
 	mfCharacterDelaySeconds = 0;
 	mfTypeSoundDelaySeconds = 0;
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::UpdateRequiemSecret(float afTimeStep)
 {
@@ -328,8 +279,6 @@ void cCredits::UpdateRequiemSecret(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::DrawSecretText()
 {
 	int lCount = 0;
@@ -347,8 +296,6 @@ void cCredits::DrawSecretText()
 		lCount += lRowSize;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cCredits::DrawStatRow(float afY, const tString &asLabel, const tWString &asValue)
 {
@@ -411,8 +358,6 @@ void cCredits::DrawStatistics()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::SetActive(bool abActive)
 {
 	if(mbActive == abActive) return;
@@ -455,21 +400,7 @@ void cCredits::SetActive(bool abActive)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cCredits::OnExit()
 {
 	SetActive(false);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-

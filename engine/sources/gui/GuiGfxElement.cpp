@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/GuiGfxElement.h"
 
 #include "system/LowLevelSystem.h"
@@ -32,11 +16,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// ANIMATION
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cGuiGfxAnimation::AddFrame(int alNum)
 	{
@@ -51,19 +31,10 @@ namespace hpl {
 		mfFrameLength = afLength;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement::cGuiGfxElement(cGui* apGui)
 	{
 		mpGui = apGui;
 
-		/////////////////////////////
 		// Set up vertices
 		mvVtx.resize(4);
 
@@ -91,7 +62,6 @@ namespace hpl {
 		mvOffset =0;
 		mvActiveSize =0;
 
-		////////////////////////////
 		//Set up textures
 		for(int i=0; i<kMaxGuiTextures; ++i)
 		{
@@ -109,20 +79,16 @@ namespace hpl {
 		mbFlushed = false;
 	}
 
-	//---------------------------------------------------
-
 	cGuiGfxElement::~cGuiGfxElement()
 	{
 		STLDeleteAll(mvAnimations);
 
-		////////////////////////////////
 		// Delete all textures / Images
 		if(mvImageBufferVec.size()>0)
 		{
 			for(int i=0; i< (int)mvImageBufferVec.size(); ++i)
 			{
 				//Skip for now, memory might be fucked..
-				//mpGui->GetResources()->GetImageManager()->Destroy(mvImageBufferVec[i]);
 			}
 		}
 		else
@@ -132,7 +98,6 @@ namespace hpl {
 				if(mvImages[i])
 				{
 					//Skip for now, memory might be fucked..
-					//mpGui->GetResources()->GetImageManager()->Destroy(mvImages[i]);
 				}
 				else if(mvTextures[i])
 				{
@@ -142,18 +107,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cGuiGfxElement::Update(float afTimeStep)
 	{
-
-		//////////////////////////////////////
 		//Update image animations
 		if(mvAnimations.empty() || mbAnimationPaused) return;
 		if(mlCurrentAnimation >= (int)mvAnimations.size()) return;
@@ -161,7 +116,6 @@ namespace hpl {
 		cGuiGfxAnimation* pAnim = mvAnimations[mlCurrentAnimation];
 
 		int lFrame = 0;
-		//////////////////////////////////
 		// Non random animation update
 		if(pAnim->mType != eGuiGfxAnimationType_Random)
 		{
@@ -169,7 +123,6 @@ namespace hpl {
 			lFrame = (int) mfCurrentFrame;
 			if(lFrame >= (int)mvImageBufferVec.size())
 			{
-				//Log("Over max!\n");
 				//Stop at end
 				if(pAnim->mType == eGuiGfxAnimationType_StopAtEnd)
 				{
@@ -190,7 +143,6 @@ namespace hpl {
 					mbForwardAnim = !mbForwardAnim;
 				}
 			}
-			//Log("Frame %d %f actual_frame: %d size: %d\n",lFrame,mfCurrentFrame,((int)mvImageBufferVec.size()-1) - lFrame,mvImageBufferVec.size());
 
 			//Oscillate fix
 			if(mbForwardAnim== false && pAnim->mType == eGuiGfxAnimationType_Oscillate)
@@ -198,7 +150,6 @@ namespace hpl {
 				lFrame = ((int)mvImageBufferVec.size()-1) - lFrame;
 			}
 		}
-		//////////////////////////////////
 		// Random animation update
 		else if(mvImageBufferVec.size() > 1)
 		{
@@ -218,7 +169,6 @@ namespace hpl {
 			}
 		}
 
-		//////////////////////////////////
 		// Set new image
 		if(lFrame != mlActiveImage)
 		{
@@ -226,8 +176,6 @@ namespace hpl {
 			SetImage(mvImageBufferVec[mlActiveImage],0);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGuiGfxElement::AddImage(cResourceImage* apImage)
 	{
@@ -237,8 +185,6 @@ namespace hpl {
 
 		++mlTextureNum;
 	}
-
-	//---------------------------------------------------
 
 	void cGuiGfxElement::AddTexture(iTexture* apTexture)
 	{
@@ -255,8 +201,6 @@ namespace hpl {
 		++mlTextureNum;
 	}
 
-	//---------------------------------------------------
-
 	void cGuiGfxElement::AddImageToBuffer(cResourceImage* apImage)
 	{
 		if(mvImageBufferVec.size()==0)
@@ -267,8 +211,6 @@ namespace hpl {
 		mvImageBufferVec.push_back(apImage);
 	}
 
-	//---------------------------------------------------
-
 	cGuiGfxAnimation* cGuiGfxElement::CreateAnimation(const tString& asName)
 	{
 		cGuiGfxAnimation *pAnimation = hplNew( cGuiGfxAnimation, () );
@@ -278,8 +220,6 @@ namespace hpl {
 
 		return pAnimation;
 	}
-
-	//---------------------------------------------------
 
 	void cGuiGfxElement::PlayAnimation(int alNum)
 	{
@@ -301,28 +241,20 @@ namespace hpl {
 			mfCurrentFrame = afTime;
 	}
 
-	//---------------------------------------------------
-
 	void cGuiGfxElement::SetMaterial(iGuiMaterial *apMat)
 	{
 		mpMaterial = apMat;
 	}
-
-	//---------------------------------------------------
 
 	void cGuiGfxElement::SetColor(const cColor &aColor)
 	{
 		for(int i=0; i<4; ++i)	mvVtx[i].col = aColor;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f cGuiGfxElement::GetImageSize()
 	{
 		return mvImageSize;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGuiGfxElement::Flush()
 	{
@@ -340,14 +272,6 @@ namespace hpl {
 
 		mbFlushed = true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cGuiGfxElement::SetImage(cResourceImage* apImage, int alNum)
 	{
@@ -372,7 +296,4 @@ namespace hpl {
 			mvVtx[3].pos = cVector3f(rect.x,rect.y+rect.h,0);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

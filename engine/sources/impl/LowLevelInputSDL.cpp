@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/LowLevelInputSDL.h"
 
 #include "impl/MouseSDL.h"
@@ -26,12 +10,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cLowLevelInputSDL::cLowLevelInputSDL(iLowLevelGraphics *apLowLevelGraphics)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
@@ -40,27 +18,15 @@ namespace hpl {
 		LockInput(true);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cLowLevelInputSDL::~cLowLevelInputSDL()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::LockInput(bool abX)
 	{
 		mbLockInput = abX;
 		ApplyInputLock();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::BeginInputUpdate()
 	{
@@ -84,8 +50,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	// While the debug overlay has the input the game gets no mouse motion,
 	// wheel or presses. Releases still reach it, so that nothing held when
 	// the overlay took over stays down, and so do the function keys: they
@@ -105,14 +69,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLowLevelInputSDL::EndInputUpdate()
 	{
 		mlstEvents.clear();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLowLevelInputSDL::ApplyInputLock()
 	{
@@ -126,20 +86,13 @@ namespace hpl {
 			SDL_SetWindowRelativeMouseMode(pWindow, bLock);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMouse* cLowLevelInputSDL::CreateMouse()
 	{
 		return hplNew( cMouseSDL,(this,mpLowLevelGraphics));
 	}
 
-	//-----------------------------------------------------------------------
-
 	iKeyboard* cLowLevelInputSDL::CreateKeyboard()
 	{
 		return hplNew( cKeyboardSDL,(this) );
 	}
-
-	//-----------------------------------------------------------------------
-
 }

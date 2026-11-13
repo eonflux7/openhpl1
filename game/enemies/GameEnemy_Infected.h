@@ -1,25 +1,9 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * The Infected of Penumbra: Black Plague. Frictional Games never released
- * Black Plague's game code; this is the Dog of Overture changed after what
- * the game's binary does.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// The Infected of Penumbra: Black Plague. Frictional Games never released
+// Black Plague's game code; this is the Dog of Overture changed after what
+// the game's binary does.
 #ifndef GAME_GAME_ENEMY_INFECTED_H
 #define GAME_GAME_ENEMY_INFECTED_H
 
@@ -27,8 +11,6 @@
 #include "enemies/GameEnemy.h"
 
 using namespace hpl;
-
-//-----------------------------------------
 
 class cGameEnemy_Infected;
 
@@ -53,8 +35,6 @@ protected:
 	cGameEnemy_Infected *mpEnemyInfected;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Infected_Idle : public iGameEnemyState_Infected_Base
 {
@@ -67,8 +47,6 @@ public:
 
 	void OnUpdate(float afTimeStep) override;
 };
-
-//-----------------------------------------
 
 // ATTENTION STATE
 class cGameEnemyState_Infected_Attention : public iGameEnemyState_Infected_Base
@@ -91,8 +69,6 @@ private:
 	float mfTime;
 
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Infected_Hunt : public iGameEnemyState_Infected_Base
@@ -132,8 +108,6 @@ private:
 	bool mbBreakingDoor;
 };
 
-//-----------------------------------------
-
 // ATTACK STATE
 class cGameEnemyState_Infected_Attack : public iGameEnemyState_Infected_Base
 {
@@ -165,8 +139,6 @@ private:
 	cAnimationState *mpAttackAnim = nullptr;
 };
 
-//-----------------------------------------
-
 // BREAK DOOR STATE
 class cGameEnemyState_Infected_BreakDoor : public iGameEnemyState_Infected_Base
 {
@@ -194,8 +166,6 @@ private:
 	int mlCount;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Infected_Flee : public iGameEnemyState_Infected_Base
 {
@@ -219,8 +189,6 @@ private:
 	bool mbBackingFromBreakDoor;
 };
 
-//-----------------------------------------
-
 // CALL BACKUP STATE
 class cGameEnemyState_Infected_CallBackup : public iGameEnemyState_Infected_Base
 {
@@ -243,8 +211,6 @@ public:
 private:
 	bool mbCheckAnim;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Infected_KnockDown : public iGameEnemyState_Infected_Base
@@ -273,9 +239,6 @@ private:
 	int mlStuckAtMaxCount;
 };
 
-//-----------------------------------------
-
-
 // DEAD STATE
 class cGameEnemyState_Infected_Dead : public iGameEnemyState_Infected_Base
 {
@@ -299,8 +262,6 @@ private:
 	int mlAnimCount = 0;
 };
 
-//-----------------------------------------
-
 // PATROL STATE
 class cGameEnemyState_Infected_Patrol : public iGameEnemyState_Infected_Base
 {
@@ -322,8 +283,6 @@ private:
 
 	int mlStuckAtMaxCount;
 };
-
-//-----------------------------------------
 
 // INVESTIGATE STATE
 class cGameEnemyState_Infected_Investigate : public iGameEnemyState_Infected_Base
@@ -348,8 +307,6 @@ public:
 	  int mlKnockCount;
 };
 
-//-----------------------------------------
-
 // MOVETO STATE
 class cGameEnemyState_Infected_MoveTo : public iGameEnemyState_Infected_Base
 {
@@ -365,8 +322,6 @@ public:
 	  float mfIdleSoundTime;
 	  int mlBreakCount;
 };
-
-//-----------------------------------------
 
 // EAT STATE
 class cGameEnemyState_Infected_Eat : public iGameEnemyState_Infected_Base
@@ -386,8 +341,6 @@ public:
 	 float mfTime;
 };
 
-//-----------------------------------------
-
 class cGameEnemy_Infected_SaveData : public iGameEnemy_SaveData
 {
 	kSerializableClassInit(cGameEnemy_Infected_SaveData);
@@ -400,8 +353,6 @@ public:
 
 	iGameEntity* CreateEntity() override;
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Infected : public iGameEnemy
 {
@@ -543,7 +494,5 @@ private:
     iCollideShape *mpAttackShape;
 	iCollideShape *mpBreakDoorShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_INFECTED_H

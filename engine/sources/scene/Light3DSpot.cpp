@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Light3DSpot.h"
 
 #include "tinyxml.h"
@@ -41,12 +25,6 @@ namespace hpl {
 												0,   0,   0.5f,0.5f,
 												0,   0,   0,   1.0f
 												);
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cLight3DSpot::cLight3DSpot(tString asName, cResources *apResources) : iLight3D(asName,apResources)
 	{
@@ -82,14 +60,6 @@ namespace hpl {
 		hplDelete(mpFrustum);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::SetTexture(iTexture *apTexture)
 	{
 		//Destroy any old texture.
@@ -100,14 +70,10 @@ namespace hpl {
 		mpTexture->SetWrapT(eTextureWrap_ClampToBorder);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cLight3DSpot::GetTexture()
 	{
 		return mpTexture;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SetFarAttenuation(float afX)
 	{
@@ -120,7 +86,6 @@ namespace hpl {
 		SetTransformUpdated();
 		mbProjectionUpdated = true;
 	}
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SetNearAttenuation(float afX)
 	{
@@ -128,8 +93,6 @@ namespace hpl {
 		if(mfNearAttenuation>mfFarAttenuation)
 			SetFarAttenuation(mfNearAttenuation);
 	}
-
-	//-----------------------------------------------------------------------
 
 	const cMatrixf& cLight3DSpot::GetViewMatrix()
 	{
@@ -141,9 +104,6 @@ namespace hpl {
 
 		return m_mtxView;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	const cMatrixf& cLight3DSpot::GetProjectionMatrix()
 	{
@@ -179,8 +139,6 @@ namespace hpl {
 		return m_mtxProjection;
 	}
 
-	//-----------------------------------------------------------------------
-
 	const cMatrixf& cLight3DSpot::GetViewProjMatrix()
 	{
 		if(mlViewProjMatrixCount != GetTransformUpdateCount() || mbViewProjUpdated || mbProjectionUpdated)
@@ -194,8 +152,6 @@ namespace hpl {
 
 		return m_mtxViewProj;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cFrustum* cLight3DSpot::GetFrustum()
 	{
@@ -212,8 +168,6 @@ namespace hpl {
 		return mpFrustum;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cLight3DSpot::CollidesWithBV(cBoundingVolume *apBV)
 	{
 		if(cMath::CheckCollisionBV(*GetBoundingVolume(), *apBV)==false) return false;
@@ -221,20 +175,10 @@ namespace hpl {
 		return GetFrustum()->CollideBoundingVolume(apBV)!= eFrustumCollision_Outside;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cSectorVisibilityContainer* cLight3DSpot::CreateSectorVisibility()
 	{
 		return mpWorld3D->GetPortalContainer()->CreateVisibilityFromFrustum(mpFrustum);
 	}
-	//-----------------------------------------------------------------------
-
 
 	static eTextureAnimMode GetAnimMode(const tString& asType)
 	{
@@ -275,14 +219,10 @@ namespace hpl {
 		mfNearClipPlane = cString::ToFloat(apMainElem->Attribute("NearClipPlane"),mfNearClipPlane);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::UpdateBoundingVolume()
 	{
 		mBoundingVolume = GetFrustum()->GetBoundingVolume();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cLight3DSpot::CreateClipRect(cRect2l &aClipRect, cRenderSettings *apRenderSettings,
 											iLowLevelGraphics *apLowLevelGraphics)
@@ -296,15 +236,6 @@ namespace hpl {
 		return bVisible;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_cLight3DSpot,cSaveData_iLight3D)
 	kSerializeVar(msTexture, eSerializeType_String)
 
@@ -312,8 +243,6 @@ namespace hpl {
 	kSerializeVar(mfAspect, eSerializeType_Float32)
 	kSerializeVar(mfNearClipPlane, eSerializeType_Float32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cLight3DSpot::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -329,21 +258,15 @@ namespace hpl {
 		return pLight;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cLight3DSpot::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cLight3DSpot::CreateSaveData()
 	{
 		return hplNew( cSaveData_cLight3DSpot, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -356,8 +279,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfNearClipPlane);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cLight3DSpot::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cLight3DSpot);
@@ -366,8 +287,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mfAspect);
 		kSaveData_LoadFrom(mfNearClipPlane);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cLight3DSpot::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -379,7 +298,4 @@ namespace hpl {
 		mbViewProjUpdated = true;
 		mbFrustumUpdated = true;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/ParticleSystem3D.h"
 
 #include "tinyxml.h"
@@ -31,11 +15,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// CREATOR
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cParticleSystemData3D::cParticleSystemData3D(const tString &asName,
 												cResources* apResources,cGraphics *apGraphics)
@@ -45,21 +25,15 @@ namespace hpl {
 		mpGraphics = apGraphics;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cParticleSystemData3D::~cParticleSystemData3D()
 	{
 		STLDeleteAll(mvEmitterData);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleSystemData3D::AddEmitterData(iParticleEmitterData *apData)
 	{
 		mvEmitterData.push_back(apData);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cParticleSystem3D* cParticleSystemData3D::Create(tString asName, cVector3f avSize,
 													const cMatrixf& a_mtxTransform)
@@ -75,7 +49,6 @@ namespace hpl {
 
 		for(size_t i=0; i<mvEmitterData.size(); ++i)
 		{
-			///////////////////////////
 			// Create and add
 			iParticleEmitter3D *pPE = static_cast<iParticleEmitter3D*>(mvEmitterData[i]->Create(asName, avSize));
 			pPS->AddEmitter(pPE);
@@ -84,8 +57,6 @@ namespace hpl {
 
 		return pPS;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cParticleSystemData3D::LoadFromFile(const tString &asFile)
 	{
@@ -115,15 +86,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cParticleSystem3D::cParticleSystem3D(const tString asName,
 										cParticleSystemData3D *apData,
 										cResources *apResources, cGraphics *apGraphics)
@@ -137,8 +99,6 @@ namespace hpl {
 		mbFirstUpdate = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cParticleSystem3D::~cParticleSystem3D()
 	{
 		for(size_t i=0; i< mvEmitters.size(); ++i)
@@ -147,14 +107,6 @@ namespace hpl {
 		}
 		if(mpParticleManager) mpParticleManager->Destroy(mpData);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cParticleSystem3D::SetVisible(bool abVisible)
 	{
@@ -168,8 +120,6 @@ namespace hpl {
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cParticleSystem3D::IsDead()
 	{
@@ -203,8 +153,6 @@ namespace hpl {
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleSystem3D::Kill()
 	{
 		SetIsSaved(false);
@@ -215,8 +163,6 @@ namespace hpl {
 			pPE->Kill();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cParticleSystem3D::KillInstantly()
 	{
@@ -229,8 +175,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleSystem3D::UpdateLogic(float afTimeStep)
 	{
 		if(IsActive()==false) return;
@@ -239,7 +183,6 @@ namespace hpl {
 		{
 			iParticleEmitter3D *pPE = mvEmitters[i];
 
-			//////////////////////////
 			//Warm Up
 			if(mbFirstUpdate)
 			{
@@ -259,13 +202,10 @@ namespace hpl {
 				mbFirstUpdate = false;
 			}
 
-			//////////////////////////
 			//Update
 			pPE->UpdateLogic(afTimeStep);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cParticleSystem3D::AddEmitter(iParticleEmitter3D* apEmitter)
 	{
@@ -274,40 +214,20 @@ namespace hpl {
 		AddChild(apEmitter);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iParticleEmitter3D* cParticleSystem3D::GetEmitter(int alIdx)
 	{
 		return mvEmitters[alIdx];
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cParticleSystem3D::GetEmitterNum()
 	{
 		return (int)mvEmitters.size();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
 	kBeginSerializeBase(cSaveData_ParticleEmitter3D)
 		kSerializeVar(mbActive, eSerializeType_Bool)
 		kSerializeVar(mbDying, eSerializeType_Bool)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cParticleSystem3D,cSaveData_iEntity3D)
 		kSerializeVar(msDataName, eSerializeType_String)
@@ -315,8 +235,6 @@ namespace hpl {
 
 		kSerializeClassContainer(mvEmitters,cSaveData_ParticleEmitter3D,eSerializeType_Class)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cParticleSystem3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -328,21 +246,15 @@ namespace hpl {
 		return pPS;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cParticleSystem3D::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cParticleSystem3D::CreateSaveData()
 	{
 		return hplNew( cSaveData_cParticleSystem3D, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cParticleSystem3D::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -360,8 +272,6 @@ namespace hpl {
 			pData->mvEmitters[i].mbActive = pPE->IsActive();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cParticleSystem3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
@@ -394,12 +304,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cParticleSystem3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cParticleSystem3D);
 	}
-
-	//-----------------------------------------------------------------------
 }

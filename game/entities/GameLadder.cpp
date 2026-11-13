@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameLadder.h"
 
@@ -26,11 +10,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameLadder::cAreaLoader_GameLadder(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -42,8 +22,6 @@ cAreaLoader_GameLadder::~cAreaLoader_GameLadder()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameLadder::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -72,16 +50,6 @@ iEntity3D* cAreaLoader_GameLadder::Load(const tString &asName, const cVector3f &
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 cGameLadder::cGameLadder(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_Ladder;
@@ -91,19 +59,9 @@ cGameLadder::cGameLadder(cInit *apInit,const tString& asName) : iGameEntity(apIn
 	msClimbDownSound = mpInit->mpGameConfig->GetString("Movement_Climb","DefaultClimbDownSound","");
 }
 
-//-----------------------------------------------------------------------
-
 cGameLadder::~cGameLadder(void)
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameLadder::OnPlayerPick()
 {
@@ -124,7 +82,6 @@ void cGameLadder::OnPlayerInteract()
 
 		mpInit->mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 
-		///////////////////////////////
 		// Search upward for a clear entry position in front of the ladder.
 		iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
 		iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -150,7 +107,6 @@ void cGameLadder::OnPlayerInteract()
 			return;
 		}
 
-		///////////////////////////////
 		//Set state
 		cPlayerState_Climb* pState = static_cast<cPlayerState_Climb*>(mpInit->mpPlayer->GetStateData(ePlayerState_Climb));
 		pState->mpLadder = this;
@@ -160,16 +116,9 @@ void cGameLadder::OnPlayerInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLadder::OnPostSceneDraw()
 {
-	//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawLine(mvBodies[0]->GetWorldPosition(),
-	//											mvBodies[0]->GetWorldPosition()+mvForward,
-	//											cColor(0,1,0,1));
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLadder::Setup()
 {
@@ -181,8 +130,6 @@ void cGameLadder::Setup()
 	mfMinY = mvBodies[0]->GetWorldPosition().y - mvBodies[0]->GetShape()->GetSize().y/2.0f;
 }
 
-//-----------------------------------------------------------------------
-
 float cGameLadder::GetPlayerDistanceXZ()
 {
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
@@ -193,8 +140,6 @@ float cGameLadder::GetPlayerDistanceXZ()
 	return cMath::Vector3Dist(vPlayerPosition,vLadderPosition);
 }
 
-//-----------------------------------------------------------------------
-
 float cGameLadder::GetPickedHeightOffset()
 {
 	iCharacterBody *pCharBody = mpInit->mpPlayer->GetCharacterBody();
@@ -203,8 +148,6 @@ float cGameLadder::GetPickedHeightOffset()
 	
 	return vPickedPosition.y - vPlayerPosition.y;
 }
-
-//-----------------------------------------------------------------------
 
 cVector3f cGameLadder::GetStartRotation()
 {
@@ -230,24 +173,6 @@ cVector3f cGameLadder::GetStartPosition()
 	return vLadderPos;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameLadder_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 
@@ -256,21 +181,15 @@ kSerializeVar(msClimbUpSound, eSerializeType_String)
 kSerializeVar(msClimbDownSound, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameLadder_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameLadder::CreateSaveData()
 {
 	return hplNew( cGameLadder_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameLadder::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -284,8 +203,6 @@ void cGameLadder::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyToVar(pData,msClimbDownSound);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameLadder::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -296,4 +213,3 @@ void cGameLadder::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 	kCopyFromVar(pData,msClimbDownSound);
 
 }
-//-----------------------------------------------------------------------

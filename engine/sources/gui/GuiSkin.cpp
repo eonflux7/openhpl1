@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/GuiSkin.h"
 
 #include "system/LowLevelSystem.h"
@@ -31,11 +15,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// FONT
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cGuiSkinFont::cGuiSkinFont(cGui *apGui)
 	{
@@ -48,15 +28,6 @@ namespace hpl {
 		//Skip deleting font...
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGuiSkin::cGuiSkin(const tString & asName,cGui *apGui)
 	{
 		mpGui = apGui;
@@ -67,8 +38,6 @@ namespace hpl {
 		mvAttributes.resize(eGuiSkinAttribute_LastEnum, 0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiSkin::~cGuiSkin()
 	{
 		for(size_t i=0; i< mvGfxElements.size(); ++i)
@@ -76,14 +45,6 @@ namespace hpl {
 
 		STLDeleteAll(mvFonts);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	static eGuiGfxAnimationType ToAnimType(const char* apString)
 	{
@@ -120,7 +81,6 @@ namespace hpl {
 
 	bool cGuiSkin::LoadFromFile(const tString &asFile)
 	{
-		//////////////////////////////////
 		//Open document
 		TiXmlDocument* pXmlDoc = hplNew( TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -130,12 +90,9 @@ namespace hpl {
 			return false;
 		}
 
-		/////////////////////////
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
-
-		//////////////////////////////////////
 		// ATTRIBUTES
 		TiXmlElement* pAttributesElement = pRootElem->FirstChildElement("Attributes");
 
@@ -162,9 +119,6 @@ namespace hpl {
 			mvAttributes[type] = vVal;
 		}
 
-
-
-		//////////////////////////////////////
 		// FONTS
 		TiXmlElement* pFontsElement = pRootElem->FirstChildElement("Fonts");
 
@@ -190,8 +144,6 @@ namespace hpl {
 			mvFonts[type] = pFont;
 		}
 
-
-		//////////////////////////////////////
 		// GFX ELEMENTS
 
 		//Get gfx element
@@ -255,8 +207,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGuiSkin::GetGfx(eGuiSkinGfx aType)
 	{
 		return mvGfxElements[aType];
@@ -271,14 +221,4 @@ namespace hpl {
 	{
 		return mvAttributes[aType];
 	}
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 }

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_TYPES_H
 #define GAME_GAME_TYPES_H
 
@@ -28,13 +12,7 @@
 
 using namespace hpl;
 
-//---------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // ENUMERATIONS
-//////////////////////////////////////////////////////////////////////////
-
-//---------------------------------
 
 enum eButtonHandlerState
 {
@@ -49,8 +27,6 @@ enum eButtonHandlerState
 	eButtonHandlerState_Ending,	//Black Plague
 };
 
-//---------------------------------
-
 enum ePlayerMoveState
 {
 	ePlayerMoveState_Walk,
@@ -61,8 +37,6 @@ enum ePlayerMoveState
 	ePlayerMoveState_Swim,		//Black Plague
 	ePlayerMoveState_LastEnum,
 };
-
-//---------------------------------
 
 enum ePlayerState
 {
@@ -79,8 +53,6 @@ enum ePlayerState
 	ePlayerState_LastEnum
 };
 
-//---------------------------------
-
 enum ePlayerHandType
 {
 	ePlayerHandType_Normal,
@@ -89,8 +61,6 @@ enum ePlayerHandType
 	ePlayerHandType_LastEnum
 };
 
-//---------------------------------
-
 enum ePlayerDamageType
 {
 	ePlayerDamageType_BloodSplash,
@@ -98,8 +68,6 @@ enum ePlayerDamageType
 	ePlayerDamageType_Poison,	// Black Plague
 	ePlayerDamageType_LastEnum
 };
-
-//---------------------------------
 
 enum eCrossHairState
 {
@@ -118,8 +86,6 @@ enum eCrossHairState
 	eCrossHairState_LastEnum
 };
 
-//---------------------------------
-
 enum eGameDifficulty
 {
 	eGameDifficulty_Easy =0,
@@ -127,8 +93,6 @@ enum eGameDifficulty
 	eGameDifficulty_Hard =2,
 	eGameDifficulty_LastEnum
 };
-
-//---------------------------------
 
 enum eGameEntityType
 {
@@ -156,8 +120,6 @@ enum eGameEntityType
 	eGameEntityType_LastEnum
 };
 
-//---------------------------------
-
 enum eObjectInteractMode
 {
 	eObjectInteractMode_Static,
@@ -176,7 +138,6 @@ enum eGameDoorState
 	eGameDoorState_LastEnum,
 };
 
-//---------------------------------
 enum eGameEntityScriptType
 {
 	eGameEntityScriptType_PlayerInteract,
@@ -187,8 +148,6 @@ enum eGameEntityScriptType
 	eGameEntityScriptType_LastEnum
 };
 
-//---------------------------------
-
 enum eGameCollideScriptType
 {
 	eGameCollideScriptType_Enter,
@@ -196,8 +155,6 @@ enum eGameCollideScriptType
 	eGameCollideScriptType_Leave,
 	eGameCollideScriptType_LastEnum
 };
-
-//---------------------------------
 
 enum eGameItemType
 {
@@ -218,21 +175,12 @@ enum eGameItemType
 	eGameItemType_LastEnum
 };
 
-//---------------------------------
-
 enum eGameTriggerType
 {
 	eGameTriggerType_Sound = (1 << 0),
 };
 
-//---------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // CLASSES
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------
 
 class cGameTimer : public iSerializable
 {
@@ -254,8 +202,6 @@ public:
 	const tString& GetName(){ return msName;}
 };
 
-//-----------------------------------------
-
 class cInventoryUseCallback : public iSerializable
 {
 	kSerializableClassInit(cInventoryUseCallback)
@@ -268,9 +214,6 @@ public:
 typedef std::multimap<tString,cInventoryUseCallback*> tInventoryUseCallbackMap;
 typedef tInventoryUseCallbackMap::iterator tInventoryUseCallbackMapIt;
 
-
-//-----------------------------------------
-
 class cInventoryPickupCallback : public iSerializable
 {
 	kSerializableClassInit(cInventoryPickupCallback)
@@ -281,8 +224,6 @@ public:
 
 typedef std::multimap<tString,cInventoryPickupCallback*> tInventoryPickupCallbackMap;
 typedef tInventoryPickupCallbackMap::iterator tInventoryPickupCallbackMapIt;
-
-//-----------------------------------------
 
 class cInventoryCombineCallback : public iSerializable
 {
@@ -297,9 +238,6 @@ public:
 typedef std::list<cInventoryCombineCallback*> tInventoryCombineCallbackList;
 typedef tInventoryCombineCallbackList::iterator tInventoryCombineCallbackListIt;
 
-
-
-//---------------------------------
 class iGameEntity;
 class cGameCollideScript
 {
@@ -316,8 +254,6 @@ public:
 typedef std::map<tString, cGameCollideScript*> tGameCollideScriptMap;
 typedef tGameCollideScriptMap::iterator tGameCollideScriptMapIt;
 
-//---------------------------------
-
 class cSaveGame_cGameCollideScript : public iSerializable
 {
 	kSerializableClassInit(cSaveGame_cGameCollideScript)
@@ -329,8 +265,5 @@ public:
 	tString msEntity;
 	bool mbCollides;
 };
-
-//---------------------------------
-
 
 #endif // GAME_GAME_TYPES_H

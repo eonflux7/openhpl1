@@ -1,33 +1,11 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Node3D.h"
 #include "scene/Entity3D.h"
 #include "system/LowLevelSystem.h"
 #include "math/Math.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cNode3D::cNode3D(const tString &asName, bool abAutoDeleteChildren) : iNode()
 	{
@@ -49,8 +27,6 @@ namespace hpl {
 		mvTranslation = cVector3f(0,0,0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D::~cNode3D()
 	{
 		if(mbAutoDeleteChildren)
@@ -59,20 +35,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iNode* cNode3D::CreateChild()
 	{
 		return CreateChild3D();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cNode3D* cNode3D::CreateChild3D(const tString &asName, bool abAutoDeleteChildren)
 	{
@@ -84,21 +50,15 @@ namespace hpl {
 		return pNode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cNode3D::GetLocalPosition()
 	{
 		return m_mtxLocalTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& cNode3D::GetLocalMatrix()
 	{
 		return m_mtxLocalTransform;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cNode3D::GetWorldPosition()
 	{
@@ -107,17 +67,12 @@ namespace hpl {
 		return m_mtxWorldTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& cNode3D::GetWorldMatrix()
 	{
 		UpdateWorldTransform();
 
 		return m_mtxWorldTransform;
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SetPosition(const cVector3f& avPos)
 	{
@@ -138,8 +93,6 @@ namespace hpl {
 			mbTransformUpdated = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::SetWorldPosition(const cVector3f& avWorldPos)
 	{
 		if(mpParent)
@@ -151,9 +104,6 @@ namespace hpl {
 			SetPosition(avWorldPos);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SetWorldMatrix(const cMatrixf& a_mtxWorldTransform)
 	{
@@ -168,21 +118,15 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	const char* cNode3D::GetName()
 	{
 		return msName.c_str();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D* cNode3D::GetParent()
 	{
 		return mpParent;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cNode3D::SetParent(cNode3D* apNode)
 	{
@@ -195,8 +139,6 @@ namespace hpl {
 	{
 		mlstNode.push_back(apChild);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cNode3D::AddRotation(const cVector3f& avRot, eEulerRotationOrder aOrder)
 	{
@@ -228,28 +170,20 @@ namespace hpl {
 		cVector3f vPos = mtxTransform.GetTranslation();
 		mtxTransform.SetTranslation(cVector3f(0,0,0));
 
-		//Log("Startpos: %s",vPos.ToString().c_str());
-		//Log("World pos: %s\n",GetWorldMatrix().GetTranslation().ToString().c_str());
-
 		//The animation rotation is applied before the local.
 		mtxTransform = cMath::MatrixMul(mtxTransform,m_mtxRotation);
 
 		//Skip scale for now.
-		//mtxTransform = cMath::MatrixMul(cMath::MatrixScale(mvScale), mtxTransform);
 
 		mtxTransform.SetTranslation(vPos + mvTranslation);
 
 		SetMatrix(mtxTransform,abSetChildrenUpdated);
-
-		//Log("World pos: %s\n",GetWorldMatrix().GetTranslation().ToString().c_str());
 
 		//Reset values
 		m_mtxRotation = cMatrixf::Identity;
 		mvScale = cVector3f(1,1,1);
 		mvTranslation = cVector3f(0,0,0);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cNode3D::SetSource(const tString &asSource)
 	{
@@ -261,18 +195,10 @@ namespace hpl {
 		return msSource.c_str();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	void cNode3D::UpdateWorldTransform()
 	{
 		if(mbTransformUpdated)
 		{
-			//if(msName == "WeaponJoint") LogUpdate("  update world transform!\n");
 
 			mbTransformUpdated = false;
 
@@ -286,11 +212,9 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cNode3D::SetWorldTransformUpdated()
 	{
-		//if(msName == "WeaponJoint") LogUpdate("  setworldtransform updated!\n");
 
 		mbTransformUpdated = true;
 
@@ -313,14 +237,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_cNode3D,cSaveData_iNode)
 	kSerializeVar(msName,eSerializeType_String)
 	kSerializeVar(msSource,eSerializeType_String)
@@ -328,8 +244,6 @@ namespace hpl {
 	kSerializeVar(m_mtxLocalTransform,eSerializeType_Matrixf)
 	kSerializeVar(mlParentId,eSerializeType_Int32)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_cNode3D::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -341,15 +255,10 @@ namespace hpl {
 		return 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cNode3D::CreateSaveData()
 	{
 		return hplNew( cSaveData_cNode3D,() );
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cNode3D::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -363,8 +272,6 @@ namespace hpl {
 		kSaveData_SaveObject(mpParent,mlParentId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cNode3D);
@@ -375,8 +282,6 @@ namespace hpl {
 		kSaveData_LoadFrom(m_mtxLocalTransform);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cNode3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cNode3D);
@@ -384,8 +289,4 @@ namespace hpl {
 		kSaveData_LoadObject(mpParent,mlParentId,cNode3D*);
 
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

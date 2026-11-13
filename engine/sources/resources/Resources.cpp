@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/Resources.h"
 
 #include "resources/LowLevelResources.h"
@@ -42,12 +26,6 @@
 #include "tinyxml.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cResources::cResources(iLowLevelResources *apLowLevelResources,iLowLevelGraphics *apLowLevelGraphics)
 		: iUpdateable("Resources")
@@ -78,8 +56,6 @@ namespace hpl {
 
 		mpLanguageFile = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cResources::~cResources()
 	{
@@ -112,14 +88,6 @@ namespace hpl {
 		mlstManagers.clear();
 		Log("--------------------------------------------------------\n\n");
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cResources::Init(	cGraphics* apGraphics,cSystem *apSystem, cSound* apSound, cScene *apScene,
 							cGui *apGui)
@@ -169,8 +137,6 @@ namespace hpl {
 		Log("--------------------------------------------------------\n\n");
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cResources::Update(float afTimeStep)
 	{
 		tResourceManagerListIt it = mlstManagers.begin();
@@ -182,14 +148,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cFileSearcher* cResources::GetFileSearcher()
 	{
 		return mpFileSearcher;
 	}
-
-	//-----------------------------------------------------------------------
 
 	/**
 	 * \todo File searcher should check so if the dir is allready added and if so return false and not add
@@ -209,8 +171,6 @@ namespace hpl {
 	{
 		mpFileSearcher->ClearDirectories();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cResources::SetLanguageFile(const tString &asFile)
 	{
@@ -243,8 +203,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cResources::AddEntity3DLoader(iEntity3DLoader* apLoader, bool abSetAsDefault)
 	{
 		m_mEntity3DLoaders.insert(tEntity3DLoaderMap::value_type(apLoader->GetName(), apLoader));
@@ -272,8 +230,6 @@ namespace hpl {
 		return it->second;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iArea3DLoader::SplitScale(cVector3f &avSize, cMatrixf &a_mtxTransform)
 	{
 		for(int lAxis=0; lAxis<3; ++lAxis)
@@ -287,8 +243,6 @@ namespace hpl {
 			avSize.v[lAxis] *= fScale;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cResources::AddArea3DLoader(iArea3DLoader* apLoader, bool abSetAsDefault)
 	{
@@ -316,8 +270,6 @@ namespace hpl {
 
 		return it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cResources::LoadResourceDirsFile(const tString &asFile)
 	{
@@ -349,13 +301,8 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iLowLevelResources* cResources::GetLowLevel()
 	{
 		return mpLowLevelResources;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

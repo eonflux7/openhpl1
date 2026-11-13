@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_INIT_H
 #define GAME_INIT_H
 
@@ -85,8 +69,6 @@ class cDogTestMap;
 // saves and logs. Separate from the original games so theirs are untouched.
 #define PERSONAL_RELATIVEGAME (tWString(PERSONAL_RELATIVEROOT) + cInit::GetPersonalGameDir())
 
-//--------------------------------------------------------
-
 // The three games share the engine and most of the game code; which one is
 // played is picked at startup (OPENHPL_GAME, or by the data in the working
 // directory).
@@ -98,11 +80,7 @@ enum eGameId
 	eGameId_LastEnum
 };
 
-//--------------------------------------------------------
-
 //#define DEMO_VERSION
-
-//--------------------------------------------------------
 
 class cInit : public iUpdateable
 {
@@ -251,7 +229,6 @@ public:
 	cMapHandler *mpMapHandler;
 	cButtonHandler *mpButtonHandler;
 	cPlayer *mpPlayer;
-	//cGameScripts *mpGameScripts;
 	cGameMessageHandler *mpGameMessageHandler;
 	cInventory* mpInventory;
 	cFadeHandler* mpFadeHandler;

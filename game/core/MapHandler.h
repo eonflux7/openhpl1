@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_MAP_HANDLER_H
 #define GAME_MAP_HANDLER_H
 
@@ -53,8 +37,6 @@ typedef tGameStickAreaList::iterator tGameStickAreaListIt;
 typedef cSTLIterator<iGameEnemy*,tGameEnemyList,tGameEnemyListIt> tGameEnemyIterator;
 typedef cSTLMapIterator<iGameEntity*,tGameEntityMap,tGameEntityMapIt> tGameEntityIterator;
 
-//-----------------------------------------
-
 class cMapChanger
 {
 public:
@@ -68,8 +50,6 @@ public:
 	// Black Plague: the picture shown while loading
 	tString msLoadImage;
 };
-
-//-----------------------------------------
 
 class cWorldCache
 {
@@ -93,8 +73,6 @@ private:
 	tResourceBaseList mlstAnimations;
 };
 
-//-----------------------------------------
-
 class cLoadedMap
 {
 public:
@@ -102,12 +80,8 @@ public:
 	double mfTime;
 };
 
-//-----------------------------------------
-
 typedef std::list<cGameTimer*> tGameTimerList;
 typedef tGameTimerList::iterator tGameTimerListIt;
-
-//-----------------------------------------
 
 class cEffectLightFlash
 {
@@ -135,8 +109,6 @@ private:
 typedef std::list<cEffectLightFlash*> tEffectLightFlashList;
 typedef tEffectLightFlashList::iterator tEffectLightFlashListIt;
 
-//-----------------------------------------
-
 class cMapHandlerSoundCallback : public iSoundEntityGlobalCallback
 {
 public:
@@ -148,7 +120,6 @@ private:
 	cInit *mpInit;
 	tStringVec mvEnemyHearableSounds;
 };
-//-----------------------------------------
 
 class cMapHandler : public iUpdateable
 {
@@ -240,7 +211,6 @@ public:
 	void SetPaused(bool abX) { mbPaused = abX; }
 	bool IsPaused() { return mbPaused; }
 
-	/////////////////////////////////////////
 	//Saving
 	void SaveToGlobal(cMapHandler_GlobalSave *apSave);
 	void LoadFromGlobal(cMapHandler_GlobalSave *apSave);

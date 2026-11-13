@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/MeshLoaderCollada.h"
 
 #include "system/LowLevelSystem.h"
@@ -46,13 +30,7 @@
 
 namespace hpl {
 
-	//------------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// FILL STRUCTURES
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	static bool IsExternalPath(const tString &asFile)
 	{
@@ -75,8 +53,6 @@ namespace hpl {
 		return sBuf;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMeshLoaderCollada::FillStructures(const tString &asFile,
 		tColladaImageVec *apColladaImageVec,
 		tColladaTextureVec *apColladaTextureVec,
@@ -97,8 +73,6 @@ namespace hpl {
 		}
 
 		bool bLoadCache =false;
-		//abCache = false;
-		//Log("Loading %s\n",asFile.c_str());
 
 		tString sCacheName = cString::GetFileName(cString::SetFileExt(asFile,"collcach"));
 		tString sCacheFile = msCacheDir+sCacheName;
@@ -136,7 +110,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////////////
 		// LOAD CACHE
 		if(bLoadCache)
 		{
@@ -154,9 +127,7 @@ namespace hpl {
 
 		Log("Loading Collada source '%s'\n",asFile.c_str());
 
-		/////////////////////////////////////////////////
 		// LOAD THE DOCUMENT
-		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
 		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -166,13 +137,9 @@ namespace hpl {
 			return false;
 		}
 
-		//unsigned long lTime = mpSystem->GetLowLevel()->GetTime() - lStartTime;
-		//Log("Loading collada XML file for '%s' took: %d ms\n",asFile.c_str(),lTime);
-
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
 
-		/////////////////////////////////////////////////
 		// FIRST SETUP
 
 		//Set up axis as Y.
@@ -190,7 +157,6 @@ namespace hpl {
 
 				if(tString(pAxisText->Value())=="Z_UP"){
 					mbZToY = true;
-					//Log("!!!!!!!Z IS UP!!!!!!");
 				}
 			}
 
@@ -200,9 +166,6 @@ namespace hpl {
 			Error("Couldn't find asset element!\n");
 		}
 
-
-
-		/////////////////////////////////////////////////
 		// ITERATE THE LIBRARIES BEFORE SCENE LIBRARIES
 		TiXmlElement* pLibraryElem = pRootElem->FirstChildElement();
 		while(pLibraryElem)
@@ -213,15 +176,12 @@ namespace hpl {
 			// Lights
 			if((sType == "LIGHT" || sValue == "library_lights") && apColladaLightVec)
 			{
-				///Log("Loading type: %s\n",sType.c_str());
 				LoadLights(pLibraryElem,*apColladaLightVec);
-				//Log(" --- \n");
 			}
 
 			pLibraryElem = pLibraryElem->NextSiblingElement();
 		}
 
-		//////////////////////////////////////////////
 		// LOAD SCENE
 		if(apColladaScene)
 		{
@@ -274,7 +234,6 @@ namespace hpl {
 						apColladaScene->mfDeltaTime = apColladaScene->mfEndTime - apColladaScene->mfStartTime;
 					}
 
-					//Log("Anim Start: %f End: %f\n",apColladaScene->mfStartTime, apColladaScene->mfEndTime);
 				}
 				else
 				{
@@ -292,7 +251,6 @@ namespace hpl {
 			}
 		}
 
-		/////////////////////////////////////////////////
 		// ITERATE THE AFTER SCENE LIBRARIES
 
 		pLibraryElem = pRootElem->FirstChildElement();
@@ -336,9 +294,6 @@ namespace hpl {
 				LoadControllers(pLibraryElem,*apColladaControllerVec,apColladaGeometryVec);
 			}
 
-
-			//Log(" ---- \n",sType.c_str());
-
 			pLibraryElem = pLibraryElem->NextSiblingElement();
 		}
 
@@ -357,17 +312,11 @@ namespace hpl {
 		return true;
 	}
 
-	//--------------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// SAVE COLLADA DATA
-	//////////////////////////////////////////////////////////////////////////
 
 	#define CreateXMLChild(parent, name) static_cast<TiXmlElement*>(parent->InsertEndChild(TiXmlElement(name)));
 
 	#define CreateXMLTextChild(parent, name) static_cast<TiXmlText*>(parent->InsertEndChild(TiXmlText(name)));
-
-	//-----------------------------------------------------------------------
 
 	static void SaveImageVec(TiXmlElement *apRootElem, tColladaImageVec *apColladaImageVec);
 	static void SaveTextureVec(TiXmlElement *apRootElem, tColladaTextureVec *apColladaTextureVec);
@@ -412,8 +361,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void SaveImageVec(TiXmlElement *apRootElem, tColladaImageVec *apColladaImageVec)
 	{
 		TiXmlElement *pImageRootElem =  CreateXMLChild(apRootElem,"ImageRoot");
@@ -432,8 +379,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void SaveTextureVec(TiXmlElement *apRootElem, tColladaTextureVec *apColladaTextureVec)
 	{
 		TiXmlElement *pTextureRootElem =  CreateXMLChild(apRootElem,"TextureRoot");
@@ -451,8 +396,6 @@ namespace hpl {
 			pTextureElem->SetAttribute("Image",pTexture->msImage.c_str());
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void SaveMaterialVec(TiXmlElement *apRootElem, tColladaMaterialVec *apColladaMaterialVec)
 	{
@@ -473,8 +416,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void SaveLightVec(TiXmlElement *apRootElem, tColladaLightVec *apColladaLightVec)
 	{
 		TiXmlElement *pLightRootElem =  CreateXMLChild(apRootElem,"LightRoot");
@@ -487,8 +428,6 @@ namespace hpl {
 
 			TiXmlElement *pLightElem = CreateXMLChild(pLightRootElem,"Light");
 
-			//Log("Light %s\n",pLight->msName.c_str());
-
 			pLightElem->SetAttribute("Id",pLight->msId.c_str());
 			pLightElem->SetAttribute("Name",pLight->msName.c_str());
 			pLightElem->SetAttribute("Type",pLight->msType.c_str());
@@ -497,8 +436,6 @@ namespace hpl {
 			pLightElem->SetAttribute("Color",pLight->mDiffuseColor.ToFileString().c_str());
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void SaveAnimationVec(TiXmlElement *apRootElem, tColladaAnimationVec *apColladaAnimationVec)
 	{
@@ -515,7 +452,6 @@ namespace hpl {
 			pAnimationElem->SetAttribute("Id",pAnimation->msId.c_str());
 			pAnimationElem->SetAttribute("TargetNode",pAnimation->msTargetNode.c_str());
 
-			/////////////////////////////////////
 			// Channels
 			{
 				TiXmlElement *pChannelVecElem =  CreateXMLChild(pAnimationElem,"ChannelVec");
@@ -531,7 +467,6 @@ namespace hpl {
 					pChannelElem->SetAttribute("Source",pChannel->msSource.c_str());
 				}
 			}
-			/////////////////////////////////////
 			// Samplers
 			{
 				TiXmlElement *pSamplerVecElem =  CreateXMLChild(pAnimationElem,"SamplerVec");
@@ -548,7 +483,6 @@ namespace hpl {
 					pSamplerElem->SetAttribute("Target",pSampler->msTarget.c_str());
 				}
 			}
-			/////////////////////////////////////
 			// Sources
 			{
 				TiXmlElement *pSourceVecElem =  CreateXMLChild(pAnimationElem,"SourceVec");
@@ -570,8 +504,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void SaveControllerVec(TiXmlElement *apRootElem, tColladaControllerVec *apColladaControllerVec)
 	{
 		TiXmlElement *pControllerRootElem =  CreateXMLChild(apRootElem,"ControllerRoot");
@@ -592,7 +524,6 @@ namespace hpl {
 			pControllerElem->SetAttribute("JointPairIdx",pController->mlJointPairIdx);
 			pControllerElem->SetAttribute("WeightPairIdx",pController->mlWeightPairIdx);
 
-			///////////////////////
 			// Joints
 			{
 				TiXmlElement *pJointsElem = CreateXMLChild(pControllerElem,"Joints");
@@ -605,7 +536,6 @@ namespace hpl {
 				}
 				CreateXMLTextChild(pJointsElem, sData.c_str());
 			}
-			///////////////////////
 			// Weights
 			{
 				TiXmlElement *pWeightsElem = CreateXMLChild(pControllerElem,"Weights");
@@ -618,7 +548,6 @@ namespace hpl {
 				}
 				CreateXMLTextChild(pWeightsElem, sData.c_str());
 			}
-			///////////////////////
 			// Matrices
 			{
 				TiXmlElement *pMatricesElem = CreateXMLChild(pControllerElem,"Matrices");
@@ -631,7 +560,6 @@ namespace hpl {
 				}
 				CreateXMLTextChild(pMatricesElem, sData.c_str());
 			}
-			///////////////////////
 			// Pairs
 			{
 				TiXmlElement *pPairVecElem = CreateXMLChild(pControllerElem,"PairVec");
@@ -639,7 +567,6 @@ namespace hpl {
 
 				tIntVec vPairNumVec; vPairNumVec.resize(pController->mvPairs.size(),0);
 
-				////////////////////////////////
 				//The pair connections
 				int lCount =0;
 				TiXmlElement *pPairsElem = CreateXMLChild(pPairVecElem,"Pairs");
@@ -659,7 +586,6 @@ namespace hpl {
 				CreateXMLTextChild(pPairsElem, sData.c_str());
 				pPairsElem->SetAttribute("Size",lCount);
 
-				////////////////////////////////
 				//The pair numbers
 				TiXmlElement *pPairNumElem = CreateXMLChild(pPairVecElem,"PairNum");
 				sData=""; sData.reserve(pController->mvPairs.size()*4);
@@ -672,8 +598,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void SaveGeometryVec(TiXmlElement *apRootElem, tColladaGeometryVec *apColladaGeometryVec)
 	{
@@ -694,18 +618,8 @@ namespace hpl {
 
 			pGeometryElem->SetAttribute("Material",pGeometry->msMaterial.c_str());
 
-			/////////////////////////////////
 			// Vertex properties
-			// Should not be needed.
-			/*pGeometryElem->SetAttribute("PosIdxNum",pGeometry->mlPosIdxNum);
-			pGeometryElem->SetAttribute("NormIdxNum",pGeometry->mlNormIdxNum);
-			pGeometryElem->SetAttribute("TexIdxNum",pGeometry->mlTexIdxNum);
 
-			pGeometryElem->SetAttribute("PosArrayIdx",pGeometry->mlPosArrayIdx);
-			pGeometryElem->SetAttribute("NormArrayIdx",pGeometry->mlNormArrayIdx);
-			pGeometryElem->SetAttribute("TexArrayIdx",pGeometry->mlTexArrayIdx); */
-
-			/////////////////////////////////
 			// Index Vec
 			TiXmlElement *pIndexVecElem = CreateXMLChild(pGeometryElem,"IndexVec");
 
@@ -722,12 +636,10 @@ namespace hpl {
 			TiXmlText *pIndecVecText = CreateXMLTextChild(pIndicesDataElem,"Data");
 			pIndecVecText->SetValue(sIndexVec.c_str());
 
-			/////////////////////////////////
 			// Vertex vec
 			TiXmlElement *pVertexVecElem = CreateXMLChild(pGeometryElem,"VertexVec");
 			pVertexVecElem->SetAttribute("Size",(int)pGeometry->mvVertexVec.size());
 			{
-				/////////////////////////////////
 				// Positions
 				tString sData = "";
 				sData.reserve(pGeometry->mvVertexVec.size() * 10 * 3);
@@ -739,7 +651,6 @@ namespace hpl {
 				TiXmlText *pVecText = CreateXMLTextChild(pDataElem,"Data");
 				pVecText->SetValue(sData.c_str());
 
-				/////////////////////////////////
 				// Normals
 				sData = "";
 				sData.reserve(pGeometry->mvVertexVec.size() * 10 * 3);
@@ -751,7 +662,6 @@ namespace hpl {
 				pVecText = CreateXMLTextChild(pDataElem,"Data");
 				pVecText->SetValue(sData.c_str());
 
-				/////////////////////////////////
 				// UVs
 				sData = "";
 				sData.reserve(pGeometry->mvVertexVec.size() * 10 * 3);
@@ -763,7 +673,6 @@ namespace hpl {
 				pVecText = CreateXMLTextChild(pDataElem,"Data");
 				pVecText->SetValue(sData.c_str());
 
-				/////////////////////////////////
 				// Tangents
 				sData = "";
 				char sTemp[20];
@@ -777,16 +686,13 @@ namespace hpl {
 				CreateXMLTextChild(pDataElem,sData.c_str());
 			}
 
-			/////////////////////////////////
 			// Extra vertex vec
-			//if(false)
 			{
 				TiXmlElement *pExtraVertexVecElem = CreateXMLChild(pGeometryElem,"ExtraVertexVec");
 				pExtraVertexVecElem->SetAttribute("Size",(int)pGeometry->mvExtraVtxVec.size());
 
 				tUIntVec vExtraNum; vExtraNum.resize(pGeometry->mvExtraVtxVec.size(),0);
 
-				////////////////////////////
 				//Extra vertices
 				tString sData = ""; sData.reserve(pGeometry->mvExtraVtxVec.size()*4*4 *4);
 				int lExtraCount =0;
@@ -811,7 +717,6 @@ namespace hpl {
 				CreateXMLTextChild(pExtraElem,sData.c_str());
 				pExtraElem->SetAttribute("Size",(int)lExtraCount);
 
-				////////////////////////////
 				//Extra num
 				sData = ""; sData.reserve(pGeometry->mvExtraVtxVec.size()*4 *4);
 				TiXmlElement *pExtraNumElem = CreateXMLChild(pExtraVertexVecElem,"ExtraNum");
@@ -824,8 +729,6 @@ namespace hpl {
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void SaveIterativeNode(TiXmlElement *apParentElem, cColladaNode *apParentNode)
 	{
@@ -851,7 +754,6 @@ namespace hpl {
 
 
 			TiXmlElement *pTransformRootElem =  CreateXMLChild(pNodeElem,"TransformRoot");
-			//tColladaTransformList mlstTransforms;
 			tColladaTransformListIt transIt = pNode->mlstTransforms.begin();
 			for(; transIt != pNode->mlstTransforms.end(); ++transIt)
 			{
@@ -885,13 +787,7 @@ namespace hpl {
 		SaveIterativeNode(pSceneRootElem,&apColladaScene->mRoot);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// LOAD COLLADA DATA
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	// Cache failures are caught at LoadStructures; partial results are discarded.
 	class cInvalidColladaCache : public std::runtime_error
@@ -977,7 +873,6 @@ namespace hpl {
 		tColladaAnimationVec *apColladaAnimVec,
 		cColladaScene *apColladaScene)
 	{
-		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
 		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -986,9 +881,6 @@ namespace hpl {
 			hplDelete(pXmlDoc);
 			return false;
 		}
-
-		//unsigned long lTime = mpSystem->GetLowLevel()->GetTime() - lStartTime;
-		//Log("Loading cached collada XML file '%s' took: %d ms\n",asFile.c_str(),lTime);
 
 		try
 		{
@@ -1031,8 +923,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void LoadImageVec(TiXmlElement *apRootElem, tColladaImageVec *apColladaImageVec)
 	{
 		TiXmlElement *pImageRootElem = CacheChild(apRootElem,"ImageRoot");
@@ -1053,8 +943,6 @@ namespace hpl {
 			pImage->msSource = CacheAttribute(pImageElem,"Source");
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void LoadTextureVec(TiXmlElement *apRootElem, tColladaTextureVec *apColladaTextureVec)
 	{
@@ -1077,8 +965,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void LoadMaterialVec(TiXmlElement *apRootElem, tColladaMaterialVec *apColladaMaterialVec)
 	{
 		TiXmlElement *pMaterialRootElem = CacheChild(apRootElem,"MaterialRoot");
@@ -1100,8 +986,6 @@ namespace hpl {
 			pMaterial->mDiffuseColor = cString::ToColor(CacheAttribute(pMaterialElem,"Color"),cColor(0,0));
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void LoadControllerVec(TiXmlElement *apRootElem, tColladaControllerVec *apColladaControllerVec)
 	{
@@ -1126,7 +1010,6 @@ namespace hpl {
 			pController->mlJointPairIdx = cString::ToInt(CacheAttribute(pControllerElem,"JointPairIdx"),0);
 			pController->mlWeightPairIdx = cString::ToInt(CacheAttribute(pControllerElem,"WeightPairIdx"),0);
 
-			////////////////////////////
 			//Joints
 			{
 				TiXmlElement * pJointsElem = CacheChild(pControllerElem,"Joints");
@@ -1138,30 +1021,21 @@ namespace hpl {
 				cString::GetStringVec(sData,pController->mvJoints,&sSepp);
 				if(pController->mvJoints.size() != static_cast<size_t>(lSize)) throw cInvalidColladaCache("joint count mismatch");
 			}
-			////////////////////////////
 			//Weights
 			{
 				TiXmlElement * pWeightsElem = CacheChild(pControllerElem,"Weights");
 				int lSize = CacheSize(pWeightsElem);
 				const char *pWeightsText = CacheText(pWeightsElem);
 
-				//tString sData = pWeightsText;
-				//tString sSepp = " "; pController->mvWeights.reserve(lSize);
-				//cString::GetFloatVec(sData,pController->mvWeights,&sSepp);
-
 				pController->mvWeights.resize(lSize);
 				if(!cString::FloatStringToArray(pController->mvWeights.data(),pWeightsText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 			}
-			////////////////////////////
 			//Matrices
 			{
 				TiXmlElement * pMatricesElem = CacheChild(pControllerElem,"Matrices");
 				int lSize = CacheSize(pMatricesElem);
 				const char *pMatricesText = CacheText(pMatricesElem);
 
-				//tString sData = pMatricesText;
-				//tString sSepp = " ";
-				//cString::GetFloatVec(sData,vRawData,&sSepp);
 				tFloatVec vRawData;vRawData.resize(lSize * 16);
 				if(!cString::FloatStringToArray(vRawData.data(),pMatricesText,lSize * 16)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1179,32 +1053,24 @@ namespace hpl {
 					pData += 16;
 				}
 			}
-			////////////////////////////
 			//Pairs
 			{
 				TiXmlElement * pPairVecElem = CacheChild(pControllerElem,"PairVec");
 				int lSize = CacheSize(pPairVecElem);
 
-				/////////////////////////////////////////
 				// Get number of connections per pair
 				TiXmlElement* pPairNumElem = CacheChild(pPairVecElem,"PairNum");
 				const char *pPairNumText = CacheText(pPairNumElem);
 
 				tUIntVec vPairNum; vPairNum.resize(lSize);
-				//tString sData = pPairNumText;
-				//tString sSepp = " ";
-				//cString::GetIntVec(sData,vPairNum,&sSepp);
 				if(!cString::UIntStringToArray(vPairNum.data(),pPairNumText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 
-				/////////////////////////////////////////
 				// Get pairs
 				TiXmlElement* pPairsElem = CacheChild(pPairVecElem,"Pairs");
 				int lPairSize = CacheSize(pPairsElem);
 				const char *pPairsText = CacheText(pPairsElem);
 
 				tUIntVec vPairs; vPairs.resize(lPairSize*2);
-				//sData = pPairsText;
-				//cString::GetIntVec(sData,vPairs,&sSepp);
 				if(!cString::UIntStringToArray(vPairs.data(),pPairsText,lPairSize*2)) throw cInvalidColladaCache("invalid numeric array");
 
 
@@ -1228,7 +1094,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	static void LoadLightVec(TiXmlElement *apRootElem, tColladaLightVec *apColladaLightVec)
 	{
@@ -1253,8 +1118,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void LoadAnimationVec(TiXmlElement *apRootElem, tColladaAnimationVec *apColladaAnimationVec)
 	{
 		TiXmlElement *pAnimationRootElem = CacheChild(apRootElem,"AnimationRoot");
@@ -1273,7 +1136,6 @@ namespace hpl {
 			pAnimation->msId = CacheAttribute(pAnimationElem,"Id");
 			pAnimation->msTargetNode = CacheAttribute(pAnimationElem,"TargetNode");
 
-			/////////////////////////////////////
 			//Channels
 			{
 				TiXmlElement *pChannelVecElem = CacheChild(pAnimationElem,"ChannelVec");
@@ -1292,7 +1154,6 @@ namespace hpl {
 				}
 			}
 
-			/////////////////////////////////////
 			//Samplers
 			{
 				TiXmlElement *pSamplerVecElem = CacheChild(pAnimationElem,"SamplerVec");
@@ -1312,7 +1173,6 @@ namespace hpl {
 				}
 			}
 
-			/////////////////////////////////////
 			//Sources
 			{
 				TiXmlElement *pSourceVecElem = CacheChild(pAnimationElem,"SourceVec");
@@ -1337,8 +1197,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void LoadGeometryVec(TiXmlElement *apRootElem, tColladaGeometryVec *apColladaGeometryVec)
 	{
 		TiXmlElement *pGeometryRootElem = CacheChild(apRootElem,"GeometryRoot");
@@ -1358,7 +1216,6 @@ namespace hpl {
 			pGeometry->msName = CacheAttribute(pGeometryElem,"Name");
 			pGeometry->msMaterial = CacheAttribute(pGeometryElem,"Material");
 
-			/////////////////////////////////
 			// Index Vec
 			{
 				TiXmlElement *pIndexVecElem = CacheChild(pGeometryElem,"IndexVec");
@@ -1373,13 +1230,9 @@ namespace hpl {
 
 					if(!cString::UIntStringToArray(pGeometry->mvIndexVec.data(),pVecText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 
-					//tString sData = pVecText;
-					//tString sSepp = " ";
-					//cString::GetUIntVec(sData,pGeometry->mvIndexVec,&sSepp);
 				}
 			}
 
-			/////////////////////////////////
 			// Vertex vec
 			{
 				TiXmlElement *pVertexVecElem = CacheChild(pGeometryElem,"VertexVec");
@@ -1392,16 +1245,10 @@ namespace hpl {
 					tFloatVec vRawData;
 					vRawData.resize(lSize * 3);
 
-					/////////////////////////////////
 					// Positions
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Positions");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1414,16 +1261,10 @@ namespace hpl {
 						}
 					}
 
-					/////////////////////////////////
 					// Normals
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Normals");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1436,16 +1277,10 @@ namespace hpl {
 						}
 					}
 
-					/////////////////////////////////
 					// UVs
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"UV");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1458,16 +1293,10 @@ namespace hpl {
 						}
 					}
 
-					/////////////////////////////////
 					// Tangents
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Tangents");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						pGeometry->mvTangents.resize(lSize*4);
 						if(!cString::FloatStringToArray(pGeometry->mvTangents.data(),pVecText,lSize * 4)) throw cInvalidColladaCache("invalid numeric array");
@@ -1480,7 +1309,6 @@ namespace hpl {
 			for(unsigned int lIndex : pGeometry->mvIndexVec)
 				if(lIndex >= pGeometry->mvVertexVec.size()) throw cInvalidColladaCache("invalid vertex index");
 
-			/////////////////////////////////
 			// Extra vertex vec
 			{
 				TiXmlElement *pVertexVecElem = CacheChild(pGeometryElem,"ExtraVertexVec");
@@ -1492,7 +1320,6 @@ namespace hpl {
 					tUIntVec mvExtraNum; mvExtraNum.resize(lSize);
 					tUIntVec mvExtraVtx;
 
-					//////////////////////////////////////////////
 					// Extra num
 					{
 						TiXmlElement *pExtraNumElem = CacheChild(pVertexVecElem,"ExtraNum");
@@ -1501,7 +1328,6 @@ namespace hpl {
 						if(!cString::UIntStringToArray(mvExtraNum.data(),pExtraNumText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 					}
 
-					//////////////////////////////////////////////
 					// Extra vertex
 					{
 						TiXmlElement *pExtraVertexElem = CacheChild(pVertexVecElem,"ExtraVertex");
@@ -1529,8 +1355,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	static void LoadIterativeNode(TiXmlElement *apNodeElem,cColladaNode *apParentNode, cColladaScene *apColladaScene)
 	{
@@ -1572,8 +1396,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	static void LoadScene(TiXmlElement *apRootElem, cColladaScene *apColladaScene)
 	{
 		TiXmlElement *pSceneElem = CacheChild(apRootElem,"Scene");
@@ -1592,8 +1414,4 @@ namespace hpl {
 			LoadIterativeNode(pNodeElem,&apColladaScene->mRoot,apColladaScene);
 		}
 	}
-
-
-
-	//-----------------------------------------------------------------------
 }

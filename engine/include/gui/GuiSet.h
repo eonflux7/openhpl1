@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_GUI_SET_H
 #define HPL_GUI_SET_H
 
@@ -24,8 +8,6 @@
 #include "graphics/GraphicsTypes.h"
 
 namespace hpl {
-
-	//---------------------------------------------
 
 	class cResources;
 	class cGraphics;
@@ -51,12 +33,8 @@ namespace hpl {
 	class cWidgetListBox;
 	class cWidgetComboBox;
 
-	//---------------------------------------------
-
 	typedef std::list<iGuiPopUp*> tGuiPopUpList;
 	typedef tGuiPopUpList::iterator tGuiPopUpListIt;
-
-	//---------------------------------------------
 
 	class cGuiClipRegion;
 	class cGuiRenderObject
@@ -79,8 +57,6 @@ namespace hpl {
 	typedef std::multiset<cGuiRenderObject,cGuiRenderObjectCompare> tGuiRenderObjectSet;
 	typedef tGuiRenderObjectSet::iterator tGuiRenderObjectSetIt;
 
-	//-----------------------------------------------
-
 	typedef std::list<cGuiClipRegion*> tGuiClipRegionList;
 	typedef tGuiClipRegionList::iterator tGuiClipRegionListIt;
 
@@ -93,13 +69,10 @@ namespace hpl {
 		void Clear();
 		cGuiClipRegion* CreateChild(const cVector3f &avPos, const cVector2f &avSize);
 
-		//tGuiRenderObjectSet m_setObjects;
 		cRect2f mRect;
 
 		tGuiClipRegionList mlstChildren;
 	};
-
-	//-----------------------------------------------
 
 	class cGuiSet
 	{
@@ -109,7 +82,6 @@ namespace hpl {
 				cSound *apSound, cScene *apScene);
 		~cGuiSet();
 
-		////////////////////////////////////
 		// General
 
 		void Update(float afTimeStep);
@@ -118,7 +90,6 @@ namespace hpl {
 
 		bool SendMessage(eGuiMessage aMessage, cGuiMessageData &aData);
 
-		////////////////////////////////////
 		// Rendering
 		void Render();
 
@@ -136,7 +107,6 @@ namespace hpl {
 						eFontAlign aAlign = eFontAlign_Left,
 						eGuiMaterial aMaterial = eGuiMaterial_FontNormal);
 
-		////////////////////////////////////
 		// Widget Creation
 		cWidgetWindow* CreateWidgetWindow(	const cVector3f &avLocalPos=0,
 											const cVector2f &avSize=0,
@@ -204,7 +174,6 @@ namespace hpl {
 
 		void DestroyWidget(iWidget *apWidget);
 
-		////////////////////////////////////
 		// Popup
 		void CreatePopUpMessageBox(	const tWString& asLabel, const tWString& asText,
 									const tWString& asButton1, const tWString& asButton2,
@@ -212,8 +181,6 @@ namespace hpl {
 
 		void DestroyPopUp(iGuiPopUp *apPopUp);
 
-
-		////////////////////////////////////
 		// Properties
 		void SetActive(bool abX);
 		bool IsActive(){return mbActive;}

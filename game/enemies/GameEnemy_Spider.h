@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_ENEMY_SPIDER_H
 #define GAME_GAME_ENEMY_SPIDER_H
 
@@ -23,8 +7,6 @@
 #include "enemies/GameEnemy.h"
 
 using namespace hpl;
-
-//-----------------------------------------
 
 class cGameEnemy_Spider;
 
@@ -49,8 +31,6 @@ protected:
 	cGameEnemy_Spider *mpEnemySpider;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Spider_Idle : public iGameEnemyState_Spider_Base
 {
@@ -70,8 +50,6 @@ private:
 	bool mbStopped;
 	float mfNextWalkTime;
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Spider_Hunt : public iGameEnemyState_Spider_Base
@@ -97,8 +75,6 @@ private:
 	float mfLostPlayerRemainingSeconds;
 	float mfLostPlayerDurationSeconds;
 };
-
-//-----------------------------------------
 
 // ATTACK STATE
 class cGameEnemyState_Spider_Attack : public iGameEnemyState_Spider_Base
@@ -126,8 +102,6 @@ private:
 	bool mbAttacked;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Spider_Flee : public iGameEnemyState_Spider_Base
 {
@@ -147,8 +121,6 @@ private:
 	float mfBackAngle;
 	bool mbBackwards;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Spider_KnockDown : public iGameEnemyState_Spider_Base
@@ -173,8 +145,6 @@ private:
 	bool mbCheckAnim;
 };
 
-//-----------------------------------------
-
 // DEAD STATE
 class cGameEnemyState_Spider_Dead : public iGameEnemyState_Spider_Base
 {
@@ -193,8 +163,6 @@ public:
 	void OnTakeHit(float afDamage) override{}
 	void OnDeath(float afDamage) override{}
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Spider : public iGameEnemy
 {
@@ -257,7 +225,5 @@ public:
 private:
     iCollideShape *mpAttackShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_SPIDER_H

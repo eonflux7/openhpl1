@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/Renderable.h"
 
 #include "math/Math.h"
@@ -24,12 +8,6 @@
 #include "graphics/RenderList.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iRenderable::iRenderable(const tString &asName) : iEntity3D(asName)
 	{
@@ -49,14 +27,6 @@ namespace hpl {
 		mvOneSidedNormal =0;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMatrixf* iRenderable::GetInvModelMatrix()
 	{
 		cMatrixf *pModelMatrix = GetModelMatrix(nullptr);
@@ -71,8 +41,6 @@ namespace hpl {
 
 		return &m_mtxInvModel;
 	}
-
-	//-----------------------------------------------------------------------
 
 	const cVector3f& iRenderable::GetCalcScale()
 	{
@@ -89,27 +57,15 @@ namespace hpl {
 		return mvCalcScale;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iRenderable::CollidesWithBV(cBoundingVolume *apBV)
 	{
 		return cMath::CheckCollisionBV(*GetBoundingVolume(), *apBV);
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iRenderable::CollidesWithFrustum(cFrustum *apFrustum)
 	{
 		return apFrustum->CollideBoundingVolume(GetBoundingVolume()) != eFrustumCollision_Outside;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iRenderable,cSaveData_iEntity3D)
 	kSerializeVar(mbStatic, eSerializeType_Bool)
@@ -117,14 +73,10 @@ namespace hpl {
 	kSerializeVar(mfZ, eSerializeType_Float32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iRenderable::CreateSaveData()
 	{
 		return nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iRenderable::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -135,8 +87,6 @@ namespace hpl {
 		kSaveData_SaveTo(mfZ);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iRenderable::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iRenderable);
@@ -146,12 +96,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mfZ);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iRenderable::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iRenderable);
 	}
-
-	//-----------------------------------------------------------------------
 }

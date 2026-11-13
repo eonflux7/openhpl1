@@ -11,8 +11,6 @@ using namespace hpl;
 
 class cInit;
 
-//----------------------------------------
-
 // Checks for bugs of the kind the move to Newton 2 brought, run by the smoke
 // test on every map when OPENHPL_CHECKS lists them:
 //   settle  bodies that move, fall, keep shaking or go NaN with nobody
@@ -106,7 +104,5 @@ private:
 	size_t mlStartPos;
 	cVector3f mvStartFeet;
 };
-
-//----------------------------------------
 
 #endif // GAME_MAP_CHECKS_H

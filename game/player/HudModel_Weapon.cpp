@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "player/HudModel_Weapon.h"
 
 #include "core/Init.h"
@@ -30,18 +14,12 @@
 #include "core/GlobalInit.h"
 
 
-//////////////////////////////////////////////////////////////////////////
 // MELEE RAY CALLBACK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cMeleeRayCallback::Reset()
 {
 	mpClosestBody = nullptr;
 }
-
-//-----------------------------------------------------------------------
 
 bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
@@ -59,14 +37,7 @@ bool cMeleeRayCallback::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apPar
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
 // HUD MODEL MELEE WEAPON
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_WeaponMelee)
 {
@@ -84,11 +55,8 @@ cHudModel_WeaponMelee::cHudModel_WeaponMelee() : iHudModel(ePlayerHandType_Weapo
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 {
-	////////////////////////////////////////////////
 	//Load the MAIN element.
 	TiXmlElement *pMeleeElem = apRootElem->FirstChildElement("MELEE");
 	if(pMeleeElem==nullptr){
@@ -107,7 +75,6 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	
 	mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 
-	////////////////////////////////////////////////
 	//Go through the ATTACK elements.
 	TiXmlElement *pAttackElem = apRootElem->FirstChildElement("ATTACK");
 	for(; pAttackElem != nullptr; pAttackElem = pAttackElem->NextSiblingElement("ATTACK"))
@@ -155,24 +122,19 @@ void cHudModel_WeaponMelee::LoadData(TiXmlElement *apRootElem)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeStep)
 {
-	////////////////////////
 	//Idle and waiting for movement
 	if(mlAttackState<=1)
 	{
 		return false;
 	}
-	////////////////////
 	//Movement
 	else
 	{
 		aPoseMtx = cMath::MatrixSlerp(mfAttackProgress,m_mtxPrevPose,m_mtxNextPose,true);
 		
 		float fMul = 1.0f;
-		//if(mlAttackState == 2 && mpInit->mDifficulty== eGameDifficulty_Easy) fMul = 1.6f;
 
 		mfAttackProgress += mfPoseProgressRate * afTimeStep * fMul;
 		
@@ -220,8 +182,6 @@ bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeSte
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::OnAttackDown()
 {
 	if(mState == eHudModelState_Idle && mlAttackState ==0)
@@ -232,8 +192,6 @@ void cHudModel_WeaponMelee::OnAttackDown()
 		mbButtonDown = true;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::OnAttackUp()
 {
@@ -258,8 +216,6 @@ void cHudModel_WeaponMelee::OnAttackUp()
 	mbButtonDown = false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 {
 	float fMinMovement = 0.015f;
@@ -270,15 +226,11 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 	}
 	else
 	{
-		/////////////////////////////
 		//Check for charge
 		if(mlAttackState == 1)
 		{
 			if(mpInit->mbSimpleWeaponSwing)
 			{
-				//if(avMovement.y < -0.03f)
-				//	mlCurrentAttack = 2;
-				//else
 					mlCurrentAttack = 0;//cMath::RandRectl(0,1);
 				
 				mlAttackState =2;
@@ -308,9 +260,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				mfAttackProgress = 0.0f;
 				mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
 
-				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfPoseProgressRate *= 0.8f;
-
 				PlaySound(mvAttacks[mlCurrentAttack].msChargeSound);
 				
 				m_mtxPrevPose = mEquipPose.ToMatrix();
@@ -330,7 +279,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				{
 					mfAttackProgress = 0.0f;
 					mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
-					//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) 	mfPoseProgressRate *= 0.8f;
 					
 					m_mtxPrevPose = mvAttacks[mlCurrentAttack].mStart.ToMatrix();
 					m_mtxNextPose = mvAttacks[2].mStart.ToMatrix();
@@ -370,9 +318,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				mfAttackProgress = 0.0f;
 				mfPoseProgressRate = 1.0f/mvAttacks[mlCurrentAttack].mfAttackLength;
 
-				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfPoseProgressRate *= 0.55f;
-				
 				PlaySound(mvAttacks[mlCurrentAttack].msSwingSound);
 
 				mpInit->mpPlayer->GetHidden()->UnHide();
@@ -386,16 +331,12 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::PlaySound(const tString &asSound)
 {
 	cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
 
 	pSoundHandler->PlayGui(asSound,false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::LoadExtraEntities()
 {
@@ -418,8 +359,6 @@ void cHudModel_WeaponMelee::LoadExtraEntities()
 	
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::DestroyExtraEntities()
 {
 	iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -431,8 +370,6 @@ void cHudModel_WeaponMelee::DestroyExtraEntities()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::PostSceneDraw()
 {
 	if(mbDrawDebug==false) return;
@@ -443,8 +380,6 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 	cVector3f vPos = pCamera->GetPosition() + pCamera->GetForward()*fAttackRange;
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(vPos,0.1f,cColor(1,0,1,1));
 		
-	//return;
-	
 	float fDamageRange = mvAttacks[mlCurrentAttack].mfDamageRange;	
 	cVector3f vCenter = pCamera->GetPosition() + pCamera->GetForward()*fDamageRange;
 
@@ -454,13 +389,6 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 	mtxDamage.SetTranslation(vCenter);
 
 	bool bCollide=false;
-	/*{
-		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-		iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
-		
-		bCollide = pPhysicsWorld->CheckShapeWorldCollision(NULL,mvAttacks[mlCurrentAttack].mpCollider,
-															mtxDamage,NULL,false,false,NULL,false);
-	}*/
 
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxDamage, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
@@ -474,16 +402,12 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 																cColor(1,0,1,1));
 }
 
-//-----------------------------------------------------------------------
-
 bool cHudModel_WeaponMelee::IsAttacking()
 {
 	if(mlAttackState >1) return true;
 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::ResetExtraData()
 {
@@ -501,14 +425,10 @@ void cHudModel_WeaponMelee::ResetExtraData()
 	mfPoseProgressRate = 1.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cHudModel_WeaponMelee::Attack()
 {
 	mpInit->mbWeaponAttacking = true;
-	//Log("----------------- BEGIN ATTACK WITH WEAPON ------------ \n");
 
-	////////////////////////////////
 	//Set up
 	float fDamageRange = mvAttacks[mlCurrentAttack].mfDamageRange;	
 
@@ -545,7 +465,6 @@ void cHudModel_WeaponMelee::Attack()
 
 	tVector3fList lstPostions;
 
-	////////////////////////////////
 	//Iterate Enemies
 	tGameEnemyIterator enemyIt = mpInit->mpMapHandler->GetGameEnemyIterator();
 	while(enemyIt.HasNext())
@@ -558,12 +477,6 @@ void cHudModel_WeaponMelee::Attack()
 
 		if(cMath::CheckCollisionBV(tempBV, *pBody->GetBV()))
 		{
-			/*if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
-				mvAttacks[mlCurrentAttack].mpCollider,
-				mtxDamage,collideData,1)==false)
-			{
-				continue;
-			}*/
 			if(pEnemy->GetMeshEntity()->CheckColliderShapeCollision(pPhysicsWorld,
 																	mvAttacks[mlCurrentAttack].mpCollider,
 																	mtxDamage,&lstPostions,nullptr)==false)
@@ -630,7 +543,6 @@ void cHudModel_WeaponMelee::Attack()
 	
 	std::set<iPhysicsBody*> m_setHitBodies;
 
-	////////////////////////////////
 	//Iterate bodies
 	float fClosestHitDist = 9999.0f;
 	cVector3f vClosestHitPos;
@@ -692,7 +604,6 @@ void cHudModel_WeaponMelee::Attack()
 		}
 	}
 
-	////////////////////////////////////////////
 	//Check with ray and see a closer material can be found.
 	{
 		float fAttackRange = mvAttacks[mlCurrentAttack].mfAttackRange;
@@ -722,7 +633,6 @@ void cHudModel_WeaponMelee::Attack()
 		}
 	}
 		
-	////////////////////////////////////////////
 	//Check the closest material and play sounds and effects depending on it.
 	if(pClosestHitMat)
 	{
@@ -749,9 +659,7 @@ void cHudModel_WeaponMelee::Attack()
 			}
 		}
 	}
-	//Log("----------------- END ATTACK WITH WEAPON ------------ \n");
 	
-	/////////////////////////
 	//Play hit sound
 	if(bHit)
 	{
@@ -768,8 +676,6 @@ void cHudModel_WeaponMelee::Attack()
 
 	mpInit->mbWeaponAttacking = false;
 }
-
-//-----------------------------------------------------------------------
 
 void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 {
@@ -811,12 +717,9 @@ void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 	{
 		vForceDir.Normalise();
 
-		//pBody->AddForce(vForceDir * fForceSize);
 		apBody->AddImpulse(vForceDir *fForceSize);
 
 		cVector3f vTorque = vSpinMul * fMass * fForceSize;
-
-		//vTorque = cMath::MatrixMul(pBody->GetInertiaMatrix(),vTorque);
 
 		apBody->AddTorque(vTorque);
 	}
@@ -827,5 +730,3 @@ void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 		pEntity->Damage(fDamage,mvAttacks[mlCurrentAttack].mlAttackStrength);
 	}
 }
-
-//-----------------------------------------------------------------------

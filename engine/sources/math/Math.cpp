@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include <stdlib.h>
 
 #include "system/LowLevelSystem.h"
@@ -33,18 +17,10 @@ namespace hpl {
 
 	static char mpTempChar[1024];
 
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	int cMath::RandRectl(int alMin, int alMax)
 	{
 		return (rand()%(alMax-alMin+1))+alMin;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMath::RandRectf(float afMin, float afMax)
 	{
@@ -53,15 +29,11 @@ namespace hpl {
 		return afMin + fRand*(afMax-afMin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector2f cMath::RandRectVector2f(const cVector3f &avMin,const cVector3f &avMax)
 	{
 		return cVector2f(	RandRectf(avMin.x, avMax.x),
 							RandRectf(avMin.y, avMax.y));
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cMath::RandRectVector3f(const cVector3f &avMin,const cVector3f &avMax)
 	{
@@ -70,8 +42,6 @@ namespace hpl {
 							RandRectf(avMin.z, avMax.z));
 	}
 
-	//-----------------------------------------------------------------------
-
 	cColor cMath::RandRectColor(const cColor &aMin,const cColor &aMax)
 	{
 		return cColor(	RandRectf(aMin.r, aMax.r),
@@ -79,8 +49,6 @@ namespace hpl {
 							RandRectf(aMin.b, aMax.b),
 							RandRectf(aMin.a, aMax.a));
 	}
-
-	//-----------------------------------------------------------------------
 
 	static std::minstd_rand& SoundRandom()
 	{
@@ -98,8 +66,6 @@ namespace hpl {
 		return std::uniform_real_distribution<float>(afMin, afMax)(SoundRandom());
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMath::Randomize(int alSeed)
 	{
 		if(alSeed==-1)
@@ -111,7 +77,6 @@ namespace hpl {
 			srand(alSeed);
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	float cMath::Dist2D(const cVector2f &avPosA,const cVector2f &avPosB)
 	{
@@ -121,8 +86,6 @@ namespace hpl {
 		return sqrt(fDx*fDx + fDy*fDy);
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::Dist2D(const cVector3f &avPosA,const cVector3f &avPosB)
 	{
 		float fDx = avPosA.x - avPosB.x;
@@ -130,8 +93,6 @@ namespace hpl {
 
 		return sqrt(fDx*fDx + fDy*fDy);
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMath::SqrDist2D(const cVector2f &avPosA,const cVector2f &avPosB)
 	{
@@ -141,8 +102,6 @@ namespace hpl {
 		return fDx*fDx + fDy*fDy;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::SqrDist2D(const cVector3f &avPosA,const cVector3f &avPosB)
 	{
 		float fDx = avPosA.x - avPosB.x;
@@ -151,23 +110,17 @@ namespace hpl {
 		return fDx*fDx + fDy*fDy;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMath::BoxCollision(cRect2l aRect1, cRect2l aRect2)
 	{
 		return (aRect1.x>aRect2.x+(aRect2.w-1) || aRect2.x>aRect1.x+(aRect1.w-1) ||
 			aRect1.y>aRect2.y+(aRect2.h-1) || aRect2.y>aRect1.y+(aRect1.h-1))==false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMath::BoxCollision(cRect2f aRect1, cRect2f aRect2)
 	{
 		return (aRect1.x>aRect2.x+(aRect2.w) || aRect2.x>aRect1.x+(aRect1.w) ||
 			aRect1.y>aRect2.y+(aRect2.h) || aRect2.y>aRect1.y+(aRect1.h))==false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMath::PointBoxCollision(cVector2f avPoint, cRect2f aRect)
 	{
@@ -176,8 +129,6 @@ namespace hpl {
 		else
 			return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMath::BoxFit(cRect2l aRectSrc, cRect2l aRectDest)
 	{
@@ -193,8 +144,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMath::BoxFit(cRect2f aRectSrc, cRect2f aRectDest)
 	{
 		//check is size is smaller and doesn't overlap
@@ -208,8 +157,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cRect2f& cMath::ClipRect(cRect2f& aRectSrc,const cRect2f& aRectDest)
 	{
@@ -232,21 +179,9 @@ namespace hpl {
 		return aRectSrc;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMath::CheckCollisionBV(cBoundingVolume& aBV1,cBoundingVolume& aBV2)
 	{
-		//////////////////////////////////////////
-		//Check Sphere collision.
-		//Not needed I think.
-		/*float fRadiusSum = aBV1->GetRadius() + aBV2->GetRadius();
-		cVector3f vSepAxis = aBV1->GetWorldCenter() - aBV2->GetWorldCenter();
-		if(vSepAxis.SqrLength() > (fRadiusSum * fRadiusSum))
-		{
-			return eBVCollision_Outside;
-		}*/
 
-		///////////////////////////////////////////
 		//Check box collision
 		aBV1.UpdateSize();
 		aBV2.UpdateSize();
@@ -257,9 +192,6 @@ namespace hpl {
 		const cVector3f &vMax1 = aBV1.mvWorldMax;
 		const cVector3f &vMax2 = aBV2.mvWorldMax;
 
-		//Log("Min1: %s Max1: %s  vs  Min2: %s Max2: %s\n", vMin1.ToString().c_str(),vMax1.ToString().c_str(),
-		//												vMin2.ToString().c_str(), vMax2.ToString().c_str());
-
 		if(vMax1.x < vMin2.x || vMax1.y < vMin2.y || vMax1.z < vMin2.z ||
 			vMax2.x < vMin1.x || vMax2.y < vMin1.y || vMax2.z < vMin1.z)
 		{
@@ -268,8 +200,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMath::PointBVCollision(const cVector3f& avPoint, cBoundingVolume& aBV)
 	{
@@ -284,8 +214,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMath::GetClipRectFromBV(cRect2l &aDestRect, cBoundingVolume &aBV,
 								const cMatrixf &a_mtxView, const cMatrixf &a_mtxProj,
@@ -364,8 +292,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMath::CheckSphereInPlanes(const cVector3f &avCenter, float afRadius,
 									const cPlanef* apPlanes, int alPlaneCount)
 	{
@@ -381,14 +307,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::GetFraction(float afVal)
 	{
 		return afVal - floor(afVal);
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMath::Modulus(float afDividend, float afDivisor)
 	{
@@ -398,8 +320,6 @@ namespace hpl {
 
 		return fRemain;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMath::Wrap(float afX, float afMin, float afMax)
 	{
@@ -420,8 +340,6 @@ namespace hpl {
 		return afX + fOffSet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::Clamp(float afX, float afMin, float afMax)
 	{
 		if(afX > afMax) afX = afMax;
@@ -429,8 +347,6 @@ namespace hpl {
 
 		return afX;
 	}
-
-	//-----------------------------------------------------------------------
 
 	float cMath::GetAngleDistanceRad(float afAngle1, float afAngle2)
 	{
@@ -465,8 +381,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::TurnAngle(float afAngle,float afFinalAngle,float afSpeed,float afMaxAngle)
 	{
 		if(afAngle!=afFinalAngle)
@@ -493,8 +407,6 @@ namespace hpl {
 		return TurnAngle(afAngle, afFinalAngle, afSpeed,180.0f);
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::GetAngleFromPoints2D(const cVector2f &avStartPos, const cVector2f &avGoalPos)
 	{
 		float fDx;
@@ -510,27 +422,21 @@ namespace hpl {
 		if(fDx>=0 && fDy<0)
 		{
 			fAns = atan(fDx/(-fDy));
-			//Log("1\n");
 		}
 		else if(fDx>=0 && fDy>=0)
 		{
 			fAns = atan(fDy/fDx) + kPi2f;
-			//Log("2\n");
 		}
 		else if(fDx<0 && fDy>=0)
 		{
 			fAns = atan((-fDx)/fDy)+kPif;
-			//Log("3\n");
 		}
 		else if(fDx<0 && fDy<0)
 		{
 			fAns = atan((-fDy)/(-fDx))+kPi2f+kPif;
-			//Log("4\n");
 		}
 		return fAns;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f cMath::GetVectorFromAngle2D(float afAngle, float afLength)
 	{
@@ -542,16 +448,12 @@ namespace hpl {
 		return vVec;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cMath::GetAngleFromVector(const cVector2f &avVec, float *apAngle, float *apLength)
 	{
 		*apLength = sqrt(avVec.x*avVec.x + avVec.y*avVec.y);
 
 		*apAngle = GetAngleFromPoints2D(0,avVec);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector2f cMath::ProjectVector2D(const cVector2f &avSrcVec, const cVector2f &avDestVec)
 	{
@@ -561,21 +463,15 @@ namespace hpl {
 		return  avDestVec * fTemp;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::ToRad(float afAngle)
 	{
 		return (afAngle/360.0f)*k2Pif;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::ToDeg(float afAngle)
 	{
 		return (afAngle/k2Pif)*360.0f;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cMath::Log2ToInt(int alX)
 	{
@@ -593,10 +489,7 @@ namespace hpl {
 		case 512:	return 9;
 		default: return (int)floor((log((float)alX) / log(2.0f)) + 0.5f);
 		}
-		//return (int)floor((log((float)aX) / log(2.0f)) + 0.5f);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cMath::IsPow2(int alX)
 	{
@@ -621,14 +514,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::InterpolateFloat(float afA,float afB,float afT)
 	{
 		return afA * (1-afT) + afB * afT;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cMath::Vector3Cross(const cVector3f& avVecA,const cVector3f& avVecB)
 	{
@@ -641,14 +530,10 @@ namespace hpl {
 		return vResult;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::Vector3Dot(const cVector3f& avVecA,const cVector3f& avVecB)
 	{
 		return avVecA.x*avVecB.x + avVecA.y*avVecB.y + avVecA.z*avVecB.z;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cMath::ProjectVector3D(const cVector3f &avSrcVec, const cVector3f &avDestVec)
 	{
@@ -658,8 +543,6 @@ namespace hpl {
 		return  avDestVec * fTemp;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::Vector3Angle(const cVector3f& avVecA,const cVector3f& avVecB)
 	{
 		float fCos = Vector3Dot(avVecA,avVecB);
@@ -668,8 +551,6 @@ namespace hpl {
 
 		return acos(fCos);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cMath::Vector3UnProject(const cVector3f& avVec,const cRect2f &aScreenRect,
 										cMatrixf a_mtxViewProj)
@@ -681,18 +562,11 @@ namespace hpl {
 		vNormalized.y = -(((avVec.y - aScreenRect.y)*2.0f / aScreenRect.h) - 1.0f);
 		vNormalized.z = 2.0f*avVec.z - 1.0f;
 
-		//Log("Normalized: %s\n",vNormalized.ToString().c_str());
-
 		// Object coordinates.
 		vNormalized = MatrixMulDivideW(mtxInvViewProj,vNormalized);
-		//vNormalized = MatrixMul(mtxInvViewProj,vNormalized);
-
-		//Log("Normalized After: %s\n",vNormalized.ToString().c_str());
 
 		return vNormalized *-1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	//Helper function for GetAnglesFromPoints3D
 	static float GetAngleFromPoints2DSimple(const cVector3f &avStartPos, const cVector3f &avGoalPos)
@@ -724,36 +598,22 @@ namespace hpl {
 		vAngle.y = -GetAngleFromPoints2D(cVector2f(avStartPos.x,avStartPos.z),
 										cVector2f(avGoalPos.x, avGoalPos.z));
 
-		//Log("Y Angle: %f\n",vAngle.y);
-
-		//vAngle.y = Wrap(vAngle.y,0.0f, k2Pif);
-
 		cMatrixf mtxRot = MatrixRotateY(-vAngle.y);
 		cVector3f vDelta = avGoalPos - avStartPos;
 
-		//Log("vDelta: %s\n",vDelta.ToString().c_str());
-
 		cVector3f vGoal = MatrixMul(mtxRot, vDelta);
 
-		//Log("vGoal: %s\n",vGoal.ToString().c_str());
-
 		vAngle.x = GetAngleFromPoints2DSimple(cVector3f(0,0,0),cVector2f(vGoal.z, vGoal.y));
-
-		//Log("X Angle: %f\n",vAngle.x);
 
 		vAngle.x = Wrap(vAngle.x,0.0f, k2Pif);
 
 		return vAngle;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::PlaneToPointDist(const cPlanef& aPlane, const cVector3f& avVec)
 	{
 		return (aPlane.a * avVec.x) + (aPlane.b * avVec.y) + (aPlane.c * avVec.z) + aPlane.d;
 	}
-
-	//-----------------------------------------------------------------------
 
 	//TODO: This only works when there is no 0 in the planes.
 	void cMath::PlaneIntersectionLine(const cPlanef& aPA, const cPlanef& aPB,
@@ -774,8 +634,6 @@ namespace hpl {
 		avPoint.y = (aPA.d - (aPA.c *  avPoint.z)) / aPA.b;
 	}
 
-	//-----------------------------------------------------------------------
-
 	static inline bool IntersectsPlanePair(const cPlanef& aPlane1,const cPlanef& aPlane2,
 		const cVector3f& avPoint1,const cVector3f& avPoint2)
 	{
@@ -793,10 +651,6 @@ namespace hpl {
 		//2 to 2
 		if(cMath::PlaneToPointDist(aPlane2, avPoint2)>=0)	bPair[1][1] = true;
 		else												bPair[1][1] = false;
-
-		/*Log("-------------\n");
-		Log("Pair 0 - 0: %d Pair 0 - 1: %d\n",bPair[0][0]?1:0,bPair[0][1]?1:0);
-		Log("Pair 1 - 0: %d Pair 1 - 1: %d\n",bPair[1][0]?1:0,bPair[1][1]?1:0);*/
 
 		//If either point is inside the plane pair we have an intersection.
 		if((bPair[0][0] && bPair[1][0]) || (bPair[0][1] && bPair[1][1])) return true;
@@ -825,20 +679,7 @@ namespace hpl {
 
 		return true;
 
-		/*if( IntersectsPlanePair(apPlanePairs[0],apPlanePairs[1],avPoint1,avPoint2)
-			&&
-			IntersectsPlanePair(apPlanePairs[2],apPlanePairs[3],avPoint1,avPoint2)
-			&&
-			IntersectsPlanePair(apPlanePairs[4],apPlanePairs[5],avPoint1,avPoint2)
-			)
-		{
-			return true;
-		}
-		return false;
-		*/
 	}
-
-	//-----------------------------------------------------------------------
 
 	static const int kvQuadPairs[4][2] = {{0,1},{1,2},{2,3},{3,0}};
 
@@ -865,15 +706,10 @@ namespace hpl {
 		return false;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	float cMath::QuaternionDot(const cQuaternion& aqA,const cQuaternion& aqB)
 	{
 		return aqA.w*aqB.w + aqA.v.x*aqB.v.x + aqA.v.y*aqB.v.y + aqA.v.z*aqB.v.z;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cQuaternion cMath::QuaternionSlerp(float afT,const cQuaternion& aqA, const cQuaternion& aqB,
 									bool abShortestPath)
@@ -907,8 +743,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixInterpolate(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB)
 	{
 		cVector3f vPos =  a_mtxA.GetTranslation() * (1- afT) + a_mtxB.GetTranslation() * afT;
@@ -927,8 +761,6 @@ namespace hpl {
 		return mtxFinal;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixSlerp(float afT,const cMatrixf& a_mtxA, const cMatrixf& a_mtxB,
 										bool abShortestPath)
 	{
@@ -944,8 +776,6 @@ namespace hpl {
 
 		return mtxFinal;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixMul(const cMatrixf &a_mtxA,const cMatrixf &a_mtxB)
 	{
@@ -974,8 +804,6 @@ namespace hpl {
 		return mtxC;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cMath::MatrixMul(const cMatrixf &a_mtxA,const cVector3f &avB)
 	{
 		cVector3f vC;
@@ -986,8 +814,6 @@ namespace hpl {
 
 		return vC;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f cMath::MatrixMulDivideW(const cMatrixf &a_mtxA,const cVector3f &avB)
 	{
@@ -1002,8 +828,6 @@ namespace hpl {
 		return vC;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixMulScalar(const cMatrixf &a_mtxA, float afB)
 	{
 		cMatrixf mtxC;
@@ -1015,9 +839,6 @@ namespace hpl {
 
 		return mtxC;
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixRotate(cVector3f avRot, eEulerRotationOrder aOrder)
 	{
@@ -1053,8 +874,6 @@ namespace hpl {
 		return mtxRot;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixRotateX(float afAngle)
 	{
 		return cMatrixf(1,0,0,0,
@@ -1062,8 +881,6 @@ namespace hpl {
 						0,sin(afAngle),cos(afAngle),0,
 						0,0,0,1);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixRotateY(float afAngle)
 	{
@@ -1073,8 +890,6 @@ namespace hpl {
 						0,0,0,1);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixRotateZ(float afAngle)
 	{
 		return cMatrixf(cos(afAngle),-sin(afAngle),0,0,
@@ -1082,8 +897,6 @@ namespace hpl {
 						0,0,1,0,
 						0,0,0,1);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixQuaternion(const cQuaternion &aqRot)
 	{
@@ -1102,8 +915,6 @@ namespace hpl {
 		return mtxOut;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixScale(cVector3f avScale)
 	{
 		return cMatrixf(avScale.x, 0,0,0,
@@ -1111,8 +922,6 @@ namespace hpl {
 						0, 0,avScale.z,0,
 						0, 0,0,1);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixTranslate(cVector3f avTrans)
 	{
@@ -1122,7 +931,6 @@ namespace hpl {
 						0, 0,0,1);
 
 	}
-	//-----------------------------------------------------------------------
 
 	float cMath::MatrixMinor(const cMatrixf &a_mtxA,
 		const size_t r0, const size_t r1, const size_t r2,
@@ -1132,8 +940,6 @@ namespace hpl {
 				a_mtxA.m[r0][c1] * (a_mtxA.m[r1][c0] * a_mtxA.m[r2][c2] - a_mtxA.m[r2][c0] * a_mtxA.m[r1][c2]) +
 				a_mtxA.m[r0][c2] * (a_mtxA.m[r1][c0] * a_mtxA.m[r2][c1] - a_mtxA.m[r2][c0] * a_mtxA.m[r1][c1]);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cMath::MatrixAdjoint(const cMatrixf &a_mtxA)
 	{
@@ -1158,8 +964,6 @@ namespace hpl {
 						MatrixMinor(a_mtxA, 0, 1, 2, 0, 1, 2));
 	}
 
-	//-----------------------------------------------------------------------
-
 	float cMath::MatrixDeterminant(const cMatrixf &a_mtxA)
 	{
 		return	a_mtxA.m[0][0] * MatrixMinor(a_mtxA, 1, 2, 3, 1, 2, 3) -
@@ -1168,34 +972,15 @@ namespace hpl {
 				a_mtxA.m[0][3] * MatrixMinor(a_mtxA, 1, 2, 3, 0, 1, 2);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf cMath::MatrixInverse(const cMatrixf &a_mtxA)
 	{
 		return MatrixMulScalar(MatrixAdjoint(a_mtxA), (1.0f / MatrixDeterminant(a_mtxA)) );
 	}
 
-	//-----------------------------------------------------------------------
-
 	cVector3f cMath::MatrixToEulerAngles(const cMatrixf &a_mtxA, eEulerRotationOrder aOrder)
 	{
 		cVector3f vAngles;
 
-		/*if (a_mtxA.m[2][0] > 0.998f) // singularity at north pole
-		{
-			vAngles.y = atan2(a_mtxA.m[0][2],a_mtxA.m[2][2]);
-			vAngles.z = kPif/2;
-			vAngles.x = 0;
-			Log("Special case 1\n");
-		}
-		if (a_mtxA.m[2][0] < -0.998f) // singularity at south pole
-		{
-			vAngles.y = atan2(a_mtxA.m[0][2],a_mtxA.m[2][2]);
-			vAngles.z = -kPif/2;
-			vAngles.x = 0;
-			Log("Special case 2\n");
-		}
-		else*/
 		{
 			vAngles.x = atan2(a_mtxA.m[2][1],a_mtxA.m[2][2]);
 			vAngles.y = -asin(a_mtxA.m[2][0]);
@@ -1203,8 +988,6 @@ namespace hpl {
 		}
 		return vAngles;
 	}
-
-	//-----------------------------------------------------------------------
 
 	const char* cMath::MatrixToChar(const cMatrixf &a_mtxA)
 	{
@@ -1216,7 +999,6 @@ namespace hpl {
 
 		return mpTempChar;
 	}
-	//-----------------------------------------------------------------------
 
 	static inline cVector3f GetVector3(const float* apVertexArray, int alIdx,int alStride)
 	{
@@ -1269,24 +1051,17 @@ namespace hpl {
 		tVector3fVec vTempTangents1;
 		tVector3fVec vTempTangents2;
 
-		//Log("Creating tangents:\n");
-		//Log("Num of indices: %d\n",alIndexNum);
-		//Log("Num of vertrices: %d\n",alVertexNum);
-
 		vTempTangents1.resize(alVertexNum,cVector3f(0,0,0));
 		vTempTangents2.resize(alVertexNum,cVector3f(0,0,0));
 
 		//Iterate through the triangles
 		for(int triIdx=0; triIdx<alIndexNum; triIdx+=3)
 		{
-			//Log("Triangle %d: ",triIdx/3);
 
 			//Get the indices of the triangle
 			int idx1 = apIndexArray[triIdx + 0];
 			int idx2 = apIndexArray[triIdx + 1];
 			int idx3 = apIndexArray[triIdx + 2];
-
-			//Log("1: '%d' 2: '%d'  3: '%d' ", idx1, idx2, idx3);
 
 			//Get the 3 points making up the triangle
 			cVector3f vPos1 = GetVector3(apVertexArray,idx1,alVtxStride);
@@ -1335,7 +1110,6 @@ namespace hpl {
 			vTempTangents2[idx2] += vTDir;
 			vTempTangents2[idx3] += vTDir;
 
-			//Log("\n");
 		}
 
 		// Group identical positions/normals before smoothing. Keep each group's original
@@ -1396,10 +1170,6 @@ namespace hpl {
 			}
 			vTan.Normalise();
 
-			//Log("Add tangent %d: ",vtxIdx);
-			//Log(" %.1f, %.1f, %.1f ",vTan.x, vTan.y, vTan.z);
-			//Log("\n");
-
 			//Calculate if left or right handed.
 			float fW = (cMath::Vector3Dot(cMath::Vector3Cross(vNormal, vTempTan1), vTempTan2) < 0.0f) ? -1.0f : 1.0f;
 
@@ -1408,7 +1178,4 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

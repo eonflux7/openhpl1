@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_MESH_LOADER_COLLADA_H
 #define HPL_MESH_LOADER_COLLADA_H
 
@@ -46,7 +30,6 @@ namespace hpl {
 	class cMeshJoint;
 	class cSystem;
 
-	//////////////////////////////////////////////
 	// HELP CLASSES
 
 	class cColladaImage
@@ -60,8 +43,6 @@ namespace hpl {
 
 	typedef std::vector<cColladaImage> tColladaImageVec;
 
-	//------------------------------------------------
-
 	class cColladaTexture
 	{
 	public:
@@ -72,8 +53,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaTexture> tColladaTextureVec;
-
-	//------------------------------------------------
 
 	class cColladaMaterial
 	{
@@ -87,8 +66,6 @@ namespace hpl {
 
 	typedef std::vector<cColladaMaterial> tColladaMaterialVec;
 
-	//------------------------------------------------
-
 	class cColladaLight
 	{
 	public:
@@ -101,9 +78,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaLight> tColladaLightVec;
-
-
-	//------------------------------------------------
 
 	class cColladaVtxArray
 	{
@@ -128,9 +102,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaVtxIndex> tColladaVtxIndexVec;
-
-	//------------------------------------------------
-
 
 	class cColladaExtraVtx
 	{
@@ -167,8 +138,6 @@ namespace hpl {
 
 	typedef std::vector<tColladaExtraVtxList> tColladaExtraVtxListVec;
 
-	//------------------------------------------------
-
 	class cColladaGeometry
 	{
 	public:
@@ -183,9 +152,6 @@ namespace hpl {
 			{
 				mvArrayVec[i].mvArray.clear();
 			}
-			/*mvVertexVec.clear();
-			mvIndexVec.clear();
-			mvExtraVtxVec.clear();*/
 		}
 
 		tString msId;
@@ -213,8 +179,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaGeometry> tColladaGeometryVec;
-
-	//------------------------------------------------
 
 	class cColladaJointPair
 	{
@@ -256,8 +220,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaController> tColladaControllerVec;
-
-	//------------------------------------------------
 
 	class cColladaChannel
 	{
@@ -314,7 +276,6 @@ namespace hpl {
 	{
 	public:
 		tString msId;
-		//tString msName;
 		tString msTargetNode;
 
 		tColladaChannelVec mvChannels;
@@ -340,9 +301,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cColladaAnimation> tColladaAnimationVec;
-
-
-	//------------------------------------------------
 
 	class cColladaTransform
 	{
@@ -385,11 +343,6 @@ namespace hpl {
 
 		tColladaTransformList mlstTransforms;
 
-		/*void DeleteChildren()
-		{
-			STLDeleteAll(mlstChildren);
-		}*/
-
 		cColladaNode* CreateChild()
 		{
 			cColladaNode *pNode = hplNew( cColladaNode, () );
@@ -426,7 +379,6 @@ namespace hpl {
 
 		~cColladaScene()
 		{
-			//mRoot.DeleteChildren();
 			STLDeleteAll(mlstNodes);
 		}
 
@@ -475,8 +427,6 @@ namespace hpl {
 		tColladaNodeList mlstNodes;
 	};
 
-	//------------------------------------------------
-
 	// Everything the loader reads from a model file before it creates meshes,
 	// worlds and animations (the contents of a Collada cache).
 	class cColladaData
@@ -492,8 +442,6 @@ namespace hpl {
 		cColladaScene mScene;
 	};
 
-	//------------------------------------------------
-
 	// Loads Collada (.dae) and glTF 2.0 (.glb, .gltf) models. Both are read
 	// into the same intermediate data, which the meshes, worlds and
 	// animations are created from, so the naming conventions of the original
@@ -505,7 +453,6 @@ namespace hpl {
 		cMeshLoaderCollada(iLowLevelGraphics *apLowLevelGraphics);
 		~cMeshLoaderCollada() override;
 
-		/////////////////////////////////
 		// Model conversion (tools/model_tool.cpp). These do not need graphics
 		// and neither read nor write caches.
 
@@ -610,7 +557,6 @@ namespace hpl {
 
 		iVertexBuffer *CreateVertexBuffer(cColladaGeometry & aGeometry,
 											eVertexBufferUsageType aUsageType);
-											//tColladaExtraVtxListVec &vExtraVtxVec);
 
 		bool FillStructures(const tString &asFile,
 							tColladaImageVec *apColladaImageVec,

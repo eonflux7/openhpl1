@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "physics/PhysicsJointBall.h"
 
 #include "scene/World3D.h"
@@ -29,19 +13,11 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerialize(cSaveData_iPhysicsJointBall, cSaveData_iPhysicsJoint)
 	kSerializeVar(mfMaxConeAngle, eSerializeType_Float32)
 	kSerializeVar(mfMaxTwistAngle, eSerializeType_Float32)
 	kSerializeVar(mvConePin, eSerializeType_Vector3f)
 	kEndSerialize()
-
-	//-----------------------------------------------------------------------
 
 	iSaveObject* cSaveData_iPhysicsJointBall::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
@@ -70,21 +46,15 @@ namespace hpl {
 		return pJoint;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_iPhysicsJointBall::GetSaveCreatePrio()
 	{
 		return 1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsJointBall::CreateSaveData()
 	{
 		return hplNew( cSaveData_iPhysicsJointBall, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJointBall::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -95,8 +65,6 @@ namespace hpl {
 		kSaveData_SaveTo(mvConePin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointBall::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsJointBall);
@@ -106,12 +74,8 @@ namespace hpl {
 		kSaveData_LoadFrom(mvConePin);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJointBall::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iPhysicsJointBall);
 	}
-
-	//-----------------------------------------------------------------------
 }

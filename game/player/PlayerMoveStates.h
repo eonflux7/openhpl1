@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_PLAYER_MOVE_STATES_H
 #define GAME_PLAYER_MOVE_STATES_H
 
@@ -23,9 +7,7 @@ class cPlayer;
 
 #include "systems/EffectHandler.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE STATE
-//////////////////////////////////////////////////////////////////////////
 	
 iPlayerMoveState::iPlayerMoveState(cPlayer *apPlayer, cInit *apInit)
 {
@@ -156,9 +138,7 @@ void iPlayerMoveState::Update(float afTimeStep)
 	OnUpdate(afTimeStep);
 }
 
-//////////////////////////////////////////////////////////////////////////
 // WALK STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cPlayerMoveState_Walk : public iPlayerMoveState
 {
@@ -189,9 +169,7 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
 // RUN STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cPlayerMoveState_Run : public iPlayerMoveState
 {
@@ -222,9 +200,7 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
 // STILL STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cPlayerMoveState_Still : public iPlayerMoveState
 {
@@ -266,9 +242,7 @@ public:
 
 };
 
-//////////////////////////////////////////////////////////////////////////
 // JUMP STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cPlayerMoveState_Jump : public iPlayerMoveState
 {
@@ -299,9 +273,6 @@ public:
 		mfMinHeadMove = 0.00f;
 		mfHeadMoveSpeed = 0.0f;
 		mfHeadMoveBackSpeed = 0.33f;
-
-		//mfHeightAdd =-0.3f;
-		//mfHeightAddSpeed = 1.2f;
 
 		//FootStep multiplier
 		mfFootStepMul = 0.0f;
@@ -391,14 +362,6 @@ public:
 			float fNeg = fSpeed - mfMaxForward;
 
 			float fForwardSpeed = pBody->GetMoveSpeed(eCharDir_Forward);
-			/*if(fForwardSpeed>0){
-				fForwardSpeed -= fNeg;
-				if(fForwardSpeed<0)fForwardSpeed =0;
-			}
-			else {
-				fForwardSpeed += fNeg;
-				if(fForwardSpeed>0)fForwardSpeed =0;
-			}*/
 			pBody->SetMoveSpeed(eCharDir_Forward,fForwardSpeed);
 		}
 	
@@ -431,9 +394,7 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
 // CROUCH STATE
-//////////////////////////////////////////////////////////////////////////
 
 class cPlayerMoveState_Crouch : public iPlayerMoveState
 {
@@ -475,7 +436,6 @@ public:
 		cVector3f vFeetPos = pBody->GetPosition() - cVector3f(0,pBody->GetShape()->GetSize().y/2,0);
 		pBody->SetActiveSize(1);
 		pBody->SetPosition(vFeetPos + cVector3f(0,pBody->GetShape()->GetSize().y/2,0));
-		//pBody->SetGravityActive(false);
 	}
 
 	void LeaveState(iPlayerMoveState* apNextState) override
@@ -486,7 +446,6 @@ public:
 		pBody->SetActiveSize(0);
 		pBody->SetPosition(vFeetPos + cVector3f(0,pBody->GetShape()->GetSize().y/2,0));
 		
-		/////////////////////////////////////////////////
 		//Check if the player will fit with the newer size
 		cInit *pInit = mpPlayer->GetInit();
 		iPhysicsWorld *pWorld = pInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -503,10 +462,6 @@ public:
 												cMath::MatrixTranslate(pBody->GetPosition()),
 												pBody->GetBody(),false,true);
 			
-			/*Log("Collide when leaving crouch: %d. NewPos: %s OldPos: %s\n",bCollide,
-														vNewPos.ToString().c_str(),
-														pBody->GetPosition().ToString().c_str());*/
-
 			//If the body is pushed down, then something is colliding from above.
 			//if so, set crouch mode again.
 			if(vNewPos != pBody->GetPosition())
@@ -525,9 +480,7 @@ public:
 	}
 };
 
-//////////////////////////////////////////////////////////////////////////
 // SWIM STATE (Black Plague)
-//////////////////////////////////////////////////////////////////////////
 
 // In deep water: the player floats, sinks slowly when not swimming, swims
 // where he looks (pitch and all) and goes up to the surface with jump held.

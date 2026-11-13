@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_PLAYER_HELPER_H
 #define GAME_PLAYER_HELPER_H
 
@@ -28,8 +12,6 @@ using namespace hpl;
 class cInit;
 class cPlayer;
 
-//---------------------------------------------
-
 class iPlayerWeaponCallback
 {
 public:
@@ -39,9 +21,6 @@ public:
 	virtual void OnAttackDown()=0;
 	virtual void OnAttackUp()=0;
 };
-
-
-//---------------------------------------------
 
 class cPlayerGroundRayCallback : public iPhysicsRayCallback
 {
@@ -59,8 +38,6 @@ public:
 	iPhysicsMaterial *mpMaterial;
 	float mfMinDist;
 };
-
-//---------------------------------------------
 
 class cPlayerPickRayCallback : public iPhysicsRayCallback
 {
@@ -90,8 +67,6 @@ public:
 
 	float mfMinStaticDist;
 };
-
-//---------------------------------------------
 
 class cPlayerHeadMove
 {
@@ -128,8 +103,6 @@ private:
 
 	cPlayer *mpPlayer;
 };
-
-//---------------------------------------------
 
 class cPlayerHealth
 {
@@ -169,8 +142,6 @@ private:
 	cGfxObject *mpLowOxygenGfx = nullptr;
 };
 
-//---------------------------------------------
-
 class cPlayerEarRing
 {
 public:
@@ -193,8 +164,6 @@ private:
 	float mfDeafTime;
 	bool mbDeaf;
 };
-
-//---------------------------------------------
 
 class cPlayerLean : public iPhysicsRayCallback
 {
@@ -232,8 +201,6 @@ private:
 	bool mbPressed;
 };
 
-//---------------------------------------------
-
 class cPlayerDamage
 {
 public:
@@ -270,8 +237,6 @@ private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 };
-
-//---------------------------------------------
 
 class cPlayerDeath
 {
@@ -311,8 +276,6 @@ private:
 	cInit *mpInit;
 	cGraphicsDrawer *mpDrawer;
 };
-
-//---------------------------------------------
 
 /**
  * How the flashlight looks (Milestone 5): brighter near and fading with
@@ -396,8 +359,6 @@ private:
 	cVector3f mvEnd;
 };
 
-//---------------------------------------------
-
 class cPlayerGlowStick
 {
 public:
@@ -419,8 +380,6 @@ private:
 
 	cInit *mpInit;
 };
-
-//---------------------------------------------
 
 class iHudModel;
 class cPlayerFlare
@@ -456,8 +415,6 @@ private:
 	
 	cInit *mpInit;
 };
-
-//---------------------------------------------
 
 // What the noise filter is made of.
 enum eNoiseFilterType
@@ -508,8 +465,6 @@ private:
 	tIntVec mvCurrentGfx;
 };
 
-//---------------------------------------------
-
 class cPlayerFearFilter
 {
 public:
@@ -534,8 +489,6 @@ private:
 	
 	cInit *mpInit;
 };
-
-//---------------------------------------------
 
 class cPlayerLookAt
 {
@@ -567,8 +520,6 @@ private:
 
 	cPlayer *mpPlayer;
 };
-
-//---------------------------------------------
 
 class cPlayerHidden : public iPhysicsRayCallback
 {
@@ -661,9 +612,6 @@ private:
 	iFontData *mpFont;
 };
 
-
-//---------------------------------------------
-
 class cPlayerBodyCallback : public iCharacterBodyCallback
 {
 public:
@@ -688,7 +636,5 @@ private:
 	float mfFallDamage_Max;
 	tString msFallSound_Max;
 };
-
-//---------------------------------------------
 
 #endif // GAME_PLAYER_HELPER_H

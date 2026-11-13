@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/BillBoard.h"
 
 #include "tinyxml.h"
@@ -43,12 +27,6 @@
 #include "game/Game.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cBillboard::cBillboard(const tString asName,const cVector2f& avSize, cResources *apResources,
 							cGraphics *apGraphics) :
@@ -88,8 +66,6 @@ namespace hpl {
 		mBoundingVolume.SetSize(cVector3f(mvSize.x, mvSize.y, mvSize.x));
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBillboard::~cBillboard()
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
@@ -99,14 +75,6 @@ namespace hpl {
 		if(mpHaloProgram) mpProgramManager->Destroy(mpHaloProgram);
 		if(mpShaftProgram) mpProgramManager->Destroy(mpShaftProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::UpdateInstance()
 	{
@@ -129,16 +97,12 @@ namespace hpl {
 		SetTransformUpdated();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SetType(eBillboardType aType)
 	{
 		mType = aType;
 
 		SetAxis(mvAxis);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::SetAxis(const cVector3f& avAxis)
 	{
@@ -159,8 +123,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SetColor(const cColor &aColor)
 	{
 		if(mColor == aColor) return;
@@ -170,28 +132,20 @@ namespace hpl {
 		UpdateInstance();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SetForwardOffset(float afOffset)
 	{
 		mfForwardOffset = afOffset;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::SetMaterial(iMaterial * apMaterial)
 	{
 		mpMaterial = apMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cBoundingVolume* cBillboard::GetBoundingVolume()
 	{
 		return &mBoundingVolume;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf* cBillboard::GetModelMatrix(cCamera3D *apCamera)
 	{
@@ -252,8 +206,6 @@ namespace hpl {
 		return &m_mtxTempTransform;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cBillboard::DrawnAsHalo()
 	{
 		if(mType != eBillboardType_Point || mpMaterial==nullptr) return false;
@@ -268,8 +220,6 @@ namespace hpl {
 		if(mvSize.y < 0.5f) return false;
 		return mpMaterial->GetBlendMode(eMaterialRenderType_Diffuse,0,nullptr) == eMaterialBlendMode_Add;
 	}
-
-	//-----------------------------------------------------------------------
 
 	/**
 	 * The colour of the material's picture at kHaloKnots distances from its
@@ -341,8 +291,6 @@ namespace hpl {
 		return mpHaloProfile;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cBillboard::GetTransDraw(cCamera3D *apCamera, cTransDraw &aDraw)
 	{
 		if(DrawnAsHalo())
@@ -399,8 +347,6 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::SetupTransDraw(cCamera3D *apCamera, cRenderSettings *apSettings, cTransDraw &aDraw)
 	{
@@ -464,15 +410,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cBillboard::GetMatrixUpdateCount()
 	{
 		return GetTransformUpdateCount();
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void cBillboard::LoadXMLProperties(const tString asFile)
 	{
@@ -493,7 +434,6 @@ namespace hpl {
 					bool bUsesOffset = cString::ToBool(pMainElem->Attribute("UseOffset"),false);
 					if(bUsesOffset==false) mfForwardOffset =0;
 
-					/////////////////
 					//Halo stuff
 					bool bIsHalo = cString::ToBool(pMainElem->Attribute("IsHalo"),false);
 					SetIsHalo(bIsHalo);
@@ -512,7 +452,6 @@ namespace hpl {
 						}
 					}
 
-					/////////////////
 					//Load material
 					iMaterial *pMat = mpMaterialManager->CreateMaterial(sMaterial);
 					if(pMat)
@@ -543,8 +482,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cBillboard::IsVisible()
 	{
 		if(mColor.r <= 0 && mColor.g <= 0 && mColor.b <= 0) return false;
@@ -552,35 +489,20 @@ namespace hpl {
 		return IsRendered();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SetIsHalo(bool abX)
 	{
 		mbIsHalo = abX;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::SetHaloSourceSize(const cVector3f &avSize)
 	{
 		mvHaloSourceSize = avSize;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SetHaloSourceIsParent(bool abX)
 	{
 		mbHaloSourceIsParent = abX;
 	}
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	eBillboardType cBillboard::ToType(const char* apString)
 	{
@@ -595,14 +517,6 @@ namespace hpl {
 
 		return eBillboardType_Point;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cBillboard,cSaveData_iRenderable)
 	kSerializeVar(msMaterial,eSerializeType_String)
@@ -619,8 +533,6 @@ namespace hpl {
 	kSerializeVar(mbHaloSourceIsParent, eSerializeType_Bool)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveObject* cSaveData_cBillboard::CreateSaveObject(cSaveObjectHandler *apSaveObjectHandler,cGame *apGame)
 	{
 		cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
@@ -630,21 +542,15 @@ namespace hpl {
 		return pBill;
 	}
 
-	//-----------------------------------------------------------------------
-
 	int cSaveData_cBillboard::GetSaveCreatePrio()
 	{
 		return 3;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* cBillboard::CreateSaveData()
 	{
 		return hplNew( cSaveData_cBillboard, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cBillboard::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -665,8 +571,6 @@ namespace hpl {
 		kSaveData_SaveTo(mbHaloSourceIsParent);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(cBillboard);
@@ -682,8 +586,6 @@ namespace hpl {
 		SetHaloSourceIsParent(pData->mbHaloSourceIsParent);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cBillboard::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cBillboard);
@@ -692,6 +594,4 @@ namespace hpl {
 		{
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

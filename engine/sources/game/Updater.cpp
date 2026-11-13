@@ -1,33 +1,11 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "game/Updater.h"
 
 #include "game/Updateable.h"
 #include "system/LowLevelSystem.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cUpdater::cUpdater(iLowLevelSystem *apLowLevelSystem)
 	{
@@ -36,19 +14,9 @@ namespace hpl {
 		mpLowLevelSystem = apLowLevelSystem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cUpdater::~cUpdater()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHOD
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnInterpolate(float afT)
 	{
@@ -65,7 +33,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnDraw()
 	{
@@ -82,7 +49,6 @@ namespace hpl {
 			}
 		}
 	}
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnPostSceneDraw()
 	{
@@ -116,8 +82,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cUpdater::OnPostBufferSwap()
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
@@ -133,8 +97,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::OnStart()
 	{
@@ -156,8 +118,6 @@ namespace hpl {
 			ContIt++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::Reset()
 	{
@@ -185,13 +145,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cUpdater::OnExit()
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
 		{
-			//Log(" Exiting %s\n",(*it)->GetName().c_str());
 			(*it)->OnExit();
 		}
 
@@ -201,7 +158,6 @@ namespace hpl {
 			tUpdateableListIt UpIt = ContIt->second.begin();
 			while(UpIt != ContIt->second.end())
 			{
-				//Log(" Exiting %s\n",(*UpIt)->GetName().c_str());
 				(*UpIt)->OnExit();
 				UpIt++;
 			}
@@ -209,8 +165,6 @@ namespace hpl {
 			ContIt++;
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cUpdater::Update(float afTimeStep)
 	{
@@ -232,9 +186,6 @@ namespace hpl {
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	bool cUpdater::SetContainer(tString asContainer)
 	{
@@ -262,8 +213,6 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cUpdater::AddContainer(tString asName)
 	{
 		//Create the value for the map with key and Updateable
@@ -274,8 +223,6 @@ namespace hpl {
 
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cUpdater::AddUpdate(tString asContainer, iUpdateable* apUpdate)
 	{
@@ -294,23 +241,9 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cUpdater::AddGlobalUpdate(iUpdateable* apUpdate)
 	{
 		mlstGlobalUpdateableList.push_back(apUpdate);
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-
-	//-----------------------------------------------------------------------
 }

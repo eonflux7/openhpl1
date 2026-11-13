@@ -63,23 +63,17 @@ static void TraceBody(float afTime, iPhysicsBody *apBody)
 		apBody->IsFrozen() ? " frozen" : "", apBody->GetCollideCharacter() ? "" : " nocharcollide");
 }
 
-//-----------------------------------------------------------------------
-
 cPhysicsLog::cPhysicsLog(cInit *apInit) : iUpdateable("PhysicsLog")
 {
 	mpInit = apInit;
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPhysicsLog::IsRequested()
 {
 	const char *pVal = SDL_getenv("OPENHPL_PHYSLOG");
 	return pVal && pVal[0] && tString(pVal) != "0";
 }
-
-//-----------------------------------------------------------------------
 
 void cPhysicsLog::Reset()
 {
@@ -98,8 +92,6 @@ void cPhysicsLog::Reset()
 	mfPlayerAirTime = 0;
 	mfPlayerFallSpeed = 0;
 }
-
-//-----------------------------------------------------------------------
 
 void cPhysicsLog::Update(float afTimeStep)
 {
@@ -156,8 +148,6 @@ void cPhysicsLog::Update(float afTimeStep)
 	UpdatePlayer(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 void cPhysicsLog::StartWorld(cWorld3D *apWorld)
 {
 	Reset();
@@ -197,8 +187,6 @@ void cPhysicsLog::StartWorld(cWorld3D *apWorld)
 	Log("PHYS: map %s: %d dynamic bodies (%d awake, %d frozen), %d joints\n",
 		apWorld->GetFileName().c_str(), lBodies, lAwake, lFrozen, lJoints);
 }
-
-//-----------------------------------------------------------------------
 
 void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 {
@@ -257,8 +245,6 @@ void cPhysicsLog::UpdateBody(iPhysicsBody *apBody, cBodyTrack &aTrack)
 			GetJointDescription(apBody).c_str());
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPhysicsLog::UpdatePlayer(float afTimeStep)
 {
@@ -336,8 +322,6 @@ void cPhysicsLog::UpdatePlayer(float afTimeStep)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 tString cPhysicsLog::GetJointDescription(iPhysicsBody *apBody)
 {

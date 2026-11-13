@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "player/PlayerState_Misc.h"
 
@@ -25,15 +9,11 @@
 #include "entities/GameLadder.h"
 
 
-//////////////////////////////////////////////////////////////////////////
 // NORMAL STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_Normal::cPlayerState_Normal(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Normal)
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Normal::OnUpdate(float afTimeStep)
 {
@@ -45,7 +25,6 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 		mpPlayer->ResetCrossHairPos();
 	}
 
-	/////////////////////////////////////
 	// If run is down, run!!
 	cInput *pInput = mpInit->mpGame->GetInput();
 	if(	pInput->IsTriggered("Run") &&
@@ -54,7 +33,6 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
 	}
 
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -65,8 +43,6 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 	mpPlayer->GetPickRay()->Clear();
 	pPhysicsWorld->CastRay(mpPlayer->GetPickRay(),vStart,vEnd,true,false,true);
 	mpPlayer->GetPickRay()->CalculateResults();
-
-	//Log("Picked body: %d\n",(size_t)mpPlayer->GetPickedBody());
 
 	if(mpPlayer->GetPickedBody())
 	{
@@ -107,8 +83,6 @@ void cPlayerState_Normal::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Normal::OnStartInteract()
 {
 	if(mpPlayer->GetPickedBody())
@@ -119,11 +93,8 @@ void cPlayerState_Normal::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Normal::OnStartExamine()
 {
-	//Log("Picked body: %d\n",(size_t)mpPlayer->GetPickedBody());
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -131,8 +102,6 @@ void cPlayerState_Normal::OnStartExamine()
 		pEntity->PlayerExamine();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Normal::OnStartRun()
 {
@@ -153,8 +122,6 @@ void cPlayerState_Normal::OnStopRun()
 	else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 		mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Normal::OnStartCrouch()
 {
@@ -182,33 +149,22 @@ void cPlayerState_Normal::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Normal::OnStartInteractMode()
 {
 	mpPlayer->ChangeState(ePlayerState_InteractMode);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Normal::EnterState(iPlayerState* apPrevState)
 {
 	mpPlayer->ResetCrossHairPos();
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Normal::LeaveState(iPlayerState* apNextState)
 {
 	//Can cause crashes!!
-	//mpPlayer->GetPickRay()->mpPickedBody = NULL;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // INTERACT MODE STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_InteractMode::cPlayerState_InteractMode(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_InteractMode)
 {
@@ -216,24 +172,9 @@ cPlayerState_InteractMode::cPlayerState_InteractMode(cInit *apInit,cPlayer *apPl
 	mfRange = 15.0f;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractMode::OnUpdate(float afTimeStep)
 {
-	/////////////////////////////////////////////////
-	// Move viewport.
-	/*if(mvLookSpeed.x != 0)
-	{
-		mpPlayer->GetCamera()->AddYaw(mvLookSpeed.x * afTimeStep * 1.0f);
-		mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
-	}
-	if(mvLookSpeed.y != 0)
-	{
-		mpPlayer->GetCamera()->AddPitch(mvLookSpeed.y * afTimeStep * 1.0f);
-	}*/
 
-	//LogUpdate("  Casting ray\n");
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -247,10 +188,8 @@ void cPlayerState_InteractMode::OnUpdate(float afTimeStep)
 	mpPlayer->GetPickRay()->Clear();
 	pPhysicsWorld->CastRay(mpPlayer->GetPickRay(),vStart,vEnd,true,false,true);
 
-	//LogUpdate("  Calc pickray results\n");	
 	mpPlayer->GetPickRay()->CalculateResults();
 
-	//LogUpdate("  Use picked body\n");	
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -270,8 +209,6 @@ void cPlayerState_InteractMode::OnUpdate(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractMode::OnStartInteract()
 {
 	if(mpPlayer->GetPickedBody())
@@ -282,8 +219,6 @@ void cPlayerState_InteractMode::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractMode::OnStartExamine()
 {
 	if(mpPlayer->GetPickedBody())
@@ -293,8 +228,6 @@ void cPlayerState_InteractMode::OnStartExamine()
 		pEntity->PlayerExamine();
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_InteractMode::OnAddYaw(float afVal)
 {
@@ -381,14 +314,10 @@ bool cPlayerState_InteractMode::OnAddPitch(float afVal)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractMode::OnStartInteractMode()
 {
 	mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_InteractMode::EnterState(iPlayerState* apPrevState)
 {
@@ -400,23 +329,14 @@ void cPlayerState_InteractMode::EnterState(iPlayerState* apPrevState)
 	mvLookSpeed =0;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_InteractMode::LeaveState(iPlayerState* apNextState)
 {
-	/*if(mPrevMoveState != ePlayerMoveState_Run)
-	mpPlayer->ChangeMoveState(mPrevMoveState);
-	else
-	mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);*/
 
 	if(apNextState->mType == ePlayerState_Normal)
 		mpPlayer->ResetCrossHairPos();
 
 	//Can cause crashes!!
-	//mpPlayer->GetPickRay()->mpPickedBody = NULL;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_InteractMode::OnStartCrouch()
 {
@@ -444,21 +364,14 @@ void cPlayerState_InteractMode::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // USE ITEM STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_UseItem::cPlayerState_UseItem(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_UseItem)
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItem::OnUpdate(float afTimeStep)
 {
-	/////////////////////////////////////////////////
 	// Cast ray to see if anything is picked.
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vStart,vEnd;
@@ -486,8 +399,6 @@ void cPlayerState_UseItem::OnUpdate(float afTimeStep)
 		mpInit->mpPlayer->SetItemFlash(false);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_UseItem::OnStartInteract()
 {
@@ -534,8 +445,6 @@ void cPlayerState_UseItem::OnStartInteract()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItem::OnStartExamine()
 {
 	if(mpPlayer->GetPickedBody())
@@ -561,8 +470,6 @@ void cPlayerState_UseItem::OnStartExamine()
 		
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_UseItem::OnAddYaw(float afVal)
 { 
@@ -599,8 +506,6 @@ bool cPlayerState_UseItem::OnAddPitch(float afVal)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItem::EnterState(iPlayerState* apPrevState)
 {
 	mPrevMoveState = mpPlayer->GetMoveState();
@@ -609,14 +514,10 @@ void cPlayerState_UseItem::EnterState(iPlayerState* apPrevState)
 	mpPlayer->SetCrossHairState(eCrossHairState_Item);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_UseItem::LeaveState(iPlayerState* apNextState)
 {
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_UseItem::OnStartCrouch()
 {
@@ -644,39 +545,26 @@ void cPlayerState_UseItem::OnStopCrouch()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_UseItem::OnStartInventory()
 {
 	mpPlayer->ChangeState(mPrevState);
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // MESSAGE STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_Message::cPlayerState_Message(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Message)
 {
 }
 
-//-----------------------------------------------------------------------
-
-
 void cPlayerState_Message::OnUpdate(float afTimeStep)
 {	
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Message::OnJump()
 { 
 	return false;
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Message::OnStartInteract()
 {
@@ -687,35 +575,24 @@ void cPlayerState_Message::OnStopInteract()
 {
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Message::OnStartExamine()
 {
 	mpInit->mpGameMessageHandler->ShowNext();
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Message::OnMoveForwards(float afMul, float afTimeStep){	return false;}
 bool cPlayerState_Message::OnMoveSideways(float afMul, float afTimeStep){	return false;}
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Message::OnAddYaw(float afVal){ return false;}
 bool cPlayerState_Message::OnAddPitch(float afVal){return false;}
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Message::EnterState(iPlayerState* apPrevState)
 {
 	//Change move state so the player is still
 	mPrevMoveState = mpPlayer->GetMoveState();
-	//mpPlayer->ChangeMoveState(ePlayerMoveState_Still);
 
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Message::LeaveState(iPlayerState* apNextState)
 {
@@ -725,24 +602,17 @@ void cPlayerState_Message::LeaveState(iPlayerState* apNextState)
 		mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Message::OnStartInventory()
 {
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Message::OnStartInventoryShortCut(int alNum)
 { 
 	return false;
 }
-//-----------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////
 // CLIMB STATE
-//////////////////////////////////////////////////////////////////////////
 
 cPlayerState_Climb::cPlayerState_Climb(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Climb)
 {
@@ -758,8 +628,6 @@ cPlayerState_Climb::cPlayerState_Climb(cInit *apInit,cPlayer *apPlayer) : iPlaye
 	mlState =0;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::PlaySound(const tString &asSound)
 {
 	if(asSound=="") return;
@@ -770,8 +638,6 @@ void cPlayerState_Climb::PlaySound(const tString &asSound)
 	cSoundEntity *pSound = pWorld->CreateSoundEntity("LadderStep",asSound,true);
 	if(pSound) pSound->SetPosition(pCharBody->GetPosition());
 }
-
-//-----------------------------------------------------------------------
 
 void cPlayerState_Climb::EnterState(iPlayerState* apPrevState)
 {
@@ -812,8 +678,6 @@ void cPlayerState_Climb::EnterState(iPlayerState* apPrevState)
 	PlaySound(mpLadder->GetAttachSound());
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::LeaveState(iPlayerState* apNextState)
 {
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
@@ -824,15 +688,11 @@ void cPlayerState_Climb::LeaveState(iPlayerState* apNextState)
 	mpPlayer->GetCamera()->SetYawLimits(cVector2f(0, 0));
 }
 
-
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::OnUpdate(float afTimeStep)
 {
 	iCharacterBody *pCharBody = mpPlayer->GetCharacterBody();
 	cCamera3D *pCam = mpPlayer->GetCamera();
 
-	//////////////////////////////////
 	// Attach To Ladder
 	if(mlState ==0)
 	{
@@ -850,7 +710,6 @@ void cPlayerState_Climb::OnUpdate(float afTimeStep)
 		{
 			mpPlayer->GetCharacterBody()->SetTestCollision(true);
 			
-			////////////////////////////
 			//Set turn head limits
 			cVector2f vMaxHeadLimits = cVector2f(cMath::ToRad(120),cMath::ToRad(79));
 			cVector2f vMinHeadLimits = cVector2f(cMath::ToRad(-120),cMath::ToRad(-60));
@@ -866,13 +725,11 @@ void cPlayerState_Climb::OnUpdate(float afTimeStep)
 			mlState++;
 		}
 	}
-	//////////////////////////////////
 	// Move On Ladder
 	else if(mlState == 1)
 	{
 
 	}
-	//////////////////////////////////
 	// On the top of the ladder
 	else if(mlState == 2)
 	{
@@ -892,23 +749,17 @@ void cPlayerState_Climb::OnUpdate(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::OnStartInteract()
 {
 	if(mlState!=0)
 		mpPlayer->ChangeState(ePlayerState_Normal);
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::OnStartExamine()
 {
 	if(mlState!=0)
 		mpPlayer->ChangeState(ePlayerState_Normal);
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Climb::OnAddYaw(float afVal)
 { 
@@ -920,15 +771,11 @@ bool cPlayerState_Climb::OnAddYaw(float afVal)
 
 bool cPlayerState_Climb::OnAddPitch(float afVal)
 {
-	//if(mlState!=0)
-	//	mpPlayer->GetCamera()->AddPitch( -afVal * mpPlayer->GetLookSpeed());
 	if(mlState==0) 
 		return false;
 	else
 		return true;
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Climb::OnMoveForwards(float afMul, float afTimeStep)
 {
@@ -1001,7 +848,6 @@ bool cPlayerState_Climb::OnMoveForwards(float afMul, float afTimeStep)
 
 	if((mvCharPosition.y - pCharBody->GetSize().y*0.5f) > mpLadder->GetMaxY())
 	{
-		//mpPlayer->ChangeState(ePlayerState_Normal);
 		mlState = 2;
 		mfTopExitRemainingSeconds = 2;
 		mpPlayer->GetCharacterBody()->SetGravityActive(true);
@@ -1022,8 +868,6 @@ bool cPlayerState_Climb::OnMoveSideways(float afMul, float afTimeStep)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 void cPlayerState_Climb::OnStartCrouch()
 {
 }
@@ -1032,8 +876,6 @@ void cPlayerState_Climb::OnStopCrouch()
 {
 	
 }
-
-//-----------------------------------------------------------------------
 
 bool cPlayerState_Climb::OnJump()
 {
@@ -1044,12 +886,7 @@ bool cPlayerState_Climb::OnJump()
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
 bool cPlayerState_Climb::OnStartInventory()
 {
 	return false;
 }
-
-//-----------------------------------------------------------------------
-

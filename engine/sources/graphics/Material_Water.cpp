@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/Material_Water.h"
 #include "graphics/Renderer3D.h"
 #include "scene/Light.h"
@@ -28,11 +12,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// VERTEX PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cFogWaterProgramSetup : public iMaterialProgramSetup
 	{
@@ -47,8 +27,6 @@ namespace hpl {
 
 	static cFogWaterProgramSetup gFogWaterProgramSetup;
 
-	//-----------------------------------------------------------------------
-
 	class cWaterProgramSetup : public iMaterialProgramSetup
 	{
 	public:
@@ -61,12 +39,6 @@ namespace hpl {
 	};
 
 	static cWaterProgramSetup gWaterProgramSetup;
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMaterial_Water::cMaterial_Water(	const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
 		cImageManager* apImageManager, cTextureManager *apTextureManager,
@@ -89,21 +61,11 @@ namespace hpl {
 		mfTime = 0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMaterial_Water::~cMaterial_Water()
 	{
 		if(mpFogProgram) mpProgramManager->Destroy(mpFogProgram);
 		if(mpRefractProgram) mpProgramManager->Destroy(mpRefractProgram);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cMaterial_Water::Update(float afTimeStep)
 	{
@@ -111,8 +73,6 @@ namespace hpl {
 		gWaterProgramSetup.mfTime = mfTime;
 		gFogWaterProgramSetup.mfTime = mfTime;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iGpuProgram* cMaterial_Water::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -157,8 +117,6 @@ namespace hpl {
 		return eMaterialChannelMode_RGBA;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iTexture* cMaterial_Water::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(mpRenderSettings->mbFogActive)
@@ -177,15 +135,11 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cMaterial_Water::UsesType(eMaterialRenderType aType)
 	{
 		if(aType == eMaterialRenderType_Diffuse) return true;
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList cMaterial_Water::GetTextureTypes()
 	{
@@ -198,6 +152,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

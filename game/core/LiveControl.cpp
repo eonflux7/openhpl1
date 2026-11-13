@@ -37,8 +37,6 @@ static const int klMapSettleFrames = 30;
 static const int klReloadSettleFrames = 10;
 static const int klShotSettleFrames = 10;
 
-//-----------------------------------------------------------------------
-
 // Words separated by spaces; "quoted words" may have spaces in them
 static tStringVec SplitArgs(const tString &asLine)
 {
@@ -91,8 +89,6 @@ static tString Vec(const cVector3f &avVec)
 	return sText;
 }
 
-//-----------------------------------------------------------------------
-
 cLiveControl::cLiveControl(cInit *apInit, const tString &asDir) : iUpdateable("LiveControl")
 {
 	mpInit = apInit;
@@ -134,8 +130,6 @@ cLiveControl::~cLiveControl()
 	fs::remove(fs::u8path(msDir) / "ready", err);
 }
 
-//-----------------------------------------------------------------------
-
 bool cLiveControl::IsRequested()
 {
 	return GetDir() != "";
@@ -147,14 +141,10 @@ tString cLiveControl::GetDir()
 	return pDir ? tString(pDir) : tString("");
 }
 
-//-----------------------------------------------------------------------
-
 void cLiveControl::Reset()
 {
 	// Changing map resets every updateable; a command waits on
 }
-
-//-----------------------------------------------------------------------
 
 void cLiveControl::Update(float afTimeStep)
 {
@@ -178,8 +168,6 @@ void cLiveControl::Update(float afTimeStep)
 
 	if(ReadNextCommand()) RunLines();
 }
-
-//-----------------------------------------------------------------------
 
 bool cLiveControl::ReadNextCommand()
 {
@@ -215,8 +203,6 @@ bool cLiveControl::ReadNextCommand()
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cLiveControl::RunLines()
 {
 	// The lines of a file run one after the other, without a frame between
@@ -244,16 +230,12 @@ void cLiveControl::RunLines()
 	if(mbQuit) mpInit->mpGame->Exit();
 }
 
-//-----------------------------------------------------------------------
-
 bool cLiveControl::InWorld()
 {
 	return mpInit->mpGame->GetUpdater()->GetCurrentContainerName() == "Default" &&
 		   mpInit->mpGame->GetScene()->GetWorld3D() != nullptr &&
 		   mpInit->mpMapHandler->GetCurrentMapName() != "";
 }
-
-//-----------------------------------------------------------------------
 
 void cLiveControl::WriteNode(const tString &asName)
 {
@@ -267,8 +249,6 @@ void cLiveControl::WriteNode(const tString &asName)
 	if(info.mbEdited) mOut << "\tedited";
 	mOut << "\n";
 }
-
-//-----------------------------------------------------------------------
 
 bool cLiveControl::Start(const tStringVec &avArgs)
 {
@@ -698,8 +678,6 @@ bool cLiveControl::Start(const tStringVec &avArgs)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 bool cLiveControl::Continue(float afTimeStep)
 {
 	mfWaited += afTimeStep;
@@ -771,8 +749,6 @@ bool cLiveControl::Continue(float afTimeStep)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cLiveControl::EndShot()
 {
 	mpInit->mpGame->GetGraphics()->GetDrawer()->SetSkipDrawing(mbSkippedDrawing);
@@ -781,15 +757,11 @@ void cLiveControl::EndShot()
 	if(mpInit->mpEditor) mpInit->mpEditor->SetUiHidden(mbEditorUiWasHidden);
 }
 
-//-----------------------------------------------------------------------
-
 bool cLiveControl::Fail(const tString &asMessage)
 {
 	if(msError == "") msError = asMessage;
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cLiveControl::Answer()
 {
@@ -810,5 +782,3 @@ void cLiveControl::Answer()
 	msId = "";
 	mWait = eWait_None;
 }
-
-//-----------------------------------------------------------------------

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/WidgetButton.h"
 
 #include "system/LowLevelSystem.h"
@@ -33,19 +17,11 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetButton::cWidgetButton(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Button,apSet, apSkin)
 	{
 		mbPressed = false;
 		mpImage = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cWidgetButton::~cWidgetButton()
 	{
@@ -55,32 +31,14 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cWidgetButton::SetImage(cGuiGfxElement *apImage, bool abDestroyImage)
 	{
 		mpImage = apImage;
 		mbDestroyImage = abDestroyImage;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cWidgetButton::OnLoadGraphics()
 	{
-		/////////////////////////
 		//Up
 		mpGfxBackgroundUp = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpBackground);
 
@@ -94,7 +52,6 @@ namespace hpl {
 		mvGfxCornersUp[2] = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpCornerRD);
 		mvGfxCornersUp[3] = mpSkin->GetGfx(eGuiSkinGfx_ButtonUpCornerLD);
 
-		/////////////////////////
 		//Down
 		mpGfxBackgroundDown = mpSkin->GetGfx(eGuiSkinGfx_ButtonDownBackground);
 
@@ -109,14 +66,11 @@ namespace hpl {
 		mvGfxCornersDown[3] = mpSkin->GetGfx(eGuiSkinGfx_ButtonDownCornerLD);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetButton::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
 		cVector3f vOffset = 0;
 		if(mbPressed) vOffset = mpSkin->GetAttribute(eGuiSkinAttribute_ButtonPressedContentOffset);
 
-		////////////////////////////////
 		// Image
 		if(mpImage)
 		{
@@ -126,7 +80,6 @@ namespace hpl {
 							);
 		}
 
-		////////////////////////////////
 		// Text
 		if(IsEnabled())
 		{
@@ -141,8 +94,6 @@ namespace hpl {
 						eFontAlign_Center);
 		}
 
-
-		////////////////////////////////
 		// Borders and background
 		if(mbPressed)
 		{
@@ -156,22 +107,16 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetButton::OnMouseMove(cGuiMessageData &aData)
 	{
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetButton::OnMouseDown(cGuiMessageData &aData)
 	{
 		mbPressed = true;
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetButton::OnMouseUp(cGuiMessageData &aData)
 	{
@@ -185,14 +130,10 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetButton::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetButton::OnMouseLeave(cGuiMessageData &aData)
 	{
@@ -200,8 +141,4 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

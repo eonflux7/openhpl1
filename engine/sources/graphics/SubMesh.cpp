@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/SubMesh.h"
 
 #include "graphics/Mesh.h"
@@ -33,12 +17,6 @@
 #include <limits>
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cSubMesh::cSubMesh(const tString &asName, cMaterialManager* apMaterialManager)
 	{
@@ -61,8 +39,6 @@ namespace hpl {
 		mvOneSidedNormal =0;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSubMesh::~cSubMesh()
 	{
 		if(mpMaterial)mpMaterialManager->Destroy(mpMaterial);
@@ -72,21 +48,11 @@ namespace hpl {
 		if(mpVertexWeights) hplDeleteArray(mpVertexWeights);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cSubMesh::SetMaterial(iMaterial* apMaterial)
 	{
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 		mpMaterial = apMaterial;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::SetVertexBuffer(iVertexBuffer* apVtxBuffer)
 	{
@@ -95,21 +61,15 @@ namespace hpl {
 		mpVtxBuffer = apVtxBuffer;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMaterial *cSubMesh::GetMaterial()
 	{
 		return mpMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iVertexBuffer* cSubMesh::GetVertexBuffer()
 	{
 		return mpVtxBuffer;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::ResizeVertexBonePairs(int alSize)
 	{
@@ -134,9 +94,6 @@ namespace hpl {
 	{
 		mvVtxBonePairs.clear();
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::CompileBonePairs()
 	{
@@ -221,20 +178,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMesh::Compile()
 	{
 		CheckOneSided();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIAVTE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSubMesh::CheckOneSided()
 	{
@@ -290,6 +237,4 @@ namespace hpl {
 		mbIsOneSided = true;
 		mvOneSidedNormal = cMath::Vector3Normalize(vNormalSum / fCount);
 	}
-
-	//-----------------------------------------------------------------------
 }

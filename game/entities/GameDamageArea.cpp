@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "entities/GameDamageArea.h"
 
@@ -27,11 +11,7 @@
 
 #include "core/GlobalInit.h"
 
-//////////////////////////////////////////////////////////////////////////
 // LOADER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cAreaLoader_GameDamageArea::cAreaLoader_GameDamageArea(const tString &asName, cInit *apInit)
 : iArea3DLoader(asName)
@@ -43,8 +23,6 @@ cAreaLoader_GameDamageArea::~cAreaLoader_GameDamageArea()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector3f &avSize, 
 									  const cMatrixf &a_mtxTransform,cWorld3D *apWorld)
@@ -72,14 +50,6 @@ iEntity3D* cAreaLoader_GameDamageArea::Load(const tString &asName, const cVector
 	return nullptr;
 }
 
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
 cGameDamageArea::cGameDamageArea(cInit *apInit,const tString& asName) : iGameEntity(apInit,asName)
 {
 	mType = eGameEntityType_DamageArea;
@@ -95,25 +65,13 @@ cGameDamageArea::cGameDamageArea(cInit *apInit,const tString& asName) : iGameEnt
 	mfDamageDelaySeconds =0;
 }
 
-//-----------------------------------------------------------------------
-
 cGameDamageArea::~cGameDamageArea(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::OnPlayerPick()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameDamageArea::Update(float afTimeStep)
 {
@@ -138,7 +96,6 @@ void cGameDamageArea::Update(float afTimeStep)
 			lstBodies.push_back(pBody);
 		}
 
-		////////////////////////////////////////////////////////
 		// Check candidate bodies overlapping the area bounds.
 		std::list<iPhysicsBody*>::iterator it = lstBodies.begin();
         for(; it != lstBodies.end(); ++it)
@@ -157,11 +114,9 @@ void cGameDamageArea::Update(float afTimeStep)
 					continue;
 				}
 
-				/////////////////////////
 				//Bounding volume check
 				if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 				
-				///////////////////////////////
 				//Check for collision
 				if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
 					pAreaBody->GetShape(), pAreaBody->GetLocalMatrix(),collideData,1)==false)
@@ -169,7 +124,6 @@ void cGameDamageArea::Update(float afTimeStep)
 					continue;
 				}
 
-				////////////////////
 				//Player
 				if(mpInit->mpPlayer->GetCharacterBody()->GetBody() == pBody)
 				{
@@ -206,23 +160,6 @@ void cGameDamageArea::Update(float afTimeStep)
 
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// SAVE OBJECT STUFF
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 kBeginSerialize(cGameDamageArea_SaveData,iGameEntity_SaveData)
 kSerializeVar(mvSize,eSerializeType_Vector3f)
 kSerializeVar(mfDamage, eSerializeType_Float32)
@@ -234,21 +171,15 @@ kSerializeVar(mDamageType, eSerializeType_Int32)
 kSerializeVar(msDamageSound, eSerializeType_String)
 kEndSerialize()
 
-//-----------------------------------------------------------------------
-
 iGameEntity* cGameDamageArea_SaveData::CreateEntity()
 {
 	return nullptr;	
 }
 
-//-----------------------------------------------------------------------
-
 iGameEntity_SaveData* cGameDamageArea::CreateSaveData()
 {
 	return hplNew( cGameDamageArea_SaveData, () );
 }
-
-//-----------------------------------------------------------------------
 
 void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 {
@@ -266,8 +197,6 @@ void cGameDamageArea::SaveToSaveData(iGameEntity_SaveData *apSaveData)
 	pData->mvSize = mvBodies[0]->GetShape()->GetSize();
 }
 
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::LoadFromSaveData(apSaveData);
@@ -283,11 +212,8 @@ void cGameDamageArea::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 
 }
 
-//-----------------------------------------------------------------------
-
 void cGameDamageArea::SetupSaveData(iGameEntity_SaveData *apSaveData)
 {
 	__super::SetupSaveData(apSaveData);
 	cGameDamageArea_SaveData *pData = static_cast<cGameDamageArea_SaveData*>(apSaveData);
 }
-//-----------------------------------------------------------------------

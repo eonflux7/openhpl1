@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "impl/VertexBufferVBO.h"
 #include "impl/LowLevelGraphicsSDL.h"
 #include "system/LowLevelSystem.h"
@@ -31,12 +15,6 @@
 namespace hpl {
 
 #define BUFFER_OFFSET(i) ((void*)(i*sizeof(float)))
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cVertexBufferVBO::cVertexBufferVBO(iLowLevelGraphics* apLowLevelGraphics,tVertexFlag aFlags,
 		eVertexBufferDrawType aDrawType,eVertexBufferUsageType aUsageType,
@@ -77,14 +55,6 @@ namespace hpl {
 		DeleteVertexArray();
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::AddVertex(tVertexFlag aType,const cVector3f& avVtx)
 	{
 		int idx = cMath::Log2ToInt((int)aType);
@@ -96,8 +66,6 @@ namespace hpl {
 			mvVertexArray[idx].push_back(1);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::AddColor(tVertexFlag aType,const cColor& aColor)
 	{
 		int idx = cMath::Log2ToInt((int)aType);
@@ -108,14 +76,10 @@ namespace hpl {
 		mvVertexArray[idx].push_back(aColor.a);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::AddIndex(unsigned int alIndex)
 	{
 		mvIndexArray.push_back(alIndex);
 	}
-
-	//-----------------------------------------------------------------------
 
 	cBoundingVolume cVertexBufferVBO::CreateBoundingVolume()
 	{
@@ -145,8 +109,6 @@ namespace hpl {
 
 		return bv;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cVertexBufferVBO::Compile(tVertexCompileFlag aFlags)
 	{
@@ -207,9 +169,6 @@ namespace hpl {
 		return true;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::UpdateData(tVertexFlag aTypes, bool abIndices)
 	{
 		MarkContentChanged();
@@ -233,8 +192,6 @@ namespace hpl {
 			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cVertexBufferVBO::Transform(const cMatrixf &a_mtxTransform)
 	{
@@ -279,8 +236,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::Draw(eVertexBufferDrawType aDrawType)
 	{
 		if(mbQuadInstances)
@@ -306,7 +261,6 @@ namespace hpl {
 		int lSize = mlElementNum;
 		if(mlElementNum<0) lSize = GetIndexNum();
 
-		///////////////////////////////
 		//Get the draw type
 		GLenum mode = GL_TRIANGLES;
 		unsigned int lElementHandle = mlElementHandle;
@@ -315,7 +269,6 @@ namespace hpl {
 			mode = GL_LINE_STRIP;
 		}
 
-		//////////////////////////////////
 		//Bind and draw the buffer
 		if(!pLowLevel->PrepareDraw()) return;
 		pLowLevel->GetGpuProfiler()->CountDraw(mode, lSize);
@@ -326,14 +279,11 @@ namespace hpl {
 		pLowLevel->NotifyDrawComplete();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::DrawIndices(unsigned int *apIndices, int alCount,eVertexBufferDrawType aDrawType)
 	{
 		eVertexBufferDrawType drawType = aDrawType == eVertexBufferDrawType_LastEnum ? mDrawType : aDrawType;
 		cLowLevelGraphicsSDL *pLowLevel = static_cast<cLowLevelGraphicsSDL*>(mpLowLevelGraphics);
 
-		///////////////////////////////
 		//Get the draw type
 		GLenum mode = GL_TRIANGLES;
 		if(drawType==eVertexBufferDrawType_Lines)
@@ -342,7 +292,6 @@ namespace hpl {
 		}
 		if(alCount <= 0) return;
 
-		//////////////////////////////////
 		//Bind and draw the buffer
 		if(!pLowLevel->PrepareDraw()) return;
 		pLowLevel->GetGpuProfiler()->CountDraw(mode, alCount);
@@ -353,22 +302,15 @@ namespace hpl {
 		pLowLevel->NotifyDrawComplete();
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::Bind()
 	{
 		BindVertexArray();
 	}
 
-	//-----------------------------------------------------------------------
-
 	// Every draw binds the vertex array it needs.
 	void cVertexBufferVBO::UnBind()
 	{
 	}
-
-	//-----------------------------------------------------------------------
 
 	float* cVertexBufferVBO::GetArray(tVertexFlag aType)
 	{
@@ -377,14 +319,10 @@ namespace hpl {
 		return mvVertexArray[idx].data();
 	}
 
-	//-----------------------------------------------------------------------
-
 	unsigned int* cVertexBufferVBO::GetIndices()
 	{
 		return mvIndexArray.data();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cVertexBufferVBO::ResizeArray(tVertexFlag aType, int alSize)
 	{
@@ -393,14 +331,10 @@ namespace hpl {
 		mvVertexArray[idx].resize(alSize);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::ResizeIndices(int alSize)
 	{
 		mvIndexArray.resize(alSize);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iVertexBuffer* cVertexBufferVBO::CreateCopy(eVertexBufferUsageType aUsageType)
 	{
@@ -438,8 +372,6 @@ namespace hpl {
 
 		return pVtxBuff;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int cVertexBufferVBO::GetVertexNum()
 	{
@@ -507,22 +439,12 @@ namespace hpl {
 		return mvIndexArray[alIdx];
 	}
 
-
-	//-----------------------------------------------------------------------
-
-	/////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	/////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	int cVertexBufferVBO::GetElementNum(tVertexFlag aFlag)
 	{
 		int idx = cMath::Log2ToInt((int)aFlag);
 
 		return kvVertexElements[idx];
 	}
-	//-----------------------------------------------------------------------
 
 	bool cVertexBufferVBO::PackVertices()
 	{
@@ -556,8 +478,6 @@ namespace hpl {
 		glBufferData(GL_ARRAY_BUFFER, mvInterleaved.size()*sizeof(float), mvInterleaved.data(), usage);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-
-	//-----------------------------------------------------------------------
 
 	// The vertex array object is made when first drawn with, from the
 	// arrays the buffer has then.
@@ -625,8 +545,6 @@ namespace hpl {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cVertexBufferVBO::DeleteVertexArray()
 	{
 		if(mlVertexArray==0) return;
@@ -636,7 +554,4 @@ namespace hpl {
 		glDeleteVertexArrays(1, &mlVertexArray);
 		mlVertexArray = 0;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

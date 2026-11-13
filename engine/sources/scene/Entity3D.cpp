@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/Entity3D.h"
 #include "scene/Node3D.h"
 #include "math/Math.h"
@@ -28,11 +12,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	iEntity3D::iEntity3D(tString asName) :	iEntity(asName)
 	{
 		m_mtxLocalTransform = cMatrixf::Identity;
@@ -75,27 +54,15 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cVector3f iEntity3D::GetLocalPosition()
 	{
 		return m_mtxLocalTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& iEntity3D::GetLocalMatrix()
 	{
 		return m_mtxLocalTransform;
 	}
-
-	//-----------------------------------------------------------------------
 
 	cVector3f iEntity3D::GetWorldPosition()
 	{
@@ -104,16 +71,12 @@ namespace hpl {
 		return m_mtxWorldTransform.GetTranslation();
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMatrixf& iEntity3D::GetWorldMatrix()
 	{
 		UpdateWorldTransform();
 
 		return m_mtxWorldTransform;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity3D::SetPosition(const cVector3f& avPos)
 	{
@@ -126,8 +89,6 @@ namespace hpl {
 		SetTransformUpdated();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::SetMatrix(const cMatrixf& a_mtxTransform)
 	{
 		KeepRenderInterpolationTransform();
@@ -136,8 +97,6 @@ namespace hpl {
 
 		SetTransformUpdated();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity3D::SetWorldPosition(const cVector3f& avWorldPos)
 	{
@@ -151,8 +110,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::SetWorldMatrix(const cMatrixf& a_mtxWorldTransform)
 	{
 		if(mpParent)
@@ -165,8 +122,6 @@ namespace hpl {
 			SetMatrix(a_mtxWorldTransform);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity3D::SetTransformUpdated(bool abUpdateCallbacks)
 	{
@@ -198,35 +153,25 @@ namespace hpl {
 
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool iEntity3D::GetTransformUpdated()
 	{
 		return mbTransformUpdated;
 	}
-
-	//-----------------------------------------------------------------------
 
 	int iEntity3D::GetTransformUpdateCount()
 	{
 		return mlCount;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::AddCallback(iEntityCallback *apCallback)
 	{
 		mlstCallbacks.push_back(apCallback);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::RemoveCallback(iEntityCallback *apCallback)
 	{
 		STLFindAndDelete(mlstCallbacks, apCallback);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity3D::AddChild(iEntity3D *apEntity)
 	{
@@ -271,16 +216,11 @@ namespace hpl {
 		return mpParent;
 	}
 
-	//-----------------------------------------------------------------------
 	bool iEntity3D::IsInSector(cSector *apSector)
 	{
-		//Log("-- %s --\n",msName.c_str());
-		//bool bShouldReturnTrue = false;
 
 		if(apSector == GetCurrentSector())
 		{
-			//Log("Should return true\n");
-			//bShouldReturnTrue = true;
 			return true;
 		}
 
@@ -291,26 +231,15 @@ namespace hpl {
 			iRenderContainerData *pRenderContainerData = *it;
 			cSector *pSector = static_cast<cSector*>(pRenderContainerData);
 
-			//Log("%s (%d) vs %s (%d)\n",pSector->GetId().c_str(),pSector, apSector->GetId().c_str(),apSector);
 			if(pSector == apSector)
 			{
-				//Log("return true!\n");
 				return true;
 			}
 		}
 
-		//if(bShouldReturnTrue)Log(" %s should have returned true. Sectors: %d\n",msName.c_str(),		mlstRenderContainerData.size());
-		//Log("return false!\n");
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 	bool iEntity3D::IsRenderInterpolationRegistered()
 	{
 		return mlRenderInterpolateStep != 0 && mlRenderInterpolateStep == cRenderInterpolation::GetStep();
@@ -374,8 +303,6 @@ namespace hpl {
 		SetTransformUpdated();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::UpdateWorldTransform()
 	{
 		if(mbTransformUpdated)
@@ -401,14 +328,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeVirtual(cSaveData_iEntity3D,cSaveData_iEntity)
 	kSerializeVar(m_mtxLocalTransform,eSerializeType_Matrixf)
 	kSerializeVar(mBoundingVolume,eSerializeType_Class)
@@ -418,20 +337,14 @@ namespace hpl {
 	kSerializeVarContainer(mlstChildren,eSerializeType_Int32)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iEntity3D::CreateSaveData()
 	{
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::SaveToSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_SaveToBegin(iEntity3D);
-
-		//Log("-------- Saving %s --------------\n",msName.c_str());
 
 		kSaveData_SaveTo(m_mtxLocalTransform);
 		kSaveData_SaveTo(mBoundingVolume);
@@ -440,25 +353,11 @@ namespace hpl {
 		kSaveData_SaveObject(mpParent,mlParentId);
 		kSaveData_SaveIdList(mlstChildren,tEntity3DListIt,mlstChildren);
 
-		/*if(mlstChildren.empty()==false)
-		{
-			Log("Children in '%s'/'%s': ",msName.c_str(),GetEntityType().c_str());
-			for(tEntity3DListIt it=mlstChildren.begin(); it != mlstChildren.end(); ++it)
-			{
-				iEntity3D *pEntity = *it;
-				Log("('%d/%s'/'%s'), ",pEntity->GetSaveObjectId(),pEntity->GetName().c_str(),pEntity->GetEntityType().c_str());
-			}
-			Log("\n");
-		}*/
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iEntity3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iEntity3D);
-
-		//Log("-------- Loading %s --------------\n",msName.c_str());
 
 		SetMatrix(pData->m_mtxLocalTransform);
 
@@ -468,16 +367,10 @@ namespace hpl {
 		kSaveData_LoadFrom(msSourceFile);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iEntity3D::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(iEntity3D);
 
-		//Log("-------- Setup %s --------------\n",msName.c_str());
-
-		//kSaveData_LoadObject(mpParent,mlParentId,iEntity3D*);
-		//kSaveData_LoadIdList(mlstChildren,mlstChildren,iEntity3D*);
 		if(pData->mlParentId!=-1 && mpParent == nullptr)
 		{
 			iEntity3D *pParentEntity = static_cast<iEntity3D*>(apSaveObjectHandler->Get(pData->mlParentId));
@@ -504,6 +397,4 @@ namespace hpl {
 
 		SetTransformUpdated(true);
 	}
-
-	//-----------------------------------------------------------------------
 }

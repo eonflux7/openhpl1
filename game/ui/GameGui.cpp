@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "ui/GameGui.h"
 
@@ -23,12 +7,6 @@
 #include "player/Player.h"
 #include "systems/EffectHandler.h"
 #include "core/GraphicsHelper.h"
-
-//////////////////////////////////////////////////////////////////////////
-// HELPERS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 static eGuiMaterial ToGuiMaterial(const char *apString)
 {
@@ -46,8 +24,6 @@ static eGuiMaterial ToGuiMaterial(const char *apString)
 	return eGuiMaterial_Alpha;
 }
 
-//-----------------------------------------------------------------------
-
 static eWidgetSliderOrientation ToSliderOrientation(const char *apString)
 {
 	if(apString == nullptr) return eWidgetSliderOrientation_Horisontal;
@@ -57,8 +33,6 @@ static eWidgetSliderOrientation ToSliderOrientation(const char *apString)
 
 	return eWidgetSliderOrientation_Vertical;
 }
-
-//-----------------------------------------------------------------------
 
 static iWidget* CreateWidgetFromType(eWidgetType aType, const tString &asName, iWidget *apParent,
 									cGuiSet *apSet, eWidgetSliderOrientation aOrientation)
@@ -80,13 +54,7 @@ static iWidget* CreateWidgetFromType(eWidgetType aType, const tString &asName, i
 	return nullptr;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // TEXT VIEW
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameGuiTextView::cGameGuiTextView(cInit *apInit, cGameGui *apGui, const tWString &asLabel,
 									const tString &asTextCat, const tString &asTextEntry,
@@ -111,30 +79,25 @@ cGameGuiTextView::cGameGuiTextView(cInit *apInit, cGameGui *apGui, const tWStrin
 
 	mpGfxBackground = mpSet->GetGui()->CreateGfxFilledRect(cColor(0,1), eGuiMaterial_Alpha);
 
-	//////////////////////////
 	// The text
 	tWString sText = kTranslate(asTextCat, asTextEntry);
 	mpFont->mpFont->GetWordWrapRows(mvFrameSize.x - 3 - 20, fRowHeight, mpFont->mvSize, sText, &mvRows);
 
-	//////////////////////////
 	// Window
 	mpWindow = mpSet->CreateWidgetWindow(mvWindowPos, mvWindowSize, asLabel, nullptr, "");
 
-	//////////////////////////
 	// Button
 	mpButton = mpSet->CreateWidgetButton(cVector3f(mvWindowSize.x*0.5f - 100, mvWindowSize.y - 50, 1),
 										cVector2f(200, 30), kTranslate("GUI", "CloseDoc"),
 										mpWindow, "");
 	mpButton->AddCallback(eGuiMessage_ButtonPressed, this, kGuiCallback(ButtonPress));
 
-	//////////////////////////
 	// Frame
 	mpFrame = mpSet->CreateWidgetFrame(mvFramePos, mvFrameSize, true, mpWindow, "");
 	mpFrame->SetBackGroundColor(cColor(1,1));
 	mpFrame->SetDrawBackground(false);
 	mpFrame->AddCallback(eGuiMessage_OnDraw, this, kGuiCallback(OnDraw));
 
-	//////////////////////////
 	// Slider
 	mpSlider = mpSet->CreateWidgetSlider(eWidgetSliderOrientation_Vertical,
 										cVector3f(mvFramePos.x + mvFrameSize.x - 20, mvFramePos.y, 1.2f),
@@ -156,8 +119,6 @@ cGameGuiTextView::cGameGuiTextView(cInit *apInit, cGameGui *apGui, const tWStrin
 	mpSet->SetAttentionWidget(mpWindow);
 }
 
-//-----------------------------------------------------------------------
-
 cGameGuiTextView::~cGameGuiTextView()
 {
 	mpSet->GetGui()->DestroyGfx(mpGfxBackground);
@@ -170,8 +131,6 @@ cGameGuiTextView::~cGameGuiTextView()
 	mpSet->DestroyWidget(mpFrame);
 	mpSet->DestroyWidget(mpSlider);
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameGuiTextView::OnDraw(iWidget* apWidget, cGuiMessageData& aData)
 {
@@ -193,16 +152,12 @@ bool cGameGuiTextView::OnDraw(iWidget* apWidget, cGuiMessageData& aData)
 }
 kGuiCalllbackDeclaredFuncEnd(cGameGuiTextView, OnDraw)
 
-//-----------------------------------------------------------------------
-
 bool cGameGuiTextView::SliderMove(iWidget* apWidget, cGuiMessageData& aData)
 {
 	mlFirstRow = aData.mlVal;
 	return true;
 }
 kGuiCalllbackDeclaredFuncEnd(cGameGuiTextView, SliderMove)
-
-//-----------------------------------------------------------------------
 
 bool cGameGuiTextView::ButtonPress(iWidget* apWidget, cGuiMessageData& aData)
 {
@@ -227,13 +182,7 @@ bool cGameGuiTextView::ButtonPress(iWidget* apWidget, cGuiMessageData& aData)
 }
 kGuiCalllbackDeclaredFuncEnd(cGameGuiTextView, ButtonPress)
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GAME GUI
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameGui::cGameGui(cInit *apInit, const tString &asName)
 {
@@ -252,8 +201,6 @@ cGameGui::cGameGui(cInit *apInit, const tString &asName)
 	msPopUpCallback = "";
 }
 
-//-----------------------------------------------------------------------
-
 cGameGui::~cGameGui()
 {
 	if(mpSet) mpGui->DestroySet(mpSet);
@@ -268,14 +215,6 @@ cGameGui::~cGameGui()
 	STLMapDeleteAll(m_mapFonts);
 	STLMapDeleteAll(m_mapCallbacks);
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 bool cGameGui::LoadFromFile(const tString &asFile)
 {
@@ -295,7 +234,6 @@ bool cGameGui::LoadFromFile(const tString &asFile)
 
 	TiXmlElement *pRootElem = xmlDoc.FirstChildElement();
 
-	/////////////////////////////
 	// Main
 	TiXmlElement *pMainElem = pRootElem->FirstChildElement("Main");
 	if(pMainElem == nullptr)
@@ -315,7 +253,6 @@ bool cGameGui::LoadFromFile(const tString &asFile)
 
 	mpSet = mpGui->CreateSet(msName, mpSkin);
 
-	/////////////////////////////
 	// Fonts
 	TiXmlElement *pFontsElem = pRootElem->FirstChildElement("Fonts");
 	if(pFontsElem == nullptr)
@@ -325,7 +262,6 @@ bool cGameGui::LoadFromFile(const tString &asFile)
 	}
 	LoadFontsFromElement(pFontsElem);
 
-	/////////////////////////////
 	// Images
 	TiXmlElement *pImagesElem = pRootElem->FirstChildElement("Images");
 	if(pImagesElem == nullptr)
@@ -335,7 +271,6 @@ bool cGameGui::LoadFromFile(const tString &asFile)
 	}
 	LoadImagesFromElement(pImagesElem);
 
-	/////////////////////////////
 	// Widgets
 	TiXmlElement *pWidgetsElem = pRootElem->FirstChildElement("Widgets");
 	if(pWidgetsElem == nullptr)
@@ -350,21 +285,15 @@ bool cGameGui::LoadFromFile(const tString &asFile)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGui::Start()
 {
 	RunScriptCommand("OnStart()");
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGui::Update(float afTimeStep)
 {
 	RunScriptCommand("OnUpdate()");
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGui::Exit()
 {
@@ -372,8 +301,6 @@ void cGameGui::Exit()
 
 	STLMapDeleteAll(m_mapCallbacks);
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameGui::RunScriptCommand(const tString &asCommand)
 {
@@ -386,8 +313,6 @@ bool cGameGui::RunScriptCommand(const tString &asCommand)
 	}
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGui::AddCallback(const tString &asWidget, eGuiMessage aMessage, const tString &asFunc)
 {
@@ -421,8 +346,6 @@ void cGameGui::AddCallback(const tString &asWidget, eGuiMessage aMessage, const 
 	pCallback->mvFunctions[aMessage] = asFunc;
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGui::CreatePopUp(const tWString &asLabel, const tWString &asText,
 							const tWString &asButton1, const tWString &asButton2,
 							const tString &asCallback)
@@ -433,8 +356,6 @@ void cGameGui::CreatePopUp(const tWString &asLabel, const tWString &asText,
 								this, kGuiCallback(PopUpCallback));
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGui::CreateTextViewer(const tWString &asLabel, const tString &asTextCat,
 								const tString &asTextEntry, const tString &asCallback,
 								bool abNewNote)
@@ -442,8 +363,6 @@ void cGameGui::CreateTextViewer(const tWString &asLabel, const tString &asTextCa
 	// The close button queues deletion through the GUI set.
 	hplNew( cGameGuiTextView, (mpInit, this, asLabel, asTextCat, asTextEntry, asCallback, abNewNote) );
 }
-
-//-----------------------------------------------------------------------
 
 cGuiGfxElement* cGameGui::GetImage(const tString &asName)
 {
@@ -459,8 +378,6 @@ cGuiGfxElement* cGameGui::GetImage(const tString &asName)
 	return it->second;
 }
 
-//-----------------------------------------------------------------------
-
 cGuiSkinFont* cGameGui::GetFont(const tString &asName)
 {
 	if(asName == "") return nullptr;
@@ -475,8 +392,6 @@ cGuiSkinFont* cGameGui::GetFont(const tString &asName)
 	return it->second;
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameGui::SetWidgetFont(iWidget *apWidget, const tString &asFont)
 {
 	cGuiSkinFont *pFont = GetFont(asFont);
@@ -488,8 +403,6 @@ bool cGameGui::SetWidgetFont(iWidget *apWidget, const tString &asFont)
 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 static const char* gvGuiMessageNames[eGuiMessage_LastEnum] = {
 	"MouseMove", "MouseDown", "MouseUp", "MouseDoubleClick", "MouseEnter", "MouseLeave",
@@ -521,14 +434,6 @@ tString cGameGui::GuiMessageToString(eGuiMessage aMessage)
 	return gvGuiMessageNames[aMessage];
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameGui::LoadFontsFromElement(TiXmlElement *apElement)
 {
 	TiXmlElement *pElem = apElement->FirstChildElement();
@@ -554,8 +459,6 @@ void cGameGui::LoadFontsFromElement(TiXmlElement *apElement)
 		}
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGui::LoadImagesFromElement(TiXmlElement *apElement)
 {
@@ -625,8 +528,6 @@ void cGameGui::LoadImagesFromElement(TiXmlElement *apElement)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 static void AddItemsFromString(iWidgetItemContainer *apContainer, const tString &asItems)
 {
 	if(asItems == "") return;
@@ -646,7 +547,6 @@ void cGameGui::LoadWidgetsFromElement(TiXmlElement *apElement, iWidget *apParent
 	TiXmlElement *pElem = apElement->FirstChildElement();
 	for(; pElem != nullptr; pElem = pElem->NextSiblingElement())
 	{
-		////////////////////////////
 		// The kind of widget
 		tString sType = cString::ToLowerCase(pElem->Value());
 
@@ -667,7 +567,6 @@ void cGameGui::LoadWidgetsFromElement(TiXmlElement *apElement, iWidget *apParent
 			continue;
 		}
 
-		////////////////////////////
 		// What all widgets have
 		tString sName = cString::ToString(pElem->Attribute("Name"), "");
 
@@ -692,7 +591,6 @@ void cGameGui::LoadWidgetsFromElement(TiXmlElement *apElement, iWidget *apParent
 		tString sFont = cString::ToString(pElem->Attribute("Font"), "");
 		tString sImage = cString::ToString(pElem->Attribute("Image"), "");
 
-		////////////////////////////
 		// What each kind has
 		switch(type)
 		{
@@ -785,13 +683,10 @@ void cGameGui::LoadWidgetsFromElement(TiXmlElement *apElement, iWidget *apParent
 		default: break;
 		}
 
-		////////////////////////////
 		// The widgets inside it
 		LoadWidgetsFromElement(pElem, pWidget);
 	}
 }
-
-//-----------------------------------------------------------------------
 
 bool cGameGui::CallbackFunc(iWidget* apWidget, cGuiMessageData& aData)
 {
@@ -817,8 +712,6 @@ bool cGameGui::CallbackFunc(iWidget* apWidget, cGuiMessageData& aData)
 }
 kGuiCalllbackDeclaredFuncEnd(cGameGui, CallbackFunc)
 
-//-----------------------------------------------------------------------
-
 bool cGameGui::PopUpCallback(iWidget* apWidget, cGuiMessageData& aData)
 {
 	if(msPopUpCallback == "") return true;
@@ -833,13 +726,7 @@ bool cGameGui::PopUpCallback(iWidget* apWidget, cGuiMessageData& aData)
 }
 kGuiCalllbackDeclaredFuncEnd(cGameGui, PopUpCallback)
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // HANDLER
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameGuiHandler::cGameGuiHandler(cInit *apInit) : iUpdateable("GameGuiHandler")
 {
@@ -864,8 +751,6 @@ cGameGuiHandler::cGameGuiHandler(cInit *apInit) : iUpdateable("GameGuiHandler")
 	mvMousePos = cVector2f(400, 300);
 }
 
-//-----------------------------------------------------------------------
-
 cGameGuiHandler::~cGameGuiHandler()
 {
 	CloseScreenGui(false);
@@ -873,19 +758,9 @@ cGameGuiHandler::~cGameGuiHandler()
 	mpDrawer->DestroyGfxObject(mpBlackGfx);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameGuiHandler::OnStart()
 {
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGuiHandler::Update(float afTimeStep)
 {
@@ -902,14 +777,10 @@ void cGameGuiHandler::Update(float afTimeStep)
 	mpScreenGui->Update(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGuiHandler::Reset()
 {
 	CloseScreenGui(false);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGuiHandler::OnDraw()
 {
@@ -930,8 +801,6 @@ void cGameGuiHandler::OnDraw()
 		fY += 5;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGuiHandler::OpenScreenGui(const tString &asFile)
 {
@@ -967,8 +836,6 @@ void cGameGuiHandler::OpenScreenGui(const tString &asFile)
 	mpScanSet->SetActive(true);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGuiHandler::CloseScreenGui(bool abDeferClose)
 {
 	if(mpScreenGui)
@@ -982,8 +849,6 @@ void cGameGuiHandler::CloseScreenGui(bool abDeferClose)
 	mpScanSet->SetActive(false);
 }
 
-//-----------------------------------------------------------------------
-
 void cGameGuiHandler::AddMousePos(const cVector2f &avRel)
 {
 	mvMousePos += avRel;
@@ -995,8 +860,6 @@ void cGameGuiHandler::AddMousePos(const cVector2f &avRel)
 
 	mpGui->SendMousePos(mvMousePos, avRel);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameGuiHandler::DrawText(iFontData *apFont, const tWString &asText, float afAlpha)
 {
@@ -1018,14 +881,6 @@ void cGameGuiHandler::DrawText(iFontData *apFont, const tWString &asText, float 
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cGameGuiHandler::DestroyScreenGui()
 {
 	mpScreenGui->Exit();
@@ -1043,5 +898,3 @@ void cGameGuiHandler::DestroyScreenGui()
 	mpGui->SetFocus(nullptr);
 	mpScanSet->SetActive(false);
 }
-
-//-----------------------------------------------------------------------

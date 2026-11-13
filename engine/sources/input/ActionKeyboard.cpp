@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "input/ActionKeyboard.h"
 #include "input/Input.h"
 #include "input/Keyboard.h"
@@ -23,12 +7,6 @@
 #include "system/LowLevelSystem.h"
 namespace hpl
 {
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cActionKeyboard::cActionKeyboard(tString asName,cInput *apInput, int aKey) : iAction(asName)
 	{
 		// Split key and modifier
@@ -37,28 +15,17 @@ namespace hpl
 		mpInput = apInput;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	bool cActionKeyboard::IsTriggered()
 	{
 		return mpInput->GetKeyboard()->KeyIsDown(mKey) &&
 			( (mpInput->GetKeyboard()->GetModifier() & mMod) > 0 || mMod == eKeyModifier_NONE);
 	}
-	//-----------------------------------------------------------------------
 
 	float cActionKeyboard::GetValue()
 	{
 		if(IsTriggered())return 1.0;
 		else return 0.0;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tString cActionKeyboard::GetInputName()
 	{
@@ -223,6 +190,4 @@ namespace hpl
 			return "Unknown";
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

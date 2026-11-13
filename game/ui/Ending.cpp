@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "ui/Ending.h"
 
@@ -24,12 +8,6 @@
 #include "core/GraphicsHelper.h"
 #include "systems/FadeHandler.h"
 #include "ui/Credits.h"
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cEnding::cEnding(cInit *apInit)  : iUpdateable("Ending")
 {
@@ -41,19 +19,9 @@ cEnding::cEnding(cInit *apInit)  : iUpdateable("Ending")
 	Reset();
 }
 
-//-----------------------------------------------------------------------
-
 cEnding::~cEnding()
 {
 }
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cEnding::Reset()
 {
@@ -78,16 +46,12 @@ void cEnding::Reset()
 	mfBlinkSpeed = 1;
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::OnPostSceneDraw()
 {
 	if(mbActive==false) return;
 
 	mpInit->mpGraphicsHelper->ClearScreen(cColor(0,0));
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::OnDraw()
 {
@@ -101,8 +65,6 @@ void cEnding::OnDraw()
 					_W("%ls"),kTranslate("Ending","MessageSent").c_str());
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::Update(float afTimeStep)
 {
@@ -218,13 +180,9 @@ void cEnding::Update(float afTimeStep)
 	UpdateText(afTimeStep);
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::OnExit()
 {
 }
-
-//-----------------------------------------------------------------------
 
 // A key or click shows the whole text, or skips the wait after it
 void cEnding::OnMouseDown(eMButton aButton)
@@ -251,8 +209,6 @@ void cEnding::OnButtonDown()
 	else
 		mfWaitElapsedSeconds = 1000;
 }
-
-//-----------------------------------------------------------------------
 
 void cEnding::SetActive(bool abActive, int alType)
 {
@@ -295,14 +251,6 @@ void cEnding::SetActive(bool abActive, int alType)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-
 void cEnding::SetCurrentText(const tString &asEntry)
 {
 	mvRows.clear();
@@ -317,8 +265,6 @@ void cEnding::SetCurrentText(const tString &asEntry)
 	mfTypeSoundDelaySeconds = 0;
 	mfCharacterDelaySeconds = 0;
 }
-
-//-----------------------------------------------------------------------
 
 // Type a character every 1/19 s, pausing before an empty row, with occasional key sounds.
 void cEnding::UpdateText(float afTimeStep)
@@ -353,8 +299,6 @@ void cEnding::UpdateText(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cEnding::DrawText()
 {
 	if(mbTextActive==false) return;
@@ -378,5 +322,3 @@ void cEnding::DrawText()
 		lCount += lRowLength;
 	}
 }
-
-//-----------------------------------------------------------------------

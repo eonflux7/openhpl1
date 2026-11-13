@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "physics/PhysicsJoint.h"
 
 #include "physics/CollideShape.h"
@@ -39,12 +23,6 @@
 #include "game/ScriptFuncs.h"
 
 namespace hpl {
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsJoint::iPhysicsJoint(const tString &asName, iPhysicsBody *apParentBody, iPhysicsBody *apChildBody,
 		iPhysicsWorld *apWorld,const cVector3f &avPivotPoint)
@@ -98,7 +76,6 @@ namespace hpl {
 		mfLimitAutoSleepDist = 0.02f;
 		mlLimitAutoSleepNumSteps = 10;
 
-		//Log("Created joint '%s'\n",msName.c_str());
 	}
 
 	iPhysicsJoint::~iPhysicsJoint()
@@ -117,16 +94,7 @@ namespace hpl {
 
 		if(mpSound) mpWorld->GetWorld3D()->DestroySoundEntity(mpSound);
 
-		//Log("Deleted joint '%s'\n",msName.c_str());
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	/**
 	 * This should only be used by PhysicsBody.
@@ -136,8 +104,6 @@ namespace hpl {
 		if(mpParentBody == apBody) mpParentBody = nullptr;
 		if(mpChildBody == apBody) mpChildBody = nullptr;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::AddController(iPhysicsController *apController)
 	{
@@ -150,8 +116,6 @@ namespace hpl {
 		apController->SetJoint(this);
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsController* iPhysicsJoint::GetController(const tString &asName)
 	{
 		tPhysicsControllerMapIt it = m_mapControllers.find(asName);
@@ -159,8 +123,6 @@ namespace hpl {
 
 		return it->second;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iPhysicsJoint::ChangeController(const tString &asName)
 	{
@@ -185,8 +147,6 @@ namespace hpl {
 		return true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::SetAllControllersPaused(bool abX)
 	{
 		tPhysicsControllerMapIt it = m_mapControllers.begin();
@@ -198,20 +158,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsControllerIterator iPhysicsJoint::GetControllerIterator()
 	{
 		return cPhysicsControllerIterator(&m_mapControllers);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::OnMaxLimit()
 	{
@@ -220,17 +170,13 @@ namespace hpl {
 			mpCallback->OnMaxLimit(this);
 		}
 
-		//////////////////////////////////////////////////
 		// Check if any of the controllers has a OnMax end.
 		if(mbHasCollided==false)
 		{
-			//Log("OnMax!\n");
 			tPhysicsControllerMapIt it = m_mapControllers.begin();
 			for(; it != m_mapControllers.end(); ++it)
 			{
 				iPhysicsController *pCtrl = it->second;
-
-				//Log("Ctrl %s: %d\n",pCtrl->GetName().c_str(),(int)pCtrl->GetEndType());
 
 				if(pCtrl->IsActive() && pCtrl->GetEndType() == ePhysicsControllerEnd_OnMax)
 				{
@@ -245,8 +191,6 @@ namespace hpl {
 		LimitEffect(&mMaxLimit);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::OnMinLimit()
 	{
 		if(mbHasCollided==false && mpCallback)
@@ -255,11 +199,9 @@ namespace hpl {
 
 
 		}
-		//////////////////////////////////////////////////
 		// Check if any of the controllers has a OnMin end.
 		if(mbHasCollided==false)
 		{
-			//Log("OnMin!\n");
 
 			tPhysicsControllerMapIt it = m_mapControllers.begin();
 			for(; it != m_mapControllers.end(); ++it)
@@ -278,8 +220,6 @@ namespace hpl {
 
 		LimitEffect(&mMinLimit);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::CalcSoundFreq(float afSpeed,float *apFreq, float *apVol)
 	{
@@ -328,8 +268,6 @@ namespace hpl {
 		*apVol = fVolume;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::OnPhysicsUpdate()
 	{
 		//Get the pivot point, if there is no parent, it is stuck.
@@ -342,7 +280,6 @@ namespace hpl {
 
 		if(mpWorld->GetWorld3D()->GetSound()->GetSoundHandler()->GetSilent()) return;
 
-		//////////////////////////////////////
 		//Get the speed
 		cVector3f vVel(0,0,0);
 		//Linear
@@ -396,12 +333,10 @@ namespace hpl {
 			mpSound = nullptr;
 		}
 
-		//////////////////////////////////////
 		// Create and update sound if speed is high enough
 		// Joint has sound
 		if(mpSound)
 		{
-			//Log("Updating %s\n",mpSound->GetName().c_str());
 			float fMin = cMath::Max(mfMinMoveSpeed-0.2f, 0.1f);
 			if(fSpeed <= fMin)
 			{
@@ -410,33 +345,27 @@ namespace hpl {
 			}
 			else
 			{
-				//Log("Getting entry!\n");
 				cSoundEntry *pEntry = mpSound->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
-					//Log("Update entry!\n");
 					float fFreq, fVolume;
 					CalcSoundFreq(fSpeed, &fFreq,&fVolume);
 
 					pEntry->mfNormalSpeed  = fFreq;
 					pEntry->mfNormalVolumeMul = fVolume;
 
-					//Log("Speed: %f Vol: %f Freq: %f\n",fSpeed,fVolume,fFreq);
 				}
 				else
 				{
-					//Log("Null entry!\n");
 				}
 
 
 				mpSound->SetPosition(mvPivotPoint);
 			}
 		}
-		//////////////////////
 		// Joint has no sound
 		else
 		{
-			/////////////////////////////
 			// Speed is over limit
 			if(fSpeed > mfMinMoveSpeed)
 			{
@@ -448,14 +377,12 @@ namespace hpl {
 						mpSound->SetIsSaved(false);
 						mpSound->FadeIn(3.3f);
 					}
-					//Log("Starting!\n");
 				}
 				else
 				{
 					mlSpeedCount++;
 				}
 			}
-			/////////////////////////////
 			// Speed is under limit
 			else
 			{
@@ -464,8 +391,6 @@ namespace hpl {
 		}
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::LimitEffect(cJointLimitEffect *pEffect)
 	{
@@ -481,8 +406,6 @@ namespace hpl {
 
 			float fSpeed = vVel.Length();
 			if(fSpeed > pEffect->mfMaxSpeed) fSpeed = pEffect->mfMaxSpeed;
-
-			//Log("Speed: %f\n",fSpeed);
 
 			if(fSpeed >= pEffect->mfMinSpeed && mbHasCollided==false && pEffect->msSound != "")
 			{
@@ -500,22 +423,16 @@ namespace hpl {
 		mbHasCollided = true;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::OnNoLimit()
 	{
 		mbHasCollided = false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::Break()
 	{
 		mbBroken = true;
 		mbBreakable = true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iPhysicsJoint::CheckBreakage()
 	{
@@ -536,8 +453,6 @@ namespace hpl {
 
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::CheckLimitAutoSleep(iPhysicsJoint *apJoint,
 											const float afMin, const float afMax,
@@ -563,22 +478,11 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	kBeginSerializeBase(cJointLimitEffect)
 	kSerializeVar(msSound, eSerializeType_String)
 	kSerializeVar(mfMinSpeed, eSerializeType_Float32)
 	kSerializeVar(mfMaxSpeed, eSerializeType_Float32)
 	kEndSerialize()
-
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerializeVirtual(cSaveData_iPhysicsJoint,iSaveData)
 	kSerializeVar(msName, eSerializeType_String)
@@ -621,20 +525,15 @@ namespace hpl {
 	kSerializeVar(mbAutoDeleteCallback, eSerializeType_Bool)
 	kEndSerialize()
 
-	//-----------------------------------------------------------------------
-
 	iSaveData* iPhysicsJoint::CreateSaveData()
 	{
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::SaveToSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_SaveToBegin(iPhysicsJoint);
 
-		//////////////////////////
 		//Variables
 		kSaveData_SaveTo(msName);
 
@@ -677,7 +576,6 @@ namespace hpl {
 			pData->msCallbackMinFunc = "";
 		}
 
-		//////////////////////////
 		//Controllers
 		pData->mlstControllers.Clear();
 		tPhysicsControllerMapIt it = m_mapControllers.begin();
@@ -690,19 +588,15 @@ namespace hpl {
 			pData->mlstControllers.Add(saveController);
 		}
 
-		//////////////////////////
 		//Pointers
 		kSaveData_SaveObject(mpParentBody,mlParentBodyId);
 		kSaveData_SaveObject(mpChildBody,mlChildBodyId);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsJoint::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iPhysicsJoint);
 
-		//////////////////////////
 		//Variables
 		kSaveData_LoadFrom(msName);
 
@@ -732,7 +626,6 @@ namespace hpl {
 
 		kSaveData_LoadFrom(mbAutoDeleteCallback);
 
-		//////////////////////////
 		//Controllers
 		cContainerListIterator<cSaveData_iPhysicsController> CtrlIt = pData->mlstControllers.GetIterator();
 		while(CtrlIt.HasNext())
@@ -744,8 +637,6 @@ namespace hpl {
 			AddController(pController);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsJoint::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
@@ -759,7 +650,4 @@ namespace hpl {
 			SetCallback(pCallback, true);
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 }

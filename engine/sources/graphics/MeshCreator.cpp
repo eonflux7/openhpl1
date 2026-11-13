@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/MeshCreator.h"
 #include "system/String.h"
 #include "system/LowLevelSystem.h"
@@ -29,31 +13,15 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cMeshCreator::cMeshCreator(iLowLevelGraphics *apLowLevelGraphics, cResources *apResources)
 	{
 		mpLowLevelGraphics = apLowLevelGraphics;
 		mpResources = apResources;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cMeshCreator::~cMeshCreator()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	cMesh* cMeshCreator::CreateBox(const tString &asName,cVector3f avSize, const tString &asMaterial)
 	{
@@ -69,8 +37,6 @@ namespace hpl {
 
 		return pMesh;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iVertexBuffer* cMeshCreator::CreateSkyBoxVertexBuffer(float afSize)
 	{
@@ -141,8 +107,6 @@ namespace hpl {
 		}
 		return pSkyBox;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iVertexBuffer* cMeshCreator::CreateBoxVertexBuffer(cVector3f avSize)
 	{
@@ -259,16 +223,4 @@ namespace hpl {
 
 		return idx;
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-	//-----------------------------------------------------------------------
-
 }

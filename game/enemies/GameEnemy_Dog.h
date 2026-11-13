@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_GAME_ENEMY_DOG_H
 #define GAME_GAME_ENEMY_DOG_H
 
@@ -23,8 +7,6 @@
 #include "enemies/GameEnemy.h"
 
 using namespace hpl;
-
-//-----------------------------------------
 
 class cGameEnemy_Dog;
 
@@ -49,8 +31,6 @@ protected:
 	cGameEnemy_Dog *mpEnemyDog;
 };
 
-//-----------------------------------------
-
 // IDLE STATE
 class cGameEnemyState_Dog_Idle : public iGameEnemyState_Dog_Base
 {
@@ -63,8 +43,6 @@ public:
 
 	void OnUpdate(float afTimeStep) override;
 };
-
-//-----------------------------------------
 
 // ATTENTION STATE
 class cGameEnemyState_Dog_Attention : public iGameEnemyState_Dog_Base
@@ -87,8 +65,6 @@ private:
 	float mfTime;
 
 };
-
-//-----------------------------------------
 
 // HUNT STATE
 class cGameEnemyState_Dog_Hunt : public iGameEnemyState_Dog_Base
@@ -131,8 +107,6 @@ private:
 	bool mbBreakingDoor;
 };
 
-//-----------------------------------------
-
 // ATTACK STATE
 class cGameEnemyState_Dog_Attack : public iGameEnemyState_Dog_Base
 {
@@ -158,8 +132,6 @@ private:
 	bool mbAttacked;
 	cVector3f mvTargetPosition;
 };
-
-//-----------------------------------------
 
 // BREAK DOOR STATE
 class cGameEnemyState_Dog_BreakDoor : public iGameEnemyState_Dog_Base
@@ -188,8 +160,6 @@ private:
 	int mlCount;
 };
 
-//-----------------------------------------
-
 // FLEE STATE
 class cGameEnemyState_Dog_Flee : public iGameEnemyState_Dog_Base
 {
@@ -213,8 +183,6 @@ private:
 	bool mbBackingFromBreakDoor;
 };
 
-//-----------------------------------------
-
 // CALL BACKUP STATE
 class cGameEnemyState_Dog_CallBackup : public iGameEnemyState_Dog_Base
 {
@@ -237,8 +205,6 @@ public:
 private:
 	bool mbCheckAnim;
 };
-
-//-----------------------------------------
 
 // KNOCKDOWN STATE
 class cGameEnemyState_Dog_KnockDown : public iGameEnemyState_Dog_Base
@@ -267,9 +233,6 @@ private:
 	int mlStuckAtMaxCount;
 };
 
-//-----------------------------------------
-
-
 // DEAD STATE
 class cGameEnemyState_Dog_Dead : public iGameEnemyState_Dog_Base
 {
@@ -287,8 +250,6 @@ public:
 	void OnTakeHit(float afDamage) override{}
 	void OnFlashlight(const cVector3f &avPosition) override{}
 };
-
-//-----------------------------------------
 
 // PATROL STATE
 class cGameEnemyState_Dog_Patrol : public iGameEnemyState_Dog_Base
@@ -311,8 +272,6 @@ private:
 
 	int mlStuckAtMaxCount;
 };
-
-//-----------------------------------------
 
 // INVESTIGATE STATE
 class cGameEnemyState_Dog_Investigate : public iGameEnemyState_Dog_Base
@@ -337,8 +296,6 @@ public:
 	  int mlKnockCount;
 };
 
-//-----------------------------------------
-
 // MOVETO STATE
 class cGameEnemyState_Dog_MoveTo : public iGameEnemyState_Dog_Base
 {
@@ -354,8 +311,6 @@ public:
 	  float mfIdleSoundTime;
 	  int mlBreakCount;
 };
-
-//-----------------------------------------
 
 // EAT STATE
 class cGameEnemyState_Dog_Eat : public iGameEnemyState_Dog_Base
@@ -374,8 +329,6 @@ public:
 
 	 float mfTime;
 };
-
-//-----------------------------------------
 
 class cGameEnemy_Dog : public iGameEnemy
 {
@@ -486,7 +439,5 @@ private:
     iCollideShape *mpAttackShape;
 	iCollideShape *mpBreakDoorShape;
 };
-
-//-----------------------------------------
 
 #endif // GAME_GAME_ENEMY_DOG_H

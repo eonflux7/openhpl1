@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_MESH_H
 #define HPL_MESH_H
 
@@ -51,8 +35,6 @@ namespace hpl {
 	class cSoundEntity;
 	class cWorld3D;
 
-	//--------------------------------------------------
-
 	typedef std::vector<cAnimation*> tAnimationVec;
 	typedef tAnimationVec::iterator tAnimationVecIt;
 
@@ -68,8 +50,6 @@ namespace hpl {
 	typedef std::vector<cNode3D*> tNode3DVec;
 	typedef tNode3DVec::iterator tNode3DVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshCollider
 	{
 	public:
@@ -82,8 +62,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshCollider*> tMeshColliderVec;
 	typedef tMeshColliderVec::iterator tMeshColliderVecIt;
-
-	//--------------------------------------------------
 
 	class cMeshJoint
 	{
@@ -107,8 +85,6 @@ namespace hpl {
 	typedef std::vector<cMeshJoint*> tMeshJointVec;
 	typedef tMeshJointVec::iterator tMeshJointVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshLight
 	{
 	public:
@@ -127,9 +103,6 @@ namespace hpl {
 	typedef std::vector<cMeshLight*> tMeshLightVec;
 	typedef tMeshLightVec::iterator tMeshLightVecIt;
 
-	//--------------------------------------------------
-
-
 	class cMeshBeam
 	{
 	public:
@@ -145,8 +118,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshBeam*> tMeshBeamVec;
 	typedef tMeshBeamVec::iterator tMeshBeamVecIt;
-
-	//--------------------------------------------------
 
 	class cMeshBillboard
 	{
@@ -164,8 +135,6 @@ namespace hpl {
 	typedef std::vector<cMeshBillboard*> tMeshBillboardVec;
 	typedef tMeshBillboardVec::iterator tMeshBillboardVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshParticleSystem
 	{
 	public:
@@ -180,8 +149,6 @@ namespace hpl {
 	typedef std::vector<cMeshParticleSystem*> tMeshParticleSystemVec;
 	typedef tMeshParticleSystemVec::iterator tMeshParticleSystemVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshSoundEntity
 	{
 	public:
@@ -195,8 +162,6 @@ namespace hpl {
 	typedef std::vector<cMeshSoundEntity*> tMeshSoundEntityVec;
 	typedef tMeshSoundEntityVec::iterator tMeshSoundEntityVecIt;
 
-	//--------------------------------------------------
-
 	class cMeshReference
 	{
 	public:
@@ -209,8 +174,6 @@ namespace hpl {
 
 	typedef std::vector<cMeshReference*> tMeshReferenceVec;
 	typedef tMeshReferenceVec::iterator tMeshReferenceVecIt;
-
-	//--------------------------------------------------
 
 	class cMesh : public iResourceBase
 	{

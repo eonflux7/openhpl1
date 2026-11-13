@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/Gui.h"
 
 #include "graphics/Graphics.h"
@@ -37,12 +21,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cGui::cGui()  : iUpdateable("HPL_Gui")
 	{
 		mpSetInFocus = nullptr;
@@ -50,8 +28,6 @@ namespace hpl {
 		mlLastRenderTime = 0;
 
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGui::~cGui()
 	{
@@ -71,14 +47,6 @@ namespace hpl {
 		Log("--------------------------------------------------------\n\n");
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cGui::Init(cResources *apResources, cGraphics* apGraphics,
 						cSound *apSound, cScene *apScene)
 	{
@@ -87,7 +55,6 @@ namespace hpl {
 		mpSound = apSound;
 		mpScene = apScene;
 
-		//////////////////////////////
 		// Create materials
 		for(int i=0; i< eGuiMaterial_LastEnum; ++i) mvMaterials[i] = nullptr;
 
@@ -97,17 +64,12 @@ namespace hpl {
 		mvMaterials[eGuiMaterial_Additive] = hplNew( cGuiMaterial_Additive,(mpGraphics->GetLowLevel()) );
 		mvMaterials[eGuiMaterial_Modulative] = hplNew( cGuiMaterial_Modulative,(mpGraphics->GetLowLevel()) );
 
-
-		//////////////////////////////
 		// Skin setup
 		GenerateSkinTypeStrings();
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGui::Update(float afTimeStep)
 	{
-		////////////////////////////////////
 		// Update Sets
 		tGuiSetMapIt it = m_mapSets.begin();
 		for(; it != m_mapSets.end(); ++it)
@@ -116,7 +78,6 @@ namespace hpl {
 			pSet->Update(afTimeStep);
 		}
 
-		/////////////////////////////
 		// Update gfx elements
 		tGuiGfxElementListIt gfxIt = mlstGfxElements.begin();
 		for(; gfxIt != mlstGfxElements.end(); ++gfxIt)
@@ -126,11 +87,8 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cGui::OnPostSceneDraw()
 	{
-		///////////////////////////////////////
 		//Calculate time since last render
 		unsigned long lCurrentTime = GetApplicationTime();
 		if(mlLastRenderTime > lCurrentTime) mlLastRenderTime = lCurrentTime;
@@ -138,7 +96,6 @@ namespace hpl {
 		float fTimeStep = (float)(lCurrentTime - mlLastRenderTime) / 1000.0f;
 		mlLastRenderTime = lCurrentTime;
 
-		////////////////////////////////////
 		// Draw all sets
 		tGuiSetMapIt setIt = m_mapSets.begin();
 		for(; setIt != m_mapSets.end(); ++setIt)
@@ -147,10 +104,8 @@ namespace hpl {
 			pSet->DrawAll(fTimeStep);
 		}
 
-		////////////////////////////////////
 		// Render sets that are project to world
 
-		////////////////////////////////////
 		// Render sets that are project to screen
 		setIt = m_mapSets.begin();
 		for(; setIt != m_mapSets.end(); ++setIt)
@@ -159,8 +114,6 @@ namespace hpl {
 			if(pSet->Is3D()) pSet->Render();
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cGui::OnPostGUIDraw()
 	{
@@ -175,7 +128,6 @@ namespace hpl {
 			mapSortedSets.insert(tPrioMap::value_type(pSet->GetDrawPriority(),pSet));
 		}
 
-		////////////////////////////////////
 		// Render sets that are project to screen
 		tPrioMap::iterator SortIt = mapSortedSets.begin();
 		for(; SortIt != mapSortedSets.end(); ++SortIt)
@@ -185,14 +137,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	iGuiMaterial* cGui::GetMaterial(eGuiMaterial aType)
 	{
 		return mvMaterials[aType];
 	}
-
-	//-----------------------------------------------------------------------
 
 	cGuiSkin* cGui::CreateSkin(const tString& asFile)
 	{
@@ -210,8 +158,6 @@ namespace hpl {
 		m_mapSkins.insert(tGuiSkinMap::value_type(sName,pSkin));
 		return pSkin;
 	}
-
-	//-----------------------------------------------------------------------
 
 	eGuiSkinGfx cGui::GetSkinGfxFromString(const tString& asType)
 	{
@@ -248,9 +194,6 @@ namespace hpl {
 
 		return it->second;
 	}
-
-
-	//-----------------------------------------------------------------------
 
 	cGuiSet* cGui::CreateSet(const tString& asName, cGuiSkin *apSkin)
 	{
@@ -302,8 +245,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGui::CreateGfxFilledRect(const cColor& aColor, eGuiMaterial aMaterial, bool abAddToList)
 	{
 		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
@@ -316,12 +257,9 @@ namespace hpl {
 		return pGfxElem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGui::CreateGfxImage(	const tString &asFile, eGuiMaterial aMaterial,
 		const cColor& aColor, bool abAddToList)
 	{
-		////////////////////////////
 		// Load image
 		cResourceImage *pImage = mpResources->GetImageManager()->CreateImage(asFile);
 		if(pImage==nullptr){
@@ -329,7 +267,6 @@ namespace hpl {
 			return nullptr;
 		}
 
-		/////////////////////////////
 		// Create element
 		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
 
@@ -342,12 +279,9 @@ namespace hpl {
 		return pGfxElem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGui::CreateGfxTexture(const tString &asFile,eGuiMaterial aMaterial,
 									 const cColor& aColor, bool abMipMaps, bool abAddToList)
 	{
-		///////////////////
 		// Load texture
 		iTexture *pTexture = mpResources->GetTextureManager()->Create2D(asFile,abMipMaps,false);
 		if(pTexture==nullptr)
@@ -356,7 +290,6 @@ namespace hpl {
 			return nullptr;
 		}
 
-		/////////////////////////////
 		// Create element
 		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
 
@@ -369,13 +302,10 @@ namespace hpl {
 		return pGfxElem;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cGuiGfxElement* cGui::CreateGfxImageBuffer(	const tString &asFile,eGuiMaterial aMaterial,
 		bool abCreateAnimation,
 		const cColor& aColor, bool abAddToList)
 	{
-		////////////////////////////
 		// Load images
 		tString sName = cString::SetFileExt(asFile,"");
 		tString sExt = cString::GetFileExt(asFile);
@@ -401,7 +331,6 @@ namespace hpl {
 			return nullptr;
 		}
 
-		/////////////////////////////
 		// Create element
 		cGuiGfxElement *pGfxElem = hplNew( cGuiGfxElement, (this) );
 
@@ -416,7 +345,6 @@ namespace hpl {
 
 		if(abAddToList) mlstGfxElements.push_back(pGfxElem);
 
-		///////////////////////////////
 		// Create animation
 		if(abCreateAnimation)
 		{
@@ -430,16 +358,10 @@ namespace hpl {
 		return pGfxElem;
 	}
 
-
-	//-----------------------------------------------------------------------
-
 	void cGui::DestroyGfx(cGuiGfxElement* apGfx)
 	{
 		STLFindAndDelete(mlstGfxElements,apGfx);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	bool cGui::SendMousePos(const cVector2f &avPos, const cVector2f &avRel)
 	{
@@ -481,35 +403,16 @@ namespace hpl {
 		return mpSetInFocus->SendMessage(eGuiMessage_KeyPress,data);
 	}
 
-	//-----------------------------------------------------------------------
-
-	/*bool cGui::SentArrowKey(eGuiArrowKey aDir)
-	{
-		if(mpSetInFocus==NULL)return false;
-
-		return false;
-	}*/
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 #define AddFont(name) m_mapSkinFontStrings.insert(tGuiSkinFontMap::value_type(#name,eGuiSkinFont_##name))
 #define AddAttribute(name) m_mapSkinAttributeStrings.insert(tGuiSkinAttributeMap::value_type(#name,eGuiSkinAttribute_##name))
 #define AddGfx(name) m_mapSkinGfxStrings.insert(tGuiSkinGfxMap::value_type(#name,eGuiSkinGfx_##name))
 	void cGui::GenerateSkinTypeStrings()
 	{
-		///////////////////////
 		// Fonts
 		AddFont(Default);
 		AddFont(Disabled);
 		AddFont(WindowLabel);
 
-		///////////////////////
 		// Attributes
 		AddAttribute(WindowLabelTextOffset);
 
@@ -522,12 +425,10 @@ namespace hpl {
 		AddAttribute(ComboBoxButtonWidth);
 		AddAttribute(ComboBoxSliderWidth);
 
-		///////////////////////
 		// Pointer Graphics
 		AddGfx(PointerNormal);
 		AddGfx(PointerText);
 
-		///////////////////////
 		// Window Graphics
 		AddGfx(WindowBorderRight);
 		AddGfx(WindowBorderLeft);
@@ -542,7 +443,6 @@ namespace hpl {
 		AddGfx(WindowLabel);
 		AddGfx(WindowBackground);
 
-		///////////////////////////////////
 		// Frame Graphics
 		AddGfx(FrameBorderRight);
 		AddGfx(FrameBorderLeft);
@@ -556,25 +456,20 @@ namespace hpl {
 
 		AddGfx(FrameBackground);
 
-		///////////////////////////////////
 		// Check box Graphics
 		AddGfx(CheckBoxEnabledUnchecked);
 		AddGfx(CheckBoxEnabledChecked);
 		AddGfx(CheckBoxDisabledUnchecked);
 		AddGfx(CheckBoxDisabledChecked);
 
-
-		///////////////////////////////////
 		// Text box Graphics
 		AddGfx(TextBoxBackground);
 		AddGfx(TextBoxSelectedTextBack);
 		AddGfx(TextBoxMarker);
 
-		///////////////////////////////////
 		// List box Graphics
 		AddGfx(ListBoxBackground);
 
-		///////////////////////////////////
 		// List box Graphics
 		AddGfx(ComboBoxButtonIcon);
 
@@ -590,7 +485,6 @@ namespace hpl {
 
 		AddGfx(ComboBoxBackground);
 
-		///////////////////////////////////
 		// Slider Graphics
 		AddGfx(SliderVertArrowUp);
 		AddGfx(SliderVertArrowDown);
@@ -600,8 +494,6 @@ namespace hpl {
 		AddGfx(SliderHoriArrowDown);
 		AddGfx(SliderHoriBackground);
 
-
-		///////////////////////
 		//Button Graphics
 		AddGfx(ButtonUpBorderRight);
 		AddGfx(ButtonUpBorderLeft);
@@ -627,6 +519,4 @@ namespace hpl {
 
 		AddGfx(ButtonDownBackground);
 	}
-	//-----------------------------------------------------------------------
-
 }

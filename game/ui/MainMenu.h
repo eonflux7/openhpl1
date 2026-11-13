@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_MAIN_MENU_H
 #define GAME_MAIN_MENU_H
 
@@ -65,8 +49,6 @@ enum eMainMenuState
 	eMainMenuState_LastEnum
 };
 
-//---------------------------
-
 class cMainMenuWidget
 {
 public:
@@ -111,8 +93,6 @@ protected:
 	bool mbActive;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_MainButton : public cMainMenuWidget
 {
 public:
@@ -145,8 +125,6 @@ protected:
 
 	float mfOverTimer;
 };
-
-//---------------------------------------------
 
 class cMainMenuWidget_Button : public cMainMenuWidget
 {
@@ -181,8 +159,6 @@ protected:
 	float mfOverTimer;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Text : public cMainMenuWidget
 {
 public:
@@ -214,8 +190,6 @@ protected:
 	cMainMenuWidget *mpExtra;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Image : public cMainMenuWidget
 {
 public:
@@ -232,9 +206,6 @@ protected:
 
 	cVector2f mvSize;
 };
-
-
-//---------------------------------------------
 
 class cMainMenuWidget_List : public cMainMenuWidget
 {
@@ -295,7 +266,6 @@ protected:
 
 	cVector2f mvLastMousePos;
 };
-//---------------------------------------------
 
 class cMainMenuWidget_NewGame : public cMainMenuWidget_Button
 {
@@ -310,8 +280,6 @@ private:
 	eGameDifficulty mDifficulty;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Continue : public cMainMenuWidget_Button
 {
 public:
@@ -319,8 +287,6 @@ public:
 
 	void OnMouseDown(eMButton aButton) override;
 };
-
-//---------------------------------------------
 
 class cMainMenuWidget_Quit : public cMainMenuWidget_Button
 {
@@ -330,8 +296,6 @@ public:
 	void OnMouseDown(eMButton aButton) override;
 };
 
-//---------------------------------------------
-
 class cMainMenuWidget_Resume : public cMainMenuWidget_MainButton
 {
 public:
@@ -340,12 +304,8 @@ public:
 	void OnMouseDown(eMButton aButton) override;
 };
 
-//---------------------------------------------
-
 typedef std::list<cMainMenuWidget*> tMainMenuWidgetList;
 typedef tMainMenuWidgetList::iterator tMainMenuWidgetListIt;
-
-//---------------------------------------------
 
 class cMainMenuParticle
 {
@@ -357,8 +317,6 @@ public:
 
 	cGfxObject *mpGfx;
 };
-
-//---------------------------------------------
 
 class cMainMenu : public iUpdateable
 {
@@ -463,8 +421,5 @@ private:
 	bool mvKeyPressed[eKey_LastEnum];
 	bool mvMousePressed[eMButton_LastEnum];
 };
-
-//---------------------------------------------
-
 
 #endif // GAME_MAIN_MENU_H

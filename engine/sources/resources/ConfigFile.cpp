@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "resources/ConfigFile.h"
 #include "system/String.h"
 #include "system/LowLevelSystem.h"
@@ -26,31 +10,16 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cConfigFile::cConfigFile(tWString asFile)
 	{
 		msFile = asFile;
 		mpXmlDoc = hplNew( TiXmlDocument,() );
-		//mpFileSearcher = apFileSearcher;
 	}
 
 	cConfigFile::~cConfigFile()
 	{
 		hplDelete(mpXmlDoc);
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	bool cConfigFile::Load()
 	{
@@ -67,8 +36,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cConfigFile::Save()
 	{
 		#ifdef WIN32
@@ -84,8 +51,6 @@ namespace hpl {
 		return bRet;
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cConfigFile::SetString(tString asLevel, tString asName, tString asVal)
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
@@ -98,7 +63,6 @@ namespace hpl {
 
 		pLevelElem->SetAttribute(asName.c_str(),asVal.c_str());
 	}
-	//-----------------------------------------------------------------------
 
 	void cConfigFile::SetInt(tString asLevel, tString asName, int alVal)
 	{
@@ -108,8 +72,6 @@ namespace hpl {
 		SetString(asLevel,asName,sBuffer);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cConfigFile::SetFloat(tString asLevel, tString asName, float afVal)
 	{
 		char sBuffer[40];
@@ -117,8 +79,6 @@ namespace hpl {
 
 		SetString(asLevel,asName,sBuffer);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cConfigFile::SetBool(tString asLevel, tString asName, bool abVal)
 	{
@@ -159,14 +119,6 @@ namespace hpl {
 		return cString::ToBool(sVal,abDefault);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	const char* cConfigFile::GetCharArray(tString asLevel, tString asName)
 	{
 		TiXmlElement *pLevelElem = mpXmlDoc->FirstChildElement(asLevel.c_str());
@@ -176,6 +128,4 @@ namespace hpl {
 
 		return pLevelElem->Attribute(asName.c_str());
 	}
-
-	//-----------------------------------------------------------------------
 }

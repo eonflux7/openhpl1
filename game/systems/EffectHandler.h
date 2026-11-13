@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef GAME_EFFECT_HANDLER_H
 #define GAME_EFFECT_HANDLER_H
 
@@ -24,9 +8,6 @@
 using namespace hpl;
 
 class cInit;
-
-
-//-----------------------------------------
 
 class cEffect_Underwater
 {
@@ -57,9 +38,6 @@ private:
 	iSoundChannel *mpLoopChannel;
 	float mfDiveSoundCooldownSeconds;
 };
-
-
-//-----------------------------------------
 
 class cEffect_ShakeScreen_Shake
 {
@@ -95,7 +73,6 @@ private:
 	std::list<cEffect_ShakeScreen_Shake> mlstShakes;
 };
 
-//-----------------------------------------
 class cGameSaveArea;
 class cEffect_SaveEffect
 {
@@ -144,8 +121,6 @@ private:
 	float mfStartFov;
 };
 
-//-----------------------------------------
-
 class cEffect_DepthOfField
 {
 public:
@@ -179,7 +154,6 @@ private:
 	
 	float mfMaxBlur;
 };
-//-----------------------------------------
 
 class cEffect_Flash
 {
@@ -211,8 +185,6 @@ private:
 	float mfWhiteSpeed;
 	float mfFadeOutSpeed;
 };
-
-//-----------------------------------------
 
 // Black Plague: a picture fades in over the view, stays and fades out
 class cEffect_ImageFlash
@@ -249,8 +221,6 @@ private:
 	float mfFadeOutSpeed;
 };
 
-//-----------------------------------------
-
 // Black Plague: the view laid over itself, a little larger and swelling
 class cEffect_DreamFilter
 {
@@ -279,8 +249,6 @@ private:
 	iGpuProgram *mpProgram;
 };
 
-//-----------------------------------------
-
 // Black Plague: the gas mask on the player's face
 class cEffect_GasMask
 {
@@ -306,8 +274,6 @@ private:
 	bool mbActive;
 	float mfBreathElapsedSeconds;
 };
-
-//-----------------------------------------
 
 class cSubTitle
 {
@@ -351,8 +317,6 @@ private:
     tSubTitleList mlstSubTitles;	
 };
 
-//-----------------------------------------
-
 class cEffect_WaveGravity
 {
 public:
@@ -379,8 +343,6 @@ private:
 
 	float mfTime;
 };
-
-//-----------------------------------------
 
 class cEffectHandler : public iUpdateable
 {

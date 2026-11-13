@@ -12,14 +12,10 @@
 
 namespace hpl {
 
-	//-----------------------------------------------------------------------
-
 	void cRenderInterpolation::RemoveEntity(iEntity3D *apEntity)
 	{
 		mvEntities.erase(std::remove(mvEntities.begin(), mvEntities.end(), apEntity), mvEntities.end());
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cRenderInterpolation::ApplyEntities(float afT)
 	{
@@ -34,8 +30,6 @@ namespace hpl {
 		for(size_t i=mvEntities.size(); i>0; --i)
 			mvEntities[i-1]->RestoreRenderInterpolation();
 	}
-
-	//-----------------------------------------------------------------------
 
 	cMatrixf cRenderInterpolation::BlendMatrix(float afT, const cMatrixf& a_mtxA, const cMatrixf& a_mtxB)
 	{
@@ -54,7 +48,4 @@ namespace hpl {
 		}
 		return cMath::MatrixInterpolate(afT, a_mtxA, a_mtxB);
 	}
-
-	//-----------------------------------------------------------------------
-
 }

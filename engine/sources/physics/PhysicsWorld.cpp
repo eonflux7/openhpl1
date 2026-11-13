@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "physics/PhysicsWorld.h"
 #include <algorithm>
 
@@ -37,40 +21,22 @@ namespace hpl {
 
 	float iPhysicsMaterial::mfContactSkin = 0;
 
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	iPhysicsWorld::iPhysicsWorld()
 	{
 		mbLogDebug = false;
 		mbSaveContactPoints = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iPhysicsWorld::~iPhysicsWorld()
 	{
 
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsWorld::Update(float afTimeStep)
 	{
 		//Clear all contact points.
 		mvContactPoints.clear();
 
-		////////////////////////////////////
 		//Update controllers
 		tPhysicsControllerListIt CtrlIt = mlstControllers.begin();
 		for(; CtrlIt != mlstControllers.end(); ++CtrlIt)
@@ -80,8 +46,6 @@ namespace hpl {
 			pCtrl->Update(afTimeStep);
 		}
 
-
-		////////////////////////////////////
 		//Update character bodies
 		unsigned int lTime = GetApplicationTime();
 		tCharacterBodyListIt CharIt = mlstCharBodies.begin();
@@ -89,15 +53,11 @@ namespace hpl {
 		{
 			iCharacterBody *pBody = *CharIt;
 
-			//for(int i=0; i<20; ++i)
 			{
 				pBody->Update(afTimeStep);//20.0f);
 			}
 		}
-		//LogUpdate(" Updating chars took %d ms\n",mpWorld3D->GetSystem()->GetLowLevel()->GetTime() - lTime);
 
-
-		////////////////////////////////////
 		//Update the rigid bodies before simulation.
 		tPhysicsBodyListIt BodyIt = mlstBodies.begin();
 		for(; BodyIt != mlstBodies.end(); ++BodyIt)
@@ -108,7 +68,6 @@ namespace hpl {
 
 		}
 
-		////////////////////////////////////
 		//Simulate the physics
 		lTime = GetApplicationTime();
 		Simulate(afTimeStep);
@@ -123,9 +82,7 @@ namespace hpl {
 				else ++i;
 			}
 		}
-		//LogUpdate(" Updating lowlevel physics took %d ms\n",mpWorld3D->GetSystem()->GetLowLevel()->GetTime() - lTime);
 
-		////////////////////////////////////
 		//Update the joints after simulation.
 		tPhysicsJointListIt JointIt = mlstJoints.begin();
 		for(; JointIt != mlstJoints.end(); )
@@ -144,7 +101,6 @@ namespace hpl {
 				++JointIt;
 			}
 		}
-		////////////////////////////////////
 		//Update the rigid bodies after simulation.
 		BodyIt = mlstBodies.begin();
 		for(; BodyIt != mlstBodies.end(); ++BodyIt)
@@ -155,8 +111,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::DestroyShape(iCollideShape *apShape)
 	{
 		apShape->DecUserCount();
@@ -166,8 +120,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::DestroyBody(iPhysicsBody* apBody)
 	{
 		for(iPhysicsBody *pBody : mlstBodies)
@@ -176,7 +128,6 @@ namespace hpl {
 			vEmbedding.erase(std::remove(vEmbedding.begin(), vEmbedding.end(), apBody), vEmbedding.end());
 		}
 
-		//STLFindAndDelete(mlstBodies, apBody);
 		tPhysicsBodyListIt it = mlstBodies.begin();
 		for(; it != mlstBodies.end(); ++it)
 		{
@@ -202,8 +153,6 @@ namespace hpl {
 		return cPhysicsBodyIterator(&mlstBodies);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::StoreInterpolation()
 	{
 		for(tPhysicsBodyListIt it = mlstBodies.begin(); it != mlstBodies.end(); ++it)
@@ -221,8 +170,6 @@ namespace hpl {
 		for(tPhysicsBodyListIt it = mlstBodies.begin(); it != mlstBodies.end(); ++it)
 			(*it)->RestoreInterpolation();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsWorld::GetBodiesInBV(cBoundingVolume *apBV, tPhysicsBodyList *apBodyList)
 	{
@@ -246,15 +193,11 @@ namespace hpl {
 
 			if(pBody->GetMass() > 0 && cMath::CheckCollisionBV(*apBV,*pBody->GetBV()))
 			{
-				//quick fix for oscillation, might skip
-				//if(pBody->GetJointNum()>0 && pBody->GetJoint(0)->GetLimitAutoSleep()) continue;
 
 				pBody->SetEnabled(abEnabled);
 			}
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsWorld::DestroyJoint(iPhysicsJoint* apJoint)
 	{
@@ -271,8 +214,6 @@ namespace hpl {
 		return cPhysicsJointIterator(&mlstJoints);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::DestroyCharacterBody(iCharacterBody* apBody)
 	{
 		STLFindAndDelete(mlstCharBodies, apBody);
@@ -282,8 +223,6 @@ namespace hpl {
 	{
 		return (iPhysicsBody*)STLFindByName(mlstCharBodies, asName);
 	}
-
-	//-----------------------------------------------------------------------
 
 	iPhysicsMaterial* iPhysicsWorld::GetMaterialFromName(const tString &asName)
 	{
@@ -303,14 +242,10 @@ namespace hpl {
 		return pMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cPhysicsMaterialIterator iPhysicsWorld::GetMaterialIterator()
 	{
 		return cPhysicsMaterialIterator(&m_mapMaterials);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void iPhysicsWorld::DestroyAll()
 	{
@@ -332,11 +267,8 @@ namespace hpl {
 		STLMapDeleteAll(m_mapMaterials);
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::AddSaveData(cSaveDataHandler* apHandler)
 	{
-		////////////////////////////////
 		//Add all bodies
 		tPhysicsBodyListIt BodyIt = mlstBodies.begin();
 		for(; BodyIt != mlstBodies.end(); ++BodyIt)
@@ -351,7 +283,6 @@ namespace hpl {
 			}
 		}
 
-		////////////////////////////////
 		//Add all character bodies
 		tCharacterBodyListIt CharIt = mlstCharBodies.begin();
 		for(; CharIt != mlstCharBodies.end(); ++CharIt)
@@ -366,7 +297,6 @@ namespace hpl {
 			}
 		}
 
-		////////////////////////////////
 		//Add all joints
 		tPhysicsJointListIt JointIt = mlstJoints.begin();
 		for(; JointIt != mlstJoints.end(); ++JointIt)
@@ -382,15 +312,10 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void iPhysicsWorld::DestroyController(iPhysicsController *apController)
 	{
 		STLFindAndDelete(mlstControllers, apController);
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	void iPhysicsWorld::RenderContactPoints(iLowLevelGraphics *apLowLevel, const cColor& aPointColor,
 											const cColor& aLineColor)
@@ -401,11 +326,8 @@ namespace hpl {
 			apLowLevel->DrawLine(mvContactPoints[i].mvPoint,
 								mvContactPoints[i].mvNormal * mvContactPoints[i].mfDepth *0.2f,
 								aLineColor);
-			//Log("Rendering\n");
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	float iPhysicsWorld::GetBodyOverlap(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB)
 	{
@@ -421,8 +343,6 @@ namespace hpl {
 		return fDepth;
 	}
 
-	//-----------------------------------------------------------------------
-
 	float iPhysicsWorld::mfScriptReleaseDepth = 0;
 
 	int iPhysicsWorld::LetOutOfStaticBodies(iPhysicsBody *apBody, float afMinDepth)
@@ -435,8 +355,6 @@ namespace hpl {
 		}
 		return (int)apBody->GetEmbeddingBodies().size();
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iPhysicsWorld::CheckShapeWorldCollision(cVector3f *apNewPos,
 							iCollideShape* apShape, const cMatrixf& a_mtxTransform,
@@ -453,20 +371,10 @@ namespace hpl {
 		cBoundingVolume boundingVolume = apShape->GetBoundingVolume();
 		boundingVolume.SetTransform(cMath::MatrixMul(a_mtxTransform, boundingVolume.GetTransform()));
 
-		//Log("MAIN Position: %s Size: %s\n",boundingVolume.GetWorldCenter().ToString().c_str(),
-		//	boundingVolume.GetSize().ToString().c_str());
-
-		//if(abDebug)Log("--------------\n");
-
-		//tPhysicsBodyListIt it = mlstBodies.begin();
-		//for(; it != mlstBodies.end(); ++it)
 		cPortalContainerEntityIterator entIt = mpWorld3D->GetPortalContainer()->GetEntityIterator(&boundingVolume);
 		while(entIt.HasNext())
 		{
-			//iPhysicsBody *pBody = *it;
 			iPhysicsBody *pBody = static_cast<iPhysicsBody*>(entIt.Next());
-
-			//if(abDebug) Log("Checking %s\n",pBody->GetName().c_str());
 
 
 
@@ -480,7 +388,6 @@ namespace hpl {
 
 			if(cMath::CheckCollisionBV(boundingVolume,*pBody->GetBV())==false)
 			{
-				//if(abDebug) Log(" BV not collided\n");
 				continue;
 
 			}
@@ -491,7 +398,6 @@ namespace hpl {
 
 			if(bRet)
 			{
-				//if(abDebug) Log(" Collided with '%s'\n",pBody->GetName().c_str());
 
 				if(apCallback) apCallback->OnCollision(pBody, &collideData);
 
@@ -508,13 +414,9 @@ namespace hpl {
 				bCollide = true;
 			}
 		}
-		//Log("--------------\n");
 
 		if(apNewPos)
 			*apNewPos = a_mtxTransform.GetTranslation() + vPushVec;
 		return bCollide;
 	}
-
-	//-----------------------------------------------------------------------
-
 }

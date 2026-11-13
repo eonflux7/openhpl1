@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "scene/SubMeshEntity.h"
 
 #include "scene/MeshEntity.h"
@@ -42,9 +26,6 @@
 #include <string.h>
 
 namespace hpl {
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
 
 	cSubMeshEntity::cSubMeshEntity(const tString &asName, cMeshEntity *apMeshEntity, cSubMesh * apSubMesh,
 								cMaterialManager* apMaterialManager) : iRenderable(asName)
@@ -90,38 +71,11 @@ namespace hpl {
 		if(mpMaterial) mpMaterialManager->Destroy(mpMaterial);
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
 	// BODY CALLBACK
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntityBodyUpdate::OnTransformUpdate(iEntity3D* apEntity)
 	{
-		/*cSubMeshEntity *pSubEntity = static_cast<cSubMeshEntity*>(apEntity);
-
-		if(pSubEntity->GetBody())
-		{
-			if(apEntity->GetWorldMatrix() != pSubEntity->GetBody()->GetLocalMatrix())
-			{
-				Log("Setting matrix on %s from\n",pSubEntity->GetBody()->GetName().c_str());
-				Log("  %s\n",apEntity->GetWorldMatrix().ToString().c_str());
-				Log("  %s\n",pSubEntity->GetBody()->GetLocalMatrix().ToString().c_str());
-
-				pSubEntity->GetBody()->SetMatrix(apEntity->GetWorldMatrix());
-			}
-		}*/
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::UpdateLogic(float afTimeStep)
 	{
@@ -130,9 +84,6 @@ namespace hpl {
 			mpBody->SetMatrix(GetWorldMatrix());
 		}
 	}
-
-	//-----------------------------------------------------------------------
-
 
 	iMaterial* cSubMeshEntity::GetMaterial()
 	{
@@ -146,8 +97,6 @@ namespace hpl {
 		else
 			return mpSubMesh->GetMaterial();
 	}
-
-	//-----------------------------------------------------------------------
 
 	// Set Src as private variable to give this a little boost! Or?
 	static inline void MatrixFloatTransformSet(float *pDest, const cMatrixf &a_mtxA, const float* pSrc, const float fWeight)
@@ -164,8 +113,6 @@ namespace hpl {
 		pDest[2] = ( a_mtxA.m[2][0] * pSrc[0] + a_mtxA.m[2][1] * pSrc[1] + a_mtxA.m[2][2] * pSrc[2] ) * fWeight;
 	}
 
-	////////////////////////////////////////////////////////////
-
 	// Set Src as private variable to give this a little boost!Or?
 	static inline void MatrixFloatTransformAdd(float *pDest, const cMatrixf &a_mtxA, const float* pSrc, const float fWeight)
 	{
@@ -180,8 +127,6 @@ namespace hpl {
 		pDest[1] += ( a_mtxA.m[1][0] * pSrc[0] + a_mtxA.m[1][1] * pSrc[1] + a_mtxA.m[1][2] * pSrc[2] ) * fWeight;
 		pDest[2] += ( a_mtxA.m[2][0] * pSrc[0] + a_mtxA.m[2][1] * pSrc[1] + a_mtxA.m[2][2] * pSrc[2] ) * fWeight;
 	}
-
-	////////////////////////////////////////////////////////////
 
 	void cSubMeshEntity::UpdateGraphics(cCamera3D *apCamera, float afFrameTime, cRenderList *apRenderList)
 	{
@@ -230,9 +175,6 @@ namespace hpl {
 
 				const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[*pBoneIdx];
 
-				//Log("Vtx: %d\n",vtx);
-				//Log("Boneidx: %d Count %d Weight: %f vtx: %d\n",(int)*pBoneIdx,lCount, *pWeight,vtx);
-
 				//ATTENTION: Some optimizing might be done by accumulating the matrix instead.
 								//THIS is really unsure since it seems like it will result in more math, matrix mul = 8*4 calc
 								//Vertex mul with matrix is 3 * 3 calculations
@@ -249,7 +191,6 @@ namespace hpl {
 				//Iterate weights until 0 is found or count < 4
 				while(lCount < 4 && *pWeight != 0)
 				{
-					//Log("Boneidx: %d Count %d Weight: %f\n",(int)*pBoneIdx,lCount, *pWeight);
 					const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[*pBoneIdx];
 
 					//Transform with the local movement of the bone.
@@ -312,20 +253,16 @@ namespace hpl {
 	{
 		if(mpMeshEntity->HasNodes())
 		{
-			//Log("%s Matrix from local node!\n",msName.c_str());
 			return &GetWorldMatrix();
 		}
 		else
 		{
-			//Log("%s Matrix from mesh!\n",msName.c_str());
 
 			if(mpMeshEntity->IsStatic()) return nullptr;
 
 			return mpMeshEntity->GetModelMatrix(nullptr);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SetLocalNode(cNode3D *apNode)
 	{
@@ -334,43 +271,26 @@ namespace hpl {
 		mpLocalNode->AddEntity(this);
 	}
 
-	//-----------------------------------------------------------------------
-
 	cNode3D* cSubMeshEntity::GetLocalNode()
 	{
 		return mpLocalNode;
 	}
 
-	//-----------------------------------------------------------------------
-
 	tRenderContainerDataList* cSubMeshEntity::GetRenderContainerDataList()
 	{
-		//Log("Get from parent %s\n",mpMeshEntity->GetName().c_str());
 		return mpMeshEntity->GetRenderContainerDataList();
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SetUpdateBody(bool abX)
 	{
 		mbUpdateBody = abX;
 
-		/*if(mbUpdateBody)
-		{
-			AddCallback(mpEntityCallback);
-		}
-		else
-		{
-			RemoveCallback(mpEntityCallback);
-		}*/
 	}
 
 	bool cSubMeshEntity::GetUpdateBody()
 	{
 		return mbUpdateBody;
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SetCustomMaterial(iMaterial *apMaterial, bool abDestroyOldCustom)
 	{
@@ -382,20 +302,10 @@ namespace hpl {
 		mpMaterial = apMaterial;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cSector* cSubMeshEntity::GetCurrentSector() const
 	{
 		return mpMeshEntity->GetCurrentSector();
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// SAVE OBJECT STUFF
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	kBeginSerialize(cSaveData_cSubMeshEntity,cSaveData_iRenderable)
 	kSerializeVar(msMaterial, eSerializeType_String)
@@ -404,15 +314,10 @@ namespace hpl {
 	kSerializeVar(mbUpdateBody, eSerializeType_Bool)
 	kEndSerialize()
 
-
-	//-----------------------------------------------------------------------
-
 	iSaveData* cSubMeshEntity::CreateSaveData()
 	{
 		return hplNew( cSaveData_cSubMeshEntity, () );
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::SaveToSaveData(iSaveData *apSaveData)
 	{
@@ -425,8 +330,6 @@ namespace hpl {
 
 		kSaveData_SaveObject(mpBody, mlBodyId);
 	}
-
-	//-----------------------------------------------------------------------
 
 	void cSubMeshEntity::LoadFromSaveData(iSaveData *apSaveData)
 	{
@@ -442,8 +345,6 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cSubMeshEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)
 	{
 		kSaveData_SetupBegin(cSubMeshEntity);
@@ -455,6 +356,4 @@ namespace hpl {
 			mpBody->CreateNode()->AddEntity(this);
 		}
 	}
-
-	//-----------------------------------------------------------------------
 }

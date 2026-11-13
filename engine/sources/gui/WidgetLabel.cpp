@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "gui/WidgetLabel.h"
 
 #include "system/LowLevelSystem.h"
@@ -32,12 +16,6 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	cWidgetLabel::cWidgetLabel(cGuiSet *apSet, cGuiSkin *apSkin) : iWidget(eWidgetType_Label,apSet, apSkin)
 	{
 		mbWordWrap = false;
@@ -46,21 +24,9 @@ namespace hpl {
 		mlMaxCharacters = -1;
 	}
 
-	//-----------------------------------------------------------------------
-
 	cWidgetLabel::~cWidgetLabel()
 	{
 	}
-
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
 
 	void cWidgetLabel::SetMaxTextLength(int alLength)
 	{
@@ -69,28 +35,14 @@ namespace hpl {
 		mlMaxCharacters = alLength;
 	}
 
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// PROTECTED METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
 	void cWidgetLabel::OnLoadGraphics()
 	{
 	}
 
-	//-----------------------------------------------------------------------
-
 	void cWidgetLabel::OnDraw(float afTimeStep, cGuiClipRegion *apClipRegion)
 	{
-		////////////////////////////////
 		// Texts
 		cVector3f vOffset = 0;
-		//if(mTextAlign == eFontAlign_Center)		vOffset.x += mvSize.x/2;
-		//else
 		if(mTextAlign == eFontAlign_Right)	vOffset.x += mvSize.x;
 
 		if(mbWordWrap)
@@ -144,42 +96,28 @@ namespace hpl {
 		}
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetLabel::OnMouseMove(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetLabel::OnMouseDown(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetLabel::OnMouseUp(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool cWidgetLabel::OnMouseEnter(cGuiMessageData &aData)
 	{
 		return false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	bool cWidgetLabel::OnMouseLeave(cGuiMessageData &aData)
 	{
 		return false;
 	}
-
-	//-----------------------------------------------------------------------
-
-
 }

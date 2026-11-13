@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_CAMERA3D_H
 #define HPL_CAMERA3D_H
 
@@ -134,9 +118,7 @@ namespace hpl {
 		cNode3D* GetAttachmentNode(){ return &mNode;}
 		void ClearAttachedEntities();
 
-		//////////////////////////////////////////////////
-		////////// EULER ANGLES ROTATION /////////////////
-		//////////////////////////////////////////////////
+		// EULER ANGLES ROTATION
 
 		void SetPitch(float afAngle);
 		void SetYaw(float afAngle);
@@ -185,9 +167,7 @@ namespace hpl {
 		void SetYawLimits(cVector2f avLimits){ mvYawLimits = avLimits;}
 		const cVector2f& GetYawLimits(){return mvYawLimits;}
 
-		//////////////////////////////////////////////////
-		////////// EULER ANGLES ROTATION /////////////////
-		//////////////////////////////////////////////////
+		// EULER ANGLES ROTATION
 
 		const cMatrixf& GetViewMatrix();
 		const cMatrixf& GetProjectionMatrix();

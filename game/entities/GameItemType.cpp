@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "entities/GameItemType.h"
 
 #include "core/Init.h"
@@ -34,11 +18,7 @@
 #include "player/HudModel_Weapon.h"
 #include "player/HudModel_Throw.h"
 
-//////////////////////////////////////////////////////////////////////////
 // BASE ITEM CLASS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType::cGameItemType(cInit *apInit)
 {
@@ -49,13 +29,7 @@ cGameItemType::~cGameItemType(void)
 {
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // NORMAL ITEM
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Normal::cGameItemType_Normal(cInit *apInit)
 : cGameItemType(apInit)
@@ -70,7 +44,6 @@ cGameItemType_Normal::cGameItemType_Normal(cInit *apInit)
 
 bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Use
 	if(alActionIndex == 0)
 	{
@@ -80,7 +53,6 @@ bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionIndex)
 		mpInit->mpPlayer->ChangeState(ePlayerState_UseItem);
 		mpInit->mpPlayer->SetCurrentItem(apItem);
 	}
-	//////////////
 	//Drop
 	else if(alActionIndex == 1)
 	{
@@ -90,8 +62,6 @@ bool cGameItemType_Normal::OnAction(cInventoryItem *apItem, int alActionIndex)
 
 	return true;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameItemType_Normal::OnUse(cInventoryItem *apItem, iGameEntity* apEntity)
 {
@@ -107,13 +77,7 @@ void cGameItemType_Normal::OnUse(cInventoryItem *apItem, iGameEntity* apEntity)
 	}
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // NOTEBOOK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Notebook::cGameItemType_Notebook(cInit *apInit)
 : cGameItemType(apInit)
@@ -127,14 +91,11 @@ cGameItemType_Notebook::cGameItemType_Notebook(cInit *apInit)
 
 bool cGameItemType_Notebook::OnPickUp(cInventoryItem *apItem, bool abInGame)
 {
-	//mpInit->mpInventory->SetNoteBookActive(true);
-	//return false;
 	return true;
 }
 
 bool cGameItemType_Notebook::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Read
 	if(alActionIndex == 0)
 	{
@@ -144,13 +105,7 @@ bool cGameItemType_Notebook::OnAction(cInventoryItem *apItem, int alActionIndex)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // NOTE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Note::cGameItemType_Note(cInit *apInit)
 : cGameItemType(apInit)
@@ -176,13 +131,7 @@ bool cGameItemType_Note::OnPickUp(cInventoryItem *apItem, bool abInGame)
 	return false;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // BATTERY
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Battery::cGameItemType_Battery(cInit *apInit)
 : cGameItemType(apInit)
@@ -224,13 +173,7 @@ bool cGameItemType_Battery::OnCombine(cInventoryItem *apItem, cInventoryItem *ap
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // FLASHLIGHT
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Flashlight::cGameItemType_Flashlight(cInit *apInit)
 : cGameItemType(apInit)
@@ -251,7 +194,6 @@ bool cGameItemType_Flashlight::OnPickUp(cInventoryItem *apItem, bool abInGame)
 
 bool cGameItemType_Flashlight::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	// Toggle the flashlight.
 	if(alActionIndex == 0)
 	{
@@ -261,8 +203,6 @@ bool cGameItemType_Flashlight::OnAction(cInventoryItem *apItem, int alActionInde
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 tWString cGameItemType_Flashlight::GetString(cInventoryItem *apItem)
 {
 	if(mpInit->mpPlayer->GetFlashLight()->IsActive()) return kTranslate("Inventory","On");
@@ -270,13 +210,7 @@ tWString cGameItemType_Flashlight::GetString(cInventoryItem *apItem)
 	return kTranslate("Inventory","Off");
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GLOW STICK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_GlowStick::cGameItemType_GlowStick(cInit *apInit)
 : cGameItemType(apInit)
@@ -290,7 +224,6 @@ cGameItemType_GlowStick::cGameItemType_GlowStick(cInit *apInit)
 
 bool cGameItemType_GlowStick::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -308,8 +241,6 @@ bool cGameItemType_GlowStick::OnAction(cInventoryItem *apItem, int alActionIndex
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 tWString cGameItemType_GlowStick::GetString(cInventoryItem *apItem)
 {
 	if(mpInit->mpPlayer->GetGlowStick()->IsActive()) return kTranslate("Inventory","On");
@@ -317,14 +248,7 @@ tWString cGameItemType_GlowStick::GetString(cInventoryItem *apItem)
 	return kTranslate("Inventory","Off");
 }
 
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-//GAS MASK
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
+// GAS MASK
 
 cGameItemType_GasMask::cGameItemType_GasMask(cInit *apInit)
 : cGameItemType(apInit)
@@ -338,7 +262,6 @@ cGameItemType_GasMask::cGameItemType_GasMask(cInit *apInit)
 
 bool cGameItemType_GasMask::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -349,8 +272,6 @@ bool cGameItemType_GasMask::OnAction(cInventoryItem *apItem, int alActionIndex)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
 tWString cGameItemType_GasMask::GetString(cInventoryItem *apItem)
 {
 	if(mpInit->mpEffectHandler->GetGasMask()->IsActive()) return kTranslate("Inventory","On");
@@ -358,13 +279,7 @@ tWString cGameItemType_GasMask::GetString(cInventoryItem *apItem)
 	return kTranslate("Inventory","Off");
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-//COLLECTABLE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
+// COLLECTABLE
 
 cGameItemType_Collectable::cGameItemType_Collectable(cInit *apInit)
 : cGameItemType(apInit)
@@ -384,13 +299,7 @@ bool cGameItemType_Collectable::OnAction(cInventoryItem *apItem, int alActionInd
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-//FLARE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
+// FLARE
 
 cGameItemType_Flare::cGameItemType_Flare(cInit *apInit)
 : cGameItemType(apInit)
@@ -404,7 +313,6 @@ cGameItemType_Flare::cGameItemType_Flare(cInit *apInit)
 
 bool cGameItemType_Flare::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -425,13 +333,7 @@ bool cGameItemType_Flare::OnAction(cInventoryItem *apItem, int alActionIndex)
 	return true;
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // WEAPON MELEE
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_WeaponMelee::cGameItemType_WeaponMelee(cInit *apInit)
 : cGameItemType(apInit)
@@ -443,11 +345,8 @@ cGameItemType_WeaponMelee::cGameItemType_WeaponMelee(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -458,7 +357,6 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionInd
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
 			mpInit->mpPlayerHands->GetCurrentModel(1)->msName == apItem->GetHudModelName())
 		{
-			//mpInit->mpPlayerHands->SetCurrentModel(1, "");
 			
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		}
@@ -472,7 +370,6 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionInd
 			
             if(mpInit->mbHasHaptics==false) mpInit->mpPlayerHands->SetCurrentModel(1, apItem->GetHudModelName());
 
-			//////////////////////////
 			//Set up the melee state
             iPlayerState *pState = mpInit->mpPlayer->GetStateData(ePlayerState_WeaponMelee);
 			
@@ -489,14 +386,7 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionInd
 	return true;
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
-// WEAPON MELEE HAPTX 
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
+// WEAPON MELEE HAPTX
 
 cGameItemType_WeaponMeleeHaptX::cGameItemType_WeaponMeleeHaptX(cInit *apInit)
 : cGameItemType(apInit)
@@ -508,11 +398,8 @@ cGameItemType_WeaponMeleeHaptX::cGameItemType_WeaponMeleeHaptX(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -535,7 +422,6 @@ bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActi
 		if(mpInit->mpPlayer->GetState() == ePlayerState_WeaponMelee && pMeleeState->GetHudWeapon() == pMeleeHud)
 		{
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
-			//pMeleeState->SetHudWeapon(NULL);
 		}
 		else
 		{				
@@ -546,7 +432,6 @@ bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActi
 				mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 			}
 
-			//////////////////////////
 			//Set up the melee state
 			iPlayerState *pState = mpInit->mpPlayer->GetStateData(ePlayerState_WeaponMelee);
 
@@ -563,14 +448,7 @@ bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActi
 	return true;
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // THROW
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Throw::cGameItemType_Throw(cInit *apInit)
 : cGameItemType(apInit)
@@ -582,11 +460,8 @@ cGameItemType_Throw::cGameItemType_Throw(cInit *apInit)
 	mvNonDropActions[0] = kTranslate("Inventory", "Equip");
 }
 
-//-----------------------------------------------------------------------
-
 bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Equip
 	if(alActionIndex == 0)
 	{
@@ -597,7 +472,6 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
 			mpInit->mpPlayerHands->GetCurrentModel(1)->msName == apItem->GetHudModelName())
 		{
-			//mpInit->mpPlayerHands->SetCurrentModel(1, "");
 
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		}
@@ -611,7 +485,6 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 
 			mpInit->mpPlayerHands->SetCurrentModel(1, apItem->GetHudModelName());
 
-			//////////////////////////
 			//Set up the throw state
 			iPlayerState *pState = mpInit->mpPlayer->GetStateData(ePlayerState_Throw);
 			cPlayerState_Throw *pThrowState = static_cast<cPlayerState_Throw*>(pState);
@@ -629,14 +502,7 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 	return true;
 }
 
-
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // PAINKILLERS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameItemType_Painkillers::cGameItemType_Painkillers(cInit *apInit)
 : cGameItemType(apInit)
@@ -650,7 +516,6 @@ cGameItemType_Painkillers::cGameItemType_Painkillers(cInit *apInit)
 
 bool cGameItemType_Painkillers::OnAction(cInventoryItem *apItem, int alActionIndex)
 {
-	//////////////
 	//Eat
 	if(alActionIndex == 0)
 	{
@@ -667,5 +532,3 @@ bool cGameItemType_Painkillers::OnAction(cInventoryItem *apItem, int alActionInd
 
 	return true;
 }
-
-//-----------------------------------------------------------------------

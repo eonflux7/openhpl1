@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "graphics/Material_BaseLight.h"
 #include "scene/Light.h"
 #include "scene/Camera.h"
@@ -30,11 +14,7 @@
 
 namespace hpl {
 
-	//////////////////////////////////////////////////////////////////////////
 	// FRAGMENT PRORGAM SETUP
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	class cAmbProgramSetup : public iMaterialProgramSetup
 	{
@@ -49,8 +29,6 @@ namespace hpl {
 	};
 
 	static cAmbProgramSetup gAmbProgramSetup;
-
-	//-----------------------------------------------------------------------
 
 	// The shaded ambient pass needs the surface's place in the world
 	class cShadedAmbientSetup : public iMaterialProgramSetup
@@ -69,15 +47,6 @@ namespace hpl {
 	};
 
 	static cShadedAmbientSetup gShadedAmbientSetup;
-
-	//-----------------------------------------------------------------------
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// CONSTRUCTORS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
 
 	iMaterial_BaseLight::iMaterial_BaseLight(const tString& asLightDefines,
 		const tString& asName,iLowLevelGraphics* apLowLevelGraphics,
@@ -99,7 +68,6 @@ namespace hpl {
 		mvPrograms[eBaseLightProgram_Point1] = mpProgramManager->CreateProgram("light", asLightDefines);
 		mvPrograms[eBaseLightProgram_Spot1] = mpProgramManager->CreateProgram("light", asLightDefines + " SPOT");
 
-		///////////////////////////////////////////
 		//More fragment programs
 		mpSimpleProgram = mpProgramManager->CreateProgram("Diffuse_Color");
 		mpAmbientProgram = mpProgramManager->CreateProgram("Ambient_Color", "", "Diffuse_Color");
@@ -112,8 +80,6 @@ namespace hpl {
 		mbShadedAmbientTried = false;
 	}
 
-	//-----------------------------------------------------------------------
-
 	iMaterial_BaseLight::~iMaterial_BaseLight()
 	{
 		for(int i=0; i<eBaseLightProgram_LastEnum; i++)
@@ -125,8 +91,6 @@ namespace hpl {
 		if(mpAmbientProgram) mpProgramManager->Destroy(mpAmbientProgram);
 		if(mpShadedAmbientProgram) mpProgramManager->Destroy(mpShadedAmbientProgram);
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iMaterial_BaseLight::UseShadedAmbient()
 	{
@@ -146,37 +110,17 @@ namespace hpl {
 		return mpShadedAmbientProgram != nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//////////////////////////////////////////////////////////////////////////
-	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////
-
-	//-----------------------------------------------------------------------
-
-
-
-	//------------------------------------------------------------------------------------
-
 	bool iMaterial_BaseLight::ProgramUsesLight(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light) return true;
 		return false;
 	}
 
-	//------------------------------------------------------------------------------------
-
 	bool iMaterial_BaseLight::ProgramUsesEye(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Light && mbUseSpecular) return true;
 		return false;
 	}
-
-	//------------------------------------------------------------------------------------
-
-
-
-	//------------------------------------------------------------------------------------
 
 	iGpuProgram* iMaterial_BaseLight::GetProgram(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -209,16 +153,12 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//------------------------------------------------------------------------------------
-
 	eMaterialAlphaMode iMaterial_BaseLight::GetAlphaMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		if(aType == eMaterialRenderType_Z && mbHasAlpha) return eMaterialAlphaMode_Trans;
 
 		return eMaterialAlphaMode_Solid;
 	}
-
-	//------------------------------------------------------------------------------------
 
 	eMaterialBlendMode iMaterial_BaseLight::GetBlendMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -227,14 +167,10 @@ namespace hpl {
 		return eMaterialBlendMode_Add;
 	}
 
-	//------------------------------------------------------------------------------------
-
 	eMaterialChannelMode iMaterial_BaseLight::GetChannelMode(eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
 		return eMaterialChannelMode_RGBA;
 	}
-
-	//-----------------------------------------------------------------------
 
 	iTexture* iMaterial_BaseLight::GetTexture(int alUnit,eMaterialRenderType aType, int alPass, iLight3D *apLight)
 	{
@@ -284,16 +220,10 @@ namespace hpl {
 		return nullptr;
 	}
 
-	//-----------------------------------------------------------------------
-
-	//-----------------------------------------------------------------------
-
 	int iMaterial_BaseLight::GetNumOfPasses(eMaterialRenderType aType, iLight3D *apLight)
 	{
 		return 1;
 	}
-
-	//-----------------------------------------------------------------------
 
 	bool iMaterial_BaseLight::UsesType(eMaterialRenderType aType)
 	{
@@ -306,8 +236,6 @@ namespace hpl {
 		}
 		return true;
 	}
-
-	//-----------------------------------------------------------------------
 
 	tTextureTypeList iMaterial_BaseLight::GetTextureTypes()
 	{
@@ -323,6 +251,4 @@ namespace hpl {
 
 		return vTypes;
 	}
-
-	//-----------------------------------------------------------------------
 }

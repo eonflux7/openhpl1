@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of HPL1 Engine.
- *
- * HPL1 Engine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HPL1 Engine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HPL1 Engine.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef HPL_SAVE_GAME_H
 #define HPL_SAVE_GAME_H
 
@@ -44,7 +28,6 @@ class TiXmlElement;
 
 #define kSaveData_ClassInit(aClass) kSerializableClassInit(cSaveData_##aClass)
 
-//////////////////////////////////////////////
 //Helpers to copy data.
 #define kSaveData_SaveTo(aVar) pData->aVar = aVar;
 #define kSaveData_LoadFrom(aVar) aVar = pData->aVar;
@@ -63,9 +46,6 @@ class TiXmlElement;
 								aObject = static_cast<aClass>(apSaveObjectHandler->Get(pData->aId)); \
 							}
 
-
-
-//////////////////////////////////////////////
 //Helpers to copy containers with SaveDataId
 #define kSaveData_SaveIdList(aSrcList,aSrcIt,aDestList) \
 							pData->aDestList.Clear(); \
@@ -94,9 +74,6 @@ class TiXmlElement;
 
 namespace hpl {
 
-	//--------------------------------------------------------
-
-
 	class cSaveObjectHandler;
 	class iSaveObject;
 	class cGame;
@@ -120,10 +97,6 @@ namespace hpl {
 		  */
 		virtual int GetSaveCreatePrio()=0;
 	};
-
-
-
-	//--------------------------------------------------------
 
 	/**
 	* This is class is inherited by object that are to be saved.
@@ -170,8 +143,6 @@ namespace hpl {
 		static int _mlGlobalIdCount;
 	};
 
-	//---------------------------------------------------------
-
 	typedef std::multimap<int, iSaveObject*> tSaveObjectMap;
 	typedef tSaveObjectMap::iterator tSaveObjectMapIt;
 
@@ -203,8 +174,6 @@ namespace hpl {
 		tSaveObjectMap m_mapSaveObjects;
 	};
 
-	//---------------------------------------------------------
-
 	typedef std::multimap<int, iSaveData*> tSaveDataMap;
 	typedef tSaveDataMap::iterator tSaveDataMapIt;
 
@@ -234,8 +203,5 @@ namespace hpl {
 
 		tSaveDataMap m_mapSaveData;
 	};
-
-	//---------------------------------------------------------
-
 };
 #endif // HPL_SAVE_GAME_H

@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2006-2010 - Frictional Games
- *
- * This file is part of Penumbra Overture.
- *
- * Penumbra Overture is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Penumbra Overture is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Penumbra Overture.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (C) 2006-2010 - Frictional Games
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StdAfx.h"
 #include "systems/GameMessageHandler.h"
 
@@ -25,12 +9,6 @@
 #include "ui/Inventory.h"
 #include "ui/Notebook.h"
 #include "ui/NumericalPanel.h"
-
-//////////////////////////////////////////////////////////////////////////
-// CONSTRUCTORS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 cGameMessageHandler::cGameMessageHandler(cInit *apInit)  : iUpdateable("GameMessageHandler")
 {
@@ -45,18 +23,12 @@ cGameMessageHandler::cGameMessageHandler(cInit *apInit)  : iUpdateable("GameMess
 	mbBlackText = false;
 }
 
-//-----------------------------------------------------------------------
-
 cGameMessageHandler::~cGameMessageHandler(void)
 {
 	STLDeleteAll(mlstMessages);
 }
 
-//-----------------------------------------------------------------------
-
-//////////////////////////////////////////////////////////////////////////
 // GAME MESSAGE
-//////////////////////////////////////////////////////////////////////////
 
 cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessageHandler)
 {
@@ -67,8 +39,6 @@ cGameMessage::cGameMessage(const tWString &asText, cGameMessageHandler *apMessag
 	mbActive =false;
 	mfTextAlphaRatePerSecond =1.3f;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessage::Update(float afTimeStep)
 {
@@ -94,8 +64,6 @@ void cGameMessage::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessage::Draw(iFontData *apFont)
 {
 	if(mbActive == false) return;
@@ -114,15 +82,6 @@ void cGameMessage::Draw(iFontData *apFont)
 							eFontAlign_Left,msText,eFontEffect_Outline,1);
 	}
 }
-
-//-----------------------------------------------------------------------
-
-
-//////////////////////////////////////////////////////////////////////////
-// PUBLIC METHODS
-//////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Add(const tWString& asText)
 {
@@ -143,8 +102,6 @@ void cGameMessageHandler::Add(const tWString& asText)
 		pMessage->mbActive = true;
 	}
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::ShowNext()
 {
@@ -211,8 +168,6 @@ void cGameMessageHandler::ShowNext()
 
 }
 
-//-----------------------------------------------------------------------
-
 /**
  * Black Plague and Requiem: SetPlayerActive drops queued messages and fades
  * out the depth of field, ending blur that a scripted sequence left on.
@@ -224,8 +179,6 @@ void cGameMessageHandler::ClearMessages()
 
 	mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Update(float afTimeStep)
 {
@@ -256,22 +209,16 @@ void cGameMessageHandler::Update(float afTimeStep)
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessageHandler::OnWorldLoad()
 {
 
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::OnWorldExit()
 {
 	Reset();
 	mpInit->mpEffectHandler->GetDepthOfField()->SetActive(false,1.0f);
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::OnDraw()
 {
@@ -283,14 +230,10 @@ void cGameMessageHandler::OnDraw()
 	}
 }
 
-//-----------------------------------------------------------------------
-
 void cGameMessageHandler::SetOnMessagesOverCallback(const tString& asFunction)
 {
 	msOverCallback = asFunction;
 }
-
-//-----------------------------------------------------------------------
 
 void cGameMessageHandler::Reset()
 {
@@ -299,5 +242,3 @@ void cGameMessageHandler::Reset()
 
 	mbDepthOfFieldUsed = false;
 }
-
-//-----------------------------------------------------------------------
