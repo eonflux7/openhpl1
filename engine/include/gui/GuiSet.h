@@ -69,7 +69,6 @@ namespace hpl {
 		void Clear();
 		cGuiClipRegion* CreateChild(const cVector3f &avPos, const cVector2f &avSize);
 
-		//tGuiRenderObjectSet m_setObjects;
 		cRect2f mRect;
 
 		tGuiClipRegionList mlstChildren;

@@ -25,22 +25,10 @@ iGameEnemyState_Infected_Base::iGameEnemyState_Infected_Base(int alId, cInit *ap
 
 void iGameEnemyState_Infected_Base::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
-	//return;
 	if(mpPlayer->GetHealth() <=0) return;
 
 	if(afChance >= mpEnemyInfected->mfIdleMinSeeChance)
 	{
-		/*if( (mlId == STATE_IDLE || mlId == STATE_INVESTIGATE || mlId == STATE_PATROL) &&
-			cMath::RandRectf(0,1) < mpEnemyInfected->mfIdleCallBackupChance && 
-			mpEnemy->CheckForTeamMate(8,true)==false)
-		{
-			mpEnemy->ChangeState(STATE_CALLBACKUP);
-		}
-		else
-		{
-			//mpEnemy->ChangeState(STATE_HUNT);
-			//mpEnemyInfected->PlaySound(mpEnemyInfected->msIdleFoundPlayerSound);	
-		}*/
 
 		float fDist = cMath::Vector3Dist(mpMover->GetCharBody()->GetFeetPosition(),
 										mpPlayer->GetCharacterBody()->GetFeetPosition());
@@ -59,7 +47,6 @@ void iGameEnemyState_Infected_Base::OnSeePlayer(const cVector3f &avPosition, flo
 
 bool iGameEnemyState_Infected_Base::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	//return false;
 	float afDistance = (mpMover->GetCharBody()->GetPosition() - avPosition).Length();
 
 	if(afVolume >= mpEnemyInfected->mfIdleMinHearVolume && afDistance > 0.4f)
@@ -104,12 +91,7 @@ void iGameEnemyState_Infected_Base::OnTakeHit(float afDamage)
 
 void iGameEnemyState_Infected_Base::OnFlashlight(const cVector3f &avPosition)
 {
-	//mpInit->mpEffectHandler->GetSubTitle()->Add("Flashlight!",0.5f,true);
-	//OnSeePlayer(mpPlayer->GetCharacterBody()->GetFeetPosition(),1.0f);
 	
-	//mpEnemy->SetLastPlayerPos(mpPlayer->GetCharacterBody()->GetFeetPosition());
-	//mpEnemy->ChangeState(STATE_HUNT);
-
 	mpEnemy->SetTempPosition(avPosition);
 	mpEnemy->ChangeState(STATE_INVESTIGATE);
 }
@@ -182,8 +164,6 @@ void cGameEnemyState_Infected_Patrol::OnEnterState(iGameEnemyState *apPrevState)
 
 	if(mpMover->MoveToPos(pNode->GetPosition())==false)
 	{
-		//tString sStr = "Could not get to path node "+pPatrolNode->msNodeName;
-		//mpInit->mpEffectHandler->GetSubTitle()->Add(sStr,3,true);
 		
 		mpEnemy->IncCurrentPatrolNode();
 		mbWaiting = true;
@@ -191,8 +171,6 @@ void cGameEnemyState_Infected_Patrol::OnEnterState(iGameEnemyState *apPrevState)
 	}
 	else
 	{
-		//tString sStr = "Moving to path node "+pPatrolNode->msNodeName;
-		//mpInit->mpEffectHandler->GetSubTitle()->Add(sStr,3,true);
 	}
 	
 	
@@ -235,16 +213,12 @@ void cGameEnemyState_Infected_Patrol::OnUpdate(float afTimeStep)
 				
 				if(mpMover->MoveToPos(pNode->GetPosition())==false)
 				{
-					//tString sStr = "Could not get to path node "+pPatrolNode->msNodeName;
-					//mpInit->mpEffectHandler->GetSubTitle()->Add(sStr,3,false);
 					mpEnemy->IncCurrentPatrolNode();
 					mbWaiting = true;
 					mpEnemy->SetWaitTime(1.0f);
 				}
 				else
 				{
-					//tString sStr = "Moving to path node "+pPatrolNode->msNodeName;
-					//mpInit->mpEffectHandler->GetSubTitle()->Add(sStr,3,false);
 				}
 				
 			}
@@ -419,7 +393,6 @@ void cGameEnemyState_Infected_Eat::OnUpdate(float afTimeStep)
 
 bool cGameEnemyState_Infected_Eat::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	//return false;
 	if(	afVolume >= mpEnemyInfected->mfEatMinHearVolume)
 	{
 		mpEnemy->SetTempPosition(avPosition);
@@ -432,7 +405,6 @@ bool cGameEnemyState_Infected_Eat::OnHearNoise(const cVector3f &avPosition, floa
 
 void cGameEnemyState_Infected_Eat::OnSeePlayer(const cVector3f &avPosition, float afChance)
 {
-	//return;
 	if(mpPlayer->GetHealth() <=0) return;
 
 	if(afChance >= mpEnemyInfected->mfEatMinSeeChance)
@@ -571,13 +543,11 @@ void cGameEnemyState_Infected_MoveTo::OnEnterState(iGameEnemyState *apPrevState)
 	
 	if(mpMover->MoveToPos(mpEnemy->GetTempPosition())==false)
 	{
-		//mpInit->mpEffectHandler->GetSubTitle()->Add("Could not move to pos!\n",3,true);
 		mpEnemy->ChangeState(apPrevState->GetId());
 		return;
 	}
 	else
 	{
-		//mpInit->mpEffectHandler->GetSubTitle()->Add("Moving to pos!\n",3,true);
 	}
 	
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
@@ -729,13 +699,10 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 	if(mfPathUpdateDelaySeconds <=0)
 	{
 		mbFoundNoPath = false;
-		//mpInit->mpEffectHandler->GetSubTitle()->Add("Update Path!",1.0f,true);
 		mfPathUpdateDelaySeconds = mfPathUpdateIntervalSeconds;
 		
 		cAINodeContainer *pNodeCont = mpEnemy->GetMover()->GetNodeContainer();
 
-		//Log("%s: Checking free path\n",mpEnemy->GetName().c_str());
-		
 		//Check if there is a free path to the player
 		if(mbLostPlayer == false && mpMover->FreeDirectPathToChar(mpPlayer->GetCharacterBody()))
 		{
@@ -756,23 +723,9 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 				mpMover->SetMaxDoorToughness(0);
 			}
 
-			//Log("%s: Move to pos\n",mpEnemy->GetName().c_str());
-
 			if(mpMover->MoveToPos(mpEnemy->GetLastPlayerPos())==false)
 			{
 				bool bFoundAnotherWay = false;
-				/*float fHeight = mpMover->GetCharBody()->GetPosition().y -
-								mpPlayer->GetCharacterBody()->GetPosition().y;
-				if(cMath::Abs(fHeight) > mpMover->GetNodeContainer()->GetMaxHeight())
-				{
-					cVector3f vPos = mpEnemy->GetLastPlayerPos();
-					vPos.y = mpMover->GetCharBody()->GetFeetPosition().y+0.1f;
-
-					if(mpMover->MoveToPos(vPos))
-					{
-						bFoundAnotherWay = true;
-					}
-				}*/
 				
 				if(bFoundAnotherWay == false)
 				{
@@ -783,7 +736,6 @@ void cGameEnemyState_Infected_Hunt::OnUpdate(float afTimeStep)
 				}
 			}
 
-			//Log("%s: Done with that.\n",mpEnemy->GetName().c_str());
 		}
 	}
 	else
@@ -1234,7 +1186,6 @@ void cGameEnemyState_Infected_Flee::OnUpdate(float afTimeStep)
 				mpEnemy->CheckForTeamMate(8,true)==false)
 			{
 				float fPlayerDist = mpMover->DistanceToChar(mpInit->mpPlayer->GetCharacterBody());
-				//Log("Dist: %f\n",fPlayerDist);
 				if(fPlayerDist > 8)
 				{
 					mpEnemy->ChangeState(STATE_CALLBACKUP);
@@ -1243,18 +1194,12 @@ void cGameEnemyState_Infected_Flee::OnUpdate(float afTimeStep)
 				{
 					mpEnemy->ChangeState(STATE_HUNT);
 				}
-				//Log("Back from flee!!\n");
 			}
 			else
 			{
-				//if(mpInit->mpMusicHandler->AttackerExist(mpEnemy))
 				{
 					mpEnemy->ChangeState(STATE_HUNT);
 				}
-				//else
-				//{
-				//	mpEnemy->ChangeState(STATE_IDLE);
-				//}
 			}
 		}
 	}
@@ -1345,7 +1290,6 @@ void cGameEnemyState_Infected_BreakDoor::OnUpdate(float afTimeStep)
 	if(mpEnemyInfected->mfBreakDoorSpeed>0 && mlCount==0 && mbAttacked == false)
 	{
 		//Skip this for now
-		//mpMover->GetCharBody()->Move(eCharDir_Forward,1.0f,afTimeStep);
 	}
 
 	if(mfDamageTimer <=0 )
@@ -1405,13 +1349,11 @@ void cGameEnemyState_Infected_BreakDoor::OnUpdate(float afTimeStep)
 						if(cMath::Vector3Dot(vDoorForward,vEnemyForward) < 0)
 						{
 							mpEnemy->AddDoorBreakCount(2);//8);
-							//mpInit->mpEffectHandler->GetSubTitle()->Add("Cannot break this door! On BAD side",4);
 						}
 						else
 						{
 							mpEnemy->AddDoorBreakCount(2);
 							//Just continue hitting it since it is just barricaded.
-							//mpInit->mpEffectHandler->GetSubTitle()->Add("Cannot break this door! On GOOD side",4);
 						}
 					}
 					//The door is breakable

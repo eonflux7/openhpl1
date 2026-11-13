@@ -12,9 +12,6 @@ namespace hpl {
 
 	cNodeState::cNodeState(const tString& asName)
 	{
-		/*msName = asName;
-
-		mpParent = NULL;*/
 	}
 
 	cNodeState::~cNodeState()
@@ -22,13 +19,4 @@ namespace hpl {
 
 	}
 
-	/*void cNodeState::SetWorldTransform(const cMatrixf& a_mtxWorld)
-	{
-		m_mtxWorldTransform = a_mtxWorld;
-	}
-
-	cMatrixf& cNodeState::GetWorldTransform()
-	{
-		return m_mtxWorldTransform;
-	}*/
 }

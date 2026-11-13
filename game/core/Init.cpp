@@ -305,16 +305,7 @@ tWString cInit::GetPersonalDir()
 
 bool cInit::Init(tString asCommandLine)
 {
-	/*if(asCommandLine != "")
-	{
-		Log("CommandLine: %s\n",asCommandLine.c_str());
-		if(cSerialChecker::Validate(asCommandLine)<=0)
-		{
-			FatalError("Invalid serial number!\n");
-		}
-	}*/
 
-	//iResourceBase::SetLogCreateAndDelete(true);
 	SetWindowCaption("Penumbra Loading...");
 
 	// Black Plague: resting bodies are kept 2 mm apart. With Newton 2 a heavy
@@ -538,14 +529,10 @@ bool cInit::Init(tString asCommandLine)
 	mbUseEnvAudio = mpConfig->GetBool("Sound","UseEnvironmentalAudio",true);
 	// Black Plague's and Requiem's default_settings.cfg turn it off
 	if(!gbUsingUserSettings) mbUseEnvAudio = true;
-	//mbForceGenericSoundDevice = mpConfig->GetBool("Sound", "ForceGeneric", false);
 	mlStreamUpdateFreq = mpConfig->GetInt("Sound","StreamUpdateFreq",10);
 	mbUseSoundThreading = mpConfig->GetBool("Sound","UseThreading",true);
-	//mbUseVoiceManagement = mpConfig->GetBool("Sound","UseVoiceManagement", true);
 	mlMaxMonoChannelsHint = mpConfig->GetInt("Sound","MaxMonoChannelsHint",0);
 	mlMaxStereoChannelsHint = mpConfig->GetInt("Sound","MaxStereoChannelsHint",0);
-	//mlStreamBufferSize = mpConfig->GetInt("Sound", "StreamBufferSize", 64);
-	//mlStreamBufferCount = mpConfig->GetInt("Sound", "StreamBufferCount", 4);
 	msDeviceName = mpConfig->GetString("Sound","DeviceName","NULL");
 
 	iGpuProgram::SetLogDebugInformation(true);
@@ -1107,15 +1094,6 @@ bool cInit::Init(tString asCommandLine)
 		mpGlobalScript->Run("OnInit()");
 	}
 	
-	//mpGraphicsHelper->DrawLoadingScreen("");
-
-	//mpIntroStory->SetActive(true);
-	//mpCredits->SetActive(true);
-	//mpDemoEndText->SetActive(true);
-
-	//mpGame->SetRenderOnce(true);
-	//mpGame->GetGraphics()->GetRenderer3D()->SetDebugFlags(eRendererDebugFlag_LogRendering);
-	
 	if(mpSmokeTest)
 	{
 		if(mpSmokeTest->GetFirstMap() != "")
@@ -1247,8 +1225,6 @@ void cInit::Exit()
 	}
 
 	// PLAYER EXIT /////////////////////
-	//Log(" Exit Save Handler\n");
-	//hplDelete( mpSaveHandler );
 
 	Log(" Reset maphandler\n");
 	mpMapHandler->Reset();
@@ -1264,8 +1240,6 @@ void cInit::Exit()
 	hplDelete( mpButtonHandler );
 	Log(" Exit Map Handler\n");
 	hplDelete( mpMapHandler );
-	//Log(" Exit Game Scripts\n");
-	//hplDelete( mpGameScripts );
 	Log(" Exit Game Message Handler\n");
 	hplDelete( mpGameMessageHandler );
 	Log(" Exit Ending\n");
@@ -1550,11 +1524,6 @@ void cInit::PreloadSoundEntityData(const tString &asFile)
 	
 	mpGame->GetResources()->GetSoundEntityManager()->Preload(asFile);
 		
-	/*iSoundData *pSound = mpGame->GetResources()->GetSoundManager()->CreateSoundData(asFile,false);
-	if(pSound){
-		Warning("Couldn't preload sound '%s'\n",asFile.c_str());
-	}*/
-	
 }
 
 void cInit::PreloadParticleSystem(const tString &asFile)

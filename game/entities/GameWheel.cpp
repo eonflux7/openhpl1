@@ -475,7 +475,6 @@ void cGameWheel::UpdateConnectedJoint(float afTimeStep)
 	}
 }
 
-// Callback("name", action, state): action 0 enter, 1 leave, 2 during;
 // state -1 min, 0 middle, 1 max
 void cGameWheel::RunCallback(eGameWheelState aState, eGameWheelAction aAction)
 {

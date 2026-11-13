@@ -28,8 +28,6 @@ namespace hpl {
 
 		mbMenuOpen = false;
 
-		//mbConnectedToChildren = false;
-
 		mfMenuHeight = 0;
 
 		mlSelectedItem = -1;

@@ -45,7 +45,6 @@ namespace hpl {
 	cResourceImage::~cResourceImage()
 	{
 		mvVtx.clear();
-		//mpFrameTexture->DecPicCount();
 		mpFrameTexture = nullptr;
 		mlHandle = -1;
 	}

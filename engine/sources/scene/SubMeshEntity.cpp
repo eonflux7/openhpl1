@@ -75,19 +75,6 @@ namespace hpl {
 
 	void cSubMeshEntityBodyUpdate::OnTransformUpdate(iEntity3D* apEntity)
 	{
-		/*cSubMeshEntity *pSubEntity = static_cast<cSubMeshEntity*>(apEntity);
-
-		if(pSubEntity->GetBody())
-		{
-			if(apEntity->GetWorldMatrix() != pSubEntity->GetBody()->GetLocalMatrix())
-			{
-				Log("Setting matrix on %s from\n",pSubEntity->GetBody()->GetName().c_str());
-				Log("  %s\n",apEntity->GetWorldMatrix().ToString().c_str());
-				Log("  %s\n",pSubEntity->GetBody()->GetLocalMatrix().ToString().c_str());
-
-				pSubEntity->GetBody()->SetMatrix(apEntity->GetWorldMatrix());
-			}
-		}*/
 	}
 
 	void cSubMeshEntity::UpdateLogic(float afTimeStep)
@@ -188,9 +175,6 @@ namespace hpl {
 
 				const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[*pBoneIdx];
 
-				//Log("Vtx: %d\n",vtx);
-				//Log("Boneidx: %d Count %d Weight: %f vtx: %d\n",(int)*pBoneIdx,lCount, *pWeight,vtx);
-
 				//ATTENTION: Some optimizing might be done by accumulating the matrix instead.
 								//THIS is really unsure since it seems like it will result in more math, matrix mul = 8*4 calc
 								//Vertex mul with matrix is 3 * 3 calculations
@@ -207,7 +191,6 @@ namespace hpl {
 				//Iterate weights until 0 is found or count < 4
 				while(lCount < 4 && *pWeight != 0)
 				{
-					//Log("Boneidx: %d Count %d Weight: %f\n",(int)*pBoneIdx,lCount, *pWeight);
 					const cMatrixf &mtxTransform = mpMeshEntity->mvBoneMatrices[*pBoneIdx];
 
 					//Transform with the local movement of the bone.
@@ -270,12 +253,10 @@ namespace hpl {
 	{
 		if(mpMeshEntity->HasNodes())
 		{
-			//Log("%s Matrix from local node!\n",msName.c_str());
 			return &GetWorldMatrix();
 		}
 		else
 		{
-			//Log("%s Matrix from mesh!\n",msName.c_str());
 
 			if(mpMeshEntity->IsStatic()) return nullptr;
 
@@ -297,7 +278,6 @@ namespace hpl {
 
 	tRenderContainerDataList* cSubMeshEntity::GetRenderContainerDataList()
 	{
-		//Log("Get from parent %s\n",mpMeshEntity->GetName().c_str());
 		return mpMeshEntity->GetRenderContainerDataList();
 	}
 
@@ -305,14 +285,6 @@ namespace hpl {
 	{
 		mbUpdateBody = abX;
 
-		/*if(mbUpdateBody)
-		{
-			AddCallback(mpEntityCallback);
-		}
-		else
-		{
-			RemoveCallback(mpEntityCallback);
-		}*/
 	}
 
 	bool cSubMeshEntity::GetUpdateBody()

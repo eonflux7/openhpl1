@@ -175,20 +175,10 @@ void cGameStickArea::Update(float afTimeStep)
 	{
 		iPhysicsBody *pBody = bodyIt.Next();
 
-		/*if(	mpInit->mpPlayer->GetPickedBody() == pBody &&
-			(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
-				mpInit->mpPlayer->GetState() == ePlayerState_Move ||
-				mpInit->mpPlayer->GetState() == ePlayerState_Push)
-		  )
-		{
-			continue;
-		}*/
-
 		if(	pBody->IsActive() && pBody->GetCollide() && pBody->GetMass()>0 &&
 			pBody->IsCharacter()==false)
 		{
 			//Bounding volume check
-			//if(cMath::CheckCollisionBV(*pBody->GetBV(), *pAreaBody->GetBV())==false) continue;
 
             bool bPassesBoundsCheck = false;
 			if(mbCheckCenterInArea)
@@ -245,8 +235,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 {
 	if(mpAttachedBody) return;
 
-	//Log("Attaching body %s\n", apBody->GetName().c_str());
-
 	//If in an interact state, set the previous state		
 	if(	mpInit->mpPlayer->GetPushBody() == apBody &&
 	(	mpInit->mpPlayer->GetState() == ePlayerState_Grab ||
@@ -254,7 +242,6 @@ void cGameStickArea::AttachBody(iPhysicsBody *apBody)
 		mpInit->mpPlayer->GetState() == ePlayerState_Push)
 	)
 	{
-		//Log(" Setting a prev state\n");
 
 		ePlayerState state =  mpInit->mpPlayer->GetState();
 		ePlayerState prev = mpInit->mpPlayer->GetStateData(state)->mPreviousState;
@@ -286,7 +273,6 @@ void cGameStickArea::DetachBody()
 {
 	if(mpAttachedBody)
 	{
-		//Log("Dettached body %s\n", mpAttachedBody->GetName().c_str());
 
 
 		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
@@ -316,8 +302,6 @@ void cGameStickArea::DetachBody()
 		mpAttachedBody->SetMass(mfBodyMass);
 		mpAttachedBody->SetEnabled(true);
 
-		//Log("Body mass: %f\n",mpAttachedBody->GetMass());
-
 		mpAttachedBody = nullptr;
 	}
 }
@@ -336,9 +320,6 @@ tString cGameStickArea::BuildBodyCallbackCommand(const tString &asFunc,iPhysicsB
 
 void cGameStickArea::OnPostSceneDraw()
 {
-	//iPhysicsBody *pAreaBody = mvBodies[0];
-
-	//pAreaBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(1,1));
 }
 
 kBeginSerialize(cGameStickArea_SaveData,iGameEntity_SaveData)

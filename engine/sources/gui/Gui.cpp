@@ -403,13 +403,6 @@ namespace hpl {
 		return mpSetInFocus->SendMessage(eGuiMessage_KeyPress,data);
 	}
 
-	/*bool cGui::SentArrowKey(eGuiArrowKey aDir)
-	{
-		if(mpSetInFocus==NULL)return false;
-
-		return false;
-	}*/
-
 #define AddFont(name) m_mapSkinFontStrings.insert(tGuiSkinFontMap::value_type(#name,eGuiSkinFont_##name))
 #define AddAttribute(name) m_mapSkinAttributeStrings.insert(tGuiSkinAttributeMap::value_type(#name,eGuiSkinAttribute_##name))
 #define AddGfx(name) m_mapSkinGfxStrings.insert(tGuiSkinGfxMap::value_type(#name,eGuiSkinGfx_##name))

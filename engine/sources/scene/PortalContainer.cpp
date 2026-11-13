@@ -314,8 +314,6 @@ namespace hpl {
 
 	bool cSector::TryToAdd(iRenderable *apObject, bool abStatic)
 	{
-		//bool bLog=true;
-		//if(bLog) Log("-- Trying to add %s to sector '%s'\n",apObject->GetName().c_str(), msId.c_str());
 
 		//Check if the objects collides with the sector
 		//If so add it.
@@ -324,7 +322,6 @@ namespace hpl {
 			if(abStatic)
 			{
 				apObject->GetRenderContainerDataList()->push_back(this);
-				//if(bLog) Log("   Adding as static! Sectors: %d\n",apObject->GetRenderContainerDataList()->size());
 				//Add as static object.
 				m_setStaticObjects.insert(apObject);
 
@@ -336,10 +333,8 @@ namespace hpl {
 			{
 				//Set this sector as data in the container data list.
 				apObject->GetRenderContainerDataList()->push_back(this);
-				//if(bLog) Log("   Adding as dynamic!\n");
 
 
-				//Log("Adding dynamic %d %s\n",(size_t)apObject,apObject->GetName().c_str());
 				//Add as a dynamic object
 				m_setDynamicObjects.insert(apObject);
 			}
@@ -352,18 +347,14 @@ namespace hpl {
 
 	bool cSector::TryToAddEntity(iEntity3D *apEntity)
 	{
-		//bool bLog=false;
-		//if(bLog) Log("-- Trying to add %s to sector '%s'\n",apEntity->GetName().c_str(), msId.c_str());
 
 		//Check if the objects collides with the sector
 		//If so add it.
 		if(cMath::CheckCollisionBV(*apEntity->GetBoundingVolume(), mBV))
 		{
-			//if(bLog) Log("-- Adding as dynamic!\n");
 			//Set this sector as data in the container data list.
 			apEntity->GetRenderContainerDataList()->push_back(this);
 
-			//Log("Adding dynamic %d %s\n",(size_t)apObject,apObject->GetName().c_str());
 			//Add as a dynamic object
 			m_setEntities.insert(apEntity);
 
@@ -465,7 +456,6 @@ namespace hpl {
 
 		tRenderContainerDataList *pDataList = apEntity->GetRenderContainerDataList();
 
-		//Log("Removing %s from container\n",apEntity->GetName().c_str());
 		// If empty then the object is in the global list.
 		if(pDataList->empty())
 		{
@@ -480,8 +470,6 @@ namespace hpl {
 			{
 				cSector* pSector = static_cast<cSector*>(*it);
 				pSector->RemoveEntity(apEntity);
-				//Log(" Removing %s to sector %s\n",	apEntity->GetName().c_str(),
-				//									pSector->GetId().c_str());
 
 			}
 
@@ -498,8 +486,6 @@ namespace hpl {
 			cSector* pSector = it->second;
 			if(pSector->TryToAddEntity(apEntity))
 			{
-				//Log(" Adding %s to sector %s\n",apEntity->GetName().c_str(),
-				//								pSector->GetId().c_str());
 				bAdded = true;
 			}
 		}
@@ -525,7 +511,6 @@ namespace hpl {
 		iRenderable *apRenderable = static_cast<iRenderable*>(apEntity);
 		tRenderContainerDataList *pDataList = apRenderable->GetRenderContainerDataList();
 
-		//Log("Removing %s from container\n",apRenderable->GetName().c_str());
 		// If empty then the object is in the global list.
 		if(pDataList->empty())
 		{
@@ -541,7 +526,6 @@ namespace hpl {
 				cSector* pSector = static_cast<cSector*>(*it);
 				pSector->RemoveDynamic(apRenderable);
 
-				//Log("Removed from sector %s\n",pSector->GetId().c_str());
 			}
 
 			//Clear the data list.
@@ -555,8 +539,6 @@ namespace hpl {
 		apEntity->SetCurrentSector(nullptr);
 		cVector3f vEntityWorldPos = apRenderable->GetBoundingVolume()->GetWorldCenter();
 		bool bFoundCenter = false;
-
-		//Log("Setting NULL to '%s'\n", apEntity->GetName().c_str());
 
 		tSectorMapIt it = mpContainer->m_mapSectors.begin();
 		for(; it != mpContainer->m_mapSectors.end(); ++it)
@@ -573,7 +555,6 @@ namespace hpl {
 				{
 					apEntity->SetCurrentSector(pSector);
 					bFoundCenter = true;
-					//Log("Setting sector %d to '%s'\n",apEntity->GetCurrentSector(),apEntity->GetName().c_str());
 				}
 				else if(cMath::CheckCollisionBV(*apEntity->GetBoundingVolume(), *pSector->GetBV()))
 				{
@@ -626,7 +607,6 @@ namespace hpl {
 			apRenderable->SetCurrentSector(nullptr);
 			cVector3f vEntityWorldPos = apRenderable->GetBoundingVolume()->GetWorldCenter();
 			bool bFoundCenter = false;
-			//Log("Setting center sector to NULL to '%s'\n",apRenderable->GetName().c_str());
 
 
 			//Try to add it to all sectors the renderable touches
@@ -637,7 +617,6 @@ namespace hpl {
 
 				if(pSector->TryToAdd(apRenderable, true)){
 					bAdded = true;
-					//Log("Adding as static in sector %s\n",pSector->GetId().c_str());
 				}
 				//Check if center is in this portal.
 				if(bFoundCenter == false)
@@ -646,7 +625,6 @@ namespace hpl {
 					{
 						apRenderable->SetCurrentSector(pSector);
 						bFoundCenter = true;
-						//Log("Setting sector %d to '%s'\n",apEntity->GetCurrentSector(),apEntity->GetName().c_str());
 					}
 					else if(cMath::CheckCollisionBV(*apRenderable->GetBoundingVolume(), *pSector->GetBV()))
 					{
@@ -658,7 +636,6 @@ namespace hpl {
 			//If not added in any sector, add to global list.
 			if(bAdded == false){
 				mlstGlobalStaticObjects.push_back(apRenderable);
-				//Log("Adding as static in global\n");
 			}
 		}
 		else
@@ -692,7 +669,6 @@ namespace hpl {
 					{
 						apRenderable->SetCurrentSector(pSector);
 						bFoundCenter = true;
-						//Log("Setting sector %d to '%s'\n",apEntity->GetCurrentSector(),apEntity->GetName().c_str());
 					}
 					else if(cMath::CheckCollisionBV(*apRenderable->GetBoundingVolume(), *pSector->GetBV()))
 					{
@@ -715,16 +691,13 @@ namespace hpl {
 
 	bool cPortalContainer::Remove(iRenderable *apRenderable)
 	{
-		//Log("Removing %d %s\n",(size_t)apRenderable,apRenderable->GetName().c_str());
 
-		///Log("Trying to remove: %s\n",apRenderable->GetName().c_str());
 		tRenderContainerDataList *pDataList = apRenderable->GetRenderContainerDataList();
 
 		// If empty then the object is in the global list.
 		if(pDataList->empty())
 		{
 			m_setGlobalDynamicObjects.erase(apRenderable);
-			//Log("Data list empty!\n");
 		}
 		//The object is in one or more sectors
 		else
@@ -735,7 +708,6 @@ namespace hpl {
 			{
 				cSector* pSector = static_cast<cSector*>(*it);
 				pSector->RemoveDynamic(apRenderable);
-				//Log("Removed from sector '%s'\n",pSector->GetId().c_str());
 			}
 
 			//Clear the data list.
@@ -950,20 +922,16 @@ namespace hpl {
 
 			}
 			//Dynamic
-			//Log("-------START------\n");
 			it = pSector->m_setDynamicObjects.begin();
 			for(;it != pSector->m_setDynamicObjects.end(); ++it)
 			{
 				iRenderable *pObject = *it;
-
-				//Log("Checking %d\n",(size_t)pObject);
 
 				if(pVisSector->IntersectionBV(pObject->GetBoundingVolume()))
 				{
 					AddToRenderList(pObject,apFrustum,apRenderList);
 				}
 			}
-			//Log("------END-------\n");
 		}
 
 		//Add global dynamic objects
@@ -972,7 +940,6 @@ namespace hpl {
 			for(;it != m_setGlobalDynamicObjects.end(); ++it)
 			{
 				iRenderable *pObject = *it;
-				//Log("Testing %s\n",pObject->GetName().c_str());
 				if(pObject->CollidesWithFrustum(apFrustum))
 				{
 					AddToRenderList(pObject,apFrustum,apRenderList);
@@ -1080,8 +1047,6 @@ namespace hpl {
 		if(vMin.z > vObjectMin.z) vMin.z = vObjectMin.z;
 
 		pSector->mBV.SetLocalMinMax(vMin, vMax);
-		//Quick fix for thin stuff. (not working it seems)
-		//pSector->mBV.SetLocalMinMax(vMin - cVector3f(0.1f), vMax+cVector3f(0.1f));
 
 		return true;
 	}
@@ -1136,60 +1101,4 @@ namespace hpl {
 
 	// OLD CODE
 
-	/*void cPortalContainer::GetVisible(cFrustum* apFrustum,cRenderList *apRenderList)
-	{
-		//Clear debug
-		mlstVisibleSectors.clear();
-
-		//Find the sector that the camera is in and add the
-		//objects in it.
-		tSectorMapIt SectorIt = m_mapSectors.begin();
-		for(; SectorIt != m_mapSectors.end(); SectorIt++)
-		{
-			cSector* pSector =  SectorIt->second;
-
-			if(cMath::PointBVCollision(apFrustum->GetOrigin(), *pSector->GetBV()))
-			{
-				pSector->GetVisible(apFrustum, apRenderList, NULL);
-			}
-		}
-
-		//Inc sector visit count so next time no sectors will be considered visited.
-		mlSectorVisitCount++;
-
-		//Add global dynamic objects
-		{
-			tRenderableSetIt it = m_setGlobalDynamicObjects.begin();
-			for(;it != m_setGlobalDynamicObjects.end(); ++it)
-			{
-				iRenderable *pObject = *it;
-				//Log("Testing %s\n",pObject->GetName().c_str());
-				if(pObject->CollidesWithFrustum(apFrustum))
-				{
-					//Log("Added %s\n",pObject->GetName().c_str());
-
-					AddToRenderList(pObject,apFrustum,apRenderList);
-				}
-			}
-		}
-
-		//Add global static objects
-		{
-			tRenderableListIt it = mlstGlobalStaticObjects.begin();
-			for(;it != mlstGlobalStaticObjects.end(); ++it)
-			{
-				iRenderable *pObject = *it;
-
-				if(pObject->CollidesWithFrustum(apFrustum))
-				{
-					AddToRenderList(pObject,apFrustum,apRenderList);
-				}
-			}
-		}
-
-		//DEBUG:
-		//Test the visible sector stuff
-		cSectorVisibilityContainer *pVisSector = CreateVisibilityFromFrustum(apFrustum);
-		hplDelete(pVisSector);
-	}*/
 }

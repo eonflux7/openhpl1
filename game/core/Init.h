@@ -229,7 +229,6 @@ public:
 	cMapHandler *mpMapHandler;
 	cButtonHandler *mpButtonHandler;
 	cPlayer *mpPlayer;
-	//cGameScripts *mpGameScripts;
 	cGameMessageHandler *mpGameMessageHandler;
 	cInventory* mpInventory;
 	cFadeHandler* mpFadeHandler;

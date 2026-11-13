@@ -386,12 +386,6 @@ namespace hpl {
 	**/
 	static void __stdcall KillParticleSystem(std::string asName)
 	{
-		/*cParticleSystem3D *pPS = gpScene->GetWorld3D()->GetParticleSystem(asName);
-		if(pPS==NULL){
-			Warning("Didn't find particle system '%s'\n",asName.c_str());
-			return;
-		}
-		pPS->Kill();*/
 
 		bool bFound = false;
 		cParticleSystem3DIterator it = gpScene->GetWorld3D()->GetParticleSystemIterator();

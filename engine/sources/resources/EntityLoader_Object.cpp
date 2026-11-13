@@ -246,15 +246,10 @@ namespace hpl {
 				}
 			}
 
-			//for(size_t i=0; i< vJoints.size(); i++)
-			//{
-			//	Log("Created joint: %s\n",vJoints[i]->GetName().c_str());
-			//}
 		}
 		// Properties for entities nodes and animation
 		else if(mpMesh->GetNodeNum()>0)
 		{
-			//Log("nodes and anim\n");
 			iPhysicsBody *pRootBody=nullptr;
 
 			bUsingNodeBodies = true;
@@ -304,9 +299,6 @@ namespace hpl {
 				}
 
 				SetBodyProperties(pBody,pPhysicsElem);
-
-				//pBody->SetMass(0);
-				//pBody->SetGravity(false);
 
 				iPhysicsMaterial *pMaterial = apWorld->GetPhysicsWorld()->GetMaterialFromName(sMaterial);
 				if(pMaterial) {
@@ -410,10 +402,6 @@ namespace hpl {
 						}
 
 						pBody->CreateNode()->AddEntity(mpEntity);
-						//cMatrixf mtxTemp = a_mtxTransform;
-						//Log("-- Body: %s Mtx: %s\n", pBody->GetName().c_str(),
-						//	mtxTemp.ToString().c_str());
-							//pBody->GetBV()->GetSize().ToString().c_str());
 
 						pBody->SetMatrix(a_mtxTransform);
 
@@ -594,7 +582,6 @@ namespace hpl {
 			{
 				iEntity3D *pRef = mpMesh->CreateReferenceInWorld(asName,pMeshCopy->GetReference(i),pEntityCopy,
 																apWorld, a_mtxTransform);
-				//if(pPS) mvParticleSystems.push_back(pPS);
 			}
 			return pEntityCopy;
 		}
@@ -658,8 +645,6 @@ namespace hpl {
 		apBody->SetAutoDisableNumSteps(lAutoDisableNumSteps);
 
 		apBody->SetPushedByCharacterGravity(bPushedByCharacterGravity);
-
-		//Log("Body %s contin: %d\n",apBody->GetName().c_str(), apBody->GetContinuousCollision()?1:0);
 
 		apBody->SetMaxAngularSpeed(fMaxAngluarSpeed);
 		apBody->SetMaxLinearSpeed(fMaxLinearSpeed);
@@ -895,8 +880,6 @@ namespace hpl {
 
 		apJoint->AddController(pController);
 
-		//Log("Controller: %s active: %d val: %f %f %f input: %d %d output: %d %d\n",
-		//	sName.c_str(),bActive, fA,fB,fC, (int)CtrlInput, (int)CtrlInputAxis, (int)CtrlOutput,(int)CtrlOutputAxis);
 	}
 
 	eAnimationEventType cEntityLoader_Object::GetAnimationEventType(const char* apString)

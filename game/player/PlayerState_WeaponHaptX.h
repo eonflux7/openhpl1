@@ -116,7 +116,6 @@ private:
 	float mfLastSideways;
 
 	iCollideShape *mpCollider;
-	//iPhysicsBody *mpBody;
 
 	iHapticForce *mpSlowdownForce;
 	iHapticForce *mpFeedbackForce;

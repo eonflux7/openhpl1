@@ -13,9 +13,6 @@ cDemoEndText::cDemoEndText(cInit *apInit)  : iUpdateable("PreMenu")
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-	//Load fonts
-	//mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
-	
 	Reset();
 }
 
@@ -128,5 +125,4 @@ void cDemoEndText::SetActive(bool abActive)
 
 void cDemoEndText::OnExit()
 {
-	//SetActive(false);
 }

@@ -43,8 +43,6 @@ namespace hpl {
 	{
 		// Texts
 		cVector3f vOffset = 0;
-		//if(mTextAlign == eFontAlign_Center)		vOffset.x += mvSize.x/2;
-		//else
 		if(mTextAlign == eFontAlign_Right)	vOffset.x += mvSize.x;
 
 		if(mbWordWrap)

@@ -340,21 +340,6 @@ namespace hpl {
 
 	cVector3f cCamera3D::UnProject(const cVector2f& avScreenPos, iLowLevelGraphics *apLowLevel)
 	{
-		//This code uses math::unproejct which is not working currently
-		/*cVector3f vPos(avScreenPos.x,avScreenPos.y,-0.1f);
-
-		bool bWasInf=false;
-		if(mbInfFarPlane){
-			SetInfiniteFarPlane(false);bWasInf=true;
-		}
-		cMatrixf mtxViewProj = cMath::MatrixMul(GetProjectionMatrix(), GetViewMatrix());
-		if(bWasInf){
-			SetInfiniteFarPlane(true);
-		}
-
-		cVector2f vScreenSize = apLowLevel->GetVirtualSize();
-
-		return cMath::Vector3UnProject(vPos, cRect2f(0,0,vScreenSize.x, vScreenSize.y), mtxViewProj);*/
 
 		cVector2f vOffset = apLowLevel->GetVirtualOffset();
 		cVector2f vScreenSize = apLowLevel->GetVirtualSize() + vOffset*2;

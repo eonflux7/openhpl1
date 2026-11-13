@@ -41,23 +41,6 @@ namespace hpl {
 
 	iParticleSystem2D* cParticleManager::CreatePS2D(const tString& asName, cVector3f avSize)
 	{
-		/*tParticleSystemDataMapIt it = m_mapData.find(asName);
-		if(it == m_mapData.end()) return NULL;
-
-		iParticleSystemData *pData = it->second;
-
-		//Is name needed?..nahh
-		iParticleSystem* pPart = pData->Create("",avSize);
-		pPart->SetDataName(asName);
-		pPart->SetDataSize(avSize);
-
-		if(pPart->GetType() == eParticleSystemType_2D)
-			return static_cast<iParticleSystem2D*>(pPart);
-		else
-		{
-			hplDelete(pPart);
-			return NULL;
-		}*/
 
 		return nullptr;
 	}
@@ -70,8 +53,6 @@ namespace hpl {
 		tString sTypeName = cString::SetFileExt(cString::ToLowerCase(asType),"");
 
 
-		//tParticleSystemData3DMapIt it = m_mapData3D.find(sTypeName);
-		//if(it == m_mapData3D.end())
 		pData = static_cast<cParticleSystemData3D*>(GetByName(sTypeName));
 		if(pData == nullptr)
 		{
@@ -113,16 +94,12 @@ namespace hpl {
 	void cParticleManager::AddData3D(cParticleSystemData3D *apData)
 	{
 		AddResource(apData);
-		//m.insert(tParticleSystemData3DMap::value_type(cString::ToLowerCase(apData->GetName()),
-		//														apData));
 	}
 
 	void cParticleManager::Preload(const tString& asFile)
 	{
 		tString sTypeName = cString::SetFileExt(cString::ToLowerCase(asFile),"");
 
-		//tParticleSystemData3DMapIt it = m_mapData3D.find(sTypeName);
-		//if(it == m_mapData3D.end())
 		cParticleSystemData3D *pData = static_cast<cParticleSystemData3D*>(GetByName(sTypeName));
 		if(pData == nullptr)
 		{

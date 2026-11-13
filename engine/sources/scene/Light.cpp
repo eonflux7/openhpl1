@@ -41,7 +41,6 @@ namespace hpl {
 		// Fade
 		if(mfFadeTime>0)
 		{
-			//Log("Fading: %f / %f\n",afTimeStep,mfFadeTime);
 
 			mfFarAttenuation += mfRadiusAdd*afTimeStep;
 			mDiffuseColor.r += mColAdd.r*afTimeStep;
@@ -123,10 +122,6 @@ namespace hpl {
 			mfFlickerTime += afTimeStep;
 		}
 
-		/*Log("Time: %f Length: %f FadeTime: %f Color: (%f %f %f %f)\n",mfFlickerTime, mfFlickerStateLength,
-											mfFadeTime,
-											mDiffuseColor.r,mDiffuseColor.g,
-											mDiffuseColor.b,mDiffuseColor.a);*/
 	}
 
 	void iLight::FadeTo(const cColor& aCol, float afRadius, float afTime)

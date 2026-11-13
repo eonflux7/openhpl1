@@ -170,20 +170,14 @@ namespace hpl {
 		cVector3f vPos = mtxTransform.GetTranslation();
 		mtxTransform.SetTranslation(cVector3f(0,0,0));
 
-		//Log("Startpos: %s",vPos.ToString().c_str());
-		//Log("World pos: %s\n",GetWorldMatrix().GetTranslation().ToString().c_str());
-
 		//The animation rotation is applied before the local.
 		mtxTransform = cMath::MatrixMul(mtxTransform,m_mtxRotation);
 
 		//Skip scale for now.
-		//mtxTransform = cMath::MatrixMul(cMath::MatrixScale(mvScale), mtxTransform);
 
 		mtxTransform.SetTranslation(vPos + mvTranslation);
 
 		SetMatrix(mtxTransform,abSetChildrenUpdated);
-
-		//Log("World pos: %s\n",GetWorldMatrix().GetTranslation().ToString().c_str());
 
 		//Reset values
 		m_mtxRotation = cMatrixf::Identity;
@@ -205,7 +199,6 @@ namespace hpl {
 	{
 		if(mbTransformUpdated)
 		{
-			//if(msName == "WeaponJoint") LogUpdate("  update world transform!\n");
 
 			mbTransformUpdated = false;
 
@@ -222,7 +215,6 @@ namespace hpl {
 
 	void cNode3D::SetWorldTransformUpdated()
 	{
-		//if(msName == "WeaponJoint") LogUpdate("  setworldtransform updated!\n");
 
 		mbTransformUpdated = true;
 

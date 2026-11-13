@@ -269,8 +269,6 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 
 		fYPos += ((float)vTempStrings.size()) * mfFontSize;
 
-		//Log("%d pos: %f\n",lCount,fYPos);
-
 		if(fYPos > 360.0f)
 		{
 			cNotebook_TaskPage taskPage;
@@ -278,8 +276,6 @@ void cNotebookState_TaskList::OnEnterState(int alLastState)
 			taskPage.mlStartTask = lStart;
 			taskPage.mlEndTask = lCount-1;
 			lStart = lCount;
-
-			//Log("Too far! page: %d - %d\n",taskPage.mlStartTask,taskPage.mlEndTask);
 
 			mvTaskPages.push_back(taskPage);
 
@@ -796,11 +792,9 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 	int lRowCount =0;
 	for(size_t i=0; i< mvRows.size(); ++i)
 	{
-		//Log("Row%d: %s\n",i, mvRows[i].c_str());
 
 		lRowCount++;
 		
-		//Log("Row: %d\n",lRowCount);
 		if(	cString::GetLastStringPosW(mvRows[i],_W("[new_page]"))>=0)
 		{
 			//There some text on this page, make a newer one
@@ -818,7 +812,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 				lStartRow++;
 			}
 			lRowCount =0;
-			//Log("NEWPAGE Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 		else if(lRowCount >= mlMaxRows)
 		{
@@ -828,7 +821,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 			lStartRow = page.mlEndRow;
 			mvPages.push_back(page);
 			lRowCount =0;
-			//Log("MAX ROW Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 		}
 	}
 	if(lStartRow < (int)mvRows.size())
@@ -837,7 +829,6 @@ void cNotebookState_Note::OnEnterState(int alLastState)
 		page.mlFirstRow = lStartRow;
 		page.mlEndRow = (int)mvRows.size();
 		mvPages.push_back(page);
-		//Log("Added page: %d - %d\n",page.mlFirstRow,page.mlEndRow);
 	}
 
 	mlCurrentPage =0;
@@ -1125,17 +1116,6 @@ bool cNotebook::NoteExists(const tString &asTextCat, const tString &asTextEntry)
 
 void cNotebook::RemoveNote(const tString &asName)
 {	
-	/*tNotebook_NoteListIt it = mlstNotes.begin();
-	for(; it != mlstNotes.end(); ){
-		cNotebook_Note *pNote = *it;
-		if(pNote->msName == asName)	{
-			it = mlstNotes.erase(it);
-			hplDelete( pNote );
-		}
-		else{
-			++it;
-		}
-	}*/
 }
 
 tNotebook_BookTaskList_Iterator cNotebook::GetTaskIterator()

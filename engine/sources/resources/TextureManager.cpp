@@ -233,10 +233,6 @@ namespace hpl {
 		if(apResource->HasUsers()==false)
 		{
 			RemoveResource(apResource);
-			//Log("Deleting1 '%s'-%d\n",apResource->GetName().c_str() ,apResource);
-			//Log("Deleting2 '%s'-%d\n",apResource->GetName().c_str() ,(iTexture*)apResource);
-			//Log("Deleting1 %d\n",apResource);
-			//Log("Deleting2 %d\n",(iTexture*)apResource);
 			hplDelete(apResource);
 		}
 	}

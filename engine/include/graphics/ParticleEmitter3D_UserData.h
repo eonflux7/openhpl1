@@ -153,9 +153,6 @@ namespace hpl {
 		cVector3f	mvMinRevVel;
 		cVector3f	mvMaxRevVel;
 
-//		iVertexBuffer *mVBMeshData;
-//		float *mpfMeshVtxData;
-
 		// ---
 
 		// LIFESPAN

@@ -4,8 +4,6 @@
 #include "graphics/Graphics.h"
 // ---
 #include "graphics/ParticleEmitter3D_UserData.h"
-//#include "graphics/Mesh.h"
-//#include "graphics/SubMesh.h"
 #include "graphics/ParticleSystem3D.h"
 #include "graphics/RenderList.h"
 
@@ -13,7 +11,6 @@
 
 #include "resources/Resources.h"
 #include "resources/MaterialManager.h"
-//#include "resources/MeshManager.h"
 
 #include "physics/PhysicsWorld.h"
 #include "physics/PhysicsBody.h"

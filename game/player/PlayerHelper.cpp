@@ -41,8 +41,6 @@ cPlayerBodyCallback::cPlayerBodyCallback(cPlayer *apPlayer)
 
 void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f &avVel)
 {
-	//if(avVel.y < -5.5f)
-	//	mpPlayer->FootStep(1.0f,"run",true);
 
 	if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
 	{
@@ -63,7 +61,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 	tString sSound = "";
 	float fVol = 1.0f;
 	cSoundHandler *pSoundHandler = mpPlayer->GetInit()->mpGame->GetSound()->GetSoundHandler();
-	//Log("Speed: %f\n",avVel.y);
 	//Fall damage
 	//Hard
 	if(avVel.y < mfFallSpeed_Min && !mpPlayer->GetNoFallDamage())
@@ -82,7 +79,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Max,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,1);
-		//Log("Hard\n");
 	}
 	//Medium
 	else if(avVel.y < mfFallSpeed_Med)
@@ -91,7 +87,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Med,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,0.75f);
-		//Log("Medium\n");
 	}
 	//Light
 	else if(avVel.y < mfFallSpeed_Min)
@@ -100,7 +95,6 @@ void cPlayerBodyCallback::OnHitGround(iCharacterBody *apCharBody,const cVector3f
 		fVol = 1.0f;
 		mpPlayer->Damage(mfFallDamage_Min,ePlayerDamageType_BloodSplash);
 		pSoundHandler->PlayGui("player_fall_damage",false,0.5f);
-		//Log("Light\n");
 	}
 	
 	
@@ -261,69 +255,6 @@ bool cPlayerPickRayCallback::OnIntersect(iPhysicsBody *apBody,cPhysicsRayParams 
 
 	return true;
 	
-	/*float &fDist = apParams->mfDist;
-	
-	iGameEntity *pEntity = NULL;
-	if(apBody->GetUserData()) pEntity = (iGameEntity*)apBody->GetUserData();
-
-	//Don't wanna pick characters
-	if(apBody->IsCharacter() && apBody->GetUserData()==NULL) return true;
-
-	if(pEntity && pEntity->IsActive()==false) return true;
-	
-	//If it is outside of the examine distance skip
-	if(pEntity && pEntity->GetMaxExamineDist() < fDist) return true;
-    
-	//Not picked
-	bool bStatic = false;
-	if(pEntity && pEntity->GetType()== eGameEntityType_Object)
-	{
-		cGameObject* pObject = static_cast<cGameObject*>(pEntity);
-		if(pObject->GetInteractMode() == eObjectInteractMode_Static)
-		{
-			bStatic = true;
-		}
-	}
-
-	if(	 pEntity==NULL || bStatic)
-	{
-		if(fDist < mfPickedDist)
-		{
-			mfMinStaticDist = fDist;
-			mfPickedDist = fDist;
-			mpPickedBody = NULL;
-			mvPickedPos = apParams->mvPoint;
-			mLastEntityType = eGameEntityType_LastEnum;
-		}
-	}
-	//Picked
-	else
-	{
-		if(pEntity->GetType() == eGameEntityType_Area)
-		{
-			if(fDist < mfPickedDist)
-			{
-				mpPickedBody = apBody;
-				mLastEntityType = pEntity->GetType();
-				mvPickedPos = apParams->mvPoint;
-				mfPickedDist = fDist;
-			}
-		}
-		else
-		{
-			if	(fDist < mfPickedDist || 
-				(mLastEntityType == eGameEntityType_Area))
-			{
-				mpPickedBody = apBody;
-				mLastEntityType = pEntity->GetType();
-				mvPickedPos = apParams->mvPoint;
-				mfPickedDist = fDist;
-			}
-		}
-
-	}
-
-	return true;*/
 }
 
 void cPlayerPickRayCallback::CalculateResults()
@@ -396,7 +327,6 @@ void cPlayerHeadMove::Update(float afTimeStep)
 {
 	//Climb count
 	iCharacterBody *pBody = mpPlayer->GetCharacterBody();
-	/*float fUpVel = (pBody->GetPosition().y - pBody->GetLastPosition().y) / afTimeStep;*/
 
     if(pBody->IsClimbing() && mfClimbCount==0)
 	{
@@ -672,89 +602,6 @@ void cPlayerHealth::Update(float afTimeStep)
 		pPlayer->AddHealth(afTimeStep * 0.14f); break;
 	}
 	
-	//Check for enemies.
-	/*if(mfTerrorCheckCount <=0)
-	{
-		//Check the current terror level.
-		int lTerrorLevel =0;
-		tGameEnemyIterator it = mpInit->mpMapHandler->GetGameEnemyIterator();
-		while(it.HasNext())
-		{
-			iGameEnemy *pEnemy = it.Next();
-			
-			if(pEnemy->IsActive()==false || pEnemy->GetHealth() <=0) continue;
-
-			int lState = pEnemy->GetStateMachine()->CurrentState()->GetId();
-
-			if(lState == eGameEnemyState_Hunt || lState == eGameEnemyState_Attack)
-			{
-				lTerrorLevel = 3;	
-			}
-			else if(lTerrorLevel < 2 && lState == eGameEnemyState_Investigate)
-			{
-				lTerrorLevel = 2;
-			}
-			else if(lTerrorLevel < 1)
-			{
-				lTerrorLevel = 1;
-			}
-		}
-		
-        if(mlTerrorLevel != lTerrorLevel)
-		{
-			mlTerrorLevel = lTerrorLevel;
-
-			cSoundHandler *pSoundHandler = mpInit->mpGame->GetSound()->GetSoundHandler();
-			
-			//Fade out the current sound if there is any.
-			if(mpSoundEntry)
-			{
-				mpSoundEntry->mfNormalVolumeFadeDest = 0;
-				mpSoundEntry->mfNormalVolumeFadeSpeed = -0.25f;
-				mpSoundEntry = NULL;
-			}
-			mpSoundEntry = NULL;
-
-			tString sSound="";
-			float fVolume;
-			
-			if(mlTerrorLevel==0)
-			{
-			}
-			else if(mlTerrorLevel==1)
-			{
-				sSound = "horror_roach_idle";
-				fVolume = 0.3f;
-			}
-			else if(mlTerrorLevel==2)
-			{
-				sSound = "horror_roach_notice";
-				fVolume = 0.45f;
-			}
-			else if(mlTerrorLevel==3)
-			{
-				sSound = "horror_roach_attack";
-				fVolume = 0.6f;
-			}
-		
-			if(sSound != "")
-			{
-				iSoundChannel *pChannel = pSoundHandler->PlayGui(sSound, true, fVolume);
-				pChannel->SetPriority(200);
-				mpSoundEntry = pSoundHandler->GetEntryFromSound(pChannel);
-
-				mpSoundEntry->mfNormalVolumeMul =0;
-				mpSoundEntry->mfNormalVolumeFadeDest =1;
-				mpSoundEntry->mfNormalVolumeFadeSpeed = 0.55f;
-			}
-		}
-
-		mfTerrorCheckCount = 0.2f;
-	}
-	else
-	{
-		mfTerrorCheckCount -= afTimeStep;
-	}*/
 }
 
 void cPlayerHealth::Draw()
@@ -1451,47 +1298,6 @@ void cPlayerFlashLight::Update(float afTimeStep)
 					}
 				}
 				
-				//Get forward
-				//cVector3f vForward = pCam->GetForward();
-				
-				/*float fAngleX = cMath::RandRectf(cMath::ToRad(-3),cMath::ToRad(3));
-				float fAngleY = cMath::RandRectf(0,k2Pif);
-				cVector3f vForward = cMath::MatrixMul(
-									cMath::MatrixRotate(cVector3f(fAngleX,fAngleY,0),eEulerRotationOrder_XYZ),
-									cVector3f(0,1,0));
-				
-				vForward =	cMath::MatrixMul(
-							pHudModel->GetEntity()->GetWorldMatrix().GetRotation(),
-							//cMath::MatrixInverse(pCam->GetViewMatrix().GetRotation()),
-							//cMath::MatrixRotate(cVector3f(pCam->GetPitch(),pCam->GetYaw(),pCam->GetRoll()),
-							//					eEulerRotationOrder_YXZ),
-											vForward*-1);
-
-				//Get start and end
-				cVector3f vStart = pCam->GetPosition();
-				cVector3f vEnd = pCam->GetPosition() +  vForward* 20.0f;
-
-				mvStart =vStart;
-				mvEnd = vEnd;
-				
-				mpClosestBody = NULL; mfClosestDist = 10000.0f;
-				pPhysicsWorld->CastRay(this,vStart,vEnd,true,false,false,false);
-
-				if(mpClosestBody)
-				{
-					iGameEntity *pEntity = (iGameEntity*)mpClosestBody->GetUserData();
-
-					if( pEntity && pEntity->GetType() == eGameEntityType_Enemy &&
-						pEntity->IsActive() && pEntity->GetHealth() >0)
-					{
-						iGameEnemy *pEnemy = static_cast<iGameEnemy*>(pEntity);
-
-						if(pEnemy->GetUsesTriggers())
-							pEnemy->OnFlashlight(vStart);
-					}
-				}*/
-
-				//mpInit->mpEffectHandler->GetSubTitle()->Add("Cast rays!\n",0.5f);
 			}
 		}
 		else
@@ -1567,7 +1373,6 @@ void cPlayerFlashLight::SetActive(bool abActive)
 	{
 		mpInit->mpPlayerHands->SetCurrentModel(0,"Flashlight");
 		
-		//pSoundHanlder->PlayGui("item_flashlight_on",false,1);
 	}
 	//Not active
 	else if(mpInit->mpPlayerHands->GetCurrentModel(0) &&
@@ -1578,8 +1383,6 @@ void cPlayerFlashLight::SetActive(bool abActive)
 		
 		if(mpInit->mpPlayer->GetPower()==0)
 			pSoundHanlder->PlayGui("item_flashlight_nopower",false,1);
-		//else
-		//	pSoundHanlder->PlayGui("item_flashlight_off",false,1);
 	}
 }
 
@@ -1592,9 +1395,6 @@ void cPlayerFlashLight::SetDisabled(bool abDisabled)
 
 void cPlayerFlashLight::OnPostSceneDraw()
 {
-	/*iLowLevelGraphics *mpLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-
-	mpLowGfx->DrawLine(mvStart,mvEnd,cColor(1,0,1));*/
 }
 
 // GLOW STICK
@@ -1638,17 +1438,13 @@ void cPlayerGlowStick::SetActive(bool abActive)
 
 	if(mbActive)
 	{
-		//Log("Setting the glowstick to TRUE\n");
 		mpInit->mpPlayerHands->SetCurrentModel(0,"Glowstick");
-		//pSoundHanlder->PlayGui("item_glowstick_on",false,1);
 	}
 	else if(mpInit->mpPlayerHands->GetCurrentModel(0) &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->msName == "Glowstick" &&
 			mpInit->mpPlayerHands->GetCurrentModel(0)->GetState() != eHudModelState_Unequip)
 	{
-		//Log("Setting the glowstick to FALSE\n");
 		mpInit->mpPlayerHands->SetCurrentModel(0,"");
-		//pSoundHanlder->PlayGui("item_glowstick_off",false,1);
 	}
 }
 
@@ -1879,7 +1675,6 @@ void cPlayerNoiseFilter::Draw()
 		int lTile = ((x+20)%20) * ((y+15)%15);
 		
         mpDrawer->DrawGfxObject(mvGfxNoise[mvCurrentGfx[lTile]],vPos,40,cColor(mfAlpha,0));        
-		//mpDrawer->DrawGfxObject(mvGfxNoise[0],vPos,40,cColor(mfAlpha,mfAlpha));        
 	}
 }
 
@@ -2385,11 +2180,9 @@ void cPlayerHidden::Update(float afTimeStep)
 
 bool cPlayerHidden::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
-	//bool bDebug = pBody->GetName() == "polySurface76";
 
 	if(pBody->IsCharacter() || pBody->GetCollide()==false || pBody->GetBlocksLight()==false)
 	{
-		//if(bDebug)Log("Out on first!\n");
 		return true;
 	}
 
@@ -2411,13 +2204,11 @@ bool cPlayerHidden::OnIntersect(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 			}
 		}
 		if(bFoundSolid==false){
-			//if(bDebug)Log("Out on non solid!\n");
 			return true;
 		}
 	}
 
 	mbIntersected = true;
-	//if(bDebug)Log("Intersection!!\n");
 	return false;
 }
 
@@ -2510,10 +2301,6 @@ void cPlayerHidden::UpdateEnemyTooClose(float afTimeStep)
 				mfCloseEffectFovAdd = -mfCloseEffectFovAdd;
 				mfCloseEffectFov = mfCloseEffectFovMin;
 				
-				//if(mfEnemyTooCloseCount > mfEnemyTooCloseMax*0.6f)
-				//	mpSoundHandler->PlayGui("player_scare_mid",false,1);
-				//else
-				//	mpSoundHandler->PlayGui("player_scare_low",false,1);
 			}
 		}
 	}

@@ -132,7 +132,6 @@ namespace hpl {
 			TiXmlElement* pIdxElem = pSubMeshElem->FirstChildElement("Indices");
 			int lIdxSize = cString::ToInt(pIdxElem->Attribute("size"),0);
 
-			//Log("TYPE: Indices\n");
 			pVtxBuff->ResizeIndices(lIdxSize);
 			FillIdxArray(pVtxBuff->GetIndices(), pIdxElem->Attribute("data"),lIdxSize);
 
@@ -366,7 +365,6 @@ namespace hpl {
 				{
 					vTempChar[lTempCharCount] =0;
 					apArray[lArrayCount] = (unsigned int) atoi(vTempChar);
-					//Log("Adding: %d\n",apArray[lArrayCount]);
 
 					lTempCharCount=0;
 					lArrayCount++;

@@ -271,8 +271,6 @@ namespace hpl {
 
 		cGuiRenderObject object;
 
-		//Log("Clip: %f %f\n",mpCurrentClipRegion->mRect.w,mpCurrentClipRegion->mRect.h);
-
 		object.mpGfx = apGfx;
 		object.mpClipRegion = mpCurrentClipRegion;
 		object.mvPos = vAbsPos;
@@ -583,11 +581,8 @@ namespace hpl {
 
 		mpAttentionWidget = apWidget;
 
-		//Log("Sett attn: %d\n",mpAttentionWidget);
-
 		if(mpFocusedWidget && mpFocusedWidget->IsConnectedTo(mpAttentionWidget)==false)
 		{
-			//Log("Lost focus %d\n",mpFocusedWidget);
 			cGuiMessageData data =  cGuiMessageData(mvMousePos,0);
 			mpFocusedWidget->ProcessMessage(eGuiMessage_LostFocus,data);
 			mpFocusedWidget = nullptr;
@@ -595,7 +590,6 @@ namespace hpl {
 
 		if(mpAttentionWidget && mpFocusedWidget == nullptr)
 		{
-			//Log("Got focus %d\n",apWidget);
 			mpFocusedWidget = apWidget;
 			if(mpFocusedWidget) {
 				cGuiMessageData data = cGuiMessageData(mvMousePos,0);
@@ -836,8 +830,6 @@ namespace hpl {
 					mpFocusedWidget = pWidget;
 				}
 
-				//Log("Got focus %d\n",pWidget);
-
 				if(pWidget->ProcessMessage(eGuiMessage_MouseDown, aData))
 				{
 					bRet = true;
@@ -855,7 +847,6 @@ namespace hpl {
 		//Lost focus callback
 		if(mpFocusedWidget != pOldFocus)
 		{
-			//Log("Lost focus %d\n",pOldFocus);
 			if(pOldFocus) pOldFocus->ProcessMessage(eGuiMessage_LostFocus, aData);
 
 		}

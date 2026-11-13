@@ -40,7 +40,6 @@ namespace hpl {
 			pCollider = mpWorld->CreateSphereShape(fRadius,nullptr);
 		else
 			pCollider = mpWorld->CreateCylinderShape(fRadius, avSize.y,&mtxOffset);
-			//pCollider = mpWorld->CreateCapsuleShape(fRadius, avSize.y,&mtxOffset);
 
 		mpBody = mpWorld->CreateBody(asName,pCollider);
 		mpBody->SetMass(0);
@@ -199,13 +198,6 @@ namespace hpl {
 		{
 			float fForceAdd =0;
 
-			//Totally unrealistic force add
-			//Skip this for now and add better with more object specific stuff
-			/*if(mpCharBody->GetForceVelocity().y < 0)
-			{
-				fForceAdd = mpCharBody->GetForceVelocity().y * mpCharBody->GetMass() * 10;
-			}*/
-
 			vPoint = vPoint / fNumPoints;
 			apBody->AddForceAtPosition(cVector3f(0,mpCharBody->GetMass() * -9.8f + fForceAdd,0), vPoint);
 		}
@@ -316,7 +308,6 @@ namespace hpl {
 		float fRadius = cMath::Max(avSize.x, avSize.z)*0.5f;
 		cMatrixf mtxOffset = cMath::MatrixRotateZ(kPi2f);
 		iCollideShape *pCollider = mpWorld->CreateCylinderShape(fRadius, avSize.y,&mtxOffset);
-		//iCollideShape *pCollider = mpWorld->CreateBoxShape(avSize,NULL);
 
 		iPhysicsBody *pBody = mpWorld->CreateBody(msName,pCollider);
 		pBody->SetMass(0);
@@ -551,17 +542,6 @@ namespace hpl {
 		float fFriction = mbOnGround ? mfGroundFriction : mfAirFriction;
 
 		//This is not working for some reason... Probably because it thinks its on the ground when it is really in the air.
-		/*if(mbOnGround)
-		{
-			float fSpeed = mvVelolcity.Length();
-			cVector3f vDir = cMath::Vector3Normalize(mvVelolcity);
-
-			fSpeed -= fFriction * afTimeStep;
-			if(fSpeed<0) fSpeed=0;
-
-			mvVelolcity = vDir * fSpeed;
-		}
-		else*/
 		{
 			cVector3f vVelXZ(mvVelolcity.x, 0,mvVelolcity.z);
 			float fSpeed = vVelXZ.Length();
@@ -654,7 +634,6 @@ namespace hpl {
 		mvPosition += vPosAdd;
 
 		cVector3f vNewPos;
-		//vNewPos = mvPosition;
 		if(mvLastPosition.x != mvPosition.x || mvLastPosition.z != mvLastPosition.z)
 		{
 			mpWorld->CheckShapeWorldCollision(&vNewPos,mpBody->GetShape(), cMath::MatrixTranslate(mvPosition),mpBody,
@@ -671,8 +650,6 @@ namespace hpl {
 		{
 			mvPosition = vNewPos;
 
-			//Log("--- Colliding ----!\n");
-
 			if(mfCheckStepClimbCount <= 0)
 			{
 				//Send a ray in front of the player.
@@ -682,8 +659,6 @@ namespace hpl {
 
 				//The direction of the movement.
 				cVector3f vMoveDir = cMath::Vector3Normalize(vPosAdd);
-
-				//Log("MoveDir: %s\n",vMoveDir.ToString().c_str());
 
 				cVector3f vStepAdd[3];
 				cVector3f vStart[3];
@@ -722,15 +697,11 @@ namespace hpl {
 				for(int i=0; i< lNumRays; ++i)
 				{
 					if(bCollided[i]==false) continue;
-					//Log("Ray collided!\n");
 
 					float fHeight = vShapeSize.y - fMinDist[i];
 
-					//Log("Height: %f MinDist: %f\n",fHeight,mpRayCallback->mfMinDist);
-
 					if(fHeight <= mfMaxStepHeight)
 					{
-						//Log("Trying to step up!\n");
 						//Check if there is any collision on the new pos
 						cVector3f vStepPos = mvPosition + cVector3f(0,fHeight+mfClimbHeightAdd,0)+
 							(vMoveDir*fForwadAdd*mfClimbForwardMul);
@@ -738,11 +709,8 @@ namespace hpl {
 						mpWorld->CheckShapeWorldCollision(&vNewPos,mpBody->GetShape(),
 							cMath::MatrixTranslate(vStepPos),mpBody,
 							false, true,nullptr,mbCollideCharacter);
-						//Log("Old pos: (%s) StepPos: (%s) NewPos: (%s)\n",mvPosition.ToString().c_str(),
-						//							vStepPos.ToString().c_str(),vNewPos.ToString().c_str());
 						if(vNewPos == vStepPos)
 						{
-							//mvPosition = vStepPos;
 							//Climb the stair.
 							mvPosition.y += mfStepClimbSpeed * afTimeStep;
 							mbClimbing = true;
@@ -769,7 +737,6 @@ namespace hpl {
 		}
 
 		//Update External forces
-		//Log(" vel1: %s\n",mvVelolcity.ToString().c_str());
 		cVector3f vBeforeForcePos = mvPosition;
 
 		mvVelolcity += mvForce * (afTimeStep * (1.0f/mfMass));
@@ -786,8 +753,6 @@ namespace hpl {
 				mvVelolcity = (mvVelolcity /fLength) *mfMaxGravitySpeed;
 			}
 		}
-
-		//Log(" vel2: %s\n",mvVelolcity.ToString().c_str());
 
 		mvForce = cVector3f(0,0,0);
 
@@ -809,22 +774,11 @@ namespace hpl {
 			mvVelolcity.x = (vNewPos.x - vBeforeForcePos.x) * (1/afTimeStep);
 			mvVelolcity.z = (vNewPos.z - vBeforeForcePos.z) * (1/afTimeStep);
 
-			//Make sure the speed doesn't change direction.
-			//if((vLastVelocity.x<0 && mvVelolcity.x>0) || (vLastVelocity.x>0 && mvVelolcity.x<0)) mvVelolcity.x =0;
-			//if((vLastVelocity.z<0 && mvVelolcity.z>0) || (vLastVelocity.z>0 && mvVelolcity.z<0)) mvVelolcity.z =0;
-
-
 			mvPosition = vNewPos;
-			//Log("Some strange force!!\n");
 		}
-
-		//if(mbGravityActive==false)return;
-		//Log("Before yforce: %s\n",mvPosition.ToString().c_str());
 
 		// Check y collision, this is to be sure if the character touches the ground.
 		bool bCollide = false;
-
-		//Log("VelY 2: %f\n", mvVelolcity.y);
 
 		cVector3f vPosbeforeGrav = mvPosition;
 		mvPosition.y += mvVelolcity.y * afTimeStep;
@@ -839,8 +793,6 @@ namespace hpl {
 		//Set new velocity depending on collisions.
 		vLastVelocity.y = mvVelolcity.y;
 
-		//Log(" vel4: %s\n",mvVelolcity.ToString().c_str());
-
 		//If climbing we don't wanna leave behind a great up speed.
 		if(mbClimbing)
 		{
@@ -849,19 +801,12 @@ namespace hpl {
 		}
 		else
 		{
-			//mvVelolcity.y = (vNewPos.y - vBeforeForcePos.y) * (1/afTimeStep);
 			mvVelolcity.y = (vNewPos.y - vPosbeforeGrav.y) * (1/afTimeStep);
 
 			//This s a fix that I am not 100% sure is good.
 			if(vLastVelocity.y < 0 && mvVelolcity.y > 0) mvVelolcity.y =0;
 			if(vLastVelocity.y > 0 && mvVelolcity.y < 0) mvVelolcity.y =0;
 		}
-
-		//Log(" vel5: %s\n",mvVelolcity.ToString().c_str());
-
-		//Log("After Velocity: %s\n--------\n",mvVelolcity.ToString().c_str());
-		//Make sure the speed doesn't change direction.Should not be needed.
-		//if((vLastVelocity.y<0 && mvVelolcity.y>0) || (vLastVelocity.y>0 && mvVelolcity.y<0)) mvVelolcity.y =0;
 
 		mvPosition = vNewPos;
 
@@ -896,9 +841,6 @@ namespace hpl {
 		}
 
 
-		//debug:
-		//mbOnGround = true;
-
 		//Update attached objects
 		UpdateCamera();
 		UpdateEntity();
@@ -918,9 +860,6 @@ namespace hpl {
 			cBoundingVolume bv = *mpBody->GetBV();
 			bv.SetLocalMinMax(bv.GetLocalMin() - cVector3f(0.03f,0.03f,0.03f),bv.GetLocalMax() + cVector3f(0.03f,0.03f,0.03f));
 			float fHeadY = mpBody->GetWorldPosition().y + mpBody->GetShape()->GetSize().y/2 - 0.01f;
-			//float fBVHeight = 0.1;
-			//bv.SetPosition(mpBody->GetWorldPosition().y + fBVHeight/2);
-			//bv.SetSize( cVector3f(mpBody->GetShape()->GetSize().x*0.9f, fBVHeight, mpBody->GetShape()->GetSize().z*0.9f) );
 
 			while(bodyIt.HasNext())
 			{
@@ -1104,8 +1043,6 @@ namespace hpl {
 			mbAttachmentJustAdded = true;
 			return;
 		}
-
-		//Log("Updateattachment %d\n",mbAttachmentJustAdded);
 
 		if(mbAttachmentJustAdded)
 		{
@@ -1329,7 +1266,6 @@ namespace hpl {
 		//Pointers
 		kSaveData_LoadObject(mpEntity,mlEntityId,iEntity3D*);
 		kSaveData_LoadObject(mpBody,mlBodyId,iPhysicsBody*);
-		//kSaveData_LoadIdList(mvExtraBodies,mvExtraBodyIds,iPhysicsBody*);
 		mvExtraBodies.clear();
 		cContainerListIterator<int> it = pData->mvExtraBodyIds.GetIterator();
 		while(it.HasNext())

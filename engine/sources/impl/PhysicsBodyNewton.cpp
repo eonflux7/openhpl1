@@ -49,19 +49,15 @@ namespace hpl {
 		mfAutoDisableAngularThreshold = 0.01f;
 		mlAutoDisableNumSteps = 10;
 
-		//Log("Creating newton body '%s' %d\n",msName.c_str(),(size_t)this);
 	}
 
 	cPhysicsBodyNewton::~cPhysicsBodyNewton()
 	{
-		//Log(" Destroying newton body '%s' %d\n",msName.c_str(),(size_t)this);
 	}
 
 	void cPhysicsBodyNewton::DeleteLowLevel()
 	{
-		//Log(" Newton body %d\n", (size_t)mpNewtonBody);
 		NewtonDestroyBody(mpNewtonWorld,mpNewtonBody);
-		//Log(" Callback\n");
 		hplDelete(mpCallback);
 	}
 
@@ -341,7 +337,6 @@ namespace hpl {
 		mvTotalForce += avForce;
 		SetEnabled(true);
 
-		//Log("Added force %s\n",avForce.ToString().c_str());
 	}
 
 	void cPhysicsBodyNewton::AddForceAtPosition(const cVector3f &avForce, const cVector3f &avPos)
@@ -361,7 +356,6 @@ namespace hpl {
 		mvTotalTorque += vTorque;
 		SetEnabled(true);
 
-		//Log("Added force %s\n",avForce.ToString().c_str());
 	}
 
 	void cPhysicsBodyNewton::AddTorque(const cVector3f &avTorque)
@@ -598,10 +592,5 @@ namespace hpl {
 			}
 		}
 
-		//cVector3f vForce;
-		//NewtonBodyGetForce(apBody,vForce.v);
-		//Log("Engine force %s\n",pRigidBody->mvTotalForce.ToString().c_str());
-		//Log("Engine force %s, body force: %s \n",pRigidBody->mvTotalForce.ToString().c_str(),
-		//										vForce.ToString().c_str());
 	}
 }

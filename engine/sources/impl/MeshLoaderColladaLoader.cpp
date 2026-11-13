@@ -73,8 +73,6 @@ namespace hpl {
 		}
 
 		bool bLoadCache =false;
-		//abCache = false;
-		//Log("Loading %s\n",asFile.c_str());
 
 		tString sCacheName = cString::GetFileName(cString::SetFileExt(asFile,"collcach"));
 		tString sCacheFile = msCacheDir+sCacheName;
@@ -130,7 +128,6 @@ namespace hpl {
 		Log("Loading Collada source '%s'\n",asFile.c_str());
 
 		// LOAD THE DOCUMENT
-		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
 		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -139,9 +136,6 @@ namespace hpl {
 			hplDelete(pXmlDoc);
 			return false;
 		}
-
-		//unsigned long lTime = mpSystem->GetLowLevel()->GetTime() - lStartTime;
-		//Log("Loading collada XML file for '%s' took: %d ms\n",asFile.c_str(),lTime);
 
 		//Get the root.
 		TiXmlElement* pRootElem = pXmlDoc->RootElement();
@@ -163,7 +157,6 @@ namespace hpl {
 
 				if(tString(pAxisText->Value())=="Z_UP"){
 					mbZToY = true;
-					//Log("!!!!!!!Z IS UP!!!!!!");
 				}
 			}
 
@@ -183,9 +176,7 @@ namespace hpl {
 			// Lights
 			if((sType == "LIGHT" || sValue == "library_lights") && apColladaLightVec)
 			{
-				///Log("Loading type: %s\n",sType.c_str());
 				LoadLights(pLibraryElem,*apColladaLightVec);
-				//Log(" --- \n");
 			}
 
 			pLibraryElem = pLibraryElem->NextSiblingElement();
@@ -243,7 +234,6 @@ namespace hpl {
 						apColladaScene->mfDeltaTime = apColladaScene->mfEndTime - apColladaScene->mfStartTime;
 					}
 
-					//Log("Anim Start: %f End: %f\n",apColladaScene->mfStartTime, apColladaScene->mfEndTime);
 				}
 				else
 				{
@@ -303,9 +293,6 @@ namespace hpl {
 			{
 				LoadControllers(pLibraryElem,*apColladaControllerVec,apColladaGeometryVec);
 			}
-
-
-			//Log(" ---- \n",sType.c_str());
 
 			pLibraryElem = pLibraryElem->NextSiblingElement();
 		}
@@ -440,8 +427,6 @@ namespace hpl {
 			cColladaLight *pLight = &(*apColladaLightVec)[i];
 
 			TiXmlElement *pLightElem = CreateXMLChild(pLightRootElem,"Light");
-
-			//Log("Light %s\n",pLight->msName.c_str());
 
 			pLightElem->SetAttribute("Id",pLight->msId.c_str());
 			pLightElem->SetAttribute("Name",pLight->msName.c_str());
@@ -634,14 +619,6 @@ namespace hpl {
 			pGeometryElem->SetAttribute("Material",pGeometry->msMaterial.c_str());
 
 			// Vertex properties
-			// Should not be needed.
-			/*pGeometryElem->SetAttribute("PosIdxNum",pGeometry->mlPosIdxNum);
-			pGeometryElem->SetAttribute("NormIdxNum",pGeometry->mlNormIdxNum);
-			pGeometryElem->SetAttribute("TexIdxNum",pGeometry->mlTexIdxNum);
-
-			pGeometryElem->SetAttribute("PosArrayIdx",pGeometry->mlPosArrayIdx);
-			pGeometryElem->SetAttribute("NormArrayIdx",pGeometry->mlNormArrayIdx);
-			pGeometryElem->SetAttribute("TexArrayIdx",pGeometry->mlTexArrayIdx); */
 
 			// Index Vec
 			TiXmlElement *pIndexVecElem = CreateXMLChild(pGeometryElem,"IndexVec");
@@ -710,7 +687,6 @@ namespace hpl {
 			}
 
 			// Extra vertex vec
-			//if(false)
 			{
 				TiXmlElement *pExtraVertexVecElem = CreateXMLChild(pGeometryElem,"ExtraVertexVec");
 				pExtraVertexVecElem->SetAttribute("Size",(int)pGeometry->mvExtraVtxVec.size());
@@ -778,7 +754,6 @@ namespace hpl {
 
 
 			TiXmlElement *pTransformRootElem =  CreateXMLChild(pNodeElem,"TransformRoot");
-			//tColladaTransformList mlstTransforms;
 			tColladaTransformListIt transIt = pNode->mlstTransforms.begin();
 			for(; transIt != pNode->mlstTransforms.end(); ++transIt)
 			{
@@ -898,7 +873,6 @@ namespace hpl {
 		tColladaAnimationVec *apColladaAnimVec,
 		cColladaScene *apColladaScene)
 	{
-		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
 
 		TiXmlDocument* pXmlDoc = hplNew(TiXmlDocument, (asFile.c_str()) );
 		if(pXmlDoc->LoadFile()==false)
@@ -907,9 +881,6 @@ namespace hpl {
 			hplDelete(pXmlDoc);
 			return false;
 		}
-
-		//unsigned long lTime = mpSystem->GetLowLevel()->GetTime() - lStartTime;
-		//Log("Loading cached collada XML file '%s' took: %d ms\n",asFile.c_str(),lTime);
 
 		try
 		{
@@ -1056,10 +1027,6 @@ namespace hpl {
 				int lSize = CacheSize(pWeightsElem);
 				const char *pWeightsText = CacheText(pWeightsElem);
 
-				//tString sData = pWeightsText;
-				//tString sSepp = " "; pController->mvWeights.reserve(lSize);
-				//cString::GetFloatVec(sData,pController->mvWeights,&sSepp);
-
 				pController->mvWeights.resize(lSize);
 				if(!cString::FloatStringToArray(pController->mvWeights.data(),pWeightsText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 			}
@@ -1069,9 +1036,6 @@ namespace hpl {
 				int lSize = CacheSize(pMatricesElem);
 				const char *pMatricesText = CacheText(pMatricesElem);
 
-				//tString sData = pMatricesText;
-				//tString sSepp = " ";
-				//cString::GetFloatVec(sData,vRawData,&sSepp);
 				tFloatVec vRawData;vRawData.resize(lSize * 16);
 				if(!cString::FloatStringToArray(vRawData.data(),pMatricesText,lSize * 16)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1099,9 +1063,6 @@ namespace hpl {
 				const char *pPairNumText = CacheText(pPairNumElem);
 
 				tUIntVec vPairNum; vPairNum.resize(lSize);
-				//tString sData = pPairNumText;
-				//tString sSepp = " ";
-				//cString::GetIntVec(sData,vPairNum,&sSepp);
 				if(!cString::UIntStringToArray(vPairNum.data(),pPairNumText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 
 				// Get pairs
@@ -1110,8 +1071,6 @@ namespace hpl {
 				const char *pPairsText = CacheText(pPairsElem);
 
 				tUIntVec vPairs; vPairs.resize(lPairSize*2);
-				//sData = pPairsText;
-				//cString::GetIntVec(sData,vPairs,&sSepp);
 				if(!cString::UIntStringToArray(vPairs.data(),pPairsText,lPairSize*2)) throw cInvalidColladaCache("invalid numeric array");
 
 
@@ -1271,9 +1230,6 @@ namespace hpl {
 
 					if(!cString::UIntStringToArray(pGeometry->mvIndexVec.data(),pVecText,lSize)) throw cInvalidColladaCache("invalid numeric array");
 
-					//tString sData = pVecText;
-					//tString sSepp = " ";
-					//cString::GetUIntVec(sData,pGeometry->mvIndexVec,&sSepp);
 				}
 			}
 
@@ -1294,11 +1250,6 @@ namespace hpl {
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Positions");
 						const char *pVecText = CacheText(pDataElem);
 
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
-
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
 						float *pData = vRawData.data();
@@ -1314,11 +1265,6 @@ namespace hpl {
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Normals");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
@@ -1336,11 +1282,6 @@ namespace hpl {
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"UV");
 						const char *pVecText = CacheText(pDataElem);
 
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
-
 						if(!cString::FloatStringToArray(vRawData.data(),pVecText,lSize * 3)) throw cInvalidColladaCache("invalid numeric array");
 
 						float *pData = vRawData.data();
@@ -1356,11 +1297,6 @@ namespace hpl {
 					{
 						TiXmlElement *pDataElem = CacheChild(pVertexVecElem,"Tangents");
 						const char *pVecText = CacheText(pDataElem);
-
-						//tString sData = pVecText;
-						//tString sSepp = " ";
-						//tFloatVec vRawData; vRawData.reserve(lSize * 3);
-						//cString::GetFloatVec(sData,vRawData,&sSepp);
 
 						pGeometry->mvTangents.resize(lSize*4);
 						if(!cString::FloatStringToArray(pGeometry->mvTangents.data(),pVecText,lSize * 4)) throw cInvalidColladaCache("invalid numeric array");

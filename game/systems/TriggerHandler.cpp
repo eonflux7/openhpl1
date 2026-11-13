@@ -59,17 +59,6 @@ void cTriggerHandler::Update(float afTimeStep)
 		iGameEnemy *pEnemy = EnemyIt.Next();
 		if(pEnemy->IsActive()==false || pEnemy->GetUsesTriggers()==false) continue;
 		
-		//Check if it is time to update triggers.
-		/*if(pEnemy->GetTriggerUpdateCount() >= pEnemy->GetTriggerUpdateRate())
-		{
-			pEnemy->SetTriggerUpdateCount(0);
-		}
-		else
-		{
-			pEnemy->SetTriggerUpdateCount(pEnemy->GetTriggerUpdateCount() + afTimeStep);
-			continue;
-		}*/
-		
 		//Go through triggers by priority
 		tGameTriggerMapIt TriggerIt = m_mapTriggers.begin();
 		for(; TriggerIt != m_mapTriggers.end(); ++TriggerIt)

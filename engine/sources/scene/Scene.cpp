@@ -246,9 +246,6 @@ namespace hpl {
 		else
 		{
 			apUpdater->OnPostSceneDraw();
-			//S
-			//mpGraphics->GetLowLevel()->SetClearColor(cColor(0,1));
-			//mpGraphics->GetLowLevel()->ClearScreen();
 		}
 		{
 			cGpuSection section(mpGraphics->GetLowLevel(), "GUI");
@@ -333,19 +330,6 @@ namespace hpl {
 		{
 			m_setLoadedMaps.insert(sName);
 		}
-
-		//Run script start functions
-		/*if(pScript)
-		{
-			//Check if the map has been loaded before, if not run OnStart script.
-			tString sName = cString::ToLowerCase(cString::SetFileExt(asFile,""));
-			tStringSetIt it = m_setLoadedMaps.find(sName);
-			if(it == m_setLoadedMaps.end())
-			{
-				m_setLoadedMaps.insert(sName);
-				pScript->Run("OnStart()");
-			}
-		}*/
 
 		return pWorld;
 	}

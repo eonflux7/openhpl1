@@ -65,8 +65,6 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 			mpPlayer->SetCrossHairState(eCrossHairState_None);
 		}
 
-		//Call entity
-		//pEntity->PlayerPick();
 	}
 	else
 	{
@@ -74,8 +72,6 @@ void cPlayerState_Throw::OnUpdate(float afTimeStep)
 	}	
 
 	
-	//Quick fix but works, the OnLeave of the previous states sets an old cross hair state.
-	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
 void cPlayerState_Throw::OnDraw()
@@ -85,7 +81,6 @@ void cPlayerState_Throw::OnDraw()
 
 void cPlayerState_Throw::OnPostSceneDraw()
 {
-	//mpHudObject->PostSceneDraw();
 }
 
 bool cPlayerState_Throw::OnJump()
@@ -109,8 +104,6 @@ void cPlayerState_Throw::OnStopInteract()
 
 void cPlayerState_Throw::OnStartExamine()
 {
-	//mpInit->mpPlayerHands->SetCurrentModel(1,"");
-	//mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -208,7 +201,6 @@ void cPlayerState_Throw::OnStopCrouch()
 
 bool cPlayerState_Throw::OnStartInventory()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
@@ -270,8 +262,6 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 			mpPlayer->SetCrossHairState(eCrossHairState_None);
 		}
 
-		//Call entity
-		//pEntity->PlayerPick();
 	}
 	else
 	{
@@ -281,8 +271,6 @@ void cPlayerState_WeaponMelee::OnUpdate(float afTimeStep)
 	
 	
 	
-	//Quick fix but works, the OnLeave of the previous states sets an old cross hair state.
-	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
 void cPlayerState_WeaponMelee::OnDraw()
@@ -316,7 +304,6 @@ void cPlayerState_WeaponMelee::OnStopInteract()
 
 void cPlayerState_WeaponMelee::OnStartExamine()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	if(mpPlayer->GetPickedBody() && mpHudWeapon->IsAttacking()==false)
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -342,22 +329,6 @@ bool cPlayerState_WeaponMelee::OnAddPitch(float afVal)
 
 bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 {	
-	/*cInput *pInput = mpInit->mpGame->GetInput();
-	if(pInput->IsTriggered("Run"))
-	{
-		if(mfLastForward == 0.0f && afMul != 0.0f && mpPlayer->GetCharacterBody()->IsOnGround())
-		{
-			cVector3f vFwd = mpPlayer->GetCharacterBody()->GetForward();
-			cVector3f vDir = afMul>0 ? vFwd : vFwd * -1.0f;
-
-			mpPlayer->GetCharacterBody()->AddForce( vDir * 300 * mpPlayer->GetDefaultMass() +
-				cVector3f(0,200 * mpPlayer->GetDefaultMass() ,0));
-		}
-		
-		mfLastForward = afMul;
-		return false;
-	}
-	else*/
 	{
 		mfLastForward = afMul;
 		return true;
@@ -366,21 +337,6 @@ bool cPlayerState_WeaponMelee::OnMoveForwards(float afMul, float afTimeStep)
 
 bool cPlayerState_WeaponMelee::OnMoveSideways(float afMul, float afTimeStep)
 {
-	/*cInput *pInput = mpInit->mpGame->GetInput();
-	if(pInput->IsTriggered("Run"))
-	{
-		if(mfLastSideways == 0.0f && afMul != 0.0f && mpPlayer->GetCharacterBody()->IsOnGround())
-		{
-			cVector3f vRight = mpPlayer->GetCharacterBody()->GetRight();
-			cVector3f vDir = afMul>0 ? vRight : vRight * -1.0f;
-
-			mpPlayer->GetCharacterBody()->AddForce( vDir * 400 * mpPlayer->GetDefaultMass() +
-													cVector3f(0,200 * mpPlayer->GetDefaultMass() ,0));
-		}
-		mfLastSideways = afMul;
-		return false;
-	}
-	else*/
 	{
 		mfLastSideways = afMul;
 		return true;
@@ -391,37 +347,6 @@ bool cPlayerState_WeaponMelee::OnMoveSideways(float afMul, float afTimeStep)
 
 void cPlayerState_WeaponMelee::EnterState(iPlayerState* apPrevState)
 {
-	//get the callback
-	/*mpWeaponCallback = mpPlayer->GetWeaponCallback();
-	if(mpWeaponCallback==NULL)
-	{
-	Error("No weapon callback for player weapon state!\n");
-	mpPlayer->ChangeState(ePlayerState_Normal);
-	}
-
-	//Load the data	
-	cCamera3D *pCamera = mpPlayer->GetCamera();
-	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-	cResources *pResources = mpInit->mpGame->GetResources();
-
-	cMesh* pMesh = pResources->GetMeshManager()->CreateMesh(mpWeaponCallback->GetModelFile().c_str());
-	if(pMesh==NULL)
-	{
-	Error("Couldn't load mesh %s for player weapon state!\n",mpWeaponCallback->GetModelFile().c_str());
-	mpPlayer->ChangeState(ePlayerState_Normal);
-	}
-
-	mpMeshEntity = pWorld->CreateMeshEntity("Weapon",pMesh);
-
-	m_mtxOffset = mpWeaponCallback->GetOffsetMatrix();
-
-	mpMeshEntity->SetMatrix(cMath::MatrixMul(cMath::MatrixInverse(pCamera->GetViewMatrix()),m_mtxOffset));
-	mpMeshEntity->SetPosition(pCamera->GetPosition() + pCamera->GetForward());
-
-	mpPlayer->SetCrossHairState(eCrossHairState_None);*/
-
-	//Try not doing this.
-	//mpPlayer->GetGlowStick()->SetActive(false);
 }
 
 void cPlayerState_WeaponMelee::LeaveState(iPlayerState* apNextState)
@@ -479,7 +404,6 @@ void cPlayerState_WeaponMelee::OnStopCrouch()
 
 bool cPlayerState_WeaponMelee::OnStartInventory()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
@@ -489,185 +413,3 @@ bool cPlayerState_WeaponMelee::OnStartInventoryShortCut(int alNum)
 }
 
 // WEAPON STATE
-
-/*class cPlayerState_Weapon : public iPlayerState
-{
-public:
-iPlayerWeaponCallback *mpWeaponCallback;
-cMatrixf m_mtxOffset;
-cMeshEntity *mpMeshEntity;
-
-cVector3f mvPosition;
-
-cPlayerState_Weapon(cInit *apInit,cPlayer *apPlayer) : iPlayerState(apInit,apPlayer,ePlayerState_Weapon)
-{
-mvPosition = cVector3f(0.13f, -0.16f, 0.2f);
-}
-
-void OnUpdate(float afTimeStep)
-{	
-//Quick fix but works, the OnLeave of the previous states sets an old cross hair state.
-mpPlayer->SetCrossHairState(eCrossHairState_None);
-
-cCamera3D *pCamera = mpPlayer->GetCamera();
-
-cMatrixf mtxInv = cMath::MatrixInverse(pCamera->GetViewMatrix());
-mpMeshEntity->SetMatrix(cMath::MatrixMul(mtxInv,m_mtxOffset));
-
-cVector3f vLocalPos = mvPosition + cVector3f(0,-mpPlayer->GetHeadMove()->GetPos()*0.1f,0);
-
-cVector3f vPos =	pCamera->GetForward() * vLocalPos.z + 
-pCamera->GetUp() * vLocalPos.y +
-pCamera->GetRight() * vLocalPos.x;
-
-mpMeshEntity->SetPosition(pCamera->GetPosition() + vPos);
-}
-
-void OnDraw()
-{
-
-}
-
-void OnPostSceneDraw()
-{
-}
-
-bool OnJump()
-{ 
-return true;
-}
-
-void OnStartInteractMode()
-{
-//Do nothing
-}
-
-void OnStartInteract()
-{
-mpWeaponCallback->OnAttackDown();
-}
-
-void OnStopInteract()
-{
-mpWeaponCallback->OnAttackUp();
-}
-
-void OnStartExamine()
-{
-mpPlayer->ChangeState(ePlayerState_Normal);
-}
-
-bool OnAddYaw(float afVal)
-{ 
-return true;
-}
-
-bool OnAddPitch(float afVal)
-{
-return true;
-}
-
-bool OnMoveForwards(float afMul, float afTimeStep)
-{
-return true;
-}
-
-bool OnMoveSideways(float afMul, float afTimeStep)
-{
-return true;
-}
-
-void EnterState(iPlayerState* apPrevState)
-{
-//get the callback
-mpWeaponCallback = mpPlayer->GetWeaponCallback();
-if(mpWeaponCallback==NULL)
-{
-Error("No weapon callback for player weapon state!\n");
-mpPlayer->ChangeState(ePlayerState_Normal);
-}
-
-//Load the data	
-cCamera3D *pCamera = mpPlayer->GetCamera();
-cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-cResources *pResources = mpInit->mpGame->GetResources();
-
-cMesh* pMesh = pResources->GetMeshManager()->CreateMesh(mpWeaponCallback->GetModelFile().c_str());
-if(pMesh==NULL)
-{
-Error("Couldn't load mesh %s for player weapon state!\n",mpWeaponCallback->GetModelFile().c_str());
-mpPlayer->ChangeState(ePlayerState_Normal);
-}
-
-mpMeshEntity = pWorld->CreateMeshEntity("Weapon",pMesh);
-
-m_mtxOffset = mpWeaponCallback->GetOffsetMatrix();
-
-mpMeshEntity->SetMatrix(cMath::MatrixMul(cMath::MatrixInverse(pCamera->GetViewMatrix()),m_mtxOffset));
-mpMeshEntity->SetPosition(pCamera->GetPosition() + pCamera->GetForward());
-
-mpPlayer->SetCrossHairState(eCrossHairState_None);
-
-//Try not doing this.
-//mpPlayer->GetGlowStick()->SetActive(false);
-}
-
-void LeaveState(iPlayerState* apNextState)
-{
-cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-
-pWorld->DestroyMeshEntity(mpMeshEntity);
-
-//Skipping this...
-//mpPlayer->SetWeaponCallback(NULL);
-}
-
-void OnStartRun()
-{
-//if(mpPlayer->GetMoveState() == ePlayerMoveState_Walk)
-//	mpPlayer->ChangeMoveState(ePlayerMoveState_Run);
-}
-void OnStopRun()
-{
-//if(mpPlayer->GetMoveState() == ePlayerMoveState_Run)
-//	mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
-//else if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)
-//	mpPlayer->SetPrevMoveState(ePlayerMoveState_Walk);
-}
-
-void OnStartCrouch()
-{
-if(mpPlayer->GetMoveState() == ePlayerMoveState_Jump)return;
-
-if(mpInit->mpButtonHandler->GetToggleCrouch())
-{
-if(mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
-else
-mpPlayer->ChangeMoveState(ePlayerMoveState_Crouch);
-}
-else
-{
-mpPlayer->ChangeMoveState(ePlayerMoveState_Crouch);
-}
-}
-
-void OnStopCrouch()
-{
-if(mpInit->mpButtonHandler->GetToggleCrouch()==false)
-{
-mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);
-}
-}
-
-bool OnStartInventory()
-{
-mpPlayer->ChangeState(ePlayerState_Normal);
-return true;
-}
-
-bool OnStartInventoryShortCut(int alNum)
-{ 
-return false;
-}
-};*/

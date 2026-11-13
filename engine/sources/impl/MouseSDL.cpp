@@ -36,9 +36,6 @@ namespace hpl {
 		//Virtual units per pixel, the same on both axes.
 		float fVirtualScale = (mpLowLevelGraphics->GetVirtualSize().x + vVirtualOffset.x*2) / vScreenSize.x;
 
-		//mvMouseRelPos = cVector2f(0,0);
-
-		//Log("Input start\n");
 		mbWheelUpMoved = false;
 		mbWheelDownMoved = false;
 
@@ -106,34 +103,6 @@ namespace hpl {
 		mvMouseRelPos = cVector2f(0,0);
 
 		return vPos;
-		/*cVector2f vNew;
-
-		if((int)mlstMouseCoord.size() >= mlBufferSize)
-			mlstMouseCoord.erase(mlstMouseCoord.begin());
-
-		mlstMouseCoord.push_back(vPos);
-
-		int lBufferSize = (int) mlstMouseCoord.size();
-
-		cVector2f vSum(0,0);
-		float fPercent = mfMinPercent;
-		float fPercentAdd =  (mfMaxPercent - mfMinPercent)/((float)lBufferSize);
-		float fTotalPercent=0;
-
-		tVector2fListIt It = mlstMouseCoord.begin();
-		while(It != mlstMouseCoord.end())
-		{
-			vSum.x +=It->x*fPercent;
-			vSum.y +=It->y*fPercent;
-			fTotalPercent+=fPercent;
-			fPercent+=fPercentAdd;
-
-			It++;
-		}
-		vNew.x = vSum.x/fTotalPercent;
-		vNew.y = vSum.y/fTotalPercent;
-
-		return vNew;*/
 	}
 
 	cVector2f cMouseSDL::GetPendingRelPosition()

@@ -120,9 +120,6 @@ namespace hpl {
 			mNodeIt = mpNodeList->begin();
 		}
 
-		//Log("--------------------------------------\n");
-		//Log("Iterating (%d %d) -> (%d %d)\n",	mvStartGridPos.x,mvStartGridPos.y,
-		//										mvEndGridPos.x,mvEndGridPos.y);
 	}
 
 	bool cAINodeIterator::HasNext()
@@ -237,7 +234,6 @@ namespace hpl {
 
 		return it->second;
 
-		//return (cAINode*)STLFindByName(mvNodes,asName);
 	}
 
 	class cSortEndNodes
@@ -259,29 +255,6 @@ namespace hpl {
 			cAINode *pNode = *CurrentNodeIt;
 
 			//Add the ends that are connected to the node.
-			/*Log("Node %s checks: ",pNode->GetName().c_str());
-			tAINodeVecIt EndNodeIt = mvNodes.begin();
-			for(; EndNodeIt != mvNodes.end(); ++EndNodeIt)
-			{
-				cAINode *pEndNode = *EndNodeIt;
-
-				if(pEndNode == pNode) continue;
-				float fDist = cMath::Vector3Dist(pNode->mvPosition, pEndNode->mvPosition);
-				if(fDist > mfMaxEndDistance*2) continue;
-				Log("'%s'(%f) ",pEndNode->GetName().c_str(),fDist);
-
-				float fHeight = fabs(pNode->mvPosition.y - pEndNode->mvPosition.y);
-
-				if(	fHeight <= mfMaxHeight &&
-				FreePath(pNode->mvPosition, pEndNode->mvPosition,-1,eAIFreePathFlag_SkipDynamic))
-				{
-				pNode->AddEdge(pEndNode);
-				Log("Added!");
-				}
-				Log(", ");
-			}
-			Log("\n");*/
-			//Log("Node %s checks: ",pNode->GetName().c_str());
 			cAINodeIterator nodeIt = GetNodeIterator(pNode->mvPosition,mfMaxEndDistance*1.5f);
 			while(nodeIt.HasNext())
 			{
@@ -290,7 +263,6 @@ namespace hpl {
 				if(pEndNode == pNode) continue;
 				float fDist = cMath::Vector3Dist(pNode->mvPosition, pEndNode->mvPosition);
 				if(fDist > mfMaxEndDistance*2) continue;
-				//Log("'%s'(%f) ",pEndNode->GetName().c_str(),fDist);
 
 				float fHeight = fabs(pNode->mvPosition.y - pEndNode->mvPosition.y);
 
@@ -299,11 +271,8 @@ namespace hpl {
 					FreePath(pNode->mvPosition, pEndNode->mvPosition,-1,flag))
 				{
 					pNode->AddEdge(pEndNode);
-					//Log("Added!");
 				}
-				//Log(", ");
 			}
-			//Log("\n");
 
 			//Sort nodes and remove unwanted ones.
 			std::sort(pNode->mvEdges.begin(), pNode->mvEdges.end(), cSortEndNodes());
@@ -324,7 +293,6 @@ namespace hpl {
 				}
 			}
 
-			//Log("  Final edge count: %d\n",pNode->mvEdges.size());
 		}
 	}
 
@@ -542,7 +510,6 @@ namespace hpl {
 	cAIGridNode* cAINodeContainer::GetGrid(const cVector2l& avPos)
 	{
 		int lIndex = avPos.y * (mvGridMapSize.x+1) + avPos.x;
-		//Log(" index: %d Max: %d\n",lIndex,(int)mvGrids.size());
 
 		return &mvGrids[lIndex];
 	}

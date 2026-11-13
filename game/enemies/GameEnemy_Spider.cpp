@@ -35,8 +35,6 @@ bool iGameEnemyState_Spider_Base::OnHearNoise(const cVector3f &avPosition, float
 
 	if(afVolume >= mpEnemySpider->mfIdleMinHearVolume && afDistance > 0.4f)
 	{
-		//mpEnemy->SetTempPosition(avPosition);
-		//mpEnemy->ChangeState(STATE_INVESTIGATE);
 		return true;
 	}
 
@@ -53,8 +51,6 @@ void iGameEnemyState_Spider_Base::OnTakeHit(float afDamage)
 
 void iGameEnemyState_Spider_Base::OnFlashlight(const cVector3f &avPosition)
 {
-	//mpInit->mpEffectHandler->GetSubTitle()->Add("Flashlight!",0.5f);
-	//OnSeePlayer(mpPlayer->GetCharacterBody()->GetFeetPosition(),1.0f);
 	if(mlId == STATE_KNOCKDOWN) return;
 	
 	if(mpEnemySpider->mbFleeFromFlashlight) mpEnemy->ChangeState(STATE_FLEE);
@@ -63,7 +59,6 @@ void iGameEnemyState_Spider_Base::OnFlashlight(const cVector3f &avPosition)
 void iGameEnemyState_Spider_Base::OnDeath(float afDamage)
 {
 	mpEnemy->ChangeState(STATE_KNOCKDOWN);
-	//mpEnemy->ChangeState(STATE_DEAD);
 }
 
 // IDLE STATE
@@ -322,8 +317,6 @@ bool cGameEnemyState_Spider_Hunt::OnHearNoise(const cVector3f &avPosition, float
 
 void cGameEnemyState_Spider_Hunt::OnDraw()
 {
-	//mpInit->mpDefaultFont->Draw(cVector3f(230,10,100),14,cColor(1,1,1,1),eFontAlign_Left,
-	//							"Freepath: %d",mbFreePlayerPath);
 }
 
 // ATTACK STATE
@@ -354,7 +347,6 @@ void cGameEnemyState_Spider_Attack::OnEnterState(iGameEnemyState *apPrevState)
 
 void cGameEnemyState_Spider_Attack::OnLeaveState(iGameEnemyState *apNextState)
 {
-	//mpMover->GetCharBody()->SetForce(0);
 	mpEnemySpider->SetSkipSoundTriggerCount(2.0f);
 	mpMover->ResetStuckCounter();
 }
@@ -623,7 +615,6 @@ void cGameEnemyState_Spider_Dead::OnEnterState(iGameEnemyState *apPrevState)
 	mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 
 	//Temp:
-	//mpMover->GetCharBody()->GetBody()->SetCollideCharacter(false);
 	mpMover->GetCharBody()->GetBody()->SetActive(false);
 
 	mpEnemy->GetMover()->Stop();
@@ -729,9 +720,6 @@ bool cGameEnemy_Spider::MoveToPos(const cVector3f& avFeetPos)
 {
 	if(	mlCurrentState == STATE_IDLE || mlCurrentState == STATE_PATROL)
 	{
-		//SetTempPosition(avFeetPos);
-		//ChangeState(STATE_INVESTIGATE);
-		//return true;
 		return false;
 	}
 	else

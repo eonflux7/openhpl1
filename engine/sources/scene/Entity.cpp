@@ -51,6 +51,5 @@ namespace hpl {
 	{
 		kSaveData_SetupBegin(iEntity);
 
-		//kSaveData_LoadObject(mpParentNode,mlParentNodeId,iNode*);
 	}
 }

@@ -274,9 +274,6 @@ public:
 		mfHeadMoveSpeed = 0.0f;
 		mfHeadMoveBackSpeed = 0.33f;
 
-		//mfHeightAdd =-0.3f;
-		//mfHeightAddSpeed = 1.2f;
-
 		//FootStep multiplier
 		mfFootStepMul = 0.0f;
 
@@ -365,14 +362,6 @@ public:
 			float fNeg = fSpeed - mfMaxForward;
 
 			float fForwardSpeed = pBody->GetMoveSpeed(eCharDir_Forward);
-			/*if(fForwardSpeed>0){
-				fForwardSpeed -= fNeg;
-				if(fForwardSpeed<0)fForwardSpeed =0;
-			}
-			else {
-				fForwardSpeed += fNeg;
-				if(fForwardSpeed>0)fForwardSpeed =0;
-			}*/
 			pBody->SetMoveSpeed(eCharDir_Forward,fForwardSpeed);
 		}
 	
@@ -447,7 +436,6 @@ public:
 		cVector3f vFeetPos = pBody->GetPosition() - cVector3f(0,pBody->GetShape()->GetSize().y/2,0);
 		pBody->SetActiveSize(1);
 		pBody->SetPosition(vFeetPos + cVector3f(0,pBody->GetShape()->GetSize().y/2,0));
-		//pBody->SetGravityActive(false);
 	}
 
 	void LeaveState(iPlayerMoveState* apNextState) override
@@ -474,10 +462,6 @@ public:
 												cMath::MatrixTranslate(pBody->GetPosition()),
 												pBody->GetBody(),false,true);
 			
-			/*Log("Collide when leaving crouch: %d. NewPos: %s OldPos: %s\n",bCollide,
-														vNewPos.ToString().c_str(),
-														pBody->GetPosition().ToString().c_str());*/
-
 			//If the body is pushed down, then something is colliding from above.
 			//if so, set crouch mode again.
 			if(vNewPos != pBody->GetPosition())

@@ -243,9 +243,6 @@ namespace hpl {
 
 
 
-			/*Log("Added %s e: %f sf: %f kf: %f emode: %d fmode: %d\n", pData->GetName().c_str(),
-					pData->GetElasticity(), pData->GetStaticFriction(), pData->GetKineticFriction(),
-					pData->GetElasticityCombMode(), pData->GetFrictionCombMode());*/
 		}
 
 		hplDelete(pXmlDoc);

@@ -28,7 +28,6 @@ namespace hpl {
 	iResourceBase* iResourceManager::GetByName(const tString& asName)
 	{
 		tString sName = cString::ToLowerCase(asName);
-		//Log("Looking for '%s' \n", sName.c_str());
 
 		tResourceNameMapIt it = m_mapNameResources.find(sName);
 		if(it == m_mapNameResources.end())return nullptr;
@@ -49,16 +48,6 @@ namespace hpl {
 		return cResourceBaseIterator(&m_mapNameResources);
 	}
 
-	/*void iResourceManager::Destroy(iResourceBase* apResource)
-	{
-		apResource->DecUserCount();
-		if(apResource->HasUsers()==false){
-			m_mapHandleResources.erase(apResource->GetHandle());
-			m_mapNameResources.erase(apResource->GetName());
-			hplDelete(apResource);
-		}
-	}*/
-
 	class cSortResources
 	{
 	public:
@@ -75,7 +64,6 @@ namespace hpl {
 
 	void iResourceManager::DestroyUnused(int alMaxToKeep)
 	{
-		//Log("Start Num Of: %d\n",m_mapHandleResources.size());
 		//Check if there are too many resources.
 		if((int)m_mapHandleResources.size() <= alMaxToKeep) return;
 
@@ -92,13 +80,9 @@ namespace hpl {
 		//Sort the sounds according to num of users and then time.
 		std::sort(vResources.begin(), vResources.end(), cSortResources());
 
-		//Log("-------------Num: %d-----------------\n",vResources.size());
 		for(size_t i=alMaxToKeep; i<vResources.size(); ++i)
 		{
 			iResourceBase *pRes = vResources[i];
-			//Log("%s count:%d time:%d\n",pRes->GetName().c_str(),
-			//							pRes->GetUserCount(),
-			//							pRes->GetTime());
 
 			if(pRes->HasUsers()==false)
 			{
@@ -106,8 +90,6 @@ namespace hpl {
 				hplDelete(pRes);
 			}
 		}
-		//Log("--------------------------------------\n");
-		//Log("End Num Of: %d\n",m_mapHandleResources.size());
 
 	}
 
@@ -116,11 +98,8 @@ namespace hpl {
 		tResourceHandleMapIt it = m_mapHandleResources.begin();
 		while(it != m_mapHandleResources.end())
 		{
-			//Log("Start destroy...");
 
 			iResourceBase* pResource = it->second;
-
-			//Log(" res: : %d ...",pResource->GetName().c_str(),pResource->GetUserCount());
 
 			while(pResource->HasUsers()) pResource->DecUserCount();
 
@@ -128,15 +107,12 @@ namespace hpl {
 
 			it = m_mapHandleResources.begin();
 
-			//Log(" Done!\n");
 		}
 	}
 
 	void iResourceManager::BeginLoad(const tString& asFile)
 	{
 		mlTimeStart = GetApplicationTime();
-
-		//Log("Begin resource: %s\n",asFile.c_str());
 
 		mlTabCount++;
 	}
@@ -193,7 +169,6 @@ namespace hpl {
 			apResource->SetLogDestruction(true);
 		}
 
-		//Log("End resource: %s\n",apResource->GetName().c_str());
 	}
 
 	void iResourceManager::RemoveResource(iResourceBase* apResource)
@@ -201,7 +176,6 @@ namespace hpl {
 		m_mapHandleResources.erase(apResource->GetHandle());
 		m_mapNameResources.erase(cString::ToLowerCase(apResource->GetName()));
 
-		//Log("Removing %s %d %d!\n", apResource->GetName().c_str(),x,y);
 	}
 
 	unsigned long iResourceManager::GetHandle()

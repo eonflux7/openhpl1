@@ -89,7 +89,6 @@ namespace hpl {
 			for(int i=0; i< (int)mvImageBufferVec.size(); ++i)
 			{
 				//Skip for now, memory might be fucked..
-				//mpGui->GetResources()->GetImageManager()->Destroy(mvImageBufferVec[i]);
 			}
 		}
 		else
@@ -99,7 +98,6 @@ namespace hpl {
 				if(mvImages[i])
 				{
 					//Skip for now, memory might be fucked..
-					//mpGui->GetResources()->GetImageManager()->Destroy(mvImages[i]);
 				}
 				else if(mvTextures[i])
 				{
@@ -125,7 +123,6 @@ namespace hpl {
 			lFrame = (int) mfCurrentFrame;
 			if(lFrame >= (int)mvImageBufferVec.size())
 			{
-				//Log("Over max!\n");
 				//Stop at end
 				if(pAnim->mType == eGuiGfxAnimationType_StopAtEnd)
 				{
@@ -146,7 +143,6 @@ namespace hpl {
 					mbForwardAnim = !mbForwardAnim;
 				}
 			}
-			//Log("Frame %d %f actual_frame: %d size: %d\n",lFrame,mfCurrentFrame,((int)mvImageBufferVec.size()-1) - lFrame,mvImageBufferVec.size());
 
 			//Oscillate fix
 			if(mbForwardAnim== false && pAnim->mType == eGuiGfxAnimationType_Oscillate)

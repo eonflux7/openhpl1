@@ -89,10 +89,7 @@ namespace hpl {
 	{
 		cPhysicsJointSliderNewton* pSliderJoint = (cPhysicsJointSliderNewton*)NewtonJointGetUserData(pSlider);
 
-		//pSliderJoint->OnPhysicsUpdate();
-
 		float fDistance = NewtonSliderGetJointPosit (pSlider);
-		//Log("Dist: %f\n",fDistance);
 
 		if(pSliderJoint->mfMinDistance == 0 && pSliderJoint->mfMaxDistance == 0) return 0;
 
@@ -108,8 +105,6 @@ namespace hpl {
 			pDesc->m_accel = NewtonSliderCalculateStopAccel (pSlider, pDesc, pSliderJoint->mfMinDistance);
 			pDesc->m_minFriction =0;
 
-			//Log("Under Min. Acc: %f Dist %f\n",pDesc->m_accel,fDistance);
-
 			return 1;
 		}
 		else if (fDistance > pSliderJoint->mfMaxDistance)
@@ -119,7 +114,6 @@ namespace hpl {
 			pDesc->m_accel = NewtonSliderCalculateStopAccel (pSlider, pDesc, pSliderJoint->mfMaxDistance);
 			pDesc->m_maxFriction =0;
 
-			//Log("Over Max. Acc: %f Dist %f\n",pDesc->m_accel,fDistance);
 			return 1;
 		}
 		// Within a few millimetres of a limit the stop already holds, pushing
@@ -164,8 +158,6 @@ namespace hpl {
 
 			pSliderJoint->OnNoLimit();
 		}
-
-		//Log("Nothing, Dist %f\n",fDistance);
 
 		return 0;
 	}

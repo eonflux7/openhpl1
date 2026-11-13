@@ -473,31 +473,4 @@ namespace hpl {
 	kSerializeVar(mfRadius, eSerializeType_Float32)
 	kEndSerialize()
 
-	/* OLD "NEAR PLANE CODE"
-	int lNearPoint =-1;
-	for(int face=0; face< 6; face++)
-	{
-	gvFaces[face].facingLight = cMath::Vector3Dot(gvFaces[face].normal,
-	vCorners[kvFacePoints[face]] - avLightPos)<0;
-
-	//Get a point for the near plane. (any edge point will do)
-	if(gvFaces[face].facingLight && lNearPoint<0)
-	{
-	lNearPoint = kvFacePoints[face];
-	}
-	}
-
-	//Build the near plane for the shadow.
-	cVector3f vLightNormal = GetWorldCenter() - avLightPos;
-	mShadowVolume.mvPlanes[0] = cPlanef(vLightNormal,vCorners[lNearPoint]);
-	mShadowVolume.mvPlanes[0].Normalise();
-
-
-	//The direction a point is pushed away in
-	cVector3f vDir;
-
-	float fPushLength = afLightRange*kSqrt2f;
-
-	//The number of planes created.
-	mShadowVolume.mlPlaneCount =1;*/
 }

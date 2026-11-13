@@ -79,7 +79,6 @@ void cPreMenu::LoadConfig()
 		tString sFile = cString::ToString(pLogoElem->Attribute("File"),"");
 		mvTexNames.push_back(sFile);
 
-		//Log("Texture %s\n",sFile.c_str());
 	}
 
 
@@ -173,7 +172,6 @@ void cPreMenu::OnPostSceneDraw()
 			if (pRaindrop->fColor >= 0)
 			{
 				mpInit->mpGame->GetGraphics()->GetDrawer()->DrawGfxObject( pRaindrop->mpGfx, cVector3f(pRaindrop->vPos) + cVector3f(0,0,5), cVector2f(20,6*pRaindrop->fLength), cColor(pRaindrop->fColor,1),false,false);//, -0.2f - 1.5f*pRaindrop->fAngle );
-				//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawLine2D(pRaindrop->vPos, pRaindrop->vPos+(pRaindrop->vDir*pRaindrop->fLength),0,cColor(pRaindrop->fColor,pRaindrop->fColor));
 			}
 		}
 	}
@@ -209,8 +207,6 @@ void cPreMenu::OnDraw()
 					mpTextFont->DrawPlain(cVector3f(25 + 5*mfLastTextSpeed1,90+19*(float)i,0)+mvecLastTextPos,17+(mfLastTextSize),cColor(mfLastTextColor+0.25f,0,0,0.1f),//cColor(0.7f,1,0.7f,1),
 									eFontAlign_Left,sText.c_str());
 					
-					//mpTextFont->Draw(cVector3f(25-mfLastTextPos,90+19*(float)i-mfLastTextPos,0),cVector2f(17,17+(mfLastTextSize)),cColor(mfLastTextColor,mfFontColor,mfFontColor,0.25f),//cColor(0.7f,1,0.7f,1),
-					//				eFontAlign_Left,sText.c_str());
 				}
 								
 				break;
@@ -240,7 +236,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume < pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -254,7 +249,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume > pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -278,7 +272,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume < pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -292,7 +285,6 @@ void cPreMenu::Update(float afTimeStep)
 				if (pEntry->mfNormalVolume > pEntry->mfNormalVolumeFadeDest)
 				{
 					pEntry->mfNormalVolume += pEntry->mfNormalVolumeFadeSpeed * afTimeStep;
-					//hpl::Log ("Vol:%f\n",pEntry->mfNormalVolume);
 				}
 				else
 				{
@@ -480,10 +472,8 @@ void cPreMenu::Update(float afTimeStep)
 			cSoundEntry* pEntry = mpInit->mpGame->GetSound()->GetSoundHandler()->GetEntryFromSound(mpWindSound);
 			if (pEntry)
 			{
-				//pEntry->mfNormalVolumeMul= 0;
 				pEntry->mfNormalVolumeFadeDest = 0;
 				pEntry->mfNormalVolumeFadeSpeed = -0.2f;
-				//mpWindSound->Stop();
 				mbFadeWindSound = true;
 			}
 			mbPlayingWindSound = false;

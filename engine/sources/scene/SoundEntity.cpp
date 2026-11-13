@@ -29,8 +29,6 @@ namespace hpl {
 
 		mbRemoveWhenOver = abRemoveWhenOver;
 
-		//Log("Created sound entity '%s'\n",msName.c_str());
-
 		mpSoundHandler = apSoundHandler;
 		mpSoundEntityManager = apSoundEntityManager;
 		mpWorld = apWorld;
@@ -42,7 +40,6 @@ namespace hpl {
 		for(int i=0; i<3; i++)
 		{
 			mvSounds[i] = nullptr;
-			//mvSoundEntries[i] = NULL;
 			mvSoundId[i] = -1;
 		}
 
@@ -95,7 +92,6 @@ namespace hpl {
 
 		//Not sure if this should be here. SOund entities take little memory
 		//might be better of releasing all of em at exit.
-		//mpSoundEntityManager->Destroy(mpData);
 	}
 
 	void cSoundEntityChannelCallback::OnPriorityRelease()
@@ -108,14 +104,6 @@ namespace hpl {
 	cSoundEntry* cSoundEntity::GetSoundEntry(eSoundEntityType aType)
 	{
 		if(mvSounds[aType]==nullptr) return nullptr;
-
-		//if(mvSoundEntries[aType]==NULL)
-		//{
-		//	mvSoundEntries[aType] = mpSoundHandler->GetEntryFromSound(mvSounds[aType]);
-		//}
-		//return mvSoundEntries[aType];
-
-		//if(mpSoundHandler->IsValid(mvSounds[aType])==false) return NULL;
 
 		return mpSoundHandler->GetEntryFromSound(mvSounds[aType]);
 	}
@@ -144,15 +132,8 @@ namespace hpl {
 			PlaySound(mpData->GetMainSoundName(),mpData->GetLoop(),eSoundEntityType_Main);
 			mbStarted = true;
 
-			//Log("-- Start playing sound %s\n",msName.c_str());
 		}
 		else{
-			/*Log("-- Couldn't play sound %s\n",msName.c_str());
-			Log("Main: %d Start: %d Loop: %d Interval: %f\n",
-							(int)mvSounds[eSoundEntityType_Main],
-							(int)mvSounds[eSoundEntityType_Start],
-							mpData->GetLoop() ? 1 : 0,
-							mpData->GetInterval());*/
 		}
 
 		if(mbLog)Log("end\n");
@@ -164,11 +145,8 @@ namespace hpl {
 
 		mbStopped = true;
 		mbOutOfRange = false;
-		//mvSoundEntries[eSoundEntityType_Main] = NULL;
 
 		if(mvSounds[eSoundEntityType_Main]==nullptr) return;
-
-		//Log("entity Stopping %s\n",mpData->GetName().c_str());
 
 		if(mbLog)Log("Stop entity start...");
 
@@ -212,7 +190,6 @@ namespace hpl {
 			pEntry->mfNormalVolumeFadeSpeed =afSpeed;
 			if(pEntry->mfNormalVolumeFadeSpeed < 0)
 				pEntry->mfNormalVolumeFadeSpeed = -pEntry->mfNormalVolumeFadeSpeed;
-			//Log("Setting speed: %f\n",pEntry->mfNormalVolumeFadeSpeed);
 		}
 
 		if(mbLog)Log("end\n");
@@ -309,7 +286,6 @@ namespace hpl {
 				if(mpSoundHandler->IsValidId(mvSounds[i], mvSoundId[i])==false)
 				{
 					mvSounds[i] = nullptr;
-					//mvSoundEntries[i] = NULL;
 
 					//if the sound has stopped due to priority try starting again
 					if(mbPrioRemove && i == (int)eSoundEntityType_Main)
@@ -317,26 +293,22 @@ namespace hpl {
 						if(mbStopped==false)
 						{
 							mbStarted = false;
-							//mbPrioRemove = false;
 							mfSleepCount = 0.3f;
 						}
 						else
 						{
-							//if(mbLog)Log("  -Sound already stopped..\n");
 						}
 					}
 					//If the sound has already started, stop it.
 					else if((mpData->GetInterval()==0 || mpData->GetLoop()==false) &&
 							mbStarted)
 					{
-						//Log("Stopping %s!\n",GetName().c_str());
 						mbStopped = true;
 					}
 				}
 				else
 				{
 					if(mbPrioRemove){
-						//if(mbLog)Log("  -Removed + valid? This is baaaad!\n");
 					}
 
 					if(mvSounds[i] && !mvSounds[i]->GetPositionRelative())
@@ -469,7 +441,6 @@ namespace hpl {
 			if(aType == eSoundEntityType_Main && !mbPrioRemove)
 			{
 				mbStopped = true;
-				//mbRemoveWhenOver = true;
 			}
 			return false;
 		}
@@ -487,7 +458,6 @@ namespace hpl {
 
 		return true;
 
-		//for(int i=0; i<3; ++i) mvSoundEntries[i] = NULL;
 	}
 
 	float cSoundEntity::GetListenerSqrLength()
@@ -510,7 +480,6 @@ namespace hpl {
 		cWorld3D *pWorld = apGame->GetScene()->GetWorld3D();
 
 		if(mbStopped && mbRemoveWhenOver) return nullptr;
-		//if(mbStopped && mbFadingOut) return NULL;
 
 		cSoundEntity *pEntity = pWorld->CreateSoundEntity(msName,msData,mbRemoveWhenOver);
 
@@ -549,7 +518,6 @@ namespace hpl {
 		kSaveData_LoadFrom(mfVolume);
 		kSaveData_LoadFrom(mbStopped);
 		kSaveData_LoadFrom(mbRemoveWhenOver);
-		//kSaveData_LoadFrom(mbStarted);
 	}
 
 	void cSoundEntity::SaveDataSetup(cSaveObjectHandler *apSaveObjectHandler, cGame *apGame)

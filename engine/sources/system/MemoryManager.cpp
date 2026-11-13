@@ -30,7 +30,6 @@ namespace hpl {
 
 		if(mbLogCreation)
 		{
-			//Log("Creation at: %s, line %d\n",aAllocatedPointer.msFile.c_str(),aAllocatedPointer.mlLine);
 			mlCreationCount++;
 		}
 

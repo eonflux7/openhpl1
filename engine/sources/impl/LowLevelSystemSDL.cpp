@@ -1,6 +1,5 @@
 // Copyright (C) 2006-2010 - Frictional Games
 // SPDX-License-Identifier: GPL-3.0-or-later
-//#include <vld.h>
 //Use this to check for memory leaks!
 
 #ifdef WIN32
@@ -165,8 +164,6 @@ namespace hpl {
 		hplDelete(mpScriptOutput);
 
 		//perhaps not the best thing to skip :)
-		//if(gpLogWriter)	hplDelete(gpLogWriter);
-		//gpLogWriter = NULL;
 	}
 
 	void SetLogFile(const tWString &asFile)
@@ -304,7 +301,6 @@ namespace hpl {
 		clipbuffer = GlobalAlloc(GMEM_DDESHARE, (asText.size()+1) *sizeof(wchar_t));
 		pBuffer = (wchar_t*)GlobalLock(clipbuffer);
 		wcscpy(pBuffer, asText.c_str());
-		//GlobalUnlock(clipbuffer);
 
 		SetClipboardData(CF_UNICODETEXT, clipbuffer);
 
@@ -338,57 +334,10 @@ namespace hpl {
 
 	void CreateMessageBox ( eMsgBoxType eType, const char* asCaption, const char *fmt, ...)
 	{
-		/*char text[2048];
-		va_list ap;
-		if (fmt == NULL)
-			return;
-		va_start(ap, fmt);
-		vsprintf(text, fmt, ap);
-		va_end(ap);
-
-		tString sMess = "";
-		sMess += text;
-
-
-		#ifdef WIN32
-
-		UINT lType = MB_OK;
-
-		switch (eType)
-		{
-		case eMsgBoxType_Info:
-			lType += MB_ICONINFORMATION;
-			break;
-		case eMsgBoxType_Error:
-			lType += MB_ICONERROR;
-			break;
-		case eMsgBoxType_Warning:
-			lType += MB_ICONWARNING;
-			break;
-		default:
-			break;
-		}
-
-
-		MessageBox( NULL, sMess.c_str(), asCaption, lType );
-
-		#endif*/
 	}
 
 	void CreateMessageBox ( const char* asCaption, const char *fmt, ...)
 	{
-		/*char text[2048];
-		va_list ap;
-		if (fmt == NULL)
-			return;
-		va_start(ap, fmt);
-		vsprintf(text, fmt, ap);
-		va_end(ap);
-
-		tString sMess = "";
-		sMess += text;
-
-		CreateMessageBox( eMsgBoxType_Default, asCaption, sMess.c_str() );*/
 	}
 
 

@@ -375,22 +375,6 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 		}
 	}
 	//Enemies now have the user data added to the body, this is not needed.
-	/*if(aTarget & eAttackTargetFlag_Enemy)
-	{
-		tGameEnemyIterator it = mpMapHandler->GetGameEnemyIterator();
-		while(it.HasNext())
-		{
-			iGameEnemy *pEnemy = it.Next();
-
-			cBoundingVolume* pCharBV = pEnemy->GetMover()->GetCharBody()->GetBody()->GetBV();
-			if(cMath::CheckCollisionBV(tempBV, *pCharBV))
-			{
-				float fDist = cMath::Vector3Dist(pCharBV->GetPosition(),avCenter);
-				
-				pEnemy->Damage(CalculateRadialFalloff(fDist,afRadius,afMinDamage,afMaxDamage),-1);
-			}
-		}
-	}*/
 	if(aTarget & eAttackTargetFlag_Bodies)
 	{
 		iPhysicsWorld *pWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
@@ -408,10 +392,7 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 		{
 			iPhysicsBody *pBody = *it;
 
-			//if(pBody->IsCharacter() || pBody->GetMass()==0) continue;
-			//if(pBody->IsCharacter()) continue;
             if(pBody->IsActive()==false) continue;
-			//if(pBody->GetMass() <= afMinMass) continue;
 
 			iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 			
@@ -426,16 +407,6 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 				
 				
 				float fDist = cMath::Vector3Dist(avCenter,pBody->GetLocalPosition());
-				/*float fForceSize = CalculateRadialFalloff(fDist,afRadius,afMinForce,afMaxForce);
-				cVector3f vForceDir = pBody->GetLocalPosition() - avCenter;
-				vForceDir.Normalise();
-
-				if(fForceSize / pBody->GetMass() > afMaxImpulse)
-				{
-					fForceSize = afMaxImpulse * pBody->GetMass();
-				}
-				
-				pBody->AddForce(vForceDir * fForceSize);*/
 
 				if(pEntity)
 				{
@@ -445,9 +416,6 @@ void cAttackHandler::CreateSplashDamage(const cVector3f& avCenter, float afRadiu
 			}
 		}
 		
-		//Update map handler so all stuff that should be broken is.
-		//mpInit->mpMapHandler->Update(1.0f/60.0f);
-
 		//Force Iteration
 		it = lstBodies.begin();
 		for(; it != lstBodies.end(); ++it)

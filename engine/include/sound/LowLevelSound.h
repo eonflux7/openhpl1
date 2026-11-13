@@ -12,7 +12,6 @@ namespace hpl {
 
 	class iSoundData;
 	class iSoundEnvironment;
-	//class iSoundFilter;
 
 	typedef std::list<iSoundEnvironment*> tSoundEnvList;
 	typedef tSoundEnvList::iterator tSoundEnvListIt;
@@ -97,7 +96,6 @@ namespace hpl {
 		eSoundHRTF GetHRTF() { return mHRTF; }
 		/** Whether HRTF is in use, for display (e.g. "On (Built-In HRTF)"). */
 		virtual tString GetHRTFStatus() { return ""; }
-		//void DestroySoundEnvironment( iSoundEnvironment* apSoundEnv);
 
 
 	protected:

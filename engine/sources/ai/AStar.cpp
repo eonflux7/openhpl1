@@ -58,12 +58,10 @@ namespace hpl {
 		float fMaxDist = mpContainer->GetMaxEdgeDistance()*2; //float fMaxDist = mpContainer->GetMaxEdgeDistance()*mpContainer->GetMaxEdgeDistance()*4;
 
 		//Check with Start
-		//Log(" Get Start\n");
 		cAINodeIterator startNodeIt =  mpContainer->GetNodeIterator(avStart,fMaxDist);
 		while(startNodeIt.HasNext())
 		{
 			cAINode *pAINode = startNodeIt.Next();
-			//Log("Check node: %s\n",pAINode->GetName().c_str());
 
 			float fHeight = fabs(avStart.y - pAINode->GetPosition().y);
 			float fDist = cMath::Vector3Dist(avStart,pAINode->GetPosition()); //float fDist = cMath::Vector3DistSqr(avStart,pAINode->GetPosition());
@@ -77,15 +75,12 @@ namespace hpl {
 				}
 			}
 		}
-		//Log(" Found start\n");
 
 		//Check with Goal
-		//Log(" Get Goal\n");
 		cAINodeIterator goalNodeIt =  mpContainer->GetNodeIterator(avGoal,fMaxDist);
 		while(goalNodeIt.HasNext())
 		{
 			cAINode *pAINode = goalNodeIt.Next();
-			//Log("Check node: %s\n",pAINode->GetName().c_str());
 
 			float fHeight = fabs(avGoal.y - pAINode->GetPosition().y);
 			float fDist = cMath::Vector3Dist(avGoal,pAINode->GetPosition()); //fDist = cMath::Vector3DistSqr(avGoal,pAINode->GetPosition());
@@ -98,7 +93,6 @@ namespace hpl {
 				}
 			}
 		}
-		//Log(" Found goal\n");
 
 		//Iterate the algorithm
 		IterateAlgorithm();
@@ -194,7 +188,6 @@ namespace hpl {
 
 	float cAStarHandler::Heuristic(const cVector3f& avStart, const cVector3f& avGoal)
 	{
-		//return cMath::Vector3DistSqr(avStart, avGoal);
 		return cMath::Vector3Dist(avStart, avGoal);
 	}
 

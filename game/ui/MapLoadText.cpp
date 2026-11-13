@@ -11,9 +11,6 @@ cMapLoadText::cMapLoadText(cInit *apInit)  : iUpdateable("MapLoadText")
 	mpInit = apInit;
 	mpDrawer = mpInit->mpGame->GetGraphics()->GetDrawer();
 
-	//Load graphics
-	//mpGfxMouse = mpDrawer->CreateGfxObject("player_crosshair_pointer.bmp","diffalpha2d");
-	
 	//load fonts
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 	mpTextFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("font_computer.fnt");
@@ -46,8 +43,6 @@ void cMapLoadText::OnDraw()
 
 void cMapLoadText::DrawText(bool abLoading)
 {
-	//mpTextFont->DrawWordWrap(	cVector3f(25,25,25),750,17,15,cColor(0.75f, 1, 0.75f, 1),
-	//							eFontAlign_Left,kTranslate(msTextCat, msTextEntry));
 
 	cVector3f vStart(25,250.0f - 17.0f* (float)mvRows.size()/2.0f,15);
 	for(size_t i=0; i< mvRows.size(); ++i)

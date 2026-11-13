@@ -298,11 +298,6 @@ namespace hpl {
 			}
 		}
 
-		/*if(mbPressed && cMath::PointBoxCollision(aData.mvPos,mBarRect)==false)
-		{
-			mbPressed = false;
-		}*/
-
 		return true;
 	}
 

@@ -266,23 +266,14 @@ namespace hpl {
 		cVector3f vUpDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(fXAngle,vRight)), vForward);
 		cVector3f vDownDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(-fXAngle,vRight)), vForward);
 
-		//cVector3f vRightDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(fYAngle,vUp)), vForward);
-		//cVector3f vLeftDir = cMath::MatrixMul(cMath::MatrixQuaternion(cQuaternion(-fYAngle,vUp)), vForward);
-
 		vForward = vForward *-1;
 
 		float fRightAdd = sin(fYAngle);
-		//float fUpAdd = sin(fXAngle);
 
 		cVector3f vVec0 = vUpDir + vRight * fRightAdd;
 		cVector3f vVec2 = vDownDir + vRight * fRightAdd;
 		cVector3f vVec3 = vDownDir + vRight * -fRightAdd;
 		cVector3f vVec1 = vUpDir + vRight * -fRightAdd;
-
-		/*cVector3f vVec0 = vUpDir;//cMath::Vector3Normalize(vUpDir+vRightDir);
-		cVector3f vVec1 = vRightDir;//cMath::Vector3Normalize(vUpDir+vLeftDir);
-		cVector3f vVec2 = vDownDir;//cMath::Vector3Normalize(vDownDir+vLeftDir);
-		cVector3f vVec3 = vLeftDir;//cMath::Vector3Normalize(vDownDir+vRightDir);*/
 
 		//angles between forward and the vectors
 		float fAngle0 = cMath::Vector3Angle(vVec0, vForward);
@@ -296,10 +287,6 @@ namespace hpl {
 		mvEndPoints[2] = mvOrigin + vVec2 * (mfFarPlane/cos(fAngle2));
 		mvEndPoints[3] = mvOrigin + vVec3 * (mfFarPlane/cos(fAngle3));
 
-		/*mvEndPoints[0] = mvOrigin + (vUpDir+vRightDir)	 * mfFarPlane *-1;
-		mvEndPoints[1] = mvOrigin + (vUpDir+vLeftDir)	 * mfFarPlane*-1;
-		mvEndPoints[2] = mvOrigin + (vDownDir+vRightDir)* mfFarPlane*-1;
-		mvEndPoints[3] = mvOrigin + (vDownDir+vLeftDir) * mfFarPlane*-1;*/
 	}
 
 	void cFrustum::UpdateBV()

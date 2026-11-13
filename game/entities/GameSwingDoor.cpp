@@ -93,10 +93,6 @@ cGameSwingDoor::~cGameSwingDoor(void)
 {
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 
-	//for(size_t i=0; i<mvStopControllers.size(); ++i)
-	//{
-	//	pPhysicsWorld->DestroyController(mvStopControllers[i]);
-	//}
 }
 
 void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
@@ -111,9 +107,6 @@ void cGameSwingDoor::SetupPhysics(cWorld3D *apWorld)
 		
 		//Create Stop controller
 		iPhysicsController *pController = pPhysicsWorld->CreateController("Stop");
-		
-		//pController->SetBody(pJoint->GetChildBody());
-		//pController->SetJoint(pJoint);
 		
 		pController->SetActive(true);
 		pController->SetType(ePhysicsControllerType_Pid); 
@@ -338,7 +331,6 @@ void cGameSwingDoor::BreakAction()
 					pNewBody->SetMatrix(pStaticBody->GetWorldMatrix());
 				}
 
-				//pNewBody->SetLinearVelocity(pBody->GetLinearVelocity());
 				pNewBody->AddImpulse(vImpulse);
 			}
 		}

@@ -94,8 +94,6 @@ namespace hpl {
 
 		bool SendKeyPress(const cKeyPress& keyPress);
 
-		//bool SentArrowKey(eGuiArrowKey aDir);
-
 		// Properties
 		cResources* GetResources(){ return mpResources;}
 

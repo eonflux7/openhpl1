@@ -90,7 +90,6 @@ namespace hpl {
 
 		m_mtxPrevScrapeMatrix = cMatrixf::Identity;
 
-		//Log("Creating body %s\n",msName.c_str());
 	}
 
 	iPhysicsBody::~iPhysicsBody()
@@ -100,12 +99,10 @@ namespace hpl {
 
 	void iPhysicsBody::Destroy()
 	{
-		//Log("Start Destroying newton body '%s' %d\n",msName.c_str(),(size_t)this);
 
 		if(mpNode) hplDelete(mpNode);
 		mpWorld->DestroyShape(mpShape);
 
-		//Log(" Joints\n");
 		for(int i=0; i<(int)mvJoints.size(); i++)
 		{
 			iPhysicsJoint *pJoint = mvJoints[i];
@@ -117,21 +114,7 @@ namespace hpl {
 				mpWorld->DestroyJoint(pJoint);
 			}
 
-			//Skip removing for now, just makes things messy...
-			/*if(	pJoint->GetParentBody() == this ||
-				(pJoint->GetParentBody() == NULL && pJoint->GetChildBody()== this) )
-			{
-				//Log("  Destroy joint %d\n",(size_t)pJoint);
-				mpWorld->DestroyJoint(pJoint);
-			}
-			else if(pJoint->GetParentBody() == this)
-			{
-				//Remove this body from the joint
-				pJoint->RemoveBody(this);
-			}*/
 		}
-
-		//Log("Deleted body '%s'\n",msName.c_str());
 
 		if(mpScrapeSoundEntity && mpWorld->GetWorld3D()->SoundEntityExists(mpScrapeSoundEntity))
 			mpWorld->GetWorld3D()->DestroySoundEntity(mpScrapeSoundEntity);
@@ -175,8 +158,6 @@ namespace hpl {
 
 	void iPhysicsBody::UpdateBeforeSimulate(float afTimeStep)
 	{
-		//if(msName == "headalive01_throat2") Log("headalive01_throat2 Active: %d\n", IsActive());
-		//if(msName == "headalive01_throat") Log("headalive01_throat Active: %d\n", IsActive());
 
 		//Reset that the body has had contact
 		SetHasSlide(false);
@@ -200,8 +181,6 @@ namespace hpl {
 			{
 				if(mlSlideCount<=0)
 				{
-					//Log("Stopped scrape %d on body '%s' IN BODY!\n", (size_t)GetScrapeSoundEntity(),
-					//												 GetName().c_str());
 
 					if(mpWorld->GetWorld3D())
 						if(mpWorld->GetWorld3D()->SoundEntityExists(GetScrapeSoundEntity()))
@@ -292,19 +271,13 @@ namespace hpl {
 
 		bool bReturn = true;
 
-		//Log("Checking before collide callbacks for '%s' ",apBody->GetName().c_str());
-
 		tPhysicsBodyCallbackListIt it = mlstBodyCallbacks.begin();
 		for(; it != mlstBodyCallbacks.end(); ++it)
 		{
 			iPhysicsBodyCallback *pCallback = *it;
 
-			//Log("Callback %d ,",(size_t)pCallback);
-
 			if(pCallback->OnBeginCollision(this, apBody)==false) bReturn = false;
 		}
-
-		//Log(" END\n");
 
 		return bReturn;
 	}
@@ -315,19 +288,14 @@ namespace hpl {
 
 		if(mlstBodyCallbacks.empty()) return;
 
-		//Log("Checking on collide callbacks for '%s' ",apBody->GetName().c_str());
-
 		tPhysicsBodyCallbackListIt it = mlstBodyCallbacks.begin();
 		for(; it != mlstBodyCallbacks.end(); ++it)
 		{
 			iPhysicsBodyCallback *pCallback = *it;
 
-			//Log("Callback %d ,",(size_t)pCallback);
-
 			pCallback->OnCollide(this, apBody,apContactData);
 		}
 
-		//Log(" END\n");
 	}
 
 	iPhysicsMaterial* iPhysicsBody::GetMaterial()

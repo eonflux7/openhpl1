@@ -135,7 +135,6 @@ bool cHudModel_WeaponMelee::UpdatePoseMatrix(cMatrixf& aPoseMtx, float afTimeSte
 		aPoseMtx = cMath::MatrixSlerp(mfAttackProgress,m_mtxPrevPose,m_mtxNextPose,true);
 		
 		float fMul = 1.0f;
-		//if(mlAttackState == 2 && mpInit->mDifficulty== eGameDifficulty_Easy) fMul = 1.6f;
 
 		mfAttackProgress += mfPoseProgressRate * afTimeStep * fMul;
 		
@@ -232,9 +231,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 		{
 			if(mpInit->mbSimpleWeaponSwing)
 			{
-				//if(avMovement.y < -0.03f)
-				//	mlCurrentAttack = 2;
-				//else
 					mlCurrentAttack = 0;//cMath::RandRectl(0,1);
 				
 				mlAttackState =2;
@@ -264,9 +260,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				mfAttackProgress = 0.0f;
 				mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
 
-				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfPoseProgressRate *= 0.8f;
-
 				PlaySound(mvAttacks[mlCurrentAttack].msChargeSound);
 				
 				m_mtxPrevPose = mEquipPose.ToMatrix();
@@ -286,7 +279,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				{
 					mfAttackProgress = 0.0f;
 					mfPoseProgressRate = 1/mvAttacks[mlCurrentAttack].mfChargeLength;
-					//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch) 	mfPoseProgressRate *= 0.8f;
 					
 					m_mtxPrevPose = mvAttacks[mlCurrentAttack].mStart.ToMatrix();
 					m_mtxNextPose = mvAttacks[2].mStart.ToMatrix();
@@ -326,9 +318,6 @@ bool cHudModel_WeaponMelee::OnMouseMove(const cVector2f &avMovement)
 				mfAttackProgress = 0.0f;
 				mfPoseProgressRate = 1.0f/mvAttacks[mlCurrentAttack].mfAttackLength;
 
-				//if(mpInit->mpPlayer->GetMoveState() == ePlayerMoveState_Crouch)
-				//	mfPoseProgressRate *= 0.55f;
-				
 				PlaySound(mvAttacks[mlCurrentAttack].msSwingSound);
 
 				mpInit->mpPlayer->GetHidden()->UnHide();
@@ -391,8 +380,6 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 	cVector3f vPos = pCamera->GetPosition() + pCamera->GetForward()*fAttackRange;
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(vPos,0.1f,cColor(1,0,1,1));
 		
-	//return;
-	
 	float fDamageRange = mvAttacks[mlCurrentAttack].mfDamageRange;	
 	cVector3f vCenter = pCamera->GetPosition() + pCamera->GetForward()*fDamageRange;
 
@@ -402,13 +389,6 @@ void cHudModel_WeaponMelee::PostSceneDraw()
 	mtxDamage.SetTranslation(vCenter);
 
 	bool bCollide=false;
-	/*{
-		cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
-		iPhysicsWorld *pPhysicsWorld = pWorld->GetPhysicsWorld();
-		
-		bCollide = pPhysicsWorld->CheckShapeWorldCollision(NULL,mvAttacks[mlCurrentAttack].mpCollider,
-															mtxDamage,NULL,false,false,NULL,false);
-	}*/
 
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(mtxDamage, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
@@ -448,7 +428,6 @@ void cHudModel_WeaponMelee::ResetExtraData()
 void cHudModel_WeaponMelee::Attack()
 {
 	mpInit->mbWeaponAttacking = true;
-	//Log("----------------- BEGIN ATTACK WITH WEAPON ------------ \n");
 
 	//Set up
 	float fDamageRange = mvAttacks[mlCurrentAttack].mfDamageRange;	
@@ -498,12 +477,6 @@ void cHudModel_WeaponMelee::Attack()
 
 		if(cMath::CheckCollisionBV(tempBV, *pBody->GetBV()))
 		{
-			/*if(pPhysicsWorld->CheckShapeCollision(pBody->GetShape(),pBody->GetLocalMatrix(),
-				mvAttacks[mlCurrentAttack].mpCollider,
-				mtxDamage,collideData,1)==false)
-			{
-				continue;
-			}*/
 			if(pEnemy->GetMeshEntity()->CheckColliderShapeCollision(pPhysicsWorld,
 																	mvAttacks[mlCurrentAttack].mpCollider,
 																	mtxDamage,&lstPostions,nullptr)==false)
@@ -686,7 +659,6 @@ void cHudModel_WeaponMelee::Attack()
 			}
 		}
 	}
-	//Log("----------------- END ATTACK WITH WEAPON ------------ \n");
 	
 	//Play hit sound
 	if(bHit)
@@ -745,12 +717,9 @@ void cHudModel_WeaponMelee::HitBody(iPhysicsBody *apBody)
 	{
 		vForceDir.Normalise();
 
-		//pBody->AddForce(vForceDir * fForceSize);
 		apBody->AddImpulse(vForceDir *fForceSize);
 
 		cVector3f vTorque = vSpinMul * fMass * fForceSize;
-
-		//vTorque = cMath::MatrixMul(pBody->GetInertiaMatrix(),vTorque);
 
 		apBody->AddTorque(vTorque);
 	}

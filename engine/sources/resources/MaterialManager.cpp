@@ -221,9 +221,6 @@ namespace hpl {
 
 			TiXmlElement *pTexChild = pTexRoot->FirstChildElement(GetTextureString(it->mType).c_str());
 			if(pTexChild==nullptr){
-				/*Error("Texture unit missing!");
-				hplDelete(pMat);
-				return NULL;*/
 				continue;
 			}
 

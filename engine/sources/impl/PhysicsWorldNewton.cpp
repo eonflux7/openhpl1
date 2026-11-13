@@ -64,10 +64,7 @@ namespace hpl {
 
 	void cPhysicsWorldNewton::Simulate(float afTimeStep)
 	{
-		//cPhysicsBodyNewton::SetUseCallback(false);
-		//static lUpdate =0;
 
-		//if(lUpdate % 30==0)
 		{
 			while(afTimeStep>mfMaxTimeStep)
 			{
@@ -76,8 +73,6 @@ namespace hpl {
 			}
 			NewtonUpdate(mpNewtonWorld, afTimeStep);
 		}
-		//lUpdate++;
-		//cPhysicsBodyNewton::SetUseCallback(true);
 
 		tPhysicsBodyListIt it = mlstBodies.begin();
 		for(;it != mlstBodies.end(); ++it)
@@ -419,7 +414,6 @@ namespace hpl {
 		cMatrixf mtxTransposeB = a_mtxB.GetTranspose();
 
 		bool bLog = false;
-		//if(alMaxPoints== 1) bLog = true;
 
 		//Check compound collision
 		if(pNewtonShapeA->GetType() == eCollideShapeType_Compound ||
@@ -447,8 +441,6 @@ namespace hpl {
 					if(lNum > alMaxPoints )lNum = alMaxPoints;
 
 					bCollision = true;
-
-					//Log("Collided %d vs %d. Num: %d\n",a,b,lNum);
 
 					//Negate for each iteration.
 					alMaxPoints -= lNum;

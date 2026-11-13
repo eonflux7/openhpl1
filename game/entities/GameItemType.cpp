@@ -91,8 +91,6 @@ cGameItemType_Notebook::cGameItemType_Notebook(cInit *apInit)
 
 bool cGameItemType_Notebook::OnPickUp(cInventoryItem *apItem, bool abInGame)
 {
-	//mpInit->mpInventory->SetNoteBookActive(true);
-	//return false;
 	return true;
 }
 
@@ -359,7 +357,6 @@ bool cGameItemType_WeaponMelee::OnAction(cInventoryItem *apItem, int alActionInd
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
 			mpInit->mpPlayerHands->GetCurrentModel(1)->msName == apItem->GetHudModelName())
 		{
-			//mpInit->mpPlayerHands->SetCurrentModel(1, "");
 			
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		}
@@ -425,7 +422,6 @@ bool cGameItemType_WeaponMeleeHaptX::OnAction(cInventoryItem *apItem, int alActi
 		if(mpInit->mpPlayer->GetState() == ePlayerState_WeaponMelee && pMeleeState->GetHudWeapon() == pMeleeHud)
 		{
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
-			//pMeleeState->SetHudWeapon(NULL);
 		}
 		else
 		{				
@@ -476,7 +472,6 @@ bool cGameItemType_Throw::OnAction(cInventoryItem *apItem, int alActionIndex)
 		if(mpInit->mpPlayerHands->GetCurrentModel(1) &&
 			mpInit->mpPlayerHands->GetCurrentModel(1)->msName == apItem->GetHudModelName())
 		{
-			//mpInit->mpPlayerHands->SetCurrentModel(1, "");
 
 			mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 		}

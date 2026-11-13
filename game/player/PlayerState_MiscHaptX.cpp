@@ -126,13 +126,9 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 		vStart = mpPlayer->GetCamera()->GetPosition();
 		vEnd =  vStart + cMath::Vector3Normalize(vProxyPos - vStart) * mpPlayer->GetPickRay()->mfMaxDistance;
 
-		//gvEnd = vEnd; gvStart = vStart;
-
 		mpPlayer->GetPickRay()->Clear();
 		pPhysicsWorld->CastRay(mpPlayer->GetPickRay(),vStart,vEnd,true,false,true);
 		mpPlayer->GetPickRay()->CalculateResults();
-
-		//Log("Picked body: %d\n",(size_t)mpPlayer->GetPickedBody());
 
 		if(mpPlayer->GetPickedBody())
 		{
@@ -173,8 +169,6 @@ void cPlayerState_NormalHaptX::OnUpdate(float afTimeStep)
 
 void cPlayerState_NormalHaptX::OnStartInteract()
 {
-	//gvFinalEnd = gvEnd;
-	//gvFinalStart = gvStart;
 
 	if(mpPlayer->GetPickedBody())
 	{
@@ -185,7 +179,6 @@ void cPlayerState_NormalHaptX::OnStartInteract()
 
 void cPlayerState_NormalHaptX::OnStartExamine()
 {
-	//Log("Picked body: %d\n",(size_t)mpPlayer->GetPickedBody());
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -253,15 +246,10 @@ void cPlayerState_NormalHaptX::EnterState(iPlayerState* apPrevState)
 void cPlayerState_NormalHaptX::LeaveState(iPlayerState* apNextState)
 {
 	//Can cause crashes!!
-	//mpPlayer->GetPickRay()->mpPickedBody = NULL;
 }
 
 void cPlayerState_NormalHaptX::OnPostSceneDraw()
 {
-	/*iLowLevelGraphics *pLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	pLowGfx->DrawLine(	gvFinalStart,gvFinalEnd,cColor(1,1));
-	pLowGfx->DrawSphere(gvFinalStart,0.1f,cColor(1,0,0,1));
-	pLowGfx->DrawSphere(gvFinalEnd,0.1f,cColor(0,1,0,1));*/
 }
 
 // INTERACT MODE STATE
@@ -287,10 +275,8 @@ void cPlayerState_InteractModeHaptX::OnUpdate(float afTimeStep)
 	mpPlayer->GetPickRay()->Clear();
 	pPhysicsWorld->CastRay(mpPlayer->GetPickRay(),vStart,vEnd,true,false,true);
 
-	//LogUpdate("  Calc pickray results\n");	
 	mpPlayer->GetPickRay()->CalculateResults();
 
-	//LogUpdate("  Use picked body\n");	
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -332,88 +318,11 @@ void cPlayerState_InteractModeHaptX::OnStartExamine()
 
 bool cPlayerState_InteractModeHaptX::OnAddYaw(float afVal)
 {
-	/*cInput *pInput = mpInit->mpGame->GetInput();
-
-	if(pInput->IsTriggered("LookMode"))
-	{
-		mpPlayer->GetCamera()->AddYaw( -afVal * 2.0f * mpPlayer->GetLookSpeed());
-		mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
-	}
-	else
-	{
-		if(mpPlayer->AddCrossHairPos(cVector2f(afVal * 800.0f,0)))
-		{
-			mpPlayer->GetCamera()->AddYaw( -afVal * mpPlayer->GetLookSpeed());
-			mpPlayer->GetCharacterBody()->SetYaw(mpPlayer->GetCamera()->GetYaw());
-		}
-		
-		cVector2f vBorder = mpPlayer->GetInteractMoveBorder();
-		cVector2f vPos = mpPlayer->GetCrossHairPos();
-		
-		if(vPos.x < vBorder.x + mfRange || vPos.x > (799 - vBorder.x - mfRange))
-		{
-			float fDist;
-			if(vPos.x < vBorder.x + mfRange)
-			{
-				fDist = (vPos.x - vBorder.x);
-				mvLookSpeed.x = 1 - (fDist / mfRange) * 1;
-			}
-			else 
-			{
-				fDist = ((799 - vBorder.x) - vPos.x);
-				mvLookSpeed.x = (1-(fDist / mfRange)) * -1;
-			}
-		}
-		else
-		{
-			mvLookSpeed.x =0;
-		}
-	}
-
-	return false;*/
 	return true;
 }
 
 bool cPlayerState_InteractModeHaptX::OnAddPitch(float afVal)
 {
-	/*cInput *pInput = mpInit->mpGame->GetInput();
-
-	if(pInput->IsTriggered("LookMode"))
-	{
-		float fInvert = mpInit->mpButtonHandler->GetInvertMouseY() ? -1.0f : 1.0f;
-		mpPlayer->GetCamera()->AddPitch( -afVal *2.0f*fInvert * mpPlayer->GetLookSpeed());
-	}
-	else
-	{
-		if(mpPlayer->AddCrossHairPos(cVector2f(0,afVal * 600.0f)))
-		{
-			mpPlayer->GetCamera()->AddPitch( -afVal * mpPlayer->GetLookSpeed());
-		}
-
-		cVector2f vBorder = mpPlayer->GetInteractMoveBorder();
-		cVector2f vPos = mpPlayer->GetCrossHairPos();
-		
-		if(vPos.y < vBorder.y + mfRange || vPos.y > (599 - vBorder.y - mfRange))
-		{
-			float fDist;
-			if(vPos.y < vBorder.y + mfRange)
-			{
-				fDist = (vPos.y - vBorder.y);
-				mvLookSpeed.y = 1 - (fDist / mfRange) * 1;
-			}
-			else 
-			{
-				fDist = ((599 - vBorder.y) - vPos.y);
-				mvLookSpeed.y = (1-(fDist / mfRange)) * -1;
-			}
-		}
-		else
-		{
-			mvLookSpeed.y =0;
-		}
-	}
-
-	return false;*/
 	return true;
 }
 
@@ -434,16 +343,11 @@ void cPlayerState_InteractModeHaptX::EnterState(iPlayerState* apPrevState)
 
 void cPlayerState_InteractModeHaptX::LeaveState(iPlayerState* apNextState)
 {
-	/*if(mPrevMoveState != ePlayerMoveState_Run)
-	mpPlayer->ChangeMoveState(mPrevMoveState);
-	else
-	mpPlayer->ChangeMoveState(ePlayerMoveState_Walk);*/
 
 	if(apNextState->mType == ePlayerState_Normal)
 		mpPlayer->ResetCrossHairPos();
 
 	//Can cause crashes!!
-	//mpPlayer->GetPickRay()->mpPickedBody = NULL;
 }
 
 void cPlayerState_InteractModeHaptX::OnStartCrouch()
@@ -708,7 +612,6 @@ void cPlayerState_MessageHaptX::EnterState(iPlayerState* apPrevState)
 {
 	//Change move state so the player is still
 	mPrevMoveState = mpPlayer->GetMoveState();
-	//mpPlayer->ChangeMoveState(ePlayerMoveState_Still);
 
 	mpPlayer->SetCrossHairState(eCrossHairState_None);
 	mpPlayer->GetHapticCamera()->SetHandVisible(false);
@@ -904,8 +807,6 @@ bool cPlayerState_ClimbHaptX::OnAddYaw(float afVal)
 
 bool cPlayerState_ClimbHaptX::OnAddPitch(float afVal)
 {
-	//if(mlState!=0)
-	//	mpPlayer->GetCamera()->AddPitch( -afVal * mpPlayer->GetLookSpeed());
 	if(mlState==0) 
 		return false;
 	else
@@ -983,7 +884,6 @@ bool cPlayerState_ClimbHaptX::OnMoveForwards(float afMul, float afTimeStep)
 
 	if((mvCharPosition.y - pCharBody->GetSize().y*0.5f) > mpLadder->GetMaxY())
 	{
-		//mpPlayer->ChangeState(ePlayerState_Normal);
 		mlState = 2;
 		mfTopExitRemainingSeconds = 2;
 		mpPlayer->GetCharacterBody()->SetGravityActive(true);

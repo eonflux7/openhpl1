@@ -58,21 +58,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 	
 	//cVector3f vToCharDir =
 	
-	// Check wheel input NOT NEEDED!
-	/*if(pInput->IsTriggered("WheelUp"))
-	{
-		if(mfGrabDist < mpPlayer->mfCurrentMaxInteractDist*0.8f)
-			mfGrabDist += 0.1f;
-	}
-	if(pInput->IsTriggered("WheelDown"))
-	{
-		if(mfGrabDist > mpPlayer->GetSize().x/2.0f + 0.25f)
-		{
-			//TODO: Collison check? (might be a bit complex)			
-			mfGrabDist -= 0.1f;	
-		}
-	}*/
-
 	//Get the current position.
 	float fAngleDist = cMath::GetAngleDistanceRad(mfStartYaw,mpPlayer->GetCamera()->GetYaw());
 
@@ -118,8 +103,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 
 	//Get the desired position
 	cVector3f vForward = cMath::Vector3Normalize(vProxyPos - pCamera->GetPosition());
-											/*pCamera->UnProject(mpPlayer->GetCrossHairPos(),
-											mpInit->mpGame->GetGraphics()->GetLowLevel());*/
 						
 	cVector3f vDesired = vProxyPos;//pCamera->GetPosition() + vForward * mfGrabDist;
 
@@ -157,7 +140,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 	}
 	if(mbPickAtPoint)
 	{
-		//mpPushBody->AddForceAtPosition(vForce * mpPushBody->GetMass()*mpPlayer->mfGrabMassMul, vCurrentPoint);
 
 		//TODO: User intertia instead.
 		cVector3f vLocalPos = vCurrentPoint - mpPushBody->GetLocalPosition();
@@ -190,8 +172,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 		vTorque = vTorque - vOmega * 0.1f;
 		
 		mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
-		//vTorque = cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque);
-		//mpPushBody->AddTorque(vTorque);
 	}
 	else
 	{
@@ -204,8 +184,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 		cVector3f vTorque = mRotatePid.Output(cVector3f(0,fWantedSpeed,0) - vOmega, afTimeStep);
 
 		mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
-		//vTorque = cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque);
-		//mpPushBody->AddTorque(vTorque);
 
 		mfYRotation -= vOmega.y * afTimeStep;
 	}
@@ -213,7 +191,6 @@ void cPlayerState_GrabHaptX::OnUpdate(float afTimeStep)
 
 void cPlayerState_GrabHaptX::OnDraw()
 {
-	//mpFont->Draw(cVector3f(5,30,0),12,cColor(1,1),eFontAlign_Left,"YRotate: %f",mfYRotation);
 }
 
 void cPlayerState_GrabHaptX::OnPostSceneDraw()
@@ -222,8 +199,6 @@ void cPlayerState_GrabHaptX::OnPostSceneDraw()
 
 	cVector3f vPickPoint = cMath::MatrixMul(mpPushBody->GetWorldMatrix(), mvRelPickPoint);
 
-	//pLowGfx->DrawSphere(vPickPoint, 0.2f, cColor(1,1,1,1));
-	//pLowGfx->DrawSphere(mvCurrentDisered, 0.2f, cColor(1,1,1,1));
 }
 
 bool cPlayerState_GrabHaptX::OnJump()
@@ -250,7 +225,6 @@ void cPlayerState_GrabHaptX::OnStartInteract()
 
 void cPlayerState_GrabHaptX::OnStopInteract()
 {
-	//Log("RELEASED BUTTON!\n");
 	mpPlayer->ChangeState(mPrevState);
 }
 
@@ -281,8 +255,6 @@ void cPlayerState_GrabHaptX::OnStartExamine()
 		fT = 1 - (fMass - mfMinThrowMass) / ( mfMaxThrowMass - mfMinThrowMass);
 
     float fImpulse = mfMinThrowImpulse * (1-fT) + mfMaxThrowImpulse * fT;
-
-	//Log("Mass: %f Impulse: %f\n",fMass,fImpulse);
 
 	//Add the impulse
 	if(mbPickAtPoint)
@@ -425,7 +397,6 @@ void cPlayerState_GrabHaptX::EnterState(iPlayerState* apPrevState)
 
 	mfGrabDist = cMath::Vector3Dist(mpPlayer->GetCamera()->GetPosition(),
 									mpPlayer->GetPickedPos());
-	//mfGrabDist = mpPlayer->GetPickedDist();
 
 	//reset PID controller
 	mGrabPid.Reset();
@@ -437,9 +408,6 @@ void cPlayerState_GrabHaptX::EnterState(iPlayerState* apPrevState)
 		mvRelPickPoint =	mpPlayer->GetPickedPos() - 
 							cMath::MatrixMul(	mpPushBody->GetWorldMatrix(),
 												mpPushBody->GetMassCentre());
-
-	//Set cross hair image.
-	//mpPlayer->SetCrossHairState(eCrossHairState_Grab);
 
 	//The amount of rotation we wanna apply to the object, increases/decrease 
 	//when the player turn left/right
@@ -465,9 +433,7 @@ void cPlayerState_GrabHaptX::EnterState(iPlayerState* apPrevState)
 	mpPlayer->SetCrossHairState(eCrossHairState_Grab);
 
 	//Haptic Init
-	//mpPlayer->GetHapticCamera()->SetRenderActive(false);
 	
-	//if(mpPlayer->mbGrabbingMoveBody==false) 
 	if(mbHasGravity)
 		mpHGravityForce->SetActive(true);
 	mvGravityForce = cVector3f(0,mfDefaultMass * -9.8f * 0.0018f ,0);
@@ -504,8 +470,6 @@ void cPlayerState_GrabHaptX::LeaveState(iPlayerState* apNextState)
 
 	//Haptic Exit
 	mpPlayer->mbGrabbingMoveBody=false;
-
-	//mpPlayer->GetHapticCamera()->SetRenderActive(true);
 
 	mpHGravityForce->SetActive(false);
 	mpHAlignForce->SetActive(false);
@@ -600,7 +564,6 @@ void cPlayerState_MoveHaptX::OnUpdate(float afTimeStep)
 	float fDistance = cMath::Vector3Dist(vStart,vEnd);
 	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*1.7f)
 	{
-		//Log("Out of here %f!\n",mpPlayer->mfCurrentMaxInteractDist);
 		mpPlayer->ChangeState(mPrevState);
 		return;
 	}
@@ -636,7 +599,6 @@ void cPlayerState_MoveHaptX::OnUpdate(float afTimeStep)
 
 void cPlayerState_MoveHaptX::OnStartInteract()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 }
 
 void cPlayerState_MoveHaptX::OnStopInteract()
@@ -734,7 +696,6 @@ void cPlayerState_MoveHaptX::EnterState(iPlayerState* apPrevState)
 
 	//Change move state so the player is still
 	mPrevMoveState = mpPlayer->GetMoveState();
-	//mpPlayer->ChangeMoveState(ePlayerMoveState_Still);
 	mpPlayer->SetSpeedMul(0.3f);
 	mpPlayer->SetHeadMoveSizeMul(0.2f);
 	mpPlayer->SetHeadMoveSpeedMul(0.2f);
@@ -785,10 +746,6 @@ void cPlayerState_MoveHaptX::EnterState(iPlayerState* apPrevState)
 	mpPlayer->SetCrossHairState(eCrossHairState_Grab);
 
 	//Add callback to body if needed
-	/*if(mpPushBody->GetCollideCharacter())
-	{
-	mpPushBody->AddBodyCallback(mpCallback);
-	}*/
 	mpCallback->mlBackoffUpdatesRemaining =0;
 
 
@@ -797,11 +754,6 @@ void cPlayerState_MoveHaptX::EnterState(iPlayerState* apPrevState)
 
 void cPlayerState_MoveHaptX::LeaveState(iPlayerState* apNextState)
 {
-	//Remove callback to body if needed
-	/*if(mpPushBody->GetCollideCharacter())
-	{
-	mpPushBody->RemoveBodyCallback(mpCallback);
-	}*/
 
 	//Pause controllers
 	iGameEntity *pObject = (iGameEntity*)mpPushBody->GetUserData();
@@ -836,7 +788,6 @@ void cPlayerState_MoveHaptX::LeaveState(iPlayerState* apNextState)
 
 void cPlayerState_MoveHaptX::OnPostSceneDraw()
 {
-	//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(mvPickPoint,0.1f,cColor(1,1,1,1));
 }
 
 bool cPlayerState_MoveHaptX::OnStartInventory()
@@ -900,7 +851,6 @@ void cPlayerState_PushHaptX::OnUpdate(float afTimeStep)
 
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vPlayerPos = mpPlayer->GetCharacterBody()->GetPosition() + vPosAdd;
-	//mpPlayer->GetCharacterBody()->SetPosition(vPlayerPos,true);
 
 	//Not really needed. character body should fix.
 	cVector3f vNewPos = vPlayerPos;
@@ -923,7 +873,6 @@ bool cPlayerState_PushHaptX::OnJump()
 
 void cPlayerState_PushHaptX::OnStartInteract()
 {
-	//mpPlayer->ChangeState(mPrevState);
 }
 
 void cPlayerState_PushHaptX::OnStopInteract()
@@ -984,15 +933,6 @@ bool cPlayerState_PushHaptX::OnMoveForwards(float afMul, float afTimeStep)
 				vPos += mvForward * -1 * (fPosAdd+0.1f);
 				mpPlayer->GetCharacterBody()->SetPosition(vPos);
 
-				//Not good since slopes does not work:
-				/*pPhysicsWorld->CheckShapeWorldCollision(&vNewPos, pPlayerBody->GetShape(),
-											cMath::MatrixTranslate(pPlayerBody->GetPosition()),
-											mpPushBody,false,true,NULL,false);
-				
-				if(vNewPos.x != vPos.x || vNewPos.y != vPos.y)
-				{
-					mpPlayer->GetCharacterBody()->SetPosition(vOldPos);
-				}*/
 			}
 		}
 
@@ -1005,8 +945,6 @@ bool cPlayerState_PushHaptX::OnMoveForwards(float afMul, float afTimeStep)
 		return false;
 	}
 
-	//Log("Mul: %f\n",afMul);
-
 	//If the velocity is not to high add force.		
 
 	if(fSpeed < mfMaxSpeed)
@@ -1014,21 +952,11 @@ bool cPlayerState_PushHaptX::OnMoveForwards(float afMul, float afTimeStep)
 		
 		if(mpPlayer->mbPickAtPoint)
 		{
-			//NON WORKING ATM:
-			/*cVector3f vForce = mvForward * afMul*100.0f*0.5f;
-
-			cVector3f vPos = cMath::MatrixMul(	mpPushBody->GetLocalMatrix(), 
-												mvLocalPickPoint);
-			vPos.y = mpPushBody->GetLocalPosition().y;
-
-			mpPushBody->AddForceAtPosition(vForce,vPos);*/
 		}
 		else
 		{
 			cVector3f vForce = mvForward * afMul*100.0f;//*0.5f;
 
-			//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvRight*0.4f);
-			//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvRight*-0.4f);
 			mpPushBody->AddForce(vForce);
 		}
 	}
@@ -1043,12 +971,9 @@ bool cPlayerState_PushHaptX::OnMoveSideways(float afMul, float afTimeStep)
 
 	if(vVel.Length() < mfMaxSpeed)
 	{
-		//mpPushBody->AddForce(mvRight * afMul*100.0f);
 
 		cVector3f vForce = mvRight * afMul*100.0f;//*0.5f;
 
-		//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvForward*0.4f);
-		//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvForward*-0.4f);
 		mpPushBody->AddForce(vForce);
 	}
 
@@ -1124,7 +1049,6 @@ void cPlayerState_PushHaptX::EnterState(iPlayerState* apPrevState)
 
 	//Create a little effect when grabbing the body
 	mpPushBody->SetAutoDisable(false);
-	//mpPushBody->AddForce(cVector3f(0,-1,0) *60.0f *mpPushBody->GetMass());
 
 	//This is to check the last used direction
 	mlForward = 0;
@@ -1152,7 +1076,6 @@ void cPlayerState_PushHaptX::LeaveState(iPlayerState* apNextState)
 
 	//Create a little effect when letting go of the body
 	mpPushBody->SetAutoDisable(true);
-	//mpPushBody->AddForce(cVector3f(0,-1,0) *60.0f *mpPushBody->GetMass());
 
 	//haptic
 	mpHAlignForce->SetActive(false);

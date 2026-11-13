@@ -42,9 +42,6 @@ namespace hpl {
 	} tBeamNoisePoint;
 
 
-	// ---
-
-
 	// PARTICLE
 
 	class cParticle
@@ -96,8 +93,6 @@ namespace hpl {
 		int mlLowFreqPoints;
 		int mlHighFreqPoints;
 		std::vector<cVector3f> mvBeamPoints;
-
-		// ---
 
 	};
 

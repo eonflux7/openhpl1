@@ -30,7 +30,6 @@ void cHudModel_Throw::LoadData(TiXmlElement *apRootElem)
 		return;
 	}
 	
-	//mbDrawDebug = cString::ToBool(pMeleeElem->Attribute("DrawDebug"),false);
 	mChargePose = GetPoseFromElem("ChargePose",pMeleeElem);
 
 	mfChargeDurationSeconds = cString::ToFloat(pMeleeElem->Attribute("ChargeTime"),0);

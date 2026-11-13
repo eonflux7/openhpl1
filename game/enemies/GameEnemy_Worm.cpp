@@ -25,20 +25,11 @@ void iGameEnemyState_Worm_Base::OnSeePlayer(const cVector3f &avPosition, float a
 	if(afChance >= mpEnemyWorm->mfIdleMinSeeChance)
 	{
 		mpEnemy->ChangeState(STATE_HUNT);
-		//mpEnemyWorm->PlaySound(mpEnemyWorm->msIdleFoundPlayerSound);
 	}
 }
 
 bool iGameEnemyState_Worm_Base::OnHearNoise(const cVector3f &avPosition, float afVolume)
 {
-	/*float afDistance = (mpMover->GetCharBody()->GetPosition() - avPosition).Length();
-
-	if(afVolume >= mpEnemyWorm->mfIdleMinHearVolume && afDistance > 0.4f)
-	{
-		mpEnemy->SetTempPosition(avPosition);
-		mpEnemy->ChangeState(STATE_INVESTIGATE);
-		return true;
-	}*/
 
 	return false;
 }
@@ -49,13 +40,11 @@ void iGameEnemyState_Worm_Base::OnTakeHit(float afDamage)
 
 void iGameEnemyState_Worm_Base::OnFlashlight(const cVector3f &avPosition)
 {
-	//mpInit->mpEffectHandler->GetSubTitle()->Add("Flashlight!",0.5f);
 	OnSeePlayer(mpPlayer->GetCharacterBody()->GetFeetPosition(),1.0f);
 }
 
 void iGameEnemyState_Worm_Base::OnDeath(float afDamage)
 {
-	//mpEnemy->ChangeState(STATE_KNOCKDOWN);
 	mpEnemy->ChangeState(STATE_DEAD);
 }
 
@@ -72,7 +61,6 @@ void cGameEnemyState_Worm_Idle::OnEnterState(iGameEnemyState *apPrevState)
 	//Setup enemy
 	mpEnemy->SetFOV(mpEnemyWorm->mfIdleFOV);
 
-	//mpInit->mpMusicHandler->RemoveAttacker(mpEnemy);
 }
 
 void cGameEnemyState_Worm_Idle::OnLeaveState(iGameEnemyState *apNextState)
@@ -185,8 +173,6 @@ void cGameEnemyState_Worm_Hunt::OnLeaveState(iGameEnemyState *apNextState)
 
 void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 {
-	//cAnimationState *pState = mpEnemy->GetMeshEntity()->GetAnimationState(0);
-	//Log("Anim: %s %f %d\n",pState->GetName(),pState->GetTimePosition(),pState->IsActive());
 
 	mpEnemy->SetLastPlayerPos(mpInit->mpPlayer->GetCharacterBody()->GetFeetPosition());
 
@@ -198,7 +184,6 @@ void cGameEnemyState_Worm_Hunt::OnUpdate(float afTimeStep)
 	//Check if stuck
 	if(mpMover->GetStuckCounter() > 2.1f)
 	{
-		//mpEnemy->ChangeState(STATE_FLEE);
 		mpMover->ResetStuckCounter();
 		return;
 	}
@@ -366,8 +351,6 @@ bool cGameEnemyState_Worm_Hunt::OnHearNoise(const cVector3f &avPosition, float a
 
 void cGameEnemyState_Worm_Hunt::OnDraw()
 {
-	//mpInit->mpDefaultFont->Draw(cVector3f(230,10,100),14,cColor(1,1,1,1),eFontAlign_Left,
-	//							"Freepath: %d",mbFreePlayerPath);
 }
 
 void cGameEnemyState_Worm_Hunt::OnPostSceneDraw()
@@ -473,32 +456,9 @@ cGameEnemy_Worm_MeshCallback::cGameEnemy_Worm_MeshCallback(cGameEnemy_Worm *apWo
 	mpWorm = apWorm;
 }
 
-/*OLD CALC MATRIX VERSION:
-cMatrixf mtxRot = cMatrixf::Identity;
-mtxRot.SetRight(mpWorm->mvRootRight*-1); // *-1 = straange
-mtxRot.SetUp(mpWorm->mvRootUp);
-mtxRot.SetForward(mpWorm->mvRootForward);
-
-mtxRot = cMath::MatrixInverse(mtxRot);
-
-iCharacterBody *pCharBody = mpWorm->mpMover->GetCharBody();
-cMeshEntity *pEntity = mpWorm->mpMeshEntity;
-cMatrixf mtxEntity = mtxRot;
-//mtxEntity = cMath::MatrixMul(pCharBody->GetEntityPostOffset(),mtxEntity);
-mtxEntity.SetTranslation(mtxEntity.GetTranslation() + mpWorm->mvRootPosition +
-pCharBody->GetEntityOffset().GetTranslation());
-
-//mtxEntity = cMath::MatrixMul(mtxEntity,pCharBody->GetEntityOffset());
-
-//pEntity->GetRootNode()->SetMatrix(mtxEntity);
-pEntity->SetMatrix(mtxEntity);
-//mpWorm->mpRootBone->SetWorldMatrix(mtxEntity);
-*/
-
 void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntity, float afTimeStep)
 {
 	// Set bone matrix of root
-	//if(mpWorm->mbAttachMeshToBody==false)
 	if(mpWorm->mpMover->GetCharBody()->GetEntity()==nullptr)
 	{
 		iCharacterBody *pCharBody = mpWorm->mpMover->GetCharBody();
@@ -515,8 +475,6 @@ void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntit
 		pEntity->SetMatrix(mtxEntity);
 	}
 	
-	//return;
-	
 	// Set bone matrix of segments
 	for(size_t i=0; i< mpWorm->mvTailSegments.size();++i)
 	{
@@ -525,11 +483,6 @@ void cGameEnemy_Worm_MeshCallback::AfterAnimationUpdate(cMeshEntity *apMeshEntit
 		//Change orientation according to forward
 		cMatrixf mtxTrans = cMatrixf::Identity;
 		{
-			/*mtxTrans.SetRight(pSegment->mvRight*-1); // *-1 = straaange
-			mtxTrans.SetUp(pSegment->mvUp);
-			mtxTrans.SetForward(pSegment->mvForward);
-
-			mtxTrans = cMath::MatrixInverse(mtxTrans);*/
 
 			cVector3f vAngles = cMath::GetAngleFromPoints3D(0,pSegment->mvForward);
 			mtxTrans = cMath::MatrixRotate(cVector3f(-vAngles.x,kPif+vAngles.y,0),eEulerRotationOrder_XYZ);
@@ -602,15 +555,12 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		if(mpMoveSound==nullptr)
 		{
 			mpMoveSound = pWorld->CreateSoundEntity("WormMove",msMoveSound,true);
-			//Log("created move sound...\n");
 		}
 		else 
 		{
 			if(pWorld->SoundEntityExists(mpMoveSound))
 			{
-				//Log("Updating move sound...");
 				mpMoveSound->SetPosition(pCharBody->GetPosition());
-				//Log("done\n");
 			}
 			else
 			{
@@ -679,16 +629,8 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 			
 			cMatrixf mtxRot = cMath::MatrixQuaternion(qRotation);
 			mvRootForward = cMath::MatrixMul(mtxRot,mvRootForward);
-			//mvRootForward.y=0;
 			mvRootForward.Normalise();
 			
-			/*cVector3f vLastRight = mvRootRight;
-			mvRootRight = cMath::MatrixMul(	mtxRot,	mvRootRight);
-			mvRootRight.y =0; 
-			mvRootRight.Normalise(); //Make sure x-z plane
-			
-			mvRootUp = cMath::Vector3Cross(mvRootRight,mvRootForward);
-			mvRootUp.Normalise();*/
 		}
 	}
 
@@ -728,8 +670,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 		{
 			if(vSegMovement.SqrLength() > 0.00001f)
 				pSegment->mvGoalForward = cMath::Vector3Normalize(vSegMovement);
-			//Used for more stiff worms				
-			//pSegment->mvGoalForward = vSegForward;
 			
 			float fAngleDist = cMath::Vector3Angle(pSegment->mvForward,pSegment->mvGoalForward);
 			if(fAngleDist > 0.001f)
@@ -746,14 +686,6 @@ void cGameEnemy_Worm::OnUpdate(float afTimeStep)
 														pSegment->mvForward);
 				pSegment->mvForward.Normalise();
 				
-				/*pSegment->mvRight = cMath::MatrixMul(	cMath::MatrixQuaternion(qRotation),
-														pSegment->mvRight);
-				
-				pSegment->mvRight.y =0; pSegment->mvRight.Normalise();
-				
-
-				pSegment->mvUp = cMath::Vector3Cross(pSegment->mvRight,pSegment->mvForward);
-				pSegment->mvUp.Normalise();*/
 			}
 		}
 		vSegForward = pSegment->mvForward;
@@ -774,7 +706,6 @@ void cGameEnemy_Worm::ExtraPostSceneDraw()
 	pLowLevelGfx->SetDepthTestActive(false);
 
 	
-	//pLowLevelGfx->DrawLine(mpRootBone->GetWorldPosition(),gvBackPos,cColor(1,1));
 	pLowLevelGfx->DrawLine(mpRootBone->GetWorldPosition(),
 							mpRootBone->GetWorldPosition() + mvRootForward,cColor(0,0,1,1));
 	pLowLevelGfx->DrawLine(mpRootBone->GetWorldPosition(),
@@ -804,7 +735,6 @@ void cGameEnemy_Worm::ExtraPostSceneDraw()
 		pLowLevelGfx->DrawLine(vPos,vPos+vUp*0.6f,cColor(0,1,0,1));
 		pLowLevelGfx->DrawLine(vPos,vPos+vForward*0.6f,cColor(0,0,1,1));
 
-		//pLowLevelGfx->DrawLine( pSegment->mvPostion,pSegment->mvBackPos,cColor(0,0,1,1));
 	}
 
 	pLowLevelGfx->SetDepthTestActive(true);
@@ -845,7 +775,6 @@ bool cGameEnemy_Worm::IsFighting()
 
 void cGameEnemy_Worm::SetupTail()
 {
-	//Log("Setting up tail!\n");
 	
 	iCharacterBody *pCharBody = mpMover->GetCharBody();
 	cMeshEntity *pEntity = mpMeshEntity;
@@ -925,6 +854,5 @@ void cGameEnemy_Worm::SetupTail()
 				pSegment->mpBone->GetWorldPosition());
 		}
 
-		//Log("%d Dist: %f Fwd: %s\n",i,pSegment->mfDistToFront,pSegment->mvForward.ToString().c_str());
 	}
 }

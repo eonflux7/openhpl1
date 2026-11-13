@@ -118,8 +118,6 @@ namespace hpl {
 		tTempAnimDataVec vTempData;
 		tTempTimesSet setTempTimes;
 
-		//Log("Animation: %s\n",aAnim.msName.c_str());
-
 		//Get the node that will be animated by this track
 		cColladaNode* pNode = apScene->GetNode(aAnim.msTargetNode);
 		if(pNode==nullptr)
@@ -176,8 +174,6 @@ namespace hpl {
 		{
 			cColladaSampler &Sampler = aAnim.mvSamplers[i];
 
-			//Log("Sampler %s\n",Sampler.msId.c_str());
-
 			//Get the times
 			tFloatVec *pTimeVec = aAnim.GetSourceVec(Sampler.msTimeArray);
 			if(pTimeVec == nullptr){
@@ -192,7 +188,6 @@ namespace hpl {
 			//Get the transformation and add the values accordingly
 			cColladaTransform *pTrans = pNode->GetTransform(sTarget);
 			if(pTrans == nullptr){
-				//Error("Transform '%s' not found!\n",sTarget.c_str());
 				continue;
 			}
 
@@ -206,7 +201,6 @@ namespace hpl {
 			//Set the translation in this sampler
 			if(pTrans->msType == "translate")
 			{
-				//Log("Loading Translation\n");
 
 				for(size_t j=0; j <pTimeVec->size(); j++)
 				{
@@ -257,7 +251,6 @@ namespace hpl {
 
 					//Time exists
 					if(fTimeBefore == vTempData[j].mfTime){
-						//Log("Sample %s time %f is in place!\n",Sampler.msId.c_str(), vTempData[j].mfTime);
 						continue;
 					}
 					//Time between two keys
@@ -270,9 +263,6 @@ namespace hpl {
 
 						vTempData[j].mvTrans = pBefore->mvTrans*(1.0f-fT) + pAfter->mvTrans*fT;
 
-						//Log("Interpolated sample %s time %f between %f and %f. T=%f\n",
-						//						Sampler.msId.c_str(), vTempData[j].mfTime,
-						//						pBefore->mfTime,pAfter->mfTime,fT);
 					}
 					//Time before start
 					else if(fTimeBefore<0 && fTimeAfter>=0)
@@ -281,9 +271,6 @@ namespace hpl {
 
 						vTempData[j].mvTrans = pAfter->mvTrans;
 
-						//Log("Added before at sample %s time %f using %f\n",
-						//					Sampler.msId.c_str(), vTempData[j].mfTime,
-						//					pAfter->mfTime);
 					}
 					//Time after end
 					else if(fTimeBefore>=0 && fTimeAfter<0)
@@ -292,9 +279,6 @@ namespace hpl {
 
 						vTempData[j].mvTrans = pBefore->mvTrans;
 
-						//Log("Added after at sample %s time %f using %f\n",
-						//						Sampler.msId.c_str(), vTempData[j].mfTime,
-						//						pBefore->mfTime);
 					}
 				}
 			}
@@ -326,7 +310,6 @@ namespace hpl {
 
 					//Time exists
 					if(fTimeBefore == vTempData[j].mfTime){
-						//Log("Sample %s time %f is in place!\n",Sampler.msId.c_str(), vTempData[j].mfTime);
 						continue;
 					}
 					//Time between two keys
@@ -340,9 +323,6 @@ namespace hpl {
 						vTempData[j].mvRot.v[lVecNum] = pBefore->mvRot.v[lVecNum]*(1.0f-fT) +
 														pAfter->mvRot.v[lVecNum]*fT;
 
-						//Log("Interpolated sample %s time %f between %f and %f. T=%f\n",
-						//	Sampler.msId.c_str(), vTempData[j].mfTime,
-						//	pBefore->mfTime,pAfter->mfTime,fT);
 					}
 					//Time before start
 					else if(fTimeBefore<0 && fTimeAfter>=0)
@@ -351,9 +331,6 @@ namespace hpl {
 
 						vTempData[j].mvRot.v[lVecNum] = pAfter->mvRot.v[lVecNum];
 
-						//Log("Added before at sample %s time %f using %f\n",
-						//	Sampler.msId.c_str(), vTempData[j].mfTime,
-						//	pAfter->mfTime);
 					}
 					//Time after end
 					else if(fTimeBefore>=0 && fTimeAfter<0)
@@ -362,24 +339,10 @@ namespace hpl {
 
 						vTempData[j].mvRot.v[lVecNum] = pBefore->mvRot.v[lVecNum];
 
-						//Log("Added after at sample %s time %f using %f\n",
-						//	Sampler.msId.c_str(), vTempData[j].mfTime,
-						//	pBefore->mfTime);
 					}
 				}
 			}
 		}
-
-
-
-		/*Log("Animation %s\n",aAnim.msName.c_str());
-		for(size_t i=0; i <vTempData.size(); i++)
-		{
-			Log("Time: %f T: (%s) R: (%s) S: (%s)\n", vTempData[i].mfTime,
-				vTempData[i].mvTrans.ToString().c_str(),
-				vTempData[i].mvRot.ToString().c_str(),
-				vTempData[i].mvScale.ToString().c_str());
-		}*/
 
 		//Create new animation track
 		cAnimationTrack * pTrack = apAnimation->CreateTrack(aAnim.msTargetNode,
@@ -409,7 +372,6 @@ namespace hpl {
 
 	void cMeshLoaderCollada::CalcLocalMatrixRec(cBone* apBone, cMatrixf a_mtxParentGlobal, int alDepth)
 	{
-		//Log("%s %s \n",GetTabs(alDepth),apBone->GetName().c_str());
 
 		if(apBone->GetValue()==0){
 			Warning("Bone '%s' is not attached to skin!\n",apBone->GetName().c_str());
@@ -453,14 +415,6 @@ namespace hpl {
 		eVertexBufferUsageType aUsageType)
 		//,tColladaExtraVtxListVec &vExtraVtxVec)
 	{
-		//tVertexVec vVertexVec;
-		//tUIntVec vIndexVec;
-		//SplitVertices(aGeometry,vExtraVtxVec,vVertexVec,vIndexVec);
-
-		//Log("Creating vertex buffer for '%s'\n",aGeometry.msName.c_str());
-
-		//TEMP: use the one in geometry directly.
-		//vExtraVtxVec = aGeometry.mvExtraVtxVec;
 
 		//Create vertex buffer and fill it
 		iVertexBuffer *pVtxBuff = mpLowLevelGraphics->CreateVertexBuffer(
@@ -578,10 +532,6 @@ namespace hpl {
 				}
 			}
 
-			//Log("Loaded light '%s', type '%s', color: %f %f %f\n", Light.msId.c_str(),
-			//				Light.msType.c_str(),
-			//				Light.mDiffuseColor.r,Light.mDiffuseColor.g,Light.mDiffuseColor.b);
-
 			avColladaLightVec.push_back(Light);
 		}
 	}
@@ -691,7 +641,6 @@ namespace hpl {
 
 				TiXmlElement *pArrayElem = pSourceElem->FirstChildElement("float_array");
 				if(pArrayElem == nullptr){
-					//Warning("No array element found for animation data (shouldn't be anything bad)!\n");
 					continue;
 				}
 
@@ -739,8 +688,6 @@ namespace hpl {
 			pNode->msSource = sSource;
 		}
 
-		//Log("Node. %s, type: %s\n",pNode->msId.c_str(),pNode->msType.c_str());
-
 		cVector3f vTranslation = cVector3f(0,0,0);
 
 		//Iterate through all of the transforms.
@@ -755,8 +702,6 @@ namespace hpl {
 				pTransformElem = pTransformElem->NextSiblingElement();
 				continue;
 			}
-
-			//Log("val: %s\n",sVal.c_str());
 
 			TiXmlText *pText= pChildElem->ToText();
 			if(pText==nullptr)
@@ -803,15 +748,6 @@ namespace hpl {
 			Transform.msSid = sSid;
 			Transform.mvValues = vValVec;
 			Transform.msType = sVal;
-
-			/*Log("Transform:\n");
-			Log("Sid: %s type: %s ",Transform.msSid.c_str(), Transform.msType.c_str());
-			Log("Values: ");
-			for(size_t i=0; i < Transform.mvValues.size();i++)
-			{
-			Log("%f ",Transform.mvValues[i]);
-			}
-			Log("\n");*/
 
 			vValVec.clear();
 			pTransformElem = pTransformElem->NextSiblingElement();
@@ -1024,8 +960,6 @@ namespace hpl {
 					Pair.mlJoint = vV[lPair*2 + lJointOffset];
 					Pair.mlWeight = vV[lPair*2 + lWeightOffset];
 
-					//Log("Pair: %d, %d vtx: %d\n",Pair.mlJoint, Pair.mlWeight,lVtx);
-
 					Controller.mvPairs[lVtx].push_back(Pair);
 
 					//Check if it is time for a new vertex.
@@ -1045,13 +979,11 @@ namespace hpl {
 	public:
 		cColladaTestTri(cColladaVtxIndex *apTriIndex)
 		{
-			//Log("TestTri:\n");
 			//Get the vectors
 			for(int i=0; i<3; i++)
 			{
 				mvPos[i] = (*gpVertexVec)[apTriIndex[i].mlVtx];
 
-				//Log("Pos%d: %s\n",i,mvPos[i].ToString().c_str());
 			}
 
 			//Sort the vectors
@@ -1070,7 +1002,6 @@ namespace hpl {
 				}
 			}
 
-			//for(int i=0; i<3; i++) Log("Pos%d: %s\n",i,mvPos[i].ToString().c_str());
 		}
 
 		cVector3f mvPos[3];
@@ -1107,9 +1038,6 @@ namespace hpl {
 		for(; pGeomElem!=nullptr; pGeomElem = pGeomElem->NextSiblingElement("geometry"))
 		{
 			avColladaGeometryVec.push_back(cColladaGeometry());
-
-			//tColladaVtxArrayVec vArrayVec;
-			///tColladaVtxIndexVec vIndices;
 
 			cColladaGeometry &Geometry = avColladaGeometryVec[avColladaGeometryVec.size()-1];
 
@@ -1151,18 +1079,10 @@ namespace hpl {
 
 				//Get id
 				tString sSourceId = cString::ToString(pSourceElem->Attribute("id"),"");
-				//Log("Vertex id: '%s' \n",sSourceId.c_str());
 
 				Geometry.mvArrayVec[lPos].msId = sSourceId;
 
 				LoadVertexData(pSourceElem,Geometry.mvArrayVec[lPos].mvArray);
-
-				/*Log("Array: %s\n",sSourceId.c_str());
-				for(int i=0; i< (int)Geometry.mvArrayVec[lPos].mvArray.size(); i++)
-				{
-					Log("(%s) ",Geometry.mvArrayVec[lPos].mvArray[i].ToString().c_str());
-				}
-				Log("\n");*/
 
 				pSourceElem = pSourceElem->NextSiblingElement("source");
 			}
@@ -1183,8 +1103,6 @@ namespace hpl {
 					tString sSource = cString::ToString(pVtxInput->Attribute("source"),"");
 					GetAdress(sSource);
 
-					//Log("Position vertex source: %s\n", sSource.c_str());
-
 					for(int i=0;i<(int) Geometry.mvArrayVec.size(); i++)
 					{
 						//If the vertex array is found just change the name and break.
@@ -1199,8 +1117,6 @@ namespace hpl {
 				{
 					tString sSource = cString::ToString(pVtxInput->Attribute("source"),"");
 					GetAdress(sSource);
-
-					//Log("%s vertex source: %s\n",sSemantic.c_str(), sSource.c_str());
 
 					//Find array and set some properties
 					for(int i=0;i<(int) Geometry.mvArrayVec.size(); i++)
@@ -1240,7 +1156,6 @@ namespace hpl {
 
 
 			if(pTriElem==nullptr){
-				//Warning("No triangle or polylist element found, testing polygons.\n");
 				pTriElem = pMeshElem->FirstChildElement("polygons");
 				if(pTriElem==nullptr){
 					Error("No Polygons found!\n"); return;
@@ -1399,16 +1314,6 @@ namespace hpl {
 					//Iterate the points in triangle
 					//If Z is used as y the order must be reversed.
 					//Turns out, it is not so... because x is negated.
-					/*if(mbZToY)
-					{
-						for(int i=2; i>= 0; i--)
-						{
-							DataVec[2-i].mlVtx = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlPosIdxNum];
-							DataVec[2-i].mlNorm = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlNormIdxNum];
-							DataVec[2-i].mlTex = vIndexArray[lTriangleAdd + i*lTriElements + Geometry.mlTexIdxNum];
-						}
-					}
-					else*/
 					{
 						for(int i=0; i< 3; i++)
 						{
@@ -1442,7 +1347,6 @@ namespace hpl {
 						{
 							Warning("Geometry '%s' has two faces using same vertices! Skipping face. (note: the geometry node could not be found either!)\n",Geometry.msId.c_str());
 						}
-						//Error("Geometry '%s' has two faces using same vertices! Skipping face.\n",Geometry.msName.c_str());
 					}
 				}
 
@@ -1516,8 +1420,6 @@ namespace hpl {
 
 		int lElements = cString::ToInt(pAccessor->Attribute("stride"),0);
 		int lVtxCount = cString::ToInt(pAccessor->Attribute("count"),0);
-
-		//Log("Elems: %d Count: %d\n",lElements,lVtxCount);
 
 		//Load the array
 		TiXmlElement* pDataElem = apSourceElem->FirstChildElement("float_array");
@@ -1622,7 +1524,6 @@ namespace hpl {
 					if(pChildElem)
 					{
 						newParam.msType = pChildElem->Value();
-						//Log("Newparam '%s' type '%s'\n",newParam.msId.c_str(),newParam.msType.c_str());
 
 						tString sDataName ="";
 						if(newParam.msType == "surface")		sDataName = "init_from";
@@ -1678,8 +1579,6 @@ namespace hpl {
 					else
 					{
 						Texture.msImage = "";
-						//Warning("No diffuse texture effect element for effect '%s'! No file texture file will be loaded.\n",
-						//			Texture.msId.c_str());
 					}
 				}
 				else
@@ -1731,8 +1630,6 @@ namespace hpl {
 			}
 
 
-			//Log("Texture: id: '%s' image: '%s'\n",Texture.msId.c_str(), Texture.msImage.c_str());
-
 			avColladaTextureVec.push_back(Texture);
 		}
 	}
@@ -1781,10 +1678,6 @@ namespace hpl {
 					pInputElem = pInputElem->NextSiblingElement("input");
 				}
 			}
-
-			//Log("Material: id: '%s' name: '%s' texture: '%s'\n",Material.msId.c_str(),
-			//											Material.msName.c_str(),
-			//											Material.msTexture.c_str());
 
 			//Add to vector
 			avColladaMaterialVec.push_back(Material);
@@ -1838,7 +1731,6 @@ namespace hpl {
 		for(int i=0; i<(int) vIndices.size(); i++)
 		{
 			cColladaVtxIndex &Data = vIndices[i];
-			//Log("Index %d: ", i);
 
 			//If the vertex extra is empty this is the first of
 			//this vertex added, so no need to split.
@@ -1848,7 +1740,6 @@ namespace hpl {
 
 				avVertexVec[Data.mlVtx] = IndexDataToVertex(Data,aGeometry);
 				avIndexVec[i] = Data.mlVtx;
-				//Log("New vertex added");
 			}
 			//There is already a vertex added at this position, check if this exist
 			//else create a new.
@@ -1863,7 +1754,6 @@ namespace hpl {
 					{
 						avIndexVec[i] = it->mlNewVtx;
 						bFound = true;
-						//Log("Old vertex split used");
 						break;
 					}
 				}
@@ -1876,11 +1766,9 @@ namespace hpl {
 					avIndexVec[i] = (int)avVertexVec.size();
 
 					avVertexVec.push_back(IndexDataToVertex(Data,aGeometry));
-					//Log("New split made");
 				}
 			}
 
-			//Log("\n");
 		}
 	}
 
@@ -1935,7 +1823,6 @@ namespace hpl {
 
 						avVtxVec[lVertexNum] = vVec;
 						lVertexNum++;
-						//Log("%s\n", vVec.ToString().c_str());
 					}
 				}
 			}
@@ -2004,294 +1891,5 @@ namespace hpl {
 
 		return "";
 	}
-
-	/*
-	OLD SKINNING DATA
-	void cMeshLoaderCollada::LoadControllers(TiXmlElement* apRootElem,
-	tColladaControllerVec &avColladaControllerVec,
-	tColladaGeometryVec &avColladaGeometryVec)
-	{
-	TiXmlElement* pCtrlElem = apRootElem->FirstChildElement("controller");
-	for(;pCtrlElem!=NULL; pCtrlElem = pCtrlElem->NextSiblingElement("controller"))
-	{
-	avColladaControllerVec.push_back(cColladaController());
-
-	cColladaController &Controller = avColladaControllerVec[avColladaControllerVec.size()-1];
-
-	tString sTarget =cString::ToString(pCtrlElem->Attribute("target"),"");
-	tString sId = cString::ToString(pCtrlElem->Attribute("id"),"");
-
-	Controller.msId = sId;
-
-	// Get Skin element.
-	TiXmlElement *pSkinElem = pCtrlElem->FirstChildElement("skin");
-	if(pSkinElem==NULL){ Error("No Skin found in controller!\n"); continue;}
-
-	//1.4 support, check skin for source if not found.
-	if(sTarget == ""){
-	sTarget = cString::ToString(pSkinElem->Attribute("source"),"");
-	GetAdress(sTarget);
-	}
-
-	Controller.msTarget = sTarget;
-
-	// Find the geometry for the controller.
-	cColladaGeometry* pGeom =NULL;
-	for(int i=0;i<(int)avColladaGeometryVec.size();i++)
-	{
-	if(sTarget == avColladaGeometryVec[i].msId)
-	{
-	if(avColladaGeometryVec[i].mvIndices.empty())
-	{
-	Error("Target geometry is empty!\n");
-	break;
-	}
-
-	pGeom = &avColladaGeometryVec[i];
-	break;
-	}
-	}
-	if(pGeom==NULL){
-	Error("Target '%s' for Controller '%s' couldn't be found\n",sTarget.c_str(),sId.c_str());
-	continue;
-	}
-
-	// Get the types of sources used in the controller.
-	tString sNormalSourceId;
-	tString sPositionSourceId;
-	tString sJointSourceId;
-
-	TiXmlElement *pVerticesElem = pSkinElem->FirstChildElement("vertices");
-	if(pVerticesElem==NULL){ Error("No vertices element!\n"); continue;}
-
-	TiXmlElement *pVtxInput = pVerticesElem->FirstChildElement("input");
-	while(pVtxInput)
-	{
-	tString sSemantic = cString::ToString(pVtxInput->Attribute("semantic"),"");
-	tString sSource = cString::ToString(pVtxInput->Attribute("source"),"");
-	GetAdress(sSource);
-
-	//Log("Vertex: %s Sem: %s\n",sSource.c_str(), sSemantic.c_str());
-
-	//Check the semantic and set the strings to point to right source.
-	if(sSemantic == "BIND_SHAPE_POSITION")
-	{
-	sPositionSourceId = sSource;
-	}
-	else if(sSemantic == "BIND_SHAPE_NORMAL")
-	{
-	sNormalSourceId = sSource;
-	}
-	else if(sSemantic == "JOINTS_AND_WEIGHTS")
-	{
-	sJointSourceId = sSource;
-	}
-
-	pVtxInput = pVtxInput->NextSiblingElement("input");
-	}
-
-	// Get the sources and load / apply them
-
-	TiXmlElement *pSourceElem = pSkinElem->FirstChildElement("source");
-	while(pSourceElem)
-	{
-	tString sId = cString::ToString(pSourceElem->Attribute("id"),"");
-
-	//Log("Loading controller source %s\n",sId.c_str());
-
-	//new vectors for positions
-	if(sId == sPositionSourceId)
-	{
-	if(pGeom->mlPosArrayIdx >= 0)
-	{
-	LoadVertexData(pSourceElem, pGeom->mvArrayVec[pGeom->mlPosArrayIdx].mvArray);
-	}
-	}
-	//new vectors for normals
-	else if(sId == sNormalSourceId)
-	{
-	if(pGeom->mlNormArrayIdx >= 0)
-	LoadVertexData(pSourceElem, pGeom->mvArrayVec[pGeom->mlNormArrayIdx].mvArray);
-	}
-	//data for joints
-	else if(sId == sJointSourceId)
-	{
-	LoadJointData(pSourceElem, Controller);
-	}
-
-	pSourceElem = pSourceElem->NextSiblingElement("source");
-	}
-	}
-	}
-
-	void cMeshLoaderCollada::LoadJointData(TiXmlElement* apSourceElem, cColladaController &aController)
-	{
-	tString sJointArrayName ="";
-	tString sMatrixArrayName ="";
-	tString sWeightArrayName ="";
-
-	//Get technique element
-	TiXmlElement *pTechniqueElem = apSourceElem->FirstChildElement("technique");
-	if(pTechniqueElem==NULL){ Warning("No technique element found!\n"); return;}
-
-	//Get the names of joint, matrix and weight array.
-	TiXmlElement *pAccessorElem = pTechniqueElem->FirstChildElement("accessor");
-	while(pAccessorElem)
-	{
-	tString sSource = cString::ToString(pAccessorElem->Attribute("source"),"");
-	GetAdress(sSource);
-
-	TiXmlElement *pParamElem = pAccessorElem->FirstChildElement("param");
-	if(pParamElem==NULL){ Warning("Accessor contains no param!\n"); return;}
-
-	tString sParamName = cString::ToString(pParamElem->Attribute("name"),"");
-
-	if(sParamName == "JOINT")
-	{
-	sJointArrayName = sSource;
-	}
-	else if(sParamName == "INV_BIND_MATRIX")
-	{
-	sMatrixArrayName = sSource;
-	}
-	else if(sParamName == "WEIGHT")
-	{
-	sWeightArrayName = sSource;
-	}
-
-	pAccessorElem = pAccessorElem->NextSiblingElement("accessor");
-	}
-
-	//Log("Joint: %s Matrix: %s Weight: %s\n",sJointArrayName.c_str(),
-	//	sMatrixArrayName.c_str(),
-	//	sWeightArrayName.c_str());
-
-	// Get the pairs
-	TiXmlElement *pCombinerElem = pTechniqueElem->FirstChildElement("combiner");
-	if(pCombinerElem == NULL){ Error("No combiner found!\n"); return;}
-
-	int lPairCount = cString::ToInt(pCombinerElem->Attribute("count"),0);
-
-	aController.mvPairs.resize(lPairCount);
-	//Log("Pair Count: %d\n",lPairCount);
-
-	//Check which element is joint and which is weight.
-	TiXmlElement *pCombInput = pCombinerElem->FirstChildElement("input");
-	while(pCombInput)
-	{
-	tString sSemantic = cString::ToString(pCombInput->Attribute("semantic"),"");
-	int lIdx = cString::ToInt(pCombInput->Attribute("idx"),0);
-
-	if(sSemantic == "JOINT")
-	{
-	aController.mlJointPairIdx = lIdx;
-	//Log("Joint has idx %d\n",lIdx);
-	}
-	else if(sSemantic == "WEIGHT")
-	{
-	aController.mlWeightPairIdx = lIdx;
-	//Log("Weight has idx %d\n",lIdx);
-	}
-	else
-	{
-	Warning("Unknown semantic '%s' found in combiner input\n", sSemantic);
-	}
-
-	pCombInput = pCombInput->NextSiblingElement("input");
-	}
-
-	// Load the data for the pairs
-	int lPairIdx =0;
-	TiXmlElement *pCombV = pCombinerElem->FirstChildElement("v");
-	while(pCombV)
-	{
-	TiXmlText *pText = pCombV->FirstChild()->ToText();
-	if(pText==NULL){ Error("No index data found!\n"); return;}
-
-	//Get the indices joints and weights
-	tIntVec vIndexArray;
-	cString::GetIntVec(pText->Value(),vIndexArray);
-
-	//Add each pair in a list at each vertex
-	int lNumOfPairs = (int) vIndexArray.size() /2;
-	for(int i=0;i<lNumOfPairs;i++)
-	{
-	cColladaJointPair Pair;
-
-	Pair.mlJoint = vIndexArray[i*2 + aController.mlJointPairIdx];
-	Pair.mlWeight = vIndexArray[i*2 + aController.mlWeightPairIdx];
-
-	//Log("Pair: %d, %d\n",Pair.mlJoint, Pair.mlWeight);
-
-	aController.mvPairs[lPairIdx].push_back(Pair);
-	}
-
-
-	lPairIdx++;
-	pCombV = pCombV->NextSiblingElement("v");
-	}
-
-	// Get the arrays
-
-	//Get the names of the joints:
-	TiXmlElement *pNameArrayElem = apSourceElem->FirstChildElement("Name_array");
-	if(pNameArrayElem==NULL){ Error("No name array found!\n"); return;}
-
-	tString sNameId = cString::ToString(pNameArrayElem->Attribute("id"),"");
-	int lNameCount = cString::ToInt(pNameArrayElem->Attribute("count"),0);
-
-	if(sNameId != sJointArrayName){
-	Error("Name array and joint array is not the same!\n");
-	return;
-	}
-
-	TiXmlText *pNameText = pNameArrayElem->FirstChild()->ToText();
-	if(pNameText==NULL){ Error("No joint name data found!\n"); return;}
-
-	aController.mvJoints.reserve(lNameCount);
-	cString::GetStringVec(pNameText->Value(), aController.mvJoints);
-
-	// Get weights and matrices
-	TiXmlElement *pFloatArrayElem = apSourceElem->FirstChildElement("float_array");
-	while(pFloatArrayElem)
-	{
-	tString sId = cString::ToString(pFloatArrayElem->Attribute("id"),"");
-	int lCount = cString::ToInt(pFloatArrayElem->Attribute("count"),0);
-
-	TiXmlText *pText = pFloatArrayElem->FirstChild()->ToText();
-	if(pText==NULL){ Error("No value data found!\n"); return;}
-
-	tFloatVec vValVec;
-	vValVec.reserve(lCount);
-	cString::GetFloatVec(pText->Value(), vValVec);
-
-	//Get the matrix arrray
-	if(sId == sMatrixArrayName)
-	{
-	aController.mvMatrices.reserve(lCount / 16);
-
-	for(int i=0; i< (lCount / 16); i++)
-	{
-	cMatrixf mtxTemp(&vValVec[i*16]);
-
-	aController.mvMatrices.push_back(mtxTemp);
-
-	//Log("Mtx: %s\n",cMath::MatrixToChar(mtxTemp));
-	}
-	}
-	//Get the weight array
-	else if(sId == sWeightArrayName)
-	{
-	aController.mvWeights = vValVec;
-
-	//for(int i=0; i <(int)aController.mvWeights.size();i++)
-	//{
-	//Log("Weight: %f\n",Controller.mvWeights[i]);
-	//}
-	}
-
-	pFloatArrayElem = pFloatArrayElem->NextSiblingElement("float_array");
-	}
-	}*/
 
 }

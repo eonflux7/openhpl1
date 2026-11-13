@@ -138,9 +138,6 @@ namespace hpl {
 				apBody->GetScrapeSoundEntity()->FadeOut(4.3f);
 				apBody->SetScrapeSoundEntity(nullptr);
 				apBody->SetScrapeBody(nullptr);
-				//Log("Stopped scrape '%s' %d on body '%s' IN SURFACEDATA!\n",msScrapeSoundName.c_str(),
-				//	(size_t)apBody->GetScrapeSoundEntity(),
-				//	apBody->GetName().c_str());
 			}
 			else
 			{
@@ -183,7 +180,6 @@ namespace hpl {
 					}
 				}
 
-				//Log("Speed: %f Freq: %f\n",fAbsSpeed,fFreq);
 				cSoundEntry *pEntry = apBody->GetScrapeSoundEntity()->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
@@ -210,9 +206,6 @@ namespace hpl {
 					apBody->SetScrapeSoundEntity(pEntity);
 					apBody->SetScrapeBody(apSlideAgainstBody);
 
-					//Log("Starting scrape '%s' %d on body '%s'\n",msScrapeSoundName.c_str(),
-					//											(size_t)pEntity,
-					//											apBody->GetName().c_str());
 				}
 			}
 		}
@@ -281,11 +274,6 @@ namespace hpl {
 			cMatrixf mtxPos = cMath::MatrixTranslate(avPos);
 			pWorld->CreateParticleSystem("ImpactPS",sPS,1,mtxPos);
 
-			//Log("Mat1: '%s' Mat2: '%s' Speed %f particle system '%s' pos: %s\n",
-			//	GetName().c_str(),
-			//	apSecondSurface->GetName().c_str(),
-			//	afSpeed,sPS.c_str(),
-			//	mtxPos.GetTranslation().ToString().c_str());
 		}
 	}
 
@@ -306,8 +294,6 @@ namespace hpl {
 		//Z
 		if(mRollAxisFlags & eRollAxisFlag_Z)
 			if(fRollingSpeed < std::abs(vAngularSpeed.z)) fRollingSpeed = std::abs(vAngularSpeed.z);
-
-		//Log("Rollspeed: %f\n",fRollingSpeed);
 
 		if(fRollingSpeed==0 && apBody->GetRollSoundEntity()==nullptr) return;
 
@@ -334,8 +320,6 @@ namespace hpl {
 			{
 				apBody->GetRollSoundEntity()->FadeOut(4.3f);
 				apBody->SetRollSoundEntity(nullptr);
-				//Log("Stopped Roll '%s' on body '%s'\n",msRollSoundName.c_str(),
-				//														apBody->GetName().c_str());
 			}
 			else
 			{
@@ -381,21 +365,17 @@ namespace hpl {
 					}
 				}
 
-				//Log("Speed: %f Freq: %f\n",fAbsSpeed,fFreq);
 				cSoundEntity *pSound = apBody->GetRollSoundEntity();
 				cSoundEntry *pEntry = pSound->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
 					pEntry->mfNormalSpeed = fFreq;
 
-					//pEntry->mfNormalVolume = cMath::Max(fVolume * pSound->GetVolume(),1.0f);
 					pEntry->mfNormalVolumeFadeDest = cMath::Min(fVolume * pSound->GetVolume(),1.0f);
 					pEntry->mfNormalVolumeFadeSpeed = 4.0f;
 
 					apBody->GetRollSoundEntity()->SetPosition(apBody->GetWorldPosition());
 
-					//Log("Updated Roll on body '%s' w speed %f to f: %f v: %f\n",apBody->GetName().c_str(),
-					//						fRollingSpeed,fFreq,fVolume);
 				}
 				else
 				{
@@ -418,8 +398,6 @@ namespace hpl {
 
 					apBody->SetRollSoundEntity(pEntity);
 
-					//Log("Starting Roll '%s' on body '%s'\n",msRollSoundName.c_str(),
-					//											apBody->GetName().c_str());
 				}
 			}
 		}

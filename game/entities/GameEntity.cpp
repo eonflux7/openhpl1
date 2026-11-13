@@ -77,7 +77,6 @@ iGameEntity::~iGameEntity()
 	cWorld3D *pWorld = mpInit->mpGame->GetScene()->GetWorld3D();
 
 	// Remove collision-callback references from the player and other entities.
-	//Log("Deleting '%s'\n",msName.c_str());
 
 	//Player
 	mpInit->mpPlayer->RemoveCollideScriptWithChildEntity(this);
@@ -242,10 +241,6 @@ void iGameEntity::SetActive(bool abActive)
 		{
 			//Pre update the character body to make sure it is on ground.
 			//Seems to mess up stuff
-			/*for(int i=0; i<120; ++i)
-			{
-				//mpCharBody->Update(1.0f / 60.0f);
-			}*/
 		}
 	}
 	
@@ -292,7 +287,6 @@ eCrossHairState iGameEntity::GetPickCrossHairState(iPhysicsBody *apBody)
 	// Too far
 	if(mvCallbackScripts[eGameEntityScriptType_PlayerInteract] || mbHasInteraction)
 	{
-		//if(fDistance <= mfMaxExamineDist) return eCrossHairState_Invalid;
 		if(apBody->GetMass()==0 && mvCallbackScripts[eGameEntityScriptType_PlayerInteract]==nullptr)
 		{
 			return eCrossHairState_None;
@@ -379,7 +373,6 @@ void iGameEntity::OnPlayerExamine()
 	if(mfMaxExamineDist >= mpInit->mpPlayer->GetPickedDist() && msDescription!=_W(""))
 	{
 		mpInit->mpGameMessageHandler->Add(msDescription);
-		//if(mbShowDescritionOnce) msDescription = _W("");
 		mbHasBeenExamined = true;
 		
 		//Set focus on the object
@@ -397,7 +390,6 @@ void iGameEntity::Damage(float afDamage, int alStrength)
 	{
 		if(mType == eGameEntityType_Enemy)
 		{
-			//if(mpInit->mDifficulty== eGameDifficulty_Easy) afDamage *= 2.0f;
 			if(mpInit->mDifficulty== eGameDifficulty_Hard) afDamage /= 2.0f;
 			if(mpInit->mbHasHaptics) afDamage *= 2.0f;
 		}
@@ -487,7 +479,6 @@ void iGameEntity::SetTransActive(bool abActive)
 	
 	if(mbTransShadow)
 	{
-		//mpMeshEntity->SetForceShadow(mbTransActive);
 	}
 	
 	for(int i=0; i< mpMeshEntity->GetSubMeshEntityNum(); ++i)
@@ -613,7 +604,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 	cCollideData collideData;
 	collideData.SetMaxSize(1);
 
-	//if(msName == "liftclose") Log("--- Start collision test\n");
 	mbUpdatingCollisionCallbacks = true;
 	tGameCollideScriptMapIt CollideIt = m_mapCollideCallbacks.begin();
 	for(; CollideIt != m_mapCollideCallbacks.end(); ++CollideIt)
@@ -631,7 +621,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 				iPhysicsBody *pParentBody = mvBodies[i];
 				iPhysicsBody *pChildBody = pEntity->mvBodies[j];
 				
-				//if(msName == "liftclose") Log("Start shape collision....");
 				if(cMath::CheckCollisionBV( *pParentBody->GetBV(),*pChildBody->GetBV()))
 				{
 					bCollide = pPhysicsWorld->CheckShapeCollision(pParentBody->GetShape(), 
@@ -640,14 +629,12 @@ void iGameEntity::OnUpdate(float afTimeStep)
 																pChildBody->GetLocalMatrix(),
 																collideData,1);
 				}
-				//if(msName == "liftclose") Log("end it\n");
 				if(bCollide) break;
 			}
 		
 		//Run Collide scripts	
 		if(bCollide)
 		{
-			//if(msName == "liftclose") Log("entity %s collided!\n",msName.c_str());
 
 			if(pCallback->mbCollides)
 			{
@@ -697,8 +684,6 @@ void iGameEntity::OnUpdate(float afTimeStep)
 			mvBodies.push_back(vSavedBodies[i]);
 	}
 	
-	//if(msName == "liftclose") Log("--- End collision test\n");
-
 	//Check if any callback should be deleted
 	CollideIt = m_mapCollideCallbacks.begin();
 	for(; CollideIt != m_mapCollideCallbacks.end(); )
@@ -917,7 +902,6 @@ void iGameEntity::PreloadModel(const tString &asFile)
 
 iGameEntity_SaveData::~iGameEntity_SaveData()
 {
-	//Log("Deleting save data %d\n",this);
 }	
 
 cEnginePS_SaveData* iGameEntity_SaveData::GetParticleSystem(cParticleSystem3D* apPS)
@@ -1066,12 +1050,10 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 		apSaveData->mvBodies[i].FromBody(mvBodies[i]);
 	}
 
-	//Log("Saving particles for %s\n",GetName().c_str());
 	//Particle Systems
 	apSaveData->mvPS.Resize(mvParticleSystems.size());
 	for(size_t i=0; i<mvParticleSystems.size(); ++i)
 	{
-		//Log("%d, ",i);
 
 		if(pWorld->ParticleSystemExists(mvParticleSystems[i])==false)
 		{
@@ -1081,7 +1063,6 @@ void iGameEntity::SaveToSaveData(iGameEntity_SaveData* apSaveData)
 
 		apSaveData->mvPS[i].FromPS(mvParticleSystems[i]);
 	}
-	//Log("Done\n");
 
 	//Lights
 	if(mbSaveLights)
@@ -1194,12 +1175,6 @@ void iGameEntity::LoadFromSaveData(iGameEntity_SaveData* apSaveData)
 	{
 		cParticleSystem3D *pPS = *it;
 
-		/*if(pPS)
-			Log("Loading particle system %d, %s\n",i,pPS->GetName().c_str());
-		else
-			Log("Loading particle system %d, NULL\n",i);*/
-
-
 		cEnginePS_SaveData *pSavePS = apSaveData->GetParticleSystem(pPS);
 		if(pSavePS)
 		{
@@ -1291,5 +1266,4 @@ void iGameEntity::SetupSaveData(iGameEntity_SaveData *apSaveData)
 		m_mapCollideCallbacks.insert(tGameCollideScriptMap::value_type(savedScript.msEntity,pCallback));
 	}
 
-	//Log("Setup save data!\n");
 }

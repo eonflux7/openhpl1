@@ -218,13 +218,9 @@ namespace hpl {
 
 	bool iEntity3D::IsInSector(cSector *apSector)
 	{
-		//Log("-- %s --\n",msName.c_str());
-		//bool bShouldReturnTrue = false;
 
 		if(apSector == GetCurrentSector())
 		{
-			//Log("Should return true\n");
-			//bShouldReturnTrue = true;
 			return true;
 		}
 
@@ -235,16 +231,12 @@ namespace hpl {
 			iRenderContainerData *pRenderContainerData = *it;
 			cSector *pSector = static_cast<cSector*>(pRenderContainerData);
 
-			//Log("%s (%d) vs %s (%d)\n",pSector->GetId().c_str(),pSector, apSector->GetId().c_str(),apSector);
 			if(pSector == apSector)
 			{
-				//Log("return true!\n");
 				return true;
 			}
 		}
 
-		//if(bShouldReturnTrue)Log(" %s should have returned true. Sectors: %d\n",msName.c_str(),		mlstRenderContainerData.size());
-		//Log("return false!\n");
 		return false;
 	}
 
@@ -354,8 +346,6 @@ namespace hpl {
 	{
 		kSaveData_SaveToBegin(iEntity3D);
 
-		//Log("-------- Saving %s --------------\n",msName.c_str());
-
 		kSaveData_SaveTo(m_mtxLocalTransform);
 		kSaveData_SaveTo(mBoundingVolume);
 		kSaveData_SaveTo(msSourceFile);
@@ -363,23 +353,11 @@ namespace hpl {
 		kSaveData_SaveObject(mpParent,mlParentId);
 		kSaveData_SaveIdList(mlstChildren,tEntity3DListIt,mlstChildren);
 
-		/*if(mlstChildren.empty()==false)
-		{
-			Log("Children in '%s'/'%s': ",msName.c_str(),GetEntityType().c_str());
-			for(tEntity3DListIt it=mlstChildren.begin(); it != mlstChildren.end(); ++it)
-			{
-				iEntity3D *pEntity = *it;
-				Log("('%d/%s'/'%s'), ",pEntity->GetSaveObjectId(),pEntity->GetName().c_str(),pEntity->GetEntityType().c_str());
-			}
-			Log("\n");
-		}*/
 	}
 
 	void iEntity3D::LoadFromSaveData(iSaveData *apSaveData)
 	{
 		kSaveData_LoadFromBegin(iEntity3D);
-
-		//Log("-------- Loading %s --------------\n",msName.c_str());
 
 		SetMatrix(pData->m_mtxLocalTransform);
 
@@ -393,10 +371,6 @@ namespace hpl {
 	{
 		kSaveData_SetupBegin(iEntity3D);
 
-		//Log("-------- Setup %s --------------\n",msName.c_str());
-
-		//kSaveData_LoadObject(mpParent,mlParentId,iEntity3D*);
-		//kSaveData_LoadIdList(mlstChildren,mlstChildren,iEntity3D*);
 		if(pData->mlParentId!=-1 && mpParent == nullptr)
 		{
 			iEntity3D *pParentEntity = static_cast<iEntity3D*>(apSaveObjectHandler->Get(pData->mlParentId));

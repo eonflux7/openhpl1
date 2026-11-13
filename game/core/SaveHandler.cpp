@@ -27,7 +27,6 @@ void cSavedWorld::Reset()
 	while(it.HasNext())
 	{
 		iGameEntity_SaveData *pSaveEntity = it.Next();
-		//Log(" delete %d\n", pSaveEntity);
         hplDelete( pSaveEntity );
 	}
 	mlstEntities.Clear();
@@ -126,7 +125,6 @@ void cSavedGame::ResetWorlds()
 	{
 		cSavedWorld* pWorld =it.Next();
 		
-		//Log("delete world %d, '%s'\n", pWorld, pWorld->msName.c_str());
 		hplDelete( pWorld );
 	}
 	mlstWorlds.Clear();
@@ -169,8 +167,6 @@ cSavedWorld* cSavedGame::GetSavedWorld(const tString &asName)
     cSavedWorld *pWorld = hplNew( cSavedWorld, () );
 	pWorld->msName = asName;
 	mlstWorlds.Add(pWorld);
-
-	//Log("Creating saved world %d, %s\n",pWorld,asName.c_str());
 
 	return pWorld;
 }
@@ -224,10 +220,8 @@ cSaveHandler::cSaveHandler(cInit *apInit)  : iUpdateable("SaveHandler")
 
 		if(CreateFolder(sDir)==false)
 		{
-			//msSaveDir = _W("");
 			Warning("Couldn't create save folder '%s'! Saving to local\n",
 					cString::To8Char(sDir).c_str());
-			//return;
 			continue;
 		}
 	}
@@ -328,8 +322,6 @@ void cSaveHandler::SaveData(const tString &asName)
 	mpInit->mpSoundEnvHandler->AddSaveData(pSavedWorld);
 
 
-	//cSerializeClass::SetLog(true);
-	//cSerializeClass::SaveToFile(pSavedWorld,"TestSave.txt","SaveGame");
 }
 
 void cSaveHandler::LoadData(const tString &asName)
@@ -487,15 +479,7 @@ void cSaveHandler::SaveGameToFile(const tWString& asFile)
 
 	//Write to file:
 	
-	//tWString sSavePath = mpInit->mpGame->GetSystem()->GetLowLevel()->GetSystemSpecialPath(eSystemPath_Personal);
-	
-	//if(cString::GetLastCharW(sSavePath) != _W("/") && cString::GetLastCharW(sSavePath) != _W("\\"))
-	//sSavePath += _W("/");
-
 	tWString sSavePath = msSaveDir + asFile;
-	//tString sSaveFile = cString::To8Char(sSavePath);
-	//Log("Saving to %s\n",sSaveFile.c_str());
-	//cSerializeClass::SetLog(true);
 	cSerializeClass::SaveToFile(mpSavedGame,sSavePath, "SaveGame");
 }
 
@@ -522,7 +506,6 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 	
 	cSerializeClass::SetLog(false);
 	tWString sSavePath = msSaveDir + asFile;
-	//tString sSaveFile = cString::To8Char(sSavePath);
 	cSerializeClass::LoadFromFile(mpSavedGame,sSavePath);
 	
 	//Load global properties
@@ -540,7 +523,6 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 		cScriptVar *pVar = mpInit->mpGame->GetScene()->CreateGlobalVar(tempVar.msName);
 		pVar->mlVal = tempVar.mlVal;
 
-		//Log("Created global var: '%s' %d\n",pVar->msName.c_str(),pVar->mlVal);
 	}
 
 	//Load loaded maps in Scene
@@ -560,8 +542,6 @@ void cSaveHandler::LoadGameFromFile(const tWString& asFile)
 	//Load the map
 	//TOOD: Use the correct file!
     mpInit->mpMapHandler->LoadSimple(mpSavedGame->mMapHandler.msCurrentMap+".dae",false);    
-	//LoadData(mpSavedGame->mMapHandler.msCurrentMap);
-	//mpInit->mpMapHandler->Load(mpSavedGame->mMapHandler.msCurrentMap+".dae","link01");
 	
 	//Load player properties.
 	mpInit->mpPlayer->LoadFromGlobal(&mpSavedGame->mPlayer);
@@ -673,7 +653,6 @@ void cSaveHandler::Reset()
 
 void cSaveHandler::OnExit()
 {
-	//Log(" doing nothing...\n");
 }
 
 void cSaveHandler::DeleteOldestIfMax(const tWString &asDir,const tWString &asMask, int alMaxFiles)

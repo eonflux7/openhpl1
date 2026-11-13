@@ -84,8 +84,6 @@ namespace hpl {
 			cSubMesh *pSubMesh = mpMesh->GetSubMesh(i);
 			cSubMeshEntity* pSub = hplNew( cSubMeshEntity, (pSubMesh->GetName(),this,pSubMesh,mpMaterialManager) );
 
-			//Log("Creating sub entity %s\n",pSub->GetName().c_str());
-
 			mvSubMeshes.push_back(pSub);
 			m_mapSubMeshes.insert(tSubMeshEntityMap::value_type(mpMesh->GetSubMesh(i)->GetName(), pSub));
 
@@ -108,8 +106,6 @@ namespace hpl {
 		{
 			mBoundingVolume.CreateFromPoints(kvVertexElements[cMath::Log2ToInt(eVertexFlag_Position)]);
 
-			//Log("CREATED BV Min: %s Max: %s\n",	mBoundingVolume.GetMin().ToString().c_str(),
-			//									mBoundingVolume.GetMax().ToString().c_str());
 		}
 
 		//Create animation states
@@ -149,11 +145,6 @@ namespace hpl {
 
 				cBoneState *pNode = hplNew( cBoneState, (pMeshNode->GetName(), false) );
 				pNode->SetMatrix(pMeshNode->GetLocalMatrix());
-
-				/*Log("Node: %s has local translate: %s world translate: %s\n",
-						pNode->GetName(),
-						pMeshNode->GetLocalMatrix().GetTranslation().ToString().c_str(),
-						pMeshNode->GetWorldMatrix().GetTranslation().ToString().c_str());*/
 
 				//Add node to array and add it's index to the map.
 				mvNodeStates.push_back(pNode);
@@ -214,10 +205,6 @@ namespace hpl {
 			{
 				cNode3D* pMeshNode = mpMesh->GetNode(i);
 
-				//Log("MeshNode %s\n local: (%s)\n world: (%s)\n",pMeshNode->GetName(),
-				//									pMeshNode->GetLocalPosition().ToString().c_str(),
-				//									pMeshNode->GetWorldPosition().ToString().c_str());
-
 				//Set the sub entity with the mesh node world matrix
 				cSubMeshEntity *pSubEntity = GetSubMeshEntityName(pMeshNode->GetSource());
 				if(pSubEntity)
@@ -227,7 +214,6 @@ namespace hpl {
 
 					pSubEntity->SetMatrix(mtxSub);
 
-					//Log(" SubEnity: %s\n",pSubEntity->GetWorldPosition().ToString().c_str());
 				}
 			}
 
@@ -266,8 +252,6 @@ namespace hpl {
 				cBoneState *pState = hplNew( cBoneState,(pBone->GetName(), false) );
 				pState->SetMatrix(pBone->GetLocalTransform());
 
-				//Log("Created bone state: '%s'\n",pState->GetName());
-
 				//Add bone to array and add it's index to the map.
 				mvBoneStates.push_back(pState);
 				m_mapBoneStateIndices.insert(tBoneIdxNameMap::value_type(pState->GetName(),i));
@@ -279,8 +263,6 @@ namespace hpl {
 				cNode3D* pState = mvBoneStates[i];
 				cBone* pBone = pSkeleton->GetBoneByIndex(i);
 
-				//Log("State: %s\n",pState->GetName());
-
 				//Set the parent if there is one
 				//TODO: Perhaps this should be removed.
 				if(pBone->GetParent())
@@ -290,28 +272,12 @@ namespace hpl {
 						pState->SetParent(pParentState);
 					else
 						pState->SetParent(mpRootNode);
-					//else
-					//	Error("Couldn't find parent bone state '%s' in bone\n",pBone->GetParent()->GetName().c_str(),
-					//														pBone->GetName().c_str());
-					//if(pParentState)Log("  Parent: %s\n",pParentState->GetName());
 				}
 				else
 				{
 					pState->SetParent(mpRootNode);
 				}
 
-				//Add children if there are any.
-				/*cBoneIterator it = pBone->GetChildIterator();
-				while(it.HasNext())
-				{
-					cBone* pChildBone = it.Next();
-					cNode3D *pChildState = GetBoneStateFromName(pChildBone->GetName());
-					if(pChildState)
-						pState->AddChild(pChildState);
-					//else
-					//	Error("Couldn't find child bone state '%s'",pChildBone->GetName());
-					//if(pChildState)Log("  Child: %s\n",pChildState->GetName());
-				}*/
 			}
 
 			//Create an array to fill with bone matrices
@@ -350,7 +316,6 @@ namespace hpl {
 		for(tEntity3DListIt it = mlstAttachedEntities.begin(); it != mlstAttachedEntities.end(); ++it)
 		{
 			iEntity3D *pEntity = *it;
-			//TODOD: if(mpWorld) mpWorld->DestroyUnkownEntity(pEntity);
 		}
 
 		for(int i=0;i<(int)mvSubMeshes.size();i++)
@@ -417,19 +382,14 @@ namespace hpl {
 		}
 	}
 
-	//int glDebugTabs=0;
 	void cMeshEntity::UpdateNodeMatrixRec(const cMatrixf& a_mtxParentWorld,cNode3D *apNode)
 	{
 		if(apNode->IsActive()){
-			//tString sTemp="";for(int i=0; i<glDebugTabs;++i)sTemp+=" ";
-			//LogUpdate("   %sUpdate %s\n",sTemp.c_str(),apNode->GetName());
 			apNode->UpdateMatrix(false);
 		}
 
 		apNode->UpdateWorldTransform();
 		const cMatrixf& mtxWorld = apNode->GetWorldMatrix();
-
-		//glDebugTabs++;
 
 		cNodeIterator NodeIt = apNode->GetChildIterator();
 		while(NodeIt.HasNext())
@@ -439,12 +399,10 @@ namespace hpl {
 			UpdateNodeMatrixRec(mtxWorld, pChildNode);
 		}
 
-		//glDebugTabs--;
 	}
 
 	void cMeshEntity::UpdateLogic(float afTimeStep)
 	{
-		//LogUpdate("---- Start mesh update ----------------------\n");
 
 		//if(!IsStatic()){START_TIMING_TAB(Skeleton);}
 
@@ -489,7 +447,6 @@ namespace hpl {
 
 			if(mlUpdateCount < 20)
 			{
-				//if(cString::GetLastStringPos(msName, "infected")>=0) LogUpdate("   return\n");
 				return;
 			}
 
@@ -502,7 +459,6 @@ namespace hpl {
 			mlUpdateCount =0;
 			mfTimeStepAccum = 0;
 		}
-		//if(cString::GetLastStringPos(msName, "infected")>=0) LogUpdate("   do stuff\n");
 
 		//Keep the pose before this step for frames drawn until the next one.
 		//An update with the time of several steps is not blended.
@@ -524,7 +480,6 @@ namespace hpl {
 			}
 		}
 
-		//LogUpdate(" -skeleton physics\n");
 		//Check if all bodies connected to the skeleton is at rest,
 		//If so we can skip skinning the body and simply just use the mesh as is.
 		//(has some problems so turned off at the moment)
@@ -543,7 +498,6 @@ namespace hpl {
 				}
 			}
 			if(bEnabled == false){
-				//mbSkeletonPhysicsSleeping = true;
 			}
 		}
 
@@ -632,7 +586,6 @@ namespace hpl {
 			}
 
 			//Reset all bones states
-			//LogUpdate(" -reset bones\n");
 			if(	bAnimationActive || mbUpdatedBones == false || (mbSkeletonPhysics && !mbSkeletonPhysicsSleeping))
 			{
 				for(size_t i=0;i < mvBoneStates.size(); i++)
@@ -655,7 +608,6 @@ namespace hpl {
 			}
 
 			// Update skeleton physics
-			//LogUpdate(" -reset physics again\n");
 			if(	mbSkeletonPhysics && (!mbSkeletonPhysicsSleeping || mbUpdatedBones==false))
 			{
 				mbUpdatedBones = true;
@@ -686,12 +638,9 @@ namespace hpl {
 
 			//if(!IsStatic()){START_TIMING_TAB(Bones);}
 			//Go through all animations states and update the bones
-			//LogUpdate(" -animation states\n");
 			for(size_t i=0; i< mvAnimationStates.size(); i++)
 			{
 				cAnimationState *pAnimState = mvAnimationStates[i];
-
-				//Log("Testing state: '%s'\n",pAnimState->GetName());
 
 				if(pAnimState->IsActive())
 				{
@@ -703,13 +652,9 @@ namespace hpl {
 
 						cNode3D* pState = GetBoneState(pTrack->GetNodeIndex());
 
-						//Log("Animating bone %s\n",pState->GetName());
-
 						if(pState->IsActive())
 							pTrack->ApplyToNode(pState,pAnimState->GetTimePosition(),pAnimState->GetWeight());
 					}
-
-					//Log("Time: %f\n",pAnimState->GetTimePosition());
 
 					pAnimState->Update(afTimeStep);
 				}
@@ -718,7 +663,6 @@ namespace hpl {
 
 			//if(!IsStatic()){START_TIMING_TAB(States);}
 			//Go through all states and update the matrices (and thereby adding the animations together).
-			//LogUpdate(" -Bone update\n");
 			if(bAnimationActive)
 			{
 				cNodeIterator NodeIt = mpRootNode->GetChildIterator();
@@ -736,7 +680,6 @@ namespace hpl {
 			//if(!IsStatic()){START_TIMING_TAB(Colliders);}
 			//Update the colliders if they are active
 			//Note this must be done after all bone states are updated.
-			//LogUpdate(" -Colliders\n");
 			if(mbSkeletonColliders && mbSkeletonPhysics==false)
 			{
 				for(size_t i=0;i < mvBoneStates.size(); i++)
@@ -757,7 +700,6 @@ namespace hpl {
 			if(mpCallback)mpCallback->AfterAnimationUpdate(this,afTimeStep);
 
 			//Update bounding volume
-			//LogUpdate(" -BV update\n");
 			UpdateBVFromSubs();
 
 			//Update the entity transform, this so that the portal info, attached entities, callbacks and stuff is updated.
@@ -766,7 +708,6 @@ namespace hpl {
 
 		//if(!IsStatic()){START_TIMING_TAB(SubEntities);}
 		/// Update sub entities
-		//LogUpdate(" -Subs\n");
 		for(size_t i=0; i<mvSubMeshes.size(); ++i)
 		{
 			cSubMeshEntity *pSub = mvSubMeshes[i];
@@ -793,7 +734,6 @@ namespace hpl {
 			}
 		}
 
-		//LogUpdate("---- End mesh update ----------------------\n");
 	}
 
 	cAnimationState* cMeshEntity::AddAnimation(cAnimation *apAnimation,const tString &asName, float afBaseSpeed)
@@ -1307,7 +1247,6 @@ namespace hpl {
 		//If no parent is specified add to first sub entity.
 		if(asParent=="")
 		{
-			//Log("Added %s to mesh\n",apEntity->GetName().c_str());
 			AddChild(apEntity);
 			return true;
 		}
@@ -1316,7 +1255,6 @@ namespace hpl {
 		cSubMeshEntity * pSubEntity = GetSubMeshEntityName(asParent);
 		if(pSubEntity)
 		{
-			//Log("Added %s to subentity %s\n",apEntity->GetName().c_str(),pSubEntity->GetName().c_str());
 			pSubEntity->AddChild(apEntity);
 			return true;
 		}
@@ -1325,7 +1263,6 @@ namespace hpl {
 		cNode3D *pNode = GetNodeStateFromName(asParent);
 		if(pNode)
 		{
-			//Log("Added %s to node %s\n",apEntity->GetName().c_str(),pNode->GetName());
 			pNode->AddEntity(apEntity);
 			return true;
 		}
@@ -1334,7 +1271,6 @@ namespace hpl {
 		cNode3D *pBone = GetBoneStateFromName(asParent);
 		if(pBone)
 		{
-			//Log("Added %s to bone\n",apEntity->GetName().c_str());
 			pBone->AddEntity(apEntity);
 			return true;
 		}
@@ -1538,21 +1474,6 @@ namespace hpl {
 		if(pMesh==nullptr) return nullptr;
 
 		//Load Animations
-		//TODO: bad, bad bad...redo animation storing.
-		/*if(pMesh->GetAnimationNum()<=1 && mvAnimStates.Size()>1)
-		{
-			pMesh->ClearAnimations(true);
-
-			for(size_t i=0; i< mvAnimStates.Size(); ++i)
-			{
-				cAnimation *pAnimation = pResources->GetAnimationManager()->CreateAnimation(mvAnimStates[i].msAnimationName);
-
-				pAnimation->SetAnimationName(mvAnimStates[i].msName);
-				pAnimation->SetDefaultSpeed(mvAnimStates[i].mfDefaultSpeed);
-
-				pMesh->AddAnimation(pAnimation);
-			}
-		}*/
 
 		///Create entity
 		cMeshEntity* pEntity = pWorld->CreateMeshEntity(msName,pMesh);
@@ -1604,7 +1525,6 @@ namespace hpl {
 
 			pAnimState->SaveToSaveData(&pData->mvAnimStates[i]);
 		}
-		//Log("MeshEntity %s has %d animation states saved\n",GetName().c_str(),pData->mvAnimStates.Size());
 
 		//Variables
 		kSaveData_SaveTo(mbCastShadows);
@@ -1619,12 +1539,6 @@ namespace hpl {
 
 		//Sub entities
 		//This is done on creation instead.
-		/*for(size_t i=0; i<pData->mvSubEntities.Size(); i++)
-		{
-			cSubMeshEntity *pSubEntity = GetSubMeshEntity((int)i);
-
-			pSubEntity->LoadFromSaveData(&pData->mvSubEntities[i]);
-		}*/
 
 		//Set Animation states data
 		for(size_t i=0; i< pData->mvAnimStates.Size(); ++i)
@@ -1633,8 +1547,6 @@ namespace hpl {
 
 			pAnimationState->LoadFromSaveData(&pData->mvAnimStates[i]);
 		}
-		//Log("LOADED: MeshEntity %s has %d animation states, in entity: %d\n",GetName().c_str(),
-		//			pData->mvAnimStates.Size(),GetAnimationStateNum());
 
 		//Variables
 		kSaveData_LoadFrom(mbCastShadows);

@@ -324,8 +324,6 @@ namespace hpl {
 		// When the next frame may start, with the frame rate capped.
 		double fNextFrameTime = 0;
 
-		//cMemoryManager::SetLogCreation(true);
-
 		while(!mbGameIsDone)
 		{
 			// What is drawn between logic steps blends from the state before
@@ -348,7 +346,6 @@ namespace hpl {
 				if(fNextFrameTime < fNow) fNextFrameTime = fNow;
 			}
 
-			//Log("-----------------\n");
 			//Update logic.
 			while(mpLogicTimer->WantUpdate() && !mbGameIsDone)
 			{
@@ -379,13 +376,6 @@ namespace hpl {
 			mpLogicTimer->EndUpdateLoop();
 
 
-			//If not making a single rendering is better to use gpu and
-			//cpu at the same time and make query checks etc after logic update.
-			//If any delete has occured in the update this might crash. so skip it for now.
-			/*if(mbRenderOnce==false)	{
-				mpUpdater->OnPostBufferSwap();
-			}*/
-
 			//Draw graphics!
 			if(mbRenderOnce && bDone)continue;
 			if(mbRenderOnce)bDone = true;
@@ -410,7 +400,6 @@ namespace hpl {
 
 			if(mbLimitFPS==false || mbIsUpdated)
 			{
-				//LogUpdate("----------- RENDER GFX START --------------\n");
 
 				mbIsUpdated = false;
 
@@ -423,7 +412,6 @@ namespace hpl {
 				fTempFrameTime = fTimeNow;
 
 				//Draw this frame
-				//unsigned long lFTime = GetApplicationTime();
 				// A window resized by hand: the frame and the view follow
 				if(mpGraphics->ApplyWindowSize() && mpScene->GetCamera() &&
 				   mpScene->GetCamera()->GetType() == eCameraType_3D)
@@ -435,15 +423,12 @@ namespace hpl {
 				mpGraphics->GetLowLevel()->SetPlayerEffectState(cPlayerEffectState());
 				mpUpdater->OnDraw();
 				mpScene->Render(mpUpdater,mfFrameTime);
-				//if(mpScene->GetDrawScene()) LogUpdate("FrameTime: %d ms\n", GetApplicationTime() - lFTime);
 
 				//Update fps counter.
 				mpFPSCounter->AddFrame();
 
 				//Update the screen.
 				mpGraphics->GetLowLevel()->SwapBuffers();
-				//Log("Swap done: %d\n", GetApplicationTime());
-				//if(mbRenderOnce)
 				{
 					mpUpdater->OnPostBufferSwap();
 				}
@@ -459,11 +444,6 @@ namespace hpl {
 
 			mpScene->RestoreInterpolation();
 
-			//if(cMemoryManager::GetLogCreation())
-			//{
-				//cMemoryManager::SetLogCreation(false);
-				//Log("----\nCreations made: %d\n------\n",cMemoryManager::GetCreationCount());
-			//}
 		}
 		Log("--------------------------------------------------------\n\n");
 

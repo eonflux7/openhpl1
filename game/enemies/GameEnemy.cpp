@@ -418,14 +418,6 @@ void iGameEnemy::OnPlayerInteract()
 
 void iGameEnemy::OnPlayerPick()
 {
-	//SKIp this for now since this means that enemies in ragdoll can take damage.
-	/*mpInit->mpPlayer->mbPickAtPoint = false;
-	mpInit->mpPlayer->mbRotateWithPlayer = true;
-	mpInit->mpPlayer->mbUseNormalMass = false;
-	mpInit->mpPlayer->mfGrabMassMul = (float)mvBodies.size();
-
-	mpInit->mpPlayer->SetPushBody(mpInit->mpPlayer->GetPickedBody());
-	mpInit->mpPlayer->ChangeState(ePlayerState_Grab);*/
 }
 
 void iGameEnemy::Setup(cWorld3D *apWorld)
@@ -551,8 +543,6 @@ void iGameEnemy::OnDraw()
 		mpInit->mpDefaultFont->Draw(cVector3f(5,15,100),14,cColor(1,1,1,1),eFontAlign_Left,
 			_W("Can NOT see player..."));
 	}
-	//mpInit->mpDefaultFont->Draw(cVector3f(5,29,100),14,cColor(1,1,1,1),eFontAlign_Left,
-	//	"State: %s",mStateMachine.CurrentState()->GetName().c_str());
 	
 	tWString sStateName = _W("NONE");
 	if(mlCurrentState >=0) sStateName = cString::To16Char(gvStateName[mlCurrentState]);
@@ -571,12 +561,6 @@ void iGameEnemy::OnDraw()
 
 	mvStates[mlCurrentState]->OnDraw();
 
-	/*mpInit->mpDefaultFont->Draw(cVector3f(5,15,100),14,cColor(1,1,1,1),eFontAlign_Left,
-								"Active: %d",mbActive);
-	mpInit->mpDefaultFont->Draw(cVector3f(5,30,100),14,cColor(1,1,1,1),eFontAlign_Left,
-								"Yaw: %f",cMath::ToDeg(mpMover->GetCharBody()->GetYaw()));
-	mpInit->mpDefaultFont->Draw(cVector3f(5,45,100),14,cColor(1,1,1,1),eFontAlign_Left,
-								"Pos: %s",mpMover->GetCharBody()->GetPosition().ToString().c_str());*/
 }
 
 void iGameEnemy::OnPostSceneDraw()
@@ -591,61 +575,7 @@ void iGameEnemy::OnPostSceneDraw()
 
 	// Begin debug pos
 
-	/*pLowLevelGfx->SetDepthTestActive(false);
-	pLowLevelGfx->SetDepthWriteActive(false);
-	
-	cVector3f vNormal(0,1,0);
-	cVector3f vUp(0,1,0);
-	cVector3f vStartPos = mpMover->GetCharBody()->GetFeetPosition() + cVector3f(0,0.05f,0);
-	cVector3f vPosition = vStartPos;
-
-	mFindGround.GetGround(vStartPos,cVector3f(0,-1,0),NULL,&vNormal);
-	
-	vNormal.Normalise();
-	float fAngle = cMath::Vector3Angle(vUp,vNormal);
-	cVector3f vRotateAxis = cMath::Vector3Cross(vUp,vNormal);
-	//cVector3f vRotateAxis2 = cMath::Vector3Cross(vUp,vRotateAxis);
-
-	vRotateAxis.Normalise();
-	cQuaternion qRotation = cQuaternion(fAngle, vRotateAxis);
-	cMatrixf mtxPoseRotation = cMath::MatrixQuaternion(qRotation);
-
-	cMatrixf mtxFinalOffset = cMath::MatrixMul(mtxPoseRotation,m_mtxModelOffset);
-
-    cVector3f vCenter = mpMover->GetCharBody()->GetPosition();
-
-	cVector3f vRot = cMath::MatrixMul(mtxPoseRotation,cVector3f(0,1,0));
-
-	pLowLevelGfx->DrawLine(vStartPos, vStartPos + vNormal,cColor(1,0,1,1));
-	pLowLevelGfx->DrawLine(vCenter, vCenter + vRotateAxis,cColor(1,0.5,0.5,1));
-//	pLowLevelGfx->DrawLine(vCenter, vCenter + vRotateAxis2,cColor(1,0.5,0.5,1));
-	pLowLevelGfx->DrawLine(vCenter, vCenter + vRot,cColor(0,1,1,1));
-
-	gfAngle =cMath::ToDeg(fAngle);
-			
-	pLowLevelGfx->SetDepthTestActive(true);
-	pLowLevelGfx->SetDepthWriteActive(true);*/
-
 	// End debug pose
-
-	/*pLowLevelGfx->SetDepthTestActive(false);
-	pLowLevelGfx->SetDepthWriteActive(false);
-
-	pLowLevelGfx->DrawSphere(mpMover->GetCharBody()->GetPosition(),0.1f,cColor(1,0.5,0));
-	pLowLevelGfx->DrawSphere(GetMeshEntity()->GetWorldPosition(),0.1f,cColor(0,0.5,1));
-
-	pLowLevelGfx->SetDepthTestActive(true);
-	pLowLevelGfx->SetDepthWriteActive(true);*/
-
-
-	/*for(size_t i=0; i< mvRayStartPoses.size(); ++i)
-	{
-		pLowLevelGfx->DrawLine(mvRayStartPoses[i], mvRayEndPoses[i],cColor(1,0,1,1));
-		pLowLevelGfx->DrawSphere(mvRayStartPoses[i],0.2f,cColor(0,1,1,1));
-		pLowLevelGfx->DrawSphere(mvRayEndPoses[i],0.2f,cColor(0,1,1,1));
-	}*/
-
-	//mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld()->RenderDebugGeometry(pLowLevelGfx,cColor(1,1));
 
 	mvStates[mlCurrentState]->OnPostSceneDraw();
 }
@@ -793,16 +723,6 @@ void iGameEnemy::ChangeState(int alId)
 {
 	if(mlCurrentState == alId) return;
 
-	/*char sStr[512];
-	tString sStateName1 = "NONE";
-	if(mlCurrentState >=0) sStateName1 = gvStateName[mlCurrentState];
-	tString sStateName2 = "NONE";
-	if(mlCurrentState >=0) sStateName2 = gvStateName[alId];
-
-	sprintf(sStr,"%s State %s -> %s",msName.c_str(),sStateName1.c_str(),sStateName2.c_str());
-	//mpInit->mpEffectHandler->GetSubTitle()->Add(cString::To16Char(sStr),1.2f,false);
-	Log("%s\n",sStr);*/
-
 	// Test hook: OPENHPL_ENEMY_LOG=1 writes each change of state to the log
 	static const bool bLogStates = SDL_getenv("OPENHPL_ENEMY_LOG") != nullptr;
 	if(bLogStates)
@@ -813,7 +733,6 @@ void iGameEnemy::ChangeState(int alId)
 				mpMover->DistanceToChar2D(mpInit->mpPlayer->GetCharacterBody()) : -1.0f);
 	}
 
-	//Log("Leave old...");
 	if(mlCurrentState>=0) 
 		mvStates[mlCurrentState]->OnLeaveState(mvStates[alId]);
 	
@@ -824,7 +743,6 @@ void iGameEnemy::ChangeState(int alId)
 	mlCurrentState = alId;
 	mbCanSeePlayer = false;
 	
-	//Log("enter newer\n");
 	mvStates[mlCurrentState]->SetPreviousState(lPrevState);
 	mvStates[mlCurrentState]->OnEnterState(pPrevState);
 }
@@ -896,7 +814,6 @@ void iGameEnemy::PlayAnim(	const tString &asName, bool abLoop, float afFadeTime,
 
 	cAnimationState *pNewAnim = mpMeshEntity->GetAnimationStateFromName(asName);
 	if(pNewAnim==nullptr){
-		//Warning("Animation '%s' does not exist!\n",asName.c_str());
 		return;
 	}
 	
@@ -1015,7 +932,6 @@ void iGameEnemy::ClearPatrolNodes()
 
 void iGameEnemy::OnDeath(float afDamage)
 {
-	//PlaySound("temp_roach_death");
 
 	if(msOnDeathCallback != "")
 	{
@@ -1032,7 +948,6 @@ void iGameEnemy::OnDamage(float afDamage)
 {
 	if(mfDamageSoundTimer<=0)
 	{
-		//PlaySound("temp_roach_damage");
 
 		mfDamageSoundTimer =0.8f;
 	}
@@ -1144,21 +1059,13 @@ void iGameEnemy::UpdateEnemyPose(float afTimeStep)
 		float fAngle = cMath::Vector3Angle(vUp,vNormal);
 		
 		cVector3f vRotateAxis = cMath::Vector3Cross(vUp,vNormal);
-		//cVector3f vRotateAxis = cMath::Vector3Cross(vUp,mpMover->GetCharBody()->GetForward());
 
-		//cVector3f vRotateAxis2 = cMath::Vector3Cross(vUp,vRotateAxis);
-		
 		vRotateAxis.Normalise();
 		cQuaternion qRotation = cQuaternion(fAngle, vRotateAxis);
 		cMatrixf mtxPoseRotation = cMath::MatrixQuaternion(qRotation);
 
 		//Black Plague: only moved down to the ground, not leant after it
 		if(mbAlignToGroundSkipNormal) mtxPoseRotation = cMatrixf::Identity;
-		
-			//cVector3f vDelta = vPosition - mpMover->GetCharBody()->GetFeetPosition();
-			
-			//mtxPoseRotation.SetTranslation(cVector3f(0,-fabs(vDelta.y),0));
-			//mtxPoseRotation.SetTranslation(vNormal * -fabs(vDelta.y));
 		
 		if(vNormal != cVector3f(0,1,0))
 		{
@@ -1208,12 +1115,6 @@ void iGameEnemy::UpdateCheckForPlayer(float afTimeStep)
 		mbCanSeePlayer = false;
 		return;
 	}
-
-	/*if(mfCanSeePlayerCount>0)
-	{
-		mfCanSeePlayerCount -= afTimeStep;
-		if(mfCanSeePlayerCount<=0) mbCanSeePlayer = false;
-	}*/
 
 	if(mfCalcPlayerHiddenPosCount >0)
 		mfCalcPlayerHiddenPosCount -= afTimeStep;
@@ -1505,10 +1406,6 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	const cVector2f *pPosAdds = bOverture ? gvPosAdds : gvPosAddsBP;
 	const int lRayNum = bOverture ? 5 : 9;
 
-	//Setup debug
-	//if(mvRayStartPoses.size()<5) mvRayStartPoses.resize(5);
-	//if(mvRayEndPoses.size()<5) mvRayEndPoses.resize(5);
-
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
 	cVector3f vStartCenter = mpMover->GetCharBody()->GetPosition();
@@ -1525,16 +1422,11 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 	{
 		cVector3f vEnemyForward = mpMover->GetCharBody()->GetForward();
 		
-		//float fAngle = cMath::Vector3Angle(vEnemyForward, vForward);
-		//if(fAngle > mfFOV*0.5f) return false;
-
 		cVector3f vToPlayerAngle = cMath::GetAngleFromPoints3D(0,vForward);
 		cVector3f vEnemyAngle = cMath::GetAngleFromPoints3D(0,vEnemyForward);
 
 		float fAngleX = cMath::Abs(cMath::GetAngleDistanceRad(vToPlayerAngle.x,vEnemyAngle.x));
 		float fAngleY = cMath::Abs(cMath::GetAngleDistanceRad(vToPlayerAngle.y,vEnemyAngle.y));
-
-		//Log("X:%f Y:%f\n",cMath::ToDeg(fAngleX), cMath::ToDeg(fAngleY));
 
 		if(fAngleY > fFOV*0.5f) return false;
 		if(fAngleX > fFOV*mfFOVXMul*0.5f) return false;
@@ -1552,9 +1444,6 @@ bool iGameEnemy::LineOfSight(const cVector3f &avPos, const cVector3f &avSize, fl
 		cVector3f vAdd = vRight * (pPosAdds[i].x*fHalfWidth) + vUp * (pPosAdds[i].y*fHalfHeight);
 		cVector3f vStart = vStartCenter + vAdd;
 		cVector3f vEnd = vEndCenter + vAdd;
-		
-		//mvRayStartPoses[i] = vStart;
-		//mvRayEndPoses[i] =vEnd;
 		
 		mRayCallback.Reset(); 
 		pPhysicsWorld->CastRay(&mRayCallback,vStart,vEnd,false,false,false);
@@ -1661,7 +1550,6 @@ void cEntityLoader_GameEnemy::AfterLoad(TiXmlElement *apRootElem, const cMatrixf
 
 	pBody->SetYaw(vBodyRotation.y);
 	
-	//Log("Loaded enemy!\n");
 }
 
 kBeginSerializeBase(cEnemyPatrolNode)
@@ -1774,5 +1662,4 @@ void iGameEnemy::LoadFromSaveData(iGameEntity_SaveData *apSaveData)
 		mvPatrolNodes[i].msAnimation = pData->mvPatrolNodes[i].msAnimation;
 	}
 
-	//Log("Load Save Data!\n");
 }

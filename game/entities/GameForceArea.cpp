@@ -86,16 +86,12 @@ void cGameForceArea::Update(float afTimeStep)
 	cCollideData collideData;
 	collideData.SetMaxSize(4);
 
-	//Log("---------- UPDATE -------------\n");
-
 	// Check candidate bodies overlapping the area bounds.
 	cPortalContainerEntityIterator bodyIt = pWorld->GetPortalContainer()->GetEntityIterator(
 																pAreaBody->GetBoundingVolume());
 	while(bodyIt.HasNext())
 	{
 		iPhysicsBody *pBody = static_cast<iPhysicsBody*>(bodyIt.Next());
-
-		//Log("Checking: %s\n",pBody->GetName().c_str());
 
 		iGameEntity *pEntity = (iGameEntity*)pBody->GetUserData();
 
@@ -140,9 +136,6 @@ void cGameForceArea::Update(float afTimeStep)
 				if(mbMulWithMass) fForce *= pCharBody->GetMass();
 
 				fForce *= 10; // Apply the character-specific force multiplier.
-
-				//Log("Vel: %s Speed: %f Force: %f\n",pCharBody->GetForceVelocity().ToString().c_str(),
-				//									fSpeedAlongForce,fForce);
 
                 pCharBody->AddForce(mvForceDirection * fForce);
 			}

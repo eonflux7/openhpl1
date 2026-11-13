@@ -106,7 +106,6 @@ namespace hpl {
 		pWorld->SetPhysicsWorld(pPhysiscsWorld,true);
 
 		//Find the rooms and and add them as sectors in the world.
-		//Log("FIND ROOMS:\n");
 		tColladaNodeListIt it = ColladaScene.mlstNodes.begin();
 		for(; it != ColladaScene.mlstNodes.end(); it++)
 		{
@@ -117,15 +116,11 @@ namespace hpl {
 			{
 				//Get 5 first letters and check if these match "_room"
 				tString sType = cString::Sub(pNode->msName,0,5);
-				//Log("Type: %s\n",sType.c_str());
 				if(cString::ToLowerCase(sType) == "_room")
 				{
 					//Get Room number
 					tString sNum = cString::Sub(pNode->msName,5);
-					//int lNum = cString::ToInt(sNum.c_str(),-1);
 					tString sRoomId = sNum;
-
-					//Log("Adding room num %s\n",sRoomId.c_str());
 
 					//Add sector
 					pPortalContainer->AddSector(sRoomId);
@@ -142,7 +137,6 @@ namespace hpl {
 		}
 
 		//Iterate the nodes and add remaining objects to the scene.
-		//Log("ADD OBJECTS:\n");
 		it = ColladaScene.mRoot.mlstChildren.begin();
 		for(; it != ColladaScene.mRoot.mlstChildren.end(); it++)
 		{
@@ -429,12 +423,6 @@ namespace hpl {
 						cVector3f vOffset = TempBV.GetWorldCenter() -
 											pNode->m_mtxWorldTransform.GetTranslation();
 						vOffset = vOffset * pNode->mvScale;
-						//Log("Centre is not a correct location! Offset: %s\n",vOffset.ToString().c_str());
-
-						//Local postion add
-						/*cMatrixf mtxTrans = cMath::MatrixTranslate(vOffset);
-						pCollider->m_mtxOffset = cMath::MatrixMul( pNode->m_mtxWorldTransform,
-																	mtxTrans);*/
 
 						//World postion add
 						pCollider->m_mtxOffset = pNode->m_mtxWorldTransform;
@@ -452,9 +440,6 @@ namespace hpl {
 					//Add scale
 					pCollider->mvSize = pCollider->mvSize * pNode->mvScale;
 
-					//Log("Collider scale: %s\n",pNode->mvScale.ToString().c_str());
-					//Log("Collider size: %s\n",pCollider->mvSize.ToString().c_str());
-
 					//This is to orient the cylinder along y axis instead of x.
 					if(ShapeType == eCollideShapeType_Cylinder || ShapeType == eCollideShapeType_Capsule)
 					{
@@ -463,9 +448,6 @@ namespace hpl {
 																);
 					}
 
-					//Log("Creating Collider %s, type: %d size: %s\n with matrix: %s\n", Geom.msName.c_str(),(int)ShapeType,
-					//									pCollider->mvSize.ToString().c_str(),
-					//									pCollider->m_mtxOffset.ToString().c_str());
 				}
 
 				// BILLBOARD
@@ -639,15 +621,11 @@ namespace hpl {
 			//Set the scale
 			pSubMesh->SetModelScale(pNode->mvScale);
 
-			//Log("Creating submesh: '%s'\n",Geom.msName.c_str());
-
 			//To be filled by extra vertex positions (not used, use the one in Geometry)
 			tColladaExtraVtxListVec &vExtraVtxVec = Geom.mvExtraVtxVec;
 
 			// Create Vertex buffer
 			eVertexBufferUsageType UsageType = eVertexBufferUsageType_Static;
-			//The streams will be the entity copies.
-			//if(vColladaControllers.empty()==false) UsageType = eVertexBufferUsageType_Stream;
 
 			iVertexBuffer *pVtxBuffer = CreateVertexBuffer(Geom, UsageType);//, vExtraVtxVec);
 			pSubMesh->SetVertexBuffer(pVtxBuffer);
@@ -655,7 +633,6 @@ namespace hpl {
 			//Add material
 			tString sMatName = GetMaterialTextureFile(Geom.msMaterial,vColladaMaterials,vColladaTextures,
 														vColladaImages);
-			//Log("Material name: '%s'\n",sMatName.c_str());
 			iMaterial *pMaterial;
 			if(mbUseFastMaterial && msFastMaterialFile != "")
 			{
@@ -696,7 +673,6 @@ namespace hpl {
 			//Add the pairs
 			if(pCtrl && pSkeleton)
 			{
-				//Log("Adding vertex-bone pairs!\n");
 				//Iterate the pairs
 				for(size_t j=0; j<pCtrl->mvPairs.size(); j++)
 				{
@@ -721,8 +697,6 @@ namespace hpl {
 							//Add pair in sub mesh
 							pSubMesh->AddVertexBonePair(DestPair);
 
-							//Log("Added pair: bone %d vtx %d weight: %f\n", DestPair.boneIdx,DestPair.vtxIdx,
-							//												DestPair.weight);
 						}
 					}
 				}
@@ -745,7 +719,6 @@ namespace hpl {
 					cMatrixf mtxScale = cMath::MatrixScale(pNode->mvScale);
 					pVtxBuffer->Transform(mtxScale);
 
-					//Log("Scaling %s: (%s) %s!\n",pNode->msName.c_str(),pNode->mvScale.ToString().c_str(),mtxScale.ToString().c_str());
 				}
 				//We have a normal mesh without any geometry and NO joints
 				else if(bHasSeveralBodies==false)
@@ -756,7 +729,6 @@ namespace hpl {
 					if(ptNode)
 					{
 						pVtxBuffer->Transform(ptNode->m_mtxWorldTransform);
-						//Log("Transforming buffer %s\n",pNode->msName.c_str());
 					}
 					else
 					{
@@ -807,9 +779,6 @@ namespace hpl {
 				}
 			}
 		}
-
-		//Shouldn't be needed any more.
-		//vColladaGeometries[i].Clear();
 
 		// Create Lights
 		for(int i=0; i< (int)vColladaLights.size(); i++)
@@ -915,38 +884,6 @@ namespace hpl {
 
 
 		// DEBUG
-		// Test anim data
-		/*Log("ANIMATIONS:\n");
-		for(size_t i=0; i < vColladaAnimations.size(); i++)
-		{
-			cColladaAnimation &Anim = vColladaAnimations[i];
-
-			Log("Anim: id: '%s' name: '%s'\n",Anim.msId.c_str(), Anim.msName.c_str());
-
-			Log("Channels:\n");
-			for(size_t j=0; j< Anim.mvChannels.size(); j++)
-				Log("Id: '%s' Source: '%s' Target: '%s'\n",
-																Anim.mvChannels[j].msId.c_str(),
-																Anim.mvChannels[j].msSource.c_str(),
-																Anim.mvChannels[j].msTarget.c_str());
-
-			Log("Samplers:\n");
-			for(size_t j=0; j< Anim.mvSamplers.size(); j++)
-				Log("Id: '%s' Target: '%s' Time: '%s' Values: '%s'\n",		Anim.mvSamplers[j].msId.c_str(),
-																Anim.mvSamplers[j].msTarget.c_str(),
-																Anim.mvSamplers[j].msTimeArray.c_str(),
-																Anim.mvSamplers[j].msValueArray.c_str());
-			Log("Sources:\n");
-			for(size_t j=0; j< Anim.mvSources.size(); j++)
-			{
-				Log("Id: %s\n",Anim.mvSources[j].msId.c_str());
-				for(size_t k=0;k < Anim.mvSources[j].mvValues.size(); k++)
-					Log("%f, ",Anim.mvSources[j].mvValues[k]);
-				Log("\n");
-			}
-
-			//CreateAnimTrack(NULL, Anim,&ColladaScene);
-		}*/
 
 		return pMesh;
 	}
@@ -966,9 +903,6 @@ namespace hpl {
 					cMatrixf mtxInvBone = cMath::MatrixInverse(pBone->GetLocalTransform());
 
 					cMatrixf mtxChange = cMath::MatrixMul(mtxInvBone, mtxLocal);
-
-					//Log("Bone %s change mtx: %s\n",pBone->GetName().c_str(),
-					//								mtxChange.ToString().c_str());
 
 					cAnimationTrack *pTrack = apAnimation->CreateTrack(pBone->GetName(), eAnimTransformFlag_Rotate | eAnimTransformFlag_Translate | eAnimTransformFlag_Scale);
 					pTrack->SetNodeIndex(i);
@@ -1207,7 +1141,6 @@ namespace hpl {
 			if(apJoint->mfMin>0) apJoint->mfMin =0;
 			if(apJoint->mfMax<0) apJoint->mfMax =0;
 
-			//Log("Min: %f Max: %f\n",apJoint->mfMin,apJoint->mfMax);
 		}
 		else
 		{
@@ -1240,11 +1173,6 @@ namespace hpl {
 
 		pNode->SetMatrix(apColladaNode->m_mtxTransform);
 
-		//Log("Node: %s\n",apColladaNode->msName.c_str());
-		//Log(" local node transform: %s\n",pNode->GetLocalPosition().ToString().c_str());
-		//Log(" local collada transform: %s\n",apColladaNode->m_mtxTransform.GetTranslation().ToString().c_str());
-		//Log(" world transform: %s\n",apColladaNode->m_mtxWorldTransform.GetTranslation().ToString().c_str());
-
 		pNode->SetPosition(pNode->GetLocalPosition());
 
 		//Get source name
@@ -1253,7 +1181,6 @@ namespace hpl {
 			for(int i=0;i<(int)avColladaGeom.size(); i++){
 				if(avColladaGeom[i].msId == apColladaNode->msSource)
 				{
-					//Log("Setting source for %s to %s\n",pNode->GetName(), avColladaGeom[i].msName.c_str());
 					pNode->SetSource(avColladaGeom[i].msName);
 					break;
 				}
@@ -1340,12 +1267,10 @@ namespace hpl {
 			pSubMesh = pMesh->CreateSubMesh(apNode->msName+ "_Sub");
 
 			//Create vertex buffer
-			//tColladaExtraVtxListVec vExtraVtxVec;
 			pVtxBuffer = CreateVertexBuffer(*apGeom, eVertexBufferUsageType_Static); ///,&apNode->m_mtxWorldTransform);
 
 			//Transform vertex buffer with world transform
 			pVtxBuffer->Transform(apNode->m_mtxWorldTransform);
-			//Log("%s transform: (%s)\n", apNode->msName.c_str(), apNode->m_mtxWorldTransform.ToString().c_str());
 
 			pSubMesh->SetVertexBuffer(pVtxBuffer);
 
@@ -1401,7 +1326,6 @@ namespace hpl {
 			{
 				pBody->SetMass(0);
 				pBody->SetIsSaved(false);
-				//Log("Created body %s!\n",pBody->GetName().c_str());
 			}
 			else
 			{
@@ -1550,9 +1474,6 @@ namespace hpl {
 			return nullptr;
 		}
 
-		//Log("Creating Collider %s, type: %d size: %s\n", apGeom->msName.c_str(),(int)ShapeType,
-		//												pCollideShape->GetSize().ToString().c_str());
-
 		//Create body
 		iPhysicsBody *pBody = apWorld->GetPhysicsWorld()->CreateBody(apNode->msName,pCollideShape);
 		pBody->SetMatrix(apNode->m_mtxWorldTransform);
@@ -1615,7 +1536,6 @@ namespace hpl {
 			tString sType = cString::Sub(apNode->msName,0,5);
 			if(cString::ToLowerCase(sType) == "_room")
 			{
-				//Log("Found room, leaving branch...\n");
 				return;
 			}
 
@@ -1786,11 +1706,6 @@ namespace hpl {
 					if(pBill)
 					{
 						pBill->SetForwardOffset(fOffset);
-
-						//Old version , trying to skip because bounding box calc for this is far from
-						//optimal
-						//pBill->SetPosition(apNode->m_mtxWorldTransform.GetTranslation());
-						//pBill->SetAxis(cMath::Vector3Normalize(cMath::MatrixInverse(apNode->m_mtxWorldTransform).GetUp()));
 
 						//remove scale
 						cMatrixf mtxScale = cMath::MatrixScale(apNode->mvScale);
@@ -1979,7 +1894,6 @@ namespace hpl {
 							//Create the entity
 							cMeshEntity* pEntity =  apWorld->CreateMeshEntity(apNode->msName,pMesh, false);
 
-							//Log("Static mesh entity mtx: %s\n",cMath::MatrixToChar(apNode->m_mtxWorldTransform));
 							pEntity->SetMatrix(apNode->m_mtxWorldTransform);
 
 							apWorld->GetPortalContainer()->Add(pEntity, true);
@@ -2011,7 +1925,6 @@ namespace hpl {
 					cColladaGeometry* pGeom = GetGeometry(apNode->msSource, avColladaGeometries);
 					if(pGeom)
 					{
-						//Log("Creating mesh '%s'!\n",pGeom->msName.c_str());
 
 						cMeshEntity *pEntity = CreateStaticMeshEntity(apNode, apWorld,
 							pGeom,false,
@@ -2085,9 +1998,6 @@ namespace hpl {
 
 								apWorld->GetPortalContainer()->Add(pLight, bStatic);
 
-								//Log("Added light '%s' attenuation:  %f a: %f\n",pLight->GetName().c_str(),
-								//		pLight->GetFarAttenuation(), pLight->GetDiffuseColor().a);
-
 								if(sLightFile != "")
 									pLight->LoadXMLProperties(sLightFile);
 							}
@@ -2141,7 +2051,6 @@ namespace hpl {
 												tColladaTextureVec &avColladaTextures,
 												tColladaImageVec &avColladaImages)
 	{
-		//Log("--- Node: %s\n",apNode->msName.c_str());
 
 		//Check if we are dealing with a special type.
 		if(apNode->msName[0] == '_')
@@ -2184,7 +2093,6 @@ namespace hpl {
 				}
 
 				sNum = cString::Sub(apNode->msName,lStartChar+4,lDigits);
-				//int lTargetSector = cString::ToInt(sNum.c_str(),-1);
 				tString sTargetSector = sNum;
 
 				// Get the portals in the target room it can see.
@@ -2208,7 +2116,6 @@ namespace hpl {
 					for(size_t i=0; i< vPortalIds.size();i++)
 					{
 						pPortal->AddPortalId(vPortalIds[i]);
-						//Log("Seeing: %d\n", vPortalIds[i]);
 					}
 
 					//Calculate the normal of the portal
@@ -2255,7 +2162,6 @@ namespace hpl {
 					cColladaGeometry* pGeom = GetGeometry(apNode->msSource, avColladaGeometries);
 					if(pGeom)
 					{
-						//Log("Creating mesh '%s' from source '%s'!\n",pGeom->msName.c_str(),apNode->msSource.c_str());
 
 						cMeshEntity *pEntity = CreateStaticMeshEntity(apNode, apWorld,
 													pGeom, true,
@@ -2282,8 +2188,6 @@ namespace hpl {
 				}
 			}
 		}
-
-		//Log("---\n");
 
 		//Iterate children.
 		tColladaNodeListIt ChildIt = apNode->mlstChildren.begin();

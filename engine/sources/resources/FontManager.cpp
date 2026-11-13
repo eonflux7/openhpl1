@@ -40,8 +40,6 @@ namespace hpl {
 
 		BeginLoad(asName);
 
-		//asNewName = cString::SetFileExt(asName,"ttf");
-
 		pFont = static_cast<iFontData*>(this->FindLoadedResource(asNewName,sPath));
 
 		//A vector font with a base: the base's .fnt under this name
@@ -89,7 +87,6 @@ namespace hpl {
 				return nullptr;
 			}
 
-			//mpResources->GetImageManager()->FlushAll();
 			AddResource(pFont);
 		}
 

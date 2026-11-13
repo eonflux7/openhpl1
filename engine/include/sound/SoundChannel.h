@@ -118,7 +118,6 @@ namespace hpl {
 
 		iSoundData* GetData(){return mpData;}
 
-		//virtual void SetFiltering ( iFilter* apFilter, int alFlags ) = 0;
 		virtual void SetAffectedByEnv ( bool abAffected )  { mbAffectedByEnv = abAffected; }
 		virtual void SetFiltering ( bool abEnabled, int alFlags ) = 0;
 		virtual void SetFilterGain(float afGain) =0;

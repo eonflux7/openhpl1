@@ -114,7 +114,6 @@ namespace hpl {
 		cWorld3D *mpWorld;
 
 		iSoundChannel *mvSounds[3];
-		//cSoundEntry *mvSoundEntries[3];
 		int mvSoundId[3];
 
 		bool mbStopped;

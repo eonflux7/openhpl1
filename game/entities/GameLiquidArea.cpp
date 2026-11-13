@@ -191,8 +191,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 				float fWaterWeight = fVolume * mfDensity;
 				cVector3f vForce = pPhysicsWorld->GetGravity() * -fWaterWeight;
 
-				//Log("Tosurface: %f Vol: %f\n",fToSurface,fVolume);
-                				
 				pCharBody->AddForce(vForce);
 				
 				if(pBody->GetBuoyancyActive()==false)
@@ -211,7 +209,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 					pBody->SetBuoyancyAngularViscosity(mfAngularViscosity);
 	
 					SplashEffect(pBody);
-					//Log("Splash body: %s\n",pBody->GetName().c_str());
 
 					pBody->SetBuoyancyActive(true);
 				}
@@ -222,12 +219,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 					float fWaveOffsetX = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.x * 15)*mfWaveAmplitude;
 					float fWaveOffsetZ = sin(mfWaveElapsedSeconds * mfWaveAngularFrequency + vMassCentreWorldPos.z * 15)*mfWaveAmplitude;
 					
-					//pBody->AddForce(cVector3f(0, 9.8f * (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()*2, 0));
-					//pBody->AddForce(cVector3f(0, 9.8f * cMath::RandRectf(-0.1, 0.1f)*pBody->GetMass()*2, 0));
-					//Log("F:%f Amp %f\n",fWaveOffsetZ+fWaveOffsetX,mfWaveAmplitude);
-					//pBody->AddTorque(cVector3f((fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(), (fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass(),
-					//							(fWaveOffsetZ+fWaveOffsetX)*pBody->GetMass()));
-
 					cPlanef waveSurfacePlane;
 					waveSurfacePlane.FromNormalPoint(	cVector3f(0,1,0),
 													cVector3f(0,fSurfaceY + fWaveOffsetX + fWaveOffsetZ,0));
@@ -245,7 +236,6 @@ void cGameLiquidArea::Update(float afTimeStep)
 
 void cGameLiquidArea::Setup()
 {
-	//Log("SETUP!\n");
 	float fHeight = mvBodies[0]->GetShape()->GetSize().y;
 	cVector3f vPos = mvBodies[0]->GetWorldPosition();
 	mSurfacePlane.FromNormalPoint(	cVector3f(0,1,0),

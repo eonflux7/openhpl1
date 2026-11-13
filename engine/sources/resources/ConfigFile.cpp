@@ -14,7 +14,6 @@ namespace hpl {
 	{
 		msFile = asFile;
 		mpXmlDoc = hplNew( TiXmlDocument,() );
-		//mpFileSearcher = apFileSearcher;
 	}
 
 	cConfigFile::~cConfigFile()

@@ -26,7 +26,6 @@ namespace hpl {
 
 	cImageManager::~cImageManager()
 	{
-		//DeleteAllBitmapFrames();
 		DestroyAll();
 
 		Log(" Done with images\n");
@@ -81,14 +80,10 @@ namespace hpl {
 		}
 		else
 		{
-			//Log("Found '%s' in stock!\n",asName.c_str());
 		}
 
 		if(pImage)pImage->IncUserCount();
 		else Error("Couldn't load image '%s'\n",asName.c_str());
-
-		//Log("Loaded image %s, it has %d users!\n", pImage->GetName().c_str(),pImage->GetUserCount());
-		//Log(" frame has %d pics\n", pImage->GetFrameTexture()->GetPicCount());
 
 		EndLoad();
 		return pImage;
@@ -133,14 +128,7 @@ namespace hpl {
 		//pImage->GetFrameBitmap()->FlushToTexture(); Not needed?
 
 
-		//Log("Users Before: %d\n",pImage->GetUserCount());
-		//Log("Framepics Before: %d\n",pFrame->GetPicCount());
-
 		pImage->DecUserCount();//dec frame count as well.. is that ok?
-
-		//Log("---\n");
-		//Log("Destroyed Image: '%s' Users: %d\n",pImage->GetName().c_str(),pImage->GetUserCount());
-		//Log("Frame %d has left Pics: %d\n",pFrame,pFrame->GetPicCount());
 
 		if(pImage->HasUsers()==false)
 		{
@@ -149,13 +137,11 @@ namespace hpl {
 			RemoveResource(apResource);
 			hplDelete(apResource);
 
-			//Log("deleting image and dec fram to %d images!\n",pFrame->GetPicCount());
 		}
 
 
 		if(pFrame->IsEmpty())
 		{
-			//Log(" Deleting frame...");
 
 			//Delete the bitmap frame that has this this frame.
 			for(tFrameBitmapListIt it=mlstBitmapFrames.begin();it!=mlstBitmapFrames.end();++it)
@@ -163,7 +149,6 @@ namespace hpl {
 				cFrameBitmap *pBmpFrame = *it;
 				if(pBmpFrame->GetFrameTexture() == pFrame)
 				{
-					//Log("and bitmap...");
 					hplDelete(pBmpFrame);
 					mlstBitmapFrames.erase(it);
 					break;
@@ -173,9 +158,7 @@ namespace hpl {
 			//delete from list
 			m_mapTextureFrames.erase(pFrame->GetHandle());
 			hplDelete(pFrame);
-			//Log(" Deleted frame!\n");
 		}
-		//Log("---\n");
 
 	}
 
@@ -191,7 +174,6 @@ namespace hpl {
 
 	int cImageManager::FlushAll()
 	{
-		//Log("Flushing...");
 		int lNum =0;
 		for(tFrameBitmapListIt it=mlstBitmapFrames.begin();it!=mlstBitmapFrames.end();)
 		{
@@ -199,8 +181,6 @@ namespace hpl {
 
 			if((*it)->IsFull()){
 				//Do not delete all, probably this struct needs to be here for easy access :S
-				//hplDelete(*it);
-				//it = mlstBitmapFrames.erase(it);
 				it++;
 			}
 			else
@@ -208,8 +188,6 @@ namespace hpl {
 				it++;
 			}
 		}
-
-		//Log("Done!\n");
 
 		return lNum;
 	}
@@ -351,11 +329,9 @@ namespace hpl {
 			//If it fitted in none of the frames, create a new and put it in that.
 			if(!bFound)
 			{
-				//Log("No fit!\n");
 				//not 100% it fits in this one...if so maybe the bitmap size of the frame
 				//should be changed?
 
-				//pImage = CreateBitmapFrame(mvFrameSize)->AddBitmap(apBmp);
 				cFrameBitmap * pFrame = CreateBitmapFrame(mvFrameSize);
 				if(pFrame)
 				{
@@ -402,7 +378,6 @@ namespace hpl {
 		}
 		else
 		{
-			//Log("Added texture frame: %d\n",pTFrame);
 		}
 
 		mlFrameHandle++;

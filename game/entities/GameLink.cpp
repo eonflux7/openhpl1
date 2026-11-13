@@ -70,7 +70,6 @@ void cGameLink::OnPlayerPick()
 
 void cGameLink::OnPlayerInteract()
 {
-	//if(mpInit->mpRadioHandler->IsActive()) return;
 
 	if(mbLocked)
 	{

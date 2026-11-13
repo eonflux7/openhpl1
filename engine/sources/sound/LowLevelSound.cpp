@@ -48,10 +48,4 @@ namespace hpl {
 		return nullptr;
 	}
 
-	/*void iLowLevelSound::DestroySoundEnvironment( iSoundEnvironment* apSoundEnv)
-	{
-		Log(" Destroy %d\n",apSoundEnv);
-
-		STLFindAndDelete(mlstSoundEnv,apSoundEnv);
-	}*/
 }

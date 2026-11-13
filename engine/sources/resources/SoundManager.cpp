@@ -53,7 +53,6 @@ namespace hpl {
 		}
 
 
-		//if(!pSound) Error("Couldn't load sound data '%s'\n",asName.c_str());
 		EndLoad();
 		return pSound;
 	}
@@ -70,8 +69,6 @@ namespace hpl {
 
 	void cSoundManager::Destroy(iResourceBase* apResource)
 	{
-		//Log("Destroying %s users: %d\n",apResource->GetName().c_str(),
-		//								apResource->GetUserCount());
 		if(apResource->HasUsers())
 		{
 			apResource->DecUserCount();

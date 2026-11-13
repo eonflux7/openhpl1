@@ -305,7 +305,6 @@ void cMainMenuWidget_Text::OnMouseDown(eMButton aButton)
 
 void cMainMenuWidget_Text::OnMouseOver(bool abOver)
 {
-	//if(abOver == mbOver) return;
 
 	mbOver = abOver;
 
@@ -641,7 +640,6 @@ cMainMenuWidget_Continue::cMainMenuWidget_Continue(cInit *apInit, const cVector3
 
 void cMainMenuWidget_Continue::OnMouseDown(eMButton aButton)
 {
-	//mpInit->mpGraphicsHelper->DrawLoadingScreen("other_loading.jpg");
 	
 	mpInit->mpMainMenu->SetActive(false);
 
@@ -2386,7 +2384,6 @@ public:
 		else
 		{
 			mpKeyWidget->msText = kTranslate("MainMenu","Empty");
-			//FatalError("Action for %s button does not exist!\n",msText.c_str());
 		}
 
         mpKeyWidget->SetExtraWidget(this);		
@@ -2432,7 +2429,6 @@ public:
 
 	void OnMouseDown(eMButton aButton) override
 	{
-		//Log("Setting deafult keys!\n");
 		mpInit->mpButtonHandler->SetDefaultKeys();
 		mpInit->mpMainMenu->ResetWidgets(eMainMenuState_OptionsKeySetupMove);
 		mpInit->mpMainMenu->ResetWidgets(eMainMenuState_OptionsKeySetupAction);
@@ -2619,7 +2615,6 @@ void cMainMenu::Update(float afTimeStep)
 
 		if(CheckForInput())
 		{
-			//Log("Creating action '%s'\n",msCurrentActionName.c_str());
 			iAction *pAction = pInput->InputToAction(msCurrentActionName);
 			
 			mpCurrentActionText->msText = mpInit->mpButtonHandler->GetKeyLabel(pAction->GetInputName());
@@ -3156,8 +3151,6 @@ void cMainMenu::CreateWidgets()
 																			"diffalpha2d",
 																			cColor(1,1))) );
 		vPos.y+=205;
-		//AddWidgetToState(eMainMenuState_FirstStart,hplNew( cMainMenuWidget_Text(mpInit,vPos,kTranslate("MainMenu", "StartTip4"),15,eFontAlign_Left)); 
-		//vPos.y += 28;
 		AddWidgetToState(eMainMenuState_FirstStart,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","OK"),eMainMenuState_Start,20,eFontAlign_Center)) );
 	}
 	
@@ -3225,8 +3218,6 @@ void cMainMenu::CreateWidgets()
 	}
 	else
 	{
-		//AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text(mpInit,vPos,kTranslate("MainMenu","StartNewGame"),24,eFontAlign_Center));
-		//vPos.y += 34;
 		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_NewGame,(mpInit,vPos,kTranslate("MainMenu","Easy"),24,eFontAlign_Center,eGameDifficulty_Easy)) );
 		vPos.y += 30;
 		AddWidgetToState(eMainMenuState_NewGame,hplNew( cMainMenuWidget_Text,(mpInit,vPos,kTranslate("MainMenu","EasyDesc"),16,eFontAlign_Center)) );
@@ -3341,7 +3332,6 @@ void cMainMenu::CreateWidgets()
 
 			//TODO: PROBLEM!!!
 			gpSaveGameList[i]->AddEntry(sFile);
-			//gpSaveGameList[i]->AddEntry(sFile);
 		}
 
 		//Save game buttons
@@ -3749,8 +3739,6 @@ void cMainMenu::CreateWidgets()
 		AddWidgetToState(eMainMenuState_OptionsGame,hplNew( cMainMenuWidget_SimpleSwing,(mpInit,vPos,kTranslate("MainMenu","SimpleSwing:"),20,eFontAlign_Right)) ); 
 		vPos.y += 29;
 	}
-	//AddWidgetToState(eMainMenuState_OptionsGame,hplNew( cMainMenuWidget_AllowQuickSave(mpInit,vPos,kTranslate("MainMenu","AllowQuickSave:"),20,eFontAlign_Right)); 
-	//vPos.y += 29;
 	tWString sCrosshairText = kTranslate("MainMenu","Show Crosshair:");
 	if(sCrosshairText == _W("")) sCrosshairText = _W("Show Crosshair:");
 	cMainMenuWidget *pWidgetShowCrossHair = hplNew( cMainMenuWidget_ShowCrossHair,(mpInit,vPos,sCrosshairText,20,eFontAlign_Right) );
@@ -3808,10 +3796,6 @@ void cMainMenu::CreateWidgets()
 		vPos.y += 29;
 	}
 	
-	//sText = mpInit->mbAllowQuickSave ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
-	//gpAllowQuickSaveText = hplNew( cMainMenuWidget_Text, (mpInit,vPos,sText,20,eFontAlign_Left) );
-	//AddWidgetToState(eMainMenuState_OptionsGame,gpAllowQuickSaveText); 
-	//vPos.y += 29;
 	sText = mpInit->mbShowCrossHair ? kTranslate("MainMenu","On") : kTranslate("MainMenu","Off");
 	gpShowCrossHairText = hplNew( cMainMenuWidget_Text,(mpInit,vPos,sText,20,eFontAlign_Left) );
 	AddWidgetToState(eMainMenuState_OptionsGame,gpShowCrossHairText);
@@ -3955,8 +3939,6 @@ void cMainMenu::CreateWidgets()
 	cMainMenuWidget *pWidgetFOV = hplNew( cMainMenuWidget_FOV,(mpInit,vPos,_W("Field of View:"),20,eFontAlign_Right) );
 	AddWidgetToState(eMainMenuState_OptionsGraphics,pWidgetFOV); 
 
-	//vPos.x = 400;
-	//vPos.y = 230 + 150;
 	vPos.y += 35;
 	AddWidgetToState(eMainMenuState_OptionsGraphics,hplNew( cMainMenuWidget_Button,(mpInit,vPos,kTranslate("MainMenu","Advanced"),eMainMenuState_OptionsGraphicsAdvanced,23,eFontAlign_Center)) );
 

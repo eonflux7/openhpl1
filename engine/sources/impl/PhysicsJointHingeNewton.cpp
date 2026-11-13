@@ -90,8 +90,6 @@ namespace hpl {
 	{
 		cPhysicsJointHingeNewton* pHingeJoint = (cPhysicsJointHingeNewton*)NewtonJointGetUserData(pHinge);
 
-		//pHingeJoint->OnPhysicsUpdate();
-
 		if(pHingeJoint->mfMaxAngle == 0 && pHingeJoint->mfMinAngle == 0) return 0;
 
 		float fAngle = NewtonHingeGetJointAngle (pHinge);

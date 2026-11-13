@@ -82,7 +82,6 @@ namespace hpl {
 	{
 		if(mfNormalVolumeMul != mfNormalVolumeFadeDest)
 		{
-			//Log("speed %s: %f\n", msName.c_str(),mfNormalVolumeFadeSpeed);
 
 			mfNormalVolumeMul += mfNormalVolumeFadeSpeed*afTimeStep;
 
@@ -154,15 +153,11 @@ namespace hpl {
 
 		if(mType == eSoundDest_Gui){
 			pSound->SetPositionRelative(true);
-//			pSound->SetPosition(avPos);
 			pSound->SetRelPosition(avPos);
 
 			cVector3f vPos = cMath::MatrixMul(mpLowLevelSound->GetListenerMatrix(), avPos);
 			pSound->SetPosition(vPos);
 
-			//Needed?
-//			pSound->SetPosition(mpLowLevelSound->GetListenerPosition() +
-//								pSound->GetRelPosition());
 		}
 		else {
 
@@ -205,7 +200,6 @@ namespace hpl {
 		else
 		{
 			pSound->SetVolume(0);
-			//UpdateDistanceVolume3D(&Entry,1.0f/60.0f,false,mType);
 		}
 
 		//If it is silent do everything as normal except stop the sound at start.
@@ -227,9 +221,6 @@ namespace hpl {
 		{
 			mlstWorldSounds.push_back(Entry);
 		}
-
-		//Log("Starting sound '%s' prio: %d\n",	pSound->GetData()->GetName().c_str(),
-		//										pSound->GetPriority());
 
 
 		mlIdCount = mlIdCount == std::numeric_limits<int>::max() ? 0 : mlIdCount + 1;
@@ -262,7 +253,6 @@ namespace hpl {
 		//If it is silent do everything as normal except stop the sound at start.
 		if(mbSilent)
 		{
-			//pSound->SetLooping(false);
 			pSound->Stop();
 		}
 		else
@@ -341,7 +331,6 @@ namespace hpl {
 			it = mlstWorldSounds.begin();
 			while(it != mlstWorldSounds.end())
 			{
-				//Log("Stopping: %s\n",it->mpSound->GetData()->GetName().c_str());
 				it->mpSound->SetPaused(false);
 				it->mpSound->Stop();
 				it++;
@@ -564,7 +553,6 @@ namespace hpl {
 		while(it != mlstGuiSounds.end())
 		{
 			if(it->mpSound == apSound){
-				//Log("returning from GUI %d\n",&(*it));
 				return &(*it);
 			}
 			++it;
@@ -574,7 +562,6 @@ namespace hpl {
 		while(it != mlstWorldSounds.end())
 		{
 			if(it->mpSound == apSound){
-				//Log("returning from World %d\n",&(*it));
 				return &(*it);
 			}
 			++it;
@@ -595,15 +582,8 @@ namespace hpl {
 
 	bool cSoundHandler::UpdateEntry(cSoundEntry *apEntry, float afTimeStep, tFlag aTypes)
 	{
-		//if(apEntry->mbStream) return;
 
 		apEntry->Update(afTimeStep);
-
-
-		/*Log("Updating entry: '%s' vol: %f playing: %d\n",apEntry->msName.c_str(),
-														apEntry->mpSound->GetVolume(),
-														apEntry->mpSound->IsPlaying()?1:0);*/
-		//Log("Pos: %s\n",apEntry->mpSound->GetPosition().ToString().c_str());
 
 		if(!apEntry->mpSound->IsPlaying() && !apEntry->mpSound->GetPaused())
 		{
@@ -613,12 +593,7 @@ namespace hpl {
 				&& apEntry->mfNormalVolumeFadeDest !=0)
 			{
 				pSound->GetCallBack()->OnPriorityRelease();
-				//Log("On prio release!\n");
 			}
-
-			//Log("Stopping: %s Time: %f / %f\n",pSound->GetData()->GetName().c_str(),
-			//									pSound->GetElapsedTime(),
-			//									pSound->GetTotalTime());
 
 			pSound->Stop();
 			hplDelete(pSound);
@@ -664,7 +639,6 @@ namespace hpl {
 			{
 				SetEntryVolume(apEntry, apEntry->mfNormalVolume * apEntry->mfNormalVolumeMul * mfVolume);
 			}
-			//else if(apEntry->mpSound->Get3D())
 			if(apEntry->mpSound->Get3D())
 			{
 				UpdateDistanceVolume3D(apEntry,afTimeStep,apEntry->mbFirstTime ? false : true, aTypes);
@@ -742,10 +716,6 @@ namespace hpl {
 												pSound->GetRelPosition() );
 
 			pSound->SetPosition(vPos);
-//			cVector3f vPos = cMath::MatrixMul(mpLowLevelSound->GetListenerMatrix(),
-//												pSound->GetRelPosition());
-
-//			pSound->SetPosition(pSound->GetRelPosition());
 
 
 			if(apEntry->mEffectType & mAffectedByVolume)
@@ -759,7 +729,6 @@ namespace hpl {
 		}
 		else
 		{
-			//Log("%s ",apEntry->msName.c_str());
 
 			iSoundChannel *pSound = apEntry->mpSound;
 			float fDist = cMath::Vector3Dist(pSound->GetPosition(),
@@ -772,7 +741,6 @@ namespace hpl {
 				//Set very low priority
 				pSound->SetPriority(0);
 
-				//Log(" max distance ");
 			}
 			else
 			{
@@ -793,11 +761,6 @@ namespace hpl {
 					pPhysicsWorld->CastRay(&mSoundRayCallback,pSound->GetPosition(),
 						mpLowLevelSound->GetListenerPosition(),
 						false,false,false,true);
-
-					//Log(" from (%s) to (%s) ",pSound->GetPosition().ToString().c_str(),
-					//						mpLowLevelSound->GetListenerPosition().ToString().c_str());
-
-					//Log(" callback: %d ",mSoundRayCallback.HasCollided()?1:0);
 
 					if(mSoundRayCallback.HasCollided())
 					{
@@ -820,7 +783,6 @@ namespace hpl {
 						}
 					}
 
-					//Log("Blocked: %d ",bBlocked ? 1 : 0);
 				}
 
 				// Lower volume according to distance
@@ -842,12 +804,8 @@ namespace hpl {
 					fVolume = 1 - (fDelta/fMaxDelta);
 					float fSqr = fVolume * fVolume;
 
-					//Log("Lin: %f Sqr: %f ",fVolume,fSqr);
-
 					//fade between normal and square
 					fVolume = fVolume *apEntry->mfBlockMul + (1.0f - apEntry->mfBlockMul)*fSqr;
-
-					//Log("Mix: %f ",fVolume);
 
 
 					fVolume *= apEntry->mfNormalVolume;
@@ -867,8 +825,6 @@ namespace hpl {
 
 				UpdateBlockFilter(apEntry, mfBlockedGainHF);
 
-				//Log("Vol: %f\n",fBlock * fVolume * apEntry->mfNormalVolumeMul);
-				//Log("%s Block: %f\n",apEntry->msName.c_str(),apEntry->mfBlockMul);
 			}
 		}
 	}
@@ -911,7 +867,6 @@ namespace hpl {
 		it = mlstWorldSounds.begin();
 		while(it != mlstWorldSounds.end())
 		{
-			//Log("'%s' vs '%s'\n", it->msName.c_str(), asName.c_str());
 			if(cString::ToLowerCase(it->msName) == cString::ToLowerCase(asName)){
 				return &(*it);
 			}
@@ -1003,7 +958,6 @@ namespace hpl {
 		//Create sound channel
 		pSound = pData->CreateChannel(alPriority);
 		if(pSound == nullptr){
-			//Warning("Couldn't play sound '%s'\n",asName.c_str());
 		}
 
 		return pSound;

@@ -327,9 +327,6 @@ void cIntroStory::SetActive(bool abActive)
 	}
 	else
 	{
-		//mpInit->mpGame->GetUpdater()->SetContainer("Default");
-		//mpInit->mpGame->GetScene()->SetDrawScene(true);
-		//mpInit->mpButtonHandler->ChangeState(mLastButtonState);
 	
 		
 		//Destroy images
@@ -395,9 +392,6 @@ void cIntroStory::OnDraw()
 							eFontAlign_Center,msCentreText);
 	}
 	
-	//mpFont->DrawWordWrap(vPos + cVector3f(3,3,-1),760,21,vSize,cColor(1,0),eFontAlign_Left,msMessage);
-	//mpFont->DrawWordWrap(vPos + cVector3f(-2,-2,-1),760,21,vSize,cColor(1,0),eFontAlign_Left,msMessage);
-
 	if(mpInit->mbSubtitles)
 	{
 		mpFont->DrawWordWrap(vPos, 760,18,vSize,cColor(1,1,1,1),eFontAlign_Left,msMessage);
@@ -439,9 +433,6 @@ void cIntroStory::Exit()
 	
 	SetActive(false);
 
-	//mpInit->mpGame->Exit();
-	//return;
-	
 	mpInit->mpGraphicsHelper->DrawLoadingScreen("");
 
 	mpInit->mpGame->GetUpdater()->SetContainer("Default");
@@ -524,8 +515,6 @@ void cIntroStory::Image01()
 			mfCueRemainingSeconds = 8.1f;
 			mlNextStop = kIntro_Image01_Mess3;
 
-			//mpInit->mpGame->GetSound()->GetMusicHandler()->Play("music_story.ogg",0.55f,0.05f,false);
-			
 			mpSoundHandler->PlayStream("intro_01_02.ogg",false,mfVoiceVol);
 
 			SetMessage(kTranslate("Intro","01_02"));
@@ -700,7 +689,6 @@ void cIntroStory::Image04()
 		// Start
 	case kIntro_Image04_Start:
 		{
-			//mvImages[2].mbActive = false;
 
 			mvImages[3].mbActive = true;
 			mvImages[3].FadeBrightnessTo(0,0);
@@ -754,8 +742,6 @@ void cIntroStory::Image05()
 			mfCueRemainingSeconds = 4.0f;
 			mlNextStop = kIntro_Image05_Mess2;
 
-			//mpSoundHandler->PlayStream("intro_04_01.ogg",false,mfVoiceVol);
-			//SetMessage(kTranslate("Intro","04_01"));
 			break;
 		}
 	case kIntro_Image05_Mess2:

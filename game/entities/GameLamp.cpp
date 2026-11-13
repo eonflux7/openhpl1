@@ -327,11 +327,6 @@ void cGameLamp::SetLit(bool abLit, bool abFade, bool abRunCallback)
 										1,mvParticleSystemNames[i].m_mtxTransform);
 			mpMeshEntity->AddChild(mvParticleSystems[i]);
 			
-			/*Log("Creating ps %s at pos (%s) meshpos: (%s)\n",
-				mvParticleSystems[i]->GetName().c_str(),
-				mvParticleSystems[i]->GetWorldPosition().ToString().c_str(),
-				mpMeshEntity->GetWorldPosition().ToString().c_str());*/
-			
 			mvParticleSystems[i]->SetTransformUpdated(true);
 			
 			if(!abFade){
@@ -439,8 +434,6 @@ void cGameLamp::Init()
 	for(size_t i=0; i<mvLights.size(); ++i) 
 	{
 		mvLightColors.push_back(mvLights[i]->GetDiffuseColor());
-
-		//Log("Setting lamp %s color to: %s\n",msName.c_str(),mvLights[i]->GetDiffuseColor().ToString().c_str());
 
 		mvLights[i]->SetFlickerActive(mbFlickering);
 		if(mbFlickering)

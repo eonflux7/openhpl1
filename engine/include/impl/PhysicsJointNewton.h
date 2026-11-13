@@ -40,7 +40,6 @@ namespace hpl {
 		~iPhysicsJointNewton() override
 		{
 			//Skip this for now and let newton handle it..
-			//Log("Destroying newton joint!\n");
 			if(this->mpChildBody || this->mpParentBody)
 				NewtonDestroyJoint(mpNewtonWorld,mpNewtonJoint);
 		}

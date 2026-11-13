@@ -180,8 +180,6 @@ void cEffect_ShakeScreen::Update(float afTimeStep)
 			shake.mfSize =  fT * shake.mfMaxSize;
 		}
 
-		//Log("%f, %f, %f size: %f\n",shake.mfFadeInTime,shake.mfTime,shake.mfFadeOutTime,shake.mfSize);
-				
 		if(fLargest < shake.mfSize) fLargest = shake.mfSize;
 		
 		if(shake.mfTime <= 0 && shake.mfFadeOutTime <= 0 && shake.mfFadeInTime <= 0)
@@ -274,8 +272,6 @@ void cEffect_SaveEffect::AutoSave(const tWString &asName)
 	msAutoSaveName = asName;
 	mbActive = true;
 	mfTime =0;
-
-	//mpInit->mpPlayer->SetActive(false);
 
 	mfFlashAlpha =0;
 
@@ -556,10 +552,6 @@ void cEffect_DepthOfField::FocusOnBody(iPhysicsBody *apBody)
 
 	//Far plane
 	float fFarPlane = fFocalPlane + (pBV->GetRadius() + 0.3f);
-	
-	//float fDist = cMath::Vector3Dist(vCamPos,apBody->GetWorldPosition());
-	//Log("Body: %s Dist: %f PickedDist: %f\n",apBody->GetName().c_str(), fDist,mpInit->mpPlayer->GetPickedDist());
-	//Log("Setup near %f focal %f far %f Radii %f\n",fNearPlane,fFocalPlane,fFarPlane,pBV->GetRadius());
 	
 	SetUp(fNearPlane,fFocalPlane,fFarPlane);
 }

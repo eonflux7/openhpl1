@@ -216,7 +216,6 @@ namespace hpl {
 			mpFrameTexture->GetTexture()->SetWrapS(eTextureWrap_ClampToEdge);
 			mpFrameTexture->GetTexture()->SetWrapT(eTextureWrap_ClampToEdge);
 
-			//mpFrameTexture->SetPicCount(mlPicCount);
 			mbIsUpdated = false;
 			return true;
 		}

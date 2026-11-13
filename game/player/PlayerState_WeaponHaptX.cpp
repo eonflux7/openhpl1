@@ -74,8 +74,6 @@ void cPlayerState_ThrowHaptX::OnUpdate(float afTimeStep)
 			mpPlayer->SetCrossHairState(eCrossHairState_None);
 		}
 
-		//Call entity
-		//pEntity->PlayerPick();
 	}
 	else
 	{
@@ -83,8 +81,6 @@ void cPlayerState_ThrowHaptX::OnUpdate(float afTimeStep)
 	}	
 
 	
-	//Quick fix but works, the OnLeave of the previous states sets an old cross hair state.
-	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
 void cPlayerState_ThrowHaptX::OnDraw()
@@ -94,7 +90,6 @@ void cPlayerState_ThrowHaptX::OnDraw()
 
 void cPlayerState_ThrowHaptX::OnPostSceneDraw()
 {
-	//mpHudObject->PostSceneDraw();
 }
 
 bool cPlayerState_ThrowHaptX::OnJump()
@@ -118,8 +113,6 @@ void cPlayerState_ThrowHaptX::OnStopInteract()
 
 void cPlayerState_ThrowHaptX::OnStartExamine()
 {
-	//mpInit->mpPlayerHands->SetCurrentModel(1,"");
-	//mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
 	if(mpPlayer->GetPickedBody())
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -227,7 +220,6 @@ void cPlayerState_ThrowHaptX::OnStopCrouch()
 
 bool cPlayerState_ThrowHaptX::OnStartInventory()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
@@ -310,9 +302,7 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 	// If button is pressed then turn weapon according to speed of proxy
 	if(mbInteractDown)
 	{
-		//Log("Avg: %s\n",vAvg.ToString().c_str());
 		
-		//mvGoalRotation.z =cMath::ToRad(0);
 		bool bXSet = true;
 		if(vAvg.x > 0.75f){
 			mvGoalRotation.y =cMath::ToRad(65.0f);
@@ -382,8 +372,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 	mtxCollider = cMath::MatrixMul(cMath::MatrixRotateY(fYaw),mtxCollider);
 	mtxCollider = cMath::MatrixMul(cMath::MatrixTranslate(vProxyPos),mtxCollider);
 
-	//mpBody->SetMatrix(mtxCollider);
-
 	// Update angles and turn towards goal
 	//Y
 	float fAngleStep = cMath::ToRad(90.0f*afTimeStep*1.2f);
@@ -418,11 +406,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 			mfAttackCooldownSeconds = 0.5f;
 
 			//Force at hit, removed for now.
-			//if(mpFeedbackForce->IsActive())	mpFeedbackForce->SetActive(false);
-			//cVector3f vDir = cMath::Vector3Normalize(vAvg);
-			//mpFeedbackForce->SetForce(vDir * -1.0f * fSpeed * 0.08f);
-			//mpFeedbackForce->SetTimeControl(false, 0.1f,0,0,0.1f);
-			//mpFeedbackForce->SetActive(true);
 		}
 	}
 
@@ -458,7 +441,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 			vDiff = cMath::MatrixMul(mtxProxy, vDiff);
 			mpImpulseForce->SetForce(cMath::Vector3Normalize(vDiff)*2);
 			
-			//Log("Collide %s\n",vDiff.ToString().c_str());
 			mbCollided = true;	//Set so that we must be out of collision before making an attack.
 		}
 		else
@@ -467,7 +449,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 
 			mvPushBackVec =0;
 			mpImpulseForce->SetForce(0);
-			//mpImpulseForce->SetActive(false);
 		}
 	}
 	else
@@ -503,8 +484,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 			mpPlayer->SetCrossHairState(eCrossHairState_None);
 		}
 
-		//Call entity
-		//pEntity->PlayerPick();
 	}
 	else
 	{
@@ -515,8 +494,6 @@ void cPlayerState_WeaponMeleeHaptX::OnUpdate(float afTimeStep)
 	gvPrevPos = vMovement;
 	
 	
-	//Quick fix but works, the OnLeave of the previous states sets an old cross hair state.
-	//mpPlayer->SetCrossHairState(eCrossHairState_None);
 }
 
 void cPlayerState_WeaponMeleeHaptX::OnDraw()
@@ -556,8 +533,6 @@ void cPlayerState_WeaponMeleeHaptX::OnPostSceneDraw()
 	mpInit->mpGame->GetGraphics()->GetLowLevel()->SetDrawMatrices(cMatrixf::Identity, pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix());
 
 
-	//mpBody->RenderDebugGeometry(mpInit->mpGame->GetGraphics()->GetLowLevel(),cColor(0,1,0,1));
-
 }
 
 bool cPlayerState_WeaponMeleeHaptX::OnJump()
@@ -589,7 +564,6 @@ void cPlayerState_WeaponMeleeHaptX::OnStopInteract()
 
 void cPlayerState_WeaponMeleeHaptX::OnStartExamine()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	if(mpPlayer->GetPickedBody() && mpHudWeapon->IsAttacking()==false)
 	{
 		iGameEntity *pEntity = (iGameEntity*)mpPlayer->GetPickedBody()->GetUserData();
@@ -601,7 +575,6 @@ void cPlayerState_WeaponMeleeHaptX::OnStartExamine()
 void cPlayerState_WeaponMeleeHaptX::OnStartHolster()
 {
 	mpInit->mpPlayer->ChangeState(ePlayerState_Normal);
-	//mpHudWeapon = NULL;
 }
 
 bool cPlayerState_WeaponMeleeHaptX::OnAddYaw(float afVal)
@@ -640,9 +613,6 @@ void cPlayerState_WeaponMeleeHaptX::EnterState(iPlayerState* apPrevState)
 	cMatrixf mtxOffset = cMath::MatrixTranslate(cVector3f(0,vSize.y*0.5f,0));
 	mpCollider = pPhysicsWorld->CreateBoxShape(vSize, &mtxOffset);
 
-	//mpBody = pPhysicsWorld->CreateBody("",mpCollider);
-	//mpBody->SetActive(false);
-
 	mvRotation =0;
 	mfAttackCooldownSeconds =0;
 }
@@ -658,11 +628,9 @@ void cPlayerState_WeaponMeleeHaptX::LeaveState(iPlayerState* apNextState)
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	
 	pPhysicsWorld->DestroyShape(mpCollider);
-	//pPhysicsWorld->DestroyBody(mpBody);
 
 	mpPlayer->GetHapticCamera()->SetUseFrame(true);
 
-	//mpHudWeapon = NULL;
 }
 
 void cPlayerState_WeaponMeleeHaptX::OnStartRun()
@@ -710,7 +678,6 @@ void cPlayerState_WeaponMeleeHaptX::OnStopCrouch()
 
 bool cPlayerState_WeaponMeleeHaptX::OnStartInventory()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 	return true;
 }
 
@@ -724,7 +691,6 @@ void cPlayerState_WeaponMeleeHaptX::PlaySound(const tString &asSound)
 bool cPlayerState_WeaponMeleeHaptX::CheckAttack(const cMatrixf& a_mtxTransform, float afSpeed)
 {
 	mpInit->mbWeaponAttacking = true;
-	//Log("----------------- BEGIN ATTACK WITH WEAPON ------------ \n");
 
 	
 	cMeleeWeaponAttack* pAttack = mpHudWeapon->GetAttack(0);
@@ -901,7 +867,6 @@ bool cPlayerState_WeaponMeleeHaptX::CheckAttack(const cMatrixf& a_mtxTransform, 
 			}
 		}
 	}
-	//Log("----------------- END ATTACK WITH WEAPON ------------ \n");
 
 	//Play hit sound
 	if(bHit)
@@ -950,12 +915,9 @@ void cPlayerState_WeaponMeleeHaptX::HitBody(iPhysicsBody *apBody, float afMinImp
 	{
 		vForceDir.Normalise();
 
-		//pBody->AddForce(vForceDir * fForceSize);
 		apBody->AddImpulse(vForceDir *fForceSize);
 
 		cVector3f vTorque = vSpinMul * fMass * fForceSize;
-
-		//vTorque = cMath::MatrixMul(pBody->GetInertiaMatrix(),vTorque);
 
 		apBody->AddTorque(vTorque);
 	}

@@ -246,11 +246,9 @@ namespace hpl {
 		cPlanef plane;
 
 		mpNewtonCollision = NewtonCreateTreeCollision(mpNewtonWorld, 0);
-		//Log("-- Creating mesh collision.:\n");
 		NewtonTreeCollisionBeginBuild(mpNewtonCollision);
 		for(int tri = 0; tri < alIndexNum; tri+=3)
 		{
-			//Log("tri: %d:\n", tri/3);
 			for(int idx =0; idx < 3; idx++)
 			{
 				int lVtx = apIndexArray[tri + 2-idx]*alVtxStride;
@@ -268,9 +266,6 @@ namespace hpl {
 				cVector3f vP3(vTriVec[2*3+0],vTriVec[2*3+1],vTriVec[2*3+2]);
 
 				tempPlane.FromPoints(vP1, vP2, vP3);
-
-				//Log("P1: %s P2: %s P3: %s\n",vP1.ToString().c_str(),vP2.ToString().c_str(),vP3.ToString().c_str());
-				//Log("Plane: a: %f b: %f c: %f d: %f\n",tempPlane.a,tempPlane.b,tempPlane.c,tempPlane.d);
 
 				if(bCreatedPlane==false){
 					plane = tempPlane;

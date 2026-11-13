@@ -93,8 +93,6 @@ namespace hpl {
 	{
 		if(cHaptic::GetIsUsed())
 		{
-			//mpHaptic->GetLowLevel()->DestroyAllShapes();
-			//Not so good to do it here..
 		}
 
 		STLDeleteAll(mlstMeshEntities);
@@ -228,8 +226,6 @@ namespace hpl {
 
 				CheckMinMaxUpdate(vMin,vMax,vLocalMin,vLocalMax);
 			}
-
-			//Log("World Min: (%s) Max: (%s)\n",vMin.ToString().c_str(), vMax.ToString().c_str());
 
 			//Create a 10 m border around the world aswell:
 			vMin = vMin - cVector3f(10,10,10);
@@ -602,8 +598,6 @@ namespace hpl {
 			return nullptr;
 		}
 
-		//Log("Created particle system '%s' of type '%s'\n",asName.c_str(), asType.c_str());
-
 		//Add the emitters contained in the system.
 		//Do not add the system itself.
 		for(int i=0; i< pPS->GetEmitterNum();++i)
@@ -615,8 +609,6 @@ namespace hpl {
 		}
 
 		mlstParticleSystems.push_back(pPS);
-
-		//Log("Created particle system '%s'\n",asType.c_str());
 
 		return pPS;
 	}
@@ -688,7 +680,6 @@ namespace hpl {
 
 	void cWorld3D::DestroySoundEntity(cSoundEntity* apEntity)
 	{
-		//STLFindAndDelete(mlstSoundEntities,apEntity);
 
 		tSoundEntityListIt it= mlstSoundEntities.begin();
 		for(; it != mlstSoundEntities.end(); ++it)
@@ -780,8 +771,6 @@ namespace hpl {
 	{
 		cAINodeContainer* pContainer=nullptr;
 
-		//unsigned long lStartTime = mpSystem->GetLowLevel()->GetTime();
-
 		//See if the container is allready loaded.
 		tAINodeContainerListIt it = mlstAINodeContainers.begin();
 		for(; it != mlstAINodeContainers.end(); ++it)
@@ -868,10 +857,6 @@ namespace hpl {
 			}
 		}
 
-		//unsigned long lTime = mpSystem->GetLowLevel()->GetTime() - lStartTime;
-		//Log("Creating ai nodes took: %d\n",lTime);
-
-
 		return pContainer;
 	}
 
@@ -929,14 +914,11 @@ namespace hpl {
 		{
 			cParticleSystem3D *pPS = *it;
 
-			//Debug:
-			//for(int i=0; i<100;++i) pPS->UpdateLogic(afTimeStep / 100.0f);
 			pPS->UpdateLogic(afTimeStep);
 
 			//Check if the system is alive, else destroy
 			if(pPS->IsDead())
 			{
-				//Log("Deleting particle system '%s'", pPS->GetName().c_str());
 
 				it = mlstParticleSystems.erase(it);
 				for(int i=0; i< pPS->GetEmitterNum();++i)
@@ -960,14 +942,9 @@ namespace hpl {
 			cMeshEntity *pEntity = *MeshIt;
 
 			if(pEntity->IsActive()){
-				//bool bTime = cString::GetLastStringPos(pEntity->GetName(), "infected")>=0;
-				//if(bTime) START_TIMING_EX(pEntity->GetName().c_str(),entity);
 
-				//Debug:
-				//for(int i=0; i<100;++i) pEntity->UpdateLogic(afTimeStep / 100.0f);
 				pEntity->UpdateLogic(afTimeStep);
 
-				//if(bTime) STOP_TIMING(entity);
 			}
 		}
 	}
@@ -1001,8 +978,6 @@ namespace hpl {
 
 			if(pSound->IsActive())
 			{
-				//Debug:
-				//for(int i=0; i<100;++i) pSound->UpdateLogic(afTimeStep / 100.0f);
 				pSound->UpdateLogic(afTimeStep);
 			}
 

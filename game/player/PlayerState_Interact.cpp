@@ -144,7 +144,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 	}
 	if(mbPickAtPoint)
 	{
-		//mpPushBody->AddForceAtPosition(vForce * mpPushBody->GetMass()*mpPlayer->mfGrabMassMul, vCurrentPoint);
 
 		//TODO: User intertia instead.
 		cVector3f vLocalPos = vCurrentPoint - mpPushBody->GetLocalPosition();
@@ -190,8 +189,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		vTorque = vTorque - vOmega * 0.1f;
 		
 		mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
-		//vTorque = cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque);
-		//mpPushBody->AddTorque(vTorque);
 	}
 	else
 	{
@@ -204,8 +201,6 @@ void cPlayerState_Grab::OnUpdate(float afTimeStep)
 		cVector3f vTorque = mRotatePid.Output(cVector3f(0,fWantedSpeed,0) - vOmega, afTimeStep);
 
 		mpPushBody->AddTorque(vTorque * mpPushBody->GetMass());
-		//vTorque = cMath::MatrixMul(mpPushBody->GetInertiaMatrix(),vTorque);
-		//mpPushBody->AddTorque(vTorque);
 
 		mvRotation.y -= vOmega.y * afTimeStep;
 	}
@@ -271,7 +266,6 @@ void cPlayerState_Grab::UpdateRotation(float afTimeStep, const cVector3f &avOmeg
 
 void cPlayerState_Grab::OnDraw()
 {
-	//mpFont->Draw(cVector3f(5,30,0),12,cColor(1,1),eFontAlign_Left,"YRotate: %f",mfYRotation);
 }
 
 void cPlayerState_Grab::OnPostSceneDraw()
@@ -280,8 +274,6 @@ void cPlayerState_Grab::OnPostSceneDraw()
 
 	cVector3f vPickPoint = cMath::MatrixMul(mpPushBody->GetWorldMatrix(), mvRelPickPoint);
 
-	//pLowGfx->DrawSphere(vPickPoint, 0.2f, cColor(1,1,1,1));
-	//pLowGfx->DrawSphere(mvCurrentDisered, 0.2f, cColor(1,1,1,1));
 }
 
 bool cPlayerState_Grab::OnJump()
@@ -338,8 +330,6 @@ void cPlayerState_Grab::OnStartExamine()
 		fT = 1 - (fMass - mfMinThrowMass) / ( mfMaxThrowMass - mfMinThrowMass);
 
     float fImpulse = mfMinThrowImpulse * (1-fT) + mfMaxThrowImpulse * fT;
-
-	//Log("Mass: %f Impulse: %f\n",fMass,fImpulse);
 
 	//Add the impulse
 	if(mbPickAtPoint)
@@ -506,7 +496,6 @@ void cPlayerState_Grab::EnterState(iPlayerState* apPrevState)
 
 	mfGrabDist = cMath::Vector3Dist(mpPlayer->GetCamera()->GetPosition(),
 									mpPlayer->GetPickedPos());
-	//mfGrabDist = mpPlayer->GetPickedDist();
 
 	//reset PID controller
 	mGrabPid.Reset();
@@ -685,7 +674,6 @@ void cPlayerState_Move::OnUpdate(float afTimeStep)
 	float fDistance = cMath::Vector3Dist(vStart,vEnd);
 	if(fDistance > mpPlayer->mfCurrentMaxInteractDist*1.7f)
 	{
-		//Log("Out of here %f!\n",mpPlayer->mfCurrentMaxInteractDist);
 		mpPlayer->ChangeState(mPrevState);
 		return;
 	}
@@ -739,7 +727,6 @@ bool cPlayerState_Move::GetFrameCrossHairPos(cVector2f &avPos)
 
 void cPlayerState_Move::OnStartInteract()
 {
-	//mpPlayer->ChangeState(ePlayerState_Normal);
 }
 
 void cPlayerState_Move::OnStopInteract()
@@ -837,7 +824,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 
 	//Change move state so the player is still
 	mPrevMoveState = mpPlayer->GetMoveState();
-	//mpPlayer->ChangeMoveState(ePlayerMoveState_Still);
 	mpPlayer->SetSpeedMul(0.3f);
 	mpPlayer->SetHeadMoveSizeMul(0.2f);
 	mpPlayer->SetHeadMoveSpeedMul(0.2f);
@@ -892,10 +878,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 	mpPlayer->SetCrossHairState(eCrossHairState_Grab);
 
 	//Add callback to body if needed
-	/*if(mpPushBody->GetCollideCharacter())
-	{
-	mpPushBody->AddBodyCallback(mpCallback);
-	}*/
 	mpCallback->mlBackoffUpdatesRemaining =0;
 
 
@@ -905,12 +887,6 @@ void cPlayerState_Move::EnterState(iPlayerState* apPrevState)
 void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 {
 	mpPushBody->SetStaticFriction(true);
-
-	//Remove callback to body if needed
-	/*if(mpPushBody->GetCollideCharacter())
-	{
-	mpPushBody->RemoveBodyCallback(mpCallback);
-	}*/
 
 	//Pause controllers
 	iGameEntity *pObject = (iGameEntity*)mpPushBody->GetUserData();
@@ -946,7 +922,6 @@ void cPlayerState_Move::LeaveState(iPlayerState* apNextState)
 
 void cPlayerState_Move::OnPostSceneDraw()
 {
-	//mpInit->mpGame->GetGraphics()->GetLowLevel()->DrawSphere(mvPickPoint,0.1f,cColor(1,1,1,1));
 }
 
 bool cPlayerState_Move::OnStartInventory()
@@ -1011,7 +986,6 @@ void cPlayerState_Push::OnUpdate(float afTimeStep)
 
 	iPhysicsWorld *pPhysicsWorld = mpInit->mpGame->GetScene()->GetWorld3D()->GetPhysicsWorld();
 	cVector3f vPlayerPos = mpPlayer->GetCharacterBody()->GetPosition() + vPosAdd;
-	//mpPlayer->GetCharacterBody()->SetPosition(vPlayerPos,true);
 
 	//Not really needed. character body should fix.
 	cVector3f vNewPos = vPlayerPos;
@@ -1034,7 +1008,6 @@ bool cPlayerState_Push::OnJump()
 
 void cPlayerState_Push::OnStartInteract()
 {
-	//mpPlayer->ChangeState(mPrevState);
 }
 
 void cPlayerState_Push::OnStopInteract()
@@ -1099,15 +1072,6 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 				else
 					mvRelPlayerPos -= mvForward * (fPosAdd+0.1f);
 
-				//Not good since slopes does not work:
-				/*pPhysicsWorld->CheckShapeWorldCollision(&vNewPos, pPlayerBody->GetShape(),
-											cMath::MatrixTranslate(pPlayerBody->GetPosition()),
-											mpPushBody,false,true,NULL,false);
-				
-				if(vNewPos.x != vPos.x || vNewPos.y != vPos.y)
-				{
-					mpPlayer->GetCharacterBody()->SetPosition(vOldPos);
-				}*/
 			}
 		}
 
@@ -1120,8 +1084,6 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 		return false;
 	}
 
-	//Log("Mul: %f\n",afMul);
-
 	//If the velocity is not to high add force.		
 
 	if(fSpeed < mfMaxSpeed)
@@ -1129,21 +1091,11 @@ bool cPlayerState_Push::OnMoveForwards(float afMul, float afTimeStep)
 		
 		if(mpPlayer->mbPickAtPoint)
 		{
-			//NON WORKING ATM:
-			/*cVector3f vForce = mvForward * afMul*100.0f*0.5f;
-
-			cVector3f vPos = cMath::MatrixMul(	mpPushBody->GetLocalMatrix(), 
-												mvLocalPickPoint);
-			vPos.y = mpPushBody->GetLocalPosition().y;
-
-			mpPushBody->AddForceAtPosition(vForce,vPos);*/
 		}
 		else
 		{
 			cVector3f vForce = mvForward * afMul*100.0f;//*0.5f;
 
-			//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvRight*0.4f);
-			//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvRight*-0.4f);
 			mpPushBody->AddForce(vForce);
 		}
 	}
@@ -1158,12 +1110,9 @@ bool cPlayerState_Push::OnMoveSideways(float afMul, float afTimeStep)
 
 	if(vVel.Length() < mfMaxSpeed)
 	{
-		//mpPushBody->AddForce(mvRight * afMul*100.0f);
 
 		cVector3f vForce = mvRight * afMul*100.0f;//*0.5f;
 
-		//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvForward*0.4f);
-		//mpPushBody->AddForceAtPosition(vForce,mpPushBody->GetLocalPosition() + mvForward*-0.4f);
 		mpPushBody->AddForce(vForce);
 	}
 
@@ -1244,7 +1193,6 @@ void cPlayerState_Push::EnterState(iPlayerState* apPrevState)
 
 	//Create a little effect when grabbing the body
 	mpPushBody->SetAutoDisable(false);
-	//mpPushBody->AddForce(cVector3f(0,-1,0) *60.0f *mpPushBody->GetMass());
 
 	//This is to check the last used direction
 	mlForward = 0;
@@ -1269,7 +1217,6 @@ void cPlayerState_Push::LeaveState(iPlayerState* apNextState)
 
 	//Create a little effect when letting go of the body
 	mpPushBody->SetAutoDisable(true);
-	//mpPushBody->AddForce(cVector3f(0,-1,0) *60.0f *mpPushBody->GetMass());
 }
 
 void cPlayerState_Push::OnPostSceneDraw()

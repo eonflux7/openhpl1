@@ -150,10 +150,6 @@ namespace hpl {
 
 			pPhysicsWorld->CastRay(this,vStart,vEnd,false,false,true);
 
-			//Log("Pos: %s Min: %s Max: %s\n",vPos.ToString().c_str(),
-			//								vWorldMin.ToString().c_str(),
-			//								vWorldMax.ToString().c_str());
-
 			vPos.x += apParams->mfGridSize;
 			if(vPos.x > vWorldMax.x)
 			{
@@ -188,10 +184,6 @@ namespace hpl {
 
 				if(gCollideRayCallback.mbIntersected)
 				{
-					//Log("Walldistance %f : Add: (%s) Push (%s) Min: %f\n",gCollideRayCallback.mfDist,
-					//											vEnds[i].ToString().c_str(),
-					//											vPushBackDirs[i].ToString().c_str(),
-					//											mpParams->mfMinWallDist);
 					if(gCollideRayCallback.mfDist < mpParams->mfMinWallDist)
 					{
 						Node.mvPos += vPushBackDirs[i] * (mpParams->mfMinWallDist - gCollideRayCallback.mfDist);

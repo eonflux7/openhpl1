@@ -230,7 +230,6 @@ namespace hpl {
 		iGpuProgram *mpProgram[kMaxProgramNum];
 
 
-		//void Destroy();
 	};
 
 	typedef std::vector<iMaterial*> tMaterialVec;

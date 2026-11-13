@@ -125,7 +125,6 @@ void cHapticGameCamera::Update(float afTimeStep)
 	if(	mpPlayer->IsActive() == false || 
 		mpInit->mpButtonHandler->GetState() != eButtonHandlerState_Game)
 	{
-		//Log("Player is not active!!\n");
 		mpForce->SetActive(false);
 		mpLowLevelHaptic->SetRenderingActive(false);
 		if(mpHandEntity) mpHandEntity->SetActive(false);
@@ -256,9 +255,7 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 	cCamera3D *pCamera = static_cast<cCamera3D*>(mpScene->GetCamera());
 	cVector3f vLocalPoxy = cMath::MatrixMul(pCamera->GetViewMatrix(), 
 											mpLowLevelHaptic->GetProxyPosition());
-	//Log("Local %s\n",vLocalPoxy.ToString().c_str());
 	if(vLocalPoxy.z >-0.34){
-		//mpLowLevelHaptic->SetRenderingActive(false);
 		return;
 	}
 
@@ -342,14 +339,6 @@ void cHapticGameCamera::UpdateCameraOrientation(float afTimeStep)
 
 		mbAtEdge = bAtEdge;
 
-		/*if(bAtEdge)
-		{
-			mpLowLevelHaptic->SetRenderingActive(false);	
-		}
-		else
-		{
-			mpLowLevelHaptic->SetRenderingActive(mbRenderActive);
-		}*/
 	}
 	// Centre Type
 	else if(mType == eHapticGameCameraType_Centre)
@@ -406,30 +395,6 @@ void cHapticGameCamera::UpdateHand(float afTimeStep)
 
 void cHapticGameCamera::UpdateProxyCovered(float afTimeStep)
 {
-	// Check if proxy is covered
-	/*if(false)//cHaptic::GetIsUsed())
-	{
-	if(mState == ePlayerState_Normal && mpHapticCamera->IsTurning()==false)
-	{
-	cVector3f vStart = mpCamera->GetPosition();
-	cVector3f vEnd = mpHandEntity->GetWorldPosition();
-
-	//Log("Casting ray!\n");
-	gTempCheckProxy.mbCollided =false;
-	pPhysicsWorld->CastRay(&gTempCheckProxy,vStart,vEnd,false,false,false);
-
-	if(gTempCheckProxy.mbCollided)
-	{
-	//Log("Disable!\n");
-	mpLowLevelHaptic->SetRenderingActive(false);
-	}
-	else
-	{
-	//Log("Enabel!\n");
-	mpLowLevelHaptic->SetRenderingActive(true);
-	}
-	}
-	}*/
 }
 
 void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
@@ -505,7 +470,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		iHapticShape *pContactShape = pBody->GetHapticShape();
 
 		pContactShape->SetEnabled(true);
-		//mlstActiveShapes.push_back(pContactShape);
 
 		//Check if any of the haptic shapes are touched.
 		if(mpLowLevelHaptic->ShapeIsInContact(pContactShape))
@@ -518,9 +482,6 @@ void cHapticGameCamera::UpdateProxyInteraction(float afTimeStep)
 		}
 
 		// Add force to body and play material effects
-
-		//Log("Body: %s Force: %s\n",	pBody->GetName().c_str(), 
-			//						pContactShape->GetAppliedForce().ToString().c_str());
 
 		
 		//Force

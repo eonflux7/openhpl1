@@ -76,7 +76,6 @@ namespace hpl {
 		mfLimitAutoSleepDist = 0.02f;
 		mlLimitAutoSleepNumSteps = 10;
 
-		//Log("Created joint '%s'\n",msName.c_str());
 	}
 
 	iPhysicsJoint::~iPhysicsJoint()
@@ -95,7 +94,6 @@ namespace hpl {
 
 		if(mpSound) mpWorld->GetWorld3D()->DestroySoundEntity(mpSound);
 
-		//Log("Deleted joint '%s'\n",msName.c_str());
 	}
 
 	/**
@@ -175,13 +173,10 @@ namespace hpl {
 		// Check if any of the controllers has a OnMax end.
 		if(mbHasCollided==false)
 		{
-			//Log("OnMax!\n");
 			tPhysicsControllerMapIt it = m_mapControllers.begin();
 			for(; it != m_mapControllers.end(); ++it)
 			{
 				iPhysicsController *pCtrl = it->second;
-
-				//Log("Ctrl %s: %d\n",pCtrl->GetName().c_str(),(int)pCtrl->GetEndType());
 
 				if(pCtrl->IsActive() && pCtrl->GetEndType() == ePhysicsControllerEnd_OnMax)
 				{
@@ -207,7 +202,6 @@ namespace hpl {
 		// Check if any of the controllers has a OnMin end.
 		if(mbHasCollided==false)
 		{
-			//Log("OnMin!\n");
 
 			tPhysicsControllerMapIt it = m_mapControllers.begin();
 			for(; it != m_mapControllers.end(); ++it)
@@ -343,7 +337,6 @@ namespace hpl {
 		// Joint has sound
 		if(mpSound)
 		{
-			//Log("Updating %s\n",mpSound->GetName().c_str());
 			float fMin = cMath::Max(mfMinMoveSpeed-0.2f, 0.1f);
 			if(fSpeed <= fMin)
 			{
@@ -352,22 +345,18 @@ namespace hpl {
 			}
 			else
 			{
-				//Log("Getting entry!\n");
 				cSoundEntry *pEntry = mpSound->GetSoundEntry(eSoundEntityType_Main);
 				if(pEntry)
 				{
-					//Log("Update entry!\n");
 					float fFreq, fVolume;
 					CalcSoundFreq(fSpeed, &fFreq,&fVolume);
 
 					pEntry->mfNormalSpeed  = fFreq;
 					pEntry->mfNormalVolumeMul = fVolume;
 
-					//Log("Speed: %f Vol: %f Freq: %f\n",fSpeed,fVolume,fFreq);
 				}
 				else
 				{
-					//Log("Null entry!\n");
 				}
 
 
@@ -388,7 +377,6 @@ namespace hpl {
 						mpSound->SetIsSaved(false);
 						mpSound->FadeIn(3.3f);
 					}
-					//Log("Starting!\n");
 				}
 				else
 				{
@@ -418,8 +406,6 @@ namespace hpl {
 
 			float fSpeed = vVel.Length();
 			if(fSpeed > pEffect->mfMaxSpeed) fSpeed = pEffect->mfMaxSpeed;
-
-			//Log("Speed: %f\n",fSpeed);
 
 			if(fSpeed >= pEffect->mfMinSpeed && mbHasCollided==false && pEffect->msSound != "")
 			{

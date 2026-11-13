@@ -29,7 +29,6 @@ bool cGameObjectBodyCallback::OnBeginCollision(iPhysicsBody *apBody, iPhysicsBod
 void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCollideBody,
 										cPhysicsContactData* apContactData)
 {
-	//Log("OnCollide %s vs %s\n",apBody->GetName().c_str(),apCollideBody->GetName().c_str());
 	
 	// Damage on enemies
 	if(apCollideBody->IsCharacter())
@@ -126,28 +125,6 @@ void cGameObjectBodyCallback::OnCollide(iPhysicsBody *apBody, iPhysicsBody *apCo
 		}
 	}
 
-	/*if(apCollideBody->IsCharacter()==false) return;
-
-	//Check if there is an enemy.
-	iGameEnemy *pEnemy = NULL;
-	if(apCollideBody->GetUserData())
-	{
-	pEnemy = (iGameEnemy*)apCollideBody->GetUserData();
-	}
-
-	// Stun
-	if(pEnemy && mpObject->GetInteractMode() != eObjectInteractMode_Push)
-	{
-	float fSpeed = apBody->GetLinearVelocity().Length();
-	float fMass = apBody->GetMass();
-	float fImpulse = fSpeed * fMass;
-
-	if(pEnemy->mfMinStunSpeed <= fSpeed && pEnemy->mfMinStunImpulse <= fImpulse)
-	{
-	//Log("Stun by %s speed: %f mass: %f\n",apBody->GetName().c_str(),fSpeed,fMass);
-	pEnemy->Stun(pEnemy->mfObjectCollideStun, true);
-	}
-	}*/
 }
 
 // LOADER
@@ -420,7 +397,6 @@ void cGameObject::OnPlayerPick()
 	}
 	else
 	{
-		//mpInit->mpPlayer->SetCrossHairState(eCrossHairState_None);
 	}
 }
 
@@ -694,8 +670,6 @@ void cGameObject::BreakAction()
 		float fDist = cMath::Vector3Dist(	pParentBody->GetWorldPosition(),
 											pPlayer->GetCamera()->GetPosition());
 
-		//Log("Ear ring dist: %f max: %f\n",fDist, mBreakProps.mfEarRing_MaxDist);
-
 		if(fDist <= mBreakProps.mfEarRing_MaxDist)
 		{
 			pPlayer->GetEarRing()->Start(mBreakProps.mfEarRing_Time);
@@ -802,12 +776,6 @@ void cGameObject::MoveObject()
 
 float cGameObject::GetMoveDist()
 {	
-	/*cVector3f vBodyPos = mpInit->mpPlayer->GetPickedPos();
-	cVector3f vPlayerPos = mpInit->mpPlayer->GetCamera()->GetPosition();
-
-	float fDist = cMath::Vector3Dist(vBodyPos, vPlayerPos);
-
-	return fDist;*/
 	return mpInit->mpPlayer->GetPickedDist();
 }
 
@@ -836,11 +804,6 @@ void cGameObject::PushObject()
 
 float cGameObject::GetPushDist()
 {
-	/*cVector3f vBodyPos = mpInit->mpPlayer->GetPickedPos();
-	cVector3f vPlayerPos = mpInit->mpPlayer->GetCamera()->GetPosition();
-
-	float fDist = cMath::Dist2D(cVector2f(vBodyPos.x,vBodyPos.z),cVector2f(vPlayerPos.x,vPlayerPos.z));
-	*/
 	return mpInit->mpPlayer->GetPickedDist();
 }
 

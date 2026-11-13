@@ -49,7 +49,6 @@ namespace hpl {
 
 		std::list<cParticleSystem3D*> mlstSystems;
 
-		//tParticleSystemData3DMap m_mapData3D;
 	};
 
 };

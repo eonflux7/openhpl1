@@ -114,12 +114,10 @@ namespace hpl {
 	{
 		if(mvVisibilitySets.empty())
 		{
-			//Log("Checking start sector %s\n",mpSector->GetId().c_str());
 			return mpContainer->IntersectionBV(apBV,nullptr);
 		}
 		else
 		{
-			//Log("Checking sector %s with %d sets\n", mpSector->GetId().c_str(), mvVisibilitySets.size());
 
 			for(size_t i=0; i< mvVisibilitySets.size(); ++i)
 			{

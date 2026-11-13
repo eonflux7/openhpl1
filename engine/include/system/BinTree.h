@@ -104,10 +104,7 @@ namespace hpl {
 			eBinTreeNode c;
 			while(true)
 			{
-				//if(Node->GetData()<aData)
 					c = eBinTreeNode_Left;
-				//else
-				//	c = eBinTreeNode_Right;
 
 				if(Node->GetChild(c)==nullptr)
 				{

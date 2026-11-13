@@ -57,18 +57,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	mpGfxBackground = mpDrawer->CreateGfxObject("inventory_background.bmp","diffalpha2d");
 
-	//mpBatteryMeter = mpDrawer->CreateGfxObject("inventory_battery_meter.bmp","diffalpha2d");
-	//mpBatteryMeterBar = mpDrawer->CreateGfxObject("inventory_battery_meter_bar.bmp","diffalpha2d");
-
-	//mpBagpack = mpDrawer->CreateGfxObject("inventory_backpack.bmp","diffalpha2d");
-
-	//mpHealthFrame = mpDrawer->CreateGfxObject("inventory_health_frame.bmp","diffalpha2d");
-	//mpHealthBack = mpDrawer->CreateGfxObject("inventory_health_background.bmp","diffalpha2d");
-	//mpHealthMan_Fine = mpDrawer->CreateGfxObject("inventory_health_fine.bmp","diffalpha2d");
-	//mpHealthMan_Caution = mpDrawer->CreateGfxObject("inventory_health_caution.bmp","diffalpha2d"); 
-	//mpHealthMan_Danger = mpDrawer->CreateGfxObject("inventory_health_danger.bmp","diffalpha2d");
-	//mpHealthTextFrame = mpDrawer->CreateGfxObject("inventory_health_text_slot.bmp","diffalpha2d");
-
 	mpFont = mpInit->mpGame->GetResources()->GetFontManager()->CreateFontData("verdana.fnt");
 
 	mpContext = hplNew( cInventoryContext, (mpInit) );
@@ -94,7 +82,6 @@ cInventory::cInventory(cInit *apInit)  : iUpdateable("Inventory")
 
 	//Init equip slots
 	int lEquipSlot = 0;
-	//cVector2f vEquipSlotBegin = cVector2f(400 - 77*5,10);
 	cVector2f vEquipSlotBegin = cVector2f(400 - 77*4.5f,15);
 	for(float x=0; x<9; ++x)
 	{
@@ -337,16 +324,6 @@ void cInventorySlot::OnDraw()
 
 		mpDrawer->DrawGfxObject(mpGfxBack,cVector3f(mRect.x,mRect.y,1),cVector2f(77,66),
 								cColor(1,mpInit->mpInventory->GetAlpha()*0.23f));
-		/*cVector3f vPos(mRect.x + 2,mRect.y + 3 ,11);
-		tString sString = cString::ToString(mlEquipIndex+1);
-		
-		cColor Col(1,1,1,mpInit->mpInventory->GetAlpha());
-		
-		//mpFont->Draw(vPos,13,Col,eFontAlign_Center,sString.c_str());
-		
-		//Col = cColor(0,0,0,mpInit->mpInventory->GetAlpha());
-		mpFont->Draw(vPos+cVector3f(1,1,-1),13,Col,eFontAlign_Center,sString.c_str());
-		mpFont->Draw(vPos+cVector3f(-1,-1,-1),13,Col,eFontAlign_Center,sString.c_str());*/
 	}
 }
 
@@ -482,7 +459,6 @@ void cInventorySlot::OnMouseUp(eMButton aButton)
 				}
 				else if(mpInit->mpInventory->CheckCombineCallback(sItemName,sCurrentItemName, mlIndex, bShowMessage))
 				{
-					//mpInit->mpInventory->RemoveItem(mpInit->mpInventory->GetCurrentItem());
 					if(mpInit->mpInventory->GetItem(sCurrentItemName))
 						mpInit->mpInventory->GetCurrentSlot()->SetItem(mpInit->mpInventory->GetCurrentItem());
 				}
@@ -748,8 +724,6 @@ void cInventoryBattery::OnDraw()
 							cVector2f(21, 102*fPercent),
 							cColor(	1.0f-fPercent,fPercent,	0,fAlpha));
 	
-	//mpFont->Draw(cVector3f(vBatteryPos.x+50, vBatteryPos.y+6,10),20,cColor(0.91f,1,0.91f,mfAlpha),eFontAlign_Left,
-	//_W("%.0f%%"),mpInit->mpPlayer->GetPower());
 }
 
 void cInventoryBattery::OnMouseOver()
@@ -977,8 +951,6 @@ void cInventoryContext::Draw()
 	{
 		cColor Col = mlSelectedRow == i? cColor(0.2f,1.0f,0.2f,mfAlpha) : cColor(0.65f,0.65f,0.65f,fTotalAlpha);
 		
-		//mpFont->Draw(mvPos + cVector3f(2.0f,(float)i*mfRowSize,1),14,Col,
-		//			eFontAlign_Left,(*mpActionVec)[i].c_str());
 	}
 }
 
@@ -1327,36 +1299,8 @@ void cInventory::OnDraw()
 		DrawDrawer();
 	}
 	
-	//Draw backpack and hands
-	//mpDrawer->DrawGfxObject(mpBagpack,cVector3f(0,600 - (160*sqrt(mfAlpha)),-1),cVector2f(800,160),cColor(1,mfAlpha));
-
 	//Draw power remaining:
 	
-	//Draw health
-	/*fPercent = mpInit->mpPlayer->GetHealth()/100.0f;
-	cVector2f vManPos(640,120);
-	mpDrawer->DrawGfxObject(mpHealthFrame,cVector3f(vManPos.x,vManPos.y,2),cVector2f(150,266),cColor(1,mfAlpha));
-	mpDrawer->DrawGfxObject(mpHealthBack,cVector3f(vManPos.x,vManPos.y,2),cVector2f(150,266),
-							cColor((1-fPercent)*0.7f + 0.3f,fPercent*0.7f + 0.3f, 0.3f, mfAlpha));
-	
-	cGfxObject *pGfxMan;
-	tWString wsText;
-	if(fPercent > 0.75f){		pGfxMan = mpHealthMan_Fine;
-								wsText = kTranslate("Inventory","HealthFine");
-	}
-	else if(fPercent > 0.3f){	pGfxMan = mpHealthMan_Caution;
-								wsText = kTranslate("Inventory","HealthCaution");
-	}
-	else{						pGfxMan = mpHealthMan_Danger;
-								wsText = kTranslate("Inventory","HealthDanger");
-	}
-
-	mpDrawer->DrawGfxObject(pGfxMan,cVector3f(vManPos.x,vManPos.y,2),cVector2f(150,266),cColor(1,mfAlpha));
-
-	mpDrawer->DrawGfxObject(mpHealthTextFrame,cVector3f(vManPos.x,vManPos.y+266+10,2),cVector2f(150,66),cColor(1,mfAlpha));
-	mpFont->Draw(cVector3f(vManPos.x+75,vManPos.y+266+10+4,10),20,cColor(0.91f,1,0.91f,mfAlpha),eFontAlign_Center,
-					wsText.c_str());*/
-
 	//Draw Widgets
 	tInventoryWidgetListIt it = mlstWidgets.begin();
 	for(; it != mlstWidgets.end(); ++it)
@@ -1821,7 +1765,6 @@ void cInventory::SetMessage(const tWString &asMessage)
 
 void cInventory::AddPickupCallback(const tString &asItem, const tString &asFunction)
 {
-	//Log("Adding callback %s %s\n",asItem.c_str(),asFunction.c_str());
 
 	cInventoryPickupCallback *pCallback = hplNew( cInventoryPickupCallback, () );
 	pCallback->msFunction = asFunction;
@@ -1997,9 +1940,7 @@ bool cInventory::CheckCombineCallback(const tString &asItem1,const tString &asIt
 	}
 	else if(abShowMessage)
 	{
-		//SetActive(false);
 		tString sEntry = "CannotCombineItems" + cString::ToString(cMath::RandRectl(1,5));
-		//mpInit->mpGameMessageHandler->Add(kTranslate("Inventory", sEntry));
 		SetMessage(kTranslate("Inventory", sEntry));
 	}
 

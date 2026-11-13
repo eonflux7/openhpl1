@@ -21,15 +21,12 @@ bool cCharacterAStarCallback::CanAddNode(cAINode *apParentNode,cAINode *apChildN
 
 	bool bRet = mpMove->GetNodeContainer()->FreePath(apParentNode->GetPosition(),apChildNode->GetPosition(),
 												1,0,this);
-	//Log("Checking %s -> %s, ret: %d \n",apParentNode->GetName().c_str(), 
-	//									apChildNode->GetName().c_str(),bRet?1:0);
 
 	return bRet;
 }
 
 bool cCharacterAStarCallback::Intersects(iPhysicsBody *pBody,cPhysicsRayParams *apParams)
 {
-	//if(pBody->GetCollide()==false) return false;
 	
 	if(pBody->IsCharacter()) return false;
 	if(pBody->GetCollideCharacter()==false) return false;
@@ -43,7 +40,6 @@ bool cCharacterAStarCallback::Intersects(iPhysicsBody *pBody,cPhysicsRayParams *
 		if(pEntity->GetToughness() >= mpMove->GetMaxDoorToughness()
 			&& mpMove->GetMaxDoorToughness() >=0)
 		{
-			//Log("Door was too strong!\n T: %d Max: %d\n",pEntity->GetToughness(),mpMove->GetMaxDoorToughness());
 			return true;
 		}
 
@@ -158,24 +154,6 @@ void cCharacterMove::Update(float afTimeStep)
 		{
 			mbMoveToNewNode = false;
 
-			//if(mpContainer->FreePath(mpCharBody->GetFeetPosition()+cVector3f(0,0.1f,0),
-			//						vGoal,1,0,mpAStarCallback)==false)
-			/*if(mpContainer->FreePath(mpCharBody->GetFeetPosition()+cVector3f(0,0.1f,0),
-									vGoal,-1,0,mpAStarCallback)==false)
-			{
-				//Do nothing here right now, might wanna remove the path from the two connected
-				//Nodes, but that might turn out pretty hard, leave for now, this takes too much cpu.
-				//mpInit->mpEffectHandler->GetSubTitle()->Add("Path was blocked!\n",2.0f,true);
-				mbMoving = false;
-				mlstNodes.clear();
-
-				//Log("-- Begin Dynamic path find !\n");
-				mpAStarCallback->mbCheckDynamic = true;
-				MoveToPos(mvGoalPos);
-				mpAStarCallback->mbCheckDynamic = false;
-				//Log("-- End Dynamic path find !\n");
-				
-			}*/
 		}
 
 		
@@ -294,11 +272,9 @@ void cCharacterMove::Update(float afTimeStep)
 		(fRealSpeed / std::abs(fWantedSpeed) < mfStuckLimit || std::abs(fCos) < 0.3f))
 	{
 		mfStuckCounter += afTimeStep;
-		//mpInit->mpEffectHandler->GetSubTitle()->Add(_W("ADD!\n"),1.0f/60.0f,false);
 	}
 	else
 	{
-		//mpInit->mpEffectHandler->GetSubTitle()->Add(_W("NEG!\n"),1.0f/60.0f,false);
 		mfStuckCounter -= afTimeStep;
 		if(mfStuckCounter<0)mfStuckCounter =0;
 	}
@@ -308,10 +284,6 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 {
 	if(mpAStar==nullptr) return false;
 
-	//Log(" Moving to %s\n",avPos.ToString().c_str());
-
-	//mpInit->mpEffectHandler->GetSubTitle()->Add("Get newer path!\n",2.0f,true);
-	
 	//Get the start and goal position
 	cVector3f vStartPos = mpCharBody->GetPosition();
 	cVector3f vGoalPos = avPos;
@@ -322,7 +294,6 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 	
 	//Get the nodes to be following
 	mlstNodes.clear();
-	//Log(" Getting path!\n");
 	const bool bPreviousDynamic = mpAStarCallback->mbCheckDynamic;
 	mpAStarCallback->mbCheckDynamic = abCheckDynamic;
 	bool bRet = mpAStar->GetPath(vStartPos,vGoalPos,&mlstNodes);
@@ -330,8 +301,6 @@ bool cCharacterMove::MoveToPos(const cVector3f &avPos, bool abCheckDynamic)
 	
 	if(bRet==false)
 	{
-		//Log("Did NOT find path\n");
-		//mpInit->mpEffectHandler->GetSubTitle()->Add(_W("Did not find path!\n"),2,false);
 	}
 
 	mvGoalPos = vGoalPos;
@@ -429,12 +398,9 @@ cAINode* cCharacterMove::GetAINodeInRange(float afMinDistance, float afMaxDistan
 	int i = cMath::RandRectl(0, mpContainer->GetNodeNum()-1);
 	int lCount=0;
 
-	//Log("StartNode i: %d\n",i);
-	
 	while(lCount< mpContainer->GetNodeNum())
 	{
 		cAINode* pNode = mpContainer->GetNode(i);
-		//Log("Testing node: %d '%s'\n",i,pNode->GetName().c_str());
 
 		float fDistSqr = cMath::Vector3DistSqr(pNode->GetPosition(), mpCharBody->GetFeetPosition());
 		if(fDistSqr <= fMaxDistSqr && fDistSqr >= fMinDistSqr)
@@ -449,13 +415,6 @@ cAINode* cCharacterMove::GetAINodeInRange(float afMinDistance, float afMaxDistan
 
 	return nullptr;
 
-	/*for(int i=0; i<mpContainer->GetNodeNum(); ++i)
-	{
-		cAINode* pNode = mpContainer->GetNode(i);
-
-		MoveToPos(pNode->GetPosition());
-	}
-	return NULL;*/
 }
 
 cAINode* cCharacterMove::GetAINodeAtPosInRange(const cVector3f &avPos,float afMinDistance,float afMaxDistance,
@@ -536,31 +495,11 @@ void cCharacterMove::SetAStar(cAStarHandler *apAStar)
 
 void cCharacterMove::OnDraw(cInit *apInit)
 {
-	//return;
-
-	//apInit->mpDefaultFont->Draw(cVector3f(5,64,100),14,cColor(1,1,1,1),eFontAlign_Left,
-	//	"StuckCount %f",mfStuckCounter);
-	
-	/*apInit->mpDefaultFont->Draw(cVector3f(5,64,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Speed: %f",mpCharBody->GetMoveSpeed(eCharDir_Forward));
-	apInit->mpDefaultFont->Draw(cVector3f(5,79,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Break: %f",mfCurrentBreak);*/
 
 	if(mbMoving)
 	apInit->mpDefaultFont->Draw(cVector3f(5,79,100),14,cColor(1,1,1,1),eFontAlign_Left,
 								_W("NodeDistAvg: %f"),mfNodeDistanceChangeSum);
 
-	/*apInit->mpDefaultFont->Draw(cVector3f(5,64,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Yaw: %f Pitch %f",cMath::ToDeg(mpCharBody->GetYaw()), cMath::ToDeg(mpCharBody->GetPitch()));
-	
-	apInit->mpDefaultFont->Draw(cVector3f(5,79,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Speed: %f",mpCharBody->GetMoveSpeed(eCharDir_Forward));
-	
-	apInit->mpDefaultFont->Draw(cVector3f(5,94,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Fwd: %s",mpCharBody->GetForward().ToString().c_str());
-
-	apInit->mpDefaultFont->Draw(cVector3f(5,110,100),14,cColor(1,1,1,1),eFontAlign_Left,
-		"Moving: %d",mbMoving?1:0);*/
 }
 
 void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
@@ -583,7 +522,6 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 
 	mpCharBody->GetBody()->RenderDebugGeometry(apLowLevelGfx,cColor(1,1,1,1));
 
-	//return;
 	if(mbMoving==false) return;
 
 	//GoalPos
@@ -614,9 +552,6 @@ void cCharacterMove::OnPostSceneDraw(iLowLevelGraphics *apLowLevelGfx)
 
 	//Start pos
 	cVector3f vStartPos = mpCharBody->GetPosition();
-	//if(mpContainer->GetNodeIsAtCenter()==false){
-		//vStartPos += cVector3f(0,mpContainer->GetCollideSize().y/2, 0);
-	//}
 	apLowLevelGfx->DrawSphere(vStartPos,0.2f,cColor(1,0,1));
 	apLowLevelGfx->DrawLine(vLastVec, vStartPos,cColor(1,0,1));
 

@@ -149,7 +149,6 @@ namespace hpl {
 	{
 		for(tUpdateableListIt it = mlstGlobalUpdateableList.begin();it!=mlstGlobalUpdateableList.end();++it)
 		{
-			//Log(" Exiting %s\n",(*it)->GetName().c_str());
 			(*it)->OnExit();
 		}
 
@@ -159,7 +158,6 @@ namespace hpl {
 			tUpdateableListIt UpIt = ContIt->second.begin();
 			while(UpIt != ContIt->second.end())
 			{
-				//Log(" Exiting %s\n",(*UpIt)->GetName().c_str());
 				(*UpIt)->OnExit();
 				UpIt++;
 			}

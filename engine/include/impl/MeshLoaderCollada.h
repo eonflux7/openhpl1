@@ -152,9 +152,6 @@ namespace hpl {
 			{
 				mvArrayVec[i].mvArray.clear();
 			}
-			/*mvVertexVec.clear();
-			mvIndexVec.clear();
-			mvExtraVtxVec.clear();*/
 		}
 
 		tString msId;
@@ -279,7 +276,6 @@ namespace hpl {
 	{
 	public:
 		tString msId;
-		//tString msName;
 		tString msTargetNode;
 
 		tColladaChannelVec mvChannels;
@@ -347,11 +343,6 @@ namespace hpl {
 
 		tColladaTransformList mlstTransforms;
 
-		/*void DeleteChildren()
-		{
-			STLDeleteAll(mlstChildren);
-		}*/
-
 		cColladaNode* CreateChild()
 		{
 			cColladaNode *pNode = hplNew( cColladaNode, () );
@@ -388,7 +379,6 @@ namespace hpl {
 
 		~cColladaScene()
 		{
-			//mRoot.DeleteChildren();
 			STLDeleteAll(mlstNodes);
 		}
 
@@ -567,7 +557,6 @@ namespace hpl {
 
 		iVertexBuffer *CreateVertexBuffer(cColladaGeometry & aGeometry,
 											eVertexBufferUsageType aUsageType);
-											//tColladaExtraVtxListVec &vExtraVtxVec);
 
 		bool FillStructures(const tString &asFile,
 							tColladaImageVec *apColladaImageVec,

@@ -237,7 +237,6 @@ void cGameItem::Update(float afTimeStep)
 			if(mfFlashAlpha <=0)
 			{
 				mfFlashAlpha =0;
-				//mfFlashDirection = -mfFlashDirection;
 			}
 		}
 		else
@@ -305,31 +304,6 @@ void cGameItem::Update(float afTimeStep)
 
 void cGameItem::OnPostSceneDraw()
 {
-	/*iLowLevelGraphics *pLowGfx = mpInit->mpGame->GetGraphics()->GetLowLevel();
-	cCamera3D *pCam = mpInit->mpPlayer->GetCamera();
-
-	
-	pLowGfx->SetDepthTestActive(true);
-	pLowGfx->SetDepthWriteActive(false);
-
-	pLowGfx->SetBlendActive(true);
-	pLowGfx->SetBlendFunc(eBlendFunc_One,eBlendFunc_One);
-
-	for(int i=0; i<  mpMeshEntity->GetMesh()->GetSubMeshNum(); i++)
-	{
-		cSubMeshEntity *pSubEntity = mpMeshEntity->GetSubMeshEntity(i);
-		cSubMesh *pSubMesh = mpMeshEntity->GetMesh()->GetSubMesh(i);
-		iVertexBuffer *pVtxBuffer = pSubEntity->GetVertexBuffer();
-
-		pLowGfx->SetTexture(0,NULL);
-		pVtxBuffer->Bind();
-		pVtxBuffer->Draw();
-		pVtxBuffer->UnBind();
-	}
-
-	pLowGfx->SetBlendActive(false);
-	pLowGfx->SetDepthTestActive(true);
-	pLowGfx->SetDepthWriteActive(true);*/
 }
 
 kBeginSerialize(cGameItem_SaveData,iGameEntity_SaveData)

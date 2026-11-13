@@ -152,7 +152,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 
 				Play(sMusic,true,1,1.3f,9);
 				mbAttackPlaying = true;
-				//Log("Play!");
 				mfAttackStartElapsedSeconds =0;
 			}
 		}
@@ -166,7 +165,6 @@ void cGameMusicHandler::Update(float afTimeStep)
 		{
 			mbAttackPlaying = false;
 			Stop(0.2f,9);
-			//Log("Stop!");
 			mfAttackStopElapsedSeconds =0;
 		}
 	}
@@ -265,7 +263,6 @@ void cGameMusicHandler::OnWorldLoad()
 {
 	m_setAttackers.clear();
 
-	//Update(2.0f);
 }
 
 void cGameMusicHandler::OnWorldExit()

@@ -53,12 +53,10 @@ namespace hpl {
 		{
 			iCharacterBody *pBody = *CharIt;
 
-			//for(int i=0; i<20; ++i)
 			{
 				pBody->Update(afTimeStep);//20.0f);
 			}
 		}
-		//LogUpdate(" Updating chars took %d ms\n",mpWorld3D->GetSystem()->GetLowLevel()->GetTime() - lTime);
 
 		//Update the rigid bodies before simulation.
 		tPhysicsBodyListIt BodyIt = mlstBodies.begin();
@@ -84,7 +82,6 @@ namespace hpl {
 				else ++i;
 			}
 		}
-		//LogUpdate(" Updating lowlevel physics took %d ms\n",mpWorld3D->GetSystem()->GetLowLevel()->GetTime() - lTime);
 
 		//Update the joints after simulation.
 		tPhysicsJointListIt JointIt = mlstJoints.begin();
@@ -131,7 +128,6 @@ namespace hpl {
 			vEmbedding.erase(std::remove(vEmbedding.begin(), vEmbedding.end(), apBody), vEmbedding.end());
 		}
 
-		//STLFindAndDelete(mlstBodies, apBody);
 		tPhysicsBodyListIt it = mlstBodies.begin();
 		for(; it != mlstBodies.end(); ++it)
 		{
@@ -197,8 +193,6 @@ namespace hpl {
 
 			if(pBody->GetMass() > 0 && cMath::CheckCollisionBV(*apBV,*pBody->GetBV()))
 			{
-				//quick fix for oscillation, might skip
-				//if(pBody->GetJointNum()>0 && pBody->GetJoint(0)->GetLimitAutoSleep()) continue;
 
 				pBody->SetEnabled(abEnabled);
 			}
@@ -332,7 +326,6 @@ namespace hpl {
 			apLowLevel->DrawLine(mvContactPoints[i].mvPoint,
 								mvContactPoints[i].mvNormal * mvContactPoints[i].mfDepth *0.2f,
 								aLineColor);
-			//Log("Rendering\n");
 		}
 	}
 
@@ -378,20 +371,10 @@ namespace hpl {
 		cBoundingVolume boundingVolume = apShape->GetBoundingVolume();
 		boundingVolume.SetTransform(cMath::MatrixMul(a_mtxTransform, boundingVolume.GetTransform()));
 
-		//Log("MAIN Position: %s Size: %s\n",boundingVolume.GetWorldCenter().ToString().c_str(),
-		//	boundingVolume.GetSize().ToString().c_str());
-
-		//if(abDebug)Log("--------------\n");
-
-		//tPhysicsBodyListIt it = mlstBodies.begin();
-		//for(; it != mlstBodies.end(); ++it)
 		cPortalContainerEntityIterator entIt = mpWorld3D->GetPortalContainer()->GetEntityIterator(&boundingVolume);
 		while(entIt.HasNext())
 		{
-			//iPhysicsBody *pBody = *it;
 			iPhysicsBody *pBody = static_cast<iPhysicsBody*>(entIt.Next());
-
-			//if(abDebug) Log("Checking %s\n",pBody->GetName().c_str());
 
 
 
@@ -405,7 +388,6 @@ namespace hpl {
 
 			if(cMath::CheckCollisionBV(boundingVolume,*pBody->GetBV())==false)
 			{
-				//if(abDebug) Log(" BV not collided\n");
 				continue;
 
 			}
@@ -416,7 +398,6 @@ namespace hpl {
 
 			if(bRet)
 			{
-				//if(abDebug) Log(" Collided with '%s'\n",pBody->GetName().c_str());
 
 				if(apCallback) apCallback->OnCollision(pBody, &collideData);
 
@@ -433,7 +414,6 @@ namespace hpl {
 				bCollide = true;
 			}
 		}
-		//Log("--------------\n");
 
 		if(apNewPos)
 			*apNewPos = a_mtxTransform.GetTranslation() + vPushVec;

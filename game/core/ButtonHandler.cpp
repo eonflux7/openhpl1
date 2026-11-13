@@ -465,11 +465,6 @@ void cButtonHandler::Update(float afTimeStep)
 	else if(mState == eButtonHandlerState_Game)
 	{
 		// Global ////////////////////
-		/*if(mpInput->BecameTriggered("ResetGame"))
-		{
-			mpInit->ResetGame(true);
-			mpInit->mpMapHandler->Load(	mpInit->msStartMap,mpInit->msStartLink);
-		}*/
 		// Requiem's quicksave and quickload are player keys, handled below
 		if(mpInit->mbAllowQuickSave && cInit::GetGameId() != eGameId_Requiem)
 		{
@@ -733,21 +728,11 @@ void cButtonHandler::Update(float afTimeStep)
 			{
 				mpInit->mpPlayer->Damage(20,ePlayerDamageType_BloodSplash);
 			}
-			/*if(mpInput->BecameTriggered("Log"))
-			{
-				mpInit->mpGame->GetPhysics()->SetDebugLog(!mpInit->mpGame->GetPhysics()->GetDebugLog());
-			}*/
 			if(mpInput->BecameTriggered("Taunt"))
 			{
 				for(int i=0;i<10; ++i)
 					mpInit->mpGame->GetSound()->GetSoundHandler()->PlayGui("gui_notebook_add_note1",
 																		false,0.01f);
-				/*cVector3f vPos = mpInit->mpPlayer->GetCharacterBody()->GetPosition();
-				cSoundEntity *pSound = mpInit->mpGame->GetScene()->GetWorld3D()->CreateSoundEntity("Taunt","interact_homer",true);
-                if(pSound)
-				{
-					pSound->SetPosition(vPos);
-				}*/
 			}
 			
 			if(mpPlayer->IsActive() || mpPlayer->GetState() == ePlayerState_Message)
@@ -976,15 +961,12 @@ void cButtonHandler::OnExit()
 	Log("  Saving keys\n");
 	for(int i=0; i< mlNumOfActions; ++i)
 	{
-		//Log(" Action %s\n",gvDefaultActions[i].msName.c_str());
 		if(!IsActionInGame(&gvDefaultActions[i])) continue;
 		
 		iAction *pAction = mpInput->GetAction(gvDefaultActions[i].msName);
 		tString sType="", sVal="";
 		TypeAndValFromAction(pAction,&sType,&sVal);
 
-		//Log(" type %s val: %s\n",sType.c_str(),sVal.c_str());
-		
 		mpInit->mpConfig->SetString("Keys",gvDefaultActions[i].msName+"_Type",sType);
 		mpInit->mpConfig->SetString("Keys",gvDefaultActions[i].msName+"_Val",sVal);
 	}
@@ -1113,7 +1095,6 @@ tString cButtonHandler::GetActionName(const tString &asInputName,const tString &
 
 iAction* cButtonHandler::ActionFromTypeAndVal(const tString& asName,const tString& asType, const tString& asVal)
 {
-	//Log("Action %s from %s\n",asName.c_str(),asType.c_str());
 
 	if(asType == "Keyboard")
 	{

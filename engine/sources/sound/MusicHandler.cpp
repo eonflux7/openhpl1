@@ -42,7 +42,6 @@ namespace hpl {
 			hplDelete(pSong);
 
 			it = mlstFadingSongs.erase(it);
-			//it++;
 		}
 	}
 

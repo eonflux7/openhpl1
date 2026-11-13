@@ -74,13 +74,9 @@ namespace hpl {
 					TiXmlText *pTextNode = pEntryElem->FirstChild()->ToText();
 					if(pTextNode)
 					{
-						//pEntry->msText = pTextNode->Value();
-						//pEntry->msText = cString::ReplaceStringTo(pEntry->msText,"[br]","\n");
 
 						tString sString = pTextNode->Value();
 						pEntry->mwsText = _W("");
-
-						//if(sCatName == "TEST") Log("String: '%s' %d\n",sString.c_str(),sString.size());
 
 						for(size_t i=0; i< sString.length(); ++i)
 						{
@@ -132,20 +128,15 @@ namespace hpl {
 
 								pEntry->mwsText += (wchar_t)lNum;
 								++i;
-								//Log(" %d: (%x %x) -> %d\n",i,c,c2,(wchar_t)lNum);
 							}
 							else
 							{
-								//if(sCatName == "TEST") Log(" %d: %c | %d\n",i,c,c);
 								pEntry->mwsText += c;
-								//if(sCatName == "TEST") Log(" '%s'\n",cString::To8Char(pEntry->mwsText).c_str());
 							}
 						}
 
 					}
 				}
-
-				//if(sE == "Motion blur:") Log("After String: '%s'\n",cString::To8Char(pEntry->mwsText).c_str());
 
 				std::pair<tLanguageEntryMap::iterator,bool> ret = pCategory->m_mapEntries.insert(tLanguageEntryMap::value_type(sEntryName,pEntry));
 				if(ret.second==false){
@@ -156,28 +147,6 @@ namespace hpl {
 		}
 
 		hplDelete(pDoc);
-
-		/*{
-			tString sRawFile = cString::SetFileExt(asFile,"")+"_raw_text.txt";
-			Log("Saving raw text '%s'\n", sRawFile.c_str());
-			FILE *pFile = fopen(sRawFile.c_str(),"w+");
-			if(pFile==NULL) Error("Could not open file: '%s'\n", sRawFile.c_str());
-
-			tLanguageCategoryMapIt CatIt = m_mapCategories.begin();
-			for(; CatIt != m_mapCategories.end(); ++CatIt)
-			{
-				cLanguageCategory *pCategory = CatIt->second;
-				tLanguageEntryMapIt EntryIt = pCategory->m_mapEntries.begin();
-				for(; EntryIt != pCategory->m_mapEntries.end(); ++EntryIt)
-				{
-					cLanguageEntry *pEntry = EntryIt->second;
-					fputs(cString::To8Char(pEntry->mwsText + _W("\n\n")).c_str(), pFile);
-				}
-			}
-
-
-			fclose(pFile);
-		}*/
 
 
 		return true;

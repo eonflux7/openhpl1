@@ -222,7 +222,6 @@ static void __stdcall ChangeMap(std::string asMapFile, std::string asMapPos,
 								float afFadeOutTime, float afFadeInTime,
 								std::string asLoadTextCat, std::string asLoadTextEntry)
 {
-	//if(gpInit->mpRadioHandler->IsActive()) return;
 
 	gpInit->mpMapHandler->ChangeMap(asMapFile,asMapPos, asStartSound,asStopSound,
 									afFadeOutTime,afFadeInTime,
@@ -330,9 +329,6 @@ static void __stdcall AutoSave()
 	if(gpInit->mpPlayer->GetHealth()<=0) return;
 
 	//TODO: Some other effect here.
-	//gpInit->mpGraphicsHelper->DrawLoadingScreen("other_saving.jpg");
-	//gpInit->mpSaveHandler->SaveGameToFile("save/auto.sav");
-	//gpInit->mpSaveHandler->AutoSave("Auto",5);
 	gpInit->mpEffectHandler->GetSaveEffect()->AutoSave();
 }
 SCRIPT_DEFINE_FUNC(void,AutoSave)
@@ -673,7 +669,6 @@ SCRIPT_DEFINE_FUNC_1(void,RemoveCombineCallback,string)
 
 static bool __stdcall HasItem(std::string asName)
 {
-	//if(cString::ToLowerCase(asName)=="notebook") return gpInit->mpInventory->GetNoteBookActive();
 
 	return gpInit->mpInventory->GetItem(asName) != nullptr;
 }
@@ -890,28 +885,6 @@ SCRIPT_DEFINE_FUNC_3(void,DamageEntity,string,float,int)
 static void __stdcall SetDoorState(std::string asName, 
 											std::string asState)
 {
-	/*iGameEntity *pEntity = gpInit->mpMapHandler->GetGameEntity(asName);
-	if(pEntity==NULL || pEntity->GetType() != eGameEntityType_Door)
-	{
-		Warning("Couldn't find door entity '%s'\n",asName.c_str());
-		return;
-	}
-
-	cGameDoor *pDoor = static_cast<cGameDoor*>(pEntity);
-
-	asState = cString::ToLowerCase(asState);
-	eGameDoorState DoorState;
-
-    if(asState == "open") DoorState = eGameDoorState_Open;
-	else if(asState == "closed") DoorState = eGameDoorState_Closed;
-	else if(asState == "opening") DoorState = eGameDoorState_Opening;
-	else if(asState == "closing") DoorState = eGameDoorState_Closing;
-	else{
-		Warning("Invalid door state '%s'\n",asState.c_str());
-		return;
-	}
-
-	pDoor->ChangeDoorState(DoorState);*/
 }
 SCRIPT_DEFINE_FUNC_2(void, SetDoorState, string, string)
 

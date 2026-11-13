@@ -181,14 +181,6 @@ namespace hpl {
 
 	bool cMath::CheckCollisionBV(cBoundingVolume& aBV1,cBoundingVolume& aBV2)
 	{
-		//Check Sphere collision.
-		//Not needed I think.
-		/*float fRadiusSum = aBV1->GetRadius() + aBV2->GetRadius();
-		cVector3f vSepAxis = aBV1->GetWorldCenter() - aBV2->GetWorldCenter();
-		if(vSepAxis.SqrLength() > (fRadiusSum * fRadiusSum))
-		{
-			return eBVCollision_Outside;
-		}*/
 
 		//Check box collision
 		aBV1.UpdateSize();
@@ -199,9 +191,6 @@ namespace hpl {
 
 		const cVector3f &vMax1 = aBV1.mvWorldMax;
 		const cVector3f &vMax2 = aBV2.mvWorldMax;
-
-		//Log("Min1: %s Max1: %s  vs  Min2: %s Max2: %s\n", vMin1.ToString().c_str(),vMax1.ToString().c_str(),
-		//												vMin2.ToString().c_str(), vMax2.ToString().c_str());
 
 		if(vMax1.x < vMin2.x || vMax1.y < vMin2.y || vMax1.z < vMin2.z ||
 			vMax2.x < vMin1.x || vMax2.y < vMin1.y || vMax2.z < vMin1.z)
@@ -433,22 +422,18 @@ namespace hpl {
 		if(fDx>=0 && fDy<0)
 		{
 			fAns = atan(fDx/(-fDy));
-			//Log("1\n");
 		}
 		else if(fDx>=0 && fDy>=0)
 		{
 			fAns = atan(fDy/fDx) + kPi2f;
-			//Log("2\n");
 		}
 		else if(fDx<0 && fDy>=0)
 		{
 			fAns = atan((-fDx)/fDy)+kPif;
-			//Log("3\n");
 		}
 		else if(fDx<0 && fDy<0)
 		{
 			fAns = atan((-fDy)/(-fDx))+kPi2f+kPif;
-			//Log("4\n");
 		}
 		return fAns;
 	}
@@ -504,7 +489,6 @@ namespace hpl {
 		case 512:	return 9;
 		default: return (int)floor((log((float)alX) / log(2.0f)) + 0.5f);
 		}
-		//return (int)floor((log((float)aX) / log(2.0f)) + 0.5f);
 	}
 
 	bool cMath::IsPow2(int alX)
@@ -578,13 +562,8 @@ namespace hpl {
 		vNormalized.y = -(((avVec.y - aScreenRect.y)*2.0f / aScreenRect.h) - 1.0f);
 		vNormalized.z = 2.0f*avVec.z - 1.0f;
 
-		//Log("Normalized: %s\n",vNormalized.ToString().c_str());
-
 		// Object coordinates.
 		vNormalized = MatrixMulDivideW(mtxInvViewProj,vNormalized);
-		//vNormalized = MatrixMul(mtxInvViewProj,vNormalized);
-
-		//Log("Normalized After: %s\n",vNormalized.ToString().c_str());
 
 		return vNormalized *-1;
 	}
@@ -619,22 +598,12 @@ namespace hpl {
 		vAngle.y = -GetAngleFromPoints2D(cVector2f(avStartPos.x,avStartPos.z),
 										cVector2f(avGoalPos.x, avGoalPos.z));
 
-		//Log("Y Angle: %f\n",vAngle.y);
-
-		//vAngle.y = Wrap(vAngle.y,0.0f, k2Pif);
-
 		cMatrixf mtxRot = MatrixRotateY(-vAngle.y);
 		cVector3f vDelta = avGoalPos - avStartPos;
 
-		//Log("vDelta: %s\n",vDelta.ToString().c_str());
-
 		cVector3f vGoal = MatrixMul(mtxRot, vDelta);
 
-		//Log("vGoal: %s\n",vGoal.ToString().c_str());
-
 		vAngle.x = GetAngleFromPoints2DSimple(cVector3f(0,0,0),cVector2f(vGoal.z, vGoal.y));
-
-		//Log("X Angle: %f\n",vAngle.x);
 
 		vAngle.x = Wrap(vAngle.x,0.0f, k2Pif);
 
@@ -683,10 +652,6 @@ namespace hpl {
 		if(cMath::PlaneToPointDist(aPlane2, avPoint2)>=0)	bPair[1][1] = true;
 		else												bPair[1][1] = false;
 
-		/*Log("-------------\n");
-		Log("Pair 0 - 0: %d Pair 0 - 1: %d\n",bPair[0][0]?1:0,bPair[0][1]?1:0);
-		Log("Pair 1 - 0: %d Pair 1 - 1: %d\n",bPair[1][0]?1:0,bPair[1][1]?1:0);*/
-
 		//If either point is inside the plane pair we have an intersection.
 		if((bPair[0][0] && bPair[1][0]) || (bPair[0][1] && bPair[1][1])) return true;
 
@@ -714,17 +679,6 @@ namespace hpl {
 
 		return true;
 
-		/*if( IntersectsPlanePair(apPlanePairs[0],apPlanePairs[1],avPoint1,avPoint2)
-			&&
-			IntersectsPlanePair(apPlanePairs[2],apPlanePairs[3],avPoint1,avPoint2)
-			&&
-			IntersectsPlanePair(apPlanePairs[4],apPlanePairs[5],avPoint1,avPoint2)
-			)
-		{
-			return true;
-		}
-		return false;
-		*/
 	}
 
 	static const int kvQuadPairs[4][2] = {{0,1},{1,2},{2,3},{3,0}};
@@ -1027,21 +981,6 @@ namespace hpl {
 	{
 		cVector3f vAngles;
 
-		/*if (a_mtxA.m[2][0] > 0.998f) // singularity at north pole
-		{
-			vAngles.y = atan2(a_mtxA.m[0][2],a_mtxA.m[2][2]);
-			vAngles.z = kPif/2;
-			vAngles.x = 0;
-			Log("Special case 1\n");
-		}
-		if (a_mtxA.m[2][0] < -0.998f) // singularity at south pole
-		{
-			vAngles.y = atan2(a_mtxA.m[0][2],a_mtxA.m[2][2]);
-			vAngles.z = -kPif/2;
-			vAngles.x = 0;
-			Log("Special case 2\n");
-		}
-		else*/
 		{
 			vAngles.x = atan2(a_mtxA.m[2][1],a_mtxA.m[2][2]);
 			vAngles.y = -asin(a_mtxA.m[2][0]);
@@ -1112,24 +1051,17 @@ namespace hpl {
 		tVector3fVec vTempTangents1;
 		tVector3fVec vTempTangents2;
 
-		//Log("Creating tangents:\n");
-		//Log("Num of indices: %d\n",alIndexNum);
-		//Log("Num of vertrices: %d\n",alVertexNum);
-
 		vTempTangents1.resize(alVertexNum,cVector3f(0,0,0));
 		vTempTangents2.resize(alVertexNum,cVector3f(0,0,0));
 
 		//Iterate through the triangles
 		for(int triIdx=0; triIdx<alIndexNum; triIdx+=3)
 		{
-			//Log("Triangle %d: ",triIdx/3);
 
 			//Get the indices of the triangle
 			int idx1 = apIndexArray[triIdx + 0];
 			int idx2 = apIndexArray[triIdx + 1];
 			int idx3 = apIndexArray[triIdx + 2];
-
-			//Log("1: '%d' 2: '%d'  3: '%d' ", idx1, idx2, idx3);
 
 			//Get the 3 points making up the triangle
 			cVector3f vPos1 = GetVector3(apVertexArray,idx1,alVtxStride);
@@ -1178,7 +1110,6 @@ namespace hpl {
 			vTempTangents2[idx2] += vTDir;
 			vTempTangents2[idx3] += vTDir;
 
-			//Log("\n");
 		}
 
 		// Group identical positions/normals before smoothing. Keep each group's original
@@ -1238,10 +1169,6 @@ namespace hpl {
 				vTan = vAxis - vNormal * Vector3Dot(vNormal, vAxis);
 			}
 			vTan.Normalise();
-
-			//Log("Add tangent %d: ",vtxIdx);
-			//Log(" %.1f, %.1f, %.1f ",vTan.x, vTan.y, vTan.z);
-			//Log("\n");
 
 			//Calculate if left or right handed.
 			float fW = (cMath::Vector3Dot(cMath::Vector3Cross(vNormal, vTempTan1), vTempTan2) < 0.0f) ? -1.0f : 1.0f;

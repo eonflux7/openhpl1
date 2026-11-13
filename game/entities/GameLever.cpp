@@ -314,7 +314,6 @@ void cGameLever::SetIsStuck(bool abStuck)
 	}
 }
 
-// Callback("name", action, state): action 0 enter, 1 leave, 2 during;
 // state -1 min, 0 middle, 1 max
 void cGameLever::RunCallback(eGameLeverState aState, eGameLeverAction aAction)
 {

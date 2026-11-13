@@ -149,7 +149,6 @@ namespace hpl {
 
 	cVector2f iLowLevelHaptic::GetVirtualMousePos()
 	{
-		//Log("Pos: %f %f\n", mvCurrentHardwarePos.x,mvCurrentHardwarePos.y);
 		cVector2f vPos =	(cVector2f(mvCurrentHardwarePos.x,mvCurrentHardwarePos.y) - mvMinMousePos) /
 							(mvMaxMousePos - mvMinMousePos);
 		vPos.y = 1 - vPos.y;
@@ -203,7 +202,6 @@ namespace hpl {
 	{
 		STLDeleteAll(mlstShapes);
 
-		//Log("Destroying all shapes!\n");
 	}
 
 	void iLowLevelHaptic::DestroyAll()

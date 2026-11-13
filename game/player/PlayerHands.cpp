@@ -265,7 +265,6 @@ void cPlayerHands::Update(float afTimeStep)
 					pHudModel->mfEquipProgress += afTimeStep/pHudModel->mfUnequipTime;
 					if(pHudModel->mfEquipProgress >= 1)
 					{
-						//Log("Creating next model and destroying current!\n");
 
                         pHudModel->mState = eHudModelState_Idle;
 						pHudModel->mfEquipProgress =0;
@@ -291,8 +290,6 @@ void cPlayerHands::Update(float afTimeStep)
 								mtxPose.GetRotation()
 											);
 
-		//pHudModel->mpEntity->SetMatrix(mtxRot);
-		
 		//Set position
 		const cVector3f &vLocalPos = mtxPose.GetTranslation();
 		cVector3f vRealLocalPos =	vUp *		vLocalPos.y + 
@@ -490,14 +487,12 @@ bool cPlayerHands::AddModelFromFile(const tString &asFile)
 
 void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 {
-	//Log("Setting current %d to '%s'\n",alNum,asName.c_str());
 	
 	//Check so that it is not already equipped
 	if(mvCurrentHudModels[alNum] &&
 		cString::ToLowerCase(asName) == cString::ToLowerCase(mvCurrentHudModels[alNum]->msName) &&
 		mvCurrentHudModels[alNum]->mState == eHudModelState_Idle)
 	{
-		//Log(" model already active!\n");
 		return;
 	}
 	
@@ -527,8 +522,6 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 					mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 				}
 				mvCurrentHudModels[alNum]->msNextModel = asName;
-				//Log(" Unequipping %s, time: %f\n",mvCurrentHudModels[alNum]->msName.c_str(),
-				//							mvCurrentHudModels[alNum]->mfTime);
 			}
 			else
 			{
@@ -566,11 +559,9 @@ void cPlayerHands::SetCurrentModel(int alNum,const tString& asName)
 			mvCurrentHudModels[alNum]->mState = eHudModelState_Unequip;
 			mvCurrentHudModels[alNum]->mfEquipProgress = 1.0f - mvCurrentHudModels[alNum]->mfEquipProgress;
 			mvCurrentHudModels[alNum]->msNextModel = asName;
-			//Log(" Destroying old\n");
 		}
 		else
 		{
-			//Log("No old to destroy!!!\n");
 		}
 	}
 }
@@ -636,13 +627,11 @@ void cPlayerHands::UpdatePreviousCameraSamples()
 	float fRotMulStart = 1.0f;
 	float fRotMulEnd = 0.1f;
 	float fSize = (float) mlstRotations.size();
-	//float fD = (fRotMulStart - fRotMulEnd) / fSize;
 	float fMul = 1.0f;//fRotMulEnd;
 
 	for(tVector3fListIt it = mlstRotations.begin(); it != mlstRotations.end(); ++it)
 	{
 		vRotation += *it * fMul; fRotNum+=fMul;
-		//fMul += fD;
 	}
 
 	for(tVector3fListIt it = mlstPositions.begin(); it != mlstPositions.end(); ++it)

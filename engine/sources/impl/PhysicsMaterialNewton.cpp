@@ -35,7 +35,6 @@ namespace hpl {
 		mfStaticFriction = 0.3f;
 		mfKineticFriction = 0.3f;
 
-		//Log(" Created physics material '%s' with Newton id %d\n",asName.c_str(),mlMaterialId);
 	}
 
 	cPhysicsMaterialNewton::~cPhysicsMaterialNewton()
@@ -180,9 +179,6 @@ namespace hpl {
 
 		if(mpContactBody1->IsCharacter() && mpContactBody2->GetCollideCharacter()==false) return 0;
 		if(mpContactBody2->IsCharacter() && mpContactBody1->GetCollideCharacter()==false) return 0;
-
-		//Log("----- Begin contact between body '%s' and '%s'.\n",mpContactBody1->GetName().c_str(),
-		//													mpContactBody2->GetName().c_str());
 
 		//Reset contact num
 		mlContactNum =0;
