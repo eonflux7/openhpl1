@@ -301,7 +301,7 @@ int RunDogRegressions(cInit *init)
 
 	// Door impacts use the entity's configured delay once, and fire once.
 	dog->ChangeState(STATE_BREAKDOOR);
-	auto *door = static_cast<cGameEnemyState_Dog_BreakDoor*>(dog->mvStates[STATE_BREAKDOOR]);
+	auto *door = static_cast<cGameEnemyState_DogBase_BreakDoor*>(dog->mvStates[STATE_BREAKDOOR]);
 	const float delay = dog->mfBreakDoorDamageTime;
 	door->OnUpdate(delay * 0.25f);
 	check(Near(door->mfDamageTimer, delay * 0.75f) && !door->mbAttacked,

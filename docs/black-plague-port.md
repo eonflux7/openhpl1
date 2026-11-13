@@ -76,7 +76,11 @@ python3 tools/porting/disassemble_game.py bp \
 
 Many of the later games' classes are an Overture class with changes
 (the Infected is the Dog): comparing the sizes of the functions in the two
-symbol tables shows which ones to read at all.
+symbol tables shows which ones to read at all. In our code the Dog and the
+Infected share `iGameEnemy_DogBase` (`game/enemies/GameEnemy_DogBase.*`):
+the binary's `cGameEnemyState_Infected_Patrol` and the other states that
+match the Dog are `cGameEnemyState_DogBase_*` there, and only Hunt, Attack,
+KnockDown, Dead and BreakDoor's differences are in `GameEnemy_Infected.cpp`.
 
 `OPENHPL_ENEMY_LOG=1` writes every enemy's changes of state to the log, and
 once a second where it is, whether it moves and sees the player, and its

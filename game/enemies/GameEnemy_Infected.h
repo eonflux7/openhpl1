@@ -8,66 +8,32 @@
 #define GAME_GAME_ENEMY_INFECTED_H
 
 #include "core/StdAfx.h"
-#include "enemies/GameEnemy.h"
+#include "enemies/GameEnemy_DogBase.h"
 
 using namespace hpl;
 
 class cGameEnemy_Infected;
 
 // BASE STATE
-class iGameEnemyState_Infected_Base : public iGameEnemyState
+class iGameEnemyState_Infected_Base : public iGameEnemyState_DogBase
 {
 public:
 	iGameEnemyState_Infected_Base(int alId, cInit *apInit, iGameEnemy *apEnemy);
-
-	void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
-	bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
-	void OnTakeHit(float afDamage) override;
-	void OnDeath(float afDamage) override;
-	void OnFlashlight(const cVector3f &avPosition) override;
-
-	void OnAnimationOver(const tString& asAnimName) override{}
-
-	void OnDraw() override{}
-	void OnPostSceneDraw() override{}
 
 protected:
 	cGameEnemy_Infected *mpEnemyInfected;
 };
 
-// IDLE STATE
-class cGameEnemyState_Infected_Idle : public iGameEnemyState_Infected_Base
+// BREAK DOOR STATE
+class cGameEnemyState_Infected_BreakDoor : public cGameEnemyState_DogBase_BreakDoor
 {
 public:
-	cGameEnemyState_Infected_Idle(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-								iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	void OnEnterState(iGameEnemyState *apPrevState) override;
-	void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	void OnUpdate(float afTimeStep) override;
-};
-
-// ATTENTION STATE
-class cGameEnemyState_Infected_Attention : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_Attention(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-	  iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
+	cGameEnemyState_Infected_BreakDoor(int alId, cInit *apInit, iGameEnemy *apEnemy) :
+	  cGameEnemyState_DogBase_BreakDoor(alId, apInit,apEnemy){}
 
 	  void OnUpdate(float afTimeStep) override;
 
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
-	  void OnFlashlight(const cVector3f &avPosition) override;
-
-	  void OnDraw() override;
-private:
-	float mfTime;
-
+	  void OnAnimationOver(const tString &asName) override;
 };
 
 // HUNT STATE
@@ -139,79 +105,6 @@ private:
 	cAnimationState *mpAttackAnim = nullptr;
 };
 
-// BREAK DOOR STATE
-class cGameEnemyState_Infected_BreakDoor : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_BreakDoor(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-	  iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  void OnAnimationOver(const tString &asName) override;
-
-	  void OnPostSceneDraw() override;
-
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
-	  void OnFlashlight(const cVector3f &avPosition) override{}
-private:
-	float mfDamageTimer;
-	float mfStopMoveTimer;
-	bool mbAttacked;
-	bool mbStopped;
-	int mlCount;
-};
-
-// FLEE STATE
-class cGameEnemyState_Infected_Flee : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_Flee(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-	  iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
-	  void OnFlashlight(const cVector3f &avPosition) override{}
-private:
-	float mfTimer;
-	float mfBackAngle;
-	bool mbBackwards;
-	float mfCheckBehindTime;
-	bool mbBackingFromBreakDoor;
-};
-
-// CALL BACKUP STATE
-class cGameEnemyState_Infected_CallBackup : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_CallBackup(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-	  iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  void OnSeePlayer(const cVector3f &avPosition, float afChance) override{}
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override{return false;}
-	  //void OnTakeHit(float afDamage){}
-	  void OnFlashlight(const cVector3f &avPosition) override{}
-
-	  void OnAnimationOver(const tString &asName) override;
-
-private:
-	bool mbCheckAnim;
-};
-
 // KNOCKDOWN STATE
 class cGameEnemyState_Infected_KnockDown : public iGameEnemyState_Infected_Base
 {
@@ -262,85 +155,6 @@ private:
 	int mlAnimCount = 0;
 };
 
-// PATROL STATE
-class cGameEnemyState_Infected_Patrol : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_Patrol(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-	  iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  void OnAnimationOver(const tString &asName) override;
-private:
-	bool mbWaiting;
-	bool mbAnimation;
-
-	float mfIdleSoundTime;
-
-	int mlStuckAtMaxCount;
-};
-
-// INVESTIGATE STATE
-class cGameEnemyState_Infected_Investigate : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_Investigate(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-									iGameEnemyState_Infected_Base(alId, apInit,apEnemy){
-										mlKnockCount =0;
-									}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
-
-	  float mfIdleSoundTime;
-	  float mfNoiseRetargetDelaySeconds;
-	  float mfHighestVolume;
-
-	  int mlKnockCount;
-};
-
-// MOVETO STATE
-class cGameEnemyState_Infected_MoveTo : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_MoveTo(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-								iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	  void OnEnterState(iGameEnemyState *apPrevState) override;
-	  void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	  void OnUpdate(float afTimeStep) override;
-
-	  float mfIdleSoundTime;
-	  int mlBreakCount;
-};
-
-// EAT STATE
-class cGameEnemyState_Infected_Eat : public iGameEnemyState_Infected_Base
-{
-public:
-	cGameEnemyState_Infected_Eat(int alId, cInit *apInit, iGameEnemy *apEnemy) :
-							iGameEnemyState_Infected_Base(alId, apInit,apEnemy){}
-
-	 void OnEnterState(iGameEnemyState *apPrevState) override;
-	 void OnLeaveState(iGameEnemyState *apNextState) override;
-
-	 void OnUpdate(float afTimeStep) override;
-	
-	 bool OnHearNoise(const cVector3f &avPosition, float afVolume) override;
-	 void OnSeePlayer(const cVector3f &avPosition, float afChance) override;
-
-	 float mfTime;
-};
-
 class cGameEnemy_Infected_SaveData : public iGameEnemy_SaveData
 {
 	kSerializableClassInit(cGameEnemy_Infected_SaveData);
@@ -354,7 +168,7 @@ public:
 	iGameEntity* CreateEntity() override;
 };
 
-class cGameEnemy_Infected : public iGameEnemy
+class cGameEnemy_Infected : public iGameEnemy_DogBase
 {
 #ifdef __GNUC__
 	typedef iGameEnemy __super;
@@ -362,16 +176,8 @@ class cGameEnemy_Infected : public iGameEnemy
 public:
 	cGameEnemy_Infected(cInit *apInit,const tString& asName,TiXmlElement *apGameElem);
 	~cGameEnemy_Infected() override;
-	
-	void OnLoad() override;
 
 	void OnUpdate(float afTimeStep) override;
-
-	void ShowPlayer(const cVector3f& avPlayerFeetPos) override;
-
-	bool MoveToPos(const cVector3f& avFeetPos) override;
-
-	bool IsFighting() override;
 
 	//A weapon in the hand (bone "WeaponJoint"): its blows do that much more damage.
 	void SetWeapon(const tString &asFile, const cMatrixf &a_mtxOffset, float afDamage, bool abVisible);
@@ -386,100 +192,19 @@ public:
 	iGameEntity_SaveData* CreateSaveData() override;
 	void SaveToSaveData(iGameEntity_SaveData *apSaveData) override;
 	void LoadFromSaveData(iGameEntity_SaveData *apSaveData) override;
-	
-	iCollideShape *GetAttackShape(){ return mpAttackShape;}
-	iCollideShape *GetBreakDoorShape(){ return mpBreakDoorShape;}
-	
-	float mfMinKnockDamage;
-	float mfCertainKnockDamage;
 
-	float mfLengthBodyToAss;
-
-//State properties
-	float mfIdleFOV;
-	tString msIdleFoundPlayerSound;
-	float mfIdleMinSeeChance;
-	float mfIdleMinHearVolume;
-	tString msIdleSound;
-	float mfIdleSoundMinInteraval;
-	float mfIdleSoundMaxInteraval;
-	float mfIdleCallBackupChance;
-
-	tString msInvestigateSound;
-	tString msInvestigateOverSound;
-
-	tString msAttentionSound;
-	float mfAttentionTime;
-	float mfAttentionMinDist;
-	
-	float mfHuntFOV;
-	float mfHuntSpeed;
-	float mfHuntForLostPlayerTime;
-	float mfHuntMinSeeChance;
-	float mfHuntMinHearVolume;
 	tString msHuntSound;
 	float mfHuntSoundMinInteraval;
 	float mfHuntSoundMaxInteraval;
 
-	float mfAttackDistance;
 	float mfAttackStillDistance;
-	float mfAttackSpeed;
-	float mfAttackJumpTime;
-	float mfAttackDamageTime;
 	float mfAttackStillDamageTime;
-	cVector3f mvAttackDamageSize;
-	float mfAttackDamageRange;
-	float mfAttackMinDamage;
-	float mfAttackMaxDamage;
-	tString msAttackStartSound;
-	tString msAttackHitSound;
-	float mfAttackMinMass;
-	float mfAttackMaxMass;
-	float mfAttackMinImpulse;
-	float mfAttackMaxImpulse;
-	int mlAttackStrength;
 	bool mbAttackGrabThroat;
 	float mfAttackGrabThroatChance;
 	float mfAttackGrabThroatDist;
 	float mfAttackGrabThroatDamage;
 	float mfAttackGrabThroatLength;
 	float mfAttackGrabThroatDamageTime;
-
-	tString msBreakDoorAnimation;
-	float mfBreakDoorSpeed;
-	float mfBreakDoorDamageTime;
-	cVector3f mvBreakDoorDamageSize;
-	float mfBreakDoorDamageRange;
-	float mfBreakDoorMinDamage;
-	float mfBreakDoorMaxDamage;
-	tString msBreakDoorStartSound;
-	tString msBreakDoorHitSound;
-	float mfBreakDoorMinMass;
-	float mfBreakDoorMaxMass;
-	float mfBreakDoorMinImpulse;
-	float mfBreakDoorMaxImpulse;
-	int mlBreakDoorStrength;
-	bool mbBreakDoorRiseAtEnd;
-
-	tString msKnockDownSound;
-
-	tString msDeathSound;
-
-	float mfFleePositionChance;
-	float mfFleePositionMaxTime;
-	float mfFleePositionMinDistance;
-	float mfFleePositionMaxDistance;
-	float mfFleeBackChance;
-	float mfFleeBackTime;
-	float mfFleeBackSpeed;
-
-	tString msCallBackupAnimation;
-	tString msCallBackupSound;
-	float mfCallBackupRange;
-
-	float mfEatFOV;
-	float mfEatMinSeeChance;
-	float mfEatMinHearVolume;
 
 private:
 	bool mbHasWeapon;
@@ -490,9 +215,6 @@ private:
 	tString msIdleAnim;
 	cMeshEntity *mpWeaponEntity;
 	cMeshEntity *mpFlashLightEntity;
-
-    iCollideShape *mpAttackShape;
-	iCollideShape *mpBreakDoorShape;
 };
 
 #endif // GAME_GAME_ENEMY_INFECTED_H
