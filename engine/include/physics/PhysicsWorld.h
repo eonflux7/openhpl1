@@ -30,7 +30,6 @@ namespace hpl {
 	class cBoundingVolume;
 
 	typedef std::list<iCollideShape*> tCollideShapeList;
-	typedef tCollideShapeList::iterator tCollideShapeListIt;
 
 	typedef std::vector<iCollideShape*> tCollideShapeVec;
 	typedef tCollideShapeVec::iterator tCollideShapeVecIt;

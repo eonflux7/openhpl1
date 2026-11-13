@@ -18,7 +18,6 @@ namespace hpl {
 	typedef tFrameBitmapList::iterator tFrameBitmapListIt;
 
 	typedef std::map<int,cFrameTexture*> tFrameTextureMap;
-	typedef tFrameTextureMap::iterator tFrameTextureMapIt;
 
 	class cImageManager :public iResourceManager
 	{

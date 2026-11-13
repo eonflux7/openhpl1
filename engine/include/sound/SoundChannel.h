@@ -158,7 +158,5 @@ namespace hpl {
 		iSoundChannelCallback *mpCallback;
 	};
 
-	typedef std::list<iSoundChannel*> tSoundChannelList;
-	typedef tSoundChannelList::iterator tSoundChannelListIt;
 };
 #endif // HPL_SOUND_CHANNEL_H

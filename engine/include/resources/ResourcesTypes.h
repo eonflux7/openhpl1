@@ -8,7 +8,6 @@
 namespace hpl {
 
 	//change to own file type?
-	typedef FILE tFile;
 
 };
 #endif // HPL_RESOURCES_TYPES_H

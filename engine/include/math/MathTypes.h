@@ -162,8 +162,6 @@ namespace hpl {
 	};
 
 	typedef cPlane<float> cPlanef;
-	typedef std::vector<cPlanef> tPlanefVec;
-	typedef tPlanefVec tPlanefVecIt;
 
 	template <class T> class cSphere {
 	public:
@@ -207,8 +205,6 @@ namespace hpl {
 
 	typedef cRect2<float> cRect2f;
 	typedef cRect2<int> cRect2l;
-	typedef std::list<cRect2f> tRect2lList;
-	typedef tRect2lList tRect2lListIt;
 
 	typedef cVector2<float> cVector2f;
 	typedef cVector2<int> cVector2l;
@@ -216,13 +212,9 @@ namespace hpl {
 	typedef cMatrix<float> cMatrixf;
 
 	typedef std::vector<cMatrixf> tMatrixfVec;
-	typedef tMatrixfVec::iterator tMatrixfVecIt;
 
-	typedef std::list<cMatrixf> tMatrixfList;
-	typedef tMatrixfList::iterator tMatrixfListIt;
 
 	typedef std::list<cVector2f> tVector2fList;
-	typedef tVector2fList::iterator tVector2fListIt;
 
 	typedef cVector3<float> cVector3f;
 	typedef cVector3<int> cVector3l;
@@ -230,11 +222,8 @@ namespace hpl {
 	typedef std::list<cVector3f> tVector3fList;
 	typedef tVector3fList::iterator tVector3fListIt;
 
-	typedef std::vector<cVector2f> tVector2fVec;
-	typedef tVector2fVec::iterator tVector2fVecIt;
 
 	typedef std::vector<cVector3f> tVector3fVec;
-	typedef tVector3fList::iterator tVector3fVecIt;
 }
 
 #include "math/Quaternion.h"

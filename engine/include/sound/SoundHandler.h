@@ -78,7 +78,6 @@ namespace hpl {
 	typedef std::list<cSoundEntry> tSoundEntryList;
 	typedef tSoundEntryList::iterator tSoundEntryListIt;
 
-	typedef cSTLIterator<cSoundEntry,tSoundEntryList,tSoundEntryListIt> tSoundEntryIterator;
 
 
 	// SOUND HANDLER

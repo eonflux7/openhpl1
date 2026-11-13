@@ -64,7 +64,6 @@ namespace hpl {
 	typedef tParticleSystem3DList::iterator tParticleSystem3DListIt;
 
 	typedef std::list<cColliderEntity*> tColliderEntityList;
-	typedef std::list<cColliderEntity*>::iterator tColliderEntityListIt;
 
 	typedef std::list<cSoundEntity*> tSoundEntityList;
 	typedef std::list<cSoundEntity*>::iterator tSoundEntityListIt;
@@ -73,7 +72,6 @@ namespace hpl {
 	typedef std::list<cAINodeContainer*>::iterator tAINodeContainerListIt;
 
 	typedef std::list<cAStarHandler*> tAStarHandlerList;
-	typedef std::list<cAStarHandler*>::iterator tAStarHandlerIt;
 
 	typedef cSTLIterator<cMeshEntity*, tMeshEntityList, tMeshEntityListIt> cMeshEntityIterator;
 	typedef cSTLIterator<cBillboard*, tBillboardList, tBillboardListIt> cBillboardIterator;

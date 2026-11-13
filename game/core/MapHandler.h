@@ -22,8 +22,6 @@ class cGameItem;
 typedef std::multimap<tString,iGameEntity*> tGameEntityMap;
 typedef tGameEntityMap::iterator tGameEntityMapIt;
 
-typedef std::vector<iGameEntity*> tGameEntityVec;
-typedef tGameEntityVec::iterator tGameEntityVecIt;
 
 typedef std::list<iGameEnemy*> tGameEnemyList;
 typedef tGameEnemyList::iterator tGameEnemyListIt;

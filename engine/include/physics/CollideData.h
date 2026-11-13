@@ -17,7 +17,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cCollidePoint> tCollidePointVec;
-	typedef tCollidePointVec::iterator tCollidePointVecIt;
 
 	class cCollideData
 	{

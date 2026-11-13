@@ -267,7 +267,6 @@ namespace hpl {
 	typedef tSerializeSavedClassMap::iterator tSerializeSavedClassMapIt;
 
 	typedef std::list<cSerializeSavedClass*> tSerializeSavedClassList;
-	typedef tSerializeSavedClassList::iterator tSerializeSavedClassListIt;
 
 	class cSerializeClass
 	{

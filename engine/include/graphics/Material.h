@@ -233,7 +233,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<iMaterial*> tMaterialVec;
-	typedef tMaterialVec::iterator tMaterialVecIt;
 
 	class iMaterialType
 	{

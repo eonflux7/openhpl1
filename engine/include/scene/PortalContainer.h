@@ -82,8 +82,6 @@ namespace hpl {
 	class cSector;
 	class cPortal;
 
-	typedef std::map<int,cPortal*> tPortalMap;
-	typedef std::map<int,cPortal*>::iterator tPortalMapIt;
 
 	typedef std::list<cPortal*> tPortalList;
 	typedef std::list<cPortal*>::iterator tPortalListIt;

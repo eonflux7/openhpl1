@@ -86,8 +86,6 @@ namespace hpl {
 	typedef std::vector<cKeyFrame*> tKeyFramePtrVec;
 	typedef tKeyFramePtrVec::iterator tKeyFramePtrVecIt;
 
-	typedef std::vector<cKeyFrame> tKeyFrameVec;
-	typedef tKeyFrameVec::iterator tKeyFrameVecIt;
 
 	enum eAnimationEventType
 	{
@@ -114,7 +112,6 @@ namespace hpl {
 
 
 	typedef std::vector<cVertexBonePair> tVertexBonePairVec;
-	typedef tVertexBonePairVec::iterator tVertexBonePairVecIt;
 
 	class cVertex
 	{
@@ -194,11 +191,8 @@ namespace hpl {
 		bool HasTube() const { return mvTubeAxis.x != 0 || mvTubeAxis.y != 0 || mvTubeAxis.z != 0; }
 	};
 
-	typedef std::list<cVertex> tVertexList;
-	typedef tVertexList::iterator tVertexListIt;
 
 	typedef std::vector<cVertex> tVertexVec;
-	typedef tVertexVec::iterator tVertexVecIt;
 }
 
 #endif // HPL_GRAPHICSTYPES_H

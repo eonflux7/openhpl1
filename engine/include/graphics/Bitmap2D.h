@@ -59,7 +59,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<iBitmap2D*> tBitmap2DVec;
-	typedef std::vector<iBitmap2D*>::iterator tBitmap2DVecIt;
 
 };
 #endif // HPL_BITMAP2D_H

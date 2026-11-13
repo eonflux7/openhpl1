@@ -14,7 +14,6 @@ class cInventory_GlobalSave;
 
 class cGameItemType;
 typedef std::vector<cGameItemType*> tGameItemTypeVec;
-typedef tGameItemTypeVec::iterator tGameItemTypeVecIt;
 
 class iInventoryWidget
 {

@@ -46,12 +46,10 @@ namespace hpl {
 	};
 
 	typedef std::multiset<cGfxBufferObject,cGfxBufferCompare> tGfxBufferSet;
-	typedef tGfxBufferSet::iterator tGfxBufferSetIt;
 
 	class cResources;
 
 	typedef std::list<cGfxObject*> tGfxObjectList;
-	typedef tGfxObjectList::iterator tGfxObjectListIt;
 
 	class cGraphicsDrawer
 	{

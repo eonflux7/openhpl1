@@ -29,7 +29,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cAINodeEdge> tAINodeEdgeVec;
-	typedef tAINodeEdgeVec::iterator tAINodeEdgeVecIt;
 
 	class cAINode
 	{

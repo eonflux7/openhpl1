@@ -24,8 +24,6 @@ public:
 	tString msScriptFunc;
 };
 
-typedef std::map<tString, cGameEntityScript*> tGameEntityScriptMap;
-typedef tGameEntityScriptMap::iterator tGameEntityScriptMapIt;
 
 typedef std::map<tString, int> tGameEntityVarMap;
 typedef tGameEntityVarMap::iterator tGameEntityVarMapIt;

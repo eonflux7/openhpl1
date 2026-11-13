@@ -21,8 +21,6 @@ namespace hpl {
 	typedef std::map<tString, iAction*> tActionMap;
 	typedef tActionMap::iterator tActionMapIt;
 
-	typedef std::multimap<tString, iAction*> tActionMultiMap;
-	typedef tActionMultiMap::iterator tActionMultiMapIt;
 
 	typedef std::list<iInputDevice*> tInputDeviceList;
 	typedef tInputDeviceList::iterator tInputDeviceListIt;

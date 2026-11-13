@@ -34,7 +34,6 @@ namespace hpl {
 	class cWidgetComboBox;
 
 	typedef std::list<iGuiPopUp*> tGuiPopUpList;
-	typedef tGuiPopUpList::iterator tGuiPopUpListIt;
 
 	class cGuiClipRegion;
 	class cGuiRenderObject
@@ -55,10 +54,8 @@ namespace hpl {
 	};
 
 	typedef std::multiset<cGuiRenderObject,cGuiRenderObjectCompare> tGuiRenderObjectSet;
-	typedef tGuiRenderObjectSet::iterator tGuiRenderObjectSetIt;
 
 	typedef std::list<cGuiClipRegion*> tGuiClipRegionList;
-	typedef tGuiClipRegionList::iterator tGuiClipRegionListIt;
 
 	class cGuiClipRegion
 	{

@@ -36,10 +36,8 @@ class cPlayerBodyCallback;
 
 
 typedef std::vector<iPlayerState*> tPlayerStateVec;
-typedef tPlayerStateVec::iterator tPlayerStateVecIt;
 
 typedef std::vector<iPlayerMoveState*> tPlayerMoveStateVec;
-typedef tPlayerMoveStateVec::iterator tPlayerMoveStateVecIt;
 
 class cInventoryItem;
 class cPlayer_GlobalSave;

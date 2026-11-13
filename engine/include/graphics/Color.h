@@ -38,11 +38,7 @@ namespace hpl {
 		void FromVec(float *apV);
 	};
 
-	typedef std::list<cColor> tColorList;
-	typedef tColorList::iterator tColorListIt;
 
-	typedef std::vector<cColor> tColorVec;
-	typedef tColorVec::iterator tColorVecIt;
 
 };
 #endif // HPL_COLOR_H

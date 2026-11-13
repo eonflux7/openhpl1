@@ -71,7 +71,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cResourceImage*> tResourceImageVec;
-	typedef tResourceImageVec::iterator tResourceImageVecIt;
 
 };
 

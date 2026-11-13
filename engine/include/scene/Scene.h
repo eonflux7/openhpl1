@@ -29,7 +29,6 @@ namespace hpl {
 	typedef tCameraList::iterator tCameraListIt;
 
 	typedef std::list<cWorld3D*> tWorld3DList;
-	typedef tWorld3DList::iterator tWorld3DListIt;
 
 	class cScene : public iUpdateable
 	{

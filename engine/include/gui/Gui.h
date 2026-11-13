@@ -27,7 +27,6 @@ namespace hpl {
 	typedef tGuiSetMap::iterator tGuiSetMapIt;
 
 	typedef std::map<tString, cGuiSkin*> tGuiSkinMap;
-	typedef tGuiSkinMap::iterator tGuiSkinMapIt;
 
 	typedef std::map<tString, eGuiSkinGfx> tGuiSkinGfxMap;
 	typedef tGuiSkinGfxMap::iterator tGuiSkinGfxMapIt;

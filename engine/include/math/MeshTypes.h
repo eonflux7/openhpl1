@@ -22,8 +22,6 @@ namespace hpl {
 		}
 	};
 
-	typedef std::vector<cTriangleData> tTriangleDataVec;
-	typedef tTriangleDataVec::iterator tTriangleDataVecIt;
 
 	class cTriEdge
 	{
@@ -42,7 +40,5 @@ namespace hpl {
 		}
 	};
 
-	typedef std::vector<cTriEdge> tTriEdgeVec;
-	typedef tTriEdgeVec::iterator tTriEdgeVecIt;
 };
 #endif // HPL_MESH_TYPES_H

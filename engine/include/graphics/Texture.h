@@ -181,6 +181,5 @@ namespace hpl {
 	};
 
 	typedef std::vector<iTexture*> tTextureVec;
-	typedef tTextureVec::iterator tTextureVecIt;
 };
 #endif // HPL_TEXTURE_H

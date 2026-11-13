@@ -51,7 +51,6 @@ namespace hpl {
 	typedef tStringList::iterator tStringListIt;
 
 	typedef std::vector<tString> tStringVec;
-	typedef tStringVec::iterator tStringVecIt;
 
 	typedef std::set<tString> tStringSet;
 	typedef tStringSet::iterator tStringSetIt;
@@ -63,29 +62,18 @@ namespace hpl {
 	typedef std::vector<tWString> tWStringVec;
 	typedef tWStringVec::iterator tWStringVecIt;
 
-	typedef std::set<tWString> tWStringSet;
-	typedef tWStringSet::iterator tWStringSetIt;
 
-	typedef std::vector<unsigned char> tByteVec;
-	typedef tByteVec::iterator tByteVecIt;
 
 	typedef std::vector<unsigned int> tUIntVec;
-	typedef tUIntVec::iterator tUIntVecIt;
 
 	typedef std::vector<int> tIntVec;
-	typedef tIntVec::iterator tIntVecIt;
 
 	typedef std::vector<int> tIntList;
-	typedef tIntVec::iterator tIntListIt;
 
 	typedef std::vector<float> tFloatVec;
 	typedef tFloatVec::iterator tFloatVecIt;
 
-	typedef std::vector<float*> tFloatPtrVec;
-	typedef tFloatPtrVec::iterator tFloatPtrVecIt;
 
-	typedef std::list<float*> tFloatPtrList;
-	typedef tFloatPtrList::iterator tFloatPtrListIt;
 
 	typedef std::list<unsigned int> tUIntList;
 	typedef tUIntList::iterator tUIntListIt;

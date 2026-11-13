@@ -37,7 +37,6 @@ namespace hpl {
 
 
 	typedef std::set<iRenderable*> tCasterCacheSet;
-	typedef tCasterCacheSet::iterator tCasterCacheSetIt;
 
 	kSaveData_ChildClass(iRenderable,iLight3D)
 	{

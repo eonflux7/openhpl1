@@ -29,13 +29,11 @@ namespace hpl {
 	class cBoneState;
 
 	typedef std::vector<cAnimationState*> tAnimationStateVec;
-	typedef tAnimationStateVec::iterator tAnimationStateVecIt;
 
 	typedef std::map<tString, int> tAnimationStateIndexMap;
 	typedef tAnimationStateIndexMap::iterator tAnimationStateIndexMapIt;
 
 	typedef std::vector<cBoneState*> tNodeStateVec;
-	typedef tNodeStateVec::iterator tNodeStateVecIt;
 
 	typedef std::map<tString, int> tNodeStateIndexMap;
 	typedef tNodeStateIndexMap::iterator tNodeStateIndexMapIt;
@@ -143,7 +141,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cSubMeshEntity*> tSubMeshEntityVec;
-	typedef std::vector<cSubMeshEntity*>::iterator tSubMeshEntityVecIt;
 
 	typedef std::multimap<tString,cSubMeshEntity*> tSubMeshEntityMap;
 	typedef tSubMeshEntityMap::iterator tSubMeshEntityMapIt;

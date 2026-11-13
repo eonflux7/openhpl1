@@ -18,7 +18,6 @@ namespace hpl {
 	class cResources;
 
 	typedef std::list<iPhysicsWorld*> tPhysicsWorldList;
-	typedef tPhysicsWorldList::iterator tPhysicsWorldListIt;
 
 	typedef std::map<tString, cSurfaceData*> tSurfaceDataMap;
 	typedef tSurfaceDataMap::iterator tSurfaceDataMapIt;

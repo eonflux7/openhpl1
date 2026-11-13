@@ -13,7 +13,6 @@ namespace hpl {
 	class cAnimationTrack;
 
 	typedef std::vector<cAnimationTrack*> tAnimationTrackVec;
-	typedef tAnimationTrackVec::iterator tAnimationTrackVecIt;
 
 	class cAnimation : public iResourceBase
 	{

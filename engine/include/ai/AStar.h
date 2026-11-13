@@ -38,7 +38,6 @@ namespace hpl {
 
 
 	typedef std::set<cAStarNode*,cAStarNodeCompare> tAStarNodeSet;
-	typedef tAStarNodeSet::iterator tAStarNodeSetIt;
 
 	class cAStarHandler;
 

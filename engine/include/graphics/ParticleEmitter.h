@@ -97,7 +97,6 @@ namespace hpl {
 	};
 
 	typedef std::vector<cParticle*> tParticleVec;
-	typedef tParticleVec::iterator tParticleVecIt;
 
 	// PARTICLE SYSTEM
 
@@ -166,8 +165,6 @@ namespace hpl {
 		cParticle* CreateParticle();
 	};
 
-	typedef std::list<iParticleEmitter*> tParticleEmitterList;
-	typedef tParticleEmitterList::iterator tParticleEmitterListIt;
 
 	// PARTICLE DATA
 
@@ -206,8 +203,6 @@ namespace hpl {
 		float mfWarmUpStepsPerSec;
 	};
 
-	typedef std::map<tString,iParticleEmitterData*> tParticleEmitterDataMap;
-	typedef tParticleEmitterDataMap::iterator tParticleEmitterDataMapIt;
 
 };
 #endif // HPL_PARTICLE_EMITTER_H
