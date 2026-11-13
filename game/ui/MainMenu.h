@@ -8,9 +8,16 @@
 #include "core/GameTypes.h"
 #include "core/GraphicsHelper.h"
 
+#include <functional>
+
 using namespace hpl;
 
 class cInit;
+
+// An option of the menu: a step of alDir (1 or -1) through its values, and
+// the text of the current one
+typedef std::function<void(cInit *apInit, int alDir)> tMainMenuOptionStep;
+typedef std::function<tWString(cInit *apInit)> tMainMenuOptionText;
 
 enum eMainMenuState
 {
@@ -367,6 +374,13 @@ private:
 	void CreateWidgets();
 
 	void AddWidgetToState(eMainMenuState aState, cMainMenuWidget *apWidget);
+	void AddOption(eMainMenuState aState, const cVector3f &avPos, const tWString &asLabel,
+					const tWString &asTip, tMainMenuOptionStep aStep, tMainMenuOptionText aText);
+	void AddToggle(eMainMenuState aState, const cVector3f &avPos, const tWString &asLabel,
+					const tWString &asTip, std::function<bool(cInit*)> aGet,
+					std::function<void(cInit*, bool)> aSet);
+	void AddToggle(eMainMenuState aState, const cVector3f &avPos, const tWString &asLabel,
+					const tWString &asTip, bool &abValue);
 
 	
 	cInit *mpInit;
