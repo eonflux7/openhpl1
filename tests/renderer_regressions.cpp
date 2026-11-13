@@ -1068,7 +1068,7 @@ public:
 		mpImageManager = nullptr; mpParticleManager = nullptr; mpSoundManager = nullptr;
 		mpFontManager = nullptr; mpScriptManager = nullptr; mpTextureManager = nullptr;
 		mpMaterialManager = nullptr; mpSoundEntityManager = nullptr; mpAnimationManager = nullptr;
-		mpVideoManager = nullptr; mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
+		mpMeshManager = nullptr; mpMeshLoaderHandler = nullptr;
 		mpGpuProgramManager = hplNew(cGpuProgramManager, (mpFileSearcher, gfx, low, nullptr));
 	}
 };

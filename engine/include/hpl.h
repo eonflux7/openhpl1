@@ -52,7 +52,6 @@
 #include "graphics/BoneState.h"
 #include "graphics/Animation.h"
 #include "graphics/AnimationTrack.h"
-#include "graphics/VideoStream.h"
 
 #include "math/MathTypes.h"
 #include "math/Math.h"
@@ -60,7 +59,6 @@
 #include "math/Frustum.h"
 #include "math/Spring.h"
 #include "math/PidController.h"
-#include "math/CRC.h"
 
 #include "resources/Resources.h"
 #include "resources/LowLevelResources.h"
@@ -78,7 +76,6 @@
 #include "resources/MeshLoaderHandler.h"
 #include "resources/SoundEntityManager.h"
 #include "resources/AnimationManager.h"
-#include "resources/VideoManager.h"
 #include "resources/MeshLoader.h"
 #include "resources/ConfigFile.h"
 #include "resources/EntityLoader_Object.h"

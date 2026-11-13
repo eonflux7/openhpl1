@@ -52,25 +52,6 @@ namespace hpl {
 		return nullptr;
 	}
 
-	bool cMeshLoaderHandler::SaveMesh(cMesh* apMesh,const tString& asFile)
-	{
-		tString sType = cString::ToLowerCase(cString::GetFileExt(asFile));
-
-		tMeshLoaderListIt it = mlstLoaders.begin();
-		for(;it != mlstLoaders.end();it++)
-		{
-			iMeshLoader *pLoader = *it;
-
-			if(pLoader->IsSupported(sType))
-			{
-				return pLoader->SaveMesh(apMesh,asFile);
-			}
-		}
-
-		Log("No loader for '%s' found!\n", sType.c_str());
-		return false;
-	}
-
 	cWorld3D* cMeshLoaderHandler::LoadWorld(const tString& asFile, tWorldLoadFlag aFlags)
 	{
 		tString sType = cString::ToLowerCase(cString::GetFileExt(asFile));

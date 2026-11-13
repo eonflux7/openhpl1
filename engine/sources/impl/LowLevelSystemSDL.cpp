@@ -332,15 +332,6 @@ namespace hpl {
 #endif
 	}
 
-	void CreateMessageBox ( eMsgBoxType eType, const char* asCaption, const char *fmt, ...)
-	{
-	}
-
-	void CreateMessageBox ( const char* asCaption, const char *fmt, ...)
-	{
-	}
-
-
 	void CreateMessageBoxW (eMsgBoxType eType, const wchar_t* asCaption, const wchar_t* fmt, va_list ap)
 	{
 		wchar_t text[2048];
@@ -580,37 +571,10 @@ namespace hpl {
 		return date;
 	}
 
-	cDate FileCreationDate(const tWString& asFilePath)
-	{
-		struct tm* pClock;
-	#ifdef WIN32
-		struct _stat attrib;
-		_wstat(asFilePath.c_str(), &attrib);
-	#else
-		struct stat attrib;
-		stat(cString::To8Char(asFilePath).c_str(), &attrib);
-	#endif
-
-		pClock = gmtime(&(attrib.st_ctime));	// Get the last modified time and put it into the time structure
-
-		cDate date = DateFromGMTIme(pClock);
-
-		return date;
-	}
-
 	void SetWindowCaption(const tString &asName)
 	{
 		SDL_Window *pWindow = SDL_GL_GetCurrentWindow();
 		if(pWindow) SDL_SetWindowTitle(pWindow, asName.c_str());
-	}
-
-	bool HasWindowFocus(const tWString &asWindowCaption)
-	{
-		#ifdef WIN32
-			HWND pWindowHandle = FindWindow(NULL, asWindowCaption.c_str());
-			return (pWindowHandle == GetFocus());
-		#endif
-		return true;
 	}
 
 	unsigned long GetApplicationTime()

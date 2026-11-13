@@ -21,7 +21,6 @@ namespace hpl {
 		iBitmap2D* LoadBitmap2D(tString asFilePath, tString asType = "") override;
 
 		void AddMeshLoaders(cMeshLoaderHandler* apHandler) override;
-		void AddVideoLoaders(cVideoManager* apManager) override;
 
 	private:
 		tString mvImageFormats[30];

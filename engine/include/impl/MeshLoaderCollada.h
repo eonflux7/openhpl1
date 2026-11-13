@@ -488,7 +488,6 @@ namespace hpl {
 		static tString GltfKeyHash(const tFloatVec &avTimes, const tFloatVec &avTrans, const tFloatVec &avRot);
 
 		cMesh* LoadMesh(const tString& asFile, tMeshLoadFlag aFlags) override;
-		bool SaveMesh(cMesh* apMesh,const tString& asFile) override{return false;}
 
 		cWorld3D* LoadWorld(const tString& asFile, cScene* apScene,tWorldLoadFlag aFlags) override;
 

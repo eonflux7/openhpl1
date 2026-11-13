@@ -16,7 +16,6 @@
 #include "resources/MeshLoaderHandler.h"
 #include "resources/SoundEntityManager.h"
 #include "resources/AnimationManager.h"
-#include "resources/VideoManager.h"
 #include "resources/ConfigFile.h"
 #include "resources/LanguageFile.h"
 #include "system/System.h"
@@ -47,7 +46,6 @@ namespace hpl {
 		mpMaterialManager = nullptr;
 		mpSoundEntityManager = nullptr;
 		mpAnimationManager = nullptr;
-		mpVideoManager = nullptr;
 		mpMeshManager = nullptr;
 		mpMeshLoaderHandler = nullptr;
 
@@ -76,7 +74,6 @@ namespace hpl {
 		hplDelete(mpTextureManager);
 		hplDelete(mpSoundEntityManager);
 		hplDelete(mpAnimationManager);
-		hplDelete(mpVideoManager);
 
 		Log(" All resources deleted\n");
 
@@ -121,8 +118,6 @@ namespace hpl {
 		mlstManagers.push_back(mpSoundEntityManager);
 		mpAnimationManager = hplNew( cAnimationManager,(apGraphics, this) );
 		mlstManagers.push_back(mpAnimationManager);
-		mpVideoManager = hplNew( cVideoManager,(apGraphics, this) );
-		mlstManagers.push_back(mpVideoManager);
 
 		Log(" Misc Creation\n");
 
@@ -132,7 +127,6 @@ namespace hpl {
 		//Models converted to glTF (from addons) are used in place of the
 		//Collada files that maps, entities and scripts ask for.
 		mpFileSearcher->SetAlternativeExtensions("dae", {"glb", "gltf"});
-		mpLowLevelResources->AddVideoLoaders(mpVideoManager);
 
 		Log("--------------------------------------------------------\n\n");
 	}

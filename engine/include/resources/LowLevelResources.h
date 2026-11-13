@@ -9,7 +9,6 @@ namespace hpl {
 
 	class iBitmap2D;
 	class cMeshLoaderHandler;
-	class cVideoManager;
 
 	class iLowLevelResources
 	{
@@ -28,7 +27,6 @@ namespace hpl {
 		virtual iBitmap2D* LoadBitmap2D(tString asFilePath, tString asType = "")=0;
 
 		virtual void AddMeshLoaders(cMeshLoaderHandler* apHandler)=0;
-		virtual void AddVideoLoaders(cVideoManager* apManager)=0;
 	};
 };
 #endif // HPL_LOWLEVELRESOURCES_H

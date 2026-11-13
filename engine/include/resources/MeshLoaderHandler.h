@@ -30,7 +30,6 @@ namespace hpl {
 		~cMeshLoaderHandler();
 
 		cMesh* LoadMesh(const tString& asFile,tMeshLoadFlag aFlags);
-		bool SaveMesh(cMesh* apMesh,const tString& asFile);
 
 		cWorld3D* LoadWorld(const tString& asFile, tWorldLoadFlag aFlags);
 
