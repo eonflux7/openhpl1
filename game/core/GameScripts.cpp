@@ -71,14 +71,12 @@ static void AddToTempString(std::string asString)
 {
     AddToTempStringText(cString::To16Char(asString));
 }
-SCRIPT_DEFINE_FUNC_1(void, AddToTempString, string)
 
 static void AddToTempStringTrans(std::string asCat,std::string asEntry)
 {
 	cInit *mpInit = gpInit;
 	AddToTempStringText(kTranslate(asCat,asEntry));
 }
-SCRIPT_DEFINE_FUNC_2(void, AddToTempStringTrans, string,string)
 
 // The key is drawn as a key cap, which needs no quotes or brackets around it
 static void AddToTempStringAction(std::string asAction)
@@ -95,7 +93,6 @@ static void AddToTempStringAction(std::string asAction)
 	gsTempString += gpInit->mpButtonHandler->GetActionKeyCap(asAction);
 	gwcTempStringKeyClose = lClose;
 }
-SCRIPT_DEFINE_FUNC_1(void, AddToTempStringAction,string)
 
 // GENERAL GAME
 
@@ -106,25 +103,21 @@ static void ResetGame()
 	gpInit->mpMapHandler->SetCurrentMapName("");
 	gpInit->mpMainMenu->SetActive(true);
 }
-SCRIPT_DEFINE_FUNC(void, ResetGame)
 
 static void StartCredits()
 {
 	gpInit->mpCredits->SetActive(true);
 }
-SCRIPT_DEFINE_FUNC(void, StartCredits)
 
 static void StartDemoEndText()
 {
 	gpInit->mpDemoEndText->SetActive(true);
 }
-SCRIPT_DEFINE_FUNC(void, StartDemoEndText)
 
 static void ClearSavedMaps()
 {
 	gpInit->mpSaveHandler->ClearSavedMaps();
 }
-SCRIPT_DEFINE_FUNC(void, ClearSavedMaps)
 
 static std::string GetActionKeyString(std::string asAction)
 {
@@ -137,7 +130,6 @@ static std::string GetActionKeyString(std::string asAction)
 	
 	return "ActionNotFound";
 }
-SCRIPT_DEFINE_FUNC_1(string, GetActionKeyString, string)
 
 static void AddMessageTrans(std::string asTransCat,
 									  std::string asTransName)
@@ -145,13 +137,11 @@ static void AddMessageTrans(std::string asTransCat,
 	cInit *mpInit = gpInit;
 	gpInit->mpGameMessageHandler->Add(kTranslate(asTransCat,asTransName));
 }
-SCRIPT_DEFINE_FUNC_2(void, AddMessageTrans, string, string)
 
 static void AddMessage(std::string asMessage)
 {
 	gpInit->mpGameMessageHandler->Add(cString::To16Char(asMessage));
 }
-SCRIPT_DEFINE_FUNC_1(void, AddMessage, string)
 
 static void AddMessageTempString()
 {
@@ -159,7 +149,6 @@ static void AddMessageTempString()
 	gsTempString = _W("");
 	gwcTempStringKeyClose = 0;
 }
-SCRIPT_DEFINE_FUNC(void, AddMessageTempString)
 
 static void AddSubTitleTrans(std::string asTransCat,
 									  std::string asTransName, float afTime)
@@ -167,13 +156,11 @@ static void AddSubTitleTrans(std::string asTransCat,
 	cInit *mpInit = gpInit;
 	gpInit->mpEffectHandler->GetSubTitle()->Add(kTranslate(asTransCat,asTransName),afTime,false);
 }
-SCRIPT_DEFINE_FUNC_3(void, AddSubTitleTrans, string, string, float)
 
 static void AddSubTitle(std::string asMessage, float afTime)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->Add(cString::To16Char(asMessage),afTime,false);
 }
-SCRIPT_DEFINE_FUNC_2(void, AddSubTitle, string, float)
 
 static void AddSubTitleTempString(float afTime)
 {
@@ -181,7 +168,6 @@ static void AddSubTitleTempString(float afTime)
 	gsTempString = _W("");
 	gwcTempStringKeyClose = 0;
 }
-SCRIPT_DEFINE_FUNC_1(void, AddSubTitleTempString, float)
 
 static void AddRadioMessage(	std::string asTransCat,std::string asTransName, 
 												std::string asSound)
@@ -189,19 +175,16 @@ static void AddRadioMessage(	std::string asTransCat,std::string asTransName,
 	cInit *mpInit = gpInit;
 	gpInit->mpRadioHandler->Add(kTranslate(asTransCat,asTransName),asSound);
 }
-SCRIPT_DEFINE_FUNC_3(void, AddRadioMessage, string, string, string)
 
 static void SetRadioOnEndCallback(std::string asFunc)
 {
 	gpInit->mpRadioHandler->SetOnEndCallback(asFunc);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetRadioOnEndCallback, string)
 
 static void SetInventoryMessage(std::string asMessage)
 {
 	gpInit->mpInventory->SetMessage(cString::To16Char(asMessage));
 }
-SCRIPT_DEFINE_FUNC_1(void, SetInventoryMessage, string)
 
 static void SetInventoryMessageTrans(std::string asTransCat,
 											   std::string asTransName)
@@ -209,13 +192,11 @@ static void SetInventoryMessageTrans(std::string asTransCat,
 	cInit *mpInit = gpInit;
 	gpInit->mpInventory->SetMessage(kTranslate(asTransCat,asTransName));
 }
-SCRIPT_DEFINE_FUNC_2(void, SetInventoryMessageTrans, string, string)							
 
 static void SetMessagesOverCallback(std::string asFunction)
 {
 	gpInit->mpGameMessageHandler->SetOnMessagesOverCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetMessagesOverCallback, string)
 
 static void ChangeMap(std::string asMapFile, std::string asMapPos, 
 								std::string asStartSound, std::string asStopSound,
@@ -227,7 +208,6 @@ static void ChangeMap(std::string asMapFile, std::string asMapPos,
 									afFadeOutTime,afFadeInTime,
 									asLoadTextCat,asLoadTextEntry);
 }
-SCRIPT_DEFINE_FUNC_8(void, ChangeMap, string, string, string, string, float, float, string, string)
 
 // Black Plague: with the picture of the loading screen
 static void ChangeMapLoadImage(std::string asMapFile, std::string asMapPos,
@@ -239,26 +219,22 @@ static void ChangeMapLoadImage(std::string asMapFile, std::string asMapPos,
 	gpInit->mpMapHandler->ChangeMap(asMapFile, asMapPos,asStartSound, asStopSound,
 									afFadeOutTime, afFadeInTime, asLoadTextCat, asLoadTextEntry, asLoadImage);
 }
-SCRIPT_DEFINE_FUNC_9(void, ChangeMapLoadImage, string, string, string, string, float, float, string, string, string)
 
 static void SetMapGameName(std::string asName)
 {
 	gpInit->mpMapHandler->SetMapGameName(cString::To16Char(asName));
 }
-SCRIPT_DEFINE_FUNC_1(void, SetMapGameName, string)
 
 static void SetMapGameNameTrans(std::string asTransCat,std::string asTransEntry)
 {
 	cInit *mpInit = gpInit;
 	gpInit->mpMapHandler->SetMapGameName(kTranslate(asTransCat,asTransEntry));
 }
-SCRIPT_DEFINE_FUNC_2(void, SetMapGameNameTrans, string, string)
 
 static void AddNotebookTaskText(std::string asName,std::string asText) 
 {
 	gpInit->mpNotebook->AddTask(asName, cString::To16Char(asText));
 }
-SCRIPT_DEFINE_FUNC_2(void, AddNotebookTaskText, string, string)
 
 static void AddNotebookTask(std::string asName, std::string asTransCat,
 									  std::string asTransEntry)
@@ -266,13 +242,11 @@ static void AddNotebookTask(std::string asName, std::string asTransCat,
 	cInit *mpInit = gpInit;
 	gpInit->mpNotebook->AddTask(asName, kTranslate(asTransCat,asTransEntry));
 }	
-SCRIPT_DEFINE_FUNC_3(void, AddNotebookTask, string, string, string)
 
 static void RemoveNotebookTask(std::string asName)
 {
 	gpInit->mpNotebook->RemoveTask(asName);
 }
-SCRIPT_DEFINE_FUNC_1(void, RemoveNotebookTask, string)
 
 static void AddNotebookNote(std::string asNameCat, std::string asNameEntry,
 											 std::string asTextCat,	std::string asTextEntry)
@@ -280,7 +254,6 @@ static void AddNotebookNote(std::string asNameCat, std::string asNameEntry,
 	cInit *mpInit = gpInit;
 	gpInit->mpNotebook->AddNote(kTranslate(asNameCat,asNameEntry),asTextCat,asTextEntry);
 }
-SCRIPT_DEFINE_FUNC_4(void, AddNotebookNote, string, string, string, string)
 
 static void StartNumericalPanel(std::string asName,int alCode1,int alCode2,int alCode3,int alCode4,
 										  float afDifficulty, std::string asCallback)
@@ -292,37 +265,31 @@ static void StartNumericalPanel(std::string asName,int alCode1,int alCode2,int a
 	gpInit->mpNumericalPanel->SetUp(asName,asCallback);
 	gpInit->mpNumericalPanel->SetCode(vCode);
 }
-SCRIPT_DEFINE_FUNC_7(void, StartNumericalPanel, string, int, int, int, int, float, string)
 
 static void SetInventoryActive(bool abActive)
 {
 	gpInit->mpInventory->SetActive(abActive);
 }
-SCRIPT_DEFINE_FUNC_1(void,SetInventoryActive,bool)
 
 static void FadeIn(float afTime)
 {
 	gpInit->mpFadeHandler->FadeIn(afTime);
 }
-SCRIPT_DEFINE_FUNC_1(void,FadeIn,float)
 
 static void FadeOut(float afTime)
 {
 	gpInit->mpFadeHandler->FadeOut(afTime);
 }
-SCRIPT_DEFINE_FUNC_1(void,FadeOut,float)
 
 static bool IsFading()
 {
 	return gpInit->mpFadeHandler->IsActive();
 }
-SCRIPT_DEFINE_FUNC(bool,IsFading)
 
 static void SetWideScreenActive(bool abActive)
 {
 	gpInit->mpFadeHandler->SetWideScreenActive(abActive);
 }
-SCRIPT_DEFINE_FUNC_1(void,SetWideScreenActive,bool)
 
 static void AutoSave()
 {
@@ -331,19 +298,16 @@ static void AutoSave()
 	//TODO: Some other effect here.
 	gpInit->mpEffectHandler->GetSaveEffect()->AutoSave();
 }
-SCRIPT_DEFINE_FUNC(void,AutoSave)
 
 static void StartFlash(float afFadeIn, float afWhite, float afFadeOut)
 {
 	gpInit->mpEffectHandler->GetFlash()->Start(afFadeIn,afWhite,afFadeOut);
 }
-SCRIPT_DEFINE_FUNC_3(void,StartFlash,float,float,float)
 
 static void SetWaveGravityActive(bool abActive)
 {
 	gpInit->mpEffectHandler->GetWaveGravity()->SetActive(abActive);
 }
-SCRIPT_DEFINE_FUNC_1(void,SetWaveGravityActive,bool)
 
 static void SetupWaveGravity(float afMaxAngle, float afSwingLength, 
 									   float afGravitySize, std::string asAxis)
@@ -352,20 +316,17 @@ static void SetupWaveGravity(float afMaxAngle, float afSwingLength,
 
 	gpInit->mpEffectHandler->GetWaveGravity()->Setup(cMath::ToRad(afMaxAngle),afSwingLength,afGravitySize,lDir);
 }
-SCRIPT_DEFINE_FUNC_4(void, SetupWaveGravity, float, float, float, string)
 
 static void SetDepthOfFieldActive(bool abActive, float afFadeTime)
 {
 	gpInit->mpEffectHandler->GetDepthOfField()->SetActive(abActive,afFadeTime);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetDepthOfFieldActive,bool,float)
 
 static void SetupDepthOfField(float afNearPlane, float afFocalPlane, float afFarPlane)
 {
 	gpInit->mpEffectHandler->GetDepthOfField()->SetUp(afNearPlane,afFocalPlane,afFarPlane);
 	gpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
 }
-SCRIPT_DEFINE_FUNC_3(void,SetupDepthOfField,float,float,float)
 
 static void FocusOnEntity(std::string asEntity)
 {
@@ -379,7 +340,6 @@ static void FocusOnEntity(std::string asEntity)
 	gpInit->mpEffectHandler->GetDepthOfField()->FocusOnBody(pEntity->GetBody(0));
 	gpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(nullptr);
 }
-SCRIPT_DEFINE_FUNC_1(void,FocusOnEntity,string)
 
 static void SetConstantFocusOnEntity(std::string asEntity)
 {
@@ -398,26 +358,22 @@ static void SetConstantFocusOnEntity(std::string asEntity)
 
 	gpInit->mpEffectHandler->GetDepthOfField()->SetFocusBody(pEntity->GetBody(0));
 }
-SCRIPT_DEFINE_FUNC_1(void,SetConstantFocusOnEntity,string)
 
 static void PlayGameMusic(	std::string asFile, float afVolume,float afFadeStep,
 											bool abLoop, int alPrio)
 {
 	gpInit->mpMusicHandler->Play(asFile,abLoop,afVolume,afFadeStep,alPrio);
 }
-SCRIPT_DEFINE_FUNC_5(void, PlayGameMusic, string, float, float, bool, int)
 
 static void StopGameMusic(float afFadeStep, int alPrio)
 {
 	gpInit->mpMusicHandler->Stop(afFadeStep,alPrio);
 }
-SCRIPT_DEFINE_FUNC_2(void,StopGameMusic,float,int)
 
 static void StartScreenShake(float afAmount, float afTime,float afFadeInTime,float afFadeOutTime)
 {
 	gpInit->mpEffectHandler->GetShakeScreen()->Start(afAmount,afTime,afFadeInTime,afFadeOutTime);
 }
-SCRIPT_DEFINE_FUNC_4(void,StartScreenShake,float,float,float,float)
 
 static void CreateLightFlashAtArea(std::string asArea, float afRadius,
 											 float afR,float afG, float afB, float afA,
@@ -433,7 +389,6 @@ static void CreateLightFlashAtArea(std::string asArea, float afRadius,
     gpInit->mpMapHandler->AddLightFlash(pArea->m_mtxTransform.GetTranslation(),afRadius,
 										cColor(afR,afG,afB,afA),afAddTime,afNegTime);
 }
-SCRIPT_DEFINE_FUNC_8(void, CreateLightFlashAtArea, string, float, float, float, float, float, float, float)
 
 // ATTACK
 
@@ -459,7 +414,6 @@ static void CreateSplashDamage(std::string asAreaName, float afRadius,
 												eAttackTargetFlag_Enemy,
 												1, alStrength);
 }
-SCRIPT_DEFINE_FUNC_8(void, CreateSplashDamage, string, float, float, float, float, float, float, int)
 
 // GAME TIMER
 
@@ -467,7 +421,6 @@ static void CreateTimer(std::string asName, float afTime, std::string asCallback
 {
 	gpInit->mpMapHandler->CreateTimer(asName,afTime,asCallback,abGlobal);
 }
-SCRIPT_DEFINE_FUNC_4(void,CreateTimer,string,float,string,bool)
 
 static void DestroyTimer(std::string asName)
 {
@@ -479,7 +432,6 @@ static void DestroyTimer(std::string asName)
 	
 	pTimer->mbDeleteMe = true;
 }
-SCRIPT_DEFINE_FUNC_1(void,DestroyTimer,string)
 
 static void SetTimerPaused(std::string asName, bool abPaused)
 {
@@ -491,7 +443,6 @@ static void SetTimerPaused(std::string asName, bool abPaused)
 
 	pTimer->mbPaused = abPaused;
 }
-SCRIPT_DEFINE_FUNC_2(void,SetTimerPaused,string,bool)
 
 static void SetTimerTime(std::string asName, float afTime)
 {
@@ -503,7 +454,6 @@ static void SetTimerTime(std::string asName, float afTime)
 
 	pTimer->mfTime = afTime;
 }
-SCRIPT_DEFINE_FUNC_2(void,SetTimerTime,string,float)
 
 static void AddTimerTime(std::string asName, float afTime)
 {
@@ -515,7 +465,6 @@ static void AddTimerTime(std::string asName, float afTime)
 
 	pTimer->mfTime += afTime;
 }
-SCRIPT_DEFINE_FUNC_2(void,AddTimerTime,string,float)
 
 static float GetTimerTime(std::string asName)
 {
@@ -527,7 +476,6 @@ static float GetTimerTime(std::string asName)
 
 	return pTimer->mfTime;
 }
-SCRIPT_DEFINE_FUNC_1(float,GetTimerTime,string)
 
 // PLAYER
 
@@ -545,19 +493,16 @@ static void GivePlayerDamage(float afAmount, std::string asType)
 
 	gpInit->mpPlayer->Damage(afAmount,type);
 }
-SCRIPT_DEFINE_FUNC_2(void,GivePlayerDamage,float,string)
 
 static void SetPlayerHealth(float afHealth)
 {
 	gpInit->mpPlayer->SetHealth(afHealth);
 }
-SCRIPT_DEFINE_FUNC_1(void,SetPlayerHealth,float)
 
 static float GetPlayerHealth()
 {
 	return gpInit->mpPlayer->GetHealth();
 }
-SCRIPT_DEFINE_FUNC(float,GetPlayerHealth)
 
 static void SetPlayerPose(std::string asPose,bool abChangeDirectly)
 {
@@ -576,14 +521,12 @@ static void SetPlayerPose(std::string asPose,bool abChangeDirectly)
 		Warning("Player pose mode '%s' does not exist\n",asPose.c_str());
 	}
 }
-SCRIPT_DEFINE_FUNC_2(void,SetPlayerPose,string,bool)
 
 static void SetPlayerActive(bool abActive)
 {
 	gpInit->mpPlayer->SetActive(abActive);
 	if(cInit::IsOverture()==false) gpInit->mpGameMessageHandler->ClearMessages();
 }
-SCRIPT_DEFINE_FUNC_1(void,SetPlayerActive,bool)
 
 static void StartPlayerLookAt(std::string asEntityName, float afSpeedMul, float afMaxSpeed)
 {
@@ -603,31 +546,26 @@ static void StartPlayerLookAt(std::string asEntityName, float afSpeedMul, float 
 	gpInit->mpPlayer->GetLookAt()->SetTarget(pEntity->GetBody(0)->GetWorldPosition(),afSpeedMul,afMaxSpeed);
 	gpInit->mpPlayer->GetLookAt()->SetActive(true);
 }
-SCRIPT_DEFINE_FUNC_3(void,StartPlayerLookAt,string,float,float)
 
 static void StopPlayerLookAt()
 {
 	gpInit->mpPlayer->GetLookAt()->SetActive(false);
 }
-SCRIPT_DEFINE_FUNC(void,StopPlayerLookAt)
 
 static void StartPlayerFearFilter(float afStrength)
 {
 	gpInit->mpPlayer->GetFearFilter()->SetActive(true);
 }
-SCRIPT_DEFINE_FUNC_1(void,StartPlayerFearFilter,float)
 
 static void StopPlayerFearFilter()
 {
 	gpInit->mpPlayer->GetFearFilter()->SetActive(false);
 }
-SCRIPT_DEFINE_FUNC(void,StopPlayerFearFilter)
 
 static void SetFlashlightDisabled(bool abDisabled)
 {
 	gpInit->mpPlayer->GetFlashLight()->SetDisabled(abDisabled);
 }
-SCRIPT_DEFINE_FUNC_1(void,SetFlashlightDisabled,bool)
 
 // INVENTORY
 
@@ -635,44 +573,37 @@ static void AddPickupCallback(std::string asItem, std::string asFunction)
 {
 	gpInit->mpInventory->AddPickupCallback(asItem,asFunction);
 }
-SCRIPT_DEFINE_FUNC_2(void,AddPickupCallback,string,string)
 
 static void AddUseCallback(std::string asItem, std::string asEntity, std::string asFunction)
 {
 	gpInit->mpInventory->AddUseCallback(asItem,asEntity,asFunction);
 }
-SCRIPT_DEFINE_FUNC_3(void,AddUseCallback,string,string,string)
 
 static void AddCombineCallback(std::string asItem1,std::string asItem2, std::string asFunction)
 {
 	gpInit->mpInventory->AddCombineCallback(asItem1,asItem2,asFunction);
 }
-SCRIPT_DEFINE_FUNC_3(void,AddCombineCallback,string,string,string)
 
 static void RemovePickupCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemovePickupCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_1(void,RemovePickupCallback,string)
 
 static void RemoveUseCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemoveUseCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_1(void,RemoveUseCallback,string)
 
 static void RemoveCombineCallback(std::string asFunction)
 {
 	gpInit->mpInventory->RemoveCombineCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_1(void,RemoveCombineCallback,string)
 
 static bool HasItem(std::string asName)
 {
 
 	return gpInit->mpInventory->GetItem(asName) != nullptr;
 }
-SCRIPT_DEFINE_FUNC_1(bool,HasItem,string)
 
 static void RemoveItem(std::string asName)
 {
@@ -686,13 +617,11 @@ static void RemoveItem(std::string asName)
 		Warning("Cannot find item '%s' in inventory\n",asName.c_str());
 	}
 }
-SCRIPT_DEFINE_FUNC_1(void,RemoveItem,string)
 
 static void GiveItem(std::string asName,std::string asEntityFile,int alSlotIndex)
 {
 	gpInit->mpInventory->AddItemFromFile(asName,asEntityFile, alSlotIndex);
 }
-SCRIPT_DEFINE_FUNC_3(void,GiveItem,string,string,int)
 
 // GAME ENTITY PROPERTIES
 
@@ -738,7 +667,6 @@ static void ReplaceEntity(std::string asName, std::string asBodyName,
 	cWorld3D *pWorld = gpInit->mpGame->GetScene()->GetWorld3D();
 	pWorld->CreateEntity(asNewName,mtxTransform,asNewFile, true);
 }
-SCRIPT_DEFINE_FUNC_4(void, ReplaceEntity, string, string, string, string)
 
 static void SetGameEntityActive(std::string asName, bool abActive)
 {
@@ -746,7 +674,6 @@ static void SetGameEntityActive(std::string asName, bool abActive)
 
 	pEntity->SetActive(abActive);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetGameEntityActive,string,bool)
 
 static bool GetGameEntityActive(std::string asName)
 {
@@ -758,7 +685,6 @@ static bool GetGameEntityActive(std::string asName)
 
 	return pEntity->IsActive();
 }
-SCRIPT_DEFINE_FUNC_1(bool,GetGameEntityActive,string)
 
 static void CreateGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
@@ -766,7 +692,6 @@ static void CreateGameEntityVar(std::string asEntName, std::string asVarName, in
 
 	pEntity->CreateVar(asVarName,alVal);
 }
-SCRIPT_DEFINE_FUNC_3(void,CreateGameEntityVar,string,string,int)
 
 static void SetGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
@@ -774,7 +699,6 @@ static void SetGameEntityVar(std::string asEntName, std::string asVarName, int a
 
 	pEntity->SetVar(asVarName,alVal);
 }
-SCRIPT_DEFINE_FUNC_3(void,SetGameEntityVar,string,string,int)
 
 static void AddGameEntityVar(std::string asEntName, std::string asVarName, int alVal)
 {
@@ -782,7 +706,6 @@ static void AddGameEntityVar(std::string asEntName, std::string asVarName, int a
 
 	pEntity->AddVar(asVarName,alVal);
 }
-SCRIPT_DEFINE_FUNC_3(void,AddGameEntityVar,string,string,int)
 
 static int GetGameEntityVar(std::string asEntName, std::string asVarName)
 {
@@ -794,7 +717,6 @@ static int GetGameEntityVar(std::string asEntName, std::string asVarName)
 
 	return pEntity->GetVar(asVarName);
 }
-SCRIPT_DEFINE_FUNC_2(int,GetGameEntityVar,string,string)
 
 static void SetGameEntityMaxExamineDist(std::string asName,float afDist)
 {
@@ -802,7 +724,6 @@ static void SetGameEntityMaxExamineDist(std::string asName,float afDist)
 	
 	pEntity->SetMaxExamineDist(afDist);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetGameEntityMaxExamineDist,string,float)
 
 static void SetGameEntityMaxInteractDist(std::string asName,float afDist)
 {
@@ -810,7 +731,6 @@ static void SetGameEntityMaxInteractDist(std::string asName,float afDist)
 
 	pEntity->SetMaxInteractDist(afDist);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetGameEntityMaxInteractDist,string,float)
 
 static void SetGameEntityDescriptionTrans(std::string asName, 
 													std::string asTransCat,
@@ -822,7 +742,6 @@ static void SetGameEntityDescriptionTrans(std::string asName,
 	pEntity->SetDescription(kTranslate(asTransCat,asTransName));
 	pEntity->SetShowDescritionOnce(false);
 }
-SCRIPT_DEFINE_FUNC_3(void, SetGameEntityDescriptionTrans, string, string, string)
 
 static void SetGameEntityDescriptionOnceTrans(std::string asName, 
 														   std::string asTransCat,
@@ -834,7 +753,6 @@ static void SetGameEntityDescriptionOnceTrans(std::string asName,
 	pEntity->SetDescription(kTranslate(asTransCat,asTransName));
 	pEntity->SetShowDescritionOnce(true);
 }
-SCRIPT_DEFINE_FUNC_3(void, SetGameEntityDescriptionOnceTrans, string, string, string)
 
 static void SetGameEntityDescription(std::string asName, std::string asMessage)
 {
@@ -843,7 +761,6 @@ static void SetGameEntityDescription(std::string asName, std::string asMessage)
 	pEntity->SetDescription(cString::To16Char(asMessage));
 	pEntity->SetShowDescritionOnce(false);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetGameEntityDescription,string,string)
 
 static void SetGameEntityGameNameTrans(std::string asName, 
 												 std::string asTransCat,
@@ -854,7 +771,6 @@ static void SetGameEntityGameNameTrans(std::string asName,
 
 	pEntity->SetGameName(kTranslate(asTransCat,asTransName));
 }
-SCRIPT_DEFINE_FUNC_3(void, SetGameEntityGameNameTrans, string, string, string)
 
 static void ChangeEntityAnimation(std::string asName,
 											std::string asAnimation,
@@ -864,7 +780,6 @@ static void ChangeEntityAnimation(std::string asName,
 
  	pEntity->GetMeshEntity()->PlayName(asAnimation,abLoop, true);
 }
-SCRIPT_DEFINE_FUNC_3(void, ChangeEntityAnimation, string, string, bool)
 
 static void SetEntityHealth(std::string asName, float afHealth)
 {
@@ -872,7 +787,6 @@ static void SetEntityHealth(std::string asName, float afHealth)
 
 	pEntity->SetHealth(afHealth);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetEntityHealth,string,float)
 
 static void DamageEntity(std::string asName, float afDamage, int alStrength)
 {
@@ -880,13 +794,11 @@ static void DamageEntity(std::string asName, float afDamage, int alStrength)
 
 	pEntity->Damage(afDamage,alStrength);
 }
-SCRIPT_DEFINE_FUNC_3(void,DamageEntity,string,float,int)
 
 static void SetDoorState(std::string asName, 
 											std::string asState)
 {
 }
-SCRIPT_DEFINE_FUNC_2(void, SetDoorState, string, string)
 
 static void SetObjectInteractMode(std::string asName,std::string asMode)
 {
@@ -901,7 +813,6 @@ static void SetObjectInteractMode(std::string asName,std::string asMode)
 
 	pObject->SetInteractMode(cEntityLoader_GameObject::ToInteractMode(asMode.c_str()));
 }
-SCRIPT_DEFINE_FUNC_2(void,SetObjectInteractMode,string,string)
 
 static void SetupLink(std::string asName,
 								std::string asMapFile, std::string asMapPos, 
@@ -926,7 +837,6 @@ static void SetupLink(std::string asName,
 	pLink->msLoadTextCat = "";
 	pLink->msLoadTextEntry = "";
 }
-SCRIPT_DEFINE_FUNC_7(void, SetupLink, string, string, string, string, string, float, float)
 
 // Black Plague: with the picture of the loading screen
 static void SetupLinkLoadImage(std::string asName,
@@ -941,7 +851,6 @@ static void SetupLinkLoadImage(std::string asName,
 	if(pEntity && pEntity->GetType() == eGameEntityType_Link)
 		static_cast<cGameLink*>(pEntity)->msLoadImage = asLoadImage;
 }
-SCRIPT_DEFINE_FUNC_8(void, SetupLinkLoadImage, string, string, string, string, string, float, float, string)
 
 static void SetupLinkLoadText(std::string asName,
 										std::string asMapFile, std::string asMapPos, 
@@ -967,7 +876,6 @@ static void SetupLinkLoadText(std::string asName,
 	pLink->msLoadTextCat = asTextCat;
 	pLink->msLoadTextEntry = asTextEntry;
 }
-SCRIPT_DEFINE_FUNC_9(void, SetupLinkLoadText, string, string, string, string, string, float, float, string, string)
 
 static void SetupLinkLoadTextLoadImage(std::string asName,
 										std::string asMapFile, std::string asMapPos,
@@ -998,7 +906,6 @@ static void SetLinkLocked(std::string asName, bool abLocked)
 
 	static_cast<cGameLink*>(pEntity)->mbLocked = abLocked;
 }
-SCRIPT_DEFINE_FUNC_2(void, SetLinkLocked, string, bool)
 
 /**
  * Black Plague: the sound and the message of a locked link
@@ -1019,8 +926,6 @@ static void SetupLinkLockedProp(std::string asName, std::string asLockedSound,
 	if(asLockedDescCat != "")
 		pLink->msLockedDesc = gpInit->mpGame->GetResources()->Translate(asLockedDescCat, asLockedDescEntry);
 }
-SCRIPT_DEFINE_FUNC_4(void, SetupLinkLockedProp, string, string, string, string)
-SCRIPT_DEFINE_FUNC_10(void, SetupLinkLoadTextLoadImage, string, string, string, string, string, float, float, string, string, string)
 
 static void SetAreaCustomIcon(std::string asName, std::string asIcon)
 {
@@ -1051,7 +956,6 @@ static void SetAreaCustomIcon(std::string asName, std::string asIcon)
 	pArea->SetCustomIcon(aCrosshair);
 
 }
-SCRIPT_DEFINE_FUNC_2(void,SetAreaCustomIcon,string,string)
 
 static void AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTime,
 														std::string asAnimation)
@@ -1066,7 +970,6 @@ static void AddEnemyPatrolNode(std::string asEnemy,std::string asNode,float afTi
     
     pEnemy->AddPatrolNode(asNode,afTime,asAnimation);
 }
-SCRIPT_DEFINE_FUNC_4(void, AddEnemyPatrolNode,string, string, float, string)
 
 /**
 * Clears all the patrol nodes for the enemy
@@ -1084,7 +987,6 @@ static void ClearEnemyPatrolNodes(std::string asEnemy)
 	
 	pEnemy->ClearPatrolNodes();
 }
-SCRIPT_DEFINE_FUNC_1(void,ClearEnemyPatrolNodes,string)
 
 static void SetEnemyDeathCallback(std::string asEnemy,std::string asFunction)
 {
@@ -1098,7 +1000,6 @@ static void SetEnemyDeathCallback(std::string asEnemy,std::string asFunction)
 
 	pEnemy->SetOnDeathCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetEnemyDeathCallback,string,string)
 
 static void SetEnemyAttackCallback(std::string asEnemy,std::string asFunction)
 {
@@ -1112,7 +1013,6 @@ static void SetEnemyAttackCallback(std::string asEnemy,std::string asFunction)
 
 	pEnemy->SetOnAttackCallback(asFunction);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetEnemyAttackCallback,string,string)
 
 static float GetEnemyHealth(std::string asEnemy)
 {
@@ -1126,7 +1026,6 @@ static float GetEnemyHealth(std::string asEnemy)
 
 	return pEnemy->GetHealth();
 }
-SCRIPT_DEFINE_FUNC_1(float,GetEnemyHealth,string)
 
 static void SetEnemyUseTriggers(std::string asEnemy, bool abUseTriggers)
 {
@@ -1140,7 +1039,6 @@ static void SetEnemyUseTriggers(std::string asEnemy, bool abUseTriggers)
 
 	pEnemy->SetUsesTriggers(abUseTriggers);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetEnemyUseTriggers,string, bool)
 
 // Black Plague's enemy functions
 
@@ -1175,7 +1073,6 @@ static void PlayEnemyAnim(std::string asEnemy, std::string asAnim, bool abLoop)
 
 	pEnemy->PlayAnim(asAnim,abLoop,0.5f);
 }
-SCRIPT_DEFINE_FUNC_3(void, PlayEnemyAnim, string, string, bool)
 
 /**
  * Called once, as asFunc(string asEnemy), when the animation being played is over.
@@ -1187,7 +1084,6 @@ static void SetEnemyAnimOverCallback(std::string asEnemy, std::string asFunc)
 
 	pEnemy->SetOnAnimOverCallback(asFunc);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetEnemyAnimOverCallback, string, string)
 
 /**
  * Called, as asFunc(string asEnemy), each time the enemy starts to hunt the player.
@@ -1199,7 +1095,6 @@ static void SetEnemyHuntCallback(std::string asEnemy, std::string asFunc)
 
 	pEnemy->SetOnHuntCallback(asFunc);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetEnemyHuntCallback, string, string)
 
 /**
  * Called once, as asFunc(string asEnemy), when the enemy has been at its last patrol node.
@@ -1211,7 +1106,6 @@ static void SetEnemyPatrolOverCallback(std::string asEnemy, std::string asFunc)
 
 	pEnemy->SetOnPatrolOverCallback(asFunc);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetEnemyPatrolOverCallback, string, string)
 
 /**
  * The patrol is over at its last node instead of starting again.
@@ -1223,7 +1117,6 @@ static void SetEnemyStopAtLastPatrolNode(std::string asEnemy, bool abStop)
 
 	pEnemy->SetStopAtLastPatrolNode(abStop);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetEnemyStopAtLastPatrolNode, string, bool)
 
 /**
  * Puts a weapon in an Infected's hand. The rotation is in degrees.
@@ -1241,7 +1134,6 @@ static void SetInfectedWeapon(std::string asEnemy, std::string asFile, float afD
 
 	pInfected->SetWeapon(asFile,mtxOffset,afDamage,true);
 }
-SCRIPT_DEFINE_FUNC_9(void, SetInfectedWeapon, string, string, float, float, float, float, float, float, float)
 
 /**
  * Gives an Infected a lit flashlight to carry.
@@ -1253,7 +1145,6 @@ static void AddInfectedFlashlight(std::string asEnemy)
 
 	pInfected->AddFlashLight(true);
 }
-SCRIPT_DEFINE_FUNC_1(void, AddInfectedFlashlight, string)
 
 // Black Plague's security cameras
 
@@ -1283,7 +1174,6 @@ static void SetupSecurityCamera(std::string asName, float afMinAngle, float afMa
 	pCamera->Setup(cMath::ToRad(afMinAngle),cMath::ToRad(afMaxAngle),afMinPause,afMaxPause,afSpeed,
 					asSpottedCallback,asAlertOverCallback);
 }
-SCRIPT_DEFINE_FUNC_8(void, SetupSecurityCamera, string, float, float, float, float, float, string, string)
 
 static void SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 {
@@ -1292,7 +1182,6 @@ static void SetSecurityCameraAlerted(std::string asName, bool abAlerted)
 
 	pCamera->SetAlerted(abAlerted);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetSecurityCameraAlerted, string, bool)
 
 static void ShowEnemyPlayer(std::string asEnemy)
 {
@@ -1309,7 +1198,6 @@ static void ShowEnemyPlayer(std::string asEnemy)
 								cVector3f(0,0.1f,0));
 	pEnemy->ChangeState(STATE_HUNT);
 }
-SCRIPT_DEFINE_FUNC_1(void,ShowEnemyPlayer,string)
 
 static void SetDoorLocked(std::string asDoor, bool abLocked)
 {
@@ -1324,7 +1212,6 @@ static void SetDoorLocked(std::string asDoor, bool abLocked)
 	pDoor->SetLocked(abLocked);
 
 }
-SCRIPT_DEFINE_FUNC_2(void,SetDoorLocked,string,bool)
 
 static void SetupStickArea(	std::string asArea, bool abCanDeatch,
 											bool abMoveBody,bool abRotateBody,
@@ -1359,14 +1246,11 @@ static void SetupStickArea(	std::string asArea, bool abCanDeatch,
 	pArea->SetAttachFunction(asAttachFunc);
 	pArea->SetDetachFunction(asDetachFunc);
 }
-SCRIPT_DEFINE_FUNC_12(void, SetupStickArea, string, bool, bool, bool, bool, float, 
-			string, string, string, string, string, string)
 
 static void AllowAttachment()
 {
 	cGameStickArea::mbAllowAttachment = true;
 }
-SCRIPT_DEFINE_FUNC(void,AllowAttachment)
 
 static void SetLampLit(std::string asName,bool abLit, bool abFade)
 {
@@ -1380,7 +1264,6 @@ static void SetLampLit(std::string asName,bool abLit, bool abFade)
 
     pLamp->SetLit(abLit,abFade);
 }
-SCRIPT_DEFINE_FUNC_3(void,SetLampLit,string,bool,bool)
 
 static void SetLampFlicker(std::string asName,bool abFlicker)
 {
@@ -1394,7 +1277,6 @@ static void SetLampFlicker(std::string asName,bool abFlicker)
 
 	pLamp->SetFlicker(abFlicker);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetLampFlicker,string,bool)
 
 static void SetLampLitChangeCallback(std::string asName,std::string asCallback)
 {
@@ -1408,7 +1290,6 @@ static void SetLampLitChangeCallback(std::string asName,std::string asCallback)
 
 	pLamp->SetLitChangeCallback(asCallback);
 }
-SCRIPT_DEFINE_FUNC_2(void,SetLampLitChangeCallback,string,string)
 
 static void SetupLadder(	std::string asName,
 											std::string asAttachSound, 
@@ -1427,7 +1308,6 @@ static void SetupLadder(	std::string asName,
 	pLadder->SetClimbUpSound(asClimbUpSound);
 	pLadder->SetClimbDownSound(asClimbDownSound);
 }
-SCRIPT_DEFINE_FUNC_4(void, SetupLadder, string, string, string, string)
 
 static void SetupDamageArea(std::string asName, float afDamage,
 													 float afUpdatesPerSec, int alStrength,
@@ -1448,7 +1328,6 @@ static void SetupDamageArea(std::string asName, float afDamage,
 	pDamage->SetDisableEnemies(abDisableEnemies);
 	
 }
-SCRIPT_DEFINE_FUNC_6(void, SetupDamageArea, string, float, float, int, bool, bool)
 
 /**
  * Black Plague: with how the player is shown to be hurt and what is heard then.
@@ -1480,7 +1359,6 @@ static void SetupDamageAreaType(std::string asName, float afDamage,
 	pDamage->SetDamageType(type);
 	pDamage->SetDamageSound(asDamageSound);
 }
-SCRIPT_DEFINE_FUNC_8(void, SetupDamageAreaType, string, float, float, int, bool, bool, string, string)
 
 static void SetupForceArea(std::string asName, 
 									 float afMaxForce, float afConstant,
@@ -1505,7 +1383,6 @@ static void SetupForceArea(std::string asName,
 	pForce->SetAffectBodies(abAffectBodies);
 	pForce->SetAffectCharacters(abAffectCharacters);
 }
-SCRIPT_DEFINE_FUNC_9(void, SetupForceArea, string, float, float, float, float, bool, bool, bool, bool)
 
 static void SetupLiquidArea(std::string asName,
 								  float afDensity, float afLinearViscosity,
@@ -1532,7 +1409,6 @@ static void SetupLiquidArea(std::string asName,
 
 	pLiquid->SetHasWaves(abHasWaves);
 }
-SCRIPT_DEFINE_FUNC_9(void, SetupLiquidArea, string, float, float, float, string, float, float, float, bool)
 
 static void SetupSaveArea(std::string asName,
 											std::string asMessageCat,std::string asMessageEntry, 
@@ -1550,7 +1426,6 @@ static void SetupSaveArea(std::string asName,
 	pSave->SetMessageEntry(asMessageEntry);
 	pSave->SetSound(asSound);
 }
-SCRIPT_DEFINE_FUNC_4(void, SetupSaveArea, string, string, string, string)
 
 // GAME ENTITY CALLBACKS
 
@@ -1595,7 +1470,6 @@ static void AddEntityCollideCallback(std::string asType,
 	}
 	
 }
-SCRIPT_DEFINE_FUNC_4(void, AddEntityCollideCallback, string, string, string, string)
 
 static void RemoveEntityCollideCallback(std::string asType,
 											   std::string asDestName,
@@ -1625,7 +1499,6 @@ static void RemoveEntityCollideCallback(std::string asType,
 		}
 	}
 }
-SCRIPT_DEFINE_FUNC_3(void, RemoveEntityCollideCallback, string, string, string)
 
 static eGameEntityScriptType GetGameScriptType(const tString &asType)
 {
@@ -1660,7 +1533,6 @@ static void AddEntityCallback(std::string asType,
 		pEntity->AddScript(type, asFuncName);
 	}
 }
-SCRIPT_DEFINE_FUNC_3(void, AddEntityCallback, string, string, string)
 
 static void RemoveEntityCallback(std::string asType,
 										   std::string asDestName)
@@ -1679,7 +1551,6 @@ static void RemoveEntityCallback(std::string asType,
 		pEntity->RemoveScript(type);
 	}
 }
-SCRIPT_DEFINE_FUNC_2(void, RemoveEntityCallback, string, string)
 
 // GAME SOUND
 
@@ -1746,7 +1617,6 @@ static void CreateSoundEntityAt(std::string asType,std::string asDestName,
 		pSound->SetPosition(vPos);
 	}
 }
-SCRIPT_DEFINE_FUNC_4(void, CreateSoundEntityAt, string, string, string, string)
 
 // PUBLIC FUNCTIONS
 
@@ -1790,7 +1660,6 @@ static void SetLeverCallback(std::string asName, std::string asType, std::string
 	else if(sType == "leave")	pLever->SetCallback(eGameLeverAction_Leave, asFunc);
 	else if(sType == "during")	pLever->SetCallback(eGameLeverAction_During, asFunc);
 }
-SCRIPT_DEFINE_FUNC_3(void, SetLeverCallback, string, string, string)
 
 /**
  * \param alState -1 = stuck at min, 1 = stuck at max, 0 = not stuck
@@ -1804,7 +1673,6 @@ static void SetLeverStuck(std::string asName, int alState)
 	else if(alState == 1)	pLever->SetStuck(eGameLeverState_Max);
 	else if(alState == -1)	pLever->SetStuck(eGameLeverState_Min);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetLeverStuck, string, int)
 
 /**
  * \return -1 = min, 0 = middle, 1 = max
@@ -1821,7 +1689,6 @@ static int GetLeverState(std::string asName)
 	default: return 0;
 	}
 }
-SCRIPT_DEFINE_FUNC_1(int, GetLeverState, string)
 
 static void SetWheelCallback(std::string asName, std::string asType, std::string asFunc)
 {
@@ -1834,7 +1701,6 @@ static void SetWheelCallback(std::string asName, std::string asType, std::string
 	else if(sType == "leave")	pWheel->SetCallback(eGameWheelAction_Leave, asFunc);
 	else if(sType == "during")	pWheel->SetCallback(eGameWheelAction_During, asFunc);
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWheelCallback, string, string, string)
 
 static void SetWheelStuck(std::string asName, int alState)
 {
@@ -1845,7 +1711,6 @@ static void SetWheelStuck(std::string asName, int alState)
 	else if(alState == 1)	pWheel->SetStuck(eGameWheelState_Max);
 	else if(alState == -1)	pWheel->SetStuck(eGameWheelState_Min);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetWheelStuck, string, int)
 
 static int GetWheelState(std::string asName)
 {
@@ -1859,7 +1724,6 @@ static int GetWheelState(std::string asName)
 	default: return 0;
 	}
 }
-SCRIPT_DEFINE_FUNC_1(int, GetWheelState, string)
 
 /**
  * The angle the wheel has been turned in all, in degrees
@@ -1871,7 +1735,6 @@ static float GetWheelAngle(std::string asName)
 
 	return cMath::ToDeg(pWheel->GetAngle());
 }
-SCRIPT_DEFINE_FUNC_1(float, GetWheelAngle, string)
 
 static float GetWheelSpeed(std::string asName)
 {
@@ -1880,7 +1743,6 @@ static float GetWheelSpeed(std::string asName)
 
 	return pWheel->GetSpeed();
 }
-SCRIPT_DEFINE_FUNC_1(float, GetWheelSpeed, string)
 
 /**
  * The limits of a joint follow the wheel: afMin at the wheel's least angle,
@@ -1902,7 +1764,6 @@ static void ConnectWheelToJoint(std::string asName, std::string asJoint,
 
 	pWheel->ConnectToJointLimit(pJoint, afMin, afMax, afRange);
 }
-SCRIPT_DEFINE_FUNC_5(void, ConnectWheelToJoint, string, string, float, float, float)
 
 /**
  * The same for the value a controller on one of the entity's joints aims at
@@ -1922,7 +1783,6 @@ static void ConnectWheelToController(std::string asName, std::string asEntity, s
 
 	pWheel->ConnectToController(pEntity, asController, afMin, afMax);
 }
-SCRIPT_DEFINE_FUNC_5(void, ConnectWheelToController, string, string, string, float, float)
 
 // MOVING THINGS TO AREAS (BLACK PLAGUE)
 
@@ -1989,7 +1849,6 @@ static void MoveEntityToArea(std::string asName, std::string asArea, float afMax
 	pEntity->MoveToPosition(pArea->GetBody(0)->GetWorldPosition(), afMaxSpeed, afAcceleration,
 							afSlowDownDist, asCallback);
 }
-SCRIPT_DEFINE_FUNC_6(void, MoveEntityToArea, string, string, float, float, float, string)
 
 /**
  * Puts a body at the centre of an area.
@@ -2007,7 +1866,6 @@ static void TeleportBodyToArea(std::string asBody, std::string asArea, bool abRe
 
 	TeleportBody(pBody, pArea, abResetVelocity, abSetRotation, cVector3f(afRotX, afRotY, afRotZ));
 }
-SCRIPT_DEFINE_FUNC_7(void, TeleportBodyToArea, string, string, bool, bool, float, float, float)
 
 /**
  * The same for the first body of an entity
@@ -2033,7 +1891,6 @@ static void TeleportEntityToArea(std::string asName, std::string asArea, bool ab
 
 	TeleportBody(pEntity->GetBody(0), pArea, abResetVelocity, abSetRotation, cVector3f(afRotX, afRotY, afRotZ));
 }
-SCRIPT_DEFINE_FUNC_7(void, TeleportEntityToArea, string, string, bool, bool, float, float, float)
 
 /**
  * The player stands at the centre of an area
@@ -2045,7 +1902,6 @@ static void TeleportPlayerToArea(std::string asArea)
 
 	gpInit->mpPlayer->GetCharacterBody()->SetFeetPosition(pArea->GetBody(0)->GetWorldPosition(), false);
 }
-SCRIPT_DEFINE_FUNC_1(void, TeleportPlayerToArea, string)
 
 /**
  * Requiem: an entity is made from a file, placed and turned as the area is
@@ -2059,7 +1915,6 @@ static void CreateEntityAtArea(std::string asName, std::string asFile, std::stri
 
 	pWorld->CreateEntity(asName, pArea->GetBody(0)->GetWorldMatrix(), asFile, true);
 }
-SCRIPT_DEFINE_FUNC_3(void, CreateEntityAtArea, string, string, string)
 
 static bool BodiesCollide(iPhysicsBody *apBodyA, iPhysicsBody *apBodyB)
 {
@@ -2088,7 +1943,6 @@ static bool CheckBodyCollision(std::string asBodyA, std::string asBodyB)
 
 	return BodiesCollide(pBodyA, pBodyB);
 }
-SCRIPT_DEFINE_FUNC_2(bool, CheckBodyCollision, string, string)
 
 /**
  * \return true if any body of an entity touches a body
@@ -2108,7 +1962,6 @@ static bool CheckEntityBodyCollision(std::string asName, std::string asBody)
 	}
 	return false;
 }
-SCRIPT_DEFINE_FUNC_2(bool, CheckEntityBodyCollision, string, string)
 
 /**
  * \return true if any body of one entity touches a body of the other.
@@ -2128,7 +1981,6 @@ static bool CheckGameEntityCollision(std::string asNameA, std::string asNameB)
 	}
 	return false;
 }
-SCRIPT_DEFINE_FUNC_2(bool, CheckGameEntityCollision, string, string)
 
 static cGameStickArea* GetStickArea(const std::string &asName)
 {
@@ -2154,7 +2006,6 @@ static void AttachBodyToStickArea(std::string asBody, std::string asArea)
 
 	pStickArea->AttachBody(pBody);
 }
-SCRIPT_DEFINE_FUNC_2(void, AttachBodyToStickArea, string, string)
 
 static void DetachBodyFromStickArea(std::string asArea)
 {
@@ -2163,7 +2014,6 @@ static void DetachBodyFromStickArea(std::string asArea)
 
 	pStickArea->DetachBody();
 }
-SCRIPT_DEFINE_FUNC_1(void, DetachBodyFromStickArea, string)
 
 // DOORS, PLAYER AND NOTEBOOK (BLACK PLAGUE)
 
@@ -2185,20 +2035,17 @@ static void SetDoorLockedProperties(std::string asDoor, std::string asDescCat, s
 	pDoor->SetLockedDesc(gpInit->mpGame->GetResources()->Translate(asDescCat, asDescEntry));
 	pDoor->SetLockedSound(asSound);
 }
-SCRIPT_DEFINE_FUNC_5(void, SetDoorLockedProperties, string, string, string, string, bool)
 
 static void SetNoFallDamage(bool abNoFallDamage)
 {
 	gpInit->mpPlayer->SetNoFallDamage(abNoFallDamage);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetNoFallDamage, bool)
 
 static void TurnOffGlowStick()
 {
 	if(gpInit->mpPlayer->GetGlowStick()->IsActive())
 		gpInit->mpPlayer->GetGlowStick()->SetActive(false);
 }
-SCRIPT_DEFINE_FUNC(void, TurnOffGlowStick)
 
 /**
  * Requiem: a lit flare is put out
@@ -2208,7 +2055,6 @@ static void DropFlare()
 	if(gpInit->mpPlayer->GetFlare()->IsActive())
 		gpInit->mpPlayer->GetFlare()->SetActive(false);
 }
-SCRIPT_DEFINE_FUNC(void, DropFlare)
 
 /**
  * The function is called, once, when the flashlight's power falls below the value: Func()
@@ -2217,7 +2063,6 @@ static void SetLowPowerCallback(std::string asFunc, float afVal)
 {
 	gpInit->mpPlayer->SetLowPowerCallback(asFunc, afVal);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetLowPowerCallback, string, float)
 
 /**
  * A radio message heard from an entity (an area as a rule): at full volume inside
@@ -2232,7 +2077,6 @@ static void AddRadioMessageAtPos(std::string asTransCat, std::string asTransName
 	gpInit->mpRadioHandler->Add(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName),
 								asSound, pEntity, afMinDist, afMaxDist);
 }
-SCRIPT_DEFINE_FUNC_6(void, AddRadioMessageAtPos, string, string, string, string, float, float)
 
 /**
  * The waiting radio messages are dropped and the one playing fades out.
@@ -2242,7 +2086,6 @@ static void StopAllRadioMessages(float afFadeSpeed)
 {
 	gpInit->mpRadioHandler->StopAll(afFadeSpeed);
 }
-SCRIPT_DEFINE_FUNC_1(void, StopAllRadioMessages, float)
 
 // COMPUTER TERMINALS (Black Plague)
 //
@@ -2268,7 +2111,6 @@ static void OpenScreenGui(std::string asFile)
 {
 	gpInit->mpGameGuiHandler->OpenScreenGui(asFile);
 }
-SCRIPT_DEFINE_FUNC_1(void, OpenScreenGui, string)
 
 /**
  * The screen is taken down at the next update, so its own script may call this.
@@ -2277,7 +2119,6 @@ static void CloseScreenGui()
 {
 	gpInit->mpGameGuiHandler->CloseScreenGui(true);
 }
-SCRIPT_DEFINE_FUNC(void, CloseScreenGui)
 
 /**
  * Properties: Enabled, Visible
@@ -2293,7 +2134,6 @@ static void SetWidgetBool(std::string asName, std::string asProp, bool abVal)
 	else if(sProp == "visible")	pWidget->SetVisible(abVal);
 	else Warning("Bool property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWidgetBool, string, string, bool)
 
 static bool GetWidgetBool(std::string asName, std::string asProp)
 {
@@ -2308,7 +2148,6 @@ static bool GetWidgetBool(std::string asName, std::string asProp)
 	Warning("Bool property '%s' does not exist", asProp.c_str());
 	return false;
 }
-SCRIPT_DEFINE_FUNC_2(bool, GetWidgetBool, string, string)
 
 /**
  * Properties: SelectedItem (list and combo box), MaxTextLength (text box, label),
@@ -2351,7 +2190,6 @@ static void SetWidgetInt(std::string asName, std::string asProp, int alVal)
 
 	Warning("Int property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWidgetInt, string, string, int)
 
 static int GetWidgetInt(std::string asName, std::string asProp)
 {
@@ -2384,7 +2222,6 @@ static int GetWidgetInt(std::string asName, std::string asProp)
 	Warning("Int property '%s' does not exist", asProp.c_str());
 	return 0;
 }
-SCRIPT_DEFINE_FUNC_2(int, GetWidgetInt, string, string)
 
 /**
  * Properties: BackgroundZ (frame, list box)
@@ -2405,7 +2242,6 @@ static void SetWidgetFloat(std::string asName, std::string asProp, float afVal)
 
 	Warning("Float property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWidgetFloat, string, string, float)
 
 /**
  * Properties: BackgroundColor (frame)
@@ -2426,7 +2262,6 @@ static void SetWidgetColor(std::string asName, std::string asProp, float afR, fl
 
 	Warning("Color property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_6(void, SetWidgetColor, string, string, float, float, float, float)
 
 /**
  * Properties: Size
@@ -2441,7 +2276,6 @@ static void SetWidgetVec2(std::string asName, std::string asProp, float afX, flo
 	if(sProp == "size")	pWidget->SetSize(cVector2f(afX, afY));
 	else Warning("Vec2 property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_4(void, SetWidgetVec2, string, string, float, float)
 
 /**
  * Properties: Position
@@ -2456,7 +2290,6 @@ static void SetWidgetVec3(std::string asName, std::string asProp, float afX, flo
 	if(sProp == "position")	pWidget->SetPosition(cVector3f(afX, afY, afZ));
 	else Warning("Vec3 property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_5(void, SetWidgetVec3, string, string, float, float, float)
 
 /**
  * Properties: Text, Font (a font of the screen's file), Image (image and button; an image of the screen's file)
@@ -2492,7 +2325,6 @@ static void SetWidgetString(std::string asName, std::string asProp, std::string 
 		Warning("String property '%s' does not exist", asProp.c_str());
 	}
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWidgetString, string, string, string)
 
 /**
  * Properties: Text
@@ -2509,7 +2341,6 @@ static void SetWidgetStringTrans(std::string asName, std::string asProp, std::st
 	else
 		Warning("StringTrans property '%s' does not exist", asProp.c_str());
 }
-SCRIPT_DEFINE_FUNC_4(void, SetWidgetStringTrans, string, string, string, string)
 
 /**
  * Properties: Text
@@ -2526,7 +2357,6 @@ static std::string GetWidgetString(std::string asName, std::string asProp)
 	Warning("String property '%s' does not exist", asProp.c_str());
 	return "";
 }
-SCRIPT_DEFINE_FUNC_2(string, GetWidgetString, string, string)
 
 static iWidgetItemContainer* GetScreenItemContainer(const char *apFunc, const tString &asName)
 {
@@ -2548,14 +2378,12 @@ static void AddWidgetItem(std::string asName, std::string asItem)
 	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItem", asName);
 	if(pContainer) pContainer->AddItem(cString::To16Char(asItem));
 }
-SCRIPT_DEFINE_FUNC_2(void, AddWidgetItem, string, string)
 
 static void AddWidgetItemTrans(std::string asName, std::string asTransCat, std::string asTransName)
 {
 	iWidgetItemContainer *pContainer = GetScreenItemContainer("AddWidgetItemTrans", asName);
 	if(pContainer) pContainer->AddItem(gpInit->mpGame->GetResources()->Translate(asTransCat, asTransName));
 }
-SCRIPT_DEFINE_FUNC_3(void, AddWidgetItemTrans, string, string, string)
 
 static void RemoveWidgetItem(std::string asName, int alIdx)
 {
@@ -2567,7 +2395,6 @@ static void RemoveWidgetItem(std::string asName, int alIdx)
 
 	pContainer->RemoveItem(alIdx);
 }
-SCRIPT_DEFINE_FUNC_2(void, RemoveWidgetItem, string, int)
 
 /**
  * Only this widget and those in it take the mouse; "" gives it back to all.
@@ -2582,7 +2409,6 @@ static void SetAttentionWidget(std::string asName)
 	else
 		pGui->GetSet()->SetAttentionWidget(pGui->GetSet()->GetWidgetFromName(asName));
 }
-SCRIPT_DEFINE_FUNC_1(void, SetAttentionWidget, string)
 
 /**
  * The function is called when the widget gets the message: Func(string asName, string asMessage, int alVal)
@@ -2596,7 +2422,6 @@ static void SetWidgetCallback(std::string asName, std::string asMessage, std::st
 
 	pGui->AddCallback(asName, cGameGui::StringToGuiMessage(asMessage), asFunc);
 }
-SCRIPT_DEFINE_FUNC_3(void, SetWidgetCallback, string, string, string)
 
 /**
  * A message box with one or two buttons ("" for none). The function is called with the button pressed: Func(int alButton)
@@ -2610,7 +2435,6 @@ static void CreateGuiPopUp(std::string asLabel, std::string asText, std::string 
 	pGui->CreatePopUp(cString::To16Char(asLabel), cString::To16Char(asText),
 					cString::To16Char(asButton1), cString::To16Char(asButton2), asCallback);
 }
-SCRIPT_DEFINE_FUNC_5(void, CreateGuiPopUp, string, string, string, string, string)
 
 static void CreateGuiPopUpTrans(std::string asLabelCat, std::string asLabelName,
 										std::string asTextCat, std::string asTextName,
@@ -2628,7 +2452,6 @@ static void CreateGuiPopUpTrans(std::string asLabelCat, std::string asLabelName,
 					pResources->Translate(asButton1Cat, asButton1Name),
 					pResources->Translate(asButton2Cat, asButton2Name), asCallback);
 }
-SCRIPT_DEFINE_FUNC_9(void, CreateGuiPopUpTrans, string, string, string, string, string, string, string, string, string)
 
 /**
  * A text to read on the screen. It is put in the notebook, the first time it is opened.
@@ -2652,7 +2475,6 @@ static void CreateGuiTextView(std::string asLabelCat, std::string asLabelName,
 
 	pGui->CreateTextViewer(sLabel, asTextCat, asTextName, asCallback, bNewNote);
 }
-SCRIPT_DEFINE_FUNC_5(void, CreateGuiTextView, string, string, string, string, string)
 
 /**
  * As SetRadioOnEndCallback, for a function in the script of the open computer screen.
@@ -2661,7 +2483,6 @@ static void SetRadioOnEndCallbackGui(std::string asFunc)
 {
 	gpInit->mpRadioHandler->SetOnEndCallback(asFunc, true);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetRadioOnEndCallbackGui, string)
 
 // EFFECTS OF BLACK PLAGUE
 
@@ -2673,13 +2494,11 @@ static void StartDreamFilter(float afAlpha, float afSpeed)
 {
 	gpInit->mpEffectHandler->GetDreamFilter()->Start(afAlpha, afSpeed);
 }
-SCRIPT_DEFINE_FUNC_2(void, StartDreamFilter, float, float)
 
 static void StopDreamFilter(float afSpeed)
 {
 	gpInit->mpEffectHandler->GetDreamFilter()->Stop(afSpeed);
 }
-SCRIPT_DEFINE_FUNC_1(void, StopDreamFilter, float)
 
 /**
  * A picture fades in over the view, stays and fades out
@@ -2690,7 +2509,6 @@ static void StartImageFlash(float afFadeIn, float afStay, float afFadeOut, std::
 {
 	gpInit->mpEffectHandler->GetImageFlash()->Start(afFadeIn, afStay, afFadeOut, asFile, abStartFlash, abEndFlash);
 }
-SCRIPT_DEFINE_FUNC_6(void, StartImageFlash, float, float, float, string, bool, bool)
 
 /**
  * Messages in black, for a bright view
@@ -2699,7 +2517,6 @@ static void SetMessageBlackText(bool abBlackText)
 {
 	gpInit->mpGameMessageHandler->SetBlackText(abBlackText);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetMessageBlackText, bool)
 
 /**
  * Subtitles on black strips, for a bright view
@@ -2708,7 +2525,6 @@ static void SetSubTitleBlackText(bool abBlackText)
 {
 	gpInit->mpEffectHandler->GetSubTitle()->SetBlackText(abBlackText);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetSubTitleBlackText, bool)
 
 /**
  * True while the gas mask is on the player's face
@@ -2717,7 +2533,6 @@ static bool GetPlayerHasGasMask()
 {
 	return gpInit->mpEffectHandler->GetGasMask()->IsActive();
 }
-SCRIPT_DEFINE_FUNC(bool, GetPlayerHasGasMask)
 
 /**
  * Requiem: the effect of a save at the area (the look, the flash), without saving
@@ -2733,7 +2548,6 @@ static void SaveEffectOnArea(std::string asArea)
 
 	gpInit->mpEffectHandler->GetSaveEffect()->NormalSave(pArea->m_mtxTransform.GetTranslation(), nullptr, false);
 }
-SCRIPT_DEFINE_FUNC_1(void, SaveEffectOnArea, string)
 
 /**
  * Black Plague's endings: mails typed on a black screen. 1 goes back to the
@@ -2743,13 +2557,11 @@ static void StartEnding1()
 {
 	gpInit->mpEnding->SetActive(true, 0);
 }
-SCRIPT_DEFINE_FUNC(void, StartEnding1)
 
 static void StartEnding2()
 {
 	gpInit->mpEnding->SetActive(true, 3);
 }
-SCRIPT_DEFINE_FUNC(void, StartEnding2)
 
 // SOUND ENVIRONMENTS (Black Plague)
 
@@ -2780,7 +2592,6 @@ static void LinkSoundEnvToSector(std::string asSector, std::string asSoundEnv, f
 
 	gpInit->mpSoundEnvHandler->AddSectorSoundEnv(pSector, pEnv, afFadeTime, alPrio);
 }
-SCRIPT_DEFINE_FUNC_4(void, LinkSoundEnvToSector, string, string, float, int)
 
 static void LinkSoundEnvToAllSectors(std::string asSoundEnv, float afFadeTime)
 {
@@ -2793,7 +2604,6 @@ static void LinkSoundEnvToAllSectors(std::string asSoundEnv, float afFadeTime)
 		gpInit->mpSoundEnvHandler->AddSectorSoundEnv(it->second, pEnv, afFadeTime, 0);
 	}
 }
-SCRIPT_DEFINE_FUNC_2(void, LinkSoundEnvToAllSectors, string, float)
 
 /**
  * The reverb heard outside the sectors that have one
@@ -2805,7 +2615,6 @@ static void SetDefaultSoundEnv(std::string asSoundEnv, float afFadeTime)
 
 	gpInit->mpSoundEnvHandler->SetDefaultSoundEnv(pEnv, afFadeTime);
 }
-SCRIPT_DEFINE_FUNC_2(void, SetDefaultSoundEnv, string, float)
 
 /**
  * The function is called, once, when the notebook is closed: Func()
@@ -2814,7 +2623,6 @@ static void SetNotebookCloseCallback(std::string asFunc)
 {
 	gpInit->mpNotebook->SetCloseCallback(asFunc);
 }
-SCRIPT_DEFINE_FUNC_1(void, SetNotebookCloseCallback, string)
 
 void cGameScripts::Init()
 {

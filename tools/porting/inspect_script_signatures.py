@@ -24,8 +24,16 @@ def read_wrapper_calls(binary_path):
         if m: res[cur].append((int(m.group(2),16),idx)); idx=None
     return res
 known={}
-for m in re.finditer(r"SCRIPT_DEFINE_FUNC(?:_\d+)?\(\s*(\w+)\s*,\s*(\w+)\s*((?:,\s*\w+\s*)*)\)",open(SCRIPT_SOURCE).read()):
-    known[m.group(2)]=(m.group(1),[a.strip() for a in m.group(3).split(",") if a.strip()])
+# The script types of our functions, from the C++ signatures of those registered
+SOURCE_TYPES={"std::string":"string","tString":"string","float":"float","int":"int","bool":"bool","void":"void"}
+def script_type(param):
+    param=re.sub(r"\bconst\b|&","",param).strip()
+    return SOURCE_TYPES.get(param.rsplit(None,1)[0] if " " in param else param,param)
+_src=open(SCRIPT_SOURCE).read()
+_registered=set(re.findall(r"SCRIPT_REGISTER_FUNC(?:_AS)?\(\s*(\w+)",_src))
+for m in re.finditer(r"static\s+([\w:]+)\s+(\w+)\s*\(([^)]*)\)",_src):
+    if m.group(2) in _registered:
+        known[m.group(2)]=(script_type(m.group(1)),[script_type(a) for a in m.group(3).split(",") if a.strip() and a.strip()!="void"])
 ARGUMENT_GETTER_TYPES={28:"string",16:"float",8:"bool",12:"int"}
 RETURN_SETTER_TYPES={40:"float",32:"bool",36:"int",48:"string"}
 def decode_wrapper_signature(v):

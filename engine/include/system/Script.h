@@ -5,195 +5,90 @@
 
 #include "resources/ResourceBase.h"
 #include <angelscript.h>
+#include <type_traits>
+#include <utility>
 
-// Script Macros to build Generic wrappers if necessary
-	#define SCRIPT_DEFINE_FUNC(return, funcname) \
-			SCRIPT_FUNC_BEGIN(funcname, return, "") \
-			SCRIPT_RETURN_CALL_##return funcname(); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_1(return, funcname, arg0) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_2(return, funcname, arg0, arg1) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_3(return, funcname, arg0, arg1, arg2) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_4(return, funcname, arg0, arg1, arg2, arg3) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_5(return, funcname, arg0, arg1, arg2, arg3, arg4) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_6(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_7(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_8(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6","#arg7) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_ARG_##arg7(7); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6,_arg7); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_9(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6","#arg7","#arg8) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_ARG_##arg7(7); \
-			SCRIPT_ARG_##arg8(8); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6,_arg7,_arg8); \
-			SCRIPT_FUNC_END(funcname,return)
+namespace hpl {
 
-	#define SCRIPT_DEFINE_FUNC_10(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6","#arg7","#arg8","#arg9) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_ARG_##arg7(7); \
-			SCRIPT_ARG_##arg8(8); \
-			SCRIPT_ARG_##arg9(9); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6,_arg7,_arg8,_arg9); \
-			SCRIPT_FUNC_END(funcname,return)
+	// The script types a C++ function can take and return: its name in the
+	// declaration, and how an argument is read and a return value written
+	// through asIScriptGeneric.
+	template<class T> struct cScriptType;
 
-	#define SCRIPT_DEFINE_FUNC_12(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
-				arg7, arg8, arg9, arg10, arg11) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6 \
-				","#arg7","#arg8","#arg9","#arg10","#arg11) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_ARG_##arg7(7); \
-			SCRIPT_ARG_##arg8(8); \
-			SCRIPT_ARG_##arg9(9); \
-			SCRIPT_ARG_##arg10(10); \
-			SCRIPT_ARG_##arg11(11); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6, \
-					_arg7,_arg8,_arg9,_arg10,_arg11); \
-			SCRIPT_FUNC_END(funcname,return)
-	#define SCRIPT_DEFINE_FUNC_17(return, funcname, arg0, arg1, arg2, arg3, arg4, arg5, arg6, \
-				arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16) \
-			SCRIPT_FUNC_BEGIN(funcname, return, #arg0","#arg1","#arg2","#arg3","#arg4","#arg5","#arg6 \
-				","#arg7","#arg8","#arg9","#arg10","#arg11","#arg12","#arg13","#arg14","#arg15","#arg16) \
-			SCRIPT_ARG_##arg0(0); \
-			SCRIPT_ARG_##arg1(1); \
-			SCRIPT_ARG_##arg2(2); \
-			SCRIPT_ARG_##arg3(3); \
-			SCRIPT_ARG_##arg4(4); \
-			SCRIPT_ARG_##arg5(5); \
-			SCRIPT_ARG_##arg6(6); \
-			SCRIPT_ARG_##arg7(7); \
-			SCRIPT_ARG_##arg8(8); \
-			SCRIPT_ARG_##arg9(9); \
-			SCRIPT_ARG_##arg10(10); \
-			SCRIPT_ARG_##arg11(11); \
-			SCRIPT_ARG_##arg12(12); \
-			SCRIPT_ARG_##arg13(13); \
-			SCRIPT_ARG_##arg14(14); \
-			SCRIPT_ARG_##arg15(15); \
-			SCRIPT_ARG_##arg16(16); \
-			SCRIPT_RETURN_CALL_##return funcname(_arg0,_arg1,_arg2,_arg3,_arg4,_arg5,_arg6, \
-					_arg7,_arg8,_arg9,_arg10,_arg11,_arg12,_arg13,_arg14,_arg15,_arg16); \
-			SCRIPT_FUNC_END(funcname,return)
+	template<> struct cScriptType<void> { static constexpr const char *mpName = "void"; };
 
-	#define SCRIPT_FUNC_BEGIN(funcname, return, args) \
-		namespace GenericScript { \
-			static std::string funcname##_return = #return; \
-			static std::string funcname##_arg = args; \
-			void funcname##_Generic(asIScriptGeneric *gen) { \
-				SCRIPT_RETURN_##return;
+	template<> struct cScriptType<std::string>
+	{
+		static constexpr const char *mpName = "string";
+		static std::string Get(asIScriptGeneric *apGen, int alArg){ return *(std::string *)apGen->GetArgObject(alArg); }
+		static void Set(asIScriptGeneric *apGen, std::string &asX){ apGen->SetReturnObject(&asX); }
+	};
+	template<> struct cScriptType<float>
+	{
+		static constexpr const char *mpName = "float";
+		static float Get(asIScriptGeneric *apGen, int alArg){ return apGen->GetArgFloat(alArg); }
+		static void Set(asIScriptGeneric *apGen, float afX){ apGen->SetReturnFloat(afX); }
+	};
+	template<> struct cScriptType<int>
+	{
+		static constexpr const char *mpName = "int";
+		static int Get(asIScriptGeneric *apGen, int alArg){ return (int)apGen->GetArgDWord(alArg); }
+		static void Set(asIScriptGeneric *apGen, int alX){ apGen->SetReturnDWord(alX); }
+	};
+	template<> struct cScriptType<bool>
+	{
+		static constexpr const char *mpName = "bool";
+		static bool Get(asIScriptGeneric *apGen, int alArg){ return apGen->GetArgByte(alArg) != 0; }
+		static void Set(asIScriptGeneric *apGen, bool abX){ apGen->SetReturnByte(abX ? 1 : 0); }
+	};
 
-	#define SCRIPT_FUNC_END(funcname, return) \
-				SCRIPT_SET_RETURN_##return; \
-			} \
+	// A generic-calling-convention wrapper of a C++ function and its script
+	// declaration, both made from the function's signature. The generic
+	// convention works on every platform and does not depend on AngelScript's
+	// native call support.
+	template<auto Func> struct cScriptGeneric;
+
+	template<class R, class... A, R (*Func)(A...)>
+	struct cScriptGeneric<Func>
+	{
+		static void Call(asIScriptGeneric *apGen){ CallArgs(apGen, std::index_sequence_for<A...>{}); }
+
+		static std::string Declaration(const char *asName)
+		{
+			std::string sArgs;
+			for(const char *pArg : {(const char *)nullptr, cScriptType<std::decay_t<A>>::mpName...})
+			{
+				if(pArg == nullptr) continue;
+				if(!sArgs.empty()) sArgs += ",";
+				sArgs += pArg;
+			}
+			return std::string(cScriptType<R>::mpName) + " " + asName + " (" + sArgs + ")";
 		}
 
-	// Parameter Macros
-	#define SCRIPT_ARG_string(n) std::string _arg##n = *(std::string *)gen->GetArgObject(n)
-	#define SCRIPT_ARG_float(n) float _arg##n = gen->GetArgFloat(n)
-	#define SCRIPT_ARG_int(n) int _arg##n = gen->GetArgDWord(n)
-	#define SCRIPT_ARG_bool(n) bool _arg##n = gen->GetArgByte(n) != 0
-	// Return Value Macros
-	#define SCRIPT_RETURN_string std::string _ret
-	#define SCRIPT_RETURN_CALL_string _ret =
-	#define SCRIPT_SET_RETURN_string gen->SetReturnObject(&_ret)
-	#define SCRIPT_RETURN_bool bool _ret
-	#define SCRIPT_RETURN_CALL_bool _ret =
-	#define SCRIPT_SET_RETURN_bool gen->SetReturnByte(_ret ? 1 : 0)
-	#define SCRIPT_RETURN_int int _ret
-	#define SCRIPT_RETURN_CALL_int _ret =
-	#define SCRIPT_SET_RETURN_int gen->SetReturnDWord(_ret)
-	#define SCRIPT_RETURN_float float _ret
-	#define SCRIPT_RETURN_CALL_float _ret =
-	#define SCRIPT_SET_RETURN_float gen->SetReturnFloat(_ret)
-	#define SCRIPT_RETURN_void
-	#define SCRIPT_RETURN_CALL_void
-	#define SCRIPT_SET_RETURN_void
+	private:
+		template<size_t... I>
+		static void CallArgs(asIScriptGeneric *apGen, std::index_sequence<I...>)
+		{
+			if constexpr(std::is_void_v<R>)
+			{
+				Func(cScriptType<std::decay_t<A>>::Get(apGen, (int)I)...);
+			}
+			else
+			{
+				R ret = Func(cScriptType<std::decay_t<A>>::Get(apGen, (int)I)...);
+				cScriptType<R>::Set(apGen, ret);
+			}
+		}
+	};
+}
 
-	// Always use the generic calling convention: it works on every
-	// platform and does not depend on AngelScript's native call support.
-	#define SCRIPT_REGISTER_FUNC(funcname) \
-		GenericScript::funcname##_return+" "#funcname" ("+GenericScript::funcname##_arg+")", (void *)GenericScript::funcname##_Generic, asCALL_GENERIC
-	// The same under another name in the scripts, for overloads: a function
-	// that takes more arguments in a later game.
-	#define SCRIPT_REGISTER_FUNC_AS(funcname, scriptname) \
-		GenericScript::funcname##_return+" " scriptname " ("+GenericScript::funcname##_arg+")", (void *)GenericScript::funcname##_Generic, asCALL_GENERIC
+// The arguments of iLowLevelSystem::AddScriptFunc for a function, under its
+// own name or, for overloads (a function that takes more arguments in a
+// later game), another name in the scripts.
+#define SCRIPT_REGISTER_FUNC(funcname) SCRIPT_REGISTER_FUNC_AS(funcname, #funcname)
+#define SCRIPT_REGISTER_FUNC_AS(funcname, scriptname) \
+	hpl::cScriptGeneric<&funcname>::Declaration(scriptname), (void *)&hpl::cScriptGeneric<&funcname>::Call, asCALL_GENERIC
+
 
 namespace hpl {
 

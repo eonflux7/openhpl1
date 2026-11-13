@@ -93,7 +93,6 @@ namespace hpl {
 	{
 		Log(asText.c_str());
 	}
-	SCRIPT_DEFINE_FUNC_1(void, Print, string)
 
 	static std::string FloatToString(float afX)
 	{
@@ -101,7 +100,6 @@ namespace hpl {
 		sprintf(sTemp,"%f",afX);
 		return (std::string) sTemp;
 	}
-	SCRIPT_DEFINE_FUNC_1(string, FloatToString, float)
 
 	static std::string IntToString(int alX)
 	{
@@ -109,31 +107,26 @@ namespace hpl {
 		sprintf(sTemp,"%d",alX);
 		return (std::string) sTemp;
 	}
-	SCRIPT_DEFINE_FUNC_1(string, IntToString, int)
 
 	static float RandFloat(float afMin, float afMax)
 	{
 		return cMath::RandRectf(afMin,afMax);
 	}
-	SCRIPT_DEFINE_FUNC_2(float, RandFloat, float, float)
 
 	static int RandInt(int alMin, int alMax)
 	{
 		return cMath::RandRectl(alMin,alMax);
 	}
-	SCRIPT_DEFINE_FUNC_2(int, RandInt, int, int)
 
 	static bool StringContains(std::string asString, std::string asSubString)
 	{
 		return cString::GetLastStringPos(asString,asSubString)>=0;
 	}
-	SCRIPT_DEFINE_FUNC_2(bool, StringContains, string, string)
 
 	static void ResetLogicTimer()
 	{
 		gpGame->ResetLogicTimer();
 	}
-	SCRIPT_DEFINE_FUNC(void, ResetLogicTimer)
 
 	// RENDERER
 
@@ -144,7 +137,6 @@ namespace hpl {
 	{
 		gpGraphics->GetRenderer3D()->SetAmbientColor(cColor(afR,afG,afB,1.0f));
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetAmbientColor, float, float, float)
 
 	/**
 	* Sets if the skybox should be active
@@ -153,7 +145,6 @@ namespace hpl {
 	{
 		gpGraphics->GetRenderer3D()->SetSkyBoxActive(abX);
 	}
-	SCRIPT_DEFINE_FUNC_1(void, SetSkyboxActive, bool)
 
 	/**
 	* Sets the skybox color.
@@ -162,7 +153,6 @@ namespace hpl {
 	{
 		gpGraphics->GetRenderer3D()->SetSkyBoxColor(cColor(afR,afG,afB,afA));
 	}
-	SCRIPT_DEFINE_FUNC_4(void, SetSkyboxColor, float, float, float, float)
 
 	/**
 	* Sets the skybox
@@ -180,7 +170,6 @@ namespace hpl {
 			gpGraphics->GetRenderer3D()->SetSkyBox(nullptr,false);
 		}
 	}
-	SCRIPT_DEFINE_FUNC_1(void, SetSkybox, string)
 
 	/**
 	* Creates a particle system and attaches it to the camera.
@@ -197,7 +186,6 @@ namespace hpl {
 			pCam->AttachEntity(pPS);
 		}
 	}
-	SCRIPT_DEFINE_FUNC_2(void, CreateParticleSystemOnCamera, string, string)
 
 	/**
 	* Sets if fog should be active
@@ -207,7 +195,6 @@ namespace hpl {
 	{
 		gpGraphics->GetRenderer3D()->SetFogActive(abX);
 	}
-	SCRIPT_DEFINE_FUNC_1(void, SetFogActive, bool)
 
 	/**
 	* Sets if the fog should be used to cull non-visible objects
@@ -217,7 +204,6 @@ namespace hpl {
 	{
 		gpGraphics->GetRenderer3D()->SetFogCulling(abX);
 	}
-	SCRIPT_DEFINE_FUNC_1(void, SetFogCulling, bool)
 
 	/**
 	* Creates a particle system and attaches it to the camera.
@@ -231,7 +217,6 @@ namespace hpl {
 		gpGraphics->GetRenderer3D()->SetFogEnd(afEnd);
 		gpGraphics->GetRenderer3D()->SetFogColor(cColor(afR,afG,afB,1.0f));
 	}
-	SCRIPT_DEFINE_FUNC_5(void, SetFogProperties, float, float, float, float, float)
 
 	static void SetSectorProperties(std::string asSector, float afAmbR,float afAmbG, float afAmbB)
 	{
@@ -245,7 +230,6 @@ namespace hpl {
 
 		pSector->SetAmbientColor(cColor(afAmbR, afAmbG, afAmbB,1));
 	}
-	SCRIPT_DEFINE_FUNC_4(void, SetSectorProperties, string, float, float, float)
 
 	static void SetSectorPortalActive(std::string asSector, int alPortal, bool abActive)
 	{
@@ -266,7 +250,6 @@ namespace hpl {
 
 		pPortal->SetActive(abActive);
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetSectorPortalActive, string, int, bool)
 
 	// RESOURCES
 
@@ -280,7 +263,6 @@ namespace hpl {
 		tWString wsText = gpResources->Translate(asCat,asName);
 		return cString::To8Char(wsText);
 	}
-	SCRIPT_DEFINE_FUNC_2(string, Translate, string, string)
 
 	/**
 	* Preloads the data for a sound.
@@ -318,7 +300,6 @@ namespace hpl {
 			}
 		}
 	}
-	SCRIPT_DEFINE_FUNC_1(void, PreloadSound, string)
 
 	// MESH ENTITY
 
@@ -333,7 +314,6 @@ namespace hpl {
 		pEnt->SetActive(abActive);
 		pEnt->SetVisible(abActive);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetMeshActive, string, bool)
 
 	// PARTICLE SYSTEM
 
@@ -353,7 +333,6 @@ namespace hpl {
 		pPS->SetActive(abActive);
 		pPS->SetVisible(abActive);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetParticleSystemActive, string, bool)
 
 	/**
 	* Create a particle system at the position of an area
@@ -378,7 +357,6 @@ namespace hpl {
 			return;
 		}
 	}
-	SCRIPT_DEFINE_FUNC_6(void, CreateParticleSystem, string, string, string, float, float, float)
 
 	/**
 	* Kill a particle system
@@ -402,7 +380,6 @@ namespace hpl {
 
 		if(!bFound) Warning("Didn't find particle system '%s'\n",asName.c_str());
 	}
-	SCRIPT_DEFINE_FUNC_1(void, KillParticleSystem, string)
 
 	// BEAM
 
@@ -440,7 +417,6 @@ namespace hpl {
 		pBeam->SetPosition(pStartArea->m_mtxTransform.GetTranslation());
 		pBeam->GetEnd()->SetPosition(pEndArea->m_mtxTransform.GetTranslation());
 	}
-	SCRIPT_DEFINE_FUNC_4(void, CreateBeam, string, string, string, string)
 
 	/**
 	 * Destroys a beam
@@ -457,7 +433,6 @@ namespace hpl {
 
 		gpScene->GetWorld3D()->DestroyBeam(pBeam);
 	}
-	SCRIPT_DEFINE_FUNC_1(void, DestroyBeam, string)
 
 	// LIGHT
 
@@ -485,7 +460,6 @@ namespace hpl {
 		pLight->SetVisible(true);
 		pLight->UpdateLight(2.0f/60.0f);
 	}
-	SCRIPT_DEFINE_FUNC_7(void, FadeLight3D, string, float, float, float, float, float, float)
 
 	/**
 	* Attaches a billboard to a light
@@ -514,7 +488,6 @@ namespace hpl {
 		else
 			pLight->RemoveBillboard(pBillboard);
 	}
-	SCRIPT_DEFINE_FUNC_3(void, AttachBillboardToLight3D, string, string, bool)
 
 	/**
 	* Sets on/off a light
@@ -532,7 +505,6 @@ namespace hpl {
 
 		pLight->SetVisible(abX);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetLight3DVisible, string, bool)
 
 	/**
 	* Sets on/off for affect only in sector where centre is.
@@ -550,7 +522,6 @@ namespace hpl {
 
 		pLight->SetOnlyAffectInSector(abX);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetLight3DOnlyAffectInSector, string, bool)
 
 	/**
 	* Sets flickering on/off a light
@@ -568,7 +539,6 @@ namespace hpl {
 
 		pLight->SetFlickerActive(abX);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetLight3DFlickerActive, string, bool)
 
 	/**
 	* Sets flickering parameters
@@ -612,9 +582,6 @@ namespace hpl {
 							afOffMinLength, afOffMaxLength,asOffSound,asOffPS,
 							abFade,afOnFadeLength,afOffFadeLength);
 	}
-	SCRIPT_DEFINE_FUNC_17(void, SetLight3DFlicker, string,
-			float, float, float, float,
-			float, float, float, string, string, float, float, string, string, bool, float, float)
 
 	// SOUND
 
@@ -642,7 +609,6 @@ namespace hpl {
 
 		pSound->SetPosition(pArea->m_mtxTransform.GetTranslation());
 	}
-	SCRIPT_DEFINE_FUNC_3(void, CreateSoundEntity, string, string, string)
 
 	/**
 	* Play a sound entity
@@ -660,7 +626,6 @@ namespace hpl {
 
 		pSound->Play(abPlayStart);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, PlaySoundEntity, string, bool)
 
 	/**
 	* Stop a sound entity
@@ -678,7 +643,6 @@ namespace hpl {
 
 		pSound->Stop(abPlayEnd);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, StopSoundEntity, string, bool)
 
 	/**
 	* Play a sound entity fading it
@@ -696,7 +660,6 @@ namespace hpl {
 
 		pSound->FadeIn(afSpeed);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, FadeInSoundEntity, string, float)
 
 	/**
 	* Stop a sound entity fading it
@@ -714,19 +677,16 @@ namespace hpl {
 
 		pSound->FadeOut(afSpeed);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, FadeOutSoundEntity, string, float)
 
 	static void PlayMusic(std::string asName, float afVol, float afStepSize, bool abLoop)
 	{
 		gpSound->GetMusicHandler()->Play(asName,afVol,afStepSize,abLoop);
 	}
-	SCRIPT_DEFINE_FUNC_4(void, PlayMusic, string, float, float, bool)
 
 	static void StopMusic(float afStepSize)
 	{
 		gpSound->GetMusicHandler()->Stop(afStepSize);
 	}
-	SCRIPT_DEFINE_FUNC_1(void, StopMusic, float)
 
 	/**
 	* Play a sound gui sound, with out any position.
@@ -737,7 +697,6 @@ namespace hpl {
 	{
 		gpSound->GetSoundHandler()->PlayGui(asName,false,afVol);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, PlayGuiSound, string, float)
 
 	// PHYSICS
 
@@ -775,7 +734,6 @@ namespace hpl {
 		if(lType==1) pCallback->msMaxFunc = asFunc;
 		if(lType==2) pCallback->msMinFunc = asFunc;
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetJointCallback, string, string, string)
 
 	/**
 	* Breaks a joint.
@@ -790,7 +748,6 @@ namespace hpl {
 
 		pJoint->Break();
 	}
-	SCRIPT_DEFINE_FUNC_1(void, BreakJoint, string)
 
 	/**
 	* Sets if a joint controller is active or not.
@@ -812,7 +769,6 @@ namespace hpl {
 
 		pCtrl->SetActive(abActive);
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetJointControllerActive, string, string, bool)
 
 	/**
 	* Change the active controller. All other controllers are set to false.
@@ -832,7 +788,6 @@ namespace hpl {
 			return;
 		}
 	}
-	SCRIPT_DEFINE_FUNC_2(void, ChangeJointController, string, string)
 
 	/**
 	* Sets if a joint controller is active or not.
@@ -859,7 +814,6 @@ namespace hpl {
 			pCtrl->SetDestValue(afValue);
 		}
 	}
-	SCRIPT_DEFINE_FUNC_4(void, SetJointControllerPropertyFloat, string, string, string, float)
 
 	/**
 	* Gets a property from the joint.
@@ -952,7 +906,6 @@ namespace hpl {
 		Warning("Joint property '%s' does not exist!\n",asProp.c_str());
 		return 0;
 	}
-	SCRIPT_DEFINE_FUNC_2(float, GetJointProperty, string, string)
 
 	/**
 	* Gets a property from the body.
@@ -988,7 +941,6 @@ namespace hpl {
 		Warning("Body property '%s' does not exist!\n",asProp.c_str());
 		return 0;
 	}
-	SCRIPT_DEFINE_FUNC_2(float, GetBodyProperty, string, string)
 
 	/**
 	* Sets a property to the body.
@@ -1044,7 +996,6 @@ namespace hpl {
 
 		Warning("Body property '%s' does not exist!\n",asProp.c_str());
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetBodyProperty, string, string, float)
 
 	// Black Plague's scripts give true and false to this and to the
 	// variables below, which the script compiler of their time took as
@@ -1053,7 +1004,6 @@ namespace hpl {
 	{
 		SetBodyProperty(asBody, asProp, abVal ? 1.0f : 0.0f);
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetBodyPropertyBool, string, string, bool)
 
 	static void AttachBodiesWithJoint(std::string asParentName, std::string asChildName, std::string asJointName)
 	{
@@ -1077,7 +1027,6 @@ namespace hpl {
 		pJoint->SetMinDistance(-0.01f);
 		pJoint->SetMaxDistance(0.01f);
 	}
-	SCRIPT_DEFINE_FUNC_3(void, AttachBodiesWithJoint, string, string, string)
 
 	/**
 	* Sets a property to the joint.
@@ -1156,7 +1105,6 @@ namespace hpl {
 			Warning("Joint property '%s' does not exist!\n",asProp.c_str());
 		}
 	}
-	SCRIPT_DEFINE_FUNC_3(void, SetJointProperty, string, string, float)
 
 	/**
 	* Adds a force to the body. This can either be in the bodies local coord system or the world's.
@@ -1196,7 +1144,6 @@ namespace hpl {
 			pBody->AddForce(vWorldForce);
 		}
 	}
-	SCRIPT_DEFINE_FUNC_5(void, AddBodyForce, string, string, float, float, float)
 
 	/**
 	* Adds an impule (a change in velocity) to the body. This can either be in the bodies local coord system or the world's.
@@ -1236,7 +1183,6 @@ namespace hpl {
 			pBody->AddImpulse(vWorldForce);
 		}
 	}
-	SCRIPT_DEFINE_FUNC_5(void, AddBodyImpulse, string, string, float, float, float)
 
 	// LOCAL VARS
 
@@ -1248,33 +1194,28 @@ namespace hpl {
 			pVar->mlVal = alVal;
 		}
 	}
-	SCRIPT_DEFINE_FUNC_2(void, CreateLocalVar, string, int)
 
 	static void SetLocalVar(std::string asName, int alVal)
 	{
 		cScriptVar* pVar = gpScene->CreateLocalVar(asName);
 		pVar->mlVal = alVal;
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetLocalVar, string, int)
 
 	static void CreateLocalVarBool(std::string asName, bool abVal)
 	{
 		CreateLocalVar(asName, abVal ? 1 : 0);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, CreateLocalVarBool, string, bool)
 
 	static void SetLocalVarBool(std::string asName, bool abVal)
 	{
 		SetLocalVar(asName, abVal ? 1 : 0);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetLocalVarBool, string, bool)
 
 	static void AddLocalVar(std::string asName, int alVal)
 	{
 		cScriptVar* pVar = gpScene->CreateLocalVar(asName);
 		pVar->mlVal += alVal;
 	}
-	SCRIPT_DEFINE_FUNC_2(void, AddLocalVar, string, int)
 
 	static int GetLocalVar(std::string asName)
 	{
@@ -1286,7 +1227,6 @@ namespace hpl {
 		}
 		return pVar->mlVal;
 	}
-	SCRIPT_DEFINE_FUNC_1(int, GetLocalVar, string)
 
 	// GLOBAL VARS
 
@@ -1298,26 +1238,22 @@ namespace hpl {
 			pVar->mlVal = alVal;
 		}
 	}
-	SCRIPT_DEFINE_FUNC_2(void, CreateGlobalVar, string, int)
 
 	static void SetGlobalVar(std::string asName, int alVal)
 	{
 		cScriptVar* pVar = gpScene->CreateGlobalVar(asName);
 		pVar->mlVal = alVal;
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetGlobalVar, string, int)
 
 	static void CreateGlobalVarBool(std::string asName, bool abVal)
 	{
 		CreateGlobalVar(asName, abVal ? 1 : 0);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, CreateGlobalVarBool, string, bool)
 
 	static void SetGlobalVarBool(std::string asName, bool abVal)
 	{
 		SetGlobalVar(asName, abVal ? 1 : 0);
 	}
-	SCRIPT_DEFINE_FUNC_2(void, SetGlobalVarBool, string, bool)
 
 
 	static void AddGlobalVar(std::string asName, int alVal)
@@ -1325,7 +1261,6 @@ namespace hpl {
 		cScriptVar* pVar = gpScene->CreateGlobalVar(asName);
 		pVar->mlVal += alVal;
 	}
-	SCRIPT_DEFINE_FUNC_2(void, AddGlobalVar, string, int)
 
 
 	static int GetGlobalVar(std::string asName)
@@ -1338,7 +1273,6 @@ namespace hpl {
 		}
 		return pVar->mlVal;
 	}
-	SCRIPT_DEFINE_FUNC_1(int, GetGlobalVar, string)
 
 	void cScriptFuncs::Init(	cGraphics* apGraphics,
 				cResources *apResources,

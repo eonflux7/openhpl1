@@ -14,7 +14,7 @@ The functions and their overloads come from the game itself: run each game
 once with OPENHPL_SCRIPT_API=build/porting/api/<game>.txt (and, say,
 OPENHPL_SMOKE=none so it quits at once). Parameter names, to know which
 argument is a callback, come from the sources: the static function
-definition of each name given to a SCRIPT_DEFINE_FUNC macro.
+definition of each name given to SCRIPT_REGISTER_FUNC(_AS).
 """
 import os
 import re
@@ -36,7 +36,7 @@ def source_params():
     """script name -> list of parameter-name lists, from the C++ sources."""
     params, alias = {}, {}
     sig = re.compile(r"static\s+[\w:<>]+\s+(\w+)\s*\(([^)]*)\)", re.S)
-    defined = re.compile(r"SCRIPT_DEFINE_FUNC\w*\(\s*\w+\s*,\s*(\w+)")
+    registered = re.compile(r"SCRIPT_REGISTER_FUNC(?:_AS)?\(\s*(\w+)")
     for top in ("game", "engine/sources"):
         for dirpath, _, files in os.walk(os.path.join(ROOT, top)):
             for f in files:
@@ -45,7 +45,7 @@ def source_params():
                 text = open(os.path.join(dirpath, f), encoding="utf-8", errors="replace").read()
                 for cpp, script in re.findall(r'SCRIPT_REGISTER_FUNC_AS\(\s*(\w+)\s*,\s*"(\w+)"', text):
                     alias[cpp] = script
-                scripted = set(defined.findall(text))
+                scripted = set(registered.findall(text))
                 for m in sig.finditer(text):
                     if m.group(1) not in scripted:
                         continue
